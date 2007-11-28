@@ -1,0 +1,177 @@
+###############################################################################
+# OPEN THEORY DEVELOPMENT MAKEFILE
+# Copyright (c) 2005-2007 Joe Hurd, distributed under the GNU GPL version 2
+###############################################################################
+
+###############################################################################
+# Cleaning temporary files.
+###############################################################################
+
+TEMPFILE = Makefile-temp-file
+
+TEMP += $(TEMPFILE) \
+	bin/mlton/*.ssa bin/mlton/*.ssa2 \
+        bin/mlton/benchmark \
+        mlmon.out profile-*
+
+###############################################################################
+# The ML preprocessor.
+###############################################################################
+
+#MLPP_OPTS += -r 'DEBUG'
+#MLPP_OPTS += -r 'DEBUG|TRACE[0-1]'
+#MLPP_OPTS += -r 'DEBUG|TRACE[0-2]'
+#MLPP_OPTS += -r 'DEBUG|TRACE[0-3]'
+#MLPP_OPTS += -r 'DEBUG|TRACE[0-4]'
+#MLPP_OPTS += -r 'DEBUG|TRACE[0-5]'
+#MLPP_OPTS += -r 'DEBUG|TRACE[0-6]'
+
+###############################################################################
+# The Moscow ML compiler.
+###############################################################################
+
+###############################################################################
+# The MLton compiler.
+###############################################################################
+
+MLTON_OPTS += -verbose 1 -keep ssa -keep ssa2
+#MLTON_OPTS += -inline 100000
+#MLTON_OPTS += -const 'MLton.safe false' -const 'MLton.detectOverflow false'
+#MLTON_OPTS += -const 'Exn.keepHistory true'
+
+###############################################################################
+# Automatically generated dependencies.
+###############################################################################
+
+MOSML_DEP = scripts/mosml_dep
+
+bin/mosml/Makefile.src: Makefile Makefile.dev $(MOSML_DEP) $(MLPP)
+	@echo
+	@echo '****************************************************'
+	@echo '* Regenerating the Moscow ML makefile dependencies *'
+	@echo '****************************************************'
+	@echo
+	@$(MOSML_DEP) $(MOSML_SRC) $(MOSML_TARGETS) > $@
+
+###############################################################################
+# Moving source files around.
+###############################################################################
+
+src/ElementSet.sig: ../basic/src/ElementSet.sig $(COPY) ; @$(COPY) $< $@
+src/ElementSet.sml: ../basic/src/ElementSet.sml $(COPY) ; @$(COPY) $< $@
+src/Heap.sig: ../basic/src/Heap.sig $(COPY) ; @$(COPY) $< $@
+src/Heap.sml: ../basic/src/Heap.sml $(COPY) ; @$(COPY) $< $@
+src/KeyMap.sig: ../basic/src/KeyMap.sig $(COPY) ; @$(COPY) $< $@
+src/KeyMap.sml: ../basic/src/KeyMap.sml $(COPY) ; @$(COPY) $< $@
+src/Lazy.sig: ../basic/src/Lazy.sig $(COPY) ; @$(COPY) $< $@
+src/Lazy.sml: ../basic/src/Lazy.sml $(COPY) ; @$(COPY) $< $@
+src/Map.sig: ../basic/src/Map.sig $(COPY) ; @$(COPY) $< $@
+src/Map.sml: ../basic/src/Map.sml $(COPY) ; @$(COPY) $< $@
+src/Options.sig: ../basic/src/Options.sig $(COPY) ; @$(COPY) $< $@
+src/Options.sml: ../basic/src/Options.sml $(COPY) ; @$(COPY) $< $@
+src/Ordered.sig: ../basic/src/Ordered.sig $(COPY) ; @$(COPY) $< $@
+src/Ordered.sml: ../basic/src/Ordered.sml $(COPY) ; @$(COPY) $< $@
+src/Parser.sig: ../basic/src/Parser.sig $(COPY) ; @$(COPY) $< $@
+src/Parser.sml: ../basic/src/Parser.sml $(COPY) ; @$(COPY) $< $@
+src/Portable.sig: ../basic/src/Portable.sig $(COPY) ; @$(COPY) $< $@
+src/PortableMosml.sml: ../basic/src/PortableMosml.sml $(COPY) ; @$(COPY) $< $@
+src/PortableMlton.sml: ../basic/src/PortableMlton.sml $(COPY) ; @$(COPY) $< $@
+src/PP.sig: ../basic/src/PP.sig $(COPY) ; @$(COPY) $< $@
+src/PP.sml: ../basic/src/PP.sml $(COPY) ; @$(COPY) $< $@
+src/Random.sig: ../basic/src/Random.sig $(COPY) ; @$(COPY) $< $@
+src/Random.sml: ../basic/src/Random.sml $(COPY) ; @$(COPY) $< $@
+src/RandomMap.sml: ../basic/src/RandomMap.sml $(COPY) ; @$(COPY) $< $@
+src/RandomSet.sml: ../basic/src/RandomSet.sml $(COPY) ; @$(COPY) $< $@
+src/Set.sig: ../basic/src/Set.sig $(COPY) ; @$(COPY) $< $@
+src/Set.sml: ../basic/src/Set.sml $(COPY) ; @$(COPY) $< $@
+src/Sharing.sig: ../basic/src/Sharing.sig $(COPY) ; @$(COPY) $< $@
+src/Sharing.sml: ../basic/src/Sharing.sml $(COPY) ; @$(COPY) $< $@
+src/Stream.sig: ../basic/src/Stream.sig $(COPY) ; @$(COPY) $< $@
+src/Stream.sml: ../basic/src/Stream.sml $(COPY) ; @$(COPY) $< $@
+src/Useful.sig: ../basic/src/Useful.sig $(COPY) ; @$(COPY) $< $@
+src/Useful.sml: ../basic/src/Useful.sml $(COPY) ; @$(COPY) $< $@
+
+src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
+
+src/benchmark.sml: src/metis.sml $(COPY) ; @$(COPY) $< $@
+
+###############################################################################
+# Counting the number of lines of code.
+###############################################################################
+
+LINES = scripts/ml_lines
+
+.PHONY: lines
+lines: $(LINES)
+	@echo
+	@echo -n 'Behold '
+	@$(LINES) $(SRC) src/behold.sml
+	@echo
+
+###############################################################################
+# Profiling using MLton.
+###############################################################################
+
+BENCHMARK_OPTS = --show name $(BENCHMARK_SET)/*.tptp
+
+profile-time.mlb: bin/mlton/benchmark.sml
+	echo '$$(SML_LIB)/basis/basis.mlb $$(SML_LIB)/basis/mlton.mlb $<' > $@
+
+profile-time: profile-time.mlb
+	@echo
+	@echo '********************************************************'
+	@echo '* Compile the OpenTheory benchmark with time profiling *'
+	@echo '********************************************************'
+	@echo
+	$(MLTON) $(MLTON_OPTS) -profile time -profile-stack true -profile-branch true $<
+	@echo
+
+profile-time.out profile-time-log: profile-time
+	time ./profile-time $(BENCHMARK_OPTS) | tee profile-time-log
+	mv mlmon.out profile-time.out
+
+profile-time.txt: profile-time.out Makefile.dev
+	mlprof -show-line true -raw true -keep '(and (thresh 0.1) (thresh-stack 0.1))' -split '.*' profile-time profile-time.out > $@
+
+profile-time.dot: profile-time.out Makefile.dev
+	mlprof -show-line true -raw true -call-graph $@ -keep '(thresh-stack 1)' -graph-title "OpenTheory Time Profiling" -split '.*' profile-time profile-time.out > /dev/null
+
+.PHONY: profile
+profile: profile-time.txt profile-time.dot
+
+###############################################################################
+# Releasing.
+###############################################################################
+
+RELEASE_DIR = release
+
+.PHONY: tarball
+tarball: clean doc/DONT-RELEASE Makefile.dev
+	cd .. ; tar cvzhf metis/release/OpenTheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
+
+.PHONY: release
+release: mosml mlton tarball
+	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.jpg $(RELEASE_DIR)/*.txt
+	cp -v doc/*.html doc/*.jpg doc/*.txt $(RELEASE_DIR)/
+	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@gilith.com:public_html/software/opentheory
+
+###############################################################################
+# The build scripts.
+###############################################################################
+
+COPY = scripts/copy_src
+
+$(COPY): ../basic/scripts/copy_src
+	@cp -fv $< $@
+	@chmod -w $@
+
+$(MLPP): ../basic/scripts/mlpp $(COPY) ; @$(COPY) $< $@
+
+$(MOSML_DEP): ../basic/scripts/mosml_dep $(COPY) ; @$(COPY) $< $@
+
+$(LINES): ../basic/scripts/ml_lines $(COPY) ; @$(COPY) $< $@
+
+$(RELEASE_STAMP): ../basic/scripts/release_stamp $(COPY) ; @$(COPY) $< $@
+
+.PHONY: build-scripts
+build-scripts: $(COPY) $(MLPP) $(MOSML_DEP) $(LINES) $(RELEASE_STAMP)

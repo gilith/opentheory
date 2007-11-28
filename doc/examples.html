@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                      "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <title>OpenTheory Article Examples</title>
+  <meta name="keywords" content="proofs, higher order logic">
+ </head>
+
+ <body bgcolor="white">
+
+  <table cellpadding="2">
+   <tr>
+    <td>
+     <a href="index.html">home</a>
+    </td>
+    <td width="20"></td>
+    <td>
+     <a href="goal.html">project goals</a>
+    </td>
+    <td width="20"></td>
+    <td>
+     <a href="article.html">article format</a>
+    </td>
+    <td width="20"></td>
+    <td bgcolor="yellow">
+     article examples
+    </td>
+   </tr>
+  </table>
+
+  <hr>
+
+  <h2>OpenTheory Article Examples</h2>
+
+  Experimentation to date has been with the <a
+  href="http://www.cl.cam.ac.uk/users/jrh/hol-light/index.html">hol-light</a>
+  theorem prover. The 2Mb file <a
+  href="num.art"><kbd>num.art</kbd></a> is an article of everything
+  proved in the <kbd>num.ml</kbd> input file, and the 32Mb compressed
+  tar file <a href="articles.tgz"><kbd>articles.tgz</kbd></a> contains
+  articles of all the <kbd>.ml</kbd> input files distributed with
+  hol-light.
+
+  <p>
+
+  hol-light was naively instrumented to log every function call,
+  whether successful or not, and also to insert every new object into
+  the dictionary (in case it was needed in the future). Thus the
+  article files are far larger than they need to be. There is ongoing
+  work on tool support to eliminate this and other forms of redundancy
+  in article files, but it is encouraging that even without this the
+  sizes are not unmanageable. Here is a list of article sizes, <em>in
+  build order</em>:
+
+  <small>
+  <pre>
+    <b>Lines</b>      <b>Bytes</b>  <b>Article</b>
+        2         21  preamble.art
+        2         47  basics.art
+        2         45  nets.art
+        2         48  preterm.art
+        2         47  parser.art
+        2         48  printer.art
+        2         46  equal.art
+    29712     152115  bool.art
+        2         46  drule.art
+     3424      16644  tactics.art
+     6519      32606  itab.art
+    22915     115440  simp.art
+   922635    5014358  theorems.art
+    68546     361423  ind-defs.art
+   341975    1777379  class.art
+    45928     228187  trivia.art
+   137132     695402  canon.art
+    57697     287669  meson.art
+   625316    3306900  quot.art
+        2         50  recursion.art
+   646151    3406690  pair.art
+   462868    2434821  <a href="num.art">num.art</a>
+  4524434   24608064  arith.art
+  2882898   15465263  wf.art
+  4683874   25934232  calc_num.art
+   656376    3472894  normalizer.art
+  1905778   10245178  ind-types.art
+  2776423   15115829  list.art
+  5654379   30995759  realax.art
+  8834149   48754445  real.art
+   335272    1736743  calc_rat.art
+  1704886    9007327  int.art
+ 21162007  117837845  sets.art
+------------------------------------
+ 58491312  321003611  <b>Total</b>
+  </pre>
+  </small>
+
+  <p>
+
+  The compression ratio for these article files is 90%. During the
+  entire build of hol-light, 1,600,000 new types, terms and theorems
+  were constructed, giving an average of 200 bytes per object, or 20
+  compressed bytes per object.
+
+  <p>
+
+  <hr>
+
+  <i><a href = "http://www.cl.cam.ac.uk/~jeh1004">Joe Hurd</a>,
+  27 April 2005</i>
+
+ </body>
+</html>

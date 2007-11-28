@@ -1,0 +1,8 @@
+.cvsignore
+CVS
+metis/Makefile.dev
+metis/doc/DONT-RELEASE
+metis/doc/TODO
+metis/release
+metis/scripts/copy_src
+metis/scripts/mosml_dep
