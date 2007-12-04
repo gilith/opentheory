@@ -93,7 +93,7 @@ src/Useful.sml: ../basic/src/Useful.sml $(COPY) ; @$(COPY) $< $@
 
 src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
 
-src/benchmark.sml: src/metis.sml $(COPY) ; @$(COPY) $< $@
+src/benchmark.sml: src/behold.sml $(COPY) ; @$(COPY) $< $@
 
 ###############################################################################
 # Counting the number of lines of code.
@@ -147,7 +147,7 @@ RELEASE_DIR = release
 
 .PHONY: tarball
 tarball: clean doc/DONT-RELEASE Makefile.dev
-	cd .. ; tar cvzhf metis/release/OpenTheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
+	cd .. ; tar cvzhf opentheory/release/OpenTheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
 
 .PHONY: release
 release: mosml mlton tarball
