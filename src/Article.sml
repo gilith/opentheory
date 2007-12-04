@@ -3,13 +3,8 @@
 (* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
 (* ========================================================================= *)
 
-val () = loadPath := !loadPath @ ["../bin/mosml"];
-app load ["Intset","Intmap","Rule"];
-
-(*
 structure Article :> Article =
 struct
-*)
 
 open Useful Syntax Rule;
 
@@ -28,23 +23,19 @@ structure TU = TermSubst;
 
 infix |-> ## ==
 
-val op== = Sharing.==;
-
-(* ------------------------------------------------------------------------- *)
-(* Chatting                                                                  *)
-(* ------------------------------------------------------------------------- *)
-
-val module = "Article";
-fun chatting l = tracing {module = module, level = l};
-fun chat s = (trace s; true);
-fun chatVar name_x pp_x x = chat (varToString pp_x name_x x ^ "\n");
+val op== = Portable.pointerEqual;
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 fun plural 1 s = "1 " ^ s
-  | plural n s = int_to_string n ^ " " ^ s ^ "s";
+  | plural n s = Int.toString n ^ " " ^ s ^ "s";
+
+fun nat_from_string err s =
+    case Int.fromString s of
+      SOME i => i
+    | NONE => raise Error err;
 
 (* ------------------------------------------------------------------------- *)
 (* Bilingual dictionaries                                                    *)
@@ -150,21 +141,21 @@ fun object_compare ob1_ob2 =
       | (Othm th1, Othm th2) => Int.compare (thm_id th1, thm_id th2)
       | (Othm _, _) => LESS
       | (_, Othm _) => GREATER
-      | (Olist l1, Olist l2) => lex_list_order object_compare (l1,l2)
+      | (Olist l1, Olist l2) => lexCompare object_compare (l1,l2)
       | (Olist _, _) => LESS
       | (_, Olist _) => GREATER
       | (Ocall n1, Ocall n2) => N.compare (n1,n2);
 
 fun pp_object pp ob =
     case ob of
-      Oerror => pp_string pp "ERROR"
-    | Onum n => pp_int pp n
-    | Oname s => pp_string pp ("\"" ^ s ^ "\"")
+      Oerror => Parser.ppString pp "ERROR"
+    | Onum n => Parser.ppInt pp n
+    | Oname s => Parser.ppString pp ("\"" ^ s ^ "\"")
     | Otype ty => pp_type pp ty
     | Oterm tm => pp_term pp tm
     | Othm th => pp_thm pp th
-    | Olist l => pp_list pp_object pp l
-    | Ocall f => pp_string pp ("<" ^ f ^ ">");
+    | Olist l => Parser.ppList pp_object pp l
+    | Ocall f => Parser.ppString pp ("<" ^ f ^ ">");
 
 val extract_thms =
     let
@@ -183,7 +174,7 @@ val extract_thms =
 fun import_into_namespace namespace name = join "." (namespace @ [name]);
 
 fun export_from_namespace namespace name =
-    foldl (fn (m,x) => Option.getOpt (total (dest_prefix (m ^ ".")) x, x))
+    foldl (fn (m,x) => Option.getOpt (total (destPrefix (m ^ ".")) x, x))
     name namespace;
 
 datatype translation =
@@ -279,7 +270,7 @@ fun dict_def (n,obj) dict = Intmap.insert (dict,n,obj);
 fun dict_ref dict n =
     case Intmap.peek (dict,n) of
       SOME obj => obj
-    | NONE => raise Error ("dict_ref: no entry for number "^int_to_string n);
+    | NONE => raise Error ("dict_ref: no entry for number "^Int.toString n);
 
 (* ------------------------------------------------------------------------- *)
 (* Saved theorems                                                            *)
@@ -306,7 +297,7 @@ local
 
   fun sequent_to_key (h,c) = mk_key (TAS.fromList h, c);
 in
-  val thm_set_empty = ThmSet (M.mkDict (lex_list_order T.alpha_compare));
+  val thm_set_empty = ThmSet (M.mkDict (lexCompare T.alpha_compare));
 
   fun thm_set_peek (ThmSet m) h_c = M.peek (m, sequent_to_key h_c);
 
@@ -351,7 +342,7 @@ fun thm_deps_useful (ThmDeps m) =
           else
             case IM.peek (m,i) of
               SOME il => f (il @ rest) (IS.add (set,i))
-            | NONE => raise Bug ("thm_deps_useful: no dep for "^int_to_string i)
+            | NONE => raise Bug ("thm_deps_useful: no dep for "^Int.toString i)
     in
       fn ths => f (map thm_id ths) IS.empty
     end;
@@ -367,13 +358,11 @@ datatype article_op =
                            ret : object}
        | Save_thm of thm;
          
-fun function_call_update_ops ops (function_call as Function_call _) =
-    let
-      val Function_call {name,arg,ret,...} = function_call
-    in
+fun function_call_update_ops ops artop =
+    case artop of
+      Function_call {name,arg,ret,...} =>
       Function_call {name = name, arg = arg, ops = ops, ret = ret}
-    end
-  | function_call_update_ops _ _ = raise Error "function_call_update_ops";
+    | Save_thm _ => raise Error "function_call_update_ops";
 
 datatype article = Article of article_op list;
 
@@ -393,9 +382,9 @@ val article_operations =
     end;
 
 fun article_to_string article =
-    "[" ^ int_to_string (article_operations article) ^ "]";
+    "[" ^ Int.toString (article_operations article) ^ "]";
 
-val pp_article = pp_map article_to_string pp_string;
+val pp_article = Parser.ppMap article_to_string Parser.ppString;
 
 local
   fun special_filter _ [] s = ([],s)
@@ -430,15 +419,17 @@ local
 in
   fun dead_theorem_elimination useful article = 
     let
-      val _ = chatting 1 andalso
-              chat ("dead_theorem_elimination: before = " ^
-                    article_to_string article ^ "\n")
+(*TRACE1
+      val _ = trace ("dead_theorem_elimination: before = " ^
+                     article_to_string article ^ "\n")
+*)
       val Article ops = article
       val (ops,useful) = eliml ops useful
       val article = Article ops
-      val _ = chatting 1 andalso
-              chat ("dead_theorem_elimination: after = " ^
-                    article_to_string article ^ "\n")
+(*TRACE1
+      val _ = trace ("dead_theorem_elimination: after = " ^
+                     article_to_string article ^ "\n")
+*)
     in
       article
     end;
@@ -830,7 +821,7 @@ fun extra_thm_deps_add_list deps extra =
       extra_update_thm_deps thm_deps extra
     end;
 
-val pp_extra = pp_map (fn _ : extra => "<extra>") pp_string;
+val pp_extra = Parser.ppMap (fn _ : extra => "<extra>") Parser.ppString;
 
 val extra_init =
     Extra
@@ -1013,8 +1004,11 @@ local
 
   (* For dealing with locations *)
 
+  fun isAlphaNum #"_" = true
+    | isAlphaNum c = Char.isAlphaNum c;
+
   fun locn_to_string (line,char) = 
-      "line " ^ int_to_string line ^ ", char " ^ int_to_string char;
+      "line " ^ Int.toString line ^ ", char " ^ Int.toString char;
 
   fun some2 p = some (p o snd);
 
@@ -1026,7 +1020,7 @@ local
   (* Adding line numbers *)
 
   fun read_lines filename =
-      Stream.zip (Stream.count 1) (Stream.from_textfile filename);
+      Stream.zip (Stream.count 1) (Stream.fromTextFile filename);
 
   (* Adding char numbers *)
 
@@ -1034,7 +1028,7 @@ local
       let
         fun f (n:int) (i,c) = ((n,i),c)
       in
-        any >> (fn (n,s) => map (f n) (enumerate 0 (explode s)))
+        any >> (fn (n,s) => map (f n) (enumerate (explode s)))
       end;
 
   (* Lexing *)
@@ -1059,18 +1053,18 @@ local
   fun in_comment c = c <> #"\n";
 
   val tok_parser =
-      (atleastone (some2 digit)
-       >> (sing o (I ## (Tnum o string_to_int)) o implode2))
-      || ((some2 alpha ++ many (some2 alphanum))
-          >> (sing o (I ## Tcommand) o implode2 o op::))
+      (atLeastOne (some2 Char.isDigit)
+       >> (singleton o (I ## (Tnum o nat_from_string "bad number")) o implode2))
+      || ((some2 Char.isAlpha ++ many (some2 isAlphaNum))
+          >> (singleton o (I ## Tcommand) o implode2 o op::))
       || ((exact2 #"\"" ++ many quote_parser ++ exact2 #"\"")
           >> (fn ((l,_),(s,_)) => [(l, Tname (implode (map snd s)))]))
       || ((exact2 #"#" ++ many (some2 in_comment) ++ exact2 #"\n") >> (K []))
       || (any >> (fn (l,c) => lex_error l ("bad char: \"" ^ str c ^ "\"")));
 
   val token_parser =
-      ((many (some2 space) ++ tok_parser) >> snd)
-      || ((atleastone (some2 space) ++ finished) >> K []);
+      ((many (some2 Char.isSpace) ++ tok_parser) >> snd)
+      || ((atLeastOne (some2 Char.isSpace) ++ finished) >> K []);
 
   (* Interpreting commands *)
 
@@ -1195,14 +1189,16 @@ local
       | (Tcommand "call", Oname n :: i :: stack) =>
         let
           val n = import_rule translation n
-          val _ = chatting 1 andalso
-                  (chatting 3 orelse null (call_stack stack)) andalso
-                  chat (n ^ "\n") andalso
-                  chatting 2 andalso
-                  chat ("  stack = ["^int_to_string (length stack)
-                        ^"], call stack = [" ^int_to_string
-                          (length (call_stack stack))^"]\n") andalso
-                  chatVar "  input" pp_object i
+(*TRACE1
+          val () = if not (null (call_stack stack)) then ()
+                   else trace (n ^ "\n")
+*)
+(*TRACE2
+          val () = trace ("  stack = ["^Int.toString (length stack) ^
+                          "], call stack = [" ^
+                          Int.toString (length (call_stack stack))^"]\n")
+          val () = Parser.ppTrace "  input" pp_object i
+*)
           val stack = i :: Ocall n :: stack
           val extra = extra_call n i extra
         in
@@ -1219,14 +1215,16 @@ local
                 if n = n' then stack
                 else raise Error ("call "^n^" matched by return "^n')
           val stack = r :: stack
-          val _ = chatting 1 andalso
-                  (chatting 3 orelse null (call_stack stack)) andalso
-                  ((chatting 2 andalso
-                    chat (n ^ " return\n") andalso
-                    chat ("  stack = ["^int_to_string (length stack)
-                          ^"], call stack = [" ^int_to_string
-                          (length(call_stack stack))^"]\n  return = ")) andalso
-                   chat (toString pp_object r ^ "\n"))
+(*TRACE1
+          val () = if not (null (call_stack stack)) then ()
+                   else trace (n ^ " return\n")
+*)
+(*TRACE2
+          val () = trace ("  stack = ["^Int.toString (length stack) ^
+                          "], call stack = [" ^
+                          Int.toString (length (call_stack stack)) ^ "]\n")
+          val () = Parser.ppTrace "return" pp_object r
+*)
           val extra = extra_return n r extra
         in
           {stack = stack, dict = dict, saved = saved, extra = extra}
@@ -1288,7 +1286,9 @@ local
 
   fun add_textfile (saved,extra) {filename,translation} =
       let
-        val _ = chatting 1 andalso chat ("filename = " ^ filename ^ "\n")
+(*TRACE1
+        val _ = trace ("filename = " ^ filename ^ "\n")
+*)
         val lines = read_lines {filename = filename}
         val chars = everything char_parser lines
         val toks = everything token_parser chars
@@ -1301,7 +1301,7 @@ local
       in
         (saved,extra)
       end
-      handle Noparse => raise Error "parse error";
+      handle NoParse => raise Error "parse error";
 
   fun from_textfile_list l =
       let
@@ -1324,8 +1324,8 @@ end;
 local
   fun article_to_stream translation =
       let
-        fun line_to_stream s = Stream.sing (s ^ "\n")
-        and num_to_stream n = line_to_stream (int_to_string n)
+        fun line_to_stream s = Stream.singleton (s ^ "\n")
+        and num_to_stream n = line_to_stream (Int.toString n)
         and name_to_stream s = line_to_stream ("\"" ^ s ^ "\"")
         and command_to_stream cmd = line_to_stream cmd
         and object_to_stream obj =
@@ -1389,70 +1389,5 @@ in
       handle Error err => raise Error ("Article.to_textfile: " ^ err);
 end;
 ***)
-
-(* Quick testing *)
-val () = installPP pp_type;
-val () = installPP pp_term;
-val () = installPP pp_subst;
-val () = installPP pp_thm;
-val () = installPP pp_object;
-val () = installPP pp_extra;
-val () = installPP pp_article;
-
-val () = trace_level := 1;
-
-(***
-val q = ("q", bool_ty);
-val T = mk_const ("T", bool_ty);
-val qT = mk_abs (q,T);
-val qTq = mk_comb (qT, mk_var q);
-val u = TU.singleton (q,T);
-TU.subst u (mk_var q);
-TU.subst u qTq;
-***)
-
-val prefix = "/home/jeh1004/ptr/hol-light/";
-
-Portable.time (from_textfiles o map (fn x => {filename = prefix ^ x ^ ".art",
-                                             translation = !hol_light}))
-[
-(*
-   "preamble",
-   "basics",
-   "nets",
-   "preterm",
-   "parser",
-   "printer",
-   "equal",
-   "bool",
-   "drule",
-   "tactics",
-   "itab",
-   "simp",
-   "theorems",
-   "ind-defs",
-   "class",
-   "trivia",
-   "canon",
-   "meson",
-   "quot",
-   "recursion",
-   "pair",
-*)
-   "num"
-(*
- "arith",
- "wf",
- "calc_num",
- "normalizer",
- "ind-types",
- "list",
- "realax",
- "real",
- "calc_rat",
- "int",
- "sets"
-*)
-];
 
 end

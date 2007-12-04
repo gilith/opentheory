@@ -64,7 +64,8 @@ SRC = \
   src/Thm.sig src/Thm.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
-  src/Article.sig src/Article.sml
+  src/Article.sig src/Article.sml \
+  src/Options.sig src/Options.sml
 
 EXTRA_SRC =
 

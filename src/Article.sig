@@ -23,7 +23,7 @@ val export_rule : translation -> Name.name -> Name.name
 
 val natural : translation
 
-val hol_light : translation
+val hol_light : translation ref
 
 (* ------------------------------------------------------------------------- *)
 (* Articles                                                                  *)
@@ -35,9 +35,12 @@ type article
 (* I/O                                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val from_textfile : {filename : string, translation : translation} -> article
+val from_textfile :
+    {filename : string, translation : translation} -> Thm.thm list * article
 
+(***
 val to_textfile :
     {filename : string, translation : translation, article : article} -> unit
+***)
 
 end

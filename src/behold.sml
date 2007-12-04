@@ -1,29 +1,30 @@
 (* ========================================================================= *)
-(* THE BEHOLD PROOF CHECKER                                                  *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* BEHOLD PROOF CHECKER (PART OF THE OPENTHEORY TOOLSET)                     *)
+(*                                                                           *)
+(* Copyright (c) 2004-2007 Joe Hurd                                          *)
+(*                                                                           *)
+(* OpenTheory is free software; you can redistribute it and/or modify        *)
+(* it under the terms of the GNU General Public License as published by      *)
+(* the Free Software Foundation; either version 2 of the License, or         *)
+(* (at your option) any later version.                                       *)
+(*                                                                           *)
+(* Metis is distributed in the hope that it will be useful,                  *)
+(* but WITHOUT ANY WARRANTY; without even the implied warranty of            *)
+(* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *)
+(* GNU General Public License for more details.                              *)
+(*                                                                           *)
+(* You should have received a copy of the GNU General Public License         *)
+(* along with Metis; if not, write to the Free Software                      *)
+(* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
 (* ========================================================================= *)
 
-(* ------------------------------------------------------------------------- *)
-(* Structures                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-open Useful HOL;
-
-infixr ## |->
+open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* The program name                                                          *)
+(* The program name.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 val PROGRAM = "behold";
-
-(* ------------------------------------------------------------------------- *)
-(* The trace system                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val () = trace_level := 0;
-fun chatting l = tracing {module = PROGRAM, level = l};
-fun chat s = (trace s; true);
 
 (* ------------------------------------------------------------------------- *)
 (* Program options                                                           *)
@@ -38,33 +39,34 @@ val SYSTEMS = ["behold","HOL4","ProofPower","hol-light"];
 local
   open Useful Options;
 in
-  val special_options : opt list =
+  val specialOptions =
       [{switches = ["-i","--input"], arguments = ["SYSTEM"],
         description = "the system that produced the input article",
-        processor = begin_proc (string_proc end_proc)
-        (fn _ => fn s => INPUT_SYSTEM := s)},
+        processor =
+          beginOpt (stringOpt endOpt) (fn _ => fn s => INPUT_SYSTEM := s)},
        {switches = ["-o","--output"], arguments = ["SYSTEM"],
         description = "the system that will consume the output article",
-        processor = begin_proc (string_proc end_proc)
-        (fn _ => fn s => OUTPUT_SYSTEM := s)}];
+        processor =
+          beginOpt (stringOpt endOpt) (fn _ => fn s => OUTPUT_SYSTEM := s)}];
 end;
 
 val version_string = PROGRAM^" v1.0\n";
 
-val program_options =
-    {name    = PROGRAM,
+val programOptions =
+    {name = PROGRAM,
      version = version_string,
-     header  = "usage: "^PROGRAM^" [option ...] <article.in >article.out\n" ^
-               "Normalizes an article of theorems.\n",
-     footer  = "where SYSTEM is one of {" ^ join "," SYSTEMS ^ "}\n",
-     options = special_options @ Options.basic_options};
+     header = "usage: "^PROGRAM^" [option ...] <article.in >article.out\n" ^
+              "Normalizes an article of theorems.\n",
+     footer = "where SYSTEM is one of {" ^ join "," SYSTEMS ^ "}\n",
+     options = specialOptions @ Options.basicOptions};
 
-fun succeed () = Options.succeed program_options;
-fun fail mesg = Options.fail program_options mesg;
-fun usage mesg = Options.usage program_options mesg;
+fun exit x : unit = Options.exit programOptions x;
+fun succeed () = Options.succeed programOptions;
+fun fail mesg = Options.fail programOptions mesg;
+fun usage mesg = Options.usage programOptions mesg;
 
 val (opts,work) =
-  Options.process_options program_options (CommandLine.arguments ());
+    Options.processOptions programOptions (CommandLine.arguments ());
 
 val () = if null work then () else usage "too many arguments";
 
@@ -74,7 +76,7 @@ val () = if null work then () else usage "too many arguments";
 
 val () =
 let
-  val article = Stream.from_textfile {filename = "-"}
+  val article = Stream.fromTextFile {filename = "-"}
 in
   succeed ()
 end

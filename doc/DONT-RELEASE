@@ -1,8 +1,8 @@
 .cvsignore
 CVS
-metis/Makefile.dev
-metis/doc/DONT-RELEASE
-metis/doc/TODO
-metis/release
-metis/scripts/copy_src
-metis/scripts/mosml_dep
+opentheory/Makefile.dev
+opentheory/doc/DONT-RELEASE
+opentheory/doc/TODO
+opentheory/release
+opentheory/scripts/copy_src
+opentheory/scripts/mosml_dep
