@@ -6,3 +6,4 @@ opentheory/doc/TODO
 opentheory/release
 opentheory/scripts/copy_src
 opentheory/scripts/mosml_dep
+opentheory/test/articles/*.art

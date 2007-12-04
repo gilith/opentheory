@@ -166,19 +166,19 @@ val strip_exists_unique : term -> var list * term
 
 val SHOW_TYPES : bool ref
 
-val pp_type : ppstream -> ty -> unit
+val pp_type : Parser.ppstream -> ty -> unit
 val type_to_string : ty -> string
 
-val pp_term : ppstream -> term -> unit
+val pp_term : Parser.ppstream -> term -> unit
 val term_to_string : term -> string
 
-val pp_subst : ppstream -> TermSubst.subst -> unit
+val pp_subst : Parser.ppstream -> TermSubst.subst -> unit
 val subst_to_string : TermSubst.subst -> string
 
-val pp_sequent : ppstream -> sequent -> unit
+val pp_sequent : Parser.ppstream -> sequent -> unit
 val sequent_to_string : sequent -> string
 
-val pp_thm : ppstream -> thm -> unit
+val pp_thm : Parser.ppstream -> thm -> unit
 val thm_to_string : thm -> string
 
 end

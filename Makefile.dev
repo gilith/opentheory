@@ -151,8 +151,8 @@ tarball: clean doc/DONT-RELEASE Makefile.dev
 
 .PHONY: release
 release: mosml mlton tarball
-	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.jpg $(RELEASE_DIR)/*.txt
-	cp -v doc/*.html doc/*.jpg doc/*.txt $(RELEASE_DIR)/
+	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt
+	cp -v doc/*.html doc/*.txt $(RELEASE_DIR)/
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS --exclude=*.art -e ssh $(RELEASE_DIR)/ gilith@gilith.com:public_html/software/opentheory
 
 ###############################################################################

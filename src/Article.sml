@@ -8,11 +8,6 @@ struct
 
 open Useful Syntax Rule;
 
-structure S = Binaryset;
-structure M = Binarymap;
-structure IS = Intset;
-structure IM = Intmap;
-
 structure N = Name;
 structure NS = NameSet;
 structure NM = NameMap;
@@ -261,14 +256,14 @@ val call_stack = List.mapPartial (total dest_ocall);
 (* Dictionaries                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-type dict = object Intmap.intmap;
+type dict = object IntMap.map;
 
-val empty_dict : dict = Intmap.empty ();
+val empty_dict : dict = IntMap.new ();
 
-fun dict_def (n,obj) dict = Intmap.insert (dict,n,obj);
+fun dict_def (n,obj) dict = IntMap.insert dict (n,obj);
 
 fun dict_ref dict n =
-    case Intmap.peek (dict,n) of
+    case IntMap.peek dict n of
       SOME obj => obj
     | NONE => raise Error ("dict_ref: no entry for number "^Int.toString n);
 
@@ -288,7 +283,7 @@ fun saved_add th (Saved l) = Saved (th :: l);
 (* Sets of theorems                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-datatype thm_set = ThmSet of (term list, thm) M.dict;
+datatype thm_set = ThmSet of (term list, thm) Map.map;
 
 local
   fun mk_key (h,c) = c :: TAS.toList h;
@@ -297,11 +292,11 @@ local
 
   fun sequent_to_key (h,c) = mk_key (TAS.fromList h, c);
 in
-  val thm_set_empty = ThmSet (M.mkDict (lexCompare T.alpha_compare));
+  val thm_set_empty = ThmSet (Map.new (lexCompare T.alpha_compare));
 
-  fun thm_set_peek (ThmSet m) h_c = M.peek (m, sequent_to_key h_c);
+  fun thm_set_peek (ThmSet m) h_c = Map.peek m (sequent_to_key h_c);
 
-  fun thm_set_add th (ThmSet m) = ThmSet (M.insert (m, thm_to_key th, th));
+  fun thm_set_add th (ThmSet m) = ThmSet (Map.insert m (thm_to_key th, th));
 end;
 
 fun thm_set_add_list ths set = foldl (fn (t,s) => thm_set_add t s) set ths;
@@ -310,9 +305,9 @@ fun thm_set_add_list ths set = foldl (fn (t,s) => thm_set_add t s) set ths;
 (* The theorem dependency graph                                              *)
 (* ------------------------------------------------------------------------- *)
 
-datatype thm_deps = ThmDeps of int list IM.intmap;
+datatype thm_deps = ThmDeps of int list IntMap.map;
 
-val thm_deps_empty = ThmDeps (IM.empty ());
+val thm_deps_empty = ThmDeps (IntMap.new ());
 
 fun thm_deps_add (th,thl) thm_deps =
     let
@@ -325,10 +320,10 @@ fun thm_deps_add (th,thl) thm_deps =
       if mem i il then thm_deps
       else
         let
-          val _ = not (Option.isSome (IM.peek (m,i))) orelse
+          val _ = not (Option.isSome (IntMap.peek m i)) orelse
                   raise Bug ("thm_deps_add: new deps for\n"^thm_to_string th)
         in
-          ThmDeps (IM.insert (m,i,il))
+          ThmDeps (IntMap.insert m (i,il))
         end
     end;
 
@@ -338,13 +333,13 @@ fun thm_deps_useful (ThmDeps m) =
     let
       fun f [] set = set
         | f (i :: rest) set =
-          if IS.member (set,i) then f rest set
+          if IntSet.member i set then f rest set
           else
-            case IM.peek (m,i) of
-              SOME il => f (il @ rest) (IS.add (set,i))
+            case IntMap.peek m i of
+              SOME il => f (il @ rest) (IntSet.add set i)
             | NONE => raise Bug ("thm_deps_useful: no dep for "^Int.toString i)
     in
-      fn ths => f (map thm_id ths) IS.empty
+      fn ths => f (map thm_id ths) IntSet.empty
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -352,11 +347,12 @@ fun thm_deps_useful (ThmDeps m) =
 (* ------------------------------------------------------------------------- *)
 
 datatype article_op =
-         Function_call of {name : name,
-                           arg : object,
-                           ops : article_op list,
-                           ret : object}
-       | Save_thm of thm;
+    Function_call of
+      {name : name,
+       arg : object,
+       ops : article_op list,
+       ret : object}
+  | Save_thm of thm;
          
 fun function_call_update_ops ops artop =
     case artop of
@@ -401,7 +397,7 @@ local
   val delete_thms =
       let
         fun f (i,(b,s)) =
-            if IS.member (s,i) then (true, IS.delete (s,i)) else (b,s)
+            if IntSet.member i s then (true, IntSet.delete s i) else (b,s)
       in
         fn ths => fn set => foldl f (false,set) (map thm_id ths)
       end;
