@@ -1,60 +1,58 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-                      "http://www.w3.org/TR/html401/loose.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
- <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <title>OpenTheory Article Examples</title>
-  <meta name="keywords" content="proofs, higher order logic">
- </head>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>OpenTheory Article Examples</title>
+<meta name="keywords" content="proofs, higher order logic">
+</head>
 
- <body bgcolor="white">
+<body>
 
-  <table cellpadding="2">
-   <tr>
-    <td>
-     <a href="index.html">home</a>
-    </td>
-    <td width="20"></td>
-    <td>
-     <a href="goal.html">project goals</a>
-    </td>
-    <td width="20"></td>
-    <td>
-     <a href="article.html">article format</a>
-    </td>
-    <td width="20"></td>
-    <td bgcolor="yellow">
-     article examples
-    </td>
-   </tr>
-  </table>
+<table>
+<tr>
+<td><a href="index.html">home</a></td>
+<td width="20"></td>
+<td><a href="goal.html">project goals</a></td>
+<td width="20"></td>
+<td><a href="article.html">article format</a></td>
+<td width="20"></td>
+<td bgcolor="yellow">article examples</td>
+</tr>
+</table>
 
-  <hr>
+<hr />
 
-  <h2>OpenTheory Article Examples</h2>
+<h2>OpenTheory Article Examples</h2>
 
-  Experimentation to date has been with the <a
-  href="http://www.cl.cam.ac.uk/users/jrh/hol-light/index.html">hol-light</a>
-  theorem prover. The 2Mb file <a
-  href="num.art"><kbd>num.art</kbd></a> is an article of everything
-  proved in the <kbd>num.ml</kbd> input file, and the 32Mb compressed
-  tar file <a href="articles.tgz"><kbd>articles.tgz</kbd></a> contains
-  articles of all the <kbd>.ml</kbd> input files distributed with
-  hol-light.
+<p>Experimentation to date has been with
+the
 
-  <p>
+<a href="http://www.cl.cam.ac.uk/users/jrh/hol-light/index.html">hol-light</a>
 
-  hol-light was naively instrumented to log every function call,
-  whether successful or not, and also to insert every new object into
-  the dictionary (in case it was needed in the future). Thus the
-  article files are far larger than they need to be. There is ongoing
-  work on tool support to eliminate this and other forms of redundancy
-  in article files, but it is encouraging that even without this the
-  sizes are not unmanageable. Here is a list of article sizes, <em>in
-  build order</em>:
+theorem prover. The 2Mb file
 
-  <small>
-  <pre>
+<a href="num.art"><kbd>num.art</kbd></a>
+
+is an article of everything proved in the <kbd>num.ml</kbd> input
+file, and the 32Mb compressed tar file
+
+<a href="articles.tgz"><kbd>articles.tgz</kbd></a>
+
+contains articles of all the <kbd>.ml</kbd> input files distributed
+with hol-light.</p>
+
+<p>hol-light was naively instrumented to log every function call,
+whether successful or not, and also to insert every new object into
+the dictionary (in case it was needed in the future). Thus the article
+files are far larger than they need to be. There is ongoing work on
+tool support to eliminate this and other forms of redundancy in
+article files, but it is encouraging that even without this the sizes
+are not unmanageable. Here is a list of article sizes, <em>in build
+order</em>:</p>
+
+<small>
+<pre>
     <b>Lines</b>      <b>Bytes</b>  <b>Article</b>
         2         21  preamble.art
         2         47  basics.art
@@ -91,22 +89,18 @@
  21162007  117837845  sets.art
 ------------------------------------
  58491312  321003611  <b>Total</b>
-  </pre>
-  </small>
+</pre>
+</small>
 
-  <p>
+<p>The compression ratio for these article files is 90%. During the
+entire build of hol-light, 1,600,000 new types, terms and theorems
+were constructed, giving an average of 200 bytes per object, or 20
+compressed bytes per object.</p>
 
-  The compression ratio for these article files is 90%. During the
-  entire build of hol-light, 1,600,000 new types, terms and theorems
-  were constructed, giving an average of 200 bytes per object, or 20
-  compressed bytes per object.
+<hr />
 
-  <p>
+<i><a href = "http://www.gilith.com/about">Joe Hurd</a>,
+12 December 2007</i>
 
-  <hr>
-
-  <i><a href = "http://www.cl.cam.ac.uk/~jeh1004">Joe Hurd</a>,
-  27 April 2005</i>
-
- </body>
+</body>
 </html>
