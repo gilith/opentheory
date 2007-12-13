@@ -1248,9 +1248,10 @@ local
       | (Tcommand "pop", _ :: stack) =>
         {stack = stack, dict = dict, saved = saved, extra = extra}
 
-      | (Tcommand "dup", stack as x :: _) =>
+      | (Tcommand "dup", Onum n :: stack) =>
         let
-          val stack = x :: stack
+          val _ = length stack > n orelse raise Error "bad dup"
+          val stack = List.nth (stack,n) :: stack
         in
           {stack = stack, dict = dict, saved = saved, extra = extra}
         end
