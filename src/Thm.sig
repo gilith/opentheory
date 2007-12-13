@@ -13,7 +13,7 @@ type thm
 (* ------------------------------------------------------------------------- *)
 
 datatype thm' =
-         Thm of {id : int, axioms : SequentSet.set, sequent : Sequent.sequent}
+    Thm of {id : int, axioms : SequentSet.set, sequent : Sequent.sequent}
 
 val dest : thm -> thm'
 
@@ -120,7 +120,7 @@ val Define_const : Name.name -> Term.term -> thm
 (* type variables in P.                                                      *)
 (* ------------------------------------------------------------------------- *)
 val Define_type :
-  Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list -> thm ->
-  thm * thm
+    Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list -> thm ->
+    thm * thm
 
 end

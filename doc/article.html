@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>OpenTheory Article Format Version 1</title>
+<title>OpenTheory Article Format Version 2</title>
 <meta name="keywords" content="proofs, higher order logic">
 </head>
 
@@ -23,7 +23,7 @@
 
 <hr />
 
-<h2>OpenTheory Article Format Version 1</h2>
+<h2>OpenTheory Article Format Version 2</h2>
 
 <p>An <em>article</em> is a file containing the statements and proofs
 of some number of theorems. Articles are not supposed to be
@@ -72,63 +72,67 @@ x</em>.</dd>
 which has the following ML definition:</p>
 
 <table cellpadding="0" cellspacing="0">
+
 <tr>
 <td colspan="4"><kbd>datatype object =</kbd></td>
 </tr>
+
 <tr>
 <td></td>
 <td><kbd>Oerror</kbd></td>
 <td width="40"></td>
 <td>(* An error value *)</td>
 </tr>
+
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
 <td><kbd>Onum of num</kbd></td>
 <td></td>
 <td>(* A number *)</td>
 </tr>
+
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
 <td><kbd>Oname of name</kbd></td>
 <td></td>
 <td>(* A name *)</td>
 </tr>
+
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
 <td><kbd>Olist of object list</kbd></td>
 <td></td>
 <td>(* A list (or tuple) of objects *)</td>
 </tr>
+
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
 <td><kbd>Otype of hol_type</kbd></td>
 <td></td>
 <td>(* A higher order logic type *)</td>
 </tr>
+
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
 <td><kbd>Oterm of term</kbd></td>
 <td></td>
 <td>(* A higher order logic term *)</td>
 </tr>
-<tr>
-<td>&nbsp;<kbd>|</kbd>&nbsp;</td>
-<td><kbd>Oseq of term list * term</kbd></td>
-<td></td>
-<td>(* A higher order logic sequent *)</td>
-</tr>
+
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
 <td><kbd>Othm of thm</kbd></td>
 <td></td>
 <td>(* A higher order logic theorem *)</td>
 </tr>
+
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
 <td><kbd>Ocall of name</kbd></td>
 <td></td>
 <td>(* A special object marking a function call *)</td>
 </tr>
+
 </table>
 
 <h3>Virtual Machine</h3>
@@ -145,10 +149,7 @@ the first object to be removed. Initially the stack is empty.</li>
 values of type <kbd>object</kbd>. Initially the dictionary is
 empty.</li>
 
-<li>A <em>simulation stack</em> containing values of type <kbd>thm
-list</kbd>. Initially the simulation stack is empty.</li>
-
-<li>An <em>export list</em> of type <kbd>object list</kbd>.
+<li>An <em>export list</em> of type <kbd>thm list</kbd>.
 Initially the export list is empty.</li>
 
 </ul></p>
@@ -157,9 +158,9 @@ Initially the export list is empty.</li>
 line. A comment line has <kbd>#</kbd> as its first character. Comment
 lines are immediately discarded by the virtual machine. A command line
 encodes exactly one command of the form below, and is immediately
-executed. As a result of executing the command, the stack, dictionary,
-simulation stack or export list may be altered. After a command line
-has been processed it is discarded.</p>
+executed. As a result of executing the command, the stack, dictionary
+or export list may be altered. After a command line has been processed
+it is discarded.</p>
 
 <h3>Commands</h3>
 
@@ -309,9 +310,9 @@ list <em>h :: t</em> on to the stack.
 <dd>Pop a list of types <em>l</em>; pop a name <em>n</em>; push a type
 operator with name <em>n</em> and arguments <em>l</em>.
 
-<br><strong>Note:</strong> If there is no type operator with name
-<em>n</em> and the correct arity available, the behaviour is
-implementation dependent.
+<br><strong>Note:</strong> See the section <em>Constructing Types,
+Constants and Theorems</em> below for more information on this
+command.
 
 <table cellspacing="0" cellpadding="0">
 <tr>
@@ -361,9 +362,9 @@ with name <em>n</em> and type <em>ty</em>.
 <dd>Pop a type <em>ty</em>; pop a name <em>n</em>; push a constant
 with name <em>n</em> and type <em>ty</em>.
 
-<br><strong>Note:</strong> If there is no constant with name
-<em>n</em> and compatible type available, the behaviour is
-implementation dependent.
+<br><strong>Note:</strong> See the section <em>Constructing Types,
+Constants and Theorems</em> below for more information on this
+command.
 
 <table cellspacing="0" cellpadding="0">
 <tr>
@@ -435,17 +436,16 @@ lambda abstraction <em>\v. b</em>.
 <dt><kbd>thm</kbd>
 
 <dd>Pop a term <em>c</em>; pop a list of terms <em>h</em>; push the
-theorem (or sequent) <em>h |- c</em> with hypothesis <em>h</em>
-and conclusion <em>c</em>.
+theorem <em>h |- c</em> with hypothesis <em>h</em> and
+conclusion <em>c</em>.
 
-<br><strong>Note:</strong> The implementation has a free choice
-between constructing a theorem or a sequent with the specified
-hypotheses and conclusion. See the section <em>Constructing
-Theorems</em> below for more information.
+<br><strong>Note:</strong> See the section <em>Constructing Types,
+Constants and Theorems</em> below for more information on this
+command.
 
 <table cellspacing="0" cellpadding="0">
 <tr>
-<th>Stack option 1:</th>
+<th>Stack:</th>
 <td width="10"></td>
 <th align="left">Before:</th>
 <td width="10"></td>
@@ -458,21 +458,6 @@ Theorems</em> below for more information.
 <td></td>
 <td align="left"><kbd>Othm ([h1, ..., hn] |- c) :: stack</kbd><td>
 </tr>
-<tr><td colspan="5" height="5"></td></tr>
-<tr>
-<th>Stack option 2:</th>
-<td></td>
-<th align="left">Before:</th>
-<td width="10"></td>
-<td align="left"><kbd>Oterm c :: Olist [Oterm h1, ..., Oterm hn] :: stack</kbd><td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<th align="left">After:</th>
-<td></td>
-<td align="left"><kbd>Oseq ([h1, ..., hn] |- c) :: stack</kbd><td>
-</tr>
 <tr><td colspan="5" height="10"></td></tr>
 </table>
 </dd>
@@ -481,12 +466,7 @@ Theorems</em> below for more information.
 
 <dd>Pop a name <em>n</em>; pop an object <em>i</em>; push the
 function call marker <kbd>Ocall n</kbd>; push the input value
-<em>i</em>. Push a list of theorems on to the simulation stack.
-
-<br><strong>Note:</strong> If the implementation chooses to
-simulate this function, then the list of theorems pushed on to the
-simulation stack will contain all the theorems returned by the
-simulation, otherwise the list will be empty.
+<em>i</em>.
 
 <table cellspacing="0" cellpadding="0">
 <tr>
@@ -505,31 +485,13 @@ simulation, otherwise the list will be empty.
 </tr>
 <tr><td colspan="5" height="5"></td></tr>
 </table>
-<table cellspacing="0" cellpadding="0">
-<tr>
-<th>Simulation stack:</th>
-<td width="10"></td>
-<th align="left">Before:</th>
-<td width="10"></td>
-<td align="left"><kbd>simulation_stack</kbd><td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<th align="left">After:</th>
-<td></td>
-<td align="left"><kbd>[th1, ..., thn] :: simulation_stack</kbd><td>
-</tr>
-<tr><td colspan="5" height="10"></td></tr>
-</table>
 </dd>
 
 <dt><kbd>return</kbd>
 
 <dd>Pop a name <em>n</em>; pop an object <em>r</em>; pop objects
 from the stack up to and including the top function call marker
-<kbd>Ocall _</kbd>; push the return value <em>r</em>; pop the
-simulation stack.
+<kbd>Ocall _</kbd>; push the return value <em>r</em>.
 
 <br><strong>Note:</strong> The argument <em>n'</em> to the top
 function call marker <kbd>Ocall n'</kbd> should satisfy <em>n =
@@ -541,7 +503,7 @@ n'</em>.
 <td width="10"></td>
 <th align="left">Before:</th>
 <td width="10"></td>
-<td align="left"><kbd>Oname n :: r :: ... :: Ocall n :: stack</kbd><td>
+<td align="left"><kbd>Oname n :: r :: ... :: Ocall n' :: stack</kbd><td>
 </tr>
 <tr>
 <td></td>
@@ -551,23 +513,6 @@ n'</em>.
 <td align="left"><kbd>r :: stack</kbd><td>
 </tr>
 <tr><td colspan="5" height="5"></td></tr>
-</table>
-<table cellspacing="0" cellpadding="0">
-<tr>
-<th>Simulation stack:</th>
-<td width="10"></td>
-<th align="left">Before:</th>
-<td width="10"></td>
-<td align="left"><kbd>_ :: simulation_stack</kbd><td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<th align="left">After:</th>
-<td></td>
-<td align="left"><kbd>simulation_stack</kbd><td>
-</tr>
-<tr><td colspan="5" height="10"></td></tr>
 </table>
 </dd>
 
@@ -617,10 +562,7 @@ dictionary so that key <em>k</em> maps to object <em>x</em>.
 <dd>Pop a number <em>k</em>; look up key <em>k</em> in the
 dictionary to get an object <em>x</em>; push the object <em>x</em>.
 
-<br><strong>Note:</strong> Before pushing the object <em>x</em>,
-the implementation is permitted to 'promote' any <kbd>Oseq</kbd>
-objects within <em>x</em> to <kbd>Othm</kbd> objects by proving
-the theorem.
+<br><strong>Note:</strong> This command does not change the dictionary.
 
 <table cellspacing="0" cellpadding="0">
 <tr>
@@ -635,33 +577,17 @@ the theorem.
 <td></td>
 <th align="left">After:</th>
 <td></td>
-<td align="left"><kbd>promote (dict[k]) :: stack</kbd><td>
+<td align="left"><kbd>dict[k] :: stack</kbd><td>
 </tr>
 <tr><td colspan="5" height="5"></td></tr>
-</table>
-<table cellspacing="0" cellpadding="0">
-<tr>
-<th>Dictionary:</th>
-<td width="10"></td>
-<th align="left">Before:</th>
-<td width="10"></td>
-<td align="left"><kbd>dict</kbd><td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<th align="left">After:</th>
-<td></td>
-<td align="left"><kbd>dict[k |-> promote (dict[k])]</kbd><td>
-</tr>
-<tr><td colspan="5" height="10"></td></tr>
 </table>
 </dd>
 
 <dt><kbd>dup</kbd>
 
-<dd>Pop an object <em>x</em>; push the object <em>x</em>; push another
-copy of the object <em>x</em>.
+<dd>Pop a number <em>n</em>; read the <em>n</em>th object <em>xn</em>
+from the top of the stack (counting from 0); push the
+object <em>xn</em>.
 
 <table cellspacing="0" cellpadding="0">
 <tr>
@@ -669,14 +595,14 @@ copy of the object <em>x</em>.
 <td width="10"></td>
 <th align="left">Before:</th>
 <td width="10"></td>
-<td align="left"><kbd>x :: stack</kbd><td>
+<td align="left"><kbd>Onum n :: x0 :: ... :: xn :: stack</kbd><td>
 </tr>
 <tr>
 <td></td>
 <td></td>
 <th align="left">After:</th>
 <td></td>
-<td align="left"><kbd>x :: x :: stack</kbd><td>
+<td align="left"><kbd>xn :: x0 :: ... :: xn :: stack</kbd><td>
 </tr>
 <tr><td colspan="5" height="10"></td></tr>
 </table>
@@ -684,7 +610,7 @@ copy of the object <em>x</em>.
 
 <dt><kbd>save</kbd>
 
-<dd>Pop an object <em>x</em>; add <em>x</em> to the list of objects
+<dd>Pop a theorem <em>th</em>; add <em>th</em> to the list of objects
 that the article will export.
 
 <table cellspacing="0" cellpadding="0">
@@ -693,7 +619,7 @@ that the article will export.
 <td width="10"></td>
 <th align="left">Before:</th>
 <td width="10"></td>
-<td align="left"><kbd>x :: stack</kbd><td>
+<td align="left"><kbd>Othm th :: stack</kbd><td>
 </tr>
 <tr>
 <td></td>
@@ -717,7 +643,7 @@ that the article will export.
 <td></td>
 <th align="left">After:</th>
 <td></td>
-<td align="left"><kbd>saved @ [x]</kbd><td>
+<td align="left"><kbd>saved @ [th]</kbd><td>
 </tr>
 <tr><td colspan="5" height="10"></td></tr>
 </table>
@@ -725,81 +651,68 @@ that the article will export.
 
 </dl>
 
-<h3>Constructing Theorems</h3>
+<h3>Constructing Types, Constants and Theorems</h3>
 
-<p>By design, the place where the implementation has greatest
-flexibility is deciding how to process <kbd>thm</kbd> commands. As a
-rule of thumb, constructing theorems is always better than
-constructing sequents (since sequents can be recovered from theorems,
-but not vice-versa), but sometimes this is not possible or even
-desirable. As an illustrative example, consider the following trace of
-a ProofPower implementation of the OpenTheory virtual machine reading
-a hol-light proof log:
+<p>The virtual machine executing the commands in the article is
+expected to simulate at least the primitive inference rules of higher
+order logic. For example, suppose the stack is
+
+<blockquote>
+<kbd>Oterm </kbd><em>t = t</em><kbd> :: Olist [] ::
+Oterm </kbd><em>t</em><kbd> :: Ocall "Refl" :: stack</kbd>
+</blockquote>
+
+and the current command is <kbd>thm</kbd>. The virtual machine is
+expected to simulate this reflexivity inference to produce the stack
+
+<blockquote>
+<kbd>Othm </kbd><em>[] |- t = t</em><kbd> ::
+Oterm </kbd><em>t</em><kbd> :: Ocall "Refl" :: stack</kbd>
+</blockquote></p>
+
+<p>If a theorem cannot be created by simulation then the behaviour is
+implementation dependent. Possibilities include:
 
 <ol>
 
-<li>ProofPower encounters a call to the hol-light inference rule
-<kbd>EQ_MP</kbd> with input argument <kbd>Olist [Othm th1, Othm
-th2]</kbd>. ProofPower simulates this call to get result theorem
-<kbd>th</kbd>, and so pushes the list <kbd>[th]</kbd> on to the
-simulation stack.</li>
+<li>Proving the theorem using the tools available in the current
+system.</li>
 
-<li>During this <kbd>EQ_MP</kbd> function call, there is a
-<kbd>thm</kbd> command in the log which requires construction of
-the theorem or sequent <kbd>seq</kbd>. ProofPower searches through
-the list of theorems on the top of the simulation stack and also
-the contents of all the objects on the stack looking for an alpha
-equivalent theorem. On this occasion it finds what it is looking
-for on the top of the simulation stack, and so is able to construct
-the object <kbd>Othm seq</kbd>.</li>
+<li>Creating a new axiom matching the new theorem, and adding the
+axiom as a dependency of the article.</li>
 
-<li>Next ProofPower encounters a <kbd>return</kbd> command exiting
-the <kbd>EQ_MP</kbd> function.</li>
+</ol></p>
 
-<li>Sometime later ProofPower encounters a call to the hol-light
-derived rule <kbd>MP</kbd>. This is a primitive inference rule in
-ProofPower, and so is simulated and the resulting theorem is placed
-on the top of the simulation stack.</li>
+<p>Type operators and constants follow the same scheme. Suppose the
+stack is
 
-<li>During this <kbd>MP</kbd> function call, there is a call to the
-<kbd>EQ_MP</kbd> function. However, since the surrounding
-<kbd>MP</kbd> has already been simulated, there is no need to
-simulate this function, and so the empty list of theorems is pushed
-on to the simulation stack.</li>
+<blockquote>
+<kbd>Otype _ :: Oname </kbd><em>v</em><kbd> ::
+Oterm </kbd><em>c = t</em><kbd> :: Ocall "DefineConst" :: stack</kbd>
+</blockquote>
 
-<li>During this inner <kbd>EQ_MP</kbd> function call, there is a
-<kbd>thm</kbd> command which requires construction of a theorem or
-sequent <kbd>seq</kbd>. However, since this call to
-<kbd>EQ_MP</kbd> was not simulated, there is no alpha convertible
-theorem anywhere on the stack or on the top of the simulation
-stack. Therefore ProofPower constructs an <kbd>Oseq seq</kbd>
-object instead. The next command instructs ProofPower to insert
-this sequent into the dictionary at position 123.</li>
+where <em>c</em> is a variable and the current command
+is <kbd>const</kbd>. The virtual machine is expected to simulate this
+reflexivity inference to produce the stack
 
-<li>Next ProofPower encounters a <kbd>return</kbd> command exiting
-the inner <kbd>EQ_MP</kbd> function call, and returning to the
-execution of the surrounding <kbd>MP</kbd> function call.</li>
+<blockquote>
+<kbd>Oterm </kbd><em>c</em><kbd> :: Ocall "DefineConst" :: stack</kbd>
+</blockquote></p>
 
-<li>At some point there is a <kbd>thm</kbd> asking to construct a
-theorem or sequent <kbd>seq</kbd> which is the return value of the
-<kbd>MP</kbd> function. Since an alpha equivalent theorem is on the
-top of the simulation stack ProofPower is able to construct the
-object <kbd>Othm seq</kbd>.</li>
+where <em>c</em> is the constant being defined by this primitive
+inference rule.</p>
 
-<li>Next ProofPower encounters a <kbd>return</kbd> command exiting
-the <kbd>MP</kbd> function.</li>
+<p>If a constant or type operator cannot be constructed by simulation
+then the behaviour is again implementation dependent. Possibilities
+include:
 
-<li>At some future point ProofPower encounters a command to
-retrieve object 123 from the dictionary. This is the unsimulated
-<kbd>Oseq seq</kbd> object from the <kbd>EQ_MP</kbd> function call
-inside the <kbd>MP</kbd> function call. This object is retrieved
-from the dictionary, but <em>just as if it had been explicitly
-constructed with a <kbd>thm</kbd> command</em>, ProofPower searches
-through the objects in the stack and the theorems on the top of the
-simulation stack for an alpha equivalent theorem. If one is found,
-the object is silently promoted to an <kbd>Othm seq</kbd> object
-before it is pushed on to the stack (and the dictionary version is
-promoted, too).</li>
+<ol>
+
+<li>Mapping the requested type operator or constant to an existing one
+in the system.</li>
+
+<li>Creating a fresh type operator with the required arity or a fresh
+  constant with polymorphic type. This is logically sound.</li>
 
 </ol></p>
 
