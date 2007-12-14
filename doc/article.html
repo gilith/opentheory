@@ -653,6 +653,12 @@ that the article will export.
 
 <h3>Constructing Types, Constants and Theorems</h3>
 
+<h4>Theorems</h4>
+
+<p>Much of the time the target theorem of a <kbd>theorem</kbd> command
+is already available on the stack. If it is not, then it needs to be
+constructed in another way. Read on.</p>
+
 <p>The virtual machine executing the commands in the article is
 expected to simulate at least the primitive inference rules of higher
 order logic. For example, suppose the stack is
@@ -683,8 +689,15 @@ axiom as a dependency of the article.</li>
 
 </ol></p>
 
-<p>Type operators and constants follow the same scheme. Suppose the
-stack is
+<h4>Type Operators and Constants</h4>
+
+<p>Much of the time type operators and constants will be mapped to
+existing type operators and constants within the theorem proving
+system reading the article. For other type operators and constants
+read on.</p>
+
+<p>The virtual machine is expected to simulate the primitive
+principles of definition. Suppose the stack is
 
 <blockquote>
 <kbd>Otype _ :: Oname </kbd><em>v</em><kbd> ::
@@ -708,11 +721,8 @@ include:
 
 <ol>
 
-<li>Mapping the requested type operator or constant to an existing one
-in the system.</li>
-
 <li>Creating a fresh type operator with the required arity or a fresh
-  constant with polymorphic type. This is logically sound.</li>
+constant with polymorphic type. This is logically sound.</li>
 
 </ol></p>
 
