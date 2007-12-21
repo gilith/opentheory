@@ -24,15 +24,15 @@ val norm : subst -> subst
 
 val subst : subst -> Type.ty -> Type.ty
 
-val to_list : subst -> (Name.name * Type.ty) list
+val toList : subst -> (Name.name * Type.ty) list
 
 (* ------------------------------------------------------------------------- *)
 (* Matching                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val match_list' : subst -> (Type.ty * Type.ty) list -> subst
+val matchList' : subst -> (Type.ty * Type.ty) list -> subst
 
-val match_list : (Type.ty * Type.ty) list -> subst
+val matchList : (Type.ty * Type.ty) list -> subst
 
 val match' : subst -> Type.ty -> Type.ty -> subst
 

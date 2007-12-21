@@ -10,31 +10,31 @@ sig
 (* Primitive rules, repeated from the logical kernel                         *)
 (* ------------------------------------------------------------------------- *)
 
-val Axiom : Sequent.sequent -> Thm.thm
+val axiom : Sequent.sequent -> Thm.thm
 
-val Abs : Var.var -> Thm.thm -> Thm.thm
+val abs : Var.var -> Thm.thm -> Thm.thm
 
-val Assume : Term.term -> Thm.thm
+val assume : Term.term -> Thm.thm
 
-val Beta_conv : Term.term -> Thm.thm
+val betaConv : Term.term -> Thm.thm
 
-val Deduct_antisym : Thm.thm -> Thm.thm -> Thm.thm
+val deductAntisym : Thm.thm -> Thm.thm -> Thm.thm
 
-val Eq_mp : Thm.thm -> Thm.thm -> Thm.thm
+val eqMp : Thm.thm -> Thm.thm -> Thm.thm
 
-val Subst : TermSubst.subst -> Thm.thm -> Thm.thm
+val subst : TermSubst.subst -> Thm.thm -> Thm.thm
 
-val Mk_comb : Thm.thm -> Thm.thm -> Thm.thm
+val comb : Thm.thm -> Thm.thm -> Thm.thm
 
-val Refl : Term.term -> Thm.thm
+val refl : Term.term -> Thm.thm
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive definition rules permitting alpha equivalent redefinitions      *)
 (* ------------------------------------------------------------------------- *)
 
-val Define_const : Name.name -> Term.term -> Thm.thm
+val defineConst : Name.name -> Term.term -> Thm.thm
 
-val Define_type :
+val defineType :
     Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list ->
     Thm.thm -> Thm.thm * Thm.thm
 
@@ -42,10 +42,10 @@ val Define_type :
 (* Derived rules                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val Alpha : Term.term list * Term.term -> Thm.thm -> Thm.thm
+val alpha : Term.term list * Term.term -> Thm.thm -> Thm.thm
 
-val Trans : Thm.thm -> Thm.thm -> Thm.thm
+val trans : Thm.thm -> Thm.thm -> Thm.thm
 
-val Define : Term.term -> Thm.thm
+val define : Term.term -> Thm.thm
 
 end

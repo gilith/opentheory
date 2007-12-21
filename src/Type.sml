@@ -20,7 +20,7 @@ val op== = Portable.pointerEqual;
 (* Types                                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-datatype ty' = Type_var of N.name | Type_op of N.name * ty' list;
+datatype ty' = TypeVar of N.name | TypeOp of N.name * ty' list;
 
 type ty = ty';
 
@@ -32,10 +32,10 @@ fun compare ty1_ty2 =
     if op== ty1_ty2 then EQUAL
     else
       case ty1_ty2 of
-        (Type_var n1, Type_var n2) => N.compare (n1,n2)
-      | (Type_var _, Type_op _) => LESS
-      | (Type_op _, Type_var _) => GREATER
-      | (Type_op n1_l1, Type_op n2_l2) =>
+        (TypeVar n1, TypeVar n2) => N.compare (n1,n2)
+      | (TypeVar _, TypeOp _) => LESS
+      | (TypeOp _, TypeVar _) => GREATER
+      | (TypeOp n1_l1, TypeOp n2_l2) =>
         prodCompare N.compare (lexCompare compare) (n1_l1,n2_l2);
 
 fun equal (x : ty) y = x = y;
@@ -48,25 +48,25 @@ datatype registry = Registry of {all : N.name list, arities : int NM.map};
 
 val registry = ref (Registry {all = [], arities = NM.new ()});
 
-fun type_arity name =
+fun typeArity name =
     let
       val Registry {arities,...} = !registry
     in
       case NM.peek arities name of
-        NONE => raise Error ("type_arity: no type operator with name "^name)
+        NONE => raise Error ("typeArity: no type operator with name "^name)
       | SOME arity => arity
     end;
 
-fun all_types name =
+fun allTypes name =
     let
       val Registry {all,...} = !registry
     in
       all
     end;
 
-fun declare_type name arity =
+fun declareType name arity =
     let
-      val _ = not (can type_arity name) orelse
+      val _ = not (can typeArity name) orelse
               raise Error ("already a type operator with name " ^ name)
       val Registry {all,arities} = !registry
       val all = name :: all
@@ -74,7 +74,7 @@ fun declare_type name arity =
     in
       registry := Registry {all = all, arities = arities}
     end
-    handle Error err => raise Error ("Type.declare_type: " ^ err);
+    handle Error err => raise Error ("Type.declareType: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors                                              *)
@@ -84,39 +84,39 @@ fun mk (ty : ty) = ty;
 
 fun dest (ty : ty) = ty;
 
-val mk_var = Type_var;
+val mkVar = TypeVar;
 
-fun dest_var (Type_var n) = n
-  | dest_var _ = raise Error "Type.dest_var";
+fun destVar (TypeVar n) = n
+  | destVar _ = raise Error "Type.destVar";
 
-val is_var = can dest_var;
+val isVar = can destVar;
 
-fun equal_var name (Type_var n) = name = n
-  | equal_var _ _ = false;
+fun equalVar name (TypeVar n) = name = n
+  | equalVar _ _ = false;
 
-fun mk_op (n,l) =
+fun mkOp (n,l) =
     let
-      val arity = type_arity n
+      val arity = typeArity n
       val _ = length l = arity orelse
               raise Error ("bad arity for type operator " ^ n)
     in
-      Type_op (n,l)
+      TypeOp (n,l)
     end
-    handle Error err => raise Error ("Type.mk_op: " ^ err);
+    handle Error err => raise Error ("Type.mkOp: " ^ err);
 
-fun dest_op (Type_op n_l) = n_l
-  | dest_op _ = raise Error "Type.dest_op";
+fun destOp (TypeOp n_l) = n_l
+  | destOp _ = raise Error "Type.destOp";
 
-val is_op = can dest_op;
+val isOp = can destOp;
 
 (* ------------------------------------------------------------------------- *)
 (* Type variables                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val type_vars =
+val typeVars =
     let
-      fun fv (Type_var n, acc) = NS.add acc n
-        | fv (Type_op (_,tys), acc) = foldl fv acc tys
+      fun fv (TypeVar n, acc) = NS.add acc n
+        | fv (TypeOp (_,tys), acc) = foldl fv acc tys
     in
       fn ty => fv (ty,NS.empty)
     end;
@@ -125,43 +125,46 @@ val type_vars =
 (* Primitive types                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val alpha = mk_var "'a";
+val alphaTy = mkVar "'a";
 
 local
   val n = "bool";
 
-  val () = declare_type n 0;
+  val () = declareType n 0;
 in
-  val bool = mk_op (n,[]);
+  val boolTy = mkOp (n,[]);
 end;
 
 local
   val n = "fun";
 
-  val () = declare_type n 2;
+  val () = declareType n 2;
 in
-  fun mk_fun (x,y) = mk_op (n,[x,y]);
+  fun mkFun (x,y) = mkOp (n,[x,y]);
 
-  fun dest_fun ty =
-      case dest_op ty of
-        (m,[x,y]) => if n = m then (x,y) else raise Error "Type.dest_fun"
-      | _ => raise Error "Type.dest_fun";
+  fun destFun ty =
+      case destOp ty of
+        (m,[x,y]) => if n = m then (x,y) else raise Error "Type.destFun"
+      | _ => raise Error "Type.destFun";
 
-  val is_fun = can dest_fun;
+  val isFun = can destFun;
 end;
 
 local
   val n = "ind";
 
-  val () = declare_type n 0;
+  val () = declareType n 0;
 in
-  val ind = mk_op (n,[]);
+  val indTy = mkOp (n,[]);
 end;
 
 end
 
+structure TypeOrdered =
+struct type t = Type.ty val compare = Type.compare end
+
 structure TypeSet =
-ElementSet (struct type t = Type.ty val compare = Type.compare end);
+ElementSet (TypeOrdered)
 
 structure TypeMap =
-KeyMap (struct type t = Type.ty val compare = Type.compare end);
+KeyMap (TypeOrdered)

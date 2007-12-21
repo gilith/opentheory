@@ -12,89 +12,88 @@ type thm
 (* Destructors                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-datatype thm' =
-    Thm of {id : int, axioms : SequentSet.set, sequent : Sequent.sequent}
+datatype thm' = Thm of {axioms : SequentSet.set, sequent : Sequent.sequent}
 
 val dest : thm -> thm'
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
-(* ----------  Axiom (A ?- t)                                                *)
+(* ----------  axiom (A ?- t)                                                *)
 (*   A |- t                                                                  *)
 (*                                                                           *)
-(* Note: theorems created by the Axiom rule are tagged, and tags are passed  *)
+(* Note: theorems created by the axiom rule are tagged, and tags are passed  *)
 (* on by the primitive inference rules to all derived theorems.              *)
 (* ------------------------------------------------------------------------- *)
-val Axiom : Sequent.sequent -> thm
+val axiom : Sequent.sequent -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*         A |- t1 = t2                                                      *)
-(* ----------------------------  Abs v                                       *)
+(* ----------------------------  abs v                                       *)
 (*   A |- (\v. t1) = (\v. t2)                                                *)
 (*                                                                           *)
 (* Side condition: the variable v must not be free in A.                     *)
 (* ------------------------------------------------------------------------- *)
-val Abs : Var.var -> thm -> thm
+val abs : Var.var -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
-(* ----------  Assume t                                                      *)
+(* ----------  assume t                                                      *)
 (*   t |- t                                                                  *)
 (*                                                                           *)
 (* Side condition: The term t must have boolean type.                        *)
 (* ------------------------------------------------------------------------- *)
-val Assume : Term.term -> thm
+val assume : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
-(* -----------------------------  Beta_conv ((\v. t1) t2)                    *)
+(* -----------------------------  betaConv ((\v. t1) t2)                     *)
 (*   |- (\v. t1) t2 = t1[t2/v]                                               *)
 (* ------------------------------------------------------------------------- *)
-val Beta_conv : Term.term -> thm
+val betaConv : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*           A |- t1    B |- t2                                              *)
-(* --------------------------------------  Deduct_antisym                    *)
+(* --------------------------------------  deductAntisym                     *)
 (*   (A - {t2}) u (B - {t1}) |- t1 = t2                                      *)
 (* ------------------------------------------------------------------------- *)
-val Deduct_antisym : thm -> thm -> thm
+val deductAntisym : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*   A |- t1 = t2    B |- t1'                                                *)
-(* ----------------------------  Eq_mp                                       *)
+(* ----------------------------  eqMp                                       *)
 (*         A u B |- t2                                                       *)
 (*                                                                           *)
 (* Side condition: the terms t1 and t1' must be alpha equivalent.            *)
 (* ------------------------------------------------------------------------- *)
-val Eq_mp : thm -> thm -> thm
+val eqMp : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*          A |- t                                                           *)
 (* ------------------------  Subst theta                                     *)
 (*   A[theta] |- t[theta]                                                    *)
 (* ------------------------------------------------------------------------- *)
-val Subst : TermSubst.subst -> thm -> thm
+val subst : TermSubst.subst -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*   A |- f = g    B |- x = y                                                *)
-(* ----------------------------  Mk_comb                                     *)
+(* ----------------------------  comb                                        *)
 (*      A u B |- f x = g y                                                   *)
 (*                                                                           *)
 (* Side condition: the types of f and x must be compatible.                  *)
 (* ------------------------------------------------------------------------- *)
-val Mk_comb : thm -> thm -> thm
+val comb : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
-(* ------------  Refl t                                                      *)
+(* ------------  refl t                                                      *)
 (*   |- t = t                                                                *)
 (* ------------------------------------------------------------------------- *)
-val Refl : Term.term -> thm
+val refl : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
 (* Constant definition                                                       *)
 (*                                                                           *)
-(* ---------------  Define_const name t                                      *)
+(* ---------------  defineConst name t                                       *)
 (*   |- name = t                                                             *)
 (*                                                                           *)
 (* where name is a new constant with the same type as the variable v.        *)
@@ -102,13 +101,13 @@ val Refl : Term.term -> thm
 (* Side conditions: name is not an existing constant, t has no free          *)
 (* variables, and all type variables in t also appear in the type of t.      *)
 (* ------------------------------------------------------------------------- *)
-val Define_const : Name.name -> Term.term -> thm
+val defineConst : Name.name -> Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
 (* Type operator definition                                                  *)
 (*                                                                           *)
 (*           |- P t                                                          *)
-(* ------------------------------  Define_type name {abs,rep} ty_vars        *)
+(* ------------------------------  defineType name {abs,rep} tyVars          *)
 (*       |- abs (rep a) = a                                                  *)
 (*   |- P r = (rep (abs r) = r)                                              *)
 (*                                                                           *)
@@ -116,10 +115,10 @@ val Define_const : Name.name -> Term.term -> thm
 (* types 'a -> ty and ty -> 'a, respectively.                                *)
 (*                                                                           *)
 (* Side conditions: name is not an existing type operator, abs and rep do    *)
-(* not have the same name as existing constants, and ty_vars lists all the   *)
+(* not have the same name as existing constants, and tyVars lists all the    *)
 (* type variables in P.                                                      *)
 (* ------------------------------------------------------------------------- *)
-val Define_type :
+val defineType :
     Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list -> thm ->
     thm * thm
 

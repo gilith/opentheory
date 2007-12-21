@@ -12,18 +12,18 @@ sig
 
 type translation
 
-val import_type : translation -> Name.name -> Name.name
-val export_type : translation -> Name.name -> Name.name
+val importType : translation -> Name.name -> Name.name
+val exportType : translation -> Name.name -> Name.name
 
-val import_const : translation -> Name.name -> Name.name
-val export_const : translation -> Name.name -> Name.name
+val importConst : translation -> Name.name -> Name.name
+val exportConst : translation -> Name.name -> Name.name
 
-val import_rule : translation -> Name.name -> Name.name
-val export_rule : translation -> Name.name -> Name.name
+val importRule : translation -> Name.name -> Name.name
+val exportRule : translation -> Name.name -> Name.name
 
 val natural : translation
 
-val hol_light : translation ref
+val holLight : translation
 
 (* ------------------------------------------------------------------------- *)
 (* Articles                                                                  *)
@@ -35,11 +35,11 @@ type article
 (* I/O                                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val from_textfile :
+val fromTextfile :
     {filename : string, translation : translation} -> Thm.thm list * article
 
 (***
-val to_textfile :
+val toTextfile :
     {filename : string, translation : translation, article : article} -> unit
 ***)
 

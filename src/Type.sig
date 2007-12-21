@@ -12,19 +12,19 @@ type ty
 (* Constructors and destructors                                              *)
 (* ------------------------------------------------------------------------- *)
 
-datatype ty' = Type_var of Name.name | Type_op of Name.name * ty list;
+datatype ty' = TypeVar of Name.name | TypeOp of Name.name * ty list;
 
 val mk : ty' -> ty
 val dest : ty -> ty'
 
-val mk_var : Name.name -> ty
-val dest_var : ty -> Name.name
-val is_var : ty -> bool
-val equal_var : Name.name -> ty -> bool
+val mkVar : Name.name -> ty
+val destVar : ty -> Name.name
+val isVar : ty -> bool
+val equalVar : Name.name -> ty -> bool
 
-val mk_op : Name.name * ty list -> ty
-val dest_op : ty -> Name.name * ty list
-val is_op : ty -> bool
+val mkOp : Name.name * ty list -> ty
+val destOp : ty -> Name.name * ty list
+val isOp : ty -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A total order                                                             *)
@@ -38,30 +38,30 @@ val equal : ty -> ty -> bool
 (* Type variables                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val type_vars : ty -> NameSet.set
+val typeVars : ty -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive types                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val alpha : ty
+val alphaTy : ty
 
-val bool : ty
+val boolTy : ty
 
-val mk_fun : ty * ty -> ty
-val dest_fun : ty -> ty * ty
-val is_fun : ty -> bool
+val mkFun : ty * ty -> ty
+val destFun : ty -> ty * ty
+val isFun : ty -> bool
 
-val ind : ty
+val indTy : ty
 
 (* ------------------------------------------------------------------------- *)
 (* The type registry (initially contains the primitive type operators)       *)
 (* ------------------------------------------------------------------------- *)
 
-val type_arity : Name.name -> int
+val typeArity : Name.name -> int
 
-val all_types : unit -> Name.name list
+val allTypes : unit -> Name.name list
 
-val declare_type : Name.name -> int -> unit
+val declareType : Name.name -> int -> unit
 
 end

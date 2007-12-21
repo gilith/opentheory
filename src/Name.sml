@@ -12,8 +12,11 @@ val compare = String.compare;
 
 end
 
+structure NameOrdered =
+struct type t = Name.name val compare = Name.compare end
+
 structure NameSet =
-ElementSet (struct type t = Name.name val compare = Name.compare end);
+ElementSet (NameOrdered)
 
 structure NameMap =
-KeyMap (struct type t = Name.name val compare = Name.compare end);
+KeyMap (NameOrdered)

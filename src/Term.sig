@@ -21,22 +21,22 @@ datatype term' =
 val mk : term' -> term
 val dest : term -> term'
 
-val mk_const : Name.name * Type.ty -> term
-val dest_const : term -> Name.name * Type.ty
-val is_const : term -> bool
+val mkConst : Name.name * Type.ty -> term
+val destConst : term -> Name.name * Type.ty
+val isConst : term -> bool
 
-val mk_var : Var.var -> term
-val dest_var : term -> Var.var
-val is_var : term -> bool
-val equal_var : Var.var -> term -> bool
+val mkVar : Var.var -> term
+val destVar : term -> Var.var
+val isVar : term -> bool
+val equalVar : Var.var -> term -> bool
 
-val mk_comb : term * term -> term
-val dest_comb : term -> term * term
-val is_comb : term -> bool
+val mkComb : term * term -> term
+val destComb : term -> term * term
+val isComb : term -> bool
 
-val mk_abs : Var.var * term -> term
-val dest_abs : term -> Var.var * term
-val is_abs : term -> bool
+val mkAbs : Var.var * term -> term
+val destAbs : term -> Var.var * term
+val isAbs : term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A total order on terms, with and without alpha equivalence                *)
@@ -45,22 +45,22 @@ val is_abs : term -> bool
 val compare : term * term -> order
 val equal : term -> term -> bool
 
-val alpha_compare : term * term -> order
-val alpha_equal : term -> term -> bool
+val alphaCompare : term * term -> order
+val alphaEqual : term -> term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Type checking                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val type_of : term -> Type.ty
+val typeOf : term -> Type.ty
 
 (* ------------------------------------------------------------------------- *)
 (* Free term and type variables                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val type_vars : term -> NameSet.set
+val typeVars : term -> NameSet.set
 
-val free_vars : term -> VarSet.set
+val freeVars : term -> VarSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive constants                                                       *)
@@ -68,26 +68,28 @@ val free_vars : term -> VarSet.set
 
 (* Equality *)
 
-val eq : term
-val mk_eq : term * term -> term
-val dest_eq : term -> term * term
-val is_eq : term -> bool
+val eqTy : Type.ty -> Type.ty
+val eqTm : term
+val mkEq : term * term -> term
+val destEq : term -> term * term
+val isEq : term -> bool
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
-val select : term
-val mk_select : Var.var * term -> term
-val dest_select : term -> Var.var * term
-val is_select : term -> bool
+val selectTy : Type.ty -> Type.ty
+val selectTm : term
+val mkSelect : Var.var * term -> term
+val destSelect : term -> Var.var * term
+val isSelect : term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* The constant registry (initially contains the primitive constants)        *)
 (* ------------------------------------------------------------------------- *)
 
-val const_type : Name.name -> Type.ty
+val constType : Name.name -> Type.ty
 
-val all_consts : unit -> Name.name list
+val allConsts : unit -> Name.name list
 
-val declare_const : Name.name -> Type.ty -> unit
+val declareConst : Name.name -> Type.ty -> unit
 
 end
