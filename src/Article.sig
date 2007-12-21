@@ -35,11 +35,11 @@ type article
 (* I/O                                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val fromTextfile :
+val fromTextFile :
     {filename : string, translation : translation} -> Thm.thm list * article
 
 (***
-val toTextfile :
+val toTextFile :
     {filename : string, translation : translation, article : article} -> unit
 ***)
 

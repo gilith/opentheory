@@ -24,10 +24,10 @@ val () = app load ["Options"];
 
 open Useful Syntax Rule;
 
-val () = installPP pp_type;
-val () = installPP pp_term;
-val () = installPP pp_subst;
-val () = installPP pp_thm;
+val () = installPP ppType;
+val () = installPP ppTerm;
+val () = installPP ppSubst;
+val () = installPP ppThm;
 
 val time = Portable.time;
 
@@ -51,12 +51,12 @@ val () = SAY "Reading in hol-light theories";
 (* ------------------------------------------------------------------------- *)
 
 (***
-val q = ("q", bool_ty);
-val T = mk_const ("T", bool_ty);
-val qT = mk_abs (q,T);
-val qTq = mk_comb (qT, mk_var q);
+val q = ("q", boolTy);
+val T = mkConst ("T", boolTy);
+val qT = mkAbs (q,T);
+val qTq = mkComb (qT, mkVar q);
 val u = TU.singleton (q,T);
-TU.subst u (mk_var q);
+TU.subst u (mkVar q);
 TU.subst u qTq;
 ***)
 
@@ -64,9 +64,9 @@ val ARTICLE_DIR = "articles";
 
 val (ths,art) =
     time
-      Article.from_textfile
+      Article.fromTextfile
       {filename = ARTICLE_DIR ^ "/bool.art",
-       translation = !Article.hol_light};
+       translation = Article.holLight};
 
 (***
 [
