@@ -7,7 +7,7 @@ signature Rule =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive rules, repeated from the logical kernel                         *)
+(* Primitive rules, repeated from the logical kernel.                        *)
 (* ------------------------------------------------------------------------- *)
 
 val axiom : Sequent.sequent -> Thm.thm
@@ -29,8 +29,18 @@ val comb : Thm.thm -> Thm.thm -> Thm.thm
 val refl : Term.term -> Thm.thm
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive definition rules permitting alpha equivalent redefinitions      *)
+(* Primitive definition rules permitting alpha equivalent redefinitions.     *)
 (* ------------------------------------------------------------------------- *)
+
+type constDef = {tm : Term.term, def : Thm.thm}
+
+type typeDef =
+     {abs : Name.name, rep : Name.name, tyVars : Name.name list,
+      nonEmptyTh : Thm.thm, absRepTh : Thm.thm, repAbsTh : Thm.thm}
+
+val constDef : Name.name -> constDef option
+
+val typeDef : Name.name -> typeDef option
 
 val defineConst : Name.name -> Term.term -> Thm.thm
 
@@ -39,12 +49,18 @@ val defineType :
     Thm.thm -> Thm.thm * Thm.thm
 
 (* ------------------------------------------------------------------------- *)
-(* Derived rules                                                             *)
+(* Derived rules.                                                            *)
 (* ------------------------------------------------------------------------- *)
+
+(* Alpha conversion *)
 
 val alpha : Term.term list * Term.term -> Thm.thm -> Thm.thm
 
+(* Transitivity of equality *)
+
 val trans : Thm.thm -> Thm.thm -> Thm.thm
+
+(* Constant definition by supplying the required theorem *)
 
 val define : Term.term -> Thm.thm
 

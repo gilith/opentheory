@@ -33,7 +33,21 @@ fun natFromString err s =
     | NONE => raise Error err;
 
 (* ------------------------------------------------------------------------- *)
-(* Bilingual dictionaries                                                    *)
+(* Namespaces.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type namespace = name list;
+
+fun importIntoNamespace namespace name = join "." (namespace @ [name]);
+
+local
+  fun export (m,x) = Option.getOpt (total (destPrefix (m ^ ".")) x, x);
+in
+  fun exportFromNamespace namespace name = foldl export name namespace;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Bilingual dictionaries.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 datatype bilingual =
@@ -77,34 +91,43 @@ datatype object =
   | Othm of thm
   | Ocall of name;
 
-fun destOerror Oerror = () | destOerror _ = raise Error "destOerror";
+fun destOerror Oerror = ()
+  | destOerror _ = raise Error "destOerror";
 val isOerror = can destOerror;
 
-fun destOnum (Onum n) = n | destOnum _ = raise Error "destOnum";
+fun destOnum (Onum n) = n
+  | destOnum _ = raise Error "destOnum";
 val isOnum = can destOnum;
 
-fun destOname (Oname n) = n | destOname _ = raise Error "destOname";
+fun destOname (Oname n) = n
+  | destOname _ = raise Error "destOname";
 val isOname = can destOname;
 
-fun destOlist (Olist l) = l | destOlist _ = raise Error "destOlist";
+fun destOlist (Olist l) = l
+  | destOlist _ = raise Error "destOlist";
 val isOlist = can destOlist;
 
-fun destOtype (Otype ty) = ty | destOtype _ = raise Error "destOtype";
+fun destOtype (Otype ty) = ty
+  | destOtype _ = raise Error "destOtype";
 val isOtype = can destOtype;
 
-fun destOterm (Oterm tm) = tm | destOterm _ = raise Error "destOterm";
+fun destOterm (Oterm tm) = tm
+  | destOterm _ = raise Error "destOterm";
 val isOterm = can destOterm;
 
-fun destOthm (Othm th) = th | destOthm _ = raise Error "destOthm";
+fun destOthm (Othm th) = th
+  | destOthm _ = raise Error "destOthm";
 val isOthm = can destOthm;
 
-fun destOcall (Ocall n) = n | destOcall _ = raise Error "destOcall";
+fun destOcall (Ocall n) = n
+  | destOcall _ = raise Error "destOcall";
 val isOcall = can destOcall;
 
 fun mkOunit () = Olist [];
 
 fun mkOpair (x,y) = Olist [x,y];
-fun destOpair (Olist [x,y]) = (x,y) | destOpair _ = raise Error "destOpair";
+fun destOpair (Olist [x,y]) = (x,y)
+  | destOpair _ = raise Error "destOpair";
 val isOpair = can destOpair;
 
 fun destOtriple (Olist [x,y,z]) = (x,y,z)
@@ -133,7 +156,7 @@ fun objectCompare ob1_ob2 =
       | (Oterm tm1, Oterm tm2) => T.compare (tm1,tm2)
       | (Oterm _, _) => LESS
       | (_, Oterm _) => GREATER
-      | (Othm th1, Othm th2) => Int.compare (thmId th1, thmId th2)
+      | (Othm th1, Othm th2) => Thm.compare (th1,th2)
       | (Othm _, _) => LESS
       | (_, Othm _) => GREATER
       | (Olist l1, Olist l2) => lexCompare objectCompare (l1,l2)
@@ -166,19 +189,12 @@ val extractThms =
 (* Translations                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun importIntoNamespace namespace name = join "." (namespace @ [name]);
-
-fun exportFromNamespace namespace name =
-    foldl (fn (m,x) => Option.getOpt (total (destPrefix (m ^ ".")) x, x))
-    name namespace;
-
 datatype translation =
     Translation of
-    {namespace : name list,
-     types : bilingual,
-     consts : bilingual,
-     rules : bilingual,
-     simulations : (object -> object) NM.map};
+      {namespace : namespace,
+       types : bilingual,
+       consts : bilingual,
+       rules : name -> object -> object};
 
 local
   fun import namespace bilingual name =
@@ -187,14 +203,17 @@ local
   fun export namespace bilingual name =
       exportFromNamespace namespace (bilingualExport bilingual name);
 in
-  fun importType (Translation {namespace,types,...}) = import namespace types;
-  fun exportType (Translation {namespace,types,...}) = export namespace types;
+  fun importType (Translation {namespace,types,...}) =
+      import namespace types;
 
-  fun importConst (Translation {namespace = n, consts, ...}) = import n consts;
-  fun exportConst (Translation {namespace = n, consts, ...}) = export n consts;
+  fun exportType (Translation {namespace,types,...}) =
+      export namespace types;
 
-  fun importRule (Translation {namespace,rules,...}) = import namespace rules;
-  fun exportRule (Translation {namespace,rules,...}) = export namespace rules;
+  fun importConst (Translation {namespace,consts,...}) =
+      import namespace consts;
+
+  fun exportConst (Translation {namespace,consts,...}) =
+      export namespace consts;
 end;
 
 local
@@ -233,10 +252,10 @@ fun translationSimulate (Translation {simulations,...}) name =
 
 val natural =
     mkTranslation
-    {namespace = [],
-     types = [],
-     consts = [],
-     rules = []};
+      {namespace = [],
+       types = [],
+       consts = [],
+       rules = []};
 
 (* ------------------------------------------------------------------------- *)
 (* Stacks                                                                    *)
@@ -1106,6 +1125,11 @@ local
 
       | (Tcommand "cons", Olist t :: h :: stack) =>
         let
+          val () =
+              case h of
+                Ocall _ => raise Error "cons may not operate on Ocall objects"
+              | _ => ()
+              
           val stack = Olist (h :: t) :: stack
         in
           {stack = stack, dict = dict, saved = saved, extra = extra}

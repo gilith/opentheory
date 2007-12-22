@@ -51,7 +51,7 @@ a dictionary.</p>
 
 <dd>Strings, such as <em>"foo"</em> and <em>""</em>.</dd>
 
-<dt><kbd>hol_type</kbd></dt>
+<dt><kbd>type</kbd></dt>
 
 <dd>Higher order logic types, such as <em>num</em> and <em>bool
 list</em>.</dd>
@@ -69,7 +69,7 @@ x</em>.</dd>
 </dl></p>
 
 <p>The article language constructs values of type <kbd>object</kbd>,
-which has the following ML definition:</p>
+which has the following ML-like definition:</p>
 
 <table cellpadding="0" cellspacing="0">
 
@@ -107,7 +107,7 @@ which has the following ML definition:</p>
 
 <tr>
 <td>&nbsp;<kbd>|</kbd>&nbsp;</td>
-<td><kbd>Otype of hol_type</kbd></td>
+<td><kbd>Otype of type</kbd></td>
 <td></td>
 <td>(* A higher order logic type *)</td>
 </tr>
@@ -259,6 +259,9 @@ a sequence of decimal digits)</dt>
 <dd>Pop a list <em>t</em>; pop an object <em>h</em>; push the
 list <em>h :: t</em> on to the stack.
 
+<br /><strong>Note:</strong> The object <em>h</em> must not be
+an <kbd>Ocall</kbd> object.
+
 <table cellspacing="0" cellpadding="0">
 <tr>
 <th>Stack:</th>
@@ -283,7 +286,7 @@ list <em>h :: t</em> on to the stack.
 <dd>Pop a name <em>n</em>; push a type variable with name
 <em>n</em>.
 
-<br><strong>Note:</strong> An initial apostrophe is
+<br /><strong>Note:</strong> An initial apostrophe is
 <strong>not</strong> added to the name.
 
 <table cellspacing="0" cellpadding="0">
@@ -310,7 +313,7 @@ list <em>h :: t</em> on to the stack.
 <dd>Pop a list of types <em>l</em>; pop a name <em>n</em>; push a type
 operator with name <em>n</em> and arguments <em>l</em>.
 
-<br><strong>Note:</strong> See the section <em>Constructing Types,
+<br /><strong>Note:</strong> See the section <em>Constructing Types,
 Constants and Theorems</em> below for more information on this
 command.
 
@@ -362,7 +365,7 @@ with name <em>n</em> and type <em>ty</em>.
 <dd>Pop a type <em>ty</em>; pop a name <em>n</em>; push a constant
 with name <em>n</em> and type <em>ty</em>.
 
-<br><strong>Note:</strong> See the section <em>Constructing Types,
+<br /><strong>Note:</strong> See the section <em>Constructing Types,
 Constants and Theorems</em> below for more information on this
 command.
 
@@ -439,7 +442,7 @@ lambda abstraction <em>\v. b</em>.
 theorem <em>h |- c</em> with hypothesis <em>h</em> and
 conclusion <em>c</em>.
 
-<br><strong>Note:</strong> See the section <em>Constructing Types,
+<br /><strong>Note:</strong> See the section <em>Constructing Types,
 Constants and Theorems</em> below for more information on this
 command.
 
@@ -493,7 +496,7 @@ function call marker <kbd>Ocall n</kbd>; push the input value
 from the stack up to and including the top function call marker
 <kbd>Ocall _</kbd>; push the return value <em>r</em>.
 
-<br><strong>Note:</strong> The argument <em>n'</em> to the top
+<br /><strong>Note:</strong> The argument <em>n'</em> to the top
 function call marker <kbd>Ocall n'</kbd> should satisfy <em>n =
 n'</em>.
 
@@ -562,7 +565,7 @@ dictionary so that key <em>k</em> maps to object <em>x</em>.
 <dd>Pop a number <em>k</em>; look up key <em>k</em> in the
 dictionary to get an object <em>x</em>; push the object <em>x</em>.
 
-<br><strong>Note:</strong> This command does not change the dictionary.
+<br /><strong>Note:</strong> This command does not change the dictionary.
 
 <table cellspacing="0" cellpadding="0">
 <tr>

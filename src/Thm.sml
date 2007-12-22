@@ -28,18 +28,23 @@ infixr ==
 val op== = Portable.pointerEqual;
 
 (* ------------------------------------------------------------------------- *)
-(* Theorems                                                                  *)
+(* The abstract type of theorem.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 datatype thm' = Thm of {axioms : SS.set, sequent : S.sequent};
 
 type thm = thm';
 
+fun dest (th : thm) = th;
+
 (* ------------------------------------------------------------------------- *)
-(* Destructors                                                               *)
+(* A total order on theorems modulo alpha equivalence.                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun dest (th : thm) = th;
+fun compare (Thm {sequent = s1, ...}, Thm {sequent = s2, ...}) =
+    Sequent.compare (s1,s2);
+
+fun equal th1 th2 = compare (th1,th2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of inference                                              *)
@@ -242,3 +247,12 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
     handle Error err => raise Error ("Thm.defineType: " ^ err);
 
 end
+
+structure ThmOrdered =
+struct type t = Thm.thm val compare = Thm.compare end
+
+structure ThmSet =
+ElementSet (ThmOrdered)
+
+structure ThmMap =
+KeyMap (ThmOrdered)

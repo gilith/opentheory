@@ -37,8 +37,93 @@ val comb = Thm.comb;
 val refl = Thm.refl;
 
 (* ------------------------------------------------------------------------- *)
-(* Alpha conversion, a derived rule                                          *)
+(* Primitive rules, repeated from the logical kernel                         *)
 (* ------------------------------------------------------------------------- *)
+
+type constDef = {tm : Term.term, def : Thm.thm};
+
+type typeDef =
+     {abs : Name.name, rep : Name.name, tyVars : Name.name list,
+      nonEmptyTh : Thm.thm, absRepTh : Thm.thm, repAbsTh : Thm.thm};
+
+local
+  datatype constDefs = ConstDefs of constDef NM.map;
+
+  val constDefs = ref (ConstDefs (NM.new ()));
+
+  fun constDefAdd n_def =
+      case !constDefs of
+        ConstDefs m => constDefs := ConstDefs (NM.insert m n_def);
+in
+  fun constDef n = case !constDefs of ConstDefs m => NM.peek m n;
+
+  fun defineConst name tm =
+      (case constDef name of
+         NONE =>
+         let
+           val def = Thm.defineConst name tm
+           val () = constDefAdd (name, {tm = tm, def = def})
+         in
+           def
+         end
+       | SOME {tm = tm', def} =>
+         let
+           val _ = T.alphaEqual tm tm' orelse
+                   raise Error "redefinition not alpha equivalent"
+         in
+           def
+         end)
+      handle Error err => raise Error ("Rule.defineConst: " ^ err);
+end;
+
+local
+  datatype typeDefs = TypeDefs of typeDef NM.map;
+
+  val typeDefs = ref (TypeDefs (NM.new ()));
+
+  fun typeDefAdd n_def =
+      case !typeDefs of
+        TypeDefs m => typeDefs := TypeDefs (NM.insert m n_def);
+in
+  fun typeDef n = case !typeDefs of TypeDefs m => NM.peek m n;
+
+  fun defineType name {abs,rep} tyVars nonEmptyTh =
+      (case typeDef name of
+         NONE =>
+         let
+           val def as (absRepTh,repAbsTh) =
+               Thm.defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
+           val info =
+               {abs = abs, rep = rep, tyVars = tyVars, nonEmptyTh = nonEmptyTh,
+                absRepTh = absRepTh, repAbsTh = repAbsTh}
+           val () = typeDefAdd (name,info)
+         in
+           def
+         end
+       | SOME {abs = abs', rep = rep', tyVars = tyVars',
+               nonEmptyTh = nonEmptyTh', absRepTh, repAbsTh} =>
+         let
+           val _ = abs = abs' orelse
+                   raise Error "redefinition with different abs"
+           val _ = rep = rep' orelse
+                   raise Error "redefinition with different rep"
+           val _ = tyVars = tyVars' orelse
+                   raise Error "redefinition with different tyVars"
+           val P = rator (concl nonEmptyTh)
+           and P' = rator (concl nonEmptyTh')
+           val _ = T.alphaEqual P P' orelse
+                   raise Error "predicate not alpha equivalent"
+         in
+           (absRepTh,repAbsTh)
+         end)
+      handle Error err => raise Error ("Rule.defineType: " ^ err);
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Derived rules.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+(* Alpha conversion *)
 
 fun alpha (h,c) th =
     let
@@ -71,92 +156,7 @@ fun alpha (h,c) th =
       th
     end;
 
-(* ------------------------------------------------------------------------- *)
-(* Primitive rules, repeated from the logical kernel                         *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  datatype constDefs = ConstDefs of {t' : term, def' : thm} NM.map;
-
-  val constDefs = ref (ConstDefs (NM.new ()));
-
-  fun constDef n = case !constDefs of ConstDefs m => NM.peek m n;
-
-  fun constDefAdd n_def =
-      case !constDefs of
-        ConstDefs m => constDefs := ConstDefs (NM.insert m n_def);
-in
-  fun defineConst name t =
-      (case constDef name of
-         NONE =>
-         let
-           val def = Thm.defineConst name t
-           val () = constDefAdd (name, {t' = t, def' = def})
-         in
-           def
-         end
-       | SOME {t',def'} =>
-         let
-           val _ = T.alphaEqual t t' orelse
-                   raise Error "redefinition not alpha equivalent"
-         in
-           alpha ([], mkEq (lhs (concl def'), t)) def'
-         end)
-      handle Error err => raise Error ("Rule.defineConst: " ^ err);
-end;
-
-local
-  datatype typeDefs =
-      TypeDefs of
-        {abs' : name, rep' : name,
-         tyVars' : name list, nonEmptyTh' : thm,
-         absRepTh' : thm, repAbsTh' : thm} NM.map;
-
-  val typeDefs = ref (TypeDefs (NM.new ()));
-
-  fun typeDef n = case !typeDefs of TypeDefs m => NM.peek m n;
-
-  fun typeDefAdd n_def =
-      case !typeDefs of
-        TypeDefs m => typeDefs := TypeDefs (NM.insert m n_def);
-in
-  fun defineType name {abs,rep} tyVars nonEmptyTh =
-      (case typeDef name of
-         NONE =>
-         let
-           val def as (absRepTh,repAbsTh) =
-               Thm.defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
-           val info =
-               {abs' = abs, rep' = rep,
-                tyVars' = tyVars, nonEmptyTh' = nonEmptyTh,
-                absRepTh' = absRepTh, repAbsTh' = repAbsTh}
-           val () = typeDefAdd (name,info)
-         in
-           def
-         end
-       | SOME {abs',rep',tyVars',nonEmptyTh',absRepTh',repAbsTh'} =>
-         let
-           val _ = abs = abs' orelse
-                   raise Error "redefinition with different abs"
-           val _ = rep = rep' orelse
-                   raise Error "redefinition with different rep"
-           val _ = tyVars = tyVars' orelse
-                   raise Error "redefinition with different tyVars"
-           val _ = TAS.null (hyp nonEmptyTh) orelse
-                   raise Error "existence theorem must not have hypotheses"
-           val P = rator (concl nonEmptyTh)
-           and P' = rator (concl nonEmptyTh')
-           val _ = T.equal P P' orelse
-                   raise Error "redefinition with different predicate"
-         in
-           (absRepTh',repAbsTh')
-         end)
-      handle Error err => raise Error ("Rule.defineType: " ^ err);
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Derived rules                                                             *)
-(* ------------------------------------------------------------------------- *)
+(* Transitivity of equality *)
 
 fun trans th1 th2 =
     let
@@ -165,6 +165,8 @@ fun trans th1 th2 =
     in
       eqMp th3 th1
     end;
+
+(* Constant definition by supplying the required theorem *)
 
 fun define tm =
     let

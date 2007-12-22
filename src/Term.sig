@@ -9,7 +9,7 @@ sig
 type term
 
 (* ------------------------------------------------------------------------- *)
-(* Constructors and destructors                                              *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 datatype term' =
@@ -39,7 +39,7 @@ val destAbs : term -> Var.var * term
 val isAbs : term -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* A total order on terms, with and without alpha equivalence                *)
+(* A total order on terms, with and without alpha equivalence.               *)
 (* ------------------------------------------------------------------------- *)
 
 val compare : term * term -> order
@@ -49,13 +49,13 @@ val alphaCompare : term * term -> order
 val alphaEqual : term -> term -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Type checking                                                             *)
+(* Type checking.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
 val typeOf : term -> Type.ty
 
 (* ------------------------------------------------------------------------- *)
-(* Free term and type variables                                              *)
+(* Free term and type variables.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 val typeVars : term -> NameSet.set
@@ -63,7 +63,7 @@ val typeVars : term -> NameSet.set
 val freeVars : term -> VarSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive constants                                                       *)
+(* Primitive constants.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 (* Equality *)
@@ -83,7 +83,7 @@ val destSelect : term -> Var.var * term
 val isSelect : term -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* The constant registry (initially contains the primitive constants)        *)
+(* The constant registry (initially contains the primitive constants).       *)
 (* ------------------------------------------------------------------------- *)
 
 val constType : Name.name -> Type.ty
