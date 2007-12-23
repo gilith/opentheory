@@ -16,12 +16,8 @@ structure T = Term;
 structure TAS = TermAlphaSet;
 structure TU = TermSubst;
 
-infix |-> ## ==
-
-val op== = Portable.pointerEqual;
-
 (* ------------------------------------------------------------------------- *)
-(* Helper functions                                                          *)
+(* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun plural 1 s = "1 " ^ s
@@ -38,12 +34,14 @@ fun natFromString err s =
 
 type namespace = name list;
 
-fun importIntoNamespace namespace name = join "." (namespace @ [name]);
+val globalNamespace : namespace = [];
+
+fun exportFromNamespace namespace name = join "." (namespace @ [name]);
 
 local
-  fun export (m,x) = Option.getOpt (total (destPrefix (m ^ ".")) x, x);
+  fun import (m,x) = Option.getOpt (total (destPrefix (m ^ ".")) x, x);
 in
-  fun exportFromNamespace namespace name = foldl export name namespace;
+  fun importIntoNamespace namespace name = foldl import name namespace;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -57,28 +55,53 @@ datatype bilingual =
 
 val bilingualEmpty = Bilingual {export = NM.new (), import = NM.new ()};
 
-fun bilingualAdd (a,b) (Bilingual {export,import}) =
+local
+  fun unseen x m = not (NM.inDomain x m);
+in
+  fun bilingualAdd namespace bilingual (localName,altName) =
+      let
+        val Bilingual {export,import} = bilingual
+        val globalName = exportFromNamespace namespace localName
+        val _ = unseen globalName export orelse raise Error "export conflict"
+        val _ = unseen altName import orelse raise Error "import conflict"
+        val export = NM.insert export (globalName,altName)
+        val import = NM.insert import (altName,globalName)
+      in
+        Bilingual {export = export, import = import}
+      end
+      handle Error err => raise Error ("bilingualAdd: " ^ err);
+end;
+
+fun bilingualAddList namespace =
     let
-      fun unseen x m = not (NM.inDomain x m)
-      val _ = unseen a export orelse raise Error "export conflict"
-      val _ = unseen b import orelse raise Error "import conflict"
-      val export = NM.insert export (a,b)
-      val import = NM.insert import (b,a)
+      fun add (entry,bilingual) = bilingualAdd namespace bilingual entry
     in
-      Bilingual {export = export, import = import}
-    end
-    handle Error err => raise Error ("bilingualAdd: " ^ err);
+      List.foldl add
+    end;
 
-fun bilingualAddl l b = foldl (uncurry bilingualAdd) b l;
+fun bilingualFromList namespace = bilingualAddList namespace bilingualEmpty;
 
-fun bilingualExport (Bilingual {export,...}) a =
-    Option.getOpt (NM.peek export a, a);
+fun bilingualExport namespace (Bilingual {export,...}) localName =
+    let
+      val globalName = exportFromNamespace namespace localName
+    in
+      case NM.peek export globalName of
+        SOME altName => altName
+      | NONE => globalName
+    end;
 
-fun bilingualImport (Bilingual {import,...}) b =
-    Option.getOpt (NM.peek import b, b);
+fun bilingualImport namespace (Bilingual {import,...}) altName =
+    let
+      val globalName =
+          case NM.peek import altName of
+            SOME globalName => globalName
+          | NONE => altName
+    in
+      importIntoNamespace namespace globalName
+    end;
 
 (* ------------------------------------------------------------------------- *)
-(* Objects                                                                   *)
+(* Objects.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 datatype object =
@@ -134,11 +157,16 @@ fun destOtriple (Olist [x,y,z]) = (x,y,z)
   | destOtriple _ = raise Error "destOtriple";
 val isOtriple = can destOtriple;
 
-val destOvar = (destOname ## destOtype) o destOpair;
+fun destOvar var =
+    let
+      val (name,ty) = destOpair var
+    in
+      (destOname name, destOtype ty)
+    end;
 val isOvar = can destOvar;
 
 fun objectCompare ob1_ob2 =
-    if op== ob1_ob2 then EQUAL
+    if Portable.pointerEqual ob1_ob2 then EQUAL
     else
       case ob1_ob2 of
         (Oerror,Oerror) => EQUAL
@@ -186,7 +214,7 @@ val extractThms =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Translations                                                              *)
+(* Translations.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
 datatype translation =
@@ -194,40 +222,54 @@ datatype translation =
       {namespace : namespace,
        types : bilingual,
        consts : bilingual,
-       rules : name -> object -> object};
+       rules : (object -> object) NM.map};
 
-local
-  fun import namespace bilingual name =
-      bilingualImport bilingual (importIntoNamespace namespace name);
+fun exportType (Translation {namespace,types,...}) =
+    bilingualExport namespace types;
 
-  fun export namespace bilingual name =
-      exportFromNamespace namespace (bilingualExport bilingual name);
-in
-  fun importType (Translation {namespace,types,...}) =
-      import namespace types;
+fun importType (Translation {namespace,types,...}) =
+    bilingualImport namespace types;
 
-  fun exportType (Translation {namespace,types,...}) =
-      export namespace types;
+fun exportConst (Translation {namespace,consts,...}) =
+    bilingualExport namespace consts;
 
-  fun importConst (Translation {namespace,consts,...}) =
-      import namespace consts;
+fun importConst (Translation {namespace,consts,...}) =
+    bilingualImport namespace consts;
 
-  fun exportConst (Translation {namespace,consts,...}) =
-      export namespace consts;
-end;
-
-local
-  fun mkTrans l = bilingualAddl l bilingualEmpty;
-in
-  fun mkTranslation {namespace,types,consts,rules} =
+fun addRule (Translation {namespace,types,consts,rules}) (name,rule) =
+    let
+      val name = exportFromNamespace namespace name
+      val _ = not (NM.inDomain name rules) orelse
+              raise Bug ("duplicate rule: " ^ name)
+      val rules = NM.insert rules (name,rule)
+    in
       Translation
         {namespace = namespace,
-         types = mkTrans types,
-         consts = mkTrans consts,
-         rules = mkTrans rules,
-         simulations = NM.new ()};
-end;
+         types = types,
+         consts = consts,
+         rules = rules}
+    end;
 
+val addRuleList =
+    let
+      fun add (name_rule,trans) = addRule trans name_rule
+    in
+      List.foldl add
+    end;
+    
+fun mkTranslation {namespace,types,consts,rules} =
+    let
+      val trans =
+          Translation
+            {namespace = namespace,
+             types = bilingualFromList namespace types,
+             consts = bilingualFromList namespace consts,
+             rules = NM.new ()}
+    in
+      addRuleList trans rules
+    end;
+  
+(***
 fun addSimulations l translation =
     let
       val Translation {namespace,types,consts,rules,simulations} = translation
@@ -245,34 +287,87 @@ fun translationSimulate (Translation {simulations,...}) name =
     case NM.peek simulations name of
       NONE => K NONE
     | SOME sim => SOME o sim;
+***)
 
 (* ------------------------------------------------------------------------- *)
-(* The natural translation                                                   *)
+(* The natural translation.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 val natural =
     mkTranslation
-      {namespace = [],
+      {namespace = globalNamespace,
        types = [],
        consts = [],
        rules = []};
 
 (* ------------------------------------------------------------------------- *)
-(* Stacks                                                                    *)
+(* Object providence.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-type stack = object list;
+val newObjectId =
+    let
+      val counter = ref 0
+    in
+      fn () =>
+         let
+           val ref count = counter
+           val () = counter := count + 1
+         in
+           count
+         end
+    end;
+
+(* Invariants (in order of priority): *)
+(* 1. Objects in the callArgument slot have providence Pcall functionName. *)
+(* 2. Objects that do not contain theorems have providence Punknown. *)
+
+datatype objectProvidence =
+    OP of
+      {objectId : int,
+       object : object,
+       providence : providence,
+       callArgument : objectProvidence option}
+
+and providence =
+    Punknown
+  | Pcons of objectProvidence * objectProvidence
+  | Pthm of objectProvidence list
+  | Pref of objectProvidence
+  | Pcall of name
+  | Preturn of objectProvidence;
+
+fun destOPthm (OP {object,...}) = destOthm object;
+
+fun destOPcall (OP {object,...}) = destOcall object;
+
+(* ------------------------------------------------------------------------- *)
+(* Stacks.                                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+type stack = objectProvidence list;
 
 val emptyStack : stack = [];
 
 fun topCall [] = NONE
-  | topCall (Ocall n :: l) = SOME (n,l)
+  | topCall (OP {object = Ocall n, ...} :: l) = SOME (n,l)
   | topCall (_ :: l) = topCall l;
 
-val callStack = List.mapPartial (total destOcall);
+(* ------------------------------------------------------------------------- *)
+(* Call stacks.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+type callStack = (name * object) list;
+
+fun callStack (OP {callArgument,...}) =
+    case callArgument of
+      NONE => []
+    | SOME obj =>
+      case obj of
+        OP {object, providence = Pcall n, ...} => (n,object) :: callStack obj
+      | _ => raise Bug "callArgument does not have Pcall name providence";
 
 (* ------------------------------------------------------------------------- *)
-(* Dictionaries                                                              *)
+(* Dictionaries.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
 type dict = object IntMap.map;
@@ -287,19 +382,20 @@ fun dictRef dict n =
     | NONE => raise Error ("dictRef: no entry for number "^Int.toString n);
 
 (* ------------------------------------------------------------------------- *)
-(* Saved theorems                                                            *)
+(* Saved theorems.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype saved = Saved of thm list;
+datatype saved = Saved of objectProvidence list;
 
-fun savedList (Saved l) = rev l;
+fun savedList (Saved l) = map destOPthm (rev l);
 
 val savedEmpty = Saved [];
 
 fun savedAdd th (Saved l) = Saved (th :: l);
 
+(***
 (* ------------------------------------------------------------------------- *)
-(* Sets of theorems                                                          *)
+(* Sets of theorems.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 datatype thmSet = ThmSet of (term list, thm) Map.map;
@@ -321,7 +417,7 @@ end;
 fun thmSetAddList ths set = foldl (fn (t,s) => thmSetAdd t s) set ths;
 
 (* ------------------------------------------------------------------------- *)
-(* The theorem dependency graph                                              *)
+(* The theorem dependency graph.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 datatype thmDeps = ThmDeps of int list IntMap.map;
@@ -449,29 +545,29 @@ in
       article
     end;
 end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* hol-light                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 val holLight =
-    ref
-      (mkTranslation
-         {namespace = ["hol-light"],
-          types = [("fun","hol-light.fun"),
-                   ("bool","hol-light.bool")],
-          consts = [("=","hol-light.="),
-                    ("@","hol-light.@"),
-                    ("T","hol-light.T"),
-                    ("F","hol-light.F"),
-                    ("~","hol-light.~"),
-                    ("/\\","hol-light./\\"),
-                    ("\\/","hol-light.\\/"),
-                    ("==>","hol-light.==>"),
-                    ("!","hol-light.!"),
-                    ("?","hol-light.?"),
-                    ("?!","hol-light.?!")],
-          rules = []});
+    mkTranslation
+      {namespace = ["hol-light"],
+       types = [("fun","fun"),
+                ("bool","bool")],
+       consts = [("=","="),
+                 ("@","@"),
+                 ("T","T"),
+                 ("F","F"),
+                 ("~","~"),
+                 ("/\\","/\\"),
+                 ("\\/","\\/"),
+                 ("==>","==>"),
+                 ("!","!"),
+                 ("?","?"),
+                 ("?!","?!")],
+       rules = []};
 
 fun holLightTypeSubstToSubst oins =
     let
@@ -498,11 +594,11 @@ fun holLightNewBasicDefinition arg =
       val tm = destOterm arg
       val (v,t) = destEq tm
       val (n,ty) = destVar v
-      val n = importConst (!holLight) n
+      val n = importConst holLight n
       val v = mkVar (n,ty)
       val tm = mkEq (v,t)
     in
-      Othm (Define tm)
+      Othm (define tm)
     end
     handle Error err =>
       raise Bug ("holLightNewBasicDefinition failed:\n" ^ err);
@@ -510,14 +606,14 @@ fun holLightNewBasicDefinition arg =
 fun holLightNewBasicTypeDefinition arg =
     let
       val (name,absRep,nonEmptyTh) = destOtriple arg
-      val name = importType (!holLight) (destOname name)
+      val name = importType holLight (destOname name)
       val (abs,rep) = destOpair absRep
-      val abs = importConst (!holLight) (destOname abs)
-      and rep = importConst (!holLight) (destOname rep)
+      val abs = importConst holLight (destOname abs)
+      and rep = importConst holLight (destOname rep)
       and nonEmptyTh = destOthm nonEmptyTh
       val tyVars = NS.toList (T.typeVars (concl nonEmptyTh))
       val (absRepTh,repAbsTh) =
-          DefineType name {abs = abs, rep = rep} tyVars nonEmptyTh
+          defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
     in
       mkOpair (Othm absRepTh, Othm repAbsTh)
     end
@@ -530,12 +626,12 @@ fun holLightAbs arg =
       val v = destVar (destOterm otm)
       val th = destOthm oth
     in
-      Othm (Abs v th)
+      Othm (abs v th)
     end;
 
-fun holLightAssume arg = Othm (Assume (destOterm arg));
+fun holLightAssume arg = Othm (assume (destOterm arg));
 
-fun holLightBeta arg = Othm (BetaConv (destOterm arg));
+fun holLightBeta arg = Othm (betaConv (destOterm arg));
 
 fun holLightDeductAntisymRule arg =
     let
@@ -543,7 +639,7 @@ fun holLightDeductAntisymRule arg =
       val th1 = destOthm oth1
       val th2 = destOthm oth2
     in
-      Othm (DeductAntisym th1 th2)
+      Othm (deductAntisym th1 th2)
     end;
 
 fun holLightEqMp arg =
@@ -552,7 +648,7 @@ fun holLightEqMp arg =
       val th1 = destOthm oth1
       val th2 = destOthm oth2
     in
-      Othm (EqMp th1 th2)
+      Othm (eqMp th1 th2)
     end;
 
 fun holLightInst arg =
@@ -561,7 +657,7 @@ fun holLightInst arg =
       val ins = holLightSubstToSubst oins
       val th = destOthm oth
     in
-      Othm (Subst ins th)
+      Othm (subst ins th)
     end;
 
 fun holLightInstType arg =
@@ -570,7 +666,7 @@ fun holLightInstType arg =
       val ins = holLightTypeSubstToSubst oins
       val th = destOthm oth
     in
-      Othm (Subst ins th)
+      Othm (subst ins th)
     end;
 
 fun holLightMkComb arg =
@@ -579,10 +675,10 @@ fun holLightMkComb arg =
       val th1 = destOthm oth1
       val th2 = destOthm oth2
     in
-      Othm (MkComb th1 th2)
+      Othm (comb th1 th2)
     end;
 
-fun holLightRefl arg = Othm (Refl (destOterm arg));
+fun holLightRefl arg = Othm (refl (destOterm arg));
 
 fun holLightTrans arg =
     let
@@ -590,26 +686,25 @@ fun holLightTrans arg =
       val th1 = destOthm oth1
       val th2 = destOthm oth2
     in
-      Othm (Trans th1 th2)
+      Othm (trans th1 th2)
     end;
 
-val () =
-    holLight :=
-    addSimulations
-      [("hol-light.newBasicDefinition", holLightNewBasicDefinition),
-       ("hol-light.newBasicTypeDefinition", holLightNewBasicTypeDefinition),
-       ("hol-light.ABS", holLightAbs),
-       ("hol-light.ASSUME", holLightAssume),
-       ("hol-light.BETA", holLightBeta),
-       ("hol-light.DEDUCT_ANTISYM_RULE", holLightDeductAntisymRule),
-       ("hol-light.EQ_MP", holLightEqMp),
-       ("hol-light.INST", holLightInst),
-       ("hol-light.INST_TYPE", holLightInstType),
-       ("hol-light.MK_COMB", holLightMkComb),
-       ("hol-light.REFL", holLightRefl),
-       ("hol-light.TRANS", holLightTrans)]
-      (!holLight);
+val holLight =
+    addRuleList holLight
+      [("newBasicDefinition", holLightNewBasicDefinition),
+       ("newBasicTypeDefinition", holLightNewBasicTypeDefinition),
+       ("ABS", holLightAbs),
+       ("ASSUME", holLightAssume),
+       ("BETA", holLightBeta),
+       ("DEDUCT_ANTISYM_RULE", holLightDeductAntisymRule),
+       ("EQ_MP", holLightEqMp),
+       ("INST", holLightInst),
+       ("INST_TYPE", holLightInstType),
+       ("MK_COMB", holLightMkComb),
+       ("REFL", holLightRefl),
+       ("TRANS", holLightTrans)];
 
+(***
 (* ------------------------------------------------------------------------- *)
 (* Getting hold of required theorems by hook or by crook                     *)
 (* ------------------------------------------------------------------------- *)
@@ -1003,6 +1098,7 @@ fun extraFinal saved extra =
     in
       (saved,article)
     end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* I/O                                                                       *)
@@ -1028,8 +1124,12 @@ local
 
   fun exact2 c = some2 (equal c);
 
-  fun implode2 [] = raise Bug "implode2"
-    | implode2 ((x,c) :: rest) = (x, implode (c :: map snd rest));
+  fun map2 f (l,x) = (l, f x);
+
+  fun k2 x (l,_) = (l,x);
+
+  fun implode2 [] = raise Bug "implode2: empty"
+    | implode2 ((l,c) :: rest) = (l, implode (c :: map snd rest));
 
   (* Adding line numbers *)
 
@@ -1055,8 +1155,8 @@ local
   val backslashParser =
       exact2 #"\""
       || exact2 #"\\"
-      || (exact2 #"n" >> (I ## K #"\n"))
-      || (exact2 #"t" >> (I ## K #"\t"))
+      || (exact2 #"n" >> k2 #"\n")
+      || (exact2 #"t" >> k2 #"\t")
       || (any >> (fn (l,c) => lexError l ("bad char in quote: \\" ^ str c)));
 
   val quoteParser =
@@ -1068,9 +1168,9 @@ local
 
   val tokParser =
       (atLeastOne (some2 Char.isDigit)
-       >> (singleton o (I ## (Tnum o natFromString "bad number")) o implode2))
+       >> (singleton o (map2 (Tnum o natFromString "bad number")) o implode2))
       || ((some2 Char.isAlpha ++ many (some2 isAlphaNum))
-          >> (singleton o (I ## Tcommand) o implode2 o op::))
+          >> (singleton o map2 Tcommand o implode2 o op::))
       || ((exact2 #"\"" ++ many quoteParser ++ exact2 #"\"")
           >> (fn ((l,_),(s,_)) => [(l, Tname (implode (map snd s)))]))
       || ((exact2 #"#" ++ many (some2 inComment) ++ exact2 #"\n") >> (K []))
