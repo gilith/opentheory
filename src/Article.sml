@@ -222,7 +222,7 @@ datatype translation =
       {namespace : namespace,
        types : bilingual,
        consts : bilingual,
-       rules : (object -> object) NM.map};
+       rules : (namespace -> object -> object) NM.map};
 
 fun exportType (Translation {namespace,types,...}) =
     bilingualExport namespace types;
@@ -671,7 +671,7 @@ fun holLightNewBasicDefinition arg =
       val tm = destOterm arg
       val (v,t) = destEq tm
       val (n,ty) = destVar v
-      val n = importConst holLight n
+      val n = exportConst holLight n
       val v = mkVar (n,ty)
       val tm = mkEq (v,t)
     in
@@ -683,10 +683,10 @@ fun holLightNewBasicDefinition arg =
 fun holLightNewBasicTypeDefinition arg =
     let
       val (name,absRep,nonEmptyTh) = destOtriple arg
-      val name = importType holLight (destOname name)
+      val name = exportType holLight (destOname name)
       val (abs,rep) = destOpair absRep
-      val abs = importConst holLight (destOname abs)
-      and rep = importConst holLight (destOname rep)
+      val abs = exportConst holLight (destOname abs)
+      and rep = exportConst holLight (destOname rep)
       and nonEmptyTh = destOthm nonEmptyTh
       val tyVars = NS.toList (T.typeVars (concl nonEmptyTh))
       val (absRepTh,repAbsTh) =
@@ -1227,10 +1227,10 @@ local
   fun lexError l err =
       raise Error ("lexing error at " ^ locnToString l ^ ": " ^ err);
 
-  datatype tok = Tnum of int | Tname of string | Tcommand of string;
+  datatype token = Tnum of int | Tname of string | Tcommand of string;
 
-  fun tokToString tok =
-      case tok of
+  fun tokenToString token =
+      case token of
         Tnum i => Int.toString i
       | Tname s => "\"" ^ s ^ "\""
       | Tcommand s => s;
@@ -1247,21 +1247,34 @@ local
       || ((exact2 #"\\" ++ backslashParser) >> snd)
       || some2 (fn c => c <> #"\"" andalso c <> #"\\");
 
-  fun inComment c = c <> #"\n";
+  local
+    fun inComment c = c <> #"\n";
 
-  val tokParser =
-      (atLeastOne (some2 Char.isDigit)
-       >> (singleton o (map2 (Tnum o natFromString "bad number")) o implode2))
-      || ((some2 Char.isAlpha ++ many (some2 isAlphaNum))
-          >> (singleton o map2 Tcommand o implode2 o op::))
-      || ((exact2 #"\"" ++ many quoteParser ++ exact2 #"\"")
-          >> (fn ((l,_),(s,_)) => [(l, Tname (implode (map snd s)))]))
-      || ((exact2 #"#" ++ many (some2 inComment) ++ exact2 #"\n") >> (K []))
-      || (any >> (fn (l,c) => lexError l ("bad char: \"" ^ str c ^ "\"")));
+    val space = many (some2 Char.isSpace) >> K ();
 
-  val tokenParser =
-      ((many (some2 Char.isSpace) ++ tokParser) >> snd)
-      || ((atLeastOne (some2 Char.isSpace) ++ finished) >> K []);
+    val tnumToken =
+        atLeastOne (some2 Char.isDigit) >>
+        (singleton o (map2 (Tnum o natFromString "bad number")) o implode2);
+
+    val tnameToken =
+        (exact2 #"\"" ++ many quoteParser ++ exact2 #"\"") >>
+        (fn ((l,_),(s,_)) => [(l, Tname (implode (map snd s)))]);
+
+    val tcommandToken =
+        (some2 Char.isAlpha ++ many (some2 isAlphaNum)) >>
+        (singleton o map2 Tcommand o implode2 o op::);
+
+    val commentLine =
+        (exact2 #"#" ++ many (some2 inComment) ++ exact2 #"\n") >> K [];
+
+    val errorChar =
+        any >> (fn (l,c) => lexError l ("bad char: \"" ^ str c ^ "\""));
+
+    val tokParser =
+        tnumToken || tnameToken || tcommandToken || commentLine || errorChar;
+  in
+    val tokenParser = (space ++ tokParser ++ space) >> (fn ((),(t,())) => t);
+  end;
 
   (* Interpreting commands *)
 
@@ -1318,8 +1331,7 @@ local
             let
               val () =
                   case h of
-                    Ocall _ =>
-                    raise Error "cons may not operate on Ocall objects"
+                    Ocall _ => raise Error "cannot cons Ocall objects"
                   | _ => ()
               val provenance =
                   case (provH,provT) of
@@ -1335,7 +1347,8 @@ local
 
        | Tcommand "type_var" =>
          (case stack of
-            (Op {object = Oname n, ...}, _) :: stack =>
+            (Op {object = Oname n, ...}, _) ::
+            stack =>
             let
               val stack = pushStack (Otype (mkTypeVar n), Pnull) stack
             in
@@ -1343,18 +1356,26 @@ local
             end
           | _ => raise Error "bad arguments")
 
-       | (Tcommand "type_op", Olist l :: Oname n :: stack) =>
-         let
-           val n = importType translation n
-           val (ty,extra) = extraTypeOp translation (n, map destOtype l) extra
-           val stack = Otype ty :: stack
-         in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
-        end
+       | Tcommand "type_op" =>
+         (case stack of
+            (Op {object = Olist l, ...}, _) ::
+            (Op {object = Oname n, ...}, _) ::
+            stack =>
+            let
+              val n = exportType translation n
+              and l = map destOtype l
+              val () =
+                  if can Type.typeArity n then ()
+                  else Type.declareType n (length l)
+              val stack = pushStack (Otype (mkTypeOp (n,l)), Pnull) stack
+            in
+              {globals = globals, stack = stack, dict = dict, saved = saved}
+            end
+          | _ => raise Error "bad arguments")
 
        (* Terms *)
 
-       | (Tcommand "var", Otype ty :: Oname n :: stack) =>
+       | Tcommand "var", Otype ty :: Oname n :: stack) =>
          let
            val stack = Oterm (mkVar (n,ty)) :: stack
          in
@@ -1363,7 +1384,7 @@ local
 
        | (Tcommand "const", Otype ty :: Oname n :: stack) =>
          let
-           val n = importConst translation n
+           val n = exportConst translation n
            val (tm,extra) = extraConst translation (n,ty) extra
            val stack = Oterm tm :: stack
          in
@@ -1399,7 +1420,7 @@ local
 
        | (Tcommand "call", Oname n :: i :: stack) =>
          let
-           val n = importRule translation n
+           val n = exportRule translation n
 (*TRACE1
            val () = if not (null (callStack stack)) then ()
                     else trace (n ^ "\n")
@@ -1418,7 +1439,7 @@ local
 
        | (Tcommand "return", Oname n :: r :: stack) =>
          let
-           val n = importRule translation n
+           val n = exportRule translation n
            val stack =
                case topCall stack of
                  NONE => raise Error ("unmatched return "^n)
@@ -1482,7 +1503,7 @@ local
        (* Any other command is an error *)
 
        | Tcommand _ => raise Error "unknown command")
-      handle Error err => raise Error (tokToString cmd ^ ": " ^ err);
+      handle Error err => raise Error (tokenToString cmd ^ ": " ^ err);
 
   fun interpret translation saved extra =
       let
@@ -1504,8 +1525,8 @@ local
 *)
         val lines = readLines {filename = filename}
         val chars = everything charParser lines
-        val toks = everything tokenParser chars
-        val {stack,saved,extra,...} = interpret translation saved extra toks
+        val tokens = everything tokenParser chars
+        val {stack,saved,extra,...} = interpret translation saved extra tokens
         val () =
             if null stack then ()
             else warn (plural (length stack) "object" ^ " (including "
