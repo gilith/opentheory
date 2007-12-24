@@ -203,14 +203,14 @@ fun ppObject pp ob =
     | Olist l => Parser.ppList ppObject pp l
     | Ocall f => Parser.ppString pp ("<" ^ f ^ ">");
 
-val extractThms =
+val objectThms =
     let
       fun f acc [] = acc
         | f acc (Othm th :: rest) = f (th :: acc) rest
         | f acc (Olist l :: rest) = f acc (l @ rest)
         | f acc (_ :: rest) = f acc rest
     in
-      f []
+      fn obj => f [] [obj]
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -301,10 +301,12 @@ val natural =
        rules = []};
 
 (* ------------------------------------------------------------------------- *)
-(* Object providence.                                                        *)
+(* Object IDs.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-val newObjectId =
+type objectId = int;
+
+val newObjectId : unit -> objectId =
     let
       val counter = ref 0
     in
@@ -317,39 +319,113 @@ val newObjectId =
          end
     end;
 
-(* Invariants (in order of priority): *)
-(* 1. Objects in the callArgument slot have providence Pcall functionName. *)
-(* 2. Objects that do not contain theorems have providence Punknown. *)
+(* ------------------------------------------------------------------------- *)
+(* Object provenance.                                                        *)
+(*                                                                           *)
+(* Invariants (in order of priority):                                        *)
+(*                                                                           *)
+(* 1. The callObject slot contains Ocall callName objects                    *)
+(*    that have provenance Pcall callArgument.                               *)
+(*                                                                           *)
+(* 2. Objects that do not contain theorems have provenance Pnull             *)
+(*    (because they can be easily constructed).                              *)
+(*                                                                           *)
+(* 3. The copy of the call argument has provenance PcallArgument.            *)
+(* ------------------------------------------------------------------------- *)
 
-datatype objectProvidence =
-    OP of
-      {objectId : int,
+datatype objectProvenance =
+    Op of
+      {objectId : objectId,
        object : object,
-       providence : providence,
-       callArgument : objectProvidence option}
+       provenance : provenance,
+       callObject : objectProvenance option}
 
-and providence =
-    Punknown
-  | Pcons of objectProvidence * objectProvidence
-  | Pthm of objectProvidence list
-  | Pref of objectProvidence
-  | Pcall of name
-  | Preturn of objectProvidence;
+and provenance =
+    Pnull
+  | Pcons of objectProvenance * objectProvenance
+  | Pthm of objectProvenance list
+  | Pref of objectProvenance
+  | Pcall of objectProvenance
+  | PcallArgument
+  | Preturn of objectProvenance;
 
-fun destOPthm (OP {object,...}) = destOthm object;
+fun object (Op {object = x, ...}) = x;
 
-fun destOPcall (OP {object,...}) = destOcall object;
+fun destOpthm obj = destOthm (object obj);
+
+fun destOpcall obj = destOcall (object obj);
+
+fun opThms obj = objectThms (object obj);
+
+(* ------------------------------------------------------------------------- *)
+(* Theorems in scope.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+datatype theorems =
+    Theorems of (thm * objectProvenance list) SequentMap.map;
+
+val noTheorems = Theorems (SequentMap.new ());
+
+fun addTheorems thms th_prov =
+    let
+      val Theorems thmsMap = thms
+      and (th,_) = th_prov
+      val seq = sequent th
+      val block =
+          case SequentMap.peek thmsMap seq of
+            NONE => false
+          | SOME (_,[]) => true
+          | SOME (_, _ :: _) => false
+    in
+      if block then thms
+      else Theorems (SequentMap.insert thmsMap (seq,th_prov))
+    end;
+
+local
+  fun add prov (th,thms) = addTheorems thms (th,prov);
+in
+  fun addOpTheorems thms obj = List.foldl (add [obj]) thms (opThms obj);
+
+  fun addNoOpTheorems thms obj = List.foldl (add []) thms (opThms obj);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Stacks.                                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-type stack = objectProvidence list;
+type stack = (objectProvenance * theorems) list;
 
 val emptyStack : stack = [];
 
+fun pushIdStack (object,provenance,callObject) stack : stack =
+    let
+      val objectId = newObjectId ()
+      val obj =
+          Op {objectId = objectId,
+              object = object,
+              provenance = provenance,
+              callObject = callObject}
+      val thms =
+          case stack of
+            [] => noTheorems
+          | (_,thms) :: _ => thms
+      val thms = addOpTheorems thms obj
+    in
+      (obj,thms) :: stack
+    end;
+
+fun pushStack (object,provenance) stack =
+    let
+      val callObject =
+          case stack of
+            [] => NONE
+          | (Op {callObject,...}, _) :: _ => callObject
+    in
+      pushIdStack (object,provenance,callObject) stack
+    end;
+
 fun topCall [] = NONE
-  | topCall (OP {object = Ocall n, ...} :: l) = SOME (n,l)
+  | topCall ((Op {object = Ocall n, ...}, _) :: l) = SOME (n,l)
   | topCall (_ :: l) = topCall l;
 
 (* ------------------------------------------------------------------------- *)
@@ -358,19 +434,20 @@ fun topCall [] = NONE
 
 type callStack = (name * object) list;
 
-fun callStack (OP {callArgument,...}) =
-    case callArgument of
-      NONE => []
-    | SOME obj =>
-      case obj of
-        OP {object, providence = Pcall n, ...} => (n,object) :: callStack obj
-      | _ => raise Bug "callArgument does not have Pcall name providence";
+fun callStack (Op {object = Ocall name, callObject, provenance, ...}) =
+    (case provenance of
+       Pcall (Op {object,...}) => (name,object) :: callObjectStack callObject
+     | _ => raise Bug "Ocall object does not have Pcall name provenance")
+  | callStack (Op {callObject,...}) = callObjectStack callObject
+
+and callObjectStack NONE = []
+  | callObjectStack (SOME obj) = callStack obj;
 
 (* ------------------------------------------------------------------------- *)
 (* Dictionaries.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-type dict = object IntMap.map;
+type dict = objectProvenance IntMap.map;
 
 val emptyDict : dict = IntMap.new ();
 
@@ -385,13 +462,13 @@ fun dictRef dict n =
 (* Saved theorems.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype saved = Saved of objectProvidence list;
+datatype saved = Saved of objectProvenance list;
 
-fun savedList (Saved l) = map destOPthm (rev l);
+fun savedList (Saved objs) = rev objs;
 
 val savedEmpty = Saved [];
 
-fun savedAdd th (Saved l) = Saved (th :: l);
+fun savedAdd obj (Saved objs) = Saved (obj :: objs);
 
 (***
 (* ------------------------------------------------------------------------- *)
@@ -1152,6 +1229,12 @@ local
 
   datatype tok = Tnum of int | Tname of string | Tcommand of string;
 
+  fun tokToString tok =
+      case tok of
+        Tnum i => Int.toString i
+      | Tname s => "\"" ^ s ^ "\""
+      | Tcommand s => s;
+
   val backslashParser =
       exact2 #"\""
       || exact2 #"\\"
@@ -1182,214 +1265,224 @@ local
 
   (* Interpreting commands *)
 
-  type state = {stack : stack, dict : dict, saved : saved, extra : extra};
+  type state =
+       {globals : theorems,
+        stack : stack,
+        dict : dict,
+        saved : saved};
 
-  fun execute translation cmd {stack,dict,saved,extra} =
-      case (cmd,stack) of
+  fun execute translation cmd {globals,stack,dict,saved} =
+      (case cmd of
 
-      (* Errors *)
+       (* Errors *)
 
-        (Tcommand "error", stack) =>
-        let
-          val stack = Oerror :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
+         Tcommand "error" =>
+         let
+           val stack = pushStack (Oerror,Pnull) stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
+
+       (* Numbers *)
+
+       | Tnum i =>
+         let
+           val stack = pushStack (Onum i, Pnull) stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
+
+       (* Names *)
+
+       | Tname n =>
+         let
+           val stack = pushStack (Oname n, Pnull) stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
+
+       (* Lists *)
+
+       | Tcommand "nil" =>
+         let
+           val stack = pushStack (Olist [], Pnull) stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
+
+       | Tcommand "cons" =>
+         (case stack of
+            (objT as Op {object = Olist t, provenance = provT, ...}, _) ::
+            (objH as Op {object = h, provenance = provH, ...}, _) ::
+            stack =>
+            let
+              val () =
+                  case h of
+                    Ocall _ =>
+                    raise Error "cons may not operate on Ocall objects"
+                  | _ => ()
+              val provenance =
+                  case (provH,provT) of
+                    (Pnull,Pnull) => Pnull
+                  | _ => Pcons (objH,objT)
+              val stack = pushStack (Olist (h :: t), provenance) stack
+            in
+              {globals = globals, stack = stack, dict = dict, saved = saved}
+            end
+          | _ => raise Error "bad arguments")
+
+       (* Types *)
+
+       | Tcommand "type_var" =>
+         (case stack of
+            (Op {object = Oname n, ...}, _) :: stack =>
+            let
+              val stack = pushStack (Otype (mkTypeVar n), Pnull) stack
+            in
+              {globals = globals, stack = stack, dict = dict, saved = saved}
+            end
+          | _ => raise Error "bad arguments")
+
+       | (Tcommand "type_op", Olist l :: Oname n :: stack) =>
+         let
+           val n = importType translation n
+           val (ty,extra) = extraTypeOp translation (n, map destOtype l) extra
+           val stack = Otype ty :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
         end
 
-      (* Numbers *)
+       (* Terms *)
 
-      | (Tnum i, stack) =>
-        let
-          val stack = Onum i :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       | (Tcommand "var", Otype ty :: Oname n :: stack) =>
+         let
+           val stack = Oterm (mkVar (n,ty)) :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      (* Names *)
+       | (Tcommand "const", Otype ty :: Oname n :: stack) =>
+         let
+           val n = importConst translation n
+           val (tm,extra) = extraConst translation (n,ty) extra
+           val stack = Oterm tm :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      | (Tname n, stack) =>
-        let
-          val stack = Oname n :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       | (Tcommand "comb", Oterm b :: Oterm a :: stack) =>
+         let
+           val stack = Oterm (mkComb (a,b)) :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      (* Lists *)
+       | (Tcommand "abs", Oterm b :: Oterm v :: stack) =>
+         let
+           val stack = Oterm (mkAbs (destVar v, b)) :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      | (Tcommand "nil", stack) =>
-        let
-          val stack = Olist [] :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       (* Theorems *)
 
-      | (Tcommand "cons", Olist t :: h :: stack) =>
-        let
-          val () =
-              case h of
-                Ocall _ => raise Error "cons may not operate on Ocall objects"
-              | _ => ()
-              
-          val stack = Olist (h :: t) :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       | (Tcommand "thm", Oterm c :: Olist h :: stack) =>
+         let
+           val h = map destOterm h
+           val (th,extra) = extraThm translation (h,c) extra
+           val stack = Othm th :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      | (Tcommand "hdTl", Olist (h :: t) :: stack) =>
-        let
-          val stack = Olist t :: h :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       (* Function calls *)
 
-      (* Types *)
-
-      | (Tcommand "typeVar", Oname n :: stack) =>
-        let
-          val stack = Otype (mkTypeVar n) :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
-
-      | (Tcommand "typeOp", Olist l :: Oname n :: stack) =>
-        let
-          val n = importType translation n
-          val (ty,extra) = extraTypeOp translation (n, map destOtype l) extra
-          val stack = Otype ty :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-       end
-
-      (* Terms *)
-
-      | (Tcommand "var", Otype ty :: Oname n :: stack) =>
-        let
-          val stack = Oterm (mkVar (n,ty)) :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
-
-      | (Tcommand "const", Otype ty :: Oname n :: stack) =>
-        let
-          val n = importConst translation n
-          val (tm,extra) = extraConst translation (n,ty) extra
-          val stack = Oterm tm :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
-
-      | (Tcommand "comb", Oterm b :: Oterm a :: stack) =>
-        let
-          val stack = Oterm (mkComb (a,b)) :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
-
-      | (Tcommand "abs", Oterm b :: Oterm v :: stack) =>
-        let
-          val stack = Oterm (mkAbs (destVar v, b)) :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
-
-      (* Theorems *)
-
-      | (Tcommand "thm", Oterm c :: Olist h :: stack) =>
-        let
-          val h = map destOterm h
-          val (th,extra) = extraThm translation (h,c) extra
-          val stack = Othm th :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
-
-      (* Function calls *)
-
-      | (Tcommand "call", Oname n :: i :: stack) =>
-        let
-          val n = importRule translation n
+       | (Tcommand "call", Oname n :: i :: stack) =>
+         let
+           val n = importRule translation n
 (*TRACE1
-          val () = if not (null (callStack stack)) then ()
-                   else trace (n ^ "\n")
+           val () = if not (null (callStack stack)) then ()
+                    else trace (n ^ "\n")
 *)
 (*TRACE2
-          val () = trace ("  stack = ["^Int.toString (length stack) ^
-                          "], call stack = [" ^
-                          Int.toString (length (callStack stack))^"]\n")
-          val () = Parser.ppTrace "  input" ppObject i
+           val () = trace ("  stack = ["^Int.toString (length stack) ^
+                           "], call stack = [" ^
+                           Int.toString (length (callStack stack))^"]\n")
+           val () = Parser.ppTrace "  input" ppObject i
 *)
-          val stack = i :: Ocall n :: stack
-          val extra = extraCall n i extra
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+           val stack = i :: Ocall n :: stack
+           val extra = extraCall n i extra
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      | (Tcommand "return", Oname n :: r :: stack) =>
-        let
-          val n = importRule translation n
-          val stack =
-              case topCall stack of
-                NONE => raise Error ("unmatched return "^n)
-              | SOME (n',stack) =>
-                if n = n' then stack
-                else raise Error ("call "^n^" matched by return "^n')
-          val stack = r :: stack
+       | (Tcommand "return", Oname n :: r :: stack) =>
+         let
+           val n = importRule translation n
+           val stack =
+               case topCall stack of
+                 NONE => raise Error ("unmatched return "^n)
+               | SOME (n',stack) =>
+                 if n = n' then stack
+                 else raise Error ("call "^n^" matched by return "^n')
+           val stack = r :: stack
 (*TRACE1
-          val () = if not (null (callStack stack)) then ()
-                   else trace (n ^ " return\n")
+           val () = if not (null (callStack stack)) then ()
+                    else trace (n ^ " return\n")
 *)
 (*TRACE2
-          val () = trace ("  stack = ["^Int.toString (length stack) ^
-                          "], call stack = [" ^
-                          Int.toString (length (callStack stack)) ^ "]\n")
-          val () = Parser.ppTrace "return" ppObject r
+           val () = trace ("  stack = ["^Int.toString (length stack) ^
+                           "], call stack = [" ^
+                           Int.toString (length (callStack stack)) ^ "]\n")
+           val () = Parser.ppTrace "return" ppObject r
 *)
-          val extra = extraReturn n r extra
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+           val extra = extraReturn n r extra
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      (* Dictionary *)
+       (* Dictionary *)
 
-      | (Tcommand "def", Onum n :: d :: stack) =>
-        let
-          val dict = dictDef (n,d) dict
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       | (Tcommand "def", Onum n :: d :: stack) =>
+         let
+           val dict = dictDef (n,d) dict
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      | (Tcommand "ref", Onum n :: stack) =>
-        let
-          val obj = dictRef dict n
-          val stack = obj :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       | (Tcommand "ref", Onum n :: stack) =>
+         let
+           val obj = dictRef dict n
+           val stack = obj :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      (* General *)
+       (* General *)
 
-      | (Tcommand "pop", _ :: stack) =>
-        {stack = stack, dict = dict, saved = saved, extra = extra}
+       | (Tcommand "pop", _ :: stack) =>
+         {globals = globals, stack = stack, dict = dict, saved = saved}
 
-      | (Tcommand "dup", Onum n :: stack) =>
-        let
-          val _ = length stack > n orelse raise Error "bad dup"
-          val stack = List.nth (stack,n) :: stack
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       | (Tcommand "dup", Onum n :: stack) =>
+         let
+           val _ = length stack > n orelse raise Error "bad dup"
+           val stack = List.nth (stack,n) :: stack
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      | (Tcommand "save", Othm th :: stack) =>
-        let
-          val saved = savedAdd th saved
-          val extra = extraSave th extra
-        in
-          {stack = stack, dict = dict, saved = saved, extra = extra}
-        end
+       | (Tcommand "save", Othm th :: stack) =>
+         let
+           val saved = savedAdd th saved
+           val extra = extraSave th extra
+         in
+           {globals = globals, stack = stack, dict = dict, saved = saved}
+         end
 
-      (* Any other command is an error *)
+       (* Any other command is an error *)
 
-      | (Tcommand cmd, _) => raise Error ("bad command " ^ cmd);
+       | Tcommand _ => raise Error "unknown command")
+      handle Error err => raise Error (tokToString cmd ^ ": " ^ err);
 
   fun interpret translation saved extra =
       let

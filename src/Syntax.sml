@@ -181,6 +181,8 @@ fun isBinop n = can (destBinop n);
 
 fun axioms th = case Thm.dest th of Thm.Thm {axioms,...} => axioms;
 
+fun sequent th = case Thm.dest th of Thm.Thm {sequent,...} => sequent;
+
 fun hyp th = case Thm.dest th of Thm.Thm {sequent = {hyp, ...}, ...} => hyp;
 
 fun concl th =

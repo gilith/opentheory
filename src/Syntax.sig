@@ -114,6 +114,8 @@ val isBinop : name -> term -> bool
 
 val axioms : thm -> SequentSet.set
 
+val sequent : thm -> Sequent.sequent
+
 val hyp : thm -> TermAlphaSet.set
 
 val concl : thm -> term
