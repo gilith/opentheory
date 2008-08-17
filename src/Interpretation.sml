@@ -75,13 +75,6 @@ local
 
   val space = many (some Char.isSpace);
 
-  fun quotedParser parser =
-      (exact #"\"" ++ parser ++ exact #"\"") >> (fn (_,(x,_)) => x);
-
-  val quotedNamespaceParser = quotedParser Namespace.parser;
-
-  val quotedNameParser = quotedParser Name.parser;
-
   fun xyParser prefix xParser =
       (exactList (explode prefix) ++ space ++
        xParser ++ space ++ exactList rewriteChars ++ space ++
@@ -89,10 +82,10 @@ local
       (fn (_,(_,(x,(_,(_,(_,(y,_))))))) => (x,y));
 in
   val rewriteParser =
-      xyParser "namespace" quotedNamespaceParser >> RewriteNamespace ||
-      xyParser "type" quotedNameParser >> RewriteType ||
-      xyParser "const" quotedNameParser >> RewriteConst ||
-      xyParser "rule" quotedNameParser >> RewriteRule;
+      xyParser "namespace" Namespace.quotedParser >> RewriteNamespace ||
+      xyParser "type" Name.quotedParser >> RewriteType ||
+      xyParser "const" Name.quotedParser >> RewriteConst ||
+      xyParser "rule" Name.quotedParser >> RewriteRule;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -132,7 +125,7 @@ end;
 fun toTextFile {filename,interpretation} =
     Stream.toTextFile {filename = filename} (toStringStream interpretation);
 
-fun fromTextFile filename =
+fun fromTextFile {filename} =
     let
       infixr 9 >>++
       infixr 8 ++
@@ -151,28 +144,29 @@ fun fromTextFile filename =
 
       (* Estimating parse error line numbers *)
 
-      val lastLine = ref (0,"")
+      val lastLine = ref (~1,"","","")
 
       fun parseError () =
           let
-            val ref (n,s) = lastLine
+            val ref (n,l1,l2,l3) = lastLine
           in
-            "parse error " ^
-            (if n = 0 then "at start of file"
-             else "around line " ^ Int.toString n ^ ":\n" ^ s)
+            "parse error in \"" ^ filename ^ "\" " ^
+            (if n <= 0 then "at start of file"
+             else "around line " ^ Int.toString n) ^
+            chomp (":\n" ^ l1 ^ l2 ^ l3)
           end
 
       val lines =
           let
             fun saveLast line =
                 let
-                  val ref (n,_) = lastLine
-                  val () = lastLine := (n + 1, line)
+                  val ref (n,_,l2,l3) = lastLine
+                  val () = lastLine := (n + 1, l2, l3, line)
                 in
                   explode line
                 end
 
-            val strm = Stream.fromTextFile filename
+            val strm = Stream.fromTextFile {filename = filename}
             val strm = Stream.map saveLast strm
             val strm = Stream.filter (not o isComment) strm
           in
@@ -196,7 +190,6 @@ fun fromTextFile filename =
           handle NoParse => raise Error (parseError ())
     in
       Interpretation rewrites
-    end
-    handle Error err => raise Error ("Interpretation.fromTextFile: " ^ err);
+    end;
 
 end

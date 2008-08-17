@@ -62,6 +62,8 @@ fun toString (Name (ns,n)) =
 
 val pp = Parser.ppMap toString Parser.ppString;
 
+val ppQuoted = Parser.ppBracket "\"" "\"" pp;
+
 local
   infixr 9 >>++
   infixr 8 ++
@@ -75,6 +77,9 @@ local
       else Name (Namespace.destNested ns);
 in
   val parser = Namespace.parser >> process;
+
+  val quotedParser =
+      (exact #"\"" ++ parser ++ exact #"\"") >> (fn (_,(x,_)) => x);
 end;
 
 end

@@ -116,12 +116,12 @@ fun pp p ob =
     case ob of
       Oerror => Parser.ppString p "ERROR"
     | Onum n => Parser.ppInt p n
-    | Oname s => Parser.ppString p ("\"" ^ s ^ "\"")
+    | Oname s => Name.ppQuoted p s
     | Otype ty => ppType p ty
     | Oterm tm => ppTerm p tm
     | Othm th => ppThm p th
     | Olist l => Parser.ppList pp p l
-    | Ocall f => Parser.ppString p ("<" ^ f ^ ">");
+    | Ocall f => Parser.ppBracket "<" ">" Name.pp p f;
 
 (* ------------------------------------------------------------------------- *)
 (* Extracting the theorems stored in an object.                              *)

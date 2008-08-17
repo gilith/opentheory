@@ -43,6 +43,10 @@ val toString : name -> string
 
 val pp : name Parser.pp
 
+val ppQuoted : name Parser.pp
+
 val parser : (char,name) Parser.parser
+
+val quotedParser : (char,name) Parser.parser
 
 end

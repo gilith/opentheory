@@ -50,6 +50,12 @@ val rewrite : namespace * namespace -> namespace -> namespace
 
 val toString : namespace -> string
 
+val pp : namespace Parser.pp
+
+val ppQuoted : namespace Parser.pp
+
 val parser : (char,namespace) Parser.parser
+
+val quotedParser : (char,namespace) Parser.parser
 
 end

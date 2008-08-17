@@ -71,6 +71,10 @@ in
       if isGlobal n then globalString else dotify ns;
 end;
 
+val pp = Parser.ppMap toString Parser.ppString;
+
+val ppQuoted = Parser.ppBracket "\"" "\"" pp;
+
 local
   infixr 9 >>++
   infixr 8 ++
@@ -101,6 +105,9 @@ in
   val parser =
       (exactList globalChars >> K global) ||
       (componentParser ++ many dotComponentParser) >> (Namespace o op::);
+
+  val quotedParser =
+      (exact #"\"" ++ parser ++ exact #"\"") >> (fn (_,(x,_)) => x);
 end;
 
 end
