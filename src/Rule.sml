@@ -6,12 +6,6 @@
 structure Rule :> Rule =
 struct
 
-structure N = Name;
-structure NM = NameMap;
-structure T = Term;
-structure TS = TermSet;
-structure TAS = TermAlphaSet;
-
 open Useful Syntax;
 
 (* ------------------------------------------------------------------------- *)
@@ -47,15 +41,15 @@ type typeDef =
       nonEmptyTh : Thm.thm, absRepTh : Thm.thm, repAbsTh : Thm.thm};
 
 local
-  datatype constDefs = ConstDefs of constDef NM.map;
+  datatype constDefs = ConstDefs of constDef NameMap.map;
 
-  val constDefs = ref (ConstDefs (NM.new ()));
+  val constDefs = ref (ConstDefs (NameMap.new ()));
 
   fun constDefAdd n_def =
       case !constDefs of
-        ConstDefs m => constDefs := ConstDefs (NM.insert m n_def);
+        ConstDefs m => constDefs := ConstDefs (NameMap.insert m n_def);
 in
-  fun constDef n = case !constDefs of ConstDefs m => NM.peek m n;
+  fun constDef n = case !constDefs of ConstDefs m => NameMap.peek m n;
 
   fun defineConst name tm =
       (case constDef name of
@@ -68,7 +62,7 @@ in
          end
        | SOME {tm = tm', def} =>
          let
-           val _ = T.alphaEqual tm tm' orelse
+           val _ = Term.alphaEqual tm tm' orelse
                    raise Error "redefinition not alpha equivalent"
          in
            def
@@ -77,15 +71,15 @@ in
 end;
 
 local
-  datatype typeDefs = TypeDefs of typeDef NM.map;
+  datatype typeDefs = TypeDefs of typeDef NameMap.map;
 
-  val typeDefs = ref (TypeDefs (NM.new ()));
+  val typeDefs = ref (TypeDefs (NameMap.new ()));
 
   fun typeDefAdd n_def =
       case !typeDefs of
-        TypeDefs m => typeDefs := TypeDefs (NM.insert m n_def);
+        TypeDefs m => typeDefs := TypeDefs (NameMap.insert m n_def);
 in
-  fun typeDef n = case !typeDefs of TypeDefs m => NM.peek m n;
+  fun typeDef n = case !typeDefs of TypeDefs m => NameMap.peek m n;
 
   fun defineType name {abs,rep} tyVars nonEmptyTh =
       (case typeDef name of
@@ -103,15 +97,15 @@ in
        | SOME {abs = abs', rep = rep', tyVars = tyVars',
                nonEmptyTh = nonEmptyTh', absRepTh, repAbsTh} =>
          let
-           val _ = abs = abs' orelse
+           val _ = Name.equal abs abs' orelse
                    raise Error "redefinition with different abs"
-           val _ = rep = rep' orelse
+           val _ = Name.equal rep rep' orelse
                    raise Error "redefinition with different rep"
-           val _ = tyVars = tyVars' orelse
+           val _ = listEqual Name.equal tyVars tyVars' orelse
                    raise Error "redefinition with different tyVars"
            val P = rator (concl nonEmptyTh)
            and P' = rator (concl nonEmptyTh')
-           val _ = T.alphaEqual P P' orelse
+           val _ = Term.alphaEqual P P' orelse
                    raise Error "predicate not alpha equivalent"
          in
            (absRepTh,repAbsTh)
@@ -127,10 +121,10 @@ end;
 
 fun alpha (h,c) th =
     let
-      fun norm th = (TS.fromList (TAS.toList (hyp th)), th)
+      fun norm th = (TermSet.fromList (TermAlphaSet.toList (hyp th)), th)
 
       fun check (t,(ts,th)) =
-          if TS.member t ts then (ts,th)
+          if TermSet.member t ts then (ts,th)
           else
             let
               val th0 = assume t
@@ -146,11 +140,11 @@ fun alpha (h,c) th =
             (Parser.ppBinop " |-" (Parser.ppList ppTerm) ppTerm) "h |- c" (h,c)
       val _ = Parser.ppTrace ppThm "th" th
 *)
-      val th = if T.equal c (concl th) then th else eqMp (refl c) th
+      val th = if Term.equal c (concl th) then th else eqMp (refl c) th
       val (_,th) = foldl check (norm th) h
-      val _ = T.equal (concl th) c orelse
+      val _ = Term.equal (concl th) c orelse
               raise Error "alpha: concl is wrong"
-      val _ = TS.equal (TS.fromList h) (fst (norm th)) orelse
+      val _ = TermSet.equal (TermSet.fromList h) (fst (norm th)) orelse
               raise Error "alpha: hyp is wrong"
     in
       th

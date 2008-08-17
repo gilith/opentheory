@@ -6,13 +6,19 @@
 signature Type =
 sig
 
+(* ------------------------------------------------------------------------- *)
+(* A type of higher order logic types.                                       *)
+(* ------------------------------------------------------------------------- *)
+
 type ty
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors                                              *)
 (* ------------------------------------------------------------------------- *)
 
-datatype ty' = TypeVar of Name.name | TypeOp of Name.name * ty list;
+datatype ty' =
+    TypeVar of Name.name
+  | TypeOp of Name.name * ty list
 
 val mk : ty' -> ty
 val dest : ty -> ty'
@@ -27,7 +33,7 @@ val destOp : ty -> Name.name * ty list
 val isOp : ty -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* A total order                                                             *)
+(* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
 val compare : ty * ty -> order
@@ -35,13 +41,13 @@ val compare : ty * ty -> order
 val equal : ty -> ty -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Type variables                                                            *)
+(* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 val typeVars : ty -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive types                                                           *)
+(* Primitive types.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val alphaTy : ty
@@ -55,10 +61,10 @@ val isFun : ty -> bool
 val indTy : ty
 
 (* ------------------------------------------------------------------------- *)
-(* The type registry (initially contains the primitive type operators)       *)
+(* The type registry (initially contains the primitive type operators).      *)
 (* ------------------------------------------------------------------------- *)
 
-val typeArity : Name.name -> int
+val typeArity : Name.name -> int option
 
 val allTypes : unit -> Name.name list
 

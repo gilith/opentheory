@@ -47,6 +47,18 @@ fun SAY s =
 fun printval p x = (print (Parser.toString p x ^ "\n\n"); x);
 
 (* ------------------------------------------------------------------------- *)
+val () = SAY "Reading in the hol-light interpretation";
+(* ------------------------------------------------------------------------- *)
+
+val INTERPRETATION_DIR = "interpretations";
+
+val holLightInt =
+    Interpretation.fromTextFile
+      {filename = INTERPRETATION_DIR ^ "/hol-light.int"};
+
+val () = print (Interpretation.toString holLightInt);
+
+(* ------------------------------------------------------------------------- *)
 val () = SAY "Reading in hol-light theories";
 (* ------------------------------------------------------------------------- *)
 
@@ -66,7 +78,7 @@ val (ths,art) =
     time
       Article.fromTextfile
       {filename = ARTICLE_DIR ^ "/bool.art",
-       translation = Article.holLight};
+       interpretation = holLightInterpretation};
 
 (***
 [

@@ -86,7 +86,7 @@ val isSelect : term -> bool
 (* The constant registry (initially contains the primitive constants).       *)
 (* ------------------------------------------------------------------------- *)
 
-val constType : Name.name -> Type.ty
+val constType : Name.name -> Type.ty option
 
 val allConsts : unit -> Name.name list
 

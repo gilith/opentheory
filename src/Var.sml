@@ -8,13 +8,32 @@ struct
 
 open Useful
 
+(* ------------------------------------------------------------------------- *)
+(* A type of higher order logic term variables.                              *)
+(* ------------------------------------------------------------------------- *)
+
 type var = Name.name * Type.ty;
+
+(* ------------------------------------------------------------------------- *)
+(* A total order.                                                            *)
+(* ------------------------------------------------------------------------- *)
 
 val compare = prodCompare Name.compare Type.compare;
 
-fun equal (n1,ty1) (n2,ty2) = n1 = n2 andalso Type.equal ty1 ty2;
+fun equal (n1,ty1) (n2,ty2) = Name.equal n1 n2 andalso Type.equal ty1 ty2;
 
-fun variant (n,ty) : var = (n ^ "'", ty);
+(* ------------------------------------------------------------------------- *)
+(* Fresh variables.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun variant (n,ty) : var =
+    let
+      val (ns,s) = Name.dest n
+      val s = s ^ "'"
+      val n = Name.mk (ns,s)
+    in
+      (n,ty)
+    end;
 
 end
 

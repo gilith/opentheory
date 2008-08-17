@@ -8,11 +8,6 @@ struct
 
 open Useful;
 
-structure Ty = Type;
-structure T = Term;
-structure TAS = TermAlphaSet;
-structure TU = TermSubst;
-
 (* ------------------------------------------------------------------------- *)
 (* Primitive                                                                 *)
 (* ------------------------------------------------------------------------- *)
@@ -26,28 +21,28 @@ type thm = Thm.thm;
 
 (* Type variables *)
 
-val mkTypeVar = Ty.mkVar;
-val destTypeVar = Ty.destVar;
-val isTypeVar = Ty.isVar;
-val equalTypeVar = Ty.equalVar;
+val mkTypeVar = Type.mkVar;
+val destTypeVar = Type.destVar;
+val isTypeVar = Type.isVar;
+val equalTypeVar = Type.equalVar;
 
-val alphaTy = Ty.alphaTy;
+val alphaTy = Type.alphaTy;
 
 (* Type operators *)
 
-val mkTypeOp = Ty.mkOp;
-val destTypeOp = Ty.destOp;
-val isTypeOp = Ty.isOp;
+val mkTypeOp = Type.mkOp;
+val destTypeOp = Type.destOp;
+val isTypeOp = Type.isOp;
 
 (* The type of booleans *)
 
-val boolTy = Ty.boolTy;
+val boolTy = Type.boolTy;
 
 (* Function types *)
 
-val mkFun = Ty.mkFun;
-val destFun = Ty.destFun;
-val isFun = Ty.isFun;
+val mkFun = Type.mkFun;
+val destFun = Type.destFun;
+val isFun = Type.isFun;
 
 fun listMkFun ([],ty) = ty
   | listMkFun (x :: xs, ty) = mkFun (x, listMkFun (xs,ty));
@@ -62,26 +57,26 @@ end;
 
 (* The type of individuals *)
 
-val indTy = Ty.indTy;
+val indTy = Type.indTy;
 
 (* Constants *)
 
-val mkConst = T.mkConst;
-val destConst = T.destConst;
-val isConst = T.isConst;
+val mkConst = Term.mkConst;
+val destConst = Term.destConst;
+val isConst = Term.isConst;
 
 (* Variables *)
 
-val mkVar = T.mkVar;
-val destVar = T.destVar;
-val isVar = T.isVar;
-val equalVar = T.equalVar;
+val mkVar = Term.mkVar;
+val destVar = Term.destVar;
+val isVar = Term.isVar;
+val equalVar = Term.equalVar;
 
 (* Function applications *)
 
-val mkComb = T.mkComb;
-val destComb = T.destComb;
-val isComb = T.isComb;
+val mkComb = Term.mkComb;
+val destComb = Term.destComb;
+val isComb = Term.isComb;
 
 val rator = fst o destComb;
 
@@ -102,9 +97,9 @@ end;
 
 (* Lambda abstractions *)
 
-val mkAbs = T.mkAbs;
-val destAbs = T.destAbs;
-val isAbs = T.isAbs;
+val mkAbs = Term.mkAbs;
+val destAbs = Term.destAbs;
+val isAbs = Term.isAbs;
 
 fun listMkAbs ([],tm) = tm
   | listMkAbs (v :: vs, tm) = mkAbs (v, listMkAbs (vs,tm));
@@ -119,21 +114,21 @@ end;
 
 (* Equality *)
 
-val eqTy = T.eqTy;
-val eqTm = T.eqTm;
-val mkEq = T.mkEq;
-val destEq = T.destEq;
-val isEq = T.isEq;
+val eqTy = Term.eqTy;
+val eqTm = Term.eqTm;
+val mkEq = Term.mkEq;
+val destEq = Term.destEq;
+val isEq = Term.isEq;
 val lhs = fst o destEq;
 val rhs = snd o destEq;
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
-val selectTy = T.selectTy;
-val selectTm = T.selectTm;
-val mkSelect = T.mkSelect;
-val destSelect = T.destSelect;
-val isSelect = T.isSelect;
+val selectTy = Term.selectTy;
+val selectTm = Term.selectTm;
+val mkSelect = Term.mkSelect;
+val destSelect = Term.destSelect;
+val isSelect = Term.isSelect;
 
 (* Unary operators *)
 
@@ -148,7 +143,7 @@ fun destUnop n tm =
     let
       val (c,a) = destComb tm
       val (n',ty) = destConst c
-      val _ = n = n' orelse raise Error ("destUnop "^n)
+      val _ = Name.equal n n' orelse raise Error "Syntax.destUnop"
     in
       (ty,a)
     end;
@@ -170,7 +165,7 @@ fun destBinop n tm =
       val (t,b) = destComb tm
       val (c,a) = destComb t
       val (n',ty) = destConst c
-      val _ = n = n' orelse raise Error ("destBinop "^n)
+      val _ = Name.equal n n' orelse raise Error "Syntax.destBinop"
     in
       (ty,a,b)
     end;
@@ -194,13 +189,13 @@ fun concl th =
 
 (* Negations *)
 
-val negationName = "~";
+val negName = Name.mkGlobal "~";
 
-fun mkNeg tm = mkUnop negationName (boolTy,tm);
+fun mkNeg tm = mkUnop negName (boolTy,tm);
 
 fun destNeg tm =
     let
-      val (_,a) = destUnop negationName tm
+      val (_,a) = destUnop negName tm
     in
       a
     end;
@@ -209,7 +204,7 @@ val isNeg = can destNeg;
 
 (* Implications *)
 
-val impName = "==>";
+val impName = Name.mkGlobal "==>";
 
 val mkImp =
     let
@@ -229,7 +224,7 @@ val isImp = can destImp;
 
 (* Universal quantifiers *)
 
-val forallName = "!";
+val forallName = Name.mkGlobal "!";
 
 fun forallType a = mkFun (mkFun (a, boolTy), boolTy);
 
@@ -239,7 +234,8 @@ fun mkForall (v,b) =
 fun destForall tm =
     let
       val (c,t) = destComb tm
-      val _ = fst (destConst c) = forallName orelse raise Error "destForall"
+      val _ = Name.equal (fst (destConst c)) forallName orelse
+              raise Error "destForall"
     in
       destAbs t
     end;
@@ -259,7 +255,7 @@ end;
 
 (* Existential quantifiers *)
 
-val existsName = "?";
+val existsName = Name.mkGlobal "?";
 
 fun existsType a = mkFun (mkFun (a, boolTy), boolTy);
 
@@ -269,7 +265,8 @@ fun mkExists (v,b) =
 fun destExists tm =
     let
       val (c,t) = destComb tm
-      val _ = fst (destConst c) = existsName orelse raise Error "destExists"
+      val _ = Name.equal (fst (destConst c)) existsName orelse
+              raise Error "destExists"
     in
       destAbs t
     end;
@@ -289,7 +286,7 @@ end;
 
 (* Unique existential quantifiers *)
 
-val existsUniqueName = "?!";
+val existsUniqueName = Name.mkGlobal "?!";
 
 fun existsUniqueType a = mkFun (mkFun (a, boolTy), boolTy);
 
@@ -300,7 +297,7 @@ fun mkExistsUnique (v,b) =
 fun destExistsUnique tm =
     let
       val (c,t) = destComb tm
-      val _ = fst (destConst c) = existsUniqueName orelse
+      val _ = Name.equal (fst (destConst c)) existsUniqueName orelse
               raise Error "destExistsUnique"
     in
       destAbs t
@@ -324,26 +321,24 @@ end;
 (* Pretty-printing                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(* Names *)
-
-val ppName = Parser.ppString;
-
 (* Types *)
 
 val typeInfixTokens : Parser.infixities =
-    [{token = " * ",   precedence = 3,  leftAssoc = false},
-     {token = " + ",   precedence = 2,  leftAssoc = false},
-     {token = " -> ",  precedence = 1,  leftAssoc = false}];
+    [{token = " * ", precedence = 3,  leftAssoc = false},
+     {token = " + ", precedence = 2,  leftAssoc = false},
+     {token = " -> ", precedence = 1,  leftAssoc = false}];
 
 local
   val typeInfixStrings = Parser.infixTokens typeInfixTokens;
 
-  fun abbreviateTypeOp "fun" = "->"
-    | abbreviateTypeOp n = n;
+  fun abbreviateTypeOp n =
+      case Name.toString n of
+        "fun" => "->"
+      | s => s;
 
-  val ppTypeVar = ppName;
+  val ppTypeVar = Name.pp;
 
-  val ppTypeOp = Parser.ppMap abbreviateTypeOp ppName;
+  val ppTypeOp = Parser.ppMap abbreviateTypeOp Parser.ppString;
 
   fun destTypeInfix ty =
       let
@@ -422,8 +417,8 @@ val infixTokens : Parser.infixities =
 
 val ppVar =
     let
-      val pp1 = Parser.ppBracket "(" ")" (Parser.ppBinop " :" ppName ppType)
-      val pp2 = Parser.ppMap fst ppName
+      val pp1 = Parser.ppBracket "(" ")" (Parser.ppBinop " :" Name.pp ppType)
+      val pp2 = Parser.ppMap fst Name.pp
     in
       fn pp => fn v => (if !showTypes then pp1 else pp2) pp v
     end;
@@ -439,7 +434,9 @@ local
 
   val binderStrings = map fst binders;
 
-  fun abbreviateConst n = n;
+  fun abbreviateConst n =
+      case Name.toString n of
+        s => s;
 
   fun specialString n =
       n = "~" orelse mem n infixStrings orelse mem n binderStrings;
@@ -453,7 +450,7 @@ local
               if specialString n then "(" ^ n ^ ")" else n
             end
       in
-        Parser.ppMap f ppName
+        Parser.ppMap f Parser.ppString
       end;
 
   fun destInfix tm =
@@ -468,10 +465,10 @@ local
 
   val isInfix = can destInfix;
 
-  fun countNegations tm =
+  fun countNegs tm =
       case total destNeg tm of
         NONE => (0,tm)
-      | SOME t => let val (n,r) = countNegations t in (n + 1, r) end;
+      | SOME t => let val (n,r) = countNegs t in (n + 1, r) end;
 
   fun destBinder tm =
       let
@@ -523,9 +520,9 @@ local
          else (if r then Parser.ppBracket "(" ")" else I) ppBinder) pp tm
       end
 
-  and negations pp (tm,r) =
+  and negs pp (tm,r) =
       let
-        val (n,tm) = countNegations tm
+        val (n,tm) = countNegs tm
       in
         Parser.beginBlock pp Parser.Inconsistent n;
         funpow n (fn () => Parser.addString pp "~") ();
@@ -535,7 +532,7 @@ local
 
   and ppBtm pp tm = Parser.ppBracket "(" ")" ppTm pp (tm,false)
 
-  and ppTm pp tmr = infixPrinter negations pp tmr;
+  and ppTm pp tmr = infixPrinter negs pp tmr;
 in
   val ppTerm = Parser.ppMap (fn tm => (tm,false)) ppTm;
 end;
@@ -546,8 +543,8 @@ val termToString = Parser.toString ppTerm;
 
 val ppSubst =
     Parser.ppMap
-      (fn sub => (TU.toListType sub, TU.toList sub))
-      (Parser.ppPair (Parser.ppList (Parser.ppPair ppName ppType))
+      (fn sub => (TermSubst.toListType sub, TermSubst.toList sub))
+      (Parser.ppPair (Parser.ppList (Parser.ppPair Name.pp ppType))
                      (Parser.ppList (Parser.ppPair ppVar ppTerm)));
 
 val substToString = Parser.toString ppSubst;
@@ -557,10 +554,10 @@ val substToString = Parser.toString ppSubst;
 local
   fun ppSeq pp binop hyp concl =
       (Parser.beginBlock pp Parser.Inconsistent 2;
-       if TAS.null hyp then ()
+       if TermAlphaSet.null hyp then ()
        else
          (Parser.ppBracket "{" "}"
-            (Parser.ppSequence "," ppTerm) pp (TAS.toList hyp);
+            (Parser.ppSequence "," ppTerm) pp (TermAlphaSet.toList hyp);
           Parser.addBreak pp (1,0));
        Parser.addString pp (binop ^ " ");
        ppTerm pp concl;

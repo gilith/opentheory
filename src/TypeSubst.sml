@@ -8,11 +8,6 @@ struct
 
 open Useful;
 
-structure N = Name;
-structure NM = NameMap;
-structure NS = NameSet;
-structure Ty = Type;
-
 infixr ==
 
 val op== = Portable.pointerEqual;
@@ -21,21 +16,21 @@ val op== = Portable.pointerEqual;
 (* Substitutions                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype subst = TypeSubst of Ty.ty NM.map;
+datatype subst = TypeSubst of Type.ty NameMap.map;
 
-val empty = TypeSubst (NM.new ());
+val empty = TypeSubst (NameMap.new ());
 
-fun null (TypeSubst m) = NM.null m;
+fun null (TypeSubst m) = NameMap.null m;
 
-fun add n_ty (TypeSubst sub) = TypeSubst (NM.insert sub n_ty);
+fun add n_ty (TypeSubst sub) = TypeSubst (NameMap.insert sub n_ty);
 
-fun peek (TypeSubst sub) n = NM.peek sub n;
+fun peek (TypeSubst sub) n = NameMap.peek sub n;
 
 fun norm (TypeSubst sub) =
     let
-      fun f (n,ty,z) = if Type.equalVar n ty then z else NM.insert z (n,ty)
+      fun f (n,ty,z) = if Type.equalVar n ty then z else NameMap.insert z (n,ty)
 
-      val sub = NM.foldl f (NM.new ()) sub
+      val sub = NameMap.foldl f (NameMap.new ()) sub
     in
       TypeSubst sub
     end;
@@ -45,19 +40,19 @@ fun subst sub =
       val sub as TypeSubst m = norm sub
 
       fun f ty =
-          case Ty.dest ty of
-            Ty.TypeVar n => Option.getOpt (NM.peek m n, ty)
-          | Ty.TypeOp (n,l) =>
+          case Type.dest ty of
+            Type.TypeVar n => Option.getOpt (NameMap.peek m n, ty)
+          | Type.TypeOp (n,l) =>
             let
               val l' = Sharing.map f l
             in
-              if l == l' then ty else Ty.mkOp (n,l')
+              if l == l' then ty else Type.mkOp (n,l')
             end
     in
       if null sub then I else f
     end;
 
-fun toList (TypeSubst sub) = NM.toList sub;
+fun toList (TypeSubst sub) = NameMap.toList sub;
 
 (* ------------------------------------------------------------------------- *)
 (* Matching                                                                  *)
@@ -66,18 +61,18 @@ fun toList (TypeSubst sub) = NM.toList sub;
 local
   fun rawMatch sub [] = sub
     | rawMatch sub ((ty1,ty2) :: rest) =
-      case Ty.dest ty1 of
-        Ty.TypeVar n1 =>
+      case Type.dest ty1 of
+        Type.TypeVar n1 =>
         (case peek sub n1 of
            NONE => add (n1,ty2) sub
          | SOME ty2' =>
-           if Ty.equal ty2 ty2' then rawMatch sub rest
+           if Type.equal ty2 ty2' then rawMatch sub rest
            else raise Error "incompatible variable substitutions")
-      | Ty.TypeOp (n1,l1) =>
+      | Type.TypeOp (n1,l1) =>
         let
-          val (n2,l2) = Ty.destOp ty2
+          val (n2,l2) = Type.destOp ty2
         in
-          if n1 = n2 then rawMatch sub (zip l1 l2 @ rest)
+          if Name.equal n1 n2 then rawMatch sub (zip l1 l2 @ rest)
           else raise Error "different type operators"
         end;
 in

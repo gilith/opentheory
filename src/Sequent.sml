@@ -8,30 +8,26 @@ struct
 
 open Useful
 
-structure Ty = Type;
-structure T = Term;
-structure TAS = TermAlphaSet;
-
 (* ------------------------------------------------------------------------- *)
 (* Sequents                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-type sequent = {hyp : TAS.set, concl : T.term};
+type sequent = {hyp : TermAlphaSet.set, concl : Term.term};
 
 (* ------------------------------------------------------------------------- *)
 (* Checking the hypotheses and conclusion are of type bool                   *)
 (* ------------------------------------------------------------------------- *)
 
 fun boolean {hyp,concl} =
-    Ty.equal (T.typeOf concl) Ty.boolTy andalso
-    TAS.all (fn h => Ty.equal (T.typeOf h) Ty.boolTy) hyp;
+    Type.equal (Term.typeOf concl) Type.boolTy andalso
+    TermAlphaSet.all (fn h => Type.equal (Term.typeOf h) Type.boolTy) hyp;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order on sequents modulo alpha equivalence                        *)
 (* ------------------------------------------------------------------------- *)
 
 fun compare ({hyp = h1, concl = c1}, {hyp = h2, concl = c2}) =
-    prodCompare T.alphaCompare TAS.compare ((c1,h1),(c2,h2));
+    prodCompare Term.alphaCompare TermAlphaSet.compare ((c1,h1),(c2,h2));
 
 fun equal s1 s2 = compare (s1,s2) = EQUAL;
 

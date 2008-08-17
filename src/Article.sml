@@ -8,14 +8,6 @@ struct
 
 open Useful Syntax Rule;
 
-structure N = Name;
-structure NS = NameSet;
-structure NM = NameMap;
-structure Ty = Type;
-structure T = Term;
-structure TAS = TermAlphaSet;
-structure TU = TermSubst;
-
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -27,22 +19,6 @@ fun natFromString err s =
     case Int.fromString s of
       SOME i => i
     | NONE => raise Error err;
-
-(* ------------------------------------------------------------------------- *)
-(* Namespaces.                                                               *)
-(* ------------------------------------------------------------------------- *)
-
-type namespace = name list;
-
-val globalNamespace : namespace = [];
-
-fun exportFromNamespace namespace name = join "." (namespace @ [name]);
-
-local
-  fun import (m,x) = Option.getOpt (total (destPrefix (m ^ ".")) x, x);
-in
-  fun importIntoNamespace namespace name = foldl import name namespace;
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Bilingual dictionaries.                                                   *)
@@ -98,119 +74,6 @@ fun bilingualImport namespace (Bilingual {import,...}) altName =
           | NONE => altName
     in
       importIntoNamespace namespace globalName
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Objects.                                                                  *)
-(* ------------------------------------------------------------------------- *)
-
-datatype object =
-    Oerror
-  | Onum of int
-  | Oname of name
-  | Olist of object list
-  | Otype of ty
-  | Oterm of term
-  | Othm of thm
-  | Ocall of name;
-
-fun destOerror Oerror = ()
-  | destOerror _ = raise Error "destOerror";
-val isOerror = can destOerror;
-
-fun destOnum (Onum n) = n
-  | destOnum _ = raise Error "destOnum";
-val isOnum = can destOnum;
-
-fun destOname (Oname n) = n
-  | destOname _ = raise Error "destOname";
-val isOname = can destOname;
-
-fun destOlist (Olist l) = l
-  | destOlist _ = raise Error "destOlist";
-val isOlist = can destOlist;
-
-fun destOtype (Otype ty) = ty
-  | destOtype _ = raise Error "destOtype";
-val isOtype = can destOtype;
-
-fun destOterm (Oterm tm) = tm
-  | destOterm _ = raise Error "destOterm";
-val isOterm = can destOterm;
-
-fun destOthm (Othm th) = th
-  | destOthm _ = raise Error "destOthm";
-val isOthm = can destOthm;
-
-fun destOcall (Ocall n) = n
-  | destOcall _ = raise Error "destOcall";
-val isOcall = can destOcall;
-
-fun mkOunit () = Olist [];
-
-fun mkOpair (x,y) = Olist [x,y];
-fun destOpair (Olist [x,y]) = (x,y)
-  | destOpair _ = raise Error "destOpair";
-val isOpair = can destOpair;
-
-fun destOtriple (Olist [x,y,z]) = (x,y,z)
-  | destOtriple _ = raise Error "destOtriple";
-val isOtriple = can destOtriple;
-
-fun destOvar var =
-    let
-      val (name,ty) = destOpair var
-    in
-      (destOname name, destOtype ty)
-    end;
-val isOvar = can destOvar;
-
-fun objectCompare ob1_ob2 =
-    if Portable.pointerEqual ob1_ob2 then EQUAL
-    else
-      case ob1_ob2 of
-        (Oerror,Oerror) => EQUAL
-      | (Oerror,_) => LESS
-      | (_,Oerror) => GREATER
-      | (Onum n1, Onum n2) => Int.compare (n1,n2)
-      | (Onum _, _) => LESS
-      | (_, Onum _) => GREATER
-      | (Oname n1, Oname n2) => N.compare (n1,n2)
-      | (Oname _, _) => LESS
-      | (_, Oname _) => GREATER
-      | (Otype ty1, Otype ty2) => Ty.compare (ty1,ty2)
-      | (Otype _, _) => LESS
-      | (_, Otype _) => GREATER
-      | (Oterm tm1, Oterm tm2) => T.compare (tm1,tm2)
-      | (Oterm _, _) => LESS
-      | (_, Oterm _) => GREATER
-      | (Othm th1, Othm th2) => Thm.compare (th1,th2)
-      | (Othm _, _) => LESS
-      | (_, Othm _) => GREATER
-      | (Olist l1, Olist l2) => lexCompare objectCompare (l1,l2)
-      | (Olist _, _) => LESS
-      | (_, Olist _) => GREATER
-      | (Ocall n1, Ocall n2) => N.compare (n1,n2);
-
-fun ppObject pp ob =
-    case ob of
-      Oerror => Parser.ppString pp "ERROR"
-    | Onum n => Parser.ppInt pp n
-    | Oname s => Parser.ppString pp ("\"" ^ s ^ "\"")
-    | Otype ty => ppType pp ty
-    | Oterm tm => ppTerm pp tm
-    | Othm th => ppThm pp th
-    | Olist l => Parser.ppList ppObject pp l
-    | Ocall f => Parser.ppString pp ("<" ^ f ^ ">");
-
-val objectThms =
-    let
-      fun f acc [] = acc
-        | f acc (Othm th :: rest) = f (th :: acc) rest
-        | f acc (Olist l :: rest) = f acc (l @ rest)
-        | f acc (_ :: rest) = f acc rest
-    in
-      fn obj => f [] [obj]
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -288,17 +151,6 @@ fun translationSimulate (Translation {simulations,...}) name =
       NONE => K NONE
     | SOME sim => SOME o sim;
 ***)
-
-(* ------------------------------------------------------------------------- *)
-(* The natural translation.                                                  *)
-(* ------------------------------------------------------------------------- *)
-
-val natural =
-    mkTranslation
-      {namespace = globalNamespace,
-       types = [],
-       consts = [],
-       rules = []};
 
 (* ------------------------------------------------------------------------- *)
 (* Object IDs.                                                               *)

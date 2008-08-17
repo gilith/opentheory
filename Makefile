@@ -54,6 +54,7 @@ SRC = \
   src/Sharing.sig src/Sharing.sml \
   src/Stream.sig src/Stream.sml \
   src/Parser.sig src/Parser.sml \
+  src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
   src/Type.sig src/Type.sml \
   src/TypeSubst.sig src/TypeSubst.sml \
@@ -64,6 +65,8 @@ SRC = \
   src/Thm.sig src/Thm.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
+  src/Interpretation.sig src/Interpretation.sml \
+  src/Object.sig src/Object.sml \
   src/Article.sig src/Article.sml \
   src/Options.sig src/Options.sml
 

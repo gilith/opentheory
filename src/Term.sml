@@ -8,15 +8,6 @@ struct
 
 open Useful;
 
-structure N = Name;
-structure NS = NameSet;
-structure NM = NameMap;
-structure Ty = Type;
-structure TyU = TypeSubst;
-structure V = Var;
-structure VS = VarSet;
-structure VM = VarMap;
-
 infixr ==
 
 val op== = Portable.pointerEqual;
@@ -26,10 +17,10 @@ val op== = Portable.pointerEqual;
 (* ------------------------------------------------------------------------- *)
 
 datatype term' =
-    Const of N.name * Ty.ty
-  | Var of V.var
+    Const of Name.name * Type.ty
+  | Var of Var.var
   | App of term' * term'
-  | Lam of V.var * term';
+  | Lam of Var.var * term';
 
 type term = term';
 
@@ -37,17 +28,18 @@ type term = term';
 (* The constant registry (initially contains the primitive constants)        *)
 (* ------------------------------------------------------------------------- *)
 
-datatype registry = Registry of {all : N.name list, types : Ty.ty NM.map};
+datatype registry =
+    Registry of
+      {all : Name.name list,
+       types : Type.ty NameMap.map};
 
-val registry = ref (Registry {all = [], types = NM.new ()});
+val registry = ref (Registry {all = [], types = NameMap.new ()});
 
 fun constType name =
     let
       val Registry {types,...} = !registry
     in
-      case NM.peek types name of
-        NONE => raise Error ("constType: no constant with name "^name)
-      | SOME ty => ty
+      NameMap.peek types name
     end;
 
 fun allConsts name =
@@ -59,11 +51,12 @@ fun allConsts name =
 
 fun declareConst name ty =
     let
-      val _ = not (can constType name) orelse
-              raise Error ("already a constant with name " ^ name)
+      val _ = not (Option.isSome (constType name)) orelse
+              raise Error ("already a constant with name " ^
+                           Name.toString name)
       val Registry {all,types} = !registry
       val all = name :: all
-      and types = NM.insert types (name,ty)
+      and types = NameMap.insert types (name,ty)
     in
       registry := Registry {all = all, types = types}
     end
@@ -75,8 +68,8 @@ fun declareConst name ty =
 
 fun typeOf (Const (_,ty)) = ty
   | typeOf (Var (_,ty)) = ty
-  | typeOf (App (t,u)) = snd (Ty.destFun (typeOf t))
-  | typeOf (Lam ((_,vty),t)) = Ty.mkFun (vty, typeOf t);
+  | typeOf (App (t,u)) = snd (Type.destFun (typeOf t))
+  | typeOf (Lam ((_,vty),t)) = Type.mkFun (vty, typeOf t);
 
 (* ------------------------------------------------------------------------- *)
 (* Term constructors and destructors                                         *)
@@ -88,9 +81,12 @@ fun dest (tm : term) = tm;
 
 fun mkConst (n,ty) =
     let
-      val ty' = constType n
-      val _ = can (TyU.match ty') ty orelse
-              raise Error ("bad type for constant " ^ n)
+      val () =
+          case constType n of
+            NONE => ()
+          | SOME ty' =>
+            if can (TypeSubst.match ty') ty then ()
+            else raise Error ("bad type for constant " ^ Name.toString n)
     in
       Const (n,ty)
     end
@@ -113,9 +109,9 @@ fun equalVar var (Var v) = Var.equal var v
 
 fun mkComb (f,x) =
     let
-      val (ty,_) = Ty.destFun (typeOf f)
+      val (ty,_) = Type.destFun (typeOf f)
       val ty' = typeOf x
-      val _ = Ty.equal ty ty' orelse raise Error "incompatible types"
+      val _ = Type.equal ty ty' orelse raise Error "incompatible types"
     in
       App (f,x)
     end
@@ -137,7 +133,7 @@ val isAbs = can destAbs;
 (* A total order on terms, with and without alpha equivalence                *)
 (* ------------------------------------------------------------------------- *)
 
-val constCompare = prodCompare N.compare Ty.compare;
+val constCompare = prodCompare Name.compare Type.compare;
 
 local
   fun cmp tm1_tm2 =
@@ -147,13 +143,13 @@ local
           (Const c1, Const c2) => constCompare (c1,c2)
         | (Const _, _) => LESS
         | (_, Const _) => GREATER
-        | (Var v1, Var v2) => V.compare (v1,v2)
+        | (Var v1, Var v2) => Var.compare (v1,v2)
         | (Var _, _) => LESS
         | (_, Var _) => GREATER
         | (App a1, App a2) => prodCompare cmp cmp (a1,a2)
         | (App _, _) => LESS
         | (_, App _) => GREATER
-        | (Lam l1, Lam l2) => prodCompare V.compare cmp (l1,l2);
+        | (Lam l1, Lam l2) => prodCompare Var.compare cmp (l1,l2);
 in
   val compare = cmp;
 end;
@@ -169,8 +165,8 @@ local
         | (Const _, _) => LESS
         | (_, Const _) => GREATER
         | (Var v1, Var v2) =>
-          (case (VM.peek bv1 v1, VM.peek bv2 v2) of
-             (NONE,NONE) => V.compare (v1,v2)
+          (case (VarMap.peek bv1 v1, VarMap.peek bv2 v2) of
+             (NONE,NONE) => Var.compare (v1,v2)
            | (SOME _, NONE) => LESS
            | (NONE, SOME _) => GREATER
            | (SOME n1, SOME n2) => Int.compare (n1,n2))
@@ -185,10 +181,16 @@ local
         | (App _, _) => LESS
         | (_, App _) => GREATER
         | (Lam (v1,t1), Lam (v2,t2)) =>
-          if n = 0 andalso V.equal v1 v2 then acmp n bv1 bv2 (t1,t2)
-          else acmp (n+1) (VM.insert bv1 (v1,n)) (VM.insert bv2 (v2,n)) (t1,t2);
+          if n = 0 andalso Var.equal v1 v2 then acmp n bv1 bv2 (t1,t2)
+          else
+            let
+              val bv1 = VarMap.insert bv1 (v1,n)
+              and bv2 = VarMap.insert bv2 (v2,n)
+            in
+              acmp (n+1) bv1 bv2 (t1,t2)
+            end;
 in
-  val alphaCompare = acmp 0 (VM.new ()) (VM.new ());
+  val alphaCompare = acmp 0 (VarMap.new ()) (VarMap.new ());
 end;
 
 fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
@@ -197,19 +199,20 @@ fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
 (* Free term and type variables                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun typeVars (Const (_,ty)) = Ty.typeVars ty
-  | typeVars (Var (_,ty)) = Ty.typeVars ty
-  | typeVars (App (a,b)) = NS.union (typeVars a) (typeVars b)
-  | typeVars (Lam ((_,ty),b)) = NS.union (Ty.typeVars ty) (typeVars b);
+fun typeVars (Const (_,ty)) = Type.typeVars ty
+  | typeVars (Var (_,ty)) = Type.typeVars ty
+  | typeVars (App (a,b)) = NameSet.union (typeVars a) (typeVars b)
+  | typeVars (Lam ((_,ty),b)) = NameSet.union (Type.typeVars ty) (typeVars b);
 
 val freeVars =
     let
-      fun fv _ (Const _) = VS.empty
-        | fv bv (Var v) = if VS.member v bv then VS.empty else VS.singleton v
-        | fv bv (App (a,b)) = VS.union (fv bv a) (fv bv b)
-        | fv bv (Lam (v,b)) = fv (VS.add bv v) b
+      fun fv _ (Const _) = VarSet.empty
+        | fv bv (Var v) =
+          if VarSet.member v bv then VarSet.empty else VarSet.singleton v
+        | fv bv (App (a,b)) = VarSet.union (fv bv a) (fv bv b)
+        | fv bv (Lam (v,b)) = fv (VarSet.add bv v) b
     in
-      fv VS.empty
+      fv VarSet.empty
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -218,40 +221,44 @@ val freeVars =
 
 (* Equality *)
 
-fun eqTy a = Ty.mkFun (a, Ty.mkFun (a, Ty.boolTy));
+fun eqTy a = Type.mkFun (a, Type.mkFun (a, Type.boolTy));
+
+val eqN = Name.mkGlobal "="
 
 val eqTm =
     let
-      val n = "="
-      and ty = eqTy Ty.alphaTy
-      val () = declareConst n ty
+      val ty = eqTy Type.alphaTy
+      val () = declareConst eqN ty
     in
-      Const (n,ty)
+      Const (eqN,ty)
     end;
 
-fun mkEq (l,r) = mkComb (mkComb (mkConst ("=", eqTy (typeOf l)), l), r);
+fun mkEq (l,r) = mkComb (mkComb (mkConst (eqN, eqTy (typeOf l)), l), r);
 
-fun destEq (App (App (Const ("=",_), l), r)) = (l,r)
+fun destEq (App (App (Const (n,_), l), r)) =
+    if Name.equal n eqN then (l,r) else raise Error "Term.destEq"
   | destEq _ = raise Error "Term.destEq";
 
 val isEq = can destEq;
 
 (* Hilbert's Epsilon operator *)
 
-fun selectTy a = Ty.mkFun (Ty.mkFun (a, Ty.boolTy), a);
+fun selectTy a = Type.mkFun (Type.mkFun (a, Type.boolTy), a);
+
+val selectN = Name.mkGlobal "@";
 
 val selectTm =
     let
-      val n = "@"
-      and ty = selectTy Ty.alphaTy
-      val () = declareConst n ty
+      val ty = selectTy Type.alphaTy
+      val () = declareConst selectN ty
     in
-      Const (n,ty)
+      Const (selectN,ty)
     end;
 
-fun mkSelect (v_b as ((_,ty),_)) = App (Const ("@", selectTy ty), Lam v_b);
+fun mkSelect (v_b as ((_,ty),_)) = App (Const (selectN, selectTy ty), Lam v_b);
 
-fun destSelect (App (Const ("@",_), Lam v_b)) = v_b
+fun destSelect (App (Const (n,_), Lam v_b)) =
+    if Name.equal n selectN then v_b else raise Error "Term.destSelect"
   | destSelect _ = raise Error "Term.destSelect";
 
 val isSelect = can destSelect;

@@ -8,53 +8,52 @@ struct
 
 open Useful;
 
-structure N = Name;
-structure NS = NameSet;
-structure NM = NameMap;
-
 infixr ==
 
 val op== = Portable.pointerEqual;
 
 (* ------------------------------------------------------------------------- *)
-(* Types                                                                     *)
+(* A type of higher order logic types.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-datatype ty' = TypeVar of N.name | TypeOp of N.name * ty' list;
+datatype ty' =
+    TypeVar of Name.name
+  | TypeOp of Name.name * ty' list;
 
 type ty = ty';
 
 (* ------------------------------------------------------------------------- *)
-(* A total order                                                             *)
+(* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
 fun compare ty1_ty2 =
     if op== ty1_ty2 then EQUAL
     else
       case ty1_ty2 of
-        (TypeVar n1, TypeVar n2) => N.compare (n1,n2)
+        (TypeVar n1, TypeVar n2) => Name.compare (n1,n2)
       | (TypeVar _, TypeOp _) => LESS
       | (TypeOp _, TypeVar _) => GREATER
       | (TypeOp n1_l1, TypeOp n2_l2) =>
-        prodCompare N.compare (lexCompare compare) (n1_l1,n2_l2);
+        prodCompare Name.compare (lexCompare compare) (n1_l1,n2_l2);
 
-fun equal (x : ty) y = x = y;
+fun equal ty1 ty2 = compare (ty1,ty2) = EQUAL;
  
 (* ------------------------------------------------------------------------- *)
-(* The type registry (initially contains the primitive type operators)       *)
+(* The type registry (initially contains the primitive type operators).      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype registry = Registry of {all : N.name list, arities : int NM.map};
+datatype registry =
+    Registry of
+      {all : Name.name list,
+       arities : int NameMap.map};
 
-val registry = ref (Registry {all = [], arities = NM.new ()});
+val registry = ref (Registry {all = [], arities = NameMap.new ()});
 
 fun typeArity name =
     let
       val Registry {arities,...} = !registry
     in
-      case NM.peek arities name of
-        NONE => raise Error ("typeArity: no type operator with name "^name)
-      | SOME arity => arity
+      NameMap.peek arities name
     end;
 
 fun allTypes name =
@@ -66,18 +65,19 @@ fun allTypes name =
 
 fun declareType name arity =
     let
-      val _ = not (can typeArity name) orelse
-              raise Error ("already a type operator with name " ^ name)
+      val _ = not (Option.isSome (typeArity name)) orelse
+              raise Error ("already a type operator with name " ^
+                           Name.toString name)
       val Registry {all,arities} = !registry
       val all = name :: all
-      and arities = NM.insert arities (name,arity)
+      and arities = NameMap.insert arities (name,arity)
     in
       registry := Registry {all = all, arities = arities}
     end
     handle Error err => raise Error ("Type.declareType: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
-(* Constructors and destructors                                              *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun mk (ty : ty) = ty;
@@ -91,14 +91,17 @@ fun destVar (TypeVar n) = n
 
 val isVar = can destVar;
 
-fun equalVar name (TypeVar n) = name = n
+fun equalVar name (TypeVar n) = Name.equal name n
   | equalVar _ _ = false;
 
 fun mkOp (n,l) =
     let
-      val arity = typeArity n
-      val _ = length l = arity orelse
-              raise Error ("bad arity for type operator " ^ n)
+      val () =
+          case typeArity n of
+            NONE => ()
+          | SOME arity =>
+            if length l = arity then ()
+            else raise Error ("bad arity for type operator " ^ Name.toString n)
     in
       TypeOp (n,l)
     end
@@ -115,20 +118,20 @@ val isOp = can destOp;
 
 val typeVars =
     let
-      fun fv (TypeVar n, acc) = NS.add acc n
+      fun fv (TypeVar n, acc) = NameSet.add acc n
         | fv (TypeOp (_,tys), acc) = foldl fv acc tys
     in
-      fn ty => fv (ty,NS.empty)
+      fn ty => fv (ty,NameSet.empty)
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive types                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val alphaTy = mkVar "'a";
+val alphaTy = mkVar (Name.mkGlobal "'a");
 
 local
-  val n = "bool";
+  val n = Name.mkGlobal "bool";
 
   val () = declareType n 0;
 in
@@ -136,7 +139,7 @@ in
 end;
 
 local
-  val n = "fun";
+  val n = Name.mkGlobal "fun";
 
   val () = declareType n 2;
 in
@@ -144,14 +147,16 @@ in
 
   fun destFun ty =
       case destOp ty of
-        (m,[x,y]) => if n = m then (x,y) else raise Error "Type.destFun"
+        (m,[x,y]) =>
+        if Name.equal n m then (x,y)
+        else raise Error "Type.destFun"
       | _ => raise Error "Type.destFun";
 
   val isFun = can destFun;
 end;
 
 local
-  val n = "ind";
+  val n = Name.mkGlobal "ind";
 
   val () = declareType n 0;
 in

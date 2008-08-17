@@ -149,9 +149,10 @@ tarball: clean doc/DONT-RELEASE Makefile.dev
 
 .PHONY: release
 release: mosml mlton tarball
-	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt
+	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/index.php
 	cp -v doc/*.html doc/*.txt $(RELEASE_DIR)/
-	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS --exclude=num.art --exclude=articles.tar.gz -e ssh $(RELEASE_DIR)/ gilith@gilith.com:public_html/software/opentheory
+	cd $(RELEASE_DIR) && ln -s index.html index.php
+	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS --exclude=num.art --exclude=articles.tar.gz -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 
 ###############################################################################
 # The build scripts.
