@@ -67,10 +67,10 @@ SRC = \
   src/Rule.sig src/Rule.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Object.sig src/Object.sml \
+  src/Article.sig src/Article.sml \
   src/Options.sig src/Options.sml
 
-EXTRA_SRC = \
-  src/Article.sig src/Article.sml
+EXTRA_SRC =
 
 ###############################################################################
 # The ML preprocessor.
