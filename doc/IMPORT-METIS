@@ -1,0 +1,6 @@
+# Importing Metis into OpenTheory
+
+signature "Name" -> "MetisName"
+structure "Name" -> "MetisName"
+structure "NameOrdered" -> "MetisNameOrdered"
+structure "NameSet" -> "MetisNameSet"

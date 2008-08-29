@@ -55,6 +55,12 @@ MLTON_OPTS += -verbose 1 -keep ssa -keep ssa2
 # Moving source files around.
 ###############################################################################
 
+COPY = scripts/copy_src
+
+MLIMPORT = scripts/mlimport
+
+IMPORT_METIS = doc/IMPORT-METIS
+
 src/ElementSet.sig: ../basic/src/ElementSet.sig $(COPY) ; @$(COPY) $< $@
 src/ElementSet.sml: ../basic/src/ElementSet.sml $(COPY) ; @$(COPY) $< $@
 src/Heap.sig: ../basic/src/Heap.sig $(COPY) ; @$(COPY) $< $@
@@ -65,6 +71,8 @@ src/Lazy.sig: ../basic/src/Lazy.sig $(COPY) ; @$(COPY) $< $@
 src/Lazy.sml: ../basic/src/Lazy.sml $(COPY) ; @$(COPY) $< $@
 src/Map.sig: ../basic/src/Map.sig $(COPY) ; @$(COPY) $< $@
 src/Map.sml: ../basic/src/Map.sml $(COPY) ; @$(COPY) $< $@
+src/MetisName.sig: ../metis/src/Name.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisName.sml: ../metis/src/Name.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/Options.sig: ../basic/src/Options.sig $(COPY) ; @$(COPY) $< $@
 src/Options.sml: ../basic/src/Options.sml $(COPY) ; @$(COPY) $< $@
 src/Ordered.sig: ../basic/src/Ordered.sig $(COPY) ; @$(COPY) $< $@
@@ -157,11 +165,11 @@ release: mosml mlton tarball
 # The build scripts.
 ###############################################################################
 
-COPY = scripts/copy_src
-
 $(COPY): ../basic/scripts/copy_src
 	@cp -fv $< $@
 	@chmod -w $@
+
+$(MLIMPORT): ../basic/scripts/mlimport $(COPY) ; @$(COPY) $< $@
 
 $(MLPP): ../basic/scripts/mlpp $(COPY) ; @$(COPY) $< $@
 

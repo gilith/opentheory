@@ -6,6 +6,8 @@ Lazy.sig
 Lazy.sml
 Map.sig
 Map.sml
+MetisName.sig
+MetisName.sml
 Options.sig
 Options.sml
 Ordered.sig

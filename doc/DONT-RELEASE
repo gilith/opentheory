@@ -2,6 +2,7 @@
 CVS
 opentheory/Makefile.dev
 opentheory/doc/DONT-RELEASE
+opentheory/doc/IMPORT-METIS
 opentheory/doc/TODO
 opentheory/release
 opentheory/scripts/copy_src

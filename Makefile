@@ -54,6 +54,7 @@ SRC = \
   src/Sharing.sig src/Sharing.sml \
   src/Stream.sig src/Stream.sml \
   src/Parser.sig src/Parser.sml \
+  src/MetisName.sig src/MetisName.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
   src/Type.sig src/Type.sml \
