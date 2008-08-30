@@ -2,5 +2,10 @@
 
 signature "Name" -> "MetisName"
 structure "Name" -> "MetisName"
+structure "NameArity" -> "MetisNameArity"
+structure "NameArityMap" -> "MetisNameArityMap"
+structure "NameArityOrdered" -> "MetisNameArityOrdered"
+structure "NameAritySet" -> "MetisNameAritySet"
+structure "NameMap" -> "MetisNameMap"
 structure "NameOrdered" -> "MetisNameOrdered"
 structure "NameSet" -> "MetisNameSet"
