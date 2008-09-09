@@ -97,30 +97,45 @@ val newObjectId : unit -> objectId =
 (*                                                                           *)
 (* Invariants (in order of priority):                                        *)
 (*                                                                           *)
-(* 1. The callObject slot contains Ocall callName objects                    *)
-(*    that have provenance Pcall callArgument.                               *)
+(* 1. The provenance of an Ocall object is the containing Ocall object (if   *)
+(*    there is one), plus the object that became the call argument.          *)
 (*                                                                           *)
-(* 2. Objects that do not contain theorems have provenance Pnull             *)
+(* 2. The provenance of a call argument is the Ocall object.                 *)
+(*                                                                           *)
+(* 3. The provenance of a return value is the Ocall object, plus the object  *)
+(*    that became the return value.                                          *)
+(*                                                                           *)
+(* 4. Objects that do not contain theorems have provenance Pnull             *)
 (*    (because they can be easily constructed).                              *)
 (*                                                                           *)
-(* 3. The copy of the call argument has provenance PcallArgument.            *)
+(* 5. If a theorem can be inferred from theorem-containing objects on the    *)
+(*    stack, then the provenance of the theorem is these objects             *)
+(*    (this will happen most often when simulating an inference rule and     *)
+(*    making use of the call argument - resulting in a singleton list).      *)
+(*                                                                           *)
+(* 6. If an object is retrieved from the dictionary, then the provenance is  *)
+(*    the object that was put into the dictionary.                           *)
 (* ------------------------------------------------------------------------- *)
 
 datatype objectProvenance =
     Op of
       {objectId : objectId,
        object : object,
-       provenance : provenance,
-       callObject : objectProvenance option}
+       provenance : provenance}
 
 and provenance =
-    Pnull
+    Pcall of
+      {containingCall : objectProvenance option,
+       argument : objectProvenance}
+  | PcallArgument of
+      {call : objectProvenance}
+  | PreturnValue of
+      {call : objectProvenance,
+       return : objectProvenance}
+  | Pnull
   | Pcons of objectProvenance * objectProvenance
-  | Pthm of objectProvenance list
-  | Pref of objectProvenance
-  | Pcall of objectProvenance
-  | PcallArgument
-  | Preturn of objectProvenance;
+  | PinferThm of objectProvenance list
+  | Pref of objectProvenance;
 
 fun object (Op {object = x, ...}) = x;
 
@@ -135,31 +150,22 @@ fun opThms obj = objectThms (object obj);
 (* ------------------------------------------------------------------------- *)
 
 datatype theorems =
-    Theorems of (thm * objectProvenance list) SequentMap.map;
+    Theorems of (Thm.thm * objectProvenance) SequentMap.map;
 
 val noTheorems = Theorems (SequentMap.new ());
 
-fun addTheorems thms th_prov =
+fun addTheorems thms th_obj =
     let
-      val Theorems thmsMap = thms
-      and (th,_) = th_prov
-      val seq = sequent th
-      val block =
-          case SequentMap.peek thmsMap seq of
-            NONE => false
-          | SOME (_,[]) => true
-          | SOME (_, _ :: _) => false
+      val Theorems thmMap = thms
+      and (th,obj) = th_obj
     in
-      if block then thms
-      else Theorems (SequentMap.insert thmsMap (seq,th_prov))
+      Theorems (SequentMap.insert thmsMap (sequent th, th_obj))
     end;
 
 local
-  fun add prov (th,thms) = addTheorems thms (th,prov);
+  fun add obj (th,thms) = addTheorems thms (th,obj);
 in
-  fun addOpTheorems thms obj = List.foldl (add [obj]) thms (opThms obj);
-
-  fun addNoOpTheorems thms obj = List.foldl (add []) thms (opThms obj);
+  fun addOpTheorems thms obj = List.foldl (add obj) thms (opThms obj);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -201,6 +207,7 @@ fun topCall [] = NONE
   | topCall ((Op {object = Ocall n, ...}, _) :: l) = SOME (n,l)
   | topCall (_ :: l) = topCall l;
 
+(*
 (* ------------------------------------------------------------------------- *)
 (* Call stacks.                                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -215,6 +222,7 @@ fun callStack (Op {object = Ocall name, callObject, provenance, ...}) =
 
 and callObjectStack NONE = []
   | callObjectStack (SOME obj) = callStack obj;
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Dictionaries.                                                             *)
@@ -401,6 +409,7 @@ end;
 (* hol-light                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
+(***
 val holLight =
     mkTranslation
       {namespace = ["hol-light"],
@@ -418,6 +427,7 @@ val holLight =
                  ("?","?"),
                  ("?!","?!")],
        rules = []};
+***)
 
 fun holLightTypeSubstToSubst oins =
     let
@@ -955,12 +965,12 @@ fun extraFinal saved extra =
 (* ------------------------------------------------------------------------- *)
 
 local
-  open Parser;
-
   infixr 9 >>++
   infixr 8 ++
   infixr 7 >>
   infixr 6 ||
+         
+  open Parser
 
   (* For dealing with locations *)
 
