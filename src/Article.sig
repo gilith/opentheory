@@ -12,7 +12,7 @@ sig
 
 type article
 
-val savedThms : article -> Thm.thm list
+val saved : article -> Thm.thm list
 
 (* ------------------------------------------------------------------------- *)
 (* I/O                                                                       *)
