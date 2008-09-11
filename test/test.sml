@@ -31,7 +31,7 @@ val () = installPP ppThm;
 
 val time = Portable.time;
 
-(*DEBUG
+(*OpenTheoryDebug
   val () = print "Running in DEBUG mode.\n"
 *)
 
@@ -74,11 +74,11 @@ TU.subst u qTq;
 
 val ARTICLE_DIR = "articles";
 
-val (ths,art) =
+val art =
     time
-      Article.fromTextfile
+      Article.fromTextFile
       {filename = ARTICLE_DIR ^ "/bool.art",
-       interpretation = holLightInterpretation};
+       interpretation = holLightInt};
 
 (***
 [

@@ -22,6 +22,8 @@ val fromTextFile :
     {filename : string, interpretation : Interpretation.interpretation} ->
     article
 
+(***
 val toTextFile : {filename : string, article : article} -> unit
+***)
 
 end

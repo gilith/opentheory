@@ -20,13 +20,14 @@ TEMP += $(TEMPFILE) \
 # The ML preprocessor.
 ###############################################################################
 
-#MLPP_OPTS += -r 'DEBUG'
-#MLPP_OPTS += -r 'DEBUG|TRACE[0-1]'
-#MLPP_OPTS += -r 'DEBUG|TRACE[0-2]'
-#MLPP_OPTS += -r 'DEBUG|TRACE[0-3]'
-#MLPP_OPTS += -r 'DEBUG|TRACE[0-4]'
-#MLPP_OPTS += -r 'DEBUG|TRACE[0-5]'
-#MLPP_OPTS += -r 'DEBUG|TRACE[0-6]'
+#MLPP_OPTS += -r 'OpenTheoryDebug'
+#MLPP_OPTS += -r 'OpenTheoryDebug|BasicDebug'
+#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
+MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
+#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-3]'
+#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-4]'
+#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-5]'
+#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-6]'
 
 ###############################################################################
 # The Moscow ML compiler.

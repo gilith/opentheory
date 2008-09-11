@@ -97,27 +97,25 @@ val newObjectId : unit -> objectId =
 (* ------------------------------------------------------------------------- *)
 (* Object provenance.                                                        *)
 (*                                                                           *)
-(* Invariants (in order of priority):                                        *)
+(* Invariants *in order of priority*                                         *)
 (*                                                                           *)
 (* 1. The provenance of an Ocall object is the object that became the call   *)
 (*    argument.                                                              *)
 (*                                                                           *)
-(* 2. Objects that do not contain theorems have provenance Pnull             *)
-(*    (because they can be easily constructed).                              *)
+(* 2. Objects do not contain theorems iff they have provenance Pnull.        *)
+(*    [Objects that do not contain theorems can be easily constructed.]      *)
 (*                                                                           *)
-(* 3. The provenance of a call argument is Pnull                             *)
-(*    (because it is already tracked by the Ocall object)                    *)
+(* 3. The provenance of a call argument is the object that became the call   *)
+(*    argument.                                                              *)
+(*    [Technically redundant, but necessary because of Invariant 2.]         *)
 (*                                                                           *)
 (* 4. The provenance of a return value is the object that became the return  *)
 (*    value.                                                                 *)
 (*                                                                           *)
-(* 5. If a theorem can be inferred from theorem-containing objects on the    *)
-(*    stack, then the provenance of the theorem is these objects             *)
-(*    (this will happen most often when simulating an inference rule and     *)
-(*    making use of the call argument - resulting in a singleton list).      *)
-(*                                                                           *)
-(* 6. If an object is retrieved from the dictionary, then the provenance is  *)
-(*    the object that was put into the dictionary.                           *)
+(* 5. If a theorem can be inferred from theorem-containing objects, then the *)
+(*    provenance of the theorem is these objects.                            *)
+(*    [This will happen most often when simulating an inference rule and     *)
+(*    making use of the call argument - resulting in a singleton list.]      *)
 (* ------------------------------------------------------------------------- *)
 
 datatype object =
@@ -128,14 +126,22 @@ datatype object =
        call : object option}
 
 and provenance =
-    Pcall of {argument : object}
-  | Preturn of {return : object}
-  | Pnull
+    Pnull
+  | Pcall of object
+  | Preturn of object
   | Pcons of object * object
-  | PinferThm of object list
-  | Pref of object;
+  | Pdup of object
+  | Pref of object
+  | Pthm of object list;
 
 fun object (Object {object = x, ...}) = x;
+
+fun callObject (Object {call = x, ...}) = x;
+
+fun callStackObject obj =
+    case callObject obj of
+      NONE => []
+    | SOME c => c :: callStackObject c;
 
 fun mkObject (object,provenance,call) =
     let
@@ -147,6 +153,12 @@ fun mkObject (object,provenance,call) =
          provenance = provenance,
          call = call}
     end;
+
+fun containsThmsObject obj =
+    case obj of
+      Object {object = Object.Ocall _, ...} => false
+    | Object {provenance = Pnull, ...} => false
+    | _ => true;
 
 (***
 fun destOpthm obj = destOthm (object obj);
@@ -233,6 +245,23 @@ fun popStack stack n =
            tracked = List.drop (tracked,n)}
     end;
 
+fun peekStack stack n =
+    let
+      val Stack {size,tracked,...} = stack
+    in
+      if n >= size then raise Error "Article.peekStack: bad index"
+      else fst (List.nth (tracked,n))
+    end;
+
+fun pop1Stack stack =
+    (popStack stack 1,
+     peekStack stack 0);
+
+fun pop2Stack stack =
+    (popStack stack 2,
+     peekStack stack 1,
+     peekStack stack 0);
+
 local
   fun topCall _ [] = NONE
     | topCall n (Object.Ocall s :: _) = SOME (n,s)
@@ -243,6 +272,23 @@ in
         NONE => raise Error "Article.popCallStack: top level"
       | SOME (n,s) => (s, popStack stack n);
 end;
+
+fun topStack (Stack {tracked,...}) =
+    case tracked of
+      [] => NONE
+    | (obj,_) :: _ => SOME obj;
+
+fun topCallStack stack =
+    case topStack stack of
+      NONE => NONE
+    | SOME obj =>
+      if Object.isOcall (object obj) then SOME obj
+      else callObject obj;
+
+fun callStack stack =
+    case topCallStack stack of
+      NONE => []
+    | SOME obj => obj :: callStackObject obj;
 
 fun searchStack (Stack {tracked,...}) seq =
     case tracked of
@@ -303,16 +349,16 @@ and callObjectStack NONE = []
 (* Dictionaries.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-type dict = object IntMap.map;
+datatype dict = Dict of object IntMap.map;
 
-val emptyDict : dict = IntMap.new ();
+val emptyDict = Dict (IntMap.new ());
 
-fun defDict (n,obj) dict = IntMap.insert dict (n,obj);
+fun defDict (Dict dict) (n,obj) = Dict (IntMap.insert dict (n,obj));
 
-fun refDict dict n =
+fun refDict (Dict dict) n =
     case IntMap.peek dict n of
       SOME obj => obj
-    | NONE => raise Error ("refDict: no entry for number "^Int.toString n);
+    | NONE => raise Error ("refDict: no entry for key " ^ Int.toString n);
 
 (* ------------------------------------------------------------------------- *)
 (* Saved theorems.                                                           *)
@@ -322,9 +368,14 @@ datatype saved = Saved of stack;
 
 val emptySaved = Saved emptyStack;
 
-fun addSaved (Saved stack) obj = Saved (pushStack stack obj);
+fun addSaved (Saved stack) obj =
+    if Object.isOthm (object obj) then Saved (pushStack stack obj)
+    else raise Error "Object.addSaved: not an Othm object";
 
-fun searchSaved (Saved stack) seq = searchStack stack seq;
+fun searchSaved (Saved stack) seq =
+    case searchStack stack seq of
+      SOME (th,_) => SOME th
+    | NONE => NONE;
 
 fun listSaved (Saved stack) = rev (objectStack stack);
 
@@ -392,6 +443,576 @@ fun thmDepsUseful (ThmDeps m) =
       fn ths => f (map thmId ths) IntSet.empty
     end;
 **)
+
+(* ------------------------------------------------------------------------- *)
+(* hol-light                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun holLightTypeSubstToSubst oins =
+    let
+      fun f (x,y) = (destTypeVar (Object.destOtype y), Object.destOtype x)
+      val l = Object.destOlist oins
+    in
+      TermSubst.fromListType (map (f o Object.destOpair) l)
+    end
+    handle Error err =>
+      raise Bug ("holLightTypeSubstToSubst failed:\n" ^ err);
+
+fun holLightSubstToSubst oins =
+    let
+      fun f (x,y) = (destVar (Object.destOterm y), Object.destOterm x)
+      val l = Object.destOlist oins
+    in
+      TermSubst.fromList (map (f o Object.destOpair) l)
+    end
+    handle Error err =>
+      raise Bug ("holLightSubstToSubst failed:\n" ^ err);
+
+fun holLightNewBasicDefinition arg =
+    let
+      val tm = Object.destOterm arg
+      val (v,t) = destEq tm
+      val (n,ty) = destVar v
+      val v = mkVar (n,ty)
+      val tm = mkEq (v,t)
+    in
+      Object.Othm (define tm)
+    end
+    handle Error err =>
+      raise Bug ("holLightNewBasicDefinition failed:\n" ^ err);
+
+fun holLightNewBasicTypeDefinition arg =
+    let
+      val (name,absRep,nonEmptyTh) = Object.destOtriple arg
+      val name = Object.destOname name
+      val (abs,rep) = Object.destOpair absRep
+      val abs = Object.destOname abs
+      and rep = Object.destOname rep
+      and nonEmptyTh = Object.destOthm nonEmptyTh
+      val tyVars = NameSet.toList (Term.typeVars (concl nonEmptyTh))
+      val (absRepTh,repAbsTh) =
+          defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
+    in
+      Object.mkOpair (Object.Othm absRepTh, Object.Othm repAbsTh)
+    end
+    handle Error err =>
+      raise Bug ("holLightNewBasicTypeDefinition failed:\n" ^ err);
+
+fun holLightAbs arg =
+    let
+      val (otm,oth) = Object.destOpair arg
+      val v = destVar (Object.destOterm otm)
+      val th = Object.destOthm oth
+    in
+      Object.Othm (abs v th)
+    end;
+
+fun holLightAssume arg = Object.Othm (assume (Object.destOterm arg));
+
+fun holLightBeta arg = Object.Othm (betaConv (Object.destOterm arg));
+
+fun holLightDeductAntisymRule arg =
+    let
+      val (oth1,oth2) = Object.destOpair arg
+      val th1 = Object.destOthm oth1
+      val th2 = Object.destOthm oth2
+    in
+      Object.Othm (deductAntisym th1 th2)
+    end;
+
+fun holLightEqMp arg =
+    let
+      val (oth1,oth2) = Object.destOpair arg
+      val th1 = Object.destOthm oth1
+      val th2 = Object.destOthm oth2
+    in
+      Object.Othm (eqMp th1 th2)
+    end;
+
+fun holLightInst arg =
+    let
+      val (oins,oth) = Object.destOpair arg
+      val ins = holLightSubstToSubst oins
+      val th = Object.destOthm oth
+    in
+      Object.Othm (subst ins th)
+    end;
+
+fun holLightInstType arg =
+    let
+      val (oins,oth) = Object.destOpair arg
+      val ins = holLightTypeSubstToSubst oins
+      val th = Object.destOthm oth
+    in
+      Object.Othm (subst ins th)
+    end;
+
+fun holLightMkComb arg =
+    let
+      val (oth1,oth2) = Object.destOpair arg
+      val th1 = Object.destOthm oth1
+      val th2 = Object.destOthm oth2
+    in
+      Object.Othm (comb th1 th2)
+    end;
+
+fun holLightRefl arg = Object.Othm (refl (Object.destOterm arg));
+
+fun holLightTrans arg =
+    let
+      val (oth1,oth2) = Object.destOpair arg
+      val th1 = Object.destOthm oth1
+      val th2 = Object.destOthm oth2
+    in
+      Object.Othm (trans th1 th2)
+    end;
+
+val holLightNamespace = Namespace.mkNested (Namespace.global, "hol-light");
+
+val holLightSimulations =
+    map (fn (s,f) => (Name.mk (holLightNamespace,s), f))
+    [("newBasicDefinition", holLightNewBasicDefinition),
+     ("newBasicTypeDefinition", holLightNewBasicTypeDefinition),
+     ("ABS", holLightAbs),
+     ("ASSUME", holLightAssume),
+     ("BETA", holLightBeta),
+     ("DEDUCT_ANTISYM_RULE", holLightDeductAntisymRule),
+     ("EQ_MP", holLightEqMp),
+     ("INST", holLightInst),
+     ("INST_TYPE", holLightInstType),
+     ("MK_COMB", holLightMkComb),
+     ("REFL", holLightRefl),
+     ("TRANS", holLightTrans)];
+
+(* ------------------------------------------------------------------------- *)
+(* Simulating other theorem provers.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val simulations = NameMap.fromList holLightSimulations;
+
+fun simulate stack seq =
+    case topCallStack stack of
+      SOME (Object {object = Object.Ocall f, provenance = Pcall a, ...}) =>
+      let
+        val Object {object = a, ...} = a
+      in
+        case NameMap.peek simulations f of
+          NONE => NONE
+        | SOME sim =>
+          let
+            val r = sim a
+            val ths = Object.thms r
+          in
+            case first (total (alpha seq)) ths of
+              SOME th => SOME (th,[])
+            | NONE => NONE
+          end
+      end
+    | _ => NONE;
+
+(* ------------------------------------------------------------------------- *)
+(* Commands.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+datatype command =
+    Cnum of int
+  | Cname of Name.name
+  | Cop of string;
+
+fun ppCommand p cmd =
+    case cmd of
+      Cnum i => Parser.ppInt p i
+    | Cname n => Name.ppQuoted p n
+    | Cop c => Parser.ppString p c;
+
+val commandToString = Parser.toString ppCommand;
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parser;
+
+  fun isAlphaNum #"_" = true
+    | isAlphaNum c = Char.isAlphaNum c;
+
+  val space = many (some Char.isSpace) >> K ();
+
+  val cnumParser =
+      atLeastOne (some Char.isDigit) >>
+      (Cnum o natFromString "bad number" o implode);
+
+  val cnameParser = Name.quotedParser >> Cname;
+
+  val tcommandParser =
+      (some Char.isAlpha ++ many (some isAlphaNum)) >>
+      (Cop o implode o op::);
+in
+  val commandParser = cnumParser || cnameParser || tcommandParser;
+
+  val spacedCommandParser =
+      (space ++ commandParser ++ space) >> (fn ((),(t,())) => [t]);
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Executing commands.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+datatype state =
+    State of
+      {stack : stack,
+       dict : dict,
+       saved : saved};
+
+val initialState =
+    State
+      {stack = emptyStack,
+       dict = emptyDict,
+       saved = emptySaved};
+
+fun savedState (State {saved = s, ...}) = s;
+
+fun execute interpretation cmd state =
+    let
+      val State {stack,dict,saved} = state
+    in
+      case cmd of
+      (* Errors *)
+
+        Cop "error" =>
+        let
+          val ob = Object.Oerror
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Numbers *)
+
+      | Cnum i =>
+        let
+          val ob = Object.Onum i
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Names *)
+
+      | Cname n =>
+        let
+          val ob = Object.Oname n
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Lists *)
+
+      | Cop "nil" =>
+        let
+          val ob = Object.onil
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "cons" =>
+        let
+          val (stack,
+               objH as Object {object = obH, ...},
+               objT as Object {object = obT, ...}) = pop2Stack stack
+          val ob = Object.mkOcons (obH,obT)
+          and prov =
+              if containsThmsObject objH orelse containsThmsObject objT then
+                Pcons (objH,objT)
+              else
+                Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Types *)
+
+      | Cop "type_var" =>
+        let
+          val (stack,
+               Object {object = obN, ...}) = pop1Stack stack
+          val ob = Object.mkOtypeVar obN
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "type_op" =>
+        let
+          val (stack,
+               Object {object = obN, ...},
+               Object {object = obL, ...}) = pop2Stack stack
+          val obN = Object.interpretType interpretation obN
+          val ob = Object.mkOtypeOp (obN,obL)
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Terms *)
+
+      | Cop "var" =>
+        let
+          val (stack,
+               Object {object = obN, ...},
+               Object {object = obT, ...}) = pop2Stack stack
+          val ob = Object.mkOtermVar (obN,obT)
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "const" =>
+        let
+          val (stack,
+               Object {object = obN, ...},
+               Object {object = obT, ...}) = pop2Stack stack
+          val obN = Object.interpretConst interpretation obN
+          val ob = Object.mkOtermConst (obN,obT)
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "comb" =>
+        let
+          val (stack,
+               Object {object = obF, ...},
+               Object {object = obA, ...}) = pop2Stack stack
+          val ob = Object.mkOtermComb (obF,obA)
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "abs" =>
+        let
+          val (stack,
+               Object {object = obV, ...},
+               Object {object = obB, ...}) = pop2Stack stack
+          val ob = Object.mkOtermAbs (obV,obB)
+          and prov = Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Theorems *)
+
+      | Cop "thm" =>
+        let
+          val (stack,
+               Object {object = obH, ...},
+               Object {object = obC, ...}) = pop2Stack stack
+
+          val seq =
+              {hyp = TermAlphaSet.fromList (Object.destOterms obH),
+               concl = Object.destOterm obC}
+
+          val (th,deps) =
+              case searchSaved saved seq of
+                SOME th => (th,[])
+              | NONE =>
+                case simulate stack seq of
+                  SOME th_deps => th_deps
+                | NONE =>
+                  case searchStack stack seq of
+                    SOME (th,dep) => (th,[dep])
+                  | NONE =>
+                    let
+                      val th = Thm.axiom seq
+                      val () = warn ("making new axiom:\n" ^ thmToString th)
+                    in
+                      (th,[])
+                    end
+
+          val ob = Object.Othm th
+          and prov = Pthm deps
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Function calls *)
+
+      | Cop "call" =>
+        let
+          val (stack,
+               objA as Object {object = obA, ...},
+               Object {object = obN, ...}) = pop2Stack stack
+          val _ = not (Object.isOcall obA) orelse
+                  raise Error "cannot use an Ocall object as a call argument"
+          val n = Object.destOname obN
+          val n = Interpretation.interpretRule interpretation n
+(*OpenTheoryTrace1
+          val () = if not (null (callStack stack)) then ()
+                   else trace (Name.toString n ^ "\n")
+*)
+(*OpenTheoryTrace2
+          val () = trace ("  stack = ["^Int.toString (sizeStack stack) ^
+                          "], call stack = [" ^
+                          Int.toString (length (callStack stack))^"]\n")
+          val () = Parser.ppTrace Object.pp "  input" obA
+*)
+          val ob = Object.Ocall n
+          and prov = Pcall objA
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+          val ob = obA
+          and prov = if containsThmsObject objA then Pcall objA else Pnull
+          and call = SOME obj
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "return" =>
+        let
+          val (stack,
+               objR as Object {object = obR, ...},
+               Object {object = obN, ...}) = pop2Stack stack
+          val _ = not (Object.isOcall obR) orelse
+                  raise Error "cannot use an Ocall object as a return value"
+          val n = Object.destOname obN
+          val n = Interpretation.interpretRule interpretation n
+          val (n',stack) = popCallStack stack
+          val _ = Name.equal n' n orelse
+                  raise Error ("call " ^ Name.toString n' ^
+                               " matched by return " ^ Name.toString n)
+(*OpenTheoryTrace1
+          val () = if not (null (callStack stack)) then ()
+                   else trace (Name.toString n ^ " return\n")
+*)
+(*OpenTheoryTrace2
+          val () = trace ("  stack = ["^Int.toString (sizeStack stack) ^
+                          "], call stack = [" ^
+                          Int.toString (length (callStack stack))^"]\n")
+          val () = Parser.ppTrace Object.pp "return" obR
+*)
+          val ob = obR
+          and prov = if containsThmsObject objR then Preturn objR else Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Dictionary *)
+
+      | Cop "def" =>
+        let
+          val (stack,
+               objD as Object {object = obD, ...},
+               Object {object = obI, ...}) = pop2Stack stack
+          val _ = not (Object.isOcall obD) orelse
+                  raise Error "cannot def an Ocall object"
+          val i = Object.destOnum obI
+          val dict = defDict dict (i,objD)
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "ref" =>
+        let
+          val (stack,
+               Object {object = obI, ...}) = pop1Stack stack
+          val i = Object.destOnum obI
+          val objD as Object {object = obD, ...} = refDict dict i
+          val ob = obD
+          and prov = if containsThmsObject objD then Pref objD else Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* General *)
+
+      | Cop "pop" =>
+        let
+          val stack = popStack stack 1
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "dup" =>
+        let
+          val (stack,
+               Object {object = obI, ...}) = pop1Stack stack
+          val i = Object.destOnum obI
+          val objD = peekStack stack i
+          val ob = object objD
+          and prov = if containsThmsObject objD then Pdup objD else Pnull
+          and call = topCallStack stack
+          val _ = not (Object.isOcall ob) orelse
+                  raise Error "cannot dup an Ocall object"
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      | Cop "save" =>
+        let
+          val (stack,
+               objT) = pop1Stack stack
+          val saved = addSaved saved objT
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
+      (* Any other command is an error *)
+
+      | Cop _ => raise Error "unknown command"
+    end
+    handle Error err => raise Error (commandToString cmd ^ ": " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Articles                                                                  *)
@@ -475,14 +1096,14 @@ local
 in
   fun deadTheoremElimination useful article =
     let
-(*TRACE1
+(*OpenTheoryTrace1
       val _ = trace ("deadTheoremElimination: before = " ^
                      articleToString article ^ "\n")
 *)
       val Article ops = article
       val (ops,useful) = eliml ops useful
       val article = Article ops
-(*TRACE1
+(*OpenTheoryTrace1
       val _ = trace ("deadTheoremElimination: after = " ^
                      articleToString article ^ "\n")
 *)
@@ -491,167 +1112,6 @@ in
     end;
 end;
 ***)
-
-(* ------------------------------------------------------------------------- *)
-(* hol-light                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(***
-val holLight =
-    mkTranslation
-      {namespace = ["hol-light"],
-       types = [("fun","fun"),
-                ("bool","bool")],
-       consts = [("=","="),
-                 ("@","@"),
-                 ("T","T"),
-                 ("F","F"),
-                 ("~","~"),
-                 ("/\\","/\\"),
-                 ("\\/","\\/"),
-                 ("==>","==>"),
-                 ("!","!"),
-                 ("?","?"),
-                 ("?!","?!")],
-       rules = []};
-***)
-
-(*
-fun holLightTypeSubstToSubst oins =
-    let
-      fun f (x,y) = (destTypeVar (destOtype y), destOtype x)
-      val l = destOlist oins
-    in
-      TU.fromListType (map (f o destOpair) l)
-    end
-    handle Error err =>
-      raise Bug ("holLightTypeSubstToSubst failed:\n" ^ err);
-
-fun holLightSubstToSubst oins =
-    let
-      fun f (x,y) = (destVar (destOterm y), destOterm x)
-      val l = destOlist oins
-    in
-      TU.fromList (map (f o destOpair) l)
-    end
-    handle Error err =>
-      raise Bug ("holLightSubstToSubst failed:\n" ^ err);
-
-fun holLightNewBasicDefinition arg =
-    let
-      val tm = destOterm arg
-      val (v,t) = destEq tm
-      val (n,ty) = destVar v
-      val n = exportConst holLight n
-      val v = mkVar (n,ty)
-      val tm = mkEq (v,t)
-    in
-      Othm (define tm)
-    end
-    handle Error err =>
-      raise Bug ("holLightNewBasicDefinition failed:\n" ^ err);
-
-fun holLightNewBasicTypeDefinition arg =
-    let
-      val (name,absRep,nonEmptyTh) = destOtriple arg
-      val name = exportType holLight (destOname name)
-      val (abs,rep) = destOpair absRep
-      val abs = exportConst holLight (destOname abs)
-      and rep = exportConst holLight (destOname rep)
-      and nonEmptyTh = destOthm nonEmptyTh
-      val tyVars = NS.toList (T.typeVars (concl nonEmptyTh))
-      val (absRepTh,repAbsTh) =
-          defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
-    in
-      mkOpair (Othm absRepTh, Othm repAbsTh)
-    end
-    handle Error err =>
-      raise Bug ("holLightNewBasicTypeDefinition failed:\n" ^ err);
-
-fun holLightAbs arg =
-    let
-      val (otm,oth) = destOpair arg
-      val v = destVar (destOterm otm)
-      val th = destOthm oth
-    in
-      Othm (abs v th)
-    end;
-
-fun holLightAssume arg = Othm (assume (destOterm arg));
-
-fun holLightBeta arg = Othm (betaConv (destOterm arg));
-
-fun holLightDeductAntisymRule arg =
-    let
-      val (oth1,oth2) = destOpair arg
-      val th1 = destOthm oth1
-      val th2 = destOthm oth2
-    in
-      Othm (deductAntisym th1 th2)
-    end;
-
-fun holLightEqMp arg =
-    let
-      val (oth1,oth2) = destOpair arg
-      val th1 = destOthm oth1
-      val th2 = destOthm oth2
-    in
-      Othm (eqMp th1 th2)
-    end;
-
-fun holLightInst arg =
-    let
-      val (oins,oth) = destOpair arg
-      val ins = holLightSubstToSubst oins
-      val th = destOthm oth
-    in
-      Othm (subst ins th)
-    end;
-
-fun holLightInstType arg =
-    let
-      val (oins,oth) = destOpair arg
-      val ins = holLightTypeSubstToSubst oins
-      val th = destOthm oth
-    in
-      Othm (subst ins th)
-    end;
-
-fun holLightMkComb arg =
-    let
-      val (oth1,oth2) = destOpair arg
-      val th1 = destOthm oth1
-      val th2 = destOthm oth2
-    in
-      Othm (comb th1 th2)
-    end;
-
-fun holLightRefl arg = Othm (refl (destOterm arg));
-
-fun holLightTrans arg =
-    let
-      val (oth1,oth2) = destOpair arg
-      val th1 = destOthm oth1
-      val th2 = destOthm oth2
-    in
-      Othm (trans th1 th2)
-    end;
-
-val holLight =
-    addRuleList holLight
-      [("newBasicDefinition", holLightNewBasicDefinition),
-       ("newBasicTypeDefinition", holLightNewBasicTypeDefinition),
-       ("ABS", holLightAbs),
-       ("ASSUME", holLightAssume),
-       ("BETA", holLightBeta),
-       ("DEDUCT_ANTISYM_RULE", holLightDeductAntisymRule),
-       ("EQ_MP", holLightEqMp),
-       ("INST", holLightInst),
-       ("INST_TYPE", holLightInstType),
-       ("MK_COMB", holLightMkComb),
-       ("REFL", holLightRefl),
-       ("TRANS", holLightTrans)];
-*)
 
 (***
 (* ------------------------------------------------------------------------- *)
@@ -666,8 +1126,8 @@ datatype particle =
 
 datatype extra =
          Extra of {particles : particle * particle list,
-                   newTypes : NS.set,
-                   newConsts : NS.set,
+                   newTypes : NameSet.set,
+                   newConsts : NameSet.set,
                    newAxioms : thm list,
                    savedThms : thmSet,
                    thmDeps : thmDeps};
@@ -834,7 +1294,7 @@ fun extraThmsAddList thl extra =
 fun extraAddNewType n extra =
     let
       val newTypes = extraNewTypes extra
-      val newTypes = NS.add newTypes n
+      val newTypes = NameSet.add newTypes n
     in
       extraUpdateNewTypes newTypes extra
     end;
@@ -842,7 +1302,7 @@ fun extraAddNewType n extra =
 fun extraAddNewConst n extra =
     let
       val newConsts = extraNewConsts extra
-      val newConsts = NS.add newConsts n
+      val newConsts = NameSet.add newConsts n
     in
       extraUpdateNewConsts newConsts extra
     end;
@@ -884,8 +1344,8 @@ val ppExtra = Parser.ppMap (fn _ : extra => "<extra>") Parser.ppString;
 val extraInit =
     Extra
       {particles = (mkParticle "<main>" (mkOunit ()) thmSetEmpty, []),
-       newTypes = NS.empty,
-       newConsts = NS.empty,
+       newTypes = NameSet.empty,
+       newConsts = NameSet.empty,
        newAxioms = [],
        savedThms = thmSetEmpty,
        thmDeps = thmDepsEmpty};
@@ -947,12 +1407,12 @@ in
 end;
 
 local
-  val constExists = can T.constType;
+  val constExists = can Term.constType;
 
   fun extraNewConst n extra =
       let
         val () = warn ("making new constant " ^ n)
-        val () = T.declareConst n alpha
+        val () = Term.declareConst n alpha
       in
         extraAddNewConst n extra
       end;
@@ -1053,7 +1513,7 @@ fun extraFinal saved extra =
 (* I/O                                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-(*
+(***
 local
   infixr 9 >>++
   infixr 8 ++
@@ -1166,7 +1626,7 @@ local
          let
            val stack = pushStack (Oerror,Pnull) stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* Numbers *)
@@ -1175,7 +1635,7 @@ local
          let
            val stack = pushStack (Onum i, Pnull) stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* Names *)
@@ -1184,7 +1644,7 @@ local
          let
            val stack = pushStack (Oname n, Pnull) stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* Lists *)
@@ -1193,7 +1653,7 @@ local
          let
            val stack = pushStack (Olist [], Pnull) stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        | Tcommand "cons" =>
@@ -1212,7 +1672,7 @@ local
                   | _ => Pcons (objH,objT)
               val stack = pushStack (Olist (h :: t), provenance) stack
             in
-              {globals = globals, stack = stack, dict = dict, saved = saved}
+              State {stack = stack, dict = dict, saved = saved}
             end
           | _ => raise Error "bad arguments")
 
@@ -1225,7 +1685,7 @@ local
             let
               val stack = pushStack (Otype (mkTypeVar n), Pnull) stack
             in
-              {globals = globals, stack = stack, dict = dict, saved = saved}
+              State {stack = stack, dict = dict, saved = saved}
             end
           | _ => raise Error "bad arguments")
 
@@ -1242,7 +1702,7 @@ local
                   else Type.declareType n (length l)
               val stack = pushStack (Otype (mkTypeOp (n,l)), Pnull) stack
             in
-              {globals = globals, stack = stack, dict = dict, saved = saved}
+              State {stack = stack, dict = dict, saved = saved}
             end
           | _ => raise Error "bad arguments")
 
@@ -1252,7 +1712,7 @@ local
          let
            val stack = Oterm (mkVar (n,ty)) :: stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        | (Tcommand "const", Otype ty :: Oname n :: stack) =>
@@ -1261,21 +1721,21 @@ local
            val (tm,extra) = extraConst translation (n,ty) extra
            val stack = Oterm tm :: stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        | (Tcommand "comb", Oterm b :: Oterm a :: stack) =>
          let
            val stack = Oterm (mkComb (a,b)) :: stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        | (Tcommand "abs", Oterm b :: Oterm v :: stack) =>
          let
            val stack = Oterm (mkAbs (destVar v, b)) :: stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* Theorems *)
@@ -1286,7 +1746,7 @@ local
            val (th,extra) = extraThm translation (h,c) extra
            val stack = Othm th :: stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* Function calls *)
@@ -1294,11 +1754,11 @@ local
        | (Tcommand "call", Oname n :: i :: stack) =>
          let
            val n = exportRule translation n
-(*TRACE1
+(*OpenTheoryTrace1
            val () = if not (null (callStack stack)) then ()
                     else trace (n ^ "\n")
 *)
-(*TRACE2
+(*OpenTheoryTrace2
            val () = trace ("  stack = ["^Int.toString (length stack) ^
                            "], call stack = [" ^
                            Int.toString (length (callStack stack))^"]\n")
@@ -1307,7 +1767,7 @@ local
            val stack = i :: Ocall n :: stack
            val extra = extraCall n i extra
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        | (Tcommand "return", Oname n :: r :: stack) =>
@@ -1320,11 +1780,11 @@ local
                  if n = n' then stack
                  else raise Error ("call "^n^" matched by return "^n')
            val stack = r :: stack
-(*TRACE1
+(*OpenTheoryTrace1
            val () = if not (null (callStack stack)) then ()
                     else trace (n ^ " return\n")
 *)
-(*TRACE2
+(*OpenTheoryTrace2
            val () = trace ("  stack = ["^Int.toString (length stack) ^
                            "], call stack = [" ^
                            Int.toString (length (callStack stack)) ^ "]\n")
@@ -1332,7 +1792,7 @@ local
 *)
            val extra = extraReturn n r extra
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* Dictionary *)
@@ -1341,7 +1801,7 @@ local
          let
            val dict = defDict (n,d) dict
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        | (Tcommand "ref", Onum n :: stack) =>
@@ -1349,20 +1809,20 @@ local
            val obj = refDict dict n
            val stack = obj :: stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* General *)
 
        | (Tcommand "pop", _ :: stack) =>
-         {globals = globals, stack = stack, dict = dict, saved = saved}
+         State {stack = stack, dict = dict, saved = saved}
 
        | (Tcommand "dup", Onum n :: stack) =>
          let
            val _ = length stack > n orelse raise Error "bad dup"
            val stack = List.nth (stack,n) :: stack
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        | (Tcommand "save", Othm th :: stack) =>
@@ -1370,7 +1830,7 @@ local
            val saved = addSaved th saved
            val extra = extraSave th extra
          in
-           {globals = globals, stack = stack, dict = dict, saved = saved}
+           State {stack = stack, dict = dict, saved = saved}
          end
 
        (* Any other command is an error *)
@@ -1393,7 +1853,7 @@ local
 
   fun addTextFile (saved,extra) {filename,translation} =
       let
-(*TRACE1
+(*OpenTheoryTrace1
         val _ = trace ("filename = " ^ filename ^ "\n")
 *)
         val lines = readLines {filename = filename}
@@ -1426,7 +1886,52 @@ in
       fromTextFileList xs
       handle Error err => raise Error ("Article.fromTextFiles: " ^ err);
 end;
-*)
+***)
+
+fun fromTextFile {filename,interpretation} =
+    let
+      (* Comment lines *)
+
+      fun isComment l =
+          case List.find (not o Char.isSpace) l of
+            NONE => true
+          | SOME #"#" => true
+          | _ => false
+
+      (* Estimating parse error line numbers *)
+
+      val lines = Stream.fromTextFile {filename = filename}
+
+      (* The character stream *)
+
+      val {chars,parseErrorLocation} = Parser.initialize {lines = lines}
+
+      val chars = Stream.filter (not o isComment) chars
+
+      val chars = Parser.everything Parser.any chars
+
+      (* The command stream *)
+
+      val commands =
+          Parser.everything spacedCommandParser chars
+          handle Parser.NoParse =>
+            raise Error ("parse error in file \"" ^ filename ^ "\" " ^
+                         parseErrorLocation ())
+
+      (* Executing the commands *)
+
+      fun process (command,state) =
+          execute interpretation command state
+          handle Error err =>
+            raise Error ("error in file \"" ^ filename ^ "\" " ^
+                         parseErrorLocation () ^ "\n" ^ err)
+
+      val state = initialState
+
+      val state = Stream.foldl process state commands
+    in
+      Article {saved = savedState state}
+    end;
 
 (***
 local

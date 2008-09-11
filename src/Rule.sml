@@ -134,7 +134,7 @@ fun alpha (h,c) th =
               norm th
             end
 
-(*TRACE5
+(*OpenTheoryTrace5
       val _ =
           Parser.ppTrace
             (Parser.ppBinop " |-" (Parser.ppList ppTerm) ppTerm) "h |- c" (h,c)

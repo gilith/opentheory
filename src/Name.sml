@@ -87,8 +87,6 @@ end
 structure NameOrdered =
 struct type t = Name.name val compare = Name.compare end
 
-structure NameSet =
-ElementSet (NameOrdered)
+structure NameSet = ElementSet (NameOrdered)
 
-structure NameMap =
-KeyMap (NameOrdered)
+structure NameMap = KeyMap (NameOrdered)
