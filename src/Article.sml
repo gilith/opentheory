@@ -239,14 +239,10 @@ val newObjectId : unit -> objectId =
 (* 2. Objects do not contain theorems iff they have provenance Pnull.        *)
 (*    [Objects that do not contain theorems can be easily constructed.]      *)
 (*                                                                           *)
-(* 3. The provenance of a call argument is the object that became the call   *)
-(*    argument.                                                              *)
-(*    [Technically redundant, but necessary because of Invariant 2.]         *)
-(*                                                                           *)
-(* 4. The provenance of a return value is the object that became the return  *)
+(* 3. The provenance of a return value is the object that became the return  *)
 (*    value.                                                                 *)
 (*                                                                           *)
-(* 5. If a theorem can be inferred from theorem-containing objects, then the *)
+(* 4. If a theorem can be inferred from theorem-containing objects, then the *)
 (*    provenance of the theorem is these objects.                            *)
 (*    [This will happen most often when simulating an inference rule and     *)
 (*    making use of the call argument - resulting in a singleton list.]      *)
@@ -305,7 +301,8 @@ fun mkObject (object,provenance,call) =
 
 fun containsThmsObject obj =
     case obj of
-      Object {object = Object.Ocall _, ...} => false
+      Object {object = Object.Ocall _, ...} =>
+      raise Bug "Article.containsThmsObject: Ocall"
     | Object {provenance = Pnull, ...} => false
     | _ => true;
 
@@ -387,53 +384,67 @@ datatype stack =
     Stack of
       {size : int,
        objects : object list,
-       theorems : theorems list};
+       theorems : theorems list,
+       call : (object * stack) option};
 
-val emptyStack = Stack {size = 0, objects = [], theorems = []};
+val emptyStack =
+    Stack
+      {size = 0,
+       objects = [],
+       theorems = [],
+       call = NONE};
 
 fun sizeStack (Stack {size = x, ...}) = x;
 
+fun frameSizeStack (Stack {size,call,...}) =
+    size - (case call of NONE => 0 | SOME (_,stack) => sizeStack stack + 1);
+
 fun objectStack (Stack {objects = x, ...}) = x;
 
-fun countThmsStack (Stack {theorems,...}) =
+fun theoremsStack (Stack {theorems,...}) =
     case theorems of
-      [] => 0
-    | ths :: _ => sizeTheorems ths;
+      [] => noTheorems
+    | ths :: _ => ths;
 
 fun pushStack stack obj =
     let
-      val Stack {size,objects,theorems} = stack
+      val Stack {size,objects,theorems,call} = stack
 
       val size = size + 1
 
       val objects = obj :: objects
 
-      val thms =
-          case theorems of
-            [] => noTheorems
-          | thms :: _ => thms
-
-      val thms = addObjectTheorems thms obj
+      val thms = addObjectTheorems (theoremsStack stack) obj
 
       val theorems = thms :: theorems
+
+      val call = if Object.isOcall (object obj) then SOME (obj,stack) else call
     in
       Stack
         {size = size,
          objects = objects,
-         theorems = theorems}
+         theorems = theorems,
+         call = call}
     end;
 
 fun popStack stack n =
-    let
-      val Stack {size,objects,theorems} = stack
-    in
-      if n > size then raise Error "Article.popStack: empty"
-      else
+    if n > frameSizeStack stack then raise Error "Article.popStack: empty frame"
+    else
+      let
+        val Stack {size,objects,theorems,call} = stack
+
+        val size = size - n
+
+        val objects = List.drop (objects,n)
+
+        val theorems = List.drop (theorems,n)
+      in
         Stack
-          {size = size - n,
-           objects = List.drop (objects,n),
-           theorems = List.drop (theorems,n)}
-    end;
+          {size = size,
+           objects = objects,
+           theorems = theorems,
+           call = call}
+      end;
 
 fun peekStack stack n =
     let
@@ -452,30 +463,15 @@ fun pop2Stack stack =
      peekStack stack 1,
      peekStack stack 0);
 
-local
-  fun topCall _ [] = NONE
-    | topCall n (Object {object = ob, ...} :: objs) =
-      case ob of
-        Object.Ocall s => SOME (n,s)
-      | _ => topCall (n + 1) objs;
-in
-  fun popCallStack stack =
-      case topCall 1 (objectStack stack) of
-        NONE => raise Error "Article.popCallStack: top level"
-      | SOME (n,s) => (s, popStack stack n);
-end;
+fun popCallStack (Stack {call,...}) =
+    case call of
+      NONE => raise Error "Article.popCallStack: top level"
+    | SOME (Object {object = ob, ...}, stack) => (Object.destOcall ob, stack);
 
-fun topStack (Stack {objects,...}) =
-    case objects of
-      [] => NONE
-    | obj :: _ => SOME obj;
-
-fun topCallStack stack =
-    case topStack stack of
+fun topCallStack (Stack {call,...}) =
+    case call of
       NONE => NONE
-    | SOME obj =>
-      if Object.isOcall (object obj) then SOME obj
-      else callObject obj;
+    | SOME (obj,_) => SOME obj;
 
 fun topCallToStringStack stack =
     case topCallStack stack of
@@ -976,11 +972,7 @@ fun execute interpretation cmd state =
           and call = topCallStack stack
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
-          val ob = obA
-          and prov = if containsThmsObject objA then Pcall objA else Pnull
-          and call = SOME obj
-          val obj = mkObject (ob,prov,call)
-          val stack = pushStack stack obj
+          val stack = pushStack stack objA
         in
           State {stack = stack, dict = dict, saved = saved}
         end
@@ -1652,7 +1644,7 @@ fun fromTextFile {filename,interpretation} =
       val () =
           let
             val stack = stackState state
-            val n = countThmsStack stack
+            val n = sizeTheorems (theoremsStack stack)
           in
             if n = 0 then ()
             else
