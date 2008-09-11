@@ -60,9 +60,11 @@ fun replace (x,y) n : name = if equal n x then y else n;
 fun toString (Name (ns,n)) =
     if Namespace.isGlobal ns then n else Namespace.toString ns ^ "." ^ n;
 
+fun quotedToString n = "\"" ^ toString n ^ "\"";
+
 val pp = Parser.ppMap toString Parser.ppString;
 
-val ppQuoted = Parser.ppBracket "\"" "\"" pp;
+val ppQuoted = Parser.ppMap quotedToString Parser.ppString;
 
 local
   infixr 9 >>++

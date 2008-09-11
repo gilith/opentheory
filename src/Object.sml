@@ -242,3 +242,10 @@ fun pp p ob =
     | Ocall f => Parser.ppBracket "<" ">" Name.pp p f;
 
 end
+
+structure ObjectOrdered =
+struct type t = Object.object val compare = Object.compare end
+
+structure ObjectSet = ElementSet (ObjectOrdered)
+
+structure ObjectMap = KeyMap (ObjectOrdered)

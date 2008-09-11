@@ -21,6 +21,195 @@ fun natFromString err s =
     | NONE => raise Error err;
 
 (* ------------------------------------------------------------------------- *)
+(* Generating simple objects.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun generateObject ob =
+    case ob of
+      Object.Oerror => ("error",[])
+    | Object.Onum i => (Int.toString i, [])
+    | Object.Oname n => (Name.quotedToString n, [])
+    | Object.Olist l =>
+      (case l of
+         [] => ("nil",[])
+       | h :: t => ("cons", [h, Object.Olist t]))
+    | Object.Otype ty =>
+      (case Type.dest ty of
+         Type.TypeVar n => ("type_var", [Object.Oname n])
+       | Type.TypeOp (n,tys) =>
+         ("type_op", [Object.Oname n, Object.mkOtypes tys]))
+    | Object.Oterm tm =>
+      (case Term.dest tm of
+         Term.Const (n,ty) =>
+         ("const", [Object.Oname n, Object.Otype ty])
+       | Term.Var (n,ty) =>
+         ("var", [Object.Oname n, Object.Otype ty])
+       | Term.App (f,a) =>
+         ("comb", [Object.Oterm f, Object.Oterm a])
+       | Term.Lam (v,b) =>
+         ("abs", [Object.Oterm (Term.mkVar v), Object.Oterm b]))
+    | Object.Othm th =>
+      let
+        val {hyp,concl} = sequent th
+        val hyp = TermAlphaSet.toList hyp
+      in
+        ("th", [Object.mkOterms hyp, Object.Oterm concl])
+      end
+    | Object.Ocall _ => raise Bug "Article.generateObject: Ocall";
+
+(* ------------------------------------------------------------------------- *)
+(* Minimal dictionaries of simple objects.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+datatype minDict =
+    MinDict of
+      {nextKey : int,
+       refs : int ObjectMap.map,
+       keys : int ObjectMap.map};
+
+val emptyMinDict =
+    MinDict
+      {nextKey = 0,
+       refs = ObjectMap.new (),
+       keys = ObjectMap.new ()};
+
+fun isCleanMinDict (MinDict {nextKey,...}) = nextKey = 0;
+
+local
+  fun storable ob =
+      case ob of
+        Object.Oerror => false
+      | Object.Onum _ => false
+      | Object.Oname _ => false
+      | Object.Olist l => not (null l)
+      | Object.Otype _ => true
+      | Object.Oterm _ => true
+      | Object.Othm _ => false
+      | Object.Ocall _ => raise Error "unexpected Ocall";
+
+  fun register refs [] = refs
+    | register refs (ob :: obs) =
+      if not (storable ob) then register refs obs
+      else
+        case ObjectMap.peek refs ob of
+          SOME k =>
+          let
+            val refs = ObjectMap.insert refs (ob, k + 1)
+          in
+            register refs obs
+          end
+        | NONE =>
+          let
+            val refs = ObjectMap.insert refs (ob,1)
+            val (_,pars) = generateObject ob
+          in
+            register refs (pars @ obs)
+          end;
+in
+  fun registerMinDict dict ob =
+      let
+        val _ = isCleanMinDict dict orelse raise Error "unclean"
+
+        val MinDict {nextKey,refs,keys} = dict
+
+        val refs = register refs [ob]
+      in
+        MinDict
+          {nextKey = nextKey,
+           refs = refs,
+           keys = keys}
+      end
+      handle Error err =>
+        raise Bug ("Article.registerMinDict: " ^ err);
+end;
+
+fun finalizeMinDict dict =
+    let
+      val _ = isCleanMinDict dict orelse raise Error "unclean"
+
+      val MinDict {nextKey = _, refs, keys} = dict
+
+      val nextKey = 1
+      and refs = ObjectMap.filter (fn (_,n) => n >= 2) refs
+    in
+      MinDict
+        {nextKey = nextKey,
+         refs = refs,
+         keys = keys}
+    end
+    handle Error err =>
+      raise Bug ("Article.finalizeMinDict: " ^ err);
+
+local
+  fun generate (ob,(dict,cmds)) =
+      let
+        val MinDict {nextKey,refs,keys} = dict
+      in
+        case ObjectMap.peek keys ob of
+          SOME key =>
+          let
+            val cmds = Int.toString key :: cmds
+          in
+            case ObjectMap.peek refs ob of
+              NONE => raise Bug "generate"
+            | SOME n =>
+              if n = 1 then
+                let
+                  val refs = ObjectMap.delete refs ob
+                  val keys = ObjectMap.delete keys ob
+                  val dict =
+                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
+                  val cmds = "remove" :: cmds
+                in
+                  (dict,cmds)
+                end
+              else
+                let
+                  val refs = ObjectMap.insert refs (ob, n - 1)
+                  val dict =
+                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
+                  val cmds = "ref" :: cmds
+                in
+                  (dict,cmds)
+                end
+          end
+        | NONE =>
+          let
+            val (cmd,pars) = generateObject ob
+            val (dict,cmds) = foldl generate (dict,cmds) pars
+            val cmds = cmd :: cmds
+          in
+            case ObjectMap.peek refs ob of
+              NONE => (dict,cmds)
+            | SOME n =>
+              let
+                val MinDict {nextKey,refs,keys} = dict
+                val key = nextKey
+                val nextKey = nextKey + 1
+                val keys = ObjectMap.insert keys (ob,key)
+                val refs = ObjectMap.insert refs (ob, n - 1)
+                val dict =
+                    MinDict {nextKey = nextKey, refs = refs, keys = keys}
+                val cmds = ["def", Int.toString key, "dup", "0"] @ cmds
+              in
+                (dict,cmds)
+              end
+          end
+    end
+    handle Error err =>
+      raise Bug ("Article.generateMinDict: " ^ err);
+in
+  fun generateMinDict dict ob =
+      let
+        val _ = not (isCleanMinDict dict) orelse raise Error "unfinalized"
+      in
+        generate (ob,(dict,[]))
+      end
+      handle Error err =>
+        raise Bug ("Article.generateMinDict: " ^ err);
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Object IDs.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -65,7 +254,7 @@ val newObjectId : unit -> objectId =
 
 datatype object =
     Object of
-      {objectId : objectId,
+      {id : objectId,
        object : Object.object,
        provenance : provenance,
        call : object option}
@@ -79,9 +268,24 @@ and provenance =
   | Pref of object
   | Pthm of object list;
 
+fun compareObject (Object {id = i1, ...}, Object {id = i2, ...}) =
+    Int.compare (i1,i2);
+
 fun object (Object {object = x, ...}) = x;
 
 fun callObject (Object {call = x, ...}) = x;
+
+fun objectsProvenance prov =
+    case prov of
+      Pnull => []
+    | Pcall obj => [obj]
+    | Preturn obj => [obj]
+    | Pcons (obj1,obj2) => [obj1,obj2]
+    | Pdup obj => [obj]
+    | Pref obj => [obj]
+    | Pthm objs => objs;
+
+fun parentsObject (Object {provenance = p, ...}) = objectsProvenance p;
 
 fun callStackObject obj =
     case callObject obj of
@@ -90,10 +294,10 @@ fun callStackObject obj =
 
 fun mkObject (object,provenance,call) =
     let
-      val objectId = newObjectId ()
+      val id = newObjectId ()
     in
       Object
-        {objectId = objectId,
+        {id = id,
          object = object,
          provenance = provenance,
          call = call}
@@ -104,6 +308,25 @@ fun containsThmsObject obj =
       Object {object = Object.Ocall _, ...} => false
     | Object {provenance = Pnull, ...} => false
     | _ => true;
+
+(* ------------------------------------------------------------------------- *)
+(* Object dependencies.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+type objectSet = object Set.set;
+
+val emptyObjectSet = Set.empty compareObject;
+
+fun addListObjectSet set [] = set
+  | addListObjectSet set (obj :: objs) =
+    if Set.member obj set then addListObjectSet set objs
+    else addListObjectSet (Set.add set obj) (parentsObject obj @ objs);
+
+fun addObjectSet set obj = addListObjectSet set [obj];
+
+fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
+
+fun foldlObjectSet f b set = Set.foldl f b set;
 
 (* ------------------------------------------------------------------------- *)
 (* Theorems in scope.                                                        *)
@@ -135,6 +358,26 @@ fun searchTheorems (Theorems thmMap) seq =
     case SequentMap.peek thmMap seq of
       NONE => NONE
     | SOME (th,deps) => SOME (alpha seq th, deps);
+
+(* ------------------------------------------------------------------------- *)
+(* Dictionaries.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype dict = Dict of object IntMap.map;
+
+val emptyDict = Dict (IntMap.new ());
+
+fun defDict (Dict dict) (key,obj) = Dict (IntMap.insert dict (key,obj));
+
+fun refDict (Dict dict) key =
+    case IntMap.peek dict key of
+      SOME obj => obj
+    | NONE => raise Error ("refDict: no entry for key " ^ Int.toString key);
+
+fun removeDict (Dict dict) key =
+    case IntMap.peek dict key of
+      SOME obj => (Dict (IntMap.delete dict key), obj)
+    | NONE => raise Error ("removeDict: no entry for key " ^ Int.toString key);
 
 (* ------------------------------------------------------------------------- *)
 (* Stacks.                                                                   *)
@@ -253,21 +496,6 @@ fun searchStack (Stack {theorems,...}) seq =
     | thms :: _ => searchTheorems thms seq;
 
 (* ------------------------------------------------------------------------- *)
-(* Dictionaries.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-datatype dict = Dict of object IntMap.map;
-
-val emptyDict = Dict (IntMap.new ());
-
-fun defDict (Dict dict) (n,obj) = Dict (IntMap.insert dict (n,obj));
-
-fun refDict (Dict dict) n =
-    case IntMap.peek dict n of
-      SOME obj => obj
-    | NONE => raise Error ("refDict: no entry for key " ^ Int.toString n);
-
-(* ------------------------------------------------------------------------- *)
 (* Saved theorems.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -285,71 +513,6 @@ fun searchSaved (Saved stack) seq =
     | NONE => NONE;
 
 fun listSaved (Saved stack) = rev (objectStack stack);
-
-(***
-(* ------------------------------------------------------------------------- *)
-(* Sets of theorems.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-datatype thmSet = ThmSet of (term list, thm) Map.map;
-
-local
-  fun mkKey (h,c) = c :: TAS.toList h;
-
-  fun thmToKey th = mkKey (hyp th, concl th);
-
-  fun sequentToKey (h,c) = mkKey (TAS.fromList h, c);
-in
-  val thmSetEmpty = ThmSet (Map.new (lexCompare T.alphaCompare));
-
-  fun thmSetPeek (ThmSet m) h_c = Map.peek m (sequentToKey h_c);
-
-  fun thmSetAdd th (ThmSet m) = ThmSet (Map.insert m (thmToKey th, th));
-end;
-
-fun thmSetAddList ths set = foldl (fn (t,s) => thmSetAdd t s) set ths;
-
-(* ------------------------------------------------------------------------- *)
-(* The theorem dependency graph.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-datatype thmDeps = ThmDeps of int list IntMap.map;
-
-val thmDepsEmpty = ThmDeps (IntMap.new ());
-
-fun thmDepsAdd (th,thl) thmDeps =
-    let
-      val ThmDeps m = thmDeps
-      val i = thmId th
-      and il = map thmId thl
-      val _ = List.all (fn k => k <= i) il orelse
-              raise Bug ("thmDepsAdd: bad deps for\n"^thmToString th)
-    in
-      if mem i il then thmDeps
-      else
-        let
-          val _ = not (Option.isSome (IntMap.peek m i)) orelse
-                  raise Bug ("thmDepsAdd: new deps for\n"^thmToString th)
-        in
-          ThmDeps (IntMap.insert m (i,il))
-        end
-    end;
-
-fun thmDepsAddList xs deps = foldl (fn (x,d) => thmDepsAdd x d) deps xs;
-
-fun thmDepsUseful (ThmDeps m) =
-    let
-      fun f [] set = set
-        | f (i :: rest) set =
-          if IntSet.member i set then f rest set
-          else
-            case IntMap.peek m i of
-              SOME il => f (il @ rest) (IntSet.add set i)
-            | NONE => raise Bug ("thmDepsUseful: no dep for "^Int.toString i)
-    in
-      fn ths => f (map thmId ths) IntSet.empty
-    end;
-**)
 
 (* ------------------------------------------------------------------------- *)
 (* hol-light                                                                 *)
@@ -884,6 +1047,21 @@ fun execute interpretation cmd state =
           State {stack = stack, dict = dict, saved = saved}
         end
 
+      | Cop "remove" =>
+        let
+          val (stack,
+               Object {object = obI, ...}) = pop1Stack stack
+          val i = Object.destOnum obI
+          val (dict, objD as Object {object = obD, ...}) = removeDict dict i
+          val ob = obD
+          and prov = if containsThmsObject objD then Pref objD else Pnull
+          and call = topCallStack stack
+          val obj = mkObject (ob,prov,call)
+          val stack = pushStack stack obj
+        in
+          State {stack = stack, dict = dict, saved = saved}
+        end
+
       (* General *)
 
       | Cop "pop" =>
@@ -924,6 +1102,10 @@ fun execute interpretation cmd state =
       | Cop _ => raise Error "unknown command"
     end
     handle Error err => raise Error (commandToString cmd ^ ": " ^ err);
+
+(* ------------------------------------------------------------------------- *)
+(* Generating commands.                                                      *)
+(* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
 (* Articles                                                                  *)
@@ -1425,381 +1607,6 @@ fun extraFinal saved extra =
 (* I/O                                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-(***
-local
-  infixr 9 >>++
-  infixr 8 ++
-  infixr 7 >>
-  infixr 6 ||
-
-  open Parser
-
-  (* For dealing with locations *)
-
-  fun isAlphaNum #"_" = true
-    | isAlphaNum c = Char.isAlphaNum c;
-
-  fun locnToString (line,char) =
-      "line " ^ Int.toString line ^ ", char " ^ Int.toString char;
-
-  fun some2 p = some (p o snd);
-
-  fun exact2 c = some2 (equal c);
-
-  fun map2 f (l,x) = (l, f x);
-
-  fun k2 x (l,_) = (l,x);
-
-  fun implode2 [] = raise Bug "implode2: empty"
-    | implode2 ((l,c) :: rest) = (l, implode (c :: map snd rest));
-
-  (* Adding line numbers *)
-
-  fun readLines filename =
-      Stream.zip (Stream.count 1) (Stream.fromTextFile filename);
-
-  (* Adding char numbers *)
-
-  val charParser =
-      let
-        fun f (n:int) (i,c) = ((n,i),c)
-      in
-        any >> (fn (n,s) => map (f n) (enumerate (explode s)))
-      end;
-
-  (* Lexing *)
-
-  fun lexError l err =
-      raise Error ("lexing error at " ^ locnToString l ^ ": " ^ err);
-
-  datatype token = Tnum of int | Tname of string | Tcommand of string;
-
-  fun tokenToString token =
-      case token of
-        Tnum i => Int.toString i
-      | Tname s => "\"" ^ s ^ "\""
-      | Tcommand s => s;
-
-  val backslashParser =
-      exact2 #"\""
-      || exact2 #"\\"
-      || (exact2 #"n" >> k2 #"\n")
-      || (exact2 #"t" >> k2 #"\t")
-      || (any >> (fn (l,c) => lexError l ("bad char in quote: \\" ^ str c)));
-
-  val quoteParser =
-      (exact2 #"\n" >> (fn (l,_) => lexError l ("newline in quote")))
-      || ((exact2 #"\\" ++ backslashParser) >> snd)
-      || some2 (fn c => c <> #"\"" andalso c <> #"\\");
-
-  local
-    fun inComment c = c <> #"\n";
-
-    val space = many (some2 Char.isSpace) >> K ();
-
-    val tnumToken =
-        atLeastOne (some2 Char.isDigit) >>
-        (singleton o (map2 (Tnum o natFromString "bad number")) o implode2);
-
-    val tnameToken =
-        (exact2 #"\"" ++ many quoteParser ++ exact2 #"\"") >>
-        (fn ((l,_),(s,_)) => [(l, Tname (implode (map snd s)))]);
-
-    val tcommandToken =
-        (some2 Char.isAlpha ++ many (some2 isAlphaNum)) >>
-        (singleton o map2 Tcommand o implode2 o op::);
-
-    val commentLine =
-        (exact2 #"#" ++ many (some2 inComment) ++ exact2 #"\n") >> K [];
-
-    val errorChar =
-        any >> (fn (l,c) => lexError l ("bad char: \"" ^ str c ^ "\""));
-
-    val tokParser =
-        tnumToken || tnameToken || tcommandToken || commentLine || errorChar;
-  in
-    val tokenParser = (space ++ tokParser ++ space) >> (fn ((),(t,())) => t);
-  end;
-
-  (* Interpreting commands *)
-
-  type state =
-       {globals : theorems,
-        stack : stack,
-        dict : dict,
-        saved : saved};
-
-  fun execute translation cmd {globals,stack,dict,saved} =
-      (case cmd of
-
-       (* Errors *)
-
-         Tcommand "error" =>
-         let
-           val stack = pushStack (Oerror,Pnull) stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* Numbers *)
-
-       | Tnum i =>
-         let
-           val stack = pushStack (Onum i, Pnull) stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* Names *)
-
-       | Tname n =>
-         let
-           val stack = pushStack (Oname n, Pnull) stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* Lists *)
-
-       | Tcommand "nil" =>
-         let
-           val stack = pushStack (Olist [], Pnull) stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       | Tcommand "cons" =>
-         (case stack of
-            (objT as Op {object = Olist t, provenance = provT, ...}, _) ::
-            (objH as Op {object = h, provenance = provH, ...}, _) ::
-            stack =>
-            let
-              val () =
-                  case h of
-                    Ocall _ => raise Error "cannot cons Ocall objects"
-                  | _ => ()
-              val provenance =
-                  case (provH,provT) of
-                    (Pnull,Pnull) => Pnull
-                  | _ => Pcons (objH,objT)
-              val stack = pushStack (Olist (h :: t), provenance) stack
-            in
-              State {stack = stack, dict = dict, saved = saved}
-            end
-          | _ => raise Error "bad arguments")
-
-       (* Types *)
-
-       | Tcommand "type_var" =>
-         (case stack of
-            (Op {object = Oname n, ...}, _) ::
-            stack =>
-            let
-              val stack = pushStack (Otype (mkTypeVar n), Pnull) stack
-            in
-              State {stack = stack, dict = dict, saved = saved}
-            end
-          | _ => raise Error "bad arguments")
-
-       | Tcommand "type_op" =>
-         (case stack of
-            (Op {object = Olist l, ...}, _) ::
-            (Op {object = Oname n, ...}, _) ::
-            stack =>
-            let
-              val n = exportType translation n
-              and l = map destOtype l
-              val () =
-                  if can Type.typeArity n then ()
-                  else Type.declareType n (length l)
-              val stack = pushStack (Otype (mkTypeOp (n,l)), Pnull) stack
-            in
-              State {stack = stack, dict = dict, saved = saved}
-            end
-          | _ => raise Error "bad arguments")
-
-       (* Terms *)
-
-       | Tcommand "var", Otype ty :: Oname n :: stack) =>
-         let
-           val stack = Oterm (mkVar (n,ty)) :: stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       | (Tcommand "const", Otype ty :: Oname n :: stack) =>
-         let
-           val n = exportConst translation n
-           val (tm,extra) = extraConst translation (n,ty) extra
-           val stack = Oterm tm :: stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       | (Tcommand "comb", Oterm b :: Oterm a :: stack) =>
-         let
-           val stack = Oterm (mkComb (a,b)) :: stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       | (Tcommand "abs", Oterm b :: Oterm v :: stack) =>
-         let
-           val stack = Oterm (mkAbs (destVar v, b)) :: stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* Theorems *)
-
-       | (Tcommand "thm", Oterm c :: Olist h :: stack) =>
-         let
-           val h = map destOterm h
-           val (th,extra) = extraThm translation (h,c) extra
-           val stack = Othm th :: stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* Function calls *)
-
-       | (Tcommand "call", Oname n :: i :: stack) =>
-         let
-           val n = exportRule translation n
-(*OpenTheoryTrace1
-           val () = if not (null (callStack stack)) then ()
-                    else trace (n ^ "\n")
-*)
-(*OpenTheoryTrace2
-           val () = trace ("  stack = ["^Int.toString (length stack) ^
-                           "], call stack = [" ^
-                           Int.toString (length (callStack stack))^"]\n")
-           val () = Parser.ppTrace "  input" ppObject i
-*)
-           val stack = i :: Ocall n :: stack
-           val extra = extraCall n i extra
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       | (Tcommand "return", Oname n :: r :: stack) =>
-         let
-           val n = exportRule translation n
-           val stack =
-               case topCall stack of
-                 NONE => raise Error ("unmatched return "^n)
-               | SOME (n',stack) =>
-                 if n = n' then stack
-                 else raise Error ("call "^n^" matched by return "^n')
-           val stack = r :: stack
-(*OpenTheoryTrace1
-           val () = if not (null (callStack stack)) then ()
-                    else trace (n ^ " return\n")
-*)
-(*OpenTheoryTrace2
-           val () = trace ("  stack = ["^Int.toString (length stack) ^
-                           "], call stack = [" ^
-                           Int.toString (length (callStack stack)) ^ "]\n")
-           val () = Parser.ppTrace "return" ppObject r
-*)
-           val extra = extraReturn n r extra
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* Dictionary *)
-
-       | (Tcommand "def", Onum n :: d :: stack) =>
-         let
-           val dict = defDict (n,d) dict
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       | (Tcommand "ref", Onum n :: stack) =>
-         let
-           val obj = refDict dict n
-           val stack = obj :: stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* General *)
-
-       | (Tcommand "pop", _ :: stack) =>
-         State {stack = stack, dict = dict, saved = saved}
-
-       | (Tcommand "dup", Onum n :: stack) =>
-         let
-           val _ = length stack > n orelse raise Error "bad dup"
-           val stack = List.nth (stack,n) :: stack
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       | (Tcommand "save", Othm th :: stack) =>
-         let
-           val saved = addSaved th saved
-           val extra = extraSave th extra
-         in
-           State {stack = stack, dict = dict, saved = saved}
-         end
-
-       (* Any other command is an error *)
-
-       | Tcommand _ => raise Error "unknown command")
-      handle Error err => raise Error (tokenToString cmd ^ ": " ^ err);
-
-  fun interpret translation saved extra =
-      let
-        fun process1 ((l,t),s) =
-            execute translation t s
-            handle Error err => raise Error ("at "^locnToString l^": "^err)
-
-        val state =
-            {stack = emptyStack, dict = emptyDict,
-             saved = saved, extra = extra}
-      in
-        Stream.foldl process1 state
-      end;
-
-  fun addTextFile (saved,extra) {filename,translation} =
-      let
-(*OpenTheoryTrace1
-        val _ = trace ("filename = " ^ filename ^ "\n")
-*)
-        val lines = readLines {filename = filename}
-        val chars = everything charParser lines
-        val tokens = everything tokenParser chars
-        val {stack,saved,extra,...} = interpret translation saved extra tokens
-        val () =
-            if null stack then ()
-            else warn (plural (length stack) "object" ^ " (including "
-                       ^ plural (length (extractThms stack)) "theorem"
-                       ^ ") left on stack at end of\n  " ^ filename)
-      in
-        (saved,extra)
-      end
-      handle NoParse => raise Error "parse error";
-
-  fun fromTextFileList l =
-      let
-        fun f (x,a) = addTextFile a x
-        val (saved,extra) = foldl f (emptySaved,extraInit) l
-      in
-        extraFinal saved extra
-      end;
-in
-  fun fromTextFile x =
-      fromTextFileList [x]
-      handle Error err => raise Error ("Article.fromTextFile: " ^ err);
-
-  fun fromTextFiles xs =
-      fromTextFileList xs
-      handle Error err => raise Error ("Article.fromTextFiles: " ^ err);
-end;
-***)
-
 fun fromTextFile {filename,interpretation} =
     let
       (* Comment lines *)
@@ -1854,7 +1661,8 @@ fun fromTextFile {filename,interpretation} =
           end
     in
       Article {saved = savedState state}
-    end;
+    end
+    handle Error err => raise Error ("Article.fromTextFile: " ^ err);
 
 (***
 local
@@ -1925,5 +1733,15 @@ in
       handle Error err => raise Error ("Article.toTextFile: " ^ err);
 end;
 ***)
+
+fun toTextFile {filename, article} =
+    let
+      val Article {saved,...} = article
+      val objs = fromListObjectSet (listSaved saved)
+      val strm = raise Bug "not implemented"
+    in
+      Stream.toTextFile {filename = filename} strm
+    end
+    handle Error err => raise Error ("Article.toTextFile: " ^ err);
 
 end

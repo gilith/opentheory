@@ -41,6 +41,8 @@ val replace : name * name -> name -> name
 
 val toString : name -> string
 
+val quotedToString : name -> string
+
 val pp : name Parser.pp
 
 val ppQuoted : name Parser.pp

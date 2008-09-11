@@ -582,7 +582,53 @@ dictionary to get an object <em>x</em>; push the object <em>x</em>.
 <td></td>
 <td align="left"><kbd>dict[k] :: stack</kbd><td>
 </tr>
+<tr><td colspan="5" height="10"></td></tr>
+</table>
+</dd>
+
+<dt><kbd>remove</kbd>
+
+<dd>Pop a number <em>k</em>; look up key <em>k</em> in the dictionary
+to get an object <em>x</em>; push the object <em>x</em>; delete the
+entry for key <em>k</em> from the dictionary.
+
+<br /><strong>Note:</strong> This command is exactly the same
+as <kbd>ref</kbd>, except that it deletes the item from the
+dictionary.
+
+<table cellspacing="0" cellpadding="0">
+<tr>
+<th>Stack:</th>
+<td width="10"></td>
+<th align="left">Before:</th>
+<td width="10"></td>
+<td align="left"><kbd>Onum k :: stack</kbd><td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<th align="left">After:</th>
+<td></td>
+<td align="left"><kbd>dict[k] :: stack</kbd><td>
+</tr>
 <tr><td colspan="5" height="5"></td></tr>
+</table>
+<table cellspacing="0" cellpadding="0">
+<tr>
+<th>Dictionary:</th>
+<td width="10"></td>
+<th align="left">Before:</th>
+<td width="10"></td>
+<td align="left"><kbd>dict</kbd><td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<th align="left">After:</th>
+<td></td>
+<td align="left"><kbd>dict[entry k deleted]</kbd><td>
+</tr>
+<tr><td colspan="5" height="10"></td></tr>
 </table>
 </dd>
 
