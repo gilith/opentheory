@@ -20,61 +20,6 @@ fun natFromString err s =
       SOME i => i
     | NONE => raise Error err;
 
-(*
-fun addRule (Translation {namespace,types,consts,rules}) (name,rule) =
-    let
-      val name = exportFromNamespace namespace name
-      val _ = not (NM.inDomain name rules) orelse
-              raise Bug ("duplicate rule: " ^ name)
-      val rules = NM.insert rules (name,rule)
-    in
-      Translation
-        {namespace = namespace,
-         types = types,
-         consts = consts,
-         rules = rules}
-    end;
-
-val addRuleList =
-    let
-      fun add (name_rule,trans) = addRule trans name_rule
-    in
-      List.foldl add
-    end;
-
-fun mkTranslation {namespace,types,consts,rules} =
-    let
-      val trans =
-          Translation
-            {namespace = namespace,
-             types = bilingualFromList namespace types,
-             consts = bilingualFromList namespace consts,
-             rules = NM.new ()}
-    in
-      addRuleList trans rules
-    end;
-*)
-
-(***
-fun addSimulations l translation =
-    let
-      val Translation {namespace,types,consts,rules,simulations} = translation
-      val simulations = foldl (fn (x,z) => NM.insert z x) simulations l
-    in
-      Translation
-        {namespace = namespace,
-         types = types,
-         consts = consts,
-         rules = rules,
-         simulations = simulations}
-    end;
-
-fun translationSimulate (Translation {simulations,...}) name =
-    case NM.peek simulations name of
-      NONE => K NONE
-    | SOME sim => SOME o sim;
-***)
-
 (* ------------------------------------------------------------------------- *)
 (* Object IDs.                                                               *)
 (* ------------------------------------------------------------------------- *)
@@ -160,39 +105,36 @@ fun containsThmsObject obj =
     | Object {provenance = Pnull, ...} => false
     | _ => true;
 
-(***
-fun destOpthm obj = destOthm (object obj);
-
-fun destOpcall obj = destOcall (object obj);
-
-fun opThms obj = objectThms (object obj);
-***)
-
 (* ------------------------------------------------------------------------- *)
 (* Theorems in scope.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 datatype theorems =
-    Theorems of (Thm.thm * object) SequentMap.map;
+    Theorems of (Thm.thm * object list) SequentMap.map;
 
 val noTheorems = Theorems (SequentMap.new ());
 
-fun addTheorems thms th_obj =
+fun sizeTheorems (Theorems thms) = SequentMap.size thms;
+
+fun addTheorems thms th_deps =
     let
       val Theorems thmMap = thms
-      and (th,obj) = th_obj
+      and (th,_) = th_deps
     in
-      Theorems (SequentMap.insert thmMap (sequent th, th_obj))
+      Theorems (SequentMap.insert thmMap (sequent th, th_deps))
     end;
 
 local
-  fun add obj (th,thms) = addTheorems thms (th,obj);
+  fun add deps (th,thms) = addTheorems thms (th,deps);
 in
   fun addObjectTheorems thms obj =
-      List.foldl (add obj) thms (Object.thms (object obj));
+      List.foldl (add [obj]) thms (Object.thms (object obj));
 end;
 
-fun searchTheorems (Theorems thmMap) seq = SequentMap.peek thmMap seq;
+fun searchTheorems (Theorems thmMap) seq =
+    case SequentMap.peek thmMap seq of
+      NONE => NONE
+    | SOME (th,deps) => SOME (alpha seq th, deps);
 
 (* ------------------------------------------------------------------------- *)
 (* Stacks.                                                                   *)
@@ -201,56 +143,61 @@ fun searchTheorems (Theorems thmMap) seq = SequentMap.peek thmMap seq;
 datatype stack =
     Stack of
       {size : int,
-       objects : Object.object list,
-       tracked : (object * theorems) list};
+       objects : object list,
+       theorems : theorems list};
 
-val emptyStack = Stack {size = 0, objects = [], tracked = []};
+val emptyStack = Stack {size = 0, objects = [], theorems = []};
 
 fun sizeStack (Stack {size = x, ...}) = x;
 
 fun objectStack (Stack {objects = x, ...}) = x;
 
+fun countThmsStack (Stack {theorems,...}) =
+    case theorems of
+      [] => 0
+    | ths :: _ => sizeTheorems ths;
+
 fun pushStack stack obj =
     let
-      val Stack {size,objects,tracked} = stack
+      val Stack {size,objects,theorems} = stack
 
       val size = size + 1
 
-      val objects = object obj :: objects
+      val objects = obj :: objects
 
       val thms =
-          case tracked of
+          case theorems of
             [] => noTheorems
-          | (_,thms) :: _ => thms
+          | thms :: _ => thms
 
       val thms = addObjectTheorems thms obj
 
-      val tracked = (obj,thms) :: tracked
+      val theorems = thms :: theorems
     in
       Stack
         {size = size,
          objects = objects,
-         tracked = tracked}
+         theorems = theorems}
     end;
 
 fun popStack stack n =
     let
-      val Stack {size,objects,tracked} = stack
+      val Stack {size,objects,theorems} = stack
     in
       if n > size then raise Error "Article.popStack: empty"
       else
         Stack
           {size = size - n,
            objects = List.drop (objects,n),
-           tracked = List.drop (tracked,n)}
+           theorems = List.drop (theorems,n)}
     end;
 
 fun peekStack stack n =
     let
-      val Stack {size,tracked,...} = stack
+      val Stack {size,objects,...} = stack
     in
       if n >= size then raise Error "Article.peekStack: bad index"
-      else fst (List.nth (tracked,n))
+      else List.nth (objects,n)
     end;
 
 fun pop1Stack stack =
@@ -264,8 +211,10 @@ fun pop2Stack stack =
 
 local
   fun topCall _ [] = NONE
-    | topCall n (Object.Ocall s :: _) = SOME (n,s)
-    | topCall n (_ :: l) = topCall (n + 1) l;
+    | topCall n (Object {object = ob, ...} :: objs) =
+      case ob of
+        Object.Ocall s => SOME (n,s)
+      | _ => topCall (n + 1) objs;
 in
   fun popCallStack stack =
       case topCall 1 (objectStack stack) of
@@ -273,10 +222,10 @@ in
       | SOME (n,s) => (s, popStack stack n);
 end;
 
-fun topStack (Stack {tracked,...}) =
-    case tracked of
+fun topStack (Stack {objects,...}) =
+    case objects of
       [] => NONE
-    | (obj,_) :: _ => SOME obj;
+    | obj :: _ => SOME obj;
 
 fun topCallStack stack =
     case topStack stack of
@@ -285,65 +234,23 @@ fun topCallStack stack =
       if Object.isOcall (object obj) then SOME obj
       else callObject obj;
 
+fun topCallToStringStack stack =
+    case topCallStack stack of
+      NONE => "top level"
+    | SOME obj =>
+      case object obj of
+        Object.Ocall n => Name.toString n
+      | _ => raise Bug "Article.topCallToStringStack";
+
 fun callStack stack =
     case topCallStack stack of
       NONE => []
     | SOME obj => obj :: callStackObject obj;
 
-fun searchStack (Stack {tracked,...}) seq =
-    case tracked of
+fun searchStack (Stack {theorems,...}) seq =
+    case theorems of
       [] => NONE
-    | (_,thms) :: _ => searchTheorems thms seq;
-
-(***
-fun pushIdStack (object,provenance,callObject) stack : stack =
-    let
-      val objectId = newObjectId ()
-      val obj =
-          Op {objectId = objectId,
-              object = object,
-              provenance = provenance,
-              callObject = callObject}
-      val thms =
-          case stack of
-            [] => noTheorems
-          | (_,thms) :: _ => thms
-      val thms = addOpTheorems thms obj
-    in
-      (obj,thms) :: stack
-    end;
-
-fun pushStack (object,provenance) stack =
-    let
-      val callObject =
-          case stack of
-            [] => NONE
-          | (Op {callObject,...}, _) :: _ => callObject
-    in
-      pushIdStack (object,provenance,callObject) stack
-    end;
-
-fun topCall [] = NONE
-  | topCall ((Op {object = Ocall n, ...}, _) :: l) = SOME (n,l)
-  | topCall (_ :: l) = topCall l;
-***)
-
-(*
-(* ------------------------------------------------------------------------- *)
-(* Call stacks.                                                              *)
-(* ------------------------------------------------------------------------- *)
-
-type callStack = (name * object) list;
-
-fun callStack (Op {object = Ocall name, callObject, provenance, ...}) =
-    (case provenance of
-       Pcall (Op {object,...}) => (name,object) :: callObjectStack callObject
-     | _ => raise Bug "Ocall object does not have Pcall name provenance")
-  | callStack (Op {callObject,...}) = callObjectStack callObject
-
-and callObjectStack NONE = []
-  | callObjectStack (SOME obj) = callStack obj;
-*)
+    | thms :: _ => searchTheorems thms seq;
 
 (* ------------------------------------------------------------------------- *)
 (* Dictionaries.                                                             *)
@@ -567,22 +474,22 @@ fun holLightTrans arg =
       Object.Othm (trans th1 th2)
     end;
 
-val holLightNamespace = Namespace.mkNested (Namespace.global, "hol-light");
+val holLightNamespace = Namespace.mkNested (Namespace.global,"hol-light");
 
 val holLightSimulations =
     map (fn (s,f) => (Name.mk (holLightNamespace,s), f))
-    [("newBasicDefinition", holLightNewBasicDefinition),
-     ("newBasicTypeDefinition", holLightNewBasicTypeDefinition),
-     ("ABS", holLightAbs),
-     ("ASSUME", holLightAssume),
-     ("BETA", holLightBeta),
-     ("DEDUCT_ANTISYM_RULE", holLightDeductAntisymRule),
-     ("EQ_MP", holLightEqMp),
-     ("INST", holLightInst),
-     ("INST_TYPE", holLightInstType),
-     ("MK_COMB", holLightMkComb),
-     ("REFL", holLightRefl),
-     ("TRANS", holLightTrans)];
+      [("new_basic_definition", holLightNewBasicDefinition),
+       ("new_basic_type_definition", holLightNewBasicTypeDefinition),
+       ("ABS", holLightAbs),
+       ("ASSUME", holLightAssume),
+       ("BETA", holLightBeta),
+       ("DEDUCT_ANTISYM_RULE", holLightDeductAntisymRule),
+       ("EQ_MP", holLightEqMp),
+       ("INST", holLightInst),
+       ("INST_TYPE", holLightInstType),
+       ("MK_COMB", holLightMkComb),
+       ("REFL", holLightRefl),
+       ("TRANS", holLightTrans)];
 
 (* ------------------------------------------------------------------------- *)
 (* Simulating other theorem provers.                                         *)
@@ -673,6 +580,8 @@ val initialState =
        saved = emptySaved};
 
 fun savedState (State {saved = s, ...}) = s;
+
+fun stackState (State {stack = s, ...}) = s;
 
 fun execute interpretation cmd state =
     let
@@ -858,11 +767,13 @@ fun execute interpretation cmd state =
                   SOME th_deps => th_deps
                 | NONE =>
                   case searchStack stack seq of
-                    SOME (th,dep) => (th,[dep])
+                    SOME th_deps => th_deps
                   | NONE =>
                     let
                       val th = Thm.axiom seq
-                      val () = warn ("making new axiom:\n" ^ thmToString th)
+                      val () = warn ("making new axiom in " ^
+                                     topCallToStringStack stack ^ ":\n" ^
+                                     thmToString th)
                     in
                       (th,[])
                     end
@@ -1024,7 +935,8 @@ datatype article =
 
 fun search (Article {saved,...}) seq = searchSaved saved seq;
 
-fun saved (Article {saved = s, ...}) = map (Object.destOthm) (listSaved s);
+fun saved (Article {saved = s, ...}) =
+    map (Object.destOthm o object) (listSaved s);
 
 (***
 datatype articleOp =
@@ -1929,6 +1841,17 @@ fun fromTextFile {filename,interpretation} =
       val state = initialState
 
       val state = Stream.foldl process state commands
+
+      val () =
+          let
+            val stack = stackState state
+            val n = countThmsStack stack
+          in
+            if n = 0 then ()
+            else
+              warn (Int.toString n ^ " theorem" ^ (if n = 1 then "" else "s") ^
+                    " left on the stack by " ^ filename)
+          end
     in
       Article {saved = savedState state}
     end;

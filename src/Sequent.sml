@@ -36,8 +36,6 @@ end
 structure SequentOrdered =
 struct type t = Sequent.sequent val compare = Sequent.compare end
 
-structure SequentSet =
-ElementSet (SequentOrdered)
+structure SequentSet = ElementSet (SequentOrdered)
 
-structure SequentMap =
-KeyMap (SequentOrdered)
+structure SequentMap = KeyMap (SequentOrdered)

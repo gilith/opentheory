@@ -119,9 +119,11 @@ end;
 
 (* Alpha conversion *)
 
-fun alpha (h,c) th =
+fun alpha seq th =
     let
-      fun norm th = (TermSet.fromList (TermAlphaSet.toList (hyp th)), th)
+      val dealpha = TermSet.fromList o TermAlphaSet.toList
+
+      fun norm th = (dealpha (hyp th), th)
 
       fun check (t,(ts,th)) =
           if TermSet.member t ts then (ts,th)
@@ -135,20 +137,20 @@ fun alpha (h,c) th =
             end
 
 (*OpenTheoryTrace5
-      val _ =
-          Parser.ppTrace
-            (Parser.ppBinop " |-" (Parser.ppList ppTerm) ppTerm) "h |- c" (h,c)
+      val _ = Parser.ppTrace ppSequent "seq" seq
       val _ = Parser.ppTrace ppThm "th" th
 *)
+      val {concl = c, hyp = h} = seq
       val th = if Term.equal c (concl th) then th else eqMp (refl c) th
-      val (_,th) = foldl check (norm th) h
+      val (_,th) = TermAlphaSet.foldl check (norm th) h
       val _ = Term.equal (concl th) c orelse
-              raise Error "alpha: concl is wrong"
-      val _ = TermSet.equal (TermSet.fromList h) (fst (norm th)) orelse
-              raise Error "alpha: hyp is wrong"
+              raise Error "concl is wrong"
+      val _ = TermSet.equal (dealpha h) (dealpha (hyp th)) orelse
+              raise Error "hyp is wrong"
     in
       th
-    end;
+    end
+    handle Error err => raise Error ("Rule.alpha: " ^ err);
 
 (* Transitivity of equality *)
 

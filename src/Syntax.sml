@@ -552,7 +552,7 @@ val substToString = Parser.toString ppSubst;
 (* Sequents and theorems *)
 
 local
-  fun ppSeq pp binop hyp concl =
+  fun ppSeq binop pp {hyp,concl} =
       (Parser.beginBlock pp Parser.Inconsistent 2;
        if TermAlphaSet.null hyp then ()
        else
@@ -563,11 +563,9 @@ local
        ppTerm pp concl;
        Parser.endBlock pp);
 in
-  fun ppSequent pp {hyp,concl} = ppSeq pp "?-" hyp concl;
+  val ppSequent = ppSeq "?-";
 
-  fun ppThm pp th =
-      case Thm.dest th of
-        Thm.Thm {sequent = {hyp,concl}, ...} => ppSeq pp "|-" hyp concl;
+  val ppThm = Parser.ppMap sequent (ppSeq "|-");
 end;
 
 val sequentToString = Parser.toString ppSequent;

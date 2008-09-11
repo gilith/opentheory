@@ -54,7 +54,7 @@ val defineType :
 
 (* Alpha conversion *)
 
-val alpha : Term.term list * Term.term -> Thm.thm -> Thm.thm
+val alpha : Sequent.sequent -> Thm.thm -> Thm.thm
 
 (* Transitivity of equality *)
 
