@@ -44,21 +44,204 @@ fun generateObject ob =
          ("const", [Object.Oname n, Object.Otype ty])
        | Term.Var (n,ty) =>
          ("var", [Object.Oname n, Object.Otype ty])
-       | Term.App (f,a) =>
+       | Term.Comb (f,a) =>
          ("comb", [Object.Oterm f, Object.Oterm a])
-       | Term.Lam (v,b) =>
+       | Term.Abs (v,b) =>
          ("abs", [Object.Oterm (Term.mkVar v), Object.Oterm b]))
     | Object.Othm th =>
       let
         val {hyp,concl} = sequent th
         val hyp = TermAlphaSet.toList hyp
       in
-        ("th", [Object.mkOterms hyp, Object.Oterm concl])
+        ("thm", [Object.mkOterms hyp, Object.Oterm concl])
       end
     | Object.Ocall _ => raise Bug "Article.generateObject: Ocall";
 
 (* ------------------------------------------------------------------------- *)
-(* Minimal dictionaries of simple objects.                                   *)
+(* Object IDs.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type objectId = int;
+
+val newObjectId : unit -> objectId =
+    let
+      val counter = ref 0
+    in
+      fn () =>
+         let
+           val ref count = counter
+           val () = counter := count + 1
+         in
+           count
+         end
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Object provenance.                                                        *)
+(*                                                                           *)
+(* Invariants *in order of priority*                                         *)
+(*                                                                           *)
+(* 1. The provenance of an Ocall object is the object that became the call   *)
+(*    argument.                                                              *)
+(*                                                                           *)
+(* 2. Objects do not contain theorems iff they have provenance Pnull.        *)
+(*    [Objects that do not contain theorems can be easily constructed.]      *)
+(*                                                                           *)
+(* 3. The provenance of a return value is the object that became the return  *)
+(*    value.                                                                 *)
+(*                                                                           *)
+(* 4. If a theorem can be inferred from theorem-containing objects, then the *)
+(*    provenance of the theorem is these objects.                            *)
+(*    [This will happen most often when simulating an inference rule and     *)
+(*    making use of the call argument - resulting in a singleton list.]      *)
+(* ------------------------------------------------------------------------- *)
+
+datatype object =
+    Object of
+      {id : objectId,
+       object : Object.object,
+       provenance : provenance,
+       call : object option}
+
+and provenance =
+    Pnull
+  | Pcall of object
+  | Preturn of object
+  | Pcons of object * object
+  | Pref of object
+  | Pthm of object list;
+
+fun compareObject (Object {id = i1, ...}, Object {id = i2, ...}) =
+    Int.compare (i1,i2);
+
+fun object (Object {object = x, ...}) = x;
+
+fun callObject (Object {call = x, ...}) = x;
+
+(*
+fun objectsProvenance prov =
+    case prov of
+      Pnull => []
+    | Pcall obj => [obj]
+    | Preturn obj => [obj]
+    | Pcons (obj1,obj2) => [obj1,obj2]
+    | Pdup obj => [obj]
+    | Pref obj => [obj]
+    | Pthm objs => objs;
+
+fun parentsObject (Object {provenance = p, ...}) = objectsProvenance p;
+*)
+
+fun callStackObject obj =
+    case callObject obj of
+      NONE => []
+    | SOME c => c :: callStackObject c;
+
+fun mkObject (object,provenance,call) =
+    let
+      val id = newObjectId ()
+    in
+      Object
+        {id = id,
+         object = object,
+         provenance = provenance,
+         call = call}
+    end;
+
+fun containsThmsObject obj =
+    case obj of
+      Object {object = Object.Ocall _, ...} =>
+      raise Bug "Article.containsThmsObject: Ocall"
+    | Object {provenance = Pnull, ...} => false
+    | _ => true;
+
+(* ------------------------------------------------------------------------- *)
+(* Object dependencies.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+datatype objectSet = ObjectSet of object Set.set;
+
+val emptyObjectSet = ObjectSet (Set.empty compareObject);
+
+fun nullObjectSet (ObjectSet set) = Set.null set;
+
+local
+  fun parents (Object {provenance = prov, call, ...}) =
+      let
+        val pars = []
+        val pars = case prov of Pcall obj => obj :: pars | _ => pars
+        val pars = case call of SOME obj => obj :: pars | NONE => pars
+      in
+        pars
+      end;
+
+  fun add set [] = set
+    | add set (obj :: objs) =
+      if Set.member obj set then addListObjectSet set objs
+      else add (Set.add set obj) (parentsObject obj @ objs);
+in
+  fun addListObjectSet (ObjectSet set) objs = ObjectSet (add set objs);
+end;
+
+fun addObjectSet set obj = addListObjectSet set [obj];
+
+fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
+
+fun foldlObjectSet f b (ObjectSet set) = Set.foldl f b set;
+
+(* ------------------------------------------------------------------------- *)
+(* Theorems in scope.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+datatype theorems =
+    Theorems of (Thm.thm * object list) SequentMap.map;
+
+val noTheorems = Theorems (SequentMap.new ());
+
+fun sizeTheorems (Theorems thms) = SequentMap.size thms;
+
+fun addTheorems thms th_deps =
+    let
+      val Theorems thmMap = thms
+      and (th,_) = th_deps
+    in
+      Theorems (SequentMap.insert thmMap (sequent th, th_deps))
+    end;
+
+local
+  fun add deps (th,thms) = addTheorems thms (th,deps);
+in
+  fun addObjectTheorems thms obj =
+      List.foldl (add [obj]) thms (Object.thms (object obj));
+end;
+
+fun searchTheorems (Theorems thmMap) seq =
+    case SequentMap.peek thmMap seq of
+      NONE => NONE
+    | SOME (th,deps) => SOME (alpha seq th, deps);
+
+(* ------------------------------------------------------------------------- *)
+(* Dictionaries.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype dict = Dict of object IntMap.map;
+
+val emptyDict = Dict (IntMap.new ());
+
+fun defDict (Dict dict) (key,obj) = Dict (IntMap.insert dict (key,obj));
+
+fun refDict (Dict dict) key =
+    case IntMap.peek dict key of
+      SOME obj => obj
+    | NONE => raise Error ("refDict: no entry for key " ^ Int.toString key);
+
+fun removeDict (Dict dict) key =
+    case IntMap.peek dict key of
+      SOME obj => (Dict (IntMap.delete dict key), obj)
+    | NONE => raise Error ("removeDict: no entry for key " ^ Int.toString key);
+
+(* ------------------------------------------------------------------------- *)
+(* Minimal dictionaries.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 datatype minDict =
@@ -66,14 +249,6 @@ datatype minDict =
       {nextKey : int,
        refs : int ObjectMap.map,
        keys : int ObjectMap.map};
-
-val emptyMinDict =
-    MinDict
-      {nextKey = 0,
-       refs = ObjectMap.new (),
-       keys = ObjectMap.new ()};
-
-fun isCleanMinDict (MinDict {nextKey,...}) = nextKey = 0;
 
 local
   fun storable ob =
@@ -84,43 +259,58 @@ local
       | Object.Olist l => not (null l)
       | Object.Otype _ => true
       | Object.Oterm _ => true
-      | Object.Othm _ => false
-      | Object.Ocall _ => raise Error "unexpected Ocall";
+      | Object.Othm _ => raise Bug "Article.storable: Othm"
+      | Object.Ocall _ => raise Bug "Article.storable: Ocall";
 
   fun register refs [] = refs
     | register refs (ob :: obs) =
-      if not (storable ob) then register refs obs
+      if not (storable ob) then register refs objs
       else
         case ObjectMap.peek refs ob of
           SOME k =>
           let
             val refs = ObjectMap.insert refs (ob, k + 1)
           in
-            register refs obs
+            registerSmall refs obs
           end
         | NONE =>
           let
             val refs = ObjectMap.insert refs (ob,1)
             val (_,pars) = generateObject ob
           in
-            register refs (pars @ obs)
+            registerSmall refs (pars @ obs)
           end;
+
+  fun register reqd refs objs =
+      case deleteMinObjectSet objs of
+        NONE => (reqd,refs)
+      | SOME (obj,objs) =>
+        if memberObjectSet obj reqd then registerLarge reqd refs objs
+        else
+          let
+            val (reqdIds,reqdObs) = reqd
+            val Object {id, object = ob, provenance = prov, call} = obj
+          in
+
+          if 
 in
-  fun registerMinDict dict ob =
+  fun newMinDict objs =
       let
-        val _ = isCleanMinDict dict orelse raise Error "unclean"
-
-        val MinDict {nextKey,refs,keys} = dict
-
-        val refs = register refs [ob]
+        val reqd = emptyObjectSet
+        val refs = ObjectMap.new ()
+        val (reqd,refs) = dependencies reqd refs objs
+        val nextKey = 1
+        val keys = ObjectMap.new ()
+        val dict =
+            MinDict
+              {nextKey = nextKey,
+               refs = refs,
+               keys = keys}
       in
-        MinDict
-          {nextKey = nextKey,
-           refs = refs,
-           keys = keys}
+        (reqd,dict)
       end
       handle Error err =>
-        raise Bug ("Article.registerMinDict: " ^ err);
+        raise Bug ("Article.newMinDict: " ^ err);
 end;
 
 fun finalizeMinDict dict =
@@ -208,173 +398,6 @@ in
       handle Error err =>
         raise Bug ("Article.generateMinDict: " ^ err);
 end;
-
-(* ------------------------------------------------------------------------- *)
-(* Object IDs.                                                               *)
-(* ------------------------------------------------------------------------- *)
-
-type objectId = int;
-
-val newObjectId : unit -> objectId =
-    let
-      val counter = ref 0
-    in
-      fn () =>
-         let
-           val ref count = counter
-           val () = counter := count + 1
-         in
-           count
-         end
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Object provenance.                                                        *)
-(*                                                                           *)
-(* Invariants *in order of priority*                                         *)
-(*                                                                           *)
-(* 1. The provenance of an Ocall object is the object that became the call   *)
-(*    argument.                                                              *)
-(*                                                                           *)
-(* 2. Objects do not contain theorems iff they have provenance Pnull.        *)
-(*    [Objects that do not contain theorems can be easily constructed.]      *)
-(*                                                                           *)
-(* 3. The provenance of a return value is the object that became the return  *)
-(*    value.                                                                 *)
-(*                                                                           *)
-(* 4. If a theorem can be inferred from theorem-containing objects, then the *)
-(*    provenance of the theorem is these objects.                            *)
-(*    [This will happen most often when simulating an inference rule and     *)
-(*    making use of the call argument - resulting in a singleton list.]      *)
-(* ------------------------------------------------------------------------- *)
-
-datatype object =
-    Object of
-      {id : objectId,
-       object : Object.object,
-       provenance : provenance,
-       call : object option}
-
-and provenance =
-    Pnull
-  | Pcall of object
-  | Preturn of object
-  | Pcons of object * object
-  | Pdup of object
-  | Pref of object
-  | Pthm of object list;
-
-fun compareObject (Object {id = i1, ...}, Object {id = i2, ...}) =
-    Int.compare (i1,i2);
-
-fun object (Object {object = x, ...}) = x;
-
-fun callObject (Object {call = x, ...}) = x;
-
-fun objectsProvenance prov =
-    case prov of
-      Pnull => []
-    | Pcall obj => [obj]
-    | Preturn obj => [obj]
-    | Pcons (obj1,obj2) => [obj1,obj2]
-    | Pdup obj => [obj]
-    | Pref obj => [obj]
-    | Pthm objs => objs;
-
-fun parentsObject (Object {provenance = p, ...}) = objectsProvenance p;
-
-fun callStackObject obj =
-    case callObject obj of
-      NONE => []
-    | SOME c => c :: callStackObject c;
-
-fun mkObject (object,provenance,call) =
-    let
-      val id = newObjectId ()
-    in
-      Object
-        {id = id,
-         object = object,
-         provenance = provenance,
-         call = call}
-    end;
-
-fun containsThmsObject obj =
-    case obj of
-      Object {object = Object.Ocall _, ...} =>
-      raise Bug "Article.containsThmsObject: Ocall"
-    | Object {provenance = Pnull, ...} => false
-    | _ => true;
-
-(* ------------------------------------------------------------------------- *)
-(* Object dependencies.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-type objectSet = object Set.set;
-
-val emptyObjectSet = Set.empty compareObject;
-
-fun addListObjectSet set [] = set
-  | addListObjectSet set (obj :: objs) =
-    if Set.member obj set then addListObjectSet set objs
-    else addListObjectSet (Set.add set obj) (parentsObject obj @ objs);
-
-fun addObjectSet set obj = addListObjectSet set [obj];
-
-fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
-
-fun foldlObjectSet f b set = Set.foldl f b set;
-
-(* ------------------------------------------------------------------------- *)
-(* Theorems in scope.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-datatype theorems =
-    Theorems of (Thm.thm * object list) SequentMap.map;
-
-val noTheorems = Theorems (SequentMap.new ());
-
-fun sizeTheorems (Theorems thms) = SequentMap.size thms;
-
-fun addTheorems thms th_deps =
-    let
-      val Theorems thmMap = thms
-      and (th,_) = th_deps
-    in
-      Theorems (SequentMap.insert thmMap (sequent th, th_deps))
-    end;
-
-local
-  fun add deps (th,thms) = addTheorems thms (th,deps);
-in
-  fun addObjectTheorems thms obj =
-      List.foldl (add [obj]) thms (Object.thms (object obj));
-end;
-
-fun searchTheorems (Theorems thmMap) seq =
-    case SequentMap.peek thmMap seq of
-      NONE => NONE
-    | SOME (th,deps) => SOME (alpha seq th, deps);
-
-(* ------------------------------------------------------------------------- *)
-(* Dictionaries.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-datatype dict = Dict of object IntMap.map;
-
-val emptyDict = Dict (IntMap.new ());
-
-fun defDict (Dict dict) (key,obj) = Dict (IntMap.insert dict (key,obj));
-
-fun refDict (Dict dict) key =
-    case IntMap.peek dict key of
-      SOME obj => obj
-    | NONE => raise Error ("refDict: no entry for key " ^ Int.toString key);
-
-fun removeDict (Dict dict) key =
-    case IntMap.peek dict key of
-      SOME obj => (Dict (IntMap.delete dict key), obj)
-    | NONE => raise Error ("removeDict: no entry for key " ^ Int.toString key);
 
 (* ------------------------------------------------------------------------- *)
 (* Stacks.                                                                   *)
@@ -1070,7 +1093,7 @@ fun execute interpretation cmd state =
           val i = Object.destOnum obI
           val objD = peekStack stack i
           val ob = object objD
-          and prov = if containsThmsObject objD then Pdup objD else Pnull
+          and prov = if containsThmsObject objD then Pref objD else Pnull
           and call = topCallStack stack
           val _ = not (Object.isOcall ob) orelse
                   raise Error "cannot dup an Ocall object"

@@ -52,7 +52,7 @@ fun peek (Subst (_,stm)) v = VarMap.peek stm v;
 fun norm (Subst (sty,stm)) =
     let
       val sty = TypeSubst.norm sty
-                
+
       val stm =
           let
             fun p (n,ty) (Term.Var (n',ty')) =
@@ -111,7 +111,7 @@ local
          | NONE =>
            let
              val v' = typeSubstVar sty v
-             val (tm,fv) = 
+             val (tm,fv) =
                  case VarMap.peek stm v' of
                    SOME tm_fv => tm_fv
                  | NONE =>
@@ -123,17 +123,17 @@ local
                  NONE => tm
                | SOME d => raise Capture d
            end)
-      | Term.App (a,b) =>
+      | Term.Comb (a,b) =>
         let
           val a' = substGen sty stm bv a
           val b' = substGen sty stm bv b
         in
           if a' == a andalso b' == b then tm else Term.mkComb (a',b')
         end
-      | Term.Lam (v,body) =>
+      | Term.Abs (v,body) =>
         let
           val {depth,oldToNew,newDepth} = bv
-                                             
+
           fun rename v' =
               if Option.isSome (VarMap.peek newDepth v') then
                 rename (Var.variant v')
@@ -150,7 +150,7 @@ local
                 end
                 handle c as Capture d =>
                   if d = depth then rename (Var.variant v') else raise c
-                                                                        
+
           val (v',body') = rename (typeSubstVar sty v)
         in
           if v == v' andalso body == body' then tm else Term.mkAbs (v',body')
@@ -169,7 +169,7 @@ in
   fun subst sub =
       let
         val sub as Subst (sty,stm) = norm sub
-                  
+
         val sty = TypeSubst.subst sty
 
         val stm =

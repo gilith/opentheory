@@ -166,6 +166,43 @@ val isOcall = can destOcall;
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
+local
+  fun iterCompare NONE NONE = EQUAL
+    | iterCompare NONE (SOME _) = LESS
+    | iterCompare (SOME _) NONE = GREATER
+    | iterCompare (SOME i1) (SOME i2) =
+      let
+        val k1 = TermAlphaSet.readIterator i1
+        and k2 = TermAlphaSet.readIterator i2
+      in
+        keyIterCompare k1 k2 i1 i2
+      end
+
+  and keyIterCompare k1 k2 i1 i2 =
+      case Term.compare (k1,k2) of
+        LESS => LESS
+      | EQUAL =>
+        let
+          val i1 = TermAlphaSet.advanceIterator i1
+          and i2 = TermAlphaSet.advanceIterator i2
+        in
+          iterCompare i1 i2
+        end
+      | GREATER => GREATER;
+in
+  fun compareUnalphaTermAlphaSet (s1,s2) =
+      case Int.compare (TermAlphaSet.size s1, TermAlphaSet.size s2) of
+        LESS => LESS
+      | EQUAL =>
+        let
+          val i1 = TermAlphaSet.mkIterator s1
+          and i2 = TermAlphaSet.mkIterator s2
+        in
+          iterCompare i1 i2
+        end
+      | GREATER => GREATER;
+end;
+
 fun compare ob1_ob2 =
     if Portable.pointerEqual ob1_ob2 then EQUAL
     else
@@ -185,7 +222,16 @@ fun compare ob1_ob2 =
       | (Oterm tm1, Oterm tm2) => Term.compare (tm1,tm2)
       | (Oterm _, _) => LESS
       | (_, Oterm _) => GREATER
-      | (Othm th1, Othm th2) => Thm.compare (th1,th2)
+      | (Othm th1, Othm th2) =>
+        let
+          val {hyp = h1, concl = c1} = sequent th1
+          and {hyp = h2, concl = c2} = sequent th2
+        in
+          case Term.compare (c1,c2) of
+            LESS => LESS
+          | EQUAL => compareUnalphaTermAlphaSet (h1,h2)
+          | GREATER => GREATER
+        end
       | (Othm _, _) => LESS
       | (_, Othm _) => GREATER
       | (Olist l1, Olist l2) => lexCompare compare (l1,l2)

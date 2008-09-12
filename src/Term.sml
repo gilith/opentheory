@@ -19,8 +19,8 @@ val op== = Portable.pointerEqual;
 datatype term' =
     Const of Name.name * Type.ty
   | Var of Var.var
-  | App of term' * term'
-  | Lam of Var.var * term';
+  | Comb of term' * term'
+  | Abs of Var.var * term';
 
 type term = term';
 
@@ -68,8 +68,8 @@ fun declareConst name ty =
 
 fun typeOf (Const (_,ty)) = ty
   | typeOf (Var (_,ty)) = ty
-  | typeOf (App (t,u)) = snd (Type.destFun (typeOf t))
-  | typeOf (Lam ((_,vty),t)) = Type.mkFun (vty, typeOf t);
+  | typeOf (Comb (t,u)) = snd (Type.destFun (typeOf t))
+  | typeOf (Abs ((_,vty),t)) = Type.mkFun (vty, typeOf t);
 
 (* ------------------------------------------------------------------------- *)
 (* Term constructors and destructors                                         *)
@@ -113,18 +113,18 @@ fun mkComb (f,x) =
       val ty' = typeOf x
       val _ = Type.equal ty ty' orelse raise Error "incompatible types"
     in
-      App (f,x)
+      Comb (f,x)
     end
     handle Error err => raise Error ("Term.mkComb: " ^ err);
 
-fun destComb (App f_x) = f_x
+fun destComb (Comb f_x) = f_x
   | destComb _ = raise Error "destComb";
 
 val isComb = can destComb;
 
-val mkAbs = Lam;
+val mkAbs = Abs;
 
-fun destAbs (Lam v_t) = v_t
+fun destAbs (Abs v_t) = v_t
   | destAbs _ = raise Error "destAbs";
 
 val isAbs = can destAbs;
@@ -146,10 +146,10 @@ local
         | (Var v1, Var v2) => Var.compare (v1,v2)
         | (Var _, _) => LESS
         | (_, Var _) => GREATER
-        | (App a1, App a2) => prodCompare cmp cmp (a1,a2)
-        | (App _, _) => LESS
-        | (_, App _) => GREATER
-        | (Lam l1, Lam l2) => prodCompare Var.compare cmp (l1,l2);
+        | (Comb a1, Comb a2) => prodCompare cmp cmp (a1,a2)
+        | (Comb _, _) => LESS
+        | (_, Comb _) => GREATER
+        | (Abs l1, Abs l2) => prodCompare Var.compare cmp (l1,l2);
 in
   val compare = cmp;
 end;
@@ -172,15 +172,15 @@ local
            | (SOME n1, SOME n2) => Int.compare (n1,n2))
         | (Var _, _) => LESS
         | (_, Var _) => GREATER
-        | (App a1, App a2) =>
+        | (Comb a1, Comb a2) =>
           let
             val cmp = acmp n bv1 bv2
           in
             prodCompare cmp cmp (a1,a2)
           end
-        | (App _, _) => LESS
-        | (_, App _) => GREATER
-        | (Lam (v1,t1), Lam (v2,t2)) =>
+        | (Comb _, _) => LESS
+        | (_, Comb _) => GREATER
+        | (Abs (v1,t1), Abs (v2,t2)) =>
           if n = 0 andalso Var.equal v1 v2 then acmp n bv1 bv2 (t1,t2)
           else
             let
@@ -201,16 +201,16 @@ fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
 
 fun typeVars (Const (_,ty)) = Type.typeVars ty
   | typeVars (Var (_,ty)) = Type.typeVars ty
-  | typeVars (App (a,b)) = NameSet.union (typeVars a) (typeVars b)
-  | typeVars (Lam ((_,ty),b)) = NameSet.union (Type.typeVars ty) (typeVars b);
+  | typeVars (Comb (a,b)) = NameSet.union (typeVars a) (typeVars b)
+  | typeVars (Abs ((_,ty),b)) = NameSet.union (Type.typeVars ty) (typeVars b);
 
 val freeVars =
     let
       fun fv _ (Const _) = VarSet.empty
         | fv bv (Var v) =
           if VarSet.member v bv then VarSet.empty else VarSet.singleton v
-        | fv bv (App (a,b)) = VarSet.union (fv bv a) (fv bv b)
-        | fv bv (Lam (v,b)) = fv (VarSet.add bv v) b
+        | fv bv (Comb (a,b)) = VarSet.union (fv bv a) (fv bv b)
+        | fv bv (Abs (v,b)) = fv (VarSet.add bv v) b
     in
       fv VarSet.empty
     end;
@@ -235,7 +235,7 @@ val eqTm =
 
 fun mkEq (l,r) = mkComb (mkComb (mkConst (eqN, eqTy (typeOf l)), l), r);
 
-fun destEq (App (App (Const (n,_), l), r)) =
+fun destEq (Comb (Comb (Const (n,_), l), r)) =
     if Name.equal n eqN then (l,r) else raise Error "Term.destEq"
   | destEq _ = raise Error "Term.destEq";
 
@@ -255,9 +255,9 @@ val selectTm =
       Const (selectN,ty)
     end;
 
-fun mkSelect (v_b as ((_,ty),_)) = App (Const (selectN, selectTy ty), Lam v_b);
+fun mkSelect (v_b as ((_,ty),_)) = Comb (Const (selectN, selectTy ty), Abs v_b);
 
-fun destSelect (App (Const (n,_), Lam v_b)) =
+fun destSelect (Comb (Const (n,_), Abs v_b)) =
     if Name.equal n selectN then v_b else raise Error "Term.destSelect"
   | destSelect _ = raise Error "Term.destSelect";
 

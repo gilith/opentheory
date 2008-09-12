@@ -88,9 +88,9 @@ fun betaConv t =
     let
       val (v,t1,t2) =
           case Term.dest t of
-            Term.App (t',t2) =>
+            Term.Comb (t',t2) =>
             (case Term.dest t' of
-               Term.Lam (v,t1) => (v,t1,t2)
+               Term.Abs (v,t1) => (v,t1,t2)
              | _ => raise Error "Thm.betaConv: term function not a lambda")
           | _ => raise Error "Thm.betaConv: term not a function application"
       val u =

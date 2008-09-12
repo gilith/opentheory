@@ -15,8 +15,8 @@ type term
 datatype term' =
     Const of Name.name * Type.ty
   | Var of Var.var
-  | App of term * term
-  | Lam of Var.var * term
+  | Comb of term * term
+  | Abs of Var.var * term
 
 val mk : term' -> term
 val dest : term -> term'
