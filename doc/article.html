@@ -23,7 +23,7 @@
 
 <hr />
 
-<h2>OpenTheory Article Format Version 2</h2>
+<h2>OpenTheory Article Format Version 3</h2>
 
 <p>An <em>article</em> is a file containing the statements and proofs
 of some number of theorems. Articles are not required to be
@@ -521,7 +521,7 @@ n'</em>.
 
 <dt><kbd>def</kbd>
 
-<dd>Pop a number <em>k</em>; pop an object <em>x</em>; update the
+<dd>Pop a number <em>k</em>; peek an object <em>x</em>; update the
 dictionary so that key <em>k</em> maps to object <em>x</em>.
 
 <table cellspacing="0" cellpadding="0">
@@ -537,7 +537,7 @@ dictionary so that key <em>k</em> maps to object <em>x</em>.
 <td></td>
 <th align="left">After:</th>
 <td></td>
-<td align="left"><kbd>stack</kbd><td>
+<td align="left"><kbd>x :: stack</kbd><td>
 </tr>
 <tr><td colspan="5" height="5"></td></tr>
 </table>
@@ -593,7 +593,7 @@ to get an object <em>x</em>; push the object <em>x</em>; delete the
 entry for key <em>k</em> from the dictionary.
 
 <br /><strong>Note:</strong> This command is exactly the same
-as <kbd>ref</kbd>, except that it deletes the item from the
+as <kbd>ref</kbd>, except that it deletes the entry from the
 dictionary.
 
 <table cellspacing="0" cellpadding="0">

@@ -118,7 +118,7 @@ fun object (Object {object = x, ...}) = x;
 
 fun callObject (Object {call = x, ...}) = x;
 
-(*
+(***
 fun objectsProvenance prov =
     case prov of
       Pnull => []
@@ -129,8 +129,66 @@ fun objectsProvenance prov =
     | Pref obj => [obj]
     | Pthm objs => objs;
 
-fun parentsObject (Object {provenance = p, ...}) = objectsProvenance p;
-*)
+fun dependenciesObject (Object {provenance = p, ...}) = objectsProvenance p;
+***)
+
+local
+  fun maps preF postF obj acc =
+      case preF obj acc of
+        Left obj_acc => obj_acc
+      | Right (obj,acc) =>
+        let
+          val Object {id, object = ob, provenance = prov, call} = obj
+          val (prov',acc) = mapsProv preF postF prov acc
+          val (call',acc) = Sharing.mapsOption (maps preF postF) call acc
+          val obj' =
+              if Portable.pointerEqual (prov',prov) andalso
+                 Portable.pointerEqual (call',call) then
+                obj
+              else
+                Object {id = id, object = ob, provenance = prov', call = call'}
+        in
+          postF obj' acc
+        end
+
+  and mapsProv preF postF prov acc =
+      case prov of
+        Pnull => (prov,acc)
+      | Pcall obj => mapsProv1 preF postF prov acc Pcall obj
+      | Preturn obj => mapsProv1 preF postF prov acc Preturn obj
+      | Pcons (objH,objT) =>
+        let
+          val (objH',acc) = maps preF postF objH acc
+          val (objT',acc) = maps preF postF objT acc
+          val prov' =
+              if Portable.pointerEqual (objH',objH) andalso
+                 Portable.pointerEqual (objT',objT) then
+                prov
+              else
+                Pcons (objH',objT')
+        in
+          (prov',acc)
+        end
+      | Pref obj => mapsProv1 preF postF prov acc Pref obj
+      | Pthm objs =>
+        let
+          val (objs',acc) = Sharing.maps (maps preF postF) objs acc
+          val prov' =
+              if Portable.pointerEqual (objs',objs) then prov else Pthm objs'
+        in
+          (prov',acc)
+        end
+
+  and mapsProv1 preF postF prov acc con obj =
+      let
+        val (obj',acc) = maps preF postF obj acc
+        val prov' = if Portable.pointerEqual (obj',obj) then prov else con obj'
+      in
+        (prov',acc)
+      end;
+in
+  val mapsObject = maps;
+end;
 
 fun callStackObject obj =
     case callObject obj of
@@ -156,7 +214,7 @@ fun containsThmsObject obj =
     | _ => true;
 
 (* ------------------------------------------------------------------------- *)
-(* Object dependencies.                                                      *)
+(* Object sets.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
 datatype objectSet = ObjectSet of object Set.set;
@@ -165,6 +223,18 @@ val emptyObjectSet = ObjectSet (Set.empty compareObject);
 
 fun nullObjectSet (ObjectSet set) = Set.null set;
 
+fun peekObjectSet (ObjectSet set) obj = Set.peek set obj;
+
+fun addObjectSet (ObjectSet set) obj = ObjectSet (Set.add set obj);
+
+fun addListObjectSet set objs =
+    List.foldl (fn (obj,acc) => addObjectSet acc obj) set objs;
+
+fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
+
+fun foldlObjectSet f b (ObjectSet set) = Set.foldl f b set;
+
+(***
 local
   fun parents (Object {provenance = prov, call, ...}) =
       let
@@ -177,17 +247,84 @@ local
 
   fun add set [] = set
     | add set (obj :: objs) =
-      if Set.member obj set then addListObjectSet set objs
-      else add (Set.add set obj) (parentsObject obj @ objs);
+      if Set.member obj set then add set objs
+      else add (addObjectSet set obj) (parentsObject obj @ objs);
 in
-  fun addListObjectSet (ObjectSet set) objs = ObjectSet (add set objs);
+  fun addCallStackObjectSet set obj = ObjectSet (add set [obj]);
 end;
 
-fun addObjectSet set obj = addListObjectSet set [obj];
+val closeCallStackObjectSet =
+    let
+      fun add (obj,set) = addCallStackObjectSet set obj
+    in
+      foldlObjectSet add emptyObjectSet
+    end;
+***)
 
-fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
+(* ------------------------------------------------------------------------- *)
+(* Reducing objects.                                                         *)
+(* ------------------------------------------------------------------------- *)
 
-fun foldlObjectSet f b (ObjectSet set) = Set.foldl f b set;
+local
+  fun preReduce obj (reqd_refs as (reqd,refs)) =
+      case peekObjectSet reqd obj of
+        SOME obj => Left (obj,reqd_refs)
+      | NONE =>
+        let
+          val Object {id, object = ob, provenance = prov, call} = obj
+          val reduced =
+              case prov of
+                Pnull => true
+              | Pcall _ => true
+              | Pref _ => true
+              | _ => false
+        in
+          if reduced then Right (obj,reqd_refs)
+          else
+            case ObjectMap.peek refs ob of
+              NONE => Right (obj,reqd_refs)
+            | SOME (obj' as Object {id = id', ...}) =>
+              if id' < id then
+                let
+                  val prov = Pref obj'
+                  val obj =
+                      Object
+                        {id = id, object = ob, provenance = prov, call = call}
+                  val reqd = addObjectSet reqd obj
+                in
+                  Left (obj,(reqd,refs))
+                end
+              else
+                Right (obj,reqd_refs)
+        end;
+
+  fun postReduce obj (reqd,refs) =
+      let
+        val reqd = addObjectSet reqd obj
+        val refs = ObjectMap.insert refs (object obj, obj)
+      in
+        (obj,(reqd,refs))
+      end;
+
+  fun dependencies sweep objs =
+      let
+        val reqd = emptyObjectSet
+        val refs = ObjectMap.new ()
+        val (objs',(reqd,_)) =
+            Sharing.maps
+              ((if sweep then mapsObject else (***rev***)mapsObject)
+                 preReduce postReduce)
+              objs (reqd,refs)
+      in
+        if Portable.pointerEqual (objs',objs) then (reqd,objs)
+        else dependencies (not sweep) objs'
+      end;
+in
+  fun dependenciesObject objs =
+      dependencies true objs
+      handle Error err =>
+        raise Bug ("Article.dependenciesObjects: " ^ err);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Theorems in scope.                                                        *)
@@ -262,44 +399,36 @@ local
       | Object.Othm _ => raise Bug "Article.storable: Othm"
       | Object.Ocall _ => raise Bug "Article.storable: Ocall";
 
-  fun register refs [] = refs
-    | register refs (ob :: obs) =
-      if not (storable ob) then register refs objs
+  fun registerPeek refs ob =
+      let
+        val p = ObjectMap.peek refs ob
+        val known = Option.isSome p
+        val k = Option.getOpt (p,0)
+        val refs = ObjectMap.insert refs (ob, k + 1)
+      in
+        (known,refs)
+      end;
+
+  fun registerList refs [] = refs
+    | registerList refs (ob :: obs) =
+      if not (storable ob) then registerList refs obs
       else
-        case ObjectMap.peek refs ob of
-          SOME k =>
-          let
-            val refs = ObjectMap.insert refs (ob, k + 1)
-          in
-            registerSmall refs obs
-          end
-        | NONE =>
-          let
-            val refs = ObjectMap.insert refs (ob,1)
-            val (_,pars) = generateObject ob
-          in
-            registerSmall refs (pars @ obs)
-          end;
+        let
+          val (known,refs) = registerPeek refs ob
+          val obs = if known then obs else snd (generateObject ob) @ obs
+        in
+          registerList refs obs
+        end;
 
-  fun register reqd refs objs =
-      case deleteMinObjectSet objs of
-        NONE => (reqd,refs)
-      | SOME (obj,objs) =>
-        if memberObjectSet obj reqd then registerLarge reqd refs objs
-        else
-          let
-            val (reqdIds,reqdObs) = reqd
-            val Object {id, object = ob, provenance = prov, call} = obj
-          in
-
-          if 
+  fun register (obj,refs) = registerList refs [object obj];
 in
   fun newMinDict objs =
       let
-        val reqd = emptyObjectSet
-        val refs = ObjectMap.new ()
-        val (reqd,refs) = dependencies reqd refs objs
+        val (reqd,objs) = dependenciesObject objs
         val nextKey = 1
+        val refs = ObjectMap.new ()
+        val refs = foldlObjectSet register refs reqd
+        val refs = ObjectMap.filter (fn (_,n) => n >= 2) refs
         val keys = ObjectMap.new ()
         val dict =
             MinDict
@@ -307,28 +436,11 @@ in
                refs = refs,
                keys = keys}
       in
-        (reqd,dict)
+        (objs,reqd,dict)
       end
       handle Error err =>
         raise Bug ("Article.newMinDict: " ^ err);
 end;
-
-fun finalizeMinDict dict =
-    let
-      val _ = isCleanMinDict dict orelse raise Error "unclean"
-
-      val MinDict {nextKey = _, refs, keys} = dict
-
-      val nextKey = 1
-      and refs = ObjectMap.filter (fn (_,n) => n >= 2) refs
-    in
-      MinDict
-        {nextKey = nextKey,
-         refs = refs,
-         keys = keys}
-    end
-    handle Error err =>
-      raise Bug ("Article.finalizeMinDict: " ^ err);
 
 local
   fun generate (ob,(dict,cmds)) =
@@ -380,21 +492,15 @@ local
                 val refs = ObjectMap.insert refs (ob, n - 1)
                 val dict =
                     MinDict {nextKey = nextKey, refs = refs, keys = keys}
-                val cmds = ["def", Int.toString key, "dup", "0"] @ cmds
+                val cmds = ["def", Int.toString key] @ cmds
               in
                 (dict,cmds)
               end
           end
-    end
-    handle Error err =>
-      raise Bug ("Article.generateMinDict: " ^ err);
+    end;
 in
   fun generateMinDict dict ob =
-      let
-        val _ = not (isCleanMinDict dict) orelse raise Error "unfinalized"
-      in
-        generate (ob,(dict,[]))
-      end
+      generate (ob,(dict,[]))
       handle Error err =>
         raise Bug ("Article.generateMinDict: " ^ err);
 end;
@@ -1037,8 +1143,8 @@ fun execute interpretation cmd state =
       | Cop "def" =>
         let
           val (stack,
-               objD as Object {object = obD, ...},
-               Object {object = obI, ...}) = pop2Stack stack
+               Object {object = obI, ...}) = pop1Stack stack
+          val objD as Object {object = obD, ...} = peekStack stack 0
           val _ = not (Object.isOcall obD) orelse
                   raise Error "cannot def an Ocall object"
           val i = Object.destOnum obI

@@ -72,7 +72,7 @@ TU.subst u (mkVar q);
 TU.subst u qTq;
 ***)
 
-val ARTICLE_DIR = "articles";
+val ARTICLE_DIR = "~/ptr/hol-light";
 
 val art =
     time
