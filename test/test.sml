@@ -72,13 +72,27 @@ TU.subst u (mkVar q);
 TU.subst u qTq;
 ***)
 
-val ARTICLE_DIR = "~/ptr/hol-light";
+val ARTICLE_DIR = "articles/hol-light";
 
 val art =
     time
       Article.fromTextFile
       {filename = ARTICLE_DIR ^ "/bool.art",
        interpretation = holLightInt};
+
+val filename = "compressed-bool.art";
+
+val () =
+    time
+      Article.toTextFile
+      {filename = filename,
+       article = art};
+
+val art' =
+    time
+      Article.fromTextFile
+      {filename = filename,
+       interpretation = Interpretation.natural};
 
 (***
 [

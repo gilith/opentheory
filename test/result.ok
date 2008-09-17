@@ -18,5 +18,5 @@ const hol-light.?! -> ?!;
 --------------------------------------------------------------------------
 Reading in hol-light theories
 
-WARNING: 29 theorems left on the stack by articles/bool.art
-User: 0.906  System: 0.012  GC: 0.118  Real: 0.924
+WARNING: 549 theorems left on the stack by articles/hol-light/bool.art
+User: 0.751  System: 0.010  GC: 0.091  Real: 0.767

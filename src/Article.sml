@@ -21,43 +21,6 @@ fun natFromString err s =
     | NONE => raise Error err;
 
 (* ------------------------------------------------------------------------- *)
-(* Generating simple objects.                                                *)
-(* ------------------------------------------------------------------------- *)
-
-fun generateObject ob =
-    case ob of
-      Object.Oerror => ("error",[])
-    | Object.Onum i => (Int.toString i, [])
-    | Object.Oname n => (Name.quotedToString n, [])
-    | Object.Olist l =>
-      (case l of
-         [] => ("nil",[])
-       | h :: t => ("cons", [h, Object.Olist t]))
-    | Object.Otype ty =>
-      (case Type.dest ty of
-         Type.TypeVar n => ("type_var", [Object.Oname n])
-       | Type.TypeOp (n,tys) =>
-         ("type_op", [Object.Oname n, Object.mkOtypes tys]))
-    | Object.Oterm tm =>
-      (case Term.dest tm of
-         Term.Const (n,ty) =>
-         ("const", [Object.Oname n, Object.Otype ty])
-       | Term.Var (n,ty) =>
-         ("var", [Object.Oname n, Object.Otype ty])
-       | Term.Comb (f,a) =>
-         ("comb", [Object.Oterm f, Object.Oterm a])
-       | Term.Abs (v,b) =>
-         ("abs", [Object.Oterm (Term.mkVar v), Object.Oterm b]))
-    | Object.Othm th =>
-      let
-        val {hyp,concl} = sequent th
-        val hyp = TermAlphaSet.toList hyp
-      in
-        ("thm", [Object.mkOterms hyp, Object.Oterm concl])
-      end
-    | Object.Ocall _ => raise Bug "Article.generateObject: Ocall";
-
-(* ------------------------------------------------------------------------- *)
 (* Object IDs.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -133,33 +96,66 @@ fun dependenciesObject (Object {provenance = p, ...}) = objectsProvenance p;
 ***)
 
 local
-  fun maps preF postF obj acc =
+  fun maps lr preF postF obj acc =
       case preF obj acc of
-        Left obj_acc => obj_acc
-      | Right (obj,acc) =>
+        Left obj => (obj,acc)
+      | Right obj =>
         let
           val Object {id, object = ob, provenance = prov, call} = obj
-          val (prov',acc) = mapsProv preF postF prov acc
-          val (call',acc) = Sharing.mapsOption (maps preF postF) call acc
-          val obj' =
+
+          val (prov',call',acc) =
+              if lr then
+                let
+                  val (prov',acc) = mapsProv lr preF postF prov acc
+                  val (call',acc) =
+                      Sharing.mapsOption (maps lr preF postF) call acc
+                in
+                  (prov',call',acc)
+                end
+              else
+                let
+                  val (call',acc) =
+                      Sharing.mapsOption (maps lr preF postF) call acc
+                  val (prov',acc) = mapsProv lr preF postF prov acc
+                in
+                  (prov',call',acc)
+                end
+
+          val obj =
               if Portable.pointerEqual (prov',prov) andalso
                  Portable.pointerEqual (call',call) then
                 obj
               else
                 Object {id = id, object = ob, provenance = prov', call = call'}
+
+          val acc = postF obj acc
         in
-          postF obj' acc
+          (obj,acc)
         end
 
-  and mapsProv preF postF prov acc =
+  and mapsProv lr preF postF prov acc =
       case prov of
         Pnull => (prov,acc)
-      | Pcall obj => mapsProv1 preF postF prov acc Pcall obj
-      | Preturn obj => mapsProv1 preF postF prov acc Preturn obj
+      | Pcall obj => mapsProv1 lr preF postF prov acc Pcall obj
+      | Preturn obj => mapsProv1 lr preF postF prov acc Preturn obj
       | Pcons (objH,objT) =>
         let
-          val (objH',acc) = maps preF postF objH acc
-          val (objT',acc) = maps preF postF objT acc
+          val (objH',objT',acc) =
+              if lr then
+                let
+                  val (objH',acc) = maps lr preF postF objH acc
+                  val (objT',acc) = maps lr preF postF objT acc
+                in
+                  (objH',objT',acc)
+                end
+              else
+                let
+                  val (objT',acc) = maps lr preF postF objT acc
+                  val (objH',acc) = maps lr preF postF objH acc
+                in
+                  (objH',objT',acc)
+                end
+
           val prov' =
               if Portable.pointerEqual (objH',objH) andalso
                  Portable.pointerEqual (objT',objT) then
@@ -169,25 +165,30 @@ local
         in
           (prov',acc)
         end
-      | Pref obj => mapsProv1 preF postF prov acc Pref obj
+      | Pref obj => mapsProv1 lr preF postF prov acc Pref obj
       | Pthm objs =>
         let
-          val (objs',acc) = Sharing.maps (maps preF postF) objs acc
+          val (objs',acc) =
+              (if lr then Sharing.maps else Sharing.revMaps)
+                (maps lr preF postF) objs acc
+
           val prov' =
               if Portable.pointerEqual (objs',objs) then prov else Pthm objs'
         in
           (prov',acc)
         end
 
-  and mapsProv1 preF postF prov acc con obj =
+  and mapsProv1 lr preF postF prov acc con obj =
       let
-        val (obj',acc) = maps preF postF obj acc
+        val (obj',acc) = maps lr preF postF obj acc
         val prov' = if Portable.pointerEqual (obj',obj) then prov else con obj'
       in
         (prov',acc)
       end;
 in
-  val mapsObject = maps;
+  fun mapsObject preF postF obj acc = maps true preF postF obj acc;
+
+  fun revMapsObject preF postF obj acc = maps false preF postF obj acc;
 end;
 
 fun callStackObject obj =
@@ -223,6 +224,8 @@ val emptyObjectSet = ObjectSet (Set.empty compareObject);
 
 fun nullObjectSet (ObjectSet set) = Set.null set;
 
+fun memberObjectSet obj (ObjectSet set) = Set.member obj set;
+
 fun peekObjectSet (ObjectSet set) obj = Set.peek set obj;
 
 fun addObjectSet (ObjectSet set) obj = ObjectSet (Set.add set obj);
@@ -233,6 +236,16 @@ fun addListObjectSet set objs =
 fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
 
 fun foldlObjectSet f b (ObjectSet set) = Set.foldl f b set;
+
+local
+  fun toStream NONE = Stream.NIL
+    | toStream (SOME iter) =
+      Stream.CONS (Set.readIterator iter, toStreamDelay iter)
+
+  and toStreamDelay iter () = toStream (Set.advanceIterator iter)
+in
+  fun toStreamObjectSet (ObjectSet set) = toStream (Set.mkIterator set);
+end;
 
 (***
 local
@@ -268,60 +281,71 @@ val closeCallStackObjectSet =
 local
   fun preReduce obj (reqd_refs as (reqd,refs)) =
       case peekObjectSet reqd obj of
-        SOME obj => Left (obj,reqd_refs)
+        SOME obj => Left obj
       | NONE =>
+        Right
         let
           val Object {id, object = ob, provenance = prov, call} = obj
-          val reduced =
+
+          fun better rid =
+              rid < id andalso
               case prov of
-                Pnull => true
-              | Pcall _ => true
-              | Pref _ => true
-              | _ => false
+                Preturn (Object {id = rid', ...}) => rid < rid'
+              | Pref (Object {id = rid', ...}) => rid < rid'
+              | _ => true
         in
-          if reduced then Right (obj,reqd_refs)
-          else
+          case prov of
+            Pnull => obj
+          | Pcall _ => obj
+          | _ =>
             case ObjectMap.peek refs ob of
-              NONE => Right (obj,reqd_refs)
-            | SOME (obj' as Object {id = id', ...}) =>
-              if id' < id then
-                let
-                  val prov = Pref obj'
-                  val obj =
-                      Object
-                        {id = id, object = ob, provenance = prov, call = call}
-                  val reqd = addObjectSet reqd obj
-                in
-                  Left (obj,(reqd,refs))
-                end
+              NONE => obj
+            | SOME (robj as Object {id = rid, ...}) =>
+              if not (better rid) then obj
               else
-                Right (obj,reqd_refs)
+                Object
+                  {id = id,
+                   object = ob,
+                   provenance = Pref robj,
+                   call = call}
         end;
 
-  fun postReduce obj (reqd,refs) =
+  fun postReduce (obj as Object {id, object = ob, ...}) (reqd,refs) =
       let
         val reqd = addObjectSet reqd obj
-        val refs = ObjectMap.insert refs (object obj, obj)
+
+        val insertRefs =
+            case ObjectMap.peek refs ob of
+              NONE => true
+            | SOME (Object {id = id', ...}) => id < id'
+
+        val refs = if insertRefs then ObjectMap.insert refs (ob,obj) else refs
       in
-        (obj,(reqd,refs))
+        (reqd,refs)
       end;
 
-  fun dependencies sweep objs =
+  fun dependencies clean lr objs =
       let
         val reqd = emptyObjectSet
         val refs = ObjectMap.new ()
         val (objs',(reqd,_)) =
-            Sharing.maps
-              ((if sweep then mapsObject else (***rev***)mapsObject)
-                 preReduce postReduce)
-              objs (reqd,refs)
+            if lr then
+              Sharing.maps (mapsObject preReduce postReduce)
+                objs (reqd,refs)
+            else
+              Sharing.revMaps (revMapsObject preReduce postReduce)
+                objs (reqd,refs)
+
+        val clean' = Portable.pointerEqual (objs',objs)
+
+        val lr = not lr
       in
-        if Portable.pointerEqual (objs',objs) then (reqd,objs)
-        else dependencies (not sweep) objs'
+        if clean andalso clean' then (reqd,objs)
+        else dependencies clean' lr objs'
       end;
 in
   fun dependenciesObject objs =
-      dependencies true objs
+      dependencies false true objs
       handle Error err =>
         raise Bug ("Article.dependenciesObjects: " ^ err);
 end;
@@ -376,134 +400,6 @@ fun removeDict (Dict dict) key =
     case IntMap.peek dict key of
       SOME obj => (Dict (IntMap.delete dict key), obj)
     | NONE => raise Error ("removeDict: no entry for key " ^ Int.toString key);
-
-(* ------------------------------------------------------------------------- *)
-(* Minimal dictionaries.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-datatype minDict =
-    MinDict of
-      {nextKey : int,
-       refs : int ObjectMap.map,
-       keys : int ObjectMap.map};
-
-local
-  fun storable ob =
-      case ob of
-        Object.Oerror => false
-      | Object.Onum _ => false
-      | Object.Oname _ => false
-      | Object.Olist l => not (null l)
-      | Object.Otype _ => true
-      | Object.Oterm _ => true
-      | Object.Othm _ => raise Bug "Article.storable: Othm"
-      | Object.Ocall _ => raise Bug "Article.storable: Ocall";
-
-  fun registerPeek refs ob =
-      let
-        val p = ObjectMap.peek refs ob
-        val known = Option.isSome p
-        val k = Option.getOpt (p,0)
-        val refs = ObjectMap.insert refs (ob, k + 1)
-      in
-        (known,refs)
-      end;
-
-  fun registerList refs [] = refs
-    | registerList refs (ob :: obs) =
-      if not (storable ob) then registerList refs obs
-      else
-        let
-          val (known,refs) = registerPeek refs ob
-          val obs = if known then obs else snd (generateObject ob) @ obs
-        in
-          registerList refs obs
-        end;
-
-  fun register (obj,refs) = registerList refs [object obj];
-in
-  fun newMinDict objs =
-      let
-        val (reqd,objs) = dependenciesObject objs
-        val nextKey = 1
-        val refs = ObjectMap.new ()
-        val refs = foldlObjectSet register refs reqd
-        val refs = ObjectMap.filter (fn (_,n) => n >= 2) refs
-        val keys = ObjectMap.new ()
-        val dict =
-            MinDict
-              {nextKey = nextKey,
-               refs = refs,
-               keys = keys}
-      in
-        (objs,reqd,dict)
-      end
-      handle Error err =>
-        raise Bug ("Article.newMinDict: " ^ err);
-end;
-
-local
-  fun generate (ob,(dict,cmds)) =
-      let
-        val MinDict {nextKey,refs,keys} = dict
-      in
-        case ObjectMap.peek keys ob of
-          SOME key =>
-          let
-            val cmds = Int.toString key :: cmds
-          in
-            case ObjectMap.peek refs ob of
-              NONE => raise Bug "generate"
-            | SOME n =>
-              if n = 1 then
-                let
-                  val refs = ObjectMap.delete refs ob
-                  val keys = ObjectMap.delete keys ob
-                  val dict =
-                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
-                  val cmds = "remove" :: cmds
-                in
-                  (dict,cmds)
-                end
-              else
-                let
-                  val refs = ObjectMap.insert refs (ob, n - 1)
-                  val dict =
-                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
-                  val cmds = "ref" :: cmds
-                in
-                  (dict,cmds)
-                end
-          end
-        | NONE =>
-          let
-            val (cmd,pars) = generateObject ob
-            val (dict,cmds) = foldl generate (dict,cmds) pars
-            val cmds = cmd :: cmds
-          in
-            case ObjectMap.peek refs ob of
-              NONE => (dict,cmds)
-            | SOME n =>
-              let
-                val MinDict {nextKey,refs,keys} = dict
-                val key = nextKey
-                val nextKey = nextKey + 1
-                val keys = ObjectMap.insert keys (ob,key)
-                val refs = ObjectMap.insert refs (ob, n - 1)
-                val dict =
-                    MinDict {nextKey = nextKey, refs = refs, keys = keys}
-                val cmds = ["def", Int.toString key] @ cmds
-              in
-                (dict,cmds)
-              end
-          end
-    end;
-in
-  fun generateMinDict dict ob =
-      generate (ob,(dict,[]))
-      handle Error err =>
-        raise Bug ("Article.generateMinDict: " ^ err);
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Stacks.                                                                   *)
@@ -1225,8 +1121,244 @@ fun execute interpretation cmd state =
     handle Error err => raise Error (commandToString cmd ^ ": " ^ err);
 
 (* ------------------------------------------------------------------------- *)
+(* Generating simple objects.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun generateObject ob =
+    case ob of
+      Object.Oerror => (Cop "error", [])
+    | Object.Onum i => (Cnum i, [])
+    | Object.Oname n => (Cname n, [])
+    | Object.Olist l =>
+      (case l of
+         [] => (Cop "nil", [])
+       | h :: t => (Cop "cons", [h, Object.Olist t]))
+    | Object.Otype ty =>
+      (case Type.dest ty of
+         Type.TypeVar n => (Cop "type_var", [Object.Oname n])
+       | Type.TypeOp (n,tys) =>
+         (Cop "type_op", [Object.Oname n, Object.mkOtypes tys]))
+    | Object.Oterm tm =>
+      (case Term.dest tm of
+         Term.Const (n,ty) =>
+         (Cop "const", [Object.Oname n, Object.Otype ty])
+       | Term.Var (n,ty) =>
+         (Cop "var", [Object.Oname n, Object.Otype ty])
+       | Term.Comb (f,a) =>
+         (Cop "comb", [Object.Oterm f, Object.Oterm a])
+       | Term.Abs (v,b) =>
+         (Cop "abs", [Object.Oterm (Term.mkVar v), Object.Oterm b]))
+    | Object.Othm th =>
+      let
+        val {hyp,concl} = sequent th
+        val hyp = TermAlphaSet.toList hyp
+      in
+        (Cop "thm", [Object.mkOterms hyp, Object.Oterm concl])
+      end
+    | Object.Ocall _ => raise Bug "Article.generateObject: Ocall";
+
+(* ------------------------------------------------------------------------- *)
 (* Generating commands.                                                      *)
 (* ------------------------------------------------------------------------- *)
+
+datatype minDict =
+    MinDict of
+      {nextKey : int,
+       refs : int ObjectMap.map,
+       keys : int ObjectMap.map};
+
+local
+  fun storable ob =
+      case ob of
+        Object.Oerror => false
+      | Object.Onum _ => false
+      | Object.Oname _ => false
+      | Object.Olist l => not (null l)
+      | Object.Otype _ => true
+      | Object.Oterm _ => true
+      | Object.Othm _ => true
+      | Object.Ocall _ => raise Bug "Article.storable: Ocall";
+
+  fun registerTop refs ob =
+      let
+        val p = ObjectMap.peek refs ob
+        val known = Option.isSome p
+        val k = Option.getOpt (p,0)
+        val refs = ObjectMap.insert refs (ob, k + 1)
+      in
+        (known,refs)
+      end;
+
+  fun registerDeep refs [] = refs
+    | registerDeep refs (ob :: obs) =
+      if not (storable ob) then registerDeep refs obs
+      else
+        let
+          val (known,refs) = registerTop refs ob
+          val obs = if known then obs else snd (generateObject ob) @ obs
+        in
+          registerDeep refs obs
+        end;
+
+  fun register (obj,refs) =
+      let
+        val Object {object = ob, provenance = prov, ...} = obj
+      in
+        case prov of
+          Pnull => registerDeep refs [ob]
+        | Pcall _ => refs
+        | Preturn _ => refs
+        | Pcons _ =>
+          let
+            val (known,refs) = registerTop refs ob
+(*OpenTheoryDebug
+            val _ = not known orelse raise Bug "Article.register: Pcons"
+*)
+          in
+            refs
+          end
+        | Pref _ =>
+          let
+            val (known,refs) = registerTop refs ob
+(*OpenTheoryDebug
+            val _ = known orelse raise Bug "Article.register: Pref"
+*)
+          in
+            refs
+          end
+        | Pthm _ => registerDeep refs [ob]
+      end;
+in
+  fun newMinDict objs =
+      let
+        val nextKey = 1
+        val refs = ObjectMap.new ()
+        val refs = foldlObjectSet register refs objs
+        val refs = ObjectMap.filter (fn (_,n) => n >= 2) refs
+        val keys = ObjectMap.new ()
+      in
+        MinDict
+          {nextKey = nextKey,
+           refs = refs,
+           keys = keys}
+      end
+      handle Error err =>
+        raise Bug ("Article.newMinDict: " ^ err);
+end;
+
+local
+  fun generate (ob,(dict,cmds)) =
+      let
+        val MinDict {nextKey,refs,keys} = dict
+      in
+        case ObjectMap.peek keys ob of
+          SOME key =>
+          let
+            val cmds = Cnum key :: cmds
+          in
+            case ObjectMap.peek refs ob of
+              NONE => raise Bug "generate"
+            | SOME n =>
+              if n = 1 then
+                let
+                  val refs = ObjectMap.delete refs ob
+                  val keys = ObjectMap.delete keys ob
+                  val dict =
+                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
+                  val cmds = Cop "remove" :: cmds
+                in
+                  (dict,cmds)
+                end
+              else
+                let
+                  val refs = ObjectMap.insert refs (ob, n - 1)
+                  val dict =
+                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
+                  val cmds = Cop "ref" :: cmds
+                in
+                  (dict,cmds)
+                end
+          end
+        | NONE =>
+          let
+            val (cmd,pars) = generateObject ob
+            val (dict,cmds) = foldl generate (dict,cmds) pars
+            val cmds = cmd :: cmds
+          in
+            case ObjectMap.peek refs ob of
+              NONE => (dict,cmds)
+            | SOME n =>
+              let
+                val MinDict {nextKey,refs,keys} = dict
+                val key = nextKey
+                val nextKey = nextKey + 1
+                val keys = ObjectMap.insert keys (ob,key)
+                val refs = ObjectMap.insert refs (ob, n - 1)
+                val dict =
+                    MinDict {nextKey = nextKey, refs = refs, keys = keys}
+                val cmds = [Cop "def", Cnum key] @ cmds
+              in
+                (dict,cmds)
+              end
+          end
+    end;
+in
+  fun generateMinDict dict obj =
+      let
+        val Object {object = ob, provenance = prov, ...} = obj
+      in
+        case prov of
+          Pnull => generate (ob,(dict,[]))
+        | Pcall _ => (dict, [Cop "call"])
+        | Preturn _ => (dict, [Cop "return"])
+        | Pcons _ =>
+          let
+            val (known,refs) = registerTop refs ob
+(*OpenTheoryDebug
+            val _ = not known orelse raise Bug "Article.register: Pcons"
+*)
+          in
+            refs
+          end
+        | Pref _ =>
+          let
+            val (known,refs) = registerTop refs ob
+(*OpenTheoryDebug
+            val _ = known orelse raise Bug "Article.register: Pref"
+*)
+          in
+            refs
+          end
+        | Pthm _ => generate (ob,(dict,[]))
+      end
+      handle Error err =>
+        raise Bug ("Article.generateMinDict: " ^ err);
+end;
+
+fun generate saved objs =
+    let
+      fun gen obj dict =
+          let
+            val (dict,cmds) = generateMinDict dict obj
+
+            val cmds =
+                if not (memberObjectSet obj saved) then cmds
+                else Cop "save" :: Cop "dup" :: Cnum 0 :: cmds
+
+            val cmds = rev cmds
+          in
+            (cmds,dict)
+          end
+
+      val dict = newMinDict objs
+
+      val strm = toStreamObjectSet objs
+      val strm = Stream.maps gen dict strm
+    in
+      Stream.flatten (Stream.map Stream.fromList strm)
+    end
+    handle Error err =>
+      raise Bug ("Article.generate: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Articles                                                                  *)
@@ -1855,13 +1987,16 @@ in
 end;
 ***)
 
-fun toTextFile {filename, article} =
+fun toTextFile {filename,article} =
     let
       val Article {saved,...} = article
-      val objs = fromListObjectSet (listSaved saved)
-      val strm = raise Bug "not implemented"
+      val saved = listSaved saved
+      val (objs,saved) = dependenciesObject saved
+      val saved = fromListObjectSet saved
+      val commands = generate saved objs
+      val lines = Stream.map (fn c => commandToString c ^ "\n") commands
     in
-      Stream.toTextFile {filename = filename} strm
+      Stream.toTextFile {filename = filename} lines
     end
     handle Error err => raise Error ("Article.toTextFile: " ^ err);
 
