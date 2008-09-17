@@ -74,11 +74,23 @@ TU.subst u qTq;
 
 val ARTICLE_DIR = "articles/hol-light";
 
-val art =
+val known = ThmSet.empty;
+
+val bool =
     time
       Article.fromTextFile
-      {filename = ARTICLE_DIR ^ "/num.art",
-       interpretation = holLightInt};
+      {known = known,
+       interpretation = holLightInt,
+       filename = ARTICLE_DIR ^ "/bool.art"};
+
+val known = ThmSet.union known (Article.saved bool);
+
+val num =
+    time
+      Article.fromTextFile
+      {known = known,
+       interpretation = holLightInt,
+       filename = ARTICLE_DIR ^ "/num.art"};
 
 val filename = "compressed.art";
 
@@ -86,13 +98,14 @@ val () =
     time
       Article.toTextFile
       {filename = filename,
-       article = art};
+       article = num};
 
-val art' =
+val num' =
     time
       Article.fromTextFile
-      {filename = filename,
-       interpretation = Interpretation.natural};
+      {known = known,
+       interpretation = Interpretation.natural,
+       filename = filename};
 
 (***
 [

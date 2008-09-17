@@ -56,6 +56,8 @@ val defineType :
 
 val alpha : Sequent.sequent -> Thm.thm -> Thm.thm
 
+val findAlpha : ThmSet.set -> Sequent.sequent -> Thm.thm option
+
 (* Transitivity of equality *)
 
 val trans : Thm.thm -> Thm.thm -> Thm.thm

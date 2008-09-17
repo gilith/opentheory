@@ -86,6 +86,20 @@ end
 structure NameOrdered =
 struct type t = Name.name val compare = Name.compare end
 
-structure NameSet = ElementSet (NameOrdered)
+structure NameSet =
+struct
+
+  local
+    structure S = ElementSet (NameOrdered);
+  in
+    open S;
+  end;
+
+  val pp =
+      Parser.ppMap
+        toList
+        (Parser.ppBracket "{" "}" (Parser.ppSequence "," Name.pp));
+
+end
 
 structure NameMap = KeyMap (NameOrdered)

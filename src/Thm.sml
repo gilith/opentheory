@@ -179,7 +179,7 @@ fun refl t =
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
- 
+
 (* ------------------------------------------------------------------------- *)
 (* Definitions                                                               *)
 (* ------------------------------------------------------------------------- *)
@@ -252,8 +252,6 @@ end
 structure ThmOrdered =
 struct type t = Thm.thm val compare = Thm.compare end
 
-structure ThmSet =
-ElementSet (ThmOrdered)
+structure ThmSet = ElementSet (ThmOrdered);
 
-structure ThmMap =
-KeyMap (ThmOrdered)
+structure ThmMap = KeyMap (ThmOrdered)

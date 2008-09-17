@@ -503,7 +503,7 @@ fun searchSaved (Saved stack) seq =
 
 fun listSaved (Saved stack) = rev (objectStack stack);
 
-val thmsSaved = map (Object.destOthm o object) o listSaved;
+val thmsSaved = ThmSet.fromList o map (Object.destOthm o object) o listSaved;
 
 local
   fun add (obj,set) = ObjectMap.insert set (object obj, obj);
@@ -754,7 +754,7 @@ val initialState =
        dict = emptyDict,
        saved = emptySaved};
 
-fun executeCommand interpretation cmd state =
+fun executeCommand known interpretation cmd state =
     let
       val State {stack,dict,saved} = state
     in
@@ -931,23 +931,26 @@ fun executeCommand interpretation cmd state =
                concl = Object.destOterm obC}
 
           val (th,deps) =
-              case searchSaved saved seq of
+              case findAlpha known seq of
                 SOME th => (th,[])
               | NONE =>
-                case simulate stack seq of
-                  SOME th_deps => th_deps
+                case searchSaved saved seq of
+                  SOME th => (th,[])
                 | NONE =>
-                  case searchStack stack seq of
+                  case simulate stack seq of
                     SOME th_deps => th_deps
                   | NONE =>
-                    let
-                      val th = Thm.axiom seq
-                      val () = warn ("making new axiom in " ^
-                                     topCallToStringStack stack ^ ":\n" ^
-                                     thmToString th)
-                    in
-                      (th,[])
-                    end
+                    case searchStack stack seq of
+                      SOME th_deps => th_deps
+                    | NONE =>
+                      let
+                        val th = Thm.axiom seq
+                        val () = warn ("making new axiom in " ^
+                                       topCallToStringStack stack ^ ":\n" ^
+                                       thmToString th)
+                      in
+                        (th,[])
+                      end
 
           val ob = Object.Othm th
           and prov = Pthm deps
@@ -1107,9 +1110,10 @@ fun executeCommand interpretation cmd state =
     end
     handle Error err => raise Error (commandToString cmd ^ ": " ^ err);
 
-fun executeCommands interpretation =
+fun executeCommands known interpretation =
     let
-      fun process (command,state) = executeCommand interpretation command state
+      fun process (command,state) =
+          executeCommand known interpretation command state
     in
       Stream.foldl process initialState
     end;
@@ -1331,7 +1335,8 @@ local
             let
               val cmds =
                   case ob of
-                    Object.Ocall n => Cop "return" :: Cname n :: cmds
+                    Object.Ocall n =>
+                    Cop "return" :: Cname n :: Cop "error" :: cmds
                   | _ => raise Bug "Article.alignCalls: Ocall"
             in
               alignCalls prevCall call cmds
@@ -1432,11 +1437,12 @@ fun generate saved objs =
 
 datatype article =
     Article of
-      {saved : saved};
+      {thms : ThmSet.set,
+       saved : saved};
 
-fun search (Article {saved = s, ...}) seq = searchSaved s seq;
+fun saved (Article {thms = x, ...}) = x;
 
-fun saved (Article {saved = s, ...}) = thmsSaved s;
+fun search (Article {saved = x, ...}) seq = searchSaved x seq;
 
 (* ------------------------------------------------------------------------- *)
 (* I/O                                                                       *)
@@ -1449,7 +1455,7 @@ local
       | SOME #"#" => true
       | _ => false;
 in
-  fun executeTextFile {filename,interpretation} =
+  fun executeTextFile {known,interpretation,filename} =
       let
         (* Estimating parse error line numbers *)
 
@@ -1468,7 +1474,7 @@ in
 
            val commands = Parser.everything spacedCommandParser chars
          in
-           executeCommands interpretation commands
+           executeCommands known interpretation commands
          end
          handle Parser.NoParse => raise Error "parse error")
         handle Error err =>
@@ -1477,11 +1483,12 @@ in
       end;
 end;
 
-fun fromTextFile {filename,interpretation} =
+fun fromTextFile {known,interpretation,filename} =
     let
       val State {stack,dict,saved} =
           executeTextFile
-            {filename = filename,
+            {known = known,
+             filename = filename,
              interpretation = interpretation}
 
       val savedSet = toSetSaved saved
@@ -1564,8 +1571,12 @@ fun fromTextFile {filename,interpretation} =
           end
 
       val saved = fromSetSaved savedSet
+
+      val thms = thmsSaved saved
     in
-      Article {saved = saved}
+      Article
+        {thms = thms,
+         saved = saved}
     end
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
 
@@ -1573,7 +1584,6 @@ fun toTextFile {filename,article} =
     let
       val Article {saved,...} = article
       val saved = listSaved saved
-      val () = Parser.ppTrace Parser.ppInt "saved" (length saved)
       val (objs,saved) = dependenciesObject saved
       val () = Parser.ppTrace ppObjectSet "objs" objs
       val saved = fromListObjectSet saved

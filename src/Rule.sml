@@ -152,6 +152,11 @@ fun alpha seq th =
     end
     handle Error err => raise Error ("Rule.alpha: " ^ err);
 
+fun findAlpha set seq =
+    case ThmSet.peek set (Thm.axiom seq) of
+      SOME th => SOME (alpha seq th)
+    | NONE => NONE;
+
 (* Transitivity of equality *)
 
 fun trans th1 th2 =

@@ -12,16 +12,16 @@ sig
 
 type article
 
-val search : article -> Sequent.sequent -> Thm.thm option
-
-val saved : article -> Thm.thm list
+val saved : article -> ThmSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* I/O                                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 val fromTextFile :
-    {filename : string, interpretation : Interpretation.interpretation} ->
+    {known : ThmSet.set,
+     interpretation : Interpretation.interpretation,
+     filename : string} ->
     article
 
 val toTextFile : {filename : string, article : article} -> unit
