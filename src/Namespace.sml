@@ -65,15 +65,33 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
+  fun escapeChar c =
+      case c of
+        #"\\" => "\\\\"
+      | #"\"" => "\\\""
+      | #"." => "\\."
+      | #"\n" => "\\n"
+      | #"\t" => "\\t"
+      | _ => str c;
+
+  val escapeString = String.translate escapeChar;
+
   fun dotify ns = join "." ns;
 in
   fun toString (n as Namespace ns) =
       if isGlobal n then globalString else dotify ns;
+
+  fun quotedToString (n as Namespace ns) =
+      let
+        val s = if isGlobal n then globalString else dotify (map escapeString ns)
+      in
+        "\"" ^ s ^ "\""
+      end;
 end;
 
 val pp = Parser.ppMap toString Parser.ppString;
 
-val ppQuoted = Parser.ppBracket "\"" "\"" pp;
+val ppQuoted = Parser.ppMap quotedToString Parser.ppString;
 
 local
   infixr 9 >>++
@@ -85,27 +103,31 @@ local
 
   val globalChars = explode globalString;
 
-  val isSpecialChar = C mem (explode "\"\\.");
+  val isSpecialChar = C mem (explode "\\\".");
+
+  fun isEscapedChar c =
+      case c of
+        #"\n" => true
+      | #"\t" => true
+      | _ => isSpecialChar c;
 
   val escapeParser =
       some isSpecialChar ||
       (exact #"n" >> K #"\n") ||
-      (exact #"t" >> K #"\t") ||
-      (any >> (fn c => raise Error ("bad escaped char: \\" ^ str c)));
+      (exact #"t" >> K #"\t");
 
   val componentCharParser =
-      (exact #"\n" >> (fn _ => raise Error "newline in quote")) ||
       ((exact #"\\" ++ escapeParser) >> snd) ||
-      some (not o isSpecialChar);
+      some (not o isEscapedChar);
 
   val componentParser = many componentCharParser >> implode;
 
   val dotComponentParser = (exact #"." ++ componentParser) >> snd;
-in
+
   val parser =
       (exactList globalChars >> K global) ||
       (componentParser ++ many dotComponentParser) >> (Namespace o op::);
-
+in
   val quotedParser =
       (exact #"\"" ++ parser ++ exact #"\"") >> (fn (_,(x,_)) => x);
 end;

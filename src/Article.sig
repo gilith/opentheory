@@ -12,6 +12,8 @@ sig
 
 type article
 
+val search : article -> Sequent.sequent -> Thm.thm option
+
 val saved : article -> Thm.thm list
 
 (* ------------------------------------------------------------------------- *)

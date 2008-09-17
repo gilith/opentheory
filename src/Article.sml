@@ -353,6 +353,8 @@ datatype dict = Dict of object IntMap.map;
 
 val emptyDict = Dict (IntMap.new ());
 
+fun sizeDict (Dict m) = IntMap.size m;
+
 fun defDict (Dict dict) (key,obj) = Dict (IntMap.insert dict (key,obj));
 
 fun refDict (Dict dict) key =
@@ -488,6 +490,8 @@ datatype saved = Saved of stack;
 
 val emptySaved = Saved emptyStack;
 
+fun sizeSaved (Saved stack) = sizeStack stack;
+
 fun addSaved (Saved stack) obj =
     if Object.isOthm (object obj) then Saved (pushStack stack obj)
     else raise Error "Object.addSaved: not an Othm object";
@@ -498,6 +502,29 @@ fun searchSaved (Saved stack) seq =
     | NONE => NONE;
 
 fun listSaved (Saved stack) = rev (objectStack stack);
+
+val thmsSaved = map (Object.destOthm o object) o listSaved;
+
+local
+  fun add (obj,set) = ObjectMap.insert set (object obj, obj);
+in
+  fun toSetSaved (Saved stack) =
+      List.foldl add (ObjectMap.new ()) (objectStack stack);
+end;
+
+local
+  fun addSet (_,obj,set) = addObjectSet set obj;
+
+  fun addStack (obj,stack) = pushStack stack obj;
+in
+  fun fromSetSaved set =
+      let
+        val objs = ObjectMap.foldl addSet emptyObjectSet set
+        val stack = foldlObjectSet addStack emptyStack objs
+      in
+        Saved stack
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* hol-light                                                                 *)
@@ -727,11 +754,7 @@ val initialState =
        dict = emptyDict,
        saved = emptySaved};
 
-fun savedState (State {saved = s, ...}) = s;
-
-fun stackState (State {stack = s, ...}) = s;
-
-fun execute interpretation cmd state =
+fun executeCommand interpretation cmd state =
     let
       val State {stack,dict,saved} = state
     in
@@ -1084,6 +1107,13 @@ fun execute interpretation cmd state =
     end
     handle Error err => raise Error (commandToString cmd ^ ": " ^ err);
 
+fun executeCommands interpretation =
+    let
+      fun process (command,state) = executeCommand interpretation command state
+    in
+      Stream.foldl process initialState
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Generating simple objects.                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -1282,18 +1312,89 @@ local
         in
           addKey dict cmds ob
         end;
+
+  fun alignCalls prevCall call cmds =
+      case prevCall of
+        NONE =>
+        (case call of
+           NONE => cmds
+         | SOME _ => raise Bug "Article.alignCalls: top level to nested")
+      | SOME (Object {id, object = ob, call = prevCall, ...}) =>
+        let
+          val aligned =
+              case call of
+                NONE => false
+              | SOME (Object {id = id', ...}) => id = id'
+        in
+          if aligned then cmds
+          else
+            let
+              val cmds =
+                  case ob of
+                    Object.Ocall n => Cop "return" :: Cname n :: cmds
+                  | _ => raise Bug "Article.alignCalls: Ocall"
+            in
+              alignCalls prevCall call cmds
+            end
+        end;
 in
-  fun generateMinDict dict obj =
+  fun generateMinDict prevCall dict obj =
       let
-        val Object {object = ob, provenance = prov, ...} = obj
+        val Object {object = ob, provenance = prov, call, ...} = obj
+        val cmds = []
       in
         case prov of
-          Pnull => generateDeep (ob,(dict,[]))
-        | Pcall _ => (dict, [Cop "call"])
-        | Preturn _ => (dict, [Cop "return"])
-        | Pcons _ => addKey dict [Cop "cons"] ob
-        | Pref _ => useKey dict [] ob
-        | Pthm _ => generateDeep (ob,(dict,[]))
+          Pnull =>
+          let
+            val cmds = alignCalls prevCall call cmds
+            val (dict,cmds) = generateDeep (ob,(dict,cmds))
+          in
+            (call,dict,cmds)
+          end
+        | Pcall _ =>
+          let
+            val cmds = alignCalls prevCall call cmds
+            val cmds =
+                case ob of
+                  Object.Ocall n => Cop "call" :: Cname n :: cmds
+                | _ => raise Bug "Article.generateMinDict: Pcall"
+            val call = SOME obj
+          in
+            (call,dict,cmds)
+          end
+        | Preturn (Object {call = rcall, ...}) =>
+          let
+            val cmds = alignCalls prevCall rcall cmds
+            val cmds =
+                case rcall of
+                  SOME (Object {object = Object.Ocall n, ...}) =>
+                  Cop "return" :: Cname n :: cmds
+                | _ => raise Bug "Article.generateMinDict: Preturn"
+          in
+            (call,dict,cmds)
+          end
+        | Pcons _ =>
+          let
+            val cmds = alignCalls prevCall call cmds
+            val cmds = Cop "cons" :: cmds
+            val (dict,cmds) = addKey dict cmds ob
+          in
+            (call,dict,cmds)
+          end
+        | Pref _ =>
+          let
+            val cmds = alignCalls prevCall call cmds
+            val (dict,cmds) = useKey dict cmds ob
+          in
+            (call,dict,cmds)
+          end
+        | Pthm _ =>
+          let
+            val cmds = alignCalls prevCall call cmds
+            val (dict,cmds) = generateDeep (ob,(dict,cmds))
+          in
+            (call,dict,cmds)
+          end
       end
       handle Error err =>
         raise Bug ("Article.generateMinDict: " ^ err);
@@ -1301,9 +1402,9 @@ end;
 
 fun generate saved objs =
     let
-      fun gen obj dict =
+      fun gen obj (call,dict) =
           let
-            val (dict,cmds) = generateMinDict dict obj
+            val (call,dict,cmds) = generateMinDict call dict obj
 
             val cmds =
                 if not (memberObjectSet obj saved) then cmds
@@ -1311,13 +1412,14 @@ fun generate saved objs =
 
             val cmds = rev cmds
           in
-            (cmds,dict)
+            (cmds,(call,dict))
           end
 
+      val call = NONE
       val dict = newMinDict objs
 
       val strm = toStreamObjectSet objs
-      val strm = Stream.maps gen dict strm
+      val strm = Stream.maps gen (call,dict) strm
     in
       Stream.concat (Stream.map Stream.fromList strm)
     end
@@ -1332,69 +1434,138 @@ datatype article =
     Article of
       {saved : saved};
 
-fun search (Article {saved,...}) seq = searchSaved saved seq;
+fun search (Article {saved = s, ...}) seq = searchSaved s seq;
 
-fun saved (Article {saved = s, ...}) =
-    map (Object.destOthm o object) (listSaved s);
+fun saved (Article {saved = s, ...}) = thmsSaved s;
 
 (* ------------------------------------------------------------------------- *)
 (* I/O                                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+local
+  fun isComment l =
+      case List.find (not o Char.isSpace) l of
+        NONE => true
+      | SOME #"#" => true
+      | _ => false;
+in
+  fun executeTextFile {filename,interpretation} =
+      let
+        (* Estimating parse error line numbers *)
+
+        val lines = Stream.fromTextFile {filename = filename}
+
+        val {chars,parseErrorLocation} = Parser.initialize {lines = lines}
+      in
+        (let
+           (* The character stream *)
+
+           val chars = Stream.filter (not o isComment) chars
+
+           val chars = Parser.everything Parser.any chars
+
+           (* The command stream *)
+
+           val commands = Parser.everything spacedCommandParser chars
+         in
+           executeCommands interpretation commands
+         end
+         handle Parser.NoParse => raise Error "parse error")
+        handle Error err =>
+          raise Error ("error in file \"" ^ filename ^ "\" " ^
+                       parseErrorLocation () ^ "\n" ^ err)
+      end;
+end;
+
 fun fromTextFile {filename,interpretation} =
     let
-      (* Comment lines *)
+      val State {stack,dict,saved} =
+          executeTextFile
+            {filename = filename,
+             interpretation = interpretation}
 
-      fun isComment l =
-          case List.find (not o Char.isSpace) l of
-            NONE => true
-          | SOME #"#" => true
-          | _ => false
-
-      (* Estimating parse error line numbers *)
-
-      val lines = Stream.fromTextFile {filename = filename}
-
-      (* The character stream *)
-
-      val {chars,parseErrorLocation} = Parser.initialize {lines = lines}
-
-      val chars = Stream.filter (not o isComment) chars
-
-      val chars = Parser.everything Parser.any chars
-
-      (* The command stream *)
-
-      val commands =
-          Parser.everything spacedCommandParser chars
-          handle Parser.NoParse =>
-            raise Error ("parse error in file \"" ^ filename ^ "\" " ^
-                         parseErrorLocation ())
-
-      (* Executing the commands *)
-
-      fun process (command,state) =
-          execute interpretation command state
-          handle Error err =>
-            raise Error ("error in file \"" ^ filename ^ "\" " ^
-                         parseErrorLocation () ^ "\n" ^ err)
-
-      val state = initialState
-
-      val state = Stream.foldl process state commands
+      val savedSet = toSetSaved saved
 
       val () =
           let
-            val stack = stackState state
-            val n = sizeTheorems (theoremsStack stack)
+            val n = sizeSaved saved - ObjectMap.size savedSet
           in
             if n = 0 then ()
             else
-              warn (Int.toString n ^ " theorem" ^ (if n = 1 then "" else "s") ^
-                    " left on the stack by " ^ filename)
+              warn (Int.toString n ^ " saved theorem" ^
+                    (if n = 1 then " is a duplicate" else "s are duplicates") ^
+                    " in " ^ filename)
           end
+
+      val savedSet =
+          let
+            val n = sizeStack stack
+          in
+            if n = 0 then savedSet
+            else
+              let
+                val () =
+                    warn (Int.toString n ^ " object" ^
+                          (if n = 1 then "" else "s") ^
+                          " left on the stack by " ^ filename)
+
+                fun add (obj,(seen,ss)) =
+                    let
+                      val Object {id, object = ob, provenance = prov, ...} = obj
+                    in
+                      if IntSet.member id seen then (seen,ss)
+                      else
+                        let
+                          val seen = IntSet.add seen id
+                        in
+                          case prov of
+                            Pnull => (seen,ss)
+                          | Pcall _ => (seen,ss)
+                          | Preturn objR => add (objR,(seen,ss))
+                          | Pcons (objH,objT) => add (objT, add (objH,(seen,ss)))
+                          | Pref objR => add (objR,(seen,ss))
+                          | Pthm _ =>
+                            (seen,
+                             if ObjectMap.inDomain ob savedSet then ss
+                             else
+                               case ObjectMap.peek ss ob of
+                                 NONE => ObjectMap.insert ss (ob,obj)
+                               | SOME (Object {id = id', ...}) =>
+                                 if not (id < id') then ss
+                                 else ObjectMap.insert ss (ob,obj))
+                        end
+                    end
+
+                val (_,savedSet') =
+                    List.foldl add (IntSet.empty,savedSet) (objectStack stack)
+
+                val n = ObjectMap.size savedSet' - ObjectMap.size savedSet
+
+                val () =
+                    if n = 0 then ()
+                    else
+                      warn (Int.toString n ^ " unsaved theorem" ^
+                            (if n = 1 then "" else "s") ^
+                            " left on the stack by " ^ filename)
+              in
+                savedSet'
+              end
+          end
+
+      val () =
+          let
+            val n = sizeDict dict
+          in
+            if n = 0 then ()
+            else
+              warn (Int.toString n ^ " object" ^
+                    (if n = 1 then "" else "s") ^
+                    " left in the dictionary by " ^ filename)
+          end
+
+      val saved = fromSetSaved savedSet
     in
-      Article {saved = savedState state}
+      Article {saved = saved}
     end
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
 

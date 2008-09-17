@@ -57,12 +57,12 @@ fun replace (x,y) n : name = if equal n x then y else n;
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun toString (Name (ns,n)) =
-    if Namespace.isGlobal ns then n else Namespace.toString ns ^ "." ^ n;
-
-fun quotedToString n = "\"" ^ toString n ^ "\"";
+fun toString (Name ns_n) = Namespace.toString (Namespace.mkNested ns_n);
 
 val pp = Parser.ppMap toString Parser.ppString;
+
+fun quotedToString (Name ns_n) =
+    Namespace.quotedToString (Namespace.mkNested ns_n);
 
 val ppQuoted = Parser.ppMap quotedToString Parser.ppString;
 
@@ -78,10 +78,7 @@ local
       if Namespace.isGlobal ns then raise NoParse
       else Name (Namespace.destNested ns);
 in
-  val parser = Namespace.parser >> process;
-
-  val quotedParser =
-      (exact #"\"" ++ parser ++ exact #"\"") >> (fn (_,(x,_)) => x);
+  val quotedParser = Namespace.quotedParser >> process;
 end;
 
 end

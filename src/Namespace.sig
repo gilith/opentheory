@@ -52,9 +52,9 @@ val toString : namespace -> string
 
 val pp : namespace Parser.pp
 
-val ppQuoted : namespace Parser.pp
+val quotedToString : namespace -> string
 
-val parser : (char,namespace) Parser.parser
+val ppQuoted : namespace Parser.pp
 
 val quotedParser : (char,namespace) Parser.parser
 

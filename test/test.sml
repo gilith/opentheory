@@ -77,10 +77,10 @@ val ARTICLE_DIR = "articles/hol-light";
 val art =
     time
       Article.fromTextFile
-      {filename = ARTICLE_DIR ^ "/bool.art",
+      {filename = ARTICLE_DIR ^ "/num.art",
        interpretation = holLightInt};
 
-val filename = "compressed-bool.art";
+val filename = "compressed.art";
 
 val () =
     time
