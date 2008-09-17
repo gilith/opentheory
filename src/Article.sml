@@ -81,20 +81,6 @@ fun object (Object {object = x, ...}) = x;
 
 fun callObject (Object {call = x, ...}) = x;
 
-(***
-fun objectsProvenance prov =
-    case prov of
-      Pnull => []
-    | Pcall obj => [obj]
-    | Preturn obj => [obj]
-    | Pcons (obj1,obj2) => [obj1,obj2]
-    | Pdup obj => [obj]
-    | Pref obj => [obj]
-    | Pthm objs => objs;
-
-fun dependenciesObject (Object {provenance = p, ...}) = objectsProvenance p;
-***)
-
 local
   fun maps lr preF postF obj acc =
       case preF obj acc of
@@ -224,6 +210,8 @@ val emptyObjectSet = ObjectSet (Set.empty compareObject);
 
 fun nullObjectSet (ObjectSet set) = Set.null set;
 
+fun sizeObjectSet (ObjectSet set) = Set.size set;
+
 fun memberObjectSet obj (ObjectSet set) = Set.member obj set;
 
 fun peekObjectSet (ObjectSet set) obj = Set.peek set obj;
@@ -247,32 +235,8 @@ in
   fun toStreamObjectSet (ObjectSet set) = toStream (Set.mkIterator set);
 end;
 
-(***
-local
-  fun parents (Object {provenance = prov, call, ...}) =
-      let
-        val pars = []
-        val pars = case prov of Pcall obj => obj :: pars | _ => pars
-        val pars = case call of SOME obj => obj :: pars | NONE => pars
-      in
-        pars
-      end;
-
-  fun add set [] = set
-    | add set (obj :: objs) =
-      if Set.member obj set then add set objs
-      else add (addObjectSet set obj) (parentsObject obj @ objs);
-in
-  fun addCallStackObjectSet set obj = ObjectSet (add set [obj]);
-end;
-
-val closeCallStackObjectSet =
-    let
-      fun add (obj,set) = addCallStackObjectSet set obj
-    in
-      foldlObjectSet add emptyObjectSet
-    end;
-***)
+val ppObjectSet =
+    Parser.ppBracket "{" "}" (Parser.ppMap sizeObjectSet Parser.ppInt);
 
 (* ------------------------------------------------------------------------- *)
 (* Reducing objects.                                                         *)
@@ -1247,12 +1211,39 @@ in
 end;
 
 local
-  fun generate (ob,(dict,cmds)) =
+  fun isKey (MinDict {keys,...}) ob = ObjectMap.inDomain ob keys;
+
+  fun addKey dict cmds ob =
+      let
+        val MinDict {nextKey,refs,keys} = dict
+(*OpenTheoryDebug
+        val _ = not (ObjectMap.inDomain ob keys) orelse
+                raise Bug "Article.addKey"
+*)
+      in
+        case ObjectMap.peek refs ob of
+          NONE => (dict,cmds)
+        | SOME n =>
+          let
+            val key = nextKey
+            val nextKey = nextKey + 1
+            val keys = ObjectMap.insert keys (ob,key)
+            val refs = ObjectMap.insert refs (ob, n - 1)
+            val dict =
+                MinDict {nextKey = nextKey, refs = refs, keys = keys}
+            val cmds = [Cop "def", Cnum key] @ cmds
+          in
+            (dict,cmds)
+          end
+      end;
+
+  fun useKey dict cmds ob =
       let
         val MinDict {nextKey,refs,keys} = dict
       in
         case ObjectMap.peek keys ob of
-          SOME key =>
+          NONE => raise Bug "Article.useKey"
+        | SOME key =>
           let
             val cmds = Cnum key :: cmds
           in
@@ -1279,57 +1270,30 @@ local
                   (dict,cmds)
                 end
           end
-        | NONE =>
-          let
-            val (cmd,pars) = generateObject ob
-            val (dict,cmds) = foldl generate (dict,cmds) pars
-            val cmds = cmd :: cmds
-          in
-            case ObjectMap.peek refs ob of
-              NONE => (dict,cmds)
-            | SOME n =>
-              let
-                val MinDict {nextKey,refs,keys} = dict
-                val key = nextKey
-                val nextKey = nextKey + 1
-                val keys = ObjectMap.insert keys (ob,key)
-                val refs = ObjectMap.insert refs (ob, n - 1)
-                val dict =
-                    MinDict {nextKey = nextKey, refs = refs, keys = keys}
-                val cmds = [Cop "def", Cnum key] @ cmds
-              in
-                (dict,cmds)
-              end
-          end
-    end;
+      end;
+
+  fun generateDeep (ob,(dict,cmds)) =
+      if isKey dict ob then useKey dict cmds ob
+      else
+        let
+          val (cmd,pars) = generateObject ob
+          val (dict,cmds) = foldl generateDeep (dict,cmds) pars
+          val cmds = cmd :: cmds
+        in
+          addKey dict cmds ob
+        end;
 in
   fun generateMinDict dict obj =
       let
         val Object {object = ob, provenance = prov, ...} = obj
       in
         case prov of
-          Pnull => generate (ob,(dict,[]))
+          Pnull => generateDeep (ob,(dict,[]))
         | Pcall _ => (dict, [Cop "call"])
         | Preturn _ => (dict, [Cop "return"])
-        | Pcons _ =>
-          let
-            val (known,refs) = registerTop refs ob
-(*OpenTheoryDebug
-            val _ = not known orelse raise Bug "Article.register: Pcons"
-*)
-          in
-            refs
-          end
-        | Pref _ =>
-          let
-            val (known,refs) = registerTop refs ob
-(*OpenTheoryDebug
-            val _ = known orelse raise Bug "Article.register: Pref"
-*)
-          in
-            refs
-          end
-        | Pthm _ => generate (ob,(dict,[]))
+        | Pcons _ => addKey dict [Cop "cons"] ob
+        | Pref _ => useKey dict [] ob
+        | Pthm _ => generateDeep (ob,(dict,[]))
       end
       handle Error err =>
         raise Bug ("Article.generateMinDict: " ^ err);
@@ -1355,7 +1319,7 @@ fun generate saved objs =
       val strm = toStreamObjectSet objs
       val strm = Stream.maps gen dict strm
     in
-      Stream.flatten (Stream.map Stream.fromList strm)
+      Stream.concat (Stream.map Stream.fromList strm)
     end
     handle Error err =>
       raise Bug ("Article.generate: " ^ err);
@@ -1372,489 +1336,6 @@ fun search (Article {saved,...}) seq = searchSaved saved seq;
 
 fun saved (Article {saved = s, ...}) =
     map (Object.destOthm o object) (listSaved s);
-
-(***
-datatype articleOp =
-    FunctionCall of
-      {name : name,
-       arg : object,
-       ops : articleOp list,
-       ret : object}
-  | SaveThm of thm;
-
-fun functionCallUpdateOps ops artop =
-    case artop of
-      FunctionCall {name,arg,ret,...} =>
-      FunctionCall {name = name, arg = arg, ops = ops, ret = ret}
-    | SaveThm _ => raise Error "functionCallUpdateOps";
-
-datatype article = Article of articleOp list;
-
-val articleEmpty = Article [];
-
-fun articleAppend (Article x) (Article y) = Article (x @ y);
-
-val articleConcat = foldl (fn (x,z) => articleAppend z x) articleEmpty;
-
-val articleOperations =
-    let
-      fun f n [] = n
-        | f n (FunctionCall {ops,...} :: rest) = f (n + 1) (ops @ rest)
-        | f n (SaveThm _ :: rest) = f (n + 1) rest
-    in
-      fn Article l => f 0 l
-    end;
-
-fun articleToString article =
-    "[" ^ Int.toString (articleOperations article) ^ "]";
-
-val ppArticle = Parser.ppMap articleToString Parser.ppString;
-
-local
-  fun specialFilter _ [] s = ([],s)
-    | specialFilter p (h :: t) s =
-      case p h s of
-        SOME (h,s) =>
-        let
-          val (t,s) = specialFilter p t s
-        in
-          (h :: t, s)
-        end
-      | NONE => specialFilter p t s;
-
-  val deleteThms =
-      let
-        fun f (i,(b,s)) =
-            if IntSet.member i s then (true, IntSet.delete s i) else (b,s)
-      in
-        fn ths => fn set => foldl f (false,set) (map thmId ths)
-      end;
-
-  fun eliml ops useful = specialFilter elim ops useful
-  and elim (x as SaveThm _) useful = SOME (x,useful)
-    | elim (x as FunctionCall {ops,ret,...}) useful =
-      let
-        val (ops,useful) = eliml ops useful
-        val (ok,useful) = deleteThms (extractThms [ret]) useful
-      in
-        if not (ok orelse not (null ops)) then NONE
-        else SOME (functionCallUpdateOps ops x, useful)
-      end;
-in
-  fun deadTheoremElimination useful article =
-    let
-(*OpenTheoryTrace1
-      val _ = trace ("deadTheoremElimination: before = " ^
-                     articleToString article ^ "\n")
-*)
-      val Article ops = article
-      val (ops,useful) = eliml ops useful
-      val article = Article ops
-(*OpenTheoryTrace1
-      val _ = trace ("deadTheoremElimination: after = " ^
-                     articleToString article ^ "\n")
-*)
-    in
-      article
-    end;
-end;
-***)
-
-(***
-(* ------------------------------------------------------------------------- *)
-(* Getting hold of required theorems by hook or by crook                     *)
-(* ------------------------------------------------------------------------- *)
-
-datatype particle =
-         Particle of {name : name,
-                      arg : object,
-                      revOps : articleOp list,
-                      thms : thmSet};
-
-datatype extra =
-         Extra of {particles : particle * particle list,
-                   newTypes : NameSet.set,
-                   newConsts : NameSet.set,
-                   newAxioms : thm list,
-                   savedThms : thmSet,
-                   thmDeps : thmDeps};
-
-fun particleName (Particle {name,...}) = name;
-
-fun particleArg (Particle {arg,...}) = arg;
-
-fun particleRevOps (Particle {revOps,...}) = revOps;
-
-fun particleThms (Particle {thms,...}) = thms;
-
-fun particleUpdateName name particle =
-    let
-      val Particle {arg,revOps,thms,...} = particle
-    in
-      Particle {name = name, arg = arg, revOps = revOps, thms = thms}
-    end;
-
-fun particleUpdateArg arg particle =
-    let
-      val Particle {name,revOps,thms,...} = particle
-    in
-      Particle {name = name, arg = arg, revOps = revOps, thms = thms}
-    end;
-
-fun particleUpdateRevOps revOps particle =
-    let
-      val Particle {name,arg,thms,...} = particle
-    in
-      Particle {name = name, arg = arg, revOps = revOps, thms = thms}
-    end;
-
-fun particleUpdateThms thms particle =
-    let
-      val Particle {name,arg,revOps,...} = particle
-    in
-      Particle {name = name, arg = arg, revOps = revOps, thms = thms}
-    end;
-
-fun mkParticle name arg thms =
-    Particle {name = name, arg = arg, revOps = [], thms = thms};
-
-fun particleOps particle = rev (particleRevOps particle);
-
-fun particleAddOp op' particle =
-    particleUpdateRevOps (op' :: particleRevOps particle) particle;
-
-fun extraParticles (Extra {particles,...}) = particles;
-
-fun extraNewTypes (Extra {newTypes,...}) = newTypes;
-
-fun extraNewConsts (Extra {newConsts,...}) = newConsts;
-
-fun extraNewAxioms (Extra {newAxioms,...}) = newAxioms;
-
-fun extraSavedThms (Extra {savedThms,...}) = savedThms;
-
-fun extraThmDeps (Extra {thmDeps,...}) = thmDeps;
-
-fun extraUpdateParticles particles extra =
-    let
-      val Extra {newTypes, newConsts, newAxioms,
-                 savedThms, thmDeps, ...} = extra
-    in
-      Extra
-        {particles = particles, newTypes = newTypes,
-         newConsts = newConsts, newAxioms = newAxioms,
-         savedThms = savedThms, thmDeps = thmDeps}
-    end;
-
-fun extraUpdateNewTypes newTypes extra =
-    let
-      val Extra {particles, newConsts, newAxioms,
-                 savedThms, thmDeps, ...} = extra
-    in
-      Extra
-        {particles = particles, newTypes = newTypes,
-         newConsts = newConsts, newAxioms = newAxioms,
-         savedThms = savedThms, thmDeps = thmDeps}
-    end;
-
-fun extraUpdateNewConsts newConsts extra =
-    let
-      val Extra {particles, newTypes, newAxioms,
-                 savedThms, thmDeps, ...} = extra
-    in
-      Extra
-        {particles = particles, newTypes = newTypes,
-         newConsts = newConsts, newAxioms = newAxioms,
-         savedThms = savedThms, thmDeps = thmDeps}
-    end;
-
-fun extraUpdateNewAxioms newAxioms extra =
-    let
-      val Extra {particles, newTypes, newConsts,
-                 savedThms, thmDeps, ...} = extra
-    in
-      Extra
-        {particles = particles, newTypes = newTypes,
-         newConsts = newConsts, newAxioms = newAxioms,
-         savedThms = savedThms, thmDeps = thmDeps}
-    end;
-
-fun extraUpdateSavedThms savedThms extra =
-    let
-      val Extra {particles, newTypes, newConsts,
-                 newAxioms, thmDeps, ...} = extra
-    in
-      Extra
-        {particles = particles, newTypes = newTypes,
-         newConsts = newConsts, newAxioms = newAxioms,
-         savedThms = savedThms, thmDeps = thmDeps}
-    end;
-
-fun extraUpdateThmDeps thmDeps extra =
-    let
-      val Extra {particles, newTypes, newConsts,
-                 newAxioms, savedThms, ...} = extra
-    in
-      Extra
-        {particles = particles, newTypes = newTypes,
-         newConsts = newConsts, newAxioms = newAxioms,
-         savedThms = savedThms, thmDeps = thmDeps}
-    end;
-
-fun extraName extra =
-    let
-      val (topParticle,_) = extraParticles extra
-    in
-      particleName topParticle
-    end;
-
-fun extraArg extra =
-    let
-      val (topParticle,_) = extraParticles extra
-    in
-      particleArg topParticle
-    end;
-
-fun extraThms extra =
-    let
-      val (topParticle,_) = extraParticles extra
-    in
-      particleThms topParticle
-    end;
-
-fun extraUpdateThms thms extra =
-    let
-      val (topParticle,particles) = extraParticles extra
-      val topParticle = particleUpdateThms thms topParticle
-    in
-      extraUpdateParticles (topParticle,particles) extra
-    end;
-
-fun extraThmsAddList thl extra =
-    let
-      val thms = extraThms extra
-      val thms = thmSetAddList thl thms
-    in
-      extraUpdateThms thms extra
-    end;
-
-fun extraAddNewType n extra =
-    let
-      val newTypes = extraNewTypes extra
-      val newTypes = NameSet.add newTypes n
-    in
-      extraUpdateNewTypes newTypes extra
-    end;
-
-fun extraAddNewConst n extra =
-    let
-      val newConsts = extraNewConsts extra
-      val newConsts = NameSet.add newConsts n
-    in
-      extraUpdateNewConsts newConsts extra
-    end;
-
-fun extraAddNewAxiom th extra =
-    let
-      val newAxioms = extraNewAxioms extra
-      val newAxioms = th :: newAxioms
-    in
-      extraUpdateNewAxioms newAxioms extra
-    end;
-
-fun extraAddOp op' extra =
-    let
-      val (topParticle,particles) = extraParticles extra
-      val topParticle = particleAddOp op' topParticle
-    in
-      extraUpdateParticles (topParticle,particles) extra
-    end;
-
-fun extraThmDepsAdd deps extra =
-    let
-      val thmDeps = extraThmDeps extra
-      val thmDeps = thmDepsAdd deps thmDeps
-    in
-      extraUpdateThmDeps thmDeps extra
-    end;
-
-fun extraThmDepsAddList deps extra =
-    let
-      val thmDeps = extraThmDeps extra
-      val thmDeps = thmDepsAddList deps thmDeps
-    in
-      extraUpdateThmDeps thmDeps extra
-    end;
-
-val ppExtra = Parser.ppMap (fn _ : extra => "<extra>") Parser.ppString;
-
-val extraInit =
-    Extra
-      {particles = (mkParticle "<main>" (mkOunit ()) thmSetEmpty, []),
-       newTypes = NameSet.empty,
-       newConsts = NameSet.empty,
-       newAxioms = [],
-       savedThms = thmSetEmpty,
-       thmDeps = thmDepsEmpty};
-
-fun extraFindTheorem ths hC extra =
-    case thmSetPeek ths hC of
-      NONE => NONE
-    | SOME th =>
-      let
-        val th' = Alpha hC th
-        val extra = extraThmDepsAdd (th',[th]) extra
-      in
-        SOME (th',extra)
-      end;
-
-fun extraSimulate translation extra =
-    let
-      val arg = extraArg extra
-    in
-      case translationSimulate translation (extraName extra) arg of
-        NONE => extra
-      | SOME result =>
-        let
-          val resultThl = extractThms [result]
-          val extra = extraThmsAddList resultThl extra
-          val argThl = extractThms [arg]
-          val newDeps = map (fn th => (th,argThl)) resultThl
-          val extra = extraThmDepsAddList newDeps extra
-        in
-          extra
-        end
-    end;
-
-local
-  val typeOpExists = can Ty.typeArity;
-
-  fun extraNewTypeOp (n,arity) extra =
-      let
-        val () = warn ("making new type operator " ^ n)
-        val () = Ty.declareType n arity
-      in
-        extraAddNewType n extra
-      end;
-in
-  fun extraTypeOp translation (n,l) extra =
-      let
-        val extra =
-            if typeOpExists n then extra
-            else
-              let
-                val extra = extraSimulate translation extra
-              in
-                if typeOpExists n then extra
-                else extraNewTypeOp (n, length l) extra
-              end
-      in
-        (mkTypeOp (n,l), extra)
-      end;
-end;
-
-local
-  val constExists = can Term.constType;
-
-  fun extraNewConst n extra =
-      let
-        val () = warn ("making new constant " ^ n)
-        val () = Term.declareConst n alpha
-      in
-        extraAddNewConst n extra
-      end;
-in
-  fun extraConst translation (n,ty) extra =
-      let
-        val extra =
-            if constExists n then extra
-            else
-              let
-                val extra = extraSimulate translation extra
-              in
-                if constExists n then extra
-                else extraNewConst n extra
-              end
-      in
-        (mkConst (n,ty), extra)
-      end;
-end;
-
-fun extraAxiom (h,c) extra =
-    let
-      val th = Axiom {hyp = TAS.fromList h, concl = c}
-      val () = warn ("making new axiom:\n" ^ thmToString th)
-      val extra = extraAddNewAxiom th extra
-      val extra = extraThmDepsAdd (th,[]) extra
-    in
-      (th,extra)
-    end;
-
-fun extraThm translation hC extra =
-    case extraFindTheorem (extraSavedThms extra) hC extra of
-      SOME thExtra => thExtra
-    | NONE =>
-      case extraFindTheorem (extraThms extra) hC extra of
-        SOME thExtra => thExtra
-      | NONE =>
-        let
-          val extra = extraSimulate translation extra
-        in
-          case extraFindTheorem (extraThms extra) hC extra of
-            SOME thExtra => thExtra
-          | NONE => extraAxiom hC extra
-        end;
-
-fun extraCall name arg extra =
-    let
-      val (topParticle,particles) = extraParticles extra
-      val newParticle = mkParticle name arg (particleThms topParticle)
-    in
-      extraUpdateParticles (newParticle, topParticle :: particles) extra
-    end;
-
-fun extraReturn name ret extra =
-    let
-      val (topParticle,particles) = extraParticles extra
-      val (nextParticle,particles) =
-          case particles of
-            [] => raise Bug "extraReturn: bad particle list"
-          | next :: rest => (next,rest)
-      val newFunctionCall =
-          let
-            val _ = name = particleName topParticle orelse
-                    raise Bug "extraReturn: name mismatch"
-            val arg = particleArg topParticle
-            and ops = particleOps topParticle
-          in
-            FunctionCall {name = name, arg = arg, ops = ops, ret = ret}
-          end
-      val extra = extraUpdateParticles (nextParticle,particles) extra
-      val extra = extraAddOp newFunctionCall extra
-      val thms = thmSetAddList (extractThms [ret]) (extraThms extra)
-      val extra = extraUpdateThms thms extra
-    in
-      extra
-    end;
-
-fun extraSave th extra = extraAddOp (SaveThm th) extra;
-
-fun extraFinal saved extra =
-    let
-      val particle =
-          case extraParticles extra of
-            (topParticle,[]) => topParticle
-          | (_, _ :: _) => raise Error "article ended inside a function call"
-      val _ = particleName particle = "<main>" orelse
-              raise Bug "extraFinal: bad particle name"
-      val article = Article (particleOps particle)
-      val saved = listSaved saved
-      val useful = thmDepsUseful (extraThmDeps extra) saved
-      val article = deadTheoremElimination useful article
-    in
-      (saved,article)
-    end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* I/O                                                                       *)
@@ -1917,82 +1398,15 @@ fun fromTextFile {filename,interpretation} =
     end
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
 
-(***
-local
-  fun articleToStream translation =
-      let
-        fun lineToStream s = Stream.singleton (s ^ "\n")
-        and numToStream n = lineToStream (Int.toString n)
-        and nameToStream s = lineToStream ("\"" ^ s ^ "\"")
-        and commandToStream cmd = lineToStream cmd
-        and objectToStream obj =
-            test for dictionary before
-            (case obj of
-               Oerror => commandToStream "error"
-             | Onum n => numToStream n
-          | objectToStream (Oname of s) = nameToStream s
-          | objectToStream (Olist l) =
-            (case l of
-               [] => commandToStream "nil"
-             | h :: t =>
-               (Stream.flatten o Stream.fromList)
-                 [objectToStream h,
-                  objectToStream (Olist t),
-                  commandToStream "cons"])
-          | objectToStream (Otype ty) =
-            (case Ty.dest ty of
-               Ty.TypeVar n =>
-               Stream.append
-                 (nameToStream n)
-                 (commandToStream "typeVar")
-             | Ty.TypeOp (n,l) =
-               (Stream.flatten o Stream.fromList)
-                 [nameToStream n,
-                  objectToStream (Olist (map Otype l)),
-                  commandToStream "typeOp"])
-          | objectToStream (Oterm of term) =
-          | objectToStream (Othm of thm) =
-          | objectToStream (Ocall of name) =
-            raise Bug "encountered an Ocall object"
-        and callToStream name arg =
-            (Stream.flatten o Stream.fromList)
-              [objectToStream arg,
-               stringToStream name,
-               commandToStream "call"]
-        and returnToStream name ret =
-            (Stream.flatten o Stream.fromList)
-              [objectToStream ret,
-               stringToStream name,
-               commandToStream "return"]
-        and opToStream (SaveThm th) =
-            Stream.append (thmToStream th) (commandToStream "save")
-          | opToStream (FunctionCall {name,arg,ops,ret}) =
-            (Stream.flatten o Stream.fromList)
-              [callToStream name arg,
-               opsToStream ops,
-               returnToStream name ret]
-        and opsToStream ops =
-            Stream.flatten (Stream.map opToStream (Stream.fromList ops))
-      in
-        fn Article ops => opsToStream ops
-      end;
-in
-  fun toTextFile {filename, translation, article} =
-      let
-        val strm = articleToStream translation article
-      in
-        Stream.toTextFile {filename = filename} strm
-      end
-      handle Error err => raise Error ("Article.toTextFile: " ^ err);
-end;
-***)
-
 fun toTextFile {filename,article} =
     let
       val Article {saved,...} = article
       val saved = listSaved saved
+      val () = Parser.ppTrace Parser.ppInt "saved" (length saved)
       val (objs,saved) = dependenciesObject saved
+      val () = Parser.ppTrace ppObjectSet "objs" objs
       val saved = fromListObjectSet saved
+      val () = Parser.ppTrace ppObjectSet "saved" saved
       val commands = generate saved objs
       val lines = Stream.map (fn c => commandToString c ^ "\n") commands
     in
