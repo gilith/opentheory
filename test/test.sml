@@ -74,6 +74,7 @@ TU.subst u qTq;
 
 val ARTICLE_DIR = "articles/hol-light";
 
+(***
 val ARTICLES =
     ["preamble.art",
      "nets.art",
@@ -135,6 +136,9 @@ fun read filename known =
 val articles = maps read ARTICLES ThmSet.empty;
 
 stop;
+***)
+
+val known = ThmSet.empty;
 
 val bool =
     time
@@ -143,6 +147,7 @@ val bool =
        interpretation = holLightInt,
        filename = ARTICLE_DIR ^ "/bool.art"};
 
+(***
 val known = ThmSet.union known (Article.saved bool);
 
 val num =
@@ -154,11 +159,7 @@ val num =
 
 val filename = "compressed.art";
 
-val () =
-    time
-      Article.toTextFile
-      {filename = filename,
-       article = num};
+val () = time (Article.toTextFile {filename = filename}) num;
 
 val num' =
     time
@@ -166,45 +167,4 @@ val num' =
       {known = known,
        interpretation = Interpretation.natural,
        filename = filename};
-
-(***
-[
-(*
-   "preamble",
-   "basics",
-   "nets",
-   "preterm",
-   "parser",
-   "printer",
-   "equal",
-   "bool",
-   "drule",
-   "tactics",
-   "itab",
-   "simp",
-   "theorems",
-   "ind-defs",
-   "class",
-   "trivia",
-   "canon",
-   "meson",
-   "quot",
-   "recursion",
-   "pair",
-*)
-   "num"
-(*
- "arith",
- "wf",
- "calc_num",
- "normalizer",
- "ind-types",
- "list",
- "realax",
- "real",
- "calc_rat",
- "int",
- "sets"
-*)
-];
 ***)

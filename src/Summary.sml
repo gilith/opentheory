@@ -44,13 +44,28 @@ fun fromThms set =
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun ppCurrency p (name,c) =
+fun ppNameSet p (name,ns) =
+    (Parser.beginBlock p Parser.Consistent 2;
+     Parser.addString p (name ^ ":");
+     NameSet.app (fn n => (Parser.addNewline p; Name.pp p n)) ns;
+     Parser.endBlock p);
+
+fun ppCurrency p (name, Currency {types,consts,thms}) =
     (Parser.beginBlock p Parser.Consistent 0;
+     Parser.addString p (name ^ " {");
+     Parser.addNewline p;
+     Parser.beginBlock p Parser.Consistent 2;
+     ppNameSet p ("types",types);
+     Parser.endBlock p;
+     Parser.addNewline p;
+     Parser.addString p "}";
+     Parser.addNewline p;
      Parser.endBlock p);
 
 fun pp p (Summary {requires,provides}) =
     (Parser.beginBlock p Parser.Consistent 0;
      ppCurrency p ("REQUIRES",requires);
+     Parser.addNewline p;
      ppCurrency p ("PROVIDES",provides);
      Parser.endBlock p);
 
