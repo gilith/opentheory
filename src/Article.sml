@@ -12,9 +12,6 @@ open Useful Syntax Rule;
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun plural 1 s = "1 " ^ s
-  | plural n s = Int.toString n ^ " " ^ s ^ "s";
-
 fun natFromString err s =
     case Int.fromString s of
       SOME i => i
@@ -527,152 +524,12 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* hol-light                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun holLightTypeSubstToSubst oins =
-    let
-      fun f (x,y) = (destTypeVar (Object.destOtype y), Object.destOtype x)
-      val l = Object.destOlist oins
-    in
-      TermSubst.fromListType (map (f o Object.destOpair) l)
-    end
-    handle Error err =>
-      raise Bug ("holLightTypeSubstToSubst failed:\n" ^ err);
-
-fun holLightSubstToSubst oins =
-    let
-      fun f (x,y) = (destVar (Object.destOterm y), Object.destOterm x)
-      val l = Object.destOlist oins
-    in
-      TermSubst.fromList (map (f o Object.destOpair) l)
-    end
-    handle Error err =>
-      raise Bug ("holLightSubstToSubst failed:\n" ^ err);
-
-fun holLightNewBasicDefinition arg =
-    let
-      val tm = Object.destOterm arg
-      val (v,t) = destEq tm
-      val (n,ty) = destVar v
-      val v = mkVar (n,ty)
-      val tm = mkEq (v,t)
-    in
-      Object.Othm (define tm)
-    end
-    handle Error err =>
-      raise Bug ("holLightNewBasicDefinition failed:\n" ^ err);
-
-fun holLightNewBasicTypeDefinition arg =
-    let
-      val (name,absRep,nonEmptyTh) = Object.destOtriple arg
-      val name = Object.destOname name
-      val (abs,rep) = Object.destOpair absRep
-      val abs = Object.destOname abs
-      and rep = Object.destOname rep
-      and nonEmptyTh = Object.destOthm nonEmptyTh
-      val tyVars = NameSet.toList (Term.typeVars (concl nonEmptyTh))
-      val (absRepTh,repAbsTh) =
-          defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
-    in
-      Object.mkOpair (Object.Othm absRepTh, Object.Othm repAbsTh)
-    end
-    handle Error err =>
-      raise Bug ("holLightNewBasicTypeDefinition failed:\n" ^ err);
-
-fun holLightAbs arg =
-    let
-      val (otm,oth) = Object.destOpair arg
-      val v = destVar (Object.destOterm otm)
-      val th = Object.destOthm oth
-    in
-      Object.Othm (abs v th)
-    end;
-
-fun holLightAssume arg = Object.Othm (assume (Object.destOterm arg));
-
-fun holLightBeta arg = Object.Othm (betaConv (Object.destOterm arg));
-
-fun holLightDeductAntisymRule arg =
-    let
-      val (oth1,oth2) = Object.destOpair arg
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
-    in
-      Object.Othm (deductAntisym th1 th2)
-    end;
-
-fun holLightEqMp arg =
-    let
-      val (oth1,oth2) = Object.destOpair arg
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
-    in
-      Object.Othm (eqMp th1 th2)
-    end;
-
-fun holLightInst arg =
-    let
-      val (oins,oth) = Object.destOpair arg
-      val ins = holLightSubstToSubst oins
-      val th = Object.destOthm oth
-    in
-      Object.Othm (subst ins th)
-    end;
-
-fun holLightInstType arg =
-    let
-      val (oins,oth) = Object.destOpair arg
-      val ins = holLightTypeSubstToSubst oins
-      val th = Object.destOthm oth
-    in
-      Object.Othm (subst ins th)
-    end;
-
-fun holLightMkComb arg =
-    let
-      val (oth1,oth2) = Object.destOpair arg
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
-    in
-      Object.Othm (comb th1 th2)
-    end;
-
-fun holLightRefl arg = Object.Othm (refl (Object.destOterm arg));
-
-fun holLightTrans arg =
-    let
-      val (oth1,oth2) = Object.destOpair arg
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
-    in
-      Object.Othm (trans th1 th2)
-    end;
-
-val holLightNamespace = Namespace.mkNested (Namespace.global,"hol-light");
-
-val holLightSimulations =
-    map (fn (s,f) => (Name.mk (holLightNamespace,s), f))
-      [("new_basic_definition", holLightNewBasicDefinition),
-       ("new_basic_type_definition", holLightNewBasicTypeDefinition),
-       ("ABS", holLightAbs),
-       ("ASSUME", holLightAssume),
-       ("BETA", holLightBeta),
-       ("DEDUCT_ANTISYM_RULE", holLightDeductAntisymRule),
-       ("EQ_MP", holLightEqMp),
-       ("INST", holLightInst),
-       ("INST_TYPE", holLightInstType),
-       ("MK_COMB", holLightMkComb),
-       ("REFL", holLightRefl),
-       ("TRANS", holLightTrans)];
-
-(* ------------------------------------------------------------------------- *)
 (* Simulating other theorem provers.                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val simulations = NameMap.fromList holLightSimulations;
+val simulations = HolLight.simulations;
 
-fun simulate stack seq =
+fun simulate interpretation stack seq =
     case topCallStack stack of
       SOME (Object {object = Object.Ocall f, provenance = Pcall a, ...}) =>
       let
@@ -682,7 +539,7 @@ fun simulate stack seq =
           NONE => NONE
         | SOME sim =>
           let
-            val r = sim a
+            val r = sim interpretation a
             val ths = Object.thms r
           in
             case first (total (alpha seq)) ths of
@@ -937,7 +794,7 @@ fun executeCommand known interpretation cmd state =
                 case searchSaved saved seq of
                   SOME th => (th,[])
                 | NONE =>
-                  case simulate stack seq of
+                  case simulate interpretation stack seq of
                     SOME th_deps => th_deps
                   | NONE =>
                     case searchStack stack seq of
