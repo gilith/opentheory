@@ -42,7 +42,7 @@ in
       description = "interpret the article using the rules in FILE",
       processor =
         beginOpt (stringOpt endOpt)
-          (fn _ => fn s => 
+          (fn _ => fn s =>
            let val r as ref ss = INTERPRETATIONS in r := s :: ss end)},
      {switches = ["-o","--output"], arguments = ["FILE"],
       description = "output the processed article to FILE",
@@ -86,15 +86,17 @@ val mkInterpretation =
       List.foldl add Interpretation.natural
     end;
 
-fun readArticle interpretation filename known =
+fun readArticle interpretation (filename,(article,known)) =
     let
-      val article =
+      val article' =
           Article.fromTextFile
             {known = known,
              interpretation = interpretation,
              filename = filename}
 
-      val known = ThmSet.union known (Article.saved article)
+      val article = Article.append article article'
+
+      val known = ThmSet.union known (Article.saved article')
     in
       (article,known)
     end;
@@ -113,11 +115,17 @@ let
 
   val known = ThmSet.empty
 
-  val (articles,_) = maps (readArticle interpretation) work known
+  val (article,_) =
+      foldl (readArticle interpretation) (Article.empty,known) work
 
-  val success = proveAll work
+  val () =
+      case !OUTPUT of
+        SOME filename =>
+        Article.toTextFile {filename = filename} article
+      | NONE =>
+        Summary.toTextFile {filename = "-"} (Article.summarize article)
 in
-  exit {message = NONE, usage = false, success = success}
+  succeed ()
 end
 handle Error s => die (PROGRAM^" failed:\n" ^ s)
      | Bug s => die ("BUG found in "^PROGRAM^" program:\n" ^ s);

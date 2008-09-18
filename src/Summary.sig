@@ -1,37 +1,25 @@
 (* ========================================================================= *)
-(* ARTICLES OF PROOFS IN HIGHER ORDER LOGIC                                  *)
+(* ARTICLE SUMMARIES                                                         *)
 (* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
 (* ========================================================================= *)
 
-signature Article =
+signature Summary =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of proof articles.                                                 *)
+(* A type of article summary.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-type article
+type summary
 
-val empty : article
-
-val append : article -> article -> article
-
-val saved : article -> ThmSet.set
-
-val summarize : article -> Summary.summary
-
-val prove : article -> Sequent.sequent -> Thm.thm option
+val fromThms : ThmSet.set -> summary
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val fromTextFile :
-    {known : ThmSet.set,
-     interpretation : Interpretation.interpretation,
-     filename : string} ->
-    article
+val pp : summary Parser.pp
 
-val toTextFile : {filename : string} -> article -> unit
+val toTextFile : {filename : string} -> summary -> unit
 
 end

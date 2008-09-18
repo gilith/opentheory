@@ -384,6 +384,8 @@ val emptyStack =
 
 fun sizeStack (Stack {size = x, ...}) = x;
 
+fun nullStack stack = sizeStack stack = 0;
+
 fun frameSizeStack (Stack {size,call,...}) =
     size - (case call of NONE => 0 | SOME (_,stack) => sizeStack stack + 1);
 
@@ -479,6 +481,14 @@ fun searchStack (Stack {theorems,...}) seq =
       [] => NONE
     | thms :: _ => searchTheorems thms seq;
 
+local
+  fun push (obj,stack) = pushStack stack obj;
+in
+  fun appendStack stack1 stack2 =
+      if nullStack stack1 then stack2
+      else List.foldl push stack1 (rev (objectStack stack2));
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Saved theorems.                                                           *)
 (* ------------------------------------------------------------------------- *)
@@ -486,6 +496,9 @@ fun searchStack (Stack {theorems,...}) seq =
 datatype saved = Saved of stack;
 
 val emptySaved = Saved emptyStack;
+
+fun appendSaved (Saved stack1) (Saved stack2) =
+    Saved (appendStack stack1 stack2);
 
 fun sizeSaved (Saved stack) = sizeStack stack;
 
@@ -1289,7 +1302,7 @@ fun generate saved objs =
       raise Bug ("Article.generate: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
-(* Articles                                                                  *)
+(* A type of proof articles.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 datatype article =
@@ -1297,12 +1310,33 @@ datatype article =
       {thms : ThmSet.set,
        saved : saved};
 
+val empty =
+    Article
+      {thms = ThmSet.empty,
+       saved = emptySaved};
+
+fun append art1 art2 =
+    let
+      val Article {thms = thms1, saved = saved1} = art1
+      and Article {thms = thms2, saved = saved2} = art2
+
+      val thms = ThmSet.union thms1 thms2
+
+      val saved = appendSaved saved1 saved2
+    in
+      Article
+        {thms = thms,
+         saved = saved}
+    end;
+
 fun saved (Article {thms = x, ...}) = x;
 
-fun search (Article {saved = x, ...}) seq = searchSaved x seq;
+fun prove (Article {saved = x, ...}) seq = searchSaved x seq;
+
+val summarize = Summary.fromThms o saved;
 
 (* ------------------------------------------------------------------------- *)
-(* I/O                                                                       *)
+(* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -1437,7 +1471,7 @@ fun fromTextFile {known,interpretation,filename} =
     end
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
 
-fun toTextFile {filename,article} =
+fun toTextFile {filename} article =
     let
       val Article {saved,...} = article
       val saved = listSaved saved

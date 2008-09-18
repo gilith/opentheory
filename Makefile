@@ -68,6 +68,7 @@ SRC = \
   src/Thm.sig src/Thm.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
+  src/Summary.sig src/Summary.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Object.sig src/Object.sml \
   src/HolLight.sig src/HolLight.sml \
