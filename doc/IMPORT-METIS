@@ -1,5 +1,6 @@
 # Importing Metis into OpenTheory
 
+# Name
 signature "Name" -> "MetisName"
 structure "Name" -> "MetisName"
 structure "NameArity" -> "MetisNameArity"
@@ -9,3 +10,164 @@ structure "NameAritySet" -> "MetisNameAritySet"
 structure "NameMap" -> "MetisNameMap"
 structure "NameOrdered" -> "MetisNameOrdered"
 structure "NameSet" -> "MetisNameSet"
+
+# Term
+signature "Term" -> "MetisTerm"
+structure "Term" -> "MetisTerm"
+structure "TermMap" -> "MetisTermMap"
+structure "TermOrdered" -> "MetisTermOrdered"
+structure "TermSet" -> "MetisTermSet"
+
+# Subst
+signature "Subst" -> "MetisSubst"
+structure "Subst" -> "MetisSubst"
+structure "SubstMap" -> "MetisSubstMap"
+structure "SubstOrdered" -> "MetisSubstOrdered"
+structure "SubstSet" -> "MetisSubstSet"
+
+# Atom
+signature "Atom" -> "MetisAtom"
+structure "Atom" -> "MetisAtom"
+structure "AtomMap" -> "MetisAtomMap"
+structure "AtomOrdered" -> "MetisAtomOrdered"
+structure "AtomSet" -> "MetisAtomSet"
+
+# Formula
+signature "Formula" -> "MetisFormula"
+structure "Formula" -> "MetisFormula"
+structure "FormulaMap" -> "MetisFormulaMap"
+structure "FormulaOrdered" -> "MetisFormulaOrdered"
+structure "FormulaSet" -> "MetisFormulaSet"
+
+# Literal
+signature "Literal" -> "MetisLiteral"
+structure "Literal" -> "MetisLiteral"
+structure "LiteralMap" -> "MetisLiteralMap"
+structure "LiteralOrdered" -> "MetisLiteralOrdered"
+structure "LiteralSet" -> "MetisLiteralSet"
+
+# Thm
+signature "Thm" -> "MetisThm"
+structure "Thm" -> "MetisThm"
+structure "ThmMap" -> "MetisThmMap"
+structure "ThmOrdered" -> "MetisThmOrdered"
+structure "ThmSet" -> "MetisThmSet"
+
+# Proof
+signature "Proof" -> "MetisProof"
+structure "Proof" -> "MetisProof"
+structure "ProofMap" -> "MetisProofMap"
+structure "ProofOrdered" -> "MetisProofOrdered"
+structure "ProofSet" -> "MetisProofSet"
+
+# Rule
+signature "Rule" -> "MetisRule"
+structure "Rule" -> "MetisRule"
+structure "RuleMap" -> "MetisRuleMap"
+structure "RuleOrdered" -> "MetisRuleOrdered"
+structure "RuleSet" -> "MetisRuleSet"
+
+# Normalize
+signature "Normalize" -> "MetisNormalize"
+structure "Normalize" -> "MetisNormalize"
+structure "NormalizeMap" -> "MetisNormalizeMap"
+structure "NormalizeOrdered" -> "MetisNormalizeOrdered"
+structure "NormalizeSet" -> "MetisNormalizeSet"
+
+# Model
+signature "Model" -> "MetisModel"
+structure "Model" -> "MetisModel"
+structure "ModelMap" -> "MetisModelMap"
+structure "ModelOrdered" -> "MetisModelOrdered"
+structure "ModelSet" -> "MetisModelSet"
+
+# Problem
+signature "Problem" -> "MetisProblem"
+structure "Problem" -> "MetisProblem"
+structure "ProblemMap" -> "MetisProblemMap"
+structure "ProblemOrdered" -> "MetisProblemOrdered"
+structure "ProblemSet" -> "MetisProblemSet"
+
+# TermNet
+signature "TermNet" -> "MetisTermNet"
+structure "TermNet" -> "MetisTermNet"
+structure "TermNetMap" -> "MetisTermNetMap"
+structure "TermNetOrdered" -> "MetisTermNetOrdered"
+structure "TermNetSet" -> "MetisTermNetSet"
+
+# AtomNet
+signature "AtomNet" -> "MetisAtomNet"
+structure "AtomNet" -> "MetisAtomNet"
+structure "AtomNetMap" -> "MetisAtomNetMap"
+structure "AtomNetOrdered" -> "MetisAtomNetOrdered"
+structure "AtomNetSet" -> "MetisAtomNetSet"
+
+# LiteralNet
+signature "LiteralNet" -> "MetisLiteralNet"
+structure "LiteralNet" -> "MetisLiteralNet"
+structure "LiteralNetMap" -> "MetisLiteralNetMap"
+structure "LiteralNetOrdered" -> "MetisLiteralNetOrdered"
+structure "LiteralNetSet" -> "MetisLiteralNetSet"
+
+# Subsume
+signature "Subsume" -> "MetisSubsume"
+structure "Subsume" -> "MetisSubsume"
+structure "SubsumeMap" -> "MetisSubsumeMap"
+structure "SubsumeOrdered" -> "MetisSubsumeOrdered"
+structure "SubsumeSet" -> "MetisSubsumeSet"
+
+# KnuthBendixOrder
+signature "KnuthBendixOrder" -> "MetisKnuthBendixOrder"
+structure "KnuthBendixOrder" -> "MetisKnuthBendixOrder"
+structure "KnuthBendixOrderMap" -> "MetisKnuthBendixOrderMap"
+structure "KnuthBendixOrderOrdered" -> "MetisKnuthBendixOrderOrdered"
+structure "KnuthBendixOrderSet" -> "MetisKnuthBendixOrderSet"
+
+# Rewrite
+signature "Rewrite" -> "MetisRewrite"
+structure "Rewrite" -> "MetisRewrite"
+structure "RewriteMap" -> "MetisRewriteMap"
+structure "RewriteOrdered" -> "MetisRewriteOrdered"
+structure "RewriteSet" -> "MetisRewriteSet"
+
+# Units
+signature "Units" -> "MetisUnits"
+structure "Units" -> "MetisUnits"
+structure "UnitsMap" -> "MetisUnitsMap"
+structure "UnitsOrdered" -> "MetisUnitsOrdered"
+structure "UnitsSet" -> "MetisUnitsSet"
+
+# Clause
+signature "Clause" -> "MetisClause"
+structure "Clause" -> "MetisClause"
+structure "ClauseMap" -> "MetisClauseMap"
+structure "ClauseOrdered" -> "MetisClauseOrdered"
+structure "ClauseSet" -> "MetisClauseSet"
+
+# Active
+signature "Active" -> "MetisActive"
+structure "Active" -> "MetisActive"
+structure "ActiveMap" -> "MetisActiveMap"
+structure "ActiveOrdered" -> "MetisActiveOrdered"
+structure "ActiveSet" -> "MetisActiveSet"
+
+# Waiting
+signature "Waiting" -> "MetisWaiting"
+structure "Waiting" -> "MetisWaiting"
+structure "WaitingMap" -> "MetisWaitingMap"
+structure "WaitingOrdered" -> "MetisWaitingOrdered"
+structure "WaitingSet" -> "MetisWaitingSet"
+
+# Resolution
+signature "Resolution" -> "MetisResolution"
+structure "Resolution" -> "MetisResolution"
+structure "ResolutionMap" -> "MetisResolutionMap"
+structure "ResolutionOrdered" -> "MetisResolutionOrdered"
+structure "ResolutionSet" -> "MetisResolutionSet"
+
+# Tptp
+signature "Tptp" -> "MetisTptp"
+structure "Tptp" -> "MetisTptp"
+structure "TptpMap" -> "MetisTptpMap"
+structure "TptpOrdered" -> "MetisTptpOrdered"
+structure "TptpSet" -> "MetisTptpSet"
