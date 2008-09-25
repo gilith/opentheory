@@ -223,9 +223,9 @@ fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
 fun foldlObjectSet f b (ObjectSet set) = Set.foldl f b set;
 
 local
-  fun toStream NONE = Stream.NIL
+  fun toStream NONE = Stream.Nil
     | toStream (SOME iter) =
-      Stream.CONS (Set.readIterator iter, toStreamDelay iter)
+      Stream.Cons (Set.readIterator iter, toStreamDelay iter)
 
   and toStreamDelay iter () = toStream (Set.advanceIterator iter)
 in
@@ -233,7 +233,7 @@ in
 end;
 
 val ppObjectSet =
-    Parser.ppBracket "{" "}" (Parser.ppMap sizeObjectSet Parser.ppInt);
+    Print.ppBracket "{" "}" (Print.ppMap sizeObjectSet Print.ppInt);
 
 (* ------------------------------------------------------------------------- *)
 (* Reducing objects.                                                         *)
@@ -571,13 +571,13 @@ datatype command =
   | Cname of Name.name
   | Cop of string;
 
-fun ppCommand p cmd =
+fun ppCommand cmd =
     case cmd of
-      Cnum i => Parser.ppInt p i
-    | Cname n => Name.ppQuoted p n
-    | Cop c => Parser.ppString p c;
+      Cnum i => Print.ppInt i
+    | Cname n => Name.ppQuoted n
+    | Cop c => Print.ppString c;
 
-val commandToString = Parser.toString ppCommand;
+val commandToString = Print.toString ppCommand;
 
 local
   infixr 9 >>++
@@ -585,7 +585,7 @@ local
   infixr 7 >>
   infixr 6 ||
 
-  open Parser;
+  open Parse;
 
   fun isAlphaNum #"_" = true
     | isAlphaNum c = Char.isAlphaNum c;
@@ -850,7 +850,7 @@ fun executeCommand known interpretation cmd state =
           val () = trace ("  stack = ["^Int.toString (sizeStack stack) ^
                           "], call stack = [" ^
                           Int.toString (length (callStack stack))^"]\n")
-          val () = Parser.ppTrace Object.pp "  input" obA
+          val () = Print.trace Object.pp "  input" obA
 *)
           val ob = Object.Ocall n
           and prov = Pcall objA
@@ -883,7 +883,7 @@ fun executeCommand known interpretation cmd state =
           val () = trace ("  stack = ["^Int.toString (sizeStack stack) ^
                           "], call stack = [" ^
                           Int.toString (length (callStack stack))^"]\n")
-          val () = Parser.ppTrace Object.pp "return" obR
+          val () = Print.trace Object.pp "return" obR
 *)
           val ob = obR
           and prov = if containsThmsObject objR then Preturn objR else Pnull
@@ -1294,7 +1294,7 @@ fun generate saved objs =
       val dict = newMinDict objs
 
       val strm = toStreamObjectSet objs
-      val strm = Stream.maps gen (call,dict) strm
+      val strm = Stream.maps gen (K Stream.Nil) (call,dict) strm
     in
       Stream.concat (Stream.map Stream.fromList strm)
     end
@@ -1352,22 +1352,22 @@ in
 
         val lines = Stream.fromTextFile {filename = filename}
 
-        val {chars,parseErrorLocation} = Parser.initialize {lines = lines}
+        val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
       in
         (let
            (* The character stream *)
 
            val chars = Stream.filter (not o isComment) chars
 
-           val chars = Parser.everything Parser.any chars
+           val chars = Parse.everything Parse.any chars
 
            (* The command stream *)
 
-           val commands = Parser.everything spacedCommandParser chars
+           val commands = Parse.everything spacedCommandParser chars
          in
            executeCommands known interpretation commands
          end
-         handle Parser.NoParse => raise Error "parse error")
+         handle Parse.NoParse => raise Error "parse error")
         handle Error err =>
           raise Error ("error in file \"" ^ filename ^ "\" " ^
                        parseErrorLocation () ^ "\n" ^ err)
@@ -1476,9 +1476,9 @@ fun toTextFile {filename} article =
       val Article {saved,...} = article
       val saved = listSaved saved
       val (objs,saved) = dependenciesObject saved
-      val () = Parser.ppTrace ppObjectSet "objs" objs
+      val () = Print.trace ppObjectSet "objs" objs
       val saved = fromListObjectSet saved
-      val () = Parser.ppTrace ppObjectSet "saved" saved
+      val () = Print.trace ppObjectSet "saved" saved
       val commands = generate saved objs
       val lines = Stream.map (fn c => commandToString c ^ "\n") commands
     in

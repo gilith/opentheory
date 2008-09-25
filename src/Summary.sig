@@ -18,7 +18,7 @@ val fromThms : ThmSet.set -> summary
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : summary Parser.pp
+val pp : summary Print.pp
 
 val toTextFile : {filename : string} -> summary -> unit
 

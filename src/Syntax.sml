@@ -189,7 +189,9 @@ fun concl th =
 
 (* Negations *)
 
-val negName = Name.mkGlobal "~";
+val negString = "~";
+
+val negName = Name.mkGlobal negString;
 
 fun mkNeg tm = mkUnop negName (boolTy,tm);
 
@@ -323,13 +325,14 @@ end;
 
 (* Types *)
 
-val typeInfixTokens : Parser.infixities =
-    [{token = " * ", precedence = 3,  leftAssoc = false},
-     {token = " + ", precedence = 2,  leftAssoc = false},
-     {token = " -> ", precedence = 1,  leftAssoc = false}];
+val typeInfixTokens =
+    Print.Infixes
+      [{token = " * ", precedence = 3, leftAssoc = false},
+       {token = " + ", precedence = 2, leftAssoc = false},
+       {token = " -> ", precedence = 1, leftAssoc = false}];
 
 local
-  val typeInfixStrings = Parser.infixTokens typeInfixTokens;
+  val typeInfixStrings = Print.tokensInfixes typeInfixTokens;
 
   fun abbreviateTypeOp n =
       case Name.toString n of
@@ -338,13 +341,14 @@ local
 
   val ppTypeVar = Name.pp;
 
-  val ppTypeOp = Parser.ppMap abbreviateTypeOp Parser.ppString;
+  val ppTypeOp = Print.ppMap abbreviateTypeOp Print.ppString;
 
   fun destTypeInfix ty =
       let
         val (f,xs) = destTypeOp ty
         val f = abbreviateTypeOp f
-        val _ = mem f typeInfixStrings orelse raise Error "destTypeInfix"
+        val _ = StringSet.member f typeInfixStrings orelse
+                raise Error "destTypeInfix"
       in
         case xs of
           [a,b] => (f,a,b)
@@ -353,74 +357,74 @@ local
 
   val isTypeInfix = can destTypeInfix;
 
-  val typeInfixPrinter =
-      Parser.ppInfixes typeInfixTokens (total destTypeInfix);
+  val typeInfixPrinter = Print.ppInfixes typeInfixTokens (total destTypeInfix);
 
-  fun basic pp ty =
-      if isTypeVar ty then ppTypeVar pp (destTypeVar ty)
-      else if isTypeInfix ty then ppBtype pp ty
+  fun basic ty =
+      if isTypeVar ty then ppTypeVar (destTypeVar ty)
+      else if isTypeInfix ty then ppBtype ty
       else
         let
           val (f,xs) = destTypeOp ty
         in
-          Parser.beginBlock pp Parser.Inconsistent 0;
-          (case xs of
-             [] => ()
-           | [x] => (basic pp ty; Parser.addBreak pp (1,0))
-           | _ =>
-             (Parser.ppBracket "(" ")" (Parser.ppSequence "," ppType) pp xs;
-              Parser.addBreak pp (1,0)));
-          ppTypeOp pp f;
-          Parser.endBlock pp
+          Print.blockProgram Print.Inconsistent 0
+            [(case xs of
+                [] => Print.skip
+              | [x] => Print.sequence (basic ty) (Print.addBreak 1)
+              | _ =>
+                Print.sequence
+                  (Print.ppBracket "(" ")" (Print.ppOpList "," ppType) xs)
+                  (Print.addBreak 1)),
+             ppTypeOp f]
         end
 
-  and basicr pp (ty,_) = basic pp ty
+  and basicr (ty,_) = basic ty
 
-  and ppBtype pp ty = Parser.ppBracket "(" ")" ppType pp ty
+  and ppBtype ty = Print.ppBracket "(" ")" ppType ty
 
-  and ppTyper pp tyr = typeInfixPrinter basicr pp tyr
+  and ppTyper tyr = typeInfixPrinter basicr tyr
 
-  and ppType pp ty = ppTyper pp (ty,false);
+  and ppType ty = ppTyper (ty,false);
 in
   val ppType = ppType;
 end;
 
-val typeToString = Parser.toString ppType;
+val typeToString = Print.toString ppType;
 
 (* Terms *)
 
 val showTypes = ref false;
 
-val infixTokens : Parser.infixities =
-    [(* ML style *)
-     {token = " / ",   precedence = 7,  leftAssoc = true},
-     {token = " div ", precedence = 7,  leftAssoc = true},
-     {token = " mod ", precedence = 7,  leftAssoc = true},
-     {token = " * ",   precedence = 7,  leftAssoc = true},
-     {token = " + ",   precedence = 6,  leftAssoc = true},
-     {token = " - ",   precedence = 6,  leftAssoc = true},
-     {token = " ^ ",   precedence = 6,  leftAssoc = true},
-     {token = " @ ",   precedence = 5,  leftAssoc = false},
-     {token = " :: ",  precedence = 5,  leftAssoc = false},
-     {token = " = ",   precedence = 4,  leftAssoc = true},
-     {token = " <> ",  precedence = 4,  leftAssoc = true},
-     {token = " <= ",  precedence = 4,  leftAssoc = true},
-     {token = " < ",   precedence = 4,  leftAssoc = true},
-     {token = " >= ",  precedence = 4,  leftAssoc = true},
-     {token = " > ",   precedence = 4,  leftAssoc = true},
-     {token = " o ",   precedence = 3,  leftAssoc = true},
-     (* HOL style *)
-     {token = " /\\ ", precedence = ~1, leftAssoc = false},
-     {token = " \\/ ", precedence = ~2, leftAssoc = false},
-     {token = " ==> ", precedence = ~3, leftAssoc = false},
-     {token = " <=> ", precedence = ~4, leftAssoc = false}];
+val infixTokens =
+    Print.Infixes
+      [(* ML style *)
+       {token = " / ", precedence = 7, leftAssoc = true},
+       {token = " div ", precedence = 7, leftAssoc = true},
+       {token = " mod ", precedence = 7, leftAssoc = true},
+       {token = " * ", precedence = 7, leftAssoc = true},
+       {token = " + ", precedence = 6, leftAssoc = true},
+       {token = " - ", precedence = 6, leftAssoc = true},
+       {token = " ^ ", precedence = 6, leftAssoc = true},
+       {token = " @ ", precedence = 5, leftAssoc = false},
+       {token = " :: ", precedence = 5, leftAssoc = false},
+       {token = " = ", precedence = 4, leftAssoc = true},
+       {token = " <> ", precedence = 4, leftAssoc = true},
+       {token = " <= ", precedence = 4, leftAssoc = true},
+       {token = " < ", precedence = 4, leftAssoc = true},
+       {token = " >= ", precedence = 4, leftAssoc = true},
+       {token = " > ", precedence = 4, leftAssoc = true},
+       {token = " o ", precedence = 3, leftAssoc = true},
+       (* HOL style *)
+       {token = " /\\ ", precedence = ~1, leftAssoc = false},
+       {token = " \\/ ", precedence = ~2, leftAssoc = false},
+       {token = " ==> ", precedence = ~3, leftAssoc = false},
+       {token = " <=> ", precedence = ~4, leftAssoc = false}];
 
 val ppVar =
     let
-      val pp1 = Parser.ppBracket "(" ")" (Parser.ppBinop " :" Name.pp ppType)
-      val pp2 = Parser.ppMap fst Name.pp
+      val pp1 = Print.ppBracket "(" ")" (Print.ppOp2 " :" Name.pp ppType)
+      val pp2 = Print.ppMap fst Name.pp
     in
-      fn pp => fn v => (if !showTypes then pp1 else pp2) pp v
+      fn v => (if !showTypes then pp1 else pp2) v
     end;
 
 local
@@ -430,16 +434,18 @@ local
        ("?",stripExists),
        ("?!",stripExistsUnique)];
 
-  val infixStrings = Parser.infixTokens infixTokens;
+  val infixStrings = Print.tokensInfixes infixTokens;
 
-  val binderStrings = map fst binders;
+  val binderStrings = StringSet.fromList (map fst binders);
+
+  val specialStrings =
+      StringSet.add (StringSet.union infixStrings binderStrings) negString;
 
   fun abbreviateConst n =
       case Name.toString n of
         s => s;
 
-  fun specialString n =
-      n = "~" orelse mem n infixStrings orelse mem n binderStrings;
+  fun specialString n = StringSet.member n specialStrings;
 
   val ppConst =
       let
@@ -450,7 +456,7 @@ local
               if specialString n then "(" ^ n ^ ")" else n
             end
       in
-        Parser.ppMap f Parser.ppString
+        Print.ppMap f Print.ppString
       end;
 
   fun destInfix tm =
@@ -460,7 +466,8 @@ local
         val (n,_) = destConst c
         val n = abbreviateConst n
       in
-        if mem n infixStrings then (n,a,b) else raise Error "HOL.destInfix"
+        if StringSet.member n infixStrings then (n,a,b)
+        else raise Error "Syntax.destInfix"
       end;
 
   val isInfix = can destInfix;
@@ -481,95 +488,95 @@ local
 
   val isBinder = can destBinder;
 
-  val infixPrinter = Parser.ppInfixes infixTokens (total destInfix);
+  val infixPrinter = Print.ppInfixes infixTokens (total destInfix);
 
-  fun basic pp tm =
-      if isVar tm then ppVar pp (destVar tm)
-      else if isConst tm then ppConst pp (destConst tm)
-      else ppBtm pp tm
+  fun basic tm =
+      if isVar tm then ppVar (destVar tm)
+      else if isConst tm then ppConst (destConst tm)
+      else ppBtm tm
 
-  and application pp tm =
+  and application tm =
       let
         val (f,xs) = stripComb tm
       in
-        basic pp f;
-        app (fn x => (Parser.addBreak pp (1,0); basic pp x)) xs
+        Print.program
+          (basic f ::
+           map (Print.sequence (Print.addBreak 1) o basic) xs)
       end
 
-  and binder pp (tm,r) =
+  and binder (tm,r) =
       let
-        fun ppBind pp tm =
+        fun ppBind tm =
             let
               val (sym,vs,body) = destBinder tm
               val (v,vs) = hdTl vs
             in
-              Parser.addString pp sym;
-              ppVar pp v;
-              app (fn a => (Parser.addBreak pp (1,0); ppVar pp a)) vs;
-              Parser.addString pp ".";
-              Parser.addBreak pp (1,0);
-              if isBinder body then ppBind pp body else ppTm pp (body,false)
+              Print.program
+                [Print.addString sym,
+                 ppVar v,
+                 Print.program
+                   (map (Print.sequence (Print.addBreak 1) o ppVar) vs),
+                 Print.addString ".",
+                 Print.addBreak 1,
+                 if isBinder body then ppBind body else ppTm (body,false)]
             end
 
-        fun ppBinder pp tm =
-            (Parser.beginBlock pp Parser.Inconsistent 2;
-             ppBind pp tm;
-             Parser.endBlock pp)
+        val ppBinder = Print.block Print.Inconsistent 2 o ppBind
       in
         (if not (isBinder tm) then application
-         else (if r then Parser.ppBracket "(" ")" else I) ppBinder) pp tm
+         else (if r then Print.ppBracket "(" ")" else I) ppBinder) tm
       end
 
-  and negs pp (tm,r) =
+  and negs (tm,r) =
       let
         val (n,tm) = countNegs tm
       in
-        Parser.beginBlock pp Parser.Inconsistent n;
-        funpow n (fn () => Parser.addString pp "~") ();
-        if isInfix tm then ppBtm pp tm else binder pp (tm,r);
-        Parser.endBlock pp
+        Print.blockProgram Print.Inconsistent n
+          [Print.duplicate n (Print.addString negString),
+           if isInfix tm then ppBtm tm else binder (tm,r)]
       end
 
-  and ppBtm pp tm = Parser.ppBracket "(" ")" ppTm pp (tm,false)
+  and ppBtm tm = Print.ppBracket "(" ")" ppTm (tm,false)
 
-  and ppTm pp tmr = infixPrinter negs pp tmr;
+  and ppTm tmr = infixPrinter negs tmr;
 in
-  val ppTerm = Parser.ppMap (fn tm => (tm,false)) ppTm;
+  val ppTerm = Print.ppMap (fn tm => (tm,false)) ppTm;
 end;
 
-val termToString = Parser.toString ppTerm;
+val termToString = Print.toString ppTerm;
 
 (* Substitutions *)
 
 val ppSubst =
-    Parser.ppMap
+    Print.ppMap
       (fn sub => (TermSubst.toListType sub, TermSubst.toList sub))
-      (Parser.ppPair (Parser.ppList (Parser.ppPair Name.pp ppType))
-                     (Parser.ppList (Parser.ppPair ppVar ppTerm)));
+      (Print.ppPair
+         (Print.ppList (Print.ppPair Name.pp ppType))
+         (Print.ppList (Print.ppPair ppVar ppTerm)));
 
-val substToString = Parser.toString ppSubst;
+val substToString = Print.toString ppSubst;
 
 (* Sequents and theorems *)
 
 local
-  fun ppSeq binop pp {hyp,concl} =
-      (Parser.beginBlock pp Parser.Inconsistent 2;
-       if TermAlphaSet.null hyp then ()
-       else
-         (Parser.ppBracket "{" "}"
-            (Parser.ppSequence "," ppTerm) pp (TermAlphaSet.toList hyp);
-          Parser.addBreak pp (1,0));
-       Parser.addString pp (binop ^ " ");
-       ppTerm pp concl;
-       Parser.endBlock pp);
+  fun ppSeq binop {hyp,concl} =
+      Print.blockProgram Print.Inconsistent 2
+        [(if TermAlphaSet.null hyp then Print.skip
+          else
+            Print.sequence
+              (Print.ppBracket "{" "}"
+                 (Print.ppOpList "," ppTerm) (TermAlphaSet.toList hyp))
+              (Print.addBreak 1)),
+         Print.addString (binop ^ " "),
+         ppTerm concl];
 in
   val ppSequent = ppSeq "?-";
 
-  val ppThm = Parser.ppMap sequent (ppSeq "|-");
+  val ppThm = Print.ppMap sequent (ppSeq "|-");
 end;
 
-val sequentToString = Parser.toString ppSequent;
+val sequentToString = Print.toString ppSequent;
 
-val thmToString = Parser.toString ppThm;
+val thmToString = Print.toString ppThm;
 
 end

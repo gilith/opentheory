@@ -20,14 +20,14 @@ TEMP += $(TEMPFILE) \
 # The ML preprocessor.
 ###############################################################################
 
-MLPP_OPTS += -r 'OpenTheoryDebug'
-#MLPP_OPTS += -r 'OpenTheoryDebug|BasicDebug'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
+#MLPP_OPTS += -r 'OpenTheoryDebug'
+MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-3]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-4]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-5]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-6]'
+#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
 
 ###############################################################################
 # The Moscow ML compiler.
@@ -72,19 +72,65 @@ src/Lazy.sig: ../basic/src/Lazy.sig $(COPY) ; @$(COPY) $< $@
 src/Lazy.sml: ../basic/src/Lazy.sml $(COPY) ; @$(COPY) $< $@
 src/Map.sig: ../basic/src/Map.sig $(COPY) ; @$(COPY) $< $@
 src/Map.sml: ../basic/src/Map.sml $(COPY) ; @$(COPY) $< $@
+src/MetisActive.sig: ../metis/src/Active.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisActive.sml: ../metis/src/Active.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisAtom.sig: ../metis/src/Atom.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisAtom.sml: ../metis/src/Atom.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisAtomNet.sig: ../metis/src/AtomNet.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisAtomNet.sml: ../metis/src/AtomNet.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisClause.sig: ../metis/src/Clause.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisClause.sml: ../metis/src/Clause.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisFormula.sig: ../metis/src/Formula.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisFormula.sml: ../metis/src/Formula.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisKnuthBendixOrder.sig: ../metis/src/KnuthBendixOrder.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisKnuthBendixOrder.sml: ../metis/src/KnuthBendixOrder.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisLiteral.sig: ../metis/src/Literal.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisLiteral.sml: ../metis/src/Literal.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisLiteralNet.sig: ../metis/src/LiteralNet.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisLiteralNet.sml: ../metis/src/LiteralNet.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisModel.sig: ../metis/src/Model.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisModel.sml: ../metis/src/Model.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/MetisName.sig: ../metis/src/Name.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/MetisName.sml: ../metis/src/Name.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisNormalize.sig: ../metis/src/Normalize.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisNormalize.sml: ../metis/src/Normalize.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisProblem.sig: ../metis/src/Problem.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisProblem.sml: ../metis/src/Problem.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisProof.sig: ../metis/src/Proof.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisProof.sml: ../metis/src/Proof.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisResolution.sig: ../metis/src/Resolution.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisResolution.sml: ../metis/src/Resolution.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisRewrite.sig: ../metis/src/Rewrite.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisRewrite.sml: ../metis/src/Rewrite.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisRule.sig: ../metis/src/Rule.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisRule.sml: ../metis/src/Rule.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisSubst.sig: ../metis/src/Subst.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisSubst.sml: ../metis/src/Subst.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisSubsume.sig: ../metis/src/Subsume.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisSubsume.sml: ../metis/src/Subsume.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisTerm.sig: ../metis/src/Term.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisTerm.sml: ../metis/src/Term.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisTermNet.sig: ../metis/src/TermNet.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisTermNet.sml: ../metis/src/TermNet.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisThm.sig: ../metis/src/Thm.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisThm.sml: ../metis/src/Thm.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisTptp.sig: ../metis/src/Tptp.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisTptp.sml: ../metis/src/Tptp.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisUnits.sig: ../metis/src/Units.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisUnits.sml: ../metis/src/Units.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisWaiting.sig: ../metis/src/Waiting.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisWaiting.sml: ../metis/src/Waiting.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/Options.sig: ../basic/src/Options.sig $(COPY) ; @$(COPY) $< $@
 src/Options.sml: ../basic/src/Options.sml $(COPY) ; @$(COPY) $< $@
 src/Ordered.sig: ../basic/src/Ordered.sig $(COPY) ; @$(COPY) $< $@
 src/Ordered.sml: ../basic/src/Ordered.sml $(COPY) ; @$(COPY) $< $@
-src/Parser.sig: ../basic/src/Parser.sig $(COPY) ; @$(COPY) $< $@
-src/Parser.sml: ../basic/src/Parser.sml $(COPY) ; @$(COPY) $< $@
+src/Parse.sig: ../basic/src/Parse.sig $(COPY) ; @$(COPY) $< $@
+src/Parse.sml: ../basic/src/Parse.sml $(COPY) ; @$(COPY) $< $@
 src/Portable.sig: ../basic/src/Portable.sig $(COPY) ; @$(COPY) $< $@
 src/PortableMosml.sml: ../basic/src/PortableMosml.sml $(COPY) ; @$(COPY) $< $@
 src/PortableMlton.sml: ../basic/src/PortableMlton.sml $(COPY) ; @$(COPY) $< $@
-src/PP.sig: ../basic/src/PP.sig $(COPY) ; @$(COPY) $< $@
-src/PP.sml: ../basic/src/PP.sml $(COPY) ; @$(COPY) $< $@
+src/Print.sig: ../basic/src/Print.sig $(COPY) ; @$(COPY) $< $@
+src/Print.sml: ../basic/src/Print.sml $(COPY) ; @$(COPY) $< $@
 src/Random.sig: ../basic/src/Random.sig $(COPY) ; @$(COPY) $< $@
 src/Random.sml: ../basic/src/Random.sml $(COPY) ; @$(COPY) $< $@
 src/RandomMap.sml: ../basic/src/RandomMap.sml $(COPY) ; @$(COPY) $< $@

@@ -69,7 +69,7 @@ local
   infixr 7 >>
   infixr 6 ||
 
-  open Parser;
+  open Parse;
 
   val rewriteChars = explode rewriteString;
 
@@ -132,7 +132,7 @@ fun fromTextFile {filename} =
       infixr 7 >>
       infixr 6 ||
 
-      open Parser
+      open Parse
 
       (* Comment lines *)
 

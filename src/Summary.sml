@@ -44,31 +44,27 @@ fun fromThms set =
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun ppNameSet p (name,ns) =
-    (Parser.beginBlock p Parser.Consistent 2;
-     Parser.addString p (name ^ ":");
-     NameSet.app (fn n => (Parser.addNewline p; Name.pp p n)) ns;
-     Parser.endBlock p);
+fun ppNameSet (name,ns) =
+    Print.blockProgram Print.Consistent 2
+      (Print.addString (name ^ ":") ::
+       map (Print.sequence Print.addNewline o Name.pp) (NameSet.toList ns));
 
-fun ppCurrency p (name, Currency {types,consts,thms}) =
-    (Parser.beginBlock p Parser.Consistent 0;
-     Parser.addString p (name ^ " {");
-     Parser.addNewline p;
-     Parser.beginBlock p Parser.Consistent 2;
-     ppNameSet p ("types",types);
-     Parser.endBlock p;
-     Parser.addNewline p;
-     Parser.addString p "}";
-     Parser.addNewline p;
-     Parser.endBlock p);
+fun ppCurrency (name, Currency {types,consts,thms}) =
+    Print.blockProgram Print.Consistent 0
+      [Print.addString (name ^ " {"),
+       Print.blockProgram Print.Consistent 2
+         [Print.addNewline,
+          ppNameSet ("types",types)],
+       Print.addNewline,
+       Print.addString "}",
+       Print.addNewline];
 
-fun pp p (Summary {requires,provides}) =
-    (Parser.beginBlock p Parser.Consistent 0;
-     ppCurrency p ("REQUIRES",requires);
-     Parser.addNewline p;
-     ppCurrency p ("PROVIDES",provides);
-     Parser.endBlock p);
+fun pp (Summary {requires,provides}) =
+    Print.blockProgram Print.Consistent 0
+      [ppCurrency ("REQUIRES",requires),
+       Print.addNewline,
+       ppCurrency ("PROVIDES",provides)];
 
-fun toTextFile filename = Stream.toTextFile filename o Parser.toStream pp;
+fun toTextFile filename = Stream.toTextFile filename o Print.toStream pp;
 
 end

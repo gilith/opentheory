@@ -129,6 +129,6 @@ val thms : object -> Thm.thm list
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : object Parser.pp
+val pp : object Print.pp
 
 end

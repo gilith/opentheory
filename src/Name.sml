@@ -59,12 +59,12 @@ fun replace (x,y) n : name = if equal n x then y else n;
 
 fun toString (Name ns_n) = Namespace.toString (Namespace.mkNested ns_n);
 
-val pp = Parser.ppMap toString Parser.ppString;
+val pp = Print.ppMap toString Print.ppString;
 
 fun quotedToString (Name ns_n) =
     Namespace.quotedToString (Namespace.mkNested ns_n);
 
-val ppQuoted = Parser.ppMap quotedToString Parser.ppString;
+val ppQuoted = Print.ppMap quotedToString Print.ppString;
 
 local
   infixr 9 >>++
@@ -72,7 +72,7 @@ local
   infixr 7 >>
   infixr 6 ||
 
-  open Parser;
+  open Parse;
 
   fun process ns =
       if Namespace.isGlobal ns then raise NoParse
@@ -96,9 +96,9 @@ struct
   end;
 
   val pp =
-      Parser.ppMap
+      Print.ppMap
         toList
-        (Parser.ppBracket "{" "}" (Parser.ppSequence "," Name.pp));
+        (Print.ppBracket "{" "}" (Print.ppOpList "," Name.pp));
 
 end
 

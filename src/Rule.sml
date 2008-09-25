@@ -137,8 +137,8 @@ fun alpha seq th =
             end
 
 (*OpenTheoryTrace5
-      val _ = Parser.ppTrace ppSequent "seq" seq
-      val _ = Parser.ppTrace ppThm "th" th
+      val _ = Print.trace ppSequent "seq" seq
+      val _ = Print.trace ppThm "th" th
 *)
       val {concl = c, hyp = h} = seq
       val th = if Term.equal c (concl th) then th else eqMp (refl c) th

@@ -26,7 +26,7 @@ val rewriteRule : rewrite -> Name.name -> Name.name
 
 val rewriteToString : rewrite -> string
 
-val rewriteParser : (char,rewrite) Parser.parser
+val rewriteParser : (char,rewrite) Parse.parser
 
 (* ------------------------------------------------------------------------- *)
 (* A type of interpretations.                                                *)

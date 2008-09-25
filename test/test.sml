@@ -12,7 +12,6 @@ val quotation = ref true;
 val quietdec  = ref true;
 val loadPath  = ref ([] : string list);
 val load = fn (_ : string) => ();
-val installPP = fn (_ : 'a Parser.pp) => ();
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -23,11 +22,6 @@ val () = loadPath := !loadPath @ ["../bin/mosml"];
 val () = app load ["Options"];
 
 open Useful Syntax Rule;
-
-val () = installPP ppType;
-val () = installPP ppTerm;
-val () = installPP ppSubst;
-val () = installPP ppThm;
 
 val time = Portable.time;
 
@@ -44,7 +38,7 @@ fun SAY s =
   ("-------------------------------------" ^
    "-------------------------------------\n" ^ s ^ "\n\n");
 
-fun printval p x = (print (Parser.toString p x ^ "\n\n"); x);
+fun printval p x = (print (Print.toString p x ^ "\n\n"); x);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Reading in the hol-light interpretation";

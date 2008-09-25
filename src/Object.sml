@@ -276,16 +276,16 @@ val thms =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun pp p ob =
+fun pp ob =
     case ob of
-      Oerror => Parser.ppString p "ERROR"
-    | Onum n => Parser.ppInt p n
-    | Oname s => Name.ppQuoted p s
-    | Otype ty => ppType p ty
-    | Oterm tm => ppTerm p tm
-    | Othm th => ppThm p th
-    | Olist l => Parser.ppList pp p l
-    | Ocall f => Parser.ppBracket "<" ">" Name.pp p f;
+      Oerror => Print.ppString "ERROR"
+    | Onum n => Print.ppInt n
+    | Oname s => Name.ppQuoted s
+    | Otype ty => ppType ty
+    | Oterm tm => ppTerm tm
+    | Othm th => ppThm th
+    | Olist l => Print.ppList pp l
+    | Ocall f => Print.ppBracket "<" ">" Name.pp f;
 
 end
 

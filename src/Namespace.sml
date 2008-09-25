@@ -89,9 +89,9 @@ in
       end;
 end;
 
-val pp = Parser.ppMap toString Parser.ppString;
+val pp = Print.ppMap toString Print.ppString;
 
-val ppQuoted = Parser.ppMap quotedToString Parser.ppString;
+val ppQuoted = Print.ppMap quotedToString Print.ppString;
 
 local
   infixr 9 >>++
@@ -99,7 +99,7 @@ local
   infixr 7 >>
   infixr 6 ||
 
-  open Parser;
+  open Parse;
 
   val globalChars = explode globalString;
 

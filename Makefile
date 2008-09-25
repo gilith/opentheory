@@ -55,8 +55,33 @@ SRC = \
   src/KeyMap.sig src/KeyMap.sml \
   src/Sharing.sig src/Sharing.sml \
   src/Stream.sig src/Stream.sml \
-  src/Parser.sig src/Parser.sml \
+  src/Heap.sig src/Heap.sml \
+  src/Print.sig src/Print.sml \
+  src/Parse.sig src/Parse.sml \
   src/MetisName.sig src/MetisName.sml \
+  src/MetisTerm.sig src/MetisTerm.sml \
+  src/MetisSubst.sig src/MetisSubst.sml \
+  src/MetisAtom.sig src/MetisAtom.sml \
+  src/MetisFormula.sig src/MetisFormula.sml \
+  src/MetisLiteral.sig src/MetisLiteral.sml \
+  src/MetisThm.sig src/MetisThm.sml \
+  src/MetisProof.sig src/MetisProof.sml \
+  src/MetisRule.sig src/MetisRule.sml \
+  src/MetisNormalize.sig src/MetisNormalize.sml \
+  src/MetisModel.sig src/MetisModel.sml \
+  src/MetisProblem.sig src/MetisProblem.sml \
+  src/MetisTermNet.sig src/MetisTermNet.sml \
+  src/MetisAtomNet.sig src/MetisAtomNet.sml \
+  src/MetisLiteralNet.sig src/MetisLiteralNet.sml \
+  src/MetisSubsume.sig src/MetisSubsume.sml \
+  src/MetisKnuthBendixOrder.sig src/MetisKnuthBendixOrder.sml \
+  src/MetisRewrite.sig src/MetisRewrite.sml \
+  src/MetisUnits.sig src/MetisUnits.sml \
+  src/MetisClause.sig src/MetisClause.sml \
+  src/MetisActive.sig src/MetisActive.sml \
+  src/MetisWaiting.sig src/MetisWaiting.sml \
+  src/MetisResolution.sig src/MetisResolution.sml \
+  src/MetisTptp.sig src/MetisTptp.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
   src/Type.sig src/Type.sml \
