@@ -141,7 +141,6 @@ val bool =
        interpretation = holLightInt,
        filename = ARTICLE_DIR ^ "/bool.art"};
 
-(***
 val known = ThmSet.union known (Article.saved bool);
 
 val num =
@@ -161,4 +160,3 @@ val num' =
       {known = known,
        interpretation = Interpretation.natural,
        filename = filename};
-***)

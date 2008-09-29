@@ -123,6 +123,12 @@ loads "quot.ml";;       (* Derived rules for defining quotient types         *)
 loads "recursion.ml";;  (* Tools for primitive recursion on inductive types  *)
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory proof logging for the higher level deductive system.           *)
+(* ------------------------------------------------------------------------- *)
+
+loads "deduction-logging.ml";;
+
+(* ------------------------------------------------------------------------- *)
 (* Mathematical theories and additional proof tools.                         *)
 (* ------------------------------------------------------------------------- *)
 
