@@ -134,6 +134,9 @@ loads "deduction-logging.ml";;
 
 loads "pair.ml";;       (* Theory of pairs                                   *)
 loads "num.ml";;        (* Axiom of Infinity, definition of natural numbers  *)
+
+stop;;
+
 loads "arith.ml";;      (* Natural number arithmetic                         *)
 loads "wf.ml";;         (* Theory of wellfounded relations                   *)
 loads "calc_num.ml";;   (* Calculation with natural numbers                  *)

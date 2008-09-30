@@ -134,6 +134,7 @@ stop;
 
 val known = ThmSet.empty;
 
+(***
 val bool =
     time
       Article.fromTextFile
@@ -142,6 +143,7 @@ val bool =
        filename = ARTICLE_DIR ^ "/bool.art"};
 
 val known = ThmSet.union known (Article.saved bool);
+***)
 
 val num =
     time
