@@ -1348,6 +1348,8 @@ val summarize = Summary.fromThms o saved;
 (* ------------------------------------------------------------------------- *)
 
 local
+  (* Comment lines *)
+
   fun isComment l =
       case List.find (not o Char.isSpace) l of
         NONE => true
@@ -1377,7 +1379,7 @@ in
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>
-          raise Error ("error in file \"" ^ filename ^ "\" " ^
+          raise Error ("error in article file \"" ^ filename ^ "\" " ^
                        parseErrorLocation () ^ "\n" ^ err)
       end;
 end;

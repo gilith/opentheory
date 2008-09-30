@@ -73,7 +73,7 @@ local
 
   val rewriteChars = explode rewriteString;
 
-  val space = many (some Char.isSpace);
+  val space = many (some Char.isSpace) >> K ();
 
   fun xyParser prefix xParser =
       (exactList (explode prefix) ++ space ++
@@ -86,6 +86,9 @@ in
       xyParser "type" Name.quotedParser >> RewriteType ||
       xyParser "const" Name.quotedParser >> RewriteConst ||
       xyParser "rule" Name.quotedParser >> RewriteRule;
+
+  val spacedRewriteParser =
+      (space ++ rewriteParser ++ space) >> (fn ((),(t,())) => [t]);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -125,71 +128,43 @@ end;
 fun toTextFile {filename,interpretation} =
     Stream.toTextFile {filename = filename} (toStringStream interpretation);
 
-fun fromTextFile {filename} =
-    let
-      infixr 9 >>++
-      infixr 8 ++
-      infixr 7 >>
-      infixr 6 ||
+local
+  (* Comment lines *)
 
-      open Parse
+  fun isComment l =
+      case List.find (not o Char.isSpace) l of
+        NONE => true
+      | SOME #"#" => true
+      | _ => false;
+in
+  fun fromTextFile {filename} =
+      let
+        (* Estimating parse error line numbers *)
 
-      (* Comment lines *)
+        val lines = Stream.fromTextFile {filename = filename}
 
-      fun isComment l =
-          case List.find (not o Char.isSpace) l of
-            NONE => true
-          | SOME #"#" => true
-          | _ => false
+        val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
+      in
+        (let
+           (* The character stream *)
 
-      (* Estimating parse error line numbers *)
+           val chars = Stream.filter (not o isComment) chars
 
-      val lastLine = ref (~1,"","","")
+           val chars = Parse.everything Parse.any chars
 
-      fun parseError () =
-          let
-            val ref (n,l1,l2,l3) = lastLine
-          in
-            "parse error in \"" ^ filename ^ "\" " ^
-            (if n <= 0 then "at start of file"
-             else "around line " ^ Int.toString n) ^
-            chomp (":\n" ^ l1 ^ l2 ^ l3)
-          end
+           (* The rewrite stream *)
 
-      val lines =
-          let
-            fun saveLast line =
-                let
-                  val ref (n,_,l2,l3) = lastLine
-                  val () = lastLine := (n + 1, l2, l3, line)
-                in
-                  explode line
-                end
+           val rewrites = Parse.everything spacedRewriteParser chars
 
-            val strm = Stream.fromTextFile {filename = filename}
-            val strm = Stream.map saveLast strm
-            val strm = Stream.filter (not o isComment) strm
-          in
-            Stream.memoize strm
-          end
-
-      (* The character stream *)
-
-      val chars = everything any lines
-
-      (* The rewrite stream *)
-
-      val rewrites =
-          Stream.toList
-          let
-            val rewrParser =
-                (rewriteParser ++ many (some Char.isSpace)) >> (singleton o fst)
-          in
-            everything rewrParser chars
-          end
-          handle NoParse => raise Error (parseError ())
-    in
-      Interpretation rewrites
-    end;
+           val rewrites = Stream.toList rewrites
+         in
+           Interpretation rewrites
+         end
+         handle Parse.NoParse => raise Error "parse error")
+        handle Error err =>
+          raise Error ("error in interpretation file \"" ^ filename ^ "\" " ^
+                       parseErrorLocation () ^ "\n" ^ err)
+      end;
+end;
 
 end
