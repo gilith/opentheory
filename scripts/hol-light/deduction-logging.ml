@@ -4,32 +4,6 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
-(* Logging complex types.                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-let log_justification f =
-    log_function2 f log_inst (log_list log_thm) log_thm;;
-
-let log_tactic t =
-    log_function t log_error log_error o log_
-
-let log_tactic =
-    let rec log f tm =
-        if is_const tm then
-          let (n,ty) = dest_const tm in
-            (log_name n; log_type ty; log_command "const")
-        else if is_var tm then
-          log_var tm
-        else if is_comb tm then
-          let (a,b) = dest_comb tm in
-            (f a; f b; log_command "comb")
-        else
-          let (v,b) = dest_abs tm in
-            (f v; f b; log_command "abs") in
-    log_dict log;;
-
-
-(* ------------------------------------------------------------------------- *)
 (* Logged version of the higher level deductive system.                      *)
 (* ------------------------------------------------------------------------- *)
 
@@ -44,4 +18,23 @@ let new_specification =
     log_function2 "new_specification"
       (log_list log_name) log_thm log_thm new_specification;;
 
+let new_type =
+    log_function "new_type" (log_pair log_name log_num) log_unit new_type;;
+
+let parse_term = log_function "parse_term" log_name log_term parse_term;;
+
+let parse_type = log_function "parse_type" log_name log_type parse_type;;
+
 let prove = log_function "prove" (log_map fst log_term) log_thm prove;;
+
+(* ------------------------------------------------------------------------- *)
+(* Delayed version of the higher level deductive system.                     *)
+(* ------------------------------------------------------------------------- *)
+
+let EXISTS_TAC = delay_function2 EXISTS_TAC;;
+
+let MESON_TAC = delay_function2 MESON_TAC;;
+
+let REWRITE_TAC = delay_function2 REWRITE_TAC;;
+
+let X_CHOOSE_TAC = delay_function3 X_CHOOSE_TAC;;

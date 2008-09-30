@@ -815,9 +815,11 @@ fun executeCommand known interpretation cmd state =
                     | NONE =>
                       let
                         val th = Thm.axiom seq
-                        val () = warn ("making new axiom in " ^
-                                       topCallToStringStack stack ^ ":\n" ^
-                                       thmToString th)
+(*OpenTheoryTrace1
+                        val () = trace ("making new axiom in " ^
+                                        topCallToStringStack stack ^ ":\n" ^
+                                        thmToString th ^ "\n")
+*)
                       in
                         (th,[])
                       end
@@ -843,14 +845,17 @@ fun executeCommand known interpretation cmd state =
           val n = Object.destOname obN
           val n = Interpretation.interpretRule interpretation n
 (*OpenTheoryTrace1
-          val () = if not (null (callStack stack)) then ()
-                   else trace (Name.toString n ^ "\n")
-*)
+          val traceCall = null (callStack stack)
 (*OpenTheoryTrace2
-          val () = trace ("  stack = ["^Int.toString (sizeStack stack) ^
-                          "], call stack = [" ^
-                          Int.toString (length (callStack stack))^"]\n")
-          val () = Print.trace Object.pp "  input" obA
+          val traceCall = true
+*)
+          val () = if not traceCall then ()
+                   else trace ("call: " ^ Name.toString n ^ "\n" ^
+                               "  stack = ["^Int.toString (sizeStack stack) ^
+                               "], call stack = [" ^
+                               Int.toString (length (callStack stack))^"]\n")
+          val () = if not traceCall then ()
+                   else Print.trace Object.pp "  input" obA
 *)
           val ob = Object.Ocall n
           and prov = Pcall objA
@@ -876,14 +881,17 @@ fun executeCommand known interpretation cmd state =
                   raise Error ("call " ^ Name.toString n' ^
                                " matched by return " ^ Name.toString n)
 (*OpenTheoryTrace1
-          val () = if not (null (callStack stack)) then ()
-                   else trace (Name.toString n ^ " return\n")
-*)
+          val traceReturn = null (callStack stack)
 (*OpenTheoryTrace2
-          val () = trace ("  stack = ["^Int.toString (sizeStack stack) ^
-                          "], call stack = [" ^
-                          Int.toString (length (callStack stack))^"]\n")
-          val () = Print.trace Object.pp "return" obR
+          val traceReturn = true
+*)
+          val () = if not traceReturn then ()
+                   else trace ("return: " ^ Name.toString n ^ "\n" ^
+                               "  stack = ["^Int.toString (sizeStack stack) ^
+                               "], call stack = [" ^
+                               Int.toString (length (callStack stack))^"]\n")
+          val () = if not traceReturn then ()
+                   else Print.trace Object.pp "  return" obR
 *)
           val ob = obR
           and prov = if containsThmsObject objR then Preturn objR else Pnull

@@ -214,6 +214,14 @@ let theorem f = log_function "theorem" log_unit log_save_thm f ();;
 let lemma f = log_function "lemma" log_unit log_thm f ();;
 
 (* ------------------------------------------------------------------------- *)
+(* Delay functions to stop partial application.                              *)
+(* ------------------------------------------------------------------------- *)
+
+let delay_function2 f = curry (uncurry f);;
+
+let delay_function3 f = curry3 (uncurry3 f);;
+
+(* ------------------------------------------------------------------------- *)
 (* Override the loads function to initialize the log files.                  *)
 (* ------------------------------------------------------------------------- *)
 
