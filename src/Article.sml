@@ -79,94 +79,97 @@ fun object (Object {object = x, ...}) = x;
 fun callObject (Object {call = x, ...}) = x;
 
 local
-  fun maps lr preF postF obj acc =
-      case preF obj acc of
-        Left obj => (obj,acc)
-      | Right obj =>
-        let
-          val Object {id, object = ob, provenance = prov, call} = obj
+  infix ==
 
-          val (prov',call',acc) =
-              if lr then
-                let
-                  val (prov',acc) = mapsProv lr preF postF prov acc
-                  val (call',acc) =
-                      Sharing.mapsOption (maps lr preF postF) call acc
-                in
-                  (prov',call',acc)
-                end
-              else
-                let
-                  val (call',acc) =
-                      Sharing.mapsOption (maps lr preF postF) call acc
-                  val (prov',acc) = mapsProv lr preF postF prov acc
-                in
-                  (prov',call',acc)
-                end
+  val op== = Portable.pointerEqual;
 
-          val obj =
-              if Portable.pointerEqual (prov',prov) andalso
-                 Portable.pointerEqual (call',call) then
-                obj
-              else
-                Object {id = id, object = ob, provenance = prov', call = call'}
-
-          val acc = postF obj acc
-        in
-          (obj,acc)
-        end
-
-  and mapsProv lr preF postF prov acc =
-      case prov of
-        Pnull => (prov,acc)
-      | Pcall obj => mapsProv1 lr preF postF prov acc Pcall obj
-      | Preturn obj => mapsProv1 lr preF postF prov acc Preturn obj
-      | Pcons (objH,objT) =>
-        let
-          val (objH',objT',acc) =
-              if lr then
-                let
-                  val (objH',acc) = maps lr preF postF objH acc
-                  val (objT',acc) = maps lr preF postF objT acc
-                in
-                  (objH',objT',acc)
-                end
-              else
-                let
-                  val (objT',acc) = maps lr preF postF objT acc
-                  val (objH',acc) = maps lr preF postF objH acc
-                in
-                  (objH',objT',acc)
-                end
-
-          val prov' =
-              if Portable.pointerEqual (objH',objH) andalso
-                 Portable.pointerEqual (objT',objT) then
-                prov
-              else
-                Pcons (objH',objT')
-        in
-          (prov',acc)
-        end
-      | Pref obj => mapsProv1 lr preF postF prov acc Pref obj
-      | Pthm objs =>
-        let
-          val (objs',acc) =
-              (if lr then Sharing.maps else Sharing.revMaps)
-                (maps lr preF postF) objs acc
-
-          val prov' =
-              if Portable.pointerEqual (objs',objs) then prov else Pthm objs'
-        in
-          (prov',acc)
-        end
-
-  and mapsProv1 lr preF postF prov acc con obj =
+  fun maps lr preF postF =
       let
-        val (obj',acc) = maps lr preF postF obj acc
-        val prov' = if Portable.pointerEqual (obj',obj) then prov else con obj'
+        fun mapsObj obj acc =
+            case preF obj acc of
+              Left obj => (obj,acc)
+            | Right obj =>
+              let
+                val Object {id, object = ob, provenance = prov, call} = obj
+
+                val (prov',call',acc) =
+                    if lr then
+                      let
+                        val (call',acc) = Sharing.mapsOption mapsObj call acc
+                        val (prov',acc) = mapsProv prov acc
+                      in
+                        (prov',call',acc)
+                      end
+                    else
+                      let
+                        val (prov',acc) = mapsProv prov acc
+                        val (call',acc) = Sharing.mapsOption mapsObj call acc
+                      in
+                        (prov',call',acc)
+                      end
+
+                val obj =
+                    if prov' == prov andalso call' == call then obj
+                    else
+                      Object
+                        {id = id,
+                         object = ob,
+                         provenance = prov',
+                         call = call'}
+              in
+                postF obj acc
+              end
+
+        and mapsProv prov acc =
+            case prov of
+              Pnull => (prov,acc)
+            | Pcall obj => mapsProv1 prov acc Pcall obj
+            | Preturn obj => mapsProv1 prov acc Preturn obj
+            | Pcons (objH,objT) =>
+              let
+                val (objH',objT',acc) =
+                    if lr then
+                      let
+                        val (objH',acc) = mapsObj objH acc
+                        val (objT',acc) = mapsObj objT acc
+                      in
+                        (objH',objT',acc)
+                      end
+                    else
+                      let
+                        val (objT',acc) = mapsObj objT acc
+                        val (objH',acc) = mapsObj objH acc
+                      in
+                        (objH',objT',acc)
+                      end
+
+                val prov' =
+                    if objH' == objH andalso objT' == objT then prov
+                    else Pcons (objH',objT')
+              in
+                (prov',acc)
+              end
+            | Pref obj => mapsProv1 prov acc Pref obj
+            | Pthm objs =>
+              let
+                val (objs',acc) =
+                    (if lr then Sharing.maps else Sharing.revMaps)
+                      mapsObj objs acc
+
+                val prov' = if objs' == objs then prov else Pthm objs'
+              in
+                (prov',acc)
+              end
+
+        and mapsProv1 prov acc con obj =
+            let
+              val (obj',acc) = mapsObj obj acc
+              val prov' = if obj' == obj then prov else con obj'
+            in
+              (prov',acc)
+            end
       in
-        (prov',acc)
+        mapsObj
       end;
 in
   fun mapsObject preF postF obj acc = maps true preF postF obj acc;
@@ -286,55 +289,81 @@ val ppObjectSet =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun preReduce obj (reqd_refs as (reqd,refs)) =
-      case peekObjectSet reqd obj of
-        SOME obj => Left obj
-      | NONE =>
-        Right
-        let
-          val Object {id, object = ob, provenance = prov, call} = obj
+  fun improve refs obj =
+      let
+        val Object {id, object = ob, provenance = prov, call} = obj
 
-          fun better rid =
-              rid < id andalso
-              case prov of
-                Preturn (Object {id = rid', ...}) => rid < rid'
-              | Pref (Object {id = rid', ...}) => rid < rid'
-              | _ => true
-        in
-          case prov of
-            Pnull => obj
-          | Pcall _ => obj
-          | _ =>
-            case ObjectMap.peek refs ob of
-              NONE => obj
-            | SOME (robj as Object {id = rid, ...}) =>
-              if not (better rid) then obj
-              else
-                Object
-                  {id = id,
-                   object = ob,
-                   provenance = Pref robj,
-                   call = call}
-        end;
+        fun better rid =
+            rid < id andalso
+            case prov of
+              Preturn (Object {id = rid', ...}) => rid < rid'
+            | Pref (Object {id = rid', ...}) => rid < rid'
+            | _ => true
+      in
+        case prov of
+          Pnull => NONE
+        | Pcall _ => NONE
+        | _ =>
+          case ObjectMap.peek refs ob of
+            NONE => NONE
+          | SOME (robj as Object {id = rid, ...}) =>
+            if not (better rid) then NONE
+            else
+              let
+                val prov = Pref robj
+
+                val obj =
+                    Object
+                      {id = id,
+                       object = ob,
+                       provenance = prov,
+                       call = call}
+              in
+                SOME obj
+              end
+      end;
+
+  fun preReduce obj (reqd,refs) =
+      let
+        val (seen,obj) =
+            case peekObjectSet reqd obj of
+              SOME obj => (true,obj)
+            | NONE => (false,obj)
+      in
+        case improve refs obj of
+          SOME obj => Right obj
+        | NONE => if seen then Left obj else Right obj
+      end;
 
   fun postReduce (obj as Object {id, object = ob, ...}) (reqd,refs) =
       let
+        val obj =
+            case improve refs obj of
+              SOME obj => obj
+            | NONE => obj
+
         val reqd = addObjectSet reqd obj
 
         val insertRefs =
             case ObjectMap.peek refs ob of
               NONE => true
-            | SOME (Object {id = id', ...}) => id < id'
+            | SOME (Object {id = id', ...}) => id <= id'
 
         val refs = if insertRefs then ObjectMap.insert refs (ob,obj) else refs
       in
-        (reqd,refs)
+        (obj,(reqd,refs))
       end;
 
   fun dependencies clean lr objs =
       let
+(*OpenTheoryTrace1
+        val () = trace ("Article.dependencies: making a " ^
+                        (if lr then "left to right" else "right to left") ^
+                        " pass\n")
+*)
         val reqd = emptyObjectSet
         val refs = ObjectMap.new ()
+
         val (objs',(reqd,_)) =
             if lr then
               Sharing.maps (mapsObject preReduce postReduce)
@@ -861,7 +890,7 @@ fun executeCommand known interpretation cmd state =
                     | NONE =>
                       let
                         val th = Thm.axiom seq
-(*OpenTheoryTrace1
+(*OpenTheoryTrace2
                         val () = trace ("making new axiom in " ^
                                         topCallToStringStack stack ^ ":\n" ^
                                         thmToString th ^ "\n")
@@ -890,9 +919,9 @@ fun executeCommand known interpretation cmd state =
                   raise Error "cannot use an Ocall object as a call argument"
           val n = Object.destOname obN
           val n = Interpretation.interpretRule interpretation n
-(*OpenTheoryTrace1
-          val traceCall = null (callStack stack)
 (*OpenTheoryTrace2
+          val traceCall = null (callStack stack)
+(*OpenTheoryTrace3
           val traceCall = true
 *)
           val () = if not traceCall then ()
@@ -926,9 +955,9 @@ fun executeCommand known interpretation cmd state =
           val _ = Name.equal n' n orelse
                   raise Error ("call " ^ Name.toString n' ^
                                " matched by return " ^ Name.toString n)
-(*OpenTheoryTrace1
-          val traceReturn = null (callStack stack)
 (*OpenTheoryTrace2
+          val traceReturn = null (callStack stack)
+(*OpenTheoryTrace3
           val traceReturn = true
 *)
           val () = if not traceReturn then ()
@@ -1138,8 +1167,8 @@ local
                 not known orelse
                 let
                   val () = Print.trace (ppObject 1) "deja vu obj" obj
-                  val k = Option.getOpt (ObjectMap.peek refs ob, 0)
-                  val () = Print.trace Print.ppInt "refs" (k - 1)
+                  val k = ObjectMap.peek refs ob
+                  val () = Print.trace (Print.ppOption Print.ppInt) "refs" k
                 in
                   raise Bug "Article.register: Pcons"
                 end
