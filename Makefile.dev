@@ -129,6 +129,7 @@ src/Parse.sml: ../basic/src/Parse.sml $(COPY) ; @$(COPY) $< $@
 src/Portable.sig: ../basic/src/Portable.sig $(COPY) ; @$(COPY) $< $@
 src/PortableMosml.sml: ../basic/src/PortableMosml.sml $(COPY) ; @$(COPY) $< $@
 src/PortableMlton.sml: ../basic/src/PortableMlton.sml $(COPY) ; @$(COPY) $< $@
+src/PortablePolyml.sml: ../basic/src/PortablePolyml.sml $(COPY) ; @$(COPY) $< $@
 src/Print.sig: ../basic/src/Print.sig $(COPY) ; @$(COPY) $< $@
 src/Print.sml: ../basic/src/Print.sml $(COPY) ; @$(COPY) $< $@
 src/Random.sig: ../basic/src/Random.sig $(COPY) ; @$(COPY) $< $@
@@ -203,8 +204,8 @@ tarball: clean doc/DONT-RELEASE Makefile.dev
 	cd .. ; tar cvzhf opentheory/release/OpenTheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
 
 .PHONY: release
-release: mosml mlton tarball
-	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt
+release: tarball mosml mlton polyml
+	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/*.art
 	cp -v doc/*.html doc/*.txt $(RELEASE_DIR)/
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS --exclude=num.art --exclude=articles.tar.gz -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 

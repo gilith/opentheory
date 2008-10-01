@@ -65,8 +65,11 @@ Parse.sml
 Portable.sig
 PortableMosml.sml
 PortableMlton.sml
+PortablePolyml.sml
 Print.sig
 Print.sml
+Random.sig
+Random.sml
 RandomMap.sml
 RandomSet.sml
 selftest.sml

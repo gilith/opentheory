@@ -145,7 +145,6 @@ MLTON = mlton
 MLTON_OPTS = -runtime 'ram-slop 0.4'
 
 MLTON_SRC = \
-  src/PP.sig src/PP.sml \
   src/Portable.sig src/PortableMlton.sml \
   $(SRC)
 
@@ -192,7 +191,6 @@ POLYML = poly
 POLYML_OPTS =
 
 POLYML_SRC = \
-  src/PP.sig src/PP.sml \
   src/Random.sig src/Random.sml \
   src/Portable.sig src/PortablePolyml.sml \
   $(SRC)
