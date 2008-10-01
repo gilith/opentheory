@@ -1157,9 +1157,9 @@ local
             val _ =
                 not known orelse
                 let
-                  val () = Print.trace (ppObject 1) "  deja vu obj:" obj
+                  val () = Print.trace (ppObject 1) "deja vu obj" obj
                   val k = Option.getOpt (ObjectMap.peek refs ob, 0)
-                  val () = Print.trace Print.ppInt "  refs:" (k - 1)
+                  val () = Print.trace Print.ppInt "refs" (k - 1)
                 in
                   raise Bug "Article.register: Pcons"
                 end
