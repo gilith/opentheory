@@ -197,6 +197,72 @@ fun containsThmsObject obj =
     | Object {provenance = Pnull, ...} => false
     | _ => true;
 
+fun ppObject level obj =
+    let
+      val Object {id, object = ob, provenance = prov, call} = obj
+      val level = level - 1
+    in
+      if level = ~1 then Print.ppInt id
+      else
+        Print.blockProgram Print.Consistent 2
+          [Print.addString "Object",
+           Print.addBreak 1,
+           Print.blockProgram Print.Consistent 1
+             [Print.addString "{",
+              Print.blockProgram Print.Consistent 2
+                [Print.addString "id =",
+                 Print.addBreak 1,
+                 Print.ppInt id],
+              Print.addString ",",
+              Print.addBreak 1,
+              Print.blockProgram Print.Consistent 2
+                [Print.addString "object =",
+                 Print.addBreak 1,
+                 Object.pp ob],
+              Print.addString ",",
+              Print.addBreak 1,
+              Print.blockProgram Print.Consistent 2
+                [Print.addString "provenance =",
+                 Print.addBreak 1,
+                 ppProvenance level prov],
+              Print.addString ",",
+              Print.addBreak 1,
+              Print.blockProgram Print.Consistent 2
+                [Print.addString "call =",
+                 Print.addBreak 1,
+                 Print.ppOption (ppObject level) call],
+              Print.addString "}"]]
+    end
+
+and ppProvenance level prov =
+    case prov of
+      Pnull => Print.addString "Pnull"
+    | Pcall obj =>
+      Print.blockProgram Print.Consistent 2
+        [Print.addString "Pcall",
+         Print.addBreak 1,
+         ppObject level obj]
+    | Preturn obj =>
+      Print.blockProgram Print.Consistent 2
+        [Print.addString "Preturn",
+         Print.addBreak 1,
+         ppObject level obj]
+    | Pcons objH_objT =>
+      Print.blockProgram Print.Consistent 2
+        [Print.addString "Pcons",
+         Print.addBreak 1,
+         Print.ppPair (ppObject level) (ppObject level) objH_objT]
+    | Pref obj =>
+      Print.blockProgram Print.Consistent 2
+        [Print.addString "Pref",
+         Print.addBreak 1,
+         ppObject level obj]
+    | Pthm objs =>
+      Print.blockProgram Print.Consistent 2
+        [Print.addString "Pthm",
+         Print.addBreak 1,
+         Print.ppList (ppObject level) objs];
+
 (* ------------------------------------------------------------------------- *)
 (* Object sets.                                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -1088,7 +1154,15 @@ local
           let
             val (known,refs) = registerTop refs ob
 (*OpenTheoryDebug
-            val _ = not known orelse raise Bug "Article.register: Pcons"
+            val _ =
+                not known orelse
+                let
+                  val () = Print.trace (ppObject 1) "  deja vu obj:" obj
+                  val k = Option.getOpt (ObjectMap.peek refs ob, 0)
+                  val () = Print.trace Print.ppInt "  refs:" (k - 1)
+                in
+                  raise Bug "Article.register: Pcons"
+                end
 *)
           in
             refs
