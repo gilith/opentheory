@@ -207,31 +207,11 @@ fun ppObject level obj =
         Print.blockProgram Print.Consistent 2
           [Print.addString "Object",
            Print.addBreak 1,
-           Print.blockProgram Print.Consistent 1
-             [Print.addString "{",
-              Print.blockProgram Print.Consistent 2
-                [Print.addString "id =",
-                 Print.addBreak 1,
-                 Print.ppInt id],
-              Print.addString ",",
-              Print.addBreak 1,
-              Print.blockProgram Print.Consistent 2
-                [Print.addString "object =",
-                 Print.addBreak 1,
-                 Object.pp ob],
-              Print.addString ",",
-              Print.addBreak 1,
-              Print.blockProgram Print.Consistent 2
-                [Print.addString "provenance =",
-                 Print.addBreak 1,
-                 ppProvenance level prov],
-              Print.addString ",",
-              Print.addBreak 1,
-              Print.blockProgram Print.Consistent 2
-                [Print.addString "call =",
-                 Print.addBreak 1,
-                 Print.ppOption (ppObject level) call],
-              Print.addString "}"]]
+           Print.record
+             [("id", Print.ppInt id),
+              ("object", Object.pp ob),
+              ("provenance", ppProvenance level prov),
+              ("call", Print.ppOption (ppObject level) call)]]
     end
 
 and ppProvenance level prov =
