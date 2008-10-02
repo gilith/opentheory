@@ -78,6 +78,24 @@ fun object (Object {object = x, ...}) = x;
 
 fun callObject (Object {call = x, ...}) = x;
 
+fun parentsProvenance prov =
+    case prov of
+      Pnull => []
+    | Pcall obj => [obj]
+    | Preturn obj => [obj]
+    | Pcons (objH,objT) => [objH,objT]
+    | Pref obj => [obj]
+    | Pthm objs => objs;
+
+fun parentsObject (Object {provenance = prov, call, ...}) =
+    let
+      val pars = parentsProvenance prov
+    in
+      case call of
+        SOME obj => obj :: pars
+      | NONE => pars
+    end;
+
 local
   infix ==
 
@@ -281,6 +299,15 @@ in
   fun toStreamObjectSet (ObjectSet set) = toStream (Set.mkIterator set);
 end;
 
+local
+  fun ancs set [] = set
+    | ancs set (obj :: objs) =
+      if memberObjectSet obj set then ancs set objs
+      else ancs (addObjectSet set obj) (parentsObject obj @ objs);
+in
+  fun ancestorsObject obj = ancs emptyObjectSet [obj];
+end;
+
 val ppObjectSet =
     Print.ppBracket "{" "}" (Print.ppMap sizeObjectSet Print.ppInt);
 
@@ -299,28 +326,34 @@ local
               Preturn (Object {id = rid', ...}) => rid < rid'
             | Pref (Object {id = rid', ...}) => rid < rid'
             | _ => true
-      in
-        case prov of
-          Pnull => NONE
-        | Pcall _ => NONE
-        | _ =>
-          case ObjectMap.peek refs ob of
-            NONE => NONE
-          | SOME (robj as Object {id = rid, ...}) =>
-            if not (better rid) then NONE
-            else
-              let
-                val prov = Pref robj
 
-                val obj =
-                    Object
-                      {id = id,
-                       object = ob,
-                       provenance = prov,
-                       call = call}
-              in
-                SOME obj
-              end
+        val obj' =
+            case prov of
+              Pnull => NONE
+            | Pcall _ => NONE
+            | _ =>
+              case ObjectMap.peek refs ob of
+                NONE => NONE
+              | SOME (robj as Object {id = rid, ...}) =>
+                if not (better rid) then NONE
+                else
+                  let
+                    val prov = Pref robj
+
+                    val obj =
+                        Object
+                          {id = id,
+                           object = ob,
+                           provenance = prov,
+                           call = call}
+                  in
+                    SOME obj
+                  end
+
+        val () = if id = 31426 then Print.trace (Print.ppOp2 " -->" (ppObject 1) (Print.ppOption (ppObject 1))) "improving initial object" (obj,obj') else ()
+        val () = if id = 34728 then Print.trace (Print.ppOp2 " -->" (ppObject 1) (Print.ppOption (ppObject 1))) "improving duplicate object" (obj,obj') else ()
+      in
+        obj'
       end;
 
   fun preReduce obj (reqd,refs) =
@@ -335,12 +368,14 @@ local
         | NONE => if seen then Left obj else Right obj
       end;
 
-  fun postReduce (obj as Object {id, object = ob, ...}) (reqd,refs) =
+  fun postReduce obj (reqd,refs) =
       let
         val obj =
             case improve refs obj of
               SOME obj => obj
             | NONE => obj
+
+        val Object {id, object = ob, ...} = obj
 
         val reqd = addObjectSet reqd obj
 
@@ -379,9 +414,63 @@ local
         if clean andalso clean' then (reqd,objs)
         else dependencies clean' lr objs'
       end;
+
+  val checkReduced =
+      let
+        fun check (obj,obs) =
+            let
+              val Object {id, object = ob, provenance = prov, call} = obj
+            in
+              case prov of
+                Pnull => obs
+              | Pcall _ => obs
+              | Preturn _ => obs
+              | _ =>
+                case ObjectMap.peek obs ob of
+                  NONE => ObjectMap.insert obs (ob,obj)
+                | SOME obj' =>
+                  let
+                    val Object {id = id', ...} = obj'
+                  in
+                    case prov of
+                      Pref (Object {id = rid, ...}) =>
+                      if rid = id' then obs
+                      else raise Error "does not reference initial instance"
+                    | _ => raise Error "is not a reference"
+                  end
+                  handle Error err =>
+                    let
+                      val () = Print.trace (ppObject 1) "initial" obj'
+                      val () = Print.trace (ppObject 1) "duplicate" obj
+                      val () =
+                          if memberObjectSet obj' (ancestorsObject obj) then
+                            trace "duplicate depends on initial\n"
+                          else
+                            trace "duplicate does not depend on initial\n"
+                    in
+                      raise Error ("duplicate " ^ err)
+                    end
+            end
+      in
+        fn reqd =>
+           let
+             val acc = ObjectMap.new ()
+             val acc = foldlObjectSet check acc reqd
+           in
+             ()
+           end
+      end;
 in
   fun dependenciesObject objs =
-      dependencies false true objs
+      let
+        val reqd_objs = dependencies false true objs
+(*OpenTheoryDebug
+        val (reqd,_) = reqd_objs
+        val () = checkReduced reqd
+*)
+      in
+        reqd_objs
+      end
       handle Error err =>
         raise Bug ("Article.dependenciesObjects: " ^ err);
 end;
