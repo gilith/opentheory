@@ -42,12 +42,11 @@ fun substToSubst oins =
 (* Primitive rules of definition.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun newBasicDefinition interpretation arg =
+fun newBasicDefinition _ seq arg =
     let
-      val tm = Object.destOterm arg
-      val (v,t) = Term.destEq tm
-      val (n,ty) = Term.destVar v
-      val n = Interpretation.interpretConst interpretation n
+      val {concl = tm, ...} : Sequent.sequent = seq
+      val (c,t) = Term.destEq tm
+      val (n,ty) = Term.destConst c
       val v = Term.mkVar (n,ty)
       val tm = Term.mkEq (v,t)
     in
@@ -56,9 +55,12 @@ fun newBasicDefinition interpretation arg =
     handle Error err =>
       raise Bug ("holLightNewBasicDefinition failed:\n" ^ err);
 
-fun newBasicTypeDefinition interpretation arg =
+fun newBasicTypeDefinition _ seq arg =
     let
-      val (name,absRep,nonEmptyTh) = Object.destOtriple arg
+      val (_,_,nonEmptyTh) = Object.destOtriple arg
+      val (name,abs,rep) =
+          
+
       val name = Object.destOname name
       val name = Interpretation.interpretType interpretation name
       val (abs,rep) = Object.destOpair absRep
@@ -80,7 +82,7 @@ fun newBasicTypeDefinition interpretation arg =
 (* Primitive rules of inference.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun abs _ arg =
+fun abs _ _ arg =
     let
       val (otm,oth) = Object.destOpair arg
       val v = Term.destVar (Object.destOterm otm)
@@ -89,11 +91,11 @@ fun abs _ arg =
       Object.Othm (Rule.abs v th)
     end;
 
-fun assume _ arg = Object.Othm (Rule.assume (Object.destOterm arg));
+fun assume _ _ arg = Object.Othm (Rule.assume (Object.destOterm arg));
 
-fun beta _ arg = Object.Othm (Rule.betaConv (Object.destOterm arg));
+fun beta _ _ arg = Object.Othm (Rule.betaConv (Object.destOterm arg));
 
-fun deductAntisymRule _ arg =
+fun deductAntisymRule _ _ arg =
     let
       val (oth1,oth2) = Object.destOpair arg
       val th1 = Object.destOthm oth1
@@ -102,7 +104,7 @@ fun deductAntisymRule _ arg =
       Object.Othm (Rule.deductAntisym th1 th2)
     end;
 
-fun eqMp _ arg =
+fun eqMp _ _ arg =
     let
       val (oth1,oth2) = Object.destOpair arg
       val th1 = Object.destOthm oth1
@@ -111,7 +113,7 @@ fun eqMp _ arg =
       Object.Othm (Rule.eqMp th1 th2)
     end;
 
-fun inst _ arg =
+fun inst _ _ arg =
     let
       val (oins,oth) = Object.destOpair arg
       val ins = substToSubst oins
@@ -120,7 +122,7 @@ fun inst _ arg =
       Object.Othm (Rule.subst ins th)
     end;
 
-fun instType _ arg =
+fun instType _ _ arg =
     let
       val (oins,oth) = Object.destOpair arg
       val ins = typeSubstToSubst oins
@@ -129,7 +131,7 @@ fun instType _ arg =
       Object.Othm (Rule.subst ins th)
     end;
 
-fun mkComb _ arg =
+fun mkComb _ _ arg =
     let
       val (oth1,oth2) = Object.destOpair arg
       val th1 = Object.destOthm oth1
@@ -138,9 +140,9 @@ fun mkComb _ arg =
       Object.Othm (Rule.comb th1 th2)
     end;
 
-fun refl _ arg = Object.Othm (Rule.refl (Object.destOterm arg));
+fun refl _ _ arg = Object.Othm (Rule.refl (Object.destOterm arg));
 
-fun trans _ arg =
+fun trans _ _ arg =
     let
       val (oth1,oth2) = Object.destOpair arg
       val th1 = Object.destOthm oth1

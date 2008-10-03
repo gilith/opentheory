@@ -700,12 +700,22 @@ fun simulate interpretation stack seq =
           NONE => NONE
         | SOME sim =>
           let
-            val r = sim interpretation a
+            val r = sim interpretation seq a
             val ths = Object.thms r
           in
             case first (total (alpha seq)) ths of
               SOME th => SOME (th,[])
-            | NONE => NONE
+            | NONE =>
+              let
+                val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
+                val ppSeq = Print.ppOp2 " =" Print.ppString ppSequent
+                val () = warn ("simulation failed: " ^ Name.toString f ^
+                               "\n" ^ Print.toString ppOb ("input",a) ^
+                               "\n" ^ Print.toString ppOb ("output",r) ^
+                               "\n" ^ Print.toString ppSeq ("target",seq))
+              in
+                NONE
+              end
           end
       end
     | _ => NONE;

@@ -17,7 +17,7 @@ val namespace : Namespace.namespace
 (* ------------------------------------------------------------------------- *)
 
 val simulations :
-    (Interpretation.interpretation -> Object.object -> Object.object)
-    NameMap.map
+    (Interpretation.interpretation -> Sequent.sequent ->
+     Object.object -> Object.object) NameMap.map
 
 end
