@@ -37,7 +37,7 @@ fun compare ty1_ty2 =
         prodCompare Name.compare (lexCompare compare) (n1_l1,n2_l2);
 
 fun equal ty1 ty2 = compare (ty1,ty2) = EQUAL;
- 
+
 (* ------------------------------------------------------------------------- *)
 (* The type registry (initially contains the primitive type operators).      *)
 (* ------------------------------------------------------------------------- *)
@@ -125,6 +125,18 @@ val typeVars =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Type operators.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val typeOps =
+    let
+      fun f (TypeVar _, acc) = acc
+        | f (TypeOp (n,tys), acc) = foldl f (NameSet.add acc n) tys
+    in
+      fn ty => f (ty,NameSet.empty)
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Primitive types                                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -168,8 +180,6 @@ end
 structure TypeOrdered =
 struct type t = Type.ty val compare = Type.compare end
 
-structure TypeSet =
-ElementSet (TypeOrdered)
+structure TypeSet = ElementSet (TypeOrdered)
 
-structure TypeMap =
-KeyMap (TypeOrdered)
+structure TypeMap = KeyMap (TypeOrdered)

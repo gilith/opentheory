@@ -216,6 +216,24 @@ val freeVars =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Type operators and constants.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun typeOps tm =
+    case tm of
+      Const (_,ty) => Type.typeOps ty
+    | Var v => Var.typeOps v
+    | Comb (f,a) => NameSet.union (typeOps f) (typeOps a)
+    | Abs (v,b) => NameSet.union (Var.typeOps v) (typeOps b);
+
+fun consts tm =
+    case tm of
+      Const (n,_) => NameSet.singleton n
+    | Var _ => NameSet.empty
+    | Comb (f,a) => NameSet.union (consts f) (consts a)
+    | Abs (_,b) => consts b;
+
+(* ------------------------------------------------------------------------- *)
 (* Primitive constants                                                       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -275,6 +293,29 @@ structure TermMap = KeyMap (TermOrdered)
 structure TermAlphaOrdered =
 struct type t = Term.term val compare = Term.alphaCompare end
 
-structure TermAlphaSet = ElementSet (TermAlphaOrdered)
+structure TermAlphaSet =
+struct
+
+  local
+    structure S = ElementSet (TermAlphaOrdered);
+  in
+    open S;
+  end;
+
+  val typeOps =
+      let
+        fun add (tm,acc) = NameSet.union acc (Term.typeOps tm)
+      in
+        foldl add NameSet.empty
+      end;
+
+  val consts =
+      let
+        fun add (tm,acc) = NameSet.union acc (Term.consts tm)
+      in
+        foldl add NameSet.empty
+      end;
+
+end
 
 structure TermAlphaMap = KeyMap (TermAlphaOrdered)

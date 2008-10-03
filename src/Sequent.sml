@@ -31,11 +31,44 @@ fun compare ({hyp = h1, concl = c1}, {hyp = h2, concl = c2}) =
 
 fun equal s1 s2 = compare (s1,s2) = EQUAL;
 
+(* ------------------------------------------------------------------------- *)
+(* Type operators and constants.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun typeOps {hyp,concl} =
+    NameSet.union (TermAlphaSet.typeOps hyp) (Term.typeOps concl);
+
+fun consts {hyp,concl} =
+    NameSet.union (TermAlphaSet.consts hyp) (Term.consts concl);
+
 end
 
 structure SequentOrdered =
 struct type t = Sequent.sequent val compare = Sequent.compare end
 
-structure SequentSet = ElementSet (SequentOrdered)
+structure SequentSet =
+struct
+
+  local
+    structure S = ElementSet (SequentOrdered);
+  in
+    open S;
+  end;
+
+  val typeOps =
+      let
+        fun add (tm,acc) = NameSet.union acc (Sequent.typeOps tm)
+      in
+        foldl add NameSet.empty
+      end;
+
+  val consts =
+      let
+        fun add (tm,acc) = NameSet.union acc (Sequent.consts tm)
+      in
+        foldl add NameSet.empty
+      end;
+
+end
 
 structure SequentMap = KeyMap (SequentOrdered)

@@ -22,4 +22,12 @@ val compare : sequent * sequent -> order
 
 val equal : sequent -> sequent -> bool
 
+(* ------------------------------------------------------------------------- *)
+(* Type operators and constants.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val typeOps : sequent -> NameSet.set
+
+val consts : sequent -> NameSet.set
+
 end
