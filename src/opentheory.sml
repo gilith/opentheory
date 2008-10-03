@@ -109,8 +109,9 @@ fun readArticle interpretation (filename,(article,known)) =
       (article,known)
     end;
 
-fun includeArticle interpretation (filename,known) =
+fun includeArticle (filename,known) =
     let
+      val interpretation = Interpretation.natural
       val article = Article.empty
       val (_,known) = readArticle interpretation (filename,(article,known))
     in
@@ -131,7 +132,7 @@ let
 
   val known = ThmSet.empty
 
-  val known = foldl (includeArticle interpretation) known (rev (!INCLUDES))
+  val known = foldl includeArticle known (rev (!INCLUDES))
 
   val article = Article.empty
 
