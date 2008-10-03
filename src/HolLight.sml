@@ -42,7 +42,7 @@ fun substToSubst oins =
 (* Primitive rules of definition.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun newBasicDefinition _ seq arg =
+fun newBasicDefinition _ seq _ =
     let
       val {concl = tm, ...} : Sequent.sequent = seq
       val (c,t) = Term.destEq tm
@@ -57,19 +57,44 @@ fun newBasicDefinition _ seq arg =
 
 fun newBasicTypeDefinition _ seq arg =
     let
-      val (_,_,nonEmptyTh) = Object.destOtriple arg
-      val (name,abs,rep) =
-          
+      val (abs,rep) =
+          let
+            val {concl = tm,...} = seq
+            val (l,r) = Term.destEq tm
+          in
+            case total Term.destEq r of
+              SOME (t,_) =>
+              let
+                val (rep,t) = Term.destComb t
+                val (abs,_) = Term.destComb t
+              in
+                (abs,rep)
+              end
+            | NONE =>
+              let
+                val (abs,t) = Term.destComb l
+                val (rep,_) = Term.destComb t
+              in
+                (abs,rep)
+              end
+          end
 
-      val name = Object.destOname name
-      val name = Interpretation.interpretType interpretation name
-      val (abs,rep) = Object.destOpair absRep
-      val abs = Object.destOname abs
-      and rep = Object.destOname rep
-      and nonEmptyTh = Object.destOthm nonEmptyTh
-      val abs = Interpretation.interpretConst interpretation abs
-      and rep = Interpretation.interpretConst interpretation rep
+      val (abs,absTy) = Term.destConst abs
+      and (rep,_) = Term.destConst rep
+
+      val name =
+          let
+            val (_,ty) = Type.destFun absTy
+            val (name,_) = Type.destOp ty
+          in
+            name
+          end
+
+      val (_,_,nonEmptyTh) = Object.destOtriple arg
+      val nonEmptyTh = Object.destOthm nonEmptyTh
+
       val tyVars = NameSet.toList (Term.typeVars (Syntax.concl nonEmptyTh))
+
       val (absRepTh,repAbsTh) =
           Rule.defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
     in
