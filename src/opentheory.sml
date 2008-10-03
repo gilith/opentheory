@@ -32,6 +32,8 @@ val PROGRAM = "opentheory";
 
 val INTERPRETATIONS : string list ref = ref [];
 
+val INCLUDES : string list ref = ref [];
+
 val OUTPUT : string option ref = ref NONE;
 
 local
@@ -39,11 +41,17 @@ local
 in
   val specialOptions =
     [{switches = ["-i","--interpret"], arguments = ["FILE"],
-      description = "interpret the article using the rules in FILE",
+      description = "interpret articles using the rules in FILE",
       processor =
         beginOpt (stringOpt endOpt)
           (fn _ => fn s =>
            let val r as ref ss = INTERPRETATIONS in r := s :: ss end)},
+     {switches = ["-I","--include"], arguments = ["FILE"],
+      description = "use the saved theorems in FILE",
+      processor =
+        beginOpt (stringOpt endOpt)
+          (fn _ => fn s =>
+           let val r as ref ss = INCLUDES in r := s :: ss end)},
      {switches = ["-o","--output"], arguments = ["FILE"],
       description = "output the processed article to FILE",
       processor =
@@ -101,6 +109,14 @@ fun readArticle interpretation (filename,(article,known)) =
       (article,known)
     end;
 
+fun includeArticle interpretation (filename,known) =
+    let
+      val article = Article.empty
+      val (_,known) = readArticle interpretation (filename,(article,known))
+    in
+      known
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -115,8 +131,11 @@ let
 
   val known = ThmSet.empty
 
-  val (article,_) =
-      foldl (readArticle interpretation) (Article.empty,known) work
+  val known = foldl (includeArticle interpretation) known (rev (!INCLUDES))
+
+  val article = Article.empty
+
+  val (article,_) = foldl (readArticle interpretation) (article,known) work
 
   val () =
       case !OUTPUT of
