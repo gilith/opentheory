@@ -1639,23 +1639,18 @@ fun fromTextFile {known,interpretation,filename} =
             val n' = ObjectMap.size savedSet' - n
           in
             if n = 0 then
-              if n' = 0 then
-                let
-                  val () =
+              let
+                val () =
+                    if n' = 0 then
                       warn ("no theorems saved or left on the stack by " ^
                             filename)
-                in
-                  savedSet
-                end
-              else
-                let
-                  val () =
+                    else
                       warn ("saving " ^ Int.toString n' ^ " theorem" ^
                             (if n' = 1 then "" else "s") ^
                             " left on the stack by " ^ filename)
-                in
-                  savedSet'
-                end
+              in
+                savedSet'
+              end
             else
               let
                 val () =

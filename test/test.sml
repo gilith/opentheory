@@ -129,35 +129,38 @@ val articles = maps read ARTICLES ThmSet.empty;
 stop;
 ***)
 
+fun compress interpretation filename =
+    let
+      val article =
+          time
+            Article.fromTextFile
+            {known = ThmSet.empty,
+             interpretation = interpretation,
+             filename = ARTICLE_DIR ^ "/" ^ filename};
+    in
+      time (Article.toTextFile {filename = filename}) article
+    end;
+
+val () = compress holLightInt "bool.art";
+
+val () = compress holLightInt "num.art";
+
 val known = ThmSet.empty;
 
-(***
 val bool =
     time
       Article.fromTextFile
       {known = known,
-       interpretation = holLightInt,
-       filename = ARTICLE_DIR ^ "/bool.art"};
+       interpretation = Interpretation.natural,
+       filename = "bool.art"};
 
 val known = ThmSet.union known (Article.saved bool);
-***)
 
 val num =
     time
       Article.fromTextFile
       {known = known,
-       interpretation = holLightInt,
-       filename = ARTICLE_DIR ^ "/num.art"};
-
-val filename = "compressed.art";
-
-val () = time (Article.toTextFile {filename = filename}) num;
-
-val num' =
-    time
-      Article.fromTextFile
-      {known = known,
        interpretation = Interpretation.natural,
-       filename = filename};
+       filename = "num.art"};
 
-val summary = printval Summary.pp (Article.summarize num');
+val summary = printval Summary.pp (Article.summarize num);
