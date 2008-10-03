@@ -2,8 +2,9 @@
 Reading in the hol-light interpretation
 
 namespace . -> hol-light;
-type hol-light.fun -> fun;
 type hol-light.bool -> bool;
+type hol-light.fun -> fun;
+type hol-light.prod -> *;
 const hol-light.= -> =;
 const hol-light.@ -> @;
 const hol-light.T -> T;
@@ -18,7 +19,17 @@ const hol-light.?! -> ?!;
 --------------------------------------------------------------------------
 Reading in hol-light theories
 
-WARNING: 1030 objects left on the stack by articles/hol-light/bool.art
-WARNING: 549 unsaved theorems left on the stack by articles/hol-light/bool.art
-WARNING: 1390 objects left in the dictionary by articles/hol-light/bool.art
-User: 0.979  System: 0.014  GC: 0.106  Real: 1.003
+WARNING: 194 objects left on the stack by articles/hol-light/num.art
+WARNING: 160 unsaved theorems left on the stack by articles/hol-light/num.art
+WARNING: 21698 objects left in the dictionary by articles/hol-light/num.art
+User: 17.575  System: 0.255  GC: 2.773  Real: 17.961
+User: 22.725  System: 0.201  GC: 1.092  Real: 23.121
+User: 3.679  System: 0.034  GC: 0.310  Real: 3.749
+REQUIRES {
+  types:
+}
+
+PROVIDES {
+  types:
+}
+

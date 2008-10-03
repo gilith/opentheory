@@ -63,16 +63,6 @@ val () = print (Interpretation.toString holLightInt);
 val () = SAY "Reading in hol-light theories";
 (* ------------------------------------------------------------------------- *)
 
-(***
-val q = ("q", boolTy);
-val T = mkConst ("T", boolTy);
-val qT = mkAbs (q,T);
-val qTq = mkComb (qT, mkVar q);
-val u = TU.singleton (q,T);
-TU.subst u (mkVar q);
-TU.subst u qTq;
-***)
-
 val ARTICLE_DIR = "articles/hol-light";
 
 (***
@@ -169,3 +159,5 @@ val num' =
       {known = known,
        interpretation = Interpretation.natural,
        filename = filename};
+
+val summary = printval Summary.pp (Article.summarize num');
