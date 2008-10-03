@@ -89,14 +89,15 @@ fun ppThmSet thms =
          (SequentSet.toList thms));
 
 fun ppCurrency (name, Currency {types,consts,thms}) =
-    Print.blockProgram Print.Consistent 2
+    Print.blockProgram Print.Consistent 0
       [Print.addString (name ^ " {"),
-       (if NameSet.null types then Print.skip
-        else Print.sequence (Print.addBreak 1) (ppNameSet ("types",types))),
-       (if NameSet.null consts then Print.skip
-        else Print.sequence (Print.addBreak 1) (ppNameSet ("consts",consts))),
-       (if SequentSet.null thms then Print.skip
-        else Print.sequence (Print.addBreak 1) (ppThmSet thms)),
+       Print.blockProgram Print.Consistent 2
+         [(if NameSet.null types then Print.skip
+           else Print.sequence (Print.addBreak 1) (ppNameSet ("types",types))),
+          (if NameSet.null consts then Print.skip
+           else Print.sequence (Print.addBreak 1) (ppNameSet ("consts",consts))),
+          (if SequentSet.null thms then Print.skip
+           else Print.sequence (Print.addBreak 1) (ppThmSet thms))],
        Print.addBreak 1,
        Print.addString "}"];
 
