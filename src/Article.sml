@@ -1592,55 +1592,80 @@ fun fromTextFile {known,interpretation,filename} =
       val savedSet =
           let
             val n = sizeStack stack
+
+            val () =
+                if n = 0 then ()
+                else
+                  warn (Int.toString n ^ " object" ^
+                        (if n = 1 then "" else "s") ^
+                        " left on the stack by " ^ filename)
+
+            fun add (obj,(seen,ss)) =
+                let
+                  val Object {id, object = ob, provenance = prov, ...} = obj
+                in
+                  if IntSet.member id seen then (seen,ss)
+                  else
+                    let
+                      val seen = IntSet.add seen id
+                    in
+                      case prov of
+                        Pnull => (seen,ss)
+                      | Pcall _ => (seen,ss)
+                      | Preturn objR => add (objR,(seen,ss))
+                      | Pcons (objH,objT) => add (objT, add (objH,(seen,ss)))
+                      | Pref objR => add (objR,(seen,ss))
+                      | Pthm _ =>
+                        let
+                          val ss =
+                              if ObjectMap.inDomain ob savedSet then ss
+                              else
+                                case ObjectMap.peek ss ob of
+                                  NONE => ObjectMap.insert ss (ob,obj)
+                                | SOME (Object {id = id', ...}) =>
+                                  if not (id < id') then ss
+                                  else ObjectMap.insert ss (ob,obj)
+                        in
+                          (seen,ss)
+                        end
+                    end
+                end
+
+            val (_,savedSet') =
+                List.foldl add (IntSet.empty,savedSet) (objectStack stack)
+
+            val n = ObjectMap.size savedSet
+
+            val n' = ObjectMap.size savedSet' - n
           in
-            if n = 0 then savedSet
+            if n = 0 then
+              if n' = 0 then
+                let
+                  val () =
+                      warn ("no theorems saved or left on the stack by " ^
+                            filename)
+                in
+                  savedSet
+                end
+              else
+                let
+                  val () =
+                      warn ("saving " ^ Int.toString n' ^ " theorem" ^
+                            (if n' = 1 then "" else "s") ^
+                            " left on the stack by " ^ filename)
+                in
+                  savedSet'
+                end
             else
               let
                 val () =
-                    warn (Int.toString n ^ " object" ^
-                          (if n = 1 then "" else "s") ^
-                          " left on the stack by " ^ filename)
-
-                fun add (obj,(seen,ss)) =
-                    let
-                      val Object {id, object = ob, provenance = prov, ...} = obj
-                    in
-                      if IntSet.member id seen then (seen,ss)
-                      else
-                        let
-                          val seen = IntSet.add seen id
-                        in
-                          case prov of
-                            Pnull => (seen,ss)
-                          | Pcall _ => (seen,ss)
-                          | Preturn objR => add (objR,(seen,ss))
-                          | Pcons (objH,objT) => add (objT, add (objH,(seen,ss)))
-                          | Pref objR => add (objR,(seen,ss))
-                          | Pthm _ =>
-                            (seen,
-                             if ObjectMap.inDomain ob savedSet then ss
-                             else
-                               case ObjectMap.peek ss ob of
-                                 NONE => ObjectMap.insert ss (ob,obj)
-                               | SOME (Object {id = id', ...}) =>
-                                 if not (id < id') then ss
-                                 else ObjectMap.insert ss (ob,obj))
-                        end
-                    end
-
-                val (_,savedSet') =
-                    List.foldl add (IntSet.empty,savedSet) (objectStack stack)
-
-                val n = ObjectMap.size savedSet' - ObjectMap.size savedSet
-
-                val () =
-                    if n = 0 then ()
+                    if n' = 0 then ()
                     else
-                      warn (Int.toString n ^ " unsaved theorem" ^
-                            (if n = 1 then "" else "s") ^
+                      warn (Int.toString n' ^ " unsaved theorem" ^
+                            (if n' = 1 then "" else "s") ^
                             " left on the stack by " ^ filename)
               in
-                savedSet'
+                savedSet
               end
           end
 
