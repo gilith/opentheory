@@ -12,6 +12,14 @@ open Useful Syntax Rule;
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
+fun revAppend [] s = s ()
+  | revAppend (h :: t) s = revAppend t (K (Stream.Cons (h,s)));
+
+fun revConcat strm =
+    case strm of
+      Stream.Nil => Stream.Nil
+    | Stream.Cons (h,t) => revAppend h (revConcat o t);
+
 fun natFromString err s =
     case Int.fromString s of
       SOME i => i
@@ -350,31 +358,24 @@ local
                     SOME obj
                   end
 
-        val () = if id = 31426 then Print.trace (Print.ppOp2 " -->" (ppObject 1) (Print.ppOption (ppObject 1))) "improving initial object" (obj,obj') else ()
-        val () = if id = 34728 then Print.trace (Print.ppOp2 " -->" (ppObject 1) (Print.ppOption (ppObject 1))) "improving duplicate object" (obj,obj') else ()
+(*OpenTheoryTrace4
+        val ppImprovement = Print.ppOp2 " -->" (ppObject 1) (ppObject 1)
+        val () =
+            case obj' of
+              SOME x => Print.trace ppImprovement "Article.improve" (obj,x)
+            | NONE => ()
+*)
       in
         obj'
       end;
 
   fun preReduce obj (reqd,refs) =
-      let
-        val (seen,obj) =
-            case peekObjectSet reqd obj of
-              SOME obj => (true,obj)
-            | NONE => (false,obj)
-      in
-        case improve refs obj of
-          SOME obj => Right obj
-        | NONE => if seen then Left obj else Right obj
-      end;
+      case peekObjectSet reqd obj of
+        SOME obj => Left obj
+      | NONE => Right (Option.getOpt (improve refs obj, obj));
 
   fun postReduce obj (reqd,refs) =
       let
-        val obj =
-            case improve refs obj of
-              SOME obj => obj
-            | NONE => obj
-
         val Object {id, object = ob, ...} = obj
 
         val reqd = addObjectSet reqd obj
@@ -382,37 +383,11 @@ local
         val insertRefs =
             case ObjectMap.peek refs ob of
               NONE => true
-            | SOME (Object {id = id', ...}) => id <= id'
+            | SOME (Object {id = id', ...}) => id < id'
 
         val refs = if insertRefs then ObjectMap.insert refs (ob,obj) else refs
       in
         (obj,(reqd,refs))
-      end;
-
-  fun dependencies clean lr objs =
-      let
-(*OpenTheoryTrace1
-        val () = trace ("Article.dependencies: making a " ^
-                        (if lr then "left to right" else "right to left") ^
-                        " pass\n")
-*)
-        val reqd = emptyObjectSet
-        val refs = ObjectMap.new ()
-
-        val (objs',(reqd,_)) =
-            if lr then
-              Sharing.maps (mapsObject preReduce postReduce)
-                objs (reqd,refs)
-            else
-              Sharing.revMaps (revMapsObject preReduce postReduce)
-                objs (reqd,refs)
-
-        val clean' = Portable.pointerEqual (objs',objs)
-
-        val lr = not lr
-      in
-        if clean andalso clean' then (reqd,objs)
-        else dependencies clean' lr objs'
       end;
 
   val checkReduced =
@@ -461,18 +436,27 @@ local
            end
       end;
 in
-  fun dependenciesObject objs =
+  fun reduceObject objs =
       let
-        val reqd_objs = dependencies false true objs
+        val reqd = emptyObjectSet
+        val refs = ObjectMap.new ()
+
+        val (objs,(_,refs)) =
+            Sharing.maps (mapsObject preReduce postReduce) objs (reqd,refs)
+
+        val (objs,(reqd,refs')) =
+            Sharing.maps (mapsObject preReduce postReduce) objs (reqd,refs)
+
 (*OpenTheoryDebug
-        val (reqd,_) = reqd_objs
+        val _ = Portable.pointerEqual (refs,refs') orelse
+                raise Error "references changed"
         val () = checkReduced reqd
 *)
       in
-        reqd_objs
+        (reqd,objs)
       end
       handle Error err =>
-        raise Bug ("Article.dependenciesObjects: " ^ err);
+        raise Bug ("Article.reduceObject: " ^ err);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1207,6 +1191,8 @@ datatype minDict =
        refs : int ObjectMap.map,
        keys : int ObjectMap.map};
 
+fun nullMinDict (MinDict {keys,...}) = ObjectMap.null keys;
+
 local
   fun storable ob =
       case ob of
@@ -1294,6 +1280,32 @@ in
         raise Bug ("Article.newMinDict: " ^ err);
 end;
 
+fun alignCalls prevCall call cmds =
+    case prevCall of
+      NONE =>
+      (case call of
+         NONE => cmds
+       | SOME _ => raise Bug "Article.alignCalls: top level to nested")
+    | SOME (Object {id, object = ob, call = prevCall, ...}) =>
+      let
+        val aligned =
+            case call of
+              NONE => false
+            | SOME (Object {id = id', ...}) => id = id'
+      in
+        if aligned then cmds
+        else
+          let
+            val cmds =
+                case ob of
+                  Object.Ocall n =>
+                  Cop "return" :: Cname n :: Cop "error" :: cmds
+                | _ => raise Bug "Article.alignCalls: Ocall"
+          in
+            alignCalls prevCall call cmds
+          end
+      end;
+
 local
   fun isKey (MinDict {keys,...}) ob = ObjectMap.inDomain ob keys;
 
@@ -1366,34 +1378,8 @@ local
         in
           addKey dict cmds ob
         end;
-
-  fun alignCalls prevCall call cmds =
-      case prevCall of
-        NONE =>
-        (case call of
-           NONE => cmds
-         | SOME _ => raise Bug "Article.alignCalls: top level to nested")
-      | SOME (Object {id, object = ob, call = prevCall, ...}) =>
-        let
-          val aligned =
-              case call of
-                NONE => false
-              | SOME (Object {id = id', ...}) => id = id'
-        in
-          if aligned then cmds
-          else
-            let
-              val cmds =
-                  case ob of
-                    Object.Ocall n =>
-                    Cop "return" :: Cname n :: Cop "error" :: cmds
-                  | _ => raise Bug "Article.alignCalls: Ocall"
-            in
-              alignCalls prevCall call cmds
-            end
-        end;
 in
-  fun generateMinDict prevCall dict obj =
+  fun generateMinDict stacksize prevCall dict obj =
       let
         val Object {object = ob, provenance = prov, call, ...} = obj
         val cmds = []
@@ -1403,8 +1389,9 @@ in
           let
             val cmds = alignCalls prevCall call cmds
             val (dict,cmds) = generateDeep (ob,(dict,cmds))
+            val stacksize = stacksize + (if Option.isSome call then 0 else 1)
           in
-            (call,dict,cmds)
+            (stacksize,call,dict,cmds)
           end
         | Pcall _ =>
           let
@@ -1415,7 +1402,7 @@ in
                 | _ => raise Bug "Article.generateMinDict: Pcall"
             val call = SOME obj
           in
-            (call,dict,cmds)
+            (stacksize,call,dict,cmds)
           end
         | Preturn (Object {call = rcall, ...}) =>
           let
@@ -1426,29 +1413,32 @@ in
                   Cop "return" :: Cname n :: cmds
                 | _ => raise Bug "Article.generateMinDict: Preturn"
           in
-            (call,dict,cmds)
+            (stacksize,call,dict,cmds)
           end
         | Pcons _ =>
           let
             val cmds = alignCalls prevCall call cmds
             val cmds = Cop "cons" :: cmds
             val (dict,cmds) = addKey dict cmds ob
+            val stacksize = stacksize - (if Option.isSome call then 0 else 1)
           in
-            (call,dict,cmds)
+            (stacksize,call,dict,cmds)
           end
         | Pref _ =>
           let
             val cmds = alignCalls prevCall call cmds
             val (dict,cmds) = useKey dict cmds ob
+            val stacksize = stacksize + (if Option.isSome call then 0 else 1)
           in
-            (call,dict,cmds)
+            (stacksize,call,dict,cmds)
           end
         | Pthm _ =>
           let
             val cmds = alignCalls prevCall call cmds
             val (dict,cmds) = generateDeep (ob,(dict,cmds))
+            val stacksize = stacksize + (if Option.isSome call then 0 else 1)
           in
-            (call,dict,cmds)
+            (stacksize,call,dict,cmds)
           end
       end
       handle Error err =>
@@ -1457,26 +1447,38 @@ end;
 
 fun generate saved objs =
     let
-      fun gen obj (call,dict) =
+      fun gen obj (stacksize,call,dict) =
           let
-            val (call,dict,cmds) = generateMinDict call dict obj
+            val (stacksize,call,dict,cmds) =
+                generateMinDict stacksize call dict obj
 
             val cmds =
                 if not (memberObjectSet obj saved) then cmds
                 else Cop "save" :: Cop "dup" :: Cnum 0 :: cmds
-
-            val cmds = rev cmds
           in
-            (cmds,(call,dict))
+            (cmds,(stacksize,call,dict))
           end
 
+      fun finish (stacksize,call,dict) =
+          let
+(*OpenTheoryDebug
+            val _ = nullMinDict dict orelse raise Error "nonempty dict"
+*)
+            val cmds = []
+            val cmds = alignCalls call NONE cmds
+            val cmds = funpow stacksize (cons (Cop "pop")) cmds
+          in
+            if null cmds then Stream.Nil else Stream.singleton cmds
+          end
+
+      val stacksize = 0
       val call = NONE
       val dict = newMinDict objs
 
       val strm = toStreamObjectSet objs
-      val strm = Stream.maps gen (K Stream.Nil) (call,dict) strm
+      val strm = Stream.maps gen finish (stacksize,call,dict) strm
     in
-      Stream.concat (Stream.map Stream.fromList strm)
+      revConcat strm
     end
     handle Error err =>
       raise Bug ("Article.generate: " ^ err);
@@ -1657,10 +1659,12 @@ fun toTextFile {filename} article =
     let
       val Article {saved,...} = article
       val saved = listSaved saved
-      val (objs,saved) = dependenciesObject saved
-      val () = Print.trace ppObjectSet "objs" objs
+      val (objs,saved) = reduceObject saved
       val saved = fromListObjectSet saved
-      val () = Print.trace ppObjectSet "saved" saved
+(*OpenTheoryTrace3
+      val () = Print.trace ppObjectSet "Article.toTextFile: objs" objs
+      val () = Print.trace ppObjectSet "Article.toTextFile: saved" saved
+*)
       val commands = generate saved objs
       val lines = Stream.map (fn c => commandToString c ^ "\n") commands
     in
