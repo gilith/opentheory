@@ -1,0 +1,20 @@
+REQUIRES {
+  types:
+    bool
+    fun
+    hol-light.ind
+  consts:
+    !
+    /\
+    =
+    ==>
+    ?
+    @
+    ~
+    hol-light.ONE_ONE
+    hol-light.ONTO
+  thms:
+    |- !t. (\x. t x) = t
+    |- !P x. P x ==> P ((@) P)
+    |- ?f. hol-light.ONE_ONE f /\ ~hol-light.ONTO f
+}

@@ -1,0 +1,13 @@
+REQUIRES {
+  types:
+    bool
+    fun
+  consts:
+    !
+    =
+    ==>
+    @
+  thms:
+    |- !t. (\x. t x) = t
+    |- !P x. P x ==> P ((@) P)
+}
