@@ -68,7 +68,8 @@ val programOptions =
      header = "usage: "^PROGRAM^" [option ...] article.art ...\n" ^
               "Processes the input proof articles.\n",
      footer = "Articles can be read from standard input or written to " ^
-              "standard output using the special - filename.\n",
+              "standard output\n" ^
+              "using the special - filename.\n",
      options = specialOptions @ Options.basicOptions};
 
 fun exit x : unit = Options.exit programOptions x;

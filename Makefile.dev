@@ -147,7 +147,7 @@ src/Useful.sml: ../basic/src/Useful.sml $(COPY) ; @$(COPY) $< $@
 
 src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
 
-src/benchmark.sml: src/behold.sml $(COPY) ; @$(COPY) $< $@
+src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 ###############################################################################
 # Counting the number of lines of code.
@@ -158,9 +158,51 @@ LINES = scripts/ml_lines
 .PHONY: lines
 lines: $(LINES)
 	@echo
-	@echo -n 'Behold '
-	@$(LINES) $(SRC) src/behold.sml
+	@echo -n 'OpenTheory '
+	@$(LINES) $(SRC) src/opentheory.sml
 	@echo
+
+###############################################################################
+# Testing on all the hol-light theories.
+###############################################################################
+
+HOL_LIGHT_DIR = test/articles/hol-light
+
+HOL_LIGHT_THEORIES = \
+  bool \
+  tactics \
+  simp \
+  theorems \
+  ind-defs \
+  class \
+  trivia \
+  canon \
+  meson \
+  quot \
+  pair \
+  num \
+  arith \
+  wf \
+  calc_num \
+  normalizer \
+  grobner \
+  ind-types \
+  list \
+  realax \
+  calc_int \
+  realarith \
+  real \
+  calc_rat \
+  int \
+  sets \
+  iter \
+  cart \
+  define \
+  help \
+  database
+
+hol-light-test: $(OPENTHEORY)
+	include='' ; for f in $(HOL_LIGHT_THEORIES) ; do echo $$f ; $(OPENTHEORY) -i test/interpretations/hol-light.int -o test/$$f.art $$include $(HOL_LIGHT_DIR)/$$f.art ; $(OPENTHEORY) $$include test/$$f.art > test/$$f.sig ; perl -n -e 'if ($$_ =~ /^REQUIRES/) { $$d = 1; } elsif ($$_ =~ /^PROVIDES/) { exit; } if (defined($$d)) { print $$_; }' < test/$$f.sig > test/$$f.req ; ok=0 ; for g in test/good*.req ; do if diff -q test/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat test/$$f.req ; echo "bad REQUIRES in $$f" ; exit ; fi ; if test ! $(HOL_LIGHT_DIR)/$$f.art.gz -nt $(HOL_LIGHT_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_DIR)/$$f.art > $(HOL_LIGHT_DIR)/$$f.art.gz ; fi ; gzip -c test/$$f.art > test/$$f.art.gz ; ls -l $(HOL_LIGHT_DIR)/$$f.art ; ls -l test/$$f.art ; ls -l $(HOL_LIGHT_DIR)/$$f.art.gz ; ls -l test/$$f.art.gz ; include="$$include -I test/$$f.art" ; done
 
 ###############################################################################
 # Profiling using MLton.

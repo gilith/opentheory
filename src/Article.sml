@@ -973,7 +973,7 @@ fun executeCommand known interpretation cmd state =
                     | NONE =>
                       let
                         val th = Thm.axiom seq
-(*OpenTheoryTrace2
+(*OpenTheoryTrace1
                         val () = trace ("making new axiom in " ^
                                         topCallToStringStack stack ^ ":\n" ^
                                         thmToString th ^ "\n")

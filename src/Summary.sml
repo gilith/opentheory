@@ -80,12 +80,12 @@ end
 fun ppNameSet (name,ns) =
     Print.blockProgram Print.Consistent 2
       (Print.addString (name ^ ":") ::
-       map (Print.sequence (Print.addBreak 1) o Name.pp) (NameSet.toList ns));
+       map (Print.sequence Print.addNewline o Name.pp) (NameSet.toList ns));
 
 fun ppThmSet thms =
     Print.blockProgram Print.Consistent 2
       (Print.addString "thms:" ::
-       map (Print.sequence (Print.addBreak 1) o ppThm o Thm.axiom)
+       map (Print.sequence Print.addNewline o ppThm o Thm.axiom)
          (SequentSet.toList thms));
 
 fun ppCurrency (name, Currency {types,consts,thms}) =
@@ -93,11 +93,11 @@ fun ppCurrency (name, Currency {types,consts,thms}) =
       [Print.blockProgram Print.Consistent 2
          [Print.addString (name ^ " {"),
           (if NameSet.null types then Print.skip
-           else Print.sequence (Print.addBreak 1) (ppNameSet ("types",types))),
+           else Print.sequence Print.addNewline (ppNameSet ("types",types))),
           (if NameSet.null consts then Print.skip
-           else Print.sequence (Print.addBreak 1) (ppNameSet ("consts",consts))),
+           else Print.sequence Print.addNewline (ppNameSet ("consts",consts))),
           (if SequentSet.null thms then Print.skip
-           else Print.sequence (Print.addBreak 1) (ppThmSet thms))],
+           else Print.sequence Print.addNewline (ppThmSet thms))],
        Print.addBreak 1,
        Print.addString "}"];
 
