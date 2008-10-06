@@ -166,9 +166,13 @@ lines: $(LINES)
 # Testing on all the hol-light theories.
 ###############################################################################
 
-HOL_LIGHT_SRC_DIR = test/articles/hol-light
+HOL_LIGHT_DIR = $(HOME)/ptr/hol-light
 
 HOL_LIGHT_TEST_DIR = test/hol-light
+
+HOL_LIGHT_SRC_DIR = $(HOL_LIGHT_TEST_DIR)/src
+
+HOL_LIGHT_ARTICLES_DIR = $(HOL_LIGHT_TEST_DIR)/articles
 
 HOL_LIGHT_THEORIES = \
   bool \
@@ -203,8 +207,22 @@ HOL_LIGHT_THEORIES = \
   help \
   database
 
-hol-light-test: $(OPENTHEORY)
-	include='' ; for f in $(HOL_LIGHT_THEORIES) ; do echo $$f ; $(OPENTHEORY) -i test/interpretations/hol-light.int -o $(HOL_LIGHT_TEST_DIR)/$$f.art $$include $(HOL_LIGHT_SRC_DIR)/$$f.art ; $(OPENTHEORY) $$include $(HOL_LIGHT_TEST_DIR)/$$f.art > $(HOL_LIGHT_TEST_DIR)/$$f.sig ; perl -n -e 'if ($$_ =~ /^REQUIRES/) { $$d = 1; } elsif ($$_ =~ /^PROVIDES/) { exit; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_TEST_DIR)/$$f.sig > $(HOL_LIGHT_TEST_DIR)/$$f.req ; ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_TEST_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_TEST_DIR)/$$f.req ; echo "bad REQUIRES in $$f" ; exit ; fi ; if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; gzip -c $(HOL_LIGHT_TEST_DIR)/$$f.art > $(HOL_LIGHT_TEST_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_TEST_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_TEST_DIR)/$$f.art.gz ; include="$$include -I $(HOL_LIGHT_TEST_DIR)/$$f.art" ; done
+.PHONY: hol-light-install
+hol-light-install:
+	rm -rf $(HOL_LIGHT_SRC_DIR)/*
+	cp -prv $(HOL_LIGHT_DIR)/* $(HOL_LIGHT_SRC_DIR)
+	cd $(HOL_LIGHT_SRC_DIR) ; make ; rm hol.ml ; ln -s ../../../scripts/hol-light/hol.ml ; ln -s ../../../scripts/hol-light/logging.ml ; ln -s ../../../scripts/hol-light/deduction-logging.ml ; echo '#use "hol.ml";;' | ocaml
+
+.PHONY: hol-light-test-log
+hol-light-test-log:
+	cd $(HOL_LIGHT_SRC_DIR) ; echo '#use "hol.ml";;' | ocaml
+
+.PHONY: hol-light-test-compress
+hol-light-test-compress: $(OPENTHEORY)
+	include='' ; for f in $(HOL_LIGHT_THEORIES) ; do echo $$f ; $(OPENTHEORY) -i test/interpretations/hol-light.int -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.art $$include $(HOL_LIGHT_SRC_DIR)/$$f.art ; $(OPENTHEORY) $$include $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.sig ; perl -n -e 'if ($$_ =~ /^REQUIRES/) { $$d = 1; } elsif ($$_ =~ /^PROVIDES/) { exit; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_ARTICLES_DIR)/$$f.sig > $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_ARTICLES_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; echo "bad REQUIRES in $$f" ; exit ; fi ; if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; gzip -c $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; include="$$include -I $(HOL_LIGHT_ARTICLES_DIR)/$$f.art" ; done
+
+.PHONY: hol-light-test
+hol-light-test: hol-light-test-log hol-light-test-compress
 
 ###############################################################################
 # Profiling using MLton.
