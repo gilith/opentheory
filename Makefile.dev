@@ -209,7 +209,7 @@ HOL_LIGHT_THEORIES = \
 hol-light-install:
 	rm -rf $(HOL_LIGHT_SRC_DIR)
 	mkdir $(HOL_LIGHT_SRC_DIR)
-	cd $(HOL_LIGHT_SRC_DIR) && echo "Untarring into $(HOL_LIGHT_SRC_DIR)" && tar xzf ../hol-light.tgz && rm hol.ml && ln -s ../../../scripts/hol-light/hol.ml && ln -s ../../../scripts/hol-light/logging.ml && ln -s ../../../scripts/hol-light/deduction-logging.ml && for f in $(HOL_LIGHT_THEORIES) ; do echo "preprocessing theory $$f" && ../../../scripts/hol-light/install-theory.hs < $$f.ml > foo.ml && mv foo.ml $$f.ml ; done
+	cd $(HOL_LIGHT_SRC_DIR) && echo "Untarring into $(HOL_LIGHT_SRC_DIR)" && tar xzf ../hol-light.tgz && rm hol.ml && ln -s ../../../scripts/hol-light/hol.ml && ln -s ../../../scripts/hol-light/logging.ml && ln -s ../../../scripts/hol-light/deduction-logging.ml && for f in $(HOL_LIGHT_THEORIES) ; do if test "$$f" = "pair" ; then echo "skipping preprocessing theory $$f" ; else echo "preprocessing theory $$f" && ../../../scripts/hol-light/install-theory.hs < $$f.ml > foo.ml && mv foo.ml $$f.ml ; fi ; done
 
 .PHONY: hol-light-test-log
 hol-light-test-log:

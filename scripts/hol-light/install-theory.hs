@@ -1,4 +1,4 @@
-#!/usr/bin/runhaskell
+#!/usr/bin/env runhaskell -Wall -Werror
 
 import qualified Control.Monad
 import qualified Data.List as List
