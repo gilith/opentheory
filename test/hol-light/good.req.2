@@ -9,12 +9,12 @@ REQUIRES {
     =
     ==>
     ?
-    @
+    select
     ~
     hol-light.ONE_ONE
     hol-light.ONTO
   thms:
     |- !t. (\x. t x) = t
-    |- !P x. P x ==> P ((@) P)
+    |- !P x. P x ==> P ((select) P)
     |- ?f. hol-light.ONE_ONE f /\ ~hol-light.ONTO f
 }

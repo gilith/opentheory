@@ -93,6 +93,8 @@ end;
 
 (* Lambda abstractions *)
 
+val absString = "\\";
+
 val mkAbs = Term.mkAbs;
 val destAbs = Term.destAbs;
 val isAbs = Term.isAbs;
@@ -234,7 +236,9 @@ val isImp = can destImp;
 
 (* Universal quantifiers *)
 
-val forallName = Name.mkGlobal "!";
+val forallString = "!";
+
+val forallName = Name.mkGlobal forallString;
 
 fun forallType a = mkFun (mkFun (a, boolTy), boolTy);
 
@@ -265,7 +269,9 @@ end;
 
 (* Existential quantifiers *)
 
-val existsName = Name.mkGlobal "?";
+val existsString = "?";
+
+val existsName = Name.mkGlobal existsString;
 
 fun existsType a = mkFun (mkFun (a, boolTy), boolTy);
 
@@ -296,7 +302,9 @@ end;
 
 (* Unique existential quantifiers *)
 
-val existsUniqueName = Name.mkGlobal "?!";
+val existsUniqueString = "?!";
+
+val existsUniqueName = Name.mkGlobal existsUniqueString;
 
 fun existsUniqueType a = mkFun (mkFun (a, boolTy), boolTy);
 
@@ -331,21 +339,23 @@ end;
 
 fun selectTy a = Type.mkFun (Type.mkFun (a, Type.boolTy), a);
 
-val selectN = Name.mkGlobal "@";
+val selectString = "select";
+
+val selectName = Name.mkGlobal selectString;
 
 val selectTm =
     let
       val ty = selectTy Type.alphaTy
     in
-      mkConst (selectN,ty)
+      mkConst (selectName,ty)
     end;
 
 fun mkSelect (v_b as ((_,ty),_)) =
-    mkComb (mkConst (selectN, selectTy ty), mkAbs v_b);
+    mkComb (mkConst (selectName, selectTy ty), mkAbs v_b);
 
 fun destSelect tm =
     let
-      val (_,t) = destUnop selectN tm
+      val (_,t) = destUnop selectName tm
     in
       destAbs t
     end;
@@ -481,11 +491,11 @@ val ppVar =
 
 local
   val binders =
-      [("\\",stripAbs),
-       ("!",stripForall),
-       ("?",stripExists),
-       ("?!",stripExistsUnique),
-       ("@",stripSelect)];
+      [(absString,stripAbs),
+       (forallString,stripForall),
+       (existsString,stripExists),
+       (existsUniqueString,stripExistsUnique),
+       (selectString,stripSelect)];
 
   val infixStrings = Print.tokensInfixes infixTokens;
 
@@ -563,9 +573,19 @@ local
             let
               val (sym,vs,body) = destBinder tm
               val (v,vs) = hdTl vs
+              val printSym =
+                  case size sym of
+                    0 => Print.addString "EmptyBinder"
+                  | n =>
+                    let
+                      val pp = Print.addString sym
+                    in
+                      if not (Char.isAlphaNum (String.sub (sym, n - 1))) then pp
+                      else Print.sequence pp (Print.addString " ")
+                    end
             in
               Print.program
-                [Print.addString sym,
+                [printSym,
                  ppVar v,
                  Print.program
                    (map (Print.sequence (Print.addBreak 1) o ppVar) vs),

@@ -26,16 +26,16 @@ const hol-light.==> -> ==>;
 const hol-light.! -> !;
 const hol-light.? -> ?;
 const hol-light.?! -> ?!;
-const hol-light.@ -> @;
+const hol-light.@ -> select;
 --------------------------------------------------------------------------
 Reading in hol-light theories
 
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 0.980  System: 0.009  GC: 0.101  Real: 0.990
-User: 1.649  System: 0.012  GC: 0.081  Real: 1.678
-User: 0.667  System: 0.005  GC: 0.072  Real: 0.679
+User: 0.984  System: 0.012  GC: 0.102  Real: 1.010
+User: 1.663  System: 0.016  GC: 0.083  Real: 1.698
+User: 0.670  System: 0.006  GC: 0.072  Real: 0.687
 REQUIRES { }
 PROVIDES {
   types:
