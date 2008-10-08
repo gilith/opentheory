@@ -63,77 +63,15 @@ val () = print (Interpretation.toString holLightInt);
 val () = SAY "Reading in hol-light theories";
 (* ------------------------------------------------------------------------- *)
 
-val ARTICLE_DIR = "articles/hol-light";
-
-(***
-val ARTICLES =
-    ["basics.art",
-     "nets.art",
-     "preterm.art",
-     "parser.art",
-     "printer.art",
-     "equal.art",
-     "bool.art",
-     "drule.art",
-     "tactics.art",
-     "itab.art",
-     "simp.art",
-     "theorems.art",
-     "ind-defs.art",
-     "class.art",
-     "trivia.art",
-     "canon.art",
-     "meson.art",
-     "quot.art",
-     "recursion.art",
-     "pair.art",
-     "num.art",
-     "arith.art",
-     "wf.art",
-     "calc_num.art",
-     "normalizer.art",
-     "grobner.art",
-     "ind-types.art",
-     "list.art",
-     "realax.art",
-     "calc_int.art",
-     "realarith.art",
-     "real.art",
-     "calc_rat.art",
-     "int.art",
-     "sets.art",
-     "iter.art",
-     "cart.art",
-     "define.art",
-     "help.art",
-     "database.art"];
-
-fun read filename known =
-    let
-      val () = print (filename ^ ":\n")
-      val art =
-          time
-            Article.fromTextFile
-            {known = known,
-             interpretation = holLightInt,
-             filename = ARTICLE_DIR ^ "/" ^ filename}
-      val thms = Article.saved art
-      val known = ThmSet.union known thms
-    in
-      (thms,known)
-    end;
-
-val articles = maps read ARTICLES ThmSet.empty;
-
-stop;
-***)
+val ARTICLE_DIR = "articles";
 
 fun compress interpretation filename =
     let
       val article =
           time
             Article.fromTextFile
-            {known = ThmSet.empty,
+            {savable = true,
+             known = ThmSet.empty,
              interpretation = interpretation,
              filename = ARTICLE_DIR ^ "/" ^ filename};
     in
@@ -142,24 +80,14 @@ fun compress interpretation filename =
 
 val () = compress holLightInt "bool.art";
 
-val () = compress holLightInt "num.art";
-
 val known = ThmSet.empty;
 
 val bool =
     time
       Article.fromTextFile
-      {known = known,
+      {savable = false,
+       known = known,
        interpretation = Interpretation.natural,
        filename = "bool.art"};
 
-val known = ThmSet.union known (Article.saved bool);
-
-val num =
-    time
-      Article.fromTextFile
-      {known = known,
-       interpretation = Interpretation.natural,
-       filename = "num.art"};
-
-val summary = printval Summary.pp (Article.summarize num);
+val summary = printval Summary.pp (Article.summarize bool);

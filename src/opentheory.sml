@@ -95,29 +95,34 @@ val mkInterpretation =
       List.foldl add Interpretation.natural
     end;
 
-fun readArticle interpretation (filename,(article,known)) =
-    let
-      val article' =
-          Article.fromTextFile
-            {known = known,
-             interpretation = interpretation,
-             filename = filename}
+local
+  fun read savable interpretation (filename,(article,known)) =
+      let
+        val article' =
+            Article.fromTextFile
+              {savable = savable,
+               known = known,
+               interpretation = interpretation,
+               filename = filename}
 
-      val article = Article.append article article'
+        val article = Article.append article article'
 
-      val known = ThmSet.union known (Article.saved article')
-    in
-      (article,known)
-    end;
+        val known = ThmSet.union known (Article.saved article')
+      in
+        (article,known)
+      end;
+in
+  fun includeArticle (filename,known) =
+      let
+        val interpretation = Interpretation.natural
+        val article = Article.empty
+        val (_,known) = read false interpretation (filename,(article,known))
+      in
+        known
+      end;
 
-fun includeArticle (filename,known) =
-    let
-      val interpretation = Interpretation.natural
-      val article = Article.empty
-      val (_,known) = readArticle interpretation (filename,(article,known))
-    in
-      known
-    end;
+  val readArticle = read true;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)

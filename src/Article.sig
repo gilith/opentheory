@@ -22,6 +22,8 @@ val summarize : article -> Summary.summary
 
 val prove : article -> Sequent.sequent -> Thm.thm option
 
+val isSavable : article -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)

@@ -782,7 +782,7 @@ val initialState =
        dict = emptyDict,
        saved = emptySaved};
 
-fun executeCommand known interpretation cmd state =
+fun executeCommand savable known interpretation cmd state =
     let
       val State {stack,dict,saved} = state
     in
@@ -1146,10 +1146,10 @@ fun executeCommand known interpretation cmd state =
     end
     handle Error err => raise Error (commandToString cmd ^ ": " ^ err);
 
-fun executeCommands known interpretation =
+fun executeCommands savable known interpretation =
     let
       fun process (command,state) =
-          executeCommand known interpretation command state
+          executeCommand savable known interpretation command state
     in
       Stream.foldl process initialState
     end;
@@ -1500,12 +1500,12 @@ fun generate saved objs =
 datatype article =
     Article of
       {thms : ThmSet.set,
-       saved : saved};
+       saved : saved option};
 
 val empty =
     Article
       {thms = ThmSet.empty,
-       saved = emptySaved};
+       saved = SOME emptySaved};
 
 fun append art1 art2 =
     let
@@ -1514,7 +1514,10 @@ fun append art1 art2 =
 
       val thms = ThmSet.union thms1 thms2
 
-      val saved = appendSaved saved1 saved2
+      val saved =
+          case (saved1,saved2) of
+            (SOME s1, SOME s2) => SOME (appendSaved s1 s2)
+          | _ => NONE
     in
       Article
         {thms = thms,
@@ -1523,9 +1526,11 @@ fun append art1 art2 =
 
 fun saved (Article {thms = x, ...}) = x;
 
-fun prove (Article {saved = x, ...}) seq = searchSaved x seq;
+fun prove article = findAlpha (saved article);
 
 val summarize = Summary.fromThms o saved;
+
+fun isSavable (Article {saved,...}) = Option.isSome saved;
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
@@ -1559,7 +1564,7 @@ in
 
            val commands = Parse.everything spacedCommandParser chars
          in
-           executeCommands known interpretation commands
+           executeCommands savable known interpretation commands
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>
@@ -1681,6 +1686,8 @@ fun fromTextFile {savable,known,interpretation,filename} =
       val saved = fromSetSaved savedSet
 
       val thms = thmsSaved saved
+
+      val saved = if savable then SOME saved else NONE
     in
       Article
         {thms = thms,
@@ -1691,14 +1698,23 @@ fun fromTextFile {savable,known,interpretation,filename} =
 fun toTextFile {filename} article =
     let
       val Article {saved,...} = article
-      val saved = listSaved saved
+
+      val saved =
+          case saved of
+            SOME s => listSaved s
+          | NONE => raise Error "unsavable"
+
       val (objs,saved) = reduceObject saved
+
       val saved = fromListObjectSet saved
+
 (*OpenTheoryTrace3
       val () = Print.trace ppObjectSet "Article.toTextFile: objs" objs
       val () = Print.trace ppObjectSet "Article.toTextFile: saved" saved
 *)
+
       val commands = generate saved objs
+
       val lines = Stream.map (fn c => commandToString c ^ "\n") commands
     in
       Stream.toTextFile {filename = filename} lines
