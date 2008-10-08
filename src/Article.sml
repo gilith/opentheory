@@ -793,7 +793,7 @@ fun executeCommand savable known interpretation cmd state =
         let
           val ob = Object.Oerror
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -806,7 +806,7 @@ fun executeCommand savable known interpretation cmd state =
         let
           val ob = Object.Onum i
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -819,7 +819,7 @@ fun executeCommand savable known interpretation cmd state =
         let
           val ob = Object.Oname n
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -832,7 +832,7 @@ fun executeCommand savable known interpretation cmd state =
         let
           val ob = Object.onil
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -850,7 +850,7 @@ fun executeCommand savable known interpretation cmd state =
                 Pcons (objH,objT)
               else
                 Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -865,7 +865,7 @@ fun executeCommand savable known interpretation cmd state =
                Object {object = obN, ...}) = pop1Stack stack
           val ob = Object.mkOtypeVar obN
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -880,7 +880,7 @@ fun executeCommand savable known interpretation cmd state =
           val obN = Object.interpretType interpretation obN
           val ob = Object.mkOtypeOp (obN,obL)
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -896,7 +896,7 @@ fun executeCommand savable known interpretation cmd state =
                Object {object = obT, ...}) = pop2Stack stack
           val ob = Object.mkOtermVar (obN,obT)
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -911,7 +911,7 @@ fun executeCommand savable known interpretation cmd state =
           val obN = Object.interpretConst interpretation obN
           val ob = Object.mkOtermConst (obN,obT)
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -925,7 +925,7 @@ fun executeCommand savable known interpretation cmd state =
                Object {object = obA, ...}) = pop2Stack stack
           val ob = Object.mkOtermComb (obF,obA)
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -939,7 +939,7 @@ fun executeCommand savable known interpretation cmd state =
                Object {object = obB, ...}) = pop2Stack stack
           val ob = Object.mkOtermAbs (obV,obB)
           and prov = Pnull
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -983,8 +983,8 @@ fun executeCommand savable known interpretation cmd state =
                       end
 
           val ob = Object.Othm th
-          and prov = Pthm deps
-          and call = topCallStack stack
+          and prov = Pthm (if savable then deps else [])
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -1017,7 +1017,7 @@ fun executeCommand savable known interpretation cmd state =
 *)
           val ob = Object.Ocall n
           and prov = Pcall objA
-          and call = topCallStack stack
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
           val stack = pushStack stack objA
@@ -1028,7 +1028,7 @@ fun executeCommand savable known interpretation cmd state =
       | Cop "return" =>
         let
           val (stack,
-               objR as Object {object = obR, ...},
+               objR as Object {object = obR, provenance = provR, ...},
                Object {object = obN, ...}) = pop2Stack stack
           val _ = not (Object.isOcall obR) orelse
                   raise Error "cannot use an Ocall object as a return value"
@@ -1052,8 +1052,11 @@ fun executeCommand savable known interpretation cmd state =
                    else Print.trace Object.pp "  return" obR
 *)
           val ob = obR
-          and prov = if containsThmsObject objR then Preturn objR else Pnull
-          and call = topCallStack stack
+          and prov =
+              if not (containsThmsObject objR) then Pnull
+              else if savable then Preturn objR
+              else provR
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -1080,10 +1083,14 @@ fun executeCommand savable known interpretation cmd state =
           val (stack,
                Object {object = obI, ...}) = pop1Stack stack
           val i = Object.destOnum obI
-          val objD as Object {object = obD, ...} = refDict dict i
+          val objD as Object {object = obD, provenance = provD, ...} =
+              refDict dict i
           val ob = obD
-          and prov = if containsThmsObject objD then Pref objD else Pnull
-          and call = topCallStack stack
+          and prov =
+              if not (containsThmsObject objD) then Pnull
+              else if savable then Pref objD
+              else provD
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -1095,10 +1102,14 @@ fun executeCommand savable known interpretation cmd state =
           val (stack,
                Object {object = obI, ...}) = pop1Stack stack
           val i = Object.destOnum obI
-          val (dict, objD as Object {object = obD, ...}) = removeDict dict i
+          val (dict, objD as Object {object = obD, provenance = provD, ...}) =
+              removeDict dict i
           val ob = obD
-          and prov = if containsThmsObject objD then Pref objD else Pnull
-          and call = topCallStack stack
+          and prov =
+              if not (containsThmsObject objD) then Pnull
+              else if savable then Pref objD
+              else provD
+          and call = if savable then topCallStack stack else NONE
           val obj = mkObject (ob,prov,call)
           val stack = pushStack stack obj
         in
@@ -1119,10 +1130,14 @@ fun executeCommand savable known interpretation cmd state =
           val (stack,
                Object {object = obI, ...}) = pop1Stack stack
           val i = Object.destOnum obI
-          val objD = peekStack stack i
-          val ob = object objD
-          and prov = if containsThmsObject objD then Pref objD else Pnull
-          and call = topCallStack stack
+          val objD as Object {object = obD, provenance = provD, ...} =
+              peekStack stack i
+          val ob = obD
+          and prov =
+              if not (containsThmsObject objD) then Pnull
+              else if savable then Pref objD
+              else provD
+          and call = if savable then topCallStack stack else NONE
           val _ = not (Object.isOcall ob) orelse
                   raise Error "cannot dup an Ocall object"
           val obj = mkObject (ob,prov,call)
