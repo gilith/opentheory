@@ -559,13 +559,15 @@ local
       else ppBtm tm
 
   and application tm =
-      let
-        val (f,xs) = stripComb tm
-      in
+      case total destComb tm of
+        NONE => basic tm
+      | SOME (f,x) =>
         Print.program
-          (basic f ::
-           map (Print.sequence (Print.addBreak 1) o basic) xs)
-      end
+          [function f,
+           Print.addBreak 1,
+           basic x]
+
+  and function tm = if isInfix tm then ppBtm tm else binder (tm,true)
 
   and binder (tm,r) =
       let
@@ -596,9 +598,9 @@ local
 
         val ppBinder = Print.block Print.Inconsistent 2 o ppBind
       in
-        (if not (isBinder tm) then application
-         else (if r then Print.ppBracket "(" ")" else I) ppBinder) tm
-      end
+        if not (isBinder tm) then application
+        else (if r then Print.ppBracket "(" ")" else I) ppBinder
+      end tm
 
   and negs (tm,r) =
       let
@@ -636,20 +638,29 @@ val showHyp = ref true;
 local
   fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";
 
-  fun ppSeq binop {hyp,concl} =
-      Print.blockProgram Print.Inconsistent 2
-        [(if TermAlphaSet.null hyp then Print.skip
-          else
-            Print.sequence
-              (Print.ppBracket "{" "}"
-                 (if !showHyp then
-                    (Print.ppMap TermAlphaSet.toList
-                       (Print.ppOpList "," ppTerm))
-                  else
-                    Print.ppMap (dots o TermAlphaSet.size) Print.ppString) hyp)
-              (Print.addBreak 1)),
-         Print.addString (binop ^ " "),
-         ppTerm concl];
+  fun ppSeq binop =
+      let
+        val binop_space = binop ^ " "
+        val indent_space = size binop_space
+        val space_binop = " " ^ binop
+      in
+        fn {hyp,concl} =>
+           if TermAlphaSet.null hyp then
+             Print.blockProgram Print.Inconsistent indent_space
+               [Print.addString binop_space,
+                ppTerm concl]
+           else
+             Print.block Print.Inconsistent 2
+               (Print.ppOp2 space_binop
+                  (Print.ppBracket "{" "}"
+                     (if !showHyp then
+                        (Print.ppMap TermAlphaSet.toList
+                           (Print.ppOpList "," ppTerm))
+                      else
+                        Print.ppMap (dots o TermAlphaSet.size)
+                          Print.ppString))
+                  ppTerm (hyp,concl))
+      end;
 in
   val ppSequent = ppSeq "?-";
 
