@@ -44,6 +44,8 @@ val equal : ty -> ty -> bool
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
+val alphaTy : ty
+
 val typeVars : ty -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
@@ -56,15 +58,11 @@ val typeOps : ty -> NameSet.set
 (* Primitive types.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val alphaTy : ty
-
 val boolTy : ty
 
 val mkFun : ty * ty -> ty
 val destFun : ty -> ty * ty
 val isFun : ty -> bool
-
-val indTy : ty
 
 (* ------------------------------------------------------------------------- *)
 (* The type registry (initially contains the primitive type operators).      *)

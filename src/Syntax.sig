@@ -7,7 +7,7 @@ signature Syntax =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive                                                                 *)
+(* Primitive.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
 type name = Name.name
@@ -43,10 +43,6 @@ val destFun : ty -> ty * ty
 val isFun : ty -> bool
 val listMkFun : ty list * ty -> ty
 val stripFun : ty -> ty list * ty
-
-(* The type of individuals *)
-
-val indTy : ty
 
 (* Constants *)
 
@@ -90,13 +86,19 @@ val isEq : term -> bool
 val lhs : term -> term
 val rhs : term -> term
 
-(* Hilbert's indefinite choice operator (epsilon) *)
+(* Theorems *)
 
-val selectTy : ty -> ty
-val selectTm : term
-val mkSelect : var * term -> term
-val destSelect : term -> var * term
-val isSelect : term -> bool
+val axioms : thm -> SequentSet.set
+
+val sequent : thm -> Sequent.sequent
+
+val hyp : thm -> TermAlphaSet.set
+
+val concl : thm -> term
+
+(* ------------------------------------------------------------------------- *)
+(* Operators.                                                                *)
+(* ------------------------------------------------------------------------- *)
 
 (* Unary operators *)
 
@@ -110,18 +112,8 @@ val mkBinop : name -> ty * term * term -> term
 val destBinop : name -> term -> ty * term * term
 val isBinop : name -> term -> bool
 
-(* Theorems *)
-
-val axioms : thm -> SequentSet.set
-
-val sequent : thm -> Sequent.sequent
-
-val hyp : thm -> TermAlphaSet.set
-
-val concl : thm -> term
-
 (* ------------------------------------------------------------------------- *)
-(* Boolean                                                                   *)
+(* Boolean.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 (* Negations *)
@@ -160,11 +152,26 @@ val isExistsUnique : term -> bool
 val listMkExistsUnique : var list * term -> term
 val stripExistsUnique : term -> var list * term
 
+(* Hilbert's indefinite choice operator (epsilon) *)
+
+val selectTy : ty -> ty
+val selectTm : term
+val mkSelect : var * term -> term
+val destSelect : term -> var * term
+val isSelect : term -> bool
+
 (* ------------------------------------------------------------------------- *)
-(* Pretty printing                                                           *)
+(* The type of individuals.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val indTy : ty
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val showTypes : bool ref
+val showHyp : bool ref
 
 val ppType : ty Print.pp
 val typeToString : ty -> string

@@ -259,28 +259,6 @@ fun destEq (Comb (Comb (Const (n,_), l), r)) =
 
 val isEq = can destEq;
 
-(* Hilbert's Epsilon operator *)
-
-fun selectTy a = Type.mkFun (Type.mkFun (a, Type.boolTy), a);
-
-val selectN = Name.mkGlobal "@";
-
-val selectTm =
-    let
-      val ty = selectTy Type.alphaTy
-      val () = declareConst selectN ty
-    in
-      Const (selectN,ty)
-    end;
-
-fun mkSelect (v_b as ((_,ty),_)) = Comb (Const (selectN, selectTy ty), Abs v_b);
-
-fun destSelect (Comb (Const (n,_), Abs v_b)) =
-    if Name.equal n selectN then v_b else raise Error "Term.destSelect"
-  | destSelect _ = raise Error "Term.destSelect";
-
-val isSelect = can destSelect;
-
 end
 
 structure TermOrdered =

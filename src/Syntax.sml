@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive                                                                 *)
+(* Primitive.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
 type name = Name.name;
@@ -54,10 +54,6 @@ local
 in
   val stripFun = strip [];
 end;
-
-(* The type of individuals *)
-
-val indTy = Type.indTy;
 
 (* Constants *)
 
@@ -122,13 +118,20 @@ val isEq = Term.isEq;
 val lhs = fst o destEq;
 val rhs = snd o destEq;
 
-(* Hilbert's indefinite choice operator (epsilon) *)
+(* Theorems *)
 
-val selectTy = Term.selectTy;
-val selectTm = Term.selectTm;
-val mkSelect = Term.mkSelect;
-val destSelect = Term.destSelect;
-val isSelect = Term.isSelect;
+fun axioms th = case Thm.dest th of Thm.Thm {axioms,...} => axioms;
+
+fun sequent th = case Thm.dest th of Thm.Thm {sequent,...} => sequent;
+
+fun hyp th = case Thm.dest th of Thm.Thm {sequent = {hyp, ...}, ...} => hyp;
+
+fun concl th =
+    case Thm.dest th of Thm.Thm {sequent = {concl, ...}, ...} => concl;
+
+(* ------------------------------------------------------------------------- *)
+(* Operators.                                                                *)
+(* ------------------------------------------------------------------------- *)
 
 (* Unary operators *)
 
@@ -172,19 +175,8 @@ fun destBinop n tm =
 
 fun isBinop n = can (destBinop n);
 
-(* Theorems *)
-
-fun axioms th = case Thm.dest th of Thm.Thm {axioms,...} => axioms;
-
-fun sequent th = case Thm.dest th of Thm.Thm {sequent,...} => sequent;
-
-fun hyp th = case Thm.dest th of Thm.Thm {sequent = {hyp, ...}, ...} => hyp;
-
-fun concl th =
-    case Thm.dest th of Thm.Thm {sequent = {concl, ...}, ...} => concl;
-
 (* ------------------------------------------------------------------------- *)
-(* Boolean                                                                   *)
+(* Boolean.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 (* Negations *)
@@ -319,8 +311,52 @@ in
   val stripExistsUnique = strip [];
 end;
 
+(* Hilbert's indefinite choice operator (epsilon) *)
+
+fun selectTy a = Type.mkFun (Type.mkFun (a, Type.boolTy), a);
+
+val selectN = Name.mkGlobal "@";
+
+val selectTm =
+    let
+      val ty = selectTy Type.alphaTy
+    in
+      mkConst (selectN,ty)
+    end;
+
+fun mkSelect (v_b as ((_,ty),_)) =
+    mkComb (mkConst (selectN, selectTy ty), mkAbs v_b);
+
+fun destSelect tm =
+    let
+      val (_,t) = destUnop selectN tm
+    in
+      destAbs t
+    end;
+
+val isSelect = can destSelect;
+
+fun listMkSelect ([],tm) = tm
+  | listMkSelect (v :: vs, tm) = mkSelect (v, listMkSelect (vs,tm));
+
+local
+  fun strip acc tm =
+    if not (isSelect tm) then (rev acc, tm)
+    else let val (v,tm) = destSelect tm in strip (v :: acc) tm end;
+in
+  val stripSelect = strip [];
+end;
+
 (* ------------------------------------------------------------------------- *)
-(* Pretty-printing                                                           *)
+(* The type of individuals.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val indName = Name.mkGlobal "ind";
+
+val indTy = mkTypeOp (indName,[]);
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 (* Types *)
@@ -432,7 +468,8 @@ local
       [("\\",stripAbs),
        ("!",stripForall),
        ("?",stripExists),
-       ("?!",stripExistsUnique)];
+       ("?!",stripExistsUnique),
+       ("@",stripSelect)];
 
   val infixStrings = Print.tokensInfixes infixTokens;
 
@@ -558,14 +595,22 @@ val substToString = Print.toString ppSubst;
 
 (* Sequents and theorems *)
 
+val showHyp = ref false;
+
 local
+  fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";
+
   fun ppSeq binop {hyp,concl} =
       Print.blockProgram Print.Inconsistent 2
         [(if TermAlphaSet.null hyp then Print.skip
           else
             Print.sequence
               (Print.ppBracket "{" "}"
-                 (Print.ppOpList "," ppTerm) (TermAlphaSet.toList hyp))
+                 (if !showHyp then
+                    (Print.ppMap TermAlphaSet.toList
+                       (Print.ppOpList "," ppTerm))
+                  else
+                    Print.ppMap (dots o TermAlphaSet.size) Print.ppString) hyp)
               (Print.addBreak 1)),
          Print.addString (binop ^ " "),
          ppTerm concl];

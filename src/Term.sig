@@ -82,14 +82,6 @@ val mkEq : term * term -> term
 val destEq : term -> term * term
 val isEq : term -> bool
 
-(* Hilbert's indefinite choice operator (epsilon) *)
-
-val selectTy : Type.ty -> Type.ty
-val selectTm : term
-val mkSelect : Var.var * term -> term
-val destSelect : term -> Var.var * term
-val isSelect : term -> bool
-
 (* ------------------------------------------------------------------------- *)
 (* The constant registry (initially contains the primitive constants).       *)
 (* ------------------------------------------------------------------------- *)

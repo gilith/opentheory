@@ -116,6 +116,8 @@ val isOp = can destOp;
 (* Type variables                                                            *)
 (* ------------------------------------------------------------------------- *)
 
+val alphaTy = mkVar (Name.mkGlobal "'a");
+
 val typeVars =
     let
       fun fv (TypeVar n, acc) = NameSet.add acc n
@@ -140,8 +142,6 @@ val typeOps =
 (* Primitive types                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val alphaTy = mkVar (Name.mkGlobal "'a");
-
 local
   val n = Name.mkGlobal "bool";
 
@@ -165,14 +165,6 @@ in
       | _ => raise Error "Type.destFun";
 
   val isFun = can destFun;
-end;
-
-local
-  val n = Name.mkGlobal "ind";
-
-  val () = declareType n 0;
-in
-  val indTy = mkOp (n,[]);
 end;
 
 end
