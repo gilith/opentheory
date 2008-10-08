@@ -157,8 +157,8 @@ end;
 fun equal tm1 tm2 = compare (tm1,tm2) = EQUAL;
 
 local
-  fun acmp n bv1 bv2 tm1_tm2 =
-      if n = 0 andalso op== tm1_tm2 then EQUAL
+  fun acmp n bv1 bv2 bvEq tm1_tm2 =
+      if bvEq andalso op== tm1_tm2 then EQUAL
       else
         case tm1_tm2 of
           (Const c1, Const c2) => constCompare (c1,c2)
@@ -174,23 +174,30 @@ local
         | (_, Var _) => GREATER
         | (Comb a1, Comb a2) =>
           let
-            val cmp = acmp n bv1 bv2
+            val cmp = acmp n bv1 bv2 bvEq
           in
             prodCompare cmp cmp (a1,a2)
           end
         | (Comb _, _) => LESS
         | (_, Comb _) => GREATER
         | (Abs (v1,t1), Abs (v2,t2)) =>
-          if n = 0 andalso Var.equal v1 v2 then acmp n bv1 bv2 (t1,t2)
-          else
-            let
-              val bv1 = VarMap.insert bv1 (v1,n)
-              and bv2 = VarMap.insert bv2 (v2,n)
-            in
-              acmp (n+1) bv1 bv2 (t1,t2)
-            end;
+          let
+            val bvEq = bvEq andalso Var.equal v1 v2
+            val bv1 = VarMap.insert bv1 (v1,n)
+            val bv2 = if bvEq then bv1 else VarMap.insert bv2 (v2,n)
+            val n = n + 1
+          in
+            acmp n bv1 bv2 bvEq (t1,t2)
+          end;
 in
-  val alphaCompare = acmp 0 (VarMap.new ()) (VarMap.new ());
+  val alphaCompare =
+      let
+        val n = 0
+        val bv = VarMap.new ()
+        val bvEq = true
+      in
+        acmp n bv bv bvEq
+      end;
 end;
 
 fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;

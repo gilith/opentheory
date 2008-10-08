@@ -179,6 +179,22 @@ fun isBinop n = can (destBinop n);
 (* Boolean.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+(* True *)
+
+val trueString = "T";
+
+val trueName = Name.mkGlobal trueString;
+
+val trueTm = mkConst (trueName,boolTy);
+
+(* False *)
+
+val falseString = "F";
+
+val falseName = Name.mkGlobal falseString;
+
+val falseTm = mkConst (falseName,boolTy);
+
 (* Negations *)
 
 val negString = "~";
@@ -595,7 +611,7 @@ val substToString = Print.toString ppSubst;
 
 (* Sequents and theorems *)
 
-val showHyp = ref false;
+val showHyp = ref true;
 
 local
   fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";

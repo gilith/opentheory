@@ -116,6 +116,14 @@ val isBinop : name -> term -> bool
 (* Boolean.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+(* True *)
+
+val trueTm : term
+
+(* False *)
+
+val falseTm : term
+
 (* Negations *)
 
 val mkNeg : term -> term

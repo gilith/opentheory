@@ -1,4 +1,15 @@
 --------------------------------------------------------------------------
+Term tests
+
+[\p. p, \q. p, \q. q]
+
+[\p. p, \q. q, \q. p]
+
+[(\p. p) F = F, (\q. p) q = p, (\q. q) T = T]
+
+[(\p. p) F = F, (\q. q) T = T, (\q. p) q = p]
+
+--------------------------------------------------------------------------
 Reading in the hol-light interpretation
 
 namespace . -> hol-light;
@@ -22,9 +33,9 @@ Reading in hol-light theories
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 0.975  System: 0.014  GC: 0.103  Real: 1.017
-User: 1.619  System: 0.016  GC: 0.076  Real: 1.661
-User: 0.662  System: 0.006  GC: 0.074  Real: 0.678
+User: 0.980  System: 0.009  GC: 0.101  Real: 0.990
+User: 1.649  System: 0.012  GC: 0.081  Real: 1.678
+User: 0.667  System: 0.005  GC: 0.072  Real: 0.679
 REQUIRES { }
 PROVIDES {
   types:
@@ -459,13 +470,13 @@ PROVIDES {
     |- (\q. T) q = T
     |- (\x. T) x = T
     |- (\p. p) F = F
-    |- (\q. P) Q = P
-    |- (\q. P) q = P
     |- (\q. q) T = T
     |- (\p. p) P = P
     |- (\q. q) Q = Q
     |- (\p. p) p = p
     |- (\q. q) q = q
+    |- (\q. P) Q = P
+    |- (\q. P) q = P
     |- (\P. !q. (!x. P x ==> q) ==> q) P = !q. (!x. P x ==> q) ==> q
     |- (\q. !r. (P ==> r) ==> (q ==> r) ==> r) Q =
       !r. (P ==> r) ==> (Q ==> r) ==> r
