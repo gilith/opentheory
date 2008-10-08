@@ -51,7 +51,7 @@ let (log_dict_next_key,log_dict_reset_key) =
 let (log_dict_reset,log_dict_reset_register) =
     let resets = ref [] in
     let register r = resets := r :: !resets in
-    let reset_all () = map (fun r -> r ()) (!resets) in
+    let reset_all () = List.iter (fun r -> r ()) (!resets) in
     let reset () = (reset_all (); log_dict_reset_key ()) in
     (reset,register);;
 

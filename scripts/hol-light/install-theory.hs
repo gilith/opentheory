@@ -15,11 +15,15 @@ getLines h =
     do s <- System.IO.hGetContents h
        return (lines s)
 
+excludeTheorems :: [String]
+excludeTheorems =
+    ["COND_EQ_CLAUSE"]
+
 proveRegex :: Text.Regex.Regex
-proveRegex = Text.Regex.mkRegex "^let ([[:alnum:]_]+) *= *prove *$"
+proveRegex = Text.Regex.mkRegex "^let +([[:alnum:]_]+) *= *prove *$"
 
 endRegex :: Text.Regex.Regex
-endRegex = Text.Regex.mkRegex ";; *$"
+endRegex = Text.Regex.mkRegex "(;;) *$"
 
 process :: State -> String -> (State,String)
 process s l =
@@ -27,13 +31,15 @@ process s l =
       RestState ->
           case Text.Regex.matchRegexAll proveRegex l of
             Just (_,_,_,[l1]) ->
-                (ProveState, "let " ++ l1 ++ " = lemma (fun () -> prove")
+                if l1 `elem` excludeTheorems
+                  then (s,l)
+                  else (ProveState, "let " ++ l1 ++ " = lemma (fun () -> prove")
             Just _ -> error "bad match"
             Nothing -> (s,l)
       ProveState ->
           case Text.Regex.matchRegexAll endRegex l of
-            Just (l1,_,_,[]) ->
-                (RestState, l1 ++ ");;")
+            Just (l1,_,_,[l2]) ->
+                (RestState, l1 ++ ")" ++ l2)
             Just _ -> error "bad match"
             Nothing -> (s,l)
 
