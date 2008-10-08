@@ -27,7 +27,8 @@ val prove : article -> Sequent.sequent -> Thm.thm option
 (* ------------------------------------------------------------------------- *)
 
 val fromTextFile :
-    {known : ThmSet.set,
+    {savable : bool,
+     known : ThmSet.set,
      interpretation : Interpretation.interpretation,
      filename : string} ->
     article

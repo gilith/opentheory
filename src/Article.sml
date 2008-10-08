@@ -1540,7 +1540,7 @@ local
       | SOME #"#" => true
       | _ => false;
 in
-  fun executeTextFile {known,interpretation,filename} =
+  fun executeTextFile {savable,known,interpretation,filename} =
       let
         (* Estimating parse error line numbers *)
 
@@ -1568,11 +1568,12 @@ in
       end;
 end;
 
-fun fromTextFile {known,interpretation,filename} =
+fun fromTextFile {savable,known,interpretation,filename} =
     let
       val State {stack,dict,saved} =
           executeTextFile
-            {known = known,
+            {savable = savable,
+             known = known,
              filename = filename,
              interpretation = interpretation}
 
@@ -1589,17 +1590,19 @@ fun fromTextFile {known,interpretation,filename} =
                     " in " ^ filename)
           end
 
-      val savedSet =
+      val () =
           let
             val n = sizeStack stack
+          in
+            if n = 0 then ()
+            else
+              warn (Int.toString n ^ " object" ^
+                    (if n = 1 then "" else "s") ^
+                    " left on the stack by " ^ filename)
+          end
 
-            val () =
-                if n = 0 then ()
-                else
-                  warn (Int.toString n ^ " object" ^
-                        (if n = 1 then "" else "s") ^
-                        " left on the stack by " ^ filename)
-
+      val savedSet =
+          let
             fun add (obj,(seen,ss)) =
                 let
                   val Object {id, object = ob, provenance = prov, ...} = obj
