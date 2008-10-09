@@ -57,16 +57,16 @@ struct
 
   val typeOps =
       let
-        fun add (tm,acc) = NameSet.union acc (Sequent.typeOps tm)
+        fun addNames (tm,acc) = NameSet.union acc (Sequent.typeOps tm)
       in
-        foldl add NameSet.empty
+        foldl addNames NameSet.empty
       end;
 
   val consts =
       let
-        fun add (tm,acc) = NameSet.union acc (Sequent.consts tm)
+        fun addNames (tm,acc) = NameSet.union acc (Sequent.consts tm)
       in
-        foldl add NameSet.empty
+        foldl addNames NameSet.empty
       end;
 
 end

@@ -289,16 +289,16 @@ struct
 
   val typeOps =
       let
-        fun add (tm,acc) = NameSet.union acc (Term.typeOps tm)
+        fun addNames (tm,acc) = NameSet.union acc (Term.typeOps tm)
       in
-        foldl add NameSet.empty
+        foldl addNames NameSet.empty
       end;
 
   val consts =
       let
-        fun add (tm,acc) = NameSet.union acc (Term.consts tm)
+        fun addNames (tm,acc) = NameSet.union acc (Term.consts tm)
       in
-        foldl add NameSet.empty
+        foldl addNames NameSet.empty
       end;
 
 end
