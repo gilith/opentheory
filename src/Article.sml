@@ -39,6 +39,9 @@ val newObjectId : unit -> objectId =
          let
            val ref count = counter
            val () = counter := count + 1
+(*OpenTheoryTrace1
+           val () = if count mod 1000 = 0 then trace "." else ()
+*)
          in
            count
          end
@@ -290,12 +293,25 @@ fun peekObjectSet (ObjectSet set) obj = Set.peek set obj;
 
 fun addObjectSet (ObjectSet set) obj = ObjectSet (Set.add set obj);
 
+fun unionObjectSet (ObjectSet set1) (ObjectSet set2) =
+    ObjectSet (Set.union set1 set2);
+
 fun addListObjectSet set objs =
     List.foldl (fn (obj,acc) => addObjectSet acc obj) set objs;
 
+fun foldlObjectSet f b (ObjectSet set) = Set.foldl f b set;
+
+fun foldrObjectSet f b (ObjectSet set) = Set.foldr f b set;
+
 fun fromListObjectSet objs = addListObjectSet emptyObjectSet objs;
 
-fun foldlObjectSet f b (ObjectSet set) = Set.foldl f b set;
+val toListObjectSet = foldrObjectSet op:: [];
+
+local
+  fun add (obj,set) = ThmSet.add set (Object.destOthm (object obj));
+in
+  fun toThmSetObjectSet set = foldlObjectSet add ThmSet.empty set;
+end;
 
 local
   fun toStream NONE = Stream.Nil
@@ -463,32 +479,90 @@ end;
 (* Theorems in scope.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-datatype theorems =
-    Theorems of (Thm.thm * object list) SequentMap.map;
+datatype theorems = Theorems of object SequentMap.map * IntSet.set;
 
-val noTheorems = Theorems (SequentMap.new ());
+val emptyTheorems = Theorems (SequentMap.new (), IntSet.empty);
 
-fun sizeTheorems (Theorems thms) = SequentMap.size thms;
+fun sizeTheorems (Theorems (seqs,_)) = SequentMap.size seqs;
 
-fun addTheorems thms th_deps =
+fun addTheorems thms obj =
     let
-      val Theorems thmMap = thms
-      and (th,_) = th_deps
+      val Theorems (seqs,ids) = thms
+      and Object {id, object = ob, provenance = prov, ...} = obj
     in
-      Theorems (SequentMap.insert thmMap (sequent th, th_deps))
+      if IntSet.member id ids then thms
+      else
+        let
+          val ids = IntSet.add ids id
+        in
+          case prov of
+            Pnull => Theorems (seqs,ids)
+          | Pcall _ => Theorems (seqs,ids)
+          | Preturn objR => addTheorems (Theorems (seqs,ids)) objR
+          | Pcons (objH,objT) =>
+            let
+              val thms = Theorems (seqs,ids)
+              val thms = addTheorems thms objH
+            in
+              addTheorems thms objT
+            end
+          | Pref objR => addTheorems (Theorems (seqs,ids)) objR
+          | Pthm _ =>
+            let
+              val seq = Syntax.sequent (Object.destOthm ob)
+
+              val ins =
+                  case SequentMap.peek seqs seq of
+                    NONE => true
+                  | SOME (Object {id = id', ...}) => id < id'
+
+              val seqs = if ins then SequentMap.insert seqs (seq,obj) else seqs
+            in
+              Theorems (seqs,ids)
+            end
+        end
     end;
 
 local
-  fun add deps (th,thms) = addTheorems thms (th,deps);
+  fun choose (obj1,obj2) =
+      let
+        val Object {id = id1, ...} = obj1
+        and Object {id = id2, ...} = obj2
+
+        val obj = if id1 < id2 then obj1 else obj2
+      in
+        SOME obj
+      end;
 in
-  fun addObjectTheorems thms obj =
-      List.foldl (add [obj]) thms (Object.thms (object obj));
+  fun unionTheorems thms1 thms2 =
+      let
+        val Theorems (seqs1,ids1) = thms1
+        and Theorems (seqs2,ids2) = thms2
+
+        val seqs = SequentMap.union choose seqs1 seqs2
+
+        val ids = IntSet.union ids1 ids2
+      in
+        Theorems (seqs,ids)
+      end;
 end;
 
-fun searchTheorems (Theorems thmMap) seq =
-    case SequentMap.peek thmMap seq of
+local
+  fun add (_,obj,set) = addObjectSet set obj;
+in
+  fun toObjectSetTheorems (Theorems (seqs,_)) =
+      SequentMap.foldl add emptyObjectSet seqs;
+end;
+
+fun searchTheorems (Theorems (seqs,_)) seq =
+    case SequentMap.peek seqs seq of
       NONE => NONE
-    | SOME (th,deps) => SOME (alpha seq th, deps);
+    | SOME obj =>
+      let
+        val th = alpha seq (Object.destOthm (object obj))
+      in
+        SOME (th,[obj])
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Dictionaries.                                                             *)
@@ -541,7 +615,7 @@ fun objectStack (Stack {objects = x, ...}) = x;
 
 fun theoremsStack (Stack {theorems,...}) =
     case theorems of
-      [] => noTheorems
+      [] => emptyTheorems
     | ths :: _ => ths;
 
 fun pushStack stack obj =
@@ -552,7 +626,7 @@ fun pushStack stack obj =
 
       val objects = obj :: objects
 
-      val thms = addObjectTheorems (theoremsStack stack) obj
+      val thms = addTheorems (theoremsStack stack) obj
 
       val theorems = thms :: theorems
 
@@ -629,60 +703,50 @@ fun searchStack (Stack {theorems,...}) seq =
       [] => NONE
     | thms :: _ => searchTheorems thms seq;
 
-local
-  fun push (obj,stack) = pushStack stack obj;
-in
-  fun appendStack stack1 stack2 =
-      if nullStack stack1 then stack2
-      else List.foldl push stack1 (rev (objectStack stack2));
-end;
-
 (* ------------------------------------------------------------------------- *)
 (* Saved theorems.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype saved = Saved of stack;
+datatype saved = Saved of theorems;
 
-val emptySaved = Saved emptyStack;
+val emptySaved = Saved emptyTheorems;
 
-fun appendSaved (Saved stack1) (Saved stack2) =
-    Saved (appendStack stack1 stack2);
+fun theoremsSaved (Saved thms) = thms;
 
-fun sizeSaved (Saved stack) = sizeStack stack;
+fun unionSaved (Saved thms1) (Saved thms2) =
+    Saved (unionTheorems thms1 thms2);
 
-fun addSaved (Saved stack) obj =
-    if Object.isOthm (object obj) then Saved (pushStack stack obj)
-    else raise Error "Object.addSaved: not an Othm object";
+fun addSaved saved obj =
+    let
+      val Saved thms = saved
+      and Object {object = ob, ...} = obj
+    in
+      case ob of
+        Object.Othm th =>
+        let
+          val seq = sequent th
+        in
+          case searchTheorems thms seq of
+            SOME _ =>
+            let
+              val () = warn ("saving duplicate theorem:\n" ^ thmToString th)
+            in
+              saved
+            end
+          | NONE =>
+            let
+              val thms = addTheorems thms obj
+            in
+              Saved thms
+            end
+        end
+      | _ => raise Error "Article.addSaved: not an Othm object"
+    end;
 
-fun searchSaved (Saved stack) seq =
-    case searchStack stack seq of
+fun searchSaved (Saved thms) seq =
+    case searchTheorems thms seq of
       SOME (th,_) => SOME th
     | NONE => NONE;
-
-fun listSaved (Saved stack) = rev (objectStack stack);
-
-val thmsSaved = ThmSet.fromList o map (Object.destOthm o object) o listSaved;
-
-local
-  fun add (obj,set) = ObjectMap.insert set (object obj, obj);
-in
-  fun toSetSaved (Saved stack) =
-      List.foldl add (ObjectMap.new ()) (objectStack stack);
-end;
-
-local
-  fun addSet (_,obj,set) = addObjectSet set obj;
-
-  fun addStack (obj,stack) = pushStack stack obj;
-in
-  fun fromSetSaved set =
-      let
-        val objs = ObjectMap.foldl addSet emptyObjectSet set
-        val stack = foldlObjectSet addStack emptyStack objs
-      in
-        Saved stack
-      end;
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Simulating other theorem provers.                                         *)
@@ -1515,12 +1579,12 @@ fun generate saved objs =
 datatype article =
     Article of
       {thms : ThmSet.set,
-       saved : saved option};
+       saved : objectSet option};
 
 val empty =
     Article
       {thms = ThmSet.empty,
-       saved = SOME emptySaved};
+       saved = SOME emptyObjectSet};
 
 fun append art1 art2 =
     let
@@ -1531,7 +1595,7 @@ fun append art1 art2 =
 
       val saved =
           case (saved1,saved2) of
-            (SOME s1, SOME s2) => SOME (appendSaved s1 s2)
+            (SOME s1, SOME s2) => SOME (unionObjectSet s1 s2)
           | _ => NONE
     in
       Article
@@ -1597,95 +1661,53 @@ fun fromTextFile {savable,known,interpretation,filename} =
              filename = filename,
              interpretation = interpretation}
 
-      val savedSet = toSetSaved saved
+      val saved = theoremsSaved saved
 
-      val () =
-          let
-            val n = sizeSaved saved - ObjectMap.size savedSet
-          in
-            if n = 0 then ()
-            else
-              warn (Int.toString n ^ " saved theorem" ^
-                    (if n = 1 then " is a duplicate" else "s are duplicates") ^
-                    " in " ^ filename)
-          end
-
-      val () =
+      val saved =
           let
             val n = sizeStack stack
           in
-            if n = 0 then ()
-            else
-              warn (Int.toString n ^ " object" ^
-                    (if n = 1 then "" else "s") ^
-                    " left on the stack by " ^ filename)
-          end
-
-      val savedSet =
-          let
-            fun add (obj,(seen,ss)) =
-                let
-                  val Object {id, object = ob, provenance = prov, ...} = obj
-                in
-                  if IntSet.member id seen then (seen,ss)
-                  else
-                    let
-                      val seen = IntSet.add seen id
-                    in
-                      case prov of
-                        Pnull => (seen,ss)
-                      | Pcall _ => (seen,ss)
-                      | Preturn objR => add (objR,(seen,ss))
-                      | Pcons (objH,objT) => add (objT, add (objH,(seen,ss)))
-                      | Pref objR => add (objR,(seen,ss))
-                      | Pthm _ =>
-                        let
-                          val ss =
-                              if ObjectMap.inDomain ob savedSet then ss
-                              else
-                                case ObjectMap.peek ss ob of
-                                  NONE => ObjectMap.insert ss (ob,obj)
-                                | SOME (Object {id = id', ...}) =>
-                                  if not (id < id') then ss
-                                  else ObjectMap.insert ss (ob,obj)
-                        in
-                          (seen,ss)
-                        end
-                    end
-                end
-
-            val (_,savedSet') =
-                List.foldl add (IntSet.empty,savedSet) (objectStack stack)
-
-            val n = ObjectMap.size savedSet
-
-            val n' = ObjectMap.size savedSet' - n
-          in
-            if n = 0 then
-              let
-                val () =
-                    if n' = 0 then
-                      warn ("no theorems saved or left on the stack by " ^
-                            filename)
-                    else
-                      warn ("saving " ^ Int.toString n' ^ " theorem" ^
-                            (if n' = 1 then "" else "s") ^
-                            " left on the stack by " ^ filename)
-              in
-                savedSet'
-              end
+            if n = 0 then saved
             else
               let
-                val () =
-                    if n' = 0 then ()
-                    else
-                      warn (Int.toString n' ^ " unsaved theorem" ^
-                            (if n' = 1 then "" else "s") ^
-                            " left on the stack by " ^ filename)
+                val () = warn (Int.toString n ^ " object" ^
+                               (if n = 1 then "" else "s") ^
+                               " left on the stack by " ^ filename)
+
+                val saved' = theoremsStack stack
+                val saved' = unionTheorems saved saved'
+
+                val n = sizeTheorems saved
+                val n' = sizeTheorems saved' - n
               in
-                savedSet
+                if n = 0 then
+                  let
+                    val () =
+                        if n' = 0 then ()
+                        else
+                          warn ("saving " ^ Int.toString n' ^ " theorem" ^
+                                (if n' = 1 then "" else "s") ^
+                                " left on the stack by " ^ filename)
+                  in
+                    saved'
+                  end
+                else
+                  let
+                    val () =
+                        if n' = 0 then ()
+                        else
+                          warn (Int.toString n' ^ " unsaved theorem" ^
+                                (if n' = 1 then "" else "s") ^
+                                " left on the stack by " ^ filename)
+                  in
+                    saved
+                  end
               end
           end
+
+      val () =
+          if sizeTheorems saved > 0 then ()
+          else warn ("no theorems saved or left on the stack by " ^ filename)
 
       val () =
           let
@@ -1698,9 +1720,9 @@ fun fromTextFile {savable,known,interpretation,filename} =
                     " left in the dictionary by " ^ filename)
           end
 
-      val saved = fromSetSaved savedSet
+      val saved = toObjectSetTheorems saved
 
-      val thms = thmsSaved saved
+      val thms = toThmSetObjectSet saved
 
       val saved = if savable then SOME saved else NONE
     in
@@ -1716,7 +1738,7 @@ fun toTextFile {filename} article =
 
       val saved =
           case saved of
-            SOME s => listSaved s
+            SOME s => toListObjectSet s
           | NONE => raise Error "unsavable"
 
       val (objs,saved) = reduceObject saved

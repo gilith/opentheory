@@ -32,10 +32,6 @@ open Useful Syntax Rule;
 
 val time = Portable.time;
 
-(*OpenTheoryDebug
-  val () = print "Running in DEBUG mode.\n"
-*)
-
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
