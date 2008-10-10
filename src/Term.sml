@@ -157,7 +157,7 @@ fun mk tm =
       end
     | Abs (v,b) =>
       let
-        val (nV,tyV) = v
+        val (_,tyV) = v
         val ty = Type.mkFun (tyV, typeOf b);
         val fvs = freeVars b
         val fvs = if VarSet.member v fvs then VarSet.delete fvs v else fvs
