@@ -41,6 +41,8 @@ local
 in
   fun fromThms set =
       let
+        val () = trace "entering Summary.fromThms\n"
+
         val reqThms = SequentSet.empty
         val provThms = SequentSet.empty
         val (reqThms,provThms) = ThmSet.foldl splitThm (reqThms,provThms) set
@@ -66,6 +68,8 @@ in
               {types = provTypes,
                consts = provConsts,
                thms = provThms}
+
+        val () = trace "exiting Summary.fromThms\n"
       in
         Summary
           {requires = requires,
@@ -107,6 +111,17 @@ fun pp (Summary {requires,provides}) =
        Print.addNewline,
        ppCurrency ("PROVIDES",provides)];
 
-fun toTextFile filename = Stream.toTextFile filename o Print.toStream pp;
+fun toTextFile filename summary =
+    let
+      val () = trace "entering Summary.toTextFile\n"
+
+      val lines = Print.toStream pp summary
+
+      val () = Stream.toTextFile filename lines
+
+      val () = trace "exiting Summary.toTextFile\n"
+    in
+      ()
+    end;
 
 end
