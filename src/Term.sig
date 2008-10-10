@@ -21,18 +21,26 @@ datatype term' =
 val mk : term' -> term
 val dest : term -> term'
 
+(* Constants *)
+
 val mkConst : Name.name * Type.ty -> term
 val destConst : term -> Name.name * Type.ty
 val isConst : term -> bool
+
+(* Variables *)
 
 val mkVar : Var.var -> term
 val destVar : term -> Var.var
 val isVar : term -> bool
 val equalVar : Var.var -> term -> bool
 
+(* Function applications *)
+
 val mkComb : term * term -> term
 val destComb : term -> term * term
 val isComb : term -> bool
+
+(* Function abstractions *)
 
 val mkAbs : Var.var * term -> term
 val destAbs : term -> Var.var * term

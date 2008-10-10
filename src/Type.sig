@@ -23,10 +23,14 @@ datatype ty' =
 val mk : ty' -> ty
 val dest : ty -> ty'
 
+(* Variables *)
+
 val mkVar : Name.name -> ty
 val destVar : ty -> Name.name
 val isVar : ty -> bool
 val equalVar : Name.name -> ty -> bool
+
+(* Operators *)
 
 val mkOp : Name.name * ty list -> ty
 val destOp : ty -> Name.name * ty list
@@ -48,11 +52,15 @@ val alphaTy : ty
 
 val typeVars : ty -> NameSet.set
 
+val typeVarsList : ty list -> NameSet.set
+
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 val typeOps : ty -> NameSet.set
+
+val typeOpsList : ty list -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive types.                                                          *)
