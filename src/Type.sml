@@ -19,6 +19,7 @@ val op== = Portable.pointerEqual;
 datatype ty =
     Type of
       {ty : ty',
+       sz : int,
        vars : NameSet.set,
        ops : NameSet.set}
 
@@ -65,7 +66,20 @@ fun declareType name arity =
     handle Error err => raise Error ("Type.declareType: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
-(* Type variables                                                            *)
+(* Number of constructors.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun size (Type {sz,...}) = sz;
+
+val sizeList =
+    let
+      fun add (ty,n) = size ty + n
+    in
+      foldl add 0
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 fun typeVars (Type {vars,...}) = vars;
@@ -100,11 +114,13 @@ fun mk ty =
     case ty of
       TypeVar n =>
       let
+        val sz = 1
         val vars = NameSet.singleton n
         val ops = NameSet.empty
       in
         Type
           {ty = ty,
+           sz = sz,
            vars = vars,
            ops = ops}
       end
@@ -118,11 +134,13 @@ fun mk ty =
               else raise Error ("Type.mk: bad arity for type operator " ^
                                 Name.toString n)
 
+        val sz = sizeList tys + 1
         val vars = typeVarsList tys
         val ops = NameSet.add (typeOpsList tys) n
       in
         Type
           {ty = ty,
+           sz = sz,
            vars = vars,
            ops = ops}
       end;

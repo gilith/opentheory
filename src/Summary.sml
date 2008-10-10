@@ -41,8 +41,9 @@ local
 in
   fun fromThms set =
       let
+(*OpenTheoryTrace5
         val () = trace "entering Summary.fromThms\n"
-
+*)
         val reqThms = SequentSet.empty
         val provThms = SequentSet.empty
         val (reqThms,provThms) = ThmSet.foldl splitThm (reqThms,provThms) set
@@ -69,7 +70,9 @@ in
                consts = provConsts,
                thms = provThms}
 
+(*OpenTheoryTrace5
         val () = trace "exiting Summary.fromThms\n"
+*)
       in
         Summary
           {requires = requires,
@@ -113,13 +116,16 @@ fun pp (Summary {requires,provides}) =
 
 fun toTextFile filename summary =
     let
+(*OpenTheoryTrace5
       val () = trace "entering Summary.toTextFile\n"
-
+*)
       val lines = Print.toStream pp summary
 
       val () = Stream.toTextFile filename lines
 
+(*OpenTheoryTrace5
       val () = trace "exiting Summary.toTextFile\n"
+*)
     in
       ()
     end;

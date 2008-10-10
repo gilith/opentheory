@@ -13,7 +13,7 @@ sig
 type ty
 
 (* ------------------------------------------------------------------------- *)
-(* Constructors and destructors                                              *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 datatype ty' =
@@ -35,6 +35,14 @@ val equalVar : Name.name -> ty -> bool
 val mkOp : Name.name * ty list -> ty
 val destOp : ty -> Name.name * ty list
 val isOp : ty -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Number of constructors.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val size : ty -> int
+
+val sizeList : ty list -> int
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)

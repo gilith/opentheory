@@ -13,12 +13,13 @@ infixr ==
 val op== = Portable.pointerEqual;
 
 (* ------------------------------------------------------------------------- *)
-(* Terms                                                                     *)
+(* A type of higher order logic terms.                                       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype term =
     Term of
       {tm : term',
+       sz : int,
        ty : Type.ty,
        fvs : VarSet.set,
        cs : NameSet.set,
@@ -32,7 +33,7 @@ and term' =
   | Abs of Var.var * term;
 
 (* ------------------------------------------------------------------------- *)
-(* The constant registry (initially contains the primitive constants)        *)
+(* The constant registry (initially contains the primitive constants).       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype registry =
@@ -70,13 +71,19 @@ fun declareConst name ty =
     handle Error err => raise Error ("Term.declareConst: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
-(* Type checking                                                             *)
+(* Number of constructors.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun size (Term {sz,...}) = sz;
+
+(* ------------------------------------------------------------------------- *)
+(* Type checking.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
 fun typeOf (Term {ty,...}) = ty;
 
 (* ------------------------------------------------------------------------- *)
-(* Free term and type variables                                              *)
+(* Free term and type variables.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun freeVars (Term {fvs,...}) = fvs;
@@ -84,7 +91,7 @@ fun freeVars (Term {fvs,...}) = fvs;
 fun typeVars (Term {tyVs,...}) = tyVs;
 
 (* ------------------------------------------------------------------------- *)
-(* Type operators and constants.                                             *)
+(* Constants and type operators.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun consts (Term {cs,...}) = cs;
@@ -92,7 +99,7 @@ fun consts (Term {cs,...}) = cs;
 fun typeOps (Term {tyOs,...}) = tyOs;
 
 (* ------------------------------------------------------------------------- *)
-(* Term constructors and destructors                                         *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun mk tm =
@@ -107,6 +114,7 @@ fun mk tm =
               else raise Error ("Term.mk: bad type for constant " ^
                                 Name.toString n)
 
+        val sz = 1
         val fvs = VarSet.empty
         val cs = NameSet.singleton n
         val tyVs = Type.typeVars ty
@@ -114,6 +122,7 @@ fun mk tm =
       in
         Term
           {tm = tm,
+           sz = sz,
            ty = ty,
            fvs = fvs,
            cs = cs,
@@ -123,6 +132,7 @@ fun mk tm =
     | Var v =>
       let
         val (_,ty) = v
+        val sz = 1
         val fvs = VarSet.singleton v
         val cs = NameSet.empty
         val tyVs = Type.typeVars ty
@@ -130,6 +140,7 @@ fun mk tm =
       in
         Term
           {tm = tm,
+           sz = sz,
            ty = ty,
            fvs = fvs,
            cs = cs,
@@ -142,6 +153,7 @@ fun mk tm =
         val tyA' = typeOf a
         val _ = Type.equal tyA tyA' orelse
                 raise Error "Term.mk: incompatible types in comb"
+        val sz = size f + size a + 1
         val fvs = VarSet.union (freeVars f) (freeVars a)
         val cs = NameSet.union (consts f) (consts a)
         val tyVs = NameSet.union (typeVars f) (typeVars a)
@@ -149,6 +161,7 @@ fun mk tm =
       in
         Term
           {tm = tm,
+           sz = sz,
            ty = ty,
            fvs = fvs,
            cs = cs,
@@ -158,6 +171,7 @@ fun mk tm =
     | Abs (v,b) =>
       let
         val (_,tyV) = v
+        val sz = size b + 1
         val ty = Type.mkFun (tyV, typeOf b);
         val fvs = freeVars b
         val fvs = if VarSet.member v fvs then VarSet.delete fvs v else fvs
@@ -167,6 +181,7 @@ fun mk tm =
       in
         Term
           {tm = tm,
+           sz = sz,
            ty = ty,
            fvs = fvs,
            cs = cs,
@@ -242,7 +257,7 @@ fun destAbs tm = destAbs' (dest tm);
 val isAbs = can destAbs;
 
 (* ------------------------------------------------------------------------- *)
-(* A total order on terms, with and without alpha equivalence                *)
+(* A total order on terms, with and without alpha equivalence.               *)
 (* ------------------------------------------------------------------------- *)
 
 val constCompare = prodCompare Name.compare Type.compare;
@@ -327,7 +342,7 @@ end;
 fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive constants                                                       *)
+(* Primitive constants.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 (* Equality *)

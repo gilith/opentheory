@@ -385,6 +385,8 @@ val indTy = mkTypeOp (indName,[]);
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val maximumSize = ref 1000;
+
 (* Types *)
 
 val typeInfixTokens =
@@ -434,20 +436,26 @@ local
               | [x] => Print.sequence (basic ty) (Print.addBreak 1)
               | _ =>
                 Print.sequence
-                  (Print.ppBracket "(" ")" (Print.ppOpList "," ppType) xs)
+                  (Print.ppBracket "(" ")" (Print.ppOpList "," ppTypeTop) xs)
                   (Print.addBreak 1)),
              ppTypeOp f]
         end
 
   and basicr (ty,_) = basic ty
 
-  and ppBtype ty = Print.ppBracket "(" ")" ppType ty
+  and ppBtype ty = Print.ppBracket "(" ")" ppTypeTop ty
 
   and ppTyper tyr = typeInfixPrinter basicr tyr
 
-  and ppType ty = ppTyper (ty,false);
+  and ppTypeTop ty = ppTyper (ty,false);
 in
-  val ppType = ppType;
+  fun ppType ty =
+      let
+        val n = Type.size ty
+      in
+        if n <= !maximumSize then ppTypeTop ty
+        else Print.addString ("type{" ^ Int.toString n ^ "}")
+      end;
 end;
 
 val typeToString = Print.toString ppType;
@@ -615,7 +623,13 @@ local
 
   and ppTm tmr = infixPrinter negs tmr;
 in
-  val ppTerm = Print.ppMap (fn tm => (tm,false)) ppTm;
+  fun ppTerm tm =
+      let
+        val n = Term.size tm
+      in
+        if n <= !maximumSize then ppTm (tm,false)
+        else Print.addString ("term{" ^ Int.toString n ^ "}")
+      end;
 end;
 
 val termToString = Print.toString ppTerm;

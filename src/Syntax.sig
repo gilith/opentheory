@@ -178,6 +178,7 @@ val indTy : ty
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val maximumSize : int ref
 val showTypes : bool ref
 val showHyp : bool ref
 
