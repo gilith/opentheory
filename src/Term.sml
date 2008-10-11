@@ -347,13 +347,13 @@ fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
 
 (* Equality *)
 
-fun eqTy a = Type.mkFun (a, Type.mkFun (a, Type.boolTy));
+fun eqTy a = Type.mkFun (a, Type.mkFun (a, Type.bool));
 
 val eqN = Name.mkGlobal "="
 
 val eqTm =
     let
-      val ty = eqTy Type.alphaTy
+      val ty = eqTy Type.alpha
       val () = declareConst eqN ty
     in
       mkConst (eqN,ty)

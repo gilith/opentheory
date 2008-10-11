@@ -74,7 +74,7 @@ fun abs v th =
 
 fun assume t =
     let
-      val _ = Type.equal (Term.typeOf t) Type.boolTy orelse
+      val _ = Type.equal (Term.typeOf t) Type.bool orelse
               raise Error "Thm.assume: not a proposition"
       val axioms = emptyAxioms
       and hyp = singleHyp t
@@ -214,7 +214,7 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
       val _ = NameSet.size (NameSet.fromList tyVars) = length tyVars orelse
               raise Error "supplied type variables contain duplicates"
       val arity = length tyVars
-      val () = Type.declareType name arity
+      val () = Type.declare name arity
       val aty = Type.mkOp (name, map Type.mkVar tyVars)
       and rty = Term.typeOf t
       val absTy = Type.mkFun (rty,aty)

@@ -37,6 +37,14 @@ val destOp : ty -> Name.name * ty list
 val isOp : ty -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Type IDs.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+type tyId = int
+
+val id : ty -> tyId
+
+(* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -56,7 +64,7 @@ val equal : ty -> ty -> bool
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val alphaTy : ty
+val alpha : ty
 
 val typeVars : ty -> NameSet.set
 
@@ -74,7 +82,11 @@ val typeOpsList : ty list -> NameSet.set
 (* Primitive types.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val boolTy : ty
+(* Booleans *)
+
+val bool : ty
+
+(* Function spaces *)
 
 val mkFun : ty * ty -> ty
 val destFun : ty -> ty * ty
@@ -84,10 +96,10 @@ val isFun : ty -> bool
 (* The type registry (initially contains the primitive type operators).      *)
 (* ------------------------------------------------------------------------- *)
 
-val typeArity : Name.name -> int option
+val declare : Name.name -> int -> unit
 
-val allTypes : unit -> Name.name list
+val declaredArity : Name.name -> int option
 
-val declareType : Name.name -> int -> unit
+val allDeclared : unit -> NameSet.set
 
 end

@@ -26,7 +26,7 @@ val destTypeVar = Type.destVar;
 val isTypeVar = Type.isVar;
 val equalTypeVar = Type.equalVar;
 
-val alphaTy = Type.alphaTy;
+val alphaTy = Type.alpha;
 
 (* Type operators *)
 
@@ -36,7 +36,7 @@ val isTypeOp = Type.isOp;
 
 (* The type of booleans *)
 
-val boolTy = Type.boolTy;
+val boolTy = Type.bool;
 
 (* Function types *)
 
@@ -337,7 +337,7 @@ end;
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
-fun selectTy a = Type.mkFun (Type.mkFun (a, Type.boolTy), a);
+fun selectTy a = mkFun (mkFun (a, boolTy), a);
 
 val selectString = "select";
 
@@ -345,7 +345,7 @@ val selectName = Name.mkGlobal selectString;
 
 val selectTm =
     let
-      val ty = selectTy Type.alphaTy
+      val ty = selectTy alphaTy
     in
       mkConst (selectName,ty)
     end;

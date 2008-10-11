@@ -199,11 +199,8 @@ HOL_LIGHT_THEORIES = \
   calc_rat \
   int \
   sets \
-  iter \
   cart \
-  define \
-  help \
-  database
+  define
 
 .PHONY: hol-light-install
 hol-light-install:

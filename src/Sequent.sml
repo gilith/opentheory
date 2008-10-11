@@ -19,8 +19,8 @@ type sequent = {hyp : TermAlphaSet.set, concl : Term.term};
 (* ------------------------------------------------------------------------- *)
 
 fun boolean {hyp,concl} =
-    Type.equal (Term.typeOf concl) Type.boolTy andalso
-    TermAlphaSet.all (fn h => Type.equal (Term.typeOf h) Type.boolTy) hyp;
+    Type.equal (Term.typeOf concl) Type.bool andalso
+    TermAlphaSet.all (fn h => Type.equal (Term.typeOf h) Type.bool) hyp;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order on sequents modulo alpha equivalence                        *)
