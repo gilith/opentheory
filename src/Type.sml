@@ -74,7 +74,7 @@ fun declare name arity =
     in
       theRegistry := registry
     end
-    handle Error err => raise Error ("Type.declareType: " ^ err);
+    handle Error err => raise Error ("Type.declare: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Type IDs.                                                                 *)

@@ -26,7 +26,7 @@ val destTypeVar = Type.destVar;
 val isTypeVar = Type.isVar;
 val equalTypeVar = Type.equalVar;
 
-val alphaTy = Type.alpha;
+val alphaType = Type.alpha;
 
 (* Type operators *)
 
@@ -36,7 +36,7 @@ val isTypeOp = Type.isOp;
 
 (* The type of booleans *)
 
-val boolTy = Type.bool;
+val boolType = Type.bool;
 
 (* Function types *)
 
@@ -112,8 +112,8 @@ end;
 
 (* Equality *)
 
-val eqTy = Term.eqTy;
-val eqTm = Term.eqTm;
+val eqType = Term.eqType;
+val eqTerm = Term.eqTerm;
 val mkEq = Term.mkEq;
 val destEq = Term.destEq;
 val isEq = Term.isEq;
@@ -187,7 +187,7 @@ val trueString = "T";
 
 val trueName = Name.mkGlobal trueString;
 
-val trueTm = mkConst (trueName,boolTy);
+val trueTerm = mkConst (trueName,boolType);
 
 (* False *)
 
@@ -195,7 +195,7 @@ val falseString = "F";
 
 val falseName = Name.mkGlobal falseString;
 
-val falseTm = mkConst (falseName,boolTy);
+val falseTerm = mkConst (falseName,boolType);
 
 (* Negations *)
 
@@ -203,7 +203,7 @@ val negString = "~";
 
 val negName = Name.mkGlobal negString;
 
-fun mkNeg tm = mkUnop negName (boolTy,tm);
+fun mkNeg tm = mkUnop negName (boolType,tm);
 
 fun destNeg tm =
     let
@@ -220,7 +220,7 @@ val impName = Name.mkGlobal "==>";
 
 val mkImp =
     let
-      val impTy = mkFun (boolTy, mkFun (boolTy,boolTy))
+      val impTy = mkFun (boolType, mkFun (boolType,boolType))
     in
       fn (a,b) => mkBinop impName (impTy,a,b)
     end;
@@ -240,7 +240,7 @@ val forallString = "!";
 
 val forallName = Name.mkGlobal forallString;
 
-fun forallType a = mkFun (mkFun (a, boolTy), boolTy);
+fun forallType a = mkFun (mkFun (a, boolType), boolType);
 
 fun mkForall (v,b) =
     mkComb (mkConst (forallName, forallType (snd v)), mkAbs (v,b));
@@ -273,7 +273,7 @@ val existsString = "?";
 
 val existsName = Name.mkGlobal existsString;
 
-fun existsType a = mkFun (mkFun (a, boolTy), boolTy);
+fun existsType a = mkFun (mkFun (a, boolType), boolType);
 
 fun mkExists (v,b) =
     mkComb (mkConst (existsName, existsType (snd v)), mkAbs (v,b));
@@ -306,7 +306,7 @@ val existsUniqueString = "?!";
 
 val existsUniqueName = Name.mkGlobal existsUniqueString;
 
-fun existsUniqueType a = mkFun (mkFun (a, boolTy), boolTy);
+fun existsUniqueType a = mkFun (mkFun (a, boolType), boolType);
 
 fun mkExistsUnique (v,b) =
     mkComb (mkConst (existsUniqueName, existsUniqueType (snd v)),
@@ -337,21 +337,21 @@ end;
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
-fun selectTy a = mkFun (mkFun (a, boolTy), a);
+fun selectType a = mkFun (mkFun (a, boolType), a);
 
 val selectString = "select";
 
 val selectName = Name.mkGlobal selectString;
 
-val selectTm =
+val selectTerm =
     let
-      val ty = selectTy alphaTy
+      val ty = selectType alphaType
     in
       mkConst (selectName,ty)
     end;
 
 fun mkSelect (v_b as ((_,ty),_)) =
-    mkComb (mkConst (selectName, selectTy ty), mkAbs v_b);
+    mkComb (mkConst (selectName, selectType ty), mkAbs v_b);
 
 fun destSelect tm =
     let
@@ -379,7 +379,9 @@ end;
 
 val indName = Name.mkGlobal "ind";
 
-val indTy = mkTypeOp (indName,[]);
+val indArity = 0;
+
+val indType = mkTypeOp (indName,[]);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

@@ -94,8 +94,8 @@ val typeOps : term -> NameSet.set
 
 (* Equality *)
 
-val eqTy : Type.ty -> Type.ty
-val eqTm : term
+val eqType : Type.ty -> Type.ty
+val eqTerm : term
 val mkEq : term * term -> term
 val destEq : term -> term * term
 val isEq : term -> bool
@@ -104,10 +104,10 @@ val isEq : term -> bool
 (* The constant registry (initially contains the primitive constants).       *)
 (* ------------------------------------------------------------------------- *)
 
-val constType : Name.name -> Type.ty option
+val declaredConst : Name.name -> Type.ty option
 
-val allConsts : unit -> Name.name list
+val allDeclared : unit -> NameSet.set
 
-val declareConst : Name.name -> Type.ty -> unit
+val declare : Name.name -> Type.ty -> unit
 
 end

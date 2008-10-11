@@ -38,37 +38,51 @@ and term' =
 
 datatype registry =
     Registry of
-      {all : Name.name list,
+      {all : NameSet.set,
        types : Type.ty NameMap.map};
 
-val registry = ref (Registry {all = [], types = NameMap.new ()});
-
-fun constType name =
+val emptyRegistry =
     let
-      val Registry {types,...} = !registry
+      val all = NameSet.empty
+      val types = NameMap.new ()
+    in
+      Registry
+        {all = all,
+         types = types}
+    end;
+
+val theRegistry = ref emptyRegistry;
+
+fun declaredConst name =
+    let
+      val Registry {types,...} = !theRegistry
     in
       NameMap.peek types name
     end;
 
-fun allConsts name =
+fun allDeclared () =
     let
-      val Registry {all,...} = !registry
+      val Registry {all,...} = !theRegistry
     in
       all
     end;
 
-fun declareConst name ty =
+fun declare name ty =
     let
-      val _ = not (Option.isSome (constType name)) orelse
+      val _ = not (NameSet.member name (allDeclared ())) orelse
               raise Error ("already a constant with name " ^
                            Name.toString name)
-      val Registry {all,types} = !registry
-      val all = name :: all
+
+      val Registry {all,types} = !theRegistry
+
+      val all = NameSet.add all name
       and types = NameMap.insert types (name,ty)
+
+      val registry = Registry {all = all, types = types}
     in
-      registry := Registry {all = all, types = types}
+      theRegistry := registry
     end
-    handle Error err => raise Error ("Term.declareConst: " ^ err);
+    handle Error err => raise Error ("Term.declare: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
@@ -107,7 +121,7 @@ fun mk tm =
       Const (n,ty) =>
       let
         val () =
-            case constType n of
+            case declaredConst n of
               NONE => ()
             | SOME ty' =>
               if can (TypeSubst.match ty') ty then ()
@@ -347,19 +361,21 @@ fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
 
 (* Equality *)
 
-fun eqTy a = Type.mkFun (a, Type.mkFun (a, Type.bool));
+fun eqType a = Type.mkFun (a, Type.mkFun (a, Type.bool));
 
-val eqN = Name.mkGlobal "="
+val eqString = "=";
 
-val eqTm =
+val eqName = Name.mkGlobal eqString;
+
+val eqTerm =
     let
-      val ty = eqTy Type.alpha
-      val () = declareConst eqN ty
+      val ty = eqType Type.alpha
+      val () = declare eqName ty
     in
-      mkConst (eqN,ty)
+      mkConst (eqName,ty)
     end;
 
-fun mkEq (l,r) = mkComb (mkComb (mkConst (eqN, eqTy (typeOf l)), l), r);
+fun mkEq (l,r) = mkComb (mkComb (mkConst (eqName, eqType (typeOf l)), l), r);
 
 fun destEq tm =
     let
@@ -367,7 +383,7 @@ fun destEq tm =
       val (eq,l) = destComb eq_l
       val (n,_) = destConst eq
     in
-      if Name.equal n eqN then (l,r) else raise Error "Term.destEq"
+      if Name.equal n eqName then (l,r) else raise Error "Term.destEq"
     end;
 
 val isEq = can destEq;

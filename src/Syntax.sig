@@ -24,7 +24,7 @@ val destTypeVar : ty -> name
 val isTypeVar : ty -> bool
 val equalTypeVar : name -> ty -> bool
 
-val alphaTy : ty
+val alphaType : ty
 
 (* Type operators *)
 
@@ -34,7 +34,7 @@ val isTypeOp : ty -> bool
 
 (* The type of booleans *)
 
-val boolTy : ty
+val boolType : ty
 
 (* Function types *)
 
@@ -78,8 +78,8 @@ val stripAbs : term -> var list * term
 
 (* Equality *)
 
-val eqTy : ty -> ty
-val eqTm : term
+val eqType : ty -> ty
+val eqTerm : term
 val mkEq : term * term -> term
 val destEq : term -> term * term
 val isEq : term -> bool
@@ -118,11 +118,11 @@ val isBinop : name -> term -> bool
 
 (* True *)
 
-val trueTm : term
+val trueTerm : term
 
 (* False *)
 
-val falseTm : term
+val falseTerm : term
 
 (* Negations *)
 
@@ -162,8 +162,8 @@ val stripExistsUnique : term -> var list * term
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
-val selectTy : ty -> ty
-val selectTm : term
+val selectType : ty -> ty
+val selectTerm : term
 val mkSelect : var * term -> term
 val destSelect : term -> var * term
 val isSelect : term -> bool
@@ -172,7 +172,7 @@ val isSelect : term -> bool
 (* The type of individuals.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val indTy : ty
+val indType : ty
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
