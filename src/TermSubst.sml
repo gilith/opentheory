@@ -82,6 +82,12 @@ fun norm (Subst (sty,stm)) =
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
 
+datatype sharingSubst =
+    SharingSubst of
+      {typeShare : TypeSubst.sharingSubst,
+       sub : (Term.term * VarSet.set) VarMap.map,
+       seen : Term.term option IntMap.map};
+
 fun substType (Subst (sty,_)) = TypeSubst.subst sty;
 
 fun rawSharingSubst sty stm seen tm =

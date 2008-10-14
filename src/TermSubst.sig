@@ -44,6 +44,13 @@ val norm : subst -> subst
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
 
+type sharingSubst
+
+val newSharingSubst : subst -> sharingSubst
+
+val sharingSubstType : Type.ty -> sharingSubst -> Type.ty option * sharingSubst
+val sharingSubst : Term.term -> sharingSubst -> Term.term option * sharingSubst
+
 val substType : subst -> Type.ty -> Type.ty option
 val subst : subst -> Term.term -> Term.term option
 
