@@ -8,10 +8,6 @@ struct
 
 open Useful;
 
-infixr ==
-
-val op== = Portable.pointerEqual;
-
 (* ------------------------------------------------------------------------- *)
 (* Capture-avoiding substitutions of type and term variables                 *)
 (* ------------------------------------------------------------------------- *)
@@ -24,8 +20,8 @@ fun addType n_ty (Subst (sty,stm)) = Subst (TypeSubst.add n_ty sty, stm);
 
 fun add v_tm (Subst (sty,stm)) =
     let
-      val ((_,ty),tm) = v_tm
-      val _ = Type.equal (Term.typeOf tm) ty orelse
+      val (v,tm) = v_tm
+      val _ = Type.equal (Var.typeOf v) (Term.typeOf tm) orelse
               raise Error "TermSubst.add: bad type"
     in
       Subst (sty, VarMap.insert stm v_tm)
@@ -49,17 +45,25 @@ fun peekType (Subst (sty,_)) n = TypeSubst.peek sty n;
 
 fun peek (Subst (_,stm)) v = VarMap.peek stm v;
 
+fun toListType (Subst (sty,_)) = TypeSubst.toList sty;
+
+fun toList (Subst (_,stm)) = VarMap.foldr (fn (v,tm,l) => (v,tm) :: l) [] stm;
+
+(* ------------------------------------------------------------------------- *)
+(* Normalization removes identity substitutions v |-> v.                     *)
+(* ------------------------------------------------------------------------- *)
+
 fun norm (Subst (sty,stm)) =
     let
       val sty = TypeSubst.norm sty
 
       val stm =
           let
-            fun p (n,ty) (Term.Var (n',ty')) =
+            fun p (Var.Var (n,ty)) (Term.Var (Var.Var (n',ty'))) =
                 Name.equal n n' andalso
                 let
-                  val ty = TypeSubst.subst sty ty
-                  and ty' = TypeSubst.subst sty ty'
+                  val ty = Option.getOpt (TypeSubst.subst sty ty, ty)
+                  and ty' = Option.getOpt (TypeSubst.subst sty ty', ty')
                 in
                   Type.equal ty ty'
                 end
@@ -74,18 +78,39 @@ fun norm (Subst (sty,stm)) =
       Subst (sty,stm)
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Applying substitutions: returns NONE for unchanged.                       *)
+(* ------------------------------------------------------------------------- *)
+
 fun substType (Subst (sty,_)) = TypeSubst.subst sty;
+
+fun rawSharingSubst sty stm seen tm =
+
+fun sharingSubst sub =
+    if null sub then K NONE
+    else
+      let
+        val Subst (sty,stm) = sub
+
+        val stm =
+            let
+              fun f (v,tm,z) =
+                  let
+                    val v = Option.getOpt (Var.subst sty v, v)
+                    val tm = Option.getOpt (typeSubst sty tm, tm)
+                    val fv = Term.freeVars tm
+                  in
+                    VarMap.insert z (v,(tm,fv))
+                  end
+            in
+              VarMap.foldl f (VarMap.new ()) stm
+            end
+      in
+        rawSubst sty stm
+      end;
 
 local
   exception Capture of int;
-
-  fun typeSubstVar sty v : Var.var =
-      let
-        val (n,ty) = v
-        val ty' = sty ty
-      in
-        if ty == ty' then v else (n,ty')
-      end;
 
   fun bvMin newDepth (v,b) =
       case VarMap.peek newDepth v of
@@ -100,21 +125,25 @@ local
   fun substGen sty stm bv tm =
       case Term.dest tm of
         Term.Const (n,ty) =>
-        let
-          val ty' = sty ty
-        in
-          if ty == ty' then tm else Term.mkConst (n,ty')
-        end
+        (case TypeSubst.subst sty ty of
+           SOME ty' => SOME (Term.mkConst (n,ty'))
+         | NONE => NONE)
       | Term.Var v =>
         (case VarMap.peek (#oldToNew bv) v of
-           SOME v' => if v == v' then tm else Term.mkVar v'
+           SOME v' => if Var.equal v v' then NONE else SOME (Term.mkVar v')
          | NONE =>
            let
-             val v' = typeSubstVar sty v
+             val (changed,v) =
+                 case Var.subst sty v of
+                   SOME v => (true,v)
+                 | NONE => (false,v)
+
              val (tm,fv) =
-                 case VarMap.peek stm v' of
+                 case VarMap.peek stm v of
                    SOME tm_fv => tm_fv
                  | NONE =>
+                   let
+                     val 
                    (if v == v' then tm else Term.mkVar v', VarSet.singleton v')
            in
              if #depth bv = 0 then tm
@@ -159,39 +188,42 @@ local
   fun rawSubst sty stm =
       let
         val info =
-            {depth = 0, oldToNew = VarMap.new (), newDepth = VarMap.new ()}
+            {depth = 0,
+             oldToNew = VarMap.new (),
+             newDepth = VarMap.new ()}
       in
         substGen sty stm info
       end;
 
-  val typeSubst = C rawSubst (VarMap.new ());
-in
-  fun subst sub =
+  fun typeSubst sty =
       let
-        val sub as Subst (sty,stm) = norm sub
-
-        val sty = TypeSubst.subst sty
-
-        val stm =
-            let
-              fun f (v,tm,z) =
-                  let
-                    val v = typeSubstVar sty v
-                    val tm = typeSubst sty tm
-                    val fv = Term.freeVars tm
-                  in
-                    VarMap.insert z (v,(tm,fv))
-                  end
-            in
-              VarMap.foldl f (VarMap.new ()) stm
-            end
+        val stm = VarMap.new ()
       in
         rawSubst sty stm
       end;
+in
+  fun subst sub =
+      if null sub then K NONE
+      else
+        let
+          val Subst (sty,stm) = sub
+
+          val stm =
+              let
+                fun f (v,tm,z) =
+                    let
+                      val v = Option.getOpt (Var.subst sty v, v)
+                      val tm = Option.getOpt (typeSubst sty tm, tm)
+                      val fv = Term.freeVars tm
+                    in
+                      VarMap.insert z (v,(tm,fv))
+                    end
+              in
+                VarMap.foldl f (VarMap.new ()) stm
+              end
+        in
+          rawSubst sty stm
+        end;
 end;
-
-fun toListType (Subst (sty,_)) = TypeSubst.toList sty;
-
-fun toList (Subst (_,stm)) = VarMap.foldr (fn (v,tm,l) => (v,tm) :: l) [] stm;
 
 end

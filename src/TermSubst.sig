@@ -31,12 +31,20 @@ val addList : (Var.var * Term.term) list -> subst -> subst
 val peekType : subst -> Name.name -> Type.ty option
 val peek : subst -> Var.var -> Term.term option
 
-val norm : subst -> subst  (* Removes identity substitutions v |-> v *)
-
-val substType : subst -> Type.ty -> Type.ty
-val subst : subst -> Term.term -> Term.term
-
 val toListType : subst -> (Name.name * Type.ty) list
 val toList : subst -> (Var.var * Term.term) list
+
+(* ------------------------------------------------------------------------- *)
+(* Normalization removes identity substitutions v |-> v.                     *)
+(* ------------------------------------------------------------------------- *)
+
+val norm : subst -> subst
+
+(* ------------------------------------------------------------------------- *)
+(* Applying substitutions: returns NONE for unchanged.                       *)
+(* ------------------------------------------------------------------------- *)
+
+val substType : subst -> Type.ty -> Type.ty option
+val subst : subst -> Term.term -> Term.term option
 
 end

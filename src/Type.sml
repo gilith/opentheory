@@ -95,6 +95,8 @@ val newTypeId : unit -> tyId =
 
 fun id (Type {id = i, ...}) = i;
 
+fun equalId ty1 ty2 = id ty1 = id ty2;
+
 (* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
 (* ------------------------------------------------------------------------- *)
@@ -210,75 +212,85 @@ fun equal ty1 ty2 = compare (ty1,ty2) = EQUAL;
 
 val alpha = mkVar (Name.mkGlobal "'a");
 
-local
-  fun calcVars _ acc [] = acc
-    | calcVars seen acc (ty :: tys) =
-      let
-        val Type {id,ty,...} = ty
-      in
-        if IntSet.member id seen then calcVars seen acc tys
-        else
-          let
-            val seen = IntSet.add seen id
-          in
-            calcVars' seen acc ty tys
-          end
-      end
-
-  and calcVars' seen acc ty tys =
-      case ty of
-        TypeVar n =>
+fun sharingTypeVars seen acc [] = (seen,acc)
+  | sharingTypeVars seen acc (ty :: tys) =
+    let
+      val Type {id,ty,...} = ty
+    in
+      if IntSet.member id seen then sharingTypeVars seen acc tys
+      else
         let
-          val acc = NameSet.add acc n
+          val seen = IntSet.add seen id
         in
-          calcVars seen acc tys
+          sharingTypeVars' seen acc ty tys
         end
-      | TypeOp (_,tys') =>
-        let
-          val tys = List.revAppend (tys',tys)
-        in
-          calcVars seen acc tys
-        end;
-in
-  val typeVarsList = calcVars IntSet.empty NameSet.empty;
+    end
 
-  fun typeVars ty = typeVarsList [ty];
-end;
+and sharingTypeVars' seen acc ty tys =
+    case ty of
+      TypeVar n =>
+      let
+        val acc = NameSet.add acc n
+      in
+        sharingTypeVars seen acc tys
+      end
+    | TypeOp (_,tys') =>
+      let
+        val tys = List.revAppend (tys',tys)
+      in
+        sharingTypeVars seen acc tys
+      end;
+
+fun typeVarsList tys =
+    let
+      val seen = IntSet.empty
+      val acc = NameSet.empty
+      val (_,acc) = sharingTypeVars seen acc tys
+    in
+      acc
+    end;
+
+fun typeVars ty = typeVarsList [ty];
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun calcOps _ acc [] = acc
-    | calcOps seen acc (ty :: tys) =
-      let
-        val Type {id,ty,...} = ty
-      in
-        if IntSet.member id seen then calcOps seen acc tys
-        else
-          let
-            val seen = IntSet.add seen id
-          in
-            calcOps' seen acc ty tys
-          end
-      end
-
-  and calcOps' seen acc ty tys =
-      case ty of
-        TypeVar _ => calcOps seen acc tys
-      | TypeOp (n,tys') =>
+fun sharingTypeOps seen acc [] = (seen,acc)
+  | sharingTypeOps seen acc (ty :: tys) =
+    let
+      val Type {id,ty,...} = ty
+    in
+      if IntSet.member id seen then sharingTypeOps seen acc tys
+      else
         let
-          val acc = NameSet.add acc n
-          val tys = List.revAppend (tys',tys)
+          val seen = IntSet.add seen id
         in
-          calcOps seen acc tys
-        end;
-in
-  val typeOpsList = calcOps IntSet.empty NameSet.empty;
+          sharingTypeOps' seen acc ty tys
+        end
+    end
 
-  fun typeOps ty = typeOpsList [ty];
-end;
+and sharingTypeOps' seen acc ty tys =
+    case ty of
+      TypeVar _ => sharingTypeOps seen acc tys
+    | TypeOp (n,tys') =>
+      let
+        val acc = NameSet.add acc n
+        val tys = List.revAppend (tys',tys)
+      in
+        sharingTypeOps seen acc tys
+      end;
+
+fun typeOpsList tys =
+    let
+      val seen = IntSet.empty
+      val acc = NameSet.empty
+      val (_,acc) = sharingTypeOps seen acc tys
+    in
+      acc
+    end;
+
+fun typeOps ty = typeOpsList [ty];
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive types                                                           *)

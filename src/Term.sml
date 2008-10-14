@@ -8,23 +8,18 @@ struct
 
 open Useful;
 
-infixr ==
-
-val op== = Portable.pointerEqual;
-
 (* ------------------------------------------------------------------------- *)
 (* A type of higher order logic terms.                                       *)
 (* ------------------------------------------------------------------------- *)
 
+type termId = int;
+
 datatype term =
     Term of
-      {tm : term',
+      {id : termId,
+       tm : term',
        sz : int,
-       ty : Type.ty,
-       fvs : VarSet.set,
-       cs : NameSet.set,
-       tyVs : NameSet.set,
-       tyOs : NameSet.set}
+       ty : Type.ty}
 
 and term' =
     Const of Name.name * Type.ty
@@ -85,32 +80,37 @@ fun declare name ty =
     handle Error err => raise Error ("Term.declare: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
+(* Term IDs.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val newTermId : unit -> termId =
+    let
+      val counter = ref 0
+    in
+      fn () =>
+         let
+           val ref count = counter
+           val () = counter := count + 1
+         in
+           count
+         end
+    end;
+
+fun id (Term {id = i, ...}) = i;
+
+fun equalId ty1 ty2 = id ty1 = id ty2;
+
+(* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 fun size (Term {sz,...}) = sz;
 
 (* ------------------------------------------------------------------------- *)
-(* Type checking.                                                            *)
+(* The type of a term.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 fun typeOf (Term {ty,...}) = ty;
-
-(* ------------------------------------------------------------------------- *)
-(* Free term and type variables.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun freeVars (Term {fvs,...}) = fvs;
-
-fun typeVars (Term {tyVs,...}) = tyVs;
-
-(* ------------------------------------------------------------------------- *)
-(* Constants and type operators.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun consts (Term {cs,...}) = cs;
-
-fun typeOps (Term {tyOs,...}) = tyOs;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -128,38 +128,26 @@ fun mk tm =
               else raise Error ("Term.mk: bad type for constant " ^
                                 Name.toString n)
 
+        val id = newTermId ()
         val sz = 1
-        val fvs = VarSet.empty
-        val cs = NameSet.singleton n
-        val tyVs = Type.typeVars ty
-        val tyOs = Type.typeOps ty
       in
         Term
-          {tm = tm,
+          {id = id,
+           tm = tm,
            sz = sz,
-           ty = ty,
-           fvs = fvs,
-           cs = cs,
-           tyVs = tyVs,
-           tyOs = tyOs}
+           ty = ty}
       end
     | Var v =>
       let
-        val (_,ty) = v
+        val id = newTermId ()
+        val ty = Var.typeOf v
         val sz = 1
-        val fvs = VarSet.singleton v
-        val cs = NameSet.empty
-        val tyVs = Type.typeVars ty
-        val tyOs = Type.typeOps ty
       in
         Term
-          {tm = tm,
+          {id = id,
+           tm = tm,
            sz = sz,
-           ty = ty,
-           fvs = fvs,
-           cs = cs,
-           tyVs = tyVs,
-           tyOs = tyOs}
+           ty = ty}
       end
     | Comb (f,a) =>
       let
@@ -167,40 +155,27 @@ fun mk tm =
         val tyA' = typeOf a
         val _ = Type.equal tyA tyA' orelse
                 raise Error "Term.mk: incompatible types in comb"
+
+        val id = newTermId ()
         val sz = size f + size a + 1
-        val fvs = VarSet.union (freeVars f) (freeVars a)
-        val cs = NameSet.union (consts f) (consts a)
-        val tyVs = NameSet.union (typeVars f) (typeVars a)
-        val tyOs = NameSet.union (typeOps f) (typeOps a)
       in
         Term
-          {tm = tm,
+          {id = id,
+           tm = tm,
            sz = sz,
-           ty = ty,
-           fvs = fvs,
-           cs = cs,
-           tyVs = tyVs,
-           tyOs = tyOs}
+           ty = ty}
       end
     | Abs (v,b) =>
       let
-        val (_,tyV) = v
+        val id = newTermId ()
         val sz = size b + 1
-        val ty = Type.mkFun (tyV, typeOf b);
-        val fvs = freeVars b
-        val fvs = if VarSet.member v fvs then VarSet.delete fvs v else fvs
-        val cs = consts b
-        val tyVs = NameSet.union (Type.typeVars tyV) (typeVars b)
-        val tyOs = NameSet.union (Type.typeOps tyV) (typeOps b)
+        val ty = Type.mkFun (Var.typeOf v, typeOf b);
       in
         Term
-          {tm = tm,
+          {id = id,
+           tm = tm,
            sz = sz,
-           ty = ty,
-           fvs = fvs,
-           cs = cs,
-           tyVs = tyVs,
-           tyOs = tyOs}
+           ty = ty}
       end;
 
 fun dest (Term {tm,...}) = tm;
@@ -271,46 +246,262 @@ fun destAbs tm = destAbs' (dest tm);
 val isAbs = can destAbs;
 
 (* ------------------------------------------------------------------------- *)
+(* Free variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingFreeVars seen acc [] = (seen,acc)
+  | sharingFreeVars seen acc ((bv,tm) :: tms) =
+    let
+      val Term {id,tm,...} = tm
+    in
+      if IntSet.member id seen then sharingFreeVars seen acc tms
+      else
+        let
+          val seen = IntSet.add seen id
+        in
+          sharingFreeVars' seen acc bv tm tms
+        end
+    end
+
+and sharingFreeVars' seen acc bv tm tms =
+    case tm of
+      Const _ => sharingFreeVars seen acc tms
+    | Var v =>
+      let
+        val acc = if VarSet.member v bv then acc else VarSet.add acc v
+      in
+        sharingFreeVars seen acc tms
+      end
+    | Comb (f,a) =>
+      let
+        val tms = (bv,f) :: (bv,a) :: tms
+      in
+        sharingFreeVars seen acc tms
+      end
+    | Abs (v,b) =>
+      let
+        val bv = VarSet.add bv v
+        val tms = (bv,b) :: tms
+      in
+        sharingFreeVars seen acc tms
+      end;
+
+fun freeVarsList tms =
+    let
+      val (_,acc) = sharingFreeVars IntSet.empty VarSet.empty tms
+    in
+      acc
+    end;
+
+fun freeVars tm = freeVarsList [(VarSet.empty,tm)];
+
+(* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingConsts seen acc [] = (seen,acc)
+  | sharingConsts seen acc (tm :: tms) =
+    let
+      val Term {id,tm,...} = tm
+    in
+      if IntSet.member id seen then sharingConsts seen acc tms
+      else
+        let
+          val seen = IntSet.add seen id
+        in
+          sharingConsts' seen acc tm tms
+        end
+    end
+
+and sharingConsts' seen acc tm tms =
+    case tm of
+      Const (n,_) =>
+      let
+        val acc = NameSet.add acc n
+      in
+        sharingConsts seen acc tms
+      end
+    | Var _ => sharingConsts seen acc tms
+    | Comb (f,a) =>
+      let
+        val tms = f :: a :: tms
+      in
+        sharingConsts seen acc tms
+      end
+    | Abs (_,b) =>
+      let
+        val tms = b :: tms
+      in
+        sharingConsts seen acc tms
+      end;
+
+fun constsList tms =
+    let
+      val (_,acc) = sharingConsts IntSet.empty NameSet.empty tms
+    in
+      acc
+    end;
+
+fun consts tm = constsList [tm];
+
+(* ------------------------------------------------------------------------- *)
+(* Type variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingTypeVars seen tySeen acc [] = (seen,tySeen,acc)
+  | sharingTypeVars seen tySeen acc (tm :: tms) =
+    let
+      val Term {id,tm,...} = tm
+    in
+      if IntSet.member id seen then sharingTypeVars seen tySeen acc tms
+      else
+        let
+          val seen = IntSet.add seen id
+        in
+          sharingTypeVars' seen tySeen acc tm tms
+        end
+    end
+
+and sharingTypeVars' seen tySeen acc tm tms =
+    case tm of
+      Const (_,ty) =>
+      let
+        val (tySeen,acc) = Type.sharingTypeVars tySeen acc [ty]
+      in
+        sharingTypeVars seen tySeen acc tms
+      end
+    | Var v =>
+      let
+        val ty = Var.typeOf v
+        val (tySeen,acc) = Type.sharingTypeVars tySeen acc [ty]
+      in
+        sharingTypeVars seen tySeen acc tms
+      end
+    | Comb (f,a) =>
+      let
+        val tms = f :: a :: tms
+      in
+        sharingTypeVars seen tySeen acc tms
+      end
+    | Abs (v,b) =>
+      let
+        val ty = Var.typeOf v
+        val (tySeen,acc) = Type.sharingTypeVars tySeen acc [ty]
+        val tms = b :: tms
+      in
+        sharingTypeVars seen tySeen acc tms
+      end;
+
+fun typeVarsList tms =
+    let
+      val seen = IntSet.empty
+      val tySeen = IntSet.empty
+      val acc = NameSet.empty
+      val (_,_,acc) = sharingTypeVars seen tySeen acc tms
+    in
+      acc
+    end;
+
+fun typeVars tm = typeVarsList [tm];
+
+(* ------------------------------------------------------------------------- *)
+(* Type operators.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingTypeOps seen tySeen acc [] = (seen,tySeen,acc)
+  | sharingTypeOps seen tySeen acc (tm :: tms) =
+    let
+      val Term {id,tm,...} = tm
+    in
+      if IntSet.member id seen then sharingTypeOps seen tySeen acc tms
+      else
+        let
+          val seen = IntSet.add seen id
+        in
+          sharingTypeOps' seen tySeen acc tm tms
+        end
+    end
+
+and sharingTypeOps' seen tySeen acc tm tms =
+    case tm of
+      Const (_,ty) =>
+      let
+        val (tySeen,acc) = Type.sharingTypeOps tySeen acc [ty]
+      in
+        sharingTypeOps seen tySeen acc tms
+      end
+    | Var v =>
+      let
+        val ty = Var.typeOf v
+        val (tySeen,acc) = Type.sharingTypeOps tySeen acc [ty]
+      in
+        sharingTypeOps seen tySeen acc tms
+      end
+    | Comb (f,a) =>
+      let
+        val tms = f :: a :: tms
+      in
+        sharingTypeOps seen tySeen acc tms
+      end
+    | Abs (v,b) =>
+      let
+        val ty = Var.typeOf v
+        val (tySeen,acc) = Type.sharingTypeOps tySeen acc [ty]
+        val tms = b :: tms
+      in
+        sharingTypeOps seen tySeen acc tms
+      end;
+
+fun typeOpsList tms =
+    let
+      val seen = IntSet.empty
+      val tySeen = IntSet.empty
+      val acc = NameSet.empty
+      val (_,_,acc) = sharingTypeOps seen tySeen acc tms
+    in
+      acc
+    end;
+
+fun typeOps tm = typeOpsList [tm];
+
+(* ------------------------------------------------------------------------- *)
 (* A total order on terms, with and without alpha equivalence.               *)
 (* ------------------------------------------------------------------------- *)
 
 val constCompare = prodCompare Name.compare Type.compare;
 
-fun compare tm1_tm2 =
-    if op== tm1_tm2 then EQUAL
-    else
-      let
-        val (Term {tm = tm1, ...}, Term {tm = tm2, ...}) = tm1_tm2
-      in
-        compare' (tm1,tm2)
-      end
+fun compare (tm1,tm2) =
+    let
+      val Term {id = id1, tm = tm1, ...} = tm1
+      and Term {id = id2, tm = tm2, ...} = tm2
+    in
+      if id1 = id2 then EQUAL else compare' (tm1,tm2)
+    end
 
 and compare' tm1_tm2 =
-    if op== tm1_tm2 then EQUAL
-    else
-      case tm1_tm2 of
-        (Const c1, Const c2) => constCompare (c1,c2)
-      | (Const _, _) => LESS
-      | (_, Const _) => GREATER
-      | (Var v1, Var v2) => Var.compare (v1,v2)
-      | (Var _, _) => LESS
-      | (_, Var _) => GREATER
-      | (Comb a1, Comb a2) => prodCompare compare compare (a1,a2)
-      | (Comb _, _) => LESS
-      | (_, Comb _) => GREATER
-      | (Abs l1, Abs l2) => prodCompare Var.compare compare (l1,l2);
+    case tm1_tm2 of
+      (Const c1, Const c2) => constCompare (c1,c2)
+    | (Const _, _) => LESS
+    | (_, Const _) => GREATER
+    | (Var v1, Var v2) => Var.compare (v1,v2)
+    | (Var _, _) => LESS
+    | (_, Var _) => GREATER
+    | (Comb a1, Comb a2) => prodCompare compare compare (a1,a2)
+    | (Comb _, _) => LESS
+    | (_, Comb _) => GREATER
+    | (Abs l1, Abs l2) => prodCompare Var.compare compare (l1,l2);
 
 fun equal tm1 tm2 = compare (tm1,tm2) = EQUAL;
 
 local
-  fun acmp n bv1 bv2 bvEq tm1_tm2 =
-      if bvEq andalso op== tm1_tm2 then EQUAL
-      else
-        let
-          val (Term {tm = tm1, ...}, Term {tm = tm2, ...}) = tm1_tm2
-        in
-          acmp' n bv1 bv2 bvEq (tm1,tm2)
-        end
+  fun acmp n bv1 bv2 bvEq (tm1,tm2) =
+      let
+        val Term {id = id1, tm = tm1, ...} = tm1
+        and Term {id = id2, tm = tm2, ...} = tm2
+      in
+        if bvEq andalso id1 = id2 then EQUAL
+        else acmp' n bv1 bv2 bvEq (tm1,tm2)
+      end
 
   and acmp' n bv1 bv2 bvEq tm1_tm2 =
       case tm1_tm2 of

@@ -12,34 +12,57 @@ open Useful
 (* A type of higher order logic term variables.                              *)
 (* ------------------------------------------------------------------------- *)
 
-type var = Name.name * Type.ty;
+datatype var = Var of Name.name * Type.ty;
+
+(* ------------------------------------------------------------------------- *)
+(* The name of a variable.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun name (Var (n,_)) = n;
+
+(* ------------------------------------------------------------------------- *)
+(* The type of a variable.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun typeOf (Var (_,ty)) = ty;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare = prodCompare Name.compare Type.compare;
+fun compare (Var n_ty1, Var n_ty2) =
+    prodCompare Name.compare Type.compare (n_ty1,n_ty2);
 
-fun equal (n1,ty1) (n2,ty2) = Name.equal n1 n2 andalso Type.equal ty1 ty2;
+fun equal (Var (n1,ty1)) (Var (n2,ty2)) =
+    Name.equal n1 n2 andalso Type.equal ty1 ty2;
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun typeOps (_,ty) = Type.typeOps ty;
+fun typeOps (Var (_,ty)) = Type.typeOps ty;
 
 (* ------------------------------------------------------------------------- *)
 (* Fresh variables.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun variant (n,ty) : var =
+fun variant (Var (n,ty)) =
     let
       val (ns,s) = Name.dest n
       val s = s ^ "'"
       val n = Name.mk (ns,s)
     in
-      (n,ty)
+      Var (n,ty)
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Type substitutions.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun subst sub (Var (n,ty)) =
+    case TypeSubst.subst sub ty of
+      SOME ty' => SOME (Var (n,ty'))
+    | NONE => NONE;
 
 end
 

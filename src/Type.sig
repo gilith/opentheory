@@ -44,6 +44,8 @@ type tyId = int
 
 val id : ty -> tyId
 
+val equalId : ty -> ty -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
 (* ------------------------------------------------------------------------- *)
@@ -66,17 +68,23 @@ val equal : ty -> ty -> bool
 
 val alpha : ty
 
-val typeVars : ty -> NameSet.set
+val sharingTypeVars :
+    IntSet.set -> NameSet.set -> ty list -> IntSet.set * NameSet.set
 
 val typeVarsList : ty list -> NameSet.set
+
+val typeVars : ty -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val typeOps : ty -> NameSet.set
+val sharingTypeOps :
+    IntSet.set -> NameSet.set -> ty list -> IntSet.set * NameSet.set
 
 val typeOpsList : ty list -> NameSet.set
+
+val typeOps : ty -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive types.                                                          *)

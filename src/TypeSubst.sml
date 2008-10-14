@@ -8,12 +8,8 @@ struct
 
 open Useful;
 
-infixr ==
-
-val op== = Portable.pointerEqual;
-
 (* ------------------------------------------------------------------------- *)
-(* Substitutions                                                             *)
+(* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype subst = TypeSubst of Type.ty NameMap.map;
@@ -26,6 +22,12 @@ fun add n_ty (TypeSubst sub) = TypeSubst (NameMap.insert sub n_ty);
 
 fun peek (TypeSubst sub) n = NameMap.peek sub n;
 
+fun toList (TypeSubst sub) = NameMap.toList sub;
+
+(* ------------------------------------------------------------------------- *)
+(* Normalization removes identity substitutions v |-> v.                     *)
+(* ------------------------------------------------------------------------- *)
+
 fun norm (TypeSubst sub) =
     let
       fun f (n,ty,z) = if Type.equalVar n ty then z else NameMap.insert z (n,ty)
@@ -35,27 +37,103 @@ fun norm (TypeSubst sub) =
       TypeSubst sub
     end;
 
-fun subst sub =
-    let
-      val sub as TypeSubst m = norm sub
+(* ------------------------------------------------------------------------- *)
+(* Applying substitutions: returns NONE for unchanged.                       *)
+(* ------------------------------------------------------------------------- *)
 
-      fun f ty =
-          case Type.dest ty of
-            Type.TypeVar n => Option.getOpt (NameMap.peek m n, ty)
-          | Type.TypeOp (n,l) =>
-            let
-              val l' = Sharing.map f l
-            in
-              if l == l' then ty else Type.mkOp (n,l')
-            end
+datatype sharingSubst =
+    SharingSubst of
+      {sub : subst,
+       seen : Type.ty option IntMap.map};
+
+fun newSharingSubst sub =
+    let
+      val sub = norm sub
+      val seen = IntMap.new ()
     in
-      if null sub then I else f
+      SharingSubst
+        {sub = sub,
+         seen = seen}
     end;
 
-fun toList (TypeSubst sub) = NameMap.toList sub;
+fun rawSharingSubst sub =
+    let
+      fun rawSubst ty seen =
+          let
+            val i = Type.id ty
+          in
+            case IntMap.peek seen i of
+              SOME ty' => (ty',seen)
+            | NONE =>
+              case Type.dest ty of
+                Type.TypeVar n =>
+                let
+                  val TypeSubst m = sub
+                  val ty' = NameMap.peek m n
+                  val seen = IntMap.insert seen (i,ty')
+                in
+                  (ty',seen)
+                end
+              | Type.TypeOp (n,tys) =>
+                let
+                  val (tys',seen) = rawSubstList tys seen
+                  val ty' =
+                      case tys' of
+                        SOME tys => SOME (Type.mkOp (n,tys))
+                      | NONE => NONE
+                  val seen = IntMap.insert seen (i,ty')
+                in
+                  (ty',seen)
+                end
+          end
+
+      and rawSubstList [] seen = (NONE,seen)
+        | rawSubstList (ty :: tys) seen =
+          let
+            val (ty',seen) = rawSubst ty seen
+            val (tys',seen) = rawSubstList tys seen
+            val result =
+                case tys' of
+                  SOME tys => SOME (Option.getOpt (ty',ty) :: tys)
+                | NONE =>
+                  case ty' of
+                    NONE => NONE
+                  | SOME ty => SOME (ty :: tys)
+          in
+            (result,seen)
+          end
+    in
+      rawSubst
+    end;
+
+fun sharingSubst ty share =
+    let
+      val SharingSubst {sub,seen} = share
+    in
+      if null sub then (NONE,share)
+      else
+        let
+          val (ty',seen) = rawSharingSubst sub ty seen
+          val share = SharingSubst {sub = sub, seen = seen}
+        in
+          (ty',share)
+        end
+    end;
+
+fun subst sub =
+    let
+      val share = newSharingSubst sub
+    in
+      fn ty =>
+         let
+           val (ty',_) = sharingSubst ty share
+         in
+           ty'
+         end
+    end;
 
 (* ------------------------------------------------------------------------- *)
-(* Matching                                                                  *)
+(* Matching.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 local

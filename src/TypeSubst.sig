@@ -7,7 +7,7 @@ signature TypeSubst =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Substitutions                                                             *)
+(* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 type subst
@@ -20,14 +20,28 @@ val add : (Name.name * Type.ty) -> subst -> subst
 
 val peek : subst -> Name.name -> Type.ty option
 
-val norm : subst -> subst
-
-val subst : subst -> Type.ty -> Type.ty
-
 val toList : subst -> (Name.name * Type.ty) list
 
 (* ------------------------------------------------------------------------- *)
-(* Matching                                                                  *)
+(* Normalization removes identity substitutions v |-> v.                     *)
+(* ------------------------------------------------------------------------- *)
+
+val norm : subst -> subst
+
+(* ------------------------------------------------------------------------- *)
+(* Applying substitutions: returns NONE for unchanged.                       *)
+(* ------------------------------------------------------------------------- *)
+
+type sharingSubst
+
+val newSharingSubst : subst -> sharingSubst
+
+val sharingSubst : Type.ty -> sharingSubst -> Type.ty option * sharingSubst
+
+val subst : subst -> Type.ty -> Type.ty option
+
+(* ------------------------------------------------------------------------- *)
+(* Matching.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 val matchList' : subst -> (Type.ty * Type.ty) list -> subst
