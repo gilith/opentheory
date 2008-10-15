@@ -48,6 +48,9 @@ val variant : var -> var
 (* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+val sharingSubst :
+    var -> TypeSubst.sharingSubst -> var option * TypeSubst.sharingSubst
+
 val subst : TypeSubst.subst -> var -> var option
 
 end

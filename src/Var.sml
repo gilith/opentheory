@@ -59,9 +59,20 @@ fun variant (Var (n,ty)) =
 (* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+fun sharingSubst (Var (n,ty)) tyShare =
+    let
+      val (ty',tyShare) = TypeSubst.sharingSubst ty tyShare
+      val v' =
+          case ty' of
+            SOME ty => SOME (Var (n,ty))
+          | NONE => NONE
+    in
+      (v',tyShare)
+    end;
+
 fun subst sub (Var (n,ty)) =
     case TypeSubst.subst sub ty of
-      SOME ty' => SOME (Var (n,ty'))
+      SOME ty => SOME (Var (n,ty))
     | NONE => NONE;
 
 end
