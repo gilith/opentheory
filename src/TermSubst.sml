@@ -113,11 +113,7 @@ fun rawSharingSubst stm =
                 in
                   (tm',tyShare,seen)
                 end
-
-                (case TypeSubst.subst sty ty of
-           SOME ty' => SOME (Term.mkConst (n,ty'))
-         | NONE => NONE)
-      | Term.Var v =>
+              | Term.Var v =>
         (case VarMap.peek (#oldToNew bv) v of
            SOME v' => if Var.equal v v' then NONE else SOME (Term.mkVar v')
          | NONE =>
@@ -203,7 +199,7 @@ local
         val v = Option.getOpt (v',v)
         val (tm',tyShare,seen) = rawSharingSubst emptyStm tm tyShare seen
         val tm = Option.getOpt (tm',tm)
-        val stm = VarMap.insert stm (v,tm)
+        val stm = if Term.equalVar v tm then stm else VarMap.insert stm (v,tm)
       in
         (stm,tyShare,seen)
       end;
