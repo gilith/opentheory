@@ -82,64 +82,132 @@ fun norm (Subst (sty,stm)) =
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
 
+datatype sharingSubstTerm =
+    SharingSubstTerm of
+      {tm : Term.term,
+       fvm : VarSet.set VarMap.map};
+
 datatype sharingSubst =
     SharingSubst of
       {tyShare : TypeSubst.sharingSubst,
        stm : (Term.term * VarSet.set) VarMap.map,
-       seen : (Term.term * VarSet.set VarMap.map) option IntMap.map};
+       seen : sharingSubstTerm option IntMap.map};
+
+val emptyFvm : VarSet.set VarMap.map = VarMap.new ();
+
+fun singletonFvm v_fv : VarSet.set VarMap.map = VarMap.singleton v_fv;
 
 val emptyStm : (Term.term * VarSet.set) VarMap.map = VarMap.new ();
 
-val emptySeen : (Term.term * VarSet.set VarMap.map) option IntMap.map =
-    IntMap.new ();
+val emptySeen : sharingSubstTerm option IntMap.map = IntMap.new ();
 
-fun rawSharingSubst stm =
+fun rawSharingSubst stm tm tyShare seen =
     let
-      fun rawSubst tm tyShare seen =
+      val i = Term.id tm
+    in
+      case IntMap.peek seen i of
+        SOME tm' => (tm',tyShare,seen)
+      | NONE =>
+        case Term.dest tm of
+          Term.Const (n,ty) =>
           let
-            val i = Term.id tm
-          in
-            case IntMap.peek seen i of
-              SOME tm_fvm' => (tm_fvm',tyShare,seen)
-            | NONE =>
-              case Term.dest tm of
-                Term.Const (n,ty) =>
-                let
-                  val (ty',tyShare) = TypeSubst.sharingSubst ty tyShare
-                  val tm' =
-                      case ty' of
-                        SOME ty => SOME (Term.mkConst (n,ty))
-                      | NONE => NONE
-                  val seen = IntMap.insert seen (i,tm')
-                in
-                  (tm',tyShare,seen)
-                end
-              | Term.Var v =>
-                let
-                  
-        (case VarMap.peek (#oldToNew bv) v of
-           SOME v' => if Var.equal v v' then NONE else SOME (Term.mkVar v')
-         | NONE =>
-           let
-             val (changed,v) =
-                 case Var.subst sty v of
-                   SOME v => (true,v)
-                 | NONE => (false,v)
+            val (ty',tyShare) = TypeSubst.sharingSubst ty tyShare
 
-             val (tm,fv) =
-                 case VarMap.peek stm v of
-                   SOME tm_fv => tm_fv
-                 | NONE =>
-                   let
-                     val 
-                   (if v == v' then tm else Term.mkVar v', VarSet.singleton v')
-           in
-             if #depth bv = 0 then tm
-             else
-               case VarSet.foldl (bvMin (#newDepth bv)) NONE fv of
-                 NONE => tm
-               | SOME d => raise Capture d
-           end)
+            val tm' =
+                case ty' of
+                  NONE => NONE
+                | SOME ty =>
+                  let
+                    val tm = Term.mkConst (n,ty)
+                    val fvm = emptyFvm
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+
+            val seen = IntMap.insert seen (i,tm')
+          in
+            (tm',tyShare,seen)
+          end
+        | Term.Var v =>
+          let
+            val (v',tyShare) = Var.sharingSubst v tyShare
+
+            val (unchanged,v') =
+                case v' of
+                  SOME v => (false,v)
+                | NONE => (true,v)
+
+            val tm' =
+                case VarMap.peek stm v' of
+                  SOME (tm,fv) =>
+                  let
+                    val tm = Term.mkVar v'
+                    val fvm = singletonFvm (v,fv)
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+                | NONE =>
+                  if unchanged then NONE
+                  else
+                    let
+                      val tm = Term.mkVar v'
+                      val fvm = singletonFvm (v, VarSet.singleton v')
+                      val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                    in
+                      SOME tm_fvm
+                    end
+
+            val seen = IntMap.insert seen (i,tm')
+          in
+            (tm',tyShare,seen)
+          end
+        | Term.Comb (f,a) =>
+          let
+            val (f',tyShare,seen) = rawSharingSubst stm f tyShare seen
+
+            val (a',tyShare,seen) = rawSharingSubst stm a tyShare seen
+
+            val tm' =
+                case (f',a') of
+                  (SOME f_tm_fvm, SOME a_tm_fvm) =>
+                  let
+                    val SharingSubstTerm {tm = f_tm, fvm = f_fvm} = f_tm_fvm
+                    and SharingSubstTerm {tm = a_tm, fvm = a_fvm} = a_tm_fvm
+
+                    val tm = Term.mkComb (f_tm,a_tm)
+                    val fvm = VarMap.union (SOME o fst) f_fvm a_fvm
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+                | (SOME f_tm_fvm, NONE) =>
+                  let
+                    val SharingSubstTerm {tm = f_tm, fvm} = f_tm_fvm
+
+                    val tm = Term.mkComb (f_tm,a)
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+                | (NONE, SOME a_tm_fvm) =>
+                  let
+                    val SharingSubstTerm {tm = a_tm, fvm} = a_tm_fvm
+
+                    val tm = Term.mkComb (f,a_tm)
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+                | (NONE,NONE) => NONE
+
+            val seen = IntMap.insert seen (i,tm')
+          in
+            (tm',tyShare,seen)
+          end
+    end;
+(***
       | Term.Comb (a,b) =>
         let
           val a' = substGen sty stm bv a
@@ -194,14 +262,22 @@ fun rawSharingSubst stm =
                   (ty',seen)
                 end
           end
+***)
 
 local
   fun add (v,tm,(stm,tyShare,seen)) =
       let
         val (v',tyShare) = Var.sharingSubst v tyShare
+
         val v = Option.getOpt (v',v)
+
         val (tm',tyShare,seen) = rawSharingSubst emptyStm tm tyShare seen
-        val tm = Option.getOpt (tm',tm)
+
+        val tm =
+            case tm' of
+              SOME (SharingSubstTerm {tm,...}) => tm
+            | NONE => tm
+
         val stm =
             if Term.equalVar v tm then stm
 (*OpenTheoryDebug
@@ -215,9 +291,9 @@ local
 in
   fun newSharingSubst (Subst (sty,stm)) =
       let
-        val tyShare = TypeSubst.mkSharingSubst sty
+        val tyShare = TypeSubst.newSharingSubst sty
 
-        val (stm,tyShare,_) = VarMap.foldl add (emptyStm,tyShare,seen) stm
+        val (stm,tyShare,_) = VarMap.foldl add (emptyStm,tyShare,emptySeen) stm
 
         val seen = emptySeen
       in
@@ -228,6 +304,7 @@ in
       end;
 end;
 
+(***
 fun substType (Subst (sty,_)) = TypeSubst.subst sty;
 
 fun rawSharingSubst sty stm seen tm =
@@ -371,5 +448,6 @@ in
           rawSubst sty stm
         end;
 end;
+***)
 
 end
