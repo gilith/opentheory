@@ -173,8 +173,49 @@ fun rawSharingSubst stm tm tyShare seen =
                 case (f',a') of
                   (SOME f_tm_fvm, SOME a_tm_fvm) =>
                   let
-                    val SharingSubstTerm {tm = f_tm, fvm = f_fvm} = f_tm_fvm
-                    and SharingSubstTerm {tm = a_tm, fvm = a_fvm} = a_tm_fvm
+                    val SharingSubstTerm {tm = f, fvm = fvm1} = f_tm_fvm
+                    and SharingSubstTerm {tm = a, fvm = fvm2} = a_tm_fvm
+
+                    val tm = Term.mkComb (f,a)
+                    val fvm = VarMap.union (SOME o fst) fvm1 fvm2
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+                | (SOME f_tm_fvm, NONE) =>
+                  let
+                    val SharingSubstTerm {tm = f, fvm} = f_tm_fvm
+
+                    val tm = Term.mkComb (f,a)
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+                | (NONE, SOME a_tm_fvm) =>
+                  let
+                    val SharingSubstTerm {tm = a, fvm} = a_tm_fvm
+
+                    val tm = Term.mkComb (f,a)
+                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                  in
+                    SOME tm_fvm
+                  end
+                | (NONE,NONE) => NONE
+
+            val seen = IntMap.insert seen (i,tm')
+          in
+            (tm',tyShare,seen)
+          end
+        | Term.Abs (v,b) =>
+          let
+            val (b',tyShare,seen) = rawSharingSubst stm b tyShare seen
+
+            val tm' =
+                case b' of
+                  NONE => NONE
+                | SOME tm_fvm =>
+                  let
+                    val SharingSubstTerm {tm = b, fvm} = tm_fvm
 
                     val tm = Term.mkComb (f_tm,a_tm)
                     val fvm = VarMap.union (SOME o fst) f_fvm a_fvm
@@ -182,25 +223,6 @@ fun rawSharingSubst stm tm tyShare seen =
                   in
                     SOME tm_fvm
                   end
-                | (SOME f_tm_fvm, NONE) =>
-                  let
-                    val SharingSubstTerm {tm = f_tm, fvm} = f_tm_fvm
-
-                    val tm = Term.mkComb (f_tm,a)
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                  in
-                    SOME tm_fvm
-                  end
-                | (NONE, SOME a_tm_fvm) =>
-                  let
-                    val SharingSubstTerm {tm = a_tm, fvm} = a_tm_fvm
-
-                    val tm = Term.mkComb (f,a_tm)
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                  in
-                    SOME tm_fvm
-                  end
-                | (NONE,NONE) => NONE
 
             val seen = IntMap.insert seen (i,tm')
           in
