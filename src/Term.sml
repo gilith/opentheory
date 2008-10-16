@@ -249,51 +249,93 @@ val isAbs = can destAbs;
 (* Free variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun sharingFreeVars seen acc [] = (seen,acc)
-  | sharingFreeVars seen acc ((bv,tm) :: tms) =
+datatype sharingFreeVars =
+    SharingFreeVars of
+      {seen : VarSet.set IntMap.map};
+
+val newSharingFreeVars =
+    let
+      val seen = IntMap.new ()
+    in
+      SharingFreeVars
+        {seen = seen}
+    end;
+
+fun rawSharingFreeVars tm seen =
     let
       val Term {id,tm,...} = tm
     in
-      if IntSet.member id seen then sharingFreeVars seen acc tms
-      else
-        let
-          val seen = IntSet.add seen id
-        in
-          sharingFreeVars' seen acc bv tm tms
-        end
-    end
-
-and sharingFreeVars' seen acc bv tm tms =
-    case tm of
-      Const _ => sharingFreeVars seen acc tms
-    | Var v =>
-      let
-        val acc = if VarSet.member v bv then acc else VarSet.add acc v
-      in
-        sharingFreeVars seen acc tms
-      end
-    | Comb (f,a) =>
-      let
-        val tms = (bv,f) :: (bv,a) :: tms
-      in
-        sharingFreeVars seen acc tms
-      end
-    | Abs (v,b) =>
-      let
-        val bv = VarSet.add bv v
-        val tms = (bv,b) :: tms
-      in
-        sharingFreeVars seen acc tms
-      end;
-
-fun freeVarsList tms =
-    let
-      val (_,acc) = sharingFreeVars IntSet.empty VarSet.empty tms
-    in
-      acc
+      case IntMap.peek seen id of
+        SOME vs => (vs,seen)
+      | NONE =>
+        case tm of
+          Const _ =>
+          let
+            val fv = VarSet.empty
+            val seen = IntMap.insert seen (id,fv)
+          in
+            (fv,seen)
+          end
+        | Var v =>
+          let
+            val fv = VarSet.singleton v
+            val seen = IntMap.insert seen (id,fv)
+          in
+            (fv,seen)
+          end
+        | Comb (f,a) =>
+          let
+            val (fv1,seen) = rawSharingFreeVars f seen
+            val (fv2,seen) = rawSharingFreeVars a seen
+            val fv = VarSet.union fv1 fv2
+            val seen = IntMap.insert seen (id,fv)
+          in
+            (fv,seen)
+          end
+        | Abs (v,b) =>
+          let
+            val (fv,seen) = rawSharingFreeVars b seen
+            val fv = if VarSet.member v fv then VarSet.delete fv v else fv
+            val seen = IntMap.insert seen (id,fv)
+          in
+            (fv,seen)
+          end
     end;
 
-fun freeVars tm = freeVarsList [(VarSet.empty,tm)];
+fun sharingFreeVars tm (SharingFreeVars {seen}) =
+    let
+      val (fv,seen) = rawSharingFreeVars tm seen
+      val share = SharingFreeVars {seen = seen}
+    in
+      (fv,share)
+    end;
+
+local
+  fun add (tm,(fvs,share)) =
+      let
+        val (fv,share) = sharingFreeVars tm share
+        val fvs = VarSet.union fvs fv
+      in
+        (fvs,share)
+      end;
+in
+  fun freeVarsList tms =
+      let
+        val fvs = VarSet.empty
+        val share = newSharingFreeVars
+        val (fvs,_) = List.foldl add (fvs,share) tms
+      in
+        fvs
+      end;
+end;
+
+fun freeVars tm =
+    let
+      val share = newSharingFreeVars
+      val (fv,_) = sharingFreeVars tm share
+    in
+      fv
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
@@ -348,58 +390,81 @@ fun consts tm = constsList [tm];
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun sharingTypeVars seen tySeen acc [] = (seen,tySeen,acc)
-  | sharingTypeVars seen tySeen acc (tm :: tms) =
+datatype sharingTypeVars =
+    SharingTypeVars of
+      {tyShare : Type.sharingTypeVars,
+       seen : IntSet.set};
+
+val emptySharingTypeVars =
+    let
+      val tyShare = Type.emptySharingTypeVars
+      val seen = IntSet.empty
+    in
+      SharingTypeVars
+        {tyShare = tyShare,
+         seen = seen}
+    end;
+
+fun sharingTypeVars tyShare seen [] = (tyShare,seen)
+  | sharingTypeVars tyShare seen (tm :: tms) =
     let
       val Term {id,tm,...} = tm
     in
-      if IntSet.member id seen then sharingTypeVars seen tySeen acc tms
+      if IntSet.member id seen then sharingTypeVars tyShare seen tms
       else
         let
           val seen = IntSet.add seen id
         in
-          sharingTypeVars' seen tySeen acc tm tms
+          sharingTypeVars' tyShare seen tm tms
         end
     end
 
-and sharingTypeVars' seen tySeen acc tm tms =
+and sharingTypeVars' tyShare seen tm tms =
     case tm of
       Const (_,ty) =>
       let
-        val (tySeen,acc) = Type.sharingTypeVars tySeen acc [ty]
+        val tyShare = Type.addSharingTypeVars tyShare [ty]
       in
-        sharingTypeVars seen tySeen acc tms
+        sharingTypeVars tyShare seen tms
       end
     | Var v =>
       let
-        val ty = Var.typeOf v
-        val (tySeen,acc) = Type.sharingTypeVars tySeen acc [ty]
+        val tyShare = Var.addSharingTypeVars tyShare v
       in
-        sharingTypeVars seen tySeen acc tms
+        sharingTypeVars tyShare seen tms
       end
     | Comb (f,a) =>
       let
         val tms = f :: a :: tms
       in
-        sharingTypeVars seen tySeen acc tms
+        sharingTypeVars tyShare seen tms
       end
     | Abs (v,b) =>
       let
-        val ty = Var.typeOf v
-        val (tySeen,acc) = Type.sharingTypeVars tySeen acc [ty]
+        val tyShare = Var.addSharingTypeVars tyShare v
         val tms = b :: tms
       in
-        sharingTypeVars seen tySeen acc tms
+        sharingTypeVars tyShare seen tms
       end;
+
+fun addSharingTypeVars (SharingTypeVars {tyShare,seen}) tms =
+    let
+      val (tyShare,seen) = sharingTypeVars tyShare seen tms
+    in
+      SharingTypeVars
+        {tyShare = tyShare,
+         seen = seen}
+    end;
+
+fun toSetSharingTypeVars (SharingTypeVars {tyShare,...}) =
+    Type.toSetSharingTypeVars tyShare;
 
 fun typeVarsList tms =
     let
-      val seen = IntSet.empty
-      val tySeen = IntSet.empty
-      val acc = NameSet.empty
-      val (_,_,acc) = sharingTypeVars seen tySeen acc tms
+      val share = emptySharingTypeVars
+      val share = addSharingTypeVars share tms
     in
-      acc
+      toSetSharingTypeVars share
     end;
 
 fun typeVars tm = typeVarsList [tm];
@@ -408,58 +473,81 @@ fun typeVars tm = typeVarsList [tm];
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun sharingTypeOps seen tySeen acc [] = (seen,tySeen,acc)
-  | sharingTypeOps seen tySeen acc (tm :: tms) =
+datatype sharingTypeOps =
+    SharingTypeOps of
+      {tyShare : Type.sharingTypeOps,
+       seen : IntSet.set};
+
+val emptySharingTypeOps =
+    let
+      val tyShare = Type.emptySharingTypeOps
+      val seen = IntSet.empty
+    in
+      SharingTypeOps
+        {tyShare = tyShare,
+         seen = seen}
+    end;
+
+fun sharingTypeOps tyShare seen [] = (tyShare,seen)
+  | sharingTypeOps tyShare seen (tm :: tms) =
     let
       val Term {id,tm,...} = tm
     in
-      if IntSet.member id seen then sharingTypeOps seen tySeen acc tms
+      if IntSet.member id seen then sharingTypeOps tyShare seen tms
       else
         let
           val seen = IntSet.add seen id
         in
-          sharingTypeOps' seen tySeen acc tm tms
+          sharingTypeOps' tyShare seen tm tms
         end
     end
 
-and sharingTypeOps' seen tySeen acc tm tms =
+and sharingTypeOps' tyShare seen tm tms =
     case tm of
       Const (_,ty) =>
       let
-        val (tySeen,acc) = Type.sharingTypeOps tySeen acc [ty]
+        val tyShare = Type.addSharingTypeOps tyShare [ty]
       in
-        sharingTypeOps seen tySeen acc tms
+        sharingTypeOps tyShare seen tms
       end
     | Var v =>
       let
-        val ty = Var.typeOf v
-        val (tySeen,acc) = Type.sharingTypeOps tySeen acc [ty]
+        val tyShare = Var.addSharingTypeOps tyShare v
       in
-        sharingTypeOps seen tySeen acc tms
+        sharingTypeOps tyShare seen tms
       end
     | Comb (f,a) =>
       let
         val tms = f :: a :: tms
       in
-        sharingTypeOps seen tySeen acc tms
+        sharingTypeOps tyShare seen tms
       end
     | Abs (v,b) =>
       let
-        val ty = Var.typeOf v
-        val (tySeen,acc) = Type.sharingTypeOps tySeen acc [ty]
+        val tyShare = Var.addSharingTypeOps tyShare v
         val tms = b :: tms
       in
-        sharingTypeOps seen tySeen acc tms
+        sharingTypeOps tyShare seen tms
       end;
+
+fun addSharingTypeOps (SharingTypeOps {tyShare,seen}) tms =
+    let
+      val (tyShare,seen) = sharingTypeOps tyShare seen tms
+    in
+      SharingTypeOps
+        {tyShare = tyShare,
+         seen = seen}
+    end;
+
+fun toSetSharingTypeOps (SharingTypeOps {tyShare,...}) =
+    Type.toSetSharingTypeOps tyShare;
 
 fun typeOpsList tms =
     let
-      val seen = IntSet.empty
-      val tySeen = IntSet.empty
-      val acc = NameSet.empty
-      val (_,_,acc) = sharingTypeOps seen tySeen acc tms
+      val share = emptySharingTypeOps
+      val share = addSharingTypeOps share tms
     in
-      acc
+      toSetSharingTypeOps share
     end;
 
 fun typeOps tm = typeOpsList [tm];

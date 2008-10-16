@@ -86,6 +86,14 @@ val typeOf : term -> Type.ty
 (* Free variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
+type sharingFreeVars
+
+val newSharingFreeVars : sharingFreeVars
+
+val sharingFreeVars : term -> sharingFreeVars -> VarSet.set * sharingFreeVars
+
+val freeVarsList : term list -> VarSet.set
+
 val freeVars : term -> VarSet.set
 
 (* ------------------------------------------------------------------------- *)
@@ -98,11 +106,31 @@ val consts : term -> NameSet.set
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
+type sharingTypeVars
+
+val emptySharingTypeVars : sharingTypeVars
+
+val addSharingTypeVars : sharingTypeVars -> term list -> sharingTypeVars
+
+val toSetSharingTypeVars : sharingTypeVars -> NameSet.set
+
+val typeVarsList : term list -> NameSet.set
+
 val typeVars : term -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+type sharingTypeOps
+
+val emptySharingTypeOps : sharingTypeOps
+
+val addSharingTypeOps : sharingTypeOps -> term list -> sharingTypeOps
+
+val toSetSharingTypeOps : sharingTypeOps -> NameSet.set
+
+val typeOpsList : term list -> NameSet.set
 
 val typeOps : term -> NameSet.set
 

@@ -37,8 +37,20 @@ fun equal (Var (n1,ty1)) (Var (n2,ty2)) =
     Name.equal n1 n2 andalso Type.equal ty1 ty2;
 
 (* ------------------------------------------------------------------------- *)
+(* Type variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun addSharingTypeVars tyShare (Var (_,ty)) =
+    Type.addSharingTypeVars tyShare [ty];
+
+fun typeVars (Var (_,ty)) = Type.typeVars ty;
+
+(* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+fun addSharingTypeOps tyShare (Var (_,ty)) =
+    Type.addSharingTypeOps tyShare [ty];
 
 fun typeOps (Var (_,ty)) = Type.typeOps ty;
 

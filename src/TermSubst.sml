@@ -86,11 +86,12 @@ datatype sharingSubst =
     SharingSubst of
       {tyShare : TypeSubst.sharingSubst,
        stm : (Term.term * VarSet.set) VarMap.map,
-       seen : Term.term option IntMap.map};
+       seen : (Term.term * VarSet.set VarMap.map) option IntMap.map};
 
 val emptyStm : (Term.term * VarSet.set) VarMap.map = VarMap.new ();
 
-val emptySeen : Term.term option IntMap.map = IntMap.new ();
+val emptySeen : (Term.term * VarSet.set VarMap.map) option IntMap.map =
+    IntMap.new ();
 
 fun rawSharingSubst stm =
     let
@@ -99,7 +100,7 @@ fun rawSharingSubst stm =
             val i = Term.id tm
           in
             case IntMap.peek seen i of
-              SOME tm' => (tm',tyShare,seen)
+              SOME tm_fvm' => (tm_fvm',tyShare,seen)
             | NONE =>
               case Term.dest tm of
                 Term.Const (n,ty) =>
@@ -114,6 +115,8 @@ fun rawSharingSubst stm =
                   (tm',tyShare,seen)
                 end
               | Term.Var v =>
+                let
+                  
         (case VarMap.peek (#oldToNew bv) v of
            SOME v' => if Var.equal v v' then NONE else SOME (Term.mkVar v')
          | NONE =>
@@ -199,7 +202,13 @@ local
         val v = Option.getOpt (v',v)
         val (tm',tyShare,seen) = rawSharingSubst emptyStm tm tyShare seen
         val tm = Option.getOpt (tm',tm)
-        val stm = if Term.equalVar v tm then stm else VarMap.insert stm (v,tm)
+        val stm =
+            if Term.equalVar v tm then stm
+(*OpenTheoryDebug
+            else if VarMap.inDomain v stm then
+              raise Bug "TermSubst.newSharingSubst: bad subst"
+*)
+            else VarMap.insert stm (v, (tm, Term.freeVars tm))
       in
         (stm,tyShare,seen)
       end;

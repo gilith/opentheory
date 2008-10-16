@@ -66,21 +66,31 @@ val equal : ty -> ty -> bool
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val alpha : ty
+type sharingTypeVars
 
-val sharingTypeVars :
-    IntSet.set -> NameSet.set -> ty list -> IntSet.set * NameSet.set
+val emptySharingTypeVars : sharingTypeVars
+
+val addSharingTypeVars : sharingTypeVars -> ty list -> sharingTypeVars
+
+val toSetSharingTypeVars : sharingTypeVars -> NameSet.set
 
 val typeVarsList : ty list -> NameSet.set
 
 val typeVars : ty -> NameSet.set
 
+val alpha : ty
+
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val sharingTypeOps :
-    IntSet.set -> NameSet.set -> ty list -> IntSet.set * NameSet.set
+type sharingTypeOps
+
+val emptySharingTypeOps : sharingTypeOps
+
+val addSharingTypeOps : sharingTypeOps -> ty list -> sharingTypeOps
+
+val toSetSharingTypeOps : sharingTypeOps -> NameSet.set
 
 val typeOpsList : ty list -> NameSet.set
 

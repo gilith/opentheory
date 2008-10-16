@@ -33,8 +33,18 @@ val compare : var * var -> order
 val equal : var -> var -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Type variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val addSharingTypeVars : Type.sharingTypeVars -> var -> Type.sharingTypeVars
+
+val typeVars : var -> NameSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+val addSharingTypeOps : Type.sharingTypeOps -> var -> Type.sharingTypeOps
 
 val typeOps : var -> NameSet.set
 

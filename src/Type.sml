@@ -210,7 +210,20 @@ fun equal ty1 ty2 = compare (ty1,ty2) = EQUAL;
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val alpha = mkVar (Name.mkGlobal "'a");
+datatype sharingTypeVars =
+    SharingTypeVars of
+      {seen : IntSet.set,
+       vars : NameSet.set};
+
+val emptySharingTypeVars =
+    let
+      val seen = IntSet.empty
+      val vars = NameSet.empty
+    in
+      SharingTypeVars
+        {seen = seen,
+         vars = vars}
+    end;
 
 fun sharingTypeVars seen acc [] = (seen,acc)
   | sharingTypeVars seen acc (ty :: tys) =
@@ -241,20 +254,47 @@ and sharingTypeVars' seen acc ty tys =
         sharingTypeVars seen acc tys
       end;
 
+fun addSharingTypeVars (SharingTypeVars {seen,vars}) tys =
+    let
+      val (seen,vars) = sharingTypeVars seen vars tys
+    in
+      SharingTypeVars
+        {seen = seen,
+         vars = vars}
+    end;
+
+fun toSetSharingTypeVars (SharingTypeVars {vars,...}) = vars;
+
 fun typeVarsList tys =
     let
-      val seen = IntSet.empty
-      val acc = NameSet.empty
-      val (_,acc) = sharingTypeVars seen acc tys
+      val share = emptySharingTypeVars
+      val share = addSharingTypeVars share tys
     in
-      acc
+      toSetSharingTypeVars share
     end;
 
 fun typeVars ty = typeVarsList [ty];
 
+val alpha = mkVar (Name.mkGlobal "'a");
+
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+datatype sharingTypeOps =
+    SharingTypeOps of
+      {seen : IntSet.set,
+       ops : NameSet.set};
+
+val emptySharingTypeOps =
+    let
+      val seen = IntSet.empty
+      val ops = NameSet.empty
+    in
+      SharingTypeOps
+        {seen = seen,
+         ops = ops}
+    end;
 
 fun sharingTypeOps seen acc [] = (seen,acc)
   | sharingTypeOps seen acc (ty :: tys) =
@@ -281,13 +321,23 @@ and sharingTypeOps' seen acc ty tys =
         sharingTypeOps seen acc tys
       end;
 
+fun addSharingTypeOps (SharingTypeOps {seen,ops}) tys =
+    let
+      val (seen,ops) = sharingTypeOps seen ops tys
+    in
+      SharingTypeOps
+        {seen = seen,
+         ops = ops}
+    end;
+
+fun toSetSharingTypeOps (SharingTypeOps {ops,...}) = ops;
+
 fun typeOpsList tys =
     let
-      val seen = IntSet.empty
-      val acc = NameSet.empty
-      val (_,acc) = sharingTypeOps seen acc tys
+      val share = emptySharingTypeOps
+      val share = addSharingTypeOps share tys
     in
-      acc
+      toSetSharingTypeOps share
     end;
 
 fun typeOps ty = typeOpsList [ty];
