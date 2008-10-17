@@ -52,14 +52,13 @@ val typeOps : var -> NameSet.set
 (* Fresh variables.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val variant : var -> var
+val renameAvoiding : NameSet.set -> var -> var
 
 (* ------------------------------------------------------------------------- *)
 (* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val sharingSubst :
-    var -> TypeSubst.sharingSubst -> var option * TypeSubst.sharingSubst
+val sharingSubst : var -> TypeSubst.subst -> var option * TypeSubst.subst
 
 val subst : TypeSubst.subst -> var -> var option
 

@@ -7,6 +7,14 @@ signature TypeSubst =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* Type substitution maps.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+type substMap = Type.ty NameMap.map
+
+val emptyMap : substMap
+
+(* ------------------------------------------------------------------------- *)
 (* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -16,27 +24,13 @@ val empty : subst
 
 val null : subst -> bool
 
-val add : (Name.name * Type.ty) -> subst -> subst
-
-val peek : subst -> Name.name -> Type.ty option
-
-val toList : subst -> (Name.name * Type.ty) list
-
-(* ------------------------------------------------------------------------- *)
-(* Normalization removes identity substitutions v |-> v.                     *)
-(* ------------------------------------------------------------------------- *)
-
-val norm : subst -> subst
+val mk : substMap -> subst
 
 (* ------------------------------------------------------------------------- *)
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
 
-type sharingSubst
-
-val newSharingSubst : subst -> sharingSubst
-
-val sharingSubst : Type.ty -> sharingSubst -> Type.ty option * sharingSubst
+val sharingSubst : Type.ty -> subst -> Type.ty option * subst
 
 val subst : subst -> Type.ty -> Type.ty option
 
@@ -44,11 +38,11 @@ val subst : subst -> Type.ty -> Type.ty option
 (* Matching.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val matchList' : subst -> (Type.ty * Type.ty) list -> subst
+val matchList' : substMap -> (Type.ty * Type.ty) list -> substMap
+
+val match' : substMap -> Type.ty -> Type.ty -> substMap
 
 val matchList : (Type.ty * Type.ty) list -> subst
-
-val match' : subst -> Type.ty -> Type.ty -> subst
 
 val match : Type.ty -> Type.ty -> subst
 

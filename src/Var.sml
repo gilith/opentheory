@@ -58,13 +58,23 @@ fun typeOps (Var (_,ty)) = Type.typeOps ty;
 (* Fresh variables.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun variant (Var (n,ty)) =
+fun renameAvoiding avoid =
     let
-      val (ns,s) = Name.dest n
-      val s = s ^ "'"
-      val n = Name.mk (ns,s)
+      fun prime n =
+          let
+            val n = Name.variant n
+          in
+            if NameSet.member n avoid then prime n else n
+          end
     in
-      Var (n,ty)
+      fn v as Var (n,ty) =>
+         if not (NameSet.member n avoid) then v
+         else
+           let
+             val n = prime n
+           in
+             Var (n,ty)
+           end
     end;
 
 (* ------------------------------------------------------------------------- *)

@@ -408,11 +408,9 @@ fun sharingSubstType ty sub =
     let
       val Subst {tySub,stm,seen} = sub
       val (ty',tySub) = TypeSubst.sharingSubstType ty tySub
-      val sub =
-          Subst
-            {
+      val sub = Subst {tySub = tySub, stm = stm, seen = seen}
     in
-      
+      (ty',sub)
     end;
 
 end
