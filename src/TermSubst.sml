@@ -9,9 +9,20 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Capture-avoiding substitutions of type and term variables                 *)
+(* Term substitution maps.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
+type termSubstMap = Term.term VarMap.map;
+
+type substMap = TypeSubst.substMap * termSubstMap;
+
+val emptyTermMap : termSubstMap = VarMap.new ();
+
+val emptyMap : substMap = (TypeSubst.emptyMap, emptyTermMap);
+
+val nullTermMap : termSubstMap -> bool = VarMap.null;
+
+(***
 datatype subst = Subst of TypeSubst.subst * Term.term VarMap.map;
 
 val empty = Subst (TypeSubst.empty, VarMap.new ());
@@ -48,428 +59,360 @@ fun peek (Subst (_,stm)) v = VarMap.peek stm v;
 fun toListType (Subst (sty,_)) = TypeSubst.toList sty;
 
 fun toList (Subst (_,stm)) = VarMap.foldr (fn (v,tm,l) => (v,tm) :: l) [] stm;
+***)
 
 (* ------------------------------------------------------------------------- *)
-(* Normalization removes identity substitutions v |-> v.                     *)
+(* A capture-avoiding substitution function that preserves sharing.          *)
 (* ------------------------------------------------------------------------- *)
 
-fun norm (Subst (sty,stm)) =
+fun mkAvoidSet var ty' =
     let
-      val sty = TypeSubst.norm sty
-
-      val stm =
+      fun addTy (v,avoid) =
           let
-            fun p (Var.Var (n,ty)) (Term.Var (Var.Var (n',ty'))) =
-                Name.equal n n' andalso
-                let
-                  val ty = Option.getOpt (TypeSubst.subst sty ty, ty)
-                  and ty' = Option.getOpt (TypeSubst.subst sty ty', ty')
-                in
-                  Type.equal ty ty'
-                end
-              | p _ _ = false
-
-            fun f (v,tm,z) =
-                if p v (Term.dest tm) then z else VarMap.insert z (v,tm)
+            val Var.Var (n,ty) = v
           in
-            VarMap.foldl f (VarMap.new ()) stm
+            if Type.equal ty ty' then NameSet.add avoid n else avoid
           end
+
+      fun freeVarsTy tm' seen' fvShare =
+          let
+            val i = Term.id tm'
+          in
+            case IntMap.peek seen' i of
+              SOME avoid => (avoid,seen',fvShare)
+            | NONE =>
+              let
+                val (fvs,fvShare) = Term.sharingFreeVars tm' fvShare
+                val avoid = VarSet.foldl addTy NameSet.empty fvs
+                val seen' = IntMap.insert seen' (i,avoid)
+              in
+                (avoid,seen',fvShare)
+              end
+          end
+
+      fun mkAvoid tm tm' seen seen' fvShare =
+          let
+            val i = Term.id tm
+          in
+            case IntMap.peek seen i of
+              SOME (free,avoid) => (free,avoid,seen,seen',fvShare)
+            | NONE =>
+              let
+                val (free,avoid,seen,seen',fvShare) =
+                    case Term.dest tm of
+                      Term.Const _ =>
+                      let
+                        val free = false
+                        val avoid = NameSet.empty
+                      in
+                        (free,avoid,seen,seen',fvShare)
+                      end
+                    | Term.Var v =>
+                      if Var.equal var v then
+                        let
+                          val free = true
+                          val avoid = NameSet.empty
+                        in
+                          (free,avoid,seen,seen',fvShare)
+                        end
+                      else
+                        let
+                          val free = false
+                          val (avoid,seen',fvShare) =
+                              freeVarsTy tm' seen' fvShare
+                        in
+                          (free,avoid,seen,seen',fvShare)
+                        end
+                    | Term.Comb (f,a) =>
+                      let
+                        val (f',a') = Term.destComb tm'
+
+                        val (fFree,fAvoid,seen,seen',fvShare) =
+                            mkAvoid f f' seen seen' fvShare
+
+                        val (aFree,aAvoid,seen,seen',fvShare) =
+                            mkAvoid a a' seen seen' fvShare
+
+                        val free = fFree orelse aFree
+
+                        val avoid = NameSet.union fAvoid aAvoid
+                      in
+                        (free,avoid,seen,seen',fvShare)
+                      end
+                    | Term.Abs (v,b) =>
+                      let
+                        val (v',b') = Term.destAbs tm'
+
+                        val (free,avoid,seen,seen',fvShare) =
+                            mkAvoid b b' seen seen' fvShare
+
+                        val (free,avoid) =
+                            if Var.equal var v then (false,avoid)
+                            else
+                              let
+                                val avoid =
+                                    if free then addTy (v',avoid) else avoid
+                              in
+                                (free,avoid)
+                              end
+                      in
+                        (free,avoid,seen,seen',fvShare)
+                      end
+
+                val seen = IntMap.insert seen (i,(free,avoid))
+              in
+                (free,avoid,seen,seen',fvShare)
+              end
+          end
+
+      val seen = IntMap.new ()
+      val seen' = IntMap.new ()
     in
-      Subst (sty,stm)
+      fn tm => fn tm' => fn fvShare =>
+         let
+           val (_,avoid,seen,_,fvShare) = mkAvoid tm tm' seen seen' fvShare
+         in
+           (avoid,seen,fvShare)
+         end
     end;
 
-(* ------------------------------------------------------------------------- *)
-(* Applying substitutions: returns NONE for unchanged.                       *)
-(* ------------------------------------------------------------------------- *)
+fun renameBoundVar avoidSeen var varTm' =
+    let
+      fun rename tm tm' seen =
+          let
+            val i = Term.id tm
+          in
+            case IntMap.peek avoidSeen i of
+              SOME (false,_) => (tm',seen)
+(*OpenTheoryDebug
+            | NONE => raise Bug "TermSubst.renameBoundVar: unseen by mkAvoidSet"
+*)
+            | _ =>
+              case IntMap.peek seen i of
+                SOME tm' => (tm',seen)
+              | NONE =>
+                let
+                  val (tm',seen) =
+                      case Term.dest tm of
+                        Term.Const _ => (tm',seen)
+                      | Term.Var v =>
+                        if Var.equal var v then (varTm',seen) else (tm',seen)
+                      | Term.Comb (f,a) =>
+                        let
+                          val (f',a') = Term.destComb tm'
+                          val (f',seen) = rename f f' seen
+                          val (a',seen) = rename a a' seen
+                          val tm' = Term.mkComb (f',a')
+                        in
+                          (tm',seen)
+                        end
+                      | Term.Abs (v,b) =>
+                        let
+(*OpenTheoryDebug
+                          val _ = not (Var.equal v var) orelse
+                                  raise Bug "TermSubst.renameBoundVar: bad free"
+*)
+                          val (v',b') = Term.destAbs tm'
+                          val (b',seen) = rename b b' seen
+                          val tm' = Term.mkAbs (v',b')
+                        in
+                          (tm',seen)
+                        end
 
-datatype sharingSubstTerm =
-    SharingSubstTerm of
-      {tm : Term.term,
-       fvm : VarSet.set VarMap.map};
+                  val seen = IntMap.insert seen (i,tm')
+                in
+                  (tm',seen)
+                end
+          end
 
-datatype sharingSubst =
-    SharingSubst of
-      {tyShare : TypeSubst.sharingSubst,
-       stm : (Term.term * VarSet.set) VarMap.map,
-       seen : sharingSubstTerm option IntMap.map};
+      val seen = IntMap.new ()
+    in
+      fn tm => fn tm' =>
+         let
+           val (tm',_) = rename tm tm' seen
+         in
+           tm'
+         end
+    end;
 
-val emptyFvm : VarSet.set VarMap.map = VarMap.new ();
+fun avoidCapture vSub' v v' b b' fvShare =
+    let
+      val (avoid,avoidSeen,fvShare) =
+          mkAvoidSet v (Var.typeOf v') b b' fvShare
 
-fun singletonFvm v_fv : VarSet.set VarMap.map = VarMap.singleton v_fv;
+      val v'' = Var.renameAvoiding avoid v'
 
-val emptyStm : (Term.term * VarSet.set) VarMap.map = VarMap.new ();
+      val b' =
+          if not vSub' andalso Var.equal v'' v' then b'
+          else renameBoundVar avoidSeen v (Term.mkVar v') b b'
+    in
+      (v'',b',fvShare)
+    end;
 
-val emptySeen : sharingSubstTerm option IntMap.map = IntMap.new ();
-
-fun rawSharingSubst stm tm tyShare seen =
+fun rawSharingSubst stm tm tySub seen fvShare =
     let
       val i = Term.id tm
     in
       case IntMap.peek seen i of
-        SOME tm' => (tm',tyShare,seen)
+        SOME tm' => (tm',tySub,seen,fvShare)
       | NONE =>
         case Term.dest tm of
           Term.Const (n,ty) =>
           let
-            val (ty',tyShare) = TypeSubst.sharingSubst ty tyShare
+            val (ty',tySub) = TypeSubst.sharingSubst ty tySub
 
             val tm' =
                 case ty' of
                   NONE => NONE
-                | SOME ty =>
-                  let
-                    val tm = Term.mkConst (n,ty)
-                    val fvm = emptyFvm
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                  in
-                    SOME tm_fvm
-                  end
+                | SOME ty => SOME (Term.mkConst (n,ty))
 
             val seen = IntMap.insert seen (i,tm')
           in
-            (tm',tyShare,seen)
+            (tm',tySub,seen,fvShare)
           end
         | Term.Var v =>
           let
-            val (v',tyShare) = Var.sharingSubst v tyShare
+            val (v',tySub) = Var.sharingSubst v tySub
 
-            val (unchanged,v') =
+            val (changed,v') =
                 case v' of
-                  SOME v => (false,v)
-                | NONE => (true,v)
+                  SOME v => (true,v)
+                | NONE => (false,v)
 
             val tm' =
                 case VarMap.peek stm v' of
-                  SOME (tm,fv) =>
-                  let
-                    val tm = Term.mkVar v'
-                    val fvm = singletonFvm (v,fv)
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                  in
-                    SOME tm_fvm
-                  end
-                | NONE =>
-                  if unchanged then NONE
-                  else
-                    let
-                      val tm = Term.mkVar v'
-                      val fvm = singletonFvm (v, VarSet.singleton v')
-                      val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                    in
-                      SOME tm_fvm
-                    end
+                  NONE => if changed then SOME (Term.mkVar v') else NONE
+                | tm' => tm'
 
             val seen = IntMap.insert seen (i,tm')
           in
-            (tm',tyShare,seen)
+            (tm',tySub,seen,fvShare)
           end
         | Term.Comb (f,a) =>
           let
-            val (f',tyShare,seen) = rawSharingSubst stm f tyShare seen
+            val (f',tySub,seen,fvShare) =
+                rawSharingSubst stm f tySub seen fvShare
 
-            val (a',tyShare,seen) = rawSharingSubst stm a tyShare seen
+            val (a',tySub,seen,fvShare) =
+                rawSharingSubst stm a tySub seen fvShare
 
             val tm' =
                 case (f',a') of
-                  (SOME f_tm_fvm, SOME a_tm_fvm) =>
-                  let
-                    val SharingSubstTerm {tm = f, fvm = fvm1} = f_tm_fvm
-                    and SharingSubstTerm {tm = a, fvm = fvm2} = a_tm_fvm
-
-                    val tm = Term.mkComb (f,a)
-                    val fvm = VarMap.union (SOME o fst) fvm1 fvm2
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                  in
-                    SOME tm_fvm
-                  end
-                | (SOME f_tm_fvm, NONE) =>
-                  let
-                    val SharingSubstTerm {tm = f, fvm} = f_tm_fvm
-
-                    val tm = Term.mkComb (f,a)
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                  in
-                    SOME tm_fvm
-                  end
-                | (NONE, SOME a_tm_fvm) =>
-                  let
-                    val SharingSubstTerm {tm = a, fvm} = a_tm_fvm
-
-                    val tm = Term.mkComb (f,a)
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
-                  in
-                    SOME tm_fvm
-                  end
+                  (SOME f, SOME a) => SOME (Term.mkComb (f,a))
+                | (SOME f, NONE) => SOME (Term.mkComb (f,a))
+                | (NONE, SOME a) => SOME (Term.mkComb (f,a))
                 | (NONE,NONE) => NONE
 
             val seen = IntMap.insert seen (i,tm')
           in
-            (tm',tyShare,seen)
+            (tm',tySub,seen,fvShare)
           end
         | Term.Abs (v,b) =>
           let
-            val (b',tyShare,seen) = rawSharingSubst stm b tyShare seen
+            val (v',tySub) = Var.sharingSubst v tySub
 
-            val tm' =
-                case b' of
-                  NONE => NONE
-                | SOME tm_fvm =>
+            val (b',tySub,seen,fvShare) =
+                rawSharingSubst stm b tySub seen fvShare
+
+            val (tm',fvShare) =
+                case (v',b') of
+                  (NONE,NONE) => (NONE,fvShare)
+                | _ =>
                   let
-                    val SharingSubstTerm {tm = b, fvm} = tm_fvm
-
-                    val tm = Term.mkComb (f_tm,a_tm)
-                    val fvm = VarMap.union (SOME o fst) f_fvm a_fvm
-                    val tm_fvm = SharingSubstTerm {tm = tm, fvm = fvm}
+                    val v' = Option.getOpt (v',v)
+                    and b' = Option.getOpt (b',b)
+                    val vSub' = VarMap.inDomain v' stm
+                    val (v',b',fvShare) = avoidCapture vSub' v v' b b' fvShare
+                    val tm' = SOME (Term.mkAbs (v',b'))
                   in
-                    SOME tm_fvm
+                    (tm',fvShare)
                   end
 
             val seen = IntMap.insert seen (i,tm')
           in
-            (tm',tyShare,seen)
+            (tm',tySub,seen,fvShare)
           end
     end;
-(***
-      | Term.Comb (a,b) =>
-        let
-          val a' = substGen sty stm bv a
-          val b' = substGen sty stm bv b
-        in
-          if a' == a andalso b' == b then tm else Term.mkComb (a',b')
-        end
-      | Term.Abs (v,body) =>
-        let
-          val {depth,oldToNew,newDepth} = bv
 
-          fun rename v' =
-              if Option.isSome (VarMap.peek newDepth v') then
-                rename (Var.variant v')
-              else
-                let
-                  val oldToNew = VarMap.insert oldToNew (v,v')
-                  val newDepth = VarMap.insert newDepth (v',depth)
-                  val depth = depth + 1
-                  val bv = {depth = depth, oldToNew = oldToNew,
-                            newDepth = newDepth}
-                  val body = substGen sty stm bv body
-                in
-                  (v',body)
-                end
-                handle c as Capture d =>
-                  if d = depth then rename (Var.variant v') else raise c
+(* ------------------------------------------------------------------------- *)
+(* Capture-avoiding substitutions of type and term variables.                *)
+(* ------------------------------------------------------------------------- *)
 
-          val (v',body') = rename (typeSubstVar sty v)
-        in
-          if v == v' andalso body == body' then tm else Term.mkAbs (v',body')
-        end;
+datatype subst =
+    Subst of
+      {tySub : TypeSubst.subst,
+       stm : termSubstMap,
+       seen : Term.term option IntMap.map};
 
+val emptySeen : Term.term option IntMap.map = IntMap.new ();
 
-                Type.TypeVar n =>
-                let
-                  val TypeSubst m = sub
-                  val ty' = NameMap.peek m n
-                  val seen = IntMap.insert seen (i,ty')
-                in
-                  (ty',seen)
-                end
-              | Type.TypeOp (n,tys) =>
-                let
-                  val (tys',seen) = rawSubstList tys seen
-                  val ty' =
-                      case tys' of
-                        SOME tys => SOME (Type.mkOp (n,tys))
-                      | NONE => NONE
-                  val seen = IntMap.insert seen (i,ty')
-                in
-                  (ty',seen)
-                end
-          end
-***)
+val empty =
+    let
+      val tySub = TypeSubst.empty
+      val stm = emptyTermMap
+      val seen = emptySeen
+    in
+      Subst
+        {tySub = tySub,
+         stm = stm,
+         seen = seen}
+    end;
+
+fun null (Subst {tySub,stm,...}) =
+    TypeSubst.null tySub andalso nullTermMap stm;
 
 local
-  fun add (v,tm,(stm,tyShare,seen)) =
+  fun add (v,tm,(stm,tySub,seen,fvShare)) =
       let
-        val (v',tyShare) = Var.sharingSubst v tyShare
+        val (v',tySub) = Var.sharingSubst v tySub
+
+        val (tm',tySub,seen,fvShare) =
+            rawSharingSubst emptyTermMap tm tySub seen fvShare
 
         val v = Option.getOpt (v',v)
 
-        val (tm',tyShare,seen) = rawSharingSubst emptyStm tm tyShare seen
-
-        val tm =
-            case tm' of
-              SOME (SharingSubstTerm {tm,...}) => tm
-            | NONE => tm
+        val tm = Option.getOpt (tm',tm)
 
         val stm =
             if Term.equalVar v tm then stm
-(*OpenTheoryDebug
             else if VarMap.inDomain v stm then
-              raise Bug "TermSubst.newSharingSubst: bad subst"
-*)
-            else VarMap.insert stm (v, (tm, Term.freeVars tm))
+              raise Error "TermSubst.newSharingSubst: bad subst"
+            else VarMap.insert stm (v,tm)
       in
-        (stm,tyShare,seen)
+        (stm,tySub,seen,fvShare)
       end;
 in
-  fun newSharingSubst (Subst (sty,stm)) =
+  fun mk (sty,stm) =
       let
-        val tyShare = TypeSubst.newSharingSubst sty
-
-        val (stm,tyShare,_) = VarMap.foldl add (emptyStm,tyShare,emptySeen) stm
+        val tySub = TypeSubst.mk sty
 
         val seen = emptySeen
+
+        val fvShare = Term.newSharingFreeVars
+
+        val (stm,tySub,_,_) =
+            VarMap.foldl add (emptyTermMap,tySub,seen,fvShare) stm
       in
-        SharingSubst
-          {tyShare = tyShare,
+        Subst
+          {tySub = tySub,
            stm = stm,
            seen = seen}
       end;
 end;
 
-(***
-fun substType (Subst (sty,_)) = TypeSubst.subst sty;
+(* ------------------------------------------------------------------------- *)
+(* Applying substitutions: returns NONE for unchanged.                       *)
+(* ------------------------------------------------------------------------- *)
 
-fun rawSharingSubst sty stm seen tm =
-
-fun sharingSubst sub =
-    if null sub then K NONE
-    else
-      let
-        val Subst (sty,stm) = sub
-
-        val stm =
-            let
-              fun f (v,tm,z) =
-                  let
-                    val v = Option.getOpt (Var.subst sty v, v)
-                    val tm = Option.getOpt (typeSubst sty tm, tm)
-                    val fv = Term.freeVars tm
-                  in
-                    VarMap.insert z (v,(tm,fv))
-                  end
-            in
-              VarMap.foldl f (VarMap.new ()) stm
-            end
-      in
-        rawSubst sty stm
-      end;
-
-local
-  exception Capture of int;
-
-  fun bvMin newDepth (v,b) =
-      case VarMap.peek newDepth v of
-        NONE => b
-      | SOME d =>
-        let
-          val r = case b of NONE => true | SOME m => d < m
-        in
-          if r then SOME d else b
-        end;
-
-  fun substGen sty stm bv tm =
-      case Term.dest tm of
-        Term.Const (n,ty) =>
-        (case TypeSubst.subst sty ty of
-           SOME ty' => SOME (Term.mkConst (n,ty'))
-         | NONE => NONE)
-      | Term.Var v =>
-        (case VarMap.peek (#oldToNew bv) v of
-           SOME v' => if Var.equal v v' then NONE else SOME (Term.mkVar v')
-         | NONE =>
-           let
-             val (changed,v) =
-                 case Var.subst sty v of
-                   SOME v => (true,v)
-                 | NONE => (false,v)
-
-             val (tm,fv) =
-                 case VarMap.peek stm v of
-                   SOME tm_fv => tm_fv
-                 | NONE =>
-                   let
-                     val 
-                   (if v == v' then tm else Term.mkVar v', VarSet.singleton v')
-           in
-             if #depth bv = 0 then tm
-             else
-               case VarSet.foldl (bvMin (#newDepth bv)) NONE fv of
-                 NONE => tm
-               | SOME d => raise Capture d
-           end)
-      | Term.Comb (a,b) =>
-        let
-          val a' = substGen sty stm bv a
-          val b' = substGen sty stm bv b
-        in
-          if a' == a andalso b' == b then tm else Term.mkComb (a',b')
-        end
-      | Term.Abs (v,body) =>
-        let
-          val {depth,oldToNew,newDepth} = bv
-
-          fun rename v' =
-              if Option.isSome (VarMap.peek newDepth v') then
-                rename (Var.variant v')
-              else
-                let
-                  val oldToNew = VarMap.insert oldToNew (v,v')
-                  val newDepth = VarMap.insert newDepth (v',depth)
-                  val depth = depth + 1
-                  val bv = {depth = depth, oldToNew = oldToNew,
-                            newDepth = newDepth}
-                  val body = substGen sty stm bv body
-                in
-                  (v',body)
-                end
-                handle c as Capture d =>
-                  if d = depth then rename (Var.variant v') else raise c
-
-          val (v',body') = rename (typeSubstVar sty v)
-        in
-          if v == v' andalso body == body' then tm else Term.mkAbs (v',body')
-        end;
-
-  fun rawSubst sty stm =
-      let
-        val info =
-            {depth = 0,
-             oldToNew = VarMap.new (),
-             newDepth = VarMap.new ()}
-      in
-        substGen sty stm info
-      end;
-
-  fun typeSubst sty =
-      let
-        val stm = VarMap.new ()
-      in
-        rawSubst sty stm
-      end;
-in
-  fun subst sub =
-      if null sub then K NONE
-      else
-        let
-          val Subst (sty,stm) = sub
-
-          val stm =
-              let
-                fun f (v,tm,z) =
-                    let
-                      val v = Option.getOpt (Var.subst sty v, v)
-                      val tm = Option.getOpt (typeSubst sty tm, tm)
-                      val fv = Term.freeVars tm
-                    in
-                      VarMap.insert z (v,(tm,fv))
-                    end
-              in
-                VarMap.foldl f (VarMap.new ()) stm
-              end
-        in
-          rawSubst sty stm
-        end;
-end;
-***)
+fun sharingSubstType ty sub =
+    let
+      val Subst {tySub,stm,seen} = sub
+      val (ty',tySub) = TypeSubst.sharingSubstType ty tySub
+      val sub =
+          Subst
+            {
+    in
+      
+    end;
 
 end
