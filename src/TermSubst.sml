@@ -14,52 +14,17 @@ open Useful;
 
 type termSubstMap = Term.term VarMap.map;
 
-type substMap = TypeSubst.substMap * termSubstMap;
-
 val emptyTermMap : termSubstMap = VarMap.new ();
-
-val emptyMap : substMap = (TypeSubst.emptyMap, emptyTermMap);
 
 val nullTermMap : termSubstMap -> bool = VarMap.null;
 
-(***
-datatype subst = Subst of TypeSubst.subst * Term.term VarMap.map;
+(* ------------------------------------------------------------------------- *)
+(* Type and term substitution maps.                                          *)
+(* ------------------------------------------------------------------------- *)
 
-val empty = Subst (TypeSubst.empty, VarMap.new ());
+type substMap = TypeSubst.substMap * termSubstMap;
 
-fun addType n_ty (Subst (sty,stm)) = Subst (TypeSubst.add n_ty sty, stm);
-
-fun add v_tm (Subst (sty,stm)) =
-    let
-      val (v,tm) = v_tm
-      val _ = Type.equal (Var.typeOf v) (Term.typeOf tm) orelse
-              raise Error "TermSubst.add: bad type"
-    in
-      Subst (sty, VarMap.insert stm v_tm)
-    end;
-
-fun singletonType n_ty = addType n_ty empty;
-
-fun singleton v_tm = add v_tm empty;
-
-fun addListType l sub = foldl (fn (n_ty,s) => addType n_ty s) sub l;
-
-fun addList l sub = foldl (fn (v_tm,s) => add v_tm s) sub l;
-
-fun fromListType l = addListType l empty;
-
-fun fromList l = addList l empty;
-
-fun null (Subst (sty,stm)) = TypeSubst.null sty andalso VarMap.null stm;
-
-fun peekType (Subst (sty,_)) n = TypeSubst.peek sty n;
-
-fun peek (Subst (_,stm)) v = VarMap.peek stm v;
-
-fun toListType (Subst (sty,_)) = TypeSubst.toList sty;
-
-fun toList (Subst (_,stm)) = VarMap.foldr (fn (v,tm,l) => (v,tm) :: l) [] stm;
-***)
+val emptyMap : substMap = (TypeSubst.emptyMap, emptyTermMap);
 
 (* ------------------------------------------------------------------------- *)
 (* A capture-avoiding substitution function that preserves sharing.          *)

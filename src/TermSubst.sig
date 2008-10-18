@@ -12,9 +12,13 @@ sig
 
 type termSubstMap = Term.term VarMap.map
 
-type substMap = TypeSubst.substMap * termSubstMap
-
 val emptyTermMap : termSubstMap
+
+(* ------------------------------------------------------------------------- *)
+(* Type and term substitution maps.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+type substMap = TypeSubst.substMap * termSubstMap
 
 val emptyMap : substMap
 
