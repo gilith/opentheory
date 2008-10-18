@@ -93,9 +93,11 @@ fun betaConv t =
                Term.Abs (v,t1) => (v,t1,t2)
              | _ => raise Error "Thm.betaConv: term function not a lambda")
           | _ => raise Error "Thm.betaConv: term not a function application"
+
       val u =
           if Term.equalVar v t2 then t1
           else TermSubst.subst (TermSubst.singleton (v,t2)) t1
+
       val axioms = emptyAxioms
       and hyp = emptyHyp
       and concl = Term.mkEq (t,u)

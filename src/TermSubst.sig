@@ -14,6 +14,10 @@ type termSubstMap = Term.term VarMap.map
 
 type substMap = TypeSubst.substMap * termSubstMap
 
+val emptyTermMap : termSubstMap
+
+val emptyMap : substMap
+
 (* ------------------------------------------------------------------------- *)
 (* Capture-avoiding substitutions of type and term variables.                *)
 (* ------------------------------------------------------------------------- *)

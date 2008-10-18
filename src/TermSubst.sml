@@ -407,10 +407,31 @@ end;
 fun sharingSubstType ty sub =
     let
       val Subst {tySub,stm,seen} = sub
-      val (ty',tySub) = TypeSubst.sharingSubstType ty tySub
+      val (ty',tySub) = TypeSubst.sharingSubst ty tySub
       val sub = Subst {tySub = tySub, stm = stm, seen = seen}
     in
       (ty',sub)
+    end;
+
+fun substType (Subst {tySub,...}) ty = TypeSubst.subst tySub ty;
+
+fun sharingSubst tm sub =
+    let
+      val Subst {tySub,stm,seen} = sub
+      val fvShare = Term.newSharingFreeVars
+      val (tm',tySub,seen,_) = rawSharingSubst stm tm tySub seen fvShare
+      val sub = Subst {tySub = tySub, stm = stm, seen = seen}
+    in
+      (tm',sub)
+    end;
+
+fun subst sub tm =
+    let
+      val Subst {tySub,stm,seen} = sub
+      val fvShare = Term.newSharingFreeVars
+      val (tm',_,_,_) = rawSharingSubst stm tm tySub seen fvShare
+    in
+      tm'
     end;
 
 end
