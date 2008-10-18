@@ -18,6 +18,11 @@ val emptyTermMap : termSubstMap = VarMap.new ();
 
 val nullTermMap : termSubstMap -> bool = VarMap.null;
 
+val singletonTermMap : Var.var * Term.term -> termSubstMap = VarMap.singleton;
+
+val fromListTermMap : (Var.var * Term.term) list -> termSubstMap =
+    VarMap.fromList;
+
 (* ------------------------------------------------------------------------- *)
 (* Type and term substitution maps.                                          *)
 (* ------------------------------------------------------------------------- *)

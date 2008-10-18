@@ -49,8 +49,8 @@ val () = SAY "Term tests";
 
 val ts =
     let
-      val p = (Name.mkGlobal "p", boolType)
-      and q = (Name.mkGlobal "q", boolType)
+      val p = Var.Var (Name.mkGlobal "p", boolType)
+      and q = Var.Var (Name.mkGlobal "q", boolType)
 
       val t1 = mkAbs (p, mkVar p)
       and t2 = mkAbs (q, mkVar p)
@@ -65,8 +65,8 @@ val ts'' = printval (Print.ppList ppTerm) (sort Term.alphaCompare ts);
 
 val ts =
     let
-      val p = (Name.mkGlobal "p", boolType)
-      and q = (Name.mkGlobal "q", boolType)
+      val p = Var.Var (Name.mkGlobal "p", boolType)
+      and q = Var.Var (Name.mkGlobal "q", boolType)
 
       val t1 = mkEq (mkComb (mkAbs (p, mkVar p), falseTerm), falseTerm)
       and t2 = mkEq (mkComb (mkAbs (q, mkVar p), mkVar q), mkVar p)

@@ -96,7 +96,14 @@ fun betaConv t =
 
       val u =
           if Term.equalVar v t2 then t1
-          else TermSubst.subst (TermSubst.singleton (v,t2)) t1
+          else
+            let
+              val tmSubMap = TermSubst.singletonTermMap (v,t2)
+              val subMap = (TypeSubst.emptyMap,tmSubMap)
+              val sub = TermSubst.mk subMap
+            in
+              Option.getOpt (TermSubst.subst sub t1, t1)
+            end
 
       val axioms = emptyAxioms
       and hyp = emptyHyp
@@ -140,21 +147,27 @@ fun eqMp th1 th2 =
       Thm {axioms = axioms, sequent = sequent}
     end
 
-fun subst sub th =
-    let
-      val Thm {axioms,sequent,...} = th
-      val {hyp,concl} = sequent
-      val hyp =
-          let
-            fun add (tm,z) = TermAlphaSet.add z (TermSubst.subst sub tm)
-          in
-            TermAlphaSet.foldl add emptyHyp hyp
-          end
-      and concl = TermSubst.subst sub concl
-      val sequent = {hyp = hyp, concl = concl}
-    in
-      Thm {axioms = axioms, sequent = sequent}
-    end;
+local
+  fun subAdd (tm,(set,sub)) =
+      let
+        val (tm',sub) = TermSubst.sharingSubst tm sub
+        val tm = Option.getOpt (tm',tm)
+        val set = TermAlphaSet.add set tm
+      in
+        (set,sub)
+      end;
+in
+  fun subst sub th =
+      let
+        val Thm {axioms,sequent,...} = th
+        val {hyp,concl} = sequent
+        val (hyp,sub) = TermAlphaSet.foldl subAdd (emptyHyp,sub) hyp
+        val concl = Option.getOpt (TermSubst.subst sub concl, concl)
+        val sequent = {hyp = hyp, concl = concl}
+      in
+        Thm {axioms = axioms, sequent = sequent}
+      end;
+end;
 
 fun comb th1 th2 =
     let
@@ -208,38 +221,43 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
       val {hyp,concl} = sequent
       val _ = TermAlphaSet.null hyp orelse
               raise Error "existence theorem must not have hypotheses"
-      val (P,t) = Term.destComb concl
-      val _ = VarSet.null (Term.freeVars P) orelse
+      val (pTm,tTm) = Term.destComb concl
+      val _ = VarSet.null (Term.freeVars pTm) orelse
               raise Error "predicate is not closed"
-      val _ = NameSet.equal (NameSet.fromList tyVars) (Term.typeVars P) orelse
-              raise Error "supplied type vars are not the type vars in P"
+      val _ = NameSet.equal (NameSet.fromList tyVars) (Term.typeVars pTm) orelse
+              raise Error "supplied type vars are not the type vars in p"
       val _ = NameSet.size (NameSet.fromList tyVars) = length tyVars orelse
               raise Error "supplied type variables contain duplicates"
       val arity = length tyVars
       val () = Type.declare name arity
-      val aty = Type.mkOp (name, map Type.mkVar tyVars)
-      and rty = Term.typeOf t
-      val absTy = Type.mkFun (rty,aty)
-      and repTy = Type.mkFun (aty,rty)
+      val aTy = Type.mkOp (name, map Type.mkVar tyVars)
+      and rTy = Term.typeOf tTm
+      val absTy = Type.mkFun (rTy,aTy)
+      and repTy = Type.mkFun (aTy,rTy)
       val () = Term.declare abs absTy
       and () = Term.declare rep repTy
       val absTm = Term.mkConst (abs,absTy)
       and repTm = Term.mkConst (rep,repTy)
+
       val absRepTh =
           let
-            val a = Term.mkVar (Name.mkGlobal "a", aty)
-            val concl = Term.mkEq (Term.mkComb (absTm, Term.mkComb (repTm,a)), a)
+            val aVar = Var.Var (Name.mkGlobal "a", aTy)
+            val aTm = Term.mkVar aVar
+            val concl =
+                Term.mkEq (Term.mkComb (absTm, Term.mkComb (repTm,aTm)), aTm)
             val sequent = {hyp = hyp, concl = concl}
           in
             Thm {axioms = axioms, sequent = sequent}
           end
+
       val repAbsTh =
           let
-            val r = Term.mkVar (Name.mkGlobal "r", rty)
+            val rVar = Var.Var (Name.mkGlobal "r", rTy)
+            val rTm = Term.mkVar rVar
             val concl =
                 Term.mkEq
-                  (Term.mkComb (P,r),
-                   Term.mkEq (Term.mkComb (repTm, Term.mkComb (absTm,r)), r))
+                  (Term.mkComb (pTm,rTm),
+                   Term.mkEq (Term.mkComb (repTm, Term.mkComb (absTm,rTm)), rTm))
             val sequent = {hyp = hyp, concl = concl}
           in
             Thm {axioms = axioms, sequent = sequent}

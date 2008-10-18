@@ -93,12 +93,12 @@ fun destOtypeOp (Otype ty) =
   | destOtypeOp _ = raise Error "Object.destOtypeOp";
 val isOtypeOp = can destOtypeOp;
 
-fun mkOvar (n,ty) = mkOpair (Oname n, Otype ty);
+fun mkOvar (Var.Var (n,ty)) = mkOpair (Oname n, Otype ty);
 fun destOvar var =
     let
       val (n,ty) = destOpair var
     in
-      (destOname n, destOtype ty)
+      Var.Var (destOname n, destOtype ty)
     end;
 val isOvar = can destOvar;
 
@@ -110,11 +110,11 @@ fun mkOterms tys = Olist (map Oterm tys);
 fun destOterms obj = map destOterm (destOlist obj);
 val isOterms = can destOterms;
 
-fun mkOtermVar (Oname n, Otype ty) = Oterm (Term.mkVar (n,ty))
+fun mkOtermVar (Oname n, Otype ty) = Oterm (Term.mkVar (Var.Var (n,ty)))
   | mkOtermVar _ = raise Error "Object.mkOtermVar";
 fun destOtermVar (Oterm t) =
     let
-      val (n,ty) = Term.destVar t
+      val Var.Var (n,ty) = Term.destVar t
     in
       (Oname n, Otype ty)
     end

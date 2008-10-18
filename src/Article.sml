@@ -1255,7 +1255,7 @@ fun generateObject ob =
       (case Term.dest tm of
          Term.Const (n,ty) =>
          (Cop "const", [Object.Oname n, Object.Otype ty])
-       | Term.Var (n,ty) =>
+       | Term.Var (Var.Var (n,ty)) =>
          (Cop "var", [Object.Oname n, Object.Otype ty])
        | Term.Comb (f,a) =>
          (Cop "comb", [Object.Oterm f, Object.Oterm a])

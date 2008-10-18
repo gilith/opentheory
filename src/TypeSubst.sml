@@ -22,6 +22,8 @@ val peekMap : substMap -> Name.name -> Type.ty option = NameMap.peek;
 
 val insertMap : substMap -> Name.name * Type.ty -> substMap = NameMap.insert;
 
+val fromListMap : (Name.name * Type.ty) list -> substMap = NameMap.fromList;
+
 val normMap =
     let
       fun pred (n,ty) = not (Type.equalVar n ty)

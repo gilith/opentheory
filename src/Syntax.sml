@@ -243,7 +243,11 @@ val forallName = Name.mkGlobal forallString;
 fun forallType a = mkFun (mkFun (a, boolType), boolType);
 
 fun mkForall (v,b) =
-    mkComb (mkConst (forallName, forallType (snd v)), mkAbs (v,b));
+    let
+      val vTy = Var.typeOf v
+    in
+      mkComb (mkConst (forallName, forallType vTy), mkAbs (v,b))
+    end;
 
 fun destForall tm =
     let
@@ -276,7 +280,11 @@ val existsName = Name.mkGlobal existsString;
 fun existsType a = mkFun (mkFun (a, boolType), boolType);
 
 fun mkExists (v,b) =
-    mkComb (mkConst (existsName, existsType (snd v)), mkAbs (v,b));
+    let
+      val vTy = Var.typeOf v
+    in
+      mkComb (mkConst (existsName, existsType vTy), mkAbs (v,b))
+    end;
 
 fun destExists tm =
     let
@@ -309,8 +317,11 @@ val existsUniqueName = Name.mkGlobal existsUniqueString;
 fun existsUniqueType a = mkFun (mkFun (a, boolType), boolType);
 
 fun mkExistsUnique (v,b) =
-    mkComb (mkConst (existsUniqueName, existsUniqueType (snd v)),
-             mkAbs (v,b));
+    let
+      val vTy = Var.typeOf v
+    in
+      mkComb (mkConst (existsUniqueName, existsUniqueType vTy), mkAbs (v,b))
+    end;
 
 fun destExistsUnique tm =
     let
@@ -350,8 +361,12 @@ val selectTerm =
       mkConst (selectName,ty)
     end;
 
-fun mkSelect (v_b as ((_,ty),_)) =
-    mkComb (mkConst (selectName, selectType ty), mkAbs v_b);
+fun mkSelect (v_b as (v,b)) =
+    let
+      val vTy = Var.typeOf v
+    in
+      mkComb (mkConst (selectName, selectType vTy), mkAbs v_b)
+    end;
 
 fun destSelect tm =
     let
@@ -496,7 +511,7 @@ val ppVar =
       val pp1 = Print.ppBracket "(" ")" (Print.ppOp2 " :" Name.pp ppType)
       val pp2 = Print.ppMap fst Name.pp
     in
-      fn v => (if !showTypes then pp1 else pp2) v
+      fn Var.Var n_ty => (if !showTypes then pp1 else pp2) n_ty
     end;
 
 local
@@ -638,12 +653,17 @@ val termToString = Print.toString ppTerm;
 
 (* Substitutions *)
 
-val ppSubst =
-    Print.ppMap
-      (fn sub => (TermSubst.toListType sub, TermSubst.toList sub))
-      (Print.ppPair
-         (Print.ppList (Print.ppPair Name.pp ppType))
-         (Print.ppList (Print.ppPair ppVar ppTerm)));
+val ppTypeSubst =
+    Print.ppMap NameMap.toList (Print.ppList (Print.ppPair Name.pp ppType));
+
+val typeSubstToString = Print.toString ppTypeSubst;
+
+val ppTermSubst =
+    Print.ppMap VarMap.toList (Print.ppList (Print.ppPair ppVar ppTerm));
+
+val termSubstToString = Print.toString ppTermSubst;
+
+val ppSubst = Print.ppPair ppTypeSubst ppTermSubst;
 
 val substToString = Print.toString ppSubst;
 

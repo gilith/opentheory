@@ -188,8 +188,14 @@ val typeToString : ty -> string
 val ppTerm : term Print.pp
 val termToString : term -> string
 
-val ppSubst : TermSubst.subst Print.pp
-val substToString : TermSubst.subst -> string
+val ppTypeSubst : TypeSubst.substMap Print.pp
+val typeSubstToString : TypeSubst.substMap -> string
+
+val ppTermSubst : TermSubst.termSubstMap Print.pp
+val termSubstToString : TermSubst.termSubstMap -> string
+
+val ppSubst : TermSubst.substMap Print.pp
+val substToString : TermSubst.substMap -> string
 
 val ppSequent : sequent Print.pp
 val sequentToString : sequent -> string

@@ -172,7 +172,7 @@ fun trans th1 th2 =
 fun define tm =
     let
       val (v,t) = destEq tm
-      val (n,_) = destVar v
+      val n = Var.name (destVar v)
     in
       defineConst n t
     end;

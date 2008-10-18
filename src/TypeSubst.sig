@@ -14,6 +14,8 @@ type substMap = Type.ty NameMap.map
 
 val emptyMap : substMap
 
+val fromListMap : (Name.name * Type.ty) list -> substMap
+
 (* ------------------------------------------------------------------------- *)
 (* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)

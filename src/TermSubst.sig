@@ -14,6 +14,12 @@ type termSubstMap = Term.term VarMap.map
 
 val emptyTermMap : termSubstMap
 
+val nullTermMap : termSubstMap -> bool
+
+val singletonTermMap : Var.var * Term.term -> termSubstMap
+
+val fromListTermMap : (Var.var * Term.term) list -> termSubstMap
+
 (* ------------------------------------------------------------------------- *)
 (* Type and term substitution maps.                                          *)
 (* ------------------------------------------------------------------------- *)

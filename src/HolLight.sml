@@ -22,21 +22,27 @@ fun typeSubstToSubst oins =
     let
       fun f (x,y) = (Type.destVar (Object.destOtype y), Object.destOtype x)
       val l = Object.destOlist oins
+      val l = map (f o Object.destOpair) l
+      val tyM = TypeSubst.fromListMap l
+      val tmM = TermSubst.emptyTermMap
     in
-      TermSubst.fromListType (map (f o Object.destOpair) l)
+      TermSubst.mk (tyM,tmM)
     end
     handle Error err =>
-      raise Bug ("holLightTypeSubstToSubst failed:\n" ^ err);
+      raise Bug ("HolLight.typeSubstToSubst failed:\n" ^ err);
 
 fun substToSubst oins =
     let
       fun f (x,y) = (Term.destVar (Object.destOterm y), Object.destOterm x)
       val l = Object.destOlist oins
+      val l = map (f o Object.destOpair) l
+      val tyM = TypeSubst.emptyMap
+      val tmM = TermSubst.fromListTermMap l
     in
-      TermSubst.fromList (map (f o Object.destOpair) l)
+      TermSubst.mk (tyM,tmM)
     end
     handle Error err =>
-      raise Bug ("holLightSubstToSubst failed:\n" ^ err);
+      raise Bug ("HolLight.substToSubst failed:\n" ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of definition.                                            *)
@@ -47,13 +53,13 @@ fun newBasicDefinition _ seq _ =
       val {concl = tm, ...} : Sequent.sequent = seq
       val (c,t) = Term.destEq tm
       val (n,ty) = Term.destConst c
-      val v = Term.mkVar (n,ty)
-      val tm = Term.mkEq (v,t)
+      val v = Var.Var (n,ty)
+      val tm = Term.mkEq (Term.mkVar v, t)
     in
       Object.Othm (Rule.define tm)
     end
     handle Error err =>
-      raise Bug ("holLightNewBasicDefinition failed:\n" ^ err);
+      raise Bug ("HolLight.newBasicDefinition failed:\n" ^ err);
 
 fun newBasicTypeDefinition _ seq arg =
     let
@@ -101,7 +107,7 @@ fun newBasicTypeDefinition _ seq arg =
       Object.mkOpair (Object.Othm absRepTh, Object.Othm repAbsTh)
     end
     handle Error err =>
-      raise Bug ("holLightNewBasicTypeDefinition failed:\n" ^ err);
+      raise Bug ("HolLight.newBasicTypeDefinition failed:\n" ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of inference.                                             *)
