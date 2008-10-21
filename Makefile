@@ -58,7 +58,9 @@ SRC = \
   src/Heap.sig src/Heap.sml \
   src/Print.sig src/Print.sml \
   src/Parse.sig src/Parse.sml \
-  src/MetisName.sig src/MetisName.sml \
+  src/Namespace.sig src/Namespace.sml \
+  src/Name.sig src/Name.sml \
+  src/MetisNameArity.sig src/MetisNameArity.sml \
   src/MetisTerm.sig src/MetisTerm.sml \
   src/MetisSubst.sig src/MetisSubst.sml \
   src/MetisAtom.sig src/MetisAtom.sml \
@@ -82,8 +84,6 @@ SRC = \
   src/MetisWaiting.sig src/MetisWaiting.sml \
   src/MetisResolution.sig src/MetisResolution.sml \
   src/MetisTptp.sig src/MetisTptp.sml \
-  src/Namespace.sig src/Namespace.sml \
-  src/Name.sig src/Name.sml \
   src/Type.sig src/Type.sml \
   src/TypeSubst.sig src/TypeSubst.sml \
   src/Var.sig src/Var.sml \

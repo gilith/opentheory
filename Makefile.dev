@@ -90,8 +90,8 @@ src/MetisLiteralNet.sig: ../metis/src/LiteralNet.sig $(MLIMPORT) $(IMPORT_METIS)
 src/MetisLiteralNet.sml: ../metis/src/LiteralNet.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/MetisModel.sig: ../metis/src/Model.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/MetisModel.sml: ../metis/src/Model.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
-src/MetisName.sig: ../metis/src/Name.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
-src/MetisName.sml: ../metis/src/Name.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisNameArity.sig: ../metis/src/NameArity.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
+src/MetisNameArity.sml: ../metis/src/NameArity.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/MetisNormalize.sig: ../metis/src/Normalize.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/MetisNormalize.sml: ../metis/src/Normalize.sml $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@
 src/MetisProblem.sig: ../metis/src/Problem.sig $(MLIMPORT) $(IMPORT_METIS) ; @$(MLIMPORT) -c $(IMPORT_METIS) $< $@

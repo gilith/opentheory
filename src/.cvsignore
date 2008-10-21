@@ -26,8 +26,8 @@ MetisLiteralNet.sig
 MetisLiteralNet.sml
 MetisModel.sig
 MetisModel.sml
-MetisName.sig
-MetisName.sml
+MetisNameArity.sig
+MetisNameArity.sml
 MetisNormalize.sig
 MetisNormalize.sml
 MetisProblem.sig

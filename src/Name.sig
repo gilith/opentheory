@@ -31,7 +31,9 @@ val equal : name -> name -> bool
 (* Fresh names.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val variant : name -> name
+val variantPrime : (name -> bool) -> name -> name
+
+val variantNum : (name -> bool) -> name -> name
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting names.                                                          *)

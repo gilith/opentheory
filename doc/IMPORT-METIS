@@ -1,15 +1,19 @@
 # Importing Metis into OpenTheory
 
-# Name
-signature "Name" -> "MetisName"
-structure "Name" -> "MetisName"
+# Hook into OpenTheory names
+# # Name
+# signature "Name" -> "MetisName"
+# structure "Name" -> "MetisName"
+# structure "NameMap" -> "MetisNameMap"
+# structure "NameOrdered" -> "MetisNameOrdered"
+# structure "NameSet" -> "MetisNameSet"
+
+# NameArity
+signature "NameArity" -> "MetisNameArity"
 structure "NameArity" -> "MetisNameArity"
 structure "NameArityMap" -> "MetisNameArityMap"
 structure "NameArityOrdered" -> "MetisNameArityOrdered"
 structure "NameAritySet" -> "MetisNameAritySet"
-structure "NameMap" -> "MetisNameMap"
-structure "NameOrdered" -> "MetisNameOrdered"
-structure "NameSet" -> "MetisNameSet"
 
 # Term
 signature "Term" -> "MetisTerm"
