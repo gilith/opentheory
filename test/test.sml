@@ -80,6 +80,32 @@ val ts' = printval (Print.ppList ppTerm) (sort Term.compare ts);
 val ts'' = printval (Print.ppList ppTerm) (sort Term.alphaCompare ts);
 
 (* ------------------------------------------------------------------------- *)
+val () = SAY "Substitution";
+(* ------------------------------------------------------------------------- *)
+
+val (tm,sub) =
+    let
+      val p = Var.Var (Name.mkGlobal "p", boolType)
+      and q = Var.Var (Name.mkGlobal "q", boolType)
+
+      val t1 = mkImp (mkVar p, mkVar q)
+      val tm = mkAbs (p,t1)
+
+      val tySub = TypeSubst.emptyMap
+      val tmSub = TermSubst.singletonTermMap (q, mkVar p)
+      val sub = (tySub,tmSub)
+    in
+      (tm,sub)
+    end;
+
+val _ = printval ppTerm tm;
+
+val _ = printval ppSubst sub;
+
+val tm' =
+    printval (Print.ppOption ppTerm) (TermSubst.subst (TermSubst.mk sub) tm);
+
+(* ------------------------------------------------------------------------- *)
 val () = SAY "Reading in the hol-light interpretation";
 (* ------------------------------------------------------------------------- *)
 

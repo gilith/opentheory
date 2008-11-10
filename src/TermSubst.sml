@@ -214,7 +214,7 @@ fun avoidCapture vSub' v v' b b' fvShare =
 
       val b' =
           if not vSub' andalso Var.equal v'' v' then b'
-          else renameBoundVar avoidSeen v (Term.mkVar v') b b'
+          else renameBoundVar avoidSeen v (Term.mkVar v'') b b'
     in
       (v'',b',fvShare)
     end;

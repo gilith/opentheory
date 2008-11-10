@@ -10,6 +10,15 @@ Term tests
 [(\p. p) F = F, (\q. q) T = T, (\q. p) q = p]
 
 --------------------------------------------------------------------------
+Substitution
+
+\p. p ==> q
+
+([], [(q, p)])
+
+\p0. p0 ==> p
+
+--------------------------------------------------------------------------
 Reading in the hol-light interpretation
 
 namespace . -> hol-light;
@@ -33,9 +42,9 @@ Reading in hol-light theories
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 0.987  System: 0.013  GC: 0.104  Real: 1.025
-User: 1.668  System: 0.018  GC: 0.084  Real: 1.720
-User: 0.671  System: 0.007  GC: 0.073  Real: 0.703
+User: 1.283  System: 0.019  GC: 0.132  Real: 1.329
+User: 1.624  System: 0.018  GC: 0.085  Real: 1.662
+User: 0.999  System: 0.011  GC: 0.095  Real: 1.026
 REQUIRES { }
 PROVIDES {
   types:
