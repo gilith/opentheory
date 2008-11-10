@@ -31,6 +31,10 @@ val equal : name -> name -> bool
 (* Fresh names.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
+val newName : unit -> name
+
+val newNames : int -> name list
+
 val variantPrime : (name -> bool) -> name -> name
 
 val variantNum : (name -> bool) -> name -> name
@@ -47,14 +51,18 @@ val replace : name * name -> name -> name
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val toString : name -> string
-
-val pp : name Print.pp
+val ppQuoted : name Print.pp
 
 val quotedToString : name -> string
 
-val ppQuoted : name Print.pp
-
 val quotedParser : (char,name) Parse.parser
+
+(* Not inverses, just for interfacing to external tools *)
+
+val pp : name Print.pp
+
+val toString : name -> string
+
+val fromString : string -> name
 
 end

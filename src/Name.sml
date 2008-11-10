@@ -62,6 +62,16 @@ fun equal (Name (ns1,n1)) (Name (ns2,n2)) =
 (* Fresh names.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
+local
+  val new = Namespace.mkNested (Namespace.global,"new");
+
+  fun numName i = Name (new, Int.toString i);
+in
+  fun newName () = numName (newInt ());
+
+  fun newNames n = map numName (newInts n);
+end;
+
 fun variantPrime acceptable =
     let
       fun variant n =
@@ -115,10 +125,6 @@ fun replace (x,y) n : name = if equal n x then y else n;
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun toString (Name ns_n) = Namespace.toString (Namespace.mkNested ns_n);
-
-val pp = Print.ppMap toString Print.ppString;
-
 fun quotedToString (Name ns_n) =
     Namespace.quotedToString (Namespace.mkNested ns_n);
 
@@ -138,6 +144,12 @@ local
 in
   val quotedParser = Namespace.quotedParser >> process;
 end;
+
+fun toString (Name ns_n) = Namespace.toString (Namespace.mkNested ns_n);
+
+val pp = Print.ppMap toString Print.ppString;
+
+val fromString = mkGlobal;
 
 end
 
