@@ -119,10 +119,12 @@ val isBinop : name -> term -> bool
 (* True *)
 
 val trueTerm : term
+val isTrue : term -> bool
 
 (* False *)
 
 val falseTerm : term
+val isFalse : term -> bool
 
 (* Negations *)
 
@@ -135,6 +137,22 @@ val isNeg : term -> bool
 val mkImp : term * term -> term
 val destImp : term -> term * term
 val isImp : term -> bool
+
+(* Conjunctions *)
+
+val mkConj : term * term -> term
+val destConj : term -> term * term
+val isConj : term -> bool
+val listMkConj : term list -> term
+val stripConj : term -> term list
+
+(* Disjunctions *)
+
+val mkDisj : term * term -> term
+val destDisj : term -> term * term
+val isDisj : term -> bool
+val listMkDisj : term list -> term
+val stripDisj : term -> term list
 
 (* Universal quantifiers *)
 

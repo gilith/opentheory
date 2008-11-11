@@ -13,24 +13,6 @@ infixr ==
 val op== = Portable.pointerEqual;
 
 (* ------------------------------------------------------------------------- *)
-(* Helper functions.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun stripSuffix pred s =
-    let
-      fun f 0 = ""
-        | f n =
-          let
-            val n' = n - 1
-          in
-            if pred (String.sub (s,n')) then f n'
-            else String.substring (s,0,n)
-          end
-    in
-      f (size s)
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* A type of names.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -88,25 +70,30 @@ fun variantPrime acceptable =
       variant
     end;
 
-fun variantNum acceptable n =
-    if acceptable n then n
-    else
-      let
-        val Name (ns,s) = n
+local
+  fun isDigitOrPrime #"'" = true
+    | isDigitOrPrime c = Char.isDigit c;
+in
+  fun variantNum acceptable n =
+      if acceptable n then n
+      else
+        let
+          val Name (ns,s) = n
 
-        val s = stripSuffix Char.isDigit s
+          val s = stripSuffix isDigitOrPrime s
 
-        fun variant i =
-            let
-              val s_i = s ^ Int.toString i
+          fun variant i =
+              let
+                val s_i = s ^ Int.toString i
 
-              val n = Name (ns,s_i)
-            in
-              if acceptable n then n else variant (i + 1)
-            end
-      in
-        variant 0
-      end;
+                val n = Name (ns,s_i)
+              in
+                if acceptable n then n else variant (i + 1)
+              end
+        in
+          variant 0
+        end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting names.                                                          *)

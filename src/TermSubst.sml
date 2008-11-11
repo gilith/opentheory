@@ -395,13 +395,6 @@ fun sharingSubst tm sub =
       (tm',sub)
     end;
 
-fun subst sub tm =
-    let
-      val Subst {tySub,stm,seen} = sub
-      val fvShare = Term.newSharingFreeVars
-      val (tm',_,_,_) = rawSharingSubst stm tm tySub seen fvShare
-    in
-      tm'
-    end;
+fun subst sub tm = fst (sharingSubst tm sub);
 
 end

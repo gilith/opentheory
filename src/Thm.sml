@@ -145,7 +145,7 @@ fun eqMp th1 th2 =
       val sequent = {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end
+    end;
 
 local
   fun subAdd (tm,(set,sub)) =

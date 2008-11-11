@@ -88,11 +88,11 @@ val (tm,sub) =
       val p = Var.Var (Name.mkGlobal "p", boolType)
       and q = Var.Var (Name.mkGlobal "q", boolType)
 
-      val t1 = mkImp (mkVar p, mkVar q)
-      val tm = mkAbs (p,t1)
+      val t1 = mkImp (mkVar q, mkVar p)
+      val tm = mkAbs (q,t1)
 
       val tySub = TypeSubst.emptyMap
-      val tmSub = TermSubst.singletonTermMap (q, mkVar p)
+      val tmSub = TermSubst.singletonTermMap (p, mkVar q)
       val sub = (tySub,tmSub)
     in
       (tm,sub)
@@ -104,6 +104,52 @@ val _ = printval ppSubst sub;
 
 val tm' =
     printval (Print.ppOption ppTerm) (TermSubst.subst (TermSubst.mk sub) tm);
+
+val (tm,sub) =
+    let
+      val ty = alphaType
+
+      val x = Var.Var (Name.mkGlobal "x", ty)
+      and x' = Var.Var (Name.mkGlobal "x'", ty)
+      and s = Var.Var (Name.mkGlobal "s", mkFun (ty,boolType))
+      and t = Var.Var (Name.mkGlobal "t", mkFun (ty,boolType))
+      and u = Var.Var (Name.mkGlobal "u", mkFun (ty,boolType))
+
+      val t2 = mkConj (mkForall (x, mkDisj (mkNeg (mkComb (mkVar s, mkVar x)),
+                                            mkComb (mkVar t, mkVar x))),
+                       mkDisj (mkConj (mkComb (mkVar s, mkVar x),
+                               mkNeg (mkComb (mkVar t, mkVar x))),
+                       mkConj (mkNeg (mkComb (mkVar s, mkVar x)),
+                               mkComb (mkVar t, mkVar x))))
+      val t3 = mkForall (x, mkDisj (mkNeg (mkComb (mkVar t, mkVar x)),
+                                    mkComb (mkVar u, mkVar x)))
+      val t4 = mkDisj (mkConj (mkComb (mkVar t, mkVar x'),
+                               mkNeg (mkComb (mkVar u, mkVar x'))),
+                       mkConj (mkNeg (mkComb (mkVar t, mkVar x')),
+                               mkComb (mkVar u, mkVar x')))
+      val t1 = mkExists (x', listMkConj [t2,t3,t4])
+      val t5 = mkComb (mkAbs (x,t1), mkVar x)
+      val tm = mkEq (t5,t1)
+
+      val tySub = TypeSubst.emptyMap
+      val tmSub = TermSubst.singletonTermMap (x, mkVar x')
+      val sub = (tySub,tmSub)
+    in
+      (tm,sub)
+    end;
+
+val _ = printval ppTerm tm;
+
+val _ = printval ppSubst sub;
+
+val tm' =
+    printval (Print.ppOption ppTerm) (TermSubst.subst (TermSubst.mk sub) tm);
+
+val th = axiom {hyp = TermAlphaSet.empty, concl = tm};
+
+val _ = printval (Print.ppPair ppSubst ppThm) (sub,th);
+
+val th' = printval ppThm (Thm.subst (TermSubst.mk sub) th);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Reading in the hol-light interpretation";

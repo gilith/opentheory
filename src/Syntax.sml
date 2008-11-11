@@ -189,6 +189,8 @@ val trueName = Name.mkGlobal trueString;
 
 val trueTerm = mkConst (trueName,boolType);
 
+fun isTrue tm = Term.equal tm trueTerm;
+
 (* False *)
 
 val falseString = "F";
@@ -197,13 +199,20 @@ val falseName = Name.mkGlobal falseString;
 
 val falseTerm = mkConst (falseName,boolType);
 
+fun isFalse tm = Term.equal tm falseTerm;
+
 (* Negations *)
 
 val negString = "~";
 
 val negName = Name.mkGlobal negString;
 
-fun mkNeg tm = mkUnop negName (boolType,tm);
+val mkNeg =
+    let
+      val negTy = mkFun (boolType,boolType)
+    in
+      fn tm => mkUnop negName (negTy,tm)
+    end;
 
 fun destNeg tm =
     let
@@ -233,6 +242,74 @@ fun destImp tm =
     end;
 
 val isImp = can destImp;
+
+(* Conjunctions *)
+
+val conjName = Name.mkGlobal "/\\";
+
+val mkConj =
+    let
+      val conjTy = mkFun (boolType, mkFun (boolType,boolType))
+    in
+      fn (a,b) => mkBinop conjName (conjTy,a,b)
+    end;
+
+fun destConj tm =
+    let
+      val (_,a,b) = destBinop conjName tm
+    in
+      (a,b)
+    end;
+
+val isConj = can destConj;
+
+fun listMkConj tms =
+    case rev tms of
+      [] => trueTerm
+    | tm :: tms => List.foldl mkConj tm tms;
+
+local
+  fun strip acc tm =
+      case total destConj tm of
+        NONE => List.revAppend (acc,[tm])
+      | SOME (a,b) => strip (a :: acc) b;
+in
+  fun stripConj tm = if isTrue tm then [] else strip [] tm;
+end;
+
+(* Disjunctions *)
+
+val disjName = Name.mkGlobal "\\/";
+
+val mkDisj =
+    let
+      val disjTy = mkFun (boolType, mkFun (boolType,boolType))
+    in
+      fn (a,b) => mkBinop disjName (disjTy,a,b)
+    end;
+
+fun destDisj tm =
+    let
+      val (_,a,b) = destBinop disjName tm
+    in
+      (a,b)
+    end;
+
+val isDisj = can destDisj;
+
+fun listMkDisj tms =
+    case rev tms of
+      [] => trueTerm
+    | tm :: tms => List.foldl mkDisj tm tms;
+
+local
+  fun strip acc tm =
+      case total destDisj tm of
+        NONE => List.revAppend (acc,[tm])
+      | SOME (a,b) => strip (a :: acc) b;
+in
+  fun stripDisj tm = if isTrue tm then [] else strip [] tm;
+end;
 
 (* Universal quantifiers *)
 

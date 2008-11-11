@@ -12,11 +12,42 @@ Term tests
 --------------------------------------------------------------------------
 Substitution
 
-\p. p ==> q
+\q. q ==> p
 
-([], [(q, p)])
+([], [(p, q)])
 
-\p0. p0 ==> p
+\q0. q0 ==> q
+
+(\x. ?x'.
+   ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
+   (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x')) x =
+?x'.
+  ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
+  (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x')
+
+([], [(x, x')])
+
+(\x. ?x0.
+   ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
+   (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)) x' =
+?x0.
+  ((!x. ~s x \/ t x) /\ (s x' /\ ~t x' \/ ~s x' /\ t x')) /\
+  (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)
+
+(([], [(x, x')]),
+ |- (\x. ?x'.
+       ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
+       (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x')) x =
+    ?x'.
+      ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
+      (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x'))
+
+|- (\x. ?x0.
+      ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
+      (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)) x' =
+   ?x0.
+     ((!x. ~s x \/ t x) /\ (s x' /\ ~t x' \/ ~s x' /\ t x')) /\
+     (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)
 
 --------------------------------------------------------------------------
 Reading in the hol-light interpretation
@@ -42,9 +73,9 @@ Reading in hol-light theories
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 1.283  System: 0.019  GC: 0.132  Real: 1.329
-User: 1.624  System: 0.018  GC: 0.085  Real: 1.662
-User: 0.999  System: 0.011  GC: 0.095  Real: 1.026
+User: 1.238  System: 0.018  GC: 0.127  Real: 1.275
+User: 1.625  System: 0.021  GC: 0.087  Real: 1.675
+User: 0.949  System: 0.013  GC: 0.092  Real: 0.994
 REQUIRES { }
 PROVIDES {
   types:
