@@ -379,6 +379,83 @@ fun destFun ty =
 
 val isFun = can destFun;
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val maximumSize = ref 1000;
+
+val infixTokens =
+    Print.Infixes
+      [{token = " * ", precedence = 3, leftAssoc = false},
+       {token = " + ", precedence = 2, leftAssoc = false},
+       {token = " -> ", precedence = 1, leftAssoc = false}];
+
+local
+  val typeInfixStrings = Print.tokensInfixes infixTokens;
+
+  fun abbreviateTypeOp n =
+      case Name.toString n of
+        "fun" => "->"
+      | s => s;
+
+  val ppTypeVar = Name.pp;
+
+  val ppTypeOp = Print.ppMap abbreviateTypeOp Print.ppString;
+
+  fun destTypeInfix ty =
+      let
+        val (f,xs) = destOp ty
+        val f = abbreviateTypeOp f
+        val _ = StringSet.member f typeInfixStrings orelse
+                raise Error "destTypeInfix"
+      in
+        case xs of
+          [a,b] => (f,a,b)
+        | _ => raise Bug ("destTypeInfix: bad arity of type operator " ^ f)
+      end;
+
+  val isTypeInfix = can destTypeInfix;
+
+  val typeInfixPrinter = Print.ppInfixes infixTokens (total destTypeInfix);
+
+  fun basic ty =
+      if isVar ty then ppTypeVar (destVar ty)
+      else if isTypeInfix ty then ppBtype ty
+      else
+        let
+          val (f,xs) = destOp ty
+        in
+          Print.blockProgram Print.Inconsistent 0
+            [(case xs of
+                [] => Print.skip
+              | [x] => Print.sequence (basic ty) (Print.addBreak 1)
+              | _ =>
+                Print.sequence
+                  (Print.ppBracket "(" ")" (Print.ppOpList "," ppTypeTop) xs)
+                  (Print.addBreak 1)),
+             ppTypeOp f]
+        end
+
+  and basicr (ty,_) = basic ty
+
+  and ppBtype ty = Print.ppBracket "(" ")" ppTypeTop ty
+
+  and ppTyper tyr = typeInfixPrinter basicr tyr
+
+  and ppTypeTop ty = ppTyper (ty,false);
+in
+  fun pp ty =
+      let
+        val n = size ty
+      in
+        if n <= !maximumSize then ppTypeTop ty
+        else Print.addString ("type{" ^ Int.toString n ^ "}")
+      end;
+end;
+
+val toString = Print.toString pp;
+
 end
 
 structure TypeOrdered =

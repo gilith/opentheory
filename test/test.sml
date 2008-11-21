@@ -93,7 +93,7 @@ val (tm,sub) =
 
       val tySub = TypeSubst.emptyMap
       val tmSub = TermSubst.singletonTermMap (p, mkVar q)
-      val sub = (tySub,tmSub)
+      val sub = TermSubst.mk (tySub,tmSub)
     in
       (tm,sub)
     end;
@@ -102,8 +102,7 @@ val _ = printval ppTerm tm;
 
 val _ = printval ppSubst sub;
 
-val tm' =
-    printval (Print.ppOption ppTerm) (TermSubst.subst (TermSubst.mk sub) tm);
+val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
 
 val (tm,sub) =
     let
@@ -133,7 +132,7 @@ val (tm,sub) =
 
       val tySub = TypeSubst.emptyMap
       val tmSub = TermSubst.singletonTermMap (x, mkVar x')
-      val sub = (tySub,tmSub)
+      val sub = TermSubst.mk (tySub,tmSub)
     in
       (tm,sub)
     end;
@@ -142,14 +141,13 @@ val _ = printval ppTerm tm;
 
 val _ = printval ppSubst sub;
 
-val tm' =
-    printval (Print.ppOption ppTerm) (TermSubst.subst (TermSubst.mk sub) tm);
+val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
 
 val th = axiom {hyp = TermAlphaSet.empty, concl = tm};
 
 val _ = printval (Print.ppPair ppSubst ppThm) (sub,th);
 
-val th' = printval ppThm (Thm.subst (TermSubst.mk sub) th);
+val th' = printval ppThm (Thm.subst sub th);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Reading in the hol-light interpretation";
@@ -195,4 +193,4 @@ val bool =
        filename = "bool.art"};
 
 val summary =
-    withRef (showHyp,false) (printval Summary.pp) (Article.summarize bool);
+    withRef (thmShowHyp,false) (printval Summary.pp) (Article.summarize bool);

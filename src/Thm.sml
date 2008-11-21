@@ -267,6 +267,21 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
     end
     handle Error err => raise Error ("Thm.defineType: " ^ err);
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val showHyp = ref false;
+
+fun pp th =
+    let
+      val Thm {sequent,...} = dest th
+    in
+      Sequent.ppGen {showHyp = !showHyp, connective = "|-"} sequent
+    end;
+
+val toString = Print.toString pp;
+
 end
 
 structure ThmOrdered =

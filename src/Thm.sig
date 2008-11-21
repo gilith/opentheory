@@ -130,4 +130,14 @@ val defineType :
     Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list -> thm ->
     thm * thm
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val showHyp : bool ref
+
+val pp : thm Print.pp
+
+val toString : thm -> string
+
 end

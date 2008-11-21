@@ -52,4 +52,20 @@ val sharingSubst : Term.term -> subst -> Term.term option * subst
 
 val subst : subst -> Term.term -> Term.term option
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val ppTermMap : termSubstMap Print.pp
+
+val toStringTermMap : termSubstMap -> string
+
+val ppMap : substMap Print.pp
+
+val toStringMap : substMap -> string
+
+val pp : subst Print.pp
+
+val toString : subst -> string
+
 end

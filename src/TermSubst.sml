@@ -237,6 +237,9 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                 | SOME ty => SOME (Term.mkConst (n,ty))
 
             val seen = IntMap.insert seen (i,tm')
+(*OpenTheoryTrace1
+            val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
+*)
           in
             (tm',tySub,seen,fvShare)
           end
@@ -255,6 +258,9 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                 | tm' => tm'
 
             val seen = IntMap.insert seen (i,tm')
+(*OpenTheoryTrace1
+            val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
+*)
           in
             (tm',tySub,seen,fvShare)
           end
@@ -274,6 +280,9 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                 | (NONE,NONE) => NONE
 
             val seen = IntMap.insert seen (i,tm')
+(*OpenTheoryTrace1
+            val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
+*)
           in
             (tm',tySub,seen,fvShare)
           end
@@ -299,6 +308,9 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                   end
 
             val seen = IntMap.insert seen (i,tm')
+(*OpenTheoryTrace1
+            val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
+*)
           in
             (tm',tySub,seen,fvShare)
           end
@@ -371,6 +383,24 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val ppTermMap =
+    Print.ppMap VarMap.toList (Print.ppList (Print.ppPair Var.pp Term.pp));
+
+val toStringTermMap = Print.toString ppTermMap;
+
+val ppMap = Print.ppPair TypeSubst.ppMap ppTermMap;
+
+val toStringMap = Print.toString ppMap;
+
+fun pp (Subst {tySub,stm,...}) =
+    Print.ppPair TypeSubst.pp ppTermMap (tySub,stm);
+
+val toString = Print.toString pp;
+
+(* ------------------------------------------------------------------------- *)
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -387,6 +417,9 @@ fun substType (Subst {tySub,...}) ty = TypeSubst.subst tySub ty;
 
 fun sharingSubst tm sub =
     let
+(*OpenTheoryTrace1
+      val () = Print.trace pp "TermSubst.sharingSubst: sub" sub
+*)
       val Subst {tySub,stm,seen} = sub
       val fvShare = Term.newSharingFreeVars
       val (tm',tySub,seen,_) = rawSharingSubst stm tm tySub seen fvShare

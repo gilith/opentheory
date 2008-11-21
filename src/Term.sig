@@ -156,4 +156,16 @@ val allDeclared : unit -> NameSet.set
 
 val declare : Name.name -> Type.ty -> unit
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val maximumSize : int ref
+
+val showTypes : bool ref
+
+val pp : term Print.pp
+
+val toString : term -> string
+
 end

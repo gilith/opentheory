@@ -667,6 +667,207 @@ fun destEq tm =
 
 val isEq = can destEq;
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val maximumSize = ref 1000;
+
+val showTypes = ref false;
+
+val infixTokens =
+    Print.Infixes
+      [(* ML style *)
+       {token = " / ", precedence = 7, leftAssoc = true},
+       {token = " div ", precedence = 7, leftAssoc = true},
+       {token = " mod ", precedence = 7, leftAssoc = true},
+       {token = " * ", precedence = 7, leftAssoc = true},
+       {token = " + ", precedence = 6, leftAssoc = true},
+       {token = " - ", precedence = 6, leftAssoc = true},
+       {token = " ^ ", precedence = 6, leftAssoc = true},
+       {token = " @ ", precedence = 5, leftAssoc = false},
+       {token = " :: ", precedence = 5, leftAssoc = false},
+       {token = " = ", precedence = 4, leftAssoc = true},
+       {token = " <> ", precedence = 4, leftAssoc = true},
+       {token = " <= ", precedence = 4, leftAssoc = true},
+       {token = " < ", precedence = 4, leftAssoc = true},
+       {token = " >= ", precedence = 4, leftAssoc = true},
+       {token = " > ", precedence = 4, leftAssoc = true},
+       {token = " o ", precedence = 3, leftAssoc = true},
+       (* HOL style *)
+       {token = " /\\ ", precedence = ~1, leftAssoc = false},
+       {token = " \\/ ", precedence = ~2, leftAssoc = false},
+       {token = " ==> ", precedence = ~3, leftAssoc = false},
+       {token = " <=> ", precedence = ~4, leftAssoc = false}];
+
+local
+  val negString = "~";
+
+  val binders = ["\\","!","?","?!","select"];
+
+  val infixStrings = Print.tokensInfixes infixTokens;
+
+  val binderStrings = StringSet.fromList binders;
+
+  val specialStrings =
+      StringSet.add (StringSet.union infixStrings binderStrings) negString;
+
+  fun abbreviateConst n =
+      case Name.toString n of
+        s => s;
+
+  fun specialString n = StringSet.member n specialStrings;
+
+  val ppConst =
+      let
+        fun f (n,_) =
+            let
+              val n = abbreviateConst n
+            in
+              if specialString n then "(" ^ n ^ ")" else n
+            end
+      in
+        Print.ppMap f Print.ppString
+      end;
+
+  fun destInfix tm =
+      let
+        val (t,b) = destComb tm
+        val (c,a) = destComb t
+        val (n,_) = destConst c
+        val n = abbreviateConst n
+      in
+        if StringSet.member n infixStrings then (n,a,b)
+        else raise Error "Syntax.destInfix"
+      end;
+
+  val isInfix = can destInfix;
+
+  fun destNeg tm =
+      let
+        val (c,a) = destComb tm
+        val (n,_) = destConst c
+        val n = abbreviateConst n
+      in
+        if n = negString then a else raise Error "Syntax.destNeg"
+      end;
+
+  fun countNegs tm =
+      case total destNeg tm of
+        NONE => (0,tm)
+      | SOME t => let val (n,r) = countNegs t in (n + 1, r) end;
+
+  fun destBinder tm =
+      let
+        val (n,tm) =
+            if isAbs tm then ("\\",tm)
+            else
+              let
+                val (c,t) = destComb tm
+                val (n,_) = destConst c
+                val n = abbreviateConst n
+              in
+                if StringSet.member n binderStrings then (n,t)
+                else raise Error "Syntax.destBinder"
+              end
+
+        val (v,b) = destAbs tm
+      in
+        (n,v,b)
+      end;
+
+  val isBinder = can destBinder;
+
+  fun stripBinder tm =
+      let
+        val (n,v,b) = destBinder tm
+
+        fun dest vs t =
+            case total destBinder t of
+              NONE => (vs,t)
+            | SOME (n',v,b) =>
+              if n' = n then dest (v :: vs) b else (vs,t)
+
+        val (vs,b) = dest [] b
+      in
+        (n, v, rev vs, b)
+      end;
+
+  val infixPrinter = Print.ppInfixes infixTokens (total destInfix);
+
+  fun basic tm =
+      if isVar tm then Var.pp (destVar tm)
+      else if isConst tm then ppConst (destConst tm)
+      else ppBtm tm
+
+  and application tm =
+      case total destComb tm of
+        NONE => basic tm
+      | SOME (f,x) =>
+        Print.program
+          [function f,
+           Print.addBreak 1,
+           basic x]
+
+  and function tm = if isInfix tm then ppBtm tm else binder (tm,true)
+
+  and binder (tm,r) =
+      let
+        fun ppBind tm =
+            let
+              val (sym,v,vs,body) = stripBinder tm
+
+              val printSym =
+                  case String.size sym of
+                    0 => Print.addString "EmptyBinder"
+                  | n =>
+                    let
+                      val pp = Print.addString sym
+                    in
+                      if not (Char.isAlphaNum (String.sub (sym, n - 1))) then pp
+                      else Print.sequence pp (Print.addString " ")
+                    end
+            in
+              Print.program
+                [printSym,
+                 Var.pp v,
+                 Print.program
+                   (map (Print.sequence (Print.addBreak 1) o Var.pp) vs),
+                 Print.addString ".",
+                 Print.addBreak 1,
+                 if isBinder body then ppBind body else ppTm (body,false)]
+            end
+
+        val ppBinder = Print.block Print.Inconsistent 2 o ppBind
+      in
+        if not (isBinder tm) then application
+        else (if r then Print.ppBracket "(" ")" else I) ppBinder
+      end tm
+
+  and negs (tm,r) =
+      let
+        val (n,tm) = countNegs tm
+      in
+        Print.blockProgram Print.Inconsistent n
+          [Print.duplicate n (Print.addString negString),
+           if isInfix tm then ppBtm tm else binder (tm,r)]
+      end
+
+  and ppBtm tm = Print.ppBracket "(" ")" ppTm (tm,false)
+
+  and ppTm tmr = infixPrinter negs tmr;
+in
+  fun pp tm =
+      let
+        val n = size tm
+      in
+        if n <= !maximumSize then ppTm (tm,false)
+        else Print.addString ("term{" ^ Int.toString n ^ "}")
+      end;
+end;
+
+val toString = Print.toString pp;
+
 end
 
 structure TermOrdered =

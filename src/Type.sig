@@ -120,4 +120,14 @@ val declaredArity : Name.name -> int option
 
 val allDeclared : unit -> NameSet.set
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val maximumSize : int ref
+
+val pp : ty Print.pp
+
+val toString : ty -> string
+
 end

@@ -164,4 +164,17 @@ in
       handle Error err => raise Error ("TypeSubst.match: " ^ err);
 end;
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val ppMap =
+    Print.ppMap NameMap.toList (Print.ppList (Print.ppPair Name.pp Type.pp));
+
+val toStringMap = Print.toString ppMap;
+
+fun pp (Subst {subMap,...}) = ppMap subMap;
+
+val toString = Print.toString pp;
+
 end

@@ -196,24 +196,35 @@ val indType : ty
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val maximumSize : int ref
-val showTypes : bool ref
-val showHyp : bool ref
+val typeMaximumSize : int ref
+val varShowTypes : bool ref
+val termMaximumSize : int ref
+val termShowTypes : bool ref
+val thmShowHyp : bool ref
 
 val ppType : ty Print.pp
 val typeToString : ty -> string
 
+val ppVar : var Print.pp
+val varToString : var -> string
+
 val ppTerm : term Print.pp
 val termToString : term -> string
 
-val ppTypeSubst : TypeSubst.substMap Print.pp
-val typeSubstToString : TypeSubst.substMap -> string
+val ppTypeSubstMap : TypeSubst.substMap Print.pp
+val typeSubstMapToString : TypeSubst.substMap -> string
 
-val ppTermSubst : TermSubst.termSubstMap Print.pp
-val termSubstToString : TermSubst.termSubstMap -> string
+val ppTypeSubst : TypeSubst.subst Print.pp
+val typeSubstToString : TypeSubst.subst -> string
 
-val ppSubst : TermSubst.substMap Print.pp
-val substToString : TermSubst.substMap -> string
+val ppTermSubstMap : TermSubst.termSubstMap Print.pp
+val termSubstMapToString : TermSubst.termSubstMap -> string
+
+val ppSubstMap : TermSubst.substMap Print.pp
+val substMapToString : TermSubst.substMap -> string
+
+val ppSubst : TermSubst.subst Print.pp
+val substToString : TermSubst.subst -> string
 
 val ppSequent : sequent Print.pp
 val sequentToString : sequent -> string

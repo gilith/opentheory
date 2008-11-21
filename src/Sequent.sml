@@ -41,6 +41,44 @@ fun typeOps {hyp,concl} =
 fun consts {hyp,concl} =
     NameSet.union (TermAlphaSet.consts hyp) (Term.consts concl);
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";
+in
+  fun ppGen {showHyp, connective} =
+      let
+        val connective_space = connective ^ " "
+        val indent_space = size connective_space
+        val space_connective = " " ^ connective
+      in
+        fn {hyp,concl} =>
+           if TermAlphaSet.null hyp then
+             Print.blockProgram Print.Inconsistent indent_space
+               [Print.addString connective_space,
+                Term.pp concl]
+           else
+             Print.block Print.Inconsistent 2
+               (Print.ppOp2 space_connective
+                  (Print.ppBracket "{" "}"
+                     (if showHyp then
+                        (Print.ppMap TermAlphaSet.toList
+                           (Print.ppOpList "," Term.pp))
+                      else
+                        Print.ppMap (dots o TermAlphaSet.size)
+                          Print.ppString))
+                  Term.pp (hyp,concl))
+      end;
+end;
+
+val showHyp = ref false;
+
+fun pp seq = ppGen {showHyp = !showHyp, connective = "?-"} seq;
+
+val toString = Print.toString pp;
+
 end
 
 structure SequentOrdered =

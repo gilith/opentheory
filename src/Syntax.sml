@@ -479,309 +479,41 @@ val indType = mkTypeOp (indName,[]);
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val maximumSize = ref 1000;
+val typeMaximumSize = Type.maximumSize;
+val varShowTypes = Var.showTypes;
+val termMaximumSize = Term.maximumSize;
+val termShowTypes = Term.showTypes;
+val sequentShowHyp = Sequent.showHyp;
+val thmShowHyp = Thm.showHyp;
 
-(* Types *)
+val ppType = Type.pp;
+val typeToString = Type.toString;
 
-val typeInfixTokens =
-    Print.Infixes
-      [{token = " * ", precedence = 3, leftAssoc = false},
-       {token = " + ", precedence = 2, leftAssoc = false},
-       {token = " -> ", precedence = 1, leftAssoc = false}];
+val ppVar = Var.pp;
+val varToString = Var.toString;
 
-local
-  val typeInfixStrings = Print.tokensInfixes typeInfixTokens;
+val ppTerm = Term.pp;
+val termToString = Term.toString;
 
-  fun abbreviateTypeOp n =
-      case Name.toString n of
-        "fun" => "->"
-      | s => s;
+val ppTypeSubstMap = TypeSubst.ppMap;
+val typeSubstMapToString = TypeSubst.toStringMap;
 
-  val ppTypeVar = Name.pp;
+val ppTypeSubst = TypeSubst.pp;
+val typeSubstToString = TypeSubst.toString;
 
-  val ppTypeOp = Print.ppMap abbreviateTypeOp Print.ppString;
+val ppTermSubstMap = TermSubst.ppTermMap;
+val termSubstMapToString = TermSubst.toStringTermMap;
 
-  fun destTypeInfix ty =
-      let
-        val (f,xs) = destTypeOp ty
-        val f = abbreviateTypeOp f
-        val _ = StringSet.member f typeInfixStrings orelse
-                raise Error "destTypeInfix"
-      in
-        case xs of
-          [a,b] => (f,a,b)
-        | _ => raise Bug ("destTypeInfix: bad arity of type operator " ^ f)
-      end;
+val ppSubstMap = TermSubst.ppMap;
+val substMapToString = TermSubst.toStringMap;
 
-  val isTypeInfix = can destTypeInfix;
+val ppSubst = TermSubst.pp;
+val substToString = TermSubst.toString;
 
-  val typeInfixPrinter = Print.ppInfixes typeInfixTokens (total destTypeInfix);
+val ppSequent = Sequent.pp;
+val sequentToString = Sequent.toString;
 
-  fun basic ty =
-      if isTypeVar ty then ppTypeVar (destTypeVar ty)
-      else if isTypeInfix ty then ppBtype ty
-      else
-        let
-          val (f,xs) = destTypeOp ty
-        in
-          Print.blockProgram Print.Inconsistent 0
-            [(case xs of
-                [] => Print.skip
-              | [x] => Print.sequence (basic ty) (Print.addBreak 1)
-              | _ =>
-                Print.sequence
-                  (Print.ppBracket "(" ")" (Print.ppOpList "," ppTypeTop) xs)
-                  (Print.addBreak 1)),
-             ppTypeOp f]
-        end
-
-  and basicr (ty,_) = basic ty
-
-  and ppBtype ty = Print.ppBracket "(" ")" ppTypeTop ty
-
-  and ppTyper tyr = typeInfixPrinter basicr tyr
-
-  and ppTypeTop ty = ppTyper (ty,false);
-in
-  fun ppType ty =
-      let
-        val n = Type.size ty
-      in
-        if n <= !maximumSize then ppTypeTop ty
-        else Print.addString ("type{" ^ Int.toString n ^ "}")
-      end;
-end;
-
-val typeToString = Print.toString ppType;
-
-(* Terms *)
-
-val showTypes = ref false;
-
-val infixTokens =
-    Print.Infixes
-      [(* ML style *)
-       {token = " / ", precedence = 7, leftAssoc = true},
-       {token = " div ", precedence = 7, leftAssoc = true},
-       {token = " mod ", precedence = 7, leftAssoc = true},
-       {token = " * ", precedence = 7, leftAssoc = true},
-       {token = " + ", precedence = 6, leftAssoc = true},
-       {token = " - ", precedence = 6, leftAssoc = true},
-       {token = " ^ ", precedence = 6, leftAssoc = true},
-       {token = " @ ", precedence = 5, leftAssoc = false},
-       {token = " :: ", precedence = 5, leftAssoc = false},
-       {token = " = ", precedence = 4, leftAssoc = true},
-       {token = " <> ", precedence = 4, leftAssoc = true},
-       {token = " <= ", precedence = 4, leftAssoc = true},
-       {token = " < ", precedence = 4, leftAssoc = true},
-       {token = " >= ", precedence = 4, leftAssoc = true},
-       {token = " > ", precedence = 4, leftAssoc = true},
-       {token = " o ", precedence = 3, leftAssoc = true},
-       (* HOL style *)
-       {token = " /\\ ", precedence = ~1, leftAssoc = false},
-       {token = " \\/ ", precedence = ~2, leftAssoc = false},
-       {token = " ==> ", precedence = ~3, leftAssoc = false},
-       {token = " <=> ", precedence = ~4, leftAssoc = false}];
-
-val ppVar =
-    let
-      val pp1 = Print.ppBracket "(" ")" (Print.ppOp2 " :" Name.pp ppType)
-      val pp2 = Print.ppMap fst Name.pp
-    in
-      fn Var.Var n_ty => (if !showTypes then pp1 else pp2) n_ty
-    end;
-
-local
-  val binders =
-      [(absString,stripAbs),
-       (forallString,stripForall),
-       (existsString,stripExists),
-       (existsUniqueString,stripExistsUnique),
-       (selectString,stripSelect)];
-
-  val infixStrings = Print.tokensInfixes infixTokens;
-
-  val binderStrings = StringSet.fromList (map fst binders);
-
-  val specialStrings =
-      StringSet.add (StringSet.union infixStrings binderStrings) negString;
-
-  fun abbreviateConst n =
-      case Name.toString n of
-        s => s;
-
-  fun specialString n = StringSet.member n specialStrings;
-
-  val ppConst =
-      let
-        fun f (n,_) =
-            let
-              val n = abbreviateConst n
-            in
-              if specialString n then "(" ^ n ^ ")" else n
-            end
-      in
-        Print.ppMap f Print.ppString
-      end;
-
-  fun destInfix tm =
-      let
-        val (t,b) = destComb tm
-        val (c,a) = destComb t
-        val (n,_) = destConst c
-        val n = abbreviateConst n
-      in
-        if StringSet.member n infixStrings then (n,a,b)
-        else raise Error "Syntax.destInfix"
-      end;
-
-  val isInfix = can destInfix;
-
-  fun countNegs tm =
-      case total destNeg tm of
-        NONE => (0,tm)
-      | SOME t => let val (n,r) = countNegs t in (n + 1, r) end;
-
-  fun destBinder tm =
-      let
-        fun f (s,d) = case d tm of ([],_) => NONE | (vs,b) => SOME (s,vs,b)
-      in
-        case first f binders of
-          SOME x => x
-        | NONE => raise Error "Syntax.destBinder"
-      end;
-
-  val isBinder = can destBinder;
-
-  val infixPrinter = Print.ppInfixes infixTokens (total destInfix);
-
-  fun basic tm =
-      if isVar tm then ppVar (destVar tm)
-      else if isConst tm then ppConst (destConst tm)
-      else ppBtm tm
-
-  and application tm =
-      case total destComb tm of
-        NONE => basic tm
-      | SOME (f,x) =>
-        Print.program
-          [function f,
-           Print.addBreak 1,
-           basic x]
-
-  and function tm = if isInfix tm then ppBtm tm else binder (tm,true)
-
-  and binder (tm,r) =
-      let
-        fun ppBind tm =
-            let
-              val (sym,vs,body) = destBinder tm
-              val (v,vs) = hdTl vs
-              val printSym =
-                  case size sym of
-                    0 => Print.addString "EmptyBinder"
-                  | n =>
-                    let
-                      val pp = Print.addString sym
-                    in
-                      if not (Char.isAlphaNum (String.sub (sym, n - 1))) then pp
-                      else Print.sequence pp (Print.addString " ")
-                    end
-            in
-              Print.program
-                [printSym,
-                 ppVar v,
-                 Print.program
-                   (map (Print.sequence (Print.addBreak 1) o ppVar) vs),
-                 Print.addString ".",
-                 Print.addBreak 1,
-                 if isBinder body then ppBind body else ppTm (body,false)]
-            end
-
-        val ppBinder = Print.block Print.Inconsistent 2 o ppBind
-      in
-        if not (isBinder tm) then application
-        else (if r then Print.ppBracket "(" ")" else I) ppBinder
-      end tm
-
-  and negs (tm,r) =
-      let
-        val (n,tm) = countNegs tm
-      in
-        Print.blockProgram Print.Inconsistent n
-          [Print.duplicate n (Print.addString negString),
-           if isInfix tm then ppBtm tm else binder (tm,r)]
-      end
-
-  and ppBtm tm = Print.ppBracket "(" ")" ppTm (tm,false)
-
-  and ppTm tmr = infixPrinter negs tmr;
-in
-  fun ppTerm tm =
-      let
-        val n = Term.size tm
-      in
-        if n <= !maximumSize then ppTm (tm,false)
-        else Print.addString ("term{" ^ Int.toString n ^ "}")
-      end;
-end;
-
-val termToString = Print.toString ppTerm;
-
-(* Substitutions *)
-
-val ppTypeSubst =
-    Print.ppMap NameMap.toList (Print.ppList (Print.ppPair Name.pp ppType));
-
-val typeSubstToString = Print.toString ppTypeSubst;
-
-val ppTermSubst =
-    Print.ppMap VarMap.toList (Print.ppList (Print.ppPair ppVar ppTerm));
-
-val termSubstToString = Print.toString ppTermSubst;
-
-val ppSubst = Print.ppPair ppTypeSubst ppTermSubst;
-
-val substToString = Print.toString ppSubst;
-
-(* Sequents and theorems *)
-
-val showHyp = ref true;
-
-local
-  fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";
-
-  fun ppSeq binop =
-      let
-        val binop_space = binop ^ " "
-        val indent_space = size binop_space
-        val space_binop = " " ^ binop
-      in
-        fn {hyp,concl} =>
-           if TermAlphaSet.null hyp then
-             Print.blockProgram Print.Inconsistent indent_space
-               [Print.addString binop_space,
-                ppTerm concl]
-           else
-             Print.block Print.Inconsistent 2
-               (Print.ppOp2 space_binop
-                  (Print.ppBracket "{" "}"
-                     (if !showHyp then
-                        (Print.ppMap TermAlphaSet.toList
-                           (Print.ppOpList "," ppTerm))
-                      else
-                        Print.ppMap (dots o TermAlphaSet.size)
-                          Print.ppString))
-                  ppTerm (hyp,concl))
-      end;
-in
-  val ppSequent = ppSeq "?-";
-
-  val ppThm = Print.ppMap sequent (ppSeq "|-");
-end;
-
-val sequentToString = Print.toString ppSequent;
-
-val thmToString = Print.toString ppThm;
+val ppThm = Thm.pp;
+val thmToString = Thm.toString;
 
 end

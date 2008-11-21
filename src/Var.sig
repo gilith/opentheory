@@ -62,4 +62,14 @@ val sharingSubst : var -> TypeSubst.subst -> var option * TypeSubst.subst
 
 val subst : TypeSubst.subst -> var -> var option
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val showTypes : bool ref
+
+val pp : var Print.pp
+
+val toString : var -> string
+
 end

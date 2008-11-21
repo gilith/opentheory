@@ -30,4 +30,16 @@ val typeOps : sequent -> NameSet.set
 
 val consts : sequent -> NameSet.set
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val showHyp : bool ref
+
+val ppGen : {showHyp : bool, connective : string} -> sequent Print.pp
+
+val pp : sequent Print.pp
+
+val toString : sequent -> string
+
 end

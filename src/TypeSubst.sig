@@ -48,4 +48,16 @@ val matchList : (Type.ty * Type.ty) list -> subst
 
 val match : Type.ty -> Type.ty -> subst
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val ppMap : substMap Print.pp
+
+val toStringMap : substMap -> string
+
+val pp : subst Print.pp
+
+val toString : subst -> string
+
 end

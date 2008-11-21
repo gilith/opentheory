@@ -89,6 +89,22 @@ fun subst sub (Var (n,ty)) =
       SOME ty => SOME (Var (n,ty))
     | NONE => NONE;
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val showTypes = ref false;
+
+val pp =
+    let
+      val pp1 = Print.ppBracket "(" ")" (Print.ppOp2 " :" Name.pp Type.pp)
+      val pp2 = Print.ppMap fst Name.pp
+    in
+      fn Var n_ty => (if !showTypes then pp1 else pp2) n_ty
+    end;
+
+val toString = Print.toString pp;
+
 end
 
 structure VarSet =
