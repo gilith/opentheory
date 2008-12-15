@@ -22,8 +22,6 @@ val global = Namespace [];
 
 fun isGlobal (Namespace n) = null n;
 
-val globalString = ".";
-
 (* ------------------------------------------------------------------------- *)
 (* Nested namespaces (i.e., everything except the top level).                *)
 (* ------------------------------------------------------------------------- *)
@@ -79,11 +77,11 @@ local
   fun dotify ns = join "." ns;
 in
   fun toString (n as Namespace ns) =
-      if isGlobal n then globalString else dotify ns;
+      if isGlobal n then "<global>" else dotify ns;
 
   fun quotedToString (n as Namespace ns) =
       let
-        val s = if isGlobal n then globalString else dotify (map escapeString ns)
+        val s = if isGlobal n then "" else dotify (map escapeString ns)
       in
         "\"" ^ s ^ "\""
       end;
@@ -100,8 +98,6 @@ local
   infixr 6 ||
 
   open Parse;
-
-  val globalChars = explode globalString;
 
   val isSpecialChar = C mem (explode "\\\".");
 
@@ -125,8 +121,9 @@ local
   val dotComponentParser = (exact #"." ++ componentParser) >> snd;
 
   val parser =
-      (exactList globalChars >> K global) ||
-      (componentParser ++ many dotComponentParser) >> (Namespace o op::);
+      (componentParser ++ many dotComponentParser) >>
+      (fn ("",[]) => global
+        | (n,ns) => Namespace (n :: ns));
 in
   val quotedParser =
       (exact #"\"" ++ parser ++ exact #"\"") >> (fn (_,(x,_)) => x);

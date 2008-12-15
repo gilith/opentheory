@@ -37,7 +37,7 @@ Substitution
 --------------------------------------------------------------------------
 Reading in the hol-light interpretation
 
-namespace . -> hol-light;
+namespace <global> -> hol-light;
 type hol-light.bool -> bool;
 type hol-light.fun -> fun;
 type hol-light.prod -> *;
@@ -58,9 +58,9 @@ Reading in hol-light theories
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 1.252  System: 0.015  GC: 0.129  Real: 1.285
-User: 1.592  System: 0.015  GC: 0.081  Real: 1.621
-User: 0.971  System: 0.009  GC: 0.093  Real: 1.014
+User: 1.251  System: 0.015  GC: 0.127  Real: 1.276
+User: 1.596  System: 0.017  GC: 0.083  Real: 1.627
+User: 0.976  System: 0.009  GC: 0.093  Real: 0.999
 REQUIRES { }
 PROVIDES {
   types:

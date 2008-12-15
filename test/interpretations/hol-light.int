@@ -1,4 +1,4 @@
-namespace "." -> "hol-light";
+namespace "" -> "hol-light";
 type "hol-light.bool" -> "bool";
 type "hol-light.fun" -> "fun";
 type "hol-light.prod" -> "*";
