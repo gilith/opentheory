@@ -106,6 +106,31 @@ val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
 
 val (tm,sub) =
     let
+      val x = Var.Var (Name.mkGlobal "x", boolType)
+      and y = Var.Var (Name.mkGlobal "y", boolType)
+
+      val tx = mkVar x
+      and ty = mkVar y
+
+      val t0 = mkForall (y,ty)
+      val t1 = mkConj (t0,ty)
+      val tm = mkAbs (x,t1)
+
+      val tySub = TypeSubst.emptyMap
+      val tmSub = TermSubst.singletonTermMap (y,tx)
+      val sub = TermSubst.mk (tySub,tmSub)
+    in
+      (tm,sub)
+    end;
+
+val _ = printval ppTerm tm;
+
+val _ = printval ppSubst sub;
+
+val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
+
+val (tm,sub) =
+    let
       val ty = alphaType
 
       val x = Var.Var (Name.mkGlobal "x", ty)
@@ -114,21 +139,20 @@ val (tm,sub) =
       and t = Var.Var (Name.mkGlobal "t", mkFun (ty,boolType))
       and u = Var.Var (Name.mkGlobal "u", mkFun (ty,boolType))
 
-      val t2 = mkConj (mkForall (x, mkDisj (mkNeg (mkComb (mkVar s, mkVar x)),
-                                            mkComb (mkVar t, mkVar x))),
-                       mkDisj (mkConj (mkComb (mkVar s, mkVar x),
-                               mkNeg (mkComb (mkVar t, mkVar x))),
-                       mkConj (mkNeg (mkComb (mkVar s, mkVar x)),
-                               mkComb (mkVar t, mkVar x))))
-      val t3 = mkForall (x, mkDisj (mkNeg (mkComb (mkVar t, mkVar x)),
-                                    mkComb (mkVar u, mkVar x)))
-      val t4 = mkDisj (mkConj (mkComb (mkVar t, mkVar x'),
-                               mkNeg (mkComb (mkVar u, mkVar x'))),
-                       mkConj (mkNeg (mkComb (mkVar t, mkVar x')),
-                               mkComb (mkVar u, mkVar x')))
-      val t1 = mkExists (x', listMkConj [t2,t3,t4])
-      val t5 = mkComb (mkAbs (x,t1), mkVar x)
-      val tm = mkEq (t5,t1)
+      val sx = mkComb (mkVar s, mkVar x)
+      and sx' = mkComb (mkVar s, mkVar x')
+      and tx = mkComb (mkVar t, mkVar x)
+      and tx' = mkComb (mkVar t, mkVar x')
+      and ux = mkComb (mkVar u, mkVar x)
+      and ux' = mkComb (mkVar u, mkVar x')
+
+      val t0 = mkForall (x, mkDisj (mkNeg sx, tx))
+      and t1 = mkDisj (mkConj (sx, mkNeg tx), mkConj (mkNeg sx, tx))
+      and t2 = mkForall (x, mkDisj (mkNeg tx, ux))
+      and t3 = mkDisj (mkConj (tx', mkNeg ux'), mkConj (mkNeg tx', ux'))
+
+      val t4 = mkConj (mkConj (t0,t1), mkConj (t2,t3))
+      val tm = mkAbs (x',t4)
 
       val tySub = TypeSubst.emptyMap
       val tmSub = TermSubst.singletonTermMap (x, mkVar x')
@@ -142,12 +166,6 @@ val _ = printval ppTerm tm;
 val _ = printval ppSubst sub;
 
 val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
-
-val th = axiom {hyp = TermAlphaSet.empty, concl = tm};
-
-val _ = printval (Print.ppPair ppSubst ppThm) (sub,th);
-
-val th' = printval ppThm (Thm.subst sub th);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Reading in the hol-light interpretation";

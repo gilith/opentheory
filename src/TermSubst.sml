@@ -23,6 +23,9 @@ val singletonTermMap : Var.var * Term.term -> termSubstMap = VarMap.singleton;
 val fromListTermMap : (Var.var * Term.term) list -> termSubstMap =
     VarMap.fromList;
 
+val ppTermMap =
+    Print.ppMap VarMap.toList (Print.ppList (Print.ppPair Var.pp Term.pp));
+
 (* ------------------------------------------------------------------------- *)
 (* Type and term substitution maps.                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -46,36 +49,48 @@ fun mkAvoidSet var ty' =
 
       fun freeVarsTy tm' seen' fvShare =
           let
-            val i = Term.id tm'
+            val i' = Term.id tm'
           in
-            case IntMap.peek seen' i of
+            case IntMap.peek seen' i' of
               SOME avoid => (avoid,seen',fvShare)
             | NONE =>
               let
                 val (fvs,fvShare) = Term.sharingFreeVars tm' fvShare
                 val avoid = VarSet.foldl addTy NameSet.empty fvs
-                val seen' = IntMap.insert seen' (i,avoid)
+(*OpenTheoryTrace5
+                val () = Print.trace Term.pp
+                           "TermSubst.mkAvoidSet.freeVarsTy: tm'" tm'
+                val () = Print.trace NameSet.pp
+                           "TermSubst.mkAvoidSet.freeVarsTy: avoid" avoid
+*)
+                val seen' = IntMap.insert seen' (i',avoid)
               in
                 (avoid,seen',fvShare)
               end
           end
 
-      fun mkAvoid tm tm' seen seen' fvShare =
+      fun mkAvoid tm tm' seen2 seen' fvShare =
           let
-            val i = Term.id tm
+(*OpenTheoryTrace5
+            val () = Print.trace Term.pp
+                       "TermSubst.mkAvoidSet.mkAvoid: tm" tm
+            val () = Print.trace Term.pp
+                       "TermSubst.mkAvoidSet.mkAvoid: tm'" tm'
+*)
+            val i2 = (Term.id tm, Term.id tm')
           in
-            case IntMap.peek seen i of
-              SOME (free,avoid) => (free,avoid,seen,seen',fvShare)
+            case IntPairMap.peek seen2 i2 of
+              SOME (free,avoid) => (free,avoid,seen2,seen',fvShare)
             | NONE =>
               let
-                val (free,avoid,seen,seen',fvShare) =
+                val (free,avoid,seen2,seen',fvShare) =
                     case Term.dest tm of
                       Term.Const _ =>
                       let
                         val free = false
                         val avoid = NameSet.empty
                       in
-                        (free,avoid,seen,seen',fvShare)
+                        (free,avoid,seen2,seen',fvShare)
                       end
                     | Term.Var v =>
                       if Var.equal var v then
@@ -83,7 +98,7 @@ fun mkAvoidSet var ty' =
                           val free = true
                           val avoid = NameSet.empty
                         in
-                          (free,avoid,seen,seen',fvShare)
+                          (free,avoid,seen2,seen',fvShare)
                         end
                       else
                         let
@@ -91,30 +106,30 @@ fun mkAvoidSet var ty' =
                           val (avoid,seen',fvShare) =
                               freeVarsTy tm' seen' fvShare
                         in
-                          (free,avoid,seen,seen',fvShare)
+                          (free,avoid,seen2,seen',fvShare)
                         end
                     | Term.Comb (f,a) =>
                       let
                         val (f',a') = Term.destComb tm'
 
-                        val (fFree,fAvoid,seen,seen',fvShare) =
-                            mkAvoid f f' seen seen' fvShare
+                        val (fFree,fAvoid,seen2,seen',fvShare) =
+                            mkAvoid f f' seen2 seen' fvShare
 
-                        val (aFree,aAvoid,seen,seen',fvShare) =
-                            mkAvoid a a' seen seen' fvShare
+                        val (aFree,aAvoid,seen2,seen',fvShare) =
+                            mkAvoid a a' seen2 seen' fvShare
 
                         val free = fFree orelse aFree
 
                         val avoid = NameSet.union fAvoid aAvoid
                       in
-                        (free,avoid,seen,seen',fvShare)
+                        (free,avoid,seen2,seen',fvShare)
                       end
                     | Term.Abs (v,b) =>
                       let
                         val (v',b') = Term.destAbs tm'
 
-                        val (free,avoid,seen,seen',fvShare) =
-                            mkAvoid b b' seen seen' fvShare
+                        val (free,avoid,seen2,seen',fvShare) =
+                            mkAvoid b b' seen2 seen' fvShare
 
                         val (free,avoid) =
                             if Var.equal var v then (false,avoid)
@@ -126,55 +141,59 @@ fun mkAvoidSet var ty' =
                                 (free,avoid)
                               end
                       in
-                        (free,avoid,seen,seen',fvShare)
+                        (free,avoid,seen2,seen',fvShare)
                       end
 
-                val seen = IntMap.insert seen (i,(free,avoid))
+                val seen2 = IntPairMap.insert seen2 (i2,(free,avoid))
               in
-                (free,avoid,seen,seen',fvShare)
+                (free,avoid,seen2,seen',fvShare)
               end
           end
 
-      val seen = IntMap.new ()
+(*OpenTheoryTrace4
+      val () = Print.trace Var.pp "TermSubst.mkAvoidSet: var" var
+      val () = Print.trace Type.pp "TermSubst.mkAvoidSet: ty'" ty'
+*)
+      val seen2 = IntPairMap.new ()
       val seen' = IntMap.new ()
     in
       fn tm => fn tm' => fn fvShare =>
          let
-           val (_,avoid,seen,_,fvShare) = mkAvoid tm tm' seen seen' fvShare
+           val (_,avoid,seen2,_,fvShare) = mkAvoid tm tm' seen2 seen' fvShare
          in
-           (avoid,seen,fvShare)
+           (avoid,seen2,fvShare)
          end
     end;
 
-fun renameBoundVar avoidSeen var varTm' =
+fun renameBoundVar avoidSeen2 var varTm' =
     let
-      fun rename tm tm' seen =
+      fun rename tm tm' seen2 =
           let
-            val i = Term.id tm
+            val i2 = (Term.id tm, Term.id tm')
           in
-            case IntMap.peek avoidSeen i of
-              SOME (false,_) => (tm',seen)
+            case IntPairMap.peek avoidSeen2 i2 of
+              SOME (false,_) => (tm',seen2)
 (*OpenTheoryDebug
             | NONE => raise Bug "TermSubst.renameBoundVar: unseen by mkAvoidSet"
 *)
             | _ =>
-              case IntMap.peek seen i of
-                SOME tm' => (tm',seen)
+              case IntPairMap.peek seen2 i2 of
+                SOME tm' => (tm',seen2)
               | NONE =>
                 let
-                  val (tm',seen) =
+                  val (tm',seen2) =
                       case Term.dest tm of
-                        Term.Const _ => (tm',seen)
+                        Term.Const _ => (tm',seen2)
                       | Term.Var v =>
-                        if Var.equal var v then (varTm',seen) else (tm',seen)
+                        if Var.equal var v then (varTm',seen2) else (tm',seen2)
                       | Term.Comb (f,a) =>
                         let
                           val (f',a') = Term.destComb tm'
-                          val (f',seen) = rename f f' seen
-                          val (a',seen) = rename a a' seen
+                          val (f',seen2) = rename f f' seen2
+                          val (a',seen2) = rename a a' seen2
                           val tm' = Term.mkComb (f',a')
                         in
-                          (tm',seen)
+                          (tm',seen2)
                         end
                       | Term.Abs (v,b) =>
                         let
@@ -183,23 +202,23 @@ fun renameBoundVar avoidSeen var varTm' =
                                   raise Bug "TermSubst.renameBoundVar: bad free"
 *)
                           val (v',b') = Term.destAbs tm'
-                          val (b',seen) = rename b b' seen
+                          val (b',seen2) = rename b b' seen2
                           val tm' = Term.mkAbs (v',b')
                         in
-                          (tm',seen)
+                          (tm',seen2)
                         end
 
-                  val seen = IntMap.insert seen (i,tm')
+                  val seen2 = IntPairMap.insert seen2 (i2,tm')
                 in
-                  (tm',seen)
+                  (tm',seen2)
                 end
           end
 
-      val seen = IntMap.new ()
+      val seen2 = IntPairMap.new ()
     in
       fn tm => fn tm' =>
          let
-           val (tm',_) = rename tm tm' seen
+           val (tm',_) = rename tm tm' seen2
          in
            tm'
          end
@@ -207,9 +226,18 @@ fun renameBoundVar avoidSeen var varTm' =
 
 fun avoidCapture vSub' v v' b b' fvShare =
     let
+(*OpenTheoryTrace4
+      val () = Print.trace Var.pp "TermSubst.avoidCapture: v" v
+      val () = Print.trace Var.pp "TermSubst.avoidCapture: v'" v'
+      val () = Print.trace Term.pp "TermSubst.avoidCapture: b" b
+      val () = Print.trace Term.pp "TermSubst.avoidCapture: b'" b'
+*)
       val (avoid,avoidSeen,fvShare) =
           mkAvoidSet v (Var.typeOf v') b b' fvShare
 
+(*OpenTheoryTrace4
+      val () = Print.trace NameSet.pp "TermSubst.avoidCapture: avoid" avoid
+*)
       val v'' = Var.renameAvoiding avoid v'
 
       val b' =
@@ -219,7 +247,84 @@ fun avoidCapture vSub' v v' b b' fvShare =
       (v'',b',fvShare)
     end;
 
+(*OpenTheoryDebug
+local
+  fun naiveSub stm tySub stm' (tm : Term.term) : Term.term =
+      case Term.dest tm of
+        Term.Const (n,ty) =>
+        let
+          val ty = Option.getOpt (TypeSubst.subst tySub ty, ty)
+        in
+          Term.mkConst (n,ty)
+        end
+      | Term.Var v =>
+        (case VarMap.peek stm v of
+           SOME tm => tm
+         | NONE =>
+           let
+             val v = Option.getOpt (Var.subst tySub v, v)
+           in
+             case VarMap.peek stm' v of
+               SOME tm => tm
+             | NONE => Term.mkVar v
+           end)
+        | Term.Comb (f,a) =>
+          let
+            val f = naiveSub stm tySub stm' f
+            and a = naiveSub stm tySub stm' a
+          in
+            Term.mkComb (f,a)
+          end
+        | Term.Abs (v,b) =>
+          let
+            val n = Name.newName ()
+            val ty = Var.typeOf v
+            val ty = Option.getOpt (TypeSubst.subst tySub ty, ty)
+            val v' = Var.Var (n,ty)
+            val stm = VarMap.insert stm (v, Term.mkVar v')
+            val b = naiveSub stm tySub stm' b
+          in
+            Term.mkAbs (v',b)
+          end;
+in
+  fun naiveSubst stm' tySub =
+      let
+        val stm = VarMap.new ()
+      in
+        naiveSub stm tySub stm'
+      end;
+end;
+*)
+
 fun rawSharingSubst stm tm tySub seen fvShare =
+(*OpenTheoryDebug
+    let
+      val ret as (tm',_,_,_) = rawSharingSubst' stm tm tySub seen fvShare
+
+      val tm' = Option.getOpt (tm',tm)
+
+      val tm'' = naiveSubst stm tySub tm
+
+      val () =
+          if Term.alphaEqual tm' tm'' then ()
+          else
+            let
+              val () = Print.trace ppTermMap "TermSubst.rawSharingSubst: stm" stm
+              val () = Print.trace Term.pp "TermSubst.rawSharingSubst: tm" tm
+              val () = Print.trace TypeSubst.pp
+                         "TermSubst.rawSharingSubst: tySub" tySub
+              val () = Print.trace Term.pp
+                         "TermSubst.rawSharingSubst: reference result" tm''
+              val () = Print.trace Term.pp
+                         "TermSubst.rawSharingSubst: computed result" tm'
+            in
+              raise Bug "TermSubst.rawSharingSubst: wrong result"
+            end
+    in
+      ret
+    end
+and rawSharingSubst' stm tm tySub seen fvShare =
+*)
     let
       val i = Term.id tm
     in
@@ -237,7 +342,7 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                 | SOME ty => SOME (Term.mkConst (n,ty))
 
             val seen = IntMap.insert seen (i,tm')
-(*OpenTheoryTrace1
+(*OpenTheoryTrace4
             val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
 *)
           in
@@ -258,7 +363,7 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                 | tm' => tm'
 
             val seen = IntMap.insert seen (i,tm')
-(*OpenTheoryTrace1
+(*OpenTheoryTrace4
             val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
 *)
           in
@@ -280,7 +385,7 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                 | (NONE,NONE) => NONE
 
             val seen = IntMap.insert seen (i,tm')
-(*OpenTheoryTrace1
+(*OpenTheoryTrace4
             val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
 *)
           in
@@ -308,7 +413,7 @@ fun rawSharingSubst stm tm tySub seen fvShare =
                   end
 
             val seen = IntMap.insert seen (i,tm')
-(*OpenTheoryTrace1
+(*OpenTheoryTrace4
             val () = Print.trace (Print.ppPair Term.pp (Print.ppOption Term.pp)) "TermSubst.rawSharingSubst: (tm,tm')" (tm,tm')
 *)
           in
@@ -386,9 +491,6 @@ end;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppTermMap =
-    Print.ppMap VarMap.toList (Print.ppList (Print.ppPair Var.pp Term.pp));
-
 val toStringTermMap = Print.toString ppTermMap;
 
 val ppMap = Print.ppPair TypeSubst.ppMap ppTermMap;
@@ -417,7 +519,7 @@ fun substType (Subst {tySub,...}) ty = TypeSubst.subst tySub ty;
 
 fun sharingSubst tm sub =
     let
-(*OpenTheoryTrace1
+(*OpenTheoryTrace3
       val () = Print.trace pp "TermSubst.sharingSubst: sub" sub
 *)
       val Subst {tySub,stm,seen} = sub

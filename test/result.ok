@@ -18,36 +18,21 @@ Substitution
 
 \q0. q0 ==> q
 
-(\x. ?x'.
-   ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
-   (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x')) x =
-?x'.
+\x. (!y. y) /\ y
+
+([], [(y, x)])
+
+\x0. (!y. y) /\ x
+
+\x'.
   ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
   (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x')
 
 ([], [(x, x')])
 
-(\x. ?x0.
-   ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
-   (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)) x' =
-?x0.
+\x0.
   ((!x. ~s x \/ t x) /\ (s x' /\ ~t x' \/ ~s x' /\ t x')) /\
   (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)
-
-(([], [(x, x')]),
- |- (\x. ?x'.
-       ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
-       (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x')) x =
-    ?x'.
-      ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
-      (!x. ~t x \/ u x) /\ (t x' /\ ~u x' \/ ~t x' /\ u x'))
-
-|- (\x. ?x0.
-      ((!x. ~s x \/ t x) /\ (s x /\ ~t x \/ ~s x /\ t x)) /\
-      (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)) x' =
-   ?x0.
-     ((!x. ~s x \/ t x) /\ (s x' /\ ~t x' \/ ~s x' /\ t x')) /\
-     (!x. ~t x \/ u x) /\ (t x0 /\ ~u x0 \/ ~t x0 /\ u x0)
 
 --------------------------------------------------------------------------
 Reading in the hol-light interpretation
@@ -73,9 +58,9 @@ Reading in hol-light theories
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 1.238  System: 0.018  GC: 0.127  Real: 1.275
-User: 1.625  System: 0.021  GC: 0.087  Real: 1.675
-User: 0.949  System: 0.013  GC: 0.092  Real: 0.994
+User: 1.252  System: 0.015  GC: 0.129  Real: 1.285
+User: 1.592  System: 0.015  GC: 0.081  Real: 1.621
+User: 0.971  System: 0.009  GC: 0.093  Real: 1.014
 REQUIRES { }
 PROVIDES {
   types:
