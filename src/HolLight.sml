@@ -23,7 +23,7 @@ fun typeSubstToSubst oins =
       fun f (x,y) = (Type.destVar (Object.destOtype y), Object.destOtype x)
       val l = Object.destOlist oins
       val l = map (f o Object.destOpair) l
-      val tyM = TypeSubst.fromListMap l
+      val tyM = TypeSubst.fromListMap (rev l)
       val tmM = TermSubst.emptyTermMap
     in
       TermSubst.mk (tyM,tmM)
@@ -37,7 +37,7 @@ fun substToSubst oins =
       val l = Object.destOlist oins
       val l = map (f o Object.destOpair) l
       val tyM = TypeSubst.emptyMap
-      val tmM = TermSubst.fromListTermMap l
+      val tmM = TermSubst.fromListTermMap (rev l)
     in
       TermSubst.mk (tyM,tmM)
     end
