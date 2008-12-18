@@ -20,7 +20,7 @@ excludeTheorems =
     ["COND_EQ_CLAUSE"]
 
 proveRegex :: Text.Regex.Regex
-proveRegex = Text.Regex.mkRegex "^let +([[:alnum:]_]+) *= *prove *$"
+proveRegex = Text.Regex.mkRegex "^let +([A-Z_]+) *= *prove *$"
 
 endRegex :: Text.Regex.Regex
 endRegex = Text.Regex.mkRegex "(;;) *$"
