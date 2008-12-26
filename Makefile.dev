@@ -224,7 +224,7 @@ hol-light-test-sums: $(OPENTHEORY)
 
 .PHONY: hol-light-test-reqs
 hol-light-test-reqs: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) ; perl -n -e 'if ($$_ =~ /^REQUIRES/) { $$d = 1; } elsif ($$_ =~ /^PROVIDES/) { exit; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum > $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_ARTICLES_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; echo "bad REQUIRES in $$f" ; exit ; fi ; done
+	for f in $(HOL_LIGHT_THEORIES) ; do perl -ne 'if ($$_ =~ /^REQUIRES/) { $$d = 1; } elsif ($$_ =~ /^PROVIDES/) { exit; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum > $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_ARTICLES_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; echo "bad REQUIRES in $$f" ; exit ; fi ; done
 
 .PHONY: hol-light-test-stats
 hol-light-test-stats:
