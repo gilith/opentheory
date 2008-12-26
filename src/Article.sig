@@ -35,6 +35,6 @@ val fromTextFile :
      filename : string} ->
     article
 
-val toTextFile : {filename : string} -> article -> unit
+val toTextFile : {article : article, filename : string} -> unit
 
 end

@@ -5,29 +5,16 @@ IDEAS
 ________________________________________________________________________
 BUGS
 
-Get rid of simulation stacks and Osequents
-
-save takes one theorem and saves it
-
-Add hd_tl as an inverse of cons
-
 ________________________________________________________________________
 FEATURES
+
+Add hd_tl as an inverse of cons
 
 Declare foreign constants to be of type alpha, and specialize as much
 as possible when computing REQUIRES section of signature.
 
-
-
-
 Add two more parameters to the interpretation function. An object ->
 object map to conserve memory, and a theorem dump to save time.
-
-When referring to a theorem in a previous theory (or a locale
-assumption), then retrieve theorem if possible, or call ASSUME if
-necessary. When creating the signature of a theory, the REQUIRES
-section is all the assumptions of all the theorems (plus any types,
-constants or locale variables mentioned in them).
 
 ________________________________________________________________________
 IDEAS
@@ -43,3 +30,4 @@ can read in theories in any order. Plainly we need a (higher order?
 higher order patterns?) discrimination net for conclusions of
 theorems.
 
+The opentheory program is a general tool for concatenating theories.

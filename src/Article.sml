@@ -1732,7 +1732,7 @@ fun fromTextFile {savable,known,interpretation,filename} =
     end
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
 
-fun toTextFile {filename} article =
+fun toTextFile {article,filename} =
     let
       val Article {saved,...} = article
 

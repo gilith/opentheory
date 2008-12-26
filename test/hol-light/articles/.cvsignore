@@ -1,4 +1,4 @@
 *.art
 *.art.gz
 *.req
-*.sig
+*.sum

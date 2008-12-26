@@ -195,7 +195,7 @@ fun compress interpretation filename =
              interpretation = interpretation,
              filename = ARTICLE_DIR ^ "/" ^ filename};
     in
-      time (Article.toTextFile {filename = filename}) article
+      time Article.toTextFile {article = article, filename = filename}
     end;
 
 val () = compress holLightInt "bool.art";

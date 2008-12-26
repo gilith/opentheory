@@ -30,32 +30,85 @@ val PROGRAM = "opentheory";
 (* Program options.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val INTERPRETATIONS : string list ref = ref [];
+datatype command =
+    ResetInterpretation
+  | ReadInterpretation of {filename : string}
+  | ReadArticle of {filename : string}
+  | OutputArticle of {filename : string}
+  | OutputSummary of {filename : string};
 
-val INCLUDES : string list ref = ref [];
+val COMMANDS : command list ref = ref [];
 
-val OUTPUT : string option ref = ref NONE;
+fun isOutputArticle cmd =
+    case cmd of
+      OutputArticle _ => true
+    | _ => false;
 
 local
   open Useful Options;
 in
   val specialOptions =
-    [{switches = ["-i","--interpret"], arguments = ["FILE"],
-      description = "interpret articles using the rules in FILE",
-      processor =
-        beginOpt (stringOpt endOpt)
-          (fn _ => fn s =>
-           let val r as ref ss = INTERPRETATIONS in r := s :: ss end)},
-     {switches = ["-I","--include"], arguments = ["FILE"],
-      description = "use the saved theorems in FILE",
-      processor =
-        beginOpt (stringOpt endOpt)
-          (fn _ => fn s =>
-           let val r as ref ss = INCLUDES in r := s :: ss end)},
-     {switches = ["-o","--output"], arguments = ["FILE"],
-      description = "output the processed article to FILE",
-      processor =
-        beginOpt (stringOpt endOpt) (fn _ => fn s => OUTPUT := SOME s)}];
+      [{switches = ["-i","--interpret"], arguments = ["FILE"],
+        description = "interpret articles using the rules in FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+             let
+               val ref cs = COMMANDS
+               val cs = ResetInterpretation :: cs
+               val cs = ReadInterpretation {filename = s} :: cs
+               val () = COMMANDS := cs
+             in
+               ()
+             end)},
+       {switches = ["-a","--article"], arguments = ["FILE"],
+        description = "read the article in FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+             let
+               val ref cs = COMMANDS
+               val cs = ReadArticle {filename = s} :: cs
+               val () = COMMANDS := cs
+             in
+               ()
+             end)},
+       {switches = ["-o","--output"], arguments = ["FILE"],
+        description = "write the article to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+             let
+               val ref cs = COMMANDS
+               val cs = OutputArticle {filename = s} :: cs
+               val () = COMMANDS := cs
+             in
+               ()
+             end)},
+       {switches = ["--summary"], arguments = ["FILE"],
+        description = "write the article summary to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+             let
+               val ref cs = COMMANDS
+               val cs = OutputSummary {filename = s} :: cs
+               val () = COMMANDS := cs
+             in
+               ()
+             end)},
+       {switches = ["--add-interpret"], arguments = ["FILE"],
+        description = "add the interpretation rules in FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+             let
+               val ref cs = COMMANDS
+               val cs = ReadInterpretation {filename = s} :: cs
+               val () = COMMANDS := cs
+             in
+               ()
+             end)}];
 end;
 
 val VERSION = "1.0";
@@ -66,10 +119,9 @@ val programOptions =
     {name = PROGRAM,
      version = versionString,
      header = "usage: "^PROGRAM^" [option ...] article.art ...\n" ^
-              "Processes the input proof articles.\n",
-     footer = "Articles can be read from standard input or written to " ^
-              "standard output\n" ^
-              "using the special - filename.\n",
+              "Interprets and concatenates proof articles.\n",
+     footer = "Read from standard input or write to standard output using\n" ^
+              "the special - filename.\n",
      options = specialOptions @ Options.basicOptions};
 
 fun exit x : unit = Options.exit programOptions x;
@@ -80,49 +132,63 @@ fun usage mesg = Options.usage programOptions mesg;
 val (opts,work) =
     Options.processOptions programOptions (CommandLine.arguments ());
 
-val () = if null work then usage "no input proof articles" else ();
+val () = if null work then () else usage "bad argument format";
 
 (* ------------------------------------------------------------------------- *)
 (* The core application.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val mkInterpretation =
-    let
-      fun add (filename,int) =
-          Interpretation.append int
-            (Interpretation.fromTextFile {filename = filename})
-    in
-      List.foldl add Interpretation.natural
-    end;
+fun processCommand savable (cmd,(known,interpret,article)) =
+    case cmd of
+      ResetInterpretation =>
+      let
+        val interpret = Interpretation.natural
+      in
+        (known,interpret,article)
+      end
+    | ReadInterpretation filename =>
+      let
+        val interpret' = Interpretation.fromTextFile filename
 
-local
-  fun read savable interpretation (filename,(article,known)) =
+        val interpret = Interpretation.append interpret interpret'
+      in
+        (known,interpret,article)
+      end
+    | ReadArticle {filename} =>
       let
         val article' =
             Article.fromTextFile
               {savable = savable,
                known = known,
-               interpretation = interpretation,
+               interpretation = interpret,
                filename = filename}
 
         val article = Article.append article article'
 
-        val known = ThmSet.union known (Article.saved article')
+        val known = Article.saved article
       in
-        (article,known)
-      end;
-in
-  fun includeArticle (filename,known) =
+        (known,interpret,article)
+      end
+    | OutputArticle {filename} =>
       let
-        val interpretation = Interpretation.natural
-        val article = Article.empty
-        val (_,known) = read false interpretation (filename,(article,known))
+        val () =
+            Article.toTextFile
+              {article = article,
+               filename = filename}
       in
-        known
-      end;
+        (known,interpret,article)
+      end
+    | OutputSummary {filename} =>
+      let
+        val summary = Article.summarize article
 
-  val readArticle = read true;
-end;
+        val () =
+            Summary.toTextFile
+              {summary = summary,
+               filename = filename}
+      in
+        (known,interpret,article)
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)
@@ -134,22 +200,16 @@ let
   (*MetisDebug val () = print "Running in metis DEBUG mode.\n" *)
   (*OpenTheoryDebug val () = print "Running in opentheory DEBUG mode.\n" *)
 
-  val interpretation = mkInterpretation (rev (!INTERPRETATIONS))
-
   val known = ThmSet.empty
 
-  val known = foldl includeArticle known (rev (!INCLUDES))
+  val interpret = Interpretation.natural
 
   val article = Article.empty
 
-  val (article,_) = foldl (readArticle interpretation) (article,known) work
+  val savable = List.exists isOutputArticle (!COMMANDS)
 
-  val () =
-      case !OUTPUT of
-        SOME filename =>
-        Article.toTextFile {filename = filename} article
-      | NONE =>
-        Summary.toTextFile {filename = "-"} (Article.summarize article)
+  val (_,_,article) =
+      foldl (processCommand savable) (known,interpret,article) (rev (!COMMANDS))
 in
   succeed ()
 end

@@ -114,14 +114,14 @@ fun pp (Summary {requires,provides}) =
        Print.addNewline,
        ppCurrency ("PROVIDES",provides)];
 
-fun toTextFile filename summary =
+fun toTextFile {summary,filename} =
     let
 (*OpenTheoryTrace5
       val () = trace "entering Summary.toTextFile\n"
 *)
       val lines = Print.toStream pp summary
 
-      val () = Stream.toTextFile filename lines
+      val () = Stream.toTextFile {filename = filename} lines
 
 (*OpenTheoryTrace5
       val () = trace "exiting Summary.toTextFile\n"

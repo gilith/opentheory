@@ -20,6 +20,6 @@ val fromThms : ThmSet.set -> summary
 
 val pp : summary Print.pp
 
-val toTextFile : {filename : string} -> summary -> unit
+val toTextFile : {summary : summary, filename : string} -> unit
 
 end

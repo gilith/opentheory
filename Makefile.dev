@@ -20,7 +20,7 @@ TEMP += $(TEMPFILE) \
 # The ML preprocessor.
 ###############################################################################
 
-MLPP_OPTS += -r 'OpenTheoryDebug'
+#MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-0]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
@@ -216,14 +216,22 @@ hol-light-test-log:
 
 .PHONY: hol-light-test-compress
 hol-light-test-compress: $(OPENTHEORY)
-	include='' ; for f in $(HOL_LIGHT_THEORIES) ; do echo $$f ; $(OPENTHEORY) -i test/interpretations/hol-light.int -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.art $$include $(HOL_LIGHT_SRC_DIR)/$$f.art ; $(OPENTHEORY) $$include $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.sig ; perl -n -e 'if ($$_ =~ /^REQUIRES/) { $$d = 1; } elsif ($$_ =~ /^PROVIDES/) { exit; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_ARTICLES_DIR)/$$f.sig > $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_ARTICLES_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; echo "bad REQUIRES in $$f" ; exit ; fi ; if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; gzip -c $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; include="$$include -I $(HOL_LIGHT_ARTICLES_DIR)/$$f.art" ; done
+	for f in $(HOL_LIGHT_THEORIES) ; do echo $$f ; $(OPENTHEORY) -i test/interpretations/hol-light.int -a $(HOL_LIGHT_SRC_DIR)/$$f.art -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; gzip -c $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; done
+
+.PHONY: hol-light-test-sums
+hol-light-test-sums: $(OPENTHEORY)
+	args='' ; for f in $(HOL_LIGHT_THEORIES) ; do args="$$args -a $(HOL_LIGHT_ARTICLES_DIR)/$$f.art --summary $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum" ; done ; $(OPENTHEORY) $$args
+
+.PHONY: hol-light-test-reqs
+hol-light-test-reqs: $(OPENTHEORY)
+	for f in $(HOL_LIGHT_THEORIES) ; perl -n -e 'if ($$_ =~ /^REQUIRES/) { $$d = 1; } elsif ($$_ =~ /^PROVIDES/) { exit; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum > $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_ARTICLES_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; echo "bad REQUIRES in $$f" ; exit ; fi ; done
 
 .PHONY: hol-light-test-stats
 hol-light-test-stats:
 	(for f in $(HOL_LIGHT_THEORIES) ; do echo $$f | perl -ne '$$f = $$_; chomp $$f; $$f =~ s/_/\\_/g; print "\\hollighttheory{$$f}";'; (ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz) | perl -ne 'BEGIN { $$s = -1; } $$_ =~ /^[-rwx]+ +[[:digit:]]+ +[[:alpha:]]+ +[[:alpha:]]+ +([[:digit:]]+) / or die; $$n = $$1; $$n = int($$n / 1024); $$pa = $$n; $$pb = ""; while ($$pa =~ /^([[:digit:]]+)([[:digit:]]{3})$$/) { $$pa = $$1; $$pb = ",$$2$$pb"; } print " & $$pa$$pb"; if ($$s < 0) { $$s = $$n; } else { $$r = 100 - int(100.0 * $$n / $$s); print " & $$r\\%"; $$s = -1; }' ; echo ' \\\\' ; done) | tee $(HOL_LIGHT_TEST_DIR)/results.tex
 
 .PHONY: hol-light-test
-hol-light-test: hol-light-test-log hol-light-test-compress hol-light-test-stats
+hol-light-test: hol-light-test-log hol-light-test-compress hol-light-test-sums hol-light-test-reqs hol-light-test-stats
 
 ###############################################################################
 # Profiling using MLton.
