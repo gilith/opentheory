@@ -160,3 +160,10 @@ loads "define.ml";;     (* Support for general recursive definitions         *)
 
 loads "help.ml";;       (* Online help using the entries in Help directory   *)
 loads "database.ml";;   (* List of name-theorem pairs for search system      *)
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory order example.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+loads "example-ord-1.ml";;
+loads "example-ord-2.ml";;
