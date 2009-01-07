@@ -1,6 +1,35 @@
 let lemma x = x ();;
 let theorem x = x ();;
 
+(* Helper functions *)
+
+let remove_first x =
+    let rec remove seen unseen =
+        match unseen with
+          [] -> failwith "remove_first"
+        | x' :: unseen ->
+          if x = x' then List.rev seen @ unseen
+          else remove (x' :: seen) unseen
+    in remove [];;
+
+let term_size =
+    let rec sz acc tms =
+        match tms with
+          [] -> acc
+        | tm :: tms ->
+          if is_comb tm then
+            let (x,y) = dest_comb tm in
+            sz (acc + 1) (x :: y :: tms)
+          else if is_abs tm then
+            let (_,x) = dest_abs tm in
+            sz (acc + 1) (x :: tms)
+          else sz acc tms
+    in fun tm -> sz 0 [tm];;
+
+let term_size_compare tm1 tm2 = term_size tm1 <= term_size tm2;;
+
+(* The existing type of positive numbers *)
+
 new_type ("P",0);;
 
 let t = `t : P -> P -> P` in
@@ -19,6 +48,11 @@ let ADDP_COMM = new_axiom (`!x y. addP x y = addP y x`);;
 
 let ADDP_ASSOC = new_axiom (`!x y z. addP (addP x y) z = addP x (addP y z)`);;
 
+let ADDP_MONO = new_axiom
+    (`!x x' y y'. leP x x' /\ leP y y' ==> leP (addP x y) (addP x' y')`);;
+
+let ADDP_INC = new_axiom (`!x y. ~leP (addP x y) x`);;
+
 let SUBP_ELIM = new_axiom (`!x y. ~leP y x ==> addP x (subP y x) = y`);;
 
 let MULTP_COMM = new_axiom (`!x y. multP x y = multP y x`);;
@@ -33,6 +67,225 @@ let LEP_TRANS = new_axiom (`!x y z. leP x y /\ leP y z ==> leP x z`);;
 let LEP_ANTISYM = new_axiom (`!x y. leP x y /\ leP y x ==> x = y`);;
 
 let LEP_TOTAL = new_axiom (`!x y. leP x y \/ leP y x`);;
+
+(* Lemmas about positive numbers *)
+
+let LEP_TRICH = lemma (fun () -> prove
+    (`!x y.
+        x = y \/
+        (leP x y /\ ~(leP y x)) \/
+        (~(leP x y) /\ leP y x)`,
+     MESON_TAC [LEP_ANTISYM; LEP_TOTAL]));;
+
+let ADDP_LEP_CANCEL_IMP = lemma (fun () -> prove
+    (`!x y z. leP (addP x y) (addP x z) ==> leP y z`,
+     REPEAT STRIP_TAC THEN
+     MATCH_MP_TAC (MESON [] `(~x ==> F) ==> x`) THEN
+     STRIP_TAC THEN
+     MP_TAC (SPECL [`addP x z`; `subP y z`] ADDP_INC) THEN
+     ASM_REWRITE_TAC [ADDP_ASSOC] THEN
+     ASM_MESON_TAC [SUBP_ELIM; LEP_REFL]));;
+
+let ADDP_LEP_CANCEL_IMP' = lemma (fun () -> prove
+    (`!x y z. leP y z ==> leP (addP x y) (addP x z)`,
+     REPEAT STRIP_TAC THEN
+     ASM_MESON_TAC [ADDP_MONO; LEP_REFL]));;
+
+let ADDP_LEP_CANCEL = lemma (fun () -> prove
+    (`!x y z. leP (addP x y) (addP x z) <=> leP y z`,
+     MESON_TAC [ADDP_LEP_CANCEL_IMP; ADDP_LEP_CANCEL_IMP']));;
+
+let ADDP_CANCEL_IMP = lemma (fun () -> prove
+    (`!x y z. addP x y = addP x z ==> y = z`,
+     REPEAT STRIP_TAC THEN
+     MATCH_MP_TAC LEP_ANTISYM THEN
+     ASM_MESON_TAC [ADDP_LEP_CANCEL_IMP; LEP_REFL]));;
+
+let ADDP_CANCEL = lemma (fun () -> prove
+    (`!x y z. (addP x y = addP x z) <=> y = z`,
+     MESON_TAC [ADDP_CANCEL_IMP]));;
+
+let SUBP_REQ_IMP = lemma (fun () -> prove
+    (`!x y z. ~leP x y /\ addP z y = x ==> z = subP x y`,
+     REPEAT STRIP_TAC THEN
+     MATCH_MP_TAC ADDP_CANCEL_IMP THEN
+     EXISTS_TAC `y:P` THEN
+     ASM_SIMP_TAC [SUBP_ELIM] THEN
+     ASM_MESON_TAC [ADDP_COMM]));;
+
+let SUBP_REQ_ELIM = lemma (fun () -> prove
+    (`!x y z. ~leP x y ==> (z = subP x y <=> addP z y = x)`,
+     REPEAT STRIP_TAC THEN
+     EQ_TAC THENL
+     [DISCH_THEN (fun th -> REWRITE_TAC [th]) THEN
+      ONCE_REWRITE_TAC [ADDP_COMM] THEN
+      ASM_SIMP_TAC [SUBP_ELIM];
+      ASM_MESON_TAC [SUBP_REQ_IMP]]));;
+
+let SUBP_LEQ_IMP = lemma (fun () -> prove
+    (`!x y z. ~leP x y /\ x = addP z y ==> subP x y = z`,
+     MESON_TAC [SUBP_REQ_IMP]));;
+
+let SUBP_LEQ_ELIM = lemma (fun () -> prove
+    (`!x y z. ~leP x y ==> (subP x y = z <=> x = addP z y)`,
+     MESON_TAC [SUBP_REQ_ELIM]));;
+
+let SUBP_ADDP_REQ_IMP = lemma (fun () -> prove
+    (`!x y z w. ~leP x y /\ addP z y = addP x w ==> z = addP (subP x y) w`,
+     REPEAT STRIP_TAC THEN
+     MATCH_MP_TAC ADDP_CANCEL_IMP THEN
+     EXISTS_TAC `y:P` THEN
+     REWRITE_TAC [GSYM ADDP_ASSOC] THEN
+     ASM_SIMP_TAC [SUBP_ELIM] THEN
+     ASM_MESON_TAC [ADDP_COMM]));;
+
+let SUBP_ADDP_LEQ_IMP = lemma (fun () -> prove
+    (`!x y z w. ~leP x y /\ addP x w = addP z y ==> addP (subP x y) w = z`,
+     MESON_TAC [SUBP_ADDP_REQ_IMP]));;
+
+let SUBP_LLEP_IMP = lemma (fun () -> prove
+    (`!x y z. ~leP x y /\ leP (subP x y) z ==> leP x (addP z y)`,
+     REPEAT STRIP_TAC THEN
+     ONCE_REWRITE_TAC [ADDP_COMM] THEN
+     MP_TAC (SPECL [`y:P`; `x:P`] SUBP_ELIM) THEN
+     ASM_REWRITE_TAC [] THEN
+     DISCH_THEN (fun th -> ONCE_REWRITE_TAC [GSYM th]) THEN
+     ASM_REWRITE_TAC [ADDP_LEP_CANCEL]));;
+
+let SUBP_LLEP_IMP' = lemma (fun () -> prove
+    (`!x y z. ~leP x y /\ leP x (addP z y) ==> leP (subP x y) z`,
+     ONCE_REWRITE_TAC [ADDP_COMM] THEN
+     REPEAT STRIP_TAC THEN
+     MATCH_MP_TAC ADDP_LEP_CANCEL_IMP THEN
+     EXISTS_TAC `y:P` THEN
+     ASM_SIMP_TAC [SUBP_ELIM]));;
+
+let SUBP_LLEP = lemma (fun () -> prove
+    (`!x y z. ~leP x y ==> (leP (subP x y) z <=> leP x (addP z y))`,
+     MESON_TAC [SUBP_LLEP_IMP; SUBP_LLEP_IMP']));;
+
+let SUBP_RLEP_IMP = lemma (fun () -> prove
+    (`!x y z. ~leP x y /\ leP z (subP x y) ==> leP (addP z y) x`,
+     REPEAT STRIP_TAC THEN
+     ONCE_REWRITE_TAC [ADDP_COMM] THEN
+     MP_TAC (SPECL [`y:P`; `x:P`] SUBP_ELIM) THEN
+     ASM_REWRITE_TAC [] THEN
+     DISCH_THEN (fun th -> ONCE_REWRITE_TAC [GSYM th]) THEN
+     ASM_REWRITE_TAC [ADDP_LEP_CANCEL]));;
+
+let SUBP_RLEP_IMP' = lemma (fun () -> prove
+    (`!x y z. ~leP x y /\ leP (addP z y) x ==> leP z (subP x y)`,
+     ONCE_REWRITE_TAC [ADDP_COMM] THEN
+     REPEAT STRIP_TAC THEN
+     MATCH_MP_TAC ADDP_LEP_CANCEL_IMP THEN
+     EXISTS_TAC `y:P` THEN
+     ASM_SIMP_TAC [SUBP_ELIM]));;
+
+let SUBP_RLEP = lemma (fun () -> prove
+    (`!x y z. ~leP x y ==> (leP z (subP x y) <=> leP (addP z y) x)`,
+     MESON_TAC [SUBP_RLEP_IMP; SUBP_RLEP_IMP']));;
+
+(* Proof tools for positive numbers *)
+
+let dest_lep = dest_binop `leP`;;
+
+let dest_cond_lep tm =
+    let (c,xy) = dest_cond tm in
+    (dest_lep c, xy);;
+
+let is_cond_lep = can dest_cond_lep;;
+
+let mk_addp = mk_binop `addP`;;
+
+let rec list_mk_addp tms =
+    match tms with
+      [] -> failwith "list_mk_addp"
+    | tm :: tms ->
+      if length tms = 0 then tm else mk_addp tm (list_mk_addp tms);;
+
+let dest_addp = dest_binop `addP`;;
+
+let is_addp = can dest_addp;;
+
+let rec strip_addp tm =
+    if is_addp tm then
+      let (x,y) = dest_addp tm in
+      strip_addp x @ strip_addp y
+    else [tm];;
+
+let addp_ac = AC (lemma (fun () -> MESON [ADDP_COMM; ADDP_ASSOC]
+    `addP m n = addP n m /\
+     addP (addP m n) p = addP m (addP n p) /\
+     addP m (addP n p) = addP n (addP m p)`));;
+
+let dest_subp = dest_binop `subP`;;
+
+let is_subp = can dest_subp;;
+
+let TRICH_TAC x y =
+    if x = y then ASM_REWRITE_TAC [LEP_REFL]
+    else if can (find_term ((=) x)) y then TRICH_TAC y x
+    else
+      MP_TAC (SPECL [x; y] LEP_TRICH) THEN
+      STRIP_TAC THEN
+      ASM_REWRITE_TAC [LEP_REFL];;
+
+let LEP_TAC goal =
+    let tm = find_term is_cond_lep (snd goal) in
+    let ((x,y),_) = dest_cond_lep tm in
+    TRICH_TAC x y goal;;
+
+let SUB_ELIM_CONV tm =
+    let tms = strip_addp tm in
+    let rec elim stms =
+        match stms with
+          [] -> failwith "SUB_ELIM_CONV"
+        | stm :: stms ->
+          if not (is_subp stm) then elim stms else
+          let (x,y) = dest_subp stm in
+          if not (mem y tms) then elim stms else
+          let tms = remove_first stm tms in
+          let tms = remove_first y tms in
+          let etm = mk_addp y stm in
+          let tm' = if length tms = 0 then etm
+                    else mk_addp etm (list_mk_addp tms) in
+          addp_ac (mk_eq (tm,tm')) in
+    elim tms;;
+
+let SUB_MOVE_CONV tm =
+    let tms = strip_addp tm in
+    let rec move stms =
+        match stms with
+          [] -> failwith "SUB_MOVE_CONV"
+        | stm :: stms ->
+          if not (is_subp stm) then move stms else
+          let tms = remove_first stm tms in
+          let tm' = list_mk_addp (stm :: tms) in
+          addp_ac (mk_eq (tm,tm')) in
+    move tms;;
+
+let MK_EQ = lemma (fun () -> MESON []
+    `(x1 = y1) /\ (x2 = y2) ==> ((x1 = x2) <=> (y1 = y2))`);;
+
+let ADD_CANCEL_CONV tm =
+    let (tm1,tm2) = dest_eq tm in
+    let tms1 = strip_addp tm1 in
+    let tms2 = strip_addp tm2 in
+    let rec cancel stms =
+        match stms with
+          [] -> failwith "ADD_CANCEL_CONV"
+        | stm :: stms ->
+          if not (mem stm tms2) then cancel stms else
+          let tms1 = stm :: remove_first stm tms1 in
+          let tms2 = stm :: remove_first stm tms2 in
+          let tm1' = list_mk_addp tms1 in
+          let tm2' = list_mk_addp tms2 in
+          let th1 = addp_ac (mk_eq (tm1,tm1')) in
+          let th2 = addp_ac (mk_eq (tm2,tm2')) in
+          MATCH_MP MK_EQ (CONJ th1 th2) in
+    cancel tms1;;
+
+(* The new type of numbers *)
 
 let N_INDUCT,N_RECURSION = define_type
   "N = Neg P | Zero | Pos P";;
@@ -88,6 +341,8 @@ let le_def = lemma (fun () -> define
      le (Pos x) (Neg y) = F /\
      le (Pos x) Zero = F /\
      le (Pos x) (Pos y) = leP x y`);;
+
+(* Theorems of the new type of numbers *)
 
 let INJECT_CASES = theorem (fun () -> prove
     (`!p.
@@ -346,17 +601,86 @@ let ADD_COMM = theorem (fun () -> prove
        REWRITE_TAC [add_def; N_INJECTIVE] THEN
        MESON_TAC [ADDP_COMM]]]));;
 
-(*
 let ADD_ASSOC = theorem (fun () -> prove
     (`!x y z. add (add x y) z = add x (add y z)`,
      MATCH_MP_TAC N_INDUCT THEN
-     REPEAT CONJ_TAC THENL
-     [X_GEN_TAC `x:P` THEN
-      MATCH_MP_TAC N_INDUCT THEN
-      REPEAT CONJ_TAC THENL
-      [X_GEN_TAC `y:P` THEN
-       MATCH_MP_TAC N_INDUCT THEN
-       REPEAT CONJ_TAC THENL
+     REPEAT CONJ_TAC THEN
+     (X_GEN_TAC `x:P` ORELSE REWRITE_TAC [ADD_LZERO; ADD_RZERO]) THEN
+     MATCH_MP_TAC N_INDUCT THEN
+     REPEAT CONJ_TAC THEN
+     (X_GEN_TAC `y:P` ORELSE REWRITE_TAC [ADD_LZERO; ADD_RZERO]) THEN
+     MATCH_MP_TAC N_INDUCT THEN
+     REPEAT CONJ_TAC THEN
+     (X_GEN_TAC `z:P` ORELSE REWRITE_TAC [ADD_LZERO; ADD_RZERO]) THEN
+     ASM_REWRITE_TAC [add_def; N_INJECTIVE; N_DISTINCT] THEN
+     REPEAT LEP_TAC THEN
+     ASM_REWRITE_TAC [add_def; N_INJECTIVE; N_DISTINCT] THEN
+     REPEAT LEP_TAC THEN
+     ASM_REWRITE_TAC [N_INJECTIVE; N_DISTINCT; ADDP_ASSOC] THEN
+     REPEAT (FIRST_X_ASSUM SUBST_VAR_TAC) THEN
+     REPEAT
+       (((MATCH_MP_TAC SUBP_LEQ_IMP ORELSE
+          MATCH_MP_TAC SUBP_REQ_IMP) THEN
+         ASM_REWRITE_TAC []) ORELSE
+        (CONV_TAC (LAND_CONV SUB_MOVE_CONV) THEN
+         MATCH_MP_TAC SUBP_ADDP_LEQ_IMP THEN
+         ASM_REWRITE_TAC []) ORELSE
+        (CONV_TAC (RAND_CONV SUB_MOVE_CONV) THEN
+         MATCH_MP_TAC SUBP_ADDP_REQ_IMP THEN
+         ASM_REWRITE_TAC []) ORELSE
+        REFL_TAC ORELSE
+        CONV_TAC (ADD_CANCEL_CONV THENC REWR_CONV ADDP_CANCEL)) THEN
+     tac THEN
+     ASSUM_LIST
+       (fun ths ->
+            let ths = map concl ths in
+            let ths = rev (sort term_size_compare ths) in
+            let sub_elim_conv =
+                LAND_CONV SUB_ELIM_CONV ORELSEC
+                RAND_CONV SUB_ELIM_CONV in
+            EVERY (map (fun tm ->
+               UNDISCH_TAC tm THEN
+               ASM_SIMP_TAC [SUBP_LLEP; SUBP_RLEP] THEN
+               REPEAT
+                 (CONV_TAC
+                    (sub_elim_conv ORELSEC
+                     RAND_CONV sub_elim_conv ORELSEC
+                     LAND_CONV sub_elim_conv ORELSEC
+                     LAND_CONV (RAND_CONV sub_elim_conv)) THEN
+                  ASM_SIMP_TAC [SUBP_ELIM])) ths))
+
+
+
+     REPEAT
+       (FIRST_ASSUM
+          (fun th ->
+               let tm = concl th in
+               if is_eq tm then NO_TAC else UNDISCH_TAC tm)) THEN
+     PURE_ASM_REWRITE_TAC [] THEN
+     REPEAT STRIP_TAC THEN
+
+        (CONV_TAC (LAND_CONV SUB_ELIM_CONV ORELSEC
+                   RAND_CONV SUB_ELIM_CONV) THEN
+         ASM_SIMP_TAC [SUBP_ELIM]) ORELSE
+
+     REPEAT (MATCH_MP_TAC SUBP_LEQ_IMP ORELSE MATCH_MP_TAC SUBP_REQ_IMP) THEN
+     ASM_REWRITE_TAC [] THEN
+
+     TRY LEP_TAC THEN
+     TRY LEP_TAC THEN
+
+     ASM_REWRITE_TAC [GSYM ADDP_ASSOC] THEN
+     ASM_REWRITE_TAC [ADDP_ASSOC]
+
+     TRICH_TAC `x:P` `y:P` THEN
+     TRICH_TAC `x:P` `z:P` THEN
+     TRICH_TAC `y:P` `z:P` THEN
+     TRICH_TAC `addP x y` `z:P` THEN
+     ASM_REWRITE_TAC [add_def; N_INJECTIVE; GSYM ADDP_ASSOC; LEP_REFL] THEN
+     ASM_REWRITE_TAC [add_def; N_INJECTIVE; ADDP_ASSOC; LEP_REFL]
+
+     ASM_
+     
        [X_GEN_TAC `z:P` THEN
         REWRITE_TAC [add_def; N_INJECTIVE] THEN
         MESON_TAC [ADDP_ASSOC];
@@ -370,7 +694,6 @@ let SUB_ELIM = theorem (fun () -> prove
      REPEAT GEN_TAC THEN
      CONV_TAC (LAND_CONV (RAND_CONV (REWR_CONV ADD_COMM))) THEN
      REWRITE_TAC [GSYM ADD_ASSOC; ADD_RNEG; ADD_LZERO]));;
-*)
 
 let MULT_LZERO = theorem (fun () -> prove
     (`!x. mult Zero x = Zero`,
