@@ -206,7 +206,8 @@ HOL_LIGHT_THEORIES = \
 
 HOL_LIGHT_EXAMPLES = \
   example-ord-1 \
-  example-ord-2
+  example-ord-2 \
+  example-pos-1
 
 .PHONY: hol-light-install
 hol-light-install:
