@@ -167,3 +167,9 @@ loads "database.ml";;   (* List of name-theorem pairs for search system      *)
 
 loads "example-ord-1.ml";;
 loads "example-ord-2.ml";;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory positive number example.                                       *)
+(* ------------------------------------------------------------------------- *)
+
+loads "example-pos-1.ml";;
