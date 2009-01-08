@@ -22,6 +22,7 @@ datatype rewrite =
     RewriteNamespace of Namespace.namespace * Namespace.namespace
   | RewriteType of Name.name * Name.name
   | RewriteConst of Name.name * Name.name
+  | RewriteRulespace of Namespace.namespace * Namespace.namespace
   | RewriteRule of Name.name * Name.name;
 
 fun rewriteNamespace r n =
@@ -41,9 +42,14 @@ fun rewriteConst r n =
     | RewriteConst x_y => Name.replace x_y n
     | _ => n;
 
+fun rewriteRulespace r n =
+    case r of
+      RewriteRulespace x_y => Namespace.rewrite x_y n
+    | _ => n;
+
 fun rewriteRule r n =
     case r of
-      RewriteNamespace x_y => Name.rewrite x_y n
+      RewriteRulespace x_y => Name.rewrite x_y n
     | RewriteRule x_y => Name.replace x_y n
     | _ => n;
 
@@ -60,6 +66,7 @@ in
         RewriteNamespace x_y => xyToString "namespace" Namespace.toString x_y
       | RewriteType x_y => xyNameToString "type" x_y
       | RewriteConst x_y => xyNameToString "const" x_y
+      | RewriteRulespace x_y => xyToString "rulespace" Namespace.toString x_y
       | RewriteRule x_y => xyNameToString "rule" x_y;
 end;
 
@@ -85,6 +92,7 @@ in
       xyParser "namespace" Namespace.quotedParser >> RewriteNamespace ||
       xyParser "type" Name.quotedParser >> RewriteType ||
       xyParser "const" Name.quotedParser >> RewriteConst ||
+      xyParser "rulespace" Namespace.quotedParser >> RewriteRulespace ||
       xyParser "rule" Name.quotedParser >> RewriteRule;
 
   val spacedRewriteParser =
@@ -110,6 +118,7 @@ fun interpret rewrX (Interpretation l) x = foldl (fn (rw,x) => rewrX rw x) x l;
 val interpretNamespace = interpret rewriteNamespace
 and interpretType = interpret rewriteType
 and interpretConst = interpret rewriteConst
+and interpretRulespace = interpret rewriteRulespace
 and interpretRule = interpret rewriteRule;
 
 (* ------------------------------------------------------------------------- *)

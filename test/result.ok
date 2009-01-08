@@ -37,30 +37,18 @@ Substitution
 --------------------------------------------------------------------------
 Reading in the hol-light interpretation
 
-namespace <global> -> hol-light;
-type hol-light.bool -> bool;
-type hol-light.fun -> fun;
-type hol-light.prod -> *;
-const hol-light.= -> =;
-const hol-light.T -> T;
-const hol-light.F -> F;
-const hol-light.~ -> ~;
-const hol-light./\ -> /\;
-const hol-light.\/ -> \/;
-const hol-light.==> -> ==>;
-const hol-light.! -> !;
-const hol-light.? -> ?;
-const hol-light.?! -> ?!;
-const hol-light.@ -> select;
+type prod -> *;
+const @ -> select;
+rulespace <global> -> hol-light;
 --------------------------------------------------------------------------
 Reading in hol-light theories
 
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 1.251  System: 0.015  GC: 0.127  Real: 1.276
-User: 1.596  System: 0.017  GC: 0.083  Real: 1.627
-User: 0.976  System: 0.009  GC: 0.093  Real: 0.999
+User: 1.210  System: 0.012  GC: 0.126  Real: 1.231
+User: 1.414  System: 0.011  GC: 0.073  Real: 1.439
+User: 0.933  System: 0.006  GC: 0.090  Real: 0.945
 REQUIRES { }
 PROVIDES {
   types:

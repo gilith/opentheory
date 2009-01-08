@@ -1,0 +1,24 @@
+REQUIRES {
+  types:
+    bool
+    fun
+    hol-light.T
+    hol-light.ind
+  consts:
+    !
+    /\
+    =
+    ==>
+    ?
+    select
+    ~
+    hol-light.ONE_ONE
+    hol-light.ONTO
+    hol-light.le
+    hol-light.total_order
+  thms:
+    |- !t. (\x. t x) = t
+    |- !P x. P x ==> P ((select) P)
+    |- ?f. hol-light.ONE_ONE f /\ ~hol-light.ONTO f
+    |- hol-light.total_order hol-light.le
+}
