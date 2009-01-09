@@ -2,4 +2,5 @@
 *.art.gz
 *.csum
 *.req
+*.stat
 *.sum
