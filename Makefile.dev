@@ -282,15 +282,23 @@ profile: profile-time.txt profile-time.dot
 
 RELEASE_DIR = release
 
+RELEASE_STAMP = scripts/release_stamp
+
+.PHONY: release-stamp
+release-stamp: $(RELEASE_STAMP)
+	 $(RELEASE_STAMP) -p opentheory doc/*.html src/opentheory.sml
+
 .PHONY: tarball
 tarball: clean doc/DONT-RELEASE Makefile.dev
-	cd .. ; tar cvzhf opentheory/release/OpenTheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
+	cd .. ; tar cvzhf opentheory/release/opentheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
 
 .PHONY: release
-release: tarball mosml mlton polyml
-	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/*.art
-	cp -v doc/*.html doc/*.txt $(RELEASE_DIR)/
-	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS --exclude=num.art --exclude=articles.tar.gz -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
+release: release-stamp tarball mosml mlton polyml
+	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/*.png
+	cp -v doc/*.html doc/*.txt doc/*.png $(RELEASE_DIR)/
+	cp -v doc/favicon.ico $(RELEASE_DIR)/
+	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
+	ssh gilith@login.gilith.com '/bin/bash -l scripts/install_opentheory'
 
 ###############################################################################
 # The build scripts.

@@ -1,91 +1,95 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>OpenTheory</title>
-<meta name="keywords" content="proofs, higher order logic" />
+<title>opentheory Proof Article Tool</title>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 </head>
 
 <body>
 
 <table cellpadding="2">
 <tr>
+<td><a href="changelog.html">changelog</a></td>
+<td width="10"></td>
+<td><a href="download.html">download</a></td>
+<td width="10"></td>
 <td><b>home</b></td>
-<td width="20"></td>
-<td><a href="goal.html">project goals</a></td>
-<td width="20"></td>
-<td><a href="article.html">article format</a></td>
-<td width="20"></td>
-<td><a href="examples.html">article examples</a></td>
+<td width="10"></td>
+<td><a href="install.html">install</a></td>
+<td width="10"></td>
+<td><a href="notes.html">notes</a></td>
 </tr>
 </table>
 
 <hr />
 
-<h2>OpenTheory</h2>
+<h3>What is opentheory?</h3>
 
-<p>The
+<p>opentheory is a tool for processing proof articles, which are an
+archive format for higher order logic theories.
 
-<a href="goal.html">goal</a>
+<h3>Features of opentheory</h3>
 
-of the OpenTheory project is to allow proofs to be shared between the
-different theorem prover implementations of higher order logic,
-including
+<p>
+<ul>
 
-<a href="http://hol.sourceforge.net/">HOL4</a>,
+<li>Coded in
 
-<a href="http://www.lemma-one.com/ProofPower/index/index.html">ProofPower/HOL</a>
+<a href="http://www.smlnj.org/sml.html">Standard ML</a>
+
+(SML), and ported to the
+
+<a href="http://www.mlton.org/">MLton</a>,
+
+<a href="http://www.polyml.org/">Poly/ML</a>
 
 and
 
-<a href="http://www.cl.cam.ac.uk/users/jrh/hol-light/index.html">hol-light</a>.
+<a href="http://www.dina.dk/~sestoft/mosml.html">Moscow ML</a>
 
-As a consequence, it is hoped that a standard library of formalized
-mathematics can be built up for higher order logic.</p>
+compilers.</li>
+
+<li>Processes files in the
+
+<a href="http://www.gilith.com/research/opentheory/article.html">proof
+article format</a>
+
+of the
+
+<a href="http://www.gilith.com/research/opentheory">OpenTheory project</a>.</li>
+
+</ul>
+</p>
 
 <h3>Project Status</h3>
 
-<p>The OpenTheory project has published a
+<p>The
 
-<a href="article.html">file format standard</a>
+<a href="download.html">latest version</a>
 
-for <em>articles</em> containing statements and proofs of theorems.
-Articles are not supposed to be self-contained, and may require types,
-constants and theorems that must be supplied by the theorem proving
-system reading the article. There is also a set
-of
+is
 
-<a href="examples.html">example articles</a>
+opentheory 1.0 (release 20090210),
 
-which can be used to test tools implementing the article standard.</p>
+released under version 2 of the
 
-<p>There is active development on tool support for the project. Higher
-order logic theorem provers involved in the OpenTheory project have to
-be instrumented to read and write article files. In addition,
-stand-alone tools are envisaged to normalize articles to use a minimal
-set of primitive inference rules, eliminate redundancy, create an
-article signature of required and provided theorems, and join together
-articles.</p>
+<a href="licence.txt">GNU General Public Licence</a>.
 
-<h3>Project Members</h3>
+The program is used to power the
 
-<p>The OpenTheory project was initiated by
+<a href="http://www.gilith.com/research/opentheory">OpenTheory project</a>.</p>
 
-<a href="http://www.gilith.com/about">Joe Hurd</a>
+<h3>Contact</h3>
 
-(HOL4) and
-
-<a href="http://www.lemma-one.demon.co.uk/Arthan/homepage.html">Rob Arthan</a>
-
-(ProofPower). If you would like to join then please email
+<p>To report bugs, request features, or obtain help using opentheory,
+please email
 
 <a href="mailto:joe@gilith.com">joe@gilith.com</a></p>
 
 <hr />
 
-<i><a href = "http://www.gilith.com/about">Joe Hurd</a>,
-12 December 2007</i>
+<img src="logo.png" alt="opentheory" />
 
 </body>
 </html>

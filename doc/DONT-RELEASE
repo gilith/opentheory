@@ -6,5 +6,9 @@ opentheory/doc/IMPORT-METIS
 opentheory/doc/TODO
 opentheory/release
 opentheory/scripts/copy_src
+opentheory/scripts/hol-light
+opentheory/scripts/ml_lines
+opentheory/scripts/mlimport
 opentheory/scripts/mosml_dep
-opentheory/test/articles/*.art
+opentheory/scripts/release_stamp
+opentheory/test/hol-light

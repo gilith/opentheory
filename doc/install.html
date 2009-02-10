@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Install opentheory</title>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+</head>
+
+<body>
+
+<table cellpadding="2">
+<tr>
+<td><a href="changelog.html">changelog</a></td>
+<td width="10"></td>
+<td><a href="download.html">download</a></td>
+<td width="10"></td>
+<td><a href="index.html">home</a></td>
+<td width="10"></td>
+<td><b>install</b></td>
+<td width="10"></td>
+<td><a href="notes.html">notes</a></td>
+</tr>
+</table>
+
+<hr />
+
+<h3>Installing opentheory from Source</h3>
+
+<p>Installing opentheory from source requires an installation of either
+
+<a href="http://www.mlton.org/">MLton</a>,
+
+<a href="http://www.polyml.org/">Poly/ML</a>
+
+or
+
+<a href="http://www.dina.dk/~sestoft/mosml.html">Moscow ML</a>,
+
+as well as standard system tools including GNU Make and Perl.</p>
+
+<ol>
+
+<li><a href="download.html">Download</a>
+
+the <tt>opentheory.tar.gz</tt> file.</li>
+
+<li>Extract it with the command <tt>tar xvzf opentheory.tar.gz</tt></li>
+
+<li>There will be a new directory called <tt>opentheory</tt>. Change to
+this directory.</li>
+
+<li>To build using
+
+<a href="http://www.mlton.org/">MLton</a>:
+
+<ul>
+
+<li>Build with the command <tt>make mlton</tt></li>
+
+<li>Test with the command <tt>bin/mlton/opentheory &#45;&#45;help</tt></li>
+
+</ul>
+</li>
+
+<li>To build using
+
+<a href="http://www.polyml.org/">Poly/ML</a>:
+
+<ul>
+
+<li>Build with the command <tt>make polyml</tt></li>
+
+<li>Test with the command <tt>bin/polyml/opentheory &#45;&#45;help</tt></li>
+
+</ul>
+</li>
+
+<li>To build using
+
+<a href="http://www.dina.dk/~sestoft/mosml.html">Moscow ML</a>:
+
+<ul>
+
+<li>Build with the command <tt>make mosml</tt></li>
+
+<li>Test with the command <tt>bin/mosml/opentheory &#45;&#45;help</tt></li>
+
+</ul>
+</li>
+
+<li>If the test results in a usage message, the installation was
+successful.</li>
+
+</ol>
+
+<p>If anything goes wrong, you can use the command <tt>make clean</tt>
+to clean out any object files.</p>
+
+<h3>Troubleshooting</h3>
+
+<p>To report bugs or obtain help, please email
+
+<a href="mailto:joe@gilith.com">joe@gilith.com</a></p>
+
+<hr />
+
+<img src="logo.png" alt="opentheory" />
+
+</body>
+</html>
