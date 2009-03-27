@@ -1,5 +1,5 @@
 ###############################################################################
-# OPEN THEORY MAKEFILE
+# OPENTHEORY MAKEFILE
 # Copyright (c) 2005-2007 Joe Hurd, distributed under the GNU GPL version 2
 ###############################################################################
 
@@ -97,6 +97,7 @@ SRC = \
   src/Interpretation.sig src/Interpretation.sml \
   src/Object.sig src/Object.sml \
   src/HolLight.sig src/HolLight.sml \
+  src/ObjectProv.sig src/ObjectProv.sml \
   src/Article.sig src/Article.sml \
   src/Options.sig src/Options.sml
 

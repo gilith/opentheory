@@ -1,5 +1,5 @@
 ###############################################################################
-# OPEN THEORY DEVELOPMENT MAKEFILE
+# OPENTHEORY DEVELOPMENT MAKEFILE
 # Copyright (c) 2005-2007 Joe Hurd, distributed under the GNU GPL version 2
 ###############################################################################
 
@@ -28,6 +28,7 @@ TEMP += $(TEMPFILE) \
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-4]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-5]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-6]'
+MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-9]'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
 
 ###############################################################################
