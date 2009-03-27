@@ -98,6 +98,7 @@ SRC = \
   src/Object.sig src/Object.sml \
   src/HolLight.sig src/HolLight.sml \
   src/ObjectProv.sig src/ObjectProv.sml \
+  src/ObjectThms.sig src/ObjectThms.sml \
   src/Article.sig src/Article.sml \
   src/Options.sig src/Options.sml
 
