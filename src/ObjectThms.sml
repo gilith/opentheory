@@ -80,13 +80,6 @@ in
       end;
 end;
 
-local
-  fun add (_,obj,set) = ObjectProvSet.add set obj;
-in
-  fun toObjectSet (Thms (seqs,_)) =
-      SequentMap.foldl add ObjectProvSet.empty seqs;
-end;
-
 fun search (Thms (seqs,_)) seq =
     case SequentMap.peek seqs seq of
       NONE => NONE
@@ -97,5 +90,12 @@ fun search (Thms (seqs,_)) seq =
       in
         SOME (th,[obj])
       end;
+
+local
+  fun add (_,obj,set) = ObjectProvSet.add set obj;
+in
+  fun toObjectSet (Thms (seqs,_)) =
+      SequentMap.foldl add ObjectProvSet.empty seqs;
+end;
 
 end

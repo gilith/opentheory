@@ -100,6 +100,7 @@ SRC = \
   src/ObjectProv.sig src/ObjectProv.sml \
   src/ObjectThms.sig src/ObjectThms.sml \
   src/ObjectDict.sig src/ObjectDict.sml \
+  src/ObjectStack.sig src/ObjectStack.sml \
   src/Article.sig src/Article.sml \
   src/Options.sig src/Options.sml
 
