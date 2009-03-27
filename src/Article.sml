@@ -26,28 +26,6 @@ fun natFromString err s =
     | NONE => raise Error err;
 
 (* ------------------------------------------------------------------------- *)
-(* Dictionaries.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-datatype dict = Dict of object IntMap.map;
-
-val emptyDict = Dict (IntMap.new ());
-
-fun sizeDict (Dict m) = IntMap.size m;
-
-fun defDict (Dict dict) (key,obj) = Dict (IntMap.insert dict (key,obj));
-
-fun refDict (Dict dict) key =
-    case IntMap.peek dict key of
-      SOME obj => obj
-    | NONE => raise Error ("refDict: no entry for key " ^ Int.toString key);
-
-fun removeDict (Dict dict) key =
-    case IntMap.peek dict key of
-      SOME obj => (Dict (IntMap.delete dict key), obj)
-    | NONE => raise Error ("removeDict: no entry for key " ^ Int.toString key);
-
-(* ------------------------------------------------------------------------- *)
 (* Stacks.                                                                   *)
 (* ------------------------------------------------------------------------- *)
 
