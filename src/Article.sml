@@ -20,11 +20,6 @@ fun revConcat strm =
       Stream.Nil => Stream.Nil
     | Stream.Cons (h,t) => revAppend h (revConcat o t);
 
-fun natFromString err s =
-    case Int.fromString s of
-      SOME i => i
-    | NONE => raise Error err;
-
 (* ------------------------------------------------------------------------- *)
 (* Simulating other theorem provers.                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -60,52 +55,6 @@ fun simulate interpretation stack seq =
           end
       end
     | _ => NONE;
-
-(* ------------------------------------------------------------------------- *)
-(* Commands.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-datatype command =
-    Cnum of int
-  | Cname of Name.name
-  | Cop of string;
-
-fun ppCommand cmd =
-    case cmd of
-      Cnum i => Print.ppInt i
-    | Cname n => Name.ppQuoted n
-    | Cop c => Print.ppString c;
-
-val commandToString = Print.toString ppCommand;
-
-local
-  infixr 9 >>++
-  infixr 8 ++
-  infixr 7 >>
-  infixr 6 ||
-
-  open Parse;
-
-  fun isAlphaNum #"_" = true
-    | isAlphaNum c = Char.isAlphaNum c;
-
-  val space = many (some Char.isSpace) >> K ();
-
-  val cnumParser =
-      atLeastOne (some Char.isDigit) >>
-      (Cnum o natFromString "bad number" o implode);
-
-  val cnameParser = Name.quotedParser >> Cname;
-
-  val tcommandParser =
-      (some Char.isAlpha ++ many (some isAlphaNum)) >>
-      (Cop o implode o op::);
-in
-  val commandParser = cnumParser || cnameParser || tcommandParser;
-
-  val spacedCommandParser =
-      (space ++ commandParser ++ space) >> (fn ((),(t,())) => [t]);
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)
