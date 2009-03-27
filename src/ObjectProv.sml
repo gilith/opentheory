@@ -6,7 +6,7 @@
 structure ObjectProv :> ObjectProv =
 struct
 
-open Useful Syntax Rule;
+open Useful;
 
 (* ------------------------------------------------------------------------- *)
 (* Object IDs.                                                               *)
