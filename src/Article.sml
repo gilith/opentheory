@@ -26,51 +26,6 @@ fun natFromString err s =
     | NONE => raise Error err;
 
 (* ------------------------------------------------------------------------- *)
-(* Saved theorems.                                                           *)
-(* ------------------------------------------------------------------------- *)
-
-datatype saved = Saved of theorems;
-
-val emptySaved = Saved emptyTheorems;
-
-fun theoremsSaved (Saved thms) = thms;
-
-fun unionSaved (Saved thms1) (Saved thms2) =
-    Saved (unionTheorems thms1 thms2);
-
-fun addSaved saved obj =
-    let
-      val Saved thms = saved
-      and Object {object = ob, ...} = obj
-    in
-      case ob of
-        Object.Othm th =>
-        let
-          val seq = sequent th
-        in
-          case searchTheorems thms seq of
-            SOME _ =>
-            let
-              val () = warn ("saving duplicate theorem:\n" ^ thmToString th)
-            in
-              saved
-            end
-          | NONE =>
-            let
-              val thms = addTheorems thms obj
-            in
-              Saved thms
-            end
-        end
-      | _ => raise Error "Article.addSaved: not an Othm object"
-    end;
-
-fun searchSaved (Saved thms) seq =
-    case searchTheorems thms seq of
-      SOME (th,_) => SOME th
-    | NONE => NONE;
-
-(* ------------------------------------------------------------------------- *)
 (* Simulating other theorem provers.                                         *)
 (* ------------------------------------------------------------------------- *)
 
