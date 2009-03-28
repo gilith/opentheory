@@ -126,6 +126,12 @@ val interpretRule : Interpretation.interpretation -> object -> object
 val thms : object -> Thm.thm list
 
 (* ------------------------------------------------------------------------- *)
+(* Breaking down objects into commands.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val toCommand : object -> Command.command * object list
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

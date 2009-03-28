@@ -273,6 +273,43 @@ val thms =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Breaking down objects into commands.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun toCommand ob =
+    case ob of
+      Oerror => (Command.Error,[])
+    | Onum i => (Command.Num i, [])
+    | Oname n => (Command.Name n, [])
+    | Olist l =>
+      (case l of
+         [] => (Command.Nil,[])
+       | h :: t => (Command.Cons, [h, Olist t]))
+    | Otype ty =>
+      (case Type.dest ty of
+         Type.TypeVar n => (Command.TypeVar, [Oname n])
+       | Type.TypeOp (n,tys) =>
+         (Command.TypeOp, [Oname n, mkOtypes tys]))
+    | Oterm tm =>
+      (case Term.dest tm of
+         Term.Const (n,ty) =>
+         (Command.Const, [Oname n, Otype ty])
+       | Term.Var (Var.Var (n,ty)) =>
+         (Command.Var, [Oname n, Otype ty])
+       | Term.Comb (f,a) =>
+         (Command.Comb, [Oterm f, Oterm a])
+       | Term.Abs (v,b) =>
+         (Command.Abs, [Oterm (Term.mkVar v), Oterm b]))
+    | Othm th =>
+      let
+        val {hyp,concl} = sequent th
+        val hyp = TermAlphaSet.toList hyp
+      in
+        (Command.Thm, [mkOterms hyp, Oterm concl])
+      end
+    | Ocall _ => raise Bug "Object.toCommand: Ocall";
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

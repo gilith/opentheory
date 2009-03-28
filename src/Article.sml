@@ -21,43 +21,6 @@ fun revConcat strm =
     | Stream.Cons (h,t) => revAppend h (revConcat o t);
 
 (* ------------------------------------------------------------------------- *)
-(* Generating simple objects.                                                *)
-(* ------------------------------------------------------------------------- *)
-
-fun generateObject ob =
-    case ob of
-      Object.Oerror => (Cop "error", [])
-    | Object.Onum i => (Cnum i, [])
-    | Object.Oname n => (Cname n, [])
-    | Object.Olist l =>
-      (case l of
-         [] => (Cop "nil", [])
-       | h :: t => (Cop "cons", [h, Object.Olist t]))
-    | Object.Otype ty =>
-      (case Type.dest ty of
-         Type.TypeVar n => (Cop "type_var", [Object.Oname n])
-       | Type.TypeOp (n,tys) =>
-         (Cop "type_op", [Object.Oname n, Object.mkOtypes tys]))
-    | Object.Oterm tm =>
-      (case Term.dest tm of
-         Term.Const (n,ty) =>
-         (Cop "const", [Object.Oname n, Object.Otype ty])
-       | Term.Var (Var.Var (n,ty)) =>
-         (Cop "var", [Object.Oname n, Object.Otype ty])
-       | Term.Comb (f,a) =>
-         (Cop "comb", [Object.Oterm f, Object.Oterm a])
-       | Term.Abs (v,b) =>
-         (Cop "abs", [Object.Oterm (Term.mkVar v), Object.Oterm b]))
-    | Object.Othm th =>
-      let
-        val {hyp,concl} = sequent th
-        val hyp = TermAlphaSet.toList hyp
-      in
-        (Cop "thm", [Object.mkOterms hyp, Object.Oterm concl])
-      end
-    | Object.Ocall _ => raise Bug "Article.generateObject: Ocall";
-
-(* ------------------------------------------------------------------------- *)
 (* Generating commands.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
