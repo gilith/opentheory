@@ -40,11 +40,17 @@ val mk :
 
 val object : object -> Object.object
 
-val parents : object -> object list
+val provenance : object -> provenance
 
 val call : object -> object option
 
 val callStack : object -> object list
+
+val destCall : object -> Name.name * object
+
+val parents : object -> object list
+
+val containsThms : object -> bool
 
 val maps :
     {preDescent : object -> 's -> {descend : bool, result : object * 's},

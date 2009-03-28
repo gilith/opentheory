@@ -12,4 +12,37 @@ sig
 
 type stack
 
+val empty : stack
+
+val size : stack -> int
+
+val null : stack -> bool
+
+val frameSize : stack -> int
+
+val objects : stack -> ObjectProv.object list
+
+val thms : stack -> ObjectThms.thms
+
+val push : stack -> ObjectProv.object -> stack
+
+val pop : stack -> int -> stack
+
+val peek : stack -> int -> ObjectProv.object
+
+val pop1 : stack -> stack * ObjectProv.object
+
+val pop2 : stack -> stack * ObjectProv.object * ObjectProv.object
+
+val popCall : stack -> stack * Name.name
+
+val topCall : stack -> ObjectProv.object option
+
+val callStack : stack -> ObjectProv.object list
+
+val search :
+    stack -> Sequent.sequent -> (Thm.thm * ObjectProv.object list) option
+
+val topCallToString : stack -> string
+
 end

@@ -1,27 +1,15 @@
 (* ========================================================================= *)
-(* OBJECT DICTIONARIES                                                       *)
+(* READING OBJECTS FROM COMMANDS                                             *)
 (* Copyright (c) 2004-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
 (* ========================================================================= *)
 
-signature ObjectDict =
+signature ObjectRead =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of object dictionaries.                                            *)
+(* A type of states for reading objects from commands.                       *)
 (* ------------------------------------------------------------------------- *)
 
-type key = int
-
-type dict
-
-val empty : dict
-
-val size : dict -> int
-
-val define : dict -> key * ObjectProv.object -> dict
-
-val refer : dict -> key -> ObjectProv.object
-
-val remove : dict -> key -> dict * ObjectProv.object
+type state
 
 end

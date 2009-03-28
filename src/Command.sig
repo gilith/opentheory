@@ -10,4 +10,34 @@ sig
 (* A type of commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+datatype command =
+    Num of int
+  | Name of Name.name
+  | Error
+  | Nil
+  | Cons
+  | TypeVar
+  | TypeOp
+  | Var
+  | Const
+  | Comb
+  | Abs
+  | Thm
+  | Call
+  | Return
+  | Def
+  | Ref
+  | Remove
+  | Pop
+  | Dup
+  | Save
+
+val pp : command Print.pp
+
+val toString : command -> string
+
+val parser : (char,command) Parse.parser
+
+val spacedParser : (char, command list) Parse.parser
+
 end

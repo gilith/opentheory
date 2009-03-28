@@ -103,6 +103,7 @@ SRC = \
   src/ObjectDict.sig src/ObjectDict.sml \
   src/ObjectStack.sig src/ObjectStack.sml \
   src/ObjectSaved.sig src/ObjectSaved.sml \
+  src/ObjectRead.sig src/ObjectRead.sml \
   src/Article.sig src/Article.sml \
   src/Options.sig src/Options.sml
 

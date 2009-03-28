@@ -108,7 +108,7 @@ fun popCall (Stack {call,...}) =
       let
         val ObjectProv.Object {object = ob, ...} = obj
       in
-        (Object.destOcall ob, stack)
+        (stack, Object.destOcall ob)
       end;
 
 fun topCall (Stack {call,...}) =
@@ -116,19 +116,21 @@ fun topCall (Stack {call,...}) =
       NONE => NONE
     | SOME (obj,_) => SOME obj;
 
-fun topCallToString stack =
-    case topCall stack of
-      NONE => "top level"
-    | SOME obj =>
-      case ObjectProv.object obj of
-        Object.Ocall n => Name.toString n
-      | _ => raise Bug "ObjectStack.topCallToString";
-
 fun callStack stack =
     case topCall stack of
       NONE => []
     | SOME obj => obj :: ObjectProv.callStack obj;
 
 fun search (Stack {thms,...}) seq = ObjectThms.search (topThms thms) seq;
+
+fun topCallToString stack =
+    case topCall stack of
+      NONE => "top level"
+    | SOME obj =>
+      let
+        val (f,_) = ObjectProv.destCall obj
+      in
+        Name.toString f
+      end;
 
 end

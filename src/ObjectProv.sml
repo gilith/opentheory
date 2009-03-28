@@ -81,12 +81,27 @@ fun mk {object,provenance,call} =
 
 fun object (Object {object = x, ...}) = x;
 
+fun provenance (Object {provenance = x, ...}) = x;
+
 fun call (Object {call = x, ...}) = x;
 
 fun callStack obj =
     case call obj of
       NONE => []
     | SOME c => c :: callStack c;
+
+fun destCallProvenance p =
+    case p of
+      Pcall obj => obj
+    | _ => raise Error "ObjectProv.destCallProvenance";
+
+fun destCall (Object {object = f, provenance = a, ...}) =
+    let
+      val f = Object.destOcall f
+      and a = destCallProvenance a
+    in
+      (f,a)
+    end;
 
 fun parentsProvenance prov =
     case prov of
@@ -105,6 +120,13 @@ fun parents (Object {provenance = prov, call = c, ...}) =
         SOME obj => obj :: pars
       | NONE => pars
     end;
+
+fun containsThms obj =
+    case obj of
+      Object {object = Object.Ocall _, ...} =>
+      raise Bug "ObjectProv.containsThms: Ocall"
+    | Object {provenance = Pnull, ...} => false
+    | _ => true;
 
 local
   infix ==
@@ -209,13 +231,6 @@ in
 
   fun revMaps pre_post obj acc = genMaps false pre_post obj acc;
 end;
-
-fun containsThmsObject obj =
-    case obj of
-      Object {object = Object.Ocall _, ...} =>
-      raise Bug "Article.containsThmsObject: Ocall"
-    | Object {provenance = Pnull, ...} => false
-    | _ => true;
 
 fun pp level obj =
     let

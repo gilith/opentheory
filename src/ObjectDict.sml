@@ -12,6 +12,8 @@ open Useful;
 (* A type of object dictionaries.                                            *)
 (* ------------------------------------------------------------------------- *)
 
+type key = int;
+
 datatype dict = Dict of ObjectProv.object IntMap.map;
 
 val empty = Dict (IntMap.new ());
