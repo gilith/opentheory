@@ -52,10 +52,25 @@ val parents : object -> object list
 
 val containsThms : object -> bool
 
+(* ------------------------------------------------------------------------- *)
+(* Mapping with state over objects.                                          *)
+(* ------------------------------------------------------------------------- *)
+
 val maps :
     {preDescent : object -> 's -> {descend : bool, result : object * 's},
      postDescent : object -> 's -> object * 's} ->
     object -> 's -> object  * 's
+
+(* ------------------------------------------------------------------------- *)
+(* Generating commands to keep the call stack consistent.                    *)
+(* ------------------------------------------------------------------------- *)
+
+val alignCalls :
+    {prevCall : object option, call : object option} -> Command.command list
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
 
 val pp : int -> object Print.pp
 

@@ -128,6 +128,10 @@ fun containsThms obj =
     | Object {provenance = Pnull, ...} => false
     | _ => true;
 
+(* ------------------------------------------------------------------------- *)
+(* Mapping with state over objects.                                          *)
+(* ------------------------------------------------------------------------- *)
+
 local
   infix ==
 
@@ -231,6 +235,47 @@ in
 
   fun revMaps pre_post obj acc = genMaps false pre_post obj acc;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Generating commands to keep the call stack consistent.                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun addAlignCalls prevCall call cmds =
+    case prevCall of
+      NONE =>
+      let
+        val _ = not (Option.isSome call) orelse
+                raise Bug "ObjectProv.alignCalls: top level to nested"
+      in
+        cmds
+      end
+    | SOME (Object {id, object = ob, call = prevCall, ...}) =>
+      let
+        val aligned =
+            case call of
+              NONE => false
+            | SOME (Object {id = id', ...}) => id = id'
+      in
+        if aligned then cmds
+        else
+          let
+            val n =
+                case ob of
+                  Object.Ocall n => n
+                | _ => raise Bug "ObjectProv.alignCalls: bad call"
+
+            val cmds =
+                Command.Return :: Command.Name n :: Command.Error :: cmds
+          in
+            addAlignCalls prevCall call cmds
+          end
+      end;
+
+fun alignCalls {prevCall,call} = addAlignCalls prevCall call [];
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
 
 fun pp level obj =
     let

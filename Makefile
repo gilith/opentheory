@@ -104,6 +104,7 @@ SRC = \
   src/ObjectStack.sig src/ObjectStack.sml \
   src/ObjectSaved.sig src/ObjectSaved.sml \
   src/ObjectRead.sig src/ObjectRead.sml \
+  src/ObjectWrite.sig src/ObjectWrite.sml \
   src/Article.sig src/Article.sml \
   src/Options.sig src/Options.sml
 
