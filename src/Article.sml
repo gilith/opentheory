@@ -15,12 +15,12 @@ open Useful Syntax Rule;
 datatype article =
     Article of
       {thms : ThmSet.set,
-       saved : objectSet option};
+       saved : ObjectProvSet.set option};
 
 val empty =
     Article
       {thms = ThmSet.empty,
-       saved = SOME emptyObjectSet};
+       saved = SOME ObjectProvSet.empty};
 
 fun append art1 art2 =
     let
@@ -31,7 +31,7 @@ fun append art1 art2 =
 
       val saved =
           case (saved1,saved2) of
-            (SOME s1, SOME s2) => SOME (unionObjectSet s1 s2)
+            (SOME s1, SOME s2) => SOME (ObjectProvSet.union s1 s2)
           | _ => NONE
     in
       Article
@@ -77,7 +77,7 @@ in
 
            (* The command stream *)
 
-           val commands = Parse.everything spacedCommandParser chars
+           val commands = Parse.everything Command.spacedParser chars
          in
            executeCommands savable known interpretation commands
          end

@@ -354,8 +354,12 @@ local
     | ancs set (obj :: objs) =
       if member obj set then ancs set objs
       else ancs (add set obj) (ObjectProv.parents obj @ objs);
+
+  fun addAncestors (obj,set) = ancs set [obj];
 in
-  fun fromAncestors obj = ancs empty [obj];
+  fun ancestors obj = addAncestors (obj,empty);
+
+  val ancestorSet = foldl addAncestors empty;
 end;
 
 local
@@ -497,7 +501,7 @@ local
                       val () = Print.trace ppObject "initial" obj'
                       val () = Print.trace ppObject "duplicate" obj
                       val () =
-                          if member obj' (fromAncestors obj) then
+                          if member obj' (ancestors obj) then
                             trace "duplicate depends on initial\n"
                           else
                             trace "duplicate does not depend on initial\n"
@@ -531,7 +535,7 @@ in
         val () = checkReduced reqd
 *)
       in
-        (reqd,objs)
+        {result = objs, ancestors = reqd}
       end
 (*OpenTheoryDebug
       handle Error err => raise Bug ("ObjectProvSet.reduce: " ^ err);

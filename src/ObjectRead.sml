@@ -69,7 +69,7 @@ val initial =
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun execute savable known interpretation cmd state =
+fun execute {savable} interpretation cmd state =
     let
       val State {stack,dict,saved} = state
     in
@@ -332,28 +332,25 @@ fun execute savable known interpretation cmd state =
                concl = Object.destOterm obC}
 
           val (th,deps) =
-              case findAlpha known seq of
+              case ObjectSaved.search saved seq of
                 SOME th => (th,[])
               | NONE =>
-                case ObjectSaved.search saved seq of
-                  SOME th => (th,[])
+                case simulate interpretation stack seq of
+                  SOME th_deps => th_deps
                 | NONE =>
-                  case simulate interpretation stack seq of
+                  case ObjectStack.search stack seq of
                     SOME th_deps => th_deps
                   | NONE =>
-                    case ObjectStack.search stack seq of
-                      SOME th_deps => th_deps
-                    | NONE =>
-                      let
-                        val th = Thm.axiom seq
+                    let
+                      val th = Thm.axiom seq
 (*OpenTheoryTrace1
-                        val () = trace ("making new axiom in " ^
-                                        ObjectStack.topCallToString stack ^
-                                        ":\n" ^ thmToString th ^ "\n")
+                      val () = trace ("making new axiom in " ^
+                                      ObjectStack.topCallToString stack ^
+                                      ":\n" ^ thmToString th ^ "\n")
 *)
-                      in
-                        (th,[])
-                      end
+                    in
+                      (th,[])
+                    end
 
           val ob = Object.Othm th
           and prov = ObjectProv.Pthm (if savable then deps else [])
@@ -607,12 +604,11 @@ fun execute savable known interpretation cmd state =
     end
     handle Error err => raise Error (Command.toString cmd ^ ": " ^ err);
 
-fun executeStream savable known interpretation =
+fun executeStream savable interpretation =
     let
-      fun process (command,state) =
-          execute savable known interpretation command state
+      fun process (cmd,state) = execute savable interpretation cmd state
     in
-      Stream.foldl process initial
+      fn strm => fn state => Stream.foldl process state strm
     end;
 
 end

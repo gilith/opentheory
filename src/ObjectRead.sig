@@ -12,4 +12,18 @@ sig
 
 type state
 
+val initial : state
+
+(* ------------------------------------------------------------------------- *)
+(* Executing commands.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val execute :
+    {savable : bool} -> Interpretation.interpretation ->
+    Command.command -> state -> state
+
+val executeStream :
+    {savable : bool} -> Interpretation.interpretation ->
+    Command.command Stream.stream -> state -> state
+
 end
