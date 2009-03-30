@@ -520,7 +520,7 @@ local
       end;
 *)
 in
-  fun reduce objs =
+  fun compress objs =
       let
         val reqd = empty
         val refs = ObjectMap.new ()
@@ -535,10 +535,10 @@ in
         val () = checkReduced reqd
 *)
       in
-        {result = objs, ancestors = reqd}
+        objs
       end
 (*OpenTheoryDebug
-      handle Error err => raise Bug ("ObjectProvSet.reduce: " ^ err);
+      handle Error err => raise Bug ("ObjectProvSet.compress: " ^ err);
 *)
 end;
 

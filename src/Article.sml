@@ -60,7 +60,7 @@ local
       | SOME #"#" => true
       | _ => false;
 in
-  fun executeTextFile {savable,known,interpretation,filename} =
+  fun executeTextFile {savable,interpretation,filename} =
       let
         (* Estimating parse error line numbers *)
 
@@ -79,7 +79,7 @@ in
 
            val commands = Parse.everything Command.spacedParser chars
          in
-           executeCommands savable known interpretation commands
+           executeCommands savable interpretation commands
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>
