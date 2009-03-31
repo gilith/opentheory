@@ -12,18 +12,36 @@ sig
 
 type state
 
-val initial : state
+val initial : ObjectThms.thms -> state
+
+val stack : state -> ObjectStack.stack
+
+val dict : state -> ObjectDict.dict
+
+val saved : state -> ObjectThms.thms
 
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 val execute :
-    {savable : bool} -> Interpretation.interpretation ->
+    {savable : bool,
+     interpretation : Interpretation.interpretation} ->
     Command.command -> state -> state
 
 val executeStream :
-    {savable : bool} -> Interpretation.interpretation ->
+    {savable : bool,
+     interpretation : Interpretation.interpretation} ->
     Command.command Stream.stream -> state -> state
+
+(* ------------------------------------------------------------------------- *)
+(* Executing text files.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val executeTextFile :
+    {savable : bool,
+     interpretation : Interpretation.interpretation,
+     filename : string} ->
+    state -> state
 
 end

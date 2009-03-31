@@ -63,7 +63,13 @@ and provenance =
   | Preturn of object
   | Pcons of object * object
   | Pref of object
-  | Pthm of object list;
+  | Pthm of inference
+
+and inference =
+    Isaved
+  | Isimulated
+  | Istack of object
+  | Iaxiom;
 
 fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
     Int.compare (i1,i2);
@@ -78,6 +84,8 @@ fun mk {object,provenance,call} =
          provenance = provenance,
          call = call}
     end;
+
+fun id (Object {id = x, ...}) = x;
 
 fun object (Object {object = x, ...}) = x;
 
@@ -103,6 +111,13 @@ fun destCall (Object {object = f, provenance = a, ...}) =
       (f,a)
     end;
 
+fun parentsInference inf =
+    case inf of
+      Isaved => []
+    | Isimulated => []
+    | Istack obj => [obj]
+    | Iaxiom => [];
+
 fun parentsProvenance prov =
     case prov of
       Pnull => []
@@ -110,7 +125,7 @@ fun parentsProvenance prov =
     | Preturn obj => [obj]
     | Pcons (objH,objT) => [objH,objT]
     | Pref obj => [obj]
-    | Pthm objs => objs;
+    | Pthm inf => parentsInference inf;
 
 fun parents (Object {provenance = prov, call = c, ...}) =
     let
@@ -209,13 +224,11 @@ local
                 (prov',acc)
               end
             | Pref obj => mapsProv1 prov acc Pref obj
-            | Pthm objs =>
+            | Pthm inf =>
               let
-                val (objs',acc) =
-                    (if lr then Sharing.maps else Sharing.revMaps)
-                      mapsObj objs acc
+                val (inf',acc) = mapsInf inf acc
 
-                val prov' = if objs' == objs then prov else Pthm objs'
+                val prov' = if inf' == inf then prov else Pthm inf'
               in
                 (prov',acc)
               end
@@ -227,6 +240,19 @@ local
             in
               (prov',acc)
             end
+
+        and mapsInf inf acc =
+            case inf of
+              Isaved => (inf,acc)
+            | Isimulated => (inf,acc)
+            | Istack obj =>
+              let
+                val (obj',acc) = mapsObj obj acc
+                val inf' = if obj' == obj then inf else Istack obj'
+              in
+                (inf',acc)
+              end
+            | Iaxiom => (inf,acc);
       in
         mapsObj
       end;
@@ -317,12 +343,23 @@ and ppProvenance level prov =
         [Print.addString "Pref",
          Print.addBreak 1,
          pp level obj]
-    | Pthm objs =>
+    | Pthm inf =>
       Print.blockProgram Print.Consistent 2
         [Print.addString "Pthm",
          Print.addBreak 1,
-         Print.ppList (pp level) objs];
+         ppInference level inf]
 
+and ppInference level inf =
+    case inf of
+      Isaved => Print.addString "Isaved"
+    | Isimulated => Print.addString "Isimulated"
+    | Istack obj =>
+      Print.blockProgram Print.Consistent 1
+        [Print.addString "(Istack",
+         Print.addBreak 1,
+         pp level obj,
+         Print.addString ")"]
+    | Iaxiom => Print.addString "Iaxiom";
 end
 
 structure ObjectProvOrdered =

@@ -12,90 +12,93 @@ open Useful;
 (* A type of object set theorems.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-datatype thms = Thms of ObjectProv.object SequentMap.map * IntSet.set;
+datatype thms =
+    Thms of
+      {objs : ObjectProvSet.set,
+       seqs : (Thm.thm * ObjectProv.object) SequentMap.map,
+       seen : IntSet.set};
 
-val empty = Thms (SequentMap.new (), IntSet.empty);
-
-fun size (Thms (seqs,_)) = SequentMap.size seqs;
-
-fun add thms obj =
+val empty =
     let
-      val Thms (seqs,ids) = thms
-      and ObjectProv.Object {id, object = ob, provenance = prov, ...} = obj
+      val objs = ObjectProvSet.empty
+      val seqs = SequentMap.new ()
+      val seen = IntSet.empty
     in
-      if IntSet.member id ids then thms
-      else
-        let
-          val ids = IntSet.add ids id
-        in
-          case prov of
-            ObjectProv.Pnull => Thms (seqs,ids)
-          | ObjectProv.Pcall _ => Thms (seqs,ids)
-          | ObjectProv.Preturn objR => add (Thms (seqs,ids)) objR
-          | ObjectProv.Pcons (objH,objT) =>
-            let
-              val thms = Thms (seqs,ids)
-              val thms = add thms objH
-            in
-              add thms objT
-            end
-          | ObjectProv.Pref objR => add (Thms (seqs,ids)) objR
-          | ObjectProv.Pthm _ =>
-            let
-              val seq = Syntax.sequent (Object.destOthm ob)
-
-              val ins =
-                  case SequentMap.peek seqs seq of
-                    NONE => true
-                  | SOME (ObjectProv.Object {id = id', ...}) => id < id'
-
-              val seqs = if ins then SequentMap.insert seqs (seq,obj) else seqs
-            in
-              Thms (seqs,ids)
-            end
-        end
+      Thms
+        {objs = objs,
+         seqs = seqs,
+         seen = seen}
     end;
 
 local
-  fun choose (obj1,obj2) =
-      let
-        val ObjectProv.Object {id = id1, ...} = obj1
-        and ObjectProv.Object {id = id2, ...} = obj2
+  fun adds objA seqs seen objs =
+      case objs of
+        [] => (seqs,seen)
+      | obj :: objs =>
+        let
+          val id = ObjectProv.id obj
+        in
+          if IntSet.member id seen then adds objA seqs seen objs
+          else
+            let
+              val seen = IntSet.add seen id
+            in
+              case ObjectProv.provenance obj of
+                ObjectProv.Pnull => adds objA seqs seen objs
+              | ObjectProv.Pcall _ => adds objA seqs seen objs
+              | ObjectProv.Preturn objR => adds objA seqs seen (objR :: objs)
+              | ObjectProv.Pcons (objH,objT) =>
+                adds objA seqs seen (objH :: objT :: objs)
+              | ObjectProv.Pref objR => adds objA seqs seen (objR :: objs)
+              | ObjectProv.Pthm _ =>
+                let
+                  val th =
+                      case ObjectProv.object obj of
+                        Object.Othm th => th
+                      | _ => raise Bug "ObjectThms.add: bad thm"
 
-        val obj = if id1 < id2 then obj1 else obj2
-      in
-        SOME obj
-      end;
+                  val seq = Syntax.sequent th
+
+                  val seqs =
+                      if SequentMap.inDomain seq seqs then seqs
+                      else SequentMap.insert seqs (seq,(th,objA))
+                in
+                  adds objA seqs seen objs
+                end
+            end
+        end;
 in
-  fun union thms1 thms2 =
+  fun add thms obj =
       let
-        val Thms (seqs1,ids1) = thms1
-        and Thms (seqs2,ids2) = thms2
+        val Thms {objs,seqs,seen} = thms
 
-        val seqs = SequentMap.union choose seqs1 seqs2
-
-        val ids = IntSet.union ids1 ids2
+        val objs = ObjectProvSet.add objs obj
+        and (seqs,seen) = adds obj seqs seen [obj]
       in
-        Thms (seqs,ids)
+        Thms
+          {objs = objs,
+           seqs = seqs,
+           seen = seen}
       end;
 end;
 
-fun search (Thms (seqs,_)) seq =
+fun search (Thms {seqs,...}) seq =
     case SequentMap.peek seqs seq of
       NONE => NONE
-    | SOME obj =>
+    | SOME (th,obj) =>
       let
-        val ob = ObjectProv.object obj
-        val th = Rule.alpha seq (Object.destOthm ob)
+        val th = Rule.alpha seq th
       in
-        SOME (th,[obj])
+        SOME (th,obj)
       end;
 
 local
-  fun add (_,obj,set) = ObjectProvSet.add set obj;
+  fun add (_,(th,_),set) = ThmSet.add set th;
 in
-  fun toObjectSet (Thms (seqs,_)) =
-      SequentMap.foldl add ObjectProvSet.empty seqs;
+  fun toThmSet (Thms {seqs,...}) =
+      SequentMap.foldl add ThmSet.empty seqs;
 end;
+
+fun toObjectSet (Thms {objs,...}) = objs;
 
 end

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ARTICLES OF PROOFS IN HIGHER ORDER LOGIC                                  *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
 (* ========================================================================= *)
 
 structure Article :> Article =
@@ -17,27 +17,10 @@ datatype article =
       {thms : ThmSet.set,
        saved : ObjectProvSet.set option};
 
-val empty =
+fun new {savable} =
     Article
-      {thms = ThmSet.empty,
-       saved = SOME ObjectProvSet.empty};
-
-fun append art1 art2 =
-    let
-      val Article {thms = thms1, saved = saved1} = art1
-      and Article {thms = thms2, saved = saved2} = art2
-
-      val thms = ThmSet.union thms1 thms2
-
-      val saved =
-          case (saved1,saved2) of
-            (SOME s1, SOME s2) => SOME (ObjectProvSet.union s1 s2)
-          | _ => NONE
-    in
-      Article
-        {thms = thms,
-         saved = saved}
-    end;
+      {savable = savable,
+       saved = ObjectThms.thms};
 
 fun saved (Article {thms = x, ...}) = x;
 
@@ -79,7 +62,7 @@ in
 
            val commands = Parse.everything Command.spacedParser chars
          in
-           executeCommands savable interpretation commands
+           ObjectRead.executeStream savable interpretation commands
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>

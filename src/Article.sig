@@ -12,15 +12,11 @@ sig
 
 type article
 
-val empty : article
-
-val append : article -> article -> article
+val new : {savable : bool} -> article
 
 val saved : article -> ThmSet.set
 
 val summarize : article -> Summary.summary
-
-val prove : article -> Sequent.sequent -> Thm.thm option
 
 val isSavable : article -> bool
 
@@ -28,12 +24,10 @@ val isSavable : article -> bool
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val fromTextFile :
-    {savable : bool,
-     known : ThmSet.set,
-     interpretation : Interpretation.interpretation,
-     filename : string} ->
-    article
+val appendTextFile :
+    {filename : string,
+     interpretation : Interpretation.interpretation} ->
+    article -> article
 
 val toTextFile : {article : article, filename : string} -> unit
 

@@ -29,7 +29,13 @@ and provenance =
   | Preturn of object
   | Pcons of object * object
   | Pref of object
-  | Pthm of object list
+  | Pthm of inference
+
+and inference =
+    Isaved
+  | Isimulated
+  | Istack of object
+  | Iaxiom
 
 val compare : object * object -> order
 
@@ -37,6 +43,8 @@ val mk :
     {object : Object.object,
      provenance : provenance,
      call : object option} -> object
+
+val id : object -> id
 
 val object : object -> Object.object
 

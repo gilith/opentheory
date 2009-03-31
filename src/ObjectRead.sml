@@ -31,7 +31,7 @@ fun simulate interpretation stack seq =
             val ths = Object.thms r
           in
             case first (total (alpha seq)) ths of
-              SOME th => SOME (th,[])
+              SOME th => SOME th
             | NONE =>
               let
                 val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
@@ -57,19 +57,25 @@ datatype state =
     State of
       {stack : ObjectStack.stack,
        dict : ObjectDict.dict,
-       saved : ObjectSaved.saved};
+       saved : ObjectThms.thms};
 
-val initial =
+fun initial saved =
     State
       {stack = ObjectStack.empty,
        dict = ObjectDict.empty,
-       saved = ObjectSaved.empty};
+       saved = saved};
+
+fun stack (State {stack = x, ...}) = x;
+
+fun dict (State {dict = x, ...}) = x;
+
+fun saved (State {saved = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun execute {savable} interpretation cmd state =
+fun execute {savable,interpretation} cmd state =
     let
       val State {stack,dict,saved} = state
     in
@@ -331,15 +337,15 @@ fun execute {savable} interpretation cmd state =
               {hyp = TermAlphaSet.fromList (Object.destOterms obH),
                concl = Object.destOterm obC}
 
-          val (th,deps) =
-              case ObjectSaved.search saved seq of
-                SOME th => (th,[])
+          val (th,inf) =
+              case ObjectThms.search saved seq of
+                SOME (th,_) => (th,ObjectProv.Isaved)
               | NONE =>
                 case simulate interpretation stack seq of
-                  SOME th_deps => th_deps
+                  SOME th => (th,ObjectProv.Isimulated)
                 | NONE =>
                   case ObjectStack.search stack seq of
-                    SOME th_deps => th_deps
+                    SOME (th,objS) => (th, ObjectProv.Istack objS)
                   | NONE =>
                     let
                       val th = Thm.axiom seq
@@ -349,11 +355,11 @@ fun execute {savable} interpretation cmd state =
                                       ":\n" ^ thmToString th ^ "\n")
 *)
                     in
-                      (th,[])
+                      (th,ObjectProv.Iaxiom)
                     end
 
           val ob = Object.Othm th
-          and prov = ObjectProv.Pthm (if savable then deps else [])
+          and prov = ObjectProv.Pthm (if savable then inf else ObjectProv.Iaxiom)
           and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
@@ -597,18 +603,61 @@ fun execute {savable} interpretation cmd state =
         let
           val (stack,objT) = ObjectStack.pop1 stack
 
-          val saved = ObjectSaved.add saved objT
+          val saved = ObjectThms.add saved objT
         in
           State {stack = stack, dict = dict, saved = saved}
         end
     end
     handle Error err => raise Error (Command.toString cmd ^ ": " ^ err);
 
-fun executeStream savable interpretation =
+fun executeStream savable_interpretation =
     let
-      fun process (cmd,state) = execute savable interpretation cmd state
+      fun process (cmd,state) = execute savable_interpretation cmd state
     in
       fn strm => fn state => Stream.foldl process state strm
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Executing text files.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  (* Comment lines *)
+
+  fun isComment l =
+      case List.find (not o Char.isSpace) l of
+        NONE => true
+      | SOME #"#" => true
+      | _ => false;
+in
+  fun executeTextFile {savable,interpretation,filename} =
+      let
+        (* Estimating parse error line numbers *)
+
+        val lines = Stream.fromTextFile {filename = filename}
+
+        val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
+      in
+        (let
+           (* The character stream *)
+
+           val chars = Stream.filter (not o isComment) chars
+
+           val chars = Parse.everything Parse.any chars
+
+           (* The command stream *)
+
+           val commands = Parse.everything Command.spacedParser chars
+
+           val data = {savable = savable, interpretation = interpretation}
+         in
+           executeStream data commands
+         end
+         handle Parse.NoParse => raise Error "parse error")
+        handle Error err =>
+          raise Error ("error in file \"" ^ filename ^ "\" " ^
+                       parseErrorLocation () ^ "\n" ^ err)
+      end;
+end;
 
 end
