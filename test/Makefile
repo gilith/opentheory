@@ -1,9 +1,9 @@
 ###############################################################################
 # OPEN THEORY MAKEFILE
-# Copyright (c) 2005-2007 Joe Hurd, distributed under the GNU GPL version 2
+# Copyright (c) 2005-2009 Joe Hurd, distributed under the GNU GPL version 2
 ###############################################################################
 
-IGNORE = '^User: \|^[0-9]\+: S='
+IGNORE = '^User: '
 
 ###############################################################################
 # The default action
