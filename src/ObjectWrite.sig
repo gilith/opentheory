@@ -10,4 +10,12 @@ sig
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
+val toCommandStream : ObjectProvSet.set -> Command.command Stream.stream
+
+(* ------------------------------------------------------------------------- *)
+(* Writing objects to text files.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val toTextFile : {filename : string} -> ObjectProvSet.set -> unit
+
 end

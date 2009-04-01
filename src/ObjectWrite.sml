@@ -282,7 +282,7 @@ end;
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun toCommandStream saved objs =
+fun toCommandStream saved =
     let
       fun gen obj (stacksize,call,dict) =
           let
@@ -307,6 +307,8 @@ fun toCommandStream saved objs =
             if null cmds then Stream.Nil else Stream.singleton cmds
           end
 
+      val objs = ObjectProvSet.ancestorSet saved
+
       val stacksize = 0
       val call = NONE
       val dict = newMinDict objs
@@ -318,5 +320,31 @@ fun toCommandStream saved objs =
     end
     handle Error err =>
       raise Bug ("ObjectWrite.toCommandStream: " ^ err);
+
+(* ------------------------------------------------------------------------- *)
+(* Writing objects to text files.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun toTextFile {filename} objs =
+    let
+(*OpenTheoryTrace3
+      val () = Print.trace ObjectProvSet.pp
+                 "ObjectWrite.toTextFile: uncompressed objs" objs
+*)
+
+      val objs = ObjectProvSet.compress objs
+
+(*OpenTheoryTrace3
+      val () = Print.trace ObjectProvSet.pp
+                 "ObjectWrite.toTextFile: compressed objs" objs
+*)
+
+      val commands = toCommandStream objs
+
+      val lines = Stream.map (fn c => Command.toString c ^ "\n") commands
+    in
+      Stream.toTextFile {filename = filename} lines
+    end
+    handle Error err => raise Error ("ObjectWrite.toTextFile: " ^ err);
 
 end

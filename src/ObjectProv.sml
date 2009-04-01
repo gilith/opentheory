@@ -557,7 +557,7 @@ local
       end;
 *)
 in
-  fun compress objs =
+  fun compressList objs =
       let
         val reqd = empty
         val refs = ObjectMap.new ()
@@ -575,9 +575,18 @@ in
         objs
       end
 (*OpenTheoryDebug
-      handle Error err => raise Bug ("ObjectProvSet.compress: " ^ err);
+      handle Error err => raise Bug ("ObjectProvSet.compressList: " ^ err);
 *)
 end;
+
+fun compress objs =
+    let
+      val objs = toList objs
+      val objs = compressList objs
+      val objs = fromList objs
+    in
+      objs
+    end;
 
 end
 

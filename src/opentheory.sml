@@ -138,13 +138,13 @@ val () = if null work then () else usage "bad argument format";
 (* The core application.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun processCommand savable (cmd,(known,interpret,article)) =
+fun processCommand (cmd,(interpret,article)) =
     case cmd of
       ResetInterpretation =>
       let
         val interpret = Interpretation.natural
       in
-        (known,interpret,article)
+        (interpret,article)
       end
     | ReadInterpretation filename =>
       let
@@ -152,22 +152,17 @@ fun processCommand savable (cmd,(known,interpret,article)) =
 
         val interpret = Interpretation.append interpret interpret'
       in
-        (known,interpret,article)
+        (interpret,article)
       end
     | ReadArticle {filename} =>
       let
-        val article' =
-            Article.fromTextFile
-              {savable = savable,
-               known = known,
-               interpretation = interpret,
+        val article =
+            Article.appendTextFile
+              {interpretation = interpret,
                filename = filename}
-
-        val article = Article.append article article'
-
-        val known = Article.saved article
+              article
       in
-        (known,interpret,article)
+        (interpret,article)
       end
     | OutputArticle {filename} =>
       let
@@ -176,7 +171,7 @@ fun processCommand savable (cmd,(known,interpret,article)) =
               {article = article,
                filename = filename}
       in
-        (known,interpret,article)
+        (interpret,article)
       end
     | OutputSummary {filename} =>
       let
@@ -187,7 +182,7 @@ fun processCommand savable (cmd,(known,interpret,article)) =
               {summary = summary,
                filename = filename}
       in
-        (known,interpret,article)
+        (interpret,article)
       end;
 
 (* ------------------------------------------------------------------------- *)
@@ -200,16 +195,13 @@ let
   (*MetisDebug val () = print "Running in metis DEBUG mode.\n" *)
   (*OpenTheoryDebug val () = print "Running in opentheory DEBUG mode.\n" *)
 
-  val known = ThmSet.empty
+  val commands = rev (!COMMANDS)
 
   val interpret = Interpretation.natural
 
-  val article = Article.empty
+  val article = Article.new {savable = List.exists isOutputArticle commands}
 
-  val savable = List.exists isOutputArticle (!COMMANDS)
-
-  val (_,_,article) =
-      foldl (processCommand savable) (known,interpret,article) (rev (!COMMANDS))
+  val (_,article) = List.foldl processCommand (interpret,article) commands
 in
   succeed ()
 end

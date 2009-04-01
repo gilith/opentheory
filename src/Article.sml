@@ -159,29 +159,29 @@ fun appendTextFile {filename,interpretation} article =
     end
     handle Error err => raise Error ("Article.appendTextFile: " ^ err);
 
+fun fromTextFile {savable,interpretation,filename} =
+    let
+      val article = new {savable = savable}
+
+      val article =
+          appendTextFile
+            {interpretation = interpretation,
+             filename = filename}
+            article
+    in
+      article
+    end
+    handle Error err => raise Error ("Article.fromTextFile: " ^ err);
+
 fun toTextFile {article,filename} =
     let
-      val Article {saved,...} = article
+      val Article {savable,saved} = article
 
-      val saved =
-          case saved of
-            SOME s => toListObjectSet s
-          | NONE => raise Error "unsavable"
+      val _ = savable orelse raise Error "unsavable"
 
-      val (objs,saved) = reduceObject saved
-
-      val saved = fromListObjectSet saved
-
-(*OpenTheoryTrace3
-      val () = Print.trace ppObjectSet "Article.toTextFile: objs" objs
-      val () = Print.trace ppObjectSet "Article.toTextFile: saved" saved
-*)
-
-      val commands = generate saved objs
-
-      val lines = Stream.map (fn c => commandToString c ^ "\n") commands
+      val objs = ObjectThms.toObjectSet saved
     in
-      Stream.toTextFile {filename = filename} lines
+      ObjectWrite.toTextFile {filename = filename} objs
     end
     handle Error err => raise Error ("Article.toTextFile: " ^ err);
 

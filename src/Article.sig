@@ -29,6 +29,12 @@ val appendTextFile :
      interpretation : Interpretation.interpretation} ->
     article -> article
 
+val fromTextFile :
+    {savable : bool,
+     filename : string,
+     interpretation : Interpretation.interpretation} ->
+    article
+
 val toTextFile : {article : article, filename : string} -> unit
 
 end

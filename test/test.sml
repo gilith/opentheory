@@ -188,25 +188,19 @@ val ARTICLE_DIR = "articles";
 fun compress interpretation filename =
     let
       val article =
-          time
-            Article.fromTextFile
+          time Article.fromTextFile
             {savable = true,
-             known = ThmSet.empty,
              interpretation = interpretation,
-             filename = ARTICLE_DIR ^ "/" ^ filename};
+             filename = ARTICLE_DIR ^ "/" ^ filename}
     in
       time Article.toTextFile {article = article, filename = filename}
     end;
 
 val () = compress holLightInt "bool.art";
 
-val known = ThmSet.empty;
-
 val bool =
-    time
-      Article.fromTextFile
+    time Article.fromTextFile
       {savable = false,
-       known = known,
        interpretation = Interpretation.natural,
        filename = "bool.art"};
 
