@@ -30,6 +30,10 @@ val empty =
          seen = seen}
     end;
 
+fun size (Thms {objs,seqs,...}) =
+    {objs = ObjectProvSet.size objs,
+     thms = SequentMap.size seqs};
+
 local
   fun adds objA seqs seen objs =
       case objs of
@@ -82,6 +86,14 @@ in
       end;
 end;
 
+local
+  fun add1 (obj,thms) = add thms obj;
+in
+  fun addList thms objs = List.foldl add1 thms objs;
+
+  fun addSet thms objs = ObjectProvSet.foldl add1 thms objs;
+end;
+
 fun search (Thms {seqs,...}) seq =
     case SequentMap.peek seqs seq of
       NONE => NONE
@@ -92,13 +104,13 @@ fun search (Thms {seqs,...}) seq =
         SOME (th,obj)
       end;
 
+fun toObjectSet (Thms {objs,...}) = objs;
+
 local
   fun add (_,(th,_),set) = ThmSet.add set th;
 in
   fun toThmSet (Thms {seqs,...}) =
       SequentMap.foldl add ThmSet.empty seqs;
 end;
-
-fun toObjectSet (Thms {objs,...}) = objs;
 
 end

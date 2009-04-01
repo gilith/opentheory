@@ -14,12 +14,18 @@ type thms
 
 val empty : thms
 
+val size : thms -> {objs : int, thms : int}
+
 val add : thms -> ObjectProv.object -> thms
+
+val addList : thms -> ObjectProv.object list -> thms
+
+val addSet : thms -> ObjectProvSet.set -> thms
 
 val search : thms -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
 
-val toThmSet : thms -> ThmSet.set
-
 val toObjectSet : thms -> ObjectProvSet.set
+
+val toThmSet : thms -> ThmSet.set
 
 end

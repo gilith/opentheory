@@ -9,82 +9,86 @@ struct
 open Useful Syntax Rule;
 
 (* ------------------------------------------------------------------------- *)
+(* Helper functions.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun extract acc seen objs =
+      case objs of
+        [] => acc
+      | obj :: objs =>
+        let
+          val id = ObjectProv.id obj
+        in
+          if IntSet.member id seen then extract acc seen objs
+          else
+            let
+              val seen = IntSet.add seen id
+            in
+              case ObjectProv.provenance obj of
+                ObjectProv.Pnull => extract acc seen objs
+              | ObjectProv.Pcall _ => extract acc seen objs
+              | ObjectProv.Preturn objR => extract acc seen (objR :: objs)
+              | ObjectProv.Pcons (objH,objT) =>
+                extract acc seen (objH :: objT :: objs)
+              | ObjectProv.Pref objR => extract acc seen (objR :: objs)
+              | ObjectProv.Pthm _ =>
+                let
+                  val acc = ObjectProvSet.add acc obj
+                in
+                  extract acc seen objs
+                end
+            end
+        end;
+
+in
+  val thmObjects = extract ObjectProvSet.empty IntSet.empty;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of proof articles.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 datatype article =
     Article of
-      {thms : ThmSet.set,
-       saved : ObjectProvSet.set option};
+      {savable : bool,
+       saved : ObjectThms.thms};
 
 fun new {savable} =
     Article
       {savable = savable,
-       saved = ObjectThms.thms};
+       saved = ObjectThms.empty};
 
-fun saved (Article {thms = x, ...}) = x;
+fun saved (Article {saved = x, ...}) = ObjectThms.toThmSet x;
 
-fun prove article = findAlpha (saved article);
+fun summarize article = Summary.fromThms (saved article);
 
-val summarize = Summary.fromThms o saved;
-
-fun isSavable (Article {saved,...}) = Option.isSome saved;
+fun savable (Article {savable = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  (* Comment lines *)
-
-  fun isComment l =
-      case List.find (not o Char.isSpace) l of
-        NONE => true
-      | SOME #"#" => true
-      | _ => false;
-in
-  fun executeTextFile {savable,interpretation,filename} =
-      let
-        (* Estimating parse error line numbers *)
-
-        val lines = Stream.fromTextFile {filename = filename}
-
-        val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
-      in
-        (let
-           (* The character stream *)
-
-           val chars = Stream.filter (not o isComment) chars
-
-           val chars = Parse.everything Parse.any chars
-
-           (* The command stream *)
-
-           val commands = Parse.everything Command.spacedParser chars
-         in
-           ObjectRead.executeStream savable interpretation commands
-         end
-         handle Parse.NoParse => raise Error "parse error")
-        handle Error err =>
-          raise Error ("error in article file \"" ^ filename ^ "\" " ^
-                       parseErrorLocation () ^ "\n" ^ err)
-      end;
-end;
-
-fun fromTextFile {savable,known,interpretation,filename} =
+fun appendTextFile {filename,interpretation} article =
     let
-      val State {stack,dict,saved} =
-          executeTextFile
-            {savable = savable,
-             known = known,
-             filename = filename,
-             interpretation = interpretation}
+      val Article {savable, saved = initialSaved} = article
 
-      val saved = theoremsSaved saved
+      val state = ObjectRead.initial initialSaved
+
+      val state =
+          ObjectRead.executeTextFile
+            {savable = savable,
+             interpretation = interpretation,
+             filename = filename}
+          state
+
+      val stack = ObjectRead.stack state
+      and dict = ObjectRead.dict state
+      and saved = ObjectRead.saved state
 
       val saved =
           let
-            val n = sizeStack stack
+            val n = ObjectStack.size stack
           in
             if n = 0 then saved
             else
@@ -93,11 +97,17 @@ fun fromTextFile {savable,known,interpretation,filename} =
                                (if n = 1 then "" else "s") ^
                                " left on the stack by " ^ filename)
 
-                val saved' = theoremsStack stack
-                val saved' = unionTheorems saved saved'
+                val objs = thmObjects (ObjectStack.objects stack)
 
-                val n = sizeTheorems saved
-                val n' = sizeTheorems saved' - n
+                val n =
+                    let
+                      val {thms = t, ...} = ObjectThms.size initialSaved
+                      and {thms = t', ...} = ObjectThms.size saved
+                    in
+                      t' - t
+                    end
+
+                val n' = ObjectProvSet.size objs
               in
                 if n = 0 then
                   let
@@ -108,7 +118,7 @@ fun fromTextFile {savable,known,interpretation,filename} =
                                 (if n' = 1 then "" else "s") ^
                                 " left on the stack by " ^ filename)
                   in
-                    saved'
+                    ObjectThms.addSet saved objs
                   end
                 else
                   let
@@ -125,12 +135,16 @@ fun fromTextFile {savable,known,interpretation,filename} =
           end
 
       val () =
-          if sizeTheorems saved > 0 then ()
-          else warn ("no theorems saved or left on the stack by " ^ filename)
+          let
+            val {thms = n, ...} = ObjectThms.size saved
+          in
+            if n > 0 then ()
+            else warn ("no theorems saved or left on the stack by " ^ filename)
+          end
 
       val () =
           let
-            val n = sizeDict dict
+            val n = ObjectDict.size dict
           in
             if n = 0 then ()
             else
@@ -138,18 +152,12 @@ fun fromTextFile {savable,known,interpretation,filename} =
                     (if n = 1 then "" else "s") ^
                     " left in the dictionary by " ^ filename)
           end
-
-      val saved = toObjectSetTheorems saved
-
-      val thms = toThmSetObjectSet saved
-
-      val saved = if savable then SOME saved else NONE
     in
       Article
-        {thms = thms,
+        {savable = savable,
          saved = saved}
     end
-    handle Error err => raise Error ("Article.fromTextFile: " ^ err);
+    handle Error err => raise Error ("Article.appendTextFile: " ^ err);
 
 fun toTextFile {article,filename} =
     let

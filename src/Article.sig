@@ -18,7 +18,7 @@ val saved : article -> ThmSet.set
 
 val summarize : article -> Summary.summary
 
-val isSavable : article -> bool
+val savable : article -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
