@@ -608,7 +608,8 @@ fun execute {savable,interpretation} cmd state =
           State {stack = stack, dict = dict, saved = saved}
         end
     end
-    handle Error err => raise Error (Command.toString cmd ^ ": " ^ err);
+    handle Error err =>
+      raise Error ("ObjectRead.execute " ^ Command.toString cmd ^ ": " ^ err);
 
 fun executeStream savable_interpretation =
     let
