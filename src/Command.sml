@@ -97,24 +97,25 @@ in
   val parser =
       numParser >> Num ||
       nameParser >> Name ||
-      commandParser "error" Error ||
-      commandParser "nil" Nil ||
-      commandParser "cons" Cons ||
+      (* Sorted in decreasing length order *)
       commandParser "type_var" TypeVar ||
       commandParser "type_op" TypeOp ||
-      commandParser "var" Var ||
-      commandParser "const" Const ||
-      commandParser "comb" Comb ||
-      commandParser "abs" Abs ||
-      commandParser "thm" Thm ||
-      commandParser "call" Call ||
-      commandParser "return" Return ||
-      commandParser "def" Def ||
-      commandParser "ref" Ref ||
       commandParser "remove" Remove ||
-      commandParser "pop" Pop ||
+      commandParser "return" Return ||
+      commandParser "const" Const ||
+      commandParser "error" Error ||
+      commandParser "call" Call ||
+      commandParser "comb" Comb ||
+      commandParser "cons" Cons ||
+      commandParser "save" Save ||
+      commandParser "abs" Abs ||
+      commandParser "def" Def ||
       commandParser "dup" Dup ||
-      commandParser "save" Save;
+      commandParser "nil" Nil ||
+      commandParser "pop" Pop ||
+      commandParser "ref" Ref ||
+      commandParser "thm" Thm ||
+      commandParser "var" Var;
 
   val spacedParser = (space ++ parser ++ space) >> (fn ((),(t,())) => [t]);
 end;

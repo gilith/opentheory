@@ -32,6 +32,7 @@ val equal : thm -> thm -> bool
 (* Note: theorems created by the axiom rule are tagged, and tags are passed  *)
 (* on by the primitive inference rules to all derived theorems.              *)
 (* ------------------------------------------------------------------------- *)
+
 val axiom : Sequent.sequent -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -41,6 +42,7 @@ val axiom : Sequent.sequent -> thm
 (*                                                                           *)
 (* Side condition: the variable v must not be free in A.                     *)
 (* ------------------------------------------------------------------------- *)
+
 val abs : Var.var -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -50,6 +52,7 @@ val abs : Var.var -> thm -> thm
 (*                                                                           *)
 (* Side condition: The term t must have boolean type.                        *)
 (* ------------------------------------------------------------------------- *)
+
 val assume : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -57,6 +60,7 @@ val assume : Term.term -> thm
 (* -----------------------------  betaConv ((\v. t1) t2)                     *)
 (*   |- (\v. t1) t2 = t1[t2/v]                                               *)
 (* ------------------------------------------------------------------------- *)
+
 val betaConv : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -64,6 +68,7 @@ val betaConv : Term.term -> thm
 (* --------------------------------------  deductAntisym                     *)
 (*   (A - {t2}) u (B - {t1}) |- t1 = t2                                      *)
 (* ------------------------------------------------------------------------- *)
+
 val deductAntisym : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -73,6 +78,7 @@ val deductAntisym : thm -> thm -> thm
 (*                                                                           *)
 (* Side condition: the terms t1 and t1' must be alpha equivalent.            *)
 (* ------------------------------------------------------------------------- *)
+
 val eqMp : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -80,6 +86,7 @@ val eqMp : thm -> thm -> thm
 (* ------------------------  Subst theta                                     *)
 (*   A[theta] |- t[theta]                                                    *)
 (* ------------------------------------------------------------------------- *)
+
 val subst : TermSubst.subst -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -89,6 +96,7 @@ val subst : TermSubst.subst -> thm -> thm
 (*                                                                           *)
 (* Side condition: the types of f and x must be compatible.                  *)
 (* ------------------------------------------------------------------------- *)
+
 val comb : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -96,6 +104,7 @@ val comb : thm -> thm -> thm
 (* ------------  refl t                                                      *)
 (*   |- t = t                                                                *)
 (* ------------------------------------------------------------------------- *)
+
 val refl : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -109,6 +118,7 @@ val refl : Term.term -> thm
 (* Side conditions: name is not an existing constant, t has no free          *)
 (* variables, and all type variables in t also appear in the type of t.      *)
 (* ------------------------------------------------------------------------- *)
+
 val defineConst : Name.name -> Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
@@ -126,6 +136,7 @@ val defineConst : Name.name -> Term.term -> thm
 (* not have the same name as existing constants, and tyVars lists all the    *)
 (* type variables in p.                                                      *)
 (* ------------------------------------------------------------------------- *)
+
 val defineType :
     Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list -> thm ->
     thm * thm

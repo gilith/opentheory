@@ -609,7 +609,20 @@ fun execute {savable,interpretation} cmd state =
         end
     end
     handle Error err =>
-      raise Error ("ObjectRead.execute " ^ Command.toString cmd ^ ": " ^ err);
+      let
+(*OpenTheoryDebug
+        val State {stack,...} = state
+
+        val ppStack =
+            Print.ppMap
+              (map ObjectProv.object o ObjectStack.objects)
+              (Print.ppList Object.pp)
+        val () = Print.trace ppStack "ObjectRead.execute: stack" stack
+*)
+        val err = "ObjectRead.execute " ^ Command.toString cmd ^ ": " ^ err
+      in
+        raise Error err
+      end;
 
 fun executeStream savable_interpretation =
     let
@@ -631,7 +644,7 @@ local
       | SOME #"#" => true
       | _ => false;
 in
-  fun executeTextFile {savable,interpretation,filename} =
+  fun executeTextFile {savable,interpretation,filename} state =
       let
         (* Estimating parse error line numbers *)
 
@@ -652,7 +665,7 @@ in
 
            val data = {savable = savable, interpretation = interpretation}
          in
-           executeStream data commands
+           executeStream data commands state
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>
