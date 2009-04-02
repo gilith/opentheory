@@ -113,7 +113,7 @@ end;
 
 val VERSION = "1.0";
 
-val versionString = PROGRAM^" "^VERSION^" (release 20090210)"^"\n";
+val versionString = PROGRAM^" "^VERSION^" (release 20090401)"^"\n";
 
 val programOptions =
     {name = PROGRAM,
