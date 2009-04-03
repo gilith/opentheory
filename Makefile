@@ -105,6 +105,7 @@ SRC = \
   src/ObjectRead.sig src/ObjectRead.sml \
   src/ObjectWrite.sig src/ObjectWrite.sml \
   src/Article.sig src/Article.sml \
+  src/Theory.sig src/Theory.sml \
   src/Options.sig src/Options.sml
 
 EXTRA_SRC =
