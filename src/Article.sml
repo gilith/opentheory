@@ -6,7 +6,7 @@
 structure Article :> Article =
 struct
 
-open Useful Syntax Rule;
+open Useful;
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
