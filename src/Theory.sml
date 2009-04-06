@@ -180,7 +180,9 @@ in
 
            val thys = Parse.everything parser' chars
          in
-           Block (Stream.toList thys)
+           case Stream.toList thys of
+             [thy] => thy
+           | thys => Block thys
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>
