@@ -177,10 +177,10 @@ val holLightInt =
     Interpretation.fromTextFile
       {filename = INTERPRETATION_DIR ^ "/hol-light.int"};
 
-val () = print (Interpretation.toString holLightInt);
+val _ = printval Interpretation.pp holLightInt;
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Reading in hol-light theories";
+val () = SAY "Reading in hol-light articles";
 (* ------------------------------------------------------------------------- *)
 
 val ARTICLE_DIR = "articles";
@@ -206,3 +206,13 @@ val bool =
 
 val summary =
     withRef (thmShowHyp,false) (printval Summary.pp) (Article.summarize bool);
+
+(* ------------------------------------------------------------------------- *)
+val () = SAY "Reading in theories";
+(* ------------------------------------------------------------------------- *)
+
+val THEORY_DIR = "theories";
+
+val testThy = time Theory.fromTextFile {filename = THEORY_DIR ^ "/test.thy"};
+
+val _ = printval Theory.pp testThy

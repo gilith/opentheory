@@ -32,12 +32,12 @@ fun toSummary thy = Article.summarize (compile {savable = false} thy);
 
 fun ppBlock ppX x =
     Print.blockProgram Print.Consistent 0
-      [Print.addString "{",
-       Print.blockProgram Print.Consistent 2
-         [Print.addBreak 1,
+      [Print.blockProgram Print.Consistent 2
+         [Print.addString "{",
+          Print.addBreak 1,
           ppX x],
-       Print.addString "}",
-       Print.addNewline];
+       Print.addBreak 1,
+       Print.addString "}"];
 
 fun pp thy =
     case thy of
@@ -45,7 +45,7 @@ fun pp thy =
       Print.blockProgram Print.Consistent 0
         [Print.addString "local ",
          pp thy1,
-         Print.addBreak 1,
+         Print.addNewline,
          Print.addString "in ",
          pp thy2]
     | Block thys => ppBlock ppList thys
@@ -72,7 +72,7 @@ and ppList1 thy thys =
     | thy' :: thys =>
       Print.program
         [pp thy,
-         Print.addBreak 1,
+         Print.addNewline,
          ppList1 thy' thys];
 
 (* ------------------------------------------------------------------------- *)

@@ -40,15 +40,16 @@ Reading in the hol-light interpretation
 type prod -> *;
 const @ -> select;
 rulespace <global> -> hol-light;
+
 --------------------------------------------------------------------------
-Reading in hol-light theories
+Reading in hol-light articles
 
 WARNING: 1030 objects left on the stack by articles/bool.art
 WARNING: saving 549 theorems left on the stack by articles/bool.art
 WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 1.210  System: 0.012  GC: 0.126  Real: 1.231
-User: 1.414  System: 0.011  GC: 0.073  Real: 1.439
-User: 0.933  System: 0.006  GC: 0.090  Real: 0.945
+User: 1.639  System: 0.019  GC: 0.173  Real: 1.708
+User: 1.493  System: 0.014  GC: 0.080  Real: 1.522
+User: 1.079  System: 0.009  GC: 0.107  Real: 1.109
 REQUIRES { }
 PROVIDES {
   types:
@@ -671,4 +672,10 @@ PROVIDES {
     {.} |- (\r. (P ==> r) ==> (Q ==> r) ==> r) R
     {..} |- (\r. (P ==> r) ==> (Q ==> r) ==> r) R
 }
+
+--------------------------------------------------------------------------
+Reading in theories
+
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+{ article "bool.art"; }
 

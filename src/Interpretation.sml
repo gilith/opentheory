@@ -82,13 +82,16 @@ end;
 fun ppTerminatedRewrite r =
     Print.program
       [ppRewrite r,
-       Print.addString terminatorString,
-       Print.addNewline];
+       Print.addString terminatorString];
 
 fun ppRewriteList1 r rs =
     case rs of
       [] => ppTerminatedRewrite r
-    | r' :: rs => Print.sequence (ppTerminatedRewrite r) (ppRewriteList1 r' rs);
+    | r' :: rs =>
+      Print.program
+        [ppTerminatedRewrite r,
+         Print.addNewline,
+         ppRewriteList1 r' rs];
 
 fun ppRewriteList l =
     case l of
