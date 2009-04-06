@@ -57,7 +57,7 @@ val quotedToString : name -> string
 
 val quotedParser : (char,name) Parse.parser
 
-(* Not inverses - just for interfacing to users or external tools *)
+(* Just for interfacing to users or external tools *)
 
 val pp : name Print.pp
 

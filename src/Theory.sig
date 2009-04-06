@@ -14,7 +14,7 @@ datatype theory =
     Local of theory * theory
   | Block of theory list
   | Article of {filename : string}
-  | Interpretation of Interpretation.interpretation
+  | Interpret of Interpretation.interpretation
 
 val empty : theory
 
@@ -27,6 +27,12 @@ val toSummary : theory -> Summary.summary
 (* ------------------------------------------------------------------------- *)
 
 val pp : theory Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val parser : (char,theory) Parse.parser
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
