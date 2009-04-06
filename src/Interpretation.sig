@@ -11,25 +11,29 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 datatype rewrite =
-    RewriteNamespace of Namespace.namespace * Namespace.namespace
-  | RewriteType of Name.name * Name.name
-  | RewriteConst of Name.name * Name.name
-  | RewriteRulespace of Namespace.namespace * Namespace.namespace
-  | RewriteRule of Name.name * Name.name
+    NamespaceRewrite of Namespace.namespace * Namespace.namespace
+  | TypeRewrite of Name.name * Name.name
+  | ConstRewrite of Name.name * Name.name
+  | RulespaceRewrite of Namespace.namespace * Namespace.namespace
+  | RuleRewrite of Name.name * Name.name
 
-val rewriteNamespace : rewrite -> Namespace.namespace -> Namespace.namespace
+val interpretNamespaceRewrite :
+    rewrite -> Namespace.namespace -> Namespace.namespace
 
-val rewriteType : rewrite -> Name.name -> Name.name
+val interpretTypeRewrite : rewrite -> Name.name -> Name.name
 
-val rewriteConst : rewrite -> Name.name -> Name.name
+val interpretConstRewrite : rewrite -> Name.name -> Name.name
 
-val rewriteRulespace : rewrite -> Namespace.namespace -> Namespace.namespace
+val interpretRulespaceRewrite :
+    rewrite -> Namespace.namespace -> Namespace.namespace
 
-val rewriteRule : rewrite -> Name.name -> Name.name
+val interpretRuleRewrite : rewrite -> Name.name -> Name.name
 
-val rewriteToString : rewrite -> string
+val ppRewrite : rewrite Print.pp
 
-val rewriteParser : (char,rewrite) Parse.parser
+val parserRewrite : (char,rewrite) Parse.parser
+
+val toStringRewrite : rewrite -> string
 
 (* ------------------------------------------------------------------------- *)
 (* A type of interpretations.                                                *)
@@ -39,7 +43,11 @@ datatype interpretation = Interpretation of rewrite list
 
 val natural : interpretation
 
+val singleton : rewrite -> interpretation
+
 val append : interpretation -> interpretation -> interpretation
+
+val concat : interpretation list -> interpretation
 
 (* ------------------------------------------------------------------------- *)
 (* Translating OpenTheory names.                                             *)
@@ -58,10 +66,22 @@ val interpretRulespace :
 val interpretRule : interpretation -> Name.name -> Name.name
 
 (* ------------------------------------------------------------------------- *)
-(* Parsing and pretty printing.                                              *)
+(* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val pp : interpretation Print.pp
+
 val toString : interpretation -> string
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val parser : (char,interpretation) Parse.parser
+
+(* ------------------------------------------------------------------------- *)
+(* Input/Output.                                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val toTextFile : {filename : string, interpretation : interpretation} -> unit
 

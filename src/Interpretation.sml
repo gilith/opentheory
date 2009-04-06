@@ -14,61 +14,88 @@ open Useful;
 
 val rewriteString = "->";
 
+val terminatorString = ";";
+
 (* ------------------------------------------------------------------------- *)
 (* A type of rewrite rules for names.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 datatype rewrite =
-    RewriteNamespace of Namespace.namespace * Namespace.namespace
-  | RewriteType of Name.name * Name.name
-  | RewriteConst of Name.name * Name.name
-  | RewriteRulespace of Namespace.namespace * Namespace.namespace
-  | RewriteRule of Name.name * Name.name;
+    NamespaceRewrite of Namespace.namespace * Namespace.namespace
+  | TypeRewrite of Name.name * Name.name
+  | ConstRewrite of Name.name * Name.name
+  | RulespaceRewrite of Namespace.namespace * Namespace.namespace
+  | RuleRewrite of Name.name * Name.name
 
-fun rewriteNamespace r n =
+fun interpretNamespaceRewrite r n =
     case r of
-      RewriteNamespace x_y => Namespace.rewrite x_y n
+      NamespaceRewrite x_y => Namespace.rewrite x_y n
     | _ => n;
 
-fun rewriteType r n =
+fun interpretTypeRewrite r n =
     case r of
-      RewriteNamespace x_y => Name.rewrite x_y n
-    | RewriteType x_y => Name.replace x_y n
+      NamespaceRewrite x_y => Name.rewrite x_y n
+    | TypeRewrite x_y => Name.replace x_y n
     | _ => n;
 
-fun rewriteConst r n =
+fun interpretConstRewrite r n =
     case r of
-      RewriteNamespace x_y => Name.rewrite x_y n
-    | RewriteConst x_y => Name.replace x_y n
+      NamespaceRewrite x_y => Name.rewrite x_y n
+    | ConstRewrite x_y => Name.replace x_y n
     | _ => n;
 
-fun rewriteRulespace r n =
+fun interpretRulespaceRewrite r n =
     case r of
-      RewriteRulespace x_y => Namespace.rewrite x_y n
+      RulespaceRewrite x_y => Namespace.rewrite x_y n
     | _ => n;
 
-fun rewriteRule r n =
+fun interpretRuleRewrite r n =
     case r of
-      RewriteRulespace x_y => Name.rewrite x_y n
-    | RewriteRule x_y => Name.replace x_y n
+      RulespaceRewrite x_y => Name.rewrite x_y n
+    | RuleRewrite x_y => Name.replace x_y n
     | _ => n;
 
 local
-  fun xyToString prefix xToString (x,y) =
-      prefix ^ " " ^ xToString x ^ " " ^
-      rewriteString ^ " " ^ xToString y ^ ";";
+  fun ppX2 prefix ppX (x1,x2) =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.addString prefix,
+         Print.addBreak 1,
+         ppX x1,
+         Print.addString " ",
+         Print.addString rewriteString,
+         Print.addBreak 1,
+         ppX x2];
 
-  fun xyNameToString prefix x_y =
-      xyToString prefix Name.toString x_y;
+  fun ppNamespace2 prefix = ppX2 prefix Namespace.pp;
+
+  fun ppName2 prefix = ppX2 prefix Name.pp;
 in
-  fun rewriteToString r =
+  fun ppRewrite r =
       case r of
-        RewriteNamespace x_y => xyToString "namespace" Namespace.toString x_y
-      | RewriteType x_y => xyNameToString "type" x_y
-      | RewriteConst x_y => xyNameToString "const" x_y
-      | RewriteRulespace x_y => xyToString "rulespace" Namespace.toString x_y
-      | RewriteRule x_y => xyNameToString "rule" x_y;
+        NamespaceRewrite x_y => ppNamespace2 "namespace" x_y
+      | TypeRewrite x_y => ppName2 "type" x_y
+      | ConstRewrite x_y => ppName2 "const" x_y
+      | RulespaceRewrite x_y => ppNamespace2 "rulespace" x_y
+      | RuleRewrite x_y => ppName2 "rule" x_y;
 end;
+
+fun ppTerminatedRewrite r =
+    Print.program
+      [ppRewrite r,
+       Print.addString terminatorString,
+       Print.addNewline];
+
+fun ppRewriteList1 r rs =
+    case rs of
+      [] => ppTerminatedRewrite r
+    | r' :: rs => Print.sequence (ppTerminatedRewrite r) (ppRewriteList1 r' rs);
+
+fun ppRewriteList l =
+    case l of
+      [] => Print.skip
+    | r :: rs => ppRewriteList1 r rs;
+
+val toStringRewrite = Print.toString ppRewrite;
 
 local
   infixr 9 >>++
@@ -88,15 +115,15 @@ local
        xParser ++ space ++ exact #";") >>
       (fn (_,(_,(x,(_,(_,(_,(y,_))))))) => (x,y));
 in
-  val rewriteParser =
-      xyParser "namespace" Namespace.quotedParser >> RewriteNamespace ||
-      xyParser "type" Name.quotedParser >> RewriteType ||
-      xyParser "const" Name.quotedParser >> RewriteConst ||
-      xyParser "rulespace" Namespace.quotedParser >> RewriteRulespace ||
-      xyParser "rule" Name.quotedParser >> RewriteRule;
+  val parserRewrite =
+      xyParser "namespace" Namespace.quotedParser >> NamespaceRewrite ||
+      xyParser "type" Name.quotedParser >> TypeRewrite ||
+      xyParser "const" Name.quotedParser >> ConstRewrite ||
+      xyParser "rulespace" Namespace.quotedParser >> RulespaceRewrite ||
+      xyParser "rule" Name.quotedParser >> RuleRewrite;
 
-  val spacedRewriteParser =
-      (space ++ rewriteParser ++ space) >> (fn ((),(t,())) => [t]);
+  val spacedParserRewrite =
+      (space ++ parserRewrite ++ space) >> (fn ((),(t,())) => t);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -107,35 +134,71 @@ datatype interpretation = Interpretation of rewrite list;
 
 val natural = Interpretation [];
 
+fun singleton rw = Interpretation [rw];
+
 fun append (Interpretation l1) (Interpretation l2) = Interpretation (l1 @ l2);
+
+fun concat1 int ints =
+    case ints of
+      [] => int
+    | int' :: ints => append int (concat1 int' ints);
+
+fun concat ints =
+    case ints of
+      [] => natural
+    | int :: ints => concat1 int ints;
 
 (* ------------------------------------------------------------------------- *)
 (* Translating OpenTheory names.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun interpret rewrX (Interpretation l) x = foldl (fn (rw,x) => rewrX rw x) x l;
+local
+  fun interpret rewrX (Interpretation l) x = foldl (fn (rw,x) => rewrX rw x) x l;
+in
+  val interpretNamespace = interpret interpretNamespaceRewrite;
 
-val interpretNamespace = interpret rewriteNamespace
-and interpretType = interpret rewriteType
-and interpretConst = interpret rewriteConst
-and interpretRulespace = interpret rewriteRulespace
-and interpretRule = interpret rewriteRule;
+  val interpretType = interpret interpretTypeRewrite;
+
+  val interpretConst = interpret interpretConstRewrite;
+
+  val interpretRulespace = interpret interpretRulespaceRewrite;
+
+  val interpretRule = interpret interpretRuleRewrite;
+end;
 
 (* ------------------------------------------------------------------------- *)
-(* Parsing and pretty printing.                                              *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun pp (Interpretation l) =
+    Print.block Print.Consistent 0 (ppRewriteList l);
+
+val toString = Print.toString pp;
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun rewrToString rw = rewriteToString rw ^ "\n";
-in
-  fun toString (Interpretation l) = String.concat (map rewrToString l);
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
 
-  fun toStringStream (Interpretation l) =
-      Stream.map rewrToString (Stream.fromList l);
+  open Parse;
+in
+  val parser = many spacedParserRewrite >> Interpretation;
+
+  val parser' =
+      atLeastOne spacedParserRewrite >> (fn rs => [Interpretation rs]);
 end;
 
+(* ------------------------------------------------------------------------- *)
+(* Input/Output.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
 fun toTextFile {filename,interpretation} =
-    Stream.toTextFile {filename = filename} (toStringStream interpretation);
+    Stream.toTextFile {filename = filename} (Print.toStream pp interpretation);
 
 local
   (* Comment lines *)
@@ -161,13 +224,11 @@ in
 
            val chars = Parse.everything Parse.any chars
 
-           (* The rewrite stream *)
+           (* The interpretation stream *)
 
-           val rewrites = Parse.everything spacedRewriteParser chars
-
-           val rewrites = Stream.toList rewrites
+           val ints = Parse.everything parser' chars
          in
-           Interpretation rewrites
+           concat (Stream.toList ints)
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>

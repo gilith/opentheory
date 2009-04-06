@@ -27,6 +27,55 @@ fun toArticle thy = compile {savable = true} thy;
 fun toSummary thy = Article.summarize (compile {savable = false} thy);
 
 (* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun ppBlock ppX x =
+    Print.blockProgram Print.Consistent 0
+      [Print.addString "{",
+       Print.blockProgram Print.Consistent 2
+         [Print.addBreak 1,
+          ppX x],
+       Print.addString "}",
+       Print.addNewline];
+
+fun pp thy =
+    case thy of
+      Local (thy1,thy2) =>
+      Print.blockProgram Print.Consistent 0
+        [Print.addString "local ",
+         pp thy1,
+         Print.addBreak 1,
+         Print.addString "in ",
+         pp thy2]
+    | Block thys => ppBlock ppList thys
+    | Article {filename} =>
+      Print.blockProgram Print.Consistent 2
+        [Print.addString "article",
+         Print.addBreak 1,
+         Print.addString "\"",
+         Print.addString filename,
+         Print.addString "\";"]
+    | Interpretation int =>
+      Print.blockProgram Print.Consistent 0
+        [Print.addString "interpret ",
+         ppBlock Interpretation.pp int]
+
+and ppList thys =
+    case thys of
+      [] => Print.skip
+    | thy :: thys => ppList1 thy thys
+
+and ppList1 thy thys =
+    case thys of
+      [] => pp thy
+    | thy' :: thys =>
+      Print.program
+        [pp thy,
+         Print.addBreak 1,
+         ppList1 thy' thys];
+
+(* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
