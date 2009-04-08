@@ -20,7 +20,69 @@ datatype theory =
 
 val empty = Block [];
 
-fun compile {savable} thy = raise Bug "Theory.compile: not implemented";
+local
+  fun comp known int exp thy =
+      case thy of
+        Local (thy1,thy2) =>
+        let
+          val (known,pint) = comp exp int known thy1
+
+          val int = Interpretation.append int pint
+
+          val (exp,pint) = comp known int exp thy2
+        in
+          (exp,pint)
+        end
+      | Block thys => compList known int exp thys
+      | Article {filename} =>
+        let
+          val exp =
+              Article.appendTextFile
+                {known = known,
+                 interpretation = int,
+                 filename = filename}
+                exp
+
+          val pint = Interpretation.natural
+        in
+          (exp,pint)
+        end
+      | Interpret pint => (exp,pint)
+
+  and compList known int exp thys =
+      case thys of
+        [] =>
+        let
+          val pint = Interpretation.natural
+        in
+          (exp,pint)
+        end
+      | thy :: thys =>
+        let
+          val (exp,pint) = comp known int exp thy
+
+          val int = Interpretation.append int pint
+
+          val (exp,pint') = compList known int exp thys
+
+          val pint = Interpretation.append pint pint'
+        in
+          (exp,pint)
+        end;
+in
+  fun compile savable thy =
+      let
+        val known = Article.new savable
+
+        val int = Interpretation.natural
+
+        val exp = Article.new savable
+
+        val (exp,_) = comp known int exp thy
+      in
+        exp
+      end;
+end;
 
 fun toArticle thy = compile {savable = true} thy;
 

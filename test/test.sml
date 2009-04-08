@@ -216,3 +216,5 @@ val THEORY_DIR = "theories";
 val testThy = time Theory.fromTextFile {filename = THEORY_DIR ^ "/test.thy"};
 
 val _ = printval Theory.pp testThy
+
+val testArt = time Theory.toArticle testThy;
