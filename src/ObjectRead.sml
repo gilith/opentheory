@@ -75,7 +75,7 @@ fun saved (State {saved = x, ...}) = x;
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun execute {savable,interpretation} cmd state =
+fun execute {savable,known,interpretation} cmd state =
     let
       val State {stack,dict,saved} = state
     in
@@ -338,25 +338,28 @@ fun execute {savable,interpretation} cmd state =
                concl = Object.destOterm obC}
 
           val (th,inf) =
-              case ObjectThms.search saved seq of
-                SOME (th,_) => (th,ObjectProv.Isaved)
+              case ObjectThms.search known seq of
+                SOME (th,objS) => (th, ObjectProv.Isaved objS)
               | NONE =>
-                case simulate interpretation stack seq of
-                  SOME th => (th,ObjectProv.Isimulated)
+                case ObjectThms.search saved seq of
+                  SOME (th,objS) => (th, ObjectProv.Isaved objS)
                 | NONE =>
-                  case ObjectStack.search stack seq of
-                    SOME (th,objS) => (th, ObjectProv.Istack objS)
+                  case simulate interpretation stack seq of
+                    SOME th => (th,ObjectProv.Isimulated)
                   | NONE =>
-                    let
-                      val th = Thm.axiom seq
+                    case ObjectStack.search stack seq of
+                      SOME (th,objS) => (th, ObjectProv.Istack objS)
+                    | NONE =>
+                      let
+                        val th = Thm.axiom seq
 (*OpenTheoryTrace1
-                      val () = trace ("making new axiom in " ^
-                                      ObjectStack.topCallToString stack ^
-                                      ":\n" ^ thmToString th ^ "\n")
+                        val () = trace ("making new axiom in " ^
+                                        ObjectStack.topCallToString stack ^
+                                        ":\n" ^ thmToString th ^ "\n")
 *)
-                    in
-                      (th,ObjectProv.Iaxiom)
-                    end
+                      in
+                        (th,ObjectProv.Iaxiom)
+                      end
 
           val ob = Object.Othm th
           and prov = ObjectProv.Pthm (if savable then inf else ObjectProv.Iaxiom)
@@ -624,9 +627,9 @@ fun execute {savable,interpretation} cmd state =
         raise Error err
       end;
 
-fun executeStream savable_interpretation =
+fun executeStream data =
     let
-      fun process (cmd,state) = execute savable_interpretation cmd state
+      fun process (cmd,state) = execute data cmd state
     in
       fn strm => fn state => Stream.foldl process state strm
     end;
@@ -644,7 +647,7 @@ local
       | SOME #"#" => true
       | _ => false;
 in
-  fun executeTextFile {savable,interpretation,filename} state =
+  fun executeTextFile {savable,known,interpretation,filename} state =
       let
         (* Estimating parse error line numbers *)
 
@@ -663,7 +666,10 @@ in
 
            val commands = Parse.everything Command.spacedParser chars
 
-           val data = {savable = savable, interpretation = interpretation}
+           val data =
+               {savable = savable,
+                known = known,
+                interpretation = interpretation}
          in
            executeStream data commands state
          end

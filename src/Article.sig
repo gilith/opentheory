@@ -25,14 +25,16 @@ val savable : article -> bool
 (* ------------------------------------------------------------------------- *)
 
 val appendTextFile :
-    {filename : string,
-     interpretation : Interpretation.interpretation} ->
+    {known : article,
+     interpretation : Interpretation.interpretation,
+     filename : string} ->
     article -> article
 
 val fromTextFile :
     {savable : bool,
-     filename : string,
-     interpretation : Interpretation.interpretation} ->
+     known : article,
+     interpretation : Interpretation.interpretation,
+     filename : string} ->
     article
 
 val toTextFile : {article : article, filename : string} -> unit

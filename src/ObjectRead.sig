@@ -26,11 +26,13 @@ val saved : state -> ObjectThms.thms
 
 val execute :
     {savable : bool,
+     known : ObjectThms.thms,
      interpretation : Interpretation.interpretation} ->
     Command.command -> state -> state
 
 val executeStream :
     {savable : bool,
+     known : ObjectThms.thms,
      interpretation : Interpretation.interpretation} ->
     Command.command Stream.stream -> state -> state
 
@@ -40,6 +42,7 @@ val executeStream :
 
 val executeTextFile :
     {savable : bool,
+     known : ObjectThms.thms,
      interpretation : Interpretation.interpretation,
      filename : string} ->
     state -> state

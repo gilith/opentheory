@@ -32,7 +32,7 @@ and provenance =
   | Pthm of inference
 
 and inference =
-    Isaved
+    Isaved of object
   | Isimulated
   | Istack of object
   | Iaxiom

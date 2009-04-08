@@ -69,15 +69,20 @@ fun savable (Article {savable = x, ...}) = x;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun appendTextFile {filename,interpretation} article =
+fun appendTextFile {known,interpretation,filename} article =
     let
-      val Article {savable, saved = initialSaved} = article
+      val Article {savable = knownSavable, saved = knownSaved} = known
+      and Article {savable, saved = initialSaved} = article
+
+      val _ = not savable orelse knownSavable orelse
+              raise Error "savable article cannot use unsavable known"
 
       val state = ObjectRead.initial initialSaved
 
       val state =
           ObjectRead.executeTextFile
             {savable = savable,
+             known = knownSaved,
              interpretation = interpretation,
              filename = filename}
           state
@@ -159,13 +164,14 @@ fun appendTextFile {filename,interpretation} article =
     end
     handle Error err => raise Error ("Article.appendTextFile: " ^ err);
 
-fun fromTextFile {savable,interpretation,filename} =
+fun fromTextFile {savable,known,interpretation,filename} =
     let
       val article = new {savable = savable}
 
       val article =
           appendTextFile
-            {interpretation = interpretation,
+            {known = known,
+             interpretation = interpretation,
              filename = filename}
             article
     in

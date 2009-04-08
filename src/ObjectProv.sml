@@ -66,7 +66,7 @@ and provenance =
   | Pthm of inference
 
 and inference =
-    Isaved
+    Isaved of object
   | Isimulated
   | Istack of object
   | Iaxiom;
@@ -113,7 +113,7 @@ fun destCall (Object {object = f, provenance = a, ...}) =
 
 fun parentsInference inf =
     case inf of
-      Isaved => []
+      Isaved obj => [obj]
     | Isimulated => []
     | Istack obj => [obj]
     | Iaxiom => [];
@@ -243,16 +243,18 @@ local
 
         and mapsInf inf acc =
             case inf of
-              Isaved => (inf,acc)
+              Isaved obj => mapsInf1 inf acc Isaved obj
             | Isimulated => (inf,acc)
-            | Istack obj =>
-              let
-                val (obj',acc) = mapsObj obj acc
-                val inf' = if obj' == obj then inf else Istack obj'
-              in
-                (inf',acc)
-              end
-            | Iaxiom => (inf,acc);
+            | Istack obj => mapsInf1 inf acc Istack obj
+            | Iaxiom => (inf,acc)
+
+        and mapsInf1 inf acc con obj =
+            let
+              val (obj',acc) = mapsObj obj acc
+              val inf' = if obj' == obj then inf else con obj'
+            in
+              (inf',acc)
+            end;
       in
         mapsObj
       end;
@@ -351,7 +353,12 @@ and ppProvenance level prov =
 
 and ppInference level inf =
     case inf of
-      Isaved => Print.addString "Isaved"
+      Isaved obj =>
+      Print.blockProgram Print.Consistent 1
+        [Print.addString "(Isaved",
+         Print.addBreak 1,
+         pp level obj,
+         Print.addString ")"]
     | Isimulated => Print.addString "Isimulated"
     | Istack obj =>
       Print.blockProgram Print.Consistent 1
