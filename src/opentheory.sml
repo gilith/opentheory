@@ -1,7 +1,7 @@
 (* ========================================================================= *)
 (* THE OPENTHEORY PROGRAM FOR MANIPULATING PROOF ARTICLES                    *)
 (*                                                                           *)
-(* Copyright (c) 2004-2008 Joe Hurd                                          *)
+(* Copyright (c) 2004-2009 Joe Hurd                                          *)
 (*                                                                           *)
 (* OpenTheory is free software; you can redistribute it and/or modify        *)
 (* it under the terms of the GNU General Public License as published by      *)
@@ -27,163 +27,163 @@ open Useful;
 val PROGRAM = "opentheory";
 
 (* ------------------------------------------------------------------------- *)
-(* Program options.                                                          *)
+(* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
+val COMPRESS_OUTPUT = ref "-";
+
 datatype command =
-    ResetInterpretation
-  | ReadInterpretation of {filename : string}
-  | ReadArticle of {filename : string}
-  | OutputArticle of {filename : string}
-  | OutputSummary of {filename : string};
+    Compress;
 
-val COMMANDS : command list ref = ref [];
+val allCommands = [Compress];
 
-fun isOutputArticle cmd =
+fun commandString cmd =
     case cmd of
-      OutputArticle _ => true
-    | _ => false;
+      Compress => "compress";
+
+fun commandUsage cmd =
+    case cmd of
+      Compress => "input.art";
+
+fun commandDescription cmd =
+    case cmd of
+      Compress => "output a compressed version of the input article";
+
+local
+  open Useful Options;
+
+  val compressOpts : opt list =
+      [{switches = ["-o","--output"], arguments = ["FILE"],
+        description = "write the compressed article to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => COMPRESS_OUTPUT := s)}];
+in
+  fun commandOpts cmd =
+      case cmd of
+        Compress => compressOpts;
+end;
+
+val allCommandStrings = map commandString allCommands;
+
+local
+  val allCommandCommandStrings =
+      map (fn c => (c, commandString c)) allCommands;
+in
+  fun commandFromString s =
+      case List.find (equal s o snd) allCommandCommandStrings of
+        SOME (c,_) => SOME c
+      | NONE => NONE;
+end;
+
+val allCommandOptions =
+    let
+      fun mk cmd =
+          let
+            val s = commandString cmd
+
+            fun f {switches,arguments,description,processor} =
+                {switches = switches,
+                 arguments = arguments,
+                 description = "(" ^ s ^ ") " ^ description,
+                 processor = processor}
+          in
+            map f (commandOpts cmd)
+          end
+    in
+      List.concat (map mk allCommands)
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Program options.                                                          *)
+(* ------------------------------------------------------------------------- *)
 
 local
   open Useful Options;
 in
-  val specialOptions =
-      [{switches = ["-i","--interpret"], arguments = ["FILE"],
-        description = "interpret articles using the rules in FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s =>
-             let
-               val ref cs = COMMANDS
-               val cs = ResetInterpretation :: cs
-               val cs = ReadInterpretation {filename = s} :: cs
-               val () = COMMANDS := cs
-             in
-               ()
-             end)},
-       {switches = ["-a","--article"], arguments = ["FILE"],
-        description = "read the article in FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s =>
-             let
-               val ref cs = COMMANDS
-               val cs = ReadArticle {filename = s} :: cs
-               val () = COMMANDS := cs
-             in
-               ()
-             end)},
-       {switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write the article to FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s =>
-             let
-               val ref cs = COMMANDS
-               val cs = OutputArticle {filename = s} :: cs
-               val () = COMMANDS := cs
-             in
-               ()
-             end)},
-       {switches = ["--summary"], arguments = ["FILE"],
-        description = "write the article summary to FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s =>
-             let
-               val ref cs = COMMANDS
-               val cs = OutputSummary {filename = s} :: cs
-               val () = COMMANDS := cs
-             in
-               ()
-             end)},
-       {switches = ["--add-interpret"], arguments = ["FILE"],
-        description = "add the interpretation rules in FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s =>
-             let
-               val ref cs = COMMANDS
-               val cs = ReadInterpretation {filename = s} :: cs
-               val () = COMMANDS := cs
-             in
-               ()
-             end)}];
+  val globalOpts =
+      [];
 end;
 
 val VERSION = "1.0";
 
 val versionString = PROGRAM^" "^VERSION^" (release 20090401)"^"\n";
 
-val programOptions =
-    {name = PROGRAM,
-     version = versionString,
-     header = "usage: "^PROGRAM^" [option ...] article.art ...\n" ^
-              "Interprets and concatenates proof articles.\n",
-     footer = "Read from standard input or write to standard output using\n" ^
-              "the special - filename.\n",
-     options = specialOptions @ Options.basicOptions};
+local
+  fun mkProgramOptions header opts =
+      {name = PROGRAM,
+       version = versionString,
+       header = "usage: "^PROGRAM^" "^header^"\n",
+       footer = "Read from stdin or write to stdout using " ^
+                "the special - filename.\n",
+       options = opts @ Options.basicOptions};
+
+  val globalUsage = "[global opts] command [command opts] input ...";
+
+  val globalHeader =
+      let
+        fun f cmd =
+            ["  " ^ PROGRAM ^ " " ^ commandString cmd ^ " ...",
+             " " ^ commandDescription cmd]
+
+        val alignment =
+            [{leftAlign = true, padChar = #"."},
+             {leftAlign = true, padChar = #" "}]
+
+        val table = alignTable alignment (map f allCommands)
+      in
+        globalUsage ^ "\n" ^
+        "where the possible commands are:\n" ^
+        join "\n" table ^ "\n"
+      end;
+in
+  val globalOptions =
+      mkProgramOptions
+        (globalHeader ^ "Displaying global options:")
+        globalOpts;
+
+  fun commandOptions cmd =
+      mkProgramOptions
+        (commandString cmd ^ " [" ^ commandString cmd ^ " opts] " ^
+         commandUsage cmd ^ "\n" ^
+         capitalize (commandDescription cmd) ^ ".\n" ^
+         "Displaying " ^ commandString cmd ^ " options:")
+        (commandOpts cmd);
+
+  val programOptions =
+      mkProgramOptions
+        (globalHeader ^ "Displaying all options:")
+        (globalOpts @ allCommandOptions);
+end;
 
 fun exit x : unit = Options.exit programOptions x;
 fun succeed () = Options.succeed programOptions;
 fun fail mesg = Options.fail programOptions mesg;
 fun usage mesg = Options.usage programOptions mesg;
 
-val (opts,work) =
-    Options.processOptions programOptions (CommandLine.arguments ());
-
-val () = if null work then () else usage "bad argument format";
-
 (* ------------------------------------------------------------------------- *)
 (* The core application.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun processCommand (cmd,(interpret,article)) =
-    case cmd of
-      ResetInterpretation =>
-      let
-        val interpret = Interpretation.natural
-      in
-        (interpret,article)
-      end
-    | ReadInterpretation filename =>
-      let
-        val interpret' = Interpretation.fromTextFile filename
+fun compress {filename} =
+    let
+      val savable = true
 
-        val interpret = Interpretation.append interpret interpret'
-      in
-        (interpret,article)
-      end
-    | ReadArticle {filename} =>
-      let
-        val article =
-            Article.appendTextFile
-              {interpretation = interpret,
-               filename = filename}
-              article
-      in
-        (interpret,article)
-      end
-    | OutputArticle {filename} =>
-      let
-        val () =
-            Article.toTextFile
-              {article = article,
-               filename = filename}
-      in
-        (interpret,article)
-      end
-    | OutputSummary {filename} =>
-      let
-        val summary = Article.summarize article
+      val known = Article.new {savable = savable}
 
-        val () =
-            Summary.toTextFile
-              {summary = summary,
-               filename = filename}
-      in
-        (interpret,article)
-      end;
+      val interpret = Interpretation.natural
+
+      val article =
+          Article.fromTextFile
+            {savable = savable,
+             known = known,
+             interpretation = interpret,
+             filename = filename}
+
+      val ref filename = COMPRESS_OUTPUT
+    in
+      Article.toTextFile {article = article, filename = filename}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)
@@ -195,13 +195,24 @@ let
   (*MetisDebug val () = print "Running in metis DEBUG mode.\n" *)
   (*OpenTheoryDebug val () = print "Running in opentheory DEBUG mode.\n" *)
 
-  val commands = rev (!COMMANDS)
+  val work = CommandLine.arguments ();
 
-  val interpret = Interpretation.natural
+  val (_,work) = Options.processOptions globalOptions work
 
-  val article = Article.new {savable = List.exists isOutputArticle commands}
+  val (cmd,work) =
+      case work of
+        [] => usage "no command specified"
+      | s :: work =>
+        case commandFromString s of
+          SOME cmd => (cmd,work)
+        | NONE => usage ("bad command specified: \"" ^ s ^ "\"")
 
-  val (_,article) = List.foldl processCommand (interpret,article) commands
+  val (_,work) = Options.processOptions (commandOptions cmd) work
+
+  val () =
+      case (cmd,work) of
+        (Compress,[filename]) => compress {filename = filename}
+      | _ => usage ("bad arguments for " ^ commandString cmd ^ " command")
 in
   succeed ()
 end

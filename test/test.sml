@@ -190,6 +190,7 @@ fun compress interpretation filename =
       val article =
           time Article.fromTextFile
             {savable = true,
+             known = Article.new {savable = true},
              interpretation = interpretation,
              filename = ARTICLE_DIR ^ "/" ^ filename}
     in
@@ -201,6 +202,7 @@ val () = compress holLightInt "bool.art";
 val bool =
     time Article.fromTextFile
       {savable = false,
+       known = Article.new {savable = false},
        interpretation = Interpretation.natural,
        filename = "bool.art"};
 
