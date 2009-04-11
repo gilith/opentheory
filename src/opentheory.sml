@@ -30,38 +30,62 @@ val PROGRAM = "opentheory";
 (* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val COMPRESS_OUTPUT = ref "-";
+datatype summary =
+    SummaryText of {filename : string};
+
+val COMPILE_OUTPUT = ref "-";
+
+val SUMMARIZE_OUTPUT : summary list ref = ref [];
 
 datatype command =
-    Compress;
+    Compile
+  | Summarize;
 
-val allCommands = [Compress];
+val allCommands = [Compile,Summarize];
 
 fun commandString cmd =
     case cmd of
-      Compress => "compress";
+      Compile => "compile"
+    | Summarize => "summarize";
 
 fun commandUsage cmd =
     case cmd of
-      Compress => "input.art";
+      Compile => "input.thy"
+    | Summarize => "input.art";
 
 fun commandDescription cmd =
     case cmd of
-      Compress => "output a compressed version of the input article";
+      Compile => "compile a theory to an article"
+    | Summarize => "summarize an article";
 
 local
   open Useful Options;
 
-  val compressOpts : opt list =
+  val compileOpts : opt list =
       [{switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write the compressed article to FILE",
+        description = "write the compiled article to FILE",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => COMPRESS_OUTPUT := s)}];
+            (fn _ => fn s => COMPILE_OUTPUT := s)}];
+
+  val summarizeOpts : opt list =
+      [{switches = ["--summary-text"], arguments = ["FILE"],
+        description = "write the summary as text to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+             let
+               val ref ss = SUMMARIZE_OUTPUT
+               val ss = SummaryText {filename = s} :: ss
+               val () = SUMMARIZE_OUTPUT := ss
+             in
+               ()
+             end)}];
 in
   fun commandOpts cmd =
       case cmd of
-        Compress => compressOpts;
+        Compile => compileOpts
+      | Summarize => summarizeOpts;
 end;
 
 val allCommandStrings = map commandString allCommands;
@@ -165,25 +189,45 @@ fun usage mesg = Options.usage programOptions mesg;
 (* The core application.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun compress {filename} =
+fun compile {filename} =
     let
-      val savable = true
+      val theory = Theory.fromTextFile {filename = filename}
 
-      val known = Article.new {savable = savable}
+      val article = Theory.toArticle theory
 
-      val interpret = Interpretation.natural
-
-      val article =
-          Article.fromTextFile
-            {savable = savable,
-             known = known,
-             interpretation = interpret,
-             filename = filename}
-
-      val ref filename = COMPRESS_OUTPUT
+      val ref filename = COMPILE_OUTPUT
     in
       Article.toTextFile {article = article, filename = filename}
     end;
+
+local
+  fun outputSummary summary mode =
+      case mode of
+        SummaryText {filename} =>
+        Summary.toTextFile {summary = summary, filename = filename};
+in
+  fun summarize {filename} =
+      let
+        val savable = false
+
+        val known = Article.new {savable = savable}
+
+        val interpret = Interpretation.natural
+
+        val article =
+            Article.fromTextFile
+              {savable = savable,
+               known = known,
+               interpretation = interpret,
+               filename = filename}
+
+        val summary = Article.summarize article
+
+        val ref modes = SUMMARIZE_OUTPUT
+      in
+        List.app (outputSummary summary) (rev modes)
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)
@@ -211,7 +255,8 @@ let
 
   val () =
       case (cmd,work) of
-        (Compress,[filename]) => compress {filename = filename}
+        (Compile,[filename]) => compile {filename = filename}
+      | (Summarize,[filename]) => summarize {filename = filename}
       | _ => usage ("bad arguments for " ^ commandString cmd ^ " command")
 in
   succeed ()
