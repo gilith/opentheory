@@ -222,15 +222,19 @@ hol-light-test-log:
 
 .PHONY: hol-light-test-compress
 hol-light-test-compress: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; $(OPENTHEORY) -i test/interpretations/hol-light.int -a $(HOL_LIGHT_SRC_DIR)/$$f.art -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; gzip -c $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; done
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; ((echo "interpret {" ; cat test/interpretations/hol-light.int ; echo "} article \"$(HOL_LIGHT_SRC_DIR)/$$f.art\";") | $(OPENTHEORY) compile -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.art -) ; if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; gzip -c $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; done
 
 .PHONY: hol-light-test-sums
 hol-light-test-sums: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) -a $(HOL_LIGHT_ARTICLES_DIR)/$$f.art --summary $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum ; done
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) summarize --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; done
+
+.PHONY: hol-light-test-carts
+hol-light-test-carts: $(OPENTHEORY)
+	thy='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do thy="$$thy article \"$(HOL_LIGHT_ARTICLES_DIR)/$$f.art\";" ; (echo $$thy | $(OPENTHEORY) compile -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart -) ; done
 
 .PHONY: hol-light-test-csums
 hol-light-test-csums: $(OPENTHEORY)
-	args='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do args="$$args -a $(HOL_LIGHT_ARTICLES_DIR)/$$f.art --summary $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum" ; done ; $(OPENTHEORY) $$args
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) summarize --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart ; done
 
 .PHONY: hol-light-test-reqs
 hol-light-test-reqs: $(OPENTHEORY)
@@ -244,7 +248,7 @@ hol-light-test-stats:
 	rm -f $(HOL_LIGHT_TEST_DIR)/examples.tex ; for f in $(HOL_LIGHT_EXAMPLES) ; do cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.stat >> $(HOL_LIGHT_TEST_DIR)/examples.tex ; done
 
 .PHONY: hol-light-test
-hol-light-test: hol-light-test-log hol-light-test-compress hol-light-test-sums hol-light-test-csums hol-light-test-reqs hol-light-test-stats
+hol-light-test: hol-light-test-log hol-light-test-compress hol-light-test-sums hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
 
 ###############################################################################
 # Profiling using MLton.
