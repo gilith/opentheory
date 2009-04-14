@@ -232,9 +232,13 @@ hol-light-test-compress: $(OPENTHEORY)
 hol-light-test-sums: $(OPENTHEORY)
 	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) summarize --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; done
 
+.PHONY: hol-light-test-cthys
+hol-light-test-cthys:
+	thy='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do thy="$$thy article \"$(HOL_LIGHT_ARTICLES_DIR)/$$f.art\";" ; echo $$thy > $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
+
 .PHONY: hol-light-test-carts
 hol-light-test-carts: $(OPENTHEORY)
-	thy='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do thy="$$thy article \"$(HOL_LIGHT_ARTICLES_DIR)/$$f.art\";" ; (echo $$thy | $(OPENTHEORY) compile -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart -) ; done
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) compile -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
 
 .PHONY: hol-light-test-csums
 hol-light-test-csums: $(OPENTHEORY)
@@ -252,7 +256,7 @@ hol-light-test-stats:
 	rm -f $(HOL_LIGHT_TEST_DIR)/examples.tex ; for f in $(HOL_LIGHT_EXAMPLES) ; do cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.stat >> $(HOL_LIGHT_TEST_DIR)/examples.tex ; done
 
 .PHONY: hol-light-test
-hol-light-test: hol-light-test-log hol-light-test-thys hol-light-test-compress hol-light-test-sums hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
+hol-light-test: hol-light-test-log hol-light-test-thys hol-light-test-compress hol-light-test-sums hol-light-test-cthys hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
 
 ###############################################################################
 # Profiling using MLton.

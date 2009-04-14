@@ -291,7 +291,7 @@ fun toCommandStream saved =
 
             val cmds =
                 if not (ObjectProvSet.member obj saved) then cmds
-                else Command.Save :: Command.Dup :: Command.Num 0 :: cmds
+                else Command.Save :: cmds
           in
             (cmds,(stacksize,call,dict))
           end

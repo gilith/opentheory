@@ -40,7 +40,6 @@ datatype command =
   | Ref
   | Remove
   | Pop
-  | Dup
   | Save;
 
 (* ------------------------------------------------------------------------- *)
@@ -67,7 +66,6 @@ fun pp cmd =
     | Ref => Print.ppString "ref"
     | Remove => Print.ppString "remove"
     | Pop => Print.ppString "pop"
-    | Dup => Print.ppString "dup"
     | Save => Print.ppString "save";
 
 val toString = Print.toString pp;
@@ -110,7 +108,6 @@ in
       commandParser "save" Save ||
       commandParser "abs" Abs ||
       commandParser "def" Def ||
-      commandParser "dup" Dup ||
       commandParser "nil" Nil ||
       commandParser "pop" Pop ||
       commandParser "ref" Ref ||

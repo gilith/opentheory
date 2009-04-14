@@ -569,42 +569,9 @@ fun execute {savable,known,interpretation} cmd state =
           State {stack = stack, dict = dict, saved = saved}
         end
 
-      | Command.Dup =>
-        let
-          val (stack,objI) = ObjectStack.pop1 stack
-
-          val obI = ObjectProv.object objI
-          val i = Object.destOnum obI
-
-          val objD = ObjectStack.peek stack i
-          val obD = ObjectProv.object objD
-
-          val ob = obD
-
-          and prov =
-              if not (ObjectProv.containsThms objD) then ObjectProv.Pnull
-              else if savable then ObjectProv.Pref objD
-              else ObjectProv.provenance objD
-
-          and call = if savable then ObjectStack.topCall stack else NONE
-
-          val _ = not (Object.isOcall ob) orelse
-                  raise Error "cannot dup an Ocall object"
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov,
-                 call = call}
-
-          val stack = ObjectStack.push stack obj
-        in
-          State {stack = stack, dict = dict, saved = saved}
-        end
-
       | Command.Save =>
         let
-          val (stack,objT) = ObjectStack.pop1 stack
+          val objT = ObjectStack.peek stack 0
 
           val saved = ObjectThms.add saved objT
         in

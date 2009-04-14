@@ -168,8 +168,7 @@ let log_thm =
         (log_list log_term (hyp th); log_term (concl th); log_command "thm") in
     log_dict log;;
 
-let log_save_thm th =
-    (log_thm th; log_num 0; log_command "dup"; log_command "save");;
+let log_save_thm th = (log_thm th; log_command "save");;
 
 (* ------------------------------------------------------------------------- *)
 (* Logged version of the logical kernel                                      *)
