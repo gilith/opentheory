@@ -20,7 +20,7 @@ TEMP += $(TEMPFILE) \
 # The ML preprocessor.
 ###############################################################################
 
-#MLPP_OPTS += -r 'OpenTheoryDebug'
+MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-0]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
@@ -210,8 +210,8 @@ HOL_LIGHT_EXAMPLES = \
   example-ord-2 \
   example-pos-1
 
-.PHONY: hol-light-install
-hol-light-install:
+.PHONY: hol-light-test-install
+hol-light-test-install:
 	rm -rf $(HOL_LIGHT_SRC_DIR)
 	mkdir $(HOL_LIGHT_SRC_DIR)
 	cd $(HOL_LIGHT_SRC_DIR) && echo "Untarring into $(HOL_LIGHT_SRC_DIR)" && tar xzf ../hol-light.tgz && rm hol.ml && ln -s ../../../scripts/hol-light/hol.ml && ln -s ../../../scripts/hol-light/logging.ml && ln -s ../../../scripts/hol-light/deduction-logging.ml && for f in $(HOL_LIGHT_EXAMPLES) ; do ln -s ../../../scripts/hol-light/$$f.ml ; done && for f in $(HOL_LIGHT_THEORIES) ; do if test "$$f" = "pair" ; then echo "skipping preprocessing theory $$f" ; else echo "preprocessing theory $$f" && ../../../scripts/hol-light/install-theory.hs < $$f.ml > foo.ml && mv foo.ml $$f.ml ; fi ; done
@@ -256,7 +256,7 @@ hol-light-test-stats:
 	rm -f $(HOL_LIGHT_TEST_DIR)/examples.tex ; for f in $(HOL_LIGHT_EXAMPLES) ; do cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.stat >> $(HOL_LIGHT_TEST_DIR)/examples.tex ; done
 
 .PHONY: hol-light-test
-hol-light-test: hol-light-test-log hol-light-test-thys hol-light-test-compress hol-light-test-sums hol-light-test-cthys hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
+hol-light-test: hol-light-test-install hol-light-test-log hol-light-test-thys hol-light-test-compress hol-light-test-sums hol-light-test-cthys hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
 
 ###############################################################################
 # Profiling using MLton.

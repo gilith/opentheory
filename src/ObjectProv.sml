@@ -265,43 +265,6 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Generating commands to keep the call stack consistent.                    *)
-(* ------------------------------------------------------------------------- *)
-
-fun addAlignCalls prevCall call cmds =
-    case prevCall of
-      NONE =>
-      let
-        val _ = not (Option.isSome call) orelse
-                raise Bug "ObjectProv.alignCalls: top level to nested"
-      in
-        cmds
-      end
-    | SOME (Object {id, object = ob, call = prevCall, ...}) =>
-      let
-        val aligned =
-            case call of
-              NONE => false
-            | SOME (Object {id = id', ...}) => id = id'
-      in
-        if aligned then cmds
-        else
-          let
-            val n =
-                case ob of
-                  Object.Ocall n => n
-                | _ => raise Bug "ObjectProv.alignCalls: bad call"
-
-            val cmds =
-                Command.Return :: Command.Name n :: Command.Error :: cmds
-          in
-            addAlignCalls prevCall call cmds
-          end
-      end;
-
-fun alignCalls {prevCall,call} = addAlignCalls prevCall call [];
-
-(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -428,7 +391,8 @@ local
       let
         val ObjectProv.Object {id, object = ob, provenance = prov, call} = obj
 
-        fun better rid =
+        fun better rid = false
+(***
             rid < id andalso
             case prov of
               ObjectProv.Preturn obj =>
@@ -444,6 +408,7 @@ local
                 rid < rid'
               end
             | _ => true
+***)
 
         val obj' =
             case prov of
@@ -473,7 +438,7 @@ local
         val ppImprovement = Print.ppOp2 " -->" ppObject ppObject
         val () =
             case obj' of
-              SOME x => Print.trace ppImprovement "Article.improve" (obj,x)
+              SOME x => Print.trace ppImprovement "ObjectProvSet.improve" (obj,x)
             | NONE => ()
 *)
       in

@@ -29,7 +29,7 @@ fun typeSubstToSubst oins =
       TermSubst.mk (tyM,tmM)
     end
     handle Error err =>
-      raise Bug ("HolLight.typeSubstToSubst failed:\n" ^ err);
+      raise Error ("HolLight.typeSubstToSubst failed:\n" ^ err);
 
 fun substToSubst oins =
     let
@@ -42,7 +42,7 @@ fun substToSubst oins =
       TermSubst.mk (tyM,tmM)
     end
     handle Error err =>
-      raise Bug ("HolLight.substToSubst failed:\n" ^ err);
+      raise Error ("HolLight.substToSubst failed:\n" ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of definition.                                            *)
@@ -59,7 +59,7 @@ fun newBasicDefinition _ seq _ =
       Object.Othm (Rule.define tm)
     end
     handle Error err =>
-      raise Bug ("HolLight.newBasicDefinition failed:\n" ^ err);
+      raise Error ("HolLight.newBasicDefinition failed:\n" ^ err);
 
 fun newBasicTypeDefinition _ seq arg =
     let
@@ -107,7 +107,7 @@ fun newBasicTypeDefinition _ seq arg =
       Object.mkOpair (Object.Othm absRepTh, Object.Othm repAbsTh)
     end
     handle Error err =>
-      raise Bug ("HolLight.newBasicTypeDefinition failed:\n" ^ err);
+      raise Error ("HolLight.newBasicTypeDefinition failed:\n" ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of inference.                                             *)

@@ -42,6 +42,17 @@ val callStack : stack -> ObjectProv.object list
 
 val search : stack -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
 
+(* ------------------------------------------------------------------------- *)
+(* Generating commands to keep the call stack consistent.                    *)
+(* ------------------------------------------------------------------------- *)
+
+val alignCalls :
+    {call : ObjectProv.object option} -> stack -> stack * Command.command list
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
 val topCallToString : stack -> string
 
 end

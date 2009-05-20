@@ -192,24 +192,21 @@ local
           addKey dict cmds ob
         end;
 in
-  fun generateMinDict stacksize prevCall dict obj =
+  fun generateMinDict stack dict cmds obj =
       let
         val ob = ObjectProv.object obj
-        and call = ObjectProv.call obj
       in
         case ObjectProv.provenance obj of
           ObjectProv.Pnull =>
           let
-            val cmds = ObjectProv.alignCalls {prevCall = prevCall, call = call}
             val (dict,cmds) = generateDeep (ob,(dict,cmds))
-            val stacksize = stacksize + (if Option.isSome call then 0 else 1)
-          in
-            (stacksize,call,dict,cmds)
-          end
-        | ObjectProv.Pcall _ =>
-          let
-            val cmds = ObjectProv.alignCalls {prevCall = prevCall, call = call}
 
+            val stack = ObjectStack.push stack obj
+          in
+            (stack,dict,cmds)
+          end
+        | ObjectProv.Pcall objA =>
+          let
             val n =
                 case ob of
                   Object.Ocall n => n
@@ -217,61 +214,71 @@ in
 
             val cmds = Command.Call :: Command.Name n :: cmds
 
-            val call = SOME obj
+            val (stack,objA') = ObjectStack.pop1 stack
+
+            val stack = ObjectStack.push stack obj
+
+            val stack = ObjectStack.push stack objA
+
+(*OpenTheoryDebug
+            val _ = ObjectProv.id objA = ObjectProv.id objA' orelse
+                    raise Error "Pcall: wrong call argument"
+*)
           in
-            (stacksize,call,dict,cmds)
+            (stack,dict,cmds)
           end
-        | ObjectProv.Preturn robj =>
+        | ObjectProv.Preturn objR =>
           let
-            val rcall = ObjectProv.call robj
+            val (stack,objR') = ObjectStack.pop1 stack
 
-            val cmds = ObjectProv.alignCalls {prevCall = prevCall, call = rcall}
+            val (stack,n) = ObjectStack.popCall stack
 
-            val rcobj =
-                case rcall of
-                  SOME rcobj => rcobj
-                | NONE => raise Error "Preturn: no call"
-
-            val n =
-                case ObjectProv.object rcobj of
-                  Object.Ocall n => n
-                | _ => raise Error "Preturn: bad call"
+            val stack = ObjectStack.push stack obj
 
             val cmds = Command.Return :: Command.Name n :: cmds
-          in
-            (stacksize,call,dict,cmds)
-          end
-        | ObjectProv.Pcons _ =>
-          let
-            val cmds = ObjectProv.alignCalls {prevCall = prevCall, call = call}
 
+(*OpenTheoryDebug
+            val _ = ObjectProv.id objR = ObjectProv.id objR' orelse
+                    raise Error "Preturn: wrong return value"
+*)
+          in
+            (stack,dict,cmds)
+          end
+        | ObjectProv.Pcons (objH,objT) =>
+          let
             val cmds = Command.Cons :: cmds
 
             val (dict,cmds) = addKey dict cmds ob
 
-            val stacksize = stacksize - (if Option.isSome call then 0 else 1)
+            val (stack,objH',objT') = ObjectStack.pop2 stack
+
+(*OpenTheoryDebug
+            val _ = ObjectProv.id objH = ObjectProv.id objH' orelse
+                    raise Error "Pcons: wrong head value"
+
+            val _ = ObjectProv.id objT = ObjectProv.id objT' orelse
+                    raise Error "Pcons: wrong tail value"
+*)
+
+            val stack = ObjectStack.push stack obj
           in
-            (stacksize,call,dict,cmds)
+            (stack,dict,cmds)
           end
         | ObjectProv.Pref _ =>
           let
-            val cmds = ObjectProv.alignCalls {prevCall = prevCall, call = call}
-
             val (dict,cmds) = useKey dict cmds ob
 
-            val stacksize = stacksize + (if Option.isSome call then 0 else 1)
+            val stack = ObjectStack.push stack obj
           in
-            (stacksize,call,dict,cmds)
+            (stack,dict,cmds)
           end
         | ObjectProv.Pthm _ =>
           let
-            val cmds = ObjectProv.alignCalls {prevCall = prevCall, call = call}
-
             val (dict,cmds) = generateDeep (ob,(dict,cmds))
 
-            val stacksize = stacksize + (if Option.isSome call then 0 else 1)
+            val stack = ObjectStack.push stack obj
           in
-            (stacksize,call,dict,cmds)
+            (stack,dict,cmds)
           end
       end
       handle Error err =>
@@ -282,39 +289,56 @@ end;
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
+fun startingCall obj =
+    let
+      val call = ObjectProv.call obj
+    in
+      case ObjectProv.provenance obj of
+        ObjectProv.Preturn robj => ObjectProv.call robj
+      | _ => call
+    end;
+
+fun alignStartingCall stack obj =
+    let
+      val call = startingCall obj
+    in
+      ObjectStack.alignCalls {call = call} stack
+    end;
+
 fun toCommandStream saved =
     let
-      fun gen obj (stacksize,call,dict) =
+      fun gen obj (stack,dict) =
           let
-            val (stacksize,call,dict,cmds) =
-                generateMinDict stacksize call dict obj
+            val (stack,cmds) = alignStartingCall stack obj
+
+            val (stack,dict,cmds) =
+                generateMinDict stack dict cmds obj
 
             val cmds =
                 if not (ObjectProvSet.member obj saved) then cmds
                 else Command.Save :: cmds
           in
-            (cmds,(stacksize,call,dict))
+            (cmds,(stack,dict))
           end
 
-      fun finish (stacksize,call,dict) =
+      fun finish (stack,dict) =
           let
 (*OpenTheoryDebug
             val _ = nullMinDict dict orelse raise Error "nonempty dict"
 *)
-            val cmds = ObjectProv.alignCalls {prevCall = call, call = NONE}
-            val cmds = funpow stacksize (cons Command.Pop) cmds
+            val (stack,cmds) = ObjectStack.alignCalls {call = NONE} stack
+            val cmds = funpow (ObjectStack.size stack) (cons Command.Pop) cmds
           in
             if null cmds then Stream.Nil else Stream.singleton cmds
           end
 
       val objs = ObjectProvSet.ancestorSet saved
 
-      val stacksize = 0
-      val call = NONE
+      val stack = ObjectStack.empty
       val dict = newMinDict objs
 
       val strm = ObjectProvSet.toStream objs
-      val strm = Stream.maps gen finish (stacksize,call,dict) strm
+      val strm = Stream.maps gen finish (stack,dict) strm
     in
       revConcat strm
     end

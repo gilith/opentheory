@@ -123,6 +123,53 @@ fun callStack stack =
 
 fun search (Stack {thms,...}) seq = ObjectThms.search (topThms thms) seq;
 
+(* ------------------------------------------------------------------------- *)
+(* Generating commands to keep the call stack consistent.                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun addAlignCalls call stack cmds =
+    case topCall stack of
+      NONE =>
+      let
+        val _ = not (Option.isSome call) orelse
+                raise Bug "ObjectStack.addAlignCalls: top level to nested"
+      in
+        (stack,cmds)
+      end
+    | SOME obj =>
+      let
+        val aligned =
+            case call of
+              NONE => false
+            | SOME obj' => ObjectProv.id obj = ObjectProv.id obj'
+      in
+        if aligned then (stack,cmds)
+        else
+          let
+(*OpenTheoryDebug
+*)
+            val _ = Object.isOcall (ObjectProv.object obj) orelse
+                    raise Bug "ObjectStack.addAlignCalls: bad call"
+
+            val (stack,n) = popCall stack
+
+            val cmds =
+                Command.Pop ::
+                Command.Return ::
+                Command.Name n ::
+                Command.Error ::
+                cmds
+          in
+            addAlignCalls call stack cmds
+          end
+      end;
+
+fun alignCalls {call} stack = addAlignCalls call stack [];
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
 fun topCallToString stack =
     case topCall stack of
       NONE => "top level"
