@@ -391,8 +391,7 @@ local
       let
         val ObjectProv.Object {id, object = ob, provenance = prov, call} = obj
 
-        fun better rid = false
-(***
+        fun better rid =
             rid < id andalso
             case prov of
               ObjectProv.Preturn obj =>
@@ -408,7 +407,6 @@ local
                 rid < rid'
               end
             | _ => true
-***)
 
         val obj' =
             case prov of
@@ -485,6 +483,7 @@ local
         fun check (obj,obs) =
             let
               val ObjectProv.Object objData = obj
+
               val {id, object = ob, provenance = prov, call} = objData
             in
               case prov of

@@ -41,7 +41,9 @@ fun SAY s =
   ("-------------------------------------" ^
    "-------------------------------------\n" ^ s ^ "\n\n");
 
-fun printval p x = (print (Print.toString p x ^ "\n\n"); x);
+fun printer p x = print (Print.toString p x ^ "\n\n");
+
+fun printval p x = (printer p x; x);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Term tests";
@@ -168,7 +170,7 @@ val _ = printval ppSubst sub;
 val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Reading in the hol-light interpretation";
+val () = SAY "Reading in interpretations";
 (* ------------------------------------------------------------------------- *)
 
 val INTERPRETATION_DIR = "interpretations";
@@ -180,43 +182,106 @@ val holLightInt =
 val _ = printval Interpretation.pp holLightInt;
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Reading in hol-light articles";
+val () = SAY "Compressing articles";
 (* ------------------------------------------------------------------------- *)
 
 val ARTICLE_DIR = "articles";
 
 fun compress interpretation filename =
     let
+      val () = print ("Compressing article \"" ^ filename ^ ".art\"\n")
+
+      val inputFilename = ARTICLE_DIR ^ "/" ^ filename ^ ".art"
+
       val article =
           time Article.fromTextFile
             {savable = true,
              known = Article.new {savable = true},
              interpretation = interpretation,
-             filename = ARTICLE_DIR ^ "/" ^ filename}
+             filename = inputFilename}
+
+      val outputFilename = filename ^ ".art"
+
+      val () =
+          time Article.toTextFile
+            {article = article,
+             filename = outputFilename}
+
+      val () = print "\n"
     in
-      time Article.toTextFile {article = article, filename = filename}
+      ()
     end;
 
-val () = compress holLightInt "bool.art";
+val () = compress holLightInt "bool";
 
-val bool =
-    time Article.fromTextFile
-      {savable = false,
-       known = Article.new {savable = false},
-       interpretation = Interpretation.natural,
-       filename = "bool.art"};
-
-val summary =
-    withRef (thmShowHyp,false) (printval Summary.pp) (Article.summarize bool);
+val () = compress holLightInt "tactics";
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Reading in theories";
+val () = SAY "Summarizing articles";
+(* ------------------------------------------------------------------------- *)
+
+fun summarize filename =
+    let
+      val () = print ("Summarizing article \"" ^ filename ^ ".art\"\n")
+
+      val articleFilename = filename ^ ".art"
+
+      val article =
+          time Article.fromTextFile
+            {savable = false,
+             known = Article.new {savable = false},
+             interpretation = Interpretation.natural,
+             filename = articleFilename}
+
+      val summary = Article.summarize article
+
+      val () = withRef (thmShowHyp,false) (printer Summary.pp) summary
+
+      val () = print "\n"
+    in
+      ()
+    end;
+
+val () = summarize "bool";
+
+val () = summarize "tactics";
+
+(* ------------------------------------------------------------------------- *)
+val () = SAY "Compiling theories";
 (* ------------------------------------------------------------------------- *)
 
 val THEORY_DIR = "theories";
 
-val testThy = time Theory.fromTextFile {filename = THEORY_DIR ^ "/test.thy"};
+fun compile filename =
+    let
+      val () = print ("Summarizing theory \"" ^ filename ^ ".thy\"\n")
 
-val _ = printval Theory.pp testThy
+      val theoryFilename = THEORY_DIR ^ "/" ^ filename ^ ".thy"
 
-val testArt = time Theory.toArticle testThy;
+      val theory = time Theory.fromTextFile {filename = theoryFilename}
+
+      val () = printer Theory.pp theory
+
+      val article = time Theory.toArticle theory
+
+      val articleFilename = filename ^ ".art"
+
+      val () =
+          time Article.toTextFile {article = article, filename = articleFilename}
+
+      val () = print "\n"
+    in
+      ()
+    end;
+
+(* The simplest theory: empty *)
+
+val () = compile "empty";
+
+(* The next simplest theory: read the bool article *)
+
+val () = compile "justBool";
+
+(* Concatenating two articles *)
+
+val () = compile "boolTactics";
