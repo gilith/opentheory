@@ -107,8 +107,8 @@ fun pp thy =
       Print.blockProgram Print.Consistent 0
         [Print.addString "local ",
          pp thy1,
+         Print.addString " in",
          Print.addNewline,
-         Print.addString "in ",
          pp thy2]
     | Block thys => ppBlock ppList thys
     | Article {filename} =>

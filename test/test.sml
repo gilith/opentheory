@@ -300,3 +300,7 @@ val () = compile "tacticsTactics";
 val () = compile "boolTactics";
 
 val () = compile "tacticsBool";
+
+(* Localizing articles *)
+
+val () = compile "localBoolTactics";
