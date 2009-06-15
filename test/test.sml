@@ -278,10 +278,18 @@ fun compile filename =
 
 val () = compile "empty";
 
-(* The next simplest theory: read the bool article *)
+(* The next simplest theory: read one article *)
 
 val () = compile "justBool";
 
+val () = compile "justTactics";
+
 (* Concatenating two articles *)
 
+val () = compile "boolBool";
+
+val () = compile "tacticsTactics";
+
 val () = compile "boolTactics";
+
+val () = compile "tacticsBool";

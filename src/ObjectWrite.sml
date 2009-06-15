@@ -307,6 +307,10 @@ fun alignStartingCall stack obj =
 
 fun toCommandStream saved =
     let
+      val objs = ObjectProvSet.ancestorSet saved
+
+      val stackUses = ObjectProvSet.stackUses objs
+
       fun gen obj (stack,dict) =
           let
             val (stack,cmds) = alignStartingCall stack obj
@@ -317,6 +321,12 @@ fun toCommandStream saved =
             val cmds =
                 if not (ObjectProvSet.member obj saved) then cmds
                 else Command.Save :: cmds
+
+            val cmds =
+                if Object.isOcall (ObjectProv.object obj) orelse
+                   ObjectProvSet.member obj stackUses
+                then cmds
+                else Command.Pop :: cmds
           in
             (cmds,(stack,dict))
           end
@@ -331,8 +341,6 @@ fun toCommandStream saved =
           in
             if null cmds then Stream.Nil else Stream.singleton cmds
           end
-
-      val objs = ObjectProvSet.ancestorSet saved
 
       val stack = ObjectStack.empty
       val dict = newMinDict objs

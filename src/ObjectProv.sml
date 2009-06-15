@@ -35,8 +35,8 @@ val newId : unit -> id =
 (*                                                                           *)
 (* Invariants *in order of priority*                                         *)
 (*                                                                           *)
-(* 1. The provenance of an Ocall object is the object that became the call   *)
-(*    argument.                                                              *)
+(* 1. The provenance of an Ocall object is Pcall obj, where obj is the       *)
+(*    object that became the call argument.                                  *)
 (*                                                                           *)
 (* 2. Objects do not contain theorems iff they have provenance Pnull.        *)
 (*    [Objects that do not contain theorems can be easily constructed.]      *)
@@ -44,10 +44,12 @@ val newId : unit -> id =
 (* 3. The provenance of a return value is the object that became the return  *)
 (*    value.                                                                 *)
 (*                                                                           *)
-(* 4. If a theorem can be inferred from theorem-containing objects, then the *)
-(*    provenance of the theorem is these objects.                            *)
-(*    [This will happen most often when simulating an inference rule and     *)
-(*    making use of the call argument - resulting in a singleton list.]      *)
+(* 4. The provenance of a theorem object tracks how the theorem was          *)
+(*    inferred (in order of priority):                                       *)
+(*      Isaved obj => theorem is in the saved object obj                     *)
+(*      Isimulated => simulated inference rule                               *)
+(*      Istack obj => contained in the stack object obj                      *)
+(*      Iaxiom     => asserted as an axiom (a dependency of the theory)      *)
 (* ------------------------------------------------------------------------- *)
 
 datatype object =
@@ -142,6 +144,17 @@ fun containsThms obj =
       raise Bug "ObjectProv.containsThms: Ocall"
     | Object {provenance = Pnull, ...} => false
     | _ => true;
+
+fun stackUsesProvenance prov =
+    case prov of
+      Pnull => []
+    | Pcall obj => [obj]
+    | Preturn obj => [obj]
+    | Pcons (objH,objT) => [objH,objT]
+    | Pref _ => []
+    | Pthm _ => [];
+
+fun stackUses obj = stackUsesProvenance (provenance obj);
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping with state over objects.                                          *)
@@ -557,6 +570,13 @@ fun compress objs =
       val objs = fromList objs
     in
       objs
+    end;
+
+val stackUses =
+    let
+      fun add (obj,acc) = addList acc (ObjectProv.stackUses obj)
+    in
+      foldr add empty
     end;
 
 end

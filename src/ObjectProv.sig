@@ -60,6 +60,8 @@ val parents : object -> object list
 
 val containsThms : object -> bool
 
+val stackUses : object -> object list
+
 (* ------------------------------------------------------------------------- *)
 (* Mapping with state over objects.                                          *)
 (* ------------------------------------------------------------------------- *)
