@@ -170,7 +170,7 @@ val _ = printval ppSubst sub;
 val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Reading in interpretations";
+val () = SAY "Reading interpretations";
 (* ------------------------------------------------------------------------- *)
 
 val INTERPRETATION_DIR = "interpretations";
@@ -235,7 +235,12 @@ fun summarize filename =
 
       val summary = Article.summarize article
 
-      val () = withRef (thmShowHyp,false) (printer Summary.pp) summary
+      val summaryFilename = filename ^ ".sum"
+
+      val () =
+          time Summary.toTextFile
+            {summary = summary,
+             filename = summaryFilename}
 
       val () = print "\n"
     in
@@ -254,7 +259,7 @@ val THEORY_DIR = "theories";
 
 fun compile filename =
     let
-      val () = print ("Summarizing theory \"" ^ filename ^ ".thy\"\n")
+      val () = print ("Compiling theory \"" ^ filename ^ ".thy\"\n")
 
       val theoryFilename = THEORY_DIR ^ "/" ^ filename ^ ".thy"
 
@@ -267,7 +272,9 @@ fun compile filename =
       val articleFilename = filename ^ ".art"
 
       val () =
-          time Article.toTextFile {article = article, filename = articleFilename}
+          time Article.toTextFile
+            {article = article,
+             filename = articleFilename}
 
       val () = print "\n"
     in

@@ -322,11 +322,11 @@ fun toCommandStream saved =
                 if not (ObjectProvSet.member obj saved) then cmds
                 else Command.Save :: cmds
 
-            val cmds =
+            val (cmds,stack) =
                 if Object.isOcall (ObjectProv.object obj) orelse
                    ObjectProvSet.member obj stackUses
-                then cmds
-                else Command.Pop :: cmds
+                then (cmds,stack)
+                else (Command.Pop :: cmds, ObjectStack.pop stack 1)
           in
             (cmds,(stack,dict))
           end

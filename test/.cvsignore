@@ -1,4 +1,5 @@
 bool.art
+bool.sum
 boolBool.art
 boolTactics.art
 empty.art
@@ -8,4 +9,6 @@ mlton-result
 mosml-result
 polyml-result
 tactics.art
+tactics.sum
+tacticsBool.art
 tacticsTactics.art
