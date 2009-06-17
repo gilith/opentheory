@@ -20,7 +20,7 @@ TEMP += $(TEMPFILE) \
 # The ML preprocessor.
 ###############################################################################
 
-MLPP_OPTS += -r 'OpenTheoryDebug'
+#MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-0]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
