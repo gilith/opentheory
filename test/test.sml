@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* OPEN THEORY TESTS                                                         *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* OPENTHEORY TESTS                                                          *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
