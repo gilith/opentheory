@@ -1,10 +1,15 @@
 # Tiny example for the PLMMS paper.
+# Construct the hypothesis list
 nil
+# Construct the conclusion term
 "T"
 "bool"
 nil
 type_op
 const
+# Construct the theorem
 thm
+# Export the theorem
 save
+# Clean up the stack
 pop
