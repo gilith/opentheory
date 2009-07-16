@@ -1,0 +1,10 @@
+# Tiny example for the PLMMS paper.
+nil
+"T"
+"bool"
+nil
+type_op
+const
+thm
+save
+pop

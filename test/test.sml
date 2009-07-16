@@ -212,6 +212,8 @@ fun compress interpretation filename =
       ()
     end;
 
+val () = compress Interpretation.natural "example1";
+
 val () = compress holLightInt "bool";
 
 val () = compress holLightInt "tactics";
