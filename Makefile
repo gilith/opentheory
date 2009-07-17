@@ -1,5 +1,5 @@
 ###############################################################################
-# OPEN THEORY MAKEFILE
+# OPENTHEORY MAKEFILE
 # Copyright (c) 2005-2009 Joe Hurd, distributed under the GNU GPL version 2
 ###############################################################################
 
