@@ -89,6 +89,15 @@ loads "lib.ml";;        (* Various useful general library functions          *)
 loads "logging.ml";;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory loads function to initialize the log files.                    *)
+(* ------------------------------------------------------------------------- *)
+
+let loads =
+  fun s ->
+    logfile (String.sub s 0 (String.rindex s '.') ^ ".art");
+    loads s;;
+
+(* ------------------------------------------------------------------------- *)
 (* Some extra support stuff needed outside the core.                         *)
 (* ------------------------------------------------------------------------- *)
 

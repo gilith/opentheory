@@ -15,6 +15,7 @@ datatype theory =
   | Block of theory list
   | Article of {filename : string}
   | Interpret of Interpretation.interpretation
+  | Load of {package : string}
 
 val empty : theory
 

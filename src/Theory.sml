@@ -16,7 +16,8 @@ datatype theory =
     Local of theory * theory
   | Block of theory list
   | Article of {filename : string}
-  | Interpret of Interpretation.interpretation;
+  | Interpret of Interpretation.interpretation
+  | Load of {package : string};
 
 val empty = Block [];
 
@@ -48,6 +49,14 @@ local
           (exp,pint)
         end
       | Interpret pint => (exp,pint)
+      | Load {package} =>
+        let
+          val exp = raise Bug "theory load not implemented"
+
+          val pint = Interpretation.natural
+        in
+          (exp,pint)
+        end
 
   and compList known int exp thys =
       case thys of
@@ -122,6 +131,13 @@ fun pp thy =
       Print.blockProgram Print.Consistent 0
         [Print.addString "interpret ",
          ppBlock Interpretation.pp int]
+    | Load {package} =>
+      Print.blockProgram Print.Consistent 2
+        [Print.addString "load",
+         Print.addBreak 1,
+         Print.addString "\"",
+         Print.addString package,
+         Print.addString "\";"]
 
 and ppList thys =
     case thys of

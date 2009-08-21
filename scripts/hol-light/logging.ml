@@ -219,21 +219,3 @@ let lemma f = log_function "lemma" log_unit log_thm f ();;
 let delay_function2 f = curry (uncurry f);;
 
 let delay_function3 f = curry3 (uncurry3 f);;
-
-(* ------------------------------------------------------------------------- *)
-(* Override the loads function to initialize the log files.                  *)
-(* ------------------------------------------------------------------------- *)
-
-let loads s =
-  let s' = if Filename.is_relative s then Filename.concat (!hol_dir) s
-           else s in
-  logfile (String.sub s' 0 (String.rindex s' '.') ^ ".art");
-  use_file s';;
-
-let loadt s =
-  let s' =
-    if not (Filename.is_relative s) then s else
-    let d = List.find
-     (fun d -> Sys.file_exists(Filename.concat d s)) (!load_path) in
-    Filename.concat d s in
-  use_file s';;

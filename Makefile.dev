@@ -165,7 +165,7 @@ lines: $(LINES)
 	@echo
 
 ###############################################################################
-# Testing on all the hol-light theories.
+# Testing using the HOL Light theories.
 ###############################################################################
 
 HOL_LIGHT_TEST_DIR = test/hol-light
@@ -257,6 +257,18 @@ hol-light-test-stats:
 
 .PHONY: hol-light-test
 hol-light-test: hol-light-test-install hol-light-test-log hol-light-test-thys hol-light-test-compress hol-light-test-sums hol-light-test-cthys hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
+
+###############################################################################
+# Creating packages from HOL Light theories.
+###############################################################################
+
+HOL_LIGHT_PACKAGE_DIR = $(HOL_LIGHT_TEST_DIR)/package
+
+.PHONY: hol-light-package-install
+hol-light-package-install:
+	rm -rf $(HOL_LIGHT_PACKAGE_DIR)
+	mkdir $(HOL_LIGHT_PACKAGE_DIR)
+	cd $(HOL_LIGHT_PACKAGE_DIR) && echo "Untarring into $(HOL_LIGHT_PACKAGE_DIR)" && tar xzf ../hol-light.tgz && ln -s ../../../scripts/hol-light/logging.ml && ln -s ../../../scripts/hol-light/deduction-logging.ml
 
 ###############################################################################
 # Profiling using MLton.
