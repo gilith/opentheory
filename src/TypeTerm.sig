@@ -163,6 +163,8 @@ val equalTy' : ty' -> ty' -> bool
 
 val nameBool : Name.name
 
+val opTyBool : opTy
+
 val bool : ty
 
 val isBool : ty -> bool
@@ -170,6 +172,8 @@ val isBool : ty -> bool
 (* Function spaces *)
 
 val nameFun : Name.name
+
+val opTyFun : opTy
 
 val mkFun : ty * ty -> ty
 
@@ -182,6 +186,8 @@ val isFun : ty -> bool
 (* ------------------------------------------------------------------------- *)
 
 datatype var = Var of Name.name * ty
+
+val typeOfVar : var -> ty
 
 (* Total order *)
 
@@ -225,7 +231,10 @@ val equalProvConst : provConst -> provConst -> bool
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-datatype const = Const of Name.name * provConst
+datatype const =
+    Const of
+      {name : Name.name,
+       prov : provConst}
 
 (* Total order *)
 
@@ -270,6 +279,8 @@ val equal' : term' -> term' -> bool
 (* Equality *)
 
 val nameEq : Name.name
+
+val constEq : const
 
 val mkEq : term * term -> term
 

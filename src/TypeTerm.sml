@@ -56,7 +56,10 @@ and term' =
   | App' of term * term
   | Abs' of var * term
 
-and const = Const of Name.name * provConst
+and const =
+    Const of
+      {name : Name.name,
+       prov : provConst}
 
 and provConst =
     UndefProvConst
@@ -72,8 +75,8 @@ and defConst = DefConst of term;
 
 fun compareTy (ty1,ty2) =
     let
-      val Type {id = id1, ty = ty1, sz = sz1} = ty1
-      and Type {id = id2, ty = ty2, sz = sz2} = ty2
+      val Ty {id = id1, ty = ty1, sz = sz1} = ty1
+      and Ty {id = id2, ty = ty2, sz = sz2} = ty2
     in
       if id1 = id2 then EQUAL
       else
@@ -122,14 +125,14 @@ and compareDefOpTy (d1,d2) =
     in
       case compare (p1,p2) of
         LESS => LESS
-      | EQUAL => compareListVar (v1,v2)
+      | EQUAL => lexCompare Name.compare (v1,v2)
       | GREATER => GREATER
     end
 
 and compareVar (Var n1_ty1, Var n2_ty2) =
     prodCompare Name.compare compareTy (n1_ty1,n2_ty2)
 
-and compareVarList vs1_vs2 = lexCompare compareVar vs1_vs2
+and compareListVar vs1_vs2 = lexCompare compareVar vs1_vs2
 
 and compare (tm1,tm2) =
     let
@@ -146,20 +149,28 @@ and compare (tm1,tm2) =
 
 and compare' tm1_tm2 =
     case tm1_tm2 of
-      (Const c1_ty1, Const c2_ty2) =>
+      (Const' c1_ty1, Const' c2_ty2) =>
       prodCompare compareConst compareTy (c1_ty1,c2_ty2)
-    | (Const _, _) => LESS
-    | (_, Const _) => GREATER
-    | (Var v1, Var v2) => compareVar (v1,v2)
-    | (Var _, _) => LESS
-    | (_, Var _) => GREATER
-    | (App f1_a1, App f2_a2) => prodCompare compare compare (f1_a1,f2_a2)
-    | (App _, _) => LESS
-    | (_, App _) => GREATER
-    | (Abs v1_b1, Abs v2_b2) => prodCompare compareVar compare (v1_b1,v2_b2)
+    | (Const' _, _) => LESS
+    | (_, Const' _) => GREATER
+    | (Var' v1, Var' v2) => compareVar (v1,v2)
+    | (Var' _, _) => LESS
+    | (_, Var' _) => GREATER
+    | (App' f1_a1, App' f2_a2) => prodCompare compare compare (f1_a1,f2_a2)
+    | (App' _, _) => LESS
+    | (_, App' _) => GREATER
+    | (Abs' v1_b1, Abs' v2_b2) => prodCompare compareVar compare (v1_b1,v2_b2)
 
-and compareConst (Const n1_p1, Const n2_p2) =
-    prodCompare Name.compare compareProvConst (n1_p1,n2_p2)
+and compareConst (c1,c2) =
+    let
+      val Const {name = n1, prov = p1} = c1
+      and Const {name = n2, prov = p2} = c2
+    in
+      case Name.compare (n1,n2) of
+        LESS => LESS
+      | EQUAL => compareProvConst (p1,p2)
+      | GREATER => GREATER
+    end
 
 and compareProvConst p1_p2 =
     case p1_p2 of
@@ -167,11 +178,11 @@ and compareProvConst p1_p2 =
     | (UndefProvConst,_) => LESS
     | (_,UndefProvConst) => GREATER
     | (DefProvConst d1, DefProvConst d2) => compareDefConst (d1,d2)
-    | (DefProvConst,_) => LESS
-    | (_,DefProvConst) => GREATER
+    | (DefProvConst _, _) => LESS
+    | (_, DefProvConst _) => GREATER
     | (AbsProvConst d1, AbsProvConst d2) => compareDefOpTy (d1,d2)
-    | (AbsProvConst,_) => LESS
-    | (_,AbsProvConst) => GREATER
+    | (AbsProvConst _, _) => LESS
+    | (_, AbsProvConst _) => GREATER
     | (RepProvConst d1, RepProvConst d2) => compareDefOpTy (d1,d2)
 
 and compareDefConst (DefConst tm1, DefConst tm2) = compare (tm1,tm2);
@@ -307,7 +318,7 @@ fun destTy (Ty {ty = t, ...}) = t;
 fun sizeTy' ty' =
     case ty' of
       VarTy' _ => 1
-    | OpTy (_,tys) => sizeListTy tys + 1;
+    | OpTy' (_,tys) => sizeListTy tys + 1;
 
 (* Total order *)
 
@@ -315,10 +326,10 @@ fun equalTy' t1 t2 = compareTy' (t1,t2) = EQUAL;
 
 (* Constructor *)
 
-fun mkTy ty' =
+fun mkTy ty =
     let
       val () =
-          case ty' of
+          case ty of
             VarTy' _ => ()
           | OpTy' (ot,tys) =>
             if arityOpTy ot = length tys then ()
@@ -326,11 +337,11 @@ fun mkTy ty' =
 
       val id = newIdTy ()
 
-      val sz = sizeTy' ty'
+      val sz = sizeTy' ty
     in
       Ty
         {id = id,
-         ty = ty',
+         ty = ty,
          sz = sz}
     end;
 
@@ -348,7 +359,7 @@ val opTyBool =
     let
       val name = nameBool
       val arity = 0
-      val prov = UndefTy
+      val prov = UndefProvOpTy
     in
       OpTy
         {name = name,
@@ -373,7 +384,7 @@ val opTyFun =
     let
       val name = nameFun
       val arity = 2
-      val prov = UndefTy
+      val prov = UndefProvOpTy
     in
       OpTy
         {name = name,
@@ -396,11 +407,13 @@ val isFun = can destFun;
 (* Variables.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
+fun typeOfVar (Var (_,ty)) = ty;
+
 (* Total order *)
 
 fun equalVar v1 v2 = compareVar (v1,v2) = EQUAL;
 
-fun equalVarList vs1 vs2 = compareVarList (vs1,vs2) = EQUAL;
+fun equalListVar vs1 vs2 = compareListVar (vs1,vs2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Constant definitions.                                                     *)
@@ -436,13 +449,26 @@ fun dest (Term {tm,...}) = tm;
 
 (* Number of constructors *)
 
-fun size' (Term {sz,...}) = sz;
+fun size' tm =
+    case tm of
+      Const' _ => 1
+    | Var' _ => 1
+    | App' (f,a) => size f + size a + 1
+    | Abs' (_,b) => size b + 1;
 
 (* Type *)
 
-fun typeOf' (Term {sz,...}) = sz;
-
-val typeOf' : term' -> ty
+fun typeOf' tm =
+    case tm of
+      Const' (_,ty) => ty
+    | Var' v => typeOfVar v
+    | App' (f,a) =>
+      let
+        val (_,ty) = destFun (typeOf f)
+      in
+        ty
+      end
+    | Abs' (v,b) => mkFun (typeOfVar v, typeOf b);
 
 (* Total order *)
 
@@ -450,94 +476,76 @@ fun equal' t1 t2 = compare' (t1,t2) = EQUAL;
 
 (* Constructor *)
 
-val mk : term' -> term
-
-(* ------------------------------------------------------------------------- *)
-(* Term constructors and destructors.                                        *)
-(* ------------------------------------------------------------------------- *)
-
-fun info (Term info) = info;
-
-fun id tm =
-    let
-      val {id = i, ...} = info tm
-    in
-      i
-    end;
-
-fun size tm =
-    let
-      val {sz,...} = info tm
-    in
-      sz
-    end;
-
-fun typeOf tm =
-    let
-      val {ty,...} = info tm
-    in
-      ty
-    end;
-
-fun dest tm =
-    let
-      val {tm = t, ...} = info tm
-    in
-      t
-    end;
-
 fun mk tm =
-    case tm of
-      Const (_,ty,_) =>
-      let
-        val id = newId ()
-        val sz = 1
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end
-    | Var v =>
-      let
-        val id = newId ()
-        val VarV (_,ty) = v
-        val sz = 1
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end
-    | App (f,a) =>
-      let
-        val (tyA,ty) = destFun (typeOf f)
-        val tyA' = typeOf a
-        val _ = equalTy tyA tyA' orelse
-                raise Error "TypeTerm.mk: incompatible types in App"
+    let
+      val ty =
+          case tm of
+            Const' (_,ty) => ty
+          | Var' v => typeOfVar v
+          | App' (f,a) =>
+            let
+              val (aty,ty) = destFun (typeOf f)
+            in
+              if equalTy aty (typeOf a) then ty
+              else raise Error "TypeTerm.mk: App: incompatible types"
+            end
+          | Abs' (v,b) => mkFun (typeOfVar v, typeOf b)
 
-        val id = newId ()
-        val sz = size f + size a + 1
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end
-    | Abs (v,b) =>
-      let
-        val id = newTermId ()
-        val sz = size b + 1
-        val ty = Type.mkFun (Var.typeOf v, typeOf b);
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end;
+      val id = newId ()
+
+      val sz = size' tm
+    in
+      Term
+        {id = id,
+         tm = tm,
+         sz = sz,
+         ty = ty}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive constants.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+(* Equality *)
+
+val stringEq = "=";
+
+val nameEq = Name.mkGlobal stringEq;
+
+val constEq =
+    let
+      val name = nameEq
+      val prov = UndefProvConst
+    in
+      Const
+        {name = name,
+         prov = prov}
+    end;
+
+fun mkEq (x,y) =
+    let
+      val a = typeOf y
+      val ty = mkFun (a, mkFun (a,bool))
+      val t0 = mk (Const' (constEq,ty))
+      val t1 = mk (App' (t0,x))
+      val tm = mk (App' (t1,y))
+    in
+      tm
+    end;
+
+fun destEq tm =
+    case dest tm of
+      App' (t1,y) =>
+      (case dest t1 of
+         App' (t0,x) =>
+         (case dest t0 of
+            Const' (c,_) =>
+            if equalConst constEq c then (x,y)
+            else raise Error "TypeTerm.destEq: bad const"
+          | _ => raise Error "TypeTerm.destEq: not an App' (App' (Const' _, _), _)")
+       | _ => raise Error "TypeTerm.destEq: not an App' (App' _, _)")
+    | _ => raise Error "TypeTerm.destEq: not an App' _";
+
+val isEq = can destEq;
 
 end
