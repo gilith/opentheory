@@ -36,7 +36,11 @@ val sizeListTy : ty list -> int
 
 val compareTy : ty * ty -> order
 
+val compareListTy : ty list * ty list -> order
+
 val equalTy : ty -> ty -> bool
+
+val equalListTy : ty list -> ty list -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A type of higher order logic terms.                                       *)
@@ -109,7 +113,17 @@ val equalProvOpTy : provOpTy -> provOpTy -> bool
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype opTy = OpTy of Name.name * provOpTy
+datatype opTy =
+    OpTy of
+      {name : Name.name,
+       arity : int,
+       prov : provOpTy}
+
+val nameOpTy : opTy -> Name.name
+
+val arityOpTy : opTy -> int
+
+val provOpTy : opTy -> provOpTy
 
 (* Total order *)
 
@@ -168,6 +182,16 @@ val isFun : ty -> bool
 (* ------------------------------------------------------------------------- *)
 
 datatype var = Var of Name.name * ty
+
+(* Total order *)
+
+val compareVar : var * var -> order
+
+val compareListVar : var list * var list -> order
+
+val equalVar : var -> var -> bool
+
+val equalListVar : var list -> var list -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Constant definitions.                                                     *)
