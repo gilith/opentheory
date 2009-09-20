@@ -156,30 +156,18 @@ val compareTy' : ty' * ty' -> order
 val equalTy' : ty' -> ty' -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive type operators.                                                 *)
+(* Function spaces.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-(* Booleans *)
+val nameFunTy : Name.name
 
-val nameBool : Name.name
+val opTyFunTy : opTy
 
-val opTyBool : opTy
+val mkFunTy : ty * ty -> ty
 
-val bool : ty
+val destFunTy : ty -> ty * ty
 
-val isBool : ty -> bool
-
-(* Function spaces *)
-
-val nameFun : Name.name
-
-val opTyFun : opTy
-
-val mkFun : ty * ty -> ty
-
-val destFun : ty -> ty * ty
-
-val isFun : ty -> bool
+val isFunTy : ty -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Variables.                                                                *)
@@ -271,21 +259,5 @@ val typeOf' : term' -> ty
 val compare' : term' * term' -> order
 
 val equal' : term' -> term' -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Primitive constants.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-(* Equality *)
-
-val nameEq : Name.name
-
-val constEq : const
-
-val mkEq : term * term -> term
-
-val destEq : term -> term * term
-
-val isEq : term -> bool
 
 end

@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* A MINIMAL HIGHER ORDER LOGIC KERNEL                                       *)
+(* HIGHER ORDER LOGIC TYPES                                                  *)
 (* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
@@ -12,154 +12,33 @@ open Useful;
 (* A type of higher order logic types.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type tyId = int;
-
-datatype ty =
-    Type of
-      {id : tyId,
-       ty : ty',
-       sz : int}
-
-and ty' =
-    TypeVar of Name.name
-  | TypeOp of Name.name * ty list;
-
-(* ------------------------------------------------------------------------- *)
-(* The type registry (initially contains the primitive type operators).      *)
-(* ------------------------------------------------------------------------- *)
-
-datatype registry =
-    Registry of
-      {all : NameSet.set,
-       arities : int NameMap.map};
-
-val emptyRegistry =
-    let
-      val all = NameSet.empty
-      val arities = NameMap.new ()
-    in
-      Registry
-        {all = all,
-         arities = arities}
-    end;
-
-val theRegistry = ref emptyRegistry;
-
-fun declaredArity name =
-    let
-      val Registry {arities,...} = !theRegistry
-    in
-      NameMap.peek arities name
-    end;
-
-fun allDeclared () =
-    let
-      val Registry {all,...} = !theRegistry
-    in
-      all
-    end;
-
-fun declare name arity =
-    let
-      val _ = not (NameSet.member name (allDeclared ())) orelse
-              raise Error ("already a type operator with name " ^
-                           Name.toString name)
-
-      val Registry {all,arities} = !theRegistry
-
-      val all = NameSet.add all name
-      and arities = NameMap.insert arities (name,arity)
-
-      val registry = Registry {all = all, arities = arities}
-    in
-      theRegistry := registry
-    end
-    handle Error err => raise Error ("Type.declare: " ^ err);
-
-(* ------------------------------------------------------------------------- *)
-(* Type IDs.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val newTypeId : unit -> tyId =
-    let
-      val counter = ref 0
-    in
-      fn () =>
-         let
-           val ref count = counter
-           val () = counter := count + 1
-         in
-           count
-         end
-    end;
-
-fun id (Type {id = i, ...}) = i;
-
-fun equalId ty1 ty2 = id ty1 = id ty2;
-
-(* ------------------------------------------------------------------------- *)
-(* Number of constructors.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun size (Type {sz,...}) = sz;
-
-val sizeList =
-    let
-      fun add (ty,n) = size ty + n
-    in
-      foldl add 0
-    end;
+type ty = TypeTerm.ty;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-(* General *)
+type ty' = TypeTerm.ty';
 
-fun mk ty =
-    case ty of
-      TypeVar n =>
-      let
-        val id = newTypeId ()
-        val sz = 1
-      in
-        Type
-          {id = id,
-           ty = ty,
-           sz = sz}
-      end
-    | TypeOp (n,tys) =>
-      let
-        val () =
-            case declaredArity n of
-              NONE => ()
-            | SOME arity =>
-              if length tys = arity then ()
-              else raise Error ("Type.mk: bad arity for type operator " ^
-                                Name.toString n)
+val mk = TypeTerm.mkTy;
 
-        val id = newTypeId ()
-        val sz = sizeList tys + 1
-      in
-        Type
-          {id = id,
-           ty = ty,
-           sz = sz}
-      end;
-
-fun dest (Type {ty,...}) = ty;
+val dest = TypeTerm.destTy;
 
 (* Variables *)
 
-fun mkVar' n = TypeVar n;
+fun mkVar' n = TypeTerm.VarTy' n;
 
-fun destVar' (TypeVar n) = n
-  | destVar' _ = raise Error "Type.destVar'";
+fun destVar' ty' =
+    case ty' of
+      TypeTerm.VarTy' n => n
+    | _ => raise Error "Type.destVar'";
 
 val isVar' = can destVar';
 
-fun equalVar' name (TypeVar n) = Name.equal name n
-  | equalVar' _ _ = false;
+fun equalVar' name ty' =
+    case ty' of
+      TypeTerm.VarTy' n => Name.equal name n
+    | _ => false;
 
 fun mkVar n = mk (mkVar' n);
 
@@ -171,40 +50,60 @@ fun equalVar name ty = equalVar' name (dest ty);
 
 (* Operators *)
 
-fun mkOp' n_tys = TypeOp n_tys;
+fun mkOp' o_tys = TypeTerm.OpTy' o_tys;
 
-fun destOp' (TypeOp n_tys) = n_tys
-  | destOp' _ = raise Error "Type.destOp'";
+fun destOp' ty' =
+    case ty' of
+      TypeTerm.OpTy' o_tys => o_tys
+    | _ => raise Error "Type.destOp'";
 
 val isOp' = can destOp';
 
-fun mkOp n_tys = mk (mkOp' n_tys);
+fun mkOp o_tys = mk (mkOp' o_tys);
 
 fun destOp ty = destOp' (dest ty);
 
 val isOp = can destOp;
 
+fun destOpTy ot ty =
+    let
+      val (ot',tys) = destOp ty
+    in
+      if TypeOp.equal ot ot' then tys
+      else raise Error "Type.destOpTy"
+    end;
+
+fun isOpTy ot = can (destOpTy ot);
+
+(* ------------------------------------------------------------------------- *)
+(* Type IDs.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+type id = TypeTerm.idTy;
+
+val id = TypeTerm.idTy;
+
+val equalId = TypeTerm.equalIdTy;
+
+(* ------------------------------------------------------------------------- *)
+(* Number of constructors.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val size = TypeTerm.sizeTy;
+
+val sizeList = TypeTerm.sizeListTy;
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (ty1,ty2) =
-    let
-      val Type {ty = ty1, id = id1, ...} = ty1
-      and Type {ty = ty2, id = id2, ...} = ty2
-    in
-      if id1 = id2 then EQUAL else compare' (ty1,ty2)
-    end
+val compare = TypeTerm.compareTy;
 
-and compare' ty1_ty2 =
-    case ty1_ty2 of
-      (TypeVar n1, TypeVar n2) => Name.compare (n1,n2)
-    | (TypeVar _, TypeOp _) => LESS
-    | (TypeOp _, TypeVar _) => GREATER
-    | (TypeOp n1_tys1, TypeOp n2_tys2) =>
-      prodCompare Name.compare (lexCompare compare) (n1_tys1,n2_tys2);
+val compareList = TypeTerm.compareListTy;
 
-fun equal ty1 ty2 = compare (ty1,ty2) = EQUAL;
+val equal = TypeTerm.equalTy;
+
+val equalList = TypeTerm.equalListTy;
 
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
@@ -225,29 +124,31 @@ val emptySharingTypeVars =
          vars = vars}
     end;
 
-fun sharingTypeVars seen acc [] = (seen,acc)
-  | sharingTypeVars seen acc (ty :: tys) =
-    let
-      val Type {id,ty,...} = ty
-    in
-      if IntSet.member id seen then sharingTypeVars seen acc tys
-      else
-        let
-          val seen = IntSet.add seen id
-        in
-          sharingTypeVars' seen acc ty tys
-        end
-    end
+fun sharingTypeVars seen acc tys =
+    case tys of
+      [] => (seen,acc)
+    | ty :: tys =>
+      let
+        val {id,ty,...} = TypeTerm.infoTy ty
+      in
+        if IntSet.member id seen then sharingTypeVars seen acc tys
+        else
+          let
+            val seen = IntSet.add seen id
+          in
+            sharingTypeVars' seen acc ty tys
+          end
+      end
 
 and sharingTypeVars' seen acc ty tys =
     case ty of
-      TypeVar n =>
+      TypeTerm.VarTy' n =>
       let
         val acc = NameSet.add acc n
       in
         sharingTypeVars seen acc tys
       end
-    | TypeOp (_,tys') =>
+    | TypeTerm.OpTy' (_,tys') =>
       let
         val tys = List.revAppend (tys',tys)
       in
@@ -284,38 +185,40 @@ val alpha = mkVar (Name.mkGlobal "'a");
 datatype sharingTypeOps =
     SharingTypeOps of
       {seen : IntSet.set,
-       ops : NameSet.set};
+       ops : TypeOpSet.set};
 
 val emptySharingTypeOps =
     let
       val seen = IntSet.empty
-      val ops = NameSet.empty
+      val ops = TypeOpSet.empty
     in
       SharingTypeOps
         {seen = seen,
          ops = ops}
     end;
 
-fun sharingTypeOps seen acc [] = (seen,acc)
-  | sharingTypeOps seen acc (ty :: tys) =
-    let
-      val Type {id,ty,...} = ty
-    in
-      if IntSet.member id seen then sharingTypeOps seen acc tys
-      else
-        let
-          val seen = IntSet.add seen id
-        in
-          sharingTypeOps' seen acc ty tys
-        end
-    end
+fun sharingTypeOps seen acc tys =
+    case tys of
+      [] => (seen,acc)
+    | ty :: tys =>
+      let
+        val {id,ty,...} = TypeTerm.infoTy ty
+      in
+        if IntSet.member id seen then sharingTypeOps seen acc tys
+        else
+          let
+            val seen = IntSet.add seen id
+          in
+            sharingTypeOps' seen acc ty tys
+          end
+      end
 
 and sharingTypeOps' seen acc ty tys =
     case ty of
-      TypeVar _ => sharingTypeOps seen acc tys
-    | TypeOp (n,tys') =>
+      TypeTerm.VarTy' _ => sharingTypeOps seen acc tys
+    | TypeTerm.OpTy' (ot,tys') =>
       let
-        val acc = NameSet.add acc n
+        val acc = TypeOpSet.add acc ot
         val tys = List.revAppend (tys',tys)
       in
         sharingTypeOps seen acc tys
@@ -343,41 +246,45 @@ fun typeOpsList tys =
 fun typeOps ty = typeOpsList [ty];
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive types                                                           *)
+(* Primitive types.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 (* Booleans *)
 
-val boolString = "bool";
+val stringBool = "bool";
 
-val boolName = Name.mkGlobal boolString;
+val nameBool = Name.mkGlobal stringBool;
 
-val boolArity = 0;
+val opTyBool =
+    let
+      val name = nameBool
+      val arity = 0
+      val prov = TypeTerm.UndefProvOpTy
+    in
+      TypeTerm.OpTy
+        {name = name,
+         arity = arity,
+         prov = prov}
+    end;
 
-val () = declare boolName boolArity;
+val bool = mkOp (opTyBool,[]);
 
-val bool = mkOp (boolName,[]);
+fun isBool ty =
+    case dest ty of
+      TypeTerm.OpTy' (ot,[]) => TypeOp.equal opTyBool ot
+    | _ => false;
 
 (* Function spaces *)
 
-val funString = "fun";
+val nameFun = TypeTerm.nameFunTy;
 
-val funName = Name.mkGlobal "fun";
+val opTyFun = TypeTerm.opTyFunTy;
 
-val funArity = 2;
+val mkFun = TypeTerm.mkFunTy;
 
-val () = declare funName funArity;
+val destFun = TypeTerm.destFunTy;
 
-fun mkFun (x,y) = mkOp (funName,[x,y]);
-
-fun destFun ty =
-    case destOp ty of
-      (n,[x,y]) =>
-      if Name.equal n funName then (x,y)
-      else raise Error "Type.destFun"
-    | _ => raise Error "Type.destFun";
-
-val isFun = can destFun;
+val isFun = TypeTerm.isFunTy;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -394,19 +301,14 @@ val infixTokens =
 local
   val typeInfixStrings = Print.tokensInfixes infixTokens;
 
-  fun abbreviateTypeOp n =
-      case Name.toString n of
-        "fun" => "->"
-      | s => s;
-
   val ppTypeVar = Name.pp;
-
-  val ppTypeOp = Print.ppMap abbreviateTypeOp Print.ppString;
 
   fun destTypeInfix ty =
       let
         val (f,xs) = destOp ty
-        val f = abbreviateTypeOp f
+
+        val f = TypeOp.toString f
+
         val _ = StringSet.member f typeInfixStrings orelse
                 raise Error "destTypeInfix"
       in
@@ -434,7 +336,7 @@ local
                 Print.sequence
                   (Print.ppBracket "(" ")" (Print.ppOpList "," ppTypeTop) xs)
                   (Print.addBreak 1)),
-             ppTypeOp f]
+             TypeOp.pp f]
         end
 
   and basicr (ty,_) = basic ty

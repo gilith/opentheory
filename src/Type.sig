@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC TYPES                                                  *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Type =
@@ -10,41 +10,49 @@ sig
 (* A type of higher order logic types.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type ty
+type ty = TypeTerm.ty
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype ty' =
-    TypeVar of Name.name
-  | TypeOp of Name.name * ty list
+type ty' = TypeTerm.ty'
 
 val mk : ty' -> ty
+
 val dest : ty -> ty'
 
 (* Variables *)
 
 val mkVar : Name.name -> ty
+
 val destVar : ty -> Name.name
+
 val isVar : ty -> bool
+
 val equalVar : Name.name -> ty -> bool
 
 (* Operators *)
 
-val mkOp : Name.name * ty list -> ty
-val destOp : ty -> Name.name * ty list
+val mkOp : TypeOp.opTy * ty list -> ty
+
+val destOp : ty -> TypeOp.opTy * ty list
+
 val isOp : ty -> bool
+
+val destOpTy : TypeOp.opTy -> ty -> ty list
+
+val isOpTy : TypeOp.opTy -> ty -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Type IDs.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type tyId = int
+type id = TypeTerm.idTy
 
-val id : ty -> tyId
+val id : ty -> id
 
-val equalId : ty -> ty -> bool
+val equalId : id -> ty -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
@@ -60,7 +68,11 @@ val sizeList : ty list -> int
 
 val compare : ty * ty -> order
 
+val compareList : ty list * ty list -> order
+
 val equal : ty -> ty -> bool
+
+val equalList : ty list -> ty list -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
@@ -90,11 +102,11 @@ val emptySharingTypeOps : sharingTypeOps
 
 val addSharingTypeOps : sharingTypeOps -> ty list -> sharingTypeOps
 
-val toSetSharingTypeOps : sharingTypeOps -> NameSet.set
+val toSetSharingTypeOps : sharingTypeOps -> TypeOpSet.set
 
-val typeOpsList : ty list -> NameSet.set
+val typeOpsList : ty list -> TypeOpSet.set
 
-val typeOps : ty -> NameSet.set
+val typeOps : ty -> TypeOpSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive types.                                                          *)
@@ -102,23 +114,25 @@ val typeOps : ty -> NameSet.set
 
 (* Booleans *)
 
+val nameBool : Name.name
+
+val opTyBool : TypeOp.opTy
+
 val bool : ty
+
+val isBool : ty -> bool
 
 (* Function spaces *)
 
+val nameFun : Name.name
+
+val opTyFun : TypeOp.opTy
+
 val mkFun : ty * ty -> ty
+
 val destFun : ty -> ty * ty
+
 val isFun : ty -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* The type registry (initially contains the primitive type operators).      *)
-(* ------------------------------------------------------------------------- *)
-
-val declare : Name.name -> int -> unit
-
-val declaredArity : Name.name -> int option
-
-val allDeclared : unit -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

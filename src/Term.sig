@@ -147,6 +147,28 @@ val destEq : term -> term * term
 val isEq : term -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Primitive constants.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+(* Equality *)
+
+val mkEqTy : Type.ty -> Type.ty
+
+val destEqTy : Type.ty -> Type.ty
+
+val isEqTy : Type.ty -> bool
+
+val nameEq : Name.name
+
+val constEq : const
+
+val mkEq : term * term -> term
+
+val destEq : term -> term * term
+
+val isEq : term -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* The constant registry (initially contains the primitive constants).       *)
 (* ------------------------------------------------------------------------- *)
 

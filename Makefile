@@ -85,6 +85,7 @@ SRC = \
   src/MetisResolution.sig src/MetisResolution.sml \
   src/MetisTptp.sig src/MetisTptp.sml \
   src/TypeTerm.sig src/TypeTerm.sml \
+  src/TypeOp.sig src/TypeOp.sml \
   src/Type.sig src/Type.sml \
   src/TypeSubst.sig src/TypeSubst.sml \
   src/Var.sig src/Var.sml \

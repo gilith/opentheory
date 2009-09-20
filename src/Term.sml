@@ -638,6 +638,52 @@ fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
 (* Primitive constants.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
+(* ------------------------------------------------------------------------- *)
+(* Primitive constants.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+(* Equality *)
+
+val stringEq = "=";
+
+val nameEq = Name.mkGlobal stringEq;
+
+val constEq =
+    let
+      val name = nameEq
+      val prov = UndefProvConst
+    in
+      Const
+        {name = name,
+         prov = prov}
+    end;
+
+fun mkEq (x,y) =
+    let
+      val a = typeOf y
+      val ty = mkFun (a, mkFun (a,bool))
+      val t0 = mk (Const' (constEq,ty))
+      val t1 = mk (App' (t0,x))
+      val tm = mk (App' (t1,y))
+    in
+      tm
+    end;
+
+fun destEq tm =
+    case dest tm of
+      App' (t1,y) =>
+      (case dest t1 of
+         App' (t0,x) =>
+         (case dest t0 of
+            Const' (c,_) =>
+            if equalConst constEq c then (x,y)
+            else raise Error "TypeTerm.destEq: bad const"
+          | _ => raise Error "TypeTerm.destEq: not an App' (App' (Const' _, _), _)")
+       | _ => raise Error "TypeTerm.destEq: not an App' (App' _, _)")
+    | _ => raise Error "TypeTerm.destEq: not an App' _";
+
+val isEq = can destEq;
+
 (* Equality *)
 
 fun eqType a = Type.mkFun (a, Type.mkFun (a, Type.bool));

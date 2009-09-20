@@ -346,43 +346,16 @@ fun mkTy ty =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive type operators.                                                 *)
+(* Function spaces.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-(* Booleans *)
+val stringFunTy = "->";
 
-val stringBool = "bool";
+val nameFunTy = Name.mkGlobal stringFunTy;
 
-val nameBool = Name.mkGlobal stringBool;
-
-val opTyBool =
+val opTyFunTy =
     let
-      val name = nameBool
-      val arity = 0
-      val prov = UndefProvOpTy
-    in
-      OpTy
-        {name = name,
-         arity = arity,
-         prov = prov}
-    end;
-
-val bool = mkTy (OpTy' (opTyBool,[]));
-
-fun isBool ty =
-    case destTy ty of
-      OpTy' (c,[]) => equalOpTy opTyBool c
-    | _ => false;
-
-(* Function spaces *)
-
-val stringFun = "fun";
-
-val nameFun = Name.mkGlobal stringFun;
-
-val opTyFun =
-    let
-      val name = nameFun
+      val name = nameFunTy
       val arity = 2
       val prov = UndefProvOpTy
     in
@@ -392,16 +365,16 @@ val opTyFun =
          prov = prov}
     end;
 
-fun mkFun (x,y) = mkTy (OpTy' (opTyFun,[x,y]));
+fun mkFunTy (x,y) = mkTy (OpTy' (opTyFunTy,[x,y]));
 
-fun destFun ty =
+fun destFunTy ty =
     case destTy ty of
       OpTy' (c,[x,y]) =>
-      if equalOpTy opTyFun c then (x,y)
-      else raise Error "TypeTerm.destFun: bad type operator"
-    | _ => raise Error "TypeTerm.destFun: bad form";
+      if equalOpTy opTyFunTy c then (x,y)
+      else raise Error "TypeTerm.destFunTy: bad type operator"
+    | _ => raise Error "TypeTerm.destFunTy: bad form";
 
-val isFun = can destFun;
+val isFunTy = can destFunTy;
 
 (* ------------------------------------------------------------------------- *)
 (* Variables.                                                                *)
@@ -464,11 +437,11 @@ fun typeOf' tm =
     | Var' v => typeOfVar v
     | App' (f,a) =>
       let
-        val (_,ty) = destFun (typeOf f)
+        val (_,ty) = destFunTy (typeOf f)
       in
         ty
       end
-    | Abs' (v,b) => mkFun (typeOfVar v, typeOf b);
+    | Abs' (v,b) => mkFunTy (typeOfVar v, typeOf b);
 
 (* Total order *)
 
@@ -484,12 +457,12 @@ fun mk tm =
           | Var' v => typeOfVar v
           | App' (f,a) =>
             let
-              val (aty,ty) = destFun (typeOf f)
+              val (aty,ty) = destFunTy (typeOf f)
             in
               if equalTy aty (typeOf a) then ty
               else raise Error "TypeTerm.mk: App: incompatible types"
             end
-          | Abs' (v,b) => mkFun (typeOfVar v, typeOf b)
+          | Abs' (v,b) => mkFunTy (typeOfVar v, typeOf b)
 
       val id = newId ()
 
@@ -501,51 +474,5 @@ fun mk tm =
          sz = sz,
          ty = ty}
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Primitive constants.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-(* Equality *)
-
-val stringEq = "=";
-
-val nameEq = Name.mkGlobal stringEq;
-
-val constEq =
-    let
-      val name = nameEq
-      val prov = UndefProvConst
-    in
-      Const
-        {name = name,
-         prov = prov}
-    end;
-
-fun mkEq (x,y) =
-    let
-      val a = typeOf y
-      val ty = mkFun (a, mkFun (a,bool))
-      val t0 = mk (Const' (constEq,ty))
-      val t1 = mk (App' (t0,x))
-      val tm = mk (App' (t1,y))
-    in
-      tm
-    end;
-
-fun destEq tm =
-    case dest tm of
-      App' (t1,y) =>
-      (case dest t1 of
-         App' (t0,x) =>
-         (case dest t0 of
-            Const' (c,_) =>
-            if equalConst constEq c then (x,y)
-            else raise Error "TypeTerm.destEq: bad const"
-          | _ => raise Error "TypeTerm.destEq: not an App' (App' (Const' _, _), _)")
-       | _ => raise Error "TypeTerm.destEq: not an App' (App' _, _)")
-    | _ => raise Error "TypeTerm.destEq: not an App' _";
-
-val isEq = can destEq;
 
 end
