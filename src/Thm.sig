@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* A MINIMAL HIGHER ORDER LOGIC KERNEL                                       *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* HIGHER ORDER LOGIC THEOREMS                                               *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Thm =
@@ -12,7 +12,10 @@ sig
 
 type thm
 
-datatype thm' = Thm of {axioms : SequentSet.set, sequent : Sequent.sequent}
+datatype thm' =
+    Thm of
+      {axioms : SequentSet.set,
+       sequent : Sequent.sequent}
 
 val dest : thm -> thm'
 

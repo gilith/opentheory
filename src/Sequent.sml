@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC SEQUENTS                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Sequent :> Sequent =
@@ -9,24 +9,27 @@ struct
 open Useful
 
 (* ------------------------------------------------------------------------- *)
-(* Sequents                                                                  *)
+(* A type of higher order logic sequents.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-type sequent = {hyp : TermAlphaSet.set, concl : Term.term};
+datatype sequent =
+    Sequent of
+      {hyp : TermAlphaSet.set,
+       concl : Term.term}
 
 (* ------------------------------------------------------------------------- *)
-(* Checking the hypotheses and conclusion are of type bool                   *)
+(* Checking the hypotheses and conclusion are of type bool.                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun boolean {hyp,concl} =
+fun boolean (Sequent {hyp,concl}) =
     Type.equal (Term.typeOf concl) Type.bool andalso
     TermAlphaSet.all (fn h => Type.equal (Term.typeOf h) Type.bool) hyp;
 
 (* ------------------------------------------------------------------------- *)
-(* A total order on sequents modulo alpha equivalence                        *)
+(* A total order on sequents modulo alpha equivalence.                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare ({hyp = h1, concl = c1}, {hyp = h2, concl = c2}) =
+fun compare (Sequent {hyp = h1, concl = c1}, Sequent {hyp = h2, concl = c2}) =
     prodCompare Term.alphaCompare TermAlphaSet.compare ((c1,h1),(c2,h2));
 
 fun equal s1 s2 = compare (s1,s2) = EQUAL;
@@ -35,11 +38,11 @@ fun equal s1 s2 = compare (s1,s2) = EQUAL;
 (* Type operators and constants.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun typeOps {hyp,concl} =
-    NameSet.union (TermAlphaSet.typeOps hyp) (Term.typeOps concl);
+fun typeOps (Sequent {hyp,concl}) =
+    TypeOpSet.union (TermAlphaSet.typeOps hyp) (Term.typeOps concl);
 
-fun consts {hyp,concl} =
-    NameSet.union (TermAlphaSet.consts hyp) (Term.consts concl);
+fun consts (Sequent {hyp,concl}) =
+    ConstSet.union (TermAlphaSet.consts hyp) (Term.consts concl);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -54,7 +57,7 @@ in
         val indent_space = size connective_space
         val space_connective = " " ^ connective
       in
-        fn {hyp,concl} =>
+        fn Sequent {hyp,concl} =>
            if TermAlphaSet.null hyp then
              Print.blockProgram Print.Inconsistent indent_space
                [Print.addString connective_space,
@@ -95,16 +98,16 @@ struct
 
   val typeOps =
       let
-        fun addNames (tm,acc) = NameSet.union acc (Sequent.typeOps tm)
+        fun addNames (tm,acc) = TypeOpSet.union acc (Sequent.typeOps tm)
       in
-        foldl addNames NameSet.empty
+        foldl addNames TypeOpSet.empty
       end;
 
   val consts =
       let
-        fun addNames (tm,acc) = NameSet.union acc (Sequent.consts tm)
+        fun addNames (tm,acc) = ConstSet.union acc (Sequent.consts tm)
       in
-        foldl addNames NameSet.empty
+        foldl addNames ConstSet.empty
       end;
 
 end

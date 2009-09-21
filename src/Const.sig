@@ -12,6 +12,14 @@ sig
 
 type const = TypeTerm.const
 
+type constData =
+     {name : Name.name,
+      prov : TypeTerm.provConst}
+
+val mk : constData -> const
+
+val dest : const -> constData
+
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)

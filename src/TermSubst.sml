@@ -42,7 +42,7 @@ fun mkAvoidSet var ty' =
     let
       fun addTy (v,avoid) =
           let
-            val Var.Var (n,ty) = v
+            val TypeTerm.Var (n,ty) = v
           in
             if Type.equal ty ty' then NameSet.add avoid n else avoid
           end
@@ -85,14 +85,14 @@ fun mkAvoidSet var ty' =
               let
                 val (free,avoid,seen2,seen',fvShare) =
                     case Term.dest tm of
-                      Term.Const _ =>
+                      TypeTerm.Const' _ =>
                       let
                         val free = false
                         val avoid = NameSet.empty
                       in
                         (free,avoid,seen2,seen',fvShare)
                       end
-                    | Term.Var v =>
+                    | TypeTerm.Var' v =>
                       if Var.equal var v then
                         let
                           val free = true
@@ -108,9 +108,9 @@ fun mkAvoidSet var ty' =
                         in
                           (free,avoid,seen2,seen',fvShare)
                         end
-                    | Term.Comb (f,a) =>
+                    | TypeTerm.App' (f,a) =>
                       let
-                        val (f',a') = Term.destComb tm'
+                        val (f',a') = Term.destApp tm'
 
                         val (fFree,fAvoid,seen2,seen',fvShare) =
                             mkAvoid f f' seen2 seen' fvShare
@@ -124,7 +124,7 @@ fun mkAvoidSet var ty' =
                       in
                         (free,avoid,seen2,seen',fvShare)
                       end
-                    | Term.Abs (v,b) =>
+                    | TypeTerm.Abs' (v,b) =>
                       let
                         val (v',b') = Term.destAbs tm'
 
@@ -183,19 +183,19 @@ fun renameBoundVar avoidSeen2 var varTm' =
                 let
                   val (tm',seen2) =
                       case Term.dest tm of
-                        Term.Const _ => (tm',seen2)
-                      | Term.Var v =>
+                        TypeTerm.Const' _ => (tm',seen2)
+                      | TypeTerm.Var' v =>
                         if Var.equal var v then (varTm',seen2) else (tm',seen2)
-                      | Term.Comb (f,a) =>
+                      | TypeTerm.App' (f,a) =>
                         let
-                          val (f',a') = Term.destComb tm'
+                          val (f',a') = Term.destApp tm'
                           val (f',seen2) = rename f f' seen2
                           val (a',seen2) = rename a a' seen2
-                          val tm' = Term.mkComb (f',a')
+                          val tm' = Term.mkApp (f',a')
                         in
                           (tm',seen2)
                         end
-                      | Term.Abs (v,b) =>
+                      | TypeTerm.Abs' (v,b) =>
                         let
 (*OpenTheoryDebug
                           val _ = not (Var.equal v var) orelse
@@ -251,13 +251,13 @@ fun avoidCapture vSub' v v' b b' fvShare =
 local
   fun naiveSub stm tySub stm' (tm : Term.term) : Term.term =
       case Term.dest tm of
-        Term.Const (n,ty) =>
+        TypeTerm.Const' (n,ty) =>
         let
           val ty = Option.getOpt (TypeSubst.subst tySub ty, ty)
         in
           Term.mkConst (n,ty)
         end
-      | Term.Var v =>
+      | TypeTerm.Var' v =>
         (case VarMap.peek stm v of
            SOME tm => tm
          | NONE =>
@@ -268,19 +268,19 @@ local
                SOME tm => tm
              | NONE => Term.mkVar v
            end)
-        | Term.Comb (f,a) =>
+        | TypeTerm.App' (f,a) =>
           let
             val f = naiveSub stm tySub stm' f
             and a = naiveSub stm tySub stm' a
           in
-            Term.mkComb (f,a)
+            Term.mkApp (f,a)
           end
-        | Term.Abs (v,b) =>
+        | TypeTerm.Abs' (v,b) =>
           let
             val n = Name.newName ()
             val ty = Var.typeOf v
             val ty = Option.getOpt (TypeSubst.subst tySub ty, ty)
-            val v' = Var.Var (n,ty)
+            val v' = Var.mk (n,ty)
             val stm = VarMap.insert stm (v, Term.mkVar v')
             val b = naiveSub stm tySub stm' b
           in
@@ -332,7 +332,7 @@ and rawSharingSubst' stm tm tySub seen fvShare =
         SOME tm' => (tm',tySub,seen,fvShare)
       | NONE =>
         case Term.dest tm of
-          Term.Const (n,ty) =>
+          TypeTerm.Const' (n,ty) =>
           let
             val (ty',tySub) = TypeSubst.sharingSubst ty tySub
 
@@ -348,7 +348,7 @@ and rawSharingSubst' stm tm tySub seen fvShare =
           in
             (tm',tySub,seen,fvShare)
           end
-        | Term.Var v =>
+        | TypeTerm.Var' v =>
           let
             val (v',tySub) = Var.sharingSubst v tySub
 
@@ -369,7 +369,7 @@ and rawSharingSubst' stm tm tySub seen fvShare =
           in
             (tm',tySub,seen,fvShare)
           end
-        | Term.Comb (f,a) =>
+        | TypeTerm.App' (f,a) =>
           let
             val (f',tySub,seen,fvShare) =
                 rawSharingSubst stm f tySub seen fvShare
@@ -379,9 +379,9 @@ and rawSharingSubst' stm tm tySub seen fvShare =
 
             val tm' =
                 case (f',a') of
-                  (SOME f, SOME a) => SOME (Term.mkComb (f,a))
-                | (SOME f, NONE) => SOME (Term.mkComb (f,a))
-                | (NONE, SOME a) => SOME (Term.mkComb (f,a))
+                  (SOME f, SOME a) => SOME (Term.mkApp (f,a))
+                | (SOME f, NONE) => SOME (Term.mkApp (f,a))
+                | (NONE, SOME a) => SOME (Term.mkApp (f,a))
                 | (NONE,NONE) => NONE
 
             val seen = IntMap.insert seen (i,tm')
@@ -391,7 +391,7 @@ and rawSharingSubst' stm tm tySub seen fvShare =
           in
             (tm',tySub,seen,fvShare)
           end
-        | Term.Abs (v,b) =>
+        | TypeTerm.Abs' (v,b) =>
           let
             val (v',tySub) = Var.sharingSubst v tySub
 

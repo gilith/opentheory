@@ -14,6 +14,10 @@ open Useful
 
 type var = TypeTerm.var;
 
+val mk = TypeTerm.Var;
+
+fun dest (TypeTerm.Var n_ty) = n_ty;
+
 (* ------------------------------------------------------------------------- *)
 (* The name of a variable.                                                   *)
 (* ------------------------------------------------------------------------- *)

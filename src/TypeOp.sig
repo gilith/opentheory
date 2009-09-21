@@ -12,6 +12,15 @@ sig
 
 type opTy = TypeTerm.opTy
 
+type opTyData =
+     {name : Name.name,
+      arity : int,
+      prov : TypeTerm.provOpTy}
+
+val mk : opTyData -> opTy
+
+val dest : opTy -> opTyData
+
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)

@@ -14,6 +14,15 @@ open Useful;
 
 type opTy = TypeTerm.opTy;
 
+type opTyData =
+     {name : Name.name,
+      arity : int,
+      prov : TypeTerm.provOpTy};
+
+val mk = TypeTerm.OpTy;
+
+fun dest (TypeTerm.OpTy data) = data;
+
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)

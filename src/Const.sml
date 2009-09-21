@@ -14,6 +14,14 @@ open Useful;
 
 type const = TypeTerm.const;
 
+type constData =
+     {name : Name.name,
+      prov : TypeTerm.provConst};
+
+val mk = TypeTerm.Const;
+
+fun dest (TypeTerm.Const data) = data;
+
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)

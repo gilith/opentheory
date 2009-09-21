@@ -1,16 +1,12 @@
 (* ========================================================================= *)
-(* A MINIMAL HIGHER ORDER LOGIC KERNEL                                       *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* HIGHER ORDER LOGIC THEOREMS                                               *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Thm :> Thm =
 struct
 
 open Useful;
-
-infixr ==
-
-val op== = Portable.pointerEqual;
 
 (* ------------------------------------------------------------------------- *)
 (* The abstract type of theorem.                                             *)
@@ -35,13 +31,15 @@ fun compare (Thm {sequent = s1, ...}, Thm {sequent = s2, ...}) =
 fun equal th1 th2 = compare (th1,th2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive rules of inference                                              *)
+(* Primitive rules of inference.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 val emptyAxioms = SequentSet.empty;
+
 val singleAxiom = SequentSet.singleton;
 
 val emptyHyp = TermAlphaSet.empty;
+
 val singleHyp = TermAlphaSet.singleton;
 
 fun axiom sequent =
@@ -56,7 +54,7 @@ fun axiom sequent =
 fun abs v th =
     let
       val Thm {axioms,sequent,...} = th
-      val {hyp,concl} = sequent
+      val Sequent.Sequent {hyp,concl} = sequent
       val (a,b) = Term.destEq concl
       val fv =
           let
@@ -67,7 +65,7 @@ fun abs v th =
       val _ = not (VarSet.member v fv) orelse
               raise Error "Thm.abs: free in hypothesis"
       val concl = Term.mkEq (Term.mkAbs (v,a), Term.mkAbs (v,b))
-      val sequent = {hyp = hyp, concl = concl}
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
@@ -79,7 +77,7 @@ fun assume t =
       val axioms = emptyAxioms
       and hyp = singleHyp t
       and concl = t
-      val sequent = {hyp = hyp, concl = concl}
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
@@ -88,9 +86,9 @@ fun betaConv t =
     let
       val (v,t1,t2) =
           case Term.dest t of
-            Term.Comb (t',t2) =>
+            TypeTerm.App' (t',t2) =>
             (case Term.dest t' of
-               Term.Abs (v,t1) => (v,t1,t2)
+               TypeTerm.Abs' (v,t1) => (v,t1,t2)
              | _ => raise Error "Thm.betaConv: term function not a lambda")
           | _ => raise Error "Thm.betaConv: term not a function application"
 
@@ -108,7 +106,7 @@ fun betaConv t =
       val axioms = emptyAxioms
       and hyp = emptyHyp
       and concl = Term.mkEq (t,u)
-      val sequent = {hyp = hyp, concl = concl}
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
@@ -117,16 +115,18 @@ fun deductAntisym th1 th2 =
     let
       val Thm {axioms = a1, sequent = s1, ...} = th1
       and Thm {axioms = a2, sequent = s2, ...} = th2
-      val {hyp = h1, concl = c1} = s1
-      and {hyp = h2, concl = c2} = s2
+      val Sequent.Sequent {hyp = h1, concl = c1} = s1
+      and Sequent.Sequent {hyp = h2, concl = c2} = s2
+
       val h1 =
           if TermAlphaSet.member c2 h1 then TermAlphaSet.delete h1 c2 else h1
       and h2 =
           if TermAlphaSet.member c1 h2 then TermAlphaSet.delete h2 c1 else h2
+
       val axioms = SequentSet.union a1 a2
       and hyp = TermAlphaSet.union h1 h2
       and concl = Term.mkEq (c1,c2)
-      val sequent = {hyp = hyp, concl = concl}
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
@@ -135,14 +135,14 @@ fun eqMp th1 th2 =
     let
       val Thm {axioms = a1, sequent = s1, ...} = th1
       and Thm {axioms = a2, sequent = s2, ...} = th2
-      val {hyp = h1, concl = c1} = s1
-      and {hyp = h2, concl = c2} = s2
+      val Sequent.Sequent {hyp = h1, concl = c1} = s1
+      and Sequent.Sequent {hyp = h2, concl = c2} = s2
       val axioms = SequentSet.union a1 a2
       and hyp = TermAlphaSet.union h1 h2
       val (c2',concl) = Term.destEq c1
       val _ = Term.alphaEqual c2 c2' orelse
               raise Error "Thm.eqMp: not alpha equivalent"
-      val sequent = {hyp = hyp, concl = concl}
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
@@ -160,10 +160,10 @@ in
   fun subst sub th =
       let
         val Thm {axioms,sequent,...} = th
-        val {hyp,concl} = sequent
+        val Sequent.Sequent {hyp,concl} = sequent
         val (hyp,sub) = TermAlphaSet.foldl subAdd (emptyHyp,sub) hyp
         val concl = Option.getOpt (TermSubst.subst sub concl, concl)
-        val sequent = {hyp = hyp, concl = concl}
+        val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
       in
         Thm {axioms = axioms, sequent = sequent}
       end;
@@ -173,14 +173,14 @@ fun comb th1 th2 =
     let
       val Thm {axioms = a1, sequent = s1, ...} = th1
       and Thm {axioms = a2, sequent = s2, ...} = th2
-      val {hyp = h1, concl = c1} = s1
-      and {hyp = h2, concl = c2} = s2
+      val Sequent.Sequent {hyp = h1, concl = c1} = s1
+      and Sequent.Sequent {hyp = h2, concl = c2} = s2
       val (l1,r1) = Term.destEq c1
       and (l2,r2) = Term.destEq c2
       val axioms = SequentSet.union a1 a2
       and hyp = TermAlphaSet.union h1 h2
-      and concl = Term.mkEq (Term.mkComb (l1,l2), Term.mkComb (r1,r2))
-      val sequent = {hyp = hyp, concl = concl}
+      and concl = Term.mkEq (Term.mkApp (l1,l2), Term.mkApp (r1,r2))
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
@@ -190,13 +190,13 @@ fun refl t =
       val axioms = emptyAxioms
       and hyp = emptyHyp
       and concl = Term.mkEq (t,t)
-      val sequent = {hyp = hyp, concl = concl}
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Definitions                                                               *)
+(* Definitions.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
 fun defineConst name t =

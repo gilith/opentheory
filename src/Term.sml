@@ -631,17 +631,13 @@ local
   val specialStrings =
       StringSet.add (StringSet.union infixStrings binderStrings) negString;
 
-  fun abbreviateConst n =
-      case Name.toString n of
-        s => s;
-
   fun specialString n = StringSet.member n specialStrings;
 
   val ppConst =
       let
-        fun f (n,_) =
+        fun f (c,_) =
             let
-              val n = abbreviateConst n
+              val n = Const.toString c
             in
               if specialString n then "(" ^ n ^ ")" else n
             end
@@ -651,10 +647,10 @@ local
 
   fun destInfix tm =
       let
-        val (t,b) = destComb tm
-        val (c,a) = destComb t
+        val (t,b) = destApp tm
+        val (c,a) = destApp t
         val (n,_) = destConst c
-        val n = abbreviateConst n
+        val n = Const.toString n
       in
         if StringSet.member n infixStrings then (n,a,b)
         else raise Error "Syntax.destInfix"
@@ -664,9 +660,9 @@ local
 
   fun destNeg tm =
       let
-        val (c,a) = destComb tm
+        val (c,a) = destApp tm
         val (n,_) = destConst c
-        val n = abbreviateConst n
+        val n = Const.toString n
       in
         if n = negString then a else raise Error "Syntax.destNeg"
       end;
@@ -682,9 +678,9 @@ local
             if isAbs tm then ("\\",tm)
             else
               let
-                val (c,t) = destComb tm
+                val (c,t) = destApp tm
                 val (n,_) = destConst c
-                val n = abbreviateConst n
+                val n = Const.toString n
               in
                 if StringSet.member n binderStrings then (n,t)
                 else raise Error "Syntax.destBinder"
@@ -715,12 +711,13 @@ local
   val infixPrinter = Print.ppInfixes infixTokens (total destInfix);
 
   fun basic tm =
-      if isVar tm then Var.pp (destVar tm)
-      else if isConst tm then ppConst (destConst tm)
-      else ppBtm tm
+      case dest tm of
+        TypeTerm.Var' v => Var.pp v
+      | TypeTerm.Const' c => ppConst c
+      | _ => ppBtm tm
 
   and application tm =
-      case total destComb tm of
+      case total destApp tm of
         NONE => basic tm
       | SOME (f,x) =>
         Print.program
@@ -810,16 +807,16 @@ struct
 
   val typeOps =
       let
-        fun addNames (tm,acc) = NameSet.union acc (Term.typeOps tm)
+        fun addNames (tm,acc) = TypeOpSet.union acc (Term.typeOps tm)
       in
-        foldl addNames NameSet.empty
+        foldl addNames TypeOpSet.empty
       end;
 
   val consts =
       let
-        fun addNames (tm,acc) = NameSet.union acc (Term.consts tm)
+        fun addNames (tm,acc) = ConstSet.union acc (Term.consts tm)
       in
-        foldl addNames NameSet.empty
+        foldl addNames ConstSet.empty
       end;
 
 end

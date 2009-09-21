@@ -24,9 +24,9 @@ val dest : term -> term'
 
 (* Constants *)
 
-val mkConst : Name.name * Type.ty -> term
+val mkConst : Const.const * Type.ty -> term
 
-val destConst : term -> Name.name * Type.ty
+val destConst : term -> Const.const * Type.ty
 
 val isConst : term -> bool
 

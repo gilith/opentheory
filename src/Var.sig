@@ -12,6 +12,10 @@ sig
 
 type var = TypeTerm.var
 
+val mk : Name.name * Type.ty -> var
+
+val dest : var -> Name.name * Type.ty
+
 (* ------------------------------------------------------------------------- *)
 (* The name of a variable.                                                   *)
 (* ------------------------------------------------------------------------- *)
