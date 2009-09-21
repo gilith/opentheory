@@ -128,42 +128,47 @@ val equal = TypeTerm.equal;
 local
   fun acmp n bv1 bv2 bvEq (tm1,tm2) =
       let
-        val Term {id = id1, tm = tm1, ...} = tm1
-        and Term {id = id2, tm = tm2, ...} = tm2
-      in
-        if bvEq andalso id1 = id2 then EQUAL
-        else acmp' n bv1 bv2 bvEq (tm1,tm2)
-      end
+        val {id = id1, tm = tm1, sz = sz1, ty = _} = TypeTerm.info tm1
+        and {id = id2, tm = tm2, sz = sz2, ty = _} = TypeTerm.info tm2
+    in
+      if bvEq andalso id1 = id2 then EQUAL
+      else
+        case Int.compare (sz1,sz2) of
+          LESS => LESS
+        | EQUAL => acmp' n bv1 bv2 bvEq (tm1,tm2)
+        | GREATER => GREATER
+    end
 
   and acmp' n bv1 bv2 bvEq tm1_tm2 =
       case tm1_tm2 of
-        (Const c1, Const c2) => constCompare (c1,c2)
-      | (Const _, _) => LESS
-      | (_, Const _) => GREATER
-      | (Var v1, Var v2) =>
+        (TypeTerm.Const' c1_ty1, TypeTerm.Const' c2_ty2) =>
+        prodCompare Const.compare Type.compare (c1_ty1,c2_ty2)
+      | (TypeTerm.Const' _, _) => LESS
+      | (_, TypeTerm.Const' _) => GREATER
+      | (TypeTerm.Var' v1, TypeTerm.Var' v2) =>
         (case (VarMap.peek bv1 v1, VarMap.peek bv2 v2) of
            (NONE,NONE) => Var.compare (v1,v2)
          | (SOME _, NONE) => LESS
          | (NONE, SOME _) => GREATER
-         | (SOME n1, SOME n2) => Int.compare (n1,n2))
-      | (Var _, _) => LESS
-      | (_, Var _) => GREATER
-      | (Comb a1, Comb a2) =>
+         | (SOME i1, SOME i2) => Int.compare (i1,i2))
+      | (TypeTerm.Var' _, _) => LESS
+      | (_, TypeTerm.Var' _) => GREATER
+      | (TypeTerm.App' f1_a1, TypeTerm.App' f2_a2) =>
         let
           val cmp = acmp n bv1 bv2 bvEq
         in
-          prodCompare cmp cmp (a1,a2)
+          prodCompare cmp cmp (f1_a1,f2_a2)
         end
-      | (Comb _, _) => LESS
-      | (_, Comb _) => GREATER
-      | (Abs (v1,t1), Abs (v2,t2)) =>
+      | (TypeTerm.App' _, _) => LESS
+      | (_, TypeTerm.App' _) => GREATER
+      | (TypeTerm.Abs' (v1,b1), TypeTerm.Abs' (v2,b2)) =>
         let
           val bvEq = bvEq andalso Var.equal v1 v2
           val bv1 = VarMap.insert bv1 (v1,n)
           val bv2 = if bvEq then bv1 else VarMap.insert bv2 (v2,n)
           val n = n + 1
         in
-          acmp n bv1 bv2 bvEq (t1,t2)
+          acmp n bv1 bv2 bvEq (b1,b2)
         end;
 in
   val alphaCompare =
@@ -188,339 +193,6 @@ val typeOf = TypeTerm.typeOf;
 (* Free variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type sharingFreeVars
-
-val newSharingFreeVars : sharingFreeVars
-
-val sharingFreeVars : term -> sharingFreeVars -> VarSet.set * sharingFreeVars
-
-val freeVarsList : term list -> VarSet.set
-
-val freeVars : term -> VarSet.set
-
-(* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-type sharingConsts
-
-val emptySharingConsts : sharingConsts
-
-val addSharingConsts : sharingConsts -> term list -> sharingConsts
-
-val toSetSharingConsts : sharingConsts -> ConstSet.set
-
-val constsList : term list -> ConstSet.set
-
-val consts : term -> ConstSet.set
-
-(* ------------------------------------------------------------------------- *)
-(* Type variables.                                                           *)
-(* ------------------------------------------------------------------------- *)
-
-type sharingTypeVars
-
-val emptySharingTypeVars : sharingTypeVars
-
-val addSharingTypeVars : sharingTypeVars -> term list -> sharingTypeVars
-
-val toSetSharingTypeVars : sharingTypeVars -> NameSet.set
-
-val typeVarsList : term list -> NameSet.set
-
-val typeVars : term -> NameSet.set
-
-(* ------------------------------------------------------------------------- *)
-(* Type operators.                                                           *)
-(* ------------------------------------------------------------------------- *)
-
-type sharingTypeOps
-
-val emptySharingTypeOps : sharingTypeOps
-
-val addSharingTypeOps : sharingTypeOps -> term list -> sharingTypeOps
-
-val toSetSharingTypeOps : sharingTypeOps -> TypeOpSet.set
-
-val typeOpsList : term list -> TypeOpSet.set
-
-val typeOps : term -> TypeOpSet.set
-
-(* ------------------------------------------------------------------------- *)
-(* Primitive constants.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-(* Equality *)
-
-val mkEqTy : Type.ty -> Type.ty
-
-val destEqTy : Type.ty -> Type.ty
-
-val isEqTy : Type.ty -> bool
-
-val nameEq : Name.name
-
-val constEq : Const.const
-
-val mkEq : term * term -> term
-
-val destEq : term -> term * term
-
-val isEq : term -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty printing.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val maximumSize : int ref
-
-val showTypes : bool ref
-
-val pp : term Print.pp
-
-val toString : term -> string
-
-(* ------------------------------------------------------------------------- *)
-(* A type of higher order logic terms.                                       *)
-(* ------------------------------------------------------------------------- *)
-
-type termId = int;
-
-datatype term =
-    Term of
-      {id : termId,
-       tm : term',
-       sz : int,
-       ty : Type.ty}
-
-and term' =
-    Const of Name.name * Type.ty
-  | Var of Var.var
-  | Comb of term * term
-  | Abs of Var.var * term;
-
-(* ------------------------------------------------------------------------- *)
-(* The constant registry (initially contains the primitive constants).       *)
-(* ------------------------------------------------------------------------- *)
-
-datatype registry =
-    Registry of
-      {all : NameSet.set,
-       types : Type.ty NameMap.map};
-
-val emptyRegistry =
-    let
-      val all = NameSet.empty
-      val types = NameMap.new ()
-    in
-      Registry
-        {all = all,
-         types = types}
-    end;
-
-val theRegistry = ref emptyRegistry;
-
-fun declaredConst name =
-    let
-      val Registry {types,...} = !theRegistry
-    in
-      NameMap.peek types name
-    end;
-
-fun allDeclared () =
-    let
-      val Registry {all,...} = !theRegistry
-    in
-      all
-    end;
-
-fun declare name ty =
-    let
-      val _ = not (NameSet.member name (allDeclared ())) orelse
-              raise Error ("already a constant with name " ^
-                           Name.toString name)
-
-      val Registry {all,types} = !theRegistry
-
-      val all = NameSet.add all name
-      and types = NameMap.insert types (name,ty)
-
-      val registry = Registry {all = all, types = types}
-    in
-      theRegistry := registry
-    end
-    handle Error err => raise Error ("Term.declare: " ^ err);
-
-(* ------------------------------------------------------------------------- *)
-(* Term IDs.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val newTermId : unit -> termId =
-    let
-      val counter = ref 0
-    in
-      fn () =>
-         let
-           val ref count = counter
-           val () = counter := count + 1
-         in
-           count
-         end
-    end;
-
-fun id (Term {id = i, ...}) = i;
-
-fun equalId ty1 ty2 = id ty1 = id ty2;
-
-(* ------------------------------------------------------------------------- *)
-(* Number of constructors.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun size (Term {sz,...}) = sz;
-
-(* ------------------------------------------------------------------------- *)
-(* The type of a term.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-fun typeOf (Term {ty,...}) = ty;
-
-(* ------------------------------------------------------------------------- *)
-(* Constructors and destructors.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun mk tm =
-    case tm of
-      Const (n,ty) =>
-      let
-        val () =
-            case declaredConst n of
-              NONE => ()
-            | SOME ty' =>
-              if can (TypeSubst.match ty') ty then ()
-              else raise Error ("Term.mk: bad type for constant " ^
-                                Name.toString n)
-
-        val id = newTermId ()
-        val sz = 1
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end
-    | Var v =>
-      let
-        val id = newTermId ()
-        val ty = Var.typeOf v
-        val sz = 1
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end
-    | Comb (f,a) =>
-      let
-        val (tyA,ty) = Type.destFun (typeOf f)
-        val tyA' = typeOf a
-        val _ = Type.equal tyA tyA' orelse
-                raise Error "Term.mk: incompatible types in comb"
-
-        val id = newTermId ()
-        val sz = size f + size a + 1
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end
-    | Abs (v,b) =>
-      let
-        val id = newTermId ()
-        val sz = size b + 1
-        val ty = Type.mkFun (Var.typeOf v, typeOf b);
-      in
-        Term
-          {id = id,
-           tm = tm,
-           sz = sz,
-           ty = ty}
-      end;
-
-fun dest (Term {tm,...}) = tm;
-
-(* Constants *)
-
-fun mkConst' n_ty = Const n_ty;
-
-fun destConst' (Const n_ty) = n_ty
-  | destConst' _ = raise Error "Term.destConst'";
-
-val isConst' = can destConst';
-
-fun mkConst n_ty = mk (mkConst' n_ty);
-
-fun destConst tm = destConst' (dest tm);
-
-val isConst = can destConst;
-
-(* Variables *)
-
-fun mkVar' v = Var v;
-
-fun destVar' (Var v) = v
-  | destVar' _ = raise Error "Term.destVar'";
-
-val isVar' = can destVar';
-
-fun equalVar' var (Var v) = Var.equal var v
-  | equalVar' _ _ = false;
-
-fun mkVar v = mk (mkVar' v);
-
-fun destVar tm = destVar' (dest tm);
-
-val isVar = can destVar;
-
-fun equalVar var tm = equalVar' var (dest tm);
-
-(* Function applications *)
-
-fun mkComb' f_a = Comb f_a;
-
-fun destComb' (Comb f_a) = f_a
-  | destComb' _ = raise Error "Term.destComb'";
-
-val isComb' = can destComb';
-
-fun mkComb f_a = mk (mkComb' f_a);
-
-fun destComb tm = destComb' (dest tm);
-
-val isComb = can destComb;
-
-(* Function abstractions *)
-
-fun mkAbs' v_b = Abs v_b;
-
-fun destAbs' (Abs v_b) = v_b
-  | destAbs' _ = raise Error "Term.destAbs'";
-
-val isAbs' = can destAbs';
-
-fun mkAbs v_b = mk (mkAbs' v_b);
-
-fun destAbs tm = destAbs' (dest tm);
-
-val isAbs = can destAbs;
-
-(* ------------------------------------------------------------------------- *)
-(* Free variables.                                                           *)
-(* ------------------------------------------------------------------------- *)
-
 datatype sharingFreeVars =
     SharingFreeVars of
       {seen : VarSet.set IntMap.map};
@@ -535,27 +207,27 @@ val newSharingFreeVars =
 
 fun rawSharingFreeVars tm seen =
     let
-      val Term {id,tm,...} = tm
+      val {id,tm,...} = TypeTerm.info tm
     in
       case IntMap.peek seen id of
         SOME vs => (vs,seen)
       | NONE =>
         case tm of
-          Const _ =>
+          TypeTerm.Const' _ =>
           let
             val fv = VarSet.empty
             val seen = IntMap.insert seen (id,fv)
           in
             (fv,seen)
           end
-        | Var v =>
+        | TypeTerm.Var' v =>
           let
             val fv = VarSet.singleton v
             val seen = IntMap.insert seen (id,fv)
           in
             (fv,seen)
           end
-        | Comb (f,a) =>
+        | TypeTerm.App' (f,a) =>
           let
             val (fv1,seen) = rawSharingFreeVars f seen
             val (fv2,seen) = rawSharingFreeVars a seen
@@ -564,7 +236,7 @@ fun rawSharingFreeVars tm seen =
           in
             (fv,seen)
           end
-        | Abs (v,b) =>
+        | TypeTerm.Abs' (v,b) =>
           let
             val (fv,seen) = rawSharingFreeVars b seen
             val fv = if VarSet.member v fv then VarSet.delete fv v else fv
@@ -613,47 +285,76 @@ fun freeVars tm =
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun sharingConsts seen acc [] = (seen,acc)
-  | sharingConsts seen acc (tm :: tms) =
+datatype sharingConsts =
+    SharingConsts of
+      {seen : IntSet.set,
+       cons : ConstSet.set};
+
+val emptySharingConsts =
     let
-      val Term {id,tm,...} = tm
+      val seen = IntSet.empty
+      val cons = ConstSet.empty
     in
-      if IntSet.member id seen then sharingConsts seen acc tms
-      else
-        let
-          val seen = IntSet.add seen id
-        in
-          sharingConsts' seen acc tm tms
-        end
-    end
+      SharingConsts
+        {seen = seen,
+         cons = cons}
+    end;
+
+fun sharingConsts seen acc tms =
+    case tms of
+      [] => (seen,acc)
+    | tm :: tms =>
+      let
+        val {id,tm,...} = TypeTerm.info tm
+      in
+        if IntSet.member id seen then sharingConsts seen acc tms
+        else
+          let
+            val seen = IntSet.add seen id
+          in
+            sharingConsts' seen acc tm tms
+          end
+      end
 
 and sharingConsts' seen acc tm tms =
     case tm of
-      Const (n,_) =>
+      TypeTerm.Const' (c,_) =>
       let
-        val acc = NameSet.add acc n
+        val acc = ConstSet.add acc c
       in
         sharingConsts seen acc tms
       end
-    | Var _ => sharingConsts seen acc tms
-    | Comb (f,a) =>
+    | TypeTerm.Var' _ => sharingConsts seen acc tms
+    | TypeTerm.App' (f,a) =>
       let
         val tms = f :: a :: tms
       in
         sharingConsts seen acc tms
       end
-    | Abs (_,b) =>
+    | TypeTerm.Abs' (_,b) =>
       let
         val tms = b :: tms
       in
         sharingConsts seen acc tms
       end;
 
+fun addSharingConsts (SharingConsts {seen,cons}) tms =
+    let
+      val (seen,cons) = sharingConsts seen cons tms
+    in
+      SharingConsts
+        {seen = seen,
+         cons = cons}
+    end;
+
+fun toSetSharingConsts (SharingConsts {cons,...}) = cons;
+
 fun constsList tms =
     let
-      val (_,acc) = sharingConsts IntSet.empty NameSet.empty tms
+      val share = emptySharingConsts
+      val share = addSharingConsts share tms
     in
-      acc
+      toSetSharingConsts share
     end;
 
 fun consts tm = constsList [tm];
@@ -677,41 +378,43 @@ val emptySharingTypeVars =
          seen = seen}
     end;
 
-fun sharingTypeVars tyShare seen [] = (tyShare,seen)
-  | sharingTypeVars tyShare seen (tm :: tms) =
-    let
-      val Term {id,tm,...} = tm
-    in
-      if IntSet.member id seen then sharingTypeVars tyShare seen tms
-      else
-        let
-          val seen = IntSet.add seen id
-        in
-          sharingTypeVars' tyShare seen tm tms
-        end
-    end
+fun sharingTypeVars tyShare seen tms =
+    case tms of
+      [] => (tyShare,seen)
+    | tm :: tms =>
+      let
+        val {id,tm,...} = TypeTerm.info tm
+      in
+        if IntSet.member id seen then sharingTypeVars tyShare seen tms
+        else
+          let
+            val seen = IntSet.add seen id
+          in
+            sharingTypeVars' tyShare seen tm tms
+          end
+      end
 
 and sharingTypeVars' tyShare seen tm tms =
     case tm of
-      Const (_,ty) =>
+      TypeTerm.Const' (_,ty) =>
       let
         val tyShare = Type.addSharingTypeVars tyShare [ty]
       in
         sharingTypeVars tyShare seen tms
       end
-    | Var v =>
+    | TypeTerm.Var' v =>
       let
         val tyShare = Var.addSharingTypeVars tyShare v
       in
         sharingTypeVars tyShare seen tms
       end
-    | Comb (f,a) =>
+    | TypeTerm.App' (f,a) =>
       let
         val tms = f :: a :: tms
       in
         sharingTypeVars tyShare seen tms
       end
-    | Abs (v,b) =>
+    | TypeTerm.Abs' (v,b) =>
       let
         val tyShare = Var.addSharingTypeVars tyShare v
         val tms = b :: tms
@@ -760,41 +463,43 @@ val emptySharingTypeOps =
          seen = seen}
     end;
 
-fun sharingTypeOps tyShare seen [] = (tyShare,seen)
-  | sharingTypeOps tyShare seen (tm :: tms) =
-    let
-      val Term {id,tm,...} = tm
-    in
-      if IntSet.member id seen then sharingTypeOps tyShare seen tms
-      else
-        let
-          val seen = IntSet.add seen id
-        in
-          sharingTypeOps' tyShare seen tm tms
-        end
-    end
+fun sharingTypeOps tyShare seen tms =
+    case tms of
+      [] => (tyShare,seen)
+    | tm :: tms =>
+      let
+        val {id,tm,...} = TypeTerm.info tm
+      in
+        if IntSet.member id seen then sharingTypeOps tyShare seen tms
+        else
+          let
+            val seen = IntSet.add seen id
+          in
+            sharingTypeOps' tyShare seen tm tms
+          end
+      end
 
 and sharingTypeOps' tyShare seen tm tms =
     case tm of
-      Const (_,ty) =>
+      TypeTerm.Const' (_,ty) =>
       let
         val tyShare = Type.addSharingTypeOps tyShare [ty]
       in
         sharingTypeOps tyShare seen tms
       end
-    | Var v =>
+    | TypeTerm.Var' v =>
       let
         val tyShare = Var.addSharingTypeOps tyShare v
       in
         sharingTypeOps tyShare seen tms
       end
-    | Comb (f,a) =>
+    | TypeTerm.App' (f,a) =>
       let
         val tms = f :: a :: tms
       in
         sharingTypeOps tyShare seen tms
       end
-    | Abs (v,b) =>
+    | TypeTerm.Abs' (v,b) =>
       let
         val tyShare = Var.addSharingTypeOps tyShare v
         val tms = b :: tms
@@ -825,96 +530,26 @@ fun typeOpsList tms =
 fun typeOps tm = typeOpsList [tm];
 
 (* ------------------------------------------------------------------------- *)
-(* A total order on terms, with and without alpha equivalence.               *)
-(* ------------------------------------------------------------------------- *)
-
-val constCompare = prodCompare Name.compare Type.compare;
-
-fun compare (tm1,tm2) =
-    let
-      val Term {id = id1, tm = tm1, ...} = tm1
-      and Term {id = id2, tm = tm2, ...} = tm2
-    in
-      if id1 = id2 then EQUAL else compare' (tm1,tm2)
-    end
-
-and compare' tm1_tm2 =
-    case tm1_tm2 of
-      (Const c1, Const c2) => constCompare (c1,c2)
-    | (Const _, _) => LESS
-    | (_, Const _) => GREATER
-    | (Var v1, Var v2) => Var.compare (v1,v2)
-    | (Var _, _) => LESS
-    | (_, Var _) => GREATER
-    | (Comb a1, Comb a2) => prodCompare compare compare (a1,a2)
-    | (Comb _, _) => LESS
-    | (_, Comb _) => GREATER
-    | (Abs l1, Abs l2) => prodCompare Var.compare compare (l1,l2);
-
-fun equal tm1 tm2 = compare (tm1,tm2) = EQUAL;
-
-local
-  fun acmp n bv1 bv2 bvEq (tm1,tm2) =
-      let
-        val Term {id = id1, tm = tm1, ...} = tm1
-        and Term {id = id2, tm = tm2, ...} = tm2
-      in
-        if bvEq andalso id1 = id2 then EQUAL
-        else acmp' n bv1 bv2 bvEq (tm1,tm2)
-      end
-
-  and acmp' n bv1 bv2 bvEq tm1_tm2 =
-      case tm1_tm2 of
-        (Const c1, Const c2) => constCompare (c1,c2)
-      | (Const _, _) => LESS
-      | (_, Const _) => GREATER
-      | (Var v1, Var v2) =>
-        (case (VarMap.peek bv1 v1, VarMap.peek bv2 v2) of
-           (NONE,NONE) => Var.compare (v1,v2)
-         | (SOME _, NONE) => LESS
-         | (NONE, SOME _) => GREATER
-         | (SOME n1, SOME n2) => Int.compare (n1,n2))
-      | (Var _, _) => LESS
-      | (_, Var _) => GREATER
-      | (Comb a1, Comb a2) =>
-        let
-          val cmp = acmp n bv1 bv2 bvEq
-        in
-          prodCompare cmp cmp (a1,a2)
-        end
-      | (Comb _, _) => LESS
-      | (_, Comb _) => GREATER
-      | (Abs (v1,t1), Abs (v2,t2)) =>
-        let
-          val bvEq = bvEq andalso Var.equal v1 v2
-          val bv1 = VarMap.insert bv1 (v1,n)
-          val bv2 = if bvEq then bv1 else VarMap.insert bv2 (v2,n)
-          val n = n + 1
-        in
-          acmp n bv1 bv2 bvEq (t1,t2)
-        end;
-in
-  val alphaCompare =
-      let
-        val n = 0
-        val bv = VarMap.new ()
-        val bvEq = true
-      in
-        acmp n bv bv bvEq
-      end;
-end;
-
-fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
-
-(* ------------------------------------------------------------------------- *)
-(* Primitive constants.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-(* ------------------------------------------------------------------------- *)
 (* Primitive constants.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 (* Equality *)
+
+fun mkEqTy a = Type.mkFun (a, Type.mkFun (a, Type.bool));
+
+fun destEqTy ty =
+    let
+      val (x,yb) = Type.destFun ty
+      val (y,b) = Type.destFun yb
+      val _ = Type.equal b Type.bool orelse
+              raise Error "Term.destEqTy: not a relation"
+      val _ = Type.equal x y orelse
+              raise Error "Term.destEqTy: different argument types"
+    in
+      x
+    end;
+
+val isEqTy = can destEqTy;
 
 val stringEq = "=";
 
@@ -923,64 +558,30 @@ val nameEq = Name.mkGlobal stringEq;
 val constEq =
     let
       val name = nameEq
-      val prov = UndefProvConst
+      val prov = TypeTerm.UndefProvConst
     in
-      Const
+      TypeTerm.Const
         {name = name,
          prov = prov}
     end;
 
-fun mkEq (x,y) =
+fun mkEq (l,r) =
     let
-      val a = typeOf y
-      val ty = mkFun (a, mkFun (a,bool))
-      val t0 = mk (Const' (constEq,ty))
-      val t1 = mk (App' (t0,x))
-      val tm = mk (App' (t1,y))
+      val ty = mkEqTy (typeOf l)
+      val c = mkConst (constEq,ty)
+      val t = mkApp (c,l)
     in
-      tm
+      mkApp (t,r)
     end;
 
 fun destEq tm =
-    case dest tm of
-      App' (t1,y) =>
-      (case dest t1 of
-         App' (t0,x) =>
-         (case dest t0 of
-            Const' (c,_) =>
-            if equalConst constEq c then (x,y)
-            else raise Error "TypeTerm.destEq: bad const"
-          | _ => raise Error "TypeTerm.destEq: not an App' (App' (Const' _, _), _)")
-       | _ => raise Error "TypeTerm.destEq: not an App' (App' _, _)")
-    | _ => raise Error "TypeTerm.destEq: not an App' _";
-
-val isEq = can destEq;
-
-(* Equality *)
-
-fun eqType a = Type.mkFun (a, Type.mkFun (a, Type.bool));
-
-val eqString = "=";
-
-val eqName = Name.mkGlobal eqString;
-
-val eqTerm =
     let
-      val ty = eqType Type.alpha
-      val () = declare eqName ty
+      val (el,r) = destApp tm
+      val (e,l) = destApp el
+      val (c,_) = destConst e
     in
-      mkConst (eqName,ty)
-    end;
-
-fun mkEq (l,r) = mkComb (mkComb (mkConst (eqName, eqType (typeOf l)), l), r);
-
-fun destEq tm =
-    let
-      val (eq_l,r) = destComb tm
-      val (eq,l) = destComb eq_l
-      val (n,_) = destConst eq
-    in
-      if Name.equal n eqName then (l,r) else raise Error "Term.destEq"
+      if Const.equal c constEq then (l,r)
+      else raise Error "Term.destEq"
     end;
 
 val isEq = can destEq;
