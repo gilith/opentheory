@@ -89,6 +89,7 @@ SRC = \
   src/Type.sig src/Type.sml \
   src/TypeSubst.sig src/TypeSubst.sml \
   src/Var.sig src/Var.sml \
+  src/Const.sig src/Const.sml \
   src/Term.sig src/Term.sml \
   src/TermSubst.sig src/TermSubst.sml \
   src/Sequent.sig src/Sequent.sml \

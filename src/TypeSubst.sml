@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SUBSTITUTIONS FOR HIGHER ORDER LOGIC TYPES                                *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure TypeSubst :> TypeSubst =
@@ -70,14 +70,14 @@ fun substMap subMap =
               let
                 val (ty',seen) =
                     case Type.dest ty of
-                      Type.TypeVar n => (peekMap subMap n, seen)
-                    | Type.TypeOp (n,tys) =>
+                      TypeTerm.VarTy' n => (peekMap subMap n, seen)
+                    | TypeTerm.OpTy' (ot,tys) =>
                       let
                         val (tys',seen) = substList tys seen
 
                         val ty' =
                             case tys' of
-                              SOME tys => SOME (Type.mkOp (n,tys))
+                              SOME tys => SOME (Type.mkOp (ot,tys))
                             | NONE => NONE
                       in
                         (ty',seen)
@@ -89,21 +89,23 @@ fun substMap subMap =
               end
           end
 
-      and substList [] seen = (NONE,seen)
-        | substList (ty :: tys) seen =
-          let
-            val (ty',seen) = subst ty seen
-            val (tys',seen) = substList tys seen
-            val result =
-                case tys' of
-                  SOME tys => SOME (Option.getOpt (ty',ty) :: tys)
-                | NONE =>
-                  case ty' of
-                    NONE => NONE
-                  | SOME ty => SOME (ty :: tys)
-          in
-            (result,seen)
-          end
+      and substList tys seen =
+          case tys of
+            [] => (NONE,seen)
+          | ty :: tys =>
+            let
+              val (ty',seen) = subst ty seen
+              val (tys',seen) = substList tys seen
+              val result =
+                  case tys' of
+                    SOME tys => SOME (Option.getOpt (ty',ty) :: tys)
+                  | NONE =>
+                    case ty' of
+                      NONE => NONE
+                    | SOME ty => SOME (ty :: tys)
+            in
+              (result,seen)
+            end
     in
       if nullMap subMap then (fn _ => fn seen => (NONE,seen)) else subst
     end;
@@ -130,38 +132,32 @@ fun subst sub ty =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun rawMatch subMap [] = subMap
-    | rawMatch subMap ((ty1,ty2) :: rest) =
-      case Type.dest ty1 of
-        Type.TypeVar n1 =>
-        (case peekMap subMap n1 of
-           NONE => insertMap subMap (n1,ty2)
-         | SOME ty2' =>
-           if Type.equal ty2 ty2' then rawMatch subMap rest
-           else raise Error "incompatible variable substitutions")
-      | Type.TypeOp (n1,l1) =>
-        let
-          val (n2,l2) = Type.destOp ty2
-        in
-          if Name.equal n1 n2 then rawMatch subMap (zip l1 l2 @ rest)
-          else raise Error "different type operators"
-        end;
+  fun rawMatch subMap tys =
+      case tys of
+        [] => subMap
+      | (ty1,ty2) :: rest =>
+        case Type.dest ty1 of
+          TypeTerm.VarTy' n1 =>
+          (case peekMap subMap n1 of
+             NONE => insertMap subMap (n1,ty2)
+           | SOME ty2' =>
+             if Type.equal ty2 ty2' then rawMatch subMap rest
+             else raise Error "TypeSubst.rawMatch: incompatible var substs")
+        | TypeTerm.OpTy' (o1,l1) =>
+          let
+            val (o2,l2) = Type.destOp ty2
+          in
+            if TypeOp.equal o1 o2 then rawMatch subMap (zip l1 l2 @ rest)
+            else raise Error "TypeSubst.rawMatch: different type operators"
+          end;
 in
-  fun matchList' subMap tyl =
-      rawMatch subMap tyl
-      handle Error err => raise Error ("TypeSubst.matchList': " ^ err);
+  fun matchList' subMap tyl = rawMatch subMap tyl;
 
-  fun matchList tyl =
-      mk (rawMatch emptyMap tyl)
-      handle Error err => raise Error ("TypeSubst.matchList: " ^ err);
+  fun matchList tyl = mk (rawMatch emptyMap tyl);
 
-  fun match' subMap ty1 ty2 =
-      rawMatch subMap [(ty1,ty2)]
-      handle Error err => raise Error ("TypeSubst.match': " ^ err);
+  fun match' subMap ty1 ty2 = rawMatch subMap [(ty1,ty2)];
 
-  fun match ty1 ty2 =
-      mk (rawMatch emptyMap [(ty1,ty2)])
-      handle Error err => raise Error ("TypeSubst.match: " ^ err);
+  fun match ty1 ty2 = mk (rawMatch emptyMap [(ty1,ty2)]);
 end;
 
 (* ------------------------------------------------------------------------- *)

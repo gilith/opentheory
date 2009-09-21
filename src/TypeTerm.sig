@@ -175,6 +175,8 @@ val isFunTy : ty -> bool
 
 datatype var = Var of Name.name * ty
 
+val nameVar : var -> Name.name
+
 val typeOfVar : var -> ty
 
 (* Total order *)
@@ -223,6 +225,10 @@ datatype const =
     Const of
       {name : Name.name,
        prov : provConst}
+
+val nameConst : const -> Name.name
+
+val provConst : const -> provConst
 
 (* Total order *)
 

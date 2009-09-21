@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC VARIABLES                                              *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Var :> Var =
@@ -12,53 +12,51 @@ open Useful
 (* A type of higher order logic term variables.                              *)
 (* ------------------------------------------------------------------------- *)
 
-datatype var = Var of Name.name * Type.ty;
+type var = TypeTerm.var;
 
 (* ------------------------------------------------------------------------- *)
 (* The name of a variable.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun name (Var (n,_)) = n;
+val name = TypeTerm.nameVar;
 
 (* ------------------------------------------------------------------------- *)
 (* The type of a variable.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun typeOf (Var (_,ty)) = ty;
+val typeOf = TypeTerm.typeOfVar;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (Var n_ty1, Var n_ty2) =
-    prodCompare Name.compare Type.compare (n_ty1,n_ty2);
+val compare = TypeTerm.compareVar;
 
-fun equal (Var (n1,ty1)) (Var (n2,ty2)) =
-    Name.equal n1 n2 andalso Type.equal ty1 ty2;
+val equal = TypeTerm.equalVar;
 
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun addSharingTypeVars tyShare (Var (_,ty)) =
-    Type.addSharingTypeVars tyShare [ty];
+fun addSharingTypeVars tyShare v =
+    Type.addSharingTypeVars tyShare [typeOf v];
 
-fun typeVars (Var (_,ty)) = Type.typeVars ty;
+fun typeVars v = Type.typeVars (typeOf v);
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun addSharingTypeOps tyShare (Var (_,ty)) =
-    Type.addSharingTypeOps tyShare [ty];
+fun addSharingTypeOps tyShare v =
+    Type.addSharingTypeOps tyShare [typeOf v];
 
-fun typeOps (Var (_,ty)) = Type.typeOps ty;
+fun typeOps v = Type.typeOps (typeOf v);
 
 (* ------------------------------------------------------------------------- *)
 (* Fresh variables.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun renameAvoiding avoid (v as Var (n,ty)) =
+fun renameAvoiding avoid (v as TypeTerm.Var (n,ty)) =
     if not (NameSet.member n avoid) then v
     else
       let
@@ -66,27 +64,28 @@ fun renameAvoiding avoid (v as Var (n,ty)) =
 
         val n = Name.variantNum acceptable n
       in
-        Var (n,ty)
+        TypeTerm.Var (n,ty)
       end;
 
 (* ------------------------------------------------------------------------- *)
 (* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun sharingSubst (Var (n,ty)) tyShare =
+fun sharingSubst (TypeTerm.Var (n,ty)) tyShare =
     let
       val (ty',tyShare) = TypeSubst.sharingSubst ty tyShare
+
       val v' =
           case ty' of
-            SOME ty => SOME (Var (n,ty))
+            SOME ty => SOME (TypeTerm.Var (n,ty))
           | NONE => NONE
     in
       (v',tyShare)
     end;
 
-fun subst sub (Var (n,ty)) =
+fun subst sub (TypeTerm.Var (n,ty)) =
     case TypeSubst.subst sub ty of
-      SOME ty => SOME (Var (n,ty))
+      SOME ty => SOME (TypeTerm.Var (n,ty))
     | NONE => NONE;
 
 (* ------------------------------------------------------------------------- *)
@@ -98,17 +97,19 @@ val showTypes = ref false;
 val pp =
     let
       val pp1 = Print.ppBracket "(" ")" (Print.ppOp2 " :" Name.pp Type.pp)
+
       val pp2 = Print.ppMap fst Name.pp
     in
-      fn Var n_ty => (if !showTypes then pp1 else pp2) n_ty
+      fn TypeTerm.Var n_ty => (if !showTypes then pp1 else pp2) n_ty
     end;
 
 val toString = Print.toString pp;
 
 end
 
-structure VarSet =
-ElementSet (struct type t = Var.var val compare = Var.compare end);
+structure VarOrdered =
+struct type t = Var.var val compare = Var.compare end
 
-structure VarMap =
-KeyMap (struct type t = Var.var val compare = Var.compare end);
+structure VarSet = ElementSet (VarOrdered)
+
+structure VarMap = KeyMap (VarOrdered)

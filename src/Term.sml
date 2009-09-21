@@ -1,12 +1,284 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC TERMS                                                  *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Term :> Term =
 struct
 
 open Useful;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of higher order logic terms.                                       *)
+(* ------------------------------------------------------------------------- *)
+
+type term = TypeTerm.term;
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+type term' = TypeTerm.term';
+
+val mk = TypeTerm.mk;
+
+val dest = TypeTerm.dest;
+
+(* Constants *)
+
+fun mkConst' c_ty = TypeTerm.Const' c_ty;
+
+fun destConst' tm' =
+    case tm' of
+      TypeTerm.Const' c_ty => c_ty
+    | _ => raise Error "Term.destConst'";
+
+val isConst' = can destConst';
+
+fun mkConst c_ty = mk (mkConst' c_ty);
+
+fun destConst tm = destConst' (dest tm);
+
+val isConst = can destConst;
+
+(* Variables *)
+
+fun mkVar' v = TypeTerm.Var' v;
+
+fun destVar' tm' =
+    case tm' of
+      TypeTerm.Var' v => v
+    | _ => raise Error "Term.destVar'";
+
+val isVar' = can destVar';
+
+fun equalVar' var tm' =
+    case tm' of
+      TypeTerm.Var' v => Var.equal var v
+    | _ => false;
+
+fun mkVar v = mk (mkVar' v);
+
+fun destVar tm = destVar' (dest tm);
+
+val isVar = can destVar;
+
+fun equalVar v tm = equalVar' v (dest tm);
+
+(* Function applications *)
+
+fun mkApp' f_a = TypeTerm.App' f_a;
+
+fun destApp' tm' =
+    case tm' of
+      TypeTerm.App' f_a => f_a
+    | _ => raise Error "Term.destApp'";
+
+val isApp' = can destApp';
+
+fun mkApp f_a = mk (mkApp' f_a);
+
+fun destApp tm = destApp' (dest tm);
+
+val isApp = can destApp;
+
+(* Lambda abstractions *)
+
+fun mkAbs' v_b = TypeTerm.Abs' v_b;
+
+fun destAbs' tm' =
+    case tm' of
+      TypeTerm.Abs' v_b => v_b
+    | _ => raise Error "Term.destAbs'";
+
+val isAbs' = can destAbs';
+
+fun mkAbs v_b = mk (mkAbs' v_b);
+
+fun destAbs tm = destAbs' (dest tm);
+
+val isAbs = can destAbs;
+
+(* ------------------------------------------------------------------------- *)
+(* Term IDs.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+type id = TypeTerm.id;
+
+val id = TypeTerm.id;
+
+val equalId = TypeTerm.equalId;
+
+(* ------------------------------------------------------------------------- *)
+(* Number of constructors.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val size = TypeTerm.size;
+
+val sizeList = TypeTerm.sizeList;
+
+(* ------------------------------------------------------------------------- *)
+(* A total order on terms, with and without alpha equivalence.               *)
+(* ------------------------------------------------------------------------- *)
+
+val compare = TypeTerm.compare;
+
+val equal = TypeTerm.equal;
+
+local
+  fun acmp n bv1 bv2 bvEq (tm1,tm2) =
+      let
+        val Term {id = id1, tm = tm1, ...} = tm1
+        and Term {id = id2, tm = tm2, ...} = tm2
+      in
+        if bvEq andalso id1 = id2 then EQUAL
+        else acmp' n bv1 bv2 bvEq (tm1,tm2)
+      end
+
+  and acmp' n bv1 bv2 bvEq tm1_tm2 =
+      case tm1_tm2 of
+        (Const c1, Const c2) => constCompare (c1,c2)
+      | (Const _, _) => LESS
+      | (_, Const _) => GREATER
+      | (Var v1, Var v2) =>
+        (case (VarMap.peek bv1 v1, VarMap.peek bv2 v2) of
+           (NONE,NONE) => Var.compare (v1,v2)
+         | (SOME _, NONE) => LESS
+         | (NONE, SOME _) => GREATER
+         | (SOME n1, SOME n2) => Int.compare (n1,n2))
+      | (Var _, _) => LESS
+      | (_, Var _) => GREATER
+      | (Comb a1, Comb a2) =>
+        let
+          val cmp = acmp n bv1 bv2 bvEq
+        in
+          prodCompare cmp cmp (a1,a2)
+        end
+      | (Comb _, _) => LESS
+      | (_, Comb _) => GREATER
+      | (Abs (v1,t1), Abs (v2,t2)) =>
+        let
+          val bvEq = bvEq andalso Var.equal v1 v2
+          val bv1 = VarMap.insert bv1 (v1,n)
+          val bv2 = if bvEq then bv1 else VarMap.insert bv2 (v2,n)
+          val n = n + 1
+        in
+          acmp n bv1 bv2 bvEq (t1,t2)
+        end;
+in
+  val alphaCompare =
+      let
+        val n = 0
+        val bv = VarMap.new ()
+        val bvEq = true
+      in
+        acmp n bv bv bvEq
+      end;
+end;
+
+fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
+
+(* ------------------------------------------------------------------------- *)
+(* The type of a term.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val typeOf = TypeTerm.typeOf;
+
+(* ------------------------------------------------------------------------- *)
+(* Free variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+type sharingFreeVars
+
+val newSharingFreeVars : sharingFreeVars
+
+val sharingFreeVars : term -> sharingFreeVars -> VarSet.set * sharingFreeVars
+
+val freeVarsList : term list -> VarSet.set
+
+val freeVars : term -> VarSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+type sharingConsts
+
+val emptySharingConsts : sharingConsts
+
+val addSharingConsts : sharingConsts -> term list -> sharingConsts
+
+val toSetSharingConsts : sharingConsts -> ConstSet.set
+
+val constsList : term list -> ConstSet.set
+
+val consts : term -> ConstSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Type variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+type sharingTypeVars
+
+val emptySharingTypeVars : sharingTypeVars
+
+val addSharingTypeVars : sharingTypeVars -> term list -> sharingTypeVars
+
+val toSetSharingTypeVars : sharingTypeVars -> NameSet.set
+
+val typeVarsList : term list -> NameSet.set
+
+val typeVars : term -> NameSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Type operators.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+type sharingTypeOps
+
+val emptySharingTypeOps : sharingTypeOps
+
+val addSharingTypeOps : sharingTypeOps -> term list -> sharingTypeOps
+
+val toSetSharingTypeOps : sharingTypeOps -> TypeOpSet.set
+
+val typeOpsList : term list -> TypeOpSet.set
+
+val typeOps : term -> TypeOpSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive constants.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+(* Equality *)
+
+val mkEqTy : Type.ty -> Type.ty
+
+val destEqTy : Type.ty -> Type.ty
+
+val isEqTy : Type.ty -> bool
+
+val nameEq : Name.name
+
+val constEq : Const.const
+
+val mkEq : term * term -> term
+
+val destEq : term -> term * term
+
+val isEq : term -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val maximumSize : int ref
+
+val showTypes : bool ref
+
+val pp : term Print.pp
+
+val toString : term -> string
 
 (* ------------------------------------------------------------------------- *)
 (* A type of higher order logic terms.                                       *)

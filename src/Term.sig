@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC TERMS                                                  *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Term =
@@ -10,55 +10,61 @@ sig
 (* A type of higher order logic terms.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type term
+type term = TypeTerm.term
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype term' =
-    Const of Name.name * Type.ty
-  | Var of Var.var
-  | Comb of term * term
-  | Abs of Var.var * term
+type term' = TypeTerm.term'
 
 val mk : term' -> term
+
 val dest : term -> term'
 
 (* Constants *)
 
 val mkConst : Name.name * Type.ty -> term
+
 val destConst : term -> Name.name * Type.ty
+
 val isConst : term -> bool
 
 (* Variables *)
 
 val mkVar : Var.var -> term
+
 val destVar : term -> Var.var
+
 val isVar : term -> bool
+
 val equalVar : Var.var -> term -> bool
 
 (* Function applications *)
 
-val mkComb : term * term -> term
-val destComb : term -> term * term
-val isComb : term -> bool
+val mkApp : term * term -> term
 
-(* Function abstractions *)
+val destApp : term -> term * term
+
+val isApp : term -> bool
+
+(* Lambda abstractions *)
 
 val mkAbs : Var.var * term -> term
+
 val destAbs : term -> Var.var * term
+
 val isAbs : term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Term IDs.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type termId = int
+type id = TypeTerm.id
 
-val id : term -> termId
+val id : term -> id
 
-val equalId : term -> term -> bool
+val equalId : id -> term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
@@ -66,14 +72,18 @@ val equalId : term -> term -> bool
 
 val size : term -> int
 
+val sizeList : term list -> int
+
 (* ------------------------------------------------------------------------- *)
 (* A total order on terms, with and without alpha equivalence.               *)
 (* ------------------------------------------------------------------------- *)
 
 val compare : term * term -> order
+
 val equal : term -> term -> bool
 
 val alphaCompare : term * term -> order
+
 val alphaEqual : term -> term -> bool
 
 (* ------------------------------------------------------------------------- *)
@@ -100,7 +110,17 @@ val freeVars : term -> VarSet.set
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val consts : term -> NameSet.set
+type sharingConsts
+
+val emptySharingConsts : sharingConsts
+
+val addSharingConsts : sharingConsts -> term list -> sharingConsts
+
+val toSetSharingConsts : sharingConsts -> ConstSet.set
+
+val constsList : term list -> ConstSet.set
+
+val consts : term -> ConstSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
@@ -128,23 +148,11 @@ val emptySharingTypeOps : sharingTypeOps
 
 val addSharingTypeOps : sharingTypeOps -> term list -> sharingTypeOps
 
-val toSetSharingTypeOps : sharingTypeOps -> NameSet.set
+val toSetSharingTypeOps : sharingTypeOps -> TypeOpSet.set
 
-val typeOpsList : term list -> NameSet.set
+val typeOpsList : term list -> TypeOpSet.set
 
-val typeOps : term -> NameSet.set
-
-(* ------------------------------------------------------------------------- *)
-(* Primitive constants.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-(* Equality *)
-
-val eqType : Type.ty -> Type.ty
-val eqTerm : term
-val mkEq : term * term -> term
-val destEq : term -> term * term
-val isEq : term -> bool
+val typeOps : term -> TypeOpSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive constants.                                                      *)
@@ -160,23 +168,13 @@ val isEqTy : Type.ty -> bool
 
 val nameEq : Name.name
 
-val constEq : const
+val constEq : Const.const
 
 val mkEq : term * term -> term
 
 val destEq : term -> term * term
 
 val isEq : term -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* The constant registry (initially contains the primitive constants).       *)
-(* ------------------------------------------------------------------------- *)
-
-val declaredConst : Name.name -> Type.ty option
-
-val allDeclared : unit -> NameSet.set
-
-val declare : Name.name -> Type.ty -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

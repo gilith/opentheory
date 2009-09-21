@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC VARIABLES                                              *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Var =
@@ -10,7 +10,7 @@ sig
 (* A type of higher order logic term variables.                              *)
 (* ------------------------------------------------------------------------- *)
 
-datatype var = Var of Name.name * Type.ty
+type var = TypeTerm.var
 
 (* ------------------------------------------------------------------------- *)
 (* The name of a variable.                                                   *)
@@ -46,7 +46,7 @@ val typeVars : var -> NameSet.set
 
 val addSharingTypeOps : Type.sharingTypeOps -> var -> Type.sharingTypeOps
 
-val typeOps : var -> NameSet.set
+val typeOps : var -> TypeOpSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Fresh variables.                                                          *)

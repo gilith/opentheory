@@ -46,7 +46,7 @@ fun destVar ty = destVar' (dest ty);
 
 val isVar = can destVar;
 
-fun equalVar name ty = equalVar' name (dest ty);
+fun equalVar n ty = equalVar' n (dest ty);
 
 (* Operators *)
 

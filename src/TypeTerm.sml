@@ -380,6 +380,8 @@ val isFunTy = can destFunTy;
 (* Variables.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
+fun nameVar (Var (n,_)) = n;
+
 fun typeOfVar (Var (_,ty)) = ty;
 
 (* Total order *)
@@ -407,6 +409,10 @@ fun equalProvConst p1 p2 = compareProvConst (p1,p2) = EQUAL;
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
+
+fun nameConst (Const {name = n, ...}) = n;
+
+fun provConst (Const {prov = p, ...}) = p;
 
 (* Total order *)
 
