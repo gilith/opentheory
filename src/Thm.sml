@@ -205,11 +205,16 @@ fun defineConst name t =
       val _ = VarSet.null (Term.freeVars t) orelse raise Error "term not closed"
       val _ = NameSet.subset (Term.typeVars t) (Type.typeVars ty) orelse
               raise Error "extra type variables in term"
-      val () = Term.declare name ty
+
+      val c =
+          TypeTerm.Const
+            {name = name,
+             prov = TypeTerm.DefProvConst (TypeTerm.DefConst t)}
+
       val axioms = emptyAxioms
       and hyp = emptyHyp
-      and concl = Term.mkEq (Term.mkConst (name,ty), t)
-      val sequent = {hyp = hyp, concl = concl}
+      and concl = Term.mkEq (Term.mkConst (c,ty), t)
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
     end
@@ -218,10 +223,10 @@ fun defineConst name t =
 fun defineType name {abs,rep} tyVars nonEmptyTh =
     let
       val Thm {axioms,sequent,...} = nonEmptyTh
-      val {hyp,concl} = sequent
+      val Sequent.Sequent {hyp,concl} = sequent
       val _ = TermAlphaSet.null hyp orelse
               raise Error "existence theorem must not have hypotheses"
-      val (pTm,tTm) = Term.destComb concl
+      val (pTm,tTm) = Term.destApp concl
       val _ = VarSet.null (Term.freeVars pTm) orelse
               raise Error "predicate is not closed"
       val _ = NameSet.equal (NameSet.fromList tyVars) (Term.typeVars pTm) orelse
@@ -229,36 +234,55 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
       val _ = NameSet.size (NameSet.fromList tyVars) = length tyVars orelse
               raise Error "supplied type variables contain duplicates"
       val arity = length tyVars
-      val () = Type.declare name arity
-      val aTy = Type.mkOp (name, map Type.mkVar tyVars)
+
+      val prov =
+          TypeTerm.DefOpTy
+            {pred = pTm,
+             vars = tyVars}
+
+      val ot =
+          TypeTerm.OpTy
+            {name = name,
+             arity = arity,
+             prov = TypeTerm.DefProvOpTy prov}
+
+      val absC =
+          TypeTerm.Const
+            {name = abs,
+             prov = TypeTerm.AbsProvConst prov}
+
+      val repC =
+          TypeTerm.Const
+            {name = rep,
+             prov = TypeTerm.RepProvConst prov}
+
+      val aTy = Type.mkOp (ot, map Type.mkVar tyVars)
       and rTy = Term.typeOf tTm
       val absTy = Type.mkFun (rTy,aTy)
       and repTy = Type.mkFun (aTy,rTy)
-      val () = Term.declare abs absTy
-      and () = Term.declare rep repTy
-      val absTm = Term.mkConst (abs,absTy)
-      and repTm = Term.mkConst (rep,repTy)
+      val absTm = Term.mkConst (absC,absTy)
+      and repTm = Term.mkConst (repC,repTy)
 
       val absRepTh =
           let
-            val aVar = Var.Var (Name.mkGlobal "a", aTy)
+            val aVar = TypeTerm.Var (Name.mkGlobal "a", aTy)
             val aTm = Term.mkVar aVar
             val concl =
-                Term.mkEq (Term.mkComb (absTm, Term.mkComb (repTm,aTm)), aTm)
-            val sequent = {hyp = hyp, concl = concl}
+                Term.mkEq (Term.mkApp (absTm, Term.mkApp (repTm,aTm)), aTm)
+            val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
           in
             Thm {axioms = axioms, sequent = sequent}
           end
 
       val repAbsTh =
           let
-            val rVar = Var.Var (Name.mkGlobal "r", rTy)
+            val rVar = TypeTerm.Var (Name.mkGlobal "r", rTy)
             val rTm = Term.mkVar rVar
             val concl =
                 Term.mkEq
-                  (Term.mkComb (pTm,rTm),
-                   Term.mkEq (Term.mkComb (repTm, Term.mkComb (absTm,rTm)), rTm))
-            val sequent = {hyp = hyp, concl = concl}
+                  (Term.mkApp (pTm,rTm),
+                   Term.mkEq (Term.mkApp (repTm, Term.mkApp (absTm,rTm)), rTm))
+            val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
           in
             Thm {axioms = axioms, sequent = sequent}
           end
