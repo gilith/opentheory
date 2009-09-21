@@ -94,6 +94,7 @@ SRC = \
   src/TermSubst.sig src/TermSubst.sml \
   src/Sequent.sig src/Sequent.sml \
   src/Thm.sig src/Thm.sml \
+  src/Symbol.sig src/Symbol.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
   src/Command.sig src/Command.sml \
