@@ -1,21 +1,27 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC SYNTAX                                                 *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Syntax =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive.                                                                *)
+(* Type abbreviations.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+type const = Const.const
 type name = Name.name
-type ty = Type.ty
-type var = Var.var
-type term = Term.term
 type sequent = Sequent.sequent
+type term = Term.term
 type thm = Thm.thm
+type ty = Type.ty
+type typeOp = TypeOp.typeOp
+type var = Var.var
+
+(* ------------------------------------------------------------------------- *)
+(* Types.                                                                    *)
+(* ------------------------------------------------------------------------- *)
 
 (* Type variables *)
 
@@ -28,7 +34,7 @@ val alphaType : ty
 
 (* Type operators *)
 
-val mkTypeOp : name * ty list -> ty
+val mkTypeOp : TypeOp.typeOp * ty list -> ty
 val destTypeOp : ty -> name * ty list
 val isTypeOp : ty -> bool
 
@@ -43,6 +49,10 @@ val destFun : ty -> ty * ty
 val isFun : ty -> bool
 val listMkFun : ty list * ty -> ty
 val stripFun : ty -> ty list * ty
+
+(* ------------------------------------------------------------------------- *)
+(* Terms.                                                                    *)
+(* ------------------------------------------------------------------------- *)
 
 (* Constants *)
 
@@ -86,7 +96,9 @@ val isEq : term -> bool
 val lhs : term -> term
 val rhs : term -> term
 
-(* Theorems *)
+(* ------------------------------------------------------------------------- *)
+(* Theorems.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
 val axioms : thm -> SequentSet.set
 

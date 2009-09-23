@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* HIGHER ORDER LOGIC SYNTAX                                                 *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Syntax :> Syntax =
@@ -9,15 +9,21 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive.                                                                *)
+(* Type abbreviations.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+type const = Const.const;
 type name = Name.name;
-type ty = Type.ty;
-type var = Var.var;
-type term = Term.term;
 type sequent = Sequent.sequent;
+type term = Term.term;
 type thm = Thm.thm;
+type ty = Type.ty;
+type typeOp = TypeOp.typeOp;
+type var = Var.var;
+
+(* ------------------------------------------------------------------------- *)
+(* Types.                                                                    *)
+(* ------------------------------------------------------------------------- *)
 
 (* Type variables *)
 

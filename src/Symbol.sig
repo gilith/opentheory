@@ -22,9 +22,13 @@ val consts : symbol -> ConstSet.set
 (* Looking up entries.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val peekTypeOp : symbol -> Name.name -> TypeOp.opTy option
+val peekTypeOp : symbol -> Name.name -> TypeOp.typeOp option
 
 val peekConst : symbol -> Name.name -> Const.const option
+
+val mkTypeOp : symbol -> Name.name -> TypeOp.typeOp
+
+val mkConst : symbol -> Name.name -> Const.const
 
 (* ------------------------------------------------------------------------- *)
 (* Adding entries.                                                           *)

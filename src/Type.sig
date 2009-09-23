@@ -34,15 +34,15 @@ val equalVar : Name.name -> ty -> bool
 
 (* Operators *)
 
-val mkOp : TypeOp.opTy * ty list -> ty
+val mkOp : TypeOp.typeOp * ty list -> ty
 
-val destOp : ty -> TypeOp.opTy * ty list
+val destOp : ty -> TypeOp.typeOp * ty list
 
 val isOp : ty -> bool
 
-val destOpTy : TypeOp.opTy -> ty -> ty list
+val destOpTy : TypeOp.typeOp -> ty -> ty list
 
-val isOpTy : TypeOp.opTy -> ty -> bool
+val isOpTy : TypeOp.typeOp -> ty -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Type IDs.                                                                 *)
@@ -116,7 +116,7 @@ val typeOps : ty -> TypeOpSet.set
 
 val nameBool : Name.name
 
-val opTyBool : TypeOp.opTy
+val typeOpBool : TypeOp.typeOp
 
 val bool : ty
 
@@ -126,7 +126,7 @@ val isBool : ty -> bool
 
 val nameFun : Name.name
 
-val opTyFun : TypeOp.opTy
+val typeOpFun : TypeOp.typeOp
 
 val mkFun : ty * ty -> ty
 

@@ -12,9 +12,9 @@ open Useful;
 (* A type of type operators.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type opTy = TypeTerm.opTy;
+type typeOp = TypeTerm.opTy;
 
-type opTyData =
+type typeOpData =
      {name : Name.name,
       arity : int,
       prov : TypeTerm.provOpTy};
@@ -32,6 +32,16 @@ val name = TypeTerm.nameOpTy;
 val arity = TypeTerm.arityOpTy;
 
 val prov = TypeTerm.provOpTy;
+
+fun mkUndef {name,arity} =
+    let
+      val prov = TypeTerm.UndefProvOpTy
+    in
+      mk
+        {name = name,
+         arity = arity,
+         prov = prov}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
@@ -52,7 +62,7 @@ val toString = Print.toString pp;
 end
 
 structure TypeOpOrdered =
-struct type t = TypeOp.opTy val compare = TypeOp.compare end
+struct type t = TypeOp.typeOp val compare = TypeOp.compare end
 
 structure TypeOpSet = ElementSet (TypeOpOrdered)
 

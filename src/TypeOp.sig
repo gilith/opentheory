@@ -10,41 +10,43 @@ sig
 (* A type of type operators.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type opTy = TypeTerm.opTy
+type typeOp = TypeTerm.opTy
 
-type opTyData =
+type typeOpData =
      {name : Name.name,
       arity : int,
       prov : TypeTerm.provOpTy}
 
-val mk : opTyData -> opTy
+val mk : typeOpData -> typeOp
 
-val dest : opTy -> opTyData
+val dest : typeOp -> typeOpData
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val name : opTy -> Name.name
+val name : typeOp -> Name.name
 
-val arity : opTy -> int
+val arity : typeOp -> int
 
-val prov : opTy -> TypeTerm.provOpTy
+val prov : typeOp -> TypeTerm.provOpTy
+
+val mkUndef : {name : Name.name, arity : int} -> typeOp
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare : opTy * opTy -> order
+val compare : typeOp * typeOp -> order
 
-val equal : opTy -> opTy -> bool
+val equal : typeOp -> typeOp -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : opTy Print.pp
+val pp : typeOp Print.pp
 
-val toString : opTy -> string
+val toString : typeOp -> string
 
 end

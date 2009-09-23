@@ -15,7 +15,7 @@ open Useful;
 datatype symbol =
     Symbol of
       {opS : TypeOpSet.set,
-       opM : TypeOp.opTy NameMap.map,
+       opM : TypeOp.typeOp NameMap.map,
        conS : ConstSet.set,
        conM : Const.const NameMap.map};
 
@@ -44,6 +44,16 @@ fun consts (Symbol {conS,...}) = conS;
 fun peekTypeOp (Symbol {opM,...}) n = NameMap.peek opM n;
 
 fun peekConst (Symbol {conM,...}) n = NameMap.peek conM n;
+
+fun mkTypeOp sym n =
+    case peekTypeOp sym n of
+      SOME t => t
+    | NONE => TypeOp.mkUndef n;
+
+fun mkConst sym n =
+    case peekConst sym n of
+      SOME c => c
+    | NONE => Const.mkUndef n;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding entries.                                                           *)

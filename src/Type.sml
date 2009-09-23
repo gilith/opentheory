@@ -255,7 +255,7 @@ val stringBool = "bool";
 
 val nameBool = Name.mkGlobal stringBool;
 
-val opTyBool =
+val typeOpBool =
     let
       val name = nameBool
       val arity = 0
@@ -267,18 +267,18 @@ val opTyBool =
          prov = prov}
     end;
 
-val bool = mkOp (opTyBool,[]);
+val bool = mkOp (typeOpBool,[]);
 
 fun isBool ty =
     case dest ty of
-      TypeTerm.OpTy' (ot,[]) => TypeOp.equal opTyBool ot
+      TypeTerm.OpTy' (ot,[]) => TypeOp.equal typeOpBool ot
     | _ => false;
 
 (* Function spaces *)
 
 val nameFun = TypeTerm.nameFunTy;
 
-val opTyFun = TypeTerm.opTyFunTy;
+val typeOpFun = TypeTerm.opTyFunTy;
 
 val mkFun = TypeTerm.mkFunTy;
 
