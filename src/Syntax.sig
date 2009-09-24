@@ -16,15 +16,11 @@ val mkNullaryOp : Const.const -> Type.ty -> Term.term
 
 val destNullaryOp : Const.const -> Term.term -> Type.ty
 
-val isNullaryOp : Const.const -> Term.term -> bool
-
 (* Unary operators *)
 
 val mkUnaryOp : Const.const -> Type.ty * Term.term -> Term.term
 
 val destUnaryOp : Const.const -> Term.term -> Type.ty * Term.term
-
-val isUnaryOp : Const.const -> Term.term -> bool
 
 val listMkUnaryOp : Const.const -> Type.ty -> int * Term.term -> Term.term
 
@@ -35,8 +31,6 @@ val stripUnaryOp : Const.const -> Type.ty -> Term.term -> int * Term.term
 val mkBinaryOp : Const.const -> Type.ty * Term.term * Term.term -> Term.term
 
 val destBinaryOp : Const.const -> Term.term -> Type.ty * Term.term * Term.term
-
-val isBinaryOp : Const.const -> Term.term -> bool
 
 val listMkBinaryOp :
     Const.const -> Type.ty -> Term.term -> Term.term list -> Term.term
@@ -51,8 +45,6 @@ val stripBinaryOp :
 val mkQuant : Const.const -> Var.var * Term.term -> Term.term
 
 val destQuant : Const.const -> Term.term -> Var.var * Term.term
-
-val isQuant : Const.const -> Term.term -> bool
 
 val listMkQuant : Const.const -> Var.var list * Term.term -> Term.term
 
@@ -88,6 +80,10 @@ val isFalse : Symbol.symbol -> Term.term -> bool
 
 (* Negations *)
 
+val nameNeg : Name.name
+
+val constNeg : Symbol.symbol -> Const.const
+
 val tyNeg : Type.ty
 
 val mkNeg : Symbol.symbol -> Term.term -> Term.term
@@ -101,6 +97,10 @@ val listMkNeg : Symbol.symbol -> int * Term.term -> Term.term
 val stripNeg : Symbol.symbol -> Term.term -> int * Term.term
 
 (* Implications *)
+
+val nameImp : Name.name
+
+val constImp : Symbol.symbol -> Const.const
 
 val tyImp : Type.ty
 

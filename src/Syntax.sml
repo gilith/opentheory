@@ -24,8 +24,6 @@ fun destNullaryOp n tm =
       ty
     end;
 
-fun isNullaryOp n = can (destNullaryOp n);
-
 (* Unary operators *)
 
 fun mkUnaryOp n (ty,a) =
@@ -43,8 +41,6 @@ fun destUnaryOp n tm =
     in
       (ty,a)
     end;
-
-fun isUnaryOp n = can (destUnaryOp n);
 
 fun listMkUnaryOp n ty =
     let
@@ -86,8 +82,6 @@ fun destBinaryOp n tm =
       (ty,a,b)
     end;
 
-fun isBinaryOp n = can (destBinaryOp n);
-
 fun listMkBinaryOp n ty i tms =
     case rev tms of
       [] => i
@@ -126,19 +120,9 @@ val trueName = Name.mkGlobal trueString;
 
 fun trueConst sym = Symbol.mkConst sym trueName;
 
-fun trueTerm sym =
-    let
-      val c = trueConst sym
-    in
-      mkNullaryOp c Type.bool
-    end;
+fun trueTerm sym = mkNullaryOp (trueConst sym) Type.bool;
 
-fun isTrue sym =
-    let
-      val c = trueConst sym
-    in
-      isNullaryOp c
-    end;
+fun isTrue sym = can (destNullaryOp (trueConst sym));
 
 (* False *)
 
@@ -148,19 +132,9 @@ val falseName = Name.mkGlobal falseString;
 
 fun falseConst sym = Symbol.mkConst sym falseName;
 
-fun falseTerm sym =
-    let
-      val c = falseConst sym
-    in
-      mkNullaryOp c Type.bool
-    end;
+fun falseTerm sym = mkNullaryOp (falseConst sym) Type.bool;
 
-fun isFalse sym =
-    let
-      val c = falseConst sym
-    in
-      isNullaryOp c
-    end;
+fun isFalse sym = can (destNullaryOp (falseConst sym));
 
 (* ------------------------------------------------------------------------- *)
 (* Propositional connectives.                                                *)
@@ -168,24 +142,24 @@ fun isFalse sym =
 
 (* Negations *)
 
-val negString = "~";
+val stringNeg = "~";
 
-val negName = Name.mkGlobal negString;
+val nameNeg = Name.mkGlobal stringNeg;
 
-fun negConst sym = Symbol.mkConst sym negName;
+fun constNeg sym = Symbol.mkConst sym nameNeg;
 
-val negTy = Type.mkFun (Type.bool,Type.bool);
+val tyNeg = Type.mkFun (Type.bool,Type.bool);
 
 fun mkNeg sym =
     let
-      val c = negConst sym
+      val c = constNeg sym
     in
-      fn tm => mkUnaryOp c (negTy,tm)
+      fn tm => mkUnaryOp c (tyNeg,tm)
     end;
 
 fun destNeg sym =
     let
-      val c = negConst sym
+      val c = constNeg sym
     in
       fn tm =>
          let
@@ -195,46 +169,52 @@ fun destNeg sym =
          end
     end;
 
-fun isNeg sym =
-    let
-      val c = negConst sym
-    in
-      isUnaryOp c
-    end;
+fun isNeg sym = can (destNeg sym);
 
 fun listMkNeg sym =
     let
-      val c = negConst sym
+      val c = constNeg sym
     in
-      listMkUnaryOp c negTy
+      listMkUnaryOp c tyNeg
     end;
 
 fun stripNeg sym =
     let
-      val c = negConst sym
+      val c = constNeg sym
     in
-      stripUnaryOp c negTy
+      stripUnaryOp c tyNeg
     end;
 
 (* Implications *)
 
-val impName = Name.mkGlobal "==>";
+val stringImp = "==>";
 
-val mkImp =
+val nameImp = Name.mkGlobal stringImp;
+
+val tyImp = Type.mkFun (Type.mkFun (Type.bool,Type.bool), Type.bool);
+
+fun constImp sym = Symbol.mkConst sym nameImp;
+
+fun mkImp sym =
     let
-      val impTy = mkFun (boolType, mkFun (boolType,boolType))
+      val c = constImp sym
     in
-      fn (a,b) => mkBinaryOp impName (impTy,a,b)
+      fn (a,b) => mkBinaryOp c (tyImp,a,b)
     end;
 
-fun destImp tm =
+fun destImp sym =
     let
-      val (_,a,b) = destBinaryOp impName tm
+      val c = constImp sym
     in
-      (a,b)
+      fn tm =>
+         let
+           val (_,a,b) = destBinaryOp c tm
+         in
+           (a,b)
+         end
     end;
 
-val isImp = can destImp;
+fun isImp sym = can (destImp sym);
 
 (* Conjunctions *)
 
