@@ -284,6 +284,10 @@ val destFun = TypeTerm.destFunTy;
 
 val isFun = TypeTerm.isFunTy;
 
+fun domainFun ty = fst (destFun ty);
+
+fun rangeFun ty = snd (destFun ty);
+
 fun listMkFun (xs,ty) = List.foldl mkFun ty (rev xs);
 
 local

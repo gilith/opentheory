@@ -82,7 +82,7 @@ fun destBinaryOp n tm =
       (ty,a,b)
     end;
 
-fun listMkBinaryOp n ty tm tms =
+fun listMkBinaryOp n ty (tm,tms) =
     let
       val c = Term.mkConst (n,ty)
 
@@ -101,6 +101,33 @@ fun stripBinaryOp n ty =
     in
       strip []
     end;
+
+(* Quantifiers *)
+
+fun mkQuant c (v,b,ty) =
+    let
+      val f = Term.mkAbs (v,b)
+      val q = Term.mkConst (c, Type.mkFun (Term.typeOf f, ty))
+    in
+      Term.mkApp (q,f)
+    end;
+
+fun destQuant c tm =
+    let
+      val (q,f) = Term.destApp tm
+      val (v,b) = Term.destAbs f
+      val (n,nty) = Term.destConst q
+      val _ = Const.equal c n orelse raise Error "Syntax.destQuant"
+      val ty = Type.rangeFun nty
+    in
+      (v,b,ty)
+    end;
+
+(***
+val listMkQuant : Const.const -> Var.var list * Term.term -> Term.term
+
+val stripQuant : Const.const -> Term.term -> Var.var list * Term.term
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Booleans.                                                                 *)
@@ -214,7 +241,7 @@ fun listMkImp sym (tms,tm) =
     let
       val c = constImp sym
     in
-      listMkBinaryOp c tyImp tm (rev tms)
+      listMkBinaryOp c tyImp (tm, rev tms)
     end;
 
 fun stripImp sym tm =
@@ -263,7 +290,7 @@ fun listMkConj sym tms =
       let
         val c = constConj sym
       in
-        listMkBinaryOp c tyConj tm tms
+        listMkBinaryOp c tyConj (tm,tms)
       end;
 
 fun stripConj sym tm =
@@ -276,6 +303,7 @@ fun stripConj sym tm =
         rev (tm :: tms)
       end;
 
+(***
 (* Disjunctions *)
 
 val disjName = Name.mkGlobal "\\/";
@@ -463,56 +491,17 @@ local
 in
   val stripSelect = strip [];
 end;
-
+***)
 (* ------------------------------------------------------------------------- *)
 (* The type of individuals.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val indName = Name.mkGlobal "ind";
+val stringInd = "ind";
 
-val indArity = 0;
+val nameInd = Name.mkGlobal stringInd;
 
-val indType = mkTypeOp (indName,[]);
+fun typeOpInd sym = Symbol.mkTypeOp sym nameInd;
 
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printing.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val typeMaximumSize = Type.maximumSize;
-val varShowTypes = Var.showTypes;
-val termMaximumSize = Term.maximumSize;
-val termShowTypes = Term.showTypes;
-val sequentShowHyp = Sequent.showHyp;
-val thmShowHyp = Thm.showHyp;
-
-val ppType = Type.pp;
-val typeToString = Type.toString;
-
-val ppVar = Var.pp;
-val varToString = Var.toString;
-
-val ppTerm = Term.pp;
-val termToString = Term.toString;
-
-val ppTypeSubstMap = TypeSubst.ppMap;
-val typeSubstMapToString = TypeSubst.toStringMap;
-
-val ppTypeSubst = TypeSubst.pp;
-val typeSubstToString = TypeSubst.toString;
-
-val ppTermSubstMap = TermSubst.ppTermMap;
-val termSubstMapToString = TermSubst.toStringTermMap;
-
-val ppSubstMap = TermSubst.ppMap;
-val substMapToString = TermSubst.toStringMap;
-
-val ppSubst = TermSubst.pp;
-val substToString = TermSubst.toString;
-
-val ppSequent = Sequent.pp;
-val sequentToString = Sequent.toString;
-
-val ppThm = Thm.pp;
-val thmToString = Thm.toString;
+fun tyInd sym = Type.mkOp (typeOpInd sym, []);
 
 end

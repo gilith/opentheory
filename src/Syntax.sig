@@ -33,18 +33,16 @@ val mkBinaryOp : Const.const -> Type.ty * Term.term * Term.term -> Term.term
 val destBinaryOp : Const.const -> Term.term -> Type.ty * Term.term * Term.term
 
 val listMkBinaryOp :
-    Const.const -> Type.ty -> Term.term -> Term.term list -> Term.term
+    Const.const -> Type.ty -> Term.term * Term.term list -> Term.term
 
 val stripBinaryOp :
-    Const.const -> Type.ty -> Term.term -> Term.term -> Term.term list
+    Const.const -> Type.ty -> Term.term -> Term.term * Term.term list
 
-(* ------------------------------------------------------------------------- *)
-(* Quantifier operators.                                                     *)
-(* ------------------------------------------------------------------------- *)
+(* Quantifiers *)
 
-val mkQuant : Const.const -> Var.var * Term.term -> Term.term
+val mkQuant : Const.const -> Var.var * Term.term * Type.ty -> Term.term
 
-val destQuant : Const.const -> Term.term -> Var.var * Term.term
+val destQuant : Const.const -> Term.term -> Var.var * Term.term * Type.ty
 
 val listMkQuant : Const.const -> Var.var list * Term.term -> Term.term
 
@@ -194,8 +192,10 @@ val isSelect : Term.term -> bool
 (* The type of individuals.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+val nameInd : Name.name
+
 val typeOpInd : Symbol.symbol -> TypeOp.typeOp
 
-val typeInd : Symbol.symbol -> Type.ty
+val tyInd : Symbol.symbol -> Type.ty
 
 end
