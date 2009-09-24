@@ -82,31 +82,25 @@ fun destBinaryOp n tm =
       (ty,a,b)
     end;
 
-fun listMkBinaryOp n ty i tms =
-    case rev tms of
-      [] => i
-    | tm :: tms =>
-      let
-        val c = Term.mkConst (n,ty)
+fun listMkBinaryOp n ty tm tms =
+    let
+      val c = Term.mkConst (n,ty)
 
-        fun mk (t,u) = Term.mkApp (Term.mkApp (c,t), u)
-      in
-        List.foldl mk tm tms
-      end;
+      fun mk (t,u) = Term.mkApp (Term.mkApp (c,t), u)
+    in
+      List.foldl mk tm tms
+    end;
 
-fun stripBinaryOp n ty i tm =
-    if Term.equal i tm then []
-    else
-      let
-        fun strip l t =
-            case total (destBinaryOp n) t of
-              NONE => List.revAppend (l,[t])
-            | SOME (ty',a,t') =>
-              if Type.equal ty ty' then strip (a :: l) t'
-              else List.revAppend (l,[t])
-      in
-        strip [] tm
-      end;
+fun stripBinaryOp n ty =
+    let
+      fun strip l t =
+          case total (destBinaryOp n) t of
+            NONE => (t,l)
+          | SOME (ty',a,t') =>
+            if Type.equal ty ty' then strip (a :: l) t' else (t,l)
+    in
+      strip []
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Booleans.                                                                 *)
@@ -191,7 +185,7 @@ val stringImp = "==>";
 
 val nameImp = Name.mkGlobal stringImp;
 
-val tyImp = Type.mkFun (Type.mkFun (Type.bool,Type.bool), Type.bool);
+val tyImp = Type.mkFun (Type.bool, Type.mkFun (Type.bool,Type.bool));
 
 fun constImp sym = Symbol.mkConst sym nameImp;
 
@@ -216,39 +210,71 @@ fun destImp sym =
 
 fun isImp sym = can (destImp sym);
 
+fun listMkImp sym (tms,tm) =
+    let
+      val c = constImp sym
+    in
+      listMkBinaryOp c tyImp tm (rev tms)
+    end;
+
+fun stripImp sym tm =
+    let
+      val c = constImp sym
+      val (tm,tms) = stripBinaryOp c tyImp tm
+    in
+      (rev tms, tm)
+    end;
+
 (* Conjunctions *)
 
-val conjName = Name.mkGlobal "/\\";
+val stringConj = "/\\";
 
-val mkConj =
+val nameConj = Name.mkGlobal stringConj;
+
+val tyConj = Type.mkFun (Type.bool, Type.mkFun (Type.bool,Type.bool));
+
+fun constConj sym = Symbol.mkConst sym nameConj;
+
+fun mkConj sym =
     let
-      val conjTy = mkFun (boolType, mkFun (boolType,boolType))
+      val c = constConj sym
     in
-      fn (a,b) => mkBinaryOp conjName (conjTy,a,b)
+      fn (a,b) => mkBinaryOp c (tyConj,a,b)
     end;
 
-fun destConj tm =
+fun destConj sym =
     let
-      val (_,a,b) = destBinaryOp conjName tm
+      val c = constConj sym
     in
-      (a,b)
+      fn tm =>
+         let
+           val (_,a,b) = destBinaryOp c tm
+         in
+           (a,b)
+         end
     end;
 
-val isConj = can destConj;
+fun isConj sym = can (destConj sym);
 
-fun listMkConj tms =
+fun listMkConj sym tms =
     case rev tms of
-      [] => trueTerm
-    | tm :: tms => List.foldl mkConj tm tms;
+      [] => trueTerm sym
+    | tm :: tms =>
+      let
+        val c = constConj sym
+      in
+        listMkBinaryOp c tyConj tm tms
+      end;
 
-local
-  fun strip acc tm =
-      case total destConj tm of
-        NONE => List.revAppend (acc,[tm])
-      | SOME (a,b) => strip (a :: acc) b;
-in
-  fun stripConj tm = if isTrue tm then [] else strip [] tm;
-end;
+fun stripConj sym tm =
+    if isTrue sym tm then []
+    else
+      let
+        val c = constConj sym
+        val (tm,tms) = stripBinaryOp c tyConj tm
+      in
+        rev (tm :: tms)
+      end;
 
 (* Disjunctions *)
 
