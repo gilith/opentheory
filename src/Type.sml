@@ -258,12 +258,10 @@ val nameBool = Name.mkGlobal stringBool;
 val typeOpBool =
     let
       val name = nameBool
-      val arity = 0
       val prov = TypeTerm.UndefProvOpTy
     in
       TypeTerm.OpTy
         {name = name,
-         arity = arity,
          prov = prov}
     end;
 
@@ -285,6 +283,17 @@ val mkFun = TypeTerm.mkFunTy;
 val destFun = TypeTerm.destFunTy;
 
 val isFun = TypeTerm.isFunTy;
+
+fun listMkFun (xs,ty) = List.foldl mkFun ty (rev xs);
+
+local
+  fun strip acc ty =
+      case total destFun ty of
+        NONE => (rev acc, ty)
+      | SOME (x,ty) => strip (x :: acc) ty;
+in
+  val stripFun = strip [];
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

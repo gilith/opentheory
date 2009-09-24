@@ -28,6 +28,8 @@ val name : const -> Name.name
 
 val prov : const -> TypeTerm.provConst
 
+val mkUndef : Name.name -> const
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)

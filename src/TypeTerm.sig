@@ -116,12 +116,9 @@ val equalProvOpTy : provOpTy -> provOpTy -> bool
 datatype opTy =
     OpTy of
       {name : Name.name,
-       arity : int,
        prov : provOpTy}
 
 val nameOpTy : opTy -> Name.name
-
-val arityOpTy : opTy -> int
 
 val provOpTy : opTy -> provOpTy
 

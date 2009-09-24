@@ -134,6 +134,10 @@ val destFun : ty -> ty * ty
 
 val isFun : ty -> bool
 
+val listMkFun : ty list * ty -> ty
+
+val stripFun : ty -> ty list * ty
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

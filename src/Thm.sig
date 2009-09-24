@@ -19,6 +19,14 @@ datatype thm' =
 
 val dest : thm -> thm'
 
+val axioms : thm -> SequentSet.set
+
+val sequent : thm -> Sequent.sequent
+
+val hyp : thm -> TermAlphaSet.set
+
+val concl : thm -> Term.term
+
 (* ------------------------------------------------------------------------- *)
 (* A total order on theorems modulo alpha equivalence.                       *)
 (* ------------------------------------------------------------------------- *)
@@ -128,7 +136,7 @@ val defineConst : Name.name -> Term.term -> thm
 (* Type operator definition                                                  *)
 (*                                                                           *)
 (*           |- p t                                                          *)
-(* ------------------------------  defineType name {abs,rep} tyVars          *)
+(* ------------------------------  defineTypeOp name {abs,rep} tyVars        *)
 (*       |- abs (rep a) = a                                                  *)
 (*   |- p r = (rep (abs r) = r)                                              *)
 (*                                                                           *)
@@ -140,7 +148,7 @@ val defineConst : Name.name -> Term.term -> thm
 (* type variables in p.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val defineType :
+val defineTypeOp :
     Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list -> thm ->
     thm * thm
 

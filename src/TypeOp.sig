@@ -14,7 +14,6 @@ type typeOp = TypeTerm.opTy
 
 type typeOpData =
      {name : Name.name,
-      arity : int,
       prov : TypeTerm.provOpTy}
 
 val mk : typeOpData -> typeOp
@@ -27,11 +26,9 @@ val dest : typeOp -> typeOpData
 
 val name : typeOp -> Name.name
 
-val arity : typeOp -> int
-
 val prov : typeOp -> TypeTerm.provOpTy
 
-val mkUndef : {name : Name.name, arity : int} -> typeOp
+val mkUndef : Name.name -> typeOp
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)

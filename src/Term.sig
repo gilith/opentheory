@@ -48,6 +48,16 @@ val destApp : term -> term * term
 
 val isApp : term -> bool
 
+val rator : term -> term
+
+val rand : term -> term
+
+val land : term -> term
+
+val listMkApp : term * term list -> term
+
+val stripApp : term -> term * term list
+
 (* Lambda abstractions *)
 
 val mkAbs : Var.var * term -> term
@@ -55,6 +65,10 @@ val mkAbs : Var.var * term -> term
 val destAbs : term -> Var.var * term
 
 val isAbs : term -> bool
+
+val listMkAbs : Var.var list * term -> term
+
+val stripAbs : term -> Var.var list * term
 
 (* ------------------------------------------------------------------------- *)
 (* Term IDs.                                                                 *)
@@ -175,6 +189,10 @@ val mkEq : term * term -> term
 val destEq : term -> term * term
 
 val isEq : term -> bool
+
+val lhs : term -> term
+
+val rhs : term -> term
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

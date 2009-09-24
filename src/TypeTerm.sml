@@ -29,7 +29,6 @@ and ty' =
 and opTy =
     OpTy of
       {name : Name.name,
-       arity : int,
        prov : provOpTy}
 
 and provOpTy =
@@ -98,16 +97,12 @@ and compareTy' ty1_ty2 =
 
 and compareOpTy (o1,o2) =
     let
-      val OpTy {name = n1, arity = a1, prov = p1} = o1
-      and OpTy {name = n2, arity = a2, prov = p2} = o2
+      val OpTy {name = n1, prov = p1} = o1
+      and OpTy {name = n2, prov = p2} = o2
     in
       case Name.compare (n1,n2) of
         LESS => LESS
-      | EQUAL =>
-        (case Int.compare (a1,a2) of
-           LESS => LESS
-         | EQUAL => compareProvOpTy (p1,p2)
-         | GREATER => GREATER)
+      | EQUAL => compareProvOpTy (p1,p2)
       | GREATER => GREATER
     end
 
@@ -297,8 +292,6 @@ fun equalProvOpTy p1 p2 = compareProvOpTy (p1,p2) = EQUAL;
 
 fun nameOpTy (OpTy {name = n, ...}) = n;
 
-fun arityOpTy (OpTy {arity = a, ...}) = a;
-
 fun provOpTy (OpTy {prov = p, ...}) = p;
 
 (* Total order *)
@@ -328,15 +321,7 @@ fun equalTy' t1 t2 = compareTy' (t1,t2) = EQUAL;
 
 fun mkTy ty =
     let
-      val () =
-          case ty of
-            VarTy' _ => ()
-          | OpTy' (ot,tys) =>
-            if arityOpTy ot = length tys then ()
-            else raise Error "TypeTerm.mkTy: wrong arity"
-
       val id = newIdTy ()
-
       val sz = sizeTy' ty
     in
       Ty
@@ -356,12 +341,10 @@ val nameFunTy = Name.mkGlobal stringFunTy;
 val opTyFunTy =
     let
       val name = nameFunTy
-      val arity = 2
       val prov = UndefProvOpTy
     in
       OpTy
         {name = name,
-         arity = arity,
          prov = prov}
     end;
 

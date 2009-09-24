@@ -21,6 +21,34 @@ type thm = thm';
 
 fun dest (th : thm) = th;
 
+fun axioms th =
+    let
+      val Thm {axioms = a, ...} = dest th
+    in
+      a
+    end;
+
+fun sequent th =
+    let
+      val Thm {sequent = s, ...} = dest th
+    in
+      s
+    end;
+
+fun hyp th =
+    let
+      val Sequent.Sequent {hyp = h, ...} = sequent th
+    in
+      h
+    end;
+
+fun concl th =
+    let
+      val Sequent.Sequent {concl = c, ...} = sequent th
+    in
+      c
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* A total order on theorems modulo alpha equivalence.                       *)
 (* ------------------------------------------------------------------------- *)
@@ -220,7 +248,7 @@ fun defineConst name t =
     end
     handle Error err => raise Error ("Thm.defineConst: " ^ err);
 
-fun defineType name {abs,rep} tyVars nonEmptyTh =
+fun defineTypeOp name {abs,rep} tyVars nonEmptyTh =
     let
       val Thm {axioms,sequent,...} = nonEmptyTh
       val Sequent.Sequent {hyp,concl} = sequent
@@ -233,7 +261,6 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
               raise Error "supplied type vars are not the type vars in p"
       val _ = NameSet.size (NameSet.fromList tyVars) = length tyVars orelse
               raise Error "supplied type variables contain duplicates"
-      val arity = length tyVars
 
       val prov =
           TypeTerm.DefOpTy
@@ -243,7 +270,6 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
       val ot =
           TypeTerm.OpTy
             {name = name,
-             arity = arity,
              prov = TypeTerm.DefProvOpTy prov}
 
       val absC =
@@ -289,7 +315,7 @@ fun defineType name {abs,rep} tyVars nonEmptyTh =
     in
       (absRepTh,repAbsTh)
     end
-    handle Error err => raise Error ("Thm.defineType: " ^ err);
+    handle Error err => raise Error ("Thm.defineTypeOp: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

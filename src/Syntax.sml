@@ -9,182 +9,113 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Type abbreviations.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-type const = Const.const;
-type name = Name.name;
-type sequent = Sequent.sequent;
-type term = Term.term;
-type thm = Thm.thm;
-type ty = Type.ty;
-type typeOp = TypeOp.typeOp;
-type var = Var.var;
-
-(* ------------------------------------------------------------------------- *)
-(* Types.                                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-(* Type variables *)
-
-val mkTypeVar = Type.mkVar;
-val destTypeVar = Type.destVar;
-val isTypeVar = Type.isVar;
-val equalTypeVar = Type.equalVar;
-
-val alphaType = Type.alpha;
-
-(* Type operators *)
-
-val mkTypeOp = Type.mkOp;
-val destTypeOp = Type.destOp;
-val isTypeOp = Type.isOp;
-
-(* The type of booleans *)
-
-val boolType = Type.bool;
-
-(* Function types *)
-
-val mkFun = Type.mkFun;
-val destFun = Type.destFun;
-val isFun = Type.isFun;
-
-fun listMkFun ([],ty) = ty
-  | listMkFun (x :: xs, ty) = mkFun (x, listMkFun (xs,ty));
-
-local
-  fun strip acc ty =
-    if not (isFun ty) then (rev acc, ty)
-    else let val (x,ty) = destFun ty in strip (x :: acc) ty end;
-in
-  val stripFun = strip [];
-end;
-
-(* Constants *)
-
-val mkConst = Term.mkConst;
-val destConst = Term.destConst;
-val isConst = Term.isConst;
-
-(* Variables *)
-
-val mkVar = Term.mkVar;
-val destVar = Term.destVar;
-val isVar = Term.isVar;
-val equalVar = Term.equalVar;
-
-(* Function applications *)
-
-val mkComb = Term.mkComb;
-val destComb = Term.destComb;
-val isComb = Term.isComb;
-
-val rator = fst o destComb;
-
-val rand = snd o destComb;
-
-val land = rand o rator;
-
-fun listMkComb (tm,[]) = tm
-  | listMkComb (tm, x :: xs) = listMkComb (mkComb (tm,x), xs);
-
-local
-  fun strip acc tm =
-    if not (isComb tm) then (tm,acc)
-    else let val (tm,x) = destComb tm in strip (x :: acc) tm end;
-in
-  val stripComb = strip [];
-end;
-
-(* Lambda abstractions *)
-
-val absString = "\\";
-
-val mkAbs = Term.mkAbs;
-val destAbs = Term.destAbs;
-val isAbs = Term.isAbs;
-
-fun listMkAbs ([],tm) = tm
-  | listMkAbs (v :: vs, tm) = mkAbs (v, listMkAbs (vs,tm));
-
-local
-  fun strip acc tm =
-    if not (isAbs tm) then (rev acc, tm)
-    else let val (v,tm) = destAbs tm in strip (v :: acc) tm end;
-in
-  val stripAbs = strip [];
-end;
-
-(* Equality *)
-
-val eqType = Term.eqType;
-val eqTerm = Term.eqTerm;
-val mkEq = Term.mkEq;
-val destEq = Term.destEq;
-val isEq = Term.isEq;
-val lhs = fst o destEq;
-val rhs = snd o destEq;
-
-(* Theorems *)
-
-fun axioms th = case Thm.dest th of Thm.Thm {axioms,...} => axioms;
-
-fun sequent th = case Thm.dest th of Thm.Thm {sequent,...} => sequent;
-
-fun hyp th = case Thm.dest th of Thm.Thm {sequent = {hyp, ...}, ...} => hyp;
-
-fun concl th =
-    case Thm.dest th of Thm.Thm {sequent = {concl, ...}, ...} => concl;
-
-(* ------------------------------------------------------------------------- *)
 (* Operators.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-(* Unary operators *)
+(* Nullary operators *)
 
-fun mkUnop n (ty,a) =
+fun mkNullaryOp n ty = Term.mkConst (n,ty);
+
+fun destNullaryOp n tm =
     let
-      val c = mkConst (n,ty)
+      val (n',ty) = Term.destConst tm
+      val _ = Const.equal n n' orelse raise Error "Syntax.destNullaryOp"
     in
-      mkComb (c,a)
+      ty
     end;
 
-fun destUnop n tm =
+fun isNullaryOp n = can (destNullaryOp n);
+
+(* Unary operators *)
+
+fun mkUnaryOp n (ty,a) =
     let
-      val (c,a) = destComb tm
-      val (n',ty) = destConst c
-      val _ = Name.equal n n' orelse raise Error "Syntax.destUnop"
+      val c = Term.mkConst (n,ty)
+    in
+      Term.mkApp (c,a)
+    end;
+
+fun destUnaryOp n tm =
+    let
+      val (c,a) = Term.destApp tm
+      val (n',ty) = Term.destConst c
+      val _ = Const.equal n n' orelse raise Error "Syntax.destUnaryOp"
     in
       (ty,a)
     end;
 
-fun isUnop n = can (destUnop n);
+fun isUnaryOp n = can (destUnaryOp n);
+
+fun listMkUnaryOp n ty =
+    let
+      val c = Term.mkConst (n,ty)
+
+      fun mk tm = Term.mkApp (c,tm)
+    in
+      fn (k,tm) => funpow k mk tm
+    end;
+
+fun stripUnaryOp n ty =
+    let
+      fun strip k tm =
+          case total (destUnaryOp n) tm of
+            NONE => (k,tm)
+          | SOME (ty',tm') =>
+            if Type.equal ty ty' then strip (k + 1) tm' else (k,tm)
+    in
+      strip 0
+    end;
 
 (* Binary operators *)
 
-fun mkBinop n (ty,a,b) =
+fun mkBinaryOp n (ty,a,b) =
     let
-      val c = mkConst (n,ty)
-      val t = mkComb (c,a)
+      val c = Term.mkConst (n,ty)
+      val t = Term.mkApp (c,a)
     in
-      mkComb (t,b)
+      Term.mkApp (t,b)
     end;
 
-fun destBinop n tm =
+fun destBinaryOp n tm =
     let
-      val (t,b) = destComb tm
-      val (c,a) = destComb t
-      val (n',ty) = destConst c
-      val _ = Name.equal n n' orelse raise Error "Syntax.destBinop"
+      val (t,b) = Term.destApp tm
+      val (c,a) = Term.destApp t
+      val (n',ty) = Term.destConst c
+      val _ = Const.equal n n' orelse raise Error "Syntax.destBinaryOp"
     in
       (ty,a,b)
     end;
 
-fun isBinop n = can (destBinop n);
+fun isBinaryOp n = can (destBinaryOp n);
+
+fun listMkBinaryOp n ty i tms =
+    case rev tms of
+      [] => i
+    | tm :: tms =>
+      let
+        val c = Term.mkConst (n,ty)
+
+        fun mk (t,u) = Term.mkApp (Term.mkApp (c,t), u)
+      in
+        List.foldl mk tm tms
+      end;
+
+fun stripBinaryOp n ty i tm =
+    if Term.equal i tm then []
+    else
+      let
+        fun strip l t =
+            case total (destBinaryOp n) t of
+              NONE => List.revAppend (l,[t])
+            | SOME (ty',a,t') =>
+              if Type.equal ty ty' then strip (a :: l) t'
+              else List.revAppend (l,[t])
+      in
+        strip [] tm
+      end;
 
 (* ------------------------------------------------------------------------- *)
-(* Boolean.                                                                  *)
+(* Booleans.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 (* True *)
@@ -193,9 +124,21 @@ val trueString = "T";
 
 val trueName = Name.mkGlobal trueString;
 
-val trueTerm = mkConst (trueName,boolType);
+fun trueConst sym = Symbol.mkConst sym trueName;
 
-fun isTrue tm = Term.equal tm trueTerm;
+fun trueTerm sym =
+    let
+      val c = trueConst sym
+    in
+      mkNullaryOp c Type.bool
+    end;
+
+fun isTrue sym =
+    let
+      val c = trueConst sym
+    in
+      isNullaryOp c
+    end;
 
 (* False *)
 
@@ -203,9 +146,25 @@ val falseString = "F";
 
 val falseName = Name.mkGlobal falseString;
 
-val falseTerm = mkConst (falseName,boolType);
+fun falseConst sym = Symbol.mkConst sym falseName;
 
-fun isFalse tm = Term.equal tm falseTerm;
+fun falseTerm sym =
+    let
+      val c = falseConst sym
+    in
+      mkNullaryOp c Type.bool
+    end;
+
+fun isFalse sym =
+    let
+      val c = falseConst sym
+    in
+      isNullaryOp c
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Propositional connectives.                                                *)
+(* ------------------------------------------------------------------------- *)
 
 (* Negations *)
 
@@ -213,21 +172,49 @@ val negString = "~";
 
 val negName = Name.mkGlobal negString;
 
-val mkNeg =
+fun negConst sym = Symbol.mkConst sym negName;
+
+val negTy = Type.mkFun (Type.bool,Type.bool);
+
+fun mkNeg sym =
     let
-      val negTy = mkFun (boolType,boolType)
+      val c = negConst sym
     in
-      fn tm => mkUnop negName (negTy,tm)
+      fn tm => mkUnaryOp c (negTy,tm)
     end;
 
-fun destNeg tm =
+fun destNeg sym =
     let
-      val (_,a) = destUnop negName tm
+      val c = negConst sym
     in
-      a
+      fn tm =>
+         let
+           val (_,a) = destUnaryOp c tm
+         in
+           a
+         end
     end;
 
-val isNeg = can destNeg;
+fun isNeg sym =
+    let
+      val c = negConst sym
+    in
+      isUnaryOp c
+    end;
+
+fun listMkNeg sym =
+    let
+      val c = negConst sym
+    in
+      listMkUnaryOp c negTy
+    end;
+
+fun stripNeg sym =
+    let
+      val c = negConst sym
+    in
+      stripUnaryOp c negTy
+    end;
 
 (* Implications *)
 
@@ -237,12 +224,12 @@ val mkImp =
     let
       val impTy = mkFun (boolType, mkFun (boolType,boolType))
     in
-      fn (a,b) => mkBinop impName (impTy,a,b)
+      fn (a,b) => mkBinaryOp impName (impTy,a,b)
     end;
 
 fun destImp tm =
     let
-      val (_,a,b) = destBinop impName tm
+      val (_,a,b) = destBinaryOp impName tm
     in
       (a,b)
     end;
@@ -257,12 +244,12 @@ val mkConj =
     let
       val conjTy = mkFun (boolType, mkFun (boolType,boolType))
     in
-      fn (a,b) => mkBinop conjName (conjTy,a,b)
+      fn (a,b) => mkBinaryOp conjName (conjTy,a,b)
     end;
 
 fun destConj tm =
     let
-      val (_,a,b) = destBinop conjName tm
+      val (_,a,b) = destBinaryOp conjName tm
     in
       (a,b)
     end;
@@ -291,12 +278,12 @@ val mkDisj =
     let
       val disjTy = mkFun (boolType, mkFun (boolType,boolType))
     in
-      fn (a,b) => mkBinop disjName (disjTy,a,b)
+      fn (a,b) => mkBinaryOp disjName (disjTy,a,b)
     end;
 
 fun destDisj tm =
     let
-      val (_,a,b) = destBinop disjName tm
+      val (_,a,b) = destBinaryOp disjName tm
     in
       (a,b)
     end;
@@ -329,12 +316,12 @@ fun mkForall (v,b) =
     let
       val vTy = Var.typeOf v
     in
-      mkComb (mkConst (forallName, forallType vTy), mkAbs (v,b))
+      mkApp (mkConst (forallName, forallType vTy), mkAbs (v,b))
     end;
 
 fun destForall tm =
     let
-      val (c,t) = destComb tm
+      val (c,t) = destApp tm
       val _ = Name.equal (fst (destConst c)) forallName orelse
               raise Error "destForall"
     in
@@ -366,12 +353,12 @@ fun mkExists (v,b) =
     let
       val vTy = Var.typeOf v
     in
-      mkComb (mkConst (existsName, existsType vTy), mkAbs (v,b))
+      mkApp (mkConst (existsName, existsType vTy), mkAbs (v,b))
     end;
 
 fun destExists tm =
     let
-      val (c,t) = destComb tm
+      val (c,t) = destApp tm
       val _ = Name.equal (fst (destConst c)) existsName orelse
               raise Error "destExists"
     in
@@ -403,12 +390,12 @@ fun mkExistsUnique (v,b) =
     let
       val vTy = Var.typeOf v
     in
-      mkComb (mkConst (existsUniqueName, existsUniqueType vTy), mkAbs (v,b))
+      mkApp (mkConst (existsUniqueName, existsUniqueType vTy), mkAbs (v,b))
     end;
 
 fun destExistsUnique tm =
     let
-      val (c,t) = destComb tm
+      val (c,t) = destApp tm
       val _ = Name.equal (fst (destConst c)) existsUniqueName orelse
               raise Error "destExistsUnique"
     in
@@ -448,12 +435,12 @@ fun mkSelect (v_b as (v,b)) =
     let
       val vTy = Var.typeOf v
     in
-      mkComb (mkConst (selectName, selectType vTy), mkAbs v_b)
+      mkApp (mkConst (selectName, selectType vTy), mkAbs v_b)
     end;
 
 fun destSelect tm =
     let
-      val (_,t) = destUnop selectName tm
+      val (_,t) = destUnaryOp selectName tm
     in
       destAbs t
     end;

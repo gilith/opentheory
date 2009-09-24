@@ -82,6 +82,27 @@ fun destApp tm = destApp' (dest tm);
 
 val isApp = can destApp;
 
+fun rator tm = fst (destApp tm);
+
+fun rand tm = snd (destApp tm);
+
+fun land tm = rand (rator tm);
+
+local
+  fun mk (x,tm) = mkApp (tm,x);
+in
+  fun listMkApp (tm,xs) = List.foldl mk tm xs;
+end;
+
+local
+  fun strip acc tm =
+      case total destApp tm of
+        NONE => (tm,acc)
+      | SOME (tm,x) => strip (x :: acc) tm;
+in
+  val stripApp = strip [];
+end;
+
 (* Lambda abstractions *)
 
 fun mkAbs' v_b = TypeTerm.Abs' v_b;
@@ -98,6 +119,17 @@ fun mkAbs v_b = mk (mkAbs' v_b);
 fun destAbs tm = destAbs' (dest tm);
 
 val isAbs = can destAbs;
+
+fun listMkAbs (vs,tm) = List.foldl mkAbs tm (rev vs);
+
+local
+  fun strip acc tm =
+      case total destAbs tm of
+        NONE => (rev acc, tm)
+      | SOME (v,tm) => strip (v :: acc) tm;
+in
+  val stripAbs = strip [];
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Term IDs.                                                                 *)
@@ -585,6 +617,10 @@ fun destEq tm =
     end;
 
 val isEq = can destEq;
+
+fun lhs tm = fst (destEq tm);
+
+fun rhs tm = snd (destEq tm);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

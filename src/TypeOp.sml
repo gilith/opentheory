@@ -16,7 +16,6 @@ type typeOp = TypeTerm.opTy;
 
 type typeOpData =
      {name : Name.name,
-      arity : int,
       prov : TypeTerm.provOpTy};
 
 val mk = TypeTerm.OpTy;
@@ -29,17 +28,14 @@ fun dest (TypeTerm.OpTy data) = data;
 
 val name = TypeTerm.nameOpTy;
 
-val arity = TypeTerm.arityOpTy;
-
 val prov = TypeTerm.provOpTy;
 
-fun mkUndef {name,arity} =
+fun mkUndef name =
     let
       val prov = TypeTerm.UndefProvOpTy
     in
       mk
         {name = name,
-         arity = arity,
          prov = prov}
     end;
 

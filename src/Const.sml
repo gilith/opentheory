@@ -30,6 +30,15 @@ val name = TypeTerm.nameConst;
 
 val prov = TypeTerm.provConst;
 
+fun mkUndef name =
+    let
+      val prov = TypeTerm.UndefProvConst
+    in
+      mk
+        {name = name,
+         prov = prov}
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
