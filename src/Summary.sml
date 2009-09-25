@@ -6,7 +6,7 @@
 structure Summary :> Summary =
 struct
 
-open Useful Syntax;
+open Useful;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of article summary.                                                *)

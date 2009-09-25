@@ -14,10 +14,10 @@ open Useful;
 
 fun trans th1 th2 =
     let
-      val tm = rator (concl th1)
-      val th3 = comb (refl tm) th2
+      val tm = Term.rator (Thm.concl th1)
+      val th3 = Thm.comb (Thm.refl tm) th2
     in
-      eqMp th3 th1
+      Thm.eqMp th3 th1
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -26,31 +26,35 @@ fun trans th1 th2 =
 
 fun alpha seq th =
     let
-      val dealpha = TermSet.fromList o TermAlphaSet.toList
+      fun dealpha s = TermSet.fromList (TermAlphaSet.toList s)
 
-      fun norm th = (dealpha (hyp th), th)
+      fun norm th = (dealpha (Thm.hyp th), th)
 
       fun check (t,(ts,th)) =
           if TermSet.member t ts then (ts,th)
           else
             let
-              val th0 = assume t
-              val th1 = deductAntisym th0 th
-              val th = eqMp th1 th0
+              val th0 = Thm.assume t
+              val th1 = Thm.deductAntisym th0 th
+              val th = Thm.eqMp th1 th0
             in
               norm th
             end
 
 (*OpenTheoryTrace5
-      val _ = Print.trace ppSequent "seq" seq
-      val _ = Print.trace ppThm "th" th
+      val _ = Print.trace Sequent.pp "seq" seq
+      val _ = Print.trace Thm.pp "th" th
 *)
-      val {concl = c, hyp = h} = seq
-      val th = if Term.equal c (concl th) then th else eqMp (refl c) th
+      val Sequent.Sequent {concl = c, hyp = h} = seq
+
+      val th = if Term.equal c (Thm.concl th) then th
+               else Thm.eqMp (Thm.refl c) th
+
       val (_,th) = TermAlphaSet.foldl check (norm th) h
-      val _ = Term.equal (concl th) c orelse
+
+      val _ = Term.equal (Thm.concl th) c orelse
               raise Error "concl is wrong"
-      val _ = TermSet.equal (dealpha h) (dealpha (hyp th)) orelse
+      val _ = TermSet.equal (dealpha h) (dealpha (Thm.hyp th)) orelse
               raise Error "hyp is wrong"
     in
       th
