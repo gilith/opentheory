@@ -18,25 +18,24 @@ val destNullaryOp : Const.const -> Term.term -> Type.ty
 
 (* Unary operators *)
 
-val mkUnaryOp : Const.const -> Type.ty * Term.term -> Term.term
+val mkUnaryOp : Const.const -> Term.term * Type.ty -> Term.term
 
-val destUnaryOp : Const.const -> Term.term -> Type.ty * Term.term
+val destUnaryOp : Const.const -> Term.term -> Term.term * Type.ty
 
 val listMkUnaryOp : Const.const -> Type.ty -> int * Term.term -> Term.term
 
-val stripUnaryOp : Const.const -> Type.ty -> Term.term -> int * Term.term
+val stripUnaryOp : Const.const -> Term.term -> int * Term.term
 
 (* Binary operators *)
 
-val mkBinaryOp : Const.const -> Type.ty * Term.term * Term.term -> Term.term
+val mkBinaryOp : Const.const -> Term.term * Term.term * Type.ty -> Term.term
 
-val destBinaryOp : Const.const -> Term.term -> Type.ty * Term.term * Term.term
+val destBinaryOp : Const.const -> Term.term -> Term.term * Term.term * Type.ty
 
 val listMkBinaryOp :
     Const.const -> Type.ty -> Term.term * Term.term list -> Term.term
 
-val stripBinaryOp :
-    Const.const -> Type.ty -> Term.term -> Term.term * Term.term list
+val stripBinaryOp : Const.const -> Term.term -> Term.term * Term.term list
 
 (* Quantifiers *)
 
@@ -44,7 +43,8 @@ val mkQuant : Const.const -> Var.var * Term.term * Type.ty -> Term.term
 
 val destQuant : Const.const -> Term.term -> Var.var * Term.term * Type.ty
 
-val listMkQuant : Const.const -> Var.var list * Term.term -> Term.term
+val listMkQuant :
+    Const.const -> Type.ty -> Var.var list * Term.term -> Term.term
 
 val stripQuant : Const.const -> Term.term -> Var.var list * Term.term
 
@@ -84,6 +84,8 @@ val constNeg : Symbol.symbol -> Const.const
 
 val tyNeg : Type.ty
 
+val termNeg : Symbol.symbol -> Term.term
+
 val mkNeg : Symbol.symbol -> Term.term -> Term.term
 
 val destNeg : Symbol.symbol -> Term.term -> Term.term
@@ -102,6 +104,8 @@ val constImp : Symbol.symbol -> Const.const
 
 val tyImp : Type.ty
 
+val termImp : Symbol.symbol -> Term.term
+
 val mkImp : Symbol.symbol -> Term.term * Term.term -> Term.term
 
 val destImp : Symbol.symbol -> Term.term -> Term.term * Term.term
@@ -114,27 +118,43 @@ val stripImp : Symbol.symbol -> Term.term -> Term.term list * Term.term
 
 (* Conjunctions *)
 
-val mkConj : Term.term * Term.term -> Term.term
+val nameConj : Name.name
 
-val destConj : Term.term -> Term.term * Term.term
+val constConj : Symbol.symbol -> Const.const
 
-val isConj : Term.term -> bool
+val tyConj : Type.ty
 
-val listMkConj : Term.term list -> Term.term
+val termConj : Symbol.symbol -> Term.term
 
-val stripConj : Term.term -> Term.term list
+val mkConj : Symbol.symbol -> Term.term * Term.term -> Term.term
+
+val destConj : Symbol.symbol -> Term.term -> Term.term * Term.term
+
+val isConj : Symbol.symbol -> Term.term -> bool
+
+val listMkConj : Symbol.symbol -> Term.term list -> Term.term
+
+val stripConj : Symbol.symbol -> Term.term -> Term.term list
 
 (* Disjunctions *)
 
-val mkDisj : Term.term * Term.term -> Term.term
+val nameDisj : Name.name
 
-val destDisj : Term.term -> Term.term * Term.term
+val constDisj : Symbol.symbol -> Const.const
 
-val isDisj : Term.term -> bool
+val tyDisj : Type.ty
 
-val listMkDisj : Term.term list -> Term.term
+val termDisj : Symbol.symbol -> Term.term
 
-val stripDisj : Term.term -> Term.term list
+val mkDisj : Symbol.symbol -> Term.term * Term.term -> Term.term
+
+val destDisj : Symbol.symbol -> Term.term -> Term.term * Term.term
+
+val isDisj : Symbol.symbol -> Term.term -> bool
+
+val listMkDisj : Symbol.symbol -> Term.term list -> Term.term
+
+val stripDisj : Symbol.symbol -> Term.term -> Term.term list
 
 (* ------------------------------------------------------------------------- *)
 (* Quantifiers.                                                              *)
@@ -142,51 +162,63 @@ val stripDisj : Term.term -> Term.term list
 
 (* Universal quantifiers *)
 
-val mkForall : Var.var * Term.term -> Term.term
+val nameForall : Name.name
 
-val destForall : Term.term -> Var.var * Term.term
+val constForall : Symbol.symbol -> Const.const
 
-val isForall : Term.term -> bool
+val mkForall : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val listMkForall : Var.var list * Term.term -> Term.term
+val destForall : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val stripForall : Term.term -> Var.var list * Term.term
+val isForall : Symbol.symbol -> Term.term -> bool
+
+val listMkForall : Symbol.symbol -> Var.var list * Term.term -> Term.term
+
+val stripForall : Symbol.symbol -> Term.term -> Var.var list * Term.term
 
 (* Existential quantifiers *)
 
-val mkExists : Var.var * Term.term -> Term.term
+val nameExists : Name.name
 
-val destExists : Term.term -> Var.var * Term.term
+val constExists : Symbol.symbol -> Const.const
 
-val isExists : Term.term -> bool
+val mkExists : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val listMkExists : Var.var list * Term.term -> Term.term
+val destExists : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val stripExists : Term.term -> Var.var list * Term.term
+val isExists : Symbol.symbol -> Term.term -> bool
+
+val listMkExists : Symbol.symbol -> Var.var list * Term.term -> Term.term
+
+val stripExists : Symbol.symbol -> Term.term -> Var.var list * Term.term
 
 (* Unique existential quantifiers *)
 
-val mkExistsUnique : Var.var * Term.term -> Term.term
+val nameExistsUnique : Name.name
 
-val destExistsUnique : Term.term -> Var.var * Term.term
+val constExistsUnique : Symbol.symbol -> Const.const
 
-val isExistsUnique : Term.term -> bool
+val mkExistsUnique : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val listMkExistsUnique : Var.var list * Term.term -> Term.term
+val destExistsUnique : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val stripExistsUnique : Term.term -> Var.var list * Term.term
+val isExistsUnique : Symbol.symbol -> Term.term -> bool
+
+val listMkExistsUnique : Symbol.symbol -> Var.var list * Term.term -> Term.term
+
+val stripExistsUnique : Symbol.symbol -> Term.term -> Var.var list * Term.term
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
-val selectType : Type.ty -> Type.ty
+val nameSelect : Name.name
 
-val selectTerm : Term.term
+val constSelect : Symbol.symbol -> Const.const
 
-val mkSelect : Var.var * Term.term -> Term.term
+val mkSelect : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val destSelect : Term.term -> Var.var * Term.term
+val destSelect : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val isSelect : Term.term -> bool
+val isSelect : Symbol.symbol -> Term.term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* The type of individuals.                                                  *)
