@@ -35,19 +35,9 @@ fun sequent th =
       s
     end;
 
-fun hyp th =
-    let
-      val Sequent.Sequent {hyp = h, ...} = sequent th
-    in
-      h
-    end;
+fun hyp th = Sequent.hyp (sequent th);
 
-fun concl th =
-    let
-      val Sequent.Sequent {concl = c, ...} = sequent th
-    in
-      c
-    end;
+fun concl th = Sequent.concl (sequent th);
 
 (* ------------------------------------------------------------------------- *)
 (* A total order on theorems modulo alpha equivalence.                       *)

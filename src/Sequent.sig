@@ -15,6 +15,10 @@ datatype sequent =
       {hyp : TermAlphaSet.set,
        concl : Term.term}
 
+val hyp : sequent -> TermAlphaSet.set
+
+val concl : sequent -> Term.term
+
 (* ------------------------------------------------------------------------- *)
 (* Checking the hypotheses and conclusion are of type bool.                  *)
 (* ------------------------------------------------------------------------- *)

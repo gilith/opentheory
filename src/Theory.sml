@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THEORIES OF HIGHER ORDER LOGIC                                            *)
-(* Copyright (c) 2004-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Theory :> Theory =
@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theories.                                                       *)
+(* A type of theory syntax.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 datatype theory =
@@ -20,6 +20,10 @@ datatype theory =
   | Load of {package : string};
 
 val empty = Block [];
+
+(* ------------------------------------------------------------------------- *)
+(* Compiling theories to articles.                                           *)
+(* ------------------------------------------------------------------------- *)
 
 local
   fun comp known int exp thy =

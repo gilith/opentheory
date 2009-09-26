@@ -17,6 +17,10 @@ datatype sequent =
       {hyp : TermAlphaSet.set,
        concl : Term.term}
 
+fun hyp (Sequent {hyp = x, ...}) = x;
+
+fun concl (Sequent {concl = x, ...}) = x;
+
 (* ------------------------------------------------------------------------- *)
 (* Checking the hypotheses and conclusion are of type bool.                  *)
 (* ------------------------------------------------------------------------- *)

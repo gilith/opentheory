@@ -10,10 +10,15 @@ sig
 (* Simulating primitive inference rules.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-type simulation =
-     {interpretation : Interpretation.interpretation,
-      input : Object.object,
-      target : Sequent.sequent} -> Thm.thm
+datatype simulationData =
+    SimulationData of
+      {interpretation : Interpretation.interpretation,
+       input : Object.object,
+       target : Sequent.sequent}
+
+type simulationResult = Thm.thm
+
+type simulation = simulationData -> simulationResult
 
 type simulations = simulation NameMap.map
 

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SIMULATING THE HOL LIGHT THEOREM PROVER                                   *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure HolLight :> HolLight =
@@ -48,9 +48,10 @@ fun substToSubst oins =
 (* Primitive rules of definition.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun newBasicDefinition _ seq _ =
+fun newBasicDefinition data =
     let
-      val {concl = tm, ...} : Sequent.sequent = seq
+      val ObjectRead.SimulationData {target,...} = data
+      val tm = Sequent.concl target
       val (c,t) = Term.destEq tm
       val (n,ty) = Term.destConst c
       val v = Var.Var (n,ty)
