@@ -26,6 +26,7 @@ val savable : article -> bool
 
 val appendTextFile :
     {known : article,
+     simulations : ObjectRead.simulations,
      interpretation : Interpretation.interpretation,
      filename : string} ->
     article -> article
@@ -33,6 +34,7 @@ val appendTextFile :
 val fromTextFile :
     {savable : bool,
      known : article,
+     simulations : ObjectRead.simulations,
      interpretation : Interpretation.interpretation,
      filename : string} ->
     article

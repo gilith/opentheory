@@ -1,10 +1,31 @@
 (* ========================================================================= *)
 (* READING OBJECTS FROM COMMANDS                                             *)
-(* Copyright (c) 2004-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature ObjectRead =
 sig
+
+(* ------------------------------------------------------------------------- *)
+(* Simulating primitive inference rules.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+type simulation =
+     {interpretation : Interpretation.interpretation,
+      input : Object.object,
+      target : Sequent.sequent} -> Thm.thm
+
+type simulations = simulation NameMap.map
+
+(* ------------------------------------------------------------------------- *)
+(* A type of parameters for reading objects from commands.                   *)
+(* ------------------------------------------------------------------------- *)
+
+type parameters =
+     {known : ObjectThms.thms,
+      simulations : simulations,
+      interpretation : Interpretation.interpretation,
+      savable : bool}
 
 (* ------------------------------------------------------------------------- *)
 (* A type of states for reading objects from commands.                       *)
@@ -12,7 +33,11 @@ sig
 
 type state
 
-val initial : ObjectThms.thms -> state
+val initial :
+    {parameters : parameters,
+     saved : ObjectThms.thms} -> state
+
+val parameters : state -> parameters
 
 val stack : state -> ObjectStack.stack
 
@@ -24,27 +49,14 @@ val saved : state -> ObjectThms.thms
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val execute :
-    {savable : bool,
-     known : ObjectThms.thms,
-     interpretation : Interpretation.interpretation} ->
-    Command.command -> state -> state
+val execute : Command.command -> state -> state
 
-val executeStream :
-    {savable : bool,
-     known : ObjectThms.thms,
-     interpretation : Interpretation.interpretation} ->
-    Command.command Stream.stream -> state -> state
+val executeStream : Command.command Stream.stream -> state -> state
 
 (* ------------------------------------------------------------------------- *)
 (* Executing text files.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val executeTextFile :
-    {savable : bool,
-     known : ObjectThms.thms,
-     interpretation : Interpretation.interpretation,
-     filename : string} ->
-    state -> state
+val executeTextFile : {filename : string} -> state -> state
 
 end

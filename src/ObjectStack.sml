@@ -42,6 +42,8 @@ fun topThms l =
 
 fun thms (Stack {thms = t, ...}) = topThms t;
 
+fun symbol stack = ObjectThms.symbol (thms stack);
+
 fun push stack obj =
     let
       val Stack {size,objects,thms,call} = stack

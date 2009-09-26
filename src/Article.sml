@@ -69,7 +69,7 @@ fun savable (Article {savable = x, ...}) = x;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun appendTextFile {known,interpretation,filename} article =
+fun appendTextFile {known,simulations,interpretation,filename} article =
     let
       val Article {savable = knownSavable, saved = knownSaved} = known
       and Article {savable, saved = initialSaved} = article
@@ -77,15 +77,18 @@ fun appendTextFile {known,interpretation,filename} article =
       val _ = not savable orelse knownSavable orelse
               raise Error "savable article cannot use unsavable known"
 
-      val state = ObjectRead.initial initialSaved
+      val parameters =
+          {known = knownSaved,
+           simulations = simulations,
+           interpretation = interpretation,
+           savable = savable}
 
       val state =
-          ObjectRead.executeTextFile
-            {savable = savable,
-             known = knownSaved,
-             interpretation = interpretation,
-             filename = filename}
-          state
+          ObjectRead.initial
+            {parameters = parameters,
+             saved = initialSaved}
+
+      val state = ObjectRead.executeTextFile {filename = filename} state
 
       val stack = ObjectRead.stack state
       and dict = ObjectRead.dict state
@@ -164,13 +167,14 @@ fun appendTextFile {known,interpretation,filename} article =
     end
     handle Error err => raise Error ("Article.appendTextFile: " ^ err);
 
-fun fromTextFile {savable,known,interpretation,filename} =
+fun fromTextFile {savable,known,simulations,interpretation,filename} =
     let
       val article = new {savable = savable}
 
       val article =
           appendTextFile
             {known = known,
+             simulations = simulations,
              interpretation = interpretation,
              filename = filename}
             article
@@ -185,7 +189,7 @@ fun toTextFile {article,filename} =
 
       val _ = savable orelse raise Error "unsavable"
 
-      val objs = ObjectThms.toObjectSet saved
+      val objs = ObjectThms.objects saved
     in
       ObjectWrite.toTextFile {filename = filename} objs
     end

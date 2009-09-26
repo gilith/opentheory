@@ -1,13 +1,13 @@
 (* ========================================================================= *)
-(* ARTICLE SUMMARIES                                                         *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* THEORY SUMMARIES                                                          *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Summary =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of article summary.                                                *)
+(* A type of theory summary.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 type summary

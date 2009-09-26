@@ -16,8 +16,11 @@ val namespace : Namespace.namespace
 (* Simulations.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val simulations :
-    (Interpretation.interpretation -> Sequent.sequent ->
-     Object.object -> Object.object) NameMap.map
+type simulation =
+     {interpretation : Interpretation.interpretation,
+      input : Object.object,
+      target : Sequent.sequent} -> Thm.thm
+
+val simulations : simulation NameMap.map
 
 end

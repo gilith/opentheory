@@ -337,6 +337,38 @@ end
 structure ThmOrdered =
 struct type t = Thm.thm val compare = Thm.compare end
 
-structure ThmSet = ElementSet (ThmOrdered);
+structure ThmSet =
+struct
+
+  local
+    structure S = ElementSet (ThmOrdered);
+  in
+    open S;
+  end;
+
+  fun splitThm (th,(req,prov)) =
+      let
+        val Thm.Thm {axioms,sequent} = Thm.dest th
+        val req = SequentSet.union req axioms
+        val prov = SequentSet.add prov sequent
+      in
+        (req,prov)
+      end;
+
+  val axioms =
+      let
+        fun add (th,acc) = SequentSet.union acc (Thm.axioms th)
+      in
+        foldl add SequentSet.empty
+      end;
+
+  val sequents =
+      let
+        fun add (th,acc) = SequentSet.add acc (Thm.sequent th)
+      in
+        foldl add SequentSet.empty
+      end;
+
+end
 
 structure ThmMap = KeyMap (ThmOrdered)

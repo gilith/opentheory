@@ -26,17 +26,25 @@ val peekTypeOp : symbol -> Name.name -> TypeOp.typeOp option
 
 val peekConst : symbol -> Name.name -> Const.const option
 
-val mkTypeOp : symbol -> Name.name -> TypeOp.typeOp
+val mkTypeOp : symbol list -> Name.name -> TypeOp.typeOp
 
-val mkConst : symbol -> Name.name -> Const.const
+val mkConst : symbol list -> Name.name -> Const.const
 
 (* ------------------------------------------------------------------------- *)
 (* Adding entries.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val addTypeOps : symbol -> TypeOpSet.set -> symbol
+val addTypeOp : symbol -> TypeOp.typeOp -> symbol
 
-val addConsts : symbol -> ConstSet.set -> symbol
+val addTypeOpSet : symbol -> TypeOpSet.set -> symbol
+
+val addConst : symbol -> Const.const -> symbol
+
+val addConstSet : symbol -> ConstSet.set -> symbol
+
+val addSequent : symbol -> Sequent.sequent -> symbol
+
+val addSequentSet : symbol -> SequentSet.set -> symbol
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

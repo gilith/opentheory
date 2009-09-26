@@ -30,6 +30,8 @@ val prov : const -> TypeTerm.provConst
 
 val mkUndef : Name.name -> const
 
+val isUndef : const -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)

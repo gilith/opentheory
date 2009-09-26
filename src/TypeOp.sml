@@ -39,6 +39,11 @@ fun mkUndef name =
          prov = prov}
     end;
 
+fun isUndef ot =
+    case prov ot of
+      TypeTerm.UndefProvOpTy => true
+    | _ => false;
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)

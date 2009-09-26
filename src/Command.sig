@@ -20,7 +20,7 @@ datatype command =
   | TypeOp
   | Var
   | Const
-  | Comb
+  | App
   | Abs
   | Thm
   | Call

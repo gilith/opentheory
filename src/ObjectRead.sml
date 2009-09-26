@@ -1,20 +1,25 @@
 (* ========================================================================= *)
 (* READING OBJECTS FROM COMMANDS                                             *)
-(* Copyright (c) 2004-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure ObjectRead :> ObjectRead =
 struct
 
-open Useful Syntax Rule;
+open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Simulating other theorem provers.                                         *)
+(* Simulating primitive inference rules.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val simulations = HolLight.simulations;
+type simulation =
+     {interpretation : Interpretation.interpretation,
+      input : Object.object,
+      target : Sequent.sequent} -> Thm.thm;
 
-fun simulate interpretation stack seq =
+type simulations = simulation NameMap.map;
+
+fun simulate simulations interpretation stack target =
     case ObjectStack.topCall stack of
       SOME obj =>
       let
@@ -24,30 +29,42 @@ fun simulate interpretation stack seq =
           NONE => NONE
         | SOME sim =>
           let
-            val a = ObjectProv.object a
+            val input = ObjectProv.object a
 
-            val r = sim interpretation seq a
+            val data =
+                {interpretation = interpretation,
+                 input = input,
+                 target = target}
 
-            val ths = Object.thms r
+            val result = total (Rule.alpha target o sim) data
+
+            val () =
+                if Option.isSome result then ()
+                else
+                  let
+                    val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
+
+                    val ppSeq = Print.ppOp2 " =" Print.ppString Sequent.pp
+                  in
+                    warn ("simulation failed: " ^ Name.toString f ^
+                          "\n" ^ Print.toString ppOb ("input",input) ^
+                          "\n" ^ Print.toString ppSeq ("target",target))
+                  end
           in
-            case first (total (alpha seq)) ths of
-              SOME th => SOME th
-            | NONE =>
-              let
-                val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
-
-                val ppSeq = Print.ppOp2 " =" Print.ppString ppSequent
-
-                val () = warn ("simulation failed: " ^ Name.toString f ^
-                               "\n" ^ Print.toString ppOb ("input",a) ^
-                               "\n" ^ Print.toString ppOb ("output",r) ^
-                               "\n" ^ Print.toString ppSeq ("target",seq))
-              in
-                NONE
-              end
+            result
           end
       end
     | _ => NONE;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of parameters for reading objects from commands.                   *)
+(* ------------------------------------------------------------------------- *)
+
+type parameters =
+     {simulations : simulations,
+      known : ObjectThms.thms,
+      interpretation : Interpretation.interpretation,
+      savable : bool};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of states for reading objects from commands.                       *)
@@ -55,15 +72,19 @@ fun simulate interpretation stack seq =
 
 datatype state =
     State of
-      {stack : ObjectStack.stack,
+      {parameters : parameters,
+       stack : ObjectStack.stack,
        dict : ObjectDict.dict,
        saved : ObjectThms.thms};
 
-fun initial saved =
+fun initial {parameters,saved} =
     State
-      {stack = ObjectStack.empty,
+      {parameters = parameters,
+       stack = ObjectStack.empty,
        dict = ObjectDict.empty,
        saved = saved};
+
+fun parameters (State {parameters = x, ...}) = x;
 
 fun stack (State {stack = x, ...}) = x;
 
@@ -75,16 +96,17 @@ fun saved (State {saved = x, ...}) = x;
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun execute {savable,known,interpretation} cmd state =
+fun execute cmd state =
     let
-      val State {stack,dict,saved} = state
+      val State {parameters,stack,dict,saved} = state
+      val {simulations,known,interpretation,savable} = parameters
     in
       case cmd of
       (* Numbers *)
 
         Command.Num i =>
         let
-          val ob = Object.Onum i
+          val ob = Object.Oint i
           and prov = ObjectProv.Pnull
           and call = if savable then ObjectStack.topCall stack else NONE
 
@@ -96,7 +118,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Names *)
@@ -115,7 +141,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Errors *)
@@ -134,7 +164,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Lists *)
@@ -153,7 +187,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.Cons =>
@@ -182,7 +220,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Types *)
@@ -205,7 +247,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.TypeOp =>
@@ -215,9 +261,17 @@ fun execute {savable,known,interpretation} cmd state =
           val obN = ObjectProv.object objN
           and obL = ObjectProv.object objL
 
-          val obN = Object.interpretType interpretation obN
+          val n = Object.destOname obN
+          val n = Interpretation.interpretType interpretation n
 
-          val ob = Object.mkOtypeOp (obN,obL)
+          val symbols =
+              [ObjectThms.symbol known,
+               ObjectThms.symbol saved,
+               ObjectStack.symbol stack]
+
+          val ot = Symbol.mkTypeOp symbols n
+
+          val ob = Object.mkOtypeOp (ot,obL)
           and prov = ObjectProv.Pnull
           and call = if savable then ObjectStack.topCall stack else NONE
 
@@ -229,7 +283,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Terms *)
@@ -253,7 +311,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.Const =>
@@ -263,9 +325,17 @@ fun execute {savable,known,interpretation} cmd state =
           val obN = ObjectProv.object objN
           and obT = ObjectProv.object objT
 
-          val obN = Object.interpretConst interpretation obN
+          val n = Object.destOname obN
+          val n = Interpretation.interpretConst interpretation n
 
-          val ob = Object.mkOtermConst (obN,obT)
+          val symbols =
+              [ObjectThms.symbol known,
+               ObjectThms.symbol saved,
+               ObjectStack.symbol stack]
+
+          val c = Symbol.mkConst symbols n
+
+          val ob = Object.mkOtermConst (c,obT)
           and prov = ObjectProv.Pnull
           and call = if savable then ObjectStack.topCall stack else NONE
 
@@ -277,17 +347,21 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
-      | Command.Comb =>
+      | Command.App =>
         let
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
           val obF = ObjectProv.object objF
           and obA = ObjectProv.object objA
 
-          val ob = Object.mkOtermComb (obF,obA)
+          val ob = Object.mkOtermApp (obF,obA)
           and prov = ObjectProv.Pnull
           and call = if savable then ObjectStack.topCall stack else NONE
 
@@ -299,7 +373,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.Abs =>
@@ -321,7 +399,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Theorems *)
@@ -334,8 +416,9 @@ fun execute {savable,known,interpretation} cmd state =
           and obC = ObjectProv.object objC
 
           val seq =
-              {hyp = TermAlphaSet.fromList (Object.destOterms obH),
-               concl = Object.destOterm obC}
+              Sequent.Sequent
+                {hyp = TermAlphaSet.fromList (Object.destOterms obH),
+                 concl = Object.destOterm obC}
 
           val (th,inf) =
               case ObjectThms.search known seq of
@@ -344,7 +427,7 @@ fun execute {savable,known,interpretation} cmd state =
                 case ObjectThms.search saved seq of
                   SOME (th,objS) => (th, ObjectProv.Isaved objS)
                 | NONE =>
-                  case simulate interpretation stack seq of
+                  case simulate simulations interpretation stack seq of
                     SOME th => (th,ObjectProv.Isimulated)
                   | NONE =>
                     case ObjectStack.search stack seq of
@@ -355,7 +438,7 @@ fun execute {savable,known,interpretation} cmd state =
 (*OpenTheoryTrace1
                         val () = trace ("making new axiom in " ^
                                         ObjectStack.topCallToString stack ^
-                                        ":\n" ^ thmToString th ^ "\n")
+                                        ":\n" ^ Thm.toString th ^ "\n")
 *)
                       in
                         (th,ObjectProv.Iaxiom)
@@ -373,7 +456,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Function calls *)
@@ -422,7 +509,11 @@ fun execute {savable,known,interpretation} cmd state =
           val stack = ObjectStack.push stack obj
           val stack = ObjectStack.push stack objA
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.Return =>
@@ -477,7 +568,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* Dictionary *)
@@ -493,11 +588,15 @@ fun execute {savable,known,interpretation} cmd state =
           val _ = not (Object.isOcall obD) orelse
                   raise Error "cannot def an Ocall object"
 
-          val i = Object.destOnum obI
+          val i = Object.destOint obI
 
           val dict = ObjectDict.define dict (i,objD)
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.Ref =>
@@ -505,7 +604,7 @@ fun execute {savable,known,interpretation} cmd state =
           val (stack,objI) = ObjectStack.pop1 stack
 
           val obI = ObjectProv.object objI
-          val i = Object.destOnum obI
+          val i = Object.destOint obI
 
           val objD = ObjectDict.refer dict i
           val obD = ObjectProv.object objD
@@ -527,7 +626,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.Remove =>
@@ -535,7 +638,7 @@ fun execute {savable,known,interpretation} cmd state =
           val (stack,objI) = ObjectStack.pop1 stack
 
           val obI = ObjectProv.object objI
-          val i = Object.destOnum obI
+          val i = Object.destOint obI
 
           val (dict,objD) = ObjectDict.remove dict i
           val obD = ObjectProv.object objD
@@ -557,7 +660,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val stack = ObjectStack.push stack obj
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       (* General *)
@@ -566,7 +673,11 @@ fun execute {savable,known,interpretation} cmd state =
         let
           val stack = ObjectStack.pop stack 1
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
 
       | Command.Save =>
@@ -575,7 +686,11 @@ fun execute {savable,known,interpretation} cmd state =
 
           val saved = ObjectThms.add saved objT
         in
-          State {stack = stack, dict = dict, saved = saved}
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
         end
     end
     handle Error err =>
@@ -594,12 +709,11 @@ fun execute {savable,known,interpretation} cmd state =
         raise Error err
       end;
 
-fun executeStream data =
-    let
-      fun process (cmd,state) = execute data cmd state
-    in
-      fn strm => fn state => Stream.foldl process state strm
-    end;
+local
+  fun process (cmd,state) = execute cmd state;
+in
+  fun executeStream strm state = Stream.foldl process state strm;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Executing text files.                                                     *)
@@ -614,7 +728,7 @@ local
       | SOME #"#" => true
       | _ => false;
 in
-  fun executeTextFile {savable,known,interpretation,filename} state =
+  fun executeTextFile {filename} state =
       let
         (* Estimating parse error line numbers *)
 
@@ -632,13 +746,8 @@ in
            (* The command stream *)
 
            val commands = Parse.everything Command.spacedParser chars
-
-           val data =
-               {savable = savable,
-                known = known,
-                interpretation = interpretation}
          in
-           executeStream data commands state
+           executeStream commands state
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>

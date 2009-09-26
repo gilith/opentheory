@@ -24,6 +24,8 @@ val objects : stack -> ObjectProv.object list
 
 val thms : stack -> ObjectThms.thms
 
+val symbol : stack -> Symbol.symbol
+
 val push : stack -> ObjectProv.object -> stack
 
 val pop : stack -> int -> stack

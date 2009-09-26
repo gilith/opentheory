@@ -36,7 +36,7 @@ local
   fun storable ob =
       case ob of
         Object.Oerror => false
-      | Object.Onum _ => false
+      | Object.Oint _ => false
       | Object.Oname _ => false
       | Object.Olist l => not (null l)
       | Object.Otype _ => true

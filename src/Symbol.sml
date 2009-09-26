@@ -45,15 +45,25 @@ fun peekTypeOp (Symbol {opM,...}) n = NameMap.peek opM n;
 
 fun peekConst (Symbol {conM,...}) n = NameMap.peek conM n;
 
-fun mkTypeOp sym n =
-    case peekTypeOp sym n of
-      SOME t => t
-    | NONE => TypeOp.mkUndef n;
+fun mkTypeOp syms n =
+    let
+      fun peek sym = peekTypeOp sym n
+    in
+      case List.mapPartial peek syms of
+        [] => TypeOp.mkUndef n
+      | [t] => t
+      | _ :: _ :: _ => raise Error "Symbol.mkTypeOp: duplicate type names"
+    end;
 
-fun mkConst sym n =
-    case peekConst sym n of
-      SOME c => c
-    | NONE => Const.mkUndef n;
+fun mkConst syms n =
+    let
+      fun peek sym = peekConst sym n
+    in
+      case List.mapPartial peek syms of
+        [] => Const.mkUndef n
+      | [c] => c
+      | _ :: _ :: _ => raise Error "Symbol.mkConst: duplicate constant names"
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding entries.                                                           *)
@@ -71,7 +81,20 @@ local
           else raise Error "Symbol.addTypeOps: duplicate name"
       end;
 in
-  fun addTypeOps sym s =
+  fun addTypeOp sym ot =
+      let
+        val Symbol {opS,opM,conS,conM} = sym
+        val opM = add (ot,opM)
+        val opS = TypeOpSet.add opS ot
+      in
+        Symbol
+          {opS = opS,
+           opM = opM,
+           conS = conS,
+           conM = conM}
+      end;
+
+  fun addTypeOpSet sym s =
       let
         val Symbol {opS,opM,conS,conM} = sym
         val opM = TypeOpSet.foldl add opM s
@@ -97,7 +120,20 @@ local
           else raise Error "Symbol.addConsts: duplicate name"
       end;
 in
-  fun addConsts sym s =
+  fun addConst sym c =
+      let
+        val Symbol {opS,opM,conS,conM} = sym
+        val conM = add (c,conM)
+        val conS = ConstSet.add conS c
+      in
+        Symbol
+          {opS = opS,
+           opM = opM,
+           conS = conS,
+           conM = conM}
+      end;
+
+  fun addConstSet sym s =
       let
         val Symbol {opS,opM,conS,conM} = sym
         val conM = ConstSet.foldl add conM s
@@ -111,6 +147,22 @@ in
       end;
 end;
 
+fun addSequent sym seq =
+    let
+      val sym = addTypeOpSet sym (Sequent.typeOps seq)
+      val sym = addConstSet sym (Sequent.consts seq)
+    in
+      sym
+    end;
+
+fun addSequentSet sym seqs =
+    let
+      val sym = addTypeOpSet sym (SequentSet.typeOps seqs)
+      val sym = addConstSet sym (SequentSet.consts seqs)
+    in
+      sym
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -120,28 +172,22 @@ local
       let
         val ns = map fst (NameMap.toList nm)
       in
-        Print.blockProgram Print.Inconsistent 2
-          (Print.addString (name ^ ":") ::
-           map (Print.sequence (Print.addBreak 1) o Name.pp) ns)
+        if null ns then Print.skip
+        else
+          Print.sequence
+            (Print.blockProgram Print.Inconsistent 2
+               (Print.addString (name ^ ":") ::
+                map (Print.sequence (Print.addBreak 1) o Name.pp) ns))
+            Print.addNewline
       end;
-
-  fun ppSpacedNameMap isNull space name nm =
-      if isNull then Print.skip
-      else Print.sequence
-             (if space then Print.addNewline else Print.skip)
-             (ppNameMap (name,nm))
 in
-  fun pp (Symbol {opM,conM,...}) =
+  fun pp sym =
       let
-        val nullOpM = NameMap.null opM
-        and nullConM = NameMap.null conM
-
-        val spaceOpM = false
-        val spaceConM = not nullOpM
+        val Symbol {opM,conM,...} = sym
       in
         Print.blockProgram Print.Consistent 0
-          [ppSpacedNameMap nullOpM spaceOpM "types" opM,
-           ppSpacedNameMap nullConM spaceConM "consts" conM]
+          [ppNameMap ("types",opM),
+           ppNameMap ("consts",conM)]
       end;
 end;
 

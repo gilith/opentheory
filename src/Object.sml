@@ -1,12 +1,12 @@
 (* ========================================================================= *)
 (* OPENTHEORY OBJECTS                                                        *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Object :> Object =
 struct
 
-open Useful Syntax;
+open Useful;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of OpenTheory objects.                                             *)
@@ -14,13 +14,13 @@ open Useful Syntax;
 
 datatype object =
     Oerror
-  | Onum of int
-  | Oname of name
+  | Oint of int
+  | Oname of Name.name
   | Olist of object list
-  | Otype of ty
-  | Oterm of term
-  | Othm of thm
-  | Ocall of name;
+  | Otype of Type.ty
+  | Oterm of Term.term
+  | Othm of Thm.thm
+  | Ocall of Name.name;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -30,9 +30,9 @@ fun destOerror Oerror = ()
   | destOerror _ = raise Error "destOerror";
 val isOerror = can destOerror;
 
-fun destOnum (Onum n) = n
-  | destOnum _ = raise Error "destOnum";
-val isOnum = can destOnum;
+fun destOint (Oint n) = n
+  | destOint _ = raise Error "destOint";
+val isOint = can destOint;
 
 fun destOname (Oname n) = n
   | destOname _ = raise Error "destOname";
@@ -82,23 +82,34 @@ fun destOtypeVar (Otype ty) = Oname (Type.destVar ty)
   | destOtypeVar _ = raise Error "Object.destOtypeVar";
 val isOtypeVar = can destOtypeVar;
 
-fun mkOtypeOp (Oname n, tys) = Otype (Type.mkOp (n, destOtypes tys))
-  | mkOtypeOp _ = raise Error "Object.mkOtypeOp";
+fun mkOtypeOp (ot,tys) =
+    let
+      val tys = destOtypes tys
+    in
+      Otype (Type.mkOp (ot,tys))
+    end;
+
 fun destOtypeOp (Otype ty) =
     let
-      val (n,l) = Type.destOp ty
+      val (ot,l) = Type.destOp ty
     in
-      (Oname n, mkOtypes l)
+      (ot, mkOtypes l)
     end
   | destOtypeOp _ = raise Error "Object.destOtypeOp";
+
 val isOtypeOp = can destOtypeOp;
 
-fun mkOvar (Var.Var (n,ty)) = mkOpair (Oname n, Otype ty);
+fun mkOvar v =
+    let
+      val (n,ty) = Var.dest v
+    in
+      mkOpair (Oname n, Otype ty)
+    end;
 fun destOvar var =
     let
       val (n,ty) = destOpair var
     in
-      Var.Var (destOname n, destOtype ty)
+      Var.mk (destOname n, destOtype ty)
     end;
 val isOvar = can destOvar;
 
@@ -110,38 +121,41 @@ fun mkOterms tys = Olist (map Oterm tys);
 fun destOterms obj = map destOterm (destOlist obj);
 val isOterms = can destOterms;
 
-fun mkOtermVar (Oname n, Otype ty) = Oterm (Term.mkVar (Var.Var (n,ty)))
+fun mkOtermVar (Oname n, Otype ty) = Oterm (Term.mkVar (Var.mk (n,ty)))
   | mkOtermVar _ = raise Error "Object.mkOtermVar";
 fun destOtermVar (Oterm t) =
     let
-      val Var.Var (n,ty) = Term.destVar t
+      val v = Term.destVar t
+      val (n,ty) = Var.dest v
     in
       (Oname n, Otype ty)
     end
   | destOtermVar _ = raise Error "Object.destOtermVar";
 val isOtermVar = can destOtermVar;
 
-fun mkOtermConst (Oname n, Otype ty) = Oterm (Term.mkConst (n,ty))
-  | mkOtermConst _ = raise Error "Object.mkOtermConst";
+fun mkOtermConst (c,oty) =
+    case oty of
+      Otype ty => Oterm (Term.mkConst (c,ty))
+    | _ => raise Error "Object.mkOtermConst";
 fun destOtermConst (Oterm t) =
     let
-      val (n,ty) = Term.destConst t
+      val (c,ty) = Term.destConst t
     in
-      (Oname n, Otype ty)
+      (c, Otype ty)
     end
   | destOtermConst _ = raise Error "Object.destOtermConst";
 val isOtermConst = can destOtermConst;
 
-fun mkOtermComb (Oterm f, Oterm a) = Oterm (Term.mkComb (f,a))
-  | mkOtermComb _ = raise Error "Object.mkOtermComb";
-fun destOtermComb (Oterm t) =
+fun mkOtermApp (Oterm f, Oterm a) = Oterm (Term.mkApp (f,a))
+  | mkOtermApp _ = raise Error "Object.mkOtermApp";
+fun destOtermApp (Oterm t) =
     let
-      val (f,a) = Term.destComb t
+      val (f,a) = Term.destApp t
     in
       (Oterm f, Oterm a)
     end
-  | destOtermComb _ = raise Error "Object.destOtermComb";
-val isOtermComb = can destOtermComb;
+  | destOtermApp _ = raise Error "Object.destOtermApp";
+val isOtermApp = can destOtermApp;
 
 fun mkOtermAbs (Oterm v, Oterm b) = Oterm (Term.mkAbs (Term.destVar v, b))
   | mkOtermAbs _ = raise Error "Object.mkOtermAbs";
@@ -210,9 +224,9 @@ fun compare ob1_ob2 =
         (Oerror,Oerror) => EQUAL
       | (Oerror,_) => LESS
       | (_,Oerror) => GREATER
-      | (Onum n1, Onum n2) => Int.compare (n1,n2)
-      | (Onum _, _) => LESS
-      | (_, Onum _) => GREATER
+      | (Oint n1, Oint n2) => Int.compare (n1,n2)
+      | (Oint _, _) => LESS
+      | (_, Oint _) => GREATER
       | (Oname n1, Oname n2) => Name.compare (n1,n2)
       | (Oname _, _) => LESS
       | (_, Oname _) => GREATER
@@ -224,8 +238,8 @@ fun compare ob1_ob2 =
       | (_, Oterm _) => GREATER
       | (Othm th1, Othm th2) =>
         let
-          val {hyp = h1, concl = c1} = sequent th1
-          and {hyp = h2, concl = c2} = sequent th2
+          val Sequent.Sequent {hyp = h1, concl = c1} = Thm.sequent th1
+          and Sequent.Sequent {hyp = h2, concl = c2} = Thm.sequent th2
         in
           case Term.compare (c1,c2) of
             LESS => LESS
@@ -238,25 +252,6 @@ fun compare ob1_ob2 =
       | (Olist _, _) => LESS
       | (_, Olist _) => GREATER
       | (Ocall n1, Ocall n2) => Name.compare (n1,n2);
-
-(* ------------------------------------------------------------------------- *)
-(* Lifting interpretations to Oname objects.                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun interpretType int obj =
-    case obj of
-      Oname n => Oname (Interpretation.interpretType int n)
-    | _ => raise Error "Object.interpretType: not an Oname object";
-
-fun interpretConst int obj =
-    case obj of
-      Oname n => Oname (Interpretation.interpretConst int n)
-    | _ => raise Error "Object.interpretConst: not an Oname object";
-
-fun interpretRule int obj =
-    case obj of
-      Oname n => Oname (Interpretation.interpretRule int n)
-    | _ => raise Error "Object.interpretRule: not an Oname object";
 
 (* ------------------------------------------------------------------------- *)
 (* Extracting the theorems stored in an object.                              *)
@@ -279,7 +274,7 @@ val thms =
 fun toCommand ob =
     case ob of
       Oerror => (Command.Error,[])
-    | Onum i => (Command.Num i, [])
+    | Oint i => (Command.Num i, [])
     | Oname n => (Command.Name n, [])
     | Olist l =>
       (case l of
@@ -287,22 +282,22 @@ fun toCommand ob =
        | h :: t => (Command.Cons, [h, Olist t]))
     | Otype ty =>
       (case Type.dest ty of
-         Type.TypeVar n => (Command.TypeVar, [Oname n])
-       | Type.TypeOp (n,tys) =>
-         (Command.TypeOp, [Oname n, mkOtypes tys]))
+         TypeTerm.VarTy' n => (Command.TypeVar, [Oname n])
+       | TypeTerm.OpTy' (ot,tys) =>
+         (Command.TypeOp, [Oname (TypeOp.name ot), mkOtypes tys]))
     | Oterm tm =>
       (case Term.dest tm of
-         Term.Const (n,ty) =>
-         (Command.Const, [Oname n, Otype ty])
-       | Term.Var (Var.Var (n,ty)) =>
+         TypeTerm.Const' (c,ty) =>
+         (Command.Const, [Oname (Const.name c), Otype ty])
+       | TypeTerm.Var' (TypeTerm.Var (n,ty)) =>
          (Command.Var, [Oname n, Otype ty])
-       | Term.Comb (f,a) =>
-         (Command.Comb, [Oterm f, Oterm a])
-       | Term.Abs (v,b) =>
+       | TypeTerm.App' (f,a) =>
+         (Command.App, [Oterm f, Oterm a])
+       | TypeTerm.Abs' (v,b) =>
          (Command.Abs, [Oterm (Term.mkVar v), Oterm b]))
     | Othm th =>
       let
-        val {hyp,concl} = sequent th
+        val Sequent.Sequent {hyp,concl} = Thm.sequent th
         val hyp = TermAlphaSet.toList hyp
       in
         (Command.Thm, [mkOterms hyp, Oterm concl])
@@ -316,11 +311,11 @@ fun toCommand ob =
 fun pp ob =
     case ob of
       Oerror => Print.ppString "ERROR"
-    | Onum n => Print.ppInt n
+    | Oint n => Print.ppInt n
     | Oname s => Name.ppQuoted s
-    | Otype ty => ppType ty
-    | Oterm tm => ppTerm tm
-    | Othm th => ppThm th
+    | Otype ty => Type.pp ty
+    | Oterm tm => Term.pp tm
+    | Othm th => Thm.pp th
     | Olist l => Print.ppList pp l
     | Ocall f => Print.ppBracket "<" ">" Name.pp f;
 

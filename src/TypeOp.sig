@@ -30,6 +30,8 @@ val prov : typeOp -> TypeTerm.provOpTy
 
 val mkUndef : Name.name -> typeOp
 
+val isUndef : typeOp -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)

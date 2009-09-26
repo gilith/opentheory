@@ -31,7 +31,7 @@ datatype command =
   | TypeOp
   | Var
   | Const
-  | Comb
+  | App
   | Abs
   | Thm
   | Call
@@ -57,7 +57,7 @@ fun pp cmd =
     | TypeOp => Print.ppString "type_op"
     | Var => Print.ppString "var"
     | Const => Print.ppString "const"
-    | Comb => Print.ppString "comb"
+    | App => Print.ppString "app"
     | Abs => Print.ppString "abs"
     | Thm => Print.ppString "thm"
     | Call => Print.ppString "call"
@@ -103,7 +103,7 @@ in
       commandParser "const" Const ||
       commandParser "error" Error ||
       commandParser "call" Call ||
-      commandParser "comb" Comb ||
+      commandParser "app" App ||
       commandParser "cons" Cons ||
       commandParser "save" Save ||
       commandParser "abs" Abs ||

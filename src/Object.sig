@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* OPENTHEORY OBJECTS                                                        *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Object =
@@ -12,7 +12,7 @@ sig
 
 datatype object =
     Oerror
-  | Onum of int
+  | Oint of int
   | Oname of Name.name
   | Olist of object list
   | Otype of Type.ty
@@ -27,8 +27,8 @@ datatype object =
 val destOerror : object -> unit
 val isOerror : object -> bool
 
-val destOnum : object -> int
-val isOnum : object -> bool
+val destOint : object -> int
+val isOint : object -> bool
 
 val destOname : object -> Name.name
 val isOname : object -> bool
@@ -66,8 +66,8 @@ val mkOtypeVar : object -> object
 val destOtypeVar : object -> object
 val isOtypeVar : object -> bool
 
-val mkOtypeOp : object * object -> object
-val destOtypeOp : object -> object * object
+val mkOtypeOp : TypeOp.typeOp * object -> object
+val destOtypeOp : object -> TypeOp.typeOp * object
 val isOtypeOp : object -> bool
 
 val mkOvar : Var.var -> object
@@ -85,13 +85,13 @@ val mkOtermVar : object * object -> object
 val destOtermVar : object -> object * object
 val isOtermVar : object -> bool
 
-val mkOtermConst : object * object -> object
-val destOtermConst : object -> object * object
+val mkOtermConst : Const.const * object -> object
+val destOtermConst : object -> Const.const * object
 val isOtermConst : object -> bool
 
-val mkOtermComb : object * object -> object
-val destOtermComb : object -> object * object
-val isOtermComb : object -> bool
+val mkOtermApp : object * object -> object
+val destOtermApp : object -> object * object
+val isOtermApp : object -> bool
 
 val mkOtermAbs : object * object -> object
 val destOtermAbs : object -> object * object
@@ -108,16 +108,6 @@ val isOcall : object -> bool
 (* ------------------------------------------------------------------------- *)
 
 val compare : object * object -> order
-
-(* ------------------------------------------------------------------------- *)
-(* Lifting interpretations to Oname objects.                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val interpretType : Interpretation.interpretation -> object -> object
-
-val interpretConst : Interpretation.interpretation -> object -> object
-
-val interpretRule : Interpretation.interpretation -> object -> object
 
 (* ------------------------------------------------------------------------- *)
 (* Extracting the theorems stored in an object.                              *)
