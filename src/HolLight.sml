@@ -52,60 +52,64 @@ fun newBasicDefinition data =
     let
       val ObjectRead.SimulationData {target,...} = data
       val tm = Sequent.concl target
-      val (c,t) = Term.destEq tm
-      val (n,ty) = Term.destConst c
-      val v = Var.Var (n,ty)
-      val tm = Term.mkEq (Term.mkVar v, t)
+      val (t,def) = Term.destEq tm
+      val (c,_) = Term.destConst t
+      val n = Const.name c
     in
-      Object.Othm (Rule.define tm)
+      Thm.defineConst n def
     end
     handle Error err =>
       raise Error ("HolLight.newBasicDefinition failed:\n" ^ err);
 
-fun newBasicTypeDefinition _ seq arg =
+fun newBasicTypeDefinition data =
     let
-      val (abs,rep) =
+      val ObjectRead.SimulationData {input,target,...} = data
+
+      val (isAbsRepTh,abs,rep) =
           let
-            val {concl = tm,...} = seq
-            val (l,r) = Term.destEq tm
+            val (l,r) = Term.destEq (Sequent.concl target)
           in
             case total Term.destEq r of
               SOME (t,_) =>
               let
-                val (rep,t) = Term.destComb t
-                val (abs,_) = Term.destComb t
+                val (rep,t) = Term.destApp t
+                val (abs,_) = Term.destApp t
               in
-                (abs,rep)
+                (false,abs,rep)
               end
             | NONE =>
               let
-                val (abs,t) = Term.destComb l
-                val (rep,_) = Term.destComb t
+                val (abs,t) = Term.destApp l
+                val (rep,_) = Term.destApp t
               in
-                (abs,rep)
+                (true,abs,rep)
               end
           end
 
       val (abs,absTy) = Term.destConst abs
       and (rep,_) = Term.destConst rep
 
+      val abs = Const.name abs
+      and rep = Const.name rep
+
       val name =
           let
             val (_,ty) = Type.destFun absTy
-            val (name,_) = Type.destOp ty
+            val (ot,_) = Type.destOp ty
           in
-            name
+            TypeOp.name ot
           end
 
-      val (_,_,nonEmptyTh) = Object.destOtriple arg
+      val (_,_,nonEmptyTh) = Object.destOtriple input
       val nonEmptyTh = Object.destOthm nonEmptyTh
 
-      val tyVars = NameSet.toList (Term.typeVars (Syntax.concl nonEmptyTh))
+      val (pTm,_) = Term.destApp (Thm.concl nonEmptyTh)
+      val tyVars = NameSet.toList (Term.typeVars pTm)
 
       val (absRepTh,repAbsTh) =
-          Rule.defineType name {abs = abs, rep = rep} tyVars nonEmptyTh
+          Thm.defineTypeOp name {abs = abs, rep = rep} tyVars nonEmptyTh
     in
-      Object.mkOpair (Object.Othm absRepTh, Object.Othm repAbsTh)
+      if isAbsRepTh then absRepTh else repAbsTh
     end
     handle Error err =>
       raise Error ("HolLight.newBasicTypeDefinition failed:\n" ^ err);
@@ -114,73 +118,95 @@ fun newBasicTypeDefinition _ seq arg =
 (* Primitive rules of inference.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun abs _ _ arg =
+fun abs data =
     let
-      val (otm,oth) = Object.destOpair arg
+      val ObjectRead.SimulationData {input,...} = data
+      val (otm,oth) = Object.destOpair input
       val v = Term.destVar (Object.destOterm otm)
       val th = Object.destOthm oth
     in
-      Object.Othm (Rule.abs v th)
+      Thm.abs v th
     end;
 
-fun assume _ _ arg = Object.Othm (Rule.assume (Object.destOterm arg));
-
-fun beta _ _ arg = Object.Othm (Rule.betaConv (Object.destOterm arg));
-
-fun deductAntisymRule _ _ arg =
+fun assume data =
     let
-      val (oth1,oth2) = Object.destOpair arg
+      val ObjectRead.SimulationData {input,...} = data
+    in
+      Thm.assume (Object.destOterm input)
+    end;
+
+fun beta data =
+    let
+      val ObjectRead.SimulationData {input,...} = data
+    in
+      Thm.betaConv (Object.destOterm input)
+    end;
+
+fun deductAntisymRule data =
+    let
+      val ObjectRead.SimulationData {input,...} = data
+      val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
     in
-      Object.Othm (Rule.deductAntisym th1 th2)
+      Thm.deductAntisym th1 th2
     end;
 
-fun eqMp _ _ arg =
+fun eqMp data =
     let
-      val (oth1,oth2) = Object.destOpair arg
+      val ObjectRead.SimulationData {input,...} = data
+      val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
     in
-      Object.Othm (Rule.eqMp th1 th2)
+      Thm.eqMp th1 th2
     end;
 
-fun inst _ _ arg =
+fun inst data =
     let
-      val (oins,oth) = Object.destOpair arg
+      val ObjectRead.SimulationData {input,...} = data
+      val (oins,oth) = Object.destOpair input
       val ins = substToSubst oins
       val th = Object.destOthm oth
     in
-      Object.Othm (Rule.subst ins th)
+      Thm.subst ins th
     end;
 
-fun instType _ _ arg =
+fun instType data =
     let
-      val (oins,oth) = Object.destOpair arg
+      val ObjectRead.SimulationData {input,...} = data
+      val (oins,oth) = Object.destOpair input
       val ins = typeSubstToSubst oins
       val th = Object.destOthm oth
     in
-      Object.Othm (Rule.subst ins th)
+      Thm.subst ins th
     end;
 
-fun mkComb _ _ arg =
+fun mkComb data =
     let
-      val (oth1,oth2) = Object.destOpair arg
+      val ObjectRead.SimulationData {input,...} = data
+      val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
     in
-      Object.Othm (Rule.comb th1 th2)
+      Thm.app th1 th2
     end;
 
-fun refl _ _ arg = Object.Othm (Rule.refl (Object.destOterm arg));
-
-fun trans _ _ arg =
+fun refl data =
     let
-      val (oth1,oth2) = Object.destOpair arg
+      val ObjectRead.SimulationData {input,...} = data
+    in
+      Thm.refl (Object.destOterm input)
+    end;
+
+fun trans data =
+    let
+      val ObjectRead.SimulationData {input,...} = data
+      val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
     in
-      Object.Othm (Rule.trans th1 th2)
+      Rule.trans th1 th2
     end;
 
 (* ------------------------------------------------------------------------- *)

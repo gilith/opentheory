@@ -187,7 +187,7 @@ in
       end;
 end;
 
-fun comb th1 th2 =
+fun app th1 th2 =
     let
       val Thm {axioms = a1, sequent = s1, ...} = th1
       and Thm {axioms = a2, sequent = s2, ...} = th2

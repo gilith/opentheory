@@ -15,7 +15,7 @@ open Useful;
 fun trans th1 th2 =
     let
       val tm = Term.rator (Thm.concl th1)
-      val th3 = Thm.comb (Thm.refl tm) th2
+      val th3 = Thm.app (Thm.refl tm) th2
     in
       Thm.eqMp th3 th1
     end;

@@ -102,13 +102,13 @@ val subst : TermSubst.subst -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*   A |- f = g    B |- x = y                                                *)
-(* ----------------------------  comb                                        *)
+(* ----------------------------  app                                         *)
 (*      A u B |- f x = g y                                                   *)
 (*                                                                           *)
 (* Side condition: the types of f and x must be compatible.                  *)
 (* ------------------------------------------------------------------------- *)
 
-val comb : thm -> thm -> thm
+val app : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
@@ -124,10 +124,10 @@ val refl : Term.term -> thm
 (* ---------------  defineConst name t                                       *)
 (*   |- name = t                                                             *)
 (*                                                                           *)
-(* where name is a new constant with the same type as the variable v.        *)
+(* where name is a new constant with the same type as the term t.            *)
 (*                                                                           *)
-(* Side conditions: name is not an existing constant, t has no free          *)
-(* variables, and all type variables in t also appear in the type of t.      *)
+(* Side conditions: t has no free variables, and all type variables in t     *)
+(* also appear in the type of t.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 val defineConst : Name.name -> Term.term -> thm
@@ -143,9 +143,7 @@ val defineConst : Name.name -> Term.term -> thm
 (* where if p has type 'a -> bool, then abs and rep are new constants with   *)
 (* types 'a -> ty and ty -> 'a, respectively.                                *)
 (*                                                                           *)
-(* Side conditions: name is not an existing type operator, abs and rep do    *)
-(* not have the same name as existing constants, and tyVars lists all the    *)
-(* type variables in p.                                                      *)
+(* Side condition: tyVars lists all the type variables in p.                 *)
 (* ------------------------------------------------------------------------- *)
 
 val defineTypeOp :
