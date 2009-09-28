@@ -92,19 +92,16 @@ fun newBasicTypeDefinition data =
       val abs = Const.name abs
       and rep = Const.name rep
 
-      val name =
+      val (name,tyVars) =
           let
             val (_,ty) = Type.destFun absTy
-            val (ot,_) = Type.destOp ty
+            val (ot,tys) = Type.destOp ty
           in
-            TypeOp.name ot
+            (TypeOp.name ot, map Type.destVar tys)
           end
 
       val (_,_,nonEmptyTh) = Object.destOtriple input
       val nonEmptyTh = Object.destOthm nonEmptyTh
-
-      val (pTm,_) = Term.destApp (Thm.concl nonEmptyTh)
-      val tyVars = NameSet.toList (Term.typeVars pTm)
 
       val (absRepTh,repAbsTh) =
           Thm.defineTypeOp name {abs = abs, rep = rep} tyVars nonEmptyTh

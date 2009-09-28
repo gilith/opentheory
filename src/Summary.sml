@@ -21,48 +21,77 @@ datatype summary =
        thms : ThmSet.set};
 
 local
-  fun classifyAxiom (seq,(inp,ass,def,ax)) =
+  fun addTypeOps (inp,def,is_ass) seq =
       let
-        val is_ass = true
-
         val ots = Sequent.typeOps seq
         val (inp_ots,def_ots) = TypeOpSet.partition TypeOp.isUndef ots
         val inp = Symbol.addTypeOpSet inp inp_ots
         val def = Symbol.addTypeOpSet def def_ots
         val is_ass = is_ass andalso TypeOpSet.null def_ots
+      in
+        (inp,def,is_ass)
+      end;
 
+  fun addConsts (inp,def,is_ass) seq =
+      let
         val cs = Sequent.consts seq
         val (inp_cs,def_cs) = ConstSet.partition Const.isUndef cs
         val inp = Symbol.addConstSet inp inp_cs
         val def = Symbol.addConstSet def def_cs
         val is_ass = is_ass andalso ConstSet.null def_cs
       in
+        (inp,def,is_ass)
+      end;
+
+  fun addSequent (inp,def) seq =
+      let
+        val is_ass = true
+        val (inp,def,is_ass) = addTypeOps (inp,def,is_ass) seq
+        val (inp,def,is_ass) = addConsts (inp,def,is_ass) seq
+      in
+        (inp,def,is_ass)
+      end;
+
+  fun addAxiom (seq,(inp,ass,def,ax)) =
+      let
+        val (inp,def,is_ass) = addSequent (inp,def) seq
+      in
         if is_ass then (inp, SequentSet.add ass seq, def, ax)
         else (inp, ass, def, SequentSet.add ax seq)
       end;
+
+  fun addThm (th,(inp,def)) =
+      let
+        val (inp,def,_) = addSequent (inp,def) (Thm.sequent th)
+      in
+        (inp,def)
+      end;
 in
-  fun fromThms thms =
+  fun fromThms ths =
       let
 (*OpenTheoryTrace5
         val () = trace "entering Summary.fromThms\n"
 *)
-        val axioms = ThmSet.axioms thms
+        val inp = Symbol.empty
+        and def = Symbol.empty
+        and ass = SequentSet.empty
+        and ax = SequentSet.empty
 
-        val (input,assumed,defined,axioms) =
-            SequentSet.foldl classifyAxiom
-              (Symbol.empty,SequentSet.empty,Symbol.empty,SequentSet.empty)
-              axioms
+        val (inp,ass,def,ax) =
+            SequentSet.foldl addAxiom (inp,ass,def,ax) (ThmSet.axioms ths)
+
+        val (inp,def) = ThmSet.foldl addThm (inp,def) ths
 
 (*OpenTheoryTrace5
         val () = trace "exiting Summary.fromThms\n"
 *)
       in
         Summary
-          {input = input,
-           assumed = assumed,
-           defined = defined,
-           axioms = axioms,
-           thms = thms}
+          {input = inp,
+           assumed = ass,
+           defined = def,
+           axioms = ax,
+           thms = ths}
       end;
 end;
 
