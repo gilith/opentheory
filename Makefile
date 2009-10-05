@@ -108,6 +108,7 @@ SRC = \
   src/ObjectRead.sig src/ObjectRead.sml \
   src/ObjectWrite.sig src/ObjectWrite.sml \
   src/Article.sig src/Article.sml \
+  src/Package.sig src/Package.sml \
   src/Theory.sig src/Theory.sml \
   src/HolLight.sig src/HolLight.sml \
   src/Options.sig src/Options.sml

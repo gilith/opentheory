@@ -21,82 +21,26 @@ val terminatorString = ";";
 (* ------------------------------------------------------------------------- *)
 
 datatype rewrite =
-    NamespaceRewrite of Namespace.namespace * Namespace.namespace
-  | TypeRewrite of Name.name * Name.name
-  | ConstRewrite of Name.name * Name.name
-  | RulespaceRewrite of Namespace.namespace * Namespace.namespace
-  | RuleRewrite of Name.name * Name.name
-
-fun interpretNamespaceRewrite r n =
-    case r of
-      NamespaceRewrite x_y => Namespace.rewrite x_y n
-    | _ => n;
-
-fun interpretTypeRewrite r n =
-    case r of
-      NamespaceRewrite x_y => Name.rewrite x_y n
-    | TypeRewrite x_y => Name.replace x_y n
-    | _ => n;
-
-fun interpretConstRewrite r n =
-    case r of
-      NamespaceRewrite x_y => Name.rewrite x_y n
-    | ConstRewrite x_y => Name.replace x_y n
-    | _ => n;
-
-fun interpretRulespaceRewrite r n =
-    case r of
-      RulespaceRewrite x_y => Namespace.rewrite x_y n
-    | _ => n;
-
-fun interpretRuleRewrite r n =
-    case r of
-      RulespaceRewrite x_y => Name.rewrite x_y n
-    | RuleRewrite x_y => Name.replace x_y n
-    | _ => n;
+    TypeOpRewrite of Name.name * Name.name
+  | ConstRewrite of Name.name * Name.name;
 
 local
-  fun ppX2 prefix ppX (x1,x2) =
+  fun ppName2 prefix (x,y) =
       Print.blockProgram Print.Inconsistent 2
         [Print.addString prefix,
          Print.addBreak 1,
-         ppX x1,
+         Name.pp x,
          Print.addString " ",
          Print.addString rewriteString,
          Print.addBreak 1,
-         ppX x2];
-
-  fun ppNamespace2 prefix = ppX2 prefix Namespace.pp;
-
-  fun ppName2 prefix = ppX2 prefix Name.pp;
+         Name.pp y,
+         Print.addString terminatorString];
 in
   fun ppRewrite r =
       case r of
-        NamespaceRewrite x_y => ppNamespace2 "namespace" x_y
-      | TypeRewrite x_y => ppName2 "type" x_y
+        TypeRewrite x_y => ppName2 "type" x_y
       | ConstRewrite x_y => ppName2 "const" x_y
-      | RulespaceRewrite x_y => ppNamespace2 "rulespace" x_y
-      | RuleRewrite x_y => ppName2 "rule" x_y;
 end;
-
-fun ppTerminatedRewrite r =
-    Print.program
-      [ppRewrite r,
-       Print.addString terminatorString];
-
-fun ppRewriteList1 r rs =
-    case rs of
-      [] => ppTerminatedRewrite r
-    | r' :: rs =>
-      Print.program
-        [ppTerminatedRewrite r,
-         Print.addNewline,
-         ppRewriteList1 r' rs];
-
-fun ppRewriteList l =
-    case l of
-      [] => Print.skip
-    | r :: rs => ppRewriteList1 r rs;
 
 val toStringRewrite = Print.toString ppRewrite;
 

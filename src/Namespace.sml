@@ -109,16 +109,16 @@ local
 
   val escapeParser =
       some isSpecialChar ||
-      (exact #"n" >> K #"\n") ||
-      (exact #"t" >> K #"\t");
+      (exactChar #"n" >> K #"\n") ||
+      (exactChar #"t" >> K #"\t");
 
   val componentCharParser =
-      ((exact #"\\" ++ escapeParser) >> snd) ||
+      ((exactChar #"\\" ++ escapeParser) >> snd) ||
       some (not o isEscapedChar);
 
   val componentParser = many componentCharParser >> implode;
 
-  val dotComponentParser = (exact #"." ++ componentParser) >> snd;
+  val dotComponentParser = (exactChar #"." ++ componentParser) >> snd;
 
   val parser =
       (componentParser ++ many dotComponentParser) >>
@@ -126,7 +126,7 @@ local
         | (n,ns) => Namespace (n :: ns));
 in
   val quotedParser =
-      (exact #"\"" ++ parser ++ exact #"\"") >> (fn (_,(x,_)) => x);
+      (exactChar #"\"" ++ parser ++ exactChar #"\"") >> (fn (_,(x,_)) => x);
 end;
 
 end

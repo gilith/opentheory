@@ -10,12 +10,44 @@ sig
 (* A type of theory syntax.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+datatype tag =
+    Tag of
+      {field : string,
+       value : string}
+
+datatype require =
+    Require of
+      {name : string,
+       package : string,
+       interpretation : Interpretation.interpretation,
+       import : string list}
+
 datatype theory =
     Local of theory * theory
-  | Block of theory list
+  | Sequence of theory list
   | Article of {filename : string}
-  | Interpret of Interpretation.interpretation
-  | Load of {package : string}
+  | Interpret of Interpretation.interpretation * theory
+  | Import of {require : string}
+
+datatype file =
+    File of
+      {tags : tag list,
+       requires : require list,
+       theory : theory}
+
+datatype instance =
+    Instance of
+      {package : string option,
+       interpretation : Interpretation.interpretation,
+       import : instance list,
+       theory : theory}
+
+and theory =
+    Local of theory * theory
+  | Sequence of theory list
+  | Article of {filename : string}
+  | Interpret of Interpretation.interpretation * theory
+  | Import of {instance : instance}
 
 val empty : theory
 
