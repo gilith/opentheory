@@ -61,7 +61,7 @@ fun new {savable} =
 
 fun saved (Article {saved = x, ...}) = ObjectThms.toThmSet x;
 
-fun summarize article = Summary.fromThms (saved article);
+fun summarize article = Summary.fromThmSet (saved article);
 
 fun savable (Article {savable = x, ...}) = x;
 

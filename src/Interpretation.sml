@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* INTERPRETING OPENTHEORY NAMES                                             *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Interpretation :> Interpretation =
@@ -29,18 +29,26 @@ local
       Print.blockProgram Print.Inconsistent 2
         [Print.addString prefix,
          Print.addBreak 1,
-         Name.pp x,
+         Name.ppQuoted x,
          Print.addString " ",
          Print.addString rewriteString,
          Print.addBreak 1,
-         Name.pp y,
+         Name.ppQuoted y,
          Print.addString terminatorString];
 in
   fun ppRewrite r =
       case r of
-        TypeRewrite x_y => ppName2 "type" x_y
+        TypeOpRewrite x_y => ppName2 "type" x_y
       | ConstRewrite x_y => ppName2 "const" x_y
 end;
+
+fun ppRewriteList rs =
+    case rs of
+      [] => Print.skip
+    | r :: rs =>
+      Print.blockProgram Print.Consistent 0
+        (ppRewrite r ::
+         map (Print.sequence (Print.addBreak 1) o ppRewrite) rs);
 
 val toStringRewrite = Print.toString ppRewrite;
 
@@ -52,73 +60,197 @@ local
 
   open Parse;
 
-  val rewriteChars = explode rewriteString;
+  fun nameParser prefix =
+      (exactString prefix ++ manySpace ++
+       Name.quotedParser ++ manySpace ++
+       exactString rewriteString ++ manySpace ++
+       Name.quotedParser ++ manySpace ++
+       exactString terminatorString) >>
+      (fn ((),((),(x,((),((),((),(y,((),())))))))) => (x,y));
 
-  val space = many (some Char.isSpace) >> K ();
+  val rewriteParser =
+      nameParser "type" >> TypeOpRewrite ||
+      nameParser "const" >> ConstRewrite;
 
-  fun xyParser prefix xParser =
-      (exactList (explode prefix) ++ space ++
-       xParser ++ space ++ exactList rewriteChars ++ space ++
-       xParser ++ space ++ exact #";") >>
-      (fn (_,(_,(x,(_,(_,(_,(y,_))))))) => (x,y));
+  val rewriteSpaceParser = rewriteParser ++ manySpace >> fst;
+
+  val rewriteListSpaceParser = many rewriteSpaceParser;
 in
-  val parserRewrite =
-      xyParser "namespace" Namespace.quotedParser >> NamespaceRewrite ||
-      xyParser "type" Name.quotedParser >> TypeRewrite ||
-      xyParser "const" Name.quotedParser >> ConstRewrite ||
-      xyParser "rulespace" Namespace.quotedParser >> RulespaceRewrite ||
-      xyParser "rule" Name.quotedParser >> RuleRewrite;
+  val parserRewrite = manySpace ++ rewriteSpaceParser >> snd;
 
-  val spacedParserRewrite =
-      (space ++ parserRewrite ++ space) >> (fn ((),(t,())) => t);
+  val parserRewriteList = manySpace ++ rewriteListSpaceParser >> snd;
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of interpretations (bad pun on interpreting art (article files)).  *)
 (* ------------------------------------------------------------------------- *)
 
-datatype interpretation = Interpretation of rewrite list;
+datatype interpretation =
+    Interpretation of
+      {typeOps : Name.name NameMap.map,
+       consts : Name.name NameMap.map}
 
-val natural = Interpretation [];
+(* ------------------------------------------------------------------------- *)
+(* Normalizing interpretations (removing "x" -> "x" rewrites).               *)
+(* ------------------------------------------------------------------------- *)
 
-fun singleton rw = Interpretation [rw];
+local
+  fun differentName (x,y) = not (Name.equal x y);
 
-fun append (Interpretation l1) (Interpretation l2) = Interpretation (l1 @ l2);
+  val normalizeName = NameMap.filter differentName;
+in
+  fun normalize int =
+      let
+        val Interpretation {typeOps,consts} = int
 
-fun concat1 int ints =
-    case ints of
-      [] => int
-    | int' :: ints => append int (concat1 int' ints);
+        val typeOps = normalizeName typeOps
 
-fun concat ints =
-    case ints of
-      [] => natural
-    | int :: ints => concat1 int ints;
+        val consts = normalizeName consts
+      in
+        Interpretation
+          {typeOps = typeOps,
+           consts = consts}
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val natural =
+    let
+      val typeOps = NameMap.new ()
+      val consts = NameMap.new ()
+    in
+      Interpretation
+        {typeOps = typeOps,
+         consts = consts}
+    end;
+
+local
+  fun addName m x_y =
+      let
+        val (x,_) = x_y
+        val _ = not (NameMap.inDomain x m) orelse
+                raise Error "Interpretation.add: duplicate"
+      in
+        NameMap.insert m x_y
+      end;
+
+  fun addRewrite (rw,int) =
+      let
+        val Interpretation {typeOps,consts} = int
+      in
+        case rw of
+          TypeOpRewrite x_y =>
+          let
+            val typeOps = addName typeOps x_y
+          in
+            Interpretation
+              {typeOps = typeOps,
+               consts = consts}
+          end
+        | ConstRewrite x_y =>
+          let
+            val consts = addName consts x_y
+          in
+            Interpretation
+              {typeOps = typeOps,
+               consts = consts}
+          end
+      end;
+in
+  fun fromRewriteList rws = normalize (List.foldl addRewrite natural rws);
+end;
+
+local
+  fun addTypeOp (x,y,l) = TypeOpRewrite (x,y) :: l;
+
+  fun addConst (x,y,l) = ConstRewrite (x,y) :: l;
+in
+  fun toRewriteList int =
+    let
+      val Interpretation {typeOps,consts} = int
+
+      val rws = []
+
+      val rws = NameMap.foldr addConst rws consts
+
+      val rws = NameMap.foldr addTypeOp rws typeOps
+    in
+      rws
+    end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Translating OpenTheory names.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+fun interpretName m x =
+    case NameMap.peek m x of
+      SOME y => y
+    | NONE => x;
+
+fun interpretTypeOp int x =
+    let
+      val Interpretation {typeOps,...} = int
+    in
+      interpretName typeOps x
+    end;
+
+fun interpretConst int x =
+    let
+      val Interpretation {consts,...} = int
+    in
+      interpretName consts x
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Composing interpretations.                                                *)
+(* ------------------------------------------------------------------------- *)
+
 local
-  fun interpret rewrX (Interpretation l) x = foldl (fn (rw,x) => rewrX rw x) x l;
+  fun composeNames m1 m2 =
+      let
+        fun add1 (x,y,m) =
+            let
+              val z = interpretName m2 y
+            in
+              if Name.equal x z then m else NameMap.insert m (x,z)
+            end
+
+        fun add2 (x,y,m) =
+            if NameMap.inDomain x m1 then m else NameMap.insert m (x,y)
+
+        val m = NameMap.new ()
+
+        val m = NameMap.foldl add1 m m1
+
+        val m = NameMap.foldl add2 m m2
+      in
+        m
+      end;
 in
-  val interpretNamespace = interpret interpretNamespaceRewrite;
+  fun compose int1 int2 =
+      let
+        val Interpretation {typeOps = t1, consts = c1} = int1
+        and Interpretation {typeOps = t2, consts = c2} = int2
 
-  val interpretType = interpret interpretTypeRewrite;
+        val typeOps = composeNames t1 t2
 
-  val interpretConst = interpret interpretConstRewrite;
-
-  val interpretRulespace = interpret interpretRulespaceRewrite;
-
-  val interpretRule = interpret interpretRuleRewrite;
+        val consts = composeNames c1 c2
+      in
+        Interpretation
+          {typeOps = typeOps,
+           consts = consts}
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun pp (Interpretation l) =
-    Print.block Print.Consistent 0 (ppRewriteList l);
+val pp = Print.ppMap toRewriteList ppRewriteList;
 
 val toString = Print.toString pp;
 
@@ -134,17 +266,16 @@ local
 
   open Parse;
 in
-  val parser = many spacedParserRewrite >> Interpretation;
+  val parser = parserRewriteList >> fromRewriteList;
 
-  val parser' =
-      atLeastOne spacedParserRewrite >> (fn rs => [Interpretation rs]);
+  val parser' = parser >> (fn int => [int]);
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTextFile {filename,interpretation} =
+fun toTextFile {interpretation,filename} =
     Stream.toTextFile {filename = filename} (Print.toStream pp interpretation);
 
 local
@@ -175,7 +306,11 @@ in
 
            val ints = Parse.everything parser' chars
          in
-           concat (Stream.toList ints)
+           case Stream.toList ints of
+             [] => raise Bug "Interpretation.fromTextFile: no interpretation"
+           | [int] => int
+           | _ :: _ :: _ =>
+             raise Bug "Interpretation.fromTextFile: multiple interpretation"
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>

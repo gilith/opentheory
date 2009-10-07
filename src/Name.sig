@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* NAMES                                                                     *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* OPENTHEORY NAMES                                                          *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Name =
@@ -13,10 +13,17 @@ sig
 type name
 
 val mk : Namespace.namespace * string -> name
+
 val dest : name -> Namespace.namespace * string
 
+(* ------------------------------------------------------------------------- *)
+(* The top level namespace.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
 val mkGlobal : string -> name
+
 val destGlobal : name -> string
+
 val isGlobal : name -> bool
 
 (* ------------------------------------------------------------------------- *)

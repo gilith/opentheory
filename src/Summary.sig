@@ -12,7 +12,11 @@ sig
 
 type summary
 
-val fromThms : ThmSet.set -> summary
+val requires : summary -> Context.context
+
+val provides : summary -> Context.context
+
+val fromThmSet : ThmSet.set -> summary
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)

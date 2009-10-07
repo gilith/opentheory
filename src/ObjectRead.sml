@@ -268,7 +268,7 @@ fun execute cmd state =
           and obL = ObjectProv.object objL
 
           val n = Object.destOname obN
-          val n = Interpretation.interpretType interpretation n
+          val n = Interpretation.interpretTypeOp interpretation n
 
           val symbols =
               [ObjectThms.symbol known,
@@ -483,8 +483,6 @@ fun execute cmd state =
 
           val n = Object.destOname obN
 
-          val n = Interpretation.interpretRule interpretation n
-
 (*OpenTheoryTrace2
           val traceCall = null (ObjectStack.callStack stack)
 (*OpenTheoryTrace3
@@ -533,7 +531,6 @@ fun execute cmd state =
                   raise Error "cannot use an Ocall object as a return value"
 
           val n = Object.destOname obN
-          val n = Interpretation.interpretRule interpretation n
 
           val (stack,n') = ObjectStack.popCall stack
 

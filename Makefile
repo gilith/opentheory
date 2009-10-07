@@ -97,7 +97,6 @@ SRC = \
   src/Symbol.sig src/Symbol.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
-  src/Summary.sig src/Summary.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Command.sig src/Command.sml \
   src/Object.sig src/Object.sml \
@@ -107,6 +106,8 @@ SRC = \
   src/ObjectStack.sig src/ObjectStack.sml \
   src/ObjectRead.sig src/ObjectRead.sml \
   src/ObjectWrite.sig src/ObjectWrite.sml \
+  src/Context.sig src/Context.sml \
+  src/Summary.sig src/Summary.sml \
   src/Article.sig src/Article.sml \
   src/Package.sig src/Package.sml \
   src/Theory.sig src/Theory.sml \

@@ -82,15 +82,13 @@ local
 
   open Parse;
 
-  val space = many (some Char.isSpace) >> K ();
-
   val numParser =
       atLeastOne (some Char.isDigit) >>
       (natFromString "bad number" o implode);
 
   val nameParser = Name.quotedParser;
 
-  fun commandParser s c = exactList (explode s) >> K c;
+  fun commandParser s c = exactString s >> K c;
 in
   val parser =
       numParser >> Num ||
@@ -114,7 +112,8 @@ in
       commandParser "thm" Thm ||
       commandParser "var" Var;
 
-  val spacedParser = (space ++ parser ++ space) >> (fn ((),(t,())) => [t]);
+  val spacedParser =
+      (manySpace ++ parser ++ manySpace) >> (fn ((),(t,())) => [t]);
 end;
 
 end

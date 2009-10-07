@@ -1,16 +1,12 @@
 (* ========================================================================= *)
-(* NAMES                                                                     *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* OPENTHEORY NAMES                                                          *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Name :> Name =
 struct
 
 open Useful;
-
-infixr ==
-
-val op== = Portable.pointerEqual;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of names.                                                          *)
@@ -21,6 +17,10 @@ datatype name = Name of Namespace.namespace * string;
 val mk = Name;
 
 fun dest (Name n) = n;
+
+(* ------------------------------------------------------------------------- *)
+(* The top level namespace.                                                  *)
+(* ------------------------------------------------------------------------- *)
 
 fun mkGlobal s = Name (Namespace.global,s);
 
@@ -103,7 +103,7 @@ fun rewrite x_y (name as Name (ns,n)) =
     let
       val ns' = Namespace.rewrite x_y ns
     in
-      if ns' == ns then name else Name (ns',n)
+      if Portable.pointerEqual (ns',ns) then name else Name (ns',n)
     end;
 
 fun replace (x,y) n : name = if equal n x then y else n;

@@ -14,79 +14,77 @@ open Useful;
 
 datatype summary =
     Summary of
+      {requires : Context.context,
+       provides : Context.context};
+
+fun requires (Summary {requires = x, ...}) = x;
+
+fun provides (Summary {provides = x, ...}) = x;
+
+fun fromThmSet ths =
+    let
+      val requires = Context.fromSequentSet (ThmSet.axioms ths)
+
+      val provides = Context.fromSequentSet (ThmSet.sequents ths)
+    in
+      Summary
+        {requires = requires,
+         provides = provides}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of theory summary information (for pretty printing).               *)
+(* ------------------------------------------------------------------------- *)
+
+datatype info =
+    Info of
       {input : Symbol.symbol,
        assumed : SequentSet.set,
        defined : Symbol.symbol,
        axioms : SequentSet.set,
-       thms : ThmSet.set};
+       thms : SequentSet.set};
 
 local
-  fun addTypeOps (inp,def,is_ass) seq =
+  fun allSymbolsIn sym =
       let
-        val ots = Sequent.typeOps seq
-        val (inp_ots,def_ots) = TypeOpSet.partition TypeOp.isUndef ots
-        val inp = Symbol.addTypeOpSet inp inp_ots
-        val def = Symbol.addTypeOpSet def def_ots
-        val is_ass = is_ass andalso TypeOpSet.null def_ots
+        val ots = Symbol.typeOps sym
+        and cs = Symbol.consts sym
       in
-        (inp,def,is_ass)
-      end;
-
-  fun addConsts (inp,def,is_ass) seq =
-      let
-        val cs = Sequent.consts seq
-        val (inp_cs,def_cs) = ConstSet.partition Const.isUndef cs
-        val inp = Symbol.addConstSet inp inp_cs
-        val def = Symbol.addConstSet def def_cs
-        val is_ass = is_ass andalso ConstSet.null def_cs
-      in
-        (inp,def,is_ass)
-      end;
-
-  fun addSequent (inp,def) seq =
-      let
-        val is_ass = true
-        val (inp,def,is_ass) = addTypeOps (inp,def,is_ass) seq
-        val (inp,def,is_ass) = addConsts (inp,def,is_ass) seq
-      in
-        (inp,def,is_ass)
-      end;
-
-  fun addAxiom (seq,(inp,ass,def,ax)) =
-      let
-        val (inp,def,is_ass) = addSequent (inp,def) seq
-      in
-        if is_ass then (inp, SequentSet.add ass seq, def, ax)
-        else (inp, ass, def, SequentSet.add ax seq)
-      end;
-
-  fun addThm (th,(inp,def)) =
-      let
-        val (inp,def,_) = addSequent (inp,def) (Thm.sequent th)
-      in
-        (inp,def)
+        fn seq =>
+           TypeOpSet.subset (Sequent.typeOps seq) ots andalso
+           ConstSet.subset (Sequent.consts seq) cs
       end;
 in
-  fun fromThms ths =
+  fun info summary =
       let
 (*OpenTheoryTrace5
         val () = trace "entering Summary.fromThms\n"
 *)
-        val inp = Symbol.empty
-        and def = Symbol.empty
-        and ass = SequentSet.empty
-        and ax = SequentSet.empty
+        val Summary {requires,provides} = summary
 
-        val (inp,ass,def,ax) =
-            SequentSet.foldl addAxiom (inp,ass,def,ax) (ThmSet.axioms ths)
+        val (inp,def) =
+            let
+              val req = Context.symbols requires
+              val prov = Context.symbols provides
+              val sym = Symbol.union req prov
+            in
+              Symbol.partitionUndef sym
+            end
 
-        val (inp,def) = ThmSet.foldl addThm (inp,def) ths
+        val (ass,ax) =
+            let
+              val req = Context.sequents requires
+            in
+              SequentSet.partition (allSymbolsIn inp) req
+            end
+
+        val ths = Context.sequents provides
 
 (*OpenTheoryTrace5
         val () = trace "exiting Summary.fromThms\n"
 *)
       in
-        Summary
+        Info
           {input = inp,
            assumed = ass,
            defined = def,
@@ -137,21 +135,21 @@ local
               map (Print.sequence (Print.addBreak 1) o ppSequent) seqs))
           Print.addNewline
       end;
-
-  fun ppThmSet (name,ths) = ppSequentSet (name, ThmSet.sequents ths);
 in
-  fun pp sum =
+  fun ppInfo sum =
       let
-        val Summary {input,assumed,defined,axioms,thms} = sum
+        val Info {input,assumed,defined,axioms,thms} = sum
       in
         Print.blockProgram Print.Consistent 0
           [ppSymbol ("input",input),
            ppSequentSet ("assumed",assumed),
            ppSymbol ("defined",defined),
            ppSequentSet ("axioms",axioms),
-           ppThmSet ("thms",thms)]
+           ppSequentSet ("thms",thms)]
       end;
 end;
+
+val pp = Print.ppMap info ppInfo;
 
 fun toTextFile {summary,filename} =
     let
