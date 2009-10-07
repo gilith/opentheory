@@ -63,7 +63,7 @@ val parser : (char,package) Parse.parser
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val fromTextFile : {filename : string} -> theory
+val fromTextFile : {filename : string} -> package
 
 val toTextFile : {package : package, filename : string} -> unit
 
