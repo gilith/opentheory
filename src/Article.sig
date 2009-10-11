@@ -12,24 +12,23 @@ sig
 
 type article
 
-val new : {savable : bool} -> article
+val empty : article
 
 val saved : article -> ThmSet.set
-
-val summarize : article -> Summary.summary
 
 val savable : article -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Input/Output.                                                             *)
+(* Appending articles.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val appendTextFile :
-    {known : article,
-     simulations : ObjectRead.simulations,
-     interpretation : Interpretation.interpretation,
-     filename : string} ->
-    article -> article
+val append : article -> article -> article
+
+val concat : article list -> article
+
+(* ------------------------------------------------------------------------- *)
+(* Input/Output.                                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val fromTextFile :
     {savable : bool,

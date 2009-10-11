@@ -54,25 +54,55 @@ datatype article =
       {savable : bool,
        saved : ObjectThms.thms};
 
-fun new {savable} =
-    Article
-      {savable = savable,
-       saved = ObjectThms.empty};
+val empty =
+    let
+      val savable = true
+
+      val saved = ObjectThms.empty
+    in
+      Article
+        {savable = savable,
+         saved = saved}
+    end;
 
 fun saved (Article {saved = x, ...}) = ObjectThms.toThmSet x;
 
-fun summarize article = Summary.fromThmSet (saved article);
-
 fun savable (Article {savable = x, ...}) = x;
+
+(* ------------------------------------------------------------------------- *)
+(* Appending articles.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun append art1 art2 =
+    let
+      val Article {savable = sav1, saved = ths1} = art1
+      and Article {savable = sav2, saved = ths2} = art2
+
+      val savable = sav1 andalso sav2
+
+      val saved = ObjectThms.union ths1 ths2
+    in
+      Article
+        {savable = savable,
+         saved = saved}
+    end;
+
+local
+  fun add (art2,art1) = append art1 art2;
+in
+  fun concat arts =
+      case arts of
+        [] => empty
+      | art :: arts => List.foldl add art arts;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun appendTextFile {known,simulations,interpretation,filename} article =
+fun fromTextFile {savable,known,simulations,interpretation,filename} =
     let
       val Article {savable = knownSavable, saved = knownSaved} = known
-      and Article {savable, saved = initialSaved} = article
 
       val _ = not savable orelse knownSavable orelse
               raise Error "savable article cannot use unsavable known"
@@ -83,10 +113,7 @@ fun appendTextFile {known,simulations,interpretation,filename} article =
            interpretation = interpretation,
            savable = savable}
 
-      val state =
-          ObjectRead.initial
-            {parameters = parameters,
-             saved = initialSaved}
+      val state = ObjectRead.initial parameters
 
       val state = ObjectRead.executeTextFile {filename = filename} state
 
@@ -107,13 +134,7 @@ fun appendTextFile {known,simulations,interpretation,filename} article =
 
                 val objs = thmObjects (ObjectStack.objects stack)
 
-                val n =
-                    let
-                      val {thms = t, ...} = ObjectThms.size initialSaved
-                      and {thms = t', ...} = ObjectThms.size saved
-                    in
-                      t' - t
-                    end
+                val {thms = n, ...} = ObjectThms.size saved
 
                 val n' = ObjectProvSet.size objs
               in
@@ -164,22 +185,6 @@ fun appendTextFile {known,simulations,interpretation,filename} article =
       Article
         {savable = savable,
          saved = saved}
-    end
-    handle Error err => raise Error ("Article.appendTextFile: " ^ err);
-
-fun fromTextFile {savable,known,simulations,interpretation,filename} =
-    let
-      val article = new {savable = savable}
-
-      val article =
-          appendTextFile
-            {known = known,
-             simulations = simulations,
-             interpretation = interpretation,
-             filename = filename}
-            article
-    in
-      article
     end
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
 

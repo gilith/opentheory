@@ -41,6 +41,10 @@ fun objects (Thms {objs,...}) = objs;
 
 fun symbol (Thms {symbol = x, ...}) = x;
 
+(* ------------------------------------------------------------------------- *)
+(* Adding objects.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
 local
   fun adds objA seqs sym seen objs =
       case objs of
@@ -104,6 +108,38 @@ in
 
   fun addSet thms objs = ObjectProvSet.foldl add1 thms objs;
 end;
+
+fun union ths1 ths2 =
+    let
+      val Thms
+            {objs = objs1,
+             seqs = seqs1,
+             symbol = sym1,
+             seen = seen1} = ths1
+      and Thms
+            {objs = objs2,
+             seqs = seqs2,
+             symbol = sym2,
+             seen = seen2} = ths2
+
+      val objs = ObjectProvSet.union objs1 objs2
+
+      val seqs = SequentMap.union (SOME o fst) seqs1 seqs2
+
+      val sym = Symbol.union sym1 sym2
+
+      val seen = IntSet.union seen1 seen2
+    in
+      Thms
+        {objs = objs,
+         seqs = seqs,
+         symbol = sym,
+         seen = seen}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Searching for theorems.                                                   *)
+(* ------------------------------------------------------------------------- *)
 
 fun search (Thms {seqs,...}) seq =
     case SequentMap.peek seqs seq of

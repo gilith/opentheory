@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THEORIES OF HIGHER ORDER LOGIC                                            *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Theory :> Theory =
@@ -12,94 +12,68 @@ open Useful;
 (* A type of theory syntax.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-datatype theory =
-    Local of theory * theory
-  | Block of theory list
+datatype 'a theory =
+    Local of 'a theory * 'a theory
+  | Sequence of 'a theory list
   | Article of {filename : string}
-  | Interpret of Interpretation.interpretation
-  | Load of {package : string};
+  | Interpret of Interpretation.interpretation * 'a theory
+  | Import of 'a;
 
-val empty = Block [];
+val empty = Sequence [];
+
+fun append th1 th2 = Sequence [th1,th2];
 
 (* ------------------------------------------------------------------------- *)
-(* Compiling theories to articles.                                           *)
+(* Executing theories.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun comp known int exp thy =
-      case thy of
-        Local (thy1,thy2) =>
-        let
-          val (known,pint) = comp exp int known thy1
+fun toArticle info =
+    let
+      val {savable,
+           simulations,
+           importToArticle,
+           interpretation = initialInt,
+           import,
+           directory,
+           theory = initialThy} = info
 
-          val int = Interpretation.append int pint
-
-          val (exp,pint) = comp known int exp thy2
-        in
-          (exp,pint)
-        end
-      | Block thys => compList known int exp thys
-      | Article {filename} =>
-        let
-          val exp =
-              Article.appendTextFile
-                {known = known,
+      fun compile known int thy =
+          case thy of
+            Local (thy1,thy2) =>
+            let
+              val known = compileAppend known int (thy1,known)
+            in
+              compile known int thy2
+            end
+          | Sequence thys =>
+            List.foldl (compileAppend known int) Article.empty thys
+          | Article {filename} =>
+            let
+              val filename = directory ^ "/" ^ filename
+            in
+              Article.fromTextFile
+                {savable = savable,
+                 known = known,
+                 simulations = simulations,
                  interpretation = int,
                  filename = filename}
-                exp
+            end
+          | Interpret (pint,pthy) =>
+            let
+              val int = Interpretation.compose pint int
+            in
+              compile known int pthy
+            end
+          | Import imp =>
+            importToArticle imp
 
-          val pint = Interpretation.natural
-        in
-          (exp,pint)
-        end
-      | Interpret pint => (exp,pint)
-      | Load {package} =>
-        let
-          val exp = raise Bug "theory load not implemented"
+      and compileAppend known int (thy,art) =
+          Article.append art (compile known int thy)
 
-          val pint = Interpretation.natural
-        in
-          (exp,pint)
-        end
-
-  and compList known int exp thys =
-      case thys of
-        [] =>
-        let
-          val pint = Interpretation.natural
-        in
-          (exp,pint)
-        end
-      | thy :: thys =>
-        let
-          val (exp,pint) = comp known int exp thy
-
-          val int = Interpretation.append int pint
-
-          val (exp,pint') = compList known int exp thys
-
-          val pint = Interpretation.append pint pint'
-        in
-          (exp,pint)
-        end;
-in
-  fun compile savable thy =
-      let
-        val known = Article.new savable
-
-        val int = Interpretation.natural
-
-        val exp = Article.new savable
-
-        val (exp,_) = comp known int exp thy
-      in
-        exp
-      end;
-end;
-
-fun toArticle thy = compile {savable = true} thy;
-
-fun toSummary thy = Article.summarize (compile {savable = false} thy);
+      val known = Article.concat (map importToArticle import)
+    in
+      compile known initialInt initialThy
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -114,48 +88,47 @@ fun ppBlock ppX x =
        Print.addBreak 1,
        Print.addString "}"];
 
-fun pp thy =
-    case thy of
-      Local (thy1,thy2) =>
-      Print.blockProgram Print.Consistent 0
-        [Print.addString "local ",
-         pp thy1,
-         Print.addString " in",
-         Print.addNewline,
-         pp thy2]
-    | Block thys => ppBlock ppList thys
-    | Article {filename} =>
-      Print.blockProgram Print.Consistent 2
-        [Print.addString "article",
-         Print.addBreak 1,
-         Print.addString "\"",
-         Print.addString filename,
-         Print.addString "\";"]
-    | Interpret int =>
-      Print.blockProgram Print.Consistent 0
-        [Print.addString "interpret ",
-         ppBlock Interpretation.pp int]
-    | Load {package} =>
-      Print.blockProgram Print.Consistent 2
-        [Print.addString "load",
-         Print.addBreak 1,
-         Print.addString "\"",
-         Print.addString package,
-         Print.addString "\";"]
+fun pp ppImp =
+    let
+      fun ppThy thy =
+          case thy of
+            Local (thy1,thy2) =>
+            Print.blockProgram Print.Consistent 0
+              [Print.addString "local ",
+               ppThy thy1,
+               Print.addString " in",
+               ppSpaceThy thy2]
+          | Sequence thys =>
+            ppBlock ppList thys
+          | Article {filename} =>
+            Print.blockProgram Print.Consistent 2
+              [Print.addString "article",
+               Print.addBreak 1,
+               Print.addString "\"",
+               Print.addString filename,
+               Print.addString "\";"]
+          | Interpret (int,thy) =>
+            Print.blockProgram Print.Consistent 0
+              [Print.addString "interpret ",
+               ppBlock Interpretation.pp int,
+               Print.addString " in",
+               ppSpaceThy thy]
+          | Import imp =>
+            Print.blockProgram Print.Consistent 2
+              [Print.addString "import",
+               Print.addBreak 1,
+               ppImp imp,
+               Print.addString ";"]
 
-and ppList thys =
-    case thys of
-      [] => Print.skip
-    | thy :: thys => ppList1 thy thys
+      and ppSpaceThy thy = Print.sequence (Print.addBreak 1) (ppThy thy)
 
-and ppList1 thy thys =
-    case thys of
-      [] => pp thy
-    | thy' :: thys =>
-      Print.program
-        [pp thy,
-         Print.addNewline,
-         ppList1 thy' thys];
+      and ppList thys =
+          case thys of
+            [] => Print.skip
+          | thy :: thys => Print.program (ppThy thy :: map ppSpaceThy thys)
+    in
+      ppThy
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -169,20 +142,15 @@ local
 
   open Parse;
 
-  val space = many (some Char.isSpace) >> K ();
-
-  val space1 = atLeastOne (some Char.isSpace) >> K ();
-
-  fun keywordParser s = exactList (explode s) >> K ();
-
-  val localKeywordParser = keywordParser "local"
-  and inKeywordParser = keywordParser "in"
-  and openBlockParser = keywordParser "{"
-  and closeBlockParser = keywordParser "}"
-  and articleKeywordParser = keywordParser "article"
-  and terminatorParser = keywordParser ";"
-  and quoteParser = keywordParser "\""
-  and interpretKeywordParser = keywordParser "interpret";
+  val articleKeywordParser = exactString "article"
+  and closeBlockParser = exactString "}"
+  and importKeywordParser = exactString "import"
+  and inKeywordParser = exactString "in"
+  and interpretKeywordParser = exactString "interpret"
+  and localKeywordParser = exactString "local"
+  and openBlockParser = exactString "{"
+  and quoteParser = exactString "\""
+  and terminatorParser = exactString ";";
 
   val quotedFilenameParser =
       let
@@ -194,83 +162,49 @@ local
         (fn ((),(f,())) => {filename = implode f})
       end;
 
-  fun theoryParser inp =
-      (localParser ||
-       blockParser ||
+  fun theoryParser impParser inp =
+      (localParser impParser ||
+       sequenceParser impParser ||
        articleParser ||
-       interpretParser) inp
+       interpretParser impParser ||
+       importParser impParser) inp
 
-  and localParser inp =
-      ((localKeywordParser ++ space1 ++ theoryParser ++ space ++
-        inKeywordParser ++ space1 ++ theoryParser) >>
+  and localParser impParser inp =
+      ((localKeywordParser ++ atLeastOneSpace ++
+        theoryParser impParser ++ manySpace ++
+        inKeywordParser ++ atLeastOneSpace ++
+        theoryParser impParser) >>
        (fn ((),((),(t1,((),((),((),t2)))))) => Local (t1,t2))) inp
 
-  and blockParser inp =
-      ((openBlockParser ++ space ++ many theorySpaceParser ++
+  and sequenceParser impParser inp =
+      ((openBlockParser ++ manySpace ++
+        many (theorySpaceParser impParser) ++
         closeBlockParser) >>
-       (fn ((),((),(ts,()))) => Block ts)) inp
+       (fn ((),((),(ts,()))) => Sequence ts)) inp
 
   and articleParser inp =
-      ((articleKeywordParser ++ space ++ quotedFilenameParser ++
-        space ++ terminatorParser) >>
+      ((articleKeywordParser ++ manySpace ++
+        quotedFilenameParser ++ manySpace ++ terminatorParser) >>
        (fn ((),((),(f,((),())))) => Article f)) inp
 
-  and interpretParser inp =
-      ((interpretKeywordParser ++ space ++ openBlockParser ++ space ++
-        Interpretation.parser ++ space ++ closeBlockParser) >>
-       (fn ((),((),((),((),(i,((),())))))) => Interpret i)) inp
+  and interpretParser impParser inp =
+      ((interpretKeywordParser ++ manySpace ++
+        openBlockParser ++ manySpace ++
+        Interpretation.parser ++ manySpace ++
+        closeBlockParser ++
+        inKeywordParser ++ atLeastOneSpace ++
+        theoryParser impParser) >>
+       (fn ((),((),((),((),(i,((),((),((),((),t))))))))) => Interpret (i,t))) inp
 
-  and theorySpaceParser inp = ((theoryParser ++ space) >> fst) inp;
+  and importParser impParser inp =
+      ((importKeywordParser ++ atLeastOneSpace ++
+        impParser ++ manySpace ++ terminatorParser) >>
+       (fn ((),((),(i,((),())))) => Import i)) inp
+
+  and theorySpaceParser impParser inp =
+      (theoryParser impParser ++ manySpace >> fst) inp;
 in
-  val parser = (space ++ theorySpaceParser) >> snd;
-
-  val parser' = parser >> (fn thy => [thy]);
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Input/Output.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun toTextFile {filename,theory} =
-    Stream.toTextFile {filename = filename} (Print.toStream pp theory);
-
-local
-  (* Comment lines *)
-
-  fun isComment l =
-      case List.find (not o Char.isSpace) l of
-        NONE => true
-      | SOME #"#" => true
-      | _ => false;
-in
-  fun fromTextFile {filename} =
-      let
-        (* Estimating parse error line numbers *)
-
-        val lines = Stream.fromTextFile {filename = filename}
-
-        val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
-      in
-        (let
-           (* The character stream *)
-
-           val chars = Stream.filter (not o isComment) chars
-
-           val chars = Parse.everything Parse.any chars
-
-           (* The theory stream *)
-
-           val thys = Parse.everything parser' chars
-         in
-           case Stream.toList thys of
-             [thy] => thy
-           | thys => Block thys
-         end
-         handle Parse.NoParse => raise Error "parse error")
-        handle Error err =>
-          raise Error ("error in theory file \"" ^ filename ^ "\" " ^
-                       parseErrorLocation () ^ "\n" ^ err)
-      end;
+  fun parser impParser = manySpace ++ theorySpaceParser impParser >> snd;
 end;
 
 end

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THEORIES OF HIGHER ORDER LOGIC                                            *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature Theory =
@@ -10,73 +10,41 @@ sig
 (* A type of theory syntax.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-datatype tag =
-    Tag of
-      {field : string,
-       value : string}
-
-datatype require =
-    Require of
-      {name : string,
-       package : string,
-       interpretation : Interpretation.interpretation,
-       import : string list}
-
-datatype theory =
-    Local of theory * theory
-  | Sequence of theory list
+datatype 'a theory =
+    Local of 'a theory * 'a theory
+  | Sequence of 'a theory list
   | Article of {filename : string}
-  | Interpret of Interpretation.interpretation * theory
-  | Import of {require : string}
+  | Interpret of Interpretation.interpretation * 'a theory
+  | Import of 'a
 
-datatype file =
-    File of
-      {tags : tag list,
-       requires : require list,
-       theory : theory}
+val empty : 'a theory
 
-datatype instance =
-    Instance of
-      {package : string option,
-       interpretation : Interpretation.interpretation,
-       import : instance list,
-       theory : theory}
-
-and theory =
-    Local of theory * theory
-  | Sequence of theory list
-  | Article of {filename : string}
-  | Interpret of Interpretation.interpretation * theory
-  | Import of {instance : instance}
-
-val empty : theory
+val append : 'a theory -> 'a theory -> 'a theory
 
 (* ------------------------------------------------------------------------- *)
 (* Compiling theories to articles.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val toArticle : theory -> Article.article
-
-val toSummary : theory -> Summary.summary
+val toArticle :
+    {savable : bool,
+     simulations : ObjectRead.simulations,
+     importToArticle : 'a -> Article.article,
+     interpretation : Interpretation.interpretation,
+     import : 'a list,
+     directory : string,
+     theory : 'a theory} ->
+    Article.article
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : theory Print.pp
+val pp : 'a Print.pp -> 'a theory Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,theory) Parse.parser
-
-(* ------------------------------------------------------------------------- *)
-(* Input/Output.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-val fromTextFile : {filename : string} -> theory
-
-val toTextFile : {theory : theory, filename : string} -> unit
+val parser : (char,'a) Parse.parser -> (char, 'a theory) Parse.parser
 
 end

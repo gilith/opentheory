@@ -83,12 +83,20 @@ datatype state =
        dict : ObjectDict.dict,
        saved : ObjectThms.thms};
 
-fun initial {parameters,saved} =
-    State
-      {parameters = parameters,
-       stack = ObjectStack.empty,
-       dict = ObjectDict.empty,
-       saved = saved};
+fun initial parameters =
+    let
+      val stack = ObjectStack.empty
+
+      val dict = ObjectDict.empty
+
+      val saved = ObjectThms.empty
+    in
+      State
+        {parameters = parameters,
+         stack = stack,
+         dict = dict,
+         saved = saved}
+    end;
 
 fun parameters (State {parameters = x, ...}) = x;
 

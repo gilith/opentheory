@@ -15,19 +15,16 @@ datatype tag =
       {field : string,
        value : string}
 
+type requireName = string
+
 datatype require =
     Require of
-      {name : string,
+      {name : requireName,
        package : string,
        interpretation : Interpretation.interpretation,
        import : string list}
 
-datatype theory =
-    Local of theory * theory
-  | Sequence of theory list
-  | Article of {filename : string}
-  | Interpret of Interpretation.interpretation * theory
-  | Import of {require : string}
+type theory = requireName Theory.theory
 
 datatype package =
     Package of
@@ -41,6 +38,8 @@ datatype package =
 
 val ppTag : tag Print.pp
 
+val ppRequireName : requireName Print.pp
+
 val ppRequire : require Print.pp
 
 val ppTheory : theory Print.pp
@@ -52,6 +51,8 @@ val pp : package Print.pp
 (* ------------------------------------------------------------------------- *)
 
 val parserTag : (char,tag) Parse.parser
+
+val parserRequireName : (char,requireName) Parse.parser
 
 val parserRequire : (char,require) Parse.parser
 

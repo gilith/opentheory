@@ -17,19 +17,16 @@ datatype tag =
       {field : string,
        value : string};
 
+type requireName = string;
+
 datatype require =
     Require of
-      {name : string,
+      {name : requireName,
        package : string,
        interpretation : Interpretation.interpretation,
        import : string list};
 
-datatype theory =
-    Local of theory * theory
-  | Sequence of theory list
-  | Article of {filename : string}
-  | Interpret of Interpretation.interpretation * theory
-  | Import of {require : string};
+type theory = requireName Theory.theory;
 
 datatype package =
     Package of
@@ -144,13 +141,15 @@ fun ppConstraintList cs =
     Print.blockProgram Print.Consistent 0
       (map (fn c => Print.sequence (ppConstraint c) Print.addNewline) cs);
 
+val ppRequireName = Print.ppString;
+
 fun ppRequire req =
     let
       val (name,cs) = destRequire req
     in
       Print.blockProgram Print.Consistent 0
         [Print.addString "require ",
-         Print.addString name,
+         ppRequireName name,
          Print.addString " ",
          ppBlock ppConstraintList cs]
     end;
@@ -163,45 +162,7 @@ val ppRequireList =
       Print.blockProgram Print.Consistent 0 o map ppReq
     end;
 
-fun ppTheory thy =
-    case thy of
-      Local (thy1,thy2) =>
-      Print.blockProgram Print.Consistent 0
-        [Print.addString "local ",
-         ppTheory thy1,
-         Print.addString " in",
-         Print.addBreak 1,
-         ppTheory thy2]
-    | Sequence thys =>
-      ppBlock ppTheoryList thys
-    | Article {filename} =>
-      Print.blockProgram Print.Consistent 2
-        [Print.addString "article",
-         Print.addBreak 1,
-         Print.addString "\"",
-         Print.addString filename,
-         Print.addString "\";"]
-    | Interpret (int,thy) =>
-      Print.blockProgram Print.Consistent 0
-        [Print.addString "interpret ",
-         ppBlock Interpretation.pp int,
-         Print.addString " in",
-         Print.addBreak 1,
-         ppTheory thy]
-    | Import {require} =>
-      Print.blockProgram Print.Consistent 2
-        [Print.addString "import",
-         Print.addBreak 1,
-         Print.addString require,
-         Print.addString ";"]
-
-and ppTheoryList thys =
-    case thys of
-      [] => Print.skip
-    | thy :: thys =>
-      Print.program
-        (ppTheory thy ::
-         map (Print.sequence (Print.addBreak 1) o ppTheory) thys);
+val ppTheory = Theory.pp ppRequireName;
 
 fun pp pkg =
     let
@@ -226,19 +187,16 @@ local
 
   open Parse;
 
-  val articleKeywordParser = exactString "article"
-  and closeBlockParser = exactString "}"
+  val closeBlockParser = exactString "}"
   and colonParser = exactString ":"
   and importKeywordParser = exactString "import"
-  and inKeywordParser = exactString "in"
   and interpretKeywordParser = exactString "interpret"
-  and localKeywordParser = exactString "local"
   and newlineParser = exactString "\n"
   and openBlockParser = exactString "{"
   and packageKeywordParser = exactString "package"
   and quoteParser = exactString "\""
   and requireKeywordParser = exactString "require"
-  and terminatorParser = exactString ";";
+  and theoryKeywordParser = exactString "theory";
 
   val identifierParser =
       let
@@ -262,16 +220,6 @@ local
   val requireNameParser = identifierParser;
 
   val packageNameParser = identifierParser;
-
-  val quotedFilenameParser =
-      let
-        fun isFilenameChar c = c <> #"\n" andalso c <> #"\""
-
-        val filenameParser = atLeastOne (some isFilenameChar)
-      in
-        (quoteParser ++ filenameParser ++ quoteParser) >>
-        (fn ((),(f,())) => {filename = implode f})
-      end;
 
   val tagParser =
       (fieldParser ++ manySpace ++ colonParser ++ manySpace ++ valueParser) >>
@@ -313,40 +261,14 @@ local
 
   val requireSpaceParser = requireParser ++ manySpace >> fst;
 
-  fun theoryParser inp =
-      (localParser ||
-       sequenceParser ||
-       articleParser ||
-       interpretParser ||
-       importParser) inp
+  val theoryParser =
+      (theoryKeywordParser ++ manySpace ++
+       openBlockParser ++
+       Theory.parser requireNameParser ++
+       closeBlockParser) >>
+      (fn ((),((),((),(t,())))) => t);
 
-  and localParser inp =
-      ((localKeywordParser ++ atLeastOneSpace ++ theoryParser ++ manySpace ++
-        inKeywordParser ++ atLeastOneSpace ++ theoryParser) >>
-       (fn ((),((),(t1,((),((),((),t2)))))) => Local (t1,t2))) inp
-
-  and sequenceParser inp =
-      ((openBlockParser ++ manySpace ++ many theorySpaceParser ++
-        closeBlockParser) >>
-       (fn ((),((),(ts,()))) => Sequence ts)) inp
-
-  and articleParser inp =
-      ((articleKeywordParser ++ manySpace ++ quotedFilenameParser ++
-        manySpace ++ terminatorParser) >>
-       (fn ((),((),(f,((),())))) => Article f)) inp
-
-  and interpretParser inp =
-      ((interpretKeywordParser ++ manySpace ++ openBlockParser ++ manySpace ++
-        Interpretation.parser ++ manySpace ++ closeBlockParser ++
-        inKeywordParser ++ atLeastOneSpace ++ theoryParser) >>
-       (fn ((),((),((),((),(i,((),((),((),((),t))))))))) => Interpret (i,t))) inp
-
-  and importParser inp =
-      ((importKeywordParser ++ atLeastOneSpace ++ requireNameParser ++
-        manySpace ++ terminatorParser) >>
-       (fn ((),((),(r,((),())))) => Import {require = r})) inp
-
-  and theorySpaceParser inp = (theoryParser ++ manySpace >> fst) inp;
+  val theorySpaceParser = theoryParser ++ manySpace >> fst;
 
   val packageParser =
       (many tagSpaceParser ++
@@ -359,6 +281,8 @@ in
   val parserTag = manySpace ++ tagSpaceParser >> snd;
 
   val parserRequire = manySpace ++ requireSpaceParser >> snd;
+
+  val parserRequireName = requireNameParser;
 
   val parserTheory = manySpace ++ theorySpaceParser >> snd;
 

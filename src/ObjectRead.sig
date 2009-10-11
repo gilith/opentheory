@@ -38,9 +38,7 @@ type parameters =
 
 type state
 
-val initial :
-    {parameters : parameters,
-     saved : ObjectThms.thms} -> state
+val initial : parameters -> state
 
 val parameters : state -> parameters
 

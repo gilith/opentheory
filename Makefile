@@ -109,8 +109,8 @@ SRC = \
   src/Context.sig src/Context.sml \
   src/Summary.sig src/Summary.sml \
   src/Article.sig src/Article.sml \
-  src/Package.sig src/Package.sml \
   src/Theory.sig src/Theory.sml \
+  src/Package.sig src/Package.sml \
   src/HolLight.sig src/HolLight.sml \
   src/Options.sig src/Options.sml
 

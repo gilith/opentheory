@@ -20,11 +20,21 @@ val objects : thms -> ObjectProvSet.set
 
 val symbol : thms -> Symbol.symbol
 
+(* ------------------------------------------------------------------------- *)
+(* Adding objects.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
 val add : thms -> ObjectProv.object -> thms
 
 val addList : thms -> ObjectProv.object list -> thms
 
 val addSet : thms -> ObjectProvSet.set -> thms
+
+val union : thms -> thms -> thms
+
+(* ------------------------------------------------------------------------- *)
+(* Searching for theorems.                                                   *)
+(* ------------------------------------------------------------------------- *)
 
 val search : thms -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
 
