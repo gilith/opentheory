@@ -17,9 +17,27 @@ datatype 'a theory =
   | Interpret of Interpretation.interpretation * 'a theory
   | Import of 'a
 
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
 val empty : 'a theory
 
 val append : 'a theory -> 'a theory -> 'a theory
+
+(* ------------------------------------------------------------------------- *)
+(* Articles read by the theory.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val articles :
+    Interpretation.interpretation -> 'a theory ->
+    (Interpretation.interpretation * {filename : string}) list
+
+(* ------------------------------------------------------------------------- *)
+(* Imported theories.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val imported : 'a theory -> 'a list
 
 (* ------------------------------------------------------------------------- *)
 (* Compiling theories to articles.                                           *)
@@ -31,7 +49,6 @@ val toArticle :
      importToArticle : 'a -> Article.article,
      interpretation : Interpretation.interpretation,
      import : 'a list,
-     directory : string,
      theory : 'a theory} ->
     Article.article
 

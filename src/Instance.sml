@@ -93,4 +93,22 @@ fun theory inst =
       x
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Imported instances.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun imported inst =
+    let
+      val Instance' {import = imp, theory = thy, ...} = dest inst
+    in
+      imp @ Theory.imported thy
+    end;
+
 end
+
+structure InstanceOrdered =
+struct type t = Instance.instance val compare = Instance.compare end
+
+structure InstanceSet = ElementSet (InstanceOrdered)
+
+structure InstanceMap = KeyMap (InstanceOrdered)
