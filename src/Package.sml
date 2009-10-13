@@ -19,10 +19,12 @@ datatype tag =
 
 type requireName = string;
 
+type name = string;
+
 datatype require =
     Require of
       {name : requireName,
-       package : string,
+       package : name,
        interpretation : Interpretation.interpretation,
        import : string list};
 
@@ -95,12 +97,14 @@ fun destRequire req =
       (name,cs)
     end;
 
+val ppName = Print.ppString;
+
 fun ppConstraint c =
     case c of
       PackageConstraint p =>
       Print.sequence
         (Print.addString "package: ")
-        (Print.addString p)
+        (ppName p)
     | InterpretConstraint r =>
       Print.sequence
         (Print.addString "interpret: ")
@@ -219,7 +223,7 @@ local
 
   val requireNameParser = identifierParser;
 
-  val packageNameParser = identifierParser;
+  val nameParser = identifierParser;
 
   val tagParser =
       (fieldParser ++ manySpace ++ colonParser ++ manySpace ++ valueParser) >>
@@ -230,7 +234,7 @@ local
   val packageConstraintParser =
       (packageKeywordParser ++ manySpace ++
        colonParser ++ manySpace ++
-       packageNameParser) >>
+       nameParser) >>
       (fn ((),((),((),((),p)))) => PackageConstraint p);
 
   val interpretConstraintParser =
@@ -280,9 +284,11 @@ local
 in
   val parserTag = manySpace ++ tagSpaceParser >> snd;
 
-  val parserRequire = manySpace ++ requireSpaceParser >> snd;
-
   val parserRequireName = requireNameParser;
+
+  val parserName = nameParser;
+
+  val parserRequire = manySpace ++ requireSpaceParser >> snd;
 
   val parserTheory = manySpace ++ theorySpaceParser >> snd;
 

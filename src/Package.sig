@@ -17,10 +17,12 @@ datatype tag =
 
 type requireName = string
 
+type name = string
+
 datatype require =
     Require of
       {name : requireName,
-       package : string,
+       package : name,
        interpretation : Interpretation.interpretation,
        import : string list}
 
@@ -40,6 +42,8 @@ val ppTag : tag Print.pp
 
 val ppRequireName : requireName Print.pp
 
+val ppName : name Print.pp
+
 val ppRequire : require Print.pp
 
 val ppTheory : theory Print.pp
@@ -53,6 +57,8 @@ val pp : package Print.pp
 val parserTag : (char,tag) Parse.parser
 
 val parserRequireName : (char,requireName) Parse.parser
+
+val parserName : (char,name) Parse.parser
 
 val parserRequire : (char,require) Parse.parser
 

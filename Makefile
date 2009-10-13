@@ -111,6 +111,8 @@ SRC = \
   src/Article.sig src/Article.sml \
   src/Theory.sig src/Theory.sml \
   src/Package.sig src/Package.sml \
+  src/Instance.sig src/Instance.sml \
+  src/Graph.sig src/Graph.sml \
   src/HolLight.sig src/HolLight.sml \
   src/Options.sig src/Options.sml
 

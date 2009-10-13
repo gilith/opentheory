@@ -9,28 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Object IDs.                                                               *)
-(* ------------------------------------------------------------------------- *)
-
-type id = int;
-
-val newId : unit -> id =
-    let
-      val counter = ref 0
-    in
-      fn () =>
-         let
-           val ref count = counter
-           val () = counter := count + 1
-(*OpenTheoryTrace1
-           val () = if count mod 1000 = 0 then trace "." else ()
-*)
-         in
-           count
-         end
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Object provenance.                                                        *)
 (*                                                                           *)
 (* Invariants *in order of priority*                                         *)
@@ -51,6 +29,8 @@ val newId : unit -> id =
 (*      Istack obj => contained in the stack object obj                      *)
 (*      Iaxiom     => asserted as an axiom (a dependency of the theory)      *)
 (* ------------------------------------------------------------------------- *)
+
+type id = int;
 
 datatype object =
     Object of
@@ -73,8 +53,36 @@ and inference =
   | Istack of object
   | Iaxiom;
 
+(* ------------------------------------------------------------------------- *)
+(* Object IDs.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+val newId : unit -> id =
+    let
+      val counter = ref 0
+    in
+      fn () =>
+         let
+           val ref count = counter
+           val () = counter := count + 1
+(*OpenTheoryTrace1
+           val () = if count mod 1000 = 0 then trace "." else ()
+*)
+         in
+           count
+         end
+    end;
+
+fun id (Object {id = x, ...}) = x;
+
+fun equalId i obj = i = id obj;
+
 fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
     Int.compare (i1,i2);
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
 
 fun mk {object,provenance,call} =
     let
@@ -86,8 +94,6 @@ fun mk {object,provenance,call} =
          provenance = provenance,
          call = call}
     end;
-
-fun id (Object {id = x, ...}) = x;
 
 fun object (Object {object = x, ...}) = x;
 

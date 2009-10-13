@@ -7,14 +7,10 @@ signature ObjectProv =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Object IDs.                                                               *)
+(* Objects that track their provenance.                                      *)
 (* ------------------------------------------------------------------------- *)
 
 type id = int
-
-(* ------------------------------------------------------------------------- *)
-(* Objects that track their provenance.                                      *)
-(* ------------------------------------------------------------------------- *)
 
 datatype object =
     Object of
@@ -37,14 +33,14 @@ and inference =
   | Istack of object
   | Iaxiom
 
-val compare : object * object -> order
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val mk :
     {object : Object.object,
      provenance : provenance,
      call : object option} -> object
-
-val id : object -> id
 
 val object : object -> Object.object
 
@@ -61,6 +57,16 @@ val parents : object -> object list
 val containsThms : object -> bool
 
 val stackUses : object -> object list
+
+(* ------------------------------------------------------------------------- *)
+(* Object IDs.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+val id : object -> id
+
+val equalId : id -> object -> bool
+
+val compare : object * object -> order
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping with state over objects.                                          *)
