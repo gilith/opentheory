@@ -46,7 +46,7 @@ fun lookupPackages packages package =
 fun add graph inst =
     let
 (*OpenTheoryDebug
-      val imp = Instance.imported inst
+      val imp = Instance.import inst @ Instance.theoryImported inst
 
       val _ = List.all (fn i => member i graph) imp orelse
               raise Bug "Graph.add: imported instance not in graph"
@@ -79,5 +79,16 @@ fun add graph inst =
 
 fun lookup (Graph {packages,...}) package =
     lookupPackages packages package;
+
+(* ------------------------------------------------------------------------- *)
+(* Finding matching theory instances.                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun match graph req =
+    let
+      val {package, interpretation = int, import = imp} = req
+    in
+      raise Bug "Graph.match: not implemented"
+    end;
 
 end

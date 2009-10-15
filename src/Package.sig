@@ -24,7 +24,7 @@ datatype require =
       {name : requireName,
        package : name,
        interpretation : Interpretation.interpretation,
-       import : string list}
+       import : requireName list}
 
 type theory = requireName Theory.theory
 

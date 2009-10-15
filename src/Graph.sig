@@ -34,4 +34,15 @@ val add : graph -> Instance.instance -> graph
 
 val lookup : graph -> Package.name -> InstanceSet.set
 
+(* ------------------------------------------------------------------------- *)
+(* Finding matching theory instances.                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val match :
+    graph ->
+    {package : Package.name,
+     interpretation : Interpretation.interpretation,
+     import : InstanceSet.set} ->
+    InstanceSet.set
+
 end

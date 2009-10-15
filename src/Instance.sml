@@ -24,7 +24,8 @@ and instance' =
       {package : Package.name option,
        interpretation : Interpretation.interpretation,
        import : instance list,
-       theory : instance Theory.theory};
+       theory : instance Theory.theory,
+       article : Article.article};
 
 (* ------------------------------------------------------------------------- *)
 (* Instance IDs.                                                             *)
@@ -94,14 +95,25 @@ fun theory inst =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Imported instances.                                                       *)
+(* Articles read by the instance theory.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun imported inst =
+fun theoryArticles inst =
     let
-      val Instance' {import = imp, theory = thy, ...} = dest inst
+      val Instance' {interpretation = int, theory = thy, ...} = dest inst
     in
-      imp @ Theory.imported thy
+      Theory.articles int thy
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Instances imported by the theory.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun theoryImported inst =
+    let
+      val Instance' {theory = thy, ...} = dest inst
+    in
+      Theory.imported thy
     end;
 
 end

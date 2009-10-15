@@ -21,7 +21,8 @@ datatype instance' =
       {package : Package.name option,
        interpretation : Interpretation.interpretation,
        import : instance list,
-       theory : instance Theory.theory}
+       theory : instance Theory.theory,
+       article : Article.article}
 
 val mk : instance' -> instance
 
@@ -36,10 +37,17 @@ val import : instance -> instance list
 val theory : instance -> instance Theory.theory
 
 (* ------------------------------------------------------------------------- *)
-(* Imported instances.                                                       *)
+(* Articles read by the instance theory.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val imported : instance -> instance list
+val theoryArticles :
+    instance -> (Interpretation.interpretation * {filename : string}) list
+
+(* ------------------------------------------------------------------------- *)
+(* Instances imported by the theory.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val theoryImported : instance -> instance list
 
 (* ------------------------------------------------------------------------- *)
 (* Instance IDs.                                                             *)
