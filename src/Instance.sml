@@ -21,9 +21,9 @@ datatype instance =
 
 and instance' =
     Instance' of
-      {package : Package.name option,
+      {requires : instance list,
        interpretation : Interpretation.interpretation,
-       import : instance list,
+       package : Package.name option,
        theory : instance Theory.theory,
        article : Article.article};
 
@@ -66,9 +66,9 @@ fun mk inst' =
 
 fun dest (Instance {instance = x, ...}) = x;
 
-fun package inst =
+fun requires inst =
     let
-      val Instance' {package = x, ...} = dest inst
+      val Instance' {requires = x, ...} = dest inst
     in
       x
     end;
@@ -80,9 +80,9 @@ fun interpretation inst =
       x
     end;
 
-fun import inst =
+fun package inst =
     let
-      val Instance' {import = x, ...} = dest inst
+      val Instance' {package = x, ...} = dest inst
     in
       x
     end;
@@ -90,6 +90,13 @@ fun import inst =
 fun theory inst =
     let
       val Instance' {theory = x, ...} = dest inst
+    in
+      x
+    end;
+
+fun article inst =
+    let
+      val Instance' {article = x, ...} = dest inst
     in
       x
     end;
@@ -109,11 +116,11 @@ fun theoryArticles inst =
 (* Instances imported by the theory.                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryImported inst =
+fun theoryImports inst =
     let
       val Instance' {theory = thy, ...} = dest inst
     in
-      Theory.imported thy
+      Theory.imports thy
     end;
 
 end

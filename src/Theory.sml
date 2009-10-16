@@ -73,7 +73,7 @@ val articles =
 (* Imported theories.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val imported =
+val imports =
     let
       fun extract acc thys =
           case thys of
@@ -116,10 +116,10 @@ val imported =
 fun toArticle info =
     let
       val {savable,
+           known = initialKnown,
            simulations,
            importToArticle,
            interpretation = initialInt,
-           import,
            theory = initialThy} = info
 
       fun compile known int thy =
@@ -150,10 +150,8 @@ fun toArticle info =
 
       and compileAppend known int (thy,art) =
           Article.append art (compile known int thy)
-
-      val known = Article.concat (map importToArticle import)
     in
-      compile known initialInt initialThy
+      compile initialKnown initialInt initialThy
     end;
 
 (* ------------------------------------------------------------------------- *)

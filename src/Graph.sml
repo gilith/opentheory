@@ -46,10 +46,10 @@ fun lookupPackages packages package =
 fun add graph inst =
     let
 (*OpenTheoryDebug
-      val imp = Instance.import inst @ Instance.theoryImported inst
+      val insts = Instance.requires inst @ Instance.theoryImports inst
 
-      val _ = List.all (fn i => member i graph) imp orelse
-              raise Bug "Graph.add: imported instance not in graph"
+      val _ = List.all (fn i => member i graph) insts orelse
+              raise Bug "Graph.add: parent instance not in graph"
 *)
 
       val Graph {instances,packages} = graph

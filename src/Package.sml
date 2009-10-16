@@ -24,9 +24,9 @@ type name = string;
 datatype require =
     Require of
       {name : requireName,
-       package : name,
+       requires : requireName list,
        interpretation : Interpretation.interpretation,
-       import : requireName list};
+       package : name};
 
 type theory = requireName Theory.theory;
 
@@ -41,13 +41,13 @@ datatype package =
 (* ------------------------------------------------------------------------- *)
 
 datatype constraint =
-    PackageConstraint of string
+    RequireConstraint of string
   | InterpretConstraint of Interpretation.rewrite
-  | ImportConstraint of string;
+  | PackageConstraint of string;
 
-fun destPackageConstraint c =
+fun destRequireConstraint c =
     case c of
-      PackageConstraint p => SOME p
+      RequireConstraint r => SOME r
     | _ => NONE;
 
 fun destInterpretConstraint c =
@@ -55,44 +55,44 @@ fun destInterpretConstraint c =
       InterpretConstraint r => SOME r
     | _ => NONE;
 
-fun destImportConstraint c =
+fun destPackageConstraint c =
     case c of
-      ImportConstraint r => SOME r
+      PackageConstraint p => SOME p
     | _ => NONE;
 
 fun mkRequire (name,cs) =
     let
+      val requires = List.mapPartial destRequireConstraint cs
+
+      val rws = List.mapPartial destInterpretConstraint cs
+
+      val interpretation = Interpretation.fromRewriteList rws
+
       val package =
           case List.mapPartial destPackageConstraint cs of
             [] => raise Error "no package specified in require block"
           | [p] => p
           | _ :: _ :: _ =>
             raise Error "multiple packages specified in require block"
-
-      val rws = List.mapPartial destInterpretConstraint cs
-
-      val interpretation = Interpretation.fromRewriteList rws
-
-      val import = List.mapPartial destImportConstraint cs
     in
       Require
         {name = name,
-         package = package,
+         requires = requires,
          interpretation = interpretation,
-         import = import}
+         package = package}
     end;
 
 fun destRequire req =
     let
-      val Require {name,package,interpretation,import} = req
+      val Require {name,requires,interpretation,package} = req
+
+      val reqs = map RequireConstraint requires
 
       val rws = Interpretation.toRewriteList interpretation
 
-      val int = map InterpretConstraint rws
+      val ints = map InterpretConstraint rws
 
-      val imp = map ImportConstraint import
-
-      val cs = PackageConstraint package :: int @ imp
+      val cs = reqs @ ints @ [PackageConstraint package]
     in
       (name,cs)
     end;
@@ -109,9 +109,9 @@ fun ppConstraint c =
       Print.sequence
         (Print.addString "interpret: ")
         (Interpretation.ppRewrite r)
-    | ImportConstraint r =>
+    | RequireConstraint r =>
       Print.sequence
-        (Print.addString "import: ")
+        (Print.addString "require: ")
         (Print.addString r);
 
 (* ------------------------------------------------------------------------- *)
@@ -193,7 +193,6 @@ local
 
   val closeBlockParser = exactString "}"
   and colonParser = exactString ":"
-  and importKeywordParser = exactString "import"
   and interpretKeywordParser = exactString "interpret"
   and newlineParser = exactString "\n"
   and openBlockParser = exactString "{"
@@ -243,16 +242,16 @@ local
        Interpretation.parserRewrite) >>
       (fn ((),((),((),((),r)))) => InterpretConstraint r);
 
-  val importConstraintParser =
-      (importKeywordParser ++ manySpace ++
+  val requireConstraintParser =
+      (requireKeywordParser ++ manySpace ++
        colonParser ++ manySpace ++
        requireNameParser) >>
-      (fn ((),((),((),((),r)))) => ImportConstraint r);
+      (fn ((),((),((),((),r)))) => RequireConstraint r);
 
   val constraintParser =
       packageConstraintParser ||
       interpretConstraintParser ||
-      importConstraintParser;
+      requireConstraintParser;
 
   val constraintSpaceParser = constraintParser ++ manySpace >> fst;
 

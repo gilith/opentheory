@@ -37,7 +37,7 @@ val articles :
 (* Imported theories.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val imported : 'a theory -> 'a list
+val imports : 'a theory -> 'a list
 
 (* ------------------------------------------------------------------------- *)
 (* Compiling theories to articles.                                           *)
@@ -45,10 +45,10 @@ val imported : 'a theory -> 'a list
 
 val toArticle :
     {savable : bool,
+     known : Article.article,
      simulations : ObjectRead.simulations,
      importToArticle : 'a -> Article.article,
      interpretation : Interpretation.interpretation,
-     import : 'a list,
      theory : 'a theory} ->
     Article.article
 

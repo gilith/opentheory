@@ -22,9 +22,9 @@ type name = string
 datatype require =
     Require of
       {name : requireName,
-       package : name,
+       requires : requireName list,
        interpretation : Interpretation.interpretation,
-       import : requireName list}
+       package : name}
 
 type theory = requireName Theory.theory
 

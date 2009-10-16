@@ -18,9 +18,9 @@ type instance
 
 datatype instance' =
     Instance' of
-      {package : Package.name option,
+      {requires : instance list,
        interpretation : Interpretation.interpretation,
-       import : instance list,
+       package : Package.name option,
        theory : instance Theory.theory,
        article : Article.article}
 
@@ -28,13 +28,15 @@ val mk : instance' -> instance
 
 val dest : instance -> instance'
 
-val package : instance -> Package.name option
+val requires : instance -> instance list
 
 val interpretation : instance -> Interpretation.interpretation
 
-val import : instance -> instance list
+val package : instance -> Package.name option
 
 val theory : instance -> instance Theory.theory
+
+val article : instance -> Article.article
 
 (* ------------------------------------------------------------------------- *)
 (* Articles read by the instance theory.                                     *)
@@ -47,7 +49,7 @@ val theoryArticles :
 (* Instances imported by the theory.                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val theoryImported : instance -> instance list
+val theoryImports : instance -> instance list
 
 (* ------------------------------------------------------------------------- *)
 (* Instance IDs.                                                             *)
