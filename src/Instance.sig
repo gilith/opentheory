@@ -52,6 +52,18 @@ val theoryArticles :
 val theoryImports : instance -> instance list
 
 (* ------------------------------------------------------------------------- *)
+(* Creating instances of theory packages.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+val fromPackage :
+    {directory : string,
+     Package.requireName -> instance,
+     interpretation : Interpretation.interpretation,
+     package : Package.name option,
+     contents : Package.package} ->
+    instance
+
+(* ------------------------------------------------------------------------- *)
 (* Instance IDs.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
