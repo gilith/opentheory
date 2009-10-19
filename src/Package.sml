@@ -9,172 +9,51 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val closeBlockString = "}"
+and openBlockString = "{"
+and theoryKeywordString = "theory";
+
+(* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype tag =
-    Tag of
-      {field : string,
-       value : string};
-
-type requireName = string;
-
-type name = string;
-
-datatype require =
-    Require of
-      {name : requireName,
-       requires : requireName list,
-       interpretation : Interpretation.interpretation,
-       package : name};
-
-type theory = requireName Theory.theory;
+type theory = PackageRequire.name Theory.theory;
 
 datatype package =
     Package of
-      {tags : tag list,
-       requires : require list,
+      {tags : Tag.tag list,
+       requires : PackageRequire.require list,
        theory : theory};
-
-(* ------------------------------------------------------------------------- *)
-(* Require block constraints.                                                *)
-(* ------------------------------------------------------------------------- *)
-
-datatype constraint =
-    RequireConstraint of string
-  | InterpretConstraint of Interpretation.rewrite
-  | PackageConstraint of string;
-
-fun destRequireConstraint c =
-    case c of
-      RequireConstraint r => SOME r
-    | _ => NONE;
-
-fun destInterpretConstraint c =
-    case c of
-      InterpretConstraint r => SOME r
-    | _ => NONE;
-
-fun destPackageConstraint c =
-    case c of
-      PackageConstraint p => SOME p
-    | _ => NONE;
-
-fun mkRequire (name,cs) =
-    let
-      val requires = List.mapPartial destRequireConstraint cs
-
-      val rws = List.mapPartial destInterpretConstraint cs
-
-      val interpretation = Interpretation.fromRewriteList rws
-
-      val package =
-          case List.mapPartial destPackageConstraint cs of
-            [] => raise Error "no package specified in require block"
-          | [p] => p
-          | _ :: _ :: _ =>
-            raise Error "multiple packages specified in require block"
-    in
-      Require
-        {name = name,
-         requires = requires,
-         interpretation = interpretation,
-         package = package}
-    end;
-
-fun destRequire req =
-    let
-      val Require {name,requires,interpretation,package} = req
-
-      val reqs = map RequireConstraint requires
-
-      val rws = Interpretation.toRewriteList interpretation
-
-      val ints = map InterpretConstraint rws
-
-      val cs = reqs @ ints @ [PackageConstraint package]
-    in
-      (name,cs)
-    end;
-
-val ppName = Print.ppString;
-
-fun ppConstraint c =
-    case c of
-      PackageConstraint p =>
-      Print.sequence
-        (Print.addString "package: ")
-        (ppName p)
-    | InterpretConstraint r =>
-      Print.sequence
-        (Print.addString "interpret: ")
-        (Interpretation.ppRewrite r)
-    | RequireConstraint r =>
-      Print.sequence
-        (Print.addString "require: ")
-        (Print.addString r);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val ppCloseBlock = Print.addString closeBlockString
+and ppOpenBlock = Print.addString openBlockString
+and ppTheoryKeyword = Print.addString theoryKeywordString;
+
 fun ppBlock ppX x =
     Print.blockProgram Print.Consistent 0
       [Print.blockProgram Print.Consistent 2
-         [Print.addString "{",
+         [ppOpenBlock,
           Print.addBreak 1,
           ppX x],
        Print.addBreak 1,
-       Print.addString "}"];
+       ppCloseBlock];
 
-fun ppTag tag =
-    let
-      val Tag {field,value} = tag
-    in
-      Print.program
-        [Print.addString field,
-         Print.addString ": ",
-         Print.addString value]
-    end;
-
-fun ppTagList tags =
-    Print.blockProgram Print.Consistent 0
-      (map (fn t => Print.sequence (ppTag t) Print.addNewline) tags);
-
-fun ppConstraintList cs =
-    Print.blockProgram Print.Consistent 0
-      (map (fn c => Print.sequence (ppConstraint c) Print.addNewline) cs);
-
-val ppRequireName = Print.ppString;
-
-fun ppRequire req =
-    let
-      val (name,cs) = destRequire req
-    in
-      Print.blockProgram Print.Consistent 0
-        [Print.addString "require ",
-         ppRequireName name,
-         Print.addString " ",
-         ppBlock ppConstraintList cs]
-    end;
-
-val ppRequireList =
-    let
-      fun ppReq req =
-          Print.program [Print.addNewline, ppRequire req, Print.addNewline]
-    in
-      Print.blockProgram Print.Consistent 0 o map ppReq
-    end;
-
-val ppTheory = Theory.pp ppRequireName;
+val ppTheory = Theory.pp PackageRequire.ppName;
 
 fun pp pkg =
     let
       val Package {tags,requires,theory} = pkg
     in
       Print.blockProgram Print.Consistent 0
-        [ppTagList tags,
-         ppRequireList requires,
+        [Tag.ppList tags,
+         PackageRequire.ppList requires,
          Print.addNewline,
          ppTheory theory]
     end;
@@ -191,15 +70,9 @@ local
 
   open Parse;
 
-  val closeBlockParser = exactString "}"
-  and colonParser = exactString ":"
-  and interpretKeywordParser = exactString "interpret"
-  and newlineParser = exactString "\n"
-  and openBlockParser = exactString "{"
-  and packageKeywordParser = exactString "package"
-  and quoteParser = exactString "\""
-  and requireKeywordParser = exactString "require"
-  and theoryKeywordParser = exactString "theory";
+  val closeBlockParser = exactString closeBlockString
+  and openBlockParser = exactString openBlockString
+  and theoryKeywordParser = exactString theoryKeywordString;
 
   val identifierParser =
       let

@@ -10,41 +10,17 @@ sig
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype tag =
-    Tag of
-      {field : string,
-       value : string}
-
-type requireName = string
-
-type name = string
-
-datatype require =
-    Require of
-      {name : requireName,
-       requires : requireName list,
-       interpretation : Interpretation.interpretation,
-       package : name}
-
-type theory = requireName Theory.theory
+type theory = PackageRequire.name Theory.theory
 
 datatype package =
     Package of
-      {tags : tag list,
-       requires : require list,
+      {tags : Tag.tag list,
+       requires : PackageRequire.require list,
        theory : theory}
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
-
-val ppTag : tag Print.pp
-
-val ppRequireName : requireName Print.pp
-
-val ppName : name Print.pp
-
-val ppRequire : require Print.pp
 
 val ppTheory : theory Print.pp
 
@@ -53,14 +29,6 @@ val pp : package Print.pp
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
-
-val parserTag : (char,tag) Parse.parser
-
-val parserRequireName : (char,requireName) Parse.parser
-
-val parserName : (char,name) Parse.parser
-
-val parserRequire : (char,require) Parse.parser
 
 val parserTheory : (char,theory) Parse.parser
 
