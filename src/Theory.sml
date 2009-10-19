@@ -9,6 +9,20 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val articleKeywordString = "article"
+and closeBlockString = "}"
+and importKeywordString = "import"
+and inKeywordString = "in"
+and interpretKeywordString = "interpret"
+and localKeywordString = "local"
+and openBlockString = "{"
+and quoteString = "\""
+and terminatorString = ";";
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory syntax.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
@@ -158,46 +172,67 @@ fun toArticle info =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val ppArticleKeyword = Print.addString articleKeywordString
+and ppCloseBlock = Print.addString closeBlockString
+and ppImportKeyword = Print.addString importKeywordString
+and ppInKeyword = Print.addString inKeywordString
+and ppInterpretKeyword = Print.addString interpretKeywordString
+and ppLocalKeyword = Print.addString localKeywordString
+and ppOpenBlock = Print.addString openBlockString
+and ppQuote = Print.addString quoteString
+and ppTerminator = Print.addString terminatorString;
+
 fun ppBlock ppX x =
     Print.blockProgram Print.Consistent 0
       [Print.blockProgram Print.Consistent 2
-         [Print.addString "{",
+         [ppOpenBlock,
           Print.addBreak 1,
           ppX x],
        Print.addBreak 1,
-       Print.addString "}"];
+       ppCloseBlock];
+
+fun ppQuotedFilename f =
+    Print.program
+      [ppQuote,
+       Print.addString f,
+       ppQuote];
 
 fun pp ppImp =
     let
+      val ppSpace = Print.addString " "
+
       fun ppThy thy =
           case thy of
             Local (thy1,thy2) =>
             Print.blockProgram Print.Consistent 0
-              [Print.addString "local ",
+              [ppLocalKeyword,
+               ppSpace,
                ppThy thy1,
-               Print.addString " in",
+               ppSpace,
+               ppInKeyword,
                ppSpaceThy thy2]
           | Sequence thys =>
             ppBlock ppList thys
           | Article {filename} =>
             Print.blockProgram Print.Consistent 2
-              [Print.addString "article",
+              [ppArticleKeyword,
                Print.addBreak 1,
-               Print.addString "\"",
-               Print.addString filename,
-               Print.addString "\";"]
+               ppQuotedFilename filename,
+               ppTerminator]
           | Interpret (int,thy) =>
             Print.blockProgram Print.Consistent 0
-              [Print.addString "interpret ",
+              [ppInterpretKeyword,
+               ppSpace,
                ppBlock Interpretation.pp int,
-               Print.addString " in",
+               ppSpace,
+               ppInKeyword,
                ppSpaceThy thy]
           | Import imp =>
             Print.blockProgram Print.Consistent 2
-              [Print.addString "import",
+              [ppImportKeyword,
                Print.addBreak 1,
                ppImp imp,
-               Print.addString ";"]
+               ppTerminator]
 
       and ppSpaceThy thy = Print.sequence (Print.addBreak 1) (ppThy thy)
 
@@ -221,15 +256,15 @@ local
 
   open Parse;
 
-  val articleKeywordParser = exactString "article"
-  and closeBlockParser = exactString "}"
-  and importKeywordParser = exactString "import"
-  and inKeywordParser = exactString "in"
-  and interpretKeywordParser = exactString "interpret"
-  and localKeywordParser = exactString "local"
-  and openBlockParser = exactString "{"
-  and quoteParser = exactString "\""
-  and terminatorParser = exactString ";";
+  val articleKeywordParser = exactString articleKeywordString
+  and closeBlockParser = exactString closeBlockString
+  and importKeywordParser = exactString importKeywordString
+  and inKeywordParser = exactString inKeywordString
+  and interpretKeywordParser = exactString interpretKeywordString
+  and localKeywordParser = exactString localKeywordString
+  and openBlockParser = exactString openBlockString
+  and quoteParser = exactString quoteString
+  and terminatorParser = exactString terminatorString;
 
   val quotedFilenameParser =
       let

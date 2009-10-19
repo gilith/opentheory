@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* HIGHER ORDER LOGIC THEORY PACKAGE IDS                                     *)
+(* PACKAGE IDS                                                               *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 

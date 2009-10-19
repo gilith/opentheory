@@ -1,35 +1,56 @@
 (* ========================================================================= *)
-(* PACKAGE VERSIONS                                                          *)
+(* NAME/VALUE TAGS                                                           *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature PackageVersion =
+signature Tag =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package versions.                                        *)
+(* A type of tags.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type version
+type tag
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype tag' =
+    Tag' of
+      {name : string,
+       value : string}
+
+val mk : tag' -> tag
+
+val dest : tag -> tag'
+
+val name : tag -> string
+
+val value : tag -> string
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare : version * version -> order
+val compare : tag * tag -> order
 
-val equal : version -> version -> bool
+val equal : tag -> tag -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : version Print.pp
+val pp : tag Print.pp
+
+val ppList : tag list Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,version) Parse.parser
+val parser : (char,tag) Parse.parser
+
+val parserList : (char, tag list) Parse.parser
 
 end

@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE IDS                                                               *)
+(* NAME/VALUE TAGS                                                           *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure PackageId :> PackageId =
+structure Tag :> Tag =
 struct
 
 open Useful;
@@ -12,74 +12,68 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val separatorString = "-";
+val separatorString = ":";
 
 (* ------------------------------------------------------------------------- *)
-(* Helper functions.                                                         *)
+(* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun concatWith s =
-    let
-      fun add (x,l) = s :: x :: l
-    in
-      fn [] => ""
-       | x :: xs =>
-         let
-           val xs = List.foldl add [] (rev xs)
-         in
-           String.concat (x :: xs)
-         end
-    end;
+datatype tag' =
+    Tag' of
+      {name : string,
+       value : string};
+
+type tag = tag';
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package ids.                                             *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype id =
-    Id of
-      {base : string,
-       version : PackageVersion.version};
+fun mk t : tag = t;
 
-fun base (Id {base = x, ...}) = x;
+fun dest t : tag' = t;
 
-fun version (Id {version = x, ...}) = x;
+fun name (Tag' {name = x, ...}) = x;
+
+fun value (Tag' {value = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (i1,i2) =
+fun compare (t1,t2) =
     let
-      val Id {base = b1, version = v1} = i1
-      and Id {base = b2, version = v2} = i2
+      val Tag' {name = n1, value = v1} = t1
+      and Tag' {name = n2, value = v2} = t2
     in
-      case String.compare (b1,b2) of
+      case String.compare (n1,n2) of
         LESS => LESS
-      | EQUAL => PackageVersion.compare (v1,v2)
+      | EQUAL => String.compare (v1,v2)
       | GREATER => GREATER
     end;
 
-fun equal i1 i2 =
-    let
-      val Id {base = b1, version = v1} = i1
-      and Id {base = b2, version = v2} = i2
-    in
-      b1 = b2 andalso PackageVersion.equal v1 v2
-    end;
+fun equal (t1 : tag) t2 = t1 = t2;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppSeparator = Print.addString separatorString;
+val ppSeparator = Print.addString (separatorString ^ " ");
 
-fun pp (Id {base = b, version = v}) =
-    Print.program
-      [Print.ppString b,
-       ppSeparator,
-       PackageVersion.pp v];
+fun pp tag =
+    let
+      val Tag' {name,value} = tag
+    in
+      Print.blockProgram Print.Consistent 0
+        [Print.addString name,
+         ppSeparator,
+         Print.addString value,
+         Print.addNewline]
+    end;
 
-val toString = Print.toString pp;
+fun ppList tags =
+    Print.blockProgram Print.Consistent 0
+      (map pp tags);
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -95,26 +89,34 @@ local
 
   val separatorParser = exactString separatorString;
 
-  val componentParser =
+  val nameParser =
       let
         fun isInitialChar c = Char.isLower c
 
-        fun isSubsequentChar c = Char.isLower c orelse Char.isDigit c
+        fun isSubsequentChar c = Char.isAlphaNum c
       in
         (some isInitialChar ++ many (some isSubsequentChar)) >>
         (fn (c,cs) => implode (c :: cs))
       end;
 
-  val baseParser =
-      componentParser ++
-      many (separatorParser ++ componentParser >> snd) >>
-      (fn (b,l) => concatWith separatorString (b :: l));
+  val valueParser =
+      let
+        fun isValueChar c = c <> #"\n"
+      in
+        many (some isValueChar) >> implode
+      end;
+
+  val tagParser =
+      (nameParser ++ manySpace ++
+       separatorParser ++ manySpace ++
+       valueParser) >>
+      (fn (n,((),((),((),v)))) => Tag' {name = n, value = v});
+
+  val tagSpaceParser = tagParser ++ manySpace >> fst;
 in
-  val parser =
-      baseParser ++
-      separatorParser ++
-      PackageVersion.parser >>
-      (fn (b,((),v)) => Id {base = b, version = v});
+  val parser = manySpace ++ tagSpaceParser >> snd;
+
+  val parserList = manySpace ++ many tagSpaceParser >> snd;
 end;
 
 end

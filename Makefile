@@ -58,6 +58,7 @@ SRC = \
   src/Heap.sig src/Heap.sml \
   src/Print.sig src/Print.sml \
   src/Parse.sig src/Parse.sml \
+  src/Tag.sig src/Tag.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
   src/MetisNameArity.sig src/MetisNameArity.sml \
@@ -112,8 +113,7 @@ SRC = \
   src/Theory.sig src/Theory.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageId.sig src/PackageId.sml \
-  src/Tag.sig src/Tag.sml \
-  src/Require.sig src/Require.sml \
+  src/PackageRequire.sig src/PackageRequire.sml \
   src/Package.sig src/Package.sml \
   src/Instance.sig src/Instance.sml \
   src/Graph.sig src/Graph.sml \

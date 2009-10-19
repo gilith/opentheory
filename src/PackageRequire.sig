@@ -1,35 +1,42 @@
 (* ========================================================================= *)
-(* PACKAGE VERSIONS                                                          *)
+(* REQUIRED THEORY PACKAGES                                                  *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature PackageVersion =
+signature PackageRequire =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package versions.                                        *)
+(* A type of required theory packages.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type version
+type name = string
 
-(* ------------------------------------------------------------------------- *)
-(* A total order.                                                            *)
-(* ------------------------------------------------------------------------- *)
-
-val compare : version * version -> order
-
-val equal : version -> version -> bool
+datatype require =
+    Require of
+      {name : name,
+       requires : name list,
+       interpretation : Interpretation.interpretation,
+       package : PackageId.id}
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : version Print.pp
+val ppName : name Print.pp
+
+val pp : require Print.pp
+
+val ppList : require list Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,version) Parse.parser
+val parserName : (char,name) Parse.parser
+
+val parser : (char,require) Parse.parser
+
+val parserList : (char, require list) Parse.parser
 
 end
