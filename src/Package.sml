@@ -74,94 +74,21 @@ local
   and openBlockParser = exactString openBlockString
   and theoryKeywordParser = exactString theoryKeywordString;
 
-  val identifierParser =
-      let
-        fun isInitialChar c = Char.isLower c
-
-        fun isIdentifierChar c = Char.isAlphaNum c
-      in
-        (some isInitialChar ++ many (some isIdentifierChar)) >>
-        (fn (c,cs) => implode (c :: cs))
-      end;
-
-  val fieldParser = identifierParser;
-
-  val valueParser =
-      let
-        fun isValueChar c = c <> #"\n"
-      in
-        many (some isValueChar) >> implode
-      end;
-
-  val requireNameParser = identifierParser;
-
-  val nameParser = identifierParser;
-
-  val tagParser =
-      (fieldParser ++ manySpace ++ colonParser ++ manySpace ++ valueParser) >>
-      (fn (f,((),((),((),v)))) => Tag {field = f, value = v});
-
-  val tagSpaceParser = tagParser ++ manySpace >> fst;
-
-  val packageConstraintParser =
-      (packageKeywordParser ++ manySpace ++
-       colonParser ++ manySpace ++
-       nameParser) >>
-      (fn ((),((),((),((),p)))) => PackageConstraint p);
-
-  val interpretConstraintParser =
-      (interpretKeywordParser ++ manySpace ++
-       colonParser ++ manySpace ++
-       Interpretation.parserRewrite) >>
-      (fn ((),((),((),((),r)))) => InterpretConstraint r);
-
-  val requireConstraintParser =
-      (requireKeywordParser ++ manySpace ++
-       colonParser ++ manySpace ++
-       requireNameParser) >>
-      (fn ((),((),((),((),r)))) => RequireConstraint r);
-
-  val constraintParser =
-      packageConstraintParser ||
-      interpretConstraintParser ||
-      requireConstraintParser;
-
-  val constraintSpaceParser = constraintParser ++ manySpace >> fst;
-
-  val requireParser =
-      (requireKeywordParser ++ atLeastOneSpace ++
-       requireNameParser ++ manySpace ++
-       openBlockParser ++ manySpace ++
-       many constraintSpaceParser ++ closeBlockParser) >>
-      (fn ((),((),(n,((),((),((),(cs,()))))))) => mkRequire (n,cs));
-
-  val requireSpaceParser = requireParser ++ manySpace >> fst;
-
   val theoryParser =
       (theoryKeywordParser ++ manySpace ++
        openBlockParser ++
-       Theory.parser requireNameParser ++
+       Theory.parser PackageRequire.parserName ++
        closeBlockParser) >>
       (fn ((),((),((),(t,())))) => t);
 
   val theorySpaceParser = theoryParser ++ manySpace >> fst;
 
-  val packageParser =
-      (many tagSpaceParser ++
-       many requireSpaceParser ++
+  val packageSpaceParser =
+      (Tag.parserList ++
+       PackageRequire.parserList ++
        theorySpaceParser) >>
       (fn (ts,(rs,th)) => Package {tags = ts, requires = rs, theory = th});
-
-  val packageSpaceParser = packageParser ++ manySpace >> fst;
 in
-  val parserTag = manySpace ++ tagSpaceParser >> snd;
-
-  val parserRequireName = requireNameParser;
-
-  val parserName = nameParser;
-
-  val parserRequire = manySpace ++ requireSpaceParser >> snd;
-
   val parserTheory = manySpace ++ theorySpaceParser >> snd;
 
   val parser = manySpace ++ packageSpaceParser >> snd;
