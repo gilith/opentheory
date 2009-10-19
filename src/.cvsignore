@@ -1,3 +1,5 @@
+Config.sig
+Config.sml
 ElementSet.sig
 ElementSet.sml
 Heap.sig

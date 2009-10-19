@@ -64,6 +64,8 @@ MLIMPORT = scripts/mlimport
 
 IMPORT_METIS = doc/IMPORT-METIS
 
+src/Config.sig: ../basic/src/Config.sig $(COPY) ; @$(COPY) $< $@
+src/Config.sml: ../basic/src/Config.sml $(COPY) ; @$(COPY) $< $@
 src/ElementSet.sig: ../basic/src/ElementSet.sig $(COPY) ; @$(COPY) $< $@
 src/ElementSet.sml: ../basic/src/ElementSet.sml $(COPY) ; @$(COPY) $< $@
 src/Heap.sig: ../basic/src/Heap.sig $(COPY) ; @$(COPY) $< $@

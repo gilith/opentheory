@@ -58,6 +58,7 @@ SRC = \
   src/Heap.sig src/Heap.sml \
   src/Print.sig src/Print.sml \
   src/Parse.sig src/Parse.sml \
+  src/Config.sig src/Config.sml \
   src/Tag.sig src/Tag.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
