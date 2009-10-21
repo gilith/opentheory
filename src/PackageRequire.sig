@@ -17,7 +17,7 @@ datatype require =
       {name : name,
        requires : name list,
        interpretation : Interpretation.interpretation,
-       package : PackageId.id}
+       package : PackageName.name}
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

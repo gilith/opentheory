@@ -30,7 +30,7 @@ datatype require =
       {name : name,
        requires : name list,
        interpretation : Interpretation.interpretation,
-       package : PackageId.id};
+       package : PackageName.name};
 
 (* ------------------------------------------------------------------------- *)
 (* Require block constraints.                                                *)
@@ -39,7 +39,7 @@ datatype require =
 datatype constraint =
     RequireConstraint of name
   | InterpretConstraint of Interpretation.rewrite
-  | PackageConstraint of PackageId.id;
+  | PackageConstraint of PackageName.name;
 
 fun destRequireConstraint c =
     case c of
@@ -130,7 +130,7 @@ in
       | InterpretConstraint r =>
         ppNameValue ppInterpretKeyword (Interpretation.ppRewrite r)
       | PackageConstraint p =>
-        ppNameValue ppPackageKeyword (PackageId.pp p);
+        ppNameValue ppPackageKeyword (PackageName.pp p);
 end;
 
 fun ppConstraintList cs =
@@ -201,7 +201,7 @@ local
   val packageConstraintParser =
       (packageKeywordParser ++ manySpace ++
        separatorParser ++ manySpace ++
-       PackageId.parser) >>
+       PackageName.parser) >>
       (fn ((),((),((),((),p)))) => PackageConstraint p);
 
   val constraintParser =

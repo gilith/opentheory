@@ -1,39 +1,39 @@
 (* ========================================================================= *)
-(* PACKAGE IDS                                                               *)
+(* PACKAGE NAMES                                                             *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature PackageId =
+signature PackageName =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package ids.                                             *)
+(* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type id
+type name
 
-val base : id -> string
+val base : name -> string
 
-val version : id -> PackageVersion.version
+val version : name -> PackageVersion.version
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare : id * id -> order
+val compare : name * name -> order
 
-val equal : id -> id -> bool
+val equal : name -> name -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : id Print.pp
+val pp : name Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,id) Parse.parser
+val parser : (char,name) Parse.parser
 
 end

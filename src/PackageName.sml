@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE IDS                                                               *)
+(* PACKAGE NAMES                                                             *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure PackageId :> PackageId =
+structure PackageName :> PackageName =
 struct
 
 open Useful;
@@ -32,17 +32,17 @@ fun concatWith s =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package ids.                                             *)
+(* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype id =
-    Id of
+datatype name =
+    Name of
       {base : string,
        version : PackageVersion.version};
 
-fun base (Id {base = x, ...}) = x;
+fun base (Name {base = x, ...}) = x;
 
-fun version (Id {version = x, ...}) = x;
+fun version (Name {version = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
@@ -50,8 +50,8 @@ fun version (Id {version = x, ...}) = x;
 
 fun compare (i1,i2) =
     let
-      val Id {base = b1, version = v1} = i1
-      and Id {base = b2, version = v2} = i2
+      val Name {base = b1, version = v1} = i1
+      and Name {base = b2, version = v2} = i2
     in
       case String.compare (b1,b2) of
         LESS => LESS
@@ -61,8 +61,8 @@ fun compare (i1,i2) =
 
 fun equal i1 i2 =
     let
-      val Id {base = b1, version = v1} = i1
-      and Id {base = b2, version = v2} = i2
+      val Name {base = b1, version = v1} = i1
+      and Name {base = b2, version = v2} = i2
     in
       b1 = b2 andalso PackageVersion.equal v1 v2
     end;
@@ -73,7 +73,7 @@ fun equal i1 i2 =
 
 val ppSeparator = Print.addString separatorString;
 
-fun pp (Id {base = b, version = v}) =
+fun pp (Name {base = b, version = v}) =
     Print.program
       [Print.ppString b,
        ppSeparator,
@@ -114,7 +114,7 @@ in
       baseParser ++
       separatorParser ++
       PackageVersion.parser >>
-      (fn (b,((),v)) => Id {base = b, version = v});
+      (fn (b,((),v)) => Name {base = b, version = v});
 end;
 
 end

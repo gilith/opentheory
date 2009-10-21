@@ -113,7 +113,7 @@ SRC = \
   src/Article.sig src/Article.sml \
   src/Theory.sig src/Theory.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
-  src/PackageId.sig src/PackageId.sml \
+  src/PackageName.sig src/PackageName.sml \
   src/PackageRequire.sig src/PackageRequire.sml \
   src/Package.sig src/Package.sml \
   src/Instance.sig src/Instance.sml \

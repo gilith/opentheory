@@ -49,4 +49,8 @@ val match :
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+val install :
+    graph ->
+    {
+
 end
