@@ -40,9 +40,9 @@ val lookup : graph -> PackageName.name -> InstanceSet.set
 
 val match :
     graph ->
-    {package : PackageName.name,
+    {requires : InstanceSet.set,
      interpretation : Interpretation.interpretation,
-     import : InstanceSet.set} ->
+     package : PackageName.name} ->
     InstanceSet.set
 
 (***

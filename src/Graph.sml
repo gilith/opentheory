@@ -84,9 +84,9 @@ fun lookup (Graph {packages,...}) package =
 (* Finding matching theory instances.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun match graph req =
+fun match graph spec =
     let
-      val {package, interpretation = int, import = imp} = req
+      val {requires = req, interpretation = int, package = pkg} = spec
     in
       raise Bug "Graph.match: not implemented"
     end;
