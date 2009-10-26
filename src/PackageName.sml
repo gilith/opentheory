@@ -118,3 +118,10 @@ in
 end;
 
 end
+
+structure PackageNameOrdered =
+struct type t = PackageName.name val compare = PackageName.compare end
+
+structure PackageNameSet = ElementSet (PackageNameOrdered)
+
+structure PackageNameMap = KeyMap (PackageNameOrdered)

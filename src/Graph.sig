@@ -32,7 +32,7 @@ val add : graph -> Instance.instance -> graph
 (* Looking up theory instances by package name.                              *)
 (* ------------------------------------------------------------------------- *)
 
-val lookup : graph -> Package.name -> InstanceSet.set
+val lookup : graph -> PackageName.name -> InstanceSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Finding matching theory instances.                                        *)
@@ -40,11 +40,12 @@ val lookup : graph -> Package.name -> InstanceSet.set
 
 val match :
     graph ->
-    {package : Package.name,
+    {package : PackageName.name,
      interpretation : Interpretation.interpretation,
      import : InstanceSet.set} ->
     InstanceSet.set
 
+(***
 (* ------------------------------------------------------------------------- *)
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
@@ -52,5 +53,6 @@ val match :
 val install :
     graph ->
     {
+***)
 
 end

@@ -114,10 +114,11 @@ SRC = \
   src/Theory.sig src/Theory.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageName.sig src/PackageName.sml \
+  src/Instance.sig src/Instance.sml \
   src/PackageRequire.sig src/PackageRequire.sml \
   src/Package.sig src/Package.sml \
-  src/Instance.sig src/Instance.sml \
   src/Graph.sig src/Graph.sml \
+  src/Directory.sig src/Directory.sml \
   src/HolLight.sig src/HolLight.sml \
   src/Options.sig src/Options.sml
 

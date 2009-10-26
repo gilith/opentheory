@@ -15,7 +15,7 @@ open Useful;
 datatype graph =
     Graph of
       {instances : InstanceSet.set,
-       packages : InstanceSet.set StringMap.map};
+       packages : InstanceSet.set PackageNameMap.map};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -25,7 +25,7 @@ val empty =
     let
       val instances = InstanceSet.empty
 
-      val packages = StringMap.new ()
+      val packages = PackageNameMap.new ()
     in
       Graph
         {instances = instances,
@@ -41,7 +41,7 @@ fun member inst graph = InstanceSet.member inst (instances graph);
 (* ------------------------------------------------------------------------- *)
 
 fun lookupPackages packages package =
-    Option.getOpt (StringMap.peek packages package, InstanceSet.empty);
+    Option.getOpt (PackageNameMap.peek packages package, InstanceSet.empty);
 
 fun add graph inst =
     let
@@ -65,7 +65,7 @@ fun add graph inst =
 
               val s = InstanceSet.add s inst
             in
-              StringMap.insert packages (p,s)
+              PackageNameMap.insert packages (p,s)
             end
     in
       Graph

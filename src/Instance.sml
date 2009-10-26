@@ -23,7 +23,7 @@ and instance' =
     Instance' of
       {requires : instance list,
        interpretation : Interpretation.interpretation,
-       package : Package.name option,
+       package : PackageName.name option,
        theory : instance Theory.theory,
        article : Article.article};
 
@@ -121,6 +121,56 @@ fun theoryImports inst =
       val Instance' {theory = thy, ...} = dest inst
     in
       Theory.imports thy
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Creating instances of theory packages.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun fromTheory info =
+    let
+      val {savable,
+           requires = req,
+           simulations,
+           importToInstance,
+           interpretation = int,
+           directory = dir,
+           package = pkg,
+           theory = thy} = info
+
+      fun mkFilename {filename} =
+          {filename = OS.Path.joinDirFile {dir = dir, file = filename}}
+
+      fun mkThy thy =
+          case thy of
+            Theory.Local (t1,t2) => Theory.Local (mkThy t1, mkThy t2)
+          | Theory.Sequence ts => Theory.Sequence (map mkThy ts)
+          | Theory.Article f => Theory.Article (mkFilename f)
+          | Theory.Interpret (i,t) => Theory.Interpret (i, mkThy t)
+          | Theory.Import a => Theory.Import (importToInstance a)
+
+      val thy = mkThy thy
+
+      val known = Article.concat (map article req)
+
+      val art =
+          Theory.toArticle
+            {savable = savable,
+             known = known,
+             simulations = simulations,
+             importToArticle = article,
+             interpretation = int,
+             theory = thy}
+
+      val instance' =
+          Instance'
+            {requires = req,
+             interpretation = int,
+             package = pkg,
+             theory = thy,
+             article = art}
+    in
+      mk instance'
     end;
 
 end

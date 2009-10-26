@@ -20,7 +20,7 @@ datatype instance' =
     Instance' of
       {requires : instance list,
        interpretation : Interpretation.interpretation,
-       package : PackageId.id option,
+       package : PackageName.name option,
        theory : instance Theory.theory,
        article : Article.article}
 
@@ -32,7 +32,7 @@ val requires : instance -> instance list
 
 val interpretation : instance -> Interpretation.interpretation
 
-val package : instance -> PackageId.id option
+val package : instance -> PackageName.name option
 
 val theory : instance -> instance Theory.theory
 
@@ -55,12 +55,15 @@ val theoryImports : instance -> instance list
 (* Creating instances of theory packages.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val fromPackage :
-    {directory : string,
-     requires : PackageRequire.name -> instance,
+val fromTheory :
+    {savable : bool,
+     requires : instance list,
+     simulations : ObjectRead.simulations,
+     importToInstance : 'a -> instance,
      interpretation : Interpretation.interpretation,
-     package : PackageId.id option,
-     contents : Package.package} ->
+     directory : string,
+     package : PackageName.name option,
+     theory : 'a Theory.theory} ->
     instance
 
 (* ------------------------------------------------------------------------- *)

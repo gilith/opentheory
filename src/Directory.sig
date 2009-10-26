@@ -12,9 +12,9 @@ sig
 
 type repo
 
-val containsRepo : repo -> PackageId.id -> bool
+val containsRepo : repo -> PackageName.name -> bool
 
-val filesRepo : repo -> PackageId.id -> string list option
+val filesRepo : repo -> PackageName.name -> {filename : string} list option
 
 (* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
@@ -44,7 +44,7 @@ val contentsPackage : package -> Package.package
 
 type directory
 
-val mk : {root : string} -> directory
+val mk : {root : {directory : string}} -> directory
 
 val root : directory -> {directory : string}
 
@@ -52,8 +52,9 @@ val config : directory -> config
 
 val repos : directory -> repo list
 
-val lookup : directory -> PackageId.id -> package option
+val lookup : directory -> PackageName.name -> package option
 
-val download : directory -> PackageId.id -> directory * package
+val install : directory -> Graph.graph -> 
+val download : directory -> PackageName.name -> directory * package
 
 end
