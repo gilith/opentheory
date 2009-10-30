@@ -9,32 +9,72 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val configFile = "config";
+
+val packagesDirectory = "packages";
+
+val theoryExtension = "txt";
+
+(* ------------------------------------------------------------------------- *)
+(* Directories and filenames.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkConfigFilename {rootDirectory} =
+    OS.Path.joinDirFile {dir = rootDirectory, file = configFile};
+
+fun mkPackagesDirectory {rootDirectory} =
+    OS.Path.joinDirFile
+      {dir = rootDirectory, file = packagesDirectory};
+
+fun mkPackageDirectory root pkg =
+    let
+      val directory = mkPackagesDirectory root
+    in
+      OS.Path.joinDirFile
+        {dir = directory, file = PackageName.toString pkg}
+    end;
+
+fun mkTheoryFile pkg =
+    OS.Path.joinBaseExt
+      {base = PackageName.base pkg, ext = SOME theoryExtension};
+
+fun mkTheoryFilename {directory} pkg =
+      OS.Path.joinDirFile {dir = directory, file = mkTheoryFile pkg};
+
+(* ------------------------------------------------------------------------- *)
 (* Repos.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 datatype repo =
     Repo of
       {name : string,
-       pkgs : {filename : string} list option PackageNameMap.map ref};
+       packages : {filename : string} list option PackageNameMap.map ref};
 
-fun mkRepo name =
+fun mkRepo {name} =
     let
-      val pkgs = ref (PackageNameMap.new ())
+      val packages = ref (PackageNameMap.new ())
     in
       Repo
         {name = name,
-         pkgs = pkgs}
+         packages = packages}
     end;
 
+fun nameRepo (Repo {name = x, ...}) = x;
+
 fun filesRepo repo pkg =
+    let
+      val Repo {packages, ...} = repo
+      val ref pkgs = packages
+    in
+      case PackageNameMap.peek pkgs pkg of
+        SOME pf => pf
+      | NONE => raise Bug "Directory.filesRepo: web repos not implemented"
+    end;
 
-(***
-type repo
-
-val containsRepo : repo -> PackageName.name -> bool
-
-val filesRepo : repo -> PackageName.name -> {filename : string} list option
-***)
+fun containsRepo repo pkg = Option.isSome (filesRepo repo pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
@@ -44,27 +84,101 @@ datatype config =
     Config of
       {repos : repo list};
 
-(***
-type config
+val defaultConfig =
+    let
+      val repos = []
+    in
+      Config {repos = repos}
+    end;
 
-val mkConfig : {filename : string} -> config
+local
+  val reposHandler =
+      let
+        fun beginSection config = config
 
-val reposConfig : config -> repo list
-***)
+        fun processLine (line,config) =
+            let
+              val Config {repos} = config
+
+              val repo = mkRepo {name = line}
+
+              val repos = repos @ [repo]
+            in
+              Config {repos = repos}
+            end
+
+        fun endSection config = config
+      in
+        Config.SectionHandler
+          {beginSection = beginSection,
+           processLine = processLine,
+           endSection = endSection}
+      end;
+
+  fun sectionHandler section =
+      if section = "repos" then SOME reposHandler
+      else NONE;
+
+  val handler = Config.Handler sectionHandler;
+in
+  fun readConfig filename =
+      Config.read handler defaultConfig filename
+      handle IO.Io _ => defaultConfig;
+end;
+
+fun reposConfig (Config {repos = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Packages.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-(***
-type package
+datatype package =
+    Package of
+      {directory : string,
+       filename : string,
+       contents : Package.package};
 
-val directoryPackage : package -> {directory : string}
+fun lookupPackage root pkg =
+    let
+      val directory = mkPackageDirectory root pkg
 
-val filenamePackage : package -> {filename : string}
+      val filename = mkTheoryFilename {directory = directory} pkg
 
-val contentsPackage : package -> Package.package
-***)
+      val maybeContents =
+          SOME (Package.fromTextFile {filename = filename})
+          handle IO.Io _ => NONE
+    in
+      case maybeContents of
+        NONE => NONE
+      | SOME contents =>
+        let
+          val package =
+              Package
+                {directory = directory,
+                 filename = filename,
+                 contents = contents}
+        in
+          SOME package
+        end
+    end;
+
+fun mkPackage {filename} =
+    let
+      val directory = OS.Path.dir filename
+
+      val contents = Package.fromTextFile {filename = filename}
+    in
+      Package
+        {directory = directory,
+         filename = filename,
+         contents = contents}
+    end;
+
+fun directoryPackage (Package {directory = x, ...}) = {directory = x};
+
+fun filenamePackage (Package {filename = x, ...}) = {filename = x};
+
+fun contentsPackage (Package {contents = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
@@ -72,19 +186,53 @@ val contentsPackage : package -> Package.package
 
 datatype directory =
     Directory of
-      {root : {directory : string},
-       config : config Lazy.lazy};
+      {rootDirectory : string,
+       config : config Lazy.lazy,
+       packages : package option PackageNameMap.map ref};
 
-(***
-val mk : {root : {directory : string}} -> directory
+fun mk {rootDirectory} =
+    let
+      fun thunkConfig () =
+          let
+            val filename = mkConfigFilename {rootDirectory = rootDirectory}
+          in
+            readConfig {filename = filename}
+          end
 
-val root : directory -> {directory : string}
+      val config = Lazy.delay thunkConfig
 
-val config : directory -> config
+      val packages = ref (PackageNameMap.new ())
+    in
+      Directory
+        {rootDirectory = rootDirectory,
+         config = config,
+         packages = packages}
+    end;
 
-val repos : directory -> repo list
+fun root (Directory {rootDirectory = x, ...}) = {directory = x};
 
-val lookup : directory -> PackageName.name -> package option
-***)
+fun config (Directory {config = x, ...}) = Lazy.force x;
+
+fun repos dir = reposConfig (config dir);
+
+fun lookup dir pkg =
+    let
+      val Directory {rootDirectory,packages,...} = dir
+
+      val ref pkgs = packages
+    in
+      case PackageNameMap.peek pkgs pkg of
+        SOME p => p
+      | NONE =>
+        let
+          val mp = lookupPackage {rootDirectory = rootDirectory} pkg
+
+          val pkgs = PackageNameMap.insert pkgs (pkg,mp)
+
+          val () = packages := pkgs
+        in
+          mp
+        end
+    end;
 
 end

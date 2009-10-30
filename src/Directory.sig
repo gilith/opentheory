@@ -12,6 +12,10 @@ sig
 
 type repo
 
+val mkRepo : {name : string} -> repo
+
+val nameRepo : repo -> string
+
 val containsRepo : repo -> PackageName.name -> bool
 
 val filesRepo : repo -> PackageName.name -> {filename : string} list option
@@ -22,7 +26,9 @@ val filesRepo : repo -> PackageName.name -> {filename : string} list option
 
 type config
 
-val mkConfig : {filename : string} -> config
+val defaultConfig : config
+
+val readConfig : {filename : string} -> config
 
 val reposConfig : config -> repo list
 
@@ -32,9 +38,14 @@ val reposConfig : config -> repo list
 
 type package
 
-val directoryPackage : package -> {directory : string}
+val lookupPackage :
+    {rootDirectory : string} -> PackageName.name -> package option
+
+val mkPackage : {filename : string} -> package
 
 val filenamePackage : package -> {filename : string}
+
+val directoryPackage : package -> {directory : string}
 
 val contentsPackage : package -> Package.package
 
@@ -44,7 +55,7 @@ val contentsPackage : package -> Package.package
 
 type directory
 
-val mk : {root : {directory : string}} -> directory
+val mk : {rootDirectory : string} -> directory
 
 val root : directory -> {directory : string}
 
