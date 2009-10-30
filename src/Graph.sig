@@ -45,14 +45,25 @@ val match :
      package : PackageName.name} ->
     InstanceSet.set
 
-(***
 (* ------------------------------------------------------------------------- *)
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+type packageFinder =
+     PackageName.name ->
+     {directory : string,
+      package : Package.package}
+
 val install :
+    {finder : packageFinder,
+     savable : bool,
+     simulations : ObjectRead.simulations} ->
     graph ->
-    {
-***)
+    {interpretation : Interpretation.interpretation,
+     directory : string,
+     package : PackageName.name option,
+     requires : PackageRequire.require list,
+     theory : Package.theory} ->
+    graph * Instance.instance
 
 end
