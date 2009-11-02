@@ -86,9 +86,56 @@ fun lookup (Graph {packages,...}) package =
 
 fun match graph spec =
     let
-      val {requires = req, interpretation = int, package = pkg} = spec
+      val {requiresAtLeast = req,
+           interpretationEquivalentTo = int,
+           package = pkg} = spec
+
+      fun matchReq inst =
+          let
+            val req' = InstanceSet.requiresInstance inst
+          in
+            InstanceSet.subset req req'
+          end
+
+      fun matchInt inst =
+          let
+            val int' = Instance.interpretation inst
+
+            val sum = Instance.summary inst
+
+            val prov = Summary.provides sum
+
+            val sym = Context.symbols prov
+          in
+            Interpretation.restrictEqual sym int int'
+          end
+
+      fun matchInst inst = matchReq inst andalso matchInt inst
     in
-      raise Bug "Graph.match: not implemented"
+      InstanceSet.filter matchInst (lookup graph pkg)
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Installing theory packages.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type packageFinder =
+     PackageName.name ->
+     {directory : string,
+      package : Package.package};
+
+(***
+fun install :
+    {finder : packageFinder,
+     savable : bool,
+     simulations : ObjectRead.simulations} ->
+    graph ->
+    {interpretation : Interpretation.interpretation,
+     directory : string,
+     package : PackageName.name option,
+     requires : PackageRequire.require list,
+     theory : Package.theory} ->
+    graph * Instance.instance
+***)
 
 end

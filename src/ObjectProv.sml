@@ -383,9 +383,9 @@ local
 
   fun addAncestors (obj,set) = ancs set [obj];
 in
-  fun ancestors obj = addAncestors (obj,empty);
+  fun ancestorsObject obj = addAncestors (obj,empty);
 
-  val ancestorSet = foldl addAncestors empty;
+  val ancestors = foldl addAncestors empty;
 end;
 
 local
@@ -528,7 +528,7 @@ local
                       val () = Print.trace ppObject "initial" obj'
                       val () = Print.trace ppObject "duplicate" obj
                       val () =
-                          if member obj' (ancestors obj) then
+                          if member obj' (ancestorsObject obj) then
                             trace "duplicate depends on initial\n"
                           else
                             trace "duplicate does not depend on initial\n"

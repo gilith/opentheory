@@ -307,7 +307,7 @@ fun alignStartingCall stack obj =
 
 fun toCommandStream saved =
     let
-      val objs = ObjectProvSet.ancestorSet saved
+      val objs = ObjectProvSet.ancestors saved
 
       val stackUses = ObjectProvSet.stackUses objs
 

@@ -25,7 +25,9 @@ and instance' =
        interpretation : Interpretation.interpretation,
        package : PackageName.name option,
        theory : instance Theory.theory,
-       article : Article.article};
+       article : Article.article,
+       thms : ThmSet.set,
+       summary : Summary.summary};
 
 (* ------------------------------------------------------------------------- *)
 (* Instance IDs.                                                             *)
@@ -101,6 +103,20 @@ fun article inst =
       x
     end;
 
+fun thms inst =
+    let
+      val Instance' {thms = x, ...} = dest inst
+    in
+      x
+    end;
+
+fun summary inst =
+    let
+      val Instance' {summary = x, ...} = dest inst
+    in
+      x
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Articles read by the instance theory.                                     *)
 (* ------------------------------------------------------------------------- *)
@@ -162,13 +178,19 @@ fun fromTheory info =
              interpretation = int,
              theory = thy}
 
+      val ths = Article.saved art
+
+      val sum = Summary.fromThmSet ths
+
       val instance' =
           Instance'
             {requires = req,
              interpretation = int,
              package = pkg,
              theory = thy,
-             article = art}
+             article = art,
+             thms = ths,
+             summary = sum}
     in
       mk instance'
     end;
@@ -178,6 +200,17 @@ end
 structure InstanceOrdered =
 struct type t = Instance.instance val compare = Instance.compare end
 
-structure InstanceSet = ElementSet (InstanceOrdered)
+structure InstanceSet =
+struct
+
+  local
+    structure S = ElementSet (InstanceOrdered);
+  in
+    open S;
+  end;
+
+  fun requiresInstance inst = fromList (Instance.requires inst);
+
+end
 
 structure InstanceMap = KeyMap (InstanceOrdered)

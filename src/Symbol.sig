@@ -26,6 +26,10 @@ val peekTypeOp : symbol -> Name.name -> TypeOp.typeOp option
 
 val peekConst : symbol -> Name.name -> Const.const option
 
+val knownTypeOp : symbol -> Name.name -> bool
+
+val knownConst : symbol -> Name.name -> bool
+
 val mkTypeOp : symbol list -> Name.name -> TypeOp.typeOp
 
 val mkConst : symbol list -> Name.name -> Const.const

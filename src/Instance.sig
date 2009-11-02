@@ -22,7 +22,9 @@ datatype instance' =
        interpretation : Interpretation.interpretation,
        package : PackageName.name option,
        theory : instance Theory.theory,
-       article : Article.article}
+       article : Article.article,
+       thms : ThmSet.set,
+       summary : Summary.summary}
 
 val mk : instance' -> instance
 
@@ -37,6 +39,10 @@ val package : instance -> PackageName.name option
 val theory : instance -> instance Theory.theory
 
 val article : instance -> Article.article
+
+val thms : instance -> ThmSet.set
+
+val summary : instance -> Summary.summary
 
 (* ------------------------------------------------------------------------- *)
 (* Articles read by the instance theory.                                     *)

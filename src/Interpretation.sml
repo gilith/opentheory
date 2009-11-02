@@ -82,7 +82,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of interpretations (bad pun on interpreting art (article files)).  *)
+(* A type of interpretations (bad pun on interpreting art(icle) files).      *)
 (* ------------------------------------------------------------------------- *)
 
 datatype interpretation =
@@ -243,6 +243,50 @@ in
         Interpretation
           {typeOps = typeOps,
            consts = consts}
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Restricting interpretations.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun restrict sym =
+    let
+      fun knownTypeOp (t,_) = Symbol.knownTypeOp sym t
+
+      fun knownConst (c,_) = Symbol.knownConst sym c
+    in
+      fn Interpretation {typeOps,consts} =>
+         let
+           val typeOps = NameMap.filter knownTypeOp typeOps
+
+           val consts = NameMap.filter knownConst consts
+         in
+           Interpretation
+             {typeOps = typeOps,
+              consts = consts}
+         end
+    end;
+
+local
+  fun sameName m1 m2 n =
+      case (NameMap.peek m1 n, NameMap.peek m2 n) of
+        (NONE,NONE) => true
+      | (NONE, SOME _) => false
+      | (SOME _, NONE) => false
+      | (SOME n1, SOME n2) => Name.equal n1 n2;
+in
+  fun restrictEqual sym int1 int2 =
+      let
+        val Interpretation {typeOps = t1, consts = c1} = int1
+        and Interpretation {typeOps = t2, consts = c2} = int2
+
+        fun sameTypeOp t = sameName t1 t2 (TypeOp.name t)
+
+        fun sameConst c = sameName c1 c2 (Const.name c)
+      in
+        TypeOpSet.all sameTypeOp (Symbol.typeOps sym) andalso
+        ConstSet.all sameConst (Symbol.consts sym)
       end;
 end;
 

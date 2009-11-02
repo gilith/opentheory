@@ -45,6 +45,10 @@ fun peekTypeOp (Symbol {opM,...}) n = NameMap.peek opM n;
 
 fun peekConst (Symbol {conM,...}) n = NameMap.peek conM n;
 
+fun knownTypeOp (Symbol {opM,...}) n = NameMap.inDomain n opM;
+
+fun knownConst (Symbol {conM,...}) n = NameMap.inDomain n conM;
+
 fun mkTypeOp syms n =
     let
       fun peek sym = peekTypeOp sym n
