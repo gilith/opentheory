@@ -20,4 +20,10 @@ val alpha : Sequent.sequent -> Thm.thm -> Thm.thm
 
 val findAlpha : ThmSet.set -> Sequent.sequent -> Thm.thm option
 
+(* ------------------------------------------------------------------------- *)
+(* Alpha conversion ignoring definitions of type operators and constants.    *)
+(* ------------------------------------------------------------------------- *)
+
+val redefAlpha : Sequent.sequent -> Thm.thm -> Thm.thm
+
 end

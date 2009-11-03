@@ -219,7 +219,8 @@ fun compress interpretation filename =
       val article =
           time Article.fromTextFile
             {savable = true,
-             known = Article.new {savable = true},
+             simulations = HolLight.simulations,
+             known = Article.empty,
              interpretation = interpretation,
              filename = inputFilename}
 

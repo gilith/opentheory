@@ -36,6 +36,8 @@ val toRewriteList : interpretation -> rewrite list
 
 val fromRewriteList : rewrite list -> interpretation
 
+val fromRewriteStream : rewrite Stream.stream -> interpretation
+
 (* ------------------------------------------------------------------------- *)
 (* Translating OpenTheory names.                                             *)
 (* ------------------------------------------------------------------------- *)

@@ -66,4 +66,17 @@ fun findAlpha set seq =
       SOME th => SOME (alpha seq th)
     | NONE => NONE;
 
+(* ------------------------------------------------------------------------- *)
+(* Alpha conversion ignoring definitions of type operators and constants.    *)
+(* ------------------------------------------------------------------------- *)
+
+fun redefAlpha seq th =
+    let
+      val sym = Symbol.addSequent Symbol.empty (Thm.sequent th)
+
+      val seq = Option.getOpt (Symbol.redefSequent sym seq, seq)
+    in
+      alpha seq th
+    end;
+
 end

@@ -30,7 +30,7 @@ fun simulate simulations interpretation stack target =
                    input = input,
                    target = target}
 
-            val result = total (Rule.alpha target o sim) data
+            val result = total (Rule.redefAlpha target o sim) data
 
             val () =
                 if Option.isSome result then ()

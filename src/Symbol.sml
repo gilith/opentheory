@@ -226,6 +226,296 @@ fun partitionUndef sym =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Replacing type operators and constants with symbol table entries.         *)
+(* These functions return NONE for unchanged.                                *)
+(* ------------------------------------------------------------------------- *)
+
+datatype sharingRedef =
+    SharingRedef of
+      {symbol : symbol,
+       types : Type.ty option IntMap.map,
+       terms : Term.term option IntMap.map};
+
+fun newSharingRedef symbol =
+    let
+      val types = IntMap.new ()
+
+      val terms = IntMap.new ()
+    in
+      SharingRedef
+        {symbol = symbol,
+         types = types,
+         terms = terms}
+    end;
+
+fun redefTypeOp sym ot =
+    case peekTypeOp sym (TypeOp.name ot) of
+      NONE => NONE
+    | SOME ot' => if TypeOp.equal ot ot' then NONE else SOME ot';
+
+fun redefConst sym c =
+    case peekConst sym (Const.name c) of
+      NONE => NONE
+    | SOME c' => if Const.equal c c' then NONE else SOME c';
+
+fun sharingRedefType ty share =
+    let
+      val SharingRedef {types,...} = share
+
+      val i = Type.id ty
+    in
+      case IntMap.peek types i of
+        SOME ty' => (ty',share)
+      | NONE =>
+        let
+          val typ = Type.dest ty
+
+          val (typ',share) = sharingRedefType' typ share
+
+          val ty' =
+              case typ' of
+                NONE => NONE
+              | SOME typ => SOME (Type.mk typ)
+
+          val SharingRedef {symbol,types,terms} = share
+
+          val types = IntMap.insert types (i,ty')
+
+          val share =
+              SharingRedef
+                {symbol = symbol,
+                 types = types,
+                 terms = terms}
+        in
+          (ty',share)
+        end
+    end
+
+and sharingRedefType' ty share =
+    case ty of
+      TypeTerm.VarTy' _ => (NONE,share)
+    | TypeTerm.OpTy' (ot,tys) =>
+      let
+        val SharingRedef {symbol,...} = share
+
+        val ot' = redefTypeOp symbol ot
+
+        val (tys',share) = sharingRedefTypeList tys share
+
+        val ty' =
+            case (ot',tys') of
+              (NONE,NONE) => NONE
+            | (SOME ot, NONE) => SOME (TypeTerm.OpTy' (ot,tys))
+            | (NONE, SOME tys) => SOME (TypeTerm.OpTy' (ot,tys))
+            | (SOME ot, SOME tys) => SOME (TypeTerm.OpTy' (ot,tys))
+      in
+        (ty',share)
+      end
+
+and sharingRedefTypeList tys share =
+    case tys of
+      [] => (NONE,share)
+    | ty :: tys =>
+      let
+        val (ty',share) = sharingRedefType ty share
+
+        val (tys',share) = sharingRedefTypeList tys share
+
+        val result =
+            case tys' of
+              SOME tys => SOME (Option.getOpt (ty',ty) :: tys)
+            | NONE =>
+              case ty' of
+                NONE => NONE
+              | SOME ty => SOME (ty :: tys)
+      in
+        (result,share)
+      end;
+
+fun sharingRedefVar var share =
+    let
+      val (n,ty) = Var.dest var
+
+      val (ty',share) = sharingRedefType ty share
+
+      val var' =
+          case ty' of
+            NONE => NONE
+          | SOME ty => SOME (Var.mk (n,ty))
+    in
+      (var',share)
+    end;
+
+fun sharingRedefTerm tm share =
+    let
+      val SharingRedef {terms,...} = share
+
+      val i = Term.id tm
+    in
+      case IntMap.peek terms i of
+        SOME tm' => (tm',share)
+      | NONE =>
+        let
+          val tmp = Term.dest tm
+
+          val (tmp',share) = sharingRedefTerm' tmp share
+
+          val tm' =
+              case tmp' of
+                NONE => NONE
+              | SOME tmp => SOME (Term.mk tmp)
+
+          val SharingRedef {symbol,types,terms} = share
+
+          val terms = IntMap.insert terms (i,tm')
+
+          val share =
+              SharingRedef
+                {symbol = symbol,
+                 types = types,
+                 terms = terms}
+        in
+          (tm',share)
+        end
+    end
+
+and sharingRedefTerm' tm share =
+    case tm of
+      TypeTerm.Const' (c,ty) =>
+      let
+        val SharingRedef {symbol,...} = share
+
+        val c' = redefConst symbol c
+
+        val (ty',share) = sharingRedefType ty share
+
+        val tm' =
+            case (c',ty') of
+              (NONE,NONE) => NONE
+            | (SOME c, NONE) => SOME (TypeTerm.Const' (c,ty))
+            | (NONE, SOME ty) => SOME (TypeTerm.Const' (c,ty))
+            | (SOME c, SOME ty) => SOME (TypeTerm.Const' (c,ty))
+      in
+        (tm',share)
+      end
+    | TypeTerm.Var' v =>
+      let
+        val (v',share) = sharingRedefVar v share
+
+        val tm' =
+            case v' of
+              NONE => NONE
+            | SOME v => SOME (TypeTerm.Var' v)
+      in
+        (tm',share)
+      end
+    | TypeTerm.App' (f,a) =>
+      let
+        val (f',share) = sharingRedefTerm f share
+
+        val (a',share) = sharingRedefTerm a share
+
+        val tm' =
+            case (f',a') of
+              (NONE,NONE) => NONE
+            | (SOME f, NONE) => SOME (TypeTerm.App' (f,a))
+            | (NONE, SOME a) => SOME (TypeTerm.App' (f,a))
+            | (SOME f, SOME a) => SOME (TypeTerm.App' (f,a))
+      in
+        (tm',share)
+      end
+    | TypeTerm.Abs' (v,b) =>
+      let
+        val (v',share) = sharingRedefVar v share
+
+        val (b',share) = sharingRedefTerm b share
+
+        val tm' =
+            case (v',b') of
+              (NONE,NONE) => NONE
+            | (SOME v, NONE) => SOME (TypeTerm.Abs' (v,b))
+            | (NONE, SOME b) => SOME (TypeTerm.Abs' (v,b))
+            | (SOME v, SOME b) => SOME (TypeTerm.Abs' (v,b))
+      in
+        (tm',share)
+      end;
+
+local
+  fun redefAdd (tm,(changed,set,share)) =
+      let
+        val (tm',share) = sharingRedefTerm tm share
+
+        val (changed,tm) =
+            case tm' of
+              SOME tm => (true,tm)
+            | NONE => (changed,tm)
+
+        val set = TermAlphaSet.add set tm
+      in
+        (changed,set,share)
+      end;
+in
+  fun sharingRedefSequent seq share =
+      let
+        val Sequent.Sequent {hyp,concl} = seq
+
+        val changed = false
+        val hyp' = TermAlphaSet.empty
+        val (changed,hyp',share) =
+            TermAlphaSet.foldl redefAdd (changed,hyp',share) hyp
+
+        val (concl',share) = sharingRedefTerm concl share
+
+        val seq' =
+            case (changed,concl') of
+              (false,NONE) => NONE
+            | (true,NONE) => SOME (Sequent.Sequent {hyp = hyp', concl = concl})
+            | (false, SOME concl) =>
+              SOME (Sequent.Sequent {hyp = hyp, concl = concl})
+            | (true, SOME concl) =>
+              SOME (Sequent.Sequent {hyp = hyp', concl = concl})
+      in
+        (seq',share)
+      end;
+end;
+
+fun redefType sym ty =
+    let
+      val share = newSharingRedef sym
+
+      val (ty',_) = sharingRedefType ty share
+    in
+      ty'
+    end;
+
+fun redefVar sym v =
+    let
+      val share = newSharingRedef sym
+
+      val (v',_) = sharingRedefVar v share
+    in
+      v'
+    end;
+
+fun redefTerm sym tm =
+    let
+      val share = newSharingRedef sym
+
+      val (tm',_) = sharingRedefTerm tm share
+    in
+      tm'
+    end;
+
+fun redefSequent sym seq =
+    let
+      val share = newSharingRedef sym
+
+      val (seq',_) = sharingRedefSequent seq share
+    in
+      seq'
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

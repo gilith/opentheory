@@ -39,6 +39,12 @@ let log_name s = log_raw ("\"" ^ String.escaped s ^ "\"");;
 let log_command s = log_raw s;;
 
 (* ------------------------------------------------------------------------- *)
+(* Logging function names.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+let log_rule n = log_name ("hol-light." ^ n);;
+
+(* ------------------------------------------------------------------------- *)
 (* The dictionary                                                            *)
 (* ------------------------------------------------------------------------- *)
 
@@ -105,9 +111,9 @@ let log_pair (f : 'a -> unit) (g : 'b -> unit) (x,y) =
 let log_triple (f : 'a -> unit) (g : 'b -> unit) (h : 'c -> unit) (x,y,z) =
     f x; log_pair g h (y,z); log_command "cons";;
 
-let log_call f = log_name f; log_command "call";;
+let log_call f = log_rule f; log_command "call";;
 
-let log_return f = log_name f; log_command "return";;
+let log_return f = log_rule f; log_command "return";;
 
 let log_error () = log_command "error";;
 
@@ -153,7 +159,7 @@ let log_term =
           log_var tm
         else if is_comb tm then
           let (a,b) = dest_comb tm in
-            (f a; f b; log_command "comb")
+            (f a; f b; log_command "app")
         else
           let (v,b) = dest_abs tm in
             (f v; f b; log_command "abs") in

@@ -63,6 +63,41 @@ val union : symbol -> symbol -> symbol
 val partitionUndef : symbol -> symbol * symbol
 
 (* ------------------------------------------------------------------------- *)
+(* Redefining type operators and constants to match symbol table entries.    *)
+(* ------------------------------------------------------------------------- *)
+
+(* Preserving sharing *)
+
+type sharingRedef
+
+val newSharingRedef : symbol -> sharingRedef
+
+val sharingRedefType : Type.ty -> sharingRedef -> Type.ty option * sharingRedef
+
+val sharingRedefVar :
+    Var.var -> sharingRedef -> Var.var option * sharingRedef
+
+val sharingRedefTerm :
+    Term.term -> sharingRedef -> Term.term option * sharingRedef
+
+val sharingRedefSequent :
+    Sequent.sequent -> sharingRedef -> Sequent.sequent option * sharingRedef
+
+(* Simple versions *)
+
+val redefTypeOp : symbol -> TypeOp.typeOp -> TypeOp.typeOp option
+
+val redefConst : symbol -> Const.const -> Const.const option
+
+val redefType : symbol -> Type.ty -> Type.ty option
+
+val redefVar : symbol -> Var.var -> Var.var option
+
+val redefTerm : symbol -> Term.term -> Term.term option
+
+val redefSequent : symbol -> Sequent.sequent -> Sequent.sequent option
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
