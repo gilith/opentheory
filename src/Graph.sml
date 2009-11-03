@@ -86,9 +86,18 @@ fun lookup (Graph {packages,...}) package =
 
 fun match graph spec =
     let
-      val {requiresAtLeast = req,
+      val {savable = sav,
+           requiresAtLeast = req,
            interpretationEquivalentTo = int,
            package = pkg} = spec
+
+      fun matchSav inst =
+          not sav orelse
+          let
+            val art = Instance.article inst
+          in
+            Article.savable art
+          end
 
       fun matchReq inst =
           let
@@ -110,7 +119,10 @@ fun match graph spec =
             Interpretation.restrictEqual sym int int'
           end
 
-      fun matchInst inst = matchReq inst andalso matchInt inst
+      fun matchInst inst =
+          matchSav inst andalso
+          matchReq inst andalso
+          matchInt inst
     in
       InstanceSet.filter matchInst (lookup graph pkg)
     end;
@@ -119,23 +131,209 @@ fun match graph spec =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-type packageFinder =
-     PackageName.name ->
-     {directory : string,
-      package : Package.package};
+type packageFinder = PackageName.name -> Package.package;
 
-(***
-fun install :
-    {finder : packageFinder,
-     savable : bool,
-     simulations : ObjectRead.simulations} ->
-    graph ->
-    {interpretation : Interpretation.interpretation,
-     directory : string,
-     package : PackageName.name option,
-     requires : PackageRequire.require list,
-     theory : Package.theory} ->
-    graph * Instance.instance
-***)
+fun getRequire reqInsts r =
+    case StringMap.peek reqInsts r of
+      SOME inst => inst
+    | NONE => raise Error ("unknown require block name: " ^ r);
+
+fun installTheory graph info =
+    let
+      val {savable,
+           requires = req,
+           simulations,
+           importToInstance,
+           interpretation = int,
+           package = pkg,
+           directory = dir,
+           theory = thy} = info
+
+      val req = InstanceSet.toList req
+
+      val inst =
+          Instance.fromTheory
+            {savable = savable,
+             requires = req,
+             simulations = simulations,
+             importToInstance = importToInstance,
+             interpretation = int,
+             directory = dir,
+             package = pkg,
+             theory = thy}
+
+      val graph = add graph inst
+    in
+      (graph,inst)
+    end;
+
+fun matchInstallPackageName graph info =
+    let
+      val {finder,
+           savable,
+           simulations,
+           requiresAtLeast = req,
+           interpretationEquivalentTo = int,
+           package = pkg} = info
+
+      val matchInfo =
+          {savable = savable,
+           requiresAtLeast = req,
+           interpretationEquivalentTo = int,
+           package = pkg}
+
+      val insts = match graph matchInfo
+    in
+      if not (InstanceSet.null insts) then (graph, InstanceSet.pick insts)
+      else
+        let
+          val info =
+              {finder = finder,
+               savable = savable,
+               simulations = simulations,
+               requires = req,
+               interpretation = int,
+               package = pkg}
+        in
+          installPackageName graph info
+        end
+    end
+
+and installPackageName graph info =
+    let
+      val {finder,
+           savable,
+           simulations,
+           requires = req,
+           interpretation = int,
+           package = pkg} = info
+
+      val pkg = finder pkg
+
+      val info =
+          {finder = finder,
+           savable = savable,
+           simulations = simulations,
+           requires = req,
+           interpretation = int,
+           package = pkg}
+    in
+      installPackage graph info
+    end
+
+and installPackage graph info =
+    let
+      val {finder,
+           savable,
+           simulations,
+           requires = req,
+           interpretation = int,
+           package = pkg} = info
+
+      val Package.Package {name,directory,contents} = pkg
+
+      val info =
+          {finder = finder,
+           savable = savable,
+           simulations = simulations,
+           requires = req,
+           interpretation = int,
+           package = name,
+           directory = directory,
+           contents = contents}
+    in
+      installContents graph info
+    end
+
+and installContents graph info =
+    let
+      val {finder,
+           savable,
+           simulations,
+           requires = req,
+           interpretation = int,
+           package = pkg,
+           directory = dir,
+           contents} = info
+
+      val PackageContents.Contents {requires,theory,...} = contents
+
+      fun installReq (require,(graph,reqInsts)) =
+          let
+            val reqToInst = getRequire reqInsts
+
+            val info =
+                {finder = finder,
+                 savable = savable,
+                 simulations = simulations,
+                 requires = req,
+                 interpretation = int,
+                 requireNameToInstance = reqToInst,
+                 require = require}
+
+            val (graph,inst) = installRequire graph info
+
+            val name = PackageRequire.name require
+
+            val reqInsts = StringMap.insert reqInsts (name,inst)
+          in
+            (graph,reqInsts)
+          end
+
+      val requires = PackageRequire.sort requires
+
+      val (graph,reqInsts) =
+          List.foldl installReq (graph, StringMap.new ()) requires
+
+      val impToInst = getRequire reqInsts
+
+      val info =
+          {savable = savable,
+           simulations = simulations,
+           requires = req,
+           interpretation = int,
+           package = pkg,
+           directory = dir,
+           importToInstance = impToInst,
+           theory = theory}
+    in
+      installTheory graph info
+    end
+
+and installRequire graph info =
+    let
+      val {finder,
+           savable,
+           simulations,
+           requires = req,
+           interpretation = int,
+           requireNameToInstance = reqToInst,
+           require} = info
+
+      val PackageRequire.Require
+            {name = _,
+             requires = reqs,
+             interpretation = reqInt,
+             package = pkg} = require
+
+      val requiresAtLeast =
+          let
+            fun add (r,s) = InstanceSet.add s (reqToInst r)
+          in
+            List.foldl add req reqs
+          end
+
+      val interpretationEquivalentTo = Interpretation.compose reqInt int
+
+      val info =
+          {finder = finder,
+           savable = savable,
+           simulations = simulations,
+           requiresAtLeast = requiresAtLeast,
+           interpretationEquivalentTo = interpretationEquivalentTo,
+           package = pkg}
+    in
+      matchInstallPackageName graph info
+    end;
 
 end

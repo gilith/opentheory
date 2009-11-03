@@ -52,9 +52,9 @@ fun simulate simulations interpretation stack target =
 
                     val ppSeq = Print.ppOp2 " =" Print.ppString Sequent.pp
                   in
-                    warn ("simulation failed: " ^ Name.toString f ^
-                          "\n" ^ Print.toString ppOb ("input",input) ^
-                          "\n" ^ Print.toString ppSeq ("target",target))
+                    die ("simulation failed: " ^ Name.toString f ^
+                         "\n" ^ Print.toString ppOb ("input",input) ^
+                         "\n" ^ Print.toString ppSeq ("target",target))
                   end
           in
             result

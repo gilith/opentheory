@@ -1,37 +1,27 @@
 (* ========================================================================= *)
-(* HIGHER ORDER LOGIC THEORY PACKAGE DATA                                    *)
+(* THEORIES OF HIGHER ORDER LOGIC USED IN PACKAGES                           *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature Package =
+signature PackageTheory =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Types of theory package data.                                             *)
+(* Types of package theory syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype package =
-    Package of
-      {name : PackageName.name option,
-       directory : string,
-       contents : PackageContents.contents}
+type theory = PackageRequire.name Theory.theory
 
 (* ------------------------------------------------------------------------- *)
-(* Constructors and destructors.                                             *)
+(* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val name : package -> PackageName.name option
-
-val directory : package -> {directory : string}
-
-val contents : package -> PackageContents.contents
+val pp : theory Print.pp
 
 (* ------------------------------------------------------------------------- *)
-(* Input/Output.                                                             *)
+(* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val fromTextFile :
-    {name : PackageName.name option,
-     filename : string} -> package
+val parser : (char,theory) Parse.parser
 
 end

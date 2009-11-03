@@ -116,6 +116,8 @@ SRC = \
   src/PackageName.sig src/PackageName.sml \
   src/Instance.sig src/Instance.sml \
   src/PackageRequire.sig src/PackageRequire.sml \
+  src/PackageTheory.sig src/PackageTheory.sml \
+  src/PackageContents.sig src/PackageContents.sml \
   src/Package.sig src/Package.sml \
   src/Graph.sig src/Graph.sml \
   src/Directory.sig src/Directory.sml \

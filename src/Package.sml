@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* HIGHER ORDER LOGIC THEORY PACKAGE SYNTAX                                  *)
+(* HIGHER ORDER LOGIC THEORY PACKAGE DATA                                    *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
@@ -9,126 +9,39 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
+(* Types of theory package data.                                             *)
 (* ------------------------------------------------------------------------- *)
-
-val closeBlockString = "}"
-and openBlockString = "{"
-and theoryKeywordString = "theory";
-
-(* ------------------------------------------------------------------------- *)
-(* Types of theory package syntax.                                           *)
-(* ------------------------------------------------------------------------- *)
-
-type theory = PackageRequire.name Theory.theory;
 
 datatype package =
     Package of
-      {tags : Tag.tag list,
-       requires : PackageRequire.require list,
-       theory : theory};
+      {name : PackageName.name option,
+       directory : string,
+       contents : PackageContents.contents};
 
 (* ------------------------------------------------------------------------- *)
-(* Pretty printing.                                                          *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val ppCloseBlock = Print.addString closeBlockString
-and ppOpenBlock = Print.addString openBlockString
-and ppTheoryKeyword = Print.addString theoryKeywordString;
+fun name (Package {name = x, ...}) = x;
 
-fun ppBlock ppX x =
-    Print.blockProgram Print.Consistent 0
-      [Print.blockProgram Print.Consistent 2
-         [ppOpenBlock,
-          Print.addBreak 1,
-          ppX x],
-       Print.addBreak 1,
-       ppCloseBlock];
+fun directory (Package {directory = x, ...}) = {directory = x};
 
-val ppTheory = Theory.pp PackageRequire.ppName;
-
-fun pp pkg =
-    let
-      val Package {tags,requires,theory} = pkg
-    in
-      Print.blockProgram Print.Consistent 0
-        [Tag.ppList tags,
-         PackageRequire.ppList requires,
-         Print.addNewline,
-         ppTheory theory]
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Parsing.                                                                  *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  infixr 9 >>++
-  infixr 8 ++
-  infixr 7 >>
-  infixr 6 ||
-
-  open Parse;
-
-  val closeBlockParser = exactString closeBlockString
-  and openBlockParser = exactString openBlockString
-  and theoryKeywordParser = exactString theoryKeywordString;
-
-  val theoryParser =
-      (theoryKeywordParser ++ manySpace ++
-       openBlockParser ++
-       Theory.parser PackageRequire.parserName ++
-       closeBlockParser) >>
-      (fn ((),((),((),(t,())))) => t);
-
-  val theorySpaceParser = theoryParser ++ manySpace >> fst;
-
-  val packageSpaceParser =
-      (Tag.parserList ++
-       PackageRequire.parserList ++
-       theorySpaceParser) >>
-      (fn (ts,(rs,th)) => Package {tags = ts, requires = rs, theory = th});
-in
-  val parserTheory = manySpace ++ theorySpaceParser >> snd;
-
-  val parser = manySpace ++ packageSpaceParser >> snd;
-
-  val parser' = parser >> (fn pkg => [pkg]);
-end;
+fun contents (Package {contents = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTextFile {package,filename} =
-    Stream.toTextFile {filename = filename} (Print.toStream pp package);
-
-fun fromTextFile {filename} =
+fun fromTextFile {name,filename} =
     let
-      (* Estimating parse error line numbers *)
+      val directory = OS.Path.dir filename
 
-      val lines = Stream.fromTextFile {filename = filename}
-
-      val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
+      val contents = PackageContents.fromTextFile {filename = filename}
     in
-      (let
-         (* The character stream *)
-
-         val chars = Parse.everything Parse.any chars
-
-         (* The package stream *)
-
-         val pkgs = Parse.everything parser' chars
-       in
-         case Stream.toList pkgs of
-           [] => raise Error "missing theory block"
-         | [pkg] => pkg
-         | _ :: _ :: _ => raise Error "multiple theory blocks"
-       end
-       handle Parse.NoParse => raise Error "parse error")
-      handle Error err =>
-        raise Error ("error in package file \"" ^ filename ^ "\" " ^
-                     parseErrorLocation () ^ "\n" ^ err)
+      Package
+        {name = name,
+         directory = directory,
+         contents = contents}
     end;
 
 end

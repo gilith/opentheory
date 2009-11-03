@@ -33,6 +33,12 @@ datatype require =
        package : PackageName.name};
 
 (* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun name (Require {name = x, ...}) = x;
+
+(* ------------------------------------------------------------------------- *)
 (* Require block constraints.                                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -92,6 +98,80 @@ fun destRequire req =
     in
       (name,cs)
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Topological sort of requirements.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  val toMap =
+      let
+        fun ins (req,(m,l)) =
+            let
+              val Require {name = n, requires = rs, ...} = req
+
+              val m = StringMap.insert m (n,(rs,req))
+
+              val l = n :: l
+            in
+              (m,l)
+            end
+      in
+        List.foldl ins (StringMap.new (), [])
+      end;
+
+  fun sortMap requires (dealt,dealtset) (stack,stackset) work =
+      case work of
+        [] =>
+        (case stack of
+           [] => rev dealt
+         | (r,(req,work,stackset)) :: stack =>
+           let
+             val dealt = req :: dealt
+             val dealtset = StringSet.add dealtset r
+           in
+             sortMap requires (dealt,dealtset) (stack,stackset) work
+           end)
+      | r :: work =>
+        if StringSet.member r dealtset then
+          sortMap requires (dealt,dealtset) (stack,stackset) work
+        else if StringSet.member r stackset then
+          let
+            val l = map fst (takeWhile (fn (r',_) => r' <> r) stack)
+            val l = r :: rev (r :: l)
+            val err = join " -> " l
+          in
+            raise Error ("PackageRequire.sort: circular dependency:\n" ^ err)
+          end
+        else
+          let
+            val (rs,req) =
+                case StringMap.peek requires r of
+                  SOME rs_req => rs_req
+                | NONE => raise Bug "PackageRequire.sort"
+
+            val stack = (r,(req,work,stackset)) :: stack
+
+            val stackset = StringSet.add stackset r
+
+            val work = rs
+          in
+            sortMap requires (dealt,dealtset) (stack,stackset) work
+          end;
+in
+  fun sort reqs =
+      let
+        val (reqs,work) = toMap reqs
+
+        val dealt = []
+        val dealtset = StringSet.empty
+
+        val stack = []
+        val stackset = StringSet.empty
+      in
+        sortMap reqs (dealt,dealtset) (stack,stackset) work
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

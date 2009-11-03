@@ -40,7 +40,8 @@ val lookup : graph -> PackageName.name -> InstanceSet.set
 
 val match :
     graph ->
-    {requiresAtLeast : InstanceSet.set,
+    {savable : bool,
+     requiresAtLeast : InstanceSet.set,
      interpretationEquivalentTo : Interpretation.interpretation,
      package : PackageName.name} ->
     InstanceSet.set
@@ -49,21 +50,71 @@ val match :
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-type packageFinder =
-     PackageName.name ->
-     {directory : string,
-      package : Package.package}
+type packageFinder = PackageName.name -> Package.package
 
-val install :
+val installTheory :
+    graph ->
+    {savable : bool,
+     requires : InstanceSet.set,
+     simulations : ObjectRead.simulations,
+     importToInstance : PackageRequire.name -> Instance.instance,
+     interpretation : Interpretation.interpretation,
+     package : PackageName.name option,
+     directory : string,
+     theory : PackageTheory.theory} ->
+    graph * Instance.instance
+
+val matchInstallPackageName :
+    graph ->
     {finder : packageFinder,
      savable : bool,
-     simulations : ObjectRead.simulations} ->
+     simulations : ObjectRead.simulations,
+     requiresAtLeast : InstanceSet.set,
+     interpretationEquivalentTo : Interpretation.interpretation,
+     package : PackageName.name} ->
+    graph * Instance.instance
+
+val installPackageName :
     graph ->
-    {interpretation : Interpretation.interpretation,
-     directory : string,
+    {finder : packageFinder,
+     savable : bool,
+     simulations : ObjectRead.simulations,
+     requires : InstanceSet.set,
+     interpretation : Interpretation.interpretation,
+     package : PackageName.name} ->
+    graph * Instance.instance
+
+val installPackage :
+    graph ->
+    {finder : packageFinder,
+     savable : bool,
+     simulations : ObjectRead.simulations,
+     requires : InstanceSet.set,
+     interpretation : Interpretation.interpretation,
+     package : Package.package} ->
+    graph * Instance.instance
+
+val installContents :
+    graph ->
+    {finder : packageFinder,
+     savable : bool,
+     simulations : ObjectRead.simulations,
+     requires : InstanceSet.set,
+     interpretation : Interpretation.interpretation,
      package : PackageName.name option,
-     requires : PackageRequire.require list,
-     theory : Package.theory} ->
+     directory : string,
+     contents : PackageContents.contents} ->
+    graph * Instance.instance
+
+val installRequire :
+    graph ->
+    {finder : packageFinder,
+     savable : bool,
+     simulations : ObjectRead.simulations,
+     requires : InstanceSet.set,
+     interpretation : Interpretation.interpretation,
+     requireNameToInstance : PackageRequire.name -> Instance.instance,
+     require : PackageRequire.require} ->
     graph * Instance.instance
 
 end

@@ -132,53 +132,15 @@ fun reposConfig (Config {repos = x, ...}) = x;
 (* Packages.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-datatype package =
-    Package of
-      {directory : string,
-       filename : string,
-       contents : Package.package};
-
 fun lookupPackage root pkg =
     let
       val directory = mkPackageDirectory root pkg
 
       val filename = mkTheoryFilename {directory = directory} pkg
-
-      val maybeContents =
-          SOME (Package.fromTextFile {filename = filename})
-          handle IO.Io _ => NONE
     in
-      case maybeContents of
-        NONE => NONE
-      | SOME contents =>
-        let
-          val package =
-              Package
-                {directory = directory,
-                 filename = filename,
-                 contents = contents}
-        in
-          SOME package
-        end
+      SOME (Package.fromTextFile {name = SOME pkg, filename = filename})
+      handle IO.Io _ => NONE
     end;
-
-fun mkPackage {filename} =
-    let
-      val directory = OS.Path.dir filename
-
-      val contents = Package.fromTextFile {filename = filename}
-    in
-      Package
-        {directory = directory,
-         filename = filename,
-         contents = contents}
-    end;
-
-fun directoryPackage (Package {directory = x, ...}) = {directory = x};
-
-fun filenamePackage (Package {filename = x, ...}) = {filename = x};
-
-fun contentsPackage (Package {contents = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
@@ -188,7 +150,7 @@ datatype directory =
     Directory of
       {rootDirectory : string,
        config : config Lazy.lazy,
-       packages : package option PackageNameMap.map ref};
+       packages : Package.package option PackageNameMap.map ref};
 
 fun mk {rootDirectory} =
     let
