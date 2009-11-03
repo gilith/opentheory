@@ -129,20 +129,6 @@ end;
 fun reposConfig (Config {repos = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
-(* Packages.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun lookupPackage root pkg =
-    let
-      val directory = mkPackageDirectory root pkg
-
-      val filename = mkTheoryFilename {directory = directory} pkg
-    in
-      SOME (Package.fromTextFile {name = SOME pkg, filename = filename})
-      handle IO.Io _ => NONE
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -177,24 +163,42 @@ fun config (Directory {config = x, ...}) = Lazy.force x;
 
 fun repos dir = reposConfig (config dir);
 
-fun lookup dir pkg =
-    let
-      val Directory {rootDirectory,packages,...} = dir
+(* ------------------------------------------------------------------------- *)
+(* Looking up packages in the package directory.                             *)
+(* ------------------------------------------------------------------------- *)
 
-      val ref pkgs = packages
-    in
-      case PackageNameMap.peek pkgs pkg of
-        SOME p => p
-      | NONE =>
-        let
-          val mp = lookupPackage {rootDirectory = rootDirectory} pkg
+local
+  fun lookupPackage root pkg =
+      let
+        val directory = mkPackageDirectory root pkg
 
-          val pkgs = PackageNameMap.insert pkgs (pkg,mp)
+        val filename = mkTheoryFilename {directory = directory} pkg
+      in
+        SOME (Package.fromTextFile {name = SOME pkg, filename = filename})
+        handle IO.Io _ => NONE
+      end;
 
-          val () = packages := pkgs
-        in
-          mp
-        end
-    end;
+  fun lookupCached dir pkg =
+      let
+        val Directory {rootDirectory,packages,...} = dir
+
+        val ref pkgs = packages
+      in
+        case PackageNameMap.peek pkgs pkg of
+          SOME p => p
+        | NONE =>
+          let
+            val mp = lookupPackage {rootDirectory = rootDirectory} pkg
+
+            val pkgs = PackageNameMap.insert pkgs (pkg,mp)
+
+            val () = packages := pkgs
+          in
+            mp
+          end
+      end;
+in
+  fun lookup dir = PackageFinder.mk (lookupCached dir);
+end;
 
 end

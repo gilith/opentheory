@@ -64,7 +64,7 @@ val theoryImports : instance -> instance list
 val fromTheory :
     {savable : bool,
      requires : instance list,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      importToInstance : 'a -> instance,
      interpretation : Interpretation.interpretation,
      directory : string,

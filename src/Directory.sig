@@ -46,6 +46,10 @@ val config : directory -> config
 
 val repos : directory -> repo list
 
-val lookup : directory -> PackageName.name -> Package.package option
+(* ------------------------------------------------------------------------- *)
+(* Looking up packages in the package directory.                             *)
+(* ------------------------------------------------------------------------- *)
+
+val lookup : directory -> PackageFinder.finder
 
 end

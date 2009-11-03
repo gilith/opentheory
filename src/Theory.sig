@@ -46,7 +46,7 @@ val imports : 'a theory -> 'a list
 val toArticle :
     {savable : bool,
      known : Article.article,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      importToArticle : 'a -> Article.article,
      interpretation : Interpretation.interpretation,
      theory : 'a theory} ->

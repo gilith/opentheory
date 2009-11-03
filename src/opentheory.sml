@@ -27,8 +27,18 @@ open Useful;
 val PROGRAM = "opentheory";
 
 (* ------------------------------------------------------------------------- *)
+(* Simulations.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val defaultSimulations =
+    Simulation.unionList
+      [HolLight.simulations];
+
+(* ------------------------------------------------------------------------- *)
 (* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
+
+val SIMULATIONS = ref defaultSimulations;
 
 datatype summary =
     SummaryText of {filename : string};
@@ -50,12 +60,12 @@ fun commandString cmd =
 
 fun commandUsage cmd =
     case cmd of
-      Compile => "input.thy"
+      Compile => "input.txt"
     | Summarize => "input.art";
 
 fun commandDescription cmd =
     case cmd of
-      Compile => "compile a theory to an article"
+      Compile => "compile a theory package to an article"
     | Summarize => "summarize an article";
 
 local
@@ -191,13 +201,29 @@ fun usage mesg = Options.usage programOptions mesg;
 
 fun compile {filename} =
     let
-      val theory = Theory.fromTextFile {filename = filename}
+      val pkg = Package.fromTextFile {name = NONE, filename = filename}
 
-      val article = Theory.toArticle theory
+      val graph = Graph.empty
+      and finder = PackageFinder.useless
+      and savable = true
+      and ref sim = SIMULATIONS
+      and req = InstanceSet.empty
+      and int = Interpretation.natural
+
+      val (graph,inst) =
+          Graph.installPackage graph
+            {finder = finder,
+             savable = savable,
+             simulations = sim,
+             requires = req,
+             interpretation = int,
+             package = pkg}
+
+      val art = Instance.article inst
 
       val ref filename = COMPILE_OUTPUT
     in
-      Article.toTextFile {article = article, filename = filename}
+      Article.toTextFile {article = art, filename = filename}
     end;
 
 local
@@ -209,23 +235,25 @@ in
   fun summarize {filename} =
       let
         val savable = false
+        and known = Article.empty
+        and ref sim = SIMULATIONS
+        and int = Interpretation.natural
 
-        val known = Article.new {savable = savable}
-
-        val interpret = Interpretation.natural
-
-        val article =
+        val art =
             Article.fromTextFile
               {savable = savable,
                known = known,
-               interpretation = interpret,
+               simulations = sim,
+               interpretation = int,
                filename = filename}
 
-        val summary = Article.summarize article
+        val ths = Article.saved art
+
+        val sum = Summary.fromThmSet ths
 
         val ref modes = SUMMARIZE_OUTPUT
       in
-        List.app (outputSummary summary) (rev modes)
+        List.app (outputSummary sum) (rev modes)
       end;
 end;
 

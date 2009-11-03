@@ -7,28 +7,12 @@ signature ObjectRead =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Simulating primitive inference rules.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-datatype simulationData =
-    SimulationData of
-      {interpretation : Interpretation.interpretation,
-       input : Object.object,
-       target : Sequent.sequent}
-
-type simulationResult = Thm.thm
-
-type simulation = simulationData -> simulationResult
-
-type simulations = simulation NameMap.map
-
-(* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
      {known : ObjectThms.thms,
-      simulations : simulations,
+      simulations : Simulation.simulations,
       interpretation : Interpretation.interpretation,
       savable : bool}
 

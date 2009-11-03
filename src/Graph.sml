@@ -131,13 +131,6 @@ fun match graph spec =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-type packageFinder = PackageName.name -> Package.package;
-
-fun getRequire reqInsts r =
-    case StringMap.peek reqInsts r of
-      SOME inst => inst
-    | NONE => raise Error ("unknown require block name: " ^ r);
-
 fun installTheory graph info =
     let
       val {savable,
@@ -208,7 +201,12 @@ and installPackageName graph info =
            interpretation = int,
            package = pkg} = info
 
-      val pkg = finder pkg
+      val pkg =
+          case PackageFinder.find finder pkg of
+            SOME p => p
+          | NONE =>
+            raise Error ("Graph.installPackageName: couldn't find package " ^
+                         PackageName.toString pkg)
 
       val info =
           {finder = finder,
@@ -257,6 +255,11 @@ and installContents graph info =
            contents} = info
 
       val PackageContents.Contents {requires,theory,...} = contents
+
+      fun getRequire reqInsts r =
+          case StringMap.peek reqInsts r of
+            SOME inst => inst
+          | NONE => raise Error ("unknown require block name: " ^ r)
 
       fun installReq (require,(graph,reqInsts)) =
           let

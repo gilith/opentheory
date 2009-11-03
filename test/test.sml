@@ -28,7 +28,7 @@ val load = fn (_ : string) => ();
 val () = loadPath := !loadPath @ ["../bin/mosml"];
 val () = app load ["Options"];
 
-open Useful Syntax Rule;
+open Useful;
 
 val time = Portable.time;
 
@@ -46,40 +46,63 @@ fun printer p x = print (Print.toString p x ^ "\n\n");
 fun printval p x = (printer p x; x);
 
 (* ------------------------------------------------------------------------- *)
+val () = SAY "Symbol table tests";
+(* ------------------------------------------------------------------------- *)
+
+val syms : Symbol.symbol list = [];
+
+val mkConj = Syntax.mkConj syms
+and mkDisj = Syntax.mkDisj syms
+and mkForall = Syntax.mkForall syms
+and mkImp = Syntax.mkImp syms
+and mkNeg = Syntax.mkNeg syms
+and termFalse = Syntax.termFalse syms
+and termTrue = Syntax.termTrue syms;
+
+(* ------------------------------------------------------------------------- *)
 val () = SAY "Term tests";
 (* ------------------------------------------------------------------------- *)
 
 val ts =
     let
-      val p = Var.Var (Name.mkGlobal "p", boolType)
-      and q = Var.Var (Name.mkGlobal "q", boolType)
+      val p = Var.mk (Name.mkGlobal "p", Type.bool)
+      and q = Var.mk (Name.mkGlobal "q", Type.bool)
 
-      val t1 = mkAbs (p, mkVar p)
-      and t2 = mkAbs (q, mkVar p)
-      and t3 = mkAbs (q, mkVar q)
+      val t1 = Term.mkAbs (p, Term.mkVar p)
+      and t2 = Term.mkAbs (q, Term.mkVar p)
+      and t3 = Term.mkAbs (q, Term.mkVar q)
     in
       [t1,t2,t3]
     end;
 
-val ts' = printval (Print.ppList ppTerm) (sort Term.compare ts);
+val ts' = printval (Print.ppList Term.pp) (sort Term.compare ts);
 
-val ts'' = printval (Print.ppList ppTerm) (sort Term.alphaCompare ts);
+val ts'' = printval (Print.ppList Term.pp) (sort Term.alphaCompare ts);
 
 val ts =
     let
-      val p = Var.Var (Name.mkGlobal "p", boolType)
-      and q = Var.Var (Name.mkGlobal "q", boolType)
+      val p = Var.mk (Name.mkGlobal "p", Type.bool)
+      and q = Var.mk (Name.mkGlobal "q", Type.bool)
 
-      val t1 = mkEq (mkComb (mkAbs (p, mkVar p), falseTerm), falseTerm)
-      and t2 = mkEq (mkComb (mkAbs (q, mkVar p), mkVar q), mkVar p)
-      and t3 = mkEq (mkComb (mkAbs (q, mkVar q), trueTerm), trueTerm)
+      val t1 =
+          Term.mkEq
+            (Term.mkApp (Term.mkAbs (p, Term.mkVar p), termFalse),
+             termFalse)
+      and t2 =
+          Term.mkEq
+            (Term.mkApp (Term.mkAbs (q, Term.mkVar p), Term.mkVar q),
+             Term.mkVar p)
+      and t3 =
+          Term.mkEq
+            (Term.mkApp (Term.mkAbs (q, Term.mkVar q), termTrue),
+             termTrue)
     in
       [t1,t2,t3]
     end;
 
-val ts' = printval (Print.ppList ppTerm) (sort Term.compare ts);
+val ts' = printval (Print.ppList Term.pp) (sort Term.compare ts);
 
-val ts'' = printval (Print.ppList ppTerm) (sort Term.alphaCompare ts);
+val ts'' = printval (Print.ppList Term.pp) (sort Term.alphaCompare ts);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Substitution";
@@ -87,36 +110,36 @@ val () = SAY "Substitution";
 
 val (tm,sub) =
     let
-      val p = Var.Var (Name.mkGlobal "p", boolType)
-      and q = Var.Var (Name.mkGlobal "q", boolType)
+      val p = Var.mk (Name.mkGlobal "p", Type.bool)
+      and q = Var.mk (Name.mkGlobal "q", Type.bool)
 
-      val t1 = mkImp (mkVar q, mkVar p)
-      val tm = mkAbs (q,t1)
+      val t1 = mkImp (Term.mkVar q, Term.mkVar p)
+      val tm = Term.mkAbs (q,t1)
 
       val tySub = TypeSubst.emptyMap
-      val tmSub = TermSubst.singletonTermMap (p, mkVar q)
+      val tmSub = TermSubst.singletonTermMap (p, Term.mkVar q)
       val sub = TermSubst.mk (tySub,tmSub)
     in
       (tm,sub)
     end;
 
-val _ = printval ppTerm tm;
+val _ = printval Term.pp tm;
 
-val _ = printval ppSubst sub;
+val _ = printval TermSubst.pp sub;
 
-val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
+val tm' = printval (Print.ppOption Term.pp) (TermSubst.subst sub tm);
 
 val (tm,sub) =
     let
-      val x = Var.Var (Name.mkGlobal "x", boolType)
-      and y = Var.Var (Name.mkGlobal "y", boolType)
+      val x = Var.mk (Name.mkGlobal "x", Type.bool)
+      and y = Var.mk (Name.mkGlobal "y", Type.bool)
 
-      val tx = mkVar x
-      and ty = mkVar y
+      val tx = Term.mkVar x
+      and ty = Term.mkVar y
 
       val t0 = mkForall (y,ty)
       val t1 = mkConj (t0,ty)
-      val tm = mkAbs (x,t1)
+      val tm = Term.mkAbs (x,t1)
 
       val tySub = TypeSubst.emptyMap
       val tmSub = TermSubst.singletonTermMap (y,tx)
@@ -125,28 +148,28 @@ val (tm,sub) =
       (tm,sub)
     end;
 
-val _ = printval ppTerm tm;
+val _ = printval Term.pp tm;
 
-val _ = printval ppSubst sub;
+val _ = printval TermSubst.pp sub;
 
-val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
+val tm' = printval (Print.ppOption Term.pp) (TermSubst.subst sub tm);
 
 val (tm,sub) =
     let
-      val ty = alphaType
+      val ty = Type.alpha
 
-      val x = Var.Var (Name.mkGlobal "x", ty)
-      and x' = Var.Var (Name.mkGlobal "x'", ty)
-      and s = Var.Var (Name.mkGlobal "s", mkFun (ty,boolType))
-      and t = Var.Var (Name.mkGlobal "t", mkFun (ty,boolType))
-      and u = Var.Var (Name.mkGlobal "u", mkFun (ty,boolType))
+      val x = Var.mk (Name.mkGlobal "x", ty)
+      and x' = Var.mk (Name.mkGlobal "x'", ty)
+      and s = Var.mk (Name.mkGlobal "s", Type.mkFun (ty,Type.bool))
+      and t = Var.mk (Name.mkGlobal "t", Type.mkFun (ty,Type.bool))
+      and u = Var.mk (Name.mkGlobal "u", Type.mkFun (ty,Type.bool))
 
-      val sx = mkComb (mkVar s, mkVar x)
-      and sx' = mkComb (mkVar s, mkVar x')
-      and tx = mkComb (mkVar t, mkVar x)
-      and tx' = mkComb (mkVar t, mkVar x')
-      and ux = mkComb (mkVar u, mkVar x)
-      and ux' = mkComb (mkVar u, mkVar x')
+      val sx = Term.mkApp (Term.mkVar s, Term.mkVar x)
+      and sx' = Term.mkApp (Term.mkVar s, Term.mkVar x')
+      and tx = Term.mkApp (Term.mkVar t, Term.mkVar x)
+      and tx' = Term.mkApp (Term.mkVar t, Term.mkVar x')
+      and ux = Term.mkApp (Term.mkVar u, Term.mkVar x)
+      and ux' = Term.mkApp (Term.mkVar u, Term.mkVar x')
 
       val t0 = mkForall (x, mkDisj (mkNeg sx, tx))
       and t1 = mkDisj (mkConj (sx, mkNeg tx), mkConj (mkNeg sx, tx))
@@ -154,20 +177,20 @@ val (tm,sub) =
       and t3 = mkDisj (mkConj (tx', mkNeg ux'), mkConj (mkNeg tx', ux'))
 
       val t4 = mkConj (mkConj (t0,t1), mkConj (t2,t3))
-      val tm = mkAbs (x',t4)
+      val tm = Term.mkAbs (x',t4)
 
       val tySub = TypeSubst.emptyMap
-      val tmSub = TermSubst.singletonTermMap (x, mkVar x')
+      val tmSub = TermSubst.singletonTermMap (x, Term.mkVar x')
       val sub = TermSubst.mk (tySub,tmSub)
     in
       (tm,sub)
     end;
 
-val _ = printval ppTerm tm;
+val _ = printval Term.pp tm;
 
-val _ = printval ppSubst sub;
+val _ = printval TermSubst.pp sub;
 
-val tm' = printval (Print.ppOption ppTerm) (TermSubst.subst sub tm);
+val tm' = printval (Print.ppOption Term.pp) (TermSubst.subst sub tm);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Reading interpretations";

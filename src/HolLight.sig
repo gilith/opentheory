@@ -16,6 +16,6 @@ val namespace : Namespace.namespace
 (* Simulations.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val simulations : ObjectRead.simulations
+val simulations : Simulation.simulations
 
 end

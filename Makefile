@@ -102,6 +102,7 @@ SRC = \
   src/Interpretation.sig src/Interpretation.sml \
   src/Command.sig src/Command.sml \
   src/Object.sig src/Object.sml \
+  src/Simulation.sig src/Simulation.sml \
   src/ObjectProv.sig src/ObjectProv.sml \
   src/ObjectThms.sig src/ObjectThms.sml \
   src/ObjectDict.sig src/ObjectDict.sml \
@@ -119,6 +120,7 @@ SRC = \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/PackageContents.sig src/PackageContents.sml \
   src/Package.sig src/Package.sml \
+  src/PackageFinder.sig src/PackageFinder.sml \
   src/Graph.sig src/Graph.sml \
   src/Directory.sig src/Directory.sml \
   src/HolLight.sig src/HolLight.sml \

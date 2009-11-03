@@ -50,13 +50,11 @@ val match :
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-type packageFinder = PackageName.name -> Package.package
-
 val installTheory :
     graph ->
     {savable : bool,
      requires : InstanceSet.set,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      importToInstance : PackageRequire.name -> Instance.instance,
      interpretation : Interpretation.interpretation,
      package : PackageName.name option,
@@ -66,9 +64,9 @@ val installTheory :
 
 val matchInstallPackageName :
     graph ->
-    {finder : packageFinder,
+    {finder : PackageFinder.finder,
      savable : bool,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      requiresAtLeast : InstanceSet.set,
      interpretationEquivalentTo : Interpretation.interpretation,
      package : PackageName.name} ->
@@ -76,9 +74,9 @@ val matchInstallPackageName :
 
 val installPackageName :
     graph ->
-    {finder : packageFinder,
+    {finder : PackageFinder.finder,
      savable : bool,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      requires : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name} ->
@@ -86,9 +84,9 @@ val installPackageName :
 
 val installPackage :
     graph ->
-    {finder : packageFinder,
+    {finder : PackageFinder.finder,
      savable : bool,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      requires : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      package : Package.package} ->
@@ -96,9 +94,9 @@ val installPackage :
 
 val installContents :
     graph ->
-    {finder : packageFinder,
+    {finder : PackageFinder.finder,
      savable : bool,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      requires : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name option,
@@ -108,9 +106,9 @@ val installContents :
 
 val installRequire :
     graph ->
-    {finder : packageFinder,
+    {finder : PackageFinder.finder,
      savable : bool,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      requires : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      requireNameToInstance : PackageRequire.name -> Instance.instance,

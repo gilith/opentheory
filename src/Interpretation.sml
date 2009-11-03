@@ -12,9 +12,10 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val rewriteString = "->";
-
-val terminatorString = ";";
+val constString = "const"
+and rewriteString = "->"
+and terminatorString = ";"
+and typeOpString = "type";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of rewrite rules for names.                                        *)
@@ -38,8 +39,8 @@ local
 in
   fun ppRewrite r =
       case r of
-        TypeOpRewrite x_y => ppName2 "type" x_y
-      | ConstRewrite x_y => ppName2 "const" x_y
+        TypeOpRewrite x_y => ppName2 typeOpString x_y
+      | ConstRewrite x_y => ppName2 constString x_y
 end;
 
 fun ppRewriteList rs =
@@ -60,23 +61,30 @@ local
 
   open Parse;
 
-  fun nameParser prefix =
-      (exactString prefix ++ manySpace ++
+  val constParser = exactString constString
+  and rewriteParser = exactString rewriteString
+  and terminatorParser = exactString terminatorString
+  and typeOpParser = exactString typeOpString;
+
+  fun nameParser prefixParser =
+      (prefixParser ++ manySpace ++
        Name.quotedParser ++ manySpace ++
-       exactString rewriteString ++ manySpace ++
+       rewriteParser ++ manySpace ++
        Name.quotedParser ++ manySpace ++
-       exactString terminatorString) >>
+       terminatorParser) >>
       (fn ((),((),(x,((),((),((),(y,((),())))))))) => (x,y));
 
   val rewriteParser =
-      nameParser "type" >> TypeOpRewrite ||
-      nameParser "const" >> ConstRewrite;
+      nameParser typeOpParser >> TypeOpRewrite ||
+      nameParser constParser >> ConstRewrite;
 
   val rewriteSpaceParser = rewriteParser ++ manySpace >> fst;
 
   val rewriteListSpaceParser = many rewriteSpaceParser;
 in
   val parserRewrite = manySpace ++ rewriteSpaceParser >> snd;
+
+  val parserRewrite' = parserRewrite >> (fn rw => [rw]);
 
   val parserRewriteList = manySpace ++ rewriteListSpaceParser >> snd;
 end;
@@ -160,8 +168,17 @@ local
           end
       end;
 in
-  fun fromRewriteList rws = normalize (List.foldl addRewrite natural rws);
+  fun fromRewriteList rws =
+      let
+(*OpenTheoryTrace3
+        val _ = Print.trace ppRewriteList "Interpretation.fromRewriteList" rws
+*)
+      in
+        normalize (List.foldl addRewrite natural rws)
+      end;
 end;
+
+fun fromRewriteStream strm = fromRewriteList (Stream.toList strm);
 
 local
   fun addTypeOp (x,y,l) = TypeOpRewrite (x,y) :: l;
@@ -311,8 +328,6 @@ local
   open Parse;
 in
   val parser = parserRewriteList >> fromRewriteList;
-
-  val parser' = parser >> (fn int => [int]);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -348,13 +363,9 @@ in
 
            (* The interpretation stream *)
 
-           val ints = Parse.everything parser' chars
+           val rws = Parse.everything parserRewrite' chars
          in
-           case Stream.toList ints of
-             [] => raise Bug "Interpretation.fromTextFile: no interpretation"
-           | [int] => int
-           | _ :: _ :: _ =>
-             raise Bug "Interpretation.fromTextFile: multiple interpretation"
+           fromRewriteStream rws
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>

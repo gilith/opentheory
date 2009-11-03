@@ -12,18 +12,6 @@ open Useful;
 (* Simulating primitive inference rules.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-datatype simulationData =
-    SimulationData of
-      {interpretation : Interpretation.interpretation,
-       input : Object.object,
-       target : Sequent.sequent};
-
-type simulationResult = Thm.thm;
-
-type simulation = simulationData -> simulationResult;
-
-type simulations = simulation NameMap.map;
-
 fun simulate simulations interpretation stack target =
     case ObjectStack.topCall stack of
       SOME obj =>
@@ -37,7 +25,7 @@ fun simulate simulations interpretation stack target =
             val input = ObjectProv.object a
 
             val data =
-                SimulationData
+                Simulation.Data
                   {interpretation = interpretation,
                    input = input,
                    target = target}
@@ -67,7 +55,7 @@ fun simulate simulations interpretation stack target =
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
-     {simulations : simulations,
+     {simulations : Simulation.simulations,
       known : ObjectThms.thms,
       interpretation : Interpretation.interpretation,
       savable : bool};

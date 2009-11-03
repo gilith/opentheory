@@ -33,7 +33,7 @@ val concat : article list -> article
 val fromTextFile :
     {savable : bool,
      known : article,
-     simulations : ObjectRead.simulations,
+     simulations : Simulation.simulations,
      interpretation : Interpretation.interpretation,
      filename : string} ->
     article

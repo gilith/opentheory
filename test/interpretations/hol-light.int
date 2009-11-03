@@ -1,3 +1,2 @@
 type "prod" -> "*";
 const "@" -> "select";
-rulespace "" -> "hol-light";

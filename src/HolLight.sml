@@ -50,7 +50,7 @@ fun substToSubst oins =
 
 fun newBasicDefinition data =
     let
-      val ObjectRead.SimulationData {target,...} = data
+      val Simulation.Data {target,...} = data
       val tm = Sequent.concl target
       val (t,def) = Term.destEq tm
       val (c,_) = Term.destConst t
@@ -63,7 +63,7 @@ fun newBasicDefinition data =
 
 fun newBasicTypeDefinition data =
     let
-      val ObjectRead.SimulationData {input,target,...} = data
+      val Simulation.Data {input,target,...} = data
 
       val (isAbsRepTh,abs,rep) =
           let
@@ -117,7 +117,7 @@ fun newBasicTypeDefinition data =
 
 fun abs data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
       val (otm,oth) = Object.destOpair input
       val v = Term.destVar (Object.destOterm otm)
       val th = Object.destOthm oth
@@ -127,21 +127,21 @@ fun abs data =
 
 fun assume data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
     in
       Thm.assume (Object.destOterm input)
     end;
 
 fun beta data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
     in
       Thm.betaConv (Object.destOterm input)
     end;
 
 fun deductAntisymRule data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
       val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
@@ -151,7 +151,7 @@ fun deductAntisymRule data =
 
 fun eqMp data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
       val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
@@ -161,7 +161,7 @@ fun eqMp data =
 
 fun inst data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
       val (oins,oth) = Object.destOpair input
       val ins = substToSubst oins
       val th = Object.destOthm oth
@@ -171,7 +171,7 @@ fun inst data =
 
 fun instType data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
       val (oins,oth) = Object.destOpair input
       val ins = typeSubstToSubst oins
       val th = Object.destOthm oth
@@ -181,7 +181,7 @@ fun instType data =
 
 fun mkComb data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
       val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
@@ -191,14 +191,14 @@ fun mkComb data =
 
 fun refl data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
     in
       Thm.refl (Object.destOterm input)
     end;
 
 fun trans data =
     let
-      val ObjectRead.SimulationData {input,...} = data
+      val Simulation.Data {input,...} = data
       val (oth1,oth2) = Object.destOpair input
       val th1 = Object.destOthm oth1
       val th2 = Object.destOthm oth2
