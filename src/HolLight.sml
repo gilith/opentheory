@@ -21,9 +21,12 @@ val namespace = Namespace.mkNested (Namespace.global,"hol-light");
 fun typeSubstToSubst oins =
     let
       fun f (x,y) = (Type.destVar (Object.destOtype y), Object.destOtype x)
+
       val l = Object.destOlist oins
       val l = map (f o Object.destOpair) l
+
       val tyM = TypeSubst.fromListMap (rev l)
+
       val tmM = TermSubst.emptyTermMap
     in
       TermSubst.mk (tyM,tmM)
@@ -34,9 +37,12 @@ fun typeSubstToSubst oins =
 fun substToSubst oins =
     let
       fun f (x,y) = (Term.destVar (Object.destOterm y), Object.destOterm x)
+
       val l = Object.destOlist oins
       val l = map (f o Object.destOpair) l
+
       val tyM = TypeSubst.emptyMap
+
       val tmM = TermSubst.fromListTermMap (rev l)
     in
       TermSubst.mk (tyM,tmM)
@@ -48,162 +54,339 @@ fun substToSubst oins =
 (* Primitive rules of definition.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun newBasicDefinition data =
+val newBasicDefinition =
     let
-      val Simulation.Data {target,...} = data
-      val tm = Sequent.concl target
-      val (t,def) = Term.destEq tm
-      val (c,_) = Term.destConst t
-      val n = Const.name c
-    in
-      Thm.defineConst n def
-    end
-    handle Error err =>
-      raise Error ("HolLight.newBasicDefinition failed:\n" ^ err);
+      val mkTypeOp = Simulation.skipMkTypeOp
 
-fun newBasicTypeDefinition data =
-    let
-      val Simulation.Data {input,target,...} = data
-
-      val (isAbsRepTh,abs,rep) =
+      fun mkConst ctxt n =
           let
-            val (l,r) = Term.destEq (Sequent.concl target)
+            val Simulation.Context {interpretation = int, input, ...} = ctxt
+
+            val tm = Object.destOterm input
+
+            val (t,def) = Term.destEq tm
+
+            val vn = Var.name (Term.destVar t)
           in
-            case total Term.destEq r of
-              SOME (t,_) =>
+            if not (Name.equal vn n) then NONE
+            else
               let
-                val (rep,t) = Term.destApp t
-                val (abs,_) = Term.destApp t
+                val cn = Interpretation.interpretConst int n
+
+                val th = Thm.defineConst cn def
+
+                val (c,_) = Term.destConst (Term.lhs (Thm.concl th))
               in
-                (false,abs,rep)
-              end
-            | NONE =>
-              let
-                val (abs,t) = Term.destApp l
-                val (rep,_) = Term.destApp t
-              in
-                (true,abs,rep)
+                SOME c
               end
           end
 
-      val (abs,absTy) = Term.destConst abs
-      and (rep,_) = Term.destConst rep
-
-      val abs = Const.name abs
-      and rep = Const.name rep
-
-      val (name,tyVars) =
+      fun mkThm _ seq =
           let
-            val (_,ty) = Type.destFun absTy
-            val (ot,tys) = Type.destOp ty
+            val tm = Sequent.concl seq
+
+            val (t,def) = Term.destEq tm
+
+            val (c,_) = Term.destConst t
+
+            val n = Const.name c
           in
-            (TypeOp.name ot, map Type.destVar tys)
+            SOME (Thm.defineConst n def)
           end
-
-      val (_,_,nonEmptyTh) = Object.destOtriple input
-      val nonEmptyTh = Object.destOthm nonEmptyTh
-
-      val (absRepTh,repAbsTh) =
-          Thm.defineTypeOp name {abs = abs, rep = rep} tyVars nonEmptyTh
     in
-      if isAbsRepTh then absRepTh else repAbsTh
-    end
-    handle Error err =>
-      raise Error ("HolLight.newBasicTypeDefinition failed:\n" ^ err);
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
+    end;
+
+val newBasicTypeDefinition =
+    let
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt seq =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (isAbsRepTh,abs,rep) =
+                let
+                  val (l,r) = Term.destEq (Sequent.concl seq)
+                in
+                  case total Term.destEq r of
+                    SOME (t,_) =>
+                    let
+                      val (rep,t) = Term.destApp t
+                      val (abs,_) = Term.destApp t
+                    in
+                      (false,abs,rep)
+                    end
+                  | NONE =>
+                    let
+                      val (abs,t) = Term.destApp l
+                      val (rep,_) = Term.destApp t
+                    in
+                      (true,abs,rep)
+                    end
+                end
+
+            val (abs,absTy) = Term.destConst abs
+            and (rep,_) = Term.destConst rep
+
+            val abs = Const.name abs
+            and rep = Const.name rep
+
+            val (name,tyVars) =
+                let
+                  val (_,ty) = Type.destFun absTy
+                  val (ot,tys) = Type.destOp ty
+                in
+                  (TypeOp.name ot, map Type.destVar tys)
+                end
+
+            val (_,_,nonEmptyTh) = Object.destOtriple input
+            val nonEmptyTh = Object.destOthm nonEmptyTh
+
+            val (absRepTh,repAbsTh) =
+                Thm.defineTypeOp name {abs = abs, rep = rep} tyVars nonEmptyTh
+          in
+            SOME (if isAbsRepTh then absRepTh else repAbsTh)
+          end
+    in
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of inference.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun abs data =
+val abs =
     let
-      val Simulation.Data {input,...} = data
-      val (otm,oth) = Object.destOpair input
-      val v = Term.destVar (Object.destOterm otm)
-      val th = Object.destOthm oth
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (otm,oth) = Object.destOpair input
+
+            val v = Term.destVar (Object.destOterm otm)
+            and th = Object.destOthm oth
+          in
+            SOME (Thm.abs v th)
+          end
     in
-      Thm.abs v th
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun assume data =
+val assume =
     let
-      val Simulation.Data {input,...} = data
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+          in
+            SOME (Thm.assume (Object.destOterm input))
+          end
     in
-      Thm.assume (Object.destOterm input)
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun beta data =
+val beta =
     let
-      val Simulation.Data {input,...} = data
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+          in
+            SOME (Thm.betaConv (Object.destOterm input))
+          end
     in
-      Thm.betaConv (Object.destOterm input)
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun deductAntisymRule data =
+val deductAntisymRule =
     let
-      val Simulation.Data {input,...} = data
-      val (oth1,oth2) = Object.destOpair input
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (oth1,oth2) = Object.destOpair input
+
+            val th1 = Object.destOthm oth1
+            and th2 = Object.destOthm oth2
+          in
+            SOME (Thm.deductAntisym th1 th2)
+          end
     in
-      Thm.deductAntisym th1 th2
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun eqMp data =
+val eqMp =
     let
-      val Simulation.Data {input,...} = data
-      val (oth1,oth2) = Object.destOpair input
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (oth1,oth2) = Object.destOpair input
+
+            val th1 = Object.destOthm oth1
+            and th2 = Object.destOthm oth2
+          in
+            SOME (Thm.eqMp th1 th2)
+          end
     in
-      Thm.eqMp th1 th2
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun inst data =
+val inst =
     let
-      val Simulation.Data {input,...} = data
-      val (oins,oth) = Object.destOpair input
-      val ins = substToSubst oins
-      val th = Object.destOthm oth
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (oins,oth) = Object.destOpair input
+
+            val ins = substToSubst oins
+            and th = Object.destOthm oth
+          in
+            SOME (Thm.subst ins th)
+          end
     in
-      Thm.subst ins th
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun instType data =
+val instType =
     let
-      val Simulation.Data {input,...} = data
-      val (oins,oth) = Object.destOpair input
-      val ins = typeSubstToSubst oins
-      val th = Object.destOthm oth
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (oins,oth) = Object.destOpair input
+
+            val ins = typeSubstToSubst oins
+            and th = Object.destOthm oth
+          in
+            SOME (Thm.subst ins th)
+          end
     in
-      Thm.subst ins th
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun mkComb data =
+val mkComb =
     let
-      val Simulation.Data {input,...} = data
-      val (oth1,oth2) = Object.destOpair input
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (oth1,oth2) = Object.destOpair input
+
+            val th1 = Object.destOthm oth1
+            and th2 = Object.destOthm oth2
+          in
+            SOME (Thm.app th1 th2)
+          end
     in
-      Thm.app th1 th2
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun refl data =
+val refl =
     let
-      val Simulation.Data {input,...} = data
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+          in
+            SOME (Thm.refl (Object.destOterm input))
+          end
     in
-      Thm.refl (Object.destOterm input)
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
-fun trans data =
+val trans =
     let
-      val Simulation.Data {input,...} = data
-      val (oth1,oth2) = Object.destOpair input
-      val th1 = Object.destOthm oth1
-      val th2 = Object.destOthm oth2
+      val mkTypeOp = Simulation.skipMkTypeOp
+
+      val mkConst = Simulation.skipMkConst
+
+      fun mkThm ctxt _ =
+          let
+            val Simulation.Context {input,...} = ctxt
+
+            val (oth1,oth2) = Object.destOpair input
+
+            val th1 = Object.destOthm oth1
+            and th2 = Object.destOthm oth2
+          in
+            SOME (Rule.trans th1 th2)
+          end
     in
-      Rule.trans th1 th2
+      Simulation.Simulation
+        {mkTypeOp = mkTypeOp,
+         mkConst = mkConst,
+         mkThm = mkThm}
     end;
 
 (* ------------------------------------------------------------------------- *)

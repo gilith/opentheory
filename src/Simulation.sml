@@ -9,18 +9,61 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Simulating primitive inference rules.                                     *)
+(* A type of inference rule simulations.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-datatype data =
-    Data of
+datatype context =
+    Context of
       {interpretation : Interpretation.interpretation,
-       input : Object.object,
-       target : Sequent.sequent};
+       input : Object.object};
 
-type result = Thm.thm;
+type mkTypeOp = context -> Name.name -> TypeOp.typeOp option;
 
-type simulation = data -> result;
+type mkConst = context -> Name.name -> Const.const option;
+
+type mkThm = context -> Sequent.sequent -> Thm.thm option;
+
+datatype simulation =
+    Simulation of
+      {mkTypeOp : mkTypeOp,
+       mkConst : mkConst,
+       mkThm : mkThm};
+
+(* ------------------------------------------------------------------------- *)
+(* Simulations that do nothing.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val skipMkTypeOp : mkTypeOp = fn _ => fn _ => NONE;
+
+val skipMkConst : mkConst = fn _ => fn _ => NONE;
+
+val skipMkThm : mkThm = fn _ => fn _ => NONE;
+
+val skip =
+    Simulation
+      {mkTypeOp = skipMkTypeOp,
+       mkConst = skipMkConst,
+       mkThm = skipMkThm};
+
+(* ------------------------------------------------------------------------- *)
+(* Applying simulations.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkTypeOp (Simulation {mkTypeOp = x, ...}) = x;
+
+fun mkConst (Simulation {mkConst = x, ...}) = x;
+
+fun mkThm sim ctxt seq =
+    let
+      val Simulation {mkThm = mk, ...} = sim
+
+      val result =
+          case mk ctxt seq of
+            SOME th => SOME (Rule.alpha seq th)
+          | NONE => NONE
+    in
+      result
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Simulation maps.                                                          *)

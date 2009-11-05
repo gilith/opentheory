@@ -7,18 +7,47 @@ signature Simulation =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Simulating primitive inference rules.                                     *)
+(* A type of inference rule simulations.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-datatype data =
-    Data of
+datatype context =
+    Context of
       {interpretation : Interpretation.interpretation,
-       input : Object.object,
-       target : Sequent.sequent}
+       input : Object.object}
 
-type result = Thm.thm
+type mkTypeOp = context -> Name.name -> TypeOp.typeOp option
 
-type simulation = data -> result
+type mkConst = context -> Name.name -> Const.const option
+
+type mkThm = context -> Sequent.sequent -> Thm.thm option
+
+datatype simulation =
+    Simulation of
+      {mkTypeOp : mkTypeOp,
+       mkConst : mkConst,
+       mkThm : mkThm}
+
+(* ------------------------------------------------------------------------- *)
+(* Simulations that do nothing.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val skipMkTypeOp : mkTypeOp
+
+val skipMkConst : mkConst
+
+val skipMkThm : mkThm
+
+val skip : simulation
+
+(* ------------------------------------------------------------------------- *)
+(* Applying simulations.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val mkTypeOp : simulation -> mkTypeOp
+
+val mkConst : simulation -> mkConst
+
+val mkThm : simulation -> mkThm
 
 (* ------------------------------------------------------------------------- *)
 (* Simulation maps.                                                          *)
