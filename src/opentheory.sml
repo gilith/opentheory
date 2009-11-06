@@ -1,7 +1,7 @@
 (* ========================================================================= *)
 (* THE OPENTHEORY PROGRAM FOR MANIPULATING PROOF ARTICLES                    *)
 (*                                                                           *)
-(* Copyright (c) 2004-2009 Joe Hurd                                          *)
+(* Copyright (c) 2004 Joe Hurd                                               *)
 (*                                                                           *)
 (* OpenTheory is free software; you can redistribute it and/or modify        *)
 (* it under the terms of the GNU General Public License as published by      *)
