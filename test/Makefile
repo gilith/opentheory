@@ -19,7 +19,12 @@ default: mosml
 TMPFILE1 = /tmp/test-make-file1
 TMPFILE2 = /tmp/test-make-file2
 
-TEMP = $(TMPFILE1) $(TMPFILE2) mosml-result mlton-result
+TEMP = $(TMPFILE1) $(TMPFILE2) mosml-result mlton-result polyml-result \
+       example1.art bool.art tactics.art \
+       example1.sum bool.sum tactics.sum \
+       empty.art justBool.art justTactics.art \
+       boolBool.art tacticsTactics.art boolTactics.art \
+       localBoolTactics.art
 
 .PHONY: clean
 clean:

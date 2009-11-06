@@ -276,6 +276,8 @@ fun summarize filename =
       ()
     end;
 
+val () = summarize "example1";
+
 val () = summarize "bool";
 
 val () = summarize "tactics";

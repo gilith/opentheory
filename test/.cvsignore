@@ -4,6 +4,7 @@ boolBool.art
 boolTactics.art
 empty.art
 example1.art
+example1.sum
 justBool.art
 justTactics.art
 localBoolTactics.art
@@ -12,5 +13,4 @@ mosml-result
 polyml-result
 tactics.art
 tactics.sum
-tacticsBool.art
 tacticsTactics.art
