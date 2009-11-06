@@ -165,7 +165,7 @@ fun toArticle info =
             end
           | Article {filename} =>
             let
-              val filename = OS.Path.joinDirFile {dir = dir, file = filename}
+              val filename = OS.Path.concat (dir,filename)
             in
               Article.fromTextFile
                 {savable = savable,

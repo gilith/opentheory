@@ -198,9 +198,16 @@ val () = SAY "Reading interpretations";
 
 val INTERPRETATION_DIR = "interpretations";
 
+fun mkInterpretationFilename name =
+    let
+      val file = OS.Path.joinBaseExt {base = name, ext = SOME "int"}
+    in
+      OS.Path.joinDirFile {dir = INTERPRETATION_DIR, file = file}
+    end;
+
 val holLightInt =
     Interpretation.fromTextFile
-      {filename = INTERPRETATION_DIR ^ "/hol-light.int"};
+      {filename = mkInterpretationFilename "hol-light"};
 
 val _ = printval Interpretation.pp holLightInt;
 
@@ -210,11 +217,21 @@ val () = SAY "Compressing articles";
 
 val ARTICLE_DIR = "articles";
 
-fun compress interpretation filename =
+fun mkArticleFilename name =
     let
-      val () = print ("Compressing article \"" ^ filename ^ ".art\"\n")
+      val file = OS.Path.joinBaseExt {base = name, ext = SOME "art"}
+    in
+      OS.Path.joinDirFile {dir = ARTICLE_DIR, file = file}
+    end;
 
-      val inputFilename = ARTICLE_DIR ^ "/" ^ filename ^ ".art"
+fun mkCompressedArticleFilename name =
+    OS.Path.joinBaseExt {base = name, ext = SOME "art"};
+
+fun compress interpretation name =
+    let
+      val () = print ("Compressing article \"" ^ name ^ "\"\n")
+
+      val inputFilename = mkArticleFilename name
 
       val article =
           time Article.fromTextFile
@@ -224,7 +241,7 @@ fun compress interpretation filename =
              interpretation = interpretation,
              filename = inputFilename}
 
-      val outputFilename = filename ^ ".art"
+      val outputFilename = mkCompressedArticleFilename name
 
       val () =
           time Article.toTextFile
@@ -246,11 +263,14 @@ val () = compress holLightInt "tactics";
 val () = SAY "Summarizing articles";
 (* ------------------------------------------------------------------------- *)
 
-fun summarize filename =
-    let
-      val () = print ("Summarizing article \"" ^ filename ^ ".art\"\n")
+fun mkSummaryFilename name =
+    OS.Path.joinBaseExt {base = name, ext = SOME "sum"};
 
-      val artFilename = filename ^ ".art"
+fun summarize name =
+    let
+      val () = print ("Summarizing compressed article \"" ^ name ^ "\"\n")
+
+      val artFilename = mkCompressedArticleFilename name
 
       val art =
           time Article.fromTextFile
@@ -264,7 +284,7 @@ fun summarize filename =
 
       val sum = Summary.fromThmSet ths
 
-      val sumFilename = filename ^ ".sum"
+      val sumFilename = mkSummaryFilename name
 
       val () =
           time Summary.toTextFile
@@ -288,14 +308,21 @@ val () = SAY "Compiling theories";
 
 val THEORY_DIR = "theories";
 
+fun mkTheoryFilename name =
+    let
+      val file = OS.Path.joinBaseExt {base = name, ext = SOME "thy"}
+    in
+      OS.Path.joinDirFile {dir = THEORY_DIR, file = file}
+    end;
+
 fun fromTextFilePackageTheory filename =
     PackageContents.theory (PackageContents.fromTextFile filename);
 
-fun compile filename =
+fun compile name =
     let
-      val () = print ("Compiling theory \"" ^ filename ^ ".thy\"\n")
+      val () = print ("Compiling theory \"" ^ name ^ "\"\n")
 
-      val thyFilename = THEORY_DIR ^ "/" ^ filename ^ ".thy"
+      val thyFilename = mkTheoryFilename name
 
       val thy = time fromTextFilePackageTheory {filename = thyFilename}
 
@@ -311,7 +338,7 @@ fun compile filename =
              directory = "",
              theory = thy}
 
-      val artFilename = filename ^ ".art"
+      val artFilename = mkCompressedArticleFilename name
 
       val () =
           time Article.toTextFile
