@@ -211,7 +211,7 @@ val newBasicTypeDefinition =
 
             val (_,_,(absRepTh,repAbsTh)) = mkDef int def
 
-            val isAbsRepTh = Term.isEq (Term.rhs (Sequent.concl seq))
+            val isAbsRepTh = not (Term.isEq (Term.rhs (Sequent.concl seq)))
           in
             SOME (if isAbsRepTh then absRepTh else repAbsTh)
           end
