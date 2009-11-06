@@ -148,24 +148,13 @@ fun fromTheory info =
       val {savable,
            requires = req,
            simulations,
-           importToInstance,
+           importToInstance = impToInst,
            interpretation = int,
            directory = dir,
            package = pkg,
            theory = thy} = info
 
-      fun mkFilename {filename} =
-          {filename = OS.Path.joinDirFile {dir = dir, file = filename}}
-
-      fun mkThy thy =
-          case thy of
-            Theory.Local (t1,t2) => Theory.Local (mkThy t1, mkThy t2)
-          | Theory.Sequence ts => Theory.Sequence (map mkThy ts)
-          | Theory.Article f => Theory.Article (mkFilename f)
-          | Theory.Interpret (i,t) => Theory.Interpret (i, mkThy t)
-          | Theory.Import a => Theory.Import (importToInstance a)
-
-      val thy = mkThy thy
+      val thy = Theory.map impToInst thy
 
       val known = Article.concat (map article req)
 
@@ -176,6 +165,7 @@ fun fromTheory info =
              simulations = simulations,
              importToArticle = article,
              interpretation = int,
+             directory = dir,
              theory = thy}
 
       val ths = Article.saved art

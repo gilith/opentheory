@@ -12,6 +12,10 @@ sig
 
 type name
 
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
 val base : name -> string
 
 val version : name -> PackageVersion.version

@@ -56,42 +56,54 @@ fun substToSubst oins =
 
 val newBasicDefinition =
     let
+      fun destInput input =
+          let
+            val tm = Object.destOterm input
+
+            val (v,def) = Term.destEq tm
+
+            val vn = Var.name (Term.destVar v)
+          in
+            (vn,def)
+          end
+
+      fun mkDef int (vn,def) =
+          let
+            val cn = Interpretation.interpretConst int vn
+
+            val th = Thm.defineConst cn def
+
+            val (c,_) = Term.destConst (Term.lhs (Thm.concl th))
+          in
+            (c,th)
+          end
+
       val mkTypeOp = Simulation.skipMkTypeOp
 
       fun mkConst ctxt n =
           let
             val Simulation.Context {interpretation = int, input, ...} = ctxt
 
-            val tm = Object.destOterm input
-
-            val (t,def) = Term.destEq tm
-
-            val vn = Var.name (Term.destVar t)
+            val def as (vn,_) = destInput input
           in
             if not (Name.equal vn n) then NONE
             else
               let
-                val cn = Interpretation.interpretConst int n
-
-                val th = Thm.defineConst cn def
-
-                val (c,_) = Term.destConst (Term.lhs (Thm.concl th))
+                val (c,_) = mkDef int def
               in
                 SOME c
               end
           end
 
-      fun mkThm _ seq =
+      fun mkThm ctxt _ =
           let
-            val tm = Sequent.concl seq
+            val Simulation.Context {interpretation = int, input, ...} = ctxt
 
-            val (t,def) = Term.destEq tm
+            val def = destInput input
 
-            val (c,_) = Term.destConst t
-
-            val n = Const.name c
+            val (_,th) = mkDef int def
           in
-            SOME (Thm.defineConst n def)
+            SOME th
           end
     in
       Simulation.Simulation
@@ -102,54 +114,104 @@ val newBasicDefinition =
 
 val newBasicTypeDefinition =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      fun destInput input =
+          let
+            val (tyName,absRepName,nonEmptyTh) = Object.destOtriple input
 
-      val mkConst = Simulation.skipMkConst
+            val tyName = Object.destOname tyName
+            and (absName,repName) = Object.destOpair absRepName
+            and nonEmptyTh = Object.destOthm nonEmptyTh
+
+            val absName = Object.destOname absName
+            and repName = Object.destOname repName
+
+            val (predTm,_) = Term.destApp (Thm.concl nonEmptyTh)
+
+            val tyVars = NameSet.toList (Term.typeVars predTm)
+          in
+            (tyName,(absName,repName),tyVars,nonEmptyTh)
+          end
+
+      fun mkDef int (tyName,(absName,repName),tyVars,nonEmptyTh) =
+          let
+            val tyName = Interpretation.interpretTypeOp int tyName
+            and absName = Interpretation.interpretConst int absName
+            and repName = Interpretation.interpretConst int repName
+
+            val (absRepTh,repAbsTh) =
+                Thm.defineTypeOp
+                  tyName {abs = absName, rep = repName} tyVars nonEmptyTh
+
+            val (absTm,repTm) =
+                let
+                  val (l,r) = Term.destEq (Thm.concl absRepTh)
+
+                  val (abs,t) = Term.destApp l
+                  val (rep,_) = Term.destApp t
+                in
+                  (abs,rep)
+                end
+
+            val (absConst,absTy) = Term.destConst absTm
+            and (repConst,_) = Term.destConst repTm
+
+            val typeOp =
+                let
+                  val (_,ty) = Type.destFun absTy
+                  val (ot,_) = Type.destOp ty
+                in
+                  ot
+                end
+          in
+            (typeOp,(absConst,repConst),(absRepTh,repAbsTh))
+          end
+
+      fun mkTypeOp ctxt n =
+          let
+            val Simulation.Context {interpretation = int, input, ...} = ctxt
+
+            val def as (tyName,_,_,_) = destInput input
+          in
+            if not (Name.equal n tyName) then NONE
+            else
+              let
+                val (typeOp,_,_) = mkDef int def
+              in
+                SOME typeOp
+              end
+          end
+
+      fun mkConst ctxt n =
+          let
+            val Simulation.Context {interpretation = int, input, ...} = ctxt
+
+            val def as (_,(absName,repName),_,_) = destInput input
+          in
+            if Name.equal n absName then
+              let
+                val (_,(absConst,_),_) = mkDef int def
+              in
+                SOME absConst
+              end
+            else if Name.equal n repName then
+              let
+                val (_,(_,repConst),_) = mkDef int def
+              in
+                SOME repConst
+              end
+            else
+              NONE
+          end
 
       fun mkThm ctxt seq =
           let
-            val Simulation.Context {input,...} = ctxt
+            val Simulation.Context {interpretation = int, input, ...} = ctxt
 
-            val (isAbsRepTh,abs,rep) =
-                let
-                  val (l,r) = Term.destEq (Sequent.concl seq)
-                in
-                  case total Term.destEq r of
-                    SOME (t,_) =>
-                    let
-                      val (rep,t) = Term.destApp t
-                      val (abs,_) = Term.destApp t
-                    in
-                      (false,abs,rep)
-                    end
-                  | NONE =>
-                    let
-                      val (abs,t) = Term.destApp l
-                      val (rep,_) = Term.destApp t
-                    in
-                      (true,abs,rep)
-                    end
-                end
+            val def = destInput input
 
-            val (abs,absTy) = Term.destConst abs
-            and (rep,_) = Term.destConst rep
+            val (_,_,(absRepTh,repAbsTh)) = mkDef int def
 
-            val abs = Const.name abs
-            and rep = Const.name rep
-
-            val (name,tyVars) =
-                let
-                  val (_,ty) = Type.destFun absTy
-                  val (ot,tys) = Type.destOp ty
-                in
-                  (TypeOp.name ot, map Type.destVar tys)
-                end
-
-            val (_,_,nonEmptyTh) = Object.destOtriple input
-            val nonEmptyTh = Object.destOthm nonEmptyTh
-
-            val (absRepTh,repAbsTh) =
-                Thm.defineTypeOp name {abs = abs, rep = rep} tyVars nonEmptyTh
+            val isAbsRepTh = Term.isEq (Term.rhs (Sequent.concl seq))
           in
             SOME (if isAbsRepTh then absRepTh else repAbsTh)
           end

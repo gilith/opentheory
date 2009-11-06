@@ -250,23 +250,26 @@ fun summarize filename =
     let
       val () = print ("Summarizing article \"" ^ filename ^ ".art\"\n")
 
-      val articleFilename = filename ^ ".art"
+      val artFilename = filename ^ ".art"
 
-      val article =
+      val art =
           time Article.fromTextFile
             {savable = false,
-             known = Article.new {savable = false},
+             known = Article.empty,
+             simulations = HolLight.simulations,
              interpretation = Interpretation.natural,
-             filename = articleFilename}
+             filename = artFilename}
 
-      val summary = Article.summarize article
+      val ths = Article.saved art
 
-      val summaryFilename = filename ^ ".sum"
+      val sum = Summary.fromThmSet ths
+
+      val sumFilename = filename ^ ".sum"
 
       val () =
           time Summary.toTextFile
-            {summary = summary,
-             filename = summaryFilename}
+            {summary = sum,
+             filename = sumFilename}
 
       val () = print "\n"
     in
@@ -283,24 +286,35 @@ val () = SAY "Compiling theories";
 
 val THEORY_DIR = "theories";
 
+fun fromTextFilePackageTheory filename =
+    PackageContents.theory (PackageContents.fromTextFile filename);
+
 fun compile filename =
     let
       val () = print ("Compiling theory \"" ^ filename ^ ".thy\"\n")
 
-      val theoryFilename = THEORY_DIR ^ "/" ^ filename ^ ".thy"
+      val thyFilename = THEORY_DIR ^ "/" ^ filename ^ ".thy"
 
-      val theory = time Theory.fromTextFile {filename = theoryFilename}
+      val thy = time fromTextFilePackageTheory {filename = thyFilename}
 
-      val () = printer Theory.pp theory
+      val () = printer PackageTheory.pp thy
 
-      val article = time Theory.toArticle theory
+      val art =
+          time Theory.toArticle
+            {savable = true,
+             known = Article.empty,
+             simulations = HolLight.simulations,
+             importToArticle = (fn _ => raise Bug "importToArticle"),
+             interpretation = Interpretation.natural,
+             directory = "",
+             theory = thy}
 
-      val articleFilename = filename ^ ".art"
+      val artFilename = filename ^ ".art"
 
       val () =
           time Article.toTextFile
-            {article = article,
-             filename = articleFilename}
+            {article = art,
+             filename = artFilename}
 
       val () = print "\n"
     in
@@ -324,8 +338,6 @@ val () = compile "boolBool";
 val () = compile "tacticsTactics";
 
 val () = compile "boolTactics";
-
-val () = compile "tacticsBool";
 
 (* Localizing articles *)
 

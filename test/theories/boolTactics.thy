@@ -1,2 +1,4 @@
-article "bool.art";
-article "tactics.art";
+theory {
+  article "bool.art";
+  article "tactics.art";
+}

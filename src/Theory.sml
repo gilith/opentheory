@@ -41,6 +41,19 @@ val empty = Sequence [];
 
 fun append th1 th2 = Sequence [th1,th2];
 
+fun map f =
+    let
+      fun mapf thy =
+          case thy of
+            Local (t1,t2) => Local (mapf t1, mapf t2)
+          | Sequence ts => Sequence (List.map mapf ts)
+          | Article f => Article f
+          | Interpret (i,t) => Interpret (i, mapf t)
+          | Import a => Import (f a)
+    in
+      mapf
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Articles read by the theory.                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -60,7 +73,7 @@ val articles =
               end
             | Sequence ts =>
               let
-                val thys = map (fn t => (int,t)) ts @ thys
+                val thys = List.map (fn t => (int,t)) ts @ thys
               in
                 extract acc thys
               end
@@ -134,25 +147,35 @@ fun toArticle info =
            simulations,
            importToArticle,
            interpretation = initialInt,
+           directory = dir,
            theory = initialThy} = info
 
       fun compile known int thy =
           case thy of
             Local (thy1,thy2) =>
             let
-              val known = compileAppend known int (thy1,known)
+              val art1 = compile known int thy1
+              val known = Article.append known art1
             in
               compile known int thy2
             end
           | Sequence thys =>
-            List.foldl (compileAppend known int) Article.empty thys
+            let
+              val (arts,_) = maps (compileAppend int) thys known
+            in
+              Article.concat arts
+            end
           | Article {filename} =>
-            Article.fromTextFile
-              {savable = savable,
-               known = known,
-               simulations = simulations,
-               interpretation = int,
-               filename = filename}
+            let
+              val filename = OS.Path.joinDirFile {dir = dir, file = filename}
+            in
+              Article.fromTextFile
+                {savable = savable,
+                 known = known,
+                 simulations = simulations,
+                 interpretation = int,
+                 filename = filename}
+            end
           | Interpret (pint,pthy) =>
             let
               val int = Interpretation.compose pint int
@@ -162,11 +185,18 @@ fun toArticle info =
           | Import imp =>
             importToArticle imp
 
-      and compileAppend known int (thy,art) =
-          Article.append art (compile known int thy)
+      and compileAppend int thy known =
+          let
+            val art = compile known int thy
+
+            val known = Article.append known art
+          in
+            (art,known)
+          end
     in
       compile initialKnown initialInt initialThy
-    end;
+    end
+    handle Error err => raise Error ("Theory.toArticle: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -239,7 +269,7 @@ fun pp ppImp =
       and ppList thys =
           case thys of
             [] => Print.skip
-          | thy :: thys => Print.program (ppThy thy :: map ppSpaceThy thys)
+          | thy :: thys => Print.program (ppThy thy :: List.map ppSpaceThy thys)
     in
       ppThy
     end;

@@ -1,2 +1,4 @@
-local article "bool.art"; in
-article "tactics.art";
+theory {
+  local article "bool.art"; in
+  article "tactics.art";
+}

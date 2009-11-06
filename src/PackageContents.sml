@@ -9,14 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-val closeBlockString = "}"
-and openBlockString = "{"
-and theoryKeywordString = "theory";
-
-(* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -27,31 +19,28 @@ datatype contents =
        theory : PackageTheory.theory};
 
 (* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun tags (Contents {tags = x, ...}) = x;
+
+fun requires (Contents {requires = x, ...}) = x;
+
+fun theory (Contents {theory = x, ...}) = x;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppCloseBlock = Print.addString closeBlockString
-and ppOpenBlock = Print.addString openBlockString
-and ppTheoryKeyword = Print.addString theoryKeywordString;
-
-fun ppBlock ppX x =
-    Print.blockProgram Print.Consistent 0
-      [Print.blockProgram Print.Consistent 2
-         [ppOpenBlock,
-          Print.addBreak 1,
-          ppX x],
-       Print.addBreak 1,
-       ppCloseBlock];
-
 fun pp pkg =
     let
-      val Contents {tags,requires,theory} = pkg
+      val Contents {tags, requires = reqs, theory = thy} = pkg
     in
       Print.blockProgram Print.Consistent 0
         [Tag.ppList tags,
-         PackageRequire.ppList requires,
+         PackageRequire.ppList reqs,
          Print.addNewline,
-         PackageTheory.pp theory]
+         PackageTheory.pp thy]
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -66,23 +55,10 @@ local
 
   open Parse;
 
-  val closeBlockParser = exactString closeBlockString
-  and openBlockParser = exactString openBlockString
-  and theoryKeywordParser = exactString theoryKeywordString;
-
-  val theoryParser =
-      (theoryKeywordParser ++ manySpace ++
-       openBlockParser ++
-       PackageTheory.parser ++
-       closeBlockParser) >>
-      (fn ((),((),((),(t,())))) => t);
-
-  val theorySpaceParser = theoryParser ++ manySpace >> fst;
-
   val packageSpaceParser =
       (Tag.parserList ++
        PackageRequire.parserList ++
-       theorySpaceParser) >>
+       PackageTheory.parser) >>
       (fn (ts,(rs,th)) => Contents {tags = ts, requires = rs, theory = th});
 in
   val parser = manySpace ++ packageSpaceParser >> snd;

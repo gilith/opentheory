@@ -25,6 +25,8 @@ val empty : 'a theory
 
 val append : 'a theory -> 'a theory -> 'a theory
 
+val map : ('a -> 'b) -> 'a theory -> 'b theory
+
 (* ------------------------------------------------------------------------- *)
 (* Articles read by the theory.                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -49,6 +51,7 @@ val toArticle :
      simulations : Simulation.simulations,
      importToArticle : 'a -> Article.article,
      interpretation : Interpretation.interpretation,
+     directory : string,
      theory : 'a theory} ->
     Article.article
 

@@ -17,6 +17,16 @@ datatype contents =
        theory : PackageTheory.theory}
 
 (* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val tags : contents -> Tag.tag list
+
+val requires : contents -> PackageRequire.require list
+
+val theory : contents -> PackageTheory.theory
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

@@ -40,6 +40,10 @@ datatype name =
       {base : string,
        version : PackageVersion.version};
 
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
 fun base (Name {base = x, ...}) = x;
 
 fun version (Name {version = x, ...}) = x;

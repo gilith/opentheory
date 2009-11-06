@@ -55,8 +55,9 @@ fun mkTypeOp syms n =
     in
       case List.mapPartial peek syms of
         [] => TypeOp.mkUndef n
-      | [t] => t
-      | _ :: _ :: _ => raise Error "Symbol.mkTypeOp: duplicate type names"
+      | ot :: ots =>
+        if List.all (TypeOp.equal ot) ots then ot
+        else raise Error "Symbol.mkTypeOp: duplicate type names"
     end;
 
 fun mkConst syms n =
@@ -65,8 +66,9 @@ fun mkConst syms n =
     in
       case List.mapPartial peek syms of
         [] => Const.mkUndef n
-      | [c] => c
-      | _ :: _ :: _ => raise Error "Symbol.mkConst: duplicate constant names"
+      | c :: cs =>
+        if List.all (Const.equal c) cs then c
+        else raise Error "Symbol.mkConst: duplicate constant names"
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -174,11 +176,13 @@ fun addSequentSet sym seqs =
 local
   fun mergeTypeOps (ot1,ot2) =
       if TypeOp.equal ot1 ot2 then SOME ot2
-      else raise Error "Symbol.union: duplicate type op name";
+      else raise Error ("Symbol.union: duplicate type op name" ^
+                        Name.toString (TypeOp.name ot1));
 
   fun mergeConsts (c1,c2) =
       if Const.equal c1 c2 then SOME c2
-      else raise Error "Symbol.union: duplicate const name";
+      else raise Error ("Symbol.union: duplicate const name: " ^
+                        Name.toString (Const.name c1));
 in
   fun union sym1 sym2 =
       let

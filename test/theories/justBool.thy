@@ -1,1 +1,1 @@
-article "bool.art";
+theory { article "bool.art"; }
