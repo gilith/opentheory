@@ -20,7 +20,7 @@ TEMP += $(TEMPFILE) \
 # The ML preprocessor.
 ###############################################################################
 
-MLPP_OPTS += -r 'OpenTheoryDebug'
+#MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-0]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
@@ -224,7 +224,7 @@ hol-light-test-log:
 
 .PHONY: hol-light-test-thys
 hol-light-test-thys:
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do ((echo "interpret {" ; cat test/interpretations/hol-light.int ; echo "} article \"$(HOL_LIGHT_SRC_DIR)/$$f.art\";") | cat > $(HOL_LIGHT_ARTICLES_DIR)/$$f.thy) ; done
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do ((echo "theory { interpret {" ; cat test/interpretations/hol-light.int ; echo "} in article \"$(HOL_LIGHT_SRC_DIR)/$$f.art\"; }") | cat > $(HOL_LIGHT_ARTICLES_DIR)/$$f.thy) ; done
 
 .PHONY: hol-light-test-compress
 hol-light-test-compress: $(OPENTHEORY)
@@ -236,7 +236,7 @@ hol-light-test-sums: $(OPENTHEORY)
 
 .PHONY: hol-light-test-cthys
 hol-light-test-cthys:
-	thy='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do thy="$$thy article \"$(HOL_LIGHT_ARTICLES_DIR)/$$f.art\";" ; echo $$thy > $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
+	thy='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do thy="$$thy article \"$(HOL_LIGHT_ARTICLES_DIR)/$$f.art\";" ; echo "theory { $$thy }" > $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
 
 .PHONY: hol-light-test-carts
 hol-light-test-carts: $(OPENTHEORY)

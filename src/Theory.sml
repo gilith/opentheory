@@ -58,83 +58,81 @@ fun map f =
 (* Articles read by the theory.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val articles =
-    let
-      fun extract acc thys =
-          case thys of
-            [] => acc
-          | (int,thy) :: thys =>
-            case thy of
-              Local (thy1,thy2) =>
-              let
-                val thys = (int,thy1) :: (int,thy2) :: thys
-              in
-                extract acc thys
-              end
-            | Sequence ts =>
-              let
-                val thys = List.map (fn t => (int,t)) ts @ thys
-              in
-                extract acc thys
-              end
-            | Article f =>
-              let
-                val acc = (int,f) :: acc
-              in
-                extract acc thys
-              end
-            | Interpret (int',thy) =>
-              let
-                val int = Interpretation.compose int' int
+local
+  fun extract acc thys =
+      case thys of
+        [] => acc
+      | (int,thy) :: thys =>
+        case thy of
+          Local (thy1,thy2) =>
+          let
+            val thys = (int,thy1) :: (int,thy2) :: thys
+          in
+            extract acc thys
+          end
+        | Sequence ts =>
+          let
+            val thys = List.map (fn t => (int,t)) ts @ thys
+          in
+            extract acc thys
+          end
+        | Article f =>
+          let
+            val acc = (int,f) :: acc
+          in
+            extract acc thys
+          end
+        | Interpret (int',thy) =>
+          let
+            val int = Interpretation.compose int' int
 
-                val thys = (int,thy) :: thys
-              in
-                extract acc thys
-              end
-            | Import _ => extract acc thys
-    in
-      fn int => fn thy => extract [] [(int,thy)]
-    end;
+            val thys = (int,thy) :: thys
+          in
+            extract acc thys
+          end
+        | Import _ => extract acc thys;
+in
+  fun articles int thy = extract [] [(int,thy)];
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Imported theories.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val imports =
-    let
-      fun extract acc thys =
-          case thys of
-            [] => acc
-          | thy :: thys =>
-            case thy of
-              Local (thy1,thy2) =>
-              let
-                val thys = thy1 :: thy2 :: thys
-              in
-                extract acc thys
-              end
-            | Sequence ts =>
-              let
-                val thys = ts @ thys
-              in
-                extract acc thys
-              end
-            | Article _ => extract acc thys
-            | Interpret (_,thy) =>
-              let
-                val thys = thy :: thys
-              in
-                extract acc thys
-              end
-            | Import a =>
-              let
-                val acc = a :: acc
-              in
-                extract acc thys
-              end
-    in
-      fn thy => extract [] [thy]
-    end;
+local
+  fun extract acc thys =
+      case thys of
+        [] => acc
+      | thy :: thys =>
+        case thy of
+          Local (thy1,thy2) =>
+          let
+            val thys = thy1 :: thy2 :: thys
+          in
+            extract acc thys
+          end
+        | Sequence ts =>
+          let
+            val thys = ts @ thys
+          in
+            extract acc thys
+          end
+        | Article _ => extract acc thys
+        | Interpret (_,thy) =>
+          let
+            val thys = thy :: thys
+          in
+            extract acc thys
+          end
+        | Import a =>
+          let
+            val acc = a :: acc
+          in
+            extract acc thys
+          end;
+in
+  fun imports thy = extract [] [thy];
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Compiling theories to articles.                                           *)
@@ -335,10 +333,11 @@ local
       ((interpretKeywordParser ++ manySpace ++
         openBlockParser ++ manySpace ++
         Interpretation.parser ++ manySpace ++
-        closeBlockParser ++
+        closeBlockParser ++ manySpace ++
         inKeywordParser ++ atLeastOneSpace ++
         theoryParser impParser) >>
-       (fn ((),((),((),((),(i,((),((),((),((),t))))))))) => Interpret (i,t))) inp
+       (fn ((),((),((),((),(i,((),((),((),((),((),t)))))))))) =>
+           Interpret (i,t))) inp
 
   and importParser impParser inp =
       ((importKeywordParser ++ atLeastOneSpace ++
