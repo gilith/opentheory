@@ -1,0 +1,6 @@
+*.mlb
+*.sml
+*.ssa
+*.ssa2
+opentheory
+selftest

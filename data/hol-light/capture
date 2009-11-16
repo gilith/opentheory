@@ -1,0 +1,53 @@
+#!/bin/bash
+
+ver=2009.8.24
+
+echo '#use "hol.ml";;' | ocaml
+
+opentheory=../..
+
+adir=$opentheory/test/articles
+if ! test -d $adir ; then echo "$adir not a directory" ; exit 1 ; fi
+
+if ! test -r bool-def.art ; then echo "bool-def.art not readable" ; exit 1 ; fi
+if ! test -r bool-rule.art ; then echo "bool-rule.art not readable" ; exit 1 ; fi
+cat bool-def.art bool-rule.art > $adir/bool.art
+
+if ! test -r tactics.art ; then echo "tactics.art not readable" ; exit 1 ; fi
+cat tactics.art > $adir/tactics.art
+
+prog=$opentheory/bin/mlton/opentheory
+if ! test -x $prog ; then echo "$prog not an executable" ; exit 1 ; fi
+
+int=$opentheory/test/interpretations/hol-light.int
+if ! test -r $int ; then echo "$int not readable" ; exit 1 ; fi
+
+for file in $(ls -tr *.art)
+do
+    echo
+    base=$(basename $file .art)
+    pdir=$opentheory/test/opentheory/packages/hol-light-$base-$ver
+
+    if test -d $pdir
+    then
+        echo "compiling" $file
+
+        thy=$base.thy
+        echo 'theory { interpret {' > $thy
+        cat $int >> $thy
+        echo -n '} in article "' >> $thy
+        echo -n $file >> $thy
+        echo '"; }' >> $thy
+        $prog compile -o $pdir/$file $thy || exit 1
+        ls -l $file
+        ls -l $pdir/$file
+
+        sum=$base.sum
+        $prog summarize --summary-text $sum $pdir/$file
+    else
+        echo -n "skipping "
+        ls -l $file
+    fi
+done
+
+echo

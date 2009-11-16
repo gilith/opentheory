@@ -9,118 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Simulating primitive inference rules.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-fun simulateTypeOp simulations interpretation stack n =
-    case ObjectStack.topCall stack of
-      SOME obj =>
-      let
-        val (f,a) = ObjectProv.destCall obj
-      in
-        case NameMap.peek simulations f of
-          NONE => NONE
-        | SOME sim =>
-          let
-            val input = ObjectProv.object a
-
-            val ctxt =
-                Simulation.Context
-                  {interpretation = interpretation,
-                   input = input}
-
-            val result =
-                Simulation.mkTypeOp sim ctxt n
-                handle Error err =>
-                  let
-                    val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
-
-                    val ppName = Print.ppOp2 " =" Print.ppString Name.pp
-                  in
-                    die ("simulation mkTypeOp failed: " ^ Name.toString f ^
-                         "\n" ^ Print.toString ppOb ("input",input) ^
-                         "\n" ^ Print.toString ppName ("target",n) ^
-                         "\n" ^ err)
-                  end
-          in
-            result
-          end
-      end
-    | _ => NONE;
-
-fun simulateConst simulations interpretation stack n =
-    case ObjectStack.topCall stack of
-      SOME obj =>
-      let
-        val (f,a) = ObjectProv.destCall obj
-      in
-        case NameMap.peek simulations f of
-          NONE => NONE
-        | SOME sim =>
-          let
-            val input = ObjectProv.object a
-
-            val ctxt =
-                Simulation.Context
-                  {interpretation = interpretation,
-                   input = input}
-
-            val result =
-                Simulation.mkConst sim ctxt n
-                handle Error err =>
-                  let
-                    val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
-
-                    val ppName = Print.ppOp2 " =" Print.ppString Name.pp
-                  in
-                    die ("simulation mkConst failed: " ^ Name.toString f ^
-                         "\n" ^ Print.toString ppOb ("input",input) ^
-                         "\n" ^ Print.toString ppName ("target",n) ^
-                         "\n" ^ err)
-                  end
-          in
-            result
-          end
-      end
-    | _ => NONE;
-
-fun simulateThm simulations interpretation stack seq =
-    case ObjectStack.topCall stack of
-      SOME obj =>
-      let
-        val (f,a) = ObjectProv.destCall obj
-      in
-        case NameMap.peek simulations f of
-          NONE => NONE
-        | SOME sim =>
-          let
-            val input = ObjectProv.object a
-
-            val ctxt =
-                Simulation.Context
-                  {interpretation = interpretation,
-                   input = input}
-
-            val result =
-                Simulation.mkThm sim ctxt seq
-                handle Error err =>
-                  let
-                    val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
-
-                    val ppSeq = Print.ppOp2 " =" Print.ppString Sequent.pp
-                  in
-                    die ("simulation mkThm failed: " ^ Name.toString f ^
-                         "\n" ^ Print.toString ppOb ("input",input) ^
-                         "\n" ^ Print.toString ppSeq ("target",seq) ^
-                         "\n" ^ err)
-                  end
-          in
-            result
-          end
-      end
-    | _ => NONE;
-
-(* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -334,21 +222,15 @@ fun execute cmd state =
           and obL = ObjectProv.object objL
 
           val n = Object.destOname obN
+          val n = Interpretation.interpretTypeOp interpretation n
 
-          val ot =
-              case simulateTypeOp simulations interpretation stack n of
-                SOME ot => ot
-              | NONE =>
-                let
-                  val n = Interpretation.interpretTypeOp interpretation n
+          val symbols =
+              [ObjectThms.symbol known,
+               ObjectThms.symbol saved,
+               ObjectStack.symbol stack,
+               ObjectStack.symbolSimulation stack]
 
-                  val symbols =
-                      [ObjectThms.symbol known,
-                       ObjectThms.symbol saved,
-                       ObjectStack.symbol stack]
-                in
-                  Symbol.mkTypeOp symbols n
-                end
+          val ot = Symbol.mkTypeOp symbols n
 
           val ob = Object.mkOtypeOp (ot,obL)
           and prov = ObjectProv.Pnull
@@ -405,21 +287,15 @@ fun execute cmd state =
           and obT = ObjectProv.object objT
 
           val n = Object.destOname obN
+          val n = Interpretation.interpretConst interpretation n
 
-          val c =
-              case simulateConst simulations interpretation stack n of
-                SOME c => c
-              | NONE =>
-                let
-                  val n = Interpretation.interpretConst interpretation n
+          val symbols =
+              [ObjectThms.symbol known,
+               ObjectThms.symbol saved,
+               ObjectStack.symbol stack,
+               ObjectStack.symbolSimulation stack]
 
-                  val symbols =
-                      [ObjectThms.symbol known,
-                       ObjectThms.symbol saved,
-                       ObjectStack.symbol stack]
-                in
-                  Symbol.mkConst symbols n
-                end
+          val c = Symbol.mkConst symbols n
 
           val ob = Object.mkOtermConst (c,obT)
           and prov = ObjectProv.Pnull
@@ -507,17 +383,17 @@ fun execute cmd state =
                  concl = Object.destOterm obC}
 
           val (th,inf) =
-              case ObjectThms.search known seq of
+              case ObjectThms.search saved seq of
                 SOME (th,objS) => (th, ObjectProv.Isaved objS)
               | NONE =>
-                case ObjectThms.search saved seq of
-                  SOME (th,objS) => (th, ObjectProv.Isaved objS)
+                case ObjectStack.searchSimulation stack seq of
+                  SOME (th,objS) => (th, ObjectProv.Isimulated objS)
                 | NONE =>
-                  case simulateThm simulations interpretation stack seq of
-                    SOME th => (th,ObjectProv.Isimulated)
+                  case ObjectStack.search stack seq of
+                    SOME (th,objS) => (th, ObjectProv.Istack objS)
                   | NONE =>
-                    case ObjectStack.search stack seq of
-                      SOME (th,objS) => (th, ObjectProv.Istack objS)
+                    case ObjectThms.search known seq of
+                      SOME (th,objS) => (th, ObjectProv.Iknown objS)
                     | NONE =>
                       let
                         val th = Thm.axiom seq
@@ -553,6 +429,8 @@ fun execute cmd state =
 
       | Command.Call =>
         let
+          val startStack = stack
+
           val (stack,objA,objN) = ObjectStack.pop2 stack
 
           val obA = ObjectProv.object objA
@@ -580,6 +458,44 @@ fun execute cmd state =
                    else Print.trace Object.pp "  input" obA
 *)
 
+          val (obA,objA,sims) =
+              case Simulation.peek simulations n of
+                NONE => (obA,objA,ThmSet.empty)
+              | SOME (Simulation.Simulation sim) =>
+                let
+                  val ctxt =
+                      Simulation.Context
+                        {interpretation = interpretation,
+                         input = obA}
+
+                  val result =
+                      sim ctxt
+                      handle Error err =>
+                        let
+                          val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
+                        in
+                          die ("simulation failed: " ^ Name.toString n ^
+                               "\n" ^ Print.toString ppOb ("input",obA) ^
+                               "\n" ^ err)
+                        end
+
+                  val Simulation.Result {input,thms} = result
+
+                  val (obA,objA) =
+                      case input of
+                        NONE => (obA,objA)
+                      | SOME obA =>
+                        let
+                          val objA =
+                              ObjectStack.buildObject {savable = savable}
+                                startStack obA
+                        in
+                          (obA, objA)
+                        end
+                in
+                  (obA,objA,thms)
+                end
+
           val ob = Object.Ocall n
           and prov = ObjectProv.Pcall objA
           and call = if savable then ObjectStack.topCall stack else NONE
@@ -592,6 +508,7 @@ fun execute cmd state =
 
           val stack = ObjectStack.push stack obj
           val stack = ObjectStack.push stack objA
+          val stack = ObjectStack.addSimulation stack (sims,obj)
         in
           State
             {parameters = parameters,
@@ -766,6 +683,9 @@ fun execute cmd state =
       | Command.Save =>
         let
           val objT = ObjectStack.peek stack 0
+
+          val _ = Object.isOthm (ObjectProv.object objT) orelse
+                  raise Error "can only save Othm objects"
 
           val saved = ObjectThms.add saved objT
         in

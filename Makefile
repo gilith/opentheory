@@ -99,6 +99,7 @@ SRC = \
   src/Symbol.sig src/Symbol.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
+  src/Thms.sig src/Thms.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Command.sig src/Command.sml \
   src/Object.sig src/Object.sml \
@@ -106,12 +107,13 @@ SRC = \
   src/ObjectProv.sig src/ObjectProv.sml \
   src/ObjectThms.sig src/ObjectThms.sml \
   src/ObjectDict.sig src/ObjectDict.sml \
+  src/ObjectSimulation.sig src/ObjectSimulation.sml \
   src/ObjectStack.sig src/ObjectStack.sml \
   src/ObjectRead.sig src/ObjectRead.sml \
   src/ObjectWrite.sig src/ObjectWrite.sml \
+  src/Article.sig src/Article.sml \
   src/Context.sig src/Context.sml \
   src/Summary.sig src/Summary.sml \
-  src/Article.sig src/Article.sml \
   src/Theory.sig src/Theory.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageName.sig src/PackageName.sml \

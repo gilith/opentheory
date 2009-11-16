@@ -1,41 +1,17 @@
-REQUIRES {
-  types:
-    P
-    T
-    bool
-    fun
-    ind
-  consts:
-    !
-    /\
-    =
-    ==>
-    ?
-    ONE_ONE
-    ONTO
-    \/
-    addP
-    cmp
-    leP
-    multP
-    select
-    subP
-    total_order
-    ~
-  thms:
-    |- !x x' y y'. leP x x' /\ leP y y' ==> leP (addP x y) (addP x' y')
-    |- !x y z. addP (addP x y) z = addP x (addP y z)
-    |- !x y z. multP (multP x y) z = multP x (multP y z)
-    |- !x y z. leP x y /\ leP y z ==> leP x z
-    |- !x y. ~leP (addP x y) x
-    |- !x y. addP x y = addP y x
-    |- !x y. multP x y = multP y x
-    |- !x y. ~leP y x ==> addP x (subP y x) = y
-    |- !x y. leP x y /\ leP y x ==> x = y
-    |- !x y. leP x y \/ leP y x
-    |- !x. leP x x
-    |- !t. (\x. t x) = t
-    |- !P x. P x ==> P ((select) P)
-    |- ?f. ONE_ONE f /\ ~ONTO f
-    |- total_order cmp
-}
+assumed:
+axioms:
+  |- total_order cmp
+  |- !x. leP x x
+  |- !t. (\x. t x) = t
+  |- ?f. ONE_ONE f /\ ~ONTO f
+  |- !x y. ~leP (addP x y) x
+  |- !P x. P x ==> P ((select) P)
+  |- !x y. addP x y = addP y x
+  |- !x y. multP x y = multP y x
+  |- !x y. leP x y \/ leP y x
+  |- !x y. leP x y /\ leP y x ==> x = y
+  |- !x y. ~leP y x ==> addP x (subP y x) = y
+  |- !x y z. addP (addP x y) z = addP x (addP y z)
+  |- !x y z. multP (multP x y) z = multP x (multP y z)
+  |- !x y z. leP x y /\ leP y z ==> leP x z
+  |- !x x' y y'. leP x x' /\ leP y y' ==> leP (addP x y) (addP x' y')

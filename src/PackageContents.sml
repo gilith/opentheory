@@ -32,15 +32,22 @@ fun theory (Contents {theory = x, ...}) = x;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+fun ppBlock ppL l =
+    if null l then Print.skip
+    else
+      Print.program
+        [ppL l,
+         Print.addNewline,
+         Print.addNewline];
+
 fun pp pkg =
     let
       val Contents {tags, requires = reqs, theory = thy} = pkg
     in
       Print.blockProgram Print.Consistent 0
-        [Tag.ppList tags,
-         PackageRequire.ppList reqs,
-         Print.addNewline,
-         PackageTheory.pp thy]
+        (ppBlock Tag.ppList tags ::
+         ppBlock PackageRequire.ppList reqs ::
+         [PackageTheory.pp thy])
     end;
 
 (* ------------------------------------------------------------------------- *)

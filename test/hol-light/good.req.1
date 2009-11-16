@@ -1,13 +1,4 @@
-REQUIRES {
-  types:
-    bool
-    fun
-  consts:
-    !
-    =
-    ==>
-    select
-  thms:
-    |- !t. (\x. t x) = t
-    |- !P x. P x ==> P ((select) P)
-}
+assumed:
+axioms:
+  |- !t. (\x. t x) = t
+  |- !P x. P x ==> P ((select) P)

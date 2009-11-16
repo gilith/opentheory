@@ -24,7 +24,7 @@ open Useful;
 (* The program name.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val PROGRAM = "opentheory";
+val program = "opentheory";
 
 (* ------------------------------------------------------------------------- *)
 (* Simulations.                                                              *)
@@ -38,45 +38,60 @@ val defaultSimulations =
 (* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val SIMULATIONS = ref defaultSimulations;
-
 datatype summary =
     SummaryText of {filename : string};
 
-val COMPILE_OUTPUT = ref "-";
+val simulations = ref defaultSimulations;
 
-val SUMMARIZE_OUTPUT : summary list ref = ref [];
+val rootDirectory : string option ref = ref NONE;
+
+val infoOutput = ref "-";
+
+val compileOutput = ref "-";
+
+val summarizeOutput : summary list ref = ref [];
 
 datatype command =
-    Compile
+    Info
+  | Compile
   | Summarize;
 
-val allCommands = [Compile,Summarize];
+val allCommands = [Info,Compile,Summarize];
 
 fun commandString cmd =
     case cmd of
-      Compile => "compile"
+      Info => "info"
+    | Compile => "compile"
     | Summarize => "summarize";
 
 fun commandUsage cmd =
     case cmd of
-      Compile => "input.txt"
+      Info => "<package-name>"
+    | Compile => "input.thy"
     | Summarize => "input.art";
 
 fun commandDescription cmd =
     case cmd of
-      Compile => "compile a theory package to an article"
+      Info => "display package information"
+    | Compile => "compile a theory package to an article"
     | Summarize => "summarize an article";
 
 local
   open Useful Options;
+
+  val infoOpts : opt list =
+      [{switches = ["-o","--output"], arguments = ["FILE"],
+        description = "write the package information to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => infoOutput := s)}];
 
   val compileOpts : opt list =
       [{switches = ["-o","--output"], arguments = ["FILE"],
         description = "write the compiled article to FILE",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => COMPILE_OUTPUT := s)}];
+            (fn _ => fn s => compileOutput := s)}];
 
   val summarizeOpts : opt list =
       [{switches = ["--summary-text"], arguments = ["FILE"],
@@ -85,16 +100,17 @@ local
           beginOpt (stringOpt endOpt)
             (fn _ => fn s =>
              let
-               val ref ss = SUMMARIZE_OUTPUT
+               val ref ss = summarizeOutput
                val ss = SummaryText {filename = s} :: ss
-               val () = SUMMARIZE_OUTPUT := ss
+               val () = summarizeOutput := ss
              in
                ()
              end)}];
 in
   fun commandOpts cmd =
       case cmd of
-        Compile => compileOpts
+        Info => infoOpts
+      | Compile => compileOpts
       | Summarize => summarizeOpts;
 end;
 
@@ -135,19 +151,23 @@ val allCommandOptions =
 local
   open Useful Options;
 in
-  val globalOpts =
-      [];
+  val globalOpts : opt list =
+      [{switches = ["-d","--root-dir"], arguments = ["DIR"],
+        description = "the package directory",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => rootDirectory := SOME s)}];
 end;
 
-val VERSION = "1.0";
+val version = "1.0";
 
-val versionString = PROGRAM^" "^VERSION^" (release 20090717)"^"\n";
+val versionString = program^" "^version^" (release 20090717)"^"\n";
 
 local
   fun mkProgramOptions header opts =
-      {name = PROGRAM,
+      {name = program,
        version = versionString,
-       header = "usage: "^PROGRAM^" "^header^"\n",
+       header = "usage: "^program^" "^header^"\n",
        footer = "Read from stdin or write to stdout using " ^
                 "the special - filename.\n",
        options = opts @ Options.basicOptions};
@@ -157,7 +177,7 @@ local
   val globalHeader =
       let
         fun f cmd =
-            ["  " ^ PROGRAM ^ " " ^ commandString cmd ^ " ...",
+            ["  " ^ program ^ " " ^ commandString cmd ^ " ...",
              " " ^ commandDescription cmd]
 
         val alignment =
@@ -199,6 +219,48 @@ fun usage mesg = Options.usage programOptions mesg;
 (* The core application.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
+val directory =
+    let
+      val rdir : Directory.directory option ref = ref NONE
+    in
+      fn () =>
+         case !rdir of
+           SOME dir => dir
+         | NONE =>
+           let
+             val dir =
+                 case !rootDirectory of
+                   SOME d => Directory.mk {rootDirectory = d}
+                 | NONE => raise Error "specify the package directory"
+
+             val () = rdir := SOME dir
+           in
+             dir
+           end
+    end;
+
+fun finder () = Directory.lookup (directory ());
+
+fun info name =
+    let
+      val find = finder ()
+
+      val pkg = PackageName.fromString name
+    in
+      case PackageFinder.find find pkg of
+        NONE => raise Error ("can't find package "^name)
+      | SOME p =>
+        let
+          val t = Package.tags p
+
+          val s = Print.toStream Tag.ppList t
+
+          val ref f = infoOutput
+        in
+          Stream.toTextFile {filename = f} s
+        end
+    end;
+
 fun compile {filename} =
     let
       val pkg = Package.fromTextFile {name = NONE, filename = filename}
@@ -206,12 +268,12 @@ fun compile {filename} =
       val graph = Graph.empty
       and finder = PackageFinder.useless
       and savable = true
-      and ref sim = SIMULATIONS
+      and ref sim = simulations
       and req = InstanceSet.empty
       and int = Interpretation.natural
 
       val (graph,inst) =
-          Graph.installPackage graph
+          Graph.importPackage graph
             {finder = finder,
              savable = savable,
              simulations = sim,
@@ -221,7 +283,7 @@ fun compile {filename} =
 
       val art = Instance.article inst
 
-      val ref filename = COMPILE_OUTPUT
+      val ref filename = compileOutput
     in
       Article.toTextFile {article = art, filename = filename}
     end;
@@ -236,7 +298,7 @@ in
       let
         val savable = false
         and known = Article.empty
-        and ref sim = SIMULATIONS
+        and ref sim = simulations
         and int = Interpretation.natural
 
         val art =
@@ -251,7 +313,7 @@ in
 
         val sum = Summary.fromThmSet ths
 
-        val ref modes = SUMMARIZE_OUTPUT
+        val ref modes = summarizeOutput
       in
         List.app (outputSummary sum) (rev modes)
       end;
@@ -283,11 +345,12 @@ let
 
   val () =
       case (cmd,work) of
-        (Compile,[filename]) => compile {filename = filename}
+        (Info,[pkg]) => info pkg
+      | (Compile,[filename]) => compile {filename = filename}
       | (Summarize,[filename]) => summarize {filename = filename}
       | _ => usage ("bad arguments for " ^ commandString cmd ^ " command")
 in
   succeed ()
 end
-handle Error s => die (PROGRAM^" failed:\n" ^ s)
-     | Bug s => die ("BUG found in "^PROGRAM^" program:\n" ^ s);
+handle Error s => die (program^" failed:\n" ^ s)
+     | Bug s => die ("BUG found in "^program^" program:\n" ^ s);

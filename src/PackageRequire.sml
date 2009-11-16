@@ -214,8 +214,12 @@ in
 end;
 
 fun ppConstraintList cs =
-    Print.blockProgram Print.Consistent 0
-      (map (fn c => Print.sequence (ppConstraint c) Print.addNewline) cs);
+    case cs of
+      [] => Print.skip
+    | c :: cs =>
+      Print.blockProgram Print.Consistent 0
+        (ppConstraint c ::
+         map (Print.sequence Print.addNewline o ppConstraint) cs);
 
 fun pp req =
     let
@@ -229,13 +233,16 @@ fun pp req =
          ppBlock ppConstraintList cs]
     end;
 
-val ppList =
-    let
-      fun ppReq req =
-          Print.program [Print.addNewline, pp req, Print.addNewline]
-    in
-      Print.blockProgram Print.Consistent 0 o map ppReq
-    end;
+fun ppList reqs =
+    case reqs of
+      [] => Print.skip
+    | req :: reqs =>
+      let
+        fun ppReq r = Print.program [Print.addNewline, Print.addNewline, pp r]
+      in
+        Print.blockProgram Print.Consistent 0
+          (pp req :: map ppReq reqs)
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -260,7 +267,7 @@ local
       let
         fun isInitialChar c = Char.isLower c
 
-        fun isSubsequentChar c = Char.isAlphaNum c
+        fun isSubsequentChar c = Char.isAlphaNum c orelse c = #"-"
       in
         (some isInitialChar ++ many (some isSubsequentChar)) >>
         (fn (c,cs) => implode (c :: cs))

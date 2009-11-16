@@ -64,6 +64,7 @@ fun destOpair (Olist [x,y]) = (x,y)
   | destOpair _ = raise Error "destOpair";
 val isOpair = can destOpair;
 
+fun mkOtriple (x,y,z) = Olist [x,y,z];
 fun destOtriple (Olist [x,y,z]) = (x,y,z)
   | destOtriple _ = raise Error "destOtriple";
 val isOtriple = can destOtriple;

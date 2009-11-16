@@ -47,10 +47,10 @@ val match :
     InstanceSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Installing theory packages.                                               *)
+(* Importing theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val installTheory :
+val importTheory :
     graph ->
     {savable : bool,
      requires : InstanceSet.set,
@@ -62,7 +62,7 @@ val installTheory :
      theory : PackageTheory.theory} ->
     graph * Instance.instance
 
-val matchInstallPackageName :
+val matchImportPackageName :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
@@ -72,7 +72,7 @@ val matchInstallPackageName :
      package : PackageName.name} ->
     graph * Instance.instance
 
-val installPackageName :
+val importPackageName :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
@@ -82,7 +82,7 @@ val installPackageName :
      package : PackageName.name} ->
     graph * Instance.instance
 
-val installPackage :
+val importPackage :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
@@ -92,7 +92,7 @@ val installPackage :
      package : Package.package} ->
     graph * Instance.instance
 
-val installContents :
+val importContents :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
@@ -104,7 +104,7 @@ val installContents :
      contents : PackageContents.contents} ->
     graph * Instance.instance
 
-val installRequire :
+val importRequire :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,

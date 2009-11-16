@@ -211,7 +211,7 @@ let new_basic_definition =
 
 let new_basic_type_definition =
     log_function3 "new_basic_type_definition" log_name
-    (log_pair log_name log_name) log_thm (log_pair log_thm log_thm)
+      (log_pair log_name log_name) log_thm (log_pair log_thm log_thm)
     new_basic_type_definition;;
 
 let theorem f = log_function "theorem" log_unit log_save_thm f ();;

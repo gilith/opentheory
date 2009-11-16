@@ -1,0 +1,4 @@
+*.sml
+*.o
+opentheory
+selftest

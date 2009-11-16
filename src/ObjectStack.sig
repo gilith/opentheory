@@ -52,6 +52,24 @@ val alignCalls :
     {call : ObjectProv.object option} -> stack -> stack * Command.command list
 
 (* ------------------------------------------------------------------------- *)
+(* Building objects using data on a stack.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val buildObject :
+    {savable : bool} -> stack -> Object.object -> ObjectProv.object
+
+(* ------------------------------------------------------------------------- *)
+(* The stack is also used to keep track of simulated theorems.               *)
+(* ------------------------------------------------------------------------- *)
+
+val symbolSimulation : stack -> Symbol.symbol
+
+val addSimulation : stack -> ThmSet.set * ObjectProv.object -> stack
+
+val searchSimulation :
+    stack -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

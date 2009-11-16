@@ -28,6 +28,12 @@ fun directory (Package {directory = x, ...}) = {directory = x};
 
 fun contents (Package {contents = x, ...}) = x;
 
+fun tags p = PackageContents.tags (contents p);
+
+fun requires p = PackageContents.requires (contents p);
+
+fun theory p = PackageContents.theory (contents p);
+
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)

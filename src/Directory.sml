@@ -14,9 +14,11 @@ open Useful;
 
 val configFile = "config";
 
+val reposConfigSection = "repos";
+
 val packagesDirectory = "packages";
 
-val theoryExtension = "txt";
+val theoryExtension = "thy";
 
 (* ------------------------------------------------------------------------- *)
 (* Directories and filenames.                                                *)
@@ -76,6 +78,8 @@ fun filesRepo repo pkg =
 
 fun containsRepo repo pkg = Option.isSome (filesRepo repo pkg);
 
+val ppRepo = Print.ppMap nameRepo Print.ppString;
+
 (* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -116,7 +120,7 @@ local
       end;
 
   fun sectionHandler section =
-      if section = "repos" then SOME reposHandler
+      if section = reposConfigSection then SOME reposHandler
       else NONE;
 
   val handler = Config.Handler sectionHandler;
@@ -127,6 +131,15 @@ in
 end;
 
 fun reposConfig (Config {repos = x, ...}) = x;
+
+fun ppConfig conf =
+    let
+      val Config {repos = rs} = conf
+    in
+      Print.blockProgram Print.Consistent 0
+        (Print.addString (Config.mkSectionHeader reposConfigSection) ::
+         map (Print.sequence Print.addNewline o ppRepo) rs)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)

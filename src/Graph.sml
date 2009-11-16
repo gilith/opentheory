@@ -128,10 +128,10 @@ fun match graph spec =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Installing theory packages.                                               *)
+(* Importing theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun installTheory graph info =
+fun importTheory graph info =
     let
       val {savable,
            requires = req,
@@ -160,7 +160,7 @@ fun installTheory graph info =
       (graph,inst)
     end;
 
-fun matchInstallPackageName graph info =
+fun matchImportPackageName graph info =
     let
       val {finder,
            savable,
@@ -188,11 +188,11 @@ fun matchInstallPackageName graph info =
                interpretation = int,
                package = pkg}
         in
-          installPackageName graph info
+          importPackageName graph info
         end
     end
 
-and installPackageName graph info =
+and importPackageName graph info =
     let
       val {finder,
            savable,
@@ -205,7 +205,7 @@ and installPackageName graph info =
           case PackageFinder.find finder pkg of
             SOME p => p
           | NONE =>
-            raise Error ("Graph.installPackageName: couldn't find package " ^
+            raise Error ("Graph.importPackageName: couldn't find package " ^
                          PackageName.toString pkg)
 
       val info =
@@ -216,10 +216,10 @@ and installPackageName graph info =
            interpretation = int,
            package = pkg}
     in
-      installPackage graph info
+      importPackage graph info
     end
 
-and installPackage graph info =
+and importPackage graph info =
     let
       val {finder,
            savable,
@@ -240,10 +240,10 @@ and installPackage graph info =
            directory = directory,
            contents = contents}
     in
-      installContents graph info
+      importContents graph info
     end
 
-and installContents graph info =
+and importContents graph info =
     let
       val {finder,
            savable,
@@ -261,7 +261,7 @@ and installContents graph info =
             SOME inst => inst
           | NONE => raise Error ("unknown require block name: " ^ r)
 
-      fun installReq (require,(graph,reqInsts)) =
+      fun importReq (require,(graph,reqInsts)) =
           let
             val reqToInst = getRequire reqInsts
 
@@ -274,7 +274,7 @@ and installContents graph info =
                  requireNameToInstance = reqToInst,
                  require = require}
 
-            val (graph,inst) = installRequire graph info
+            val (graph,inst) = importRequire graph info
 
             val name = PackageRequire.name require
 
@@ -286,7 +286,7 @@ and installContents graph info =
       val requires = PackageRequire.sort requires
 
       val (graph,reqInsts) =
-          List.foldl installReq (graph, StringMap.new ()) requires
+          List.foldl importReq (graph, StringMap.new ()) requires
 
       val impToInst = getRequire reqInsts
 
@@ -300,10 +300,10 @@ and installContents graph info =
            importToInstance = impToInst,
            theory = theory}
     in
-      installTheory graph info
+      importTheory graph info
     end
 
-and installRequire graph info =
+and importRequire graph info =
     let
       val {finder,
            savable,
@@ -336,7 +336,7 @@ and installRequire graph info =
            interpretationEquivalentTo = interpretationEquivalentTo,
            package = pkg}
     in
-      matchInstallPackageName graph info
+      matchImportPackageName graph info
     end;
 
 end

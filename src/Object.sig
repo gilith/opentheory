@@ -52,6 +52,7 @@ val mkOpair : object * object -> object
 val destOpair : object -> object * object
 val isOpair : object -> bool
 
+val mkOtriple : object * object * object -> object
 val destOtriple : object -> object * object * object
 val isOtriple : object -> bool
 

@@ -42,4 +42,6 @@ val toString : name -> string
 
 val parser : (char,name) Parse.parser
 
+val fromString : string -> name
+
 end

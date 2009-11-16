@@ -46,7 +46,7 @@ fun printer p x = print (Print.toString p x ^ "\n\n");
 fun printval p x = (printer p x; x);
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Symbol table tests";
+val () = SAY "Symbol tables";
 (* ------------------------------------------------------------------------- *)
 
 val syms : Symbol.symbol list = [];
@@ -60,7 +60,7 @@ and termFalse = Syntax.termFalse syms
 and termTrue = Syntax.termTrue syms;
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Term tests";
+val () = SAY "Terms";
 (* ------------------------------------------------------------------------- *)
 
 val ts =
@@ -371,3 +371,61 @@ val () = compile "boolTactics";
 (* Localizing articles *)
 
 val () = compile "localBoolTactics";
+
+(* ------------------------------------------------------------------------- *)
+val () = SAY "Theory directories";
+(* ------------------------------------------------------------------------- *)
+
+val DIRECTORY_DIR = "opentheory";
+
+val directory = Directory.mk {rootDirectory = DIRECTORY_DIR};
+
+(* ------------------------------------------------------------------------- *)
+val () = SAY "Config files";
+(* ------------------------------------------------------------------------- *)
+
+val config = printval Directory.ppConfig (Directory.config directory);
+
+(* ------------------------------------------------------------------------- *)
+val () = SAY "Importing theory packages";
+(* ------------------------------------------------------------------------- *)
+
+fun import name =
+    let
+      val () = print ("Importing theory package \"" ^ name ^ "\"\n")
+
+      val finder = Directory.lookup directory
+
+      val graph = Graph.empty
+
+      val (graph,inst) =
+          Graph.importPackageName graph
+            {finder = finder,
+             savable = false,
+             simulations = HolLight.simulations,
+             requires = InstanceSet.empty,
+             interpretation = Interpretation.natural,
+             package = PackageName.fromString name};
+
+      val () = printer Summary.pp (Instance.summary inst);
+    in
+      ()
+    end;
+
+(* The simplest package: empty *)
+
+(*
+val () = compile "empty-1.0";
+*)
+
+(* Boolean definitions from HOL Light *)
+
+val () = import "hol-light-bool-def-2009.8.24";
+
+(* Boolean theorems from HOL Light *)
+
+val () = import "hol-light-bool-rule-2009.8.24";
+
+(* Boolean definitions plus theorems from HOL Light *)
+
+val () = import "hol-light-bool-2009.8.24";

@@ -24,10 +24,11 @@ open Useful;
 (*                                                                           *)
 (* 4. The provenance of a theorem object tracks how the theorem was          *)
 (*    inferred (in order of priority):                                       *)
-(*      Isaved obj => theorem is in the saved object obj                     *)
-(*      Isimulated => simulated inference rule                               *)
-(*      Istack obj => contained in the stack object obj                      *)
-(*      Iaxiom     => asserted as an axiom (a dependency of the theory)      *)
+(*      Isaved obj     -  the saved theorem object obj                       *)
+(*      Isimulated obj -  simulated inference rule (using the call obj)      *)
+(*      Istack obj     -  contained in the stack object obj                  *)
+(*      Iknown obj     -  the context theorem object obj                     *)
+(*      Iaxiom         -  asserted as an axiom (a dependency of the theory)  *)
 (* ------------------------------------------------------------------------- *)
 
 type id = int;
@@ -49,8 +50,9 @@ and provenance =
 
 and inference =
     Isaved of object
-  | Isimulated
+  | Isimulated of object
   | Istack of object
+  | Iknown of object
   | Iaxiom;
 
 (* ------------------------------------------------------------------------- *)
@@ -122,8 +124,9 @@ fun destCall (Object {object = f, provenance = a, ...}) =
 fun parentsInference inf =
     case inf of
       Isaved obj => [obj]
-    | Isimulated => []
+    | Isimulated obj => [obj]
     | Istack obj => [obj]
+    | Iknown obj => [obj]
     | Iaxiom => [];
 
 fun parentsProvenance prov =
@@ -263,8 +266,9 @@ local
         and mapsInf inf acc =
             case inf of
               Isaved obj => mapsInf1 inf acc Isaved obj
-            | Isimulated => (inf,acc)
+            | Isimulated obj => mapsInf1 inf acc Isimulated obj
             | Istack obj => mapsInf1 inf acc Istack obj
+            | Iknown obj => mapsInf1 inf acc Iknown obj
             | Iaxiom => (inf,acc)
 
         and mapsInf1 inf acc con obj =
@@ -341,10 +345,21 @@ and ppInference level inf =
          Print.addBreak 1,
          pp level obj,
          Print.addString ")"]
-    | Isimulated => Print.addString "Isimulated"
+    | Isimulated obj =>
+      Print.blockProgram Print.Consistent 1
+        [Print.addString "(Isimulated",
+         Print.addBreak 1,
+         pp level obj,
+         Print.addString ")"]
     | Istack obj =>
       Print.blockProgram Print.Consistent 1
         [Print.addString "(Istack",
+         Print.addBreak 1,
+         pp level obj,
+         Print.addString ")"]
+    | Iknown obj =>
+      Print.blockProgram Print.Consistent 1
+        [Print.addString "(Iknown",
          Print.addBreak 1,
          pp level obj,
          Print.addString ")"]

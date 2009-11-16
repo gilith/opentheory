@@ -17,61 +17,22 @@ datatype context =
       {interpretation : Interpretation.interpretation,
        input : Object.object};
 
-type mkTypeOp = context -> Name.name -> TypeOp.typeOp option;
+datatype result =
+    Result of
+      {input : Object.object option,
+       thms : ThmSet.set};
 
-type mkConst = context -> Name.name -> Const.const option;
-
-type mkThm = context -> Sequent.sequent -> Thm.thm option;
-
-datatype simulation =
-    Simulation of
-      {mkTypeOp : mkTypeOp,
-       mkConst : mkConst,
-       mkThm : mkThm};
-
-(* ------------------------------------------------------------------------- *)
-(* Simulations that do nothing.                                              *)
-(* ------------------------------------------------------------------------- *)
-
-val skipMkTypeOp : mkTypeOp = fn _ => fn _ => NONE;
-
-val skipMkConst : mkConst = fn _ => fn _ => NONE;
-
-val skipMkThm : mkThm = fn _ => fn _ => NONE;
-
-val skip =
-    Simulation
-      {mkTypeOp = skipMkTypeOp,
-       mkConst = skipMkConst,
-       mkThm = skipMkThm};
-
-(* ------------------------------------------------------------------------- *)
-(* Applying simulations.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-fun mkTypeOp (Simulation {mkTypeOp = x, ...}) = x;
-
-fun mkConst (Simulation {mkConst = x, ...}) = x;
-
-fun mkThm sim ctxt seq =
-    let
-      val Simulation {mkThm = mk, ...} = sim
-
-      val result =
-          case mk ctxt seq of
-            SOME th => SOME (Rule.alpha seq th)
-          | NONE => NONE
-    in
-      result
-    end;
+datatype simulation = Simulation of context -> result;
 
 (* ------------------------------------------------------------------------- *)
 (* Simulation maps.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type simulations = simulation NameMap.map;
+datatype simulations = Simulations of simulation NameMap.map;
 
-val empty : simulations = NameMap.new ();
+val empty = Simulations (NameMap.new ());
+
+fun peek (Simulations s) n = NameMap.peek s n;
 
 local
   fun first (_,s) = SOME s;
@@ -81,11 +42,16 @@ local
   fun both ((n,_),_) =
       raise Error ("Simulation.union: rule name clash: " ^ Name.toString n);
 in
-  fun union s1 s2 : simulations =
-      NameMap.merge
-        {first = first,
-         second = second,
-         both = both} s1 s2;
+  fun union (Simulations s1) (Simulations s2) =
+      let
+        val s =
+            NameMap.merge
+              {first = first,
+               second = second,
+               both = both} s1 s2
+      in
+        Simulations s
+      end;
 end;
 
 local
@@ -96,5 +62,7 @@ in
         [] => empty
       | s :: sl => List.foldl ins s sl;
 end;
+
+fun fromList l = Simulations (NameMap.fromList l);
 
 end

@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------
-Symbol table tests
+Symbol tables
 
 --------------------------------------------------------------------------
-Term tests
+Terms
 
 [\p. p, \q. p, \q. q]
 
@@ -40,7 +40,9 @@ Substitution
 --------------------------------------------------------------------------
 Reading interpretations
 
-type "fun" -> "->"; type "prod" -> "*"; const "@" -> "select";
+type "fun" -> "->"
+type "prod" -> "*"
+const "@" -> "select"
 
 --------------------------------------------------------------------------
 Compressing articles
@@ -50,33 +52,33 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "bool"
-WARNING: 1030 objects left on the stack by articles/bool.art
-WARNING: saving 549 theorems left on the stack by articles/bool.art
-WARNING: 1390 objects left in the dictionary by articles/bool.art
-User: 2.307  System: 0.026  GC: 0.196  Real: 2.358
-User: 2.658  System: 0.026  GC: 0.128  Real: 2.709
+WARNING: 34 objects left on the stack by articles/bool.art
+WARNING: saving 34 theorems left on the stack by articles/bool.art
+WARNING: 1363 objects left in the dictionary by articles/bool.art
+User: 3.380  System: 0.038  GC: 0.302  Real: 3.500
+User: 2.757  System: 0.033  GC: 0.157  Real: 2.898
 
 Compressing article "tactics"
-WARNING: 121 objects left on the stack by articles/tactics.art
-WARNING: saving 83 theorems left on the stack by articles/tactics.art
+WARNING: 6 objects left on the stack by articles/tactics.art
+WARNING: saving 4 theorems left on the stack by articles/tactics.art
 WARNING: 198 objects left in the dictionary by articles/tactics.art
-User: 0.365  System: 0.003  GC: 0.027  Real: 0.373
-User: 0.387  System: 0.004  GC: 0.014  Real: 0.394
+User: 0.473  System: 0.007  GC: 0.030  Real: 0.548
+User: 0.183  System: 0.002  GC: 0.007  Real: 0.188
 
 --------------------------------------------------------------------------
 Summarizing articles
 
 Summarizing compressed article "example1"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Summarizing compressed article "bool"
-User: 2.235  System: 0.021  GC: 0.136  Real: 2.279
-User: 0.216  System: 0.003  GC: 0.044  Real: 0.221
+User: 2.121  System: 0.024  GC: 0.139  Real: 2.258
+User: 0.007  System: 0.000  GC: 0.001  Real: 0.008
 
 Summarizing compressed article "tactics"
-User: 0.377  System: 0.004  GC: 0.017  Real: 0.388
-User: 0.058  System: 0.001  GC: 0.012  Real: 0.060
+User: 0.161  System: 0.002  GC: 0.007  Real: 0.164
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
 
 --------------------------------------------------------------------------
 Compiling theories
@@ -92,41 +94,165 @@ Compiling theory "justBool"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 theory { article "bool.art"; }
 
-User: 2.275  System: 0.022  GC: 0.143  Real: 2.324
-User: 2.619  System: 0.023  GC: 0.113  Real: 2.671
+User: 2.160  System: 0.026  GC: 0.144  Real: 2.301
+User: 2.730  System: 0.038  GC: 0.130  Real: 2.976
 
 Compiling theory "justTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 theory { article "tactics.art"; }
 
-User: 0.390  System: 0.004  GC: 0.024  Real: 0.399
-User: 0.393  System: 0.004  GC: 0.017  Real: 0.403
+User: 0.178  System: 0.004  GC: 0.014  Real: 0.233
+User: 0.175  System: 0.002  GC: 0.004  Real: 0.180
 
 Compiling theory "boolBool"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-theory { article "bool.art"; article "bool.art"; }
+theory {
+  article "bool.art";
+  article "bool.art";
+}
 
-User: 5.472  System: 0.050  GC: 0.308  Real: 5.569
-User: 5.067  System: 0.049  GC: 0.223  Real: 5.201
+User: 4.292  System: 0.039  GC: 0.273  Real: 4.377
+User: 2.901  System: 0.029  GC: 0.138  Real: 2.979
 
 Compiling theory "tacticsTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-theory { article "tactics.art"; article "tactics.art"; }
+theory {
+  article "tactics.art";
+  article "tactics.art";
+}
 
-User: 0.788  System: 0.009  GC: 0.040  Real: 0.856
-User: 0.660  System: 0.006  GC: 0.027  Real: 0.676
+User: 0.343  System: 0.004  GC: 0.025  Real: 0.355
+User: 0.198  System: 0.002  GC: 0.005  Real: 0.204
 
 Compiling theory "boolTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-theory { article "bool.art"; article "tactics.art"; }
+theory {
+  article "bool.art";
+  article "tactics.art";
+}
 
-User: 2.702  System: 0.026  GC: 0.165  Real: 2.760
-User: 3.123  System: 0.029  GC: 0.138  Real: 3.184
+User: 2.342  System: 0.027  GC: 0.154  Real: 2.524
+User: 2.966  System: 0.034  GC: 0.137  Real: 3.129
 
 Compiling theory "localBoolTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-theory { local article "bool.art"; in article "tactics.art"; }
+theory {
+  local article "bool.art"; in
+  article "tactics.art";
+}
 
-User: 2.689  System: 0.025  GC: 0.164  Real: 2.743
-User: 1.138  System: 0.012  GC: 0.053  Real: 1.161
+User: 2.327  System: 0.024  GC: 0.152  Real: 2.424
+User: 0.962  System: 0.012  GC: 0.045  Real: 1.028
+
+--------------------------------------------------------------------------
+Theory directories
+
+--------------------------------------------------------------------------
+Config files
+
+[repos]
+http://opentheory.gilith.com/
+
+--------------------------------------------------------------------------
+Importing theory packages
+
+Importing theory package "hol-light-bool-def-2009.8.24"
+input-types: -> bool
+input-consts: =
+assumed:
+defined-consts: ! /\ ==> ? ?! F T \/ ~
+axioms:
+thms:
+  |- F = !p. p
+  |- (~) = \p. p ==> F
+  |- T = ((\p. p) = \p. p)
+  |- (!) = \P. P = \x. T
+  |- (==>) = \p q. (p /\ q) = p
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+  |- (?) = \P. !q. (!x. P x ==> q) ==> q
+  |- (\/) = \p q. !r. (p ==> r) ==> (q ==> r) ==> r
+  |- (?!) = \P. (?) P /\ !x y. P x /\ P y ==> x = y
+
+Importing theory package "hol-light-bool-rule-2009.8.24"
+input-types: -> bool
+input-consts: ! /\ = ==> ? ?! F T \/ ~
+assumed:
+  |- F = !p. p
+  |- (~) = \p. p ==> F
+  |- T = ((\p. p) = \p. p)
+  |- (!) = \P. P = \x. T
+  |- (==>) = \p q. (p /\ q) = p
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+  |- (?) = \P. !q. (!x. P x ==> q) ==> q
+  |- (\/) = \p q. !r. (p ==> r) ==> (q ==> r) ==> r
+  |- (?!) = \P. (?) P /\ !x y. P x /\ P y ==> x = y
+axioms:
+thms:
+  |- T
+  {.} |- P
+  {.} |- P
+  {.} |- Q
+  {...} |- R
+  {..} |- q
+  {.} |- (!) P
+  {.} |- (?) P
+  {..} |- p /\ q
+  {.} |- P \/ Q
+  {.} |- P \/ Q
+  |- (\p. p) = \p. p
+  |- t = (t = T)
+  |- (!) P ==> P x
+  |- (?!) P ==> (?) P
+  |- ~P = (P ==> F)
+  |- ~P ==> P = F
+  |- (P ==> F) = ~P
+  |- P = F ==> ~P
+  |- (\p. p) = (\p. p) = T
+  |- p = q ==> p ==> q
+  |- p = q ==> q ==> p
+  |- (p /\ q) = p = (p ==> q)
+  |- (!x. P x ==> Q) ==> (?) P ==> Q
+  |- (p ==> q) ==> (q ==> r) ==> p ==> r
+
+Importing theory package "hol-light-bool-2009.8.24"
+input-types: -> bool
+input-consts: =
+assumed:
+defined-consts: ! /\ ==> ? ?! F T \/ ~
+axioms:
+thms:
+  |- T
+  {.} |- P
+  {.} |- P
+  {.} |- Q
+  {...} |- R
+  {..} |- q
+  {.} |- (!) P
+  {.} |- (?) P
+  {..} |- p /\ q
+  {.} |- P \/ Q
+  {.} |- P \/ Q
+  |- (\p. p) = \p. p
+  |- F = !p. p
+  |- t = (t = T)
+  |- (!) P ==> P x
+  |- (?!) P ==> (?) P
+  |- (~) = \p. p ==> F
+  |- T = ((\p. p) = \p. p)
+  |- (!) = \P. P = \x. T
+  |- ~P = (P ==> F)
+  |- ~P ==> P = F
+  |- (P ==> F) = ~P
+  |- P = F ==> ~P
+  |- (\p. p) = (\p. p) = T
+  |- p = q ==> p ==> q
+  |- p = q ==> q ==> p
+  |- (==>) = \p q. (p /\ q) = p
+  |- (p /\ q) = p = (p ==> q)
+  |- (!x. P x ==> Q) ==> (?) P ==> Q
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+  |- (p ==> q) ==> (q ==> r) ==> p ==> r
+  |- (?) = \P. !q. (!x. P x ==> q) ==> q
+  |- (\/) = \p q. !r. (p ==> r) ==> (q ==> r) ==> r
+  |- (?!) = \P. (?) P /\ !x y. P x /\ P y ==> x = y
 

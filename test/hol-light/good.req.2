@@ -1,20 +1,5 @@
-REQUIRES {
-  types:
-    bool
-    fun
-    ind
-  consts:
-    !
-    /\
-    =
-    ==>
-    ?
-    ONE_ONE
-    ONTO
-    select
-    ~
-  thms:
-    |- !t. (\x. t x) = t
-    |- !P x. P x ==> P ((select) P)
-    |- ?f. ONE_ONE f /\ ~ONTO f
-}
+assumed:
+axioms:
+  |- !t. (\x. t x) = t
+  |- ?f. ONE_ONE f /\ ~ONTO f
+  |- !P x. P x ==> P ((select) P)

@@ -14,6 +14,8 @@ open Useful;
 
 val namespace = Namespace.mkNested (Namespace.global,"hol-light");
 
+fun mkName s = Name.mk (namespace,s);
+
 (* ------------------------------------------------------------------------- *)
 (* Converting data.                                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -54,422 +56,320 @@ fun substToSubst oins =
 (* Primitive rules of definition.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val newBasicDefinition =
+fun newBasicDefinition ctxt =
     let
-      fun destInput input =
-          let
-            val tm = Object.destOterm input
+      val Simulation.Context {interpretation = int, input, ...} = ctxt
 
-            val (v,def) = Term.destEq tm
+      val tm = Object.destOterm input
 
-            val vn = Var.name (Term.destVar v)
-          in
-            (vn,def)
-          end
+      val (v,def) = Term.destEq tm
 
-      fun mkDef int (vn,def) =
-          let
-            val cn = Interpretation.interpretConst int vn
+      val (vn,ty) = Var.dest (Term.destVar v)
 
-            val th = Thm.defineConst cn def
+      val cn = Interpretation.interpretConst int vn
 
-            val (c,_) = Term.destConst (Term.lhs (Thm.concl th))
-          in
-            (c,th)
-          end
+      val input =
+          if Name.equal vn cn then NONE
+          else
+            let
+              val v = Var.mk (cn,ty)
 
-      val mkTypeOp = Simulation.skipMkTypeOp
+              val tm = Term.mkEq (Term.mkVar v, def)
+            in
+              SOME (Object.Oterm tm)
+            end
 
-      fun mkConst ctxt n =
-          let
-            val Simulation.Context {interpretation = int, input, ...} = ctxt
-
-            val def as (vn,_) = destInput input
-          in
-            if not (Name.equal vn n) then NONE
-            else
-              let
-                val (c,_) = mkDef int def
-              in
-                SOME c
-              end
-          end
-
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {interpretation = int, input, ...} = ctxt
-
-            val def = destInput input
-
-            val (_,th) = mkDef int def
-          in
-            SOME th
-          end
+      val thms =
+          case total (Thm.defineConst cn) def of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val newBasicTypeDefinition =
+fun newBasicTypeDefinition ctxt =
     let
-      fun destInput input =
+      val Simulation.Context {interpretation = int, input, ...} = ctxt
+
+      val (tyName,absRepName,nonEmptyThOb) = Object.destOtriple input
+
+      val tyName' = Object.destOname tyName
+      and (absName,repName) = Object.destOpair absRepName
+      and nonEmptyTh = Object.destOthm nonEmptyThOb
+
+      val absName' = Object.destOname absName
+      and repName' = Object.destOname repName
+
+      val tyName = Interpretation.interpretTypeOp int tyName'
+      and absName = Interpretation.interpretConst int absName'
+      and repName = Interpretation.interpretConst int repName'
+
+      val unchanged =
+          Name.equal tyName tyName' andalso
+          Name.equal absName absName' andalso
+          Name.equal repName repName'
+
+      val input =
+          if unchanged then NONE
+          else
+            let
+              val absN = Object.Oname absName
+              and repN = Object.Oname repName
+
+              val tyN = Object.Oname tyName
+              and absRepN = Object.mkOpair (absN,repN)
+            in
+              SOME (Object.mkOtriple (tyN,absRepN,nonEmptyThOb))
+            end
+
+      val tyVars =
           let
-            val (tyName,absRepName,nonEmptyTh) = Object.destOtriple input
-
-            val tyName = Object.destOname tyName
-            and (absName,repName) = Object.destOpair absRepName
-            and nonEmptyTh = Object.destOthm nonEmptyTh
-
-            val absName = Object.destOname absName
-            and repName = Object.destOname repName
-
             val (predTm,_) = Term.destApp (Thm.concl nonEmptyTh)
-
-            val tyVars = NameSet.toList (Term.typeVars predTm)
           in
-            (tyName,(absName,repName),tyVars,nonEmptyTh)
+            NameSet.toList (Term.typeVars predTm)
           end
 
-      fun mkDef int (tyName,(absName,repName),tyVars,nonEmptyTh) =
-          let
-            val tyName = Interpretation.interpretTypeOp int tyName
-            and absName = Interpretation.interpretConst int absName
-            and repName = Interpretation.interpretConst int repName
-
-            val (absRepTh,repAbsTh) =
-                Thm.defineTypeOp
-                  tyName {abs = absName, rep = repName} tyVars nonEmptyTh
-
-            val (absTm,repTm) =
-                let
-                  val (l,r) = Term.destEq (Thm.concl absRepTh)
-
-                  val (abs,t) = Term.destApp l
-                  val (rep,_) = Term.destApp t
-                in
-                  (abs,rep)
-                end
-
-            val (absConst,absTy) = Term.destConst absTm
-            and (repConst,_) = Term.destConst repTm
-
-            val typeOp =
-                let
-                  val (_,ty) = Type.destFun absTy
-                  val (ot,_) = Type.destOp ty
-                in
-                  ot
-                end
-          in
-            (typeOp,(absConst,repConst),(absRepTh,repAbsTh))
-          end
-
-      fun mkTypeOp ctxt n =
-          let
-            val Simulation.Context {interpretation = int, input, ...} = ctxt
-
-            val def as (tyName,_,_,_) = destInput input
-          in
-            if not (Name.equal n tyName) then NONE
-            else
-              let
-                val (typeOp,_,_) = mkDef int def
-              in
-                SOME typeOp
-              end
-          end
-
-      fun mkConst ctxt n =
-          let
-            val Simulation.Context {interpretation = int, input, ...} = ctxt
-
-            val def as (_,(absName,repName),_,_) = destInput input
-          in
-            if Name.equal n absName then
-              let
-                val (_,(absConst,_),_) = mkDef int def
-              in
-                SOME absConst
-              end
-            else if Name.equal n repName then
-              let
-                val (_,(_,repConst),_) = mkDef int def
-              in
-                SOME repConst
-              end
-            else
-              NONE
-          end
-
-      fun mkThm ctxt seq =
-          let
-            val Simulation.Context {interpretation = int, input, ...} = ctxt
-
-            val def = destInput input
-
-            val (_,_,(absRepTh,repAbsTh)) = mkDef int def
-
-            val isAbsRepTh = not (Term.isEq (Term.rhs (Sequent.concl seq)))
-          in
-            SOME (if isAbsRepTh then absRepTh else repAbsTh)
-          end
+      val thms =
+          case total (Thm.defineTypeOp tyName {abs = absName, rep = repName}
+                        tyVars) nonEmptyTh of
+            SOME (absRepTh,repAbsTh) => ThmSet.fromList [absRepTh,repAbsTh]
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of inference.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val abs =
+fun abs ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val (otm,oth) = Object.destOpair input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
+      val v = Term.destVar (Object.destOterm otm)
+      and th = Object.destOthm oth
 
-            val (otm,oth) = Object.destOpair input
+      val input = NONE
 
-            val v = Term.destVar (Object.destOterm otm)
-            and th = Object.destOthm oth
-          in
-            SOME (Thm.abs v th)
-          end
+      val thms =
+          case total (Thm.abs v) th of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val assume =
+fun assume ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val tm = Object.destOterm input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
-          in
-            SOME (Thm.assume (Object.destOterm input))
-          end
+      val input = NONE
+
+      val thms =
+          case total Thm.assume tm of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val beta =
+fun beta ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val tm = Object.destOterm input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
-          in
-            SOME (Thm.betaConv (Object.destOterm input))
-          end
+      val input = NONE
+
+      val thms =
+          case total Thm.betaConv tm of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val deductAntisymRule =
+fun deductAntisymRule ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val (oth1,oth2) = Object.destOpair input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
+      val th1 = Object.destOthm oth1
+      and th2 = Object.destOthm oth2
 
-            val (oth1,oth2) = Object.destOpair input
+      val input = NONE
 
-            val th1 = Object.destOthm oth1
-            and th2 = Object.destOthm oth2
-          in
-            SOME (Thm.deductAntisym th1 th2)
-          end
+      val thms =
+          case total (Thm.deductAntisym th1) th2 of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val eqMp =
+fun eqMp ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val (oth1,oth2) = Object.destOpair input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
+      val th1 = Object.destOthm oth1
+      and th2 = Object.destOthm oth2
 
-            val (oth1,oth2) = Object.destOpair input
+      val input = NONE
 
-            val th1 = Object.destOthm oth1
-            and th2 = Object.destOthm oth2
-          in
-            SOME (Thm.eqMp th1 th2)
-          end
+      val thms =
+          case total (Thm.eqMp th1) th2 of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val inst =
+fun inst ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val (oins,oth) = Object.destOpair input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
+      val ins = substToSubst oins
+      and th = Object.destOthm oth
 
-            val (oins,oth) = Object.destOpair input
+      val input = NONE
 
-            val ins = substToSubst oins
-            and th = Object.destOthm oth
-          in
-            SOME (Thm.subst ins th)
-          end
+      val thms =
+          case total (Thm.subst ins) th of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val instType =
+fun instType ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val (oins,oth) = Object.destOpair input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
+      val ins = typeSubstToSubst oins
+      and th = Object.destOthm oth
 
-            val (oins,oth) = Object.destOpair input
+      val input = NONE
 
-            val ins = typeSubstToSubst oins
-            and th = Object.destOthm oth
-          in
-            SOME (Thm.subst ins th)
-          end
+      val thms =
+          case total (Thm.subst ins) th of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val mkComb =
+fun mkComb ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val (oth1,oth2) = Object.destOpair input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
+      val th1 = Object.destOthm oth1
+      and th2 = Object.destOthm oth2
 
-            val (oth1,oth2) = Object.destOpair input
+      val input = NONE
 
-            val th1 = Object.destOthm oth1
-            and th2 = Object.destOthm oth2
-          in
-            SOME (Thm.app th1 th2)
-          end
+      val thms =
+          case total (Thm.app th1) th2 of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val refl =
+fun refl ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val tm = Object.destOterm input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
-          in
-            SOME (Thm.refl (Object.destOterm input))
-          end
+      val input = NONE
+
+      val thms =
+          case total Thm.refl tm of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
-val trans =
+fun trans ctxt =
     let
-      val mkTypeOp = Simulation.skipMkTypeOp
+      val Simulation.Context {input,...} = ctxt
 
-      val mkConst = Simulation.skipMkConst
+      val (oth1,oth2) = Object.destOpair input
 
-      fun mkThm ctxt _ =
-          let
-            val Simulation.Context {input,...} = ctxt
+      val th1 = Object.destOthm oth1
+      and th2 = Object.destOthm oth2
 
-            val (oth1,oth2) = Object.destOpair input
+      val input = NONE
 
-            val th1 = Object.destOthm oth1
-            and th2 = Object.destOthm oth2
-          in
-            SOME (Rule.trans th1 th2)
-          end
+      val thms =
+          case total (Rule.trans th1) th2 of
+            SOME th => ThmSet.singleton th
+          | NONE => ThmSet.empty
     in
-      Simulation.Simulation
-        {mkTypeOp = mkTypeOp,
-         mkConst = mkConst,
-         mkThm = mkThm}
+      Simulation.Result
+        {input = input,
+         thms = thms}
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Simulations.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
+val simulationList =
+    [("new_basic_definition",newBasicDefinition),
+     ("new_basic_type_definition",newBasicTypeDefinition),
+     ("ABS",abs),
+     ("ASSUME",assume),
+     ("BETA",beta),
+     ("DEDUCT_ANTISYM_RULE",deductAntisymRule),
+     ("EQ_MP",eqMp),
+     ("INST",inst),
+     ("INST_TYPE",instType),
+     ("MK_COMB",mkComb),
+     ("REFL",refl),
+     ("TRANS",trans)];
+
 val simulations =
-    List.foldl
-      (fn ((s,f),m) => NameMap.insert m (Name.mk (namespace,s), f))
-      (NameMap.new ())
-      [("new_basic_definition",newBasicDefinition),
-       ("new_basic_type_definition",newBasicTypeDefinition),
-       ("ABS",abs),
-       ("ASSUME",assume),
-       ("BETA",beta),
-       ("DEDUCT_ANTISYM_RULE",deductAntisymRule),
-       ("EQ_MP",eqMp),
-       ("INST",inst),
-       ("INST_TYPE",instType),
-       ("MK_COMB",mkComb),
-       ("REFL",refl),
-       ("TRANS",trans)];
+    let
+      fun mk (s,f) = (mkName s, Simulation.Simulation f)
+    in
+      Simulation.fromList (map mk simulationList)
+    end;
 
 end

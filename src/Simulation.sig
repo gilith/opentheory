@@ -15,50 +15,27 @@ datatype context =
       {interpretation : Interpretation.interpretation,
        input : Object.object}
 
-type mkTypeOp = context -> Name.name -> TypeOp.typeOp option
+datatype result =
+    Result of
+      {input : Object.object option,
+       thms : ThmSet.set}
 
-type mkConst = context -> Name.name -> Const.const option
-
-type mkThm = context -> Sequent.sequent -> Thm.thm option
-
-datatype simulation =
-    Simulation of
-      {mkTypeOp : mkTypeOp,
-       mkConst : mkConst,
-       mkThm : mkThm}
-
-(* ------------------------------------------------------------------------- *)
-(* Simulations that do nothing.                                              *)
-(* ------------------------------------------------------------------------- *)
-
-val skipMkTypeOp : mkTypeOp
-
-val skipMkConst : mkConst
-
-val skipMkThm : mkThm
-
-val skip : simulation
-
-(* ------------------------------------------------------------------------- *)
-(* Applying simulations.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-val mkTypeOp : simulation -> mkTypeOp
-
-val mkConst : simulation -> mkConst
-
-val mkThm : simulation -> mkThm
+datatype simulation = Simulation of context -> result
 
 (* ------------------------------------------------------------------------- *)
 (* Simulation maps.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type simulations = simulation NameMap.map
+type simulations
 
 val empty : simulations
+
+val peek : simulations -> Name.name -> simulation option
 
 val union : simulations -> simulations -> simulations
 
 val unionList : simulations list -> simulations
+
+val fromList : (Name.name * simulation) list -> simulations
 
 end

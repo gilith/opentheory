@@ -64,6 +64,7 @@ fun axiom sequent =
     let
       val _ = Sequent.boolean sequent orelse
               raise Error "Thm.axiom: sequent is not boolean"
+
       val axioms = singleAxiom sequent
     in
       Thm {axioms = axioms, sequent = sequent}

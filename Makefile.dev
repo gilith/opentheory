@@ -20,7 +20,7 @@ TEMP += $(TEMPFILE) \
 # The ML preprocessor.
 ###############################################################################
 
-#MLPP_OPTS += -r 'OpenTheoryDebug'
+MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-0]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
 #MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
@@ -176,7 +176,9 @@ HOL_LIGHT_SRC_DIR_NAME = src
 
 HOL_LIGHT_SRC_DIR = $(HOL_LIGHT_TEST_DIR)/$(HOL_LIGHT_SRC_DIR_NAME)
 
-HOL_LIGHT_ARTICLES_DIR = $(HOL_LIGHT_TEST_DIR)/articles
+HOL_LIGHT_ARTICLES_DIRNAME = articles
+
+HOL_LIGHT_ARTICLES_DIR = $(HOL_LIGHT_TEST_DIR)/$(HOL_LIGHT_ARTICLES_DIRNAME)
 
 HOL_LIGHT_THEORIES = \
   bool \
@@ -238,7 +240,7 @@ hol-light-test-sums: $(OPENTHEORY)
 
 .PHONY: hol-light-test-cthys
 hol-light-test-cthys:
-	thy='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do thy="$$thy article \"$(HOL_LIGHT_ARTICLES_DIR)/$$f.art\";" ; echo "theory { $$thy }" > $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
+	thy='' ; for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do thy="$$thy article \"$$f.art\";" ; echo "theory { $$thy }" > $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
 
 .PHONY: hol-light-test-carts
 hol-light-test-carts: $(OPENTHEORY)
@@ -249,7 +251,7 @@ hol-light-test-csums: $(OPENTHEORY)
 	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) summarize --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart ; done
 
 .PHONY: hol-light-test-reqs
-hol-light-test-reqs: $(OPENTHEORY)
+hol-light-test-reqs:
 	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do perl -ne 'if ($$_ =~ /^(assumed|axioms):/) { $$d = 1; } elsif ($$_ =~ /^[^ ]/) { $$d = undef; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum > $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; done
 	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_ARTICLES_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; echo "bad theory requirements in $$f" ; exit 1 ; fi ; done
 
@@ -261,18 +263,6 @@ hol-light-test-stats:
 
 .PHONY: hol-light-test
 hol-light-test: hol-light-test-install hol-light-test-log hol-light-test-thys hol-light-test-compress hol-light-test-sums hol-light-test-cthys hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
-
-###############################################################################
-# Creating packages from HOL Light theories.
-###############################################################################
-
-HOL_LIGHT_PACKAGE_DIR = $(HOL_LIGHT_TEST_DIR)/package
-
-.PHONY: hol-light-package-install
-hol-light-package-install:
-	rm -rf $(HOL_LIGHT_PACKAGE_DIR)
-	mkdir $(HOL_LIGHT_PACKAGE_DIR)
-	cd $(HOL_LIGHT_PACKAGE_DIR) && echo "Untarring into $(HOL_LIGHT_PACKAGE_DIR)" && tar xzf ../hol-light.tgz && ln -s ../../../scripts/hol-light/logging.ml && ln -s ../../../scripts/hol-light/deduction-logging.ml
 
 ###############################################################################
 # Profiling using MLton.

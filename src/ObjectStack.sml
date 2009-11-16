@@ -17,14 +17,28 @@ datatype stack =
       {size : int,
        objects : ObjectProv.object list,
        thms : ObjectThms.thms list,
+       simulation : ObjectSimulation.simulation,
        call : (ObjectProv.object * stack) option};
 
 val empty =
-    Stack
-      {size = 0,
-       objects = [],
-       thms = [],
-       call = NONE};
+    let
+      val size = 0
+
+      val objects = []
+
+      val thms = []
+
+      val sim = ObjectSimulation.empty
+
+      val call = NONE
+    in
+      Stack
+        {size = size,
+         objects = objects,
+         thms = thms,
+         simulation = sim,
+         call = call}
+    end;
 
 fun size (Stack {size = x, ...}) = x;
 
@@ -46,7 +60,7 @@ fun symbol stack = ObjectThms.symbol (thms stack);
 
 fun push stack obj =
     let
-      val Stack {size,objects,thms,call} = stack
+      val Stack {size,objects,thms,simulation,call} = stack
 
       val size = size + 1
 
@@ -64,6 +78,7 @@ fun push stack obj =
         {size = size,
          objects = objects,
          thms = thms,
+         simulation = simulation,
          call = call}
     end;
 
@@ -71,7 +86,7 @@ fun pop stack n =
     if n > frameSize stack then raise Error "ObjectStack.pop: empty frame"
     else
       let
-        val Stack {size,objects,thms,call} = stack
+        val Stack {size,objects,thms,simulation,call} = stack
 
         val size = size - n
 
@@ -83,6 +98,7 @@ fun pop stack n =
           {size = size,
            objects = objects,
            thms = thms,
+           simulation = simulation,
            call = call}
       end;
 
@@ -167,6 +183,95 @@ fun addAlignCalls call stack cmds =
       end;
 
 fun alignCalls {call} stack = addAlignCalls call stack [];
+
+(* ------------------------------------------------------------------------- *)
+(* Building objects using data on a stack.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun buildObject {savable} stack =
+    let
+      val call = if savable then topCall stack else NONE
+
+      fun mkObj ob prov =
+          let
+            val prov = if savable then prov else ObjectProv.Pnull
+          in
+            ObjectProv.mk
+              {object = ob,
+               provenance = prov,
+               call = call}
+          end
+
+      fun mkNullObj ob = mkObj ob ObjectProv.Pnull
+
+      fun mkConsObj ob objH objT =
+          let
+            val isTh =
+                ObjectProv.containsThms objH orelse
+                ObjectProv.containsThms objT
+
+            val prov =
+                if isTh then ObjectProv.Pcons (objH,objT)
+                else ObjectProv.Pnull
+          in
+            mkObj ob prov
+          end
+
+      fun mkThmObj ob th =
+          let
+            val objS =
+                case search stack (Thm.sequent th) of
+                  SOME (_,objS) => objS
+                | NONE =>
+                  raise Bug ("ObjectRead.buildObject: couldn't find theorem " ^
+                             "on stack:\n" ^ Thm.toString th)
+
+            val prov = ObjectProv.Pthm (ObjectProv.Istack objS)
+          in
+            mkObj ob prov
+          end
+
+      fun build ob =
+          case ob of
+            Object.Olist (obH :: obT) =>
+            let
+              val objH = build obH
+
+              val objT = build (Object.Olist obT)
+            in
+              mkConsObj ob objH objT
+            end
+          | Object.Othm th => mkThmObj ob th
+          | Object.Ocall _ =>
+            raise Bug "ObjectRead.buildObject: cannot build Ocall obj"
+          | _ => mkNullObj ob
+    in
+      build
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* The stack is also used to keep track of simulated theorems.               *)
+(* ------------------------------------------------------------------------- *)
+
+fun symbolSimulation (Stack {simulation = sim, ...}) =
+    ObjectSimulation.symbol sim;
+
+fun addSimulation stack ths_obj =
+    let
+      val Stack {size, objects, thms, simulation = sim, call} = stack
+
+      val sim = ObjectSimulation.add sim ths_obj
+    in
+      Stack
+        {size = size,
+         objects = objects,
+         thms = thms,
+         simulation = sim,
+         call = call}
+    end;
+
+fun searchSimulation (Stack {simulation = sim, ...}) seq =
+    ObjectSimulation.search sim seq;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

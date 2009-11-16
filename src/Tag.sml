@@ -67,13 +67,15 @@ fun pp tag =
       Print.blockProgram Print.Consistent 0
         [Print.addString name,
          ppSeparator,
-         Print.addString value,
-         Print.addNewline]
+         Print.addString value]
     end;
 
 fun ppList tags =
-    Print.blockProgram Print.Consistent 0
-      (map pp tags);
+    case tags of
+      [] => Print.skip
+    | tag :: tags =>
+      Print.blockProgram Print.Consistent 0
+        (pp tag :: map (Print.sequence Print.addNewline o pp) tags);
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)

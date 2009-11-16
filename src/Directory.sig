@@ -20,6 +20,8 @@ val containsRepo : repo -> PackageName.name -> bool
 
 val filesRepo : repo -> PackageName.name -> {filename : string} list option
 
+val ppRepo : repo Print.pp
+
 (* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -31,6 +33,8 @@ val defaultConfig : config
 val readConfig : {filename : string} -> config
 
 val reposConfig : config -> repo list
+
+val ppConfig : config Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)

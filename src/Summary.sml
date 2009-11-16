@@ -129,11 +129,9 @@ local
       let
         val seqs = SequentSet.toList seqs
       in
-        Print.sequence
-          (Print.blockProgram Print.Consistent 2
-             (Print.addString (name ^ ":") ::
-              map (Print.sequence (Print.addBreak 1) o ppSequent) seqs))
-          Print.addNewline
+        Print.blockProgram Print.Consistent 2
+          (Print.addString (name ^ ":") ::
+           map (Print.sequence Print.addNewline o ppSequent) seqs)
       end;
 in
   fun ppInfo sum =
@@ -143,8 +141,10 @@ in
         Print.blockProgram Print.Consistent 0
           [ppSymbol ("input",input),
            ppSequentSet ("assumed",assumed),
+           Print.addNewline,
            ppSymbol ("defined",defined),
            ppSequentSet ("axioms",axioms),
+           Print.addNewline,
            ppSequentSet ("thms",thms)]
       end;
 end;

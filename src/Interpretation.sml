@@ -14,7 +14,6 @@ open Useful;
 
 val constString = "const"
 and rewriteString = "->"
-and terminatorString = ";"
 and typeOpString = "type";
 
 (* ------------------------------------------------------------------------- *)
@@ -34,8 +33,7 @@ local
          Print.addString " ",
          Print.addString rewriteString,
          Print.addBreak 1,
-         Name.ppQuoted y,
-         Print.addString terminatorString];
+         Name.ppQuoted y];
 in
   fun ppRewrite r =
       case r of
@@ -49,7 +47,7 @@ fun ppRewriteList rs =
     | r :: rs =>
       Print.blockProgram Print.Consistent 0
         (ppRewrite r ::
-         map (Print.sequence (Print.addBreak 1) o ppRewrite) rs);
+         map (Print.sequence Print.addNewline o ppRewrite) rs);
 
 val toStringRewrite = Print.toString ppRewrite;
 
@@ -63,16 +61,14 @@ local
 
   val constParser = exactString constString
   and rewriteParser = exactString rewriteString
-  and terminatorParser = exactString terminatorString
   and typeOpParser = exactString typeOpString;
 
   fun nameParser prefixParser =
       (prefixParser ++ manySpace ++
        Name.quotedParser ++ manySpace ++
        rewriteParser ++ manySpace ++
-       Name.quotedParser ++ manySpace ++
-       terminatorParser) >>
-      (fn ((),((),(x,((),((),((),(y,((),())))))))) => (x,y));
+       Name.quotedParser) >>
+      (fn ((),((),(x,((),((),((),y)))))) => (x,y));
 
   val rewriteParser =
       nameParser typeOpParser >> TypeOpRewrite ||

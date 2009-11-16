@@ -65,7 +65,8 @@ local
                 adds objA seqs sym seen (objR :: objs)
               | ObjectProv.Pcons (objH,objT) =>
                 adds objA seqs sym seen (objH :: objT :: objs)
-              | ObjectProv.Pref objR => adds objA seqs sym seen (objR :: objs)
+              | ObjectProv.Pref objR =>
+                adds objA seqs sym seen (objR :: objs)
               | ObjectProv.Pthm _ =>
                 let
                   val th =

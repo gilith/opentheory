@@ -121,6 +121,8 @@ in
       (fn (b,((),v)) => Name {base = b, version = v});
 end;
 
+val fromString = Parse.fromString parser;
+
 end
 
 structure PackageNameOrdered =

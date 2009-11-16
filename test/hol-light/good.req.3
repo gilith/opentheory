@@ -1,24 +1,6 @@
-REQUIRES {
-  types:
-    T
-    bool
-    fun
-    ind
-  consts:
-    !
-    /\
-    =
-    ==>
-    ?
-    ONE_ONE
-    ONTO
-    cmp
-    select
-    total_order
-    ~
-  thms:
-    |- !t. (\x. t x) = t
-    |- !P x. P x ==> P ((select) P)
-    |- ?f. ONE_ONE f /\ ~ONTO f
-    |- total_order cmp
-}
+assumed:
+axioms:
+  |- total_order cmp
+  |- !t. (\x. t x) = t
+  |- ?f. ONE_ONE f /\ ~ONTO f
+  |- !P x. P x ==> P ((select) P)

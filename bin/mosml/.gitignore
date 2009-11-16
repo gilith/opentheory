@@ -1,0 +1,6 @@
+*.sml
+*.ui
+*.uo
+a.out
+Makefile.src
+opentheory

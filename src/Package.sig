@@ -26,6 +26,12 @@ val directory : package -> {directory : string}
 
 val contents : package -> PackageContents.contents
 
+val tags : package -> Tag.tag list
+
+val requires : package -> PackageRequire.require list
+
+val theory : package -> PackageTheory.theory
+
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)

@@ -238,7 +238,7 @@ fun pp ppImp =
                ppThy thy1,
                ppSpace,
                ppInKeyword,
-               ppSpaceThy thy2]
+               ppNewlineThy thy2]
           | Sequence thys =>
             ppBlock ppList thys
           | Article {filename} =>
@@ -254,7 +254,7 @@ fun pp ppImp =
                ppBlock Interpretation.pp int,
                ppSpace,
                ppInKeyword,
-               ppSpaceThy thy]
+               ppNewlineThy thy]
           | Import imp =>
             Print.blockProgram Print.Consistent 2
               [ppImportKeyword,
@@ -262,12 +262,13 @@ fun pp ppImp =
                ppImp imp,
                ppTerminator]
 
-      and ppSpaceThy thy = Print.sequence (Print.addBreak 1) (ppThy thy)
+      and ppNewlineThy thy = Print.sequence Print.addNewline (ppThy thy)
 
       and ppList thys =
           case thys of
             [] => Print.skip
-          | thy :: thys => Print.program (ppThy thy :: List.map ppSpaceThy thys)
+          | thy :: thys =>
+            Print.program (ppThy thy :: List.map ppNewlineThy thys)
     in
       ppThy
     end;
