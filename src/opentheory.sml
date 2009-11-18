@@ -21,6 +21,13 @@
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val homeEnvVar = "HOME"
+and rootHomeDir = ".opentheory";
+
+(* ------------------------------------------------------------------------- *)
 (* The program name.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -241,8 +248,21 @@ val directory =
            let
              val dir =
                  case !rootDirectory of
-                   SOME d => Directory.mk {rootDirectory = d}
-                 | NONE => raise Error "specify the package directory"
+                   SOME r => r
+                 | NONE =>
+                   case OS.Process.getEnv homeEnvVar of
+                     SOME d => OS.Path.joinDirFile {dir = d, file = rootHomeDir}
+                   | NONE => raise Error "please specify the package directory"
+
+             val dir =
+                 if (OS.FileSys.isDir dir handle OS.SysErr _ => false) then
+                   Directory.mk {rootDirectory = dir}
+                 else
+                   let
+                     val () = warn ("creating package directory " ^ dir)
+                   in
+                     Directory.create {rootDirectory = dir}
+                   end
 
              val () = rdir := SOME dir
            in

@@ -12,13 +12,11 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val configFile = "config";
-
-val reposConfigSection = "repos";
-
-val packagesDirectory = "packages";
-
-val theoryExtension = "thy";
+val configFile = "config"
+and openTheoryRepoUrl = "http://opentheory.gilith.com/"
+and packagesDirectory = "packages"
+and reposConfigSection = "repos"
+and theoryExtension = "thy";
 
 (* ------------------------------------------------------------------------- *)
 (* Directories and filenames.                                                *)
@@ -77,6 +75,8 @@ fun containsRepo repo pkg = Option.isSome (filesRepo repo pkg);
 
 val ppRepo = Print.ppMap nameRepo Print.ppString;
 
+val openTheoryRepo = mkRepo {name = openTheoryRepoUrl};
+
 (* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -86,6 +86,13 @@ datatype config =
       {repos : repo list};
 
 val defaultConfig =
+    let
+      val repos = [openTheoryRepo]
+    in
+      Config {repos = repos}
+    end;
+
+val emptyConfig =
     let
       val repos = []
     in
@@ -123,8 +130,8 @@ local
   val handler = Config.Handler sectionHandler;
 in
   fun readConfig filename =
-      Config.read handler defaultConfig filename
-      handle IO.Io _ => defaultConfig;
+      Config.read handler emptyConfig filename
+      handle IO.Io _ => emptyConfig;
 end;
 
 fun reposConfig (Config {repos = x, ...}) = x;
@@ -138,6 +145,13 @@ fun ppConfig conf =
          map (Print.sequence Print.addNewline o ppRepo) rs)
     end;
 
+fun writeConfig {config,filename} =
+    let
+      val s = Print.toStream ppConfig config
+    in
+      Stream.toTextFile {filename = filename} s
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
@@ -145,21 +159,49 @@ fun ppConfig conf =
 datatype directory =
     Directory of
       {rootDirectory : string,
-       config : config Lazy.lazy,
+       config : config,
        packages : Package.package option PackageNameMap.map ref};
+
+fun newPackages () = ref (PackageNameMap.new ());
+
+fun create {rootDirectory} =
+    let
+      val () = OS.FileSys.mkDir rootDirectory
+
+      val () =
+          let
+            val dir = mkPackagesDirectory {rootDirectory = rootDirectory}
+          in
+            OS.FileSys.mkDir dir
+          end
+
+      val config = defaultConfig
+
+      val () =
+          let
+            val filename = mkConfigFilename {rootDirectory = rootDirectory}
+          in
+            writeConfig {config = config, filename = filename}
+          end
+
+      val packages = newPackages ()
+    in
+      Directory
+        {rootDirectory = rootDirectory,
+         config = config,
+         packages = packages}
+    end;
 
 fun mk {rootDirectory} =
     let
-      fun thunkConfig () =
+      val config =
           let
             val filename = mkConfigFilename {rootDirectory = rootDirectory}
           in
             readConfig {filename = filename}
           end
 
-      val config = Lazy.delay thunkConfig
-
-      val packages = ref (PackageNameMap.new ())
+      val packages = newPackages ()
     in
       Directory
         {rootDirectory = rootDirectory,
@@ -169,7 +211,7 @@ fun mk {rootDirectory} =
 
 fun root (Directory {rootDirectory = x, ...}) = {directory = x};
 
-fun config (Directory {config = x, ...}) = Lazy.force x;
+fun config (Directory {config = x, ...}) = x;
 
 fun repos dir = reposConfig (config dir);
 

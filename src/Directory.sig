@@ -28,9 +28,13 @@ val ppRepo : repo Print.pp
 
 type config
 
+val emptyConfig : config
+
 val defaultConfig : config
 
 val readConfig : {filename : string} -> config
+
+val writeConfig : {config : config, filename : string} -> unit
 
 val reposConfig : config -> repo list
 
@@ -41,6 +45,8 @@ val ppConfig : config Print.pp
 (* ------------------------------------------------------------------------- *)
 
 type directory
+
+val create : {rootDirectory : string} -> directory
 
 val mk : {rootDirectory : string} -> directory
 
