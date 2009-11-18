@@ -228,7 +228,7 @@ and importPackage graph info =
            interpretation = int,
            package = pkg} = info
 
-      val Package.Package {name,directory,contents} = pkg
+      val Package.Package {name,directory,contents,...} = pkg
 
       val info =
           {finder = finder,

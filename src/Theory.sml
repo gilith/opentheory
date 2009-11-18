@@ -95,6 +95,8 @@ in
   fun articles int thy = extract [] [(int,thy)];
 end;
 
+fun filenames thy = List.map snd (articles Interpretation.natural thy);
+
 (* ------------------------------------------------------------------------- *)
 (* Imported theories.                                                        *)
 (* ------------------------------------------------------------------------- *)

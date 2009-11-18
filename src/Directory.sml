@@ -39,12 +39,9 @@ fun mkPackageDirectory root pkg =
         {dir = directory, file = PackageName.toString pkg}
     end;
 
-fun mkTheoryFile pkg =
+fun mkTheoryFilename pkg =
     OS.Path.joinBaseExt
       {base = PackageName.base pkg, ext = SOME theoryExtension};
-
-fun mkTheoryFilename {directory} pkg =
-      OS.Path.joinDirFile {dir = directory, file = mkTheoryFile pkg};
 
 (* ------------------------------------------------------------------------- *)
 (* Repos.                                                                    *)
@@ -185,9 +182,14 @@ local
       let
         val directory = mkPackageDirectory root pkg
 
-        val filename = mkTheoryFilename {directory = directory} pkg
+        val filename = mkTheoryFilename pkg
+
+        val info =
+            {name = SOME pkg,
+             directory = directory,
+             filename = filename}
       in
-        SOME (Package.fromTextFile {name = SOME pkg, filename = filename})
+        SOME (Package.fromTextFile info)
         handle IO.Io _ => NONE
       end;
 

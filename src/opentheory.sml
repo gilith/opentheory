@@ -38,12 +38,18 @@ val defaultSimulations =
 (* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
+datatype info =
+    PackageInfo
+  | FileInfo;
+
 datatype summary =
     SummaryText of {filename : string};
 
 val simulations = ref defaultSimulations;
 
 val rootDirectory : string option ref = ref NONE;
+
+val infoQuery = ref PackageInfo;
 
 val infoOutput = ref "-";
 
@@ -80,7 +86,12 @@ local
   open Useful Options;
 
   val infoOpts : opt list =
-      [{switches = ["-o","--output"], arguments = ["FILE"],
+      [{switches = ["-f","--files"], arguments = [],
+        description = "list the package files",
+        processor =
+          beginOpt endOpt
+            (fn _ => infoQuery := FileInfo)},
+       {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write the package information to FILE",
         processor =
           beginOpt (stringOpt endOpt)
@@ -251,9 +262,30 @@ fun info name =
         NONE => raise Error ("can't find package "^name)
       | SOME p =>
         let
-          val t = Package.tags p
+          val s =
+              case !infoQuery of
+                PackageInfo =>
+                let
+                  val t = Package.tags p
+                in
+                  Print.toStream Tag.ppList t
+                end
+              | FileInfo =>
+                let
+                  val {directory = d} = Package.directory p
 
-          val s = Print.toStream Tag.ppList t
+                  fun mk {filename = f} =
+                      OS.Path.joinDirFile {dir = d, file = f} ^ "\n"
+
+                  val fl = Package.filenames p
+
+(*OpenTheoryTrace1
+                  fun ppFilename {filename} = Print.ppString filename
+                  val () = Print.trace (Print.ppList ppFilename) "fl" fl
+*)
+                in
+                  Stream.fromList (map mk fl)
+                end
 
           val ref f = infoOutput
         in
@@ -263,7 +295,14 @@ fun info name =
 
 fun compile {filename} =
     let
-      val pkg = Package.fromTextFile {name = NONE, filename = filename}
+      val directory = OS.Path.dir filename
+      val filename = OS.Path.file filename
+
+      val pkg =
+          Package.fromTextFile
+            {name = NONE,
+             directory = directory,
+             filename = filename}
 
       val graph = Graph.empty
       and finder = PackageFinder.useless

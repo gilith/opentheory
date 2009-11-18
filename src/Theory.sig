@@ -35,6 +35,8 @@ val articles :
     Interpretation.interpretation -> 'a theory ->
     (Interpretation.interpretation * {filename : string}) list
 
+val filenames : 'a theory -> {filename : string} list;
+
 (* ------------------------------------------------------------------------- *)
 (* Imported theories.                                                        *)
 (* ------------------------------------------------------------------------- *)
