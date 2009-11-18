@@ -33,6 +33,10 @@ val compare : sequent * sequent -> order
 
 val equal : sequent -> sequent -> bool
 
+val dealphaCompare : sequent * sequent -> order
+
+val dealphaEqual : sequent -> sequent -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Type operators and constants.                                             *)
 (* ------------------------------------------------------------------------- *)

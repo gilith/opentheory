@@ -43,10 +43,25 @@ fun concl th = Sequent.concl (sequent th);
 (* A total order on theorems modulo alpha equivalence.                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (Thm {sequent = s1, ...}, Thm {sequent = s2, ...}) =
-    Sequent.compare (s1,s2);
+fun compare (th1,th2) =
+    let
+      val Thm {sequent = s1, ...} = th1
+      and Thm {sequent = s2, ...} = th2
+    in
+      Sequent.compare (s1,s2)
+    end;
 
 fun equal th1 th2 = compare (th1,th2) = EQUAL;
+
+fun dealphaCompare (th1,th2) =
+    let
+      val Thm {sequent = s1, ...} = th1
+      and Thm {sequent = s2, ...} = th2
+    in
+      Sequent.dealphaCompare (s1,s2)
+    end;
+
+fun dealphaEqual th1 th2 = dealphaCompare (th1,th2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of inference.                                             *)

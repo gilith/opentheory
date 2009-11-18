@@ -33,10 +33,35 @@ fun boolean (Sequent {hyp,concl}) =
 (* A total order on sequents modulo alpha equivalence.                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (Sequent {hyp = h1, concl = c1}, Sequent {hyp = h2, concl = c2}) =
-    prodCompare Term.alphaCompare TermAlphaSet.compare ((c1,h1),(c2,h2));
+fun compare (s1,s2) =
+    if Portable.pointerEqual (s1,s2) then EQUAL
+    else
+      let
+        val Sequent {hyp = h1, concl = c1} = s1
+        and Sequent {hyp = h2, concl = c2} = s2
+      in
+        case Term.alphaCompare (c1,c2) of
+          LESS => LESS
+        | EQUAL => TermAlphaSet.compare (h1,h2)
+        | GREATER => GREATER
+      end;
 
 fun equal s1 s2 = compare (s1,s2) = EQUAL;
+
+fun dealphaCompare (s1,s2) =
+    if Portable.pointerEqual (s1,s2) then EQUAL
+    else
+      let
+        val Sequent {hyp = h1, concl = c1} = s1
+        and Sequent {hyp = h2, concl = c2} = s2
+      in
+        case Term.compare (c1,c2) of
+          LESS => LESS
+        | EQUAL => TermAlphaSet.dealphaCompare (h1,h2)
+        | GREATER => GREATER
+      end;
+
+fun dealphaEqual s1 s2 = dealphaCompare (s1,s2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators and constants.                                             *)

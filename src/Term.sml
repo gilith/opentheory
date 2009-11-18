@@ -855,6 +855,20 @@ struct
         foldl addNames ConstSet.empty
       end;
 
+  fun dealphaCompare (s1,s2) =
+      if Portable.pointerEqual (s1,s2) then EQUAL
+      else
+        case Int.compare (size s1, size s2) of
+          LESS => LESS
+        | EQUAL =>
+          let
+            val l1 = Useful.sort Term.compare (toList s1)
+            and l2 = Useful.sort Term.compare (toList s2)
+          in
+            Useful.lexCompare Term.compare (l1,l2)
+          end
+        | GREATER => GREATER;
+
 end
 
 structure TermAlphaMap = KeyMap (TermAlphaOrdered)
