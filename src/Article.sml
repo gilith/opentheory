@@ -28,7 +28,6 @@ local
               case ObjectProv.provenance obj of
                 ObjectProv.Pnull => extract acc seen objs
               | ObjectProv.Pcall _ => extract acc seen objs
-              | ObjectProv.Preturn objR => extract acc seen (objR :: objs)
               | ObjectProv.Pcons (objH,objT) =>
                 extract acc seen (objH :: objT :: objs)
               | ObjectProv.Pref objR => extract acc seen (objR :: objs)

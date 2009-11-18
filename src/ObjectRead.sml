@@ -384,16 +384,16 @@ fun execute cmd state =
 
           val (th,inf) =
               case ObjectThms.search saved seq of
-                SOME (th,objS) => (th, ObjectProv.Isaved objS)
+                SOME (th,objS) => (th, ObjectProv.Ialpha objS)
               | NONE =>
                 case ObjectStack.searchSimulation stack seq of
                   SOME (th,objS) => (th, ObjectProv.Isimulated objS)
                 | NONE =>
                   case ObjectStack.search stack seq of
-                    SOME (th,objS) => (th, ObjectProv.Istack objS)
+                    SOME (th,objS) => (th, ObjectProv.Ialpha objS)
                   | NONE =>
                     case ObjectThms.search known seq of
-                      SOME (th,objS) => (th, ObjectProv.Iknown objS)
+                      SOME (th,objS) => (th, ObjectProv.Ialpha objS)
                     | NONE =>
                       let
                         val th = Thm.axiom seq
@@ -555,7 +555,7 @@ fun execute cmd state =
 
           and prov =
               if not (ObjectProv.containsThms objR) then ObjectProv.Pnull
-              else if savable then ObjectProv.Preturn objR
+              else if savable then ObjectProv.Pref objR
               else provR
 
           and call = if savable then ObjectStack.topCall stack else NONE

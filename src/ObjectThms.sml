@@ -61,8 +61,6 @@ local
               case ObjectProv.provenance obj of
                 ObjectProv.Pnull => adds objA seqs sym seen objs
               | ObjectProv.Pcall _ => adds objA seqs sym seen objs
-              | ObjectProv.Preturn objR =>
-                adds objA seqs sym seen (objR :: objs)
               | ObjectProv.Pcons (objH,objT) =>
                 adds objA seqs sym seen (objH :: objT :: objs)
               | ObjectProv.Pref objR =>

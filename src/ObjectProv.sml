@@ -19,16 +19,13 @@ open Useful;
 (* 2. Objects do not contain theorems iff they have provenance Pnull.        *)
 (*    [Objects that do not contain theorems can be easily constructed.]      *)
 (*                                                                           *)
-(* 3. The provenance of a return value is the object that became the return  *)
-(*    value.                                                                 *)
-(*                                                                           *)
-(* 4. The provenance of a theorem object tracks how the theorem was          *)
+(* 3. The provenance of a theorem object tracks how the theorem was          *)
 (*    inferred (in order of priority):                                       *)
-(*      Isaved obj     -  the saved theorem object obj                       *)
-(*      Isimulated obj -  simulated inference rule (using the call obj)      *)
-(*      Istack obj     -  contained in the stack object obj                  *)
-(*      Iknown obj     -  the context theorem object obj                     *)
-(*      Iaxiom         -  asserted as an axiom (a dependency of the theory)  *)
+(*      Ialpha obj     - alpha equivalent to saved theorem object obj        *)
+(*      Isimulated obj - simulated inference rule (using the call obj)       *)
+(*      Ialpha obj     - alpha equivalent to stack theorem object obj        *)
+(*      Ialpha obj     - alpha equivalent to context theorem object obj      *)
+(*      Iaxiom         - asserted as an axiom (a dependency of the theory)   *)
 (* ------------------------------------------------------------------------- *)
 
 type id = int;
@@ -43,16 +40,13 @@ datatype object =
 and provenance =
     Pnull
   | Pcall of object
-  | Preturn of object
   | Pcons of object * object
   | Pref of object
   | Pthm of inference
 
 and inference =
-    Isaved of object
+    Ialpha of object
   | Isimulated of object
-  | Istack of object
-  | Iknown of object
   | Iaxiom;
 
 (* ------------------------------------------------------------------------- *)
@@ -123,17 +117,14 @@ fun destCall (Object {object = f, provenance = a, ...}) =
 
 fun parentsInference inf =
     case inf of
-      Isaved obj => [obj]
+      Ialpha obj => [obj]
     | Isimulated obj => [obj]
-    | Istack obj => [obj]
-    | Iknown obj => [obj]
     | Iaxiom => [];
 
 fun parentsProvenance prov =
     case prov of
       Pnull => []
     | Pcall obj => [obj]
-    | Preturn obj => [obj]
     | Pcons (objH,objT) => [objH,objT]
     | Pref obj => [obj]
     | Pthm inf => parentsInference inf;
@@ -158,7 +149,6 @@ fun stackUsesProvenance prov =
     case prov of
       Pnull => []
     | Pcall obj => [obj]
-    | Preturn obj => [obj]
     | Pcons (objH,objT) => [objH,objT]
     | Pref _ => []
     | Pthm _ => [];
@@ -220,7 +210,6 @@ local
             case prov of
               Pnull => (prov,acc)
             | Pcall obj => mapsProv1 prov acc Pcall obj
-            | Preturn obj => mapsProv1 prov acc Preturn obj
             | Pcons (objH,objT) =>
               let
                 val (objH',objT',acc) =
@@ -265,10 +254,8 @@ local
 
         and mapsInf inf acc =
             case inf of
-              Isaved obj => mapsInf1 inf acc Isaved obj
+              Ialpha obj => mapsInf1 inf acc Ialpha obj
             | Isimulated obj => mapsInf1 inf acc Isimulated obj
-            | Istack obj => mapsInf1 inf acc Istack obj
-            | Iknown obj => mapsInf1 inf acc Iknown obj
             | Iaxiom => (inf,acc)
 
         and mapsInf1 inf acc con obj =
@@ -316,11 +303,6 @@ and ppProvenance level prov =
         [Print.addString "Pcall",
          Print.addBreak 1,
          pp level obj]
-    | Preturn obj =>
-      Print.blockProgram Print.Consistent 2
-        [Print.addString "Preturn",
-         Print.addBreak 1,
-         pp level obj]
     | Pcons objH_objT =>
       Print.blockProgram Print.Consistent 2
         [Print.addString "Pcons",
@@ -339,27 +321,15 @@ and ppProvenance level prov =
 
 and ppInference level inf =
     case inf of
-      Isaved obj =>
+      Ialpha obj =>
       Print.blockProgram Print.Consistent 1
-        [Print.addString "(Isaved",
+        [Print.addString "(Ialpha",
          Print.addBreak 1,
          pp level obj,
          Print.addString ")"]
     | Isimulated obj =>
       Print.blockProgram Print.Consistent 1
         [Print.addString "(Isimulated",
-         Print.addBreak 1,
-         pp level obj,
-         Print.addString ")"]
-    | Istack obj =>
-      Print.blockProgram Print.Consistent 1
-        [Print.addString "(Istack",
-         Print.addBreak 1,
-         pp level obj,
-         Print.addString ")"]
-    | Iknown obj =>
-      Print.blockProgram Print.Consistent 1
-        [Print.addString "(Iknown",
          Print.addBreak 1,
          pp level obj,
          Print.addString ")"]
@@ -428,13 +398,7 @@ local
         fun better rid =
             rid < id andalso
             case prov of
-              ObjectProv.Preturn obj =>
-              let
-                val ObjectProv.Object {id = rid', ...} = obj
-              in
-                rid < rid'
-              end
-            | ObjectProv.Pref obj =>
+              ObjectProv.Pref obj =>
               let
                 val ObjectProv.Object {id = rid', ...} = obj
               in
@@ -523,7 +487,6 @@ local
               case prov of
                 ObjectProv.Pnull => obs
               | ObjectProv.Pcall _ => obs
-              | ObjectProv.Preturn _ => obs
               | _ =>
                 case ObjectMap.peek obs ob of
                   NONE => ObjectMap.insert obs (ob,obj)
@@ -587,7 +550,9 @@ end;
 fun compress objs =
     let
       val objs = toList objs
+
       val objs = compressList objs
+
       val objs = fromList objs
     in
       objs

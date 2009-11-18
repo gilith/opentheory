@@ -72,7 +72,6 @@ local
         case ObjectProv.provenance obj of
           ObjectProv.Pnull => registerDeep refs [ob]
         | ObjectProv.Pcall _ => refs
-        | ObjectProv.Preturn _ => refs
         | ObjectProv.Pcons _ =>
           let
             val (known,refs) = registerTop refs ob
@@ -227,23 +226,6 @@ in
           in
             (stack,dict,cmds)
           end
-        | ObjectProv.Preturn objR =>
-          let
-            val (stack,objR') = ObjectStack.pop1 stack
-
-            val (stack,n) = ObjectStack.popCall stack
-
-            val stack = ObjectStack.push stack obj
-
-            val cmds = Command.Return :: Command.Name n :: cmds
-
-(*OpenTheoryDebug
-            val _ = ObjectProv.id objR = ObjectProv.id objR' orelse
-                    raise Error "Preturn: wrong return value"
-*)
-          in
-            (stack,dict,cmds)
-          end
         | ObjectProv.Pcons (objH,objT) =>
           let
             val cmds = Command.Cons :: cmds
@@ -289,18 +271,9 @@ end;
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun startingCall obj =
-    let
-      val call = ObjectProv.call obj
-    in
-      case ObjectProv.provenance obj of
-        ObjectProv.Preturn robj => ObjectProv.call robj
-      | _ => call
-    end;
-
 fun alignStartingCall stack obj =
     let
-      val call = startingCall obj
+      val call = ObjectProv.call obj
     in
       ObjectStack.alignCalls {call = call} stack
     end;

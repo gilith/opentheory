@@ -22,16 +22,13 @@ datatype object =
 and provenance =
     Pnull
   | Pcall of object  (* the argument object for the call *)
-  | Preturn of object
   | Pcons of object * object
   | Pref of object
   | Pthm of inference
 
 and inference =
-    Isaved of object
+    Ialpha of object
   | Isimulated of object  (* the call object simulated *)
-  | Istack of object
-  | Iknown of object
   | Iaxiom
 
 (* ------------------------------------------------------------------------- *)

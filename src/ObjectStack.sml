@@ -226,7 +226,7 @@ fun buildObject {savable} stack =
                   raise Bug ("ObjectRead.buildObject: couldn't find theorem " ^
                              "on stack:\n" ^ Thm.toString th)
 
-            val prov = ObjectProv.Pthm (ObjectProv.Istack objS)
+            val prov = ObjectProv.Pthm (ObjectProv.Ialpha objS)
           in
             mkObj ob prov
           end
