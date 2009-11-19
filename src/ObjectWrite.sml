@@ -83,7 +83,7 @@ local
                   val k = ObjectMap.peek refs ob
                   val () = Print.trace (Print.ppOption Print.ppInt) "refs" k
                 in
-                  raise Bug "ObjectWrite.register: Pcons"
+                  raise Error "register: Pcons deja vu"
                 end
 *)
           in
@@ -92,8 +92,10 @@ local
         | ObjectProv.Pref _ =>
           let
             val (known,refs) = registerTop refs ob
+
 (*OpenTheoryDebug
-            val _ = known orelse raise Bug "ObjectWrite.register: unknown Pref"
+            val _ = known orelse
+                    raise Error "register: unknown Pref"
 *)
           in
             refs
@@ -109,28 +111,20 @@ local
                     val (known,refs) = registerTop refs iob
 (*OpenTheoryDebug
                     val _ = known orelse
-                            raise Bug "ObjectWrite.register: unknown Ialpha ref"
+                            raise Error "register: unknown Ialpha ref"
 *)
-                  in
-                    refs
-                  end
-                | _ => refs
 
-            val refs = registerDeep refs [ob]
+                    val refs = registerDeep refs [ob]
 
-            val refs =
-                case inf of
-                  ObjectProv.Ialpha _ =>
-                  let
                     val (known,refs) = registerTop refs ob
 (*OpenTheoryDebug
                     val _ = known orelse
-                            raise Bug "ObjectWrite.register: unknown Ialpha thm"
+                            raise Error "register: unknown Ialpha thm"
 *)
                   in
                     refs
                   end
-                | _ => refs
+                | _ => registerDeep refs [ob]
           in
             refs
           end
@@ -149,8 +143,10 @@ in
            refs = refs,
            keys = keys}
       end
+(*OpenTheoryDebug
       handle Error err =>
-        raise Bug ("Article.newMinDict: " ^ err);
+        raise Bug ("ObjectWrite.newMinDict: " ^ err);
+*)
 end;
 
 local
@@ -159,9 +155,10 @@ local
   fun addKey dict cmds ob =
       let
         val MinDict {nextKey,refs,keys} = dict
+
 (*OpenTheoryDebug
         val _ = not (ObjectMap.inDomain ob keys) orelse
-                raise Bug "Article.addKey"
+                raise Error "addKey: deja vu ob"
 *)
       in
         case ObjectMap.peek refs ob of
@@ -296,30 +293,26 @@ in
                   ObjectProv.Ialpha iobj =>
                   let
                     val iob = ObjectProv.object iobj
-                  in
-                    useKey dict cmds iob
-                  end
-                | _ => (dict,cmds)
 
-            val (dict,cmds) = generateDeep (ob,(dict,cmds))
+                    val (dict,cmds) = useKey dict cmds iob
 
-            val (dict,cmds) =
-                case inf of
-                  ObjectProv.Ialpha _ =>
-                  let
+                    val (dict,cmds) = generateDeep (ob,(dict,cmds))
+
                     val cmds = Command.Pop :: Command.Pop :: cmds
                   in
                     useKey dict cmds ob
                   end
-                | _ => (dict,cmds)
+                | _ => generateDeep (ob,(dict,cmds))
 
             val stack = ObjectStack.push stack obj
           in
             (stack,dict,cmds)
           end
       end
+(*OpenTheoryDebug
       handle Error err =>
         raise Bug ("ObjectWrite.generateMinDict: " ^ err);
+*)
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -371,11 +364,15 @@ fun toCommandStream saved =
       fun finish (stack,dict) =
           let
 (*OpenTheoryDebug
-            val _ = nullMinDict dict orelse raise Error "nonempty dict"
+            val _ = nullMinDict dict orelse
+                    raise Error "nonempty dict"
 *)
             val (stack,cmds) = ObjectStack.alignCalls {call = NONE} stack
 
-            val cmds = funpow (ObjectStack.size stack) (cons Command.Pop) cmds
+(*OpenTheoryDebug
+            val _ = ObjectStack.null stack orelse
+                    raise Error "nonempty stack"
+*)
           in
             if null cmds then Stream.Nil else Stream.singleton cmds
           end
@@ -385,9 +382,10 @@ fun toCommandStream saved =
 
       val (calls,objs) =
           ObjectProvSet.foldr findCalls (ObjectProvSet.empty,[]) objs
+
 (*OpenTheoryDebug
       val _ = ObjectProvSet.null calls orelse
-              raise Bug "ObjectWrite.toCommandStream: start requires a call"
+              raise Error "start requires a call"
 *)
 
       val strm = Stream.fromList objs
@@ -395,8 +393,10 @@ fun toCommandStream saved =
     in
       revConcat strm
     end
+(*OpenTheoryDebug
     handle Error err =>
       raise Bug ("ObjectWrite.toCommandStream: " ^ err);
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Writing objects to text files.                                            *)
@@ -422,6 +422,9 @@ fun toTextFile {filename} objs =
     in
       Stream.toTextFile {filename = filename} lines
     end
-    handle Error err => raise Error ("ObjectWrite.toTextFile: " ^ err);
+(*OpenTheoryDebug
+    handle Error err =>
+      raise Bug ("ObjectWrite.toTextFile: " ^ err);
+*)
 
 end

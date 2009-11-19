@@ -165,10 +165,13 @@ fun addAlignCalls call stack cmds =
         else
           let
 (*OpenTheoryDebug
-*)
             val _ = Object.isOcall (ObjectProv.object obj) orelse
                     raise Bug "ObjectStack.addAlignCalls: bad call"
+*)
 
+            val cmds =
+                if frameSize stack > 0 then cmds
+                else Command.Error :: cmds
 
             val (stack,n) = popCall stack
 
@@ -176,7 +179,6 @@ fun addAlignCalls call stack cmds =
                 Command.Pop ::
                 Command.Return ::
                 Command.Name n ::
-                Command.Error ::
                 cmds
           in
             addAlignCalls call stack cmds
@@ -184,68 +186,6 @@ fun addAlignCalls call stack cmds =
       end;
 
 fun alignCalls {call} stack = addAlignCalls call stack [];
-
-(* ------------------------------------------------------------------------- *)
-(* Building objects using data on a stack.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun buildObject {savable} stack =
-    let
-      fun mkObj ob prov =
-          let
-            val prov = if savable then prov else ObjectProv.Pnull
-          in
-            ObjectProv.mk
-              {object = ob,
-               provenance = prov}
-          end
-
-      fun mkNullObj ob = mkObj ob ObjectProv.Pnull
-
-      fun mkConsObj ob objH objT =
-          let
-            val isTh =
-                ObjectProv.containsThms objH orelse
-                ObjectProv.containsThms objT
-
-            val prov =
-                if isTh then ObjectProv.Pcons (objH,objT)
-                else ObjectProv.Pnull
-          in
-            mkObj ob prov
-          end
-
-      fun mkThmObj ob th =
-          let
-            val objS =
-                case search stack (Thm.sequent th) of
-                  SOME (_,objS) => objS
-                | NONE =>
-                  raise Bug ("ObjectRead.buildObject: couldn't find theorem " ^
-                             "on stack:\n" ^ Thm.toString th)
-
-            val prov = ObjectProv.Pthm (ObjectProv.Ialpha objS)
-          in
-            mkObj ob prov
-          end
-
-      fun build ob =
-          case ob of
-            Object.Olist (obH :: obT) =>
-            let
-              val objH = build obH
-
-              val objT = build (Object.Olist obT)
-            in
-              mkConsObj ob objH objT
-            end
-          | Object.Othm th => mkThmObj ob th
-          | Object.Ocall _ =>
-            raise Bug "ObjectRead.buildObject: cannot build Ocall obj"
-          | _ => mkNullObj ob
-    in
-      build
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* The stack is also used to keep track of simulated theorems.               *)

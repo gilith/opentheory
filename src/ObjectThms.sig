@@ -24,6 +24,8 @@ val symbol : thms -> Symbol.symbol
 (* Adding objects.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
+val singleton : ObjectProv.object -> thms
+
 val add : thms -> ObjectProv.object -> thms
 
 val addList : thms -> ObjectProv.object list -> thms
@@ -39,5 +41,12 @@ val union : thms -> thms -> thms
 val search : thms -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
 
 val toThmSet : thms -> ThmSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Building objects using object set theorems.                               *)
+(* ------------------------------------------------------------------------- *)
+
+val buildObject :
+    {savable : bool} -> thms -> Object.object -> ObjectProv.object
 
 end

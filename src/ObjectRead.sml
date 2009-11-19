@@ -9,6 +9,13 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Building objects using data in another object.                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun buildObject savable obj =
+    ObjectThms.buildObject savable (ObjectThms.singleton obj);
+
+(* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -404,8 +411,6 @@ fun execute cmd state =
 
       | Command.Call =>
         let
-          val startStack = stack
-
           val (stack,objA,objN) = ObjectStack.pop2 stack
 
           val obA = ObjectProv.object objA
@@ -449,9 +454,10 @@ fun execute cmd state =
                         let
                           val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
                         in
-                          die ("simulation failed: " ^ Name.toString n ^
-                               "\n" ^ Print.toString ppOb ("input",obA) ^
-                               "\n" ^ err)
+                          raise Error
+                            ("simulation failed: " ^ Name.toString n ^
+                             "\n" ^ Print.toString ppOb ("input",obA) ^
+                             "\n" ^ err)
                         end
 
                   val Simulation.Result {input,thms} = result
@@ -461,9 +467,7 @@ fun execute cmd state =
                         NONE => (obA,objA)
                       | SOME obA =>
                         let
-                          val objA =
-                              ObjectStack.buildObject {savable = savable}
-                                startStack obA
+                          val objA = buildObject {savable = savable} objA obA
                         in
                           (obA, objA)
                         end
@@ -669,6 +673,7 @@ fun execute cmd state =
             Print.ppMap
               (map ObjectProv.object o ObjectStack.objects)
               (Print.ppList Object.pp)
+
         val () = Print.trace ppStack "ObjectRead.execute: stack" stack
 *)
         val err = "ObjectRead.execute " ^ Command.toString cmd ^ ": " ^ err

@@ -100,6 +100,8 @@ in
       end;
 end;
 
+fun singleton obj = add empty obj;
+
 local
   fun add1 (obj,thms) = add thms obj;
 in
@@ -156,5 +158,68 @@ in
   fun toThmSet (Thms {seqs,...}) =
       SequentMap.foldl add ThmSet.empty seqs;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Building objects using object set theorems.                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun buildObject {savable} thms =
+    let
+      fun mkObj ob prov =
+          ObjectProv.mk
+            {object = ob,
+             provenance = prov}
+
+      fun mkNullObj ob = mkObj ob ObjectProv.Pnull
+
+      fun mkConsObj ob objH objT =
+          let
+            val isTh =
+                ObjectProv.containsThms objH orelse
+                ObjectProv.containsThms objT
+
+            val prov =
+                if isTh then ObjectProv.Pcons (objH,objT)
+                else ObjectProv.Pnull
+          in
+            mkObj ob prov
+          end
+
+      fun mkThmObj ob th =
+          let
+            val objS =
+                case search thms (Thm.sequent th) of
+                  SOME (_,objS) => objS
+                | NONE =>
+                  raise Error ("couldn't find theorem:\n" ^ Thm.toString th)
+
+            val inf = if savable then ObjectProv.Ialpha objS
+                      else ObjectProv.Iaxiom
+
+            val prov = ObjectProv.Pthm inf
+          in
+            mkObj ob prov
+          end
+
+      fun build ob =
+          case ob of
+            Object.Olist (obH :: obT) =>
+            let
+              val objH = build obH
+
+              val objT = build (Object.Olist obT)
+            in
+              mkConsObj ob objH objT
+            end
+          | Object.Othm th => mkThmObj ob th
+          | Object.Ocall _ => raise Error "cannot build an Ocall object"
+          | _ => mkNullObj ob
+    in
+      build
+    end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Bug ("ObjectThms.buildObject: " ^ err);
+*)
 
 end

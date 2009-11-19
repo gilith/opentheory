@@ -52,13 +52,6 @@ val alignCalls :
     {call : ObjectProv.id option} -> stack -> stack * Command.command list
 
 (* ------------------------------------------------------------------------- *)
-(* Building objects using data on a stack.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-val buildObject :
-    {savable : bool} -> stack -> Object.object -> ObjectProv.object
-
-(* ------------------------------------------------------------------------- *)
 (* The stack is also used to keep track of simulated theorems.               *)
 (* ------------------------------------------------------------------------- *)
 
