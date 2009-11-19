@@ -248,21 +248,23 @@ val directory =
            let
              val dir =
                  case !rootDirectory of
-                   SOME r => r
+                   SOME r => Directory.mk {rootDirectory = r}
                  | NONE =>
                    case OS.Process.getEnv homeEnvVar of
-                     SOME d => OS.Path.joinDirFile {dir = d, file = rootHomeDir}
+                     SOME d =>
+                     let
+                       val r = OS.Path.joinDirFile {dir = d, file = rootHomeDir}
+                     in
+                       if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
+                         Directory.mk {rootDirectory = r}
+                       else
+                         let
+                           val () = warn ("creating package directory " ^ r)
+                         in
+                           Directory.create {rootDirectory = r}
+                         end
+                     end
                    | NONE => raise Error "please specify the package directory"
-
-             val dir =
-                 if (OS.FileSys.isDir dir handle OS.SysErr _ => false) then
-                   Directory.mk {rootDirectory = dir}
-                 else
-                   let
-                     val () = warn ("creating package directory " ^ dir)
-                   in
-                     Directory.create {rootDirectory = dir}
-                   end
 
              val () = rdir := SOME dir
            in

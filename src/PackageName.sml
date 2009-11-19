@@ -121,7 +121,9 @@ in
       (fn (b,((),v)) => Name {base = b, version = v});
 end;
 
-val fromString = Parse.fromString parser;
+fun fromString s =
+    Parse.fromString parser s
+    handle Parse.NoParse => raise Error ("bad package name format: " ^ s);
 
 end
 
