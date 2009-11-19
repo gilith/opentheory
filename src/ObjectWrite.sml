@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* WRITING OBJECTS TO COMMANDS                                               *)
-(* Copyright (c) 2004-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure ObjectWrite :> ObjectWrite =
@@ -42,7 +42,7 @@ local
       | Object.Otype _ => true
       | Object.Oterm _ => true
       | Object.Othm _ => true
-      | Object.Ocall _ => raise Bug "Article.storable: Ocall";
+      | Object.Ocall _ => raise Bug "ObjectWrite.storable: Ocall";
 
   fun registerTop refs ob =
       let
@@ -83,7 +83,7 @@ local
                   val k = ObjectMap.peek refs ob
                   val () = Print.trace (Print.ppOption Print.ppInt) "refs" k
                 in
-                  raise Bug "Article.register: Pcons"
+                  raise Bug "ObjectWrite.register: Pcons"
                 end
 *)
           in
@@ -93,12 +93,47 @@ local
           let
             val (known,refs) = registerTop refs ob
 (*OpenTheoryDebug
-            val _ = known orelse raise Bug "Article.register: Pref"
+            val _ = known orelse raise Bug "ObjectWrite.register: unknown Pref"
 *)
           in
             refs
           end
-        | ObjectProv.Pthm _ => registerDeep refs [ob]
+        | ObjectProv.Pthm inf =>
+          let
+            val refs =
+                case inf of
+                  ObjectProv.Ialpha iobj =>
+                  let
+                    val iob = ObjectProv.object iobj
+
+                    val (known,refs) = registerTop refs iob
+(*OpenTheoryDebug
+                    val _ = known orelse
+                            raise Bug "ObjectWrite.register: unknown Ialpha ref"
+*)
+                  in
+                    refs
+                  end
+                | _ => refs
+
+            val refs = registerDeep refs [ob]
+
+            val refs =
+                case inf of
+                  ObjectProv.Ialpha _ =>
+                  let
+                    val (known,refs) = registerTop refs ob
+(*OpenTheoryDebug
+                    val _ = known orelse
+                            raise Bug "ObjectWrite.register: unknown Ialpha thm"
+*)
+                  in
+                    refs
+                  end
+                | _ => refs
+          in
+            refs
+          end
       end;
 in
   fun newMinDict objs =
@@ -254,9 +289,29 @@ in
           in
             (stack,dict,cmds)
           end
-        | ObjectProv.Pthm _ =>
+        | ObjectProv.Pthm inf =>
           let
+            val (dict,cmds) =
+                case inf of
+                  ObjectProv.Ialpha iobj =>
+                  let
+                    val iob = ObjectProv.object iobj
+                  in
+                    useKey dict cmds iob
+                  end
+                | _ => (dict,cmds)
+
             val (dict,cmds) = generateDeep (ob,(dict,cmds))
+
+            val (dict,cmds) =
+                case inf of
+                  ObjectProv.Ialpha _ =>
+                  let
+                    val cmds = Command.Pop :: Command.Pop :: cmds
+                  in
+                    useKey dict cmds ob
+                  end
+                | _ => (dict,cmds)
 
             val stack = ObjectStack.push stack obj
           in
@@ -271,11 +326,20 @@ end;
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun alignStartingCall stack obj =
+fun findCalls (obj,(calls,objs)) =
     let
-      val call = ObjectProv.call obj
+      val calls =
+          case ObjectProv.provenance obj of
+            ObjectProv.Pcall _ => ObjectProvSet.delete calls obj
+          | ObjectProv.Pthm (ObjectProv.Isimulated cobj) =>
+            ObjectProvSet.add calls cobj
+          | _ => calls
+
+      val call = ObjectProvSet.greatestId calls
+
+      val objs = (call,obj) :: objs
     in
-      ObjectStack.alignCalls {call = call} stack
+      (calls,objs)
     end;
 
 fun toCommandStream saved =
@@ -284,9 +348,9 @@ fun toCommandStream saved =
 
       val stackUses = ObjectProvSet.stackUses objs
 
-      fun gen obj (stack,dict) =
+      fun gen (call,obj) (stack,dict) =
           let
-            val (stack,cmds) = alignStartingCall stack obj
+            val (stack,cmds) = ObjectStack.alignCalls {call = call} stack
 
             val (stack,dict,cmds) =
                 generateMinDict stack dict cmds obj
@@ -310,6 +374,7 @@ fun toCommandStream saved =
             val _ = nullMinDict dict orelse raise Error "nonempty dict"
 *)
             val (stack,cmds) = ObjectStack.alignCalls {call = NONE} stack
+
             val cmds = funpow (ObjectStack.size stack) (cons Command.Pop) cmds
           in
             if null cmds then Stream.Nil else Stream.singleton cmds
@@ -318,7 +383,14 @@ fun toCommandStream saved =
       val stack = ObjectStack.empty
       val dict = newMinDict objs
 
-      val strm = ObjectProvSet.toStream objs
+      val (calls,objs) =
+          ObjectProvSet.foldr findCalls (ObjectProvSet.empty,[]) objs
+(*OpenTheoryDebug
+      val _ = ObjectProvSet.null calls orelse
+              raise Bug "ObjectWrite.toCommandStream: start requires a call"
+*)
+
+      val strm = Stream.fromList objs
       val strm = Stream.maps gen finish (stack,dict) strm
     in
       revConcat strm

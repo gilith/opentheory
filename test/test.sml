@@ -255,6 +255,8 @@ fun compress interpretation name =
 
 val () = compress Interpretation.natural "example1";
 
+val () = compress Interpretation.natural "example2";
+
 val () = compress holLightInt "bool";
 
 val () = compress holLightInt "tactics";
@@ -297,6 +299,8 @@ fun summarize name =
     end;
 
 val () = summarize "example1";
+
+val () = summarize "example2";
 
 val () = summarize "bool";
 

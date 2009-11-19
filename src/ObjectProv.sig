@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* OPENTHEORY OBJECTS THAT TRACK THEIR PROVENANCE                            *)
-(* Copyright (c) 2004-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 signature ObjectProv =
@@ -16,8 +16,7 @@ datatype object =
     Object of
       {id : id,
        object : Object.object,
-       provenance : provenance,
-       call : object option}
+       provenance : provenance}
 
 and provenance =
     Pnull
@@ -37,16 +36,11 @@ and inference =
 
 val mk :
     {object : Object.object,
-     provenance : provenance,
-     call : object option} -> object
+     provenance : provenance} -> object
 
 val object : object -> Object.object
 
 val provenance : object -> provenance
-
-val call : object -> object option
-
-val callStack : object -> object list
 
 val destCall : object -> Name.name * object
 

@@ -134,10 +134,10 @@ fun topCall (Stack {call,...}) =
       NONE => NONE
     | SOME (obj,_) => SOME obj;
 
-fun callStack stack =
-    case topCall stack of
+fun callStack (Stack {call,...}) =
+    case call of
       NONE => []
-    | SOME obj => obj :: ObjectProv.callStack obj;
+    | SOME (obj,stack) => obj :: callStack stack;
 
 fun search (Stack {thms,...}) seq = ObjectThms.search (topThms thms) seq;
 
@@ -159,7 +159,7 @@ fun addAlignCalls call stack cmds =
         val aligned =
             case call of
               NONE => false
-            | SOME obj' => ObjectProv.id obj = ObjectProv.id obj'
+            | SOME i => ObjectProv.equalId i obj
       in
         if aligned then (stack,cmds)
         else
@@ -168,6 +168,7 @@ fun addAlignCalls call stack cmds =
 *)
             val _ = Object.isOcall (ObjectProv.object obj) orelse
                     raise Bug "ObjectStack.addAlignCalls: bad call"
+
 
             val (stack,n) = popCall stack
 
@@ -190,16 +191,13 @@ fun alignCalls {call} stack = addAlignCalls call stack [];
 
 fun buildObject {savable} stack =
     let
-      val call = if savable then topCall stack else NONE
-
       fun mkObj ob prov =
           let
             val prov = if savable then prov else ObjectProv.Pnull
           in
             ObjectProv.mk
               {object = ob,
-               provenance = prov,
-               call = call}
+               provenance = prov}
           end
 
       fun mkNullObj ob = mkObj ob ObjectProv.Pnull

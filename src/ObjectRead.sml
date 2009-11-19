@@ -68,13 +68,11 @@ fun execute cmd state =
         let
           val ob = Object.Oint i
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -91,13 +89,11 @@ fun execute cmd state =
         let
           val ob = Object.Oname n
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -114,13 +110,11 @@ fun execute cmd state =
         let
           val ob = Object.Oerror
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -137,13 +131,11 @@ fun execute cmd state =
         let
           val ob = Object.onil
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -170,13 +162,10 @@ fun execute cmd state =
               else
                 ObjectProv.Pnull
 
-          and call = if savable then ObjectStack.topCall stack else NONE
-
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -197,13 +186,11 @@ fun execute cmd state =
 
           val ob = Object.mkOtypeVar obN
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -234,13 +221,11 @@ fun execute cmd state =
 
           val ob = Object.mkOtypeOp (ot,obL)
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -262,13 +247,11 @@ fun execute cmd state =
 
           val ob = Object.mkOtermVar (obN,obT)
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -299,13 +282,11 @@ fun execute cmd state =
 
           val ob = Object.mkOtermConst (c,obT)
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -325,13 +306,11 @@ fun execute cmd state =
 
           val ob = Object.mkOtermApp (obF,obA)
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -351,13 +330,11 @@ fun execute cmd state =
 
           val ob = Object.mkOtermAbs (obV,obB)
           and prov = ObjectProv.Pnull
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -408,13 +385,11 @@ fun execute cmd state =
 
           val ob = Object.Othm th
           and prov = ObjectProv.Pthm (if savable then inf else ObjectProv.Iaxiom)
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -498,13 +473,11 @@ fun execute cmd state =
 
           val ob = Object.Ocall n
           and prov = ObjectProv.Pcall objA
-          and call = if savable then ObjectStack.topCall stack else NONE
 
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
           val stack = ObjectStack.push stack objA
@@ -558,13 +531,10 @@ fun execute cmd state =
               else if savable then ObjectProv.Pref objR
               else provR
 
-          and call = if savable then ObjectStack.topCall stack else NONE
-
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -616,13 +586,10 @@ fun execute cmd state =
               else if savable then ObjectProv.Pref objD
               else ObjectProv.provenance objD
 
-          and call = if savable then ObjectStack.topCall stack else NONE
-
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in
@@ -650,13 +617,10 @@ fun execute cmd state =
               else if savable then ObjectProv.Pref objD
               else ObjectProv.provenance objD
 
-          and call = if savable then ObjectStack.topCall stack else NONE
-
           val obj =
               ObjectProv.mk
                 {object = ob,
-                 provenance = prov,
-                 call = call}
+                 provenance = prov}
 
           val stack = ObjectStack.push stack obj
         in

@@ -48,36 +48,44 @@ const "@" -> "select"
 Compressing articles
 
 Compressing article "example1"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+
+Compressing article "example2"
+User: 0.002  System: 0.000  GC: 0.001  Real: 0.009
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "bool"
 WARNING: 34 objects left on the stack by articles/bool.art
 WARNING: saving 34 theorems left on the stack by articles/bool.art
 WARNING: 1363 objects left in the dictionary by articles/bool.art
-User: 3.380  System: 0.038  GC: 0.302  Real: 3.500
-User: 2.757  System: 0.033  GC: 0.157  Real: 2.898
+User: 3.406  System: 0.058  GC: 0.309  Real: 3.783
+User: 2.412  System: 0.039  GC: 0.137  Real: 2.828
 
 Compressing article "tactics"
 WARNING: 6 objects left on the stack by articles/tactics.art
 WARNING: saving 4 theorems left on the stack by articles/tactics.art
 WARNING: 198 objects left in the dictionary by articles/tactics.art
-User: 0.473  System: 0.007  GC: 0.030  Real: 0.548
-User: 0.183  System: 0.002  GC: 0.007  Real: 0.188
+User: 0.473  System: 0.008  GC: 0.031  Real: 0.528
+User: 0.149  System: 0.003  GC: 0.004  Real: 0.173
 
 --------------------------------------------------------------------------
 Summarizing articles
 
 Summarizing compressed article "example1"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+
+Summarizing compressed article "example2"
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.003
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Summarizing compressed article "bool"
-User: 2.121  System: 0.024  GC: 0.139  Real: 2.258
+User: 1.831  System: 0.027  GC: 0.103  Real: 2.016
 User: 0.007  System: 0.000  GC: 0.001  Real: 0.008
 
 Summarizing compressed article "tactics"
-User: 0.161  System: 0.002  GC: 0.007  Real: 0.164
+User: 0.134  System: 0.002  GC: 0.005  Real: 0.156
 User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
 
 --------------------------------------------------------------------------
@@ -94,15 +102,15 @@ Compiling theory "justBool"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 theory { article "bool.art"; }
 
-User: 2.160  System: 0.026  GC: 0.144  Real: 2.301
-User: 2.730  System: 0.038  GC: 0.130  Real: 2.976
+User: 1.870  System: 0.025  GC: 0.113  Real: 2.083
+User: 2.322  System: 0.034  GC: 0.100  Real: 2.598
 
 Compiling theory "justTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 theory { article "tactics.art"; }
 
-User: 0.178  System: 0.004  GC: 0.014  Real: 0.233
-User: 0.175  System: 0.002  GC: 0.004  Real: 0.180
+User: 0.143  System: 0.002  GC: 0.012  Real: 0.163
+User: 0.155  System: 0.003  GC: 0.008  Real: 0.176
 
 Compiling theory "boolBool"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
@@ -111,8 +119,8 @@ theory {
   article "bool.art";
 }
 
-User: 4.292  System: 0.039  GC: 0.273  Real: 4.377
-User: 2.901  System: 0.029  GC: 0.138  Real: 2.979
+User: 3.744  System: 0.055  GC: 0.216  Real: 4.202
+User: 2.428  System: 0.042  GC: 0.107  Real: 3.982
 
 Compiling theory "tacticsTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
@@ -121,8 +129,8 @@ theory {
   article "tactics.art";
 }
 
-User: 0.343  System: 0.004  GC: 0.025  Real: 0.355
-User: 0.198  System: 0.002  GC: 0.005  Real: 0.204
+User: 0.276  System: 0.004  GC: 0.017  Real: 0.304
+User: 0.152  System: 0.003  GC: 0.003  Real: 0.166
 
 Compiling theory "boolTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
@@ -131,8 +139,8 @@ theory {
   article "tactics.art";
 }
 
-User: 2.342  System: 0.027  GC: 0.154  Real: 2.524
-User: 2.966  System: 0.034  GC: 0.137  Real: 3.129
+User: 2.015  System: 0.028  GC: 0.118  Real: 2.226
+User: 2.588  System: 0.038  GC: 0.115  Real: 2.860
 
 Compiling theory "localBoolTactics"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
@@ -141,8 +149,8 @@ theory {
   article "tactics.art";
 }
 
-User: 2.327  System: 0.024  GC: 0.152  Real: 2.424
-User: 0.962  System: 0.012  GC: 0.045  Real: 1.028
+User: 2.011  System: 0.028  GC: 0.112  Real: 2.193
+User: 0.812  System: 0.013  GC: 0.036  Real: 0.895
 
 --------------------------------------------------------------------------
 Theory directories

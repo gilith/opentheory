@@ -49,7 +49,7 @@ val search : stack -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
 (* ------------------------------------------------------------------------- *)
 
 val alignCalls :
-    {call : ObjectProv.object option} -> stack -> stack * Command.command list
+    {call : ObjectProv.id option} -> stack -> stack * Command.command list
 
 (* ------------------------------------------------------------------------- *)
 (* Building objects using data on a stack.                                   *)

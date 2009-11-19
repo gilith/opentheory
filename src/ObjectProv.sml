@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* OPENTHEORY OBJECTS THAT TRACK THEIR PROVENANCE                            *)
-(* Copyright (c) 2009-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure ObjectProv :> ObjectProv =
@@ -34,8 +34,7 @@ datatype object =
     Object of
       {id : id,
        object : Object.object,
-       provenance : provenance,
-       call : object option}
+       provenance : provenance}
 
 and provenance =
     Pnull
@@ -80,27 +79,19 @@ fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk {object,provenance,call} =
+fun mk {object,provenance} =
     let
       val id = newId ()
     in
       Object
         {id = id,
          object = object,
-         provenance = provenance,
-         call = call}
+         provenance = provenance}
     end;
 
 fun object (Object {object = x, ...}) = x;
 
 fun provenance (Object {provenance = x, ...}) = x;
-
-fun call (Object {call = x, ...}) = x;
-
-fun callStack obj =
-    case call obj of
-      NONE => []
-    | SOME c => c :: callStack c;
 
 fun destCallProvenance p =
     case p of
@@ -129,21 +120,22 @@ fun parentsProvenance prov =
     | Pref obj => [obj]
     | Pthm inf => parentsInference inf;
 
-fun parents (Object {provenance = prov, call = c, ...}) =
-    let
-      val pars = parentsProvenance prov
-    in
-      case c of
-        SOME obj => obj :: pars
-      | NONE => pars
-    end;
+fun parents obj = parentsProvenance (provenance obj);
 
 fun containsThms obj =
-    case obj of
-      Object {object = Object.Ocall _, ...} =>
-      raise Bug "ObjectProv.containsThms: Ocall"
-    | Object {provenance = Pnull, ...} => false
-    | _ => true;
+    let
+(*OpenTheoryDebug
+      val _ = not (Object.isOcall (object obj)) orelse
+              raise Bug "ObjectProv.containsThms: Ocall"
+*)
+    in
+      case provenance obj of
+        Pnull => false
+(*OpenTheoryDebug
+      | Pcall _ => raise Bug "ObjectProv.containsThms: Pcall"
+*)
+      | _ => true
+    end;
 
 fun stackUsesProvenance prov =
     case prov of
@@ -175,32 +167,17 @@ local
                 let
                   val (obj,acc) = result
 
-                  val Object {id, object = ob, provenance = prov, call} = obj
+                  val Object {id, object = ob, provenance = prov} = obj
 
-                  val (prov',call',acc) =
-                      if lr then
-                        let
-                          val (call',acc) = Sharing.mapsOption mapsObj call acc
-                          val (prov',acc) = mapsProv prov acc
-                        in
-                          (prov',call',acc)
-                        end
-                      else
-                        let
-                          val (prov',acc) = mapsProv prov acc
-                          val (call',acc) = Sharing.mapsOption mapsObj call acc
-                        in
-                          (prov',call',acc)
-                        end
+                  val (prov',acc) = mapsProv prov acc
 
                   val obj =
-                      if prov' == prov andalso call' == call then obj
+                      if prov' == prov then obj
                       else
                         Object
                           {id = id,
                            object = ob,
-                           provenance = prov',
-                           call = call'}
+                           provenance = prov'}
                 in
                   postDescent obj acc
                 end
@@ -247,6 +224,7 @@ local
         and mapsProv1 prov acc con obj =
             let
               val (obj',acc) = mapsObj obj acc
+
               val prov' = if obj' == obj then prov else con obj'
             in
               (prov',acc)
@@ -261,6 +239,7 @@ local
         and mapsInf1 inf acc con obj =
             let
               val (obj',acc) = mapsObj obj acc
+
               val inf' = if obj' == obj then inf else con obj'
             in
               (inf',acc)
@@ -280,7 +259,8 @@ end;
 
 fun pp level obj =
     let
-      val Object {id, object = ob, provenance = prov, call} = obj
+      val Object {id, object = ob, provenance = prov} = obj
+
       val level = level - 1
     in
       if level = ~1 then Print.ppInt id
@@ -291,8 +271,7 @@ fun pp level obj =
            Print.record
              [("id", Print.ppInt id),
               ("object", Object.pp ob),
-              ("provenance", ppProvenance level prov),
-              ("call", Print.ppOption (pp level) call)]]
+              ("provenance", ppProvenance level prov)]]
     end
 
 and ppProvenance level prov =
@@ -352,6 +331,7 @@ local
   fun add (obj,set) =
       let
         val ob = ObjectProv.object obj
+
         val th = Object.destOthm ob
       in
         ThmSet.add set th
@@ -359,6 +339,13 @@ local
 in
   fun toThmSet set = foldl add ThmSet.empty set;
 end;
+
+val greatestId =
+    let
+      fun someId obj = SOME (ObjectProv.id obj)
+    in
+      firstr someId
+    end;
 
 local
   fun ancs set [] = set
@@ -393,7 +380,7 @@ local
 
   fun improve refs obj =
       let
-        val ObjectProv.Object {id, object = ob, provenance = prov, call} = obj
+        val ObjectProv.Object {id, object = ob, provenance = prov} = obj
 
         fun better rid =
             rid < id andalso
@@ -423,8 +410,7 @@ local
                         ObjectProv.Object
                           {id = id,
                            object = ob,
-                           provenance = prov,
-                           call = call}
+                           provenance = prov}
                   in
                     SOME obj
                   end
@@ -480,9 +466,7 @@ local
       let
         fun check (obj,obs) =
             let
-              val ObjectProv.Object objData = obj
-
-              val {id, object = ob, provenance = prov, call} = objData
+              val ObjectProv.Object {id, object = ob, provenance = prov} = obj
             in
               case prov of
                 ObjectProv.Pnull => obs
