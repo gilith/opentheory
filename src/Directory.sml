@@ -61,7 +61,7 @@ fun mkRepo {name} =
 
 fun nameRepo (Repo {name = x, ...}) = x;
 
-fun filesRepo repo pkg =
+fun filenamesRepo repo pkg =
     let
       val Repo {packages, ...} = repo
       val ref pkgs = packages
@@ -71,7 +71,7 @@ fun filesRepo repo pkg =
       | NONE => raise Bug "Directory.filesRepo: web repos not implemented"
     end;
 
-fun containsRepo repo pkg = Option.isSome (filesRepo repo pkg);
+fun containsRepo repo pkg = Option.isSome (filenamesRepo repo pkg);
 
 val ppRepo = Print.ppMap nameRepo Print.ppString;
 
@@ -257,5 +257,26 @@ local
 in
   fun lookup dir = PackageFinder.mk (lookupCached dir);
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Installing new packages into the package directory.                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun install dir {filename} =
+    raise Bug "Directory.install: not implemented";
+
+(* ------------------------------------------------------------------------- *)
+(* Uploading packages from the package directory to a repo.                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun upload dir repo pkg =
+    raise Bug "Directory.upload: not implemented";
+
+(* ------------------------------------------------------------------------- *)
+(* Downloading packages from a repo to the package directory.                *)
+(* ------------------------------------------------------------------------- *)
+
+fun download dir repo pkg =
+    raise Bug "Directory.download: not implemented";
 
 end

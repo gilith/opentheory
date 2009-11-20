@@ -18,7 +18,7 @@ val nameRepo : repo -> string
 
 val containsRepo : repo -> PackageName.name -> bool
 
-val filesRepo : repo -> PackageName.name -> {filename : string} list option
+val filenamesRepo : repo -> PackageName.name -> {filename : string} list option
 
 val ppRepo : repo Print.pp
 
@@ -61,5 +61,23 @@ val repos : directory -> repo list
 (* ------------------------------------------------------------------------- *)
 
 val lookup : directory -> PackageFinder.finder
+
+(* ------------------------------------------------------------------------- *)
+(* Installing new packages into the package directory.                       *)
+(* ------------------------------------------------------------------------- *)
+
+val install : directory -> {filename : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Uploading packages from the package directory to a repo.                  *)
+(* ------------------------------------------------------------------------- *)
+
+val upload : directory -> repo -> PackageName.name -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Downloading packages from a repo to the package directory.                *)
+(* ------------------------------------------------------------------------- *)
+
+val download : directory -> repo -> PackageName.name -> unit
 
 end
