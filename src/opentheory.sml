@@ -259,7 +259,7 @@ val directory =
                          Directory.mk {rootDirectory = r}
                        else
                          let
-                           val () = warn ("creating package directory " ^ r)
+                           val () = chat ("Creating package directory " ^ r)
                          in
                            Directory.create {rootDirectory = r}
                          end

@@ -1,0 +1,228 @@
+/******************************************************************************
+*
+* OPENTHEORY STYLESHEET
+*
+* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2
+*
+******************************************************************************/
+
+/******************************************************************************
+* Styling individual elements.
+******************************************************************************/
+
+img {
+  border-style: none;
+}
+
+img.border {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.definition {
+  font-style: italic;
+}
+
+.field {
+  font-weight: bold;
+  font-size: larger;
+}
+
+.form_error {
+  font-size: smaller;
+  color: red;
+}
+
+/******************************************************************************
+* Links.
+******************************************************************************/
+
+a:hover {
+  background-color: #ffff00;
+  color: black;
+}
+
+a:hover img {
+  background-color: #0000ff;
+  color: #ffff00;
+}
+
+/******************************************************************************
+* Designing the complete layout.
+******************************************************************************/
+
+body {
+  margin: 1em;
+  background-color: white;
+  color: black;
+  text-align: center; /* for IE */
+}
+
+div#document {
+  font-family: sans-serif;
+  text-align: left; /* reset text alignment */
+}
+
+/******************************************************************************
+* The header.
+******************************************************************************/
+
+div#header {
+  margin-top: 0;
+  margin-bottom: 2em;
+  margin-left: 0;
+  margin-right: 0;
+  border-style: dotted;
+  border-width: 1px;
+  padding: 1em;
+  background-color: #f0f4ff;
+  color: black;
+}
+
+div#header h1 {
+  margin: 0;
+  font-size: 300%;
+  font-weight: normal;
+}
+
+/******************************************************************************
+* The main page.
+******************************************************************************/
+
+div#main {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+div#main-clearer {
+  clear: both;
+}
+
+/******************************************************************************
+* The navigation bar.
+******************************************************************************/
+
+div#navigation-wrapper {
+  float: left;
+  width: 10%;
+  margin: 0;
+  padding: 0;
+}
+
+div#navigation {
+  margin: 0;
+  border-style: dotted;
+  border-width: 1px;
+  padding: 1em;
+  background-color: #f0f4ff;
+  color: black;
+  overflow: hidden;
+}
+
+div#navigation ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  font-size: smaller;
+}
+
+div#navigation ul li {
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+div#navigation ul li#home {
+  margin-top: 0;
+}
+
+div#navigation ul li.next {
+  margin-top: 1em;
+}
+
+div#navigation a {
+  text-decoration: none;
+  color: black;
+}
+
+/******************************************************************************
+* The content.
+******************************************************************************/
+
+div#content {
+  float: right;
+  width: 88%;
+  margin: 0;
+  padding: 0;
+}
+
+div#content .top {
+  margin-top: 0;
+}
+
+div#content ul {
+  padding-left: 1.25em;
+}
+
+div#content blockquote {
+  font-size: smaller;
+}
+
+/******************************************************************************
+* Image.
+******************************************************************************/
+
+div#image {
+  float: right;
+  margin-top: 0;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 0;
+  border-style: dotted;
+  border-width: 1px;
+  padding: 1em;
+  background-color: #f0f4ff;
+  color: black;
+}
+
+div#image p {
+  margin-top: 1em;
+  margin-bottom: 0;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  text-align: center;
+  font-size: smaller;
+}
+
+div#image img {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+/******************************************************************************
+* Footer.
+******************************************************************************/
+
+div#footer {
+  margin-top: 2em;
+  margin-bottom: 0;
+  margin-left: 0;
+  margin-right: 0;
+  border-style: dotted;
+  border-width: 1px;
+  padding: 5px;
+  background-color: #f0f4ff;
+  color: black;
+  text-align: left;
+  font-size: smaller;
+}
+
+div#footer-validator {
+  float: right;
+}
+
+div#footer img {
+  vertical-align: middle;
+}
