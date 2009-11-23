@@ -13,6 +13,16 @@ require_once 'error.php';
 require_once 'links.php';
 
 ///////////////////////////////////////////////////////////////////////////////
+// Repo name.
+///////////////////////////////////////////////////////////////////////////////
+
+function repo_name() {
+  $name = REPO_NAME . ' OpenTheory Repo';
+
+  return $name;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Site map.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +44,7 @@ function site_map() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// The navigation bar.
+// Navigation.
 ///////////////////////////////////////////////////////////////////////////////
 
 function navigation_text($path,$key,$bold,$link) {
@@ -129,7 +139,28 @@ function navigation() {
 
   $nav = ereg_replace('^<p></p>','',$nav);
 
+  $text = repo_name();
+  if ($num_bread_crumbs > 0 || isset($extension)) {
+    $text = site_link(array(), $text);
+  }
+  $nav = '<h1>' . $text . '</h1>' . $nav;
+
   return $nav;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Repo admin.
+///////////////////////////////////////////////////////////////////////////////
+
+function repo_admin() {
+  $admin = REPO_ADMIN;
+
+  $admin_url = REPO_ADMIN_URL;
+  if (isset($admin_url)) {
+    $admin = '<a href="' . string_to_html($admin_url) . '">' . $admin . '</a>';
+  }
+
+  return $admin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -141,38 +172,33 @@ function output($head, $main, $image) {
 
   if (!isset($head)) { $head = array(); }
 
-  if (array_key_exists('title',$head)) { $title = $head['title']; }
-  else { $title = REPO_NAME . ' OpenTheory Repo'; }
+  if (array_key_exists('title',$head)) {
+    $title = repo_name() . ' - ' . $head['title'];
+  }
+  else {
+    $title = repo_name();
+  }
 
   if (array_key_exists('favicon',$head)) { $favicon = $head['favicon']; }
   else { $favicon = site_path(array('favicon.ico')); }
-
-  $admin = REPO_ADMIN;
-  $admin_url = REPO_ADMIN_URL;
-  if (isset($admin_url)) {
-    $admin = '<a href="' . string_to_html($admin_url) . '">' . $admin . '</a>';
-  }
 
   $page =
 '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>' . $title . '</title>
-<link rel="stylesheet" type="text/css" href="' .
+<title>' . $title . '</title>' .
 ($mobile
- ? site_path(array('opentheory-mobile.css'))
- : site_path(array('opentheory.css'))) .
-'" />
-<script type="text/javascript" src="' .
-site_path(array('opentheory.js')) . '"></script>
-<link rel="shortcut icon" type="image/x-icon" href="' . $favicon . '" />
+ ? ''
+ : ('<link rel="stylesheet" type="text/css" href="' .
+    site_path(array('opentheory.css')) . '" />' .
+    '<script type="text/javascript" src="' .
+    site_path(array('opentheory.js')) . '"></script>')) .
+'<link rel="shortcut icon" type="image/x-icon" href="' . $favicon . '" />
 </head>
 <body>
 <div id="document">
-<div id="header"><h1>' .
-site_link(array(), REPO_NAME . ' OpenTheory Repo') .
-'</h1>' .
+<div id="header">' .
 navigation() .
 '</div>
 <div id="main">' .
@@ -185,18 +211,19 @@ navigation() .
  : '') .
 '<div id="main-clearer"></div>' .
 '</div>' .
-'<div id="footer">' .
 ($mobile
  ? ''
- : ('<div id="footer-validator">' .
+ : ('<div id="footer">' .
+    '<div id="footer-validator">' .
     '<a href="http://validator.w3.org/check?uri=referer">' .
     site_image('valid.png','Valid XHTML 1.0') .
     '</a>' .
-    '</div>')) .
-site_image('favicon.png','OpenTheory') .
-' &nbsp; ' . REPO_NAME . ' OpenTheory Repo, maintained by ' . $admin .
-'.</div>
-</div>
+    '</div>' .
+    site_image('favicon.png','OpenTheory') .
+    ' &nbsp; ' . repo_name() . ', maintained by ' .
+    repo_admin() .
+    '.</div>')) .
+'</div>
 </body>
 </html>';
 
