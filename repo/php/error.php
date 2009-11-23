@@ -122,7 +122,7 @@ HTTP_USER_AGENT: ' . print_r($_SERVER['HTTP_USER_AGENT'],true))
 BAD VALUE: $error_output = ' . $error_output;
       }
 
-      mail(REPO_ADMIN,'[OpenTheory] Error',$error_report);
+      mail(REPO_ADMIN_EMAIL,'[OpenTheory] Error',$error_report);
 
       if ($fatal) {
         echo '

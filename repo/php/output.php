@@ -25,17 +25,9 @@ function site_map() {
     $bread_crumbs = bread_crumbs();
 
     $global_site_map = array();
-    $global_site_map['software'] = null;
-    $global_site_map['research'] =
-      array('opentheory' => null,
-            'papers' => null,
-            'talks' => null);
-    $global_site_map['chess'] =
-      array('endgames' => null,
-            'coaching' => null,
-            'diagrams' => null);
-    $global_site_map['go'] = null;
-    $global_site_map['about'] = null;
+    $global_site_map['packages'] = null;
+    $global_site_map['recent'] = null;
+    $global_site_map['upload'] = null;
   }
 
   return $global_site_map;
@@ -63,17 +55,14 @@ function navigation_text($path,$key,$bold,$link) {
   return $text;
 }
 
-function navigation_item($home,$next,$text) {
-  is_bool($home) or trigger_error('bad home');
+function navigation_item($next,$text) {
   is_bool($next) or trigger_error('bad next');
   is_string($text) or trigger_error('bad text');
 
-  $item = '<li';
+  if ($next) { $item = '</p><p>'; }
+  else { $item = ' &nbsp; &bull; &nbsp; '; }
 
-  if ($home) { $item .= ' id="home"'; }
-  elseif ($next) { $item .= ' class="next"'; }
-
-  $item .= '>' . $text . '</li>';
+  $item .= $text;
 
   return $item;
 }
@@ -92,14 +81,11 @@ function navigation() {
 
   $extended_bread_crumbs[] = null;
 
-  $nav = '<ul>';
+  $nav = '<p>';
 
   $map = $site_map;
   $path = array();
   $depth = 0;
-
-  $text = site_link($path,'<b>opentheory</b>');
-  $nav .= navigation_item(true,false,$text);
 
   foreach ($extended_bread_crumbs as $bread_crumb) {
     $next = true;
@@ -111,12 +97,12 @@ function navigation() {
           $found = (isset($submap) ? $submap : array());
           $link = ($depth != $num_bread_crumbs - 1 || isset($extension));
           $text = navigation_text($path,$key,true,$link);
-          $nav .= navigation_item(false,$next,$text);
+          $nav .= navigation_item($next,$text);
           $next = false;
         }
         else {
           $text = navigation_text($path,$key,false,true);
-          $nav .= navigation_item(false,$next,$text);
+          $nav .= navigation_item($next,$text);
           $next = false;
         }
       }
@@ -130,7 +116,7 @@ function navigation() {
       else {
         $text = $bread_crumb;
       }
-      $nav .= navigation_item(false,$next,$text);
+      $nav .= navigation_item($next,$text);
       $next = false;
     }
 
@@ -139,7 +125,9 @@ function navigation() {
     ++$depth;
   }
 
-  $nav .= '</ul>';
+  $nav .= '</p>';
+
+  $nav = ereg_replace('^<p></p>','',$nav);
 
   return $nav;
 }
@@ -148,7 +136,7 @@ function navigation() {
 // The complete page.
 ///////////////////////////////////////////////////////////////////////////////
 
-function output($head, $header, $main, $image, $footer) {
+function output($head, $main, $image) {
   $mobile = is_mobile();
 
   if (!isset($head)) { $head = array(); }
@@ -159,8 +147,10 @@ function output($head, $header, $main, $image, $footer) {
   if (array_key_exists('favicon',$head)) { $favicon = $head['favicon']; }
   else { $favicon = site_path(array('favicon.ico')); }
 
-  if (!isset($footer)) {
-    $footer = 'Copyright &copy; 2006&ndash;' . date('Y') . ' Joe Hurd';
+  $admin = REPO_ADMIN;
+  $admin_url = REPO_ADMIN_URL;
+  if (isset($admin_url)) {
+    $admin = '<a href="' . string_to_html($admin_url) . '">' . $admin . '</a>';
   }
 
   $page =
@@ -179,13 +169,13 @@ site_path(array('opentheory.js')) . '"></script>
 <link rel="shortcut icon" type="image/x-icon" href="' . $favicon . '" />
 </head>
 <body>
-<div id="document">' .
-(isset($header)
- ? ('<div id="header">' . $header . '</div>')
- : '') .
-'<div id="main">' .
-'<div id="navigation-wrapper"><div id="navigation">' . navigation() .
-'</div></div>' .
+<div id="document">
+<div id="header"><h1>' .
+site_link(array(), REPO_NAME . ' OpenTheory Repo') .
+'</h1>' .
+navigation() .
+'</div>
+<div id="main">' .
 (isset($main)
  ? ('<div id="content">' .
     ((isset($image) && !$mobile)
@@ -203,10 +193,11 @@ site_path(array('opentheory.js')) . '"></script>
     site_image('valid.png','Valid XHTML 1.0') .
     '</a>' .
     '</div>')) .
-site_link(array('account'), site_image('favicon.png','OpenTheory')) .
-' &nbsp; ' . $footer . '</div>' .
-'</div>' .
-'</body>
+site_image('favicon.png','OpenTheory') .
+' &nbsp; ' . REPO_NAME . ' OpenTheory Repo, maintained by ' . $admin .
+'.</div>
+</div>
+</body>
 </html>';
 
   print $page;

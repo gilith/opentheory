@@ -14,7 +14,11 @@
 
 define('REPO_NAME','Gilith');
 
-define('REPO_ADMIN','joe@gilith.com');
+define('REPO_ADMIN','Joe Hurd');
+
+define('REPO_ADMIN_EMAIL','joe@gilith.com');
+
+define('REPO_ADMIN_URL','http://www.gilith.com');
 
 define('REPO_PREFIX','research/opentheory/repo');
 

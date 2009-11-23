@@ -22,7 +22,7 @@ function site_email($address, $subject, $body) {
   is_string($body) or trigger_error('bad body');
 
   $headers =
-    'From: ' . REPO_NAME . ' OpenTheory Repo Admin <' . REPO_ADMIN . '>';
+    'From: ' . REPO_ADMIN . ' <' . REPO_ADMIN_EMAIL . '>';
 
   mail($address, '[OpenTheory] ' . $subject, $body, $headers) or
     trigger_error('couldn\'t send email');
@@ -43,6 +43,8 @@ function bread_crumbs() {
     $path = ereg_replace('/[^/]+$','/',$path);
     $path = ereg_replace('^/','',$path);
     $path = ereg_replace('/$','',$path);
+
+    // Get rid of a fixed path prefix, if it exists
     $path = ereg_replace('^' . REPO_PREFIX, '', $path);
     $path = ereg_replace('^/','',$path);
 
