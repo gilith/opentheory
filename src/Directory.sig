@@ -12,7 +12,7 @@ sig
 
 type repo
 
-val mkRepo : {name : string} -> repo
+val mkRepo : {name : string, url : string} -> repo
 
 val nameRepo : repo -> string
 
@@ -30,15 +30,15 @@ type config
 
 val emptyConfig : config
 
-val defaultConfig : config
+val reposConfig : config -> repo list
 
 val readConfig : {filename : string} -> config
 
 val writeConfig : {config : config, filename : string} -> unit
 
-val reposConfig : config -> repo list
-
 val ppConfig : config Print.pp
+
+val defaultConfig : config
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)

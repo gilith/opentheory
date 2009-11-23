@@ -13,10 +13,13 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val configFile = "config"
+and nameRepoSectionKey = "name"
+and openTheoryRepoName = "gilith"
 and openTheoryRepoUrl = "http://opentheory.gilith.com/"
 and packagesDirectory = "packages"
-and reposConfigSection = "repos"
-and theoryExtension = "thy";
+and repoConfigSection = "repo"
+and theoryExtension = "thy"
+and urlRepoSectionKey = "url";
 
 (* ------------------------------------------------------------------------- *)
 (* Directories and filenames.                                                *)
@@ -48,18 +51,22 @@ fun mkTheoryFilename pkg =
 datatype repo =
     Repo of
       {name : string,
+       url : string,
        packages : {filename : string} list option PackageNameMap.map ref};
 
-fun mkRepo {name} =
+fun mkRepo {name,url} =
     let
       val packages = ref (PackageNameMap.new ())
     in
       Repo
         {name = name,
+         url = url,
          packages = packages}
     end;
 
 fun nameRepo (Repo {name = x, ...}) = x;
+
+fun urlRepo (Repo {url = x, ...}) = x;
 
 fun filenamesRepo repo pkg =
     let
@@ -75,7 +82,10 @@ fun containsRepo repo pkg = Option.isSome (filenamesRepo repo pkg);
 
 val ppRepo = Print.ppMap nameRepo Print.ppString;
 
-val openTheoryRepo = mkRepo {name = openTheoryRepoUrl};
+val openTheoryRepo =
+    mkRepo
+      {name = openTheoryRepoName,
+       url = openTheoryRepoUrl};
 
 (* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
@@ -85,13 +95,6 @@ datatype config =
     Config of
       {repos : repo list};
 
-val defaultConfig =
-    let
-      val repos = [openTheoryRepo]
-    in
-      Config {repos = repos}
-    end;
-
 val emptyConfig =
     let
       val repos = []
@@ -99,23 +102,169 @@ val emptyConfig =
       Config {repos = repos}
     end;
 
+fun reposConfig (Config {repos = x, ...}) = x;
+
+fun addRepoConfig config r =
+    let
+      val Config {repos = rs} = config
+
+      val rs = rs @ [r]
+    in
+      Config {repos = rs}
+    end;
+
 local
-  val reposHandler =
+  datatype repoSectionState =
+      RepoSectionState of
+        {name : string option,
+         url : string option};
+
+  datatype configSectionState =
+      NoConfigSectionState
+    | RepoConfigSectionState of repoSectionState;
+
+  datatype configState =
+      ConfigState of
+        {section : configSectionState,
+         config : config};
+
+  val initialRepoSectionState =
       let
-        fun beginSection config = config
+        val name = NONE
+        and url = NONE
+      in
+        RepoSectionState
+          {name = name,
+           url = url}
+      end;
 
-        fun processLine (line,config) =
+  fun addNameRepoSectionState n state =
+      let
+        val RepoSectionState {name,url} = state
+
+        val name =
+            case name of
+              NONE => SOME n
+            | SOME n' => raise Error ("duplicate name keys: " ^ n ^ " and " ^ n')
+      in
+        RepoSectionState
+          {name = name,
+           url = url}
+      end;
+
+  fun addUrlRepoSectionState u state =
+      let
+        val RepoSectionState {name,url} = state
+
+        val url =
+            case url of
+              NONE => SOME u
+            | SOME u' => raise Error ("duplicate url keys: " ^ u ^ " and " ^ u')
+      in
+        RepoSectionState
+          {name = name,
+           url = url}
+      end;
+
+  fun processLineRepoSectionState line state =
+      let
+        val (key,value) = Config.destKeyValue line
+      in
+        if key = nameRepoSectionKey then
+          addNameRepoSectionState value state
+        else if key = urlRepoSectionKey then
+          addUrlRepoSectionState value state
+        else
+          raise Error ("unknown key \"" ^ key ^ "\"")
+      end
+
+  fun finalRepoSectionState state =
+      let
+        val RepoSectionState {name,url} = state
+
+        val name =
+            case name of
+              SOME n => n
+            | NONE => raise Error "no name specified"
+
+        val url =
+            case url of
+              SOME u => u
+            | NONE => raise Error "no url specified"
+      in
+        mkRepo
+          {name = name,
+           url = url}
+      end;
+
+  val initialConfigState =
+      let
+        val section = NoConfigSectionState
+        and config = emptyConfig
+      in
+        ConfigState
+          {section = section,
+           config = config}
+      end;
+
+  fun finalConfigState state =
+      let
+        val ConfigState {section = s, config = c} = state
+      in
+        case s of
+          NoConfigSectionState => c
+        | _ => raise Error "finalConfigState"
+      end
+
+  val repoHandler =
+      let
+        fun beginSection state =
             let
-              val Config {repos} = config
+              val ConfigState {section = s, config = c} = state
 
-              val repo = mkRepo {name = line}
+              val () =
+                  case s of
+                    NoConfigSectionState => ()
+                  | _ => raise Error "repoHandler.beginSection"
 
-              val repos = repos @ [repo]
+              val s = RepoConfigSectionState initialRepoSectionState
             in
-              Config {repos = repos}
+              ConfigState {section = s, config = c}
             end
 
-        fun endSection config = config
+        fun processLine (line,state) =
+            let
+              val ConfigState {section = s, config = c} = state
+
+              val r =
+                  case s of
+                    RepoConfigSectionState r => r
+                  | _ => raise Error "repoHandler.processLine"
+
+              val r = processLineRepoSectionState line r
+
+              val s = RepoConfigSectionState r
+            in
+              ConfigState {section = s, config = c}
+            end
+
+        fun endSection state =
+            let
+              val ConfigState {section = s, config = c} = state
+
+              val r =
+                  case s of
+                    RepoConfigSectionState r => r
+                  | _ => raise Error "repoHandler.endSection"
+
+              val r = finalRepoSectionState r
+
+              val s = NoConfigSectionState
+
+              val c = addRepoConfig c r
+            in
+              ConfigState {section = s, config = c}
+            end
       in
         Config.SectionHandler
           {beginSection = beginSection,
@@ -124,32 +273,74 @@ local
       end;
 
   fun sectionHandler section =
-      if section = reposConfigSection then SOME reposHandler
+      if section = repoConfigSection then SOME repoHandler
       else NONE;
 
   val handler = Config.Handler sectionHandler;
 in
   fun readConfig filename =
-      Config.read handler emptyConfig filename
-      handle IO.Io _ => emptyConfig;
+      let
+        val state = initialConfigState
+        val state = Config.read handler state filename handle IO.Io _ => state
+      in
+        finalConfigState state
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Bug ("Directory.readConfig: " ^ err);
+*)
 end;
 
-fun reposConfig (Config {repos = x, ...}) = x;
+local
+  datatype configSection =
+      RepoConfigSection of repo;
 
-fun ppConfig conf =
-    let
-      val Config {repos = rs} = conf
-    in
-      Print.blockProgram Print.Consistent 0
-        (Print.addString (Config.mkSectionHeader reposConfigSection) ::
-         map (Print.sequence Print.addNewline o ppRepo) rs)
-    end;
+  fun toSections config =
+      let
+        val Config {repos = rs} = config
+      in
+        map RepoConfigSection rs
+      end;
+
+  fun ppRepoSection repo =
+      let
+        val name = nameRepo repo
+        and url = urlRepo repo
+      in
+        Print.blockProgram Print.Consistent 0
+          [Print.addString (Config.mkSectionHeader repoConfigSection),
+           Print.addNewline,
+           Print.addString (Config.mkKeyValue (nameRepoSectionKey,name)),
+           Print.addNewline,
+           Print.addString (Config.mkKeyValue (urlRepoSectionKey,url))]
+      end;
+
+  fun ppSection section =
+      case section of
+        RepoConfigSection repo => ppRepoSection repo;
+
+  val ppSectionSep = Print.sequence Print.addNewline Print.addNewline;
+in
+  fun ppConfig config =
+      case toSections config of
+        [] => Print.skip
+      | sect :: sects =>
+        Print.blockProgram Print.Consistent 0
+          (ppSection sect ::
+           map (Print.sequence ppSectionSep o ppSection) sects)
+end;
 
 fun writeConfig {config,filename} =
     let
       val s = Print.toStream ppConfig config
     in
       Stream.toTextFile {filename = filename} s
+    end;
+
+val defaultConfig =
+    let
+      val repos = [openTheoryRepo]
+    in
+      Config {repos = repos}
     end;
 
 (* ------------------------------------------------------------------------- *)
