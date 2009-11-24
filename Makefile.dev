@@ -14,7 +14,7 @@ TEMPFILE = Makefile-temp-file
 TEMP += $(TEMPFILE) \
 	bin/mlton/*.ssa bin/mlton/*.ssa2 \
         bin/mlton/benchmark \
-        mlmon.out profile-*
+        benchmark.out mlmon.out profile-*
 
 ###############################################################################
 # The ML preprocessor.
@@ -264,7 +264,7 @@ hol-light-test: hol-light-test-install hol-light-test-log hol-light-test-thys ho
 # Profiling using MLton.
 ###############################################################################
 
-BENCHMARK_OPTS = --show name $(BENCHMARK_SET)/*.tptp
+BENCHMARK_OPTS = -d test/opentheory compile --article benchmark.out test/opentheory/packages/hol-light-2009.8.24/hol-light.thy
 
 profile-time.mlb: bin/mlton/benchmark.sml
 	echo '$$(SML_LIB)/basis/basis.mlb $$(SML_LIB)/basis/mlton.mlb $<' > $@
@@ -286,7 +286,7 @@ profile-time.txt: profile-time.out Makefile.dev
 	mlprof -show-line true -raw true -keep '(and (thresh 0.1) (thresh-stack 0.1))' -split '.*' profile-time profile-time.out > $@
 
 profile-time.dot: profile-time.out Makefile.dev
-	mlprof -show-line true -raw true -call-graph $@ -keep '(thresh-stack 1)' -graph-title "OpenTheory Time Profiling" -split '.*' profile-time profile-time.out > /dev/null
+	mlprof -show-line true -raw true -call-graph $@ -keep '(thresh-stack 10)' -graph-title "OpenTheory Time Profiling" -split '.*' profile-time profile-time.out > /dev/null
 
 .PHONY: profile
 profile: profile-time.txt profile-time.dot
