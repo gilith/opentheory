@@ -34,6 +34,61 @@ and rootHomeDir = ".opentheory";
 val program = "opentheory";
 
 (* ------------------------------------------------------------------------- *)
+(* Package directory.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val rootDirectory : string option ref = ref NONE;
+
+val directory =
+    let
+      val rdir : Directory.directory option ref = ref NONE
+    in
+      fn () =>
+         case !rdir of
+           SOME dir => dir
+         | NONE =>
+           let
+             val dir =
+                 case !rootDirectory of
+                   SOME r => Directory.mk {rootDirectory = r}
+                 | NONE =>
+                   case OS.Process.getEnv homeEnvVar of
+                     SOME d =>
+                     let
+                       val r = OS.Path.joinDirFile {dir = d, file = rootHomeDir}
+                     in
+                       if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
+                         Directory.mk {rootDirectory = r}
+                       else
+                         let
+                           val () = chat ("Creating package directory " ^ r)
+                         in
+                           Directory.create {rootDirectory = r}
+                         end
+                     end
+                   | NONE => raise Error "please specify the package directory"
+
+             val () = rdir := SOME dir
+           in
+             dir
+           end
+    end;
+
+fun finder () = Directory.lookup (directory ());
+
+(* ------------------------------------------------------------------------- *)
+(* Package info.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype info =
+    PackageInfo
+  | FileInfo;
+
+val infoQuery = ref PackageInfo;
+
+val infoOutput = ref "-";
+
+(* ------------------------------------------------------------------------- *)
 (* Simulations.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
@@ -41,53 +96,51 @@ val defaultSimulations =
     Simulation.unionList
       [HolLight.simulations];
 
+val simulations = ref defaultSimulations;
+
+(* ------------------------------------------------------------------------- *)
+(* Compilation.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+datatype compileOutput =
+    ArticleCompileOutput of {filename : string}
+  | SummaryTextCompileOutput of {filename : string};
+
+fun savableCompileOutput output =
+    case output of
+      ArticleCompileOutput _ => true
+    | SummaryTextCompileOutput _ => false;
+
+val compileOutput : compileOutput list ref = ref [];
+
 (* ------------------------------------------------------------------------- *)
 (* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-datatype info =
-    PackageInfo
-  | FileInfo;
-
-datatype summary =
-    SummaryText of {filename : string};
-
-val simulations = ref defaultSimulations;
-
-val rootDirectory : string option ref = ref NONE;
-
-val infoQuery = ref PackageInfo;
-
-val infoOutput = ref "-";
-
-val compileOutput = ref "-";
-
-val summarizeOutput : summary list ref = ref [];
-
 datatype command =
     Info
-  | Compile
-  | Summarize;
+  | Compile;
 
-val allCommands = [Info,Compile,Summarize];
+val allCommands = [Info,Compile];
 
 fun commandString cmd =
     case cmd of
       Info => "info"
-    | Compile => "compile"
-    | Summarize => "summarize";
+    | Compile => "compile";
 
 fun commandUsage cmd =
     case cmd of
       Info => "<package-name>"
-    | Compile => "input.thy"
-    | Summarize => "input.art";
+    | Compile => "input.thy";
 
 fun commandDescription cmd =
     case cmd of
       Info => "display package information"
-    | Compile => "compile a theory package to an article"
-    | Summarize => "summarize an article";
+    | Compile => "compile a theory package";
+
+(* ------------------------------------------------------------------------- *)
+(* Command options.                                                          *)
+(* ------------------------------------------------------------------------- *)
 
 local
   open Useful Options;
@@ -105,22 +158,27 @@ local
             (fn _ => fn s => infoOutput := s)}];
 
   val compileOpts : opt list =
-      [{switches = ["-o","--output"], arguments = ["FILE"],
+      [{switches = ["--article"], arguments = ["FILE"],
         description = "write the compiled article to FILE",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => compileOutput := s)}];
-
-  val summarizeOpts : opt list =
-      [{switches = ["--summary-text"], arguments = ["FILE"],
+            (fn _ => fn s =>
+             let
+               val ref outs = compileOutput
+               val outs = outs @ [ArticleCompileOutput {filename = s}]
+               val () = compileOutput := outs
+             in
+               ()
+             end)},
+       {switches = ["--summary-text"], arguments = ["FILE"],
         description = "write the summary as text to FILE",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s =>
              let
-               val ref ss = summarizeOutput
-               val ss = SummaryText {filename = s} :: ss
-               val () = summarizeOutput := ss
+               val ref outs = compileOutput
+               val outs = outs @ [SummaryTextCompileOutput {filename = s}]
+               val () = compileOutput := outs
              in
                ()
              end)}];
@@ -128,8 +186,7 @@ in
   fun commandOpts cmd =
       case cmd of
         Info => infoOpts
-      | Compile => compileOpts
-      | Summarize => summarizeOpts;
+      | Compile => compileOpts;
 end;
 
 val allCommandStrings = map commandString allCommands;
@@ -229,50 +286,16 @@ in
 end;
 
 fun exit x : unit = Options.exit programOptions x;
+
 fun succeed () = Options.succeed programOptions;
+
 fun fail mesg = Options.fail programOptions mesg;
+
 fun usage mesg = Options.usage programOptions mesg;
 
 (* ------------------------------------------------------------------------- *)
 (* The core application.                                                     *)
 (* ------------------------------------------------------------------------- *)
-
-val directory =
-    let
-      val rdir : Directory.directory option ref = ref NONE
-    in
-      fn () =>
-         case !rdir of
-           SOME dir => dir
-         | NONE =>
-           let
-             val dir =
-                 case !rootDirectory of
-                   SOME r => Directory.mk {rootDirectory = r}
-                 | NONE =>
-                   case OS.Process.getEnv homeEnvVar of
-                     SOME d =>
-                     let
-                       val r = OS.Path.joinDirFile {dir = d, file = rootHomeDir}
-                     in
-                       if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
-                         Directory.mk {rootDirectory = r}
-                       else
-                         let
-                           val () = chat ("Creating package directory " ^ r)
-                         in
-                           Directory.create {rootDirectory = r}
-                         end
-                     end
-                   | NONE => raise Error "please specify the package directory"
-
-             val () = rdir := SOME dir
-           in
-             dir
-           end
-    end;
-
-fun finder () = Directory.lookup (directory ());
 
 fun info name =
     let
@@ -317,6 +340,12 @@ fun info name =
 
 fun compile {filename} =
     let
+      val ref outs = compileOutput
+
+      val () =
+          if not (null outs) then ()
+          else usage "please specify a compilation target"
+
       val directory = OS.Path.dir filename
       val filename = OS.Path.file filename
 
@@ -327,8 +356,8 @@ fun compile {filename} =
              filename = filename}
 
       val graph = Graph.empty
-      and finder = PackageFinder.useless
-      and savable = true
+      and finder = finder ()
+      and savable = List.exists savableCompileOutput outs
       and ref sim = simulations
       and req = InstanceSet.empty
       and int = Interpretation.natural
@@ -344,41 +373,19 @@ fun compile {filename} =
 
       val art = Instance.article inst
 
-      val ref filename = compileOutput
+      val ths = Article.saved art
+
+      val sum = Summary.fromThmSet ths
+
+      fun output out =
+          case out of
+            ArticleCompileOutput {filename} =>
+            Article.toTextFile {article = art, filename = filename}
+          | SummaryTextCompileOutput {filename} =>
+            Summary.toTextFile {summary = sum, filename = filename}
     in
-      Article.toTextFile {article = art, filename = filename}
+      List.app output outs
     end;
-
-local
-  fun outputSummary summary mode =
-      case mode of
-        SummaryText {filename} =>
-        Summary.toTextFile {summary = summary, filename = filename};
-in
-  fun summarize {filename} =
-      let
-        val savable = false
-        and known = Article.empty
-        and ref sim = simulations
-        and int = Interpretation.natural
-
-        val art =
-            Article.fromTextFile
-              {savable = savable,
-               known = known,
-               simulations = sim,
-               interpretation = int,
-               filename = filename}
-
-        val ths = Article.saved art
-
-        val sum = Summary.fromThmSet ths
-
-        val ref modes = summarizeOutput
-      in
-        List.app (outputSummary sum) (rev modes)
-      end;
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)
@@ -408,7 +415,6 @@ let
       case (cmd,work) of
         (Info,[pkg]) => info pkg
       | (Compile,[filename]) => compile {filename = filename}
-      | (Summarize,[filename]) => summarize {filename = filename}
       | _ => usage ("bad arguments for " ^ commandString cmd ^ " command")
 in
   succeed ()

@@ -220,7 +220,7 @@ HOL_LIGHT_EXAMPLES = \
 hol-light-test-install:
 	rm -rf $(HOL_LIGHT_SRC_DIR)
 	mkdir $(HOL_LIGHT_SRC_DIR)
-	cd $(HOL_LIGHT_SRC_DIR) && echo "Untarring into $(HOL_LIGHT_SRC_DIR)" && tar xzf ../hol-light.tgz && rm hol.ml && ln -s ../../../scripts/hol-light/hol.ml && ln -s ../../../scripts/hol-light/logging.ml && ln -s ../../../scripts/hol-light/deduction-logging.ml && for f in $(HOL_LIGHT_EXAMPLES) ; do ln -s ../../../scripts/hol-light/$$f.ml ; done && for f in $(HOL_LIGHT_THEORIES) ; do if test "$$f" = "pair" ; then echo "skipping preprocessing theory $$f" ; else echo "preprocessing theory $$f" && ../../../scripts/hol-light/install-theory.hs < $$f.ml > foo.ml && mv foo.ml $$f.ml ; fi ; done
+	cd $(HOL_LIGHT_SRC_DIR) && echo "Untarring into $(HOL_LIGHT_SRC_DIR)" && tar xzf ../hol-light.tgz && rm hol.ml && ln -s ../scripts/hol.ml && ln -s ../scripts/logging.ml && ln -s ../scripts/deduction-logging.ml && for f in $(HOL_LIGHT_EXAMPLES) ; do ln -s ../scripts/$$f.ml ; done && for f in $(HOL_LIGHT_THEORIES) ; do if test "$$f" = "pair" ; then echo "skipping preprocessing theory $$f" ; else echo "preprocessing theory $$f" && ../scripts/install-theory.hs < $$f.ml > foo.ml && mv foo.ml $$f.ml ; fi ; done
 
 .PHONY: hol-light-test-log
 hol-light-test-log:
@@ -230,13 +230,9 @@ hol-light-test-log:
 hol-light-test-thys:
 	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do ((echo "theory { interpret {" ; cat test/interpretations/hol-light.int ; echo "} in article \"../$(HOL_LIGHT_SRC_DIR_NAME)/$$f.art\"; }") | cat > $(HOL_LIGHT_ARTICLES_DIR)/$$f.thy) ; done
 
-.PHONY: hol-light-test-compress
-hol-light-test-compress: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; $(OPENTHEORY) compile -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.art $(HOL_LIGHT_ARTICLES_DIR)/$$f.thy ; if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; gzip -c $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; done
-
-.PHONY: hol-light-test-sums
-hol-light-test-sums: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) summarize --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; done
+.PHONY: hol-light-test-arts
+hol-light-test-arts: $(OPENTHEORY)
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; $(OPENTHEORY) compile --article $(HOL_LIGHT_ARTICLES_DIR)/$$f.art --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum $(HOL_LIGHT_ARTICLES_DIR)/$$f.thy ; done
 
 .PHONY: hol-light-test-cthys
 hol-light-test-cthys:
@@ -244,16 +240,16 @@ hol-light-test-cthys:
 
 .PHONY: hol-light-test-carts
 hol-light-test-carts: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) compile -o $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) compile --article $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; done
 
-.PHONY: hol-light-test-csums
-hol-light-test-csums: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do $(OPENTHEORY) summarize --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart ; done
-
-.PHONY: hol-light-test-reqs
-hol-light-test-reqs:
+.PHONY: hol-light-test-creqs
+hol-light-test-creqs:
 	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do perl -ne 'if ($$_ =~ /^(assumed|axioms):/) { $$d = 1; } elsif ($$_ =~ /^[^ ]/) { $$d = undef; } if (defined($$d)) { print $$_; }' < $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum > $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; done
 	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do ok=0 ; for g in $(HOL_LIGHT_TEST_DIR)/good.req.* ; do if diff -q $(HOL_LIGHT_ARTICLES_DIR)/$$f.req $$g >/dev/null ; then ok=1 ; fi ; done ; if test "$$ok" = "0" ; then cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.req ; echo "bad theory requirements in $$f" ; exit 1 ; fi ; done
+
+.PHONY: hol-light-test-compress
+hol-light-test-compress:
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do if test ! $(HOL_LIGHT_SRC_DIR)/$$f.art.gz -nt $(HOL_LIGHT_SRC_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_SRC_DIR)/$$f.art > $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; fi ; if test ! $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz -nt $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; then gzip -c $(HOL_LIGHT_ARTICLES_DIR)/$$f.art > $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; fi ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art ; ls -l $(HOL_LIGHT_SRC_DIR)/$$f.art.gz ; ls -l $(HOL_LIGHT_ARTICLES_DIR)/$$f.art.gz ; done
 
 .PHONY: hol-light-test-stats
 hol-light-test-stats:
@@ -262,7 +258,7 @@ hol-light-test-stats:
 	rm -f $(HOL_LIGHT_TEST_DIR)/examples.tex ; for f in $(HOL_LIGHT_EXAMPLES) ; do cat $(HOL_LIGHT_ARTICLES_DIR)/$$f.stat >> $(HOL_LIGHT_TEST_DIR)/examples.tex ; done
 
 .PHONY: hol-light-test
-hol-light-test: hol-light-test-install hol-light-test-log hol-light-test-thys hol-light-test-compress hol-light-test-sums hol-light-test-cthys hol-light-test-carts hol-light-test-csums hol-light-test-reqs hol-light-test-stats
+hol-light-test: hol-light-test-install hol-light-test-log hol-light-test-thys hol-light-test-arts hol-light-test-cthys hol-light-test-carts hol-light-test-creqs hol-light-test-compress hol-light-test-stats
 
 ###############################################################################
 # Profiling using MLton.

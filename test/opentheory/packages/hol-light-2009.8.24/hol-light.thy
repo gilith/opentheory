@@ -34,9 +34,30 @@ require ind-defs {
   package: hol-light-ind-defs-2009.8.24
 }
 
+require class {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  package: hol-light-class-2009.8.24
+}
+
+require trivia {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  package: hol-light-trivia-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
   import simp;
   import ind-defs;
+  import class;
+  import trivia;
 }
