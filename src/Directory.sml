@@ -114,176 +114,126 @@ fun addRepoConfig config r =
     end;
 
 local
-  datatype repoSectionState =
-      RepoSectionState of
-        {name : string option,
-         url : string option};
+  local
+    datatype repoSectionState =
+        RepoSectionState of
+          {name : string option,
+           url : string option};
 
-  datatype configSectionState =
-      NoConfigSectionState
-    | RepoConfigSectionState of repoSectionState;
+    val initialRepoSectionState =
+        let
+          val name = NONE
+          and url = NONE
+        in
+          RepoSectionState
+            {name = name,
+             url = url}
+        end;
 
-  datatype configState =
-      ConfigState of
-        {section : configSectionState,
-         config : config};
+    fun addNameRepoSectionState n state =
+        let
+          val RepoSectionState {name,url} = state
 
-  val initialRepoSectionState =
+          val name =
+              case name of
+                NONE => SOME n
+              | SOME n' =>
+                raise Error ("duplicate \"" ^ nameRepoSectionKey ^
+                             "\" keys: " ^ n ^ " and " ^ n')
+        in
+          RepoSectionState
+            {name = name,
+             url = url}
+        end;
+
+    fun addUrlRepoSectionState u state =
+        let
+          val RepoSectionState {name,url} = state
+
+          val url =
+              case url of
+                NONE => SOME u
+              | SOME u' =>
+                raise Error ("duplicate \"" ^ urlRepoSectionKey ^
+                             "\" keys: " ^ u ^ " and " ^ u')
+        in
+          RepoSectionState
+            {name = name,
+             url = url}
+        end;
+
+    fun processRepoSectionState (kv,state) =
+        let
+          val Config.KeyValue {key,value} = kv
+        in
+          if key = nameRepoSectionKey then
+            addNameRepoSectionState value state
+          else if key = urlRepoSectionKey then
+            addUrlRepoSectionState value state
+          else
+            raise Error ("unknown key \"" ^ key ^ "\"")
+        end;
+
+    fun finalRepoSectionState state =
+        let
+          val RepoSectionState {name,url} = state
+
+          val name =
+              case name of
+                SOME n => n
+              | NONE =>
+                raise Error ("missing \"" ^ nameRepoSectionKey ^ "\" key")
+
+          val url =
+              case url of
+                SOME u => u
+              | NONE =>
+                raise Error ("missing \"" ^ urlRepoSectionKey ^ "\" key")
+        in
+          mkRepo
+            {name = name,
+             url = url}
+        end;
+  in
+    fun fromRepoSection kvs =
+        let
+          val state = initialRepoSectionState
+
+          val state = List.foldl processRepoSectionState state kvs
+        in
+          finalRepoSectionState state
+        end
+        handle Error err =>
+          raise Error ("in \"" ^ repoConfigSection ^
+                       "\" section of config file:\n" ^ err);
+  end;
+
+  fun addSection (sect,conf) =
       let
-        val name = NONE
-        and url = NONE
+        val Config.Section {name,keyValues} = sect
       in
-        RepoSectionState
-          {name = name,
-           url = url}
-      end;
-
-  fun addNameRepoSectionState n state =
-      let
-        val RepoSectionState {name,url} = state
-
-        val name =
-            case name of
-              NONE => SOME n
-            | SOME n' => raise Error ("duplicate name keys: " ^ n ^ " and " ^ n')
-      in
-        RepoSectionState
-          {name = name,
-           url = url}
-      end;
-
-  fun addUrlRepoSectionState u state =
-      let
-        val RepoSectionState {name,url} = state
-
-        val url =
-            case url of
-              NONE => SOME u
-            | SOME u' => raise Error ("duplicate url keys: " ^ u ^ " and " ^ u')
-      in
-        RepoSectionState
-          {name = name,
-           url = url}
-      end;
-
-  fun processLineRepoSectionState line state =
-      let
-        val (key,value) = Config.destKeyValue line
-      in
-        if key = nameRepoSectionKey then
-          addNameRepoSectionState value state
-        else if key = urlRepoSectionKey then
-          addUrlRepoSectionState value state
+        if name = repoConfigSection then
+          let
+            val r = fromRepoSection keyValues
+          in
+            addRepoConfig conf r
+          end
         else
-          raise Error ("unknown key \"" ^ key ^ "\"")
-      end
-
-  fun finalRepoSectionState state =
-      let
-        val RepoSectionState {name,url} = state
-
-        val name =
-            case name of
-              SOME n => n
-            | NONE => raise Error "no name specified"
-
-        val url =
-            case url of
-              SOME u => u
-            | NONE => raise Error "no url specified"
-      in
-        mkRepo
-          {name = name,
-           url = url}
+          raise Error ("unknown config section \"" ^ name ^ "\"")
       end;
 
-  val initialConfigState =
+  fun fromSections conf =
       let
-        val section = NoConfigSectionState
-        and config = emptyConfig
+        val Config.Config {sections} = conf
       in
-        ConfigState
-          {section = section,
-           config = config}
+        List.foldl addSection emptyConfig sections
       end;
-
-  fun finalConfigState state =
-      let
-        val ConfigState {section = s, config = c} = state
-      in
-        case s of
-          NoConfigSectionState => c
-        | _ => raise Error "finalConfigState"
-      end
-
-  val repoHandler =
-      let
-        fun beginSection state =
-            let
-              val ConfigState {section = s, config = c} = state
-
-              val () =
-                  case s of
-                    NoConfigSectionState => ()
-                  | _ => raise Error "repoHandler.beginSection"
-
-              val s = RepoConfigSectionState initialRepoSectionState
-            in
-              ConfigState {section = s, config = c}
-            end
-
-        fun processLine (line,state) =
-            let
-              val ConfigState {section = s, config = c} = state
-
-              val r =
-                  case s of
-                    RepoConfigSectionState r => r
-                  | _ => raise Error "repoHandler.processLine"
-
-              val r = processLineRepoSectionState line r
-
-              val s = RepoConfigSectionState r
-            in
-              ConfigState {section = s, config = c}
-            end
-
-        fun endSection state =
-            let
-              val ConfigState {section = s, config = c} = state
-
-              val r =
-                  case s of
-                    RepoConfigSectionState r => r
-                  | _ => raise Error "repoHandler.endSection"
-
-              val r = finalRepoSectionState r
-
-              val s = NoConfigSectionState
-
-              val c = addRepoConfig c r
-            in
-              ConfigState {section = s, config = c}
-            end
-      in
-        Config.SectionHandler
-          {beginSection = beginSection,
-           processLine = processLine,
-           endSection = endSection}
-      end;
-
-  fun sectionHandler section =
-      if section = repoConfigSection then SOME repoHandler
-      else NONE;
-
-  val handler = Config.Handler sectionHandler;
 in
   fun readConfig filename =
       let
-        val state = initialConfigState
-        val state = Config.read handler state filename handle IO.Io _ => state
+        val conf = Config.fromTextFile filename handle IO.Io _ => Config.empty
       in
-        finalConfigState state
+        fromSections conf
       end
 (*OpenTheoryDebug
       handle Error err => raise Bug ("Directory.readConfig: " ^ err);
@@ -291,42 +241,32 @@ in
 end;
 
 local
-  datatype configSection =
-      RepoConfigSection of repo;
+  fun toRepoSection repo =
+      let
+        val n = nameRepo repo
+        and u = urlRepo repo
+      in
+        Config.Section
+          {name = repoConfigSection,
+           keyValues =
+             [Config.KeyValue
+                {key = nameRepoSectionKey,
+                 value = n},
+              Config.KeyValue
+                {key = urlRepoSectionKey,
+                 value = u}]}
+      end;
 
   fun toSections config =
       let
         val Config {repos = rs} = config
+
+        val sections = map toRepoSection rs
       in
-        map RepoConfigSection rs
+        Config.Config {sections = sections}
       end;
-
-  fun ppRepoSection repo =
-      let
-        val name = nameRepo repo
-        and url = urlRepo repo
-      in
-        Print.blockProgram Print.Consistent 0
-          [Print.addString (Config.mkSectionHeader repoConfigSection),
-           Print.addNewline,
-           Print.addString (Config.mkKeyValue (nameRepoSectionKey,name)),
-           Print.addNewline,
-           Print.addString (Config.mkKeyValue (urlRepoSectionKey,url))]
-      end;
-
-  fun ppSection section =
-      case section of
-        RepoConfigSection repo => ppRepoSection repo;
-
-  val ppSectionSep = Print.sequence Print.addNewline Print.addNewline;
 in
-  fun ppConfig config =
-      case toSections config of
-        [] => Print.skip
-      | sect :: sects =>
-        Print.blockProgram Print.Consistent 0
-          (ppSection sect ::
-           map (Print.sequence ppSectionSep o ppSection) sects)
+  val ppConfig = Print.ppMap toSections Config.pp;
 end;
 
 fun writeConfig {config,filename} =
