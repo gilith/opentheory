@@ -1,12 +1,10 @@
-.cvsignore
-CVS
+.git
+.gitignore
 opentheory/Makefile.dev
 opentheory/doc/DONT-RELEASE
 opentheory/doc/IMPORT-METIS
-opentheory/doc/TODO
 opentheory/release
 opentheory/scripts/copy_src
-opentheory/scripts/hol-light
 opentheory/scripts/ml_lines
 opentheory/scripts/mlimport
 opentheory/scripts/mosml_dep
