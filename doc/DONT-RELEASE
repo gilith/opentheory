@@ -9,4 +9,5 @@ opentheory/scripts/ml_lines
 opentheory/scripts/mlimport
 opentheory/scripts/mosml_dep
 opentheory/scripts/release_stamp
+opentheory/src/benchmark.sml
 opentheory/test/hol-light
