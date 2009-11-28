@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* THE OPENTHEORY PROGRAM FOR MANIPULATING PROOF ARTICLES                    *)
+(* THE OPENTHEORY PROGRAM FOR PROCESSING THEORY PACKAGES                     *)
 (*                                                                           *)
 (* Copyright (c) 2004 Joe Hurd                                               *)
 (*                                                                           *)
@@ -201,20 +201,20 @@ in
       | NONE => NONE;
 end;
 
+fun annotateOptions s =
+    let
+      fun mk {switches,arguments,description,processor} =
+          {switches = switches,
+           arguments = arguments,
+           description = "(" ^ s ^ ") " ^ description,
+           processor = processor}
+    in
+      fn opts => map mk opts
+    end;
+
 val allCommandOptions =
     let
-      fun mk cmd =
-          let
-            val s = commandString cmd
-
-            fun f {switches,arguments,description,processor} =
-                {switches = switches,
-                 arguments = arguments,
-                 description = "(" ^ s ^ ") " ^ description,
-                 processor = processor}
-          in
-            map f (commandOpts cmd)
-          end
+      fun mk cmd = annotateOptions (commandString cmd) (commandOpts cmd)
     in
       List.concat (map mk allCommands)
     end;
@@ -279,22 +279,24 @@ in
          "Displaying " ^ commandString cmd ^ " options:")
         (commandOpts cmd);
 
-  val programOptions =
+  fun programOptions () =
       mkProgramOptions
         (globalHeader ^ "Displaying all options:")
-        (globalOpts @ allCommandOptions);
+        (annotateOptions "global" globalOpts @ allCommandOptions);
 end;
 
-fun exit x : unit = Options.exit programOptions x;
+fun exit x : unit = Options.exit (programOptions ()) x;
 
-fun succeed () = Options.succeed programOptions;
+fun succeed () = Options.succeed (programOptions ());
 
-fun fail mesg = Options.fail programOptions mesg;
+fun fail mesg = Options.fail (programOptions ()) mesg;
 
-fun usage mesg = Options.usage programOptions mesg;
+fun usage mesg = Options.usage (programOptions ()) mesg;
+
+fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
 
 (* ------------------------------------------------------------------------- *)
-(* The core application.                                                     *)
+(* Displaying package information.                                           *)
 (* ------------------------------------------------------------------------- *)
 
 fun info name =
@@ -337,6 +339,10 @@ fun info name =
           Stream.toTextFile {filename = f} s
         end
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Compiling packages to articles.                                           *)
+(* ------------------------------------------------------------------------- *)
 
 fun compile {filename} =
     let
@@ -415,7 +421,8 @@ let
       case (cmd,work) of
         (Info,[pkg]) => info pkg
       | (Compile,[filename]) => compile {filename = filename}
-      | _ => usage ("bad arguments for " ^ commandString cmd ^ " command")
+      | _ =>
+        commandUsage cmd ("bad arguments for " ^ commandString cmd ^ " command")
 in
   succeed ()
 end

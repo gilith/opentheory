@@ -1,48 +1,12 @@
 (* ========================================================================= *)
 (* ARTICLES OF PROOFS IN HIGHER ORDER LOGIC                                  *)
-(* Copyright (c) 2004-2009 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Article :> Article =
 struct
 
 open Useful;
-
-(* ------------------------------------------------------------------------- *)
-(* Helper functions.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  fun extract acc seen objs =
-      case objs of
-        [] => acc
-      | obj :: objs =>
-        let
-          val id = ObjectProv.id obj
-        in
-          if IntSet.member id seen then extract acc seen objs
-          else
-            let
-              val seen = IntSet.add seen id
-            in
-              case ObjectProv.provenance obj of
-                ObjectProv.Pnull => extract acc seen objs
-              | ObjectProv.Pcall _ => extract acc seen objs
-              | ObjectProv.Pcons (objH,objT) =>
-                extract acc seen (objH :: objT :: objs)
-              | ObjectProv.Pref objR => extract acc seen (objR :: objs)
-              | ObjectProv.Pthm _ =>
-                let
-                  val acc = ObjectProvSet.add acc obj
-                in
-                  extract acc seen objs
-                end
-            end
-        end;
-
-in
-  val thmObjects = extract ObjectProvSet.empty IntSet.empty;
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of proof articles.                                                 *)
@@ -131,23 +95,30 @@ fun fromTextFile {savable,known,simulations,interpretation,filename} =
                                (if n = 1 then "" else "s") ^
                                " left on the stack by " ^ filename)
 
-                val objs = thmObjects (ObjectStack.objects stack)
+                val ths = ObjectStack.thms stack
 
                 val {thms = n, ...} = ObjectThms.size saved
 
-                val n' = ObjectProvSet.size objs
+                val {thms = n', ...} = ObjectThms.size ths
               in
                 if n = 0 then
-                  let
-                    val () =
-                        if n' = 0 then ()
-                        else
+                  if n' = 0 then
+                    let
+                      val () =
+                          warn ("no theorems saved or left on the stack by " ^
+                                filename)
+                    in
+                      saved
+                    end
+                  else
+                    let
+                      val () =
                           warn ("saving " ^ Int.toString n' ^ " theorem" ^
                                 (if n' = 1 then "" else "s") ^
                                 " left on the stack by " ^ filename)
-                  in
-                    ObjectThms.addSet saved objs
-                  end
+                    in
+                      ObjectThms.union saved ths
+                    end
                 else
                   let
                     val () =
@@ -160,14 +131,6 @@ fun fromTextFile {savable,known,simulations,interpretation,filename} =
                     saved
                   end
               end
-          end
-
-      val () =
-          let
-            val {thms = n, ...} = ObjectThms.size saved
-          in
-            if n > 0 then ()
-            else warn ("no theorems saved or left on the stack by " ^ filename)
           end
 
       val () =

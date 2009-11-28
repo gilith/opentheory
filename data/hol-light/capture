@@ -6,7 +6,7 @@ echo '#use "hol.ml";;' | ocaml
 
 opentheory=../..
 
-adir=$opentheory/test/articles
+adir=$opentheory/test/articles/hol-light
 if ! test -d $adir ; then echo "$adir not a directory" ; exit 1 ; fi
 
 if ! test -r bool-def.art ; then echo "bool-def.art not readable" ; exit 1 ; fi

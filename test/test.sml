@@ -211,11 +211,25 @@ val holLightInt =
 
 val _ = printval Interpretation.pp holLightInt;
 
+fun getInt s =
+    if s = "hol-light" then holLightInt
+    else if s = "natural" then Interpretation.natural
+    else raise Error ("unknown interpretation: " ^ s);
+
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Compressing articles";
 (* ------------------------------------------------------------------------- *)
 
 val ARTICLE_DIR = "articles";
+
+fun mkRawArticleFilename raw name =
+    let
+      val file = OS.Path.joinBaseExt {base = name, ext = SOME "art"}
+
+      val file = OS.Path.joinDirFile {dir = raw, file = file}
+    in
+      OS.Path.joinDirFile {dir = ARTICLE_DIR, file = file}
+    end;
 
 fun mkArticleFilename name =
     let
@@ -224,24 +238,23 @@ fun mkArticleFilename name =
       OS.Path.joinDirFile {dir = ARTICLE_DIR, file = file}
     end;
 
-fun mkCompressedArticleFilename name =
-    OS.Path.joinBaseExt {base = name, ext = SOME "art"};
-
-fun compress interpretation name =
+fun compress raw name =
     let
       val () = print ("Compressing article \"" ^ name ^ "\"\n")
 
-      val inputFilename = mkArticleFilename name
+      val int = getInt raw
+
+      val inputFilename = mkRawArticleFilename raw name
 
       val article =
           time Article.fromTextFile
             {savable = true,
              simulations = HolLight.simulations,
              known = Article.empty,
-             interpretation = interpretation,
+             interpretation = int,
              filename = inputFilename}
 
-      val outputFilename = mkCompressedArticleFilename name
+      val outputFilename = mkArticleFilename name
 
       val () =
           time Article.toTextFile
@@ -253,26 +266,32 @@ fun compress interpretation name =
       ()
     end;
 
-val () = compress Interpretation.natural "example1";
+val () = compress "natural" "empty";
 
-val () = compress Interpretation.natural "example2";
+val () = compress "natural" "example1";
 
-val () = compress holLightInt "bool";
+val () = compress "natural" "example2";
 
-val () = compress holLightInt "tactics";
+val () = compress "hol-light" "bool";
+
+val () = compress "hol-light" "tactics";
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Summarizing articles";
 (* ------------------------------------------------------------------------- *)
 
 fun mkSummaryFilename name =
-    OS.Path.joinBaseExt {base = name, ext = SOME "sum"};
+    let
+      val file = OS.Path.joinBaseExt {base = name, ext = SOME "sum"}
+    in
+      OS.Path.joinDirFile {dir = ARTICLE_DIR, file = file}
+    end;
 
 fun summarize name =
     let
       val () = print ("Summarizing compressed article \"" ^ name ^ "\"\n")
 
-      val artFilename = mkCompressedArticleFilename name
+      val artFilename = mkArticleFilename name
 
       val art =
           time Article.fromTextFile
@@ -298,6 +317,8 @@ fun summarize name =
       ()
     end;
 
+val () = summarize "empty";
+
 val () = summarize "example1";
 
 val () = summarize "example2";
@@ -315,6 +336,13 @@ val THEORY_DIR = "theories";
 fun mkTheoryFilename name =
     let
       val file = OS.Path.joinBaseExt {base = name, ext = SOME "thy"}
+    in
+      OS.Path.joinDirFile {dir = THEORY_DIR, file = file}
+    end;
+
+fun mkTheoryArticleFilename name =
+    let
+      val file = OS.Path.joinBaseExt {base = name, ext = SOME "art"}
     in
       OS.Path.joinDirFile {dir = THEORY_DIR, file = file}
     end;
@@ -339,10 +367,10 @@ fun compile name =
              simulations = HolLight.simulations,
              importToArticle = (fn _ => raise Bug "importToArticle"),
              interpretation = Interpretation.natural,
-             directory = "",
+             directory = ARTICLE_DIR,
              theory = thy}
 
-      val artFilename = mkCompressedArticleFilename name
+      val artFilename = mkTheoryArticleFilename name
 
       val () =
           time Article.toTextFile
@@ -360,9 +388,9 @@ val () = compile "empty";
 
 (* The next simplest theory: read one article *)
 
-val () = compile "justBool";
+val () = compile "bool";
 
-val () = compile "justTactics";
+val () = compile "tactics";
 
 (* Concatenating two articles *)
 
@@ -418,9 +446,7 @@ fun import name =
 
 (* The simplest package: empty *)
 
-(*
-val () = compile "empty-1.0";
-*)
+val () = import "empty-1.0";
 
 (* Boolean definitions from HOL Light *)
 

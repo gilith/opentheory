@@ -1,0 +1,50 @@
+# Tiny example to test alpha conversion of theorems.
+# Construct the hypothesis list
+nil
+# Construct the conclusion term
+"x"
+"bool"
+nil
+type_op
+var
+"x"
+"bool"
+nil
+type_op
+var
+abs
+"T"
+"bool"
+nil
+type_op
+const
+app
+# Construct the assumed theorem
+thm
+# Construct the hypothesis list
+nil
+# Construct the conclusion term
+"y"
+"bool"
+nil
+type_op
+var
+"y"
+"bool"
+nil
+type_op
+var
+abs
+"T"
+"bool"
+nil
+type_op
+const
+app
+# Construct the exported theorem
+thm
+# Export the theorem
+save
+# Clean up the stack
+pop
+pop

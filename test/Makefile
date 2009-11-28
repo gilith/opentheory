@@ -20,11 +20,18 @@ TMPFILE1 = /tmp/test-make-file1
 TMPFILE2 = /tmp/test-make-file2
 
 TEMP = $(TMPFILE1) $(TMPFILE2) mosml-result mlton-result polyml-result \
-       example1.art bool.art tactics.art \
-       example1.sum bool.sum tactics.sum \
-       empty.art justBool.art justTactics.art \
-       boolBool.art tacticsTactics.art boolTactics.art \
-       localBoolTactics.art
+       articles/bool.art articles/bool.sum \
+       articles/empty.art articles/empty.sum \
+       articles/example1.art articles/example1.sum \
+       articles/example2.art articles/example2.sum \
+       articles/tactics.art articles/tactics.sum \
+       theories/bool.art \
+       theories/boolTactics.art \
+       theories/boolBool.art \
+       theories/empty.art \
+       theories/localBoolTactics.art \
+       theories/tactics.art \
+       theories/tacticsTactics.art
 
 .PHONY: clean
 clean:
