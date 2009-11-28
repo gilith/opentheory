@@ -38,10 +38,18 @@ val dealphaCompare : sequent * sequent -> order
 val dealphaEqual : sequent -> sequent -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Type operators and constants.                                             *)
+(* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
+val addSharingTypeOps : sequent -> Term.sharingTypeOps -> Term.sharingTypeOps
+
 val typeOps : sequent -> TypeOpSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val addSharingConsts : sequent -> Term.sharingConsts -> Term.sharingConsts
 
 val consts : sequent -> ConstSet.set
 

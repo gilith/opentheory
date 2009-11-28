@@ -40,7 +40,7 @@ val equal : var -> var -> bool
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val addSharingTypeVars : Type.sharingTypeVars -> var -> Type.sharingTypeVars
+val addSharingTypeVars : var -> Type.sharingTypeVars -> Type.sharingTypeVars
 
 val typeVars : var -> NameSet.set
 
@@ -48,7 +48,7 @@ val typeVars : var -> NameSet.set
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val addSharingTypeOps : Type.sharingTypeOps -> var -> Type.sharingTypeOps
+val addSharingTypeOps : var -> Type.sharingTypeOps -> Type.sharingTypeOps
 
 val typeOps : var -> TypeOpSet.set
 

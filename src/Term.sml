@@ -325,7 +325,44 @@ datatype sharingConsts =
 val emptySharingConsts =
     let
       val seen = IntSet.empty
+
       val cons = ConstSet.empty
+    in
+      SharingConsts
+        {seen = seen,
+         cons = cons}
+    end;
+
+fun addConstSharingConsts c share =
+    let
+      val SharingConsts {seen,cons} = share
+
+      val cons = ConstSet.add cons c
+    in
+      SharingConsts
+        {seen = seen,
+         cons = cons}
+    end;
+
+fun addConstSetSharingConsts cs share =
+    let
+      val SharingConsts {seen,cons} = share
+
+      val cons = ConstSet.union cons cs
+    in
+      SharingConsts
+        {seen = seen,
+         cons = cons}
+    end;
+
+fun unionSharingConsts share1 share2 =
+    let
+      val SharingConsts {seen = seen1, cons = cons1} = share1
+      and SharingConsts {seen = seen2, cons = cons2} = share2
+
+      val seen = IntSet.union seen1 seen2
+
+      val cons = ConstSet.union cons1 cons2
     in
       SharingConsts
         {seen = seen,
@@ -370,7 +407,7 @@ and sharingConsts' seen acc tm tms =
         sharingConsts seen acc tms
       end;
 
-fun addSharingConsts (SharingConsts {seen,cons}) tms =
+fun addListSharingConsts tms (SharingConsts {seen,cons}) =
     let
       val (seen,cons) = sharingConsts seen cons tms
     in
@@ -379,12 +416,15 @@ fun addSharingConsts (SharingConsts {seen,cons}) tms =
          cons = cons}
     end;
 
+fun addSharingConsts tm share = addListSharingConsts [tm] share;
+
 fun toSetSharingConsts (SharingConsts {cons,...}) = cons;
 
 fun constsList tms =
     let
       val share = emptySharingConsts
-      val share = addSharingConsts share tms
+
+      val share = addListSharingConsts tms share
     in
       toSetSharingConsts share
     end;
@@ -403,6 +443,7 @@ datatype sharingTypeVars =
 val emptySharingTypeVars =
     let
       val tyShare = Type.emptySharingTypeVars
+
       val seen = IntSet.empty
     in
       SharingTypeVars
@@ -430,13 +471,13 @@ and sharingTypeVars' tyShare seen tm tms =
     case tm of
       TypeTerm.Const' (_,ty) =>
       let
-        val tyShare = Type.addSharingTypeVars tyShare [ty]
+        val tyShare = Type.addSharingTypeVars ty tyShare
       in
         sharingTypeVars tyShare seen tms
       end
     | TypeTerm.Var' v =>
       let
-        val tyShare = Var.addSharingTypeVars tyShare v
+        val tyShare = Var.addSharingTypeVars v tyShare
       in
         sharingTypeVars tyShare seen tms
       end
@@ -448,13 +489,13 @@ and sharingTypeVars' tyShare seen tm tms =
       end
     | TypeTerm.Abs' (v,b) =>
       let
-        val tyShare = Var.addSharingTypeVars tyShare v
+        val tyShare = Var.addSharingTypeVars v tyShare
         val tms = b :: tms
       in
         sharingTypeVars tyShare seen tms
       end;
 
-fun addSharingTypeVars (SharingTypeVars {tyShare,seen}) tms =
+fun addListSharingTypeVars tms (SharingTypeVars {tyShare,seen}) =
     let
       val (tyShare,seen) = sharingTypeVars tyShare seen tms
     in
@@ -463,13 +504,16 @@ fun addSharingTypeVars (SharingTypeVars {tyShare,seen}) tms =
          seen = seen}
     end;
 
+fun addSharingTypeVars tm share = addListSharingTypeVars [tm] share;
+
 fun toSetSharingTypeVars (SharingTypeVars {tyShare,...}) =
     Type.toSetSharingTypeVars tyShare;
 
 fun typeVarsList tms =
     let
       val share = emptySharingTypeVars
-      val share = addSharingTypeVars share tms
+
+      val share = addListSharingTypeVars tms share
     in
       toSetSharingTypeVars share
     end;
@@ -488,7 +532,44 @@ datatype sharingTypeOps =
 val emptySharingTypeOps =
     let
       val tyShare = Type.emptySharingTypeOps
+
       val seen = IntSet.empty
+    in
+      SharingTypeOps
+        {tyShare = tyShare,
+         seen = seen}
+    end;
+
+fun addTypeOpSharingTypeOps ot share =
+    let
+      val SharingTypeOps {tyShare,seen} = share
+
+      val tyShare = Type.addTypeOpSharingTypeOps ot tyShare
+    in
+      SharingTypeOps
+        {tyShare = tyShare,
+         seen = seen}
+    end;
+
+fun addTypeOpSetSharingTypeOps ots share =
+    let
+      val SharingTypeOps {tyShare,seen} = share
+
+      val tyShare = Type.addTypeOpSetSharingTypeOps ots tyShare
+    in
+      SharingTypeOps
+        {tyShare = tyShare,
+         seen = seen}
+    end;
+
+fun unionSharingTypeOps share1 share2 =
+    let
+      val SharingTypeOps {tyShare = tyShare1, seen = seen1} = share1
+      and SharingTypeOps {tyShare = tyShare2, seen = seen2} = share2
+
+      val tyShare = Type.unionSharingTypeOps tyShare1 tyShare2
+
+      val seen = IntSet.union seen1 seen2
     in
       SharingTypeOps
         {tyShare = tyShare,
@@ -515,13 +596,13 @@ and sharingTypeOps' tyShare seen tm tms =
     case tm of
       TypeTerm.Const' (_,ty) =>
       let
-        val tyShare = Type.addSharingTypeOps tyShare [ty]
+        val tyShare = Type.addSharingTypeOps ty tyShare
       in
         sharingTypeOps tyShare seen tms
       end
     | TypeTerm.Var' v =>
       let
-        val tyShare = Var.addSharingTypeOps tyShare v
+        val tyShare = Var.addSharingTypeOps v tyShare
       in
         sharingTypeOps tyShare seen tms
       end
@@ -533,13 +614,13 @@ and sharingTypeOps' tyShare seen tm tms =
       end
     | TypeTerm.Abs' (v,b) =>
       let
-        val tyShare = Var.addSharingTypeOps tyShare v
+        val tyShare = Var.addSharingTypeOps v tyShare
         val tms = b :: tms
       in
         sharingTypeOps tyShare seen tms
       end;
 
-fun addSharingTypeOps (SharingTypeOps {tyShare,seen}) tms =
+fun addListSharingTypeOps tms (SharingTypeOps {tyShare,seen}) =
     let
       val (tyShare,seen) = sharingTypeOps tyShare seen tms
     in
@@ -548,13 +629,16 @@ fun addSharingTypeOps (SharingTypeOps {tyShare,seen}) tms =
          seen = seen}
     end;
 
+fun addSharingTypeOps tm share = addListSharingTypeOps [tm] share;
+
 fun toSetSharingTypeOps (SharingTypeOps {tyShare,...}) =
     Type.toSetSharingTypeOps tyShare;
 
 fun typeOpsList tms =
     let
       val share = emptySharingTypeOps
-      val share = addSharingTypeOps share tms
+
+      val share = addListSharingTypeOps tms share
     in
       toSetSharingTypeOps share
     end;
@@ -841,18 +925,34 @@ struct
     open S;
   end;
 
-  val typeOps =
+  local
+    fun addTm (tm,share) = Term.addSharingTypeOps tm share;
+  in
+    fun addSharingTypeOps set share = foldl addTm share set;
+  end;
+
+  fun typeOps set =
       let
-        fun addNames (tm,acc) = TypeOpSet.union acc (Term.typeOps tm)
+        val share = Term.emptySharingTypeOps
+
+        val share = addSharingTypeOps set share
       in
-        foldl addNames TypeOpSet.empty
+        Term.toSetSharingTypeOps share
       end;
 
-  val consts =
+  local
+    fun addTm (tm,share) = Term.addSharingConsts tm share;
+  in
+    fun addSharingConsts set share = foldl addTm share set;
+  end;
+
+  fun consts set =
       let
-        fun addNames (tm,acc) = ConstSet.union acc (Term.consts tm)
+        val share = Term.emptySharingConsts
+
+        val share = addSharingConsts set share
       in
-        foldl addNames ConstSet.empty
+        Term.toSetSharingConsts share
       end;
 
   fun dealphaCompare (s1,s2) =

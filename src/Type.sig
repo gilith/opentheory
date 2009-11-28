@@ -82,13 +82,15 @@ type sharingTypeVars
 
 val emptySharingTypeVars : sharingTypeVars
 
-val addSharingTypeVars : sharingTypeVars -> ty list -> sharingTypeVars
+val addSharingTypeVars : ty -> sharingTypeVars -> sharingTypeVars
+
+val addListSharingTypeVars : ty list -> sharingTypeVars -> sharingTypeVars
 
 val toSetSharingTypeVars : sharingTypeVars -> NameSet.set
 
-val typeVarsList : ty list -> NameSet.set
-
 val typeVars : ty -> NameSet.set
+
+val typeVarsList : ty list -> NameSet.set
 
 val alpha : ty
 
@@ -100,13 +102,22 @@ type sharingTypeOps
 
 val emptySharingTypeOps : sharingTypeOps
 
-val addSharingTypeOps : sharingTypeOps -> ty list -> sharingTypeOps
+val addTypeOpSharingTypeOps : TypeOp.typeOp -> sharingTypeOps -> sharingTypeOps
+
+val addTypeOpSetSharingTypeOps :
+    TypeOpSet.set -> sharingTypeOps -> sharingTypeOps
+
+val unionSharingTypeOps : sharingTypeOps -> sharingTypeOps -> sharingTypeOps
+
+val addSharingTypeOps : ty -> sharingTypeOps -> sharingTypeOps
+
+val addListSharingTypeOps : ty list -> sharingTypeOps -> sharingTypeOps
 
 val toSetSharingTypeOps : sharingTypeOps -> TypeOpSet.set
 
-val typeOpsList : ty list -> TypeOpSet.set
-
 val typeOps : ty -> TypeOpSet.set
+
+val typeOpsList : ty list -> TypeOpSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive types.                                                          *)

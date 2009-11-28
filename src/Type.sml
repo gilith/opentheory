@@ -155,7 +155,7 @@ and sharingTypeVars' seen acc ty tys =
         sharingTypeVars seen acc tys
       end;
 
-fun addSharingTypeVars (SharingTypeVars {seen,vars}) tys =
+fun addListSharingTypeVars tys (SharingTypeVars {seen,vars}) =
     let
       val (seen,vars) = sharingTypeVars seen vars tys
     in
@@ -164,12 +164,15 @@ fun addSharingTypeVars (SharingTypeVars {seen,vars}) tys =
          vars = vars}
     end;
 
+fun addSharingTypeVars ty share = addListSharingTypeVars [ty] share;
+
 fun toSetSharingTypeVars (SharingTypeVars {vars,...}) = vars;
 
 fun typeVarsList tys =
     let
       val share = emptySharingTypeVars
-      val share = addSharingTypeVars share tys
+
+      val share = addListSharingTypeVars tys share
     in
       toSetSharingTypeVars share
     end;
@@ -191,6 +194,42 @@ val emptySharingTypeOps =
     let
       val seen = IntSet.empty
       val ops = TypeOpSet.empty
+    in
+      SharingTypeOps
+        {seen = seen,
+         ops = ops}
+    end;
+
+fun addTypeOpSharingTypeOps ot share =
+    let
+      val SharingTypeOps {seen,ops} = share
+
+      val ops = TypeOpSet.add ops ot
+    in
+      SharingTypeOps
+        {seen = seen,
+         ops = ops}
+    end;
+
+fun addTypeOpSetSharingTypeOps ots share =
+    let
+      val SharingTypeOps {seen,ops} = share
+
+      val ops = TypeOpSet.union ops ots
+    in
+      SharingTypeOps
+        {seen = seen,
+         ops = ops}
+    end;
+
+fun unionSharingTypeOps share1 share2 =
+    let
+      val SharingTypeOps {seen = seen1, ops = ops1} = share1
+      and SharingTypeOps {seen = seen2, ops = ops2} = share2
+
+      val seen = IntSet.union seen1 seen2
+
+      val ops = TypeOpSet.union ops1 ops2
     in
       SharingTypeOps
         {seen = seen,
@@ -224,7 +263,7 @@ and sharingTypeOps' seen acc ty tys =
         sharingTypeOps seen acc tys
       end;
 
-fun addSharingTypeOps (SharingTypeOps {seen,ops}) tys =
+fun addListSharingTypeOps tys (SharingTypeOps {seen,ops}) =
     let
       val (seen,ops) = sharingTypeOps seen ops tys
     in
@@ -233,12 +272,15 @@ fun addSharingTypeOps (SharingTypeOps {seen,ops}) tys =
          ops = ops}
     end;
 
+fun addSharingTypeOps ty share = addListSharingTypeOps [ty] share;
+
 fun toSetSharingTypeOps (SharingTypeOps {ops,...}) = ops;
 
 fun typeOpsList tys =
     let
       val share = emptySharingTypeOps
-      val share = addSharingTypeOps share tys
+
+      val share = addListSharingTypeOps tys share
     in
       toSetSharingTypeOps share
     end;

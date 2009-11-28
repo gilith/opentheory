@@ -42,8 +42,8 @@ val equal = TypeTerm.equalVar;
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun addSharingTypeVars tyShare v =
-    Type.addSharingTypeVars tyShare [typeOf v];
+fun addSharingTypeVars v tyShare =
+    Type.addSharingTypeVars (typeOf v) tyShare;
 
 fun typeVars v = Type.typeVars (typeOf v);
 
@@ -51,8 +51,8 @@ fun typeVars v = Type.typeVars (typeOf v);
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun addSharingTypeOps tyShare v =
-    Type.addSharingTypeOps tyShare [typeOf v];
+fun addSharingTypeOps v tyShare =
+    Type.addSharingTypeOps (typeOf v) tyShare;
 
 fun typeOps v = Type.typeOps (typeOf v);
 

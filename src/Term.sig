@@ -128,13 +128,21 @@ type sharingConsts
 
 val emptySharingConsts : sharingConsts
 
-val addSharingConsts : sharingConsts -> term list -> sharingConsts
+val addConstSharingConsts : Const.const -> sharingConsts -> sharingConsts
+
+val addConstSetSharingConsts : ConstSet.set -> sharingConsts -> sharingConsts
+
+val unionSharingConsts : sharingConsts -> sharingConsts -> sharingConsts
+
+val addSharingConsts : term -> sharingConsts -> sharingConsts
+
+val addListSharingConsts : term list -> sharingConsts -> sharingConsts
 
 val toSetSharingConsts : sharingConsts -> ConstSet.set
 
-val constsList : term list -> ConstSet.set
-
 val consts : term -> ConstSet.set
+
+val constsList : term list -> ConstSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
@@ -144,13 +152,15 @@ type sharingTypeVars
 
 val emptySharingTypeVars : sharingTypeVars
 
-val addSharingTypeVars : sharingTypeVars -> term list -> sharingTypeVars
+val addSharingTypeVars : term -> sharingTypeVars -> sharingTypeVars
+
+val addListSharingTypeVars : term list -> sharingTypeVars -> sharingTypeVars
 
 val toSetSharingTypeVars : sharingTypeVars -> NameSet.set
 
-val typeVarsList : term list -> NameSet.set
-
 val typeVars : term -> NameSet.set
+
+val typeVarsList : term list -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
@@ -160,13 +170,22 @@ type sharingTypeOps
 
 val emptySharingTypeOps : sharingTypeOps
 
-val addSharingTypeOps : sharingTypeOps -> term list -> sharingTypeOps
+val addTypeOpSharingTypeOps : TypeOp.typeOp -> sharingTypeOps -> sharingTypeOps
+
+val addTypeOpSetSharingTypeOps :
+    TypeOpSet.set -> sharingTypeOps -> sharingTypeOps
+
+val unionSharingTypeOps : sharingTypeOps -> sharingTypeOps -> sharingTypeOps
+
+val addSharingTypeOps : term -> sharingTypeOps -> sharingTypeOps
+
+val addListSharingTypeOps : term list -> sharingTypeOps -> sharingTypeOps
 
 val toSetSharingTypeOps : sharingTypeOps -> TypeOpSet.set
 
-val typeOpsList : term list -> TypeOpSet.set
-
 val typeOps : term -> TypeOpSet.set
+
+val typeOpsList : term list -> TypeOpSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive constants.                                                      *)

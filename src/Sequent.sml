@@ -64,14 +64,44 @@ fun dealphaCompare (s1,s2) =
 fun dealphaEqual s1 s2 = dealphaCompare (s1,s2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
-(* Type operators and constants.                                             *)
+(* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun typeOps (Sequent {hyp,concl}) =
-    TypeOpSet.union (TermAlphaSet.typeOps hyp) (Term.typeOps concl);
+fun addSharingTypeOps (Sequent {hyp,concl}) share =
+    let
+      val share = TermAlphaSet.addSharingTypeOps hyp share
+    in
+      Term.addSharingTypeOps concl share
+    end;
 
-fun consts (Sequent {hyp,concl}) =
-    ConstSet.union (TermAlphaSet.consts hyp) (Term.consts concl);
+fun typeOps seq =
+    let
+      val share = Term.emptySharingTypeOps
+
+      val share = addSharingTypeOps seq share
+    in
+      Term.toSetSharingTypeOps share
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun addSharingConsts (Sequent {hyp,concl}) share =
+    let
+      val share = TermAlphaSet.addSharingConsts hyp share
+    in
+      Term.addSharingConsts concl share
+    end;
+
+fun consts seq =
+    let
+      val share = Term.emptySharingConsts
+
+      val share = addSharingConsts seq share
+    in
+      Term.toSetSharingConsts share
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -125,18 +155,34 @@ struct
     open S;
   end;
 
-  val typeOps =
+  local
+    fun addSeq (seq,share) = Sequent.addSharingTypeOps seq share;
+  in
+    fun addSharingTypeOps set share = foldl addSeq share set;
+  end;
+
+  fun typeOps set =
       let
-        fun addNames (tm,acc) = TypeOpSet.union acc (Sequent.typeOps tm)
+        val share = Term.emptySharingTypeOps
+
+        val share = addSharingTypeOps set share
       in
-        foldl addNames TypeOpSet.empty
+        Term.toSetSharingTypeOps share
       end;
 
-  val consts =
+  local
+    fun addSeq (seq,share) = Sequent.addSharingConsts seq share;
+  in
+    fun addSharingConsts set share = foldl addSeq share set;
+  end;
+
+  fun consts set =
       let
-        fun addNames (tm,acc) = ConstSet.union acc (Sequent.consts tm)
+        val share = Term.emptySharingConsts
+
+        val share = addSharingConsts set share
       in
-        foldl addNames ConstSet.empty
+        Term.toSetSharingConsts share
       end;
 
 end
