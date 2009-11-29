@@ -20,33 +20,34 @@ open Useful;
 (*    [Objects that do not contain theorems can be easily constructed.]      *)
 (*                                                                           *)
 (* 3. The provenance of a theorem object tracks how the theorem was          *)
-(*    inferred (in order of priority):                                       *)
-(*      Ialpha obj     - alpha equivalent to saved theorem object obj        *)
+(*    inferred:                                                              *)
+(*      Ialpha obj     - alpha equivalent to theorem object obj              *)
 (*      Isimulated obj - simulated inference rule (using the call obj)       *)
-(*      Ialpha obj     - alpha equivalent to stack theorem object obj        *)
-(*      Ialpha obj     - alpha equivalent to context theorem object obj      *)
 (*      Iaxiom         - asserted as an axiom (a dependency of the theory)   *)
 (* ------------------------------------------------------------------------- *)
 
 type id = int;
 
-datatype object =
+datatype object' =
     Object of
       {id : id,
        object : Object.object,
+       symbol : Symbol.symbol,
        provenance : provenance}
 
 and provenance =
     Pnull
-  | Pcall of object
-  | Pcons of object * object
-  | Pref of object
+  | Pcall of object'
+  | Pcons of object' * object'
+  | Pref of object'
   | Pthm of inference
 
 and inference =
-    Ialpha of object
-  | Isimulated of object
+    Ialpha of object'
+  | Isimulated of object'
   | Iaxiom;
+
+type object = object';
 
 (* ------------------------------------------------------------------------- *)
 (* Object IDs.                                                               *)
@@ -76,41 +77,23 @@ fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
     Int.compare (i1,i2);
 
 (* ------------------------------------------------------------------------- *)
-(* Constructors and destructors.                                             *)
+(* A type of inferences.                                                     *)
 (* ------------------------------------------------------------------------- *)
-
-fun mk {object,provenance} =
-    let
-      val id = newId ()
-    in
-      Object
-        {id = id,
-         object = object,
-         provenance = provenance}
-    end;
-
-fun object (Object {object = x, ...}) = x;
-
-fun provenance (Object {provenance = x, ...}) = x;
-
-fun destCallProvenance p =
-    case p of
-      Pcall obj => obj
-    | _ => raise Error "ObjectProv.destCallProvenance";
-
-fun destCall (Object {object = f, provenance = a, ...}) =
-    let
-      val f = Object.destOcall f
-      and a = destCallProvenance a
-    in
-      (f,a)
-    end;
 
 fun parentsInference inf =
     case inf of
       Ialpha obj => [obj]
     | Isimulated obj => [obj]
     | Iaxiom => [];
+
+(* ------------------------------------------------------------------------- *)
+(* A type of provenances.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun destCallProvenance prov =
+    case prov of
+      Pcall obj => obj
+    | _ => raise Error "ObjectProv.destCallProvenance";
 
 fun parentsProvenance prov =
     case prov of
@@ -119,6 +102,44 @@ fun parentsProvenance prov =
     | Pcons (objH,objT) => [objH,objT]
     | Pref obj => [obj]
     | Pthm inf => parentsInference inf;
+
+fun containsThmsProvenance prov =
+    case prov of
+      Pnull => false
+(*OpenTheoryDebug
+    | Pcall _ => raise Bug "ObjectProv.containsThmsProvenance: Pcall"
+*)
+    | _ => true;
+
+fun stackUsesProvenance prov =
+    case prov of
+      Pnull => []
+    | Pcall obj => [obj]
+    | Pcons (objH,objT) => [objH,objT]
+    | Pref _ => []
+    | Pthm _ => [];
+
+(* ------------------------------------------------------------------------- *)
+(* Destructors.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun dest (obj : object) = obj;
+
+fun object (Object {object = x, ...}) = x;
+
+fun symbol (Object {symbol = x, ...}) = x;
+
+fun provenance (Object {provenance = x, ...}) = x;
+
+fun destCall obj =
+    let
+      val Object {object = f, provenance = a, ...} = obj
+
+      val f = Object.destOcall f
+      and a = destCallProvenance a
+    in
+      (f,a)
+    end;
 
 fun parents obj = parentsProvenance (provenance obj);
 
@@ -129,23 +150,236 @@ fun containsThms obj =
               raise Bug "ObjectProv.containsThms: Ocall"
 *)
     in
-      case provenance obj of
-        Pnull => false
-(*OpenTheoryDebug
-      | Pcall _ => raise Bug "ObjectProv.containsThms: Pcall"
-*)
-      | _ => true
+      containsThmsProvenance (provenance obj)
     end;
 
-fun stackUsesProvenance prov =
-    case prov of
-      Pnull => []
-    | Pcall obj => [obj]
-    | Pcons (objH,objT) => [objH,objT]
-    | Pref _ => []
-    | Pthm _ => [];
-
 fun stackUses obj = stackUsesProvenance (provenance obj);
+
+(* ------------------------------------------------------------------------- *)
+(* Constructing objects from commands.                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun mk ob sym prov =
+    let
+      val i = newId ()
+    in
+      Object
+        {id = i,
+         object = ob,
+         symbol = sym,
+         provenance = prov}
+    end;
+
+fun mkNum i =
+    let
+      val ob = Object.Oint i
+
+      val sym = Symbol.empty
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkName n =
+    let
+      val ob = Object.Oname n
+
+      val sym = Symbol.empty
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkError () =
+    let
+      val ob = Object.Oerror
+
+      val sym = Symbol.empty
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkNil () =
+    let
+      val ob = Object.onil
+
+      val sym = Symbol.empty
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkCons objH objT =
+    let
+      val Object {object = obH, symbol = symH, ...} = objH
+      and Object {object = obT, symbol = symT, ...} = objT
+
+      val ob = Object.mkOcons (obH,obT)
+
+      val sym = Symbol.union symH symT
+
+      val prov =
+          if containsThms objH orelse containsThms objT then Pcons (objH,objT)
+          else Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkTypeVar objN =
+    let
+      val Object {object = obN, ...} = objN
+
+      val ob = Object.mkOtypeVar obN
+
+      val sym = Symbol.empty
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkTypeOp ot objL =
+    let
+      val Object {object = obL, symbol = symL, ...} = objL
+
+      val ob = Object.mkOtypeOp (ot,obL)
+
+      val sym = Symbol.addTypeOp symL ot
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkVar objN objT =
+    let
+      val Object {object = obN, ...} = objN
+      and Object {object = obT, symbol = symT, ...} = objT
+
+      val ob = Object.mkOtermVar (obN,obT)
+
+      val sym = symT
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkConst c objT =
+    let
+      val Object {object = obT, symbol = symT, ...} = objT
+
+      val ob = Object.mkOtermConst (c,obT)
+
+      val sym = Symbol.addConst symT c
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkApp objF objA =
+    let
+      val Object {object = obF, symbol = symF, ...} = objF
+      and Object {object = obA, symbol = symA, ...} = objA
+
+      val ob = Object.mkOtermApp (obF,obA)
+
+      val sym = Symbol.union symF symA
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkAbs objV objB =
+    let
+      val Object {object = obV, symbol = symV, ...} = objV
+      and Object {object = obB, symbol = symB, ...} = objB
+
+      val ob = Object.mkOtermAbs (obV,obB)
+
+      val sym = Symbol.union symV symB
+
+      val prov = Pnull
+    in
+      mk ob sym prov
+    end;
+
+fun mkThm {savable} objH objC th inf =
+    let
+      val Object {symbol = symH, ...} = objH
+      and Object {symbol = symC, ...} = objC
+
+      val ob = Object.Othm th
+
+      val sym = Symbol.union symH symC
+
+      val prov = Pthm (if savable then inf else Iaxiom)
+    in
+      mk ob sym prov
+    end;
+
+fun mkCall n objA =
+    let
+      val ob = Object.Ocall n
+
+      val sym = Symbol.empty
+
+      val prov = Pcall objA
+    in
+      mk ob sym prov
+    end;
+
+fun mkReturn {savable} objR =
+    let
+      val Object {object = obR, symbol = symR, provenance = provR, ...} = objR
+
+      val ob = obR
+
+      val sym = symR
+
+      val prov =
+          if not (containsThms objR) then Pnull
+          else if savable then Pref objR
+          else provR
+    in
+      mk ob sym prov
+    end;
+
+fun mkRef {savable} objD =
+    let
+      val Object {object = obD, symbol = symD, provenance = provD, ...} = objD
+
+      val ob = obD
+
+      val sym = symD
+
+      val prov =
+          if not (containsThms objD) then Pnull
+          else if savable then Pref objD
+          else provD
+    in
+      mk ob sym prov
+    end;
+
+val mkRemove = mkRef;
+
+(* ------------------------------------------------------------------------- *)
+(* Updating provenance (for compression).                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun updateProvenance obj prov =
+    let
+      val Object {id = i, object = ob, symbol = sym, ...} = obj
+    in
+      Object {id = i, object = ob, symbol = sym, provenance = prov}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping with state over objects.                                          *)
@@ -167,17 +401,13 @@ local
                 let
                   val (obj,acc) = result
 
-                  val Object {id, object = ob, provenance = prov} = obj
+                  val prov = provenance obj
 
                   val (prov',acc) = mapsProv prov acc
 
                   val obj =
                       if prov' == prov then obj
-                      else
-                        Object
-                          {id = id,
-                           object = ob,
-                           provenance = prov'}
+                      else updateProvenance obj prov'
                 in
                   postDescent obj acc
                 end
@@ -259,7 +489,7 @@ end;
 
 fun pp level obj =
     let
-      val Object {id, object = ob, provenance = prov} = obj
+      val Object {id, object = ob, symbol = _, provenance = prov} = obj
 
       val level = level - 1
     in
@@ -380,17 +610,14 @@ local
 
   fun improve refs obj =
       let
-        val ObjectProv.Object {id, object = ob, provenance = prov} = obj
+        val id = ObjectProv.id obj
+        and ob = ObjectProv.object obj
+        and prov = ObjectProv.provenance obj
 
         fun better rid =
             rid < id andalso
             case prov of
-              ObjectProv.Pref obj =>
-              let
-                val ObjectProv.Object {id = rid', ...} = obj
-              in
-                rid < rid'
-              end
+              ObjectProv.Pref obj => rid < ObjectProv.id obj
             | _ => true
 
         val obj' =
@@ -400,17 +627,13 @@ local
             | _ =>
               case ObjectMap.peek refs ob of
                 NONE => NONE
-              | SOME (robj as ObjectProv.Object {id = rid, ...}) =>
-                if not (better rid) then NONE
+              | SOME robj =>
+                if not (better (ObjectProv.id robj)) then NONE
                 else
                   let
                     val prov = ObjectProv.Pref robj
 
-                    val obj =
-                        ObjectProv.Object
-                          {id = id,
-                           object = ob,
-                           provenance = prov}
+                    val obj = ObjectProv.updateProvenance obj prov
                   in
                     SOME obj
                   end
@@ -442,14 +665,14 @@ local
 
   fun postReduce obj (reqd,refs) =
       let
-        val ObjectProv.Object {id, object = ob, ...} = obj
+        val ob = ObjectProv.object obj
 
         val reqd = add reqd obj
 
         val insertRefs =
             case ObjectMap.peek refs ob of
               NONE => true
-            | SOME (ObjectProv.Object {id = id', ...}) => id < id'
+            | SOME robj => ObjectProv.id obj < ObjectProv.id robj
 
         val refs = if insertRefs then ObjectMap.insert refs (ob,obj) else refs
       in
@@ -466,7 +689,9 @@ local
       let
         fun check (obj,obs) =
             let
-              val ObjectProv.Object {id, object = ob, provenance = prov} = obj
+              val id = ObjectProv.id obj
+              and ob = ObjectProv.object obj
+              and prov = ObjectProv.provenance obj
             in
               case prov of
                 ObjectProv.Pnull => obs
@@ -476,12 +701,16 @@ local
                   NONE => ObjectMap.insert obs (ob,obj)
                 | SOME obj' =>
                   let
-                    val ObjectProv.Object {id = id', ...} = obj'
+                    val id' = ObjectProv.id obj'
                   in
                     case prov of
-                      ObjectProv.Pref (ObjectProv.Object {id = rid, ...}) =>
-                      if rid = id' then obs
-                      else raise Error "does not reference initial instance"
+                      ObjectProv.Pref robj =>
+                      let
+                        val rid = ObjectProv.id robj
+                      in
+                        if rid = id' then obs
+                        else raise Error "does not reference initial instance"
+                      end
                     | _ => raise Error "is not a reference"
                   end
                   handle Error err =>
@@ -512,6 +741,7 @@ in
   fun compressList objs =
       let
         val reqd = empty
+
         val refs = ObjectMap.new ()
 
         val (objs,(_,refs)) = reduceObjectList objs (reqd,refs)
@@ -521,6 +751,7 @@ in
 (*OpenTheoryDebug
         val _ = Portable.pointerEqual (refs,refs') orelse
                 raise Error "references changed"
+
         val () = checkReduced reqd
 *)
       in

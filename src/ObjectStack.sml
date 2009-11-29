@@ -124,9 +124,9 @@ fun popCall (Stack {call,...}) =
       NONE => raise Error "ObjectStack.popCall: top level"
     | SOME (obj,stack) =>
       let
-        val ObjectProv.Object {object = ob, ...} = obj
+        val (f,_) = ObjectProv.destCall obj
       in
-        (stack, Object.destOcall ob)
+        (stack,f)
       end;
 
 fun topCall (Stack {call,...}) =

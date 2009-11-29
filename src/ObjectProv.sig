@@ -7,38 +7,59 @@ signature ObjectProv =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Objects that track their provenance.                                      *)
+(* A type of objects that track their provenance.                            *)
 (* ------------------------------------------------------------------------- *)
 
-type id = int
+type object
 
-datatype object =
-    Object of
-      {id : id,
-       object : Object.object,
-       provenance : provenance}
+(* ------------------------------------------------------------------------- *)
+(* A type of inferences.                                                     *)
+(* ------------------------------------------------------------------------- *)
 
-and provenance =
+datatype inference =
+    Ialpha of object
+  | Isimulated of object  (* the call object simulated *)
+  | Iaxiom
+
+(* ------------------------------------------------------------------------- *)
+(* A type of provenances.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+datatype provenance =
     Pnull
   | Pcall of object  (* the argument object for the call *)
   | Pcons of object * object
   | Pref of object
   | Pthm of inference
 
-and inference =
-    Ialpha of object
-  | Isimulated of object  (* the call object simulated *)
-  | Iaxiom
-
 (* ------------------------------------------------------------------------- *)
-(* Constructors and destructors.                                             *)
+(* Object IDs.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-val mk :
-    {object : Object.object,
-     provenance : provenance} -> object
+type id = int
+
+val id : object -> id
+
+val equalId : id -> object -> bool
+
+val compare : object * object -> order
+
+(* ------------------------------------------------------------------------- *)
+(* Destructors.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+datatype object' =
+    Object of
+      {id : id,
+       object : Object.object,
+       symbol : Symbol.symbol,
+       provenance : provenance}
+
+val dest : object -> object'
 
 val object : object -> Object.object
+
+val symbol : object -> Symbol.symbol
 
 val provenance : object -> provenance
 
@@ -51,14 +72,47 @@ val containsThms : object -> bool
 val stackUses : object -> object list
 
 (* ------------------------------------------------------------------------- *)
-(* Object IDs.                                                               *)
+(* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val id : object -> id
+val mkNum : int -> object
 
-val equalId : id -> object -> bool
+val mkName : Name.name -> object
 
-val compare : object * object -> order
+val mkError : unit -> object
+
+val mkNil : unit -> object
+
+val mkCons : object -> object -> object
+
+val mkTypeVar : object -> object
+
+val mkTypeOp : TypeOp.typeOp -> object -> object
+
+val mkVar : object -> object -> object
+
+val mkConst : Const.const -> object -> object
+
+val mkApp : object -> object -> object
+
+val mkAbs : object -> object -> object
+
+val mkThm :
+    {savable : bool} -> object -> object -> Thm.thm -> inference -> object
+
+val mkCall : Name.name -> object -> object
+
+val mkReturn : {savable : bool} -> object -> object
+
+val mkRef : {savable : bool} -> object -> object
+
+val mkRemove : {savable : bool} -> object -> object
+
+(* ------------------------------------------------------------------------- *)
+(* Updating provenance (for compression).                                    *)
+(* ------------------------------------------------------------------------- *)
+
+val updateProvenance : object -> provenance -> object
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping with state over objects.                                          *)

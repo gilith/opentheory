@@ -272,6 +272,8 @@ val () = compress "natural" "example1";
 
 val () = compress "natural" "example2";
 
+val () = compress "natural" "example3";
+
 val () = compress "hol-light" "bool";
 
 val () = compress "hol-light" "tactics";

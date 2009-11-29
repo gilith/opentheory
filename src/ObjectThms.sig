@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* THEOREMS CONTAINED IN A SET OF OBJECTS                                    *)
+(* SYMBOLS AND THEOREMS CONTAINED IN A SET OF OBJECTS                        *)
 (* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 

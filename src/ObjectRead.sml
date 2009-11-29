@@ -73,13 +73,7 @@ fun execute cmd state =
 
         Command.Num i =>
         let
-          val ob = Object.Oint i
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkNum i
 
           val stack = ObjectStack.push stack obj
         in
@@ -94,13 +88,7 @@ fun execute cmd state =
 
       | Command.Name n =>
         let
-          val ob = Object.Oname n
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkName n
 
           val stack = ObjectStack.push stack obj
         in
@@ -115,13 +103,7 @@ fun execute cmd state =
 
       | Command.Error =>
         let
-          val ob = Object.Oerror
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkError ()
 
           val stack = ObjectStack.push stack obj
         in
@@ -136,13 +118,7 @@ fun execute cmd state =
 
       | Command.Nil =>
         let
-          val ob = Object.onil
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkNil ()
 
           val stack = ObjectStack.push stack obj
         in
@@ -157,22 +133,7 @@ fun execute cmd state =
         let
           val (stack,objH,objT) = ObjectStack.pop2 stack
 
-          val obH = ObjectProv.object objH
-          and obT = ObjectProv.object objT
-
-          val ob = Object.mkOcons (obH,obT)
-
-          and prov =
-              if ObjectProv.containsThms objH orelse
-                 ObjectProv.containsThms objT then
-                ObjectProv.Pcons (objH,objT)
-              else
-                ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkCons objH objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -189,15 +150,7 @@ fun execute cmd state =
         let
           val (stack,objN) = ObjectStack.pop1 stack
 
-          val obN = ObjectProv.object objN
-
-          val ob = Object.mkOtypeVar obN
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkTypeVar objN
 
           val stack = ObjectStack.push stack obj
         in
@@ -212,10 +165,7 @@ fun execute cmd state =
         let
           val (stack,objN,objL) = ObjectStack.pop2 stack
 
-          val obN = ObjectProv.object objN
-          and obL = ObjectProv.object objL
-
-          val n = Object.destOname obN
+          val n = Object.destOname (ObjectProv.object objN)
           val n = Interpretation.interpretTypeOp interpretation n
 
           val symbols =
@@ -226,13 +176,7 @@ fun execute cmd state =
 
           val ot = Symbol.mkTypeOp symbols n
 
-          val ob = Object.mkOtypeOp (ot,obL)
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkTypeOp ot objL
 
           val stack = ObjectStack.push stack obj
         in
@@ -249,16 +193,7 @@ fun execute cmd state =
         let
           val (stack,objN,objT) = ObjectStack.pop2 stack
 
-          val obN = ObjectProv.object objN
-          and obT = ObjectProv.object objT
-
-          val ob = Object.mkOtermVar (obN,obT)
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkVar objN objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -273,10 +208,7 @@ fun execute cmd state =
         let
           val (stack,objN,objT) = ObjectStack.pop2 stack
 
-          val obN = ObjectProv.object objN
-          and obT = ObjectProv.object objT
-
-          val n = Object.destOname obN
+          val n = Object.destOname (ObjectProv.object objN)
           val n = Interpretation.interpretConst interpretation n
 
           val symbols =
@@ -287,13 +219,7 @@ fun execute cmd state =
 
           val c = Symbol.mkConst symbols n
 
-          val ob = Object.mkOtermConst (c,obT)
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkConst c objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -308,16 +234,7 @@ fun execute cmd state =
         let
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
-          val obF = ObjectProv.object objF
-          and obA = ObjectProv.object objA
-
-          val ob = Object.mkOtermApp (obF,obA)
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkApp objF objA
 
           val stack = ObjectStack.push stack obj
         in
@@ -332,16 +249,7 @@ fun execute cmd state =
         let
           val (stack,objV,objB) = ObjectStack.pop2 stack
 
-          val obV = ObjectProv.object objV
-          and obB = ObjectProv.object objB
-
-          val ob = Object.mkOtermAbs (obV,obB)
-          and prov = ObjectProv.Pnull
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkAbs objV objB
 
           val stack = ObjectStack.push stack obj
         in
@@ -358,13 +266,15 @@ fun execute cmd state =
         let
           val (stack,objH,objC) = ObjectStack.pop2 stack
 
-          val obH = ObjectProv.object objH
-          and obC = ObjectProv.object objC
-
           val seq =
-              Sequent.Sequent
-                {hyp = TermAlphaSet.fromList (Object.destOterms obH),
-                 concl = Object.destOterm obC}
+              let
+                val obH = ObjectProv.object objH
+                and obC = ObjectProv.object objC
+              in
+                Sequent.Sequent
+                  {hyp = TermAlphaSet.fromList (Object.destOterms obH),
+                   concl = Object.destOterm obC}
+              end
 
           val (th,inf) =
               case ObjectThms.search saved seq of
@@ -390,13 +300,7 @@ fun execute cmd state =
                         (th,ObjectProv.Iaxiom)
                       end
 
-          val ob = Object.Othm th
-          and prov = ObjectProv.Pthm (if savable then inf else ObjectProv.Iaxiom)
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkThm {savable = savable} objH objC th inf
 
           val stack = ObjectStack.push stack obj
         in
@@ -469,19 +373,13 @@ fun execute cmd state =
                         let
                           val objA = buildObject {savable = savable} objA obA
                         in
-                          (obA, objA)
+                          (obA,objA)
                         end
                 in
                   (obA,objA,thms)
                 end
 
-          val ob = Object.Ocall n
-          and prov = ObjectProv.Pcall objA
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkCall n objA
 
           val stack = ObjectStack.push stack obj
           val stack = ObjectStack.push stack objA
@@ -498,7 +396,7 @@ fun execute cmd state =
         let
           val (stack,objR,objN) = ObjectStack.pop2 stack
 
-          val ObjectProv.Object {object = obR, provenance = provR, ...} = objR
+          val obR = ObjectProv.object objR
           and obN = ObjectProv.object objN
 
           val _ = not (Object.isOcall obR) orelse
@@ -528,17 +426,8 @@ fun execute cmd state =
           val () = if not traceReturn then ()
                    else Print.trace Object.pp "  return" obR
 *)
-          val ob = obR
 
-          and prov =
-              if not (ObjectProv.containsThms objR) then ObjectProv.Pnull
-              else if savable then ObjectProv.Pref objR
-              else provR
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkReturn {savable = savable} objR
 
           val stack = ObjectStack.push stack obj
         in
@@ -577,23 +466,11 @@ fun execute cmd state =
         let
           val (stack,objI) = ObjectStack.pop1 stack
 
-          val obI = ObjectProv.object objI
-          val i = Object.destOint obI
+          val i = Object.destOint (ObjectProv.object objI)
 
           val objD = ObjectDict.refer dict i
-          val obD = ObjectProv.object objD
 
-          val ob = obD
-
-          and prov =
-              if not (ObjectProv.containsThms objD) then ObjectProv.Pnull
-              else if savable then ObjectProv.Pref objD
-              else ObjectProv.provenance objD
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkRef {savable = savable} objD
 
           val stack = ObjectStack.push stack obj
         in
@@ -608,23 +485,11 @@ fun execute cmd state =
         let
           val (stack,objI) = ObjectStack.pop1 stack
 
-          val obI = ObjectProv.object objI
-          val i = Object.destOint obI
+          val i = Object.destOint (ObjectProv.object objI)
 
           val (dict,objD) = ObjectDict.remove dict i
-          val obD = ObjectProv.object objD
 
-          val ob = obD
-
-          and prov =
-              if not (ObjectProv.containsThms objD) then ObjectProv.Pnull
-              else if savable then ObjectProv.Pref objD
-              else ObjectProv.provenance objD
-
-          val obj =
-              ObjectProv.mk
-                {object = ob,
-                 provenance = prov}
+          val obj = ObjectProv.mkRemove {savable = savable} objD
 
           val stack = ObjectStack.push stack obj
         in
