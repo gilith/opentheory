@@ -304,7 +304,7 @@ fun mkAbs objV objB =
 
       val ob = Object.mkOtermAbs (obV,obB)
 
-      val sym = Symbol.union symV symB
+       val sym = Symbol.union symV symB
 
       val prov = Pnull
     in
@@ -369,6 +369,51 @@ fun mkRef {savable} objD =
     end;
 
 val mkRemove = mkRef;
+
+(* ------------------------------------------------------------------------- *)
+(* Building objects.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun build savable search =
+    let
+      fun bld ob =
+          case ob of
+            Object.Olist (obH :: obT) =>
+            let
+              val objH = bld obH
+
+              val objT = bld (Object.Olist obT)
+            in
+              mkCons objH objT
+            end
+          | Object.Othm th =>
+            let
+              val (obH,obC) = Object.mkOseq (Thm.sequent th)
+
+              val objH = bld obH
+
+              val objC = bld obC
+
+              val inf = search th
+            in
+              mkThm savable objH objC th inf
+            end
+          | Object.Ocall _ => raise Error "cannot build an Ocall object"
+          | _ =>
+            let
+              val sym = Object.symbol ob
+
+              val prov = Pnull
+            in
+              mk ob sym prov
+            end
+    in
+      bld
+    end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Bug ("ObjectProv.build: " ^ err);
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Updating provenance (for compression).                                    *)

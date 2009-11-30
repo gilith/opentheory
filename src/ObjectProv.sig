@@ -109,6 +109,13 @@ val mkRef : {savable : bool} -> object -> object
 val mkRemove : {savable : bool} -> object -> object
 
 (* ------------------------------------------------------------------------- *)
+(* Building objects.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val build :
+    {savable : bool} -> (Thm.thm -> inference) -> Object.object -> object
+
+(* ------------------------------------------------------------------------- *)
 (* Updating provenance (for compression).                                    *)
 (* ------------------------------------------------------------------------- *)
 

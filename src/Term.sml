@@ -355,20 +355,6 @@ fun addConstSetSharingConsts cs share =
          cons = cons}
     end;
 
-fun unionSharingConsts share1 share2 =
-    let
-      val SharingConsts {seen = seen1, cons = cons1} = share1
-      and SharingConsts {seen = seen2, cons = cons2} = share2
-
-      val seen = IntSet.union seen1 seen2
-
-      val cons = ConstSet.union cons1 cons2
-    in
-      SharingConsts
-        {seen = seen,
-         cons = cons}
-    end;
-
 fun sharingConsts seen acc tms =
     case tms of
       [] => (seen,acc)
@@ -417,6 +403,20 @@ fun addListSharingConsts tms (SharingConsts {seen,cons}) =
     end;
 
 fun addSharingConsts tm share = addListSharingConsts [tm] share;
+
+fun unionSharingConsts share1 share2 =
+    let
+      val SharingConsts {seen = seen1, cons = cons1} = share1
+      and SharingConsts {seen = seen2, cons = cons2} = share2
+
+      val seen = IntSet.union seen1 seen2
+
+      val cons = ConstSet.union cons1 cons2
+    in
+      SharingConsts
+        {seen = seen,
+         cons = cons}
+    end;
 
 fun toSetSharingConsts (SharingConsts {cons,...}) = cons;
 
@@ -562,14 +562,11 @@ fun addTypeOpSetSharingTypeOps ots share =
          seen = seen}
     end;
 
-fun unionSharingTypeOps share1 share2 =
+fun addTypeSharingTypeOps ty share =
     let
-      val SharingTypeOps {tyShare = tyShare1, seen = seen1} = share1
-      and SharingTypeOps {tyShare = tyShare2, seen = seen2} = share2
+      val SharingTypeOps {tyShare,seen} = share
 
-      val tyShare = Type.unionSharingTypeOps tyShare1 tyShare2
-
-      val seen = IntSet.union seen1 seen2
+      val tyShare = Type.addSharingTypeOps ty tyShare
     in
       SharingTypeOps
         {tyShare = tyShare,
@@ -630,6 +627,20 @@ fun addListSharingTypeOps tms (SharingTypeOps {tyShare,seen}) =
     end;
 
 fun addSharingTypeOps tm share = addListSharingTypeOps [tm] share;
+
+fun unionSharingTypeOps share1 share2 =
+    let
+      val SharingTypeOps {tyShare = tyShare1, seen = seen1} = share1
+      and SharingTypeOps {tyShare = tyShare2, seen = seen2} = share2
+
+      val tyShare = Type.unionSharingTypeOps tyShare1 tyShare2
+
+      val seen = IntSet.union seen1 seen2
+    in
+      SharingTypeOps
+        {tyShare = tyShare,
+         seen = seen}
+    end;
 
 fun toSetSharingTypeOps (SharingTypeOps {tyShare,...}) =
     Type.toSetSharingTypeOps tyShare;

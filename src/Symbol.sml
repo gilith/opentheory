@@ -147,6 +147,10 @@ val addConst = addX addNothing Term.addConstSharingConsts;
 
 val addConstSet = addX addNothing Term.addConstSetSharingConsts;
 
+val addType = addX Term.addTypeSharingTypeOps addNothing;
+
+val addTerm = addX Term.addSharingTypeOps Term.addSharingConsts;
+
 val addSequent = addX Sequent.addSharingTypeOps Sequent.addSharingConsts;
 
 val addSequentSet =

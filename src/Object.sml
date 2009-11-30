@@ -169,6 +169,14 @@ fun destOtermAbs (Oterm t) =
   | destOtermAbs _ = raise Error "Object.destOtermAbs";
 val isOtermAbs = can destOtermAbs;
 
+fun mkOseq seq =
+    let
+      val Sequent.Sequent {hyp,concl} = seq
+      val hyp = TermAlphaSet.toList hyp
+    in
+      (mkOterms hyp, Oterm concl)
+    end;
+
 fun destOthm (Othm th) = th
   | destOthm _ = raise Error "destOthm";
 val isOthm = can destOthm;
@@ -219,7 +227,48 @@ val thms =
         | f acc (Olist l :: rest) = f acc (l @ rest)
         | f acc (_ :: rest) = f acc rest
     in
-      fn obj => f [] [obj]
+      fn ob => f [] [ob]
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Extracting the symbols in an object.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val symbol =
+    let
+      fun f sym [] = sym
+        | f sym (ob :: obs) =
+          case ob of
+            Oerror => f sym obs
+          | Oint _ => f sym obs
+          | Oname _ => f sym obs
+          | Olist l =>
+            let
+              val obs = l @ obs
+            in
+              f sym obs
+            end
+          | Otype ty =>
+            let
+              val sym = Symbol.addType sym ty
+            in
+              f sym obs
+            end
+          | Oterm tm =>
+            let
+              val sym = Symbol.addTerm sym tm
+            in
+              f sym obs
+            end
+          | Othm th =>
+            let
+              val sym = Symbol.addSequent sym (Thm.sequent th)
+            in
+              f sym obs
+            end
+          | Ocall _ => f sym obs
+    in
+      fn ob => f Symbol.empty [ob]
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -252,10 +301,9 @@ fun toCommand ob =
          (Command.Abs, [Oterm (Term.mkVar v), Oterm b]))
     | Othm th =>
       let
-        val Sequent.Sequent {hyp,concl} = Thm.sequent th
-        val hyp = TermAlphaSet.toList hyp
+        val (hyp,concl) = mkOseq (Thm.sequent th)
       in
-        (Command.Thm, [mkOterms hyp, Oterm concl])
+        (Command.Thm,[hyp,concl])
       end
     | Ocall _ => raise Bug "Object.toCommand: Ocall";
 

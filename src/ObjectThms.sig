@@ -42,11 +42,4 @@ val search : thms -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
 
 val toThmSet : thms -> ThmSet.set
 
-(* ------------------------------------------------------------------------- *)
-(* Building objects using object set theorems.                               *)
-(* ------------------------------------------------------------------------- *)
-
-val buildObject :
-    {savable : bool} -> thms -> Object.object -> ObjectProv.object
-
 end

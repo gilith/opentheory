@@ -13,7 +13,16 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 fun buildObject savable obj =
-    ObjectThms.buildObject savable (ObjectThms.singleton obj);
+    let
+      val thms = ObjectThms.singleton obj
+
+      fun search th =
+          case ObjectThms.search thms (Thm.sequent th) of
+            SOME (_,objS) => ObjectProv.Ialpha objS
+          | NONE => raise Error ("couldn't find theorem:\n" ^ Thm.toString th)
+    in
+      ObjectProv.build savable search
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)

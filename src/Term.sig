@@ -132,11 +132,11 @@ val addConstSharingConsts : Const.const -> sharingConsts -> sharingConsts
 
 val addConstSetSharingConsts : ConstSet.set -> sharingConsts -> sharingConsts
 
-val unionSharingConsts : sharingConsts -> sharingConsts -> sharingConsts
-
 val addSharingConsts : term -> sharingConsts -> sharingConsts
 
 val addListSharingConsts : term list -> sharingConsts -> sharingConsts
+
+val unionSharingConsts : sharingConsts -> sharingConsts -> sharingConsts
 
 val toSetSharingConsts : sharingConsts -> ConstSet.set
 
@@ -175,11 +175,13 @@ val addTypeOpSharingTypeOps : TypeOp.typeOp -> sharingTypeOps -> sharingTypeOps
 val addTypeOpSetSharingTypeOps :
     TypeOpSet.set -> sharingTypeOps -> sharingTypeOps
 
-val unionSharingTypeOps : sharingTypeOps -> sharingTypeOps -> sharingTypeOps
+val addTypeSharingTypeOps : Type.ty -> sharingTypeOps -> sharingTypeOps
 
 val addSharingTypeOps : term -> sharingTypeOps -> sharingTypeOps
 
 val addListSharingTypeOps : term list -> sharingTypeOps -> sharingTypeOps
+
+val unionSharingTypeOps : sharingTypeOps -> sharingTypeOps -> sharingTypeOps
 
 val toSetSharingTypeOps : sharingTypeOps -> TypeOpSet.set
 

@@ -13,8 +13,7 @@ TEMPFILE = Makefile-temp-file
 
 TEMP += $(TEMPFILE) \
 	bin/mlton/*.ssa bin/mlton/*.ssa2 \
-        bin/mlton/benchmark \
-        benchmark.out mlmon.out profile-*
+        bin/mlton/benchmark benchmark.out mlmon.out profile-*
 
 ###############################################################################
 # The ML preprocessor.
@@ -279,7 +278,7 @@ profile-time: profile-time.mlb
 	@echo
 
 profile-time.out profile-time-log: profile-time
-	time ./profile-time $(BENCHMARK_OPTS) | tee profile-time-log
+	time ./profile-time $(BENCHMARK_OPTS) | tee profile-time.log
 	mv mlmon.out profile-time.out
 
 profile-time.txt: profile-time.out Makefile.dev

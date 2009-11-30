@@ -98,6 +98,8 @@ val mkOtermAbs : object * object -> object
 val destOtermAbs : object -> object * object
 val isOtermAbs : object -> bool
 
+val mkOseq : Sequent.sequent -> object * object
+
 val destOthm : object -> Thm.thm
 val isOthm : object -> bool
 
@@ -115,6 +117,12 @@ val compare : object * object -> order
 (* ------------------------------------------------------------------------- *)
 
 val thms : object -> Thm.thm list
+
+(* ------------------------------------------------------------------------- *)
+(* Extracting the symbols in an object.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val symbol : object -> Symbol.symbol
 
 (* ------------------------------------------------------------------------- *)
 (* Breaking down objects into commands.                                      *)
