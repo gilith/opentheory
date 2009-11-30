@@ -14,37 +14,36 @@ open Useful;
 
 datatype simulation =
     Simulation of
-      {seqs : (Thm.thm * ObjectProv.object) SequentMap.map,
-       symbol : Symbol.symbol};
+      {seqs : (Thm.thm * ObjectProv.object) SequentMap.map};
 
 val empty =
     let
       val seqs = SequentMap.new ()
-
-      val symbol = Symbol.empty
     in
       Simulation
-        {seqs = seqs,
-         symbol = symbol}
+        {seqs = seqs}
     end;
 
-fun symbol (Simulation {symbol = x, ...}) = x;
+local
+  fun addSym (seq,_,sym) = Symbol.addSequent sym seq;
+in
+  fun symbol (Simulation {seqs,...}) =
+      SequentMap.foldl addSym Symbol.empty seqs;
+end;
 
 (* ------------------------------------------------------------------------- *)
-(* Adding thms simulated by a call object.                                   *)
+(* Adding theorems simulated by a call object.                               *)
 (* ------------------------------------------------------------------------- *)
 
 fun add sim (ths,obj) =
     let
       fun addSeq (th,seqs) = SequentMap.insert seqs (Thm.sequent th, (th,obj))
 
-      val Simulation {seqs, symbol = sym} = sim
+      val Simulation {seqs} = sim
 
       val seqs = ThmSet.foldl addSeq seqs ths
-
-      val sym = Symbol.addSequentSet sym (ThmSet.sequents ths)
     in
-      Simulation {seqs = seqs, symbol = sym}
+      Simulation {seqs = seqs}
     end;
 
 (* ------------------------------------------------------------------------- *)

@@ -92,8 +92,11 @@ and compareTy' ty1_ty2 =
       (VarTy' n1, VarTy' n2) => Name.compare (n1,n2)
     | (VarTy' _, OpTy' _) => LESS
     | (OpTy' _, VarTy' _) => GREATER
-    | (OpTy' o1_tys1, OpTy' o2_tys2) =>
-      prodCompare compareOpTy compareListTy (o1_tys1,o2_tys2)
+    | (OpTy' (o1,tys1), OpTy' (o2,tys2)) =>
+      case compareOpTy (o1,o2) of
+        LESS => LESS
+      | EQUAL => compareListTy (tys1,tys2)
+      | GREATER => GREATER
 
 and compareOpTy (o1,o2) =
     let
@@ -124,8 +127,11 @@ and compareDefOpTy (d1,d2) =
       | GREATER => GREATER
     end
 
-and compareVar (Var n1_ty1, Var n2_ty2) =
-    prodCompare Name.compare compareTy (n1_ty1,n2_ty2)
+and compareVar (Var (n1,ty1), Var (n2,ty2)) =
+    case Name.compare (n1,n2) of
+      LESS => LESS
+    | EQUAL => compareTy (ty1,ty2)
+    | GREATER => GREATER
 
 and compareListVar vs1_vs2 = lexCompare compareVar vs1_vs2
 
@@ -144,17 +150,28 @@ and compare (tm1,tm2) =
 
 and compare' tm1_tm2 =
     case tm1_tm2 of
-      (Const' c1_ty1, Const' c2_ty2) =>
-      prodCompare compareConst compareTy (c1_ty1,c2_ty2)
+      (Const' (c1,ty1), Const' (c2,ty2)) =>
+      (case compareConst (c1,c2) of
+         LESS => LESS
+       | EQUAL => compareTy (ty1,ty2)
+       | GREATER => GREATER)
     | (Const' _, _) => LESS
     | (_, Const' _) => GREATER
     | (Var' v1, Var' v2) => compareVar (v1,v2)
     | (Var' _, _) => LESS
     | (_, Var' _) => GREATER
-    | (App' f1_a1, App' f2_a2) => prodCompare compare compare (f1_a1,f2_a2)
+    | (App' (f1,a1), App' (f2,a2)) =>
+      (case compare (f1,f2) of
+         LESS => LESS
+       | EQUAL => compare (a1,a2)
+       | GREATER => GREATER)
     | (App' _, _) => LESS
     | (_, App' _) => GREATER
-    | (Abs' v1_b1, Abs' v2_b2) => prodCompare compareVar compare (v1_b1,v2_b2)
+    | (Abs' (v1,b1), Abs' (v2,b2)) =>
+      case compareVar (v1,v2) of
+        LESS => LESS
+      | EQUAL => compare (b1,b2)
+      | GREATER => GREATER
 
 and compareConst (c1,c2) =
     let

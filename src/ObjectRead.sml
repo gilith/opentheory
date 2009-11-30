@@ -280,9 +280,7 @@ fun execute cmd state =
                 val obH = ObjectProv.object objH
                 and obC = ObjectProv.object objC
               in
-                Sequent.Sequent
-                  {hyp = TermAlphaSet.fromList (Object.destOterms obH),
-                   concl = Object.destOterm obC}
+                Object.destOseq (obH,obC)
               end
 
           val (th,inf) =
@@ -309,7 +307,7 @@ fun execute cmd state =
                         (th,ObjectProv.Iaxiom)
                       end
 
-          val obj = ObjectProv.mkThm {savable = savable} objH objC th inf
+          val obj = ObjectProv.mkThm {savable = savable} th inf
 
           val stack = ObjectStack.push stack obj
         in

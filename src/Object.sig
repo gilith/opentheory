@@ -99,6 +99,8 @@ val destOtermAbs : object -> object * object
 val isOtermAbs : object -> bool
 
 val mkOseq : Sequent.sequent -> object * object
+val destOseq : object * object -> Sequent.sequent
+val isOseq : object * object -> bool
 
 val destOthm : object -> Thm.thm
 val isOthm : object -> bool
@@ -123,6 +125,10 @@ val thms : object -> Thm.thm list
 (* ------------------------------------------------------------------------- *)
 
 val symbol : object -> Symbol.symbol
+
+val symbolAdd : Symbol.symbol -> object -> Symbol.symbol
+
+val symbolAddList : Symbol.symbol -> object list -> Symbol.symbol
 
 (* ------------------------------------------------------------------------- *)
 (* Breaking down objects into commands.                                      *)

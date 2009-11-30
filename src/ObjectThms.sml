@@ -46,14 +46,14 @@ fun symbol (Thms {symbol = x, ...}) = x;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun adds seqs sym seen objs =
+  fun adds objA seqs sym seen objs =
       case objs of
         [] => (seqs,sym,seen)
       | obj :: objs =>
         let
           val id = ObjectProv.id obj
         in
-          if IntSet.member id seen then adds seqs sym seen objs
+          if IntSet.member id seen then adds objA seqs sym seen objs
           else
             let
               val seen = IntSet.add seen id
@@ -63,13 +63,13 @@ local
                 let
                   val sym = Symbol.union sym (ObjectProv.symbol obj)
                 in
-                  adds seqs sym seen objs
+                  adds objA seqs sym seen objs
                 end
-              | ObjectProv.Pcall _ => adds seqs sym seen objs
+              | ObjectProv.Pcall _ => adds objA seqs sym seen objs
               | ObjectProv.Pcons (objH,objT) =>
-                adds seqs sym seen (objH :: objT :: objs)
+                adds objA seqs sym seen (objH :: objT :: objs)
               | ObjectProv.Pref objR =>
-                adds seqs sym seen (objR :: objs)
+                adds objA seqs sym seen (objR :: objs)
               | ObjectProv.Pthm _ =>
                 let
                   val th =
@@ -79,14 +79,15 @@ local
 
                   val seq = Thm.sequent th
                 in
-                  if SequentMap.inDomain seq seqs then adds seqs sym seen objs
+                  if SequentMap.inDomain seq seqs then
+                    adds objA seqs sym seen objs
                   else
                     let
-                      val seqs = SequentMap.insert seqs (seq,(th,obj))
+                      val seqs = SequentMap.insert seqs (seq,(th,objA))
 
                       val sym = Symbol.union sym (ObjectProv.symbol obj)
                     in
-                      adds seqs sym seen objs
+                      adds objA seqs sym seen objs
                     end
                 end
             end
@@ -97,7 +98,7 @@ in
         val Thms {objs,seqs,symbol,seen} = thms
 
         val objs = ObjectProvSet.add objs obj
-        and (seqs,symbol,seen) = adds seqs symbol seen [obj]
+        and (seqs,symbol,seen) = adds obj seqs symbol seen [obj]
       in
         Thms
           {objs = objs,
@@ -144,6 +145,8 @@ fun union ths1 ths2 =
          symbol = sym,
          seen = seen}
     end;
+
+val fromList = addList empty;
 
 (* ------------------------------------------------------------------------- *)
 (* Searching for theorems.                                                   *)

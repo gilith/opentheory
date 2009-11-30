@@ -60,6 +60,8 @@ val addSequentSet : symbol -> SequentSet.set -> symbol
 
 val union : symbol -> symbol -> symbol
 
+val unionList : symbol list -> symbol
+
 (* ------------------------------------------------------------------------- *)
 (* Partition symbol table entries into undefined and defined.                *)
 (* ------------------------------------------------------------------------- *)

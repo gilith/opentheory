@@ -192,6 +192,15 @@ in
       end;
 end;
 
+local
+  fun uncurriedUnion (s1,s2) = union s1 s2;
+in
+  fun unionList syms =
+      case syms of
+        [] => empty
+      | sym :: syms => List.foldl uncurriedUnion sym syms;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Partition symbol table entries into undefined and defined.                *)
 (* ------------------------------------------------------------------------- *)

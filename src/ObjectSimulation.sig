@@ -17,7 +17,7 @@ val empty : simulation
 val symbol : simulation -> Symbol.symbol
 
 (* ------------------------------------------------------------------------- *)
-(* Adding thms simulated by a call object.                                   *)
+(* Adding theorems simulated by a call object.                               *)
 (* ------------------------------------------------------------------------- *)
 
 val add : simulation -> ThmSet.set * ObjectProv.object -> simulation

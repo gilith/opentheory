@@ -52,14 +52,11 @@ datatype object' =
     Object of
       {id : id,
        object : Object.object,
-       symbol : Symbol.symbol,
        provenance : provenance}
 
 val dest : object -> object'
 
 val object : object -> Object.object
-
-val symbol : object -> Symbol.symbol
 
 val provenance : object -> provenance
 
@@ -70,6 +67,24 @@ val parents : object -> object list
 val containsThms : object -> bool
 
 val stackUses : object -> object list
+
+(* ------------------------------------------------------------------------- *)
+(* Symbols contained in objects.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val symbol : object -> Symbol.symbol
+
+val symbolList : object list -> Symbol.symbol
+
+val symbolAddList : Symbol.symbol -> object list -> Symbol.symbol
+
+(* ------------------------------------------------------------------------- *)
+(* Searching for theorems contained in objects.                              *)
+(* ------------------------------------------------------------------------- *)
+
+val search : object -> Sequent.sequent -> (Thm.thm * object) option
+
+val searchList : object list -> Sequent.sequent -> (Thm.thm * object) option
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
@@ -97,8 +112,7 @@ val mkApp : object -> object -> object
 
 val mkAbs : object -> object -> object
 
-val mkThm :
-    {savable : bool} -> object -> object -> Thm.thm -> inference -> object
+val mkThm : {savable : bool} -> Thm.thm -> inference -> object
 
 val mkCall : Name.name -> object -> object
 

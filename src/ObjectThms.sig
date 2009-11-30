@@ -34,6 +34,8 @@ val addSet : thms -> ObjectProvSet.set -> thms
 
 val union : thms -> thms -> thms
 
+val fromList : ObjectProv.object list -> thms
+
 (* ------------------------------------------------------------------------- *)
 (* Searching for theorems.                                                   *)
 (* ------------------------------------------------------------------------- *)

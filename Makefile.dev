@@ -285,7 +285,7 @@ profile-time.txt: profile-time.out Makefile.dev
 	mlprof -show-line true -raw true -keep '(and (thresh 0.1) (thresh-stack 0.1))' -split '.*' profile-time profile-time.out > $@
 
 profile-time.dot: profile-time.out Makefile.dev
-	mlprof -show-line true -raw true -call-graph $@ -keep '(thresh-stack 10)' -graph-title "OpenTheory Time Profiling" -split '.*' profile-time profile-time.out > /dev/null
+	mlprof -show-line true -raw true -call-graph $@ -keep '(thresh-stack 5)' -graph-title "OpenTheory Time Profiling" -split '.*' profile-time profile-time.out > /dev/null
 
 .PHONY: profile
 profile: profile-time.txt profile-time.dot

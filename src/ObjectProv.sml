@@ -32,7 +32,6 @@ datatype object' =
     Object of
       {id : id,
        object : Object.object,
-       symbol : Symbol.symbol,
        provenance : provenance}
 
 and provenance =
@@ -127,8 +126,6 @@ fun dest (obj : object) = obj;
 
 fun object (Object {object = x, ...}) = x;
 
-fun symbol (Object {symbol = x, ...}) = x;
-
 fun provenance (Object {provenance = x, ...}) = x;
 
 fun destCall obj =
@@ -156,17 +153,96 @@ fun containsThms obj =
 fun stackUses obj = stackUsesProvenance (provenance obj);
 
 (* ------------------------------------------------------------------------- *)
+(* Symbols contained in objects.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val symbolAddList =
+    let
+      fun syms seen sym objs =
+          case objs of
+            [] => sym
+          | obj :: objs =>
+            let
+              val Object {id = i, object = ob, provenance = prov, ...} = obj
+            in
+              if IntSet.member i seen then syms seen sym objs
+              else
+                let
+                  val seen = IntSet.add seen i
+                in
+                  case prov of
+                    Pcall _ => syms seen sym objs
+                  | Pcons (objH,objT) => syms seen sym (objH :: objT :: objs)
+                  | Pref objR => syms seen sym (objR :: objs)
+                  | _ =>
+                    let
+                      val sym = Object.symbolAdd sym ob
+                    in
+                      syms seen sym objs
+                    end
+                end
+            end
+    in
+      syms IntSet.empty
+    end;
+
+val symbolList = symbolAddList Symbol.empty;
+
+fun symbol obj = symbolList [obj];
+
+(* ------------------------------------------------------------------------- *)
+(* Searching for theorems contained in objects.                              *)
+(* ------------------------------------------------------------------------- *)
+
+local
+   fun srch seq seen objs =
+       case objs of
+         [] => NONE
+       | obj :: objs =>
+         let
+           val Object {id = i, object = ob, provenance = prov, ...} = obj
+         in
+           if IntSet.member i seen then srch seq seen objs
+           else
+             let
+               val seen = IntSet.add seen i
+             in
+               case prov of
+                 Pnull => srch seq seen objs
+               | Pcall _ => srch seq seen objs
+               | Pcons (objH,objT) => srch seq seen (objH :: objT :: objs)
+               | Pref objR => srch seq seen (objR :: objs)
+               | Pthm _ =>
+                 let
+                   val th =
+                       case ob of
+                         Object.Othm th => th
+                       | _ => raise Bug "ObjectProv.searchList: bad thm"
+                 in
+                   if Sequent.equal seq (Thm.sequent th) then
+                     SOME (Rule.alpha seq th, obj)
+                   else
+                     srch seq seen objs
+                 end
+             end
+         end;
+in
+  fun searchList objs seq = srch seq IntSet.empty objs;
+end;
+
+fun search obj seq = searchList [obj] seq;
+
+(* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk ob sym prov =
+fun mk ob prov =
     let
       val i = newId ()
     in
       Object
         {id = i,
          object = ob,
-         symbol = sym,
          provenance = prov}
     end;
 
@@ -174,60 +250,50 @@ fun mkNum i =
     let
       val ob = Object.Oint i
 
-      val sym = Symbol.empty
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkName n =
     let
       val ob = Object.Oname n
 
-      val sym = Symbol.empty
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkError () =
     let
       val ob = Object.Oerror
 
-      val sym = Symbol.empty
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkNil () =
     let
       val ob = Object.onil
 
-      val sym = Symbol.empty
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkCons objH objT =
     let
-      val Object {object = obH, symbol = symH, ...} = objH
-      and Object {object = obT, symbol = symT, ...} = objT
+      val Object {object = obH, ...} = objH
+      and Object {object = obT, ...} = objT
 
       val ob = Object.mkOcons (obH,obT)
-
-      val sym = Symbol.union symH symT
 
       val prov =
           if containsThms objH orelse containsThms objT then Pcons (objH,objT)
           else Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkTypeVar objN =
@@ -236,137 +302,102 @@ fun mkTypeVar objN =
 
       val ob = Object.mkOtypeVar obN
 
-      val sym = Symbol.empty
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkTypeOp ot objL =
     let
-      val Object {object = obL, symbol = symL, ...} = objL
+      val Object {object = obL, ...} = objL
 
       val ob = Object.mkOtypeOp (ot,obL)
 
-      val sym = Symbol.addTypeOp symL ot
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkVar objN objT =
     let
       val Object {object = obN, ...} = objN
-      and Object {object = obT, symbol = symT, ...} = objT
+      and Object {object = obT, ...} = objT
 
       val ob = Object.mkOtermVar (obN,obT)
 
-      val sym = symT
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkConst c objT =
     let
-      val Object {object = obT, symbol = symT, ...} = objT
+      val Object {object = obT, ...} = objT
 
       val ob = Object.mkOtermConst (c,obT)
 
-      val sym = Symbol.addConst symT c
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkApp objF objA =
     let
-      val Object {object = obF, symbol = symF, ...} = objF
-      and Object {object = obA, symbol = symA, ...} = objA
+      val Object {object = obF, ...} = objF
+      and Object {object = obA, ...} = objA
 
       val ob = Object.mkOtermApp (obF,obA)
 
-      val sym = Symbol.union symF symA
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkAbs objV objB =
     let
-      val Object {object = obV, symbol = symV, ...} = objV
-      and Object {object = obB, symbol = symB, ...} = objB
+      val Object {object = obV, ...} = objV
+      and Object {object = obB, ...} = objB
 
       val ob = Object.mkOtermAbs (obV,obB)
 
-       val sym = Symbol.union symV symB
-
       val prov = Pnull
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
-fun mkThm {savable} objH objC th inf =
+fun mkThm {savable} th inf =
     let
-      val Object {symbol = symH, ...} = objH
-      and Object {symbol = symC, ...} = objC
-
       val ob = Object.Othm th
-
-      val sym = Symbol.union symH symC
 
       val prov = Pthm (if savable then inf else Iaxiom)
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkCall n objA =
     let
       val ob = Object.Ocall n
 
-      val sym = Symbol.empty
-
       val prov = Pcall objA
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
 fun mkReturn {savable} objR =
     let
-      val Object {object = obR, symbol = symR, provenance = provR, ...} = objR
+      val Object {object = obR, provenance = provR, ...} = objR
 
       val ob = obR
-
-      val sym = symR
 
       val prov =
           if not (containsThms objR) then Pnull
           else if savable then Pref objR
           else provR
     in
-      mk ob sym prov
+      mk ob prov
     end;
 
-fun mkRef {savable} objD =
-    let
-      val Object {object = obD, symbol = symD, provenance = provD, ...} = objD
-
-      val ob = obD
-
-      val sym = symD
-
-      val prov =
-          if not (containsThms objD) then Pnull
-          else if savable then Pref objD
-          else provD
-    in
-      mk ob sym prov
-    end;
+val mkRef = mkReturn;
 
 val mkRemove = mkRef;
 
@@ -374,7 +405,7 @@ val mkRemove = mkRef;
 (* Building objects.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun build savable search =
+fun build savable srch =
     let
       fun bld ob =
           case ob of
@@ -388,24 +419,16 @@ fun build savable search =
             end
           | Object.Othm th =>
             let
-              val (obH,obC) = Object.mkOseq (Thm.sequent th)
-
-              val objH = bld obH
-
-              val objC = bld obC
-
-              val inf = search th
+              val inf = srch th
             in
-              mkThm savable objH objC th inf
+              mkThm savable th inf
             end
           | Object.Ocall _ => raise Error "cannot build an Ocall object"
           | _ =>
             let
-              val sym = Object.symbol ob
-
               val prov = Pnull
             in
-              mk ob sym prov
+              mk ob prov
             end
     in
       bld
@@ -421,9 +444,9 @@ fun build savable search =
 
 fun updateProvenance obj prov =
     let
-      val Object {id = i, object = ob, symbol = sym, ...} = obj
+      val Object {id = i, object = ob, ...} = obj
     in
-      Object {id = i, object = ob, symbol = sym, provenance = prov}
+      Object {id = i, object = ob, provenance = prov}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -534,7 +557,7 @@ end;
 
 fun pp level obj =
     let
-      val Object {id, object = ob, symbol = _, provenance = prov} = obj
+      val Object {id, object = ob, provenance = prov} = obj
 
       val level = level - 1
     in

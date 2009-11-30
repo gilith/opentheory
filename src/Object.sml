@@ -171,11 +171,16 @@ val isOtermAbs = can destOtermAbs;
 
 fun mkOseq seq =
     let
-      val Sequent.Sequent {hyp,concl} = seq
-      val hyp = TermAlphaSet.toList hyp
+      val Sequent.Sequent {hyp = h, concl = c} = seq
+      val h = TermAlphaSet.toList h
     in
-      (mkOterms hyp, Oterm concl)
+      (mkOterms h, Oterm c)
     end;
+fun destOseq (h,c) =
+    Sequent.Sequent
+      {hyp = TermAlphaSet.fromList (destOterms h),
+       concl = destOterm c};
+val isOseq = can destOseq;
 
 fun destOthm (Othm th) = th
   | destOthm _ = raise Error "destOthm";
@@ -234,42 +239,43 @@ val thms =
 (* Extracting the symbols in an object.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val symbol =
-    let
-      fun f sym [] = sym
-        | f sym (ob :: obs) =
-          case ob of
-            Oerror => f sym obs
-          | Oint _ => f sym obs
-          | Oname _ => f sym obs
-          | Olist l =>
-            let
-              val obs = l @ obs
-            in
-              f sym obs
-            end
-          | Otype ty =>
-            let
-              val sym = Symbol.addType sym ty
-            in
-              f sym obs
-            end
-          | Oterm tm =>
-            let
-              val sym = Symbol.addTerm sym tm
-            in
-              f sym obs
-            end
-          | Othm th =>
-            let
-              val sym = Symbol.addSequent sym (Thm.sequent th)
-            in
-              f sym obs
-            end
-          | Ocall _ => f sym obs
-    in
-      fn ob => f Symbol.empty [ob]
-    end;
+fun symbolAddList sym obs =
+    case obs of
+      [] => sym
+    | ob :: obs =>
+      case ob of
+        Oerror => symbolAddList sym obs
+      | Oint _ => symbolAddList sym obs
+      | Oname _ => symbolAddList sym obs
+      | Olist l =>
+        let
+          val obs = l @ obs
+        in
+          symbolAddList sym obs
+        end
+      | Otype ty =>
+        let
+          val sym = Symbol.addType sym ty
+        in
+          symbolAddList sym obs
+        end
+      | Oterm tm =>
+        let
+          val sym = Symbol.addTerm sym tm
+        in
+          symbolAddList sym obs
+        end
+      | Othm th =>
+        let
+          val sym = Symbol.addSequent sym (Thm.sequent th)
+        in
+          symbolAddList sym obs
+        end
+      | Ocall _ => symbolAddList sym obs;
+
+fun symbolAdd sym ob = symbolAddList sym [ob];
+
+val symbol = symbolAdd Symbol.empty;
 
 (* ------------------------------------------------------------------------- *)
 (* Breaking down objects into commands.                                      *)
