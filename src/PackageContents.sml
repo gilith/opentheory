@@ -28,6 +28,8 @@ fun requires (Contents {requires = x, ...}) = x;
 
 fun theory (Contents {theory = x, ...}) = x;
 
+fun dependencies c = map PackageRequire.package (requires c);
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

@@ -34,6 +34,21 @@ and rootHomeDir = ".opentheory";
 val program = "opentheory";
 
 (* ------------------------------------------------------------------------- *)
+(* Helper functions.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun annotateOptions s =
+    let
+      fun mk {switches,arguments,description,processor} =
+          {switches = switches,
+           arguments = arguments,
+           description = "(" ^ s ^ ") " ^ description,
+           processor = processor}
+    in
+      fn opts => map mk opts
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -82,11 +97,33 @@ fun finder () = Directory.lookup (directory ());
 
 datatype info =
     PackageInfo
-  | FileInfo;
+  | FileInfo
+  | DepInfo;
 
 val infoQuery = ref PackageInfo;
 
 val infoOutput = ref "-";
+
+local
+  open Useful Options;
+in
+  val infoOpts : opt list =
+      [{switches = ["-f","--files"], arguments = [],
+        description = "list the package files",
+        processor =
+          beginOpt endOpt
+            (fn _ => infoQuery := FileInfo)},
+       {switches = ["--deps"], arguments = [],
+        description = "list the package dependencies",
+        processor =
+          beginOpt endOpt
+            (fn _ => infoQuery := DepInfo)},
+       {switches = ["-o","--output"], arguments = ["FILE"],
+        description = "write the package information to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => infoOutput := s)}];
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Simulations.                                                              *)
@@ -113,50 +150,9 @@ fun savableCompileOutput output =
 
 val compileOutput : compileOutput list ref = ref [];
 
-(* ------------------------------------------------------------------------- *)
-(* Commands.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-datatype command =
-    Info
-  | Compile;
-
-val allCommands = [Info,Compile];
-
-fun commandString cmd =
-    case cmd of
-      Info => "info"
-    | Compile => "compile";
-
-fun commandUsage cmd =
-    case cmd of
-      Info => "<package-name>"
-    | Compile => "input.thy";
-
-fun commandDescription cmd =
-    case cmd of
-      Info => "display package information"
-    | Compile => "compile a theory package";
-
-(* ------------------------------------------------------------------------- *)
-(* Command options.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
 local
   open Useful Options;
-
-  val infoOpts : opt list =
-      [{switches = ["-f","--files"], arguments = [],
-        description = "list the package files",
-        processor =
-          beginOpt endOpt
-            (fn _ => infoQuery := FileInfo)},
-       {switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write the package information to FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => infoOutput := s)}];
-
+in
   val compileOpts : opt list =
       [{switches = ["--article"], arguments = ["FILE"],
         description = "write the compiled article to FILE",
@@ -182,12 +178,32 @@ local
              in
                ()
              end)}];
-in
-  fun commandOpts cmd =
-      case cmd of
-        Info => infoOpts
-      | Compile => compileOpts;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Commands.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+datatype command =
+    Info
+  | Compile;
+
+val allCommands = [Info,Compile];
+
+fun commandString cmd =
+    case cmd of
+      Info => "info"
+    | Compile => "compile";
+
+fun commandUsage cmd =
+    case cmd of
+      Info => "<package-name>"
+    | Compile => "input.thy";
+
+fun commandDescription cmd =
+    case cmd of
+      Info => "display package information"
+    | Compile => "compile a theory package";
 
 val allCommandStrings = map commandString allCommands;
 
@@ -201,16 +217,10 @@ in
       | NONE => NONE;
 end;
 
-fun annotateOptions s =
-    let
-      fun mk {switches,arguments,description,processor} =
-          {switches = switches,
-           arguments = arguments,
-           description = "(" ^ s ^ ") " ^ description,
-           processor = processor}
-    in
-      fn opts => map mk opts
-    end;
+fun commandOpts cmd =
+    case cmd of
+      Info => infoOpts
+    | Compile => compileOpts;
 
 val allCommandOptions =
     let
@@ -331,7 +341,15 @@ fun info name =
                   val () = Print.trace (Print.ppList ppFilename) "fl" fl
 *)
                 in
-                  Stream.fromList (map mk fl)
+                  Stream.map mk (Stream.fromList fl)
+                end
+              | DepInfo =>
+                let
+                  fun mk n = PackageName.toString n ^ "\n"
+
+                  val pl = Package.dependencies p
+                in
+                  Stream.map mk (Stream.fromList pl)
                 end
 
           val ref f = infoOutput

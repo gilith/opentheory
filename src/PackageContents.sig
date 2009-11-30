@@ -26,6 +26,8 @@ val requires : contents -> PackageRequire.require list
 
 val theory : contents -> PackageTheory.theory
 
+val dependencies : contents -> PackageName.name list
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

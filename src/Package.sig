@@ -37,6 +37,8 @@ val theory : package -> PackageTheory.theory
 
 val filenames : package -> {filename : string} list
 
+val dependencies : package -> PackageName.name list
+
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)

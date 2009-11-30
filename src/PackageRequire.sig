@@ -25,6 +25,8 @@ datatype require =
 
 val name : require -> name
 
+val package : require -> PackageName.name
+
 (* ------------------------------------------------------------------------- *)
 (* Topological sort of requirements.                                         *)
 (* ------------------------------------------------------------------------- *)

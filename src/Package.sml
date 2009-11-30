@@ -39,6 +39,8 @@ fun theory p = PackageContents.theory (contents p);
 
 fun filenames p = filename p :: Theory.filenames (theory p);
 
+fun dependencies p = PackageContents.dependencies (contents p);
+
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
