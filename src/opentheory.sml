@@ -402,8 +402,21 @@ fun compile {filename} =
             Article.toTextFile {article = art, filename = filename}
           | SummaryTextCompileOutput {filename} =>
             Summary.toTextFile {summary = sum, filename = filename}
+
+      val () = List.app output outs
+
+(*OpenTheoryDebug
+      val () =
+          let
+            val i = ObjectRead.theInferenceCount ()
+
+            val s = Print.toString ObjectRead.ppInferenceCount i
+          in
+            print ("\nInference functions:\n" ^ s ^ "\n")
+          end
+*)
     in
-      List.app output outs
+      ()
     end;
 
 (* ------------------------------------------------------------------------- *)

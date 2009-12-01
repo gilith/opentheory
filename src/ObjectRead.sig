@@ -46,4 +46,16 @@ val executeStream : Command.command Stream.stream -> state -> state
 
 val executeTextFile : {filename : string} -> state -> state
 
+(* ------------------------------------------------------------------------- *)
+(* Profiling inference functions.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+(*OpenTheoryDebug
+type inferenceCount
+
+val ppInferenceCount : inferenceCount Print.pp
+
+val theInferenceCount : unit -> inferenceCount
+*)
+
 end

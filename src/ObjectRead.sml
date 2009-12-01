@@ -25,6 +25,60 @@ fun buildObject savable obj =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Profiling inference functions.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+(*OpenTheoryDebug
+datatype inferenceCount = InferenceCount of int NameMap.map;
+
+fun incrementInferenceCount (InferenceCount m) n =
+    let
+      val i = Option.getOpt (NameMap.peek m n, 0)
+
+      val m = NameMap.insert m (n, i + 1)
+    in
+      InferenceCount m
+    end;
+
+local
+  val alignment : columnAlignment list =
+      [{leftAlign = true, padChar = #"."},
+       {leftAlign = false, padChar = #"."}];
+in
+  fun ppInferenceCount (InferenceCount m) =
+      let
+        fun inc (n,i,z) = [Name.toString n ^ " ...", " " ^ Int.toString i] :: z
+
+        val table = NameMap.foldr inc [] m
+
+        val rows = alignTable alignment table
+      in
+        case rows of
+          [] => Print.skip
+        | row :: rows =>
+          Print.blockProgram Print.Consistent 0
+            (Print.ppString row ::
+             map (Print.sequence Print.addNewline o Print.ppString) rows)
+      end;
+end;
+
+local
+  val inferenceCount = ref (InferenceCount (NameMap.new ()));
+in
+  fun theInferenceCount () = !inferenceCount;
+
+  fun incrementTheInferenceCount n =
+      let
+        val ref i = inferenceCount
+
+        val () = inferenceCount := incrementInferenceCount i n
+      in
+        ()
+      end
+end;
+*)
+
+(* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -331,6 +385,10 @@ fun execute cmd state =
                   raise Error "cannot use an Ocall object as a call argument"
 
           val n = Object.destOname obN
+
+(*OpenTheoryDebug
+          val () = incrementTheInferenceCount n
+*)
 
 (*OpenTheoryTrace2
           val traceCall = null (ObjectStack.callStack stack)
