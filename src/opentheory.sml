@@ -335,11 +335,6 @@ fun info name =
                       OS.Path.joinDirFile {dir = d, file = f} ^ "\n"
 
                   val fl = Package.filenames p
-
-(*OpenTheoryTrace1
-                  fun ppFilename {filename} = Print.ppString filename
-                  val () = Print.trace (Print.ppList ppFilename) "fl" fl
-*)
                 in
                   Stream.map mk (Stream.fromList fl)
                 end
