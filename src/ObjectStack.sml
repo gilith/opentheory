@@ -169,7 +169,61 @@ fun addAlignCalls call stack cmds =
           end
       end;
 
-fun alignCalls {call} stack = addAlignCalls call stack [];
+fun alignCalls {greatestCall} stack = addAlignCalls greatestCall stack [];
+
+fun addAlignUses uid stack cmds =
+    if frameSize stack = 0 then (stack,cmds)
+    else
+      let
+        val current =
+            case uid of
+              NONE => false
+            | SOME i => i >= ObjectProv.id (peek stack 0)
+      in
+        if current then (stack,cmds)
+        else
+          let
+            val stack = pop stack 1
+
+            val cmds = Command.Pop :: cmds
+          in
+            addAlignUses uid stack cmds
+          end
+      end;
+
+fun addAlignCallUses uid stack cmds =
+    case topCall stack of
+      NONE => addAlignUses uid stack cmds
+    | SOME obj =>
+      let
+        val current =
+            case uid of
+              NONE => false
+            | SOME i =>
+              case ObjectProv.provenance obj of
+                ObjectProv.Pcall objA => i >= ObjectProv.id objA
+              | _ => raise Bug "ObjectStack.addAlignCallUses: bad call prov"
+      in
+        if current then addAlignUses uid stack cmds
+        else
+          let
+            val cmds =
+                if frameSize stack > 0 then cmds
+                else Command.Error :: cmds
+
+            val (stack,n) = popCall stack
+
+            val cmds =
+                Command.Pop ::
+                Command.Return ::
+                Command.Name n ::
+                cmds
+          in
+            addAlignCallUses uid stack cmds
+          end
+      end;
+
+fun alignUses {greatestUse} stack = addAlignCallUses greatestUse stack [];
 
 (* ------------------------------------------------------------------------- *)
 (* The stack is also used to keep track of simulated theorems.               *)

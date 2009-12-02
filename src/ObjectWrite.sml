@@ -311,7 +311,19 @@ in
       end
 (*OpenTheoryDebug
       handle Error err =>
-        raise Bug ("ObjectWrite.generateMinDict: " ^ err);
+        let
+          val ppObject = ObjectProv.pp 1
+
+          val ppStack = Print.ppMap ObjectStack.objects (Print.ppList ppObject)
+
+          val () = Print.trace ppStack
+                     "ObjectWrite.generateMinDict: stack" stack
+
+          val () = Print.trace ppObject
+                     "ObjectWrite.generateMinDict: obj" obj
+      in
+        raise Bug ("ObjectWrite.generateMinDict: " ^ err)
+      end;
 *)
 end;
 
@@ -319,31 +331,13 @@ end;
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun findCalls (obj,(calls,objs)) =
-    let
-      val calls =
-          case ObjectProv.provenance obj of
-            ObjectProv.Pcall _ => ObjectProvSet.delete calls obj
-          | ObjectProv.Pthm (ObjectProv.Isimulated cobj) =>
-            ObjectProvSet.add calls cobj
-          | _ => calls
-
-      val call = ObjectProvSet.greatestId calls
-
-      val objs = (call,obj) :: objs
-    in
-      (calls,objs)
-    end;
-
 fun toCommandStream saved =
     let
       val objs = ObjectProvSet.ancestors saved
 
-      val stackUses = ObjectProvSet.stackUses objs
-
-      fun gen (call,obj) (stack,dict) =
+      fun gen (greatestUse,obj) (stack,dict) =
           let
-            val (stack,cmds) = ObjectStack.alignCalls {call = call} stack
+            val (stack,cmds) = ObjectStack.alignUses greatestUse stack
 
             val (stack,dict,cmds) =
                 generateMinDict stack dict cmds obj
@@ -351,12 +345,6 @@ fun toCommandStream saved =
             val cmds =
                 if not (ObjectProvSet.member obj saved) then cmds
                 else Command.Save :: cmds
-
-            val (cmds,stack) =
-                if Object.isOcall (ObjectProv.object obj) orelse
-                   ObjectProvSet.member obj stackUses
-                then (cmds,stack)
-                else (Command.Pop :: cmds, ObjectStack.pop stack 1)
           in
             (cmds,(stack,dict))
           end
@@ -367,7 +355,8 @@ fun toCommandStream saved =
             val _ = nullMinDict dict orelse
                     raise Error "nonempty dict"
 *)
-            val (stack,cmds) = ObjectStack.alignCalls {call = NONE} stack
+            val (stack,cmds) =
+                ObjectStack.alignUses {greatestUse = NONE} stack
 
 (*OpenTheoryDebug
             val _ = ObjectStack.null stack orelse
@@ -380,12 +369,11 @@ fun toCommandStream saved =
       val stack = ObjectStack.empty
       val dict = newMinDict objs
 
-      val (calls,objs) =
-          ObjectProvSet.foldr findCalls (ObjectProvSet.empty,[]) objs
+      val (uses,objs) = ObjectProvSet.toGreatestUseList objs
 
 (*OpenTheoryDebug
-      val _ = ObjectProvSet.null calls orelse
-              raise Error "start requires a call"
+      val _ = ObjectProvSet.null uses orelse
+              raise Error "start requires a use"
 *)
 
       val strm = Stream.fromList objs

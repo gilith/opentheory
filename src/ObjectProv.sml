@@ -841,11 +841,60 @@ fun compress objs =
       objs
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Computing dependencies.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
 val stackUses =
     let
       fun add (obj,acc) = addList acc (ObjectProv.stackUses obj)
     in
       foldr add empty
+    end;
+
+val toGreatestCallList =
+    let
+      fun findCalls (obj,(calls,objs)) =
+          let
+            val calls =
+                case ObjectProv.provenance obj of
+                  ObjectProv.Pcall _ => delete calls obj
+                | ObjectProv.Pthm (ObjectProv.Isimulated cobj) =>
+                  add calls cobj
+                | _ => calls
+
+            val call = greatestId calls
+
+            val objs = ({greatestCall = call}, obj) :: objs
+          in
+            (calls,objs)
+          end
+    in
+      foldr findCalls (empty,[])
+    end;
+
+val toGreatestUseList =
+    let
+      fun findUses (obj,(uses,objs)) =
+          let
+            val uses = if member obj uses then delete uses obj else uses
+
+            val uses = addList uses (ObjectProv.stackUses obj)
+
+            val uses =
+                case ObjectProv.provenance obj of
+                  ObjectProv.Pthm (ObjectProv.Isimulated objC) =>
+                  add uses objC
+                | _ => uses
+
+            val uid = greatestId uses
+
+            val objs = ({greatestUse = uid}, obj) :: objs
+          in
+            (uses,objs)
+          end
+    in
+      foldr findUses (empty,[])
     end;
 
 end

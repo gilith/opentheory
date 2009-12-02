@@ -49,7 +49,12 @@ val search : stack -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
 (* ------------------------------------------------------------------------- *)
 
 val alignCalls :
-    {call : ObjectProv.id option} -> stack -> stack * Command.command list
+    {greatestCall : ObjectProv.id option} -> stack ->
+    stack * Command.command list
+
+val alignUses :
+    {greatestUse : ObjectProv.id option} -> stack ->
+    stack * Command.command list
 
 (* ------------------------------------------------------------------------- *)
 (* The stack is also used to keep track of simulated theorems.               *)

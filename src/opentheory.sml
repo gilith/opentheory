@@ -412,7 +412,7 @@ fun compile {filename} =
 
             val s = Print.toString ObjectRead.ppInferenceCount i
           in
-            print ("\nInference functions:\n" ^ s ^ "\n")
+            print ("Inference functions:\n" ^ s ^ "\n")
           end
 *)
     in
