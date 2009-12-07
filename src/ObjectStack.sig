@@ -42,7 +42,9 @@ val topCall : stack -> ObjectProv.object option
 
 val callStack : stack -> ObjectProv.object list
 
-val search : stack -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
+val search :
+    stack -> Sequent.sequent ->
+    (Thm.thm * ObjectProv.object * ObjectProv.object) option
 
 (* ------------------------------------------------------------------------- *)
 (* Generating commands to keep the call stack consistent.                    *)

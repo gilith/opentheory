@@ -18,7 +18,7 @@ fun buildObject savable obj =
 
       fun search th =
           case ObjectThms.search thms (Thm.sequent th) of
-            SOME (_,objS) => ObjectProv.Ialpha objS
+            SOME (_,_,objS) => ObjectProv.Ialpha objS
           | NONE => raise Error ("couldn't find theorem:\n" ^ Thm.toString th)
     in
       ObjectProv.build savable search
@@ -339,16 +339,16 @@ fun execute cmd state =
 
           val (th,inf) =
               case ObjectThms.search saved seq of
-                SOME (th,objS) => (th, ObjectProv.Ialpha objS)
+                SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
               | NONE =>
                 case ObjectStack.searchSimulation stack seq of
                   SOME (th,objS) => (th, ObjectProv.Isimulated objS)
                 | NONE =>
                   case ObjectStack.search stack seq of
-                    SOME (th,objS) => (th, ObjectProv.Ialpha objS)
+                    SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
                   | NONE =>
                     case ObjectThms.search known seq of
-                      SOME (th,objS) => (th, ObjectProv.Ialpha objS)
+                      SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
                     | NONE =>
                       let
                         val th = Thm.axiom seq

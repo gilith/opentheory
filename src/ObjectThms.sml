@@ -15,7 +15,7 @@ open Useful;
 datatype thms =
     Thms of
       {objs : ObjectProvSet.set,
-       seqs : (Thm.thm * ObjectProv.object) SequentMap.map,
+       seqs : (Thm.thm * ObjectProv.object * ObjectProv.object) SequentMap.map,
        symbol : Symbol.symbol,
        seen : IntSet.set};
 
@@ -61,7 +61,7 @@ local
               case ObjectProv.provenance obj of
                 ObjectProv.Pnull =>
                 let
-                  val sym = Symbol.union sym (ObjectProv.symbol obj)
+                  val sym = ObjectProv.symbolAddList sym [obj]
                 in
                   adds objA seqs sym seen objs
                 end
@@ -83,9 +83,9 @@ local
                     adds objA seqs sym seen objs
                   else
                     let
-                      val seqs = SequentMap.insert seqs (seq,(th,objA))
+                      val seqs = SequentMap.insert seqs (seq,(th,objA,obj))
 
-                      val sym = Symbol.union sym (ObjectProv.symbol obj)
+                      val sym = ObjectProv.symbolAddList sym [obj]
                     in
                       adds objA seqs sym seen objs
                     end
@@ -155,15 +155,15 @@ val fromList = addList empty;
 fun search (Thms {seqs,...}) seq =
     case SequentMap.peek seqs seq of
       NONE => NONE
-    | SOME (th,obj) =>
+    | SOME (th,obj,thObj) =>
       let
         val th = Rule.alpha seq th
       in
-        SOME (th,obj)
+        SOME (th,obj,thObj)
       end;
 
 local
-  fun add (_,(th,_),set) = ThmSet.add set th;
+  fun add (_,(th,_,_),set) = ThmSet.add set th;
 in
   fun toThmSet (Thms {seqs,...}) =
       SequentMap.foldl add ThmSet.empty seqs;

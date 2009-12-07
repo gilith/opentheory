@@ -40,7 +40,9 @@ val fromList : ObjectProv.object list -> thms
 (* Searching for theorems.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val search : thms -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
+val search :
+    thms -> Sequent.sequent ->
+    (Thm.thm * ObjectProv.object * ObjectProv.object) option
 
 val toThmSet : thms -> ThmSet.set
 

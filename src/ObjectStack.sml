@@ -16,6 +16,7 @@ datatype stack =
     Stack of
       {size : int,
        objects : ObjectProv.object list,
+       thms : ObjectThms.thms Lazy.lazy list,
        simulation : ObjectSimulation.simulation,
        call : (ObjectProv.object * stack) option};
 
@@ -25,6 +26,8 @@ val empty =
 
       val objects = []
 
+      val thms = []
+
       val sim = ObjectSimulation.empty
 
       val call = NONE
@@ -32,6 +35,7 @@ val empty =
       Stack
         {size = size,
          objects = objects,
+         thms = thms,
          simulation = sim,
          call = call}
     end;
@@ -45,18 +49,29 @@ fun frameSize (Stack {size = n, call, ...}) =
 
 fun objects (Stack {objects = x, ...}) = x;
 
-fun thms (Stack {objects = objs, ...}) = ObjectThms.fromList objs;
+fun topThms ths =
+    case ths of
+      [] => ObjectThms.empty
+    | th :: _ => Lazy.force th;
 
-fun symbol (Stack {objects = objs, ...}) =
-    Symbol.unionList (map ObjectProv.symbol objs);
+fun thms (Stack {thms = x, ...}) = topThms x;
+
+fun symbol stack = ObjectThms.symbol (thms stack);
 
 fun push stack obj =
     let
-      val Stack {size,objects,simulation,call} = stack
+      val Stack {size,objects,thms,simulation,call} = stack
 
       val size = size + 1
 
       val objects = obj :: objects
+
+      val thms =
+          let
+            fun ths () = ObjectThms.add (topThms thms) obj
+          in
+            Lazy.delay ths :: thms
+          end
 
       val call =
           if not (Object.isOcall (ObjectProv.object obj)) then call
@@ -65,6 +80,7 @@ fun push stack obj =
       Stack
         {size = size,
          objects = objects,
+         thms = thms,
          simulation = simulation,
          call = call}
     end;
@@ -73,15 +89,18 @@ fun pop stack n =
     if n > frameSize stack then raise Error "ObjectStack.pop: empty frame"
     else
       let
-        val Stack {size,objects,simulation,call} = stack
+        val Stack {size,objects,thms,simulation,call} = stack
 
         val size = size - n
 
         val objects = List.drop (objects,n)
+
+        val thms = List.drop (thms,n)
       in
         Stack
           {size = size,
            objects = objects,
+           thms = thms,
            simulation = simulation,
            call = call}
       end;
@@ -123,7 +142,7 @@ fun callStack (Stack {call,...}) =
       NONE => []
     | SOME (obj,stack) => obj :: callStack stack;
 
-fun search stack seq = ObjectProv.searchList (objects stack) seq;
+fun search stack seq = ObjectThms.search (thms stack) seq;
 
 (* ------------------------------------------------------------------------- *)
 (* Generating commands to keep the call stack consistent.                    *)
@@ -234,13 +253,14 @@ fun symbolSimulation (Stack {simulation = sim, ...}) =
 
 fun addSimulation stack ths_obj =
     let
-      val Stack {size, objects, simulation = sim, call} = stack
+      val Stack {size, objects, thms, simulation = sim, call} = stack
 
       val sim = ObjectSimulation.add sim ths_obj
     in
       Stack
         {size = size,
          objects = objects,
+         thms = thms,
          simulation = sim,
          call = call}
     end;
