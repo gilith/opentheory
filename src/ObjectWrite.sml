@@ -158,7 +158,7 @@ local
 
 (*OpenTheoryDebug
         val _ = not (ObjectMap.inDomain ob keys) orelse
-                raise Error "addKey: deja vu ob"
+                raise Error "deja vu ob"
 *)
       in
         case ObjectMap.peek refs ob of
@@ -175,20 +175,23 @@ local
           in
             (dict,cmds)
           end
-      end;
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("addKey: " ^ err);
+*)
 
   fun useKey dict cmds ob =
       let
         val MinDict {nextKey,refs,keys} = dict
       in
         case ObjectMap.peek keys ob of
-          NONE => raise Bug "Article.useKey"
+          NONE => raise Error "no such key"
         | SOME key =>
           let
             val cmds = Command.Num key :: cmds
           in
             case ObjectMap.peek refs ob of
-              NONE => raise Bug "generate"
+              NONE => raise Error "no such object"
             | SOME n =>
               if n = 1 then
                 let
@@ -210,7 +213,10 @@ local
                   (dict,cmds)
                 end
           end
-      end;
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("useKey: " ^ err);
+*)
 
   fun generateDeep (ob,(dict,cmds)) =
       if isKey dict ob then useKey dict cmds ob
@@ -333,8 +339,6 @@ end;
 
 fun toCommandStream saved =
     let
-      val objs = ObjectProvSet.ancestors saved
-
       fun gen (greatestUse,obj) (stack,dict) =
           let
             val (stack,cmds) = ObjectStack.alignUses greatestUse stack
@@ -344,7 +348,16 @@ fun toCommandStream saved =
 
             val cmds =
                 if not (ObjectProvSet.member obj saved) then cmds
-                else Command.Save :: cmds
+                else
+                  let
+                    val cmds = Command.Save :: cmds
+(*OpenTheoryDebug
+                    val _ = ObjectProv.isThm obj orelse
+                            raise Error "can only save Othm objects"
+*)
+                  in
+                    cmds
+                  end
           in
             (cmds,(stack,dict))
           end
@@ -365,6 +378,8 @@ fun toCommandStream saved =
           in
             if null cmds then Stream.Nil else Stream.singleton cmds
           end
+
+      val objs = ObjectProvSet.ancestors saved
 
       val stack = ObjectStack.empty
       val dict = newMinDict objs

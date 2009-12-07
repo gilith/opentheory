@@ -39,6 +39,13 @@ fun size (Thms {objs,seqs,...}) =
 
 fun objects (Thms {objs,...}) = objs;
 
+local
+  fun add (_,(_,_,objTh),set) = ObjectProvSet.add set objTh;
+in
+  fun thmObjects (Thms {seqs,...}) =
+      SequentMap.foldl add ObjectProvSet.empty seqs;
+end;
+
 fun symbol (Thms {symbol = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
@@ -155,11 +162,11 @@ val fromList = addList empty;
 fun search (Thms {seqs,...}) seq =
     case SequentMap.peek seqs seq of
       NONE => NONE
-    | SOME (th,obj,thObj) =>
+    | SOME (th,obj,objTh) =>
       let
         val th = Rule.alpha seq th
       in
-        SOME (th,obj,thObj)
+        SOME (th,obj,objTh)
       end;
 
 local

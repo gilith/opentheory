@@ -140,6 +140,8 @@ fun destCall obj =
 
 fun parents obj = parentsProvenance (provenance obj);
 
+fun isThm obj = Object.isOthm (object obj);
+
 fun containsThms obj =
     let
 (*OpenTheoryDebug
@@ -808,6 +810,10 @@ local
 in
   fun compressList objs =
       let
+(*OpenTheoryDebug
+        val objsOrig = objs
+*)
+
         val reqd = empty
 
         val refs = ObjectMap.new ()
@@ -821,6 +827,9 @@ in
                 raise Error "references changed"
 
         val () = checkReduced reqd
+
+        val _ = lexCompare ObjectProv.compare (objsOrig,objs) = EQUAL orelse
+                raise Error "object list changed"
 *)
       in
         objs

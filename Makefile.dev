@@ -231,7 +231,7 @@ hol-light-test-thys:
 
 .PHONY: hol-light-test-arts
 hol-light-test-arts: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; (time $(OPENTHEORY) compile --article $(HOL_LIGHT_ARTICLES_DIR)/$$f.art --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum $(HOL_LIGHT_ARTICLES_DIR)/$$f.thy || exit 1) ; done
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; if ! time $(OPENTHEORY) compile --article $(HOL_LIGHT_ARTICLES_DIR)/$$f.art --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.sum $(HOL_LIGHT_ARTICLES_DIR)/$$f.thy ; then exit 1 ; fi ; done
 
 .PHONY: hol-light-test-cthys
 hol-light-test-cthys:
@@ -239,7 +239,7 @@ hol-light-test-cthys:
 
 .PHONY: hol-light-test-carts
 hol-light-test-carts: $(OPENTHEORY)
-	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; (time $(OPENTHEORY) compile --article $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy || exit 1) ; done
+	for f in $(HOL_LIGHT_THEORIES) $(HOL_LIGHT_EXAMPLES) ; do echo $$f ; if ! time $(OPENTHEORY) compile --article $(HOL_LIGHT_ARTICLES_DIR)/$$f.cart --summary-text $(HOL_LIGHT_ARTICLES_DIR)/$$f.csum $(HOL_LIGHT_ARTICLES_DIR)/$$f.cthy ; then exit 1 ; fi ; done
 
 .PHONY: hol-light-test-creqs
 hol-light-test-creqs:

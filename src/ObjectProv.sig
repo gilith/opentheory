@@ -64,6 +64,8 @@ val destCall : object -> Name.name * object
 
 val parents : object -> object list
 
+val isThm : object -> bool
+
 val containsThms : object -> bool
 
 val stackUses : object -> object list

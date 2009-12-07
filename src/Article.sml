@@ -117,7 +117,7 @@ fun fromTextFile {savable,known,simulations,interpretation,filename} =
                                 (if n' = 1 then "" else "s") ^
                                 " left on the stack by " ^ filename)
                     in
-                      ObjectThms.union saved ths
+                      ObjectThms.addSet saved (ObjectThms.thmObjects ths)
                     end
                 else
                   let

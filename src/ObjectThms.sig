@@ -18,6 +18,8 @@ val size : thms -> {objs : int, thms : int}
 
 val objects : thms -> ObjectProvSet.set
 
+val thmObjects : thms -> ObjectProvSet.set
+
 val symbol : thms -> Symbol.symbol
 
 (* ------------------------------------------------------------------------- *)
