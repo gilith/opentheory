@@ -52,6 +52,8 @@ val addTerm : symbol -> Term.term -> symbol
 
 val addSequent : symbol -> Sequent.sequent -> symbol
 
+val addSequentList : symbol -> Sequent.sequent list -> symbol
+
 val addSequentSet : symbol -> SequentSet.set -> symbol
 
 (* ------------------------------------------------------------------------- *)

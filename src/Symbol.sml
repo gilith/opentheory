@@ -153,8 +153,13 @@ val addTerm = addX Term.addSharingTypeOps Term.addSharingConsts;
 
 val addSequent = addX Sequent.addSharingTypeOps Sequent.addSharingConsts;
 
-val addSequentSet =
-    addX SequentSet.addSharingTypeOps SequentSet.addSharingConsts;
+local
+  fun add (seq,sym) = addSequent sym seq;
+in
+  val addSequentList = List.foldl add;
+
+  val addSequentSet = SequentSet.foldl add;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Merging symbol tables.                                                    *)
