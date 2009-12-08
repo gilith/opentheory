@@ -108,7 +108,7 @@ local
   open Useful Options;
 in
   val infoOpts : opt list =
-      [{switches = ["-f","--files"], arguments = [],
+      [{switches = ["--files"], arguments = [],
         description = "list the package files",
         processor =
           beginOpt endOpt
