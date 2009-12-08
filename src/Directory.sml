@@ -25,6 +25,8 @@ and urlRepoSectionKey = "url";
 (* Directories and filenames.                                                *)
 (* ------------------------------------------------------------------------- *)
 
+fun ppDirectory {directory} = Print.ppString directory;
+
 fun mkConfigFilename {rootDirectory} =
     OS.Path.joinDirFile {dir = rootDirectory, file = configFile};
 
@@ -345,6 +347,8 @@ fun root (Directory {rootDirectory = x, ...}) = {directory = x};
 fun config (Directory {config = x, ...}) = x;
 
 fun repos dir = reposConfig (config dir);
+
+val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)

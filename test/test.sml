@@ -222,13 +222,13 @@ val () = SAY "Compressing articles";
 
 val ARTICLE_DIR = "articles";
 
-fun mkRawArticleFilename raw name =
+fun mkSystemArticleFilename system name =
     let
-      val file = OS.Path.joinBaseExt {base = name, ext = SOME "art"}
+      val dir = OS.Path.concat (ARTICLE_DIR, system)
 
-      val file = OS.Path.joinDirFile {dir = raw, file = file}
+      val file = OS.Path.joinBaseExt {base = name, ext = SOME "art"}
     in
-      OS.Path.joinDirFile {dir = ARTICLE_DIR, file = file}
+      OS.Path.joinDirFile {dir = dir, file = file}
     end;
 
 fun mkArticleFilename name =
@@ -238,13 +238,13 @@ fun mkArticleFilename name =
       OS.Path.joinDirFile {dir = ARTICLE_DIR, file = file}
     end;
 
-fun compress raw name =
+fun compress system name =
     let
       val () = print ("Compressing article \"" ^ name ^ "\"\n")
 
-      val int = getInt raw
+      val int = getInt system
 
-      val inputFilename = mkRawArticleFilename raw name
+      val inputFilename = mkSystemArticleFilename system name
 
       val article =
           time Article.fromTextFile
@@ -412,7 +412,8 @@ val () = SAY "Theory directories";
 
 val DIRECTORY_DIR = "opentheory";
 
-val directory = Directory.mk {rootDirectory = DIRECTORY_DIR};
+val directory =
+    printval Directory.pp (Directory.mk {rootDirectory = DIRECTORY_DIR});
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Config files";

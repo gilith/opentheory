@@ -56,6 +56,8 @@ val config : directory -> config
 
 val repos : directory -> repo list
 
+val pp : directory Print.pp
+
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
