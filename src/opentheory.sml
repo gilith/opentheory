@@ -92,40 +92,6 @@ val directory =
 fun finder () = Directory.lookup (directory ());
 
 (* ------------------------------------------------------------------------- *)
-(* Package info.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-datatype info =
-    PackageInfo
-  | FileInfo
-  | DepInfo;
-
-val infoQuery = ref PackageInfo;
-
-val infoOutput = ref "-";
-
-local
-  open Useful Options;
-in
-  val infoOpts : opt list =
-      [{switches = ["--files"], arguments = [],
-        description = "list the package files",
-        processor =
-          beginOpt endOpt
-            (fn _ => infoQuery := FileInfo)},
-       {switches = ["--deps"], arguments = [],
-        description = "list the package dependencies",
-        processor =
-          beginOpt endOpt
-            (fn _ => infoQuery := DepInfo)},
-       {switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write the package information to FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => infoOutput := s)}];
-end;
-
-(* ------------------------------------------------------------------------- *)
 (* Simulations.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
@@ -181,29 +147,77 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Tool help.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val helpOpts : opt list = [];
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package info.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype info =
+    PackageInfo
+  | FileInfo
+  | DepInfo;
+
+val infoQuery = ref PackageInfo;
+
+val infoOutput = ref "-";
+
+local
+  open Useful Options;
+in
+  val infoOpts : opt list =
+      [{switches = ["--files"], arguments = [],
+        description = "list the package files",
+        processor =
+          beginOpt endOpt
+            (fn _ => infoQuery := FileInfo)},
+       {switches = ["--deps"], arguments = [],
+        description = "list the package dependencies",
+        processor =
+          beginOpt endOpt
+            (fn _ => infoQuery := DepInfo)},
+       {switches = ["-o","--output"], arguments = ["FILE"],
+        description = "write the package information to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => infoOutput := s)}];
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 datatype command =
-    Info
-  | Compile;
+    Compile
+  | Help
+  | Info;
 
-val allCommands = [Info,Compile];
+val allCommands = [Compile,Help,Info];
 
 fun commandString cmd =
     case cmd of
-      Info => "info"
-    | Compile => "compile";
+      Compile => "compile"
+    | Help => "help"
+    | Info => "info";
 
-fun commandUsage cmd =
+fun commandArgs cmd =
     case cmd of
-      Info => "<package-name>"
-    | Compile => "input.thy";
+      Compile => " input.thy"
+    | Help => ""
+    | Info => " <package-name>";
 
 fun commandDescription cmd =
     case cmd of
-      Info => "display package information"
-    | Compile => "compile a theory package";
+      Compile => "compile a theory package"
+    | Help => "display command help"
+    | Info => "display package information";
 
 val allCommandStrings = map commandString allCommands;
 
@@ -219,8 +233,9 @@ end;
 
 fun commandOpts cmd =
     case cmd of
-      Info => infoOpts
-    | Compile => compileOpts;
+      Compile => compileOpts
+    | Help => helpOpts
+    | Info => infoOpts;
 
 val allCommandOptions =
     let
@@ -283,8 +298,8 @@ in
 
   fun commandOptions cmd =
       mkProgramOptions
-        (commandString cmd ^ " [" ^ commandString cmd ^ " opts] " ^
-         commandUsage cmd ^ "\n" ^
+        (commandString cmd ^ " [" ^ commandString cmd ^ " opts]" ^
+         commandArgs cmd ^ "\n" ^
          capitalize (commandDescription cmd) ^ ".\n" ^
          "Displaying " ^ commandString cmd ^ " options:")
         (commandOpts cmd);
@@ -445,8 +460,9 @@ let
 
   val () =
       case (cmd,work) of
-        (Info,[pkg]) => info pkg
-      | (Compile,[filename]) => compile {filename = filename}
+        (Compile,[filename]) => compile {filename = filename}
+      | (Help,[]) => usage ("displaying command help")
+      | (Info,[pkg]) => info pkg
       | _ =>
         commandUsage cmd ("bad arguments for " ^ commandString cmd ^ " command")
 in
