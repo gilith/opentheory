@@ -570,11 +570,11 @@ let GEN_MESON_TAC =
   (* ----------------------------------------------------------------------- *)
 
   let create_equality_axioms =
-    let eq_thms = (CONJUNCTS o prove)
+    let eq_thms = log_lemmas "GEN_MESON_TAC.create_equality_axioms.eq_thms" (fun () -> (CONJUNCTS o prove)
      (`(x:A = x) /\
        (~(x:A = y) \/ ~(x = z) \/ (y = z))`,
       REWRITE_TAC[] THEN ASM_CASES_TAC `x:A = y` THEN
-      ASM_REWRITE_TAC[] THEN CONV_TAC TAUT) in
+      ASM_REWRITE_TAC[] THEN CONV_TAC TAUT)) in
     let imp_elim_CONV = REWR_CONV
       (TAUT `(a ==> b) <=> ~a \/ b`) in
     let eq_elim_RULE =
@@ -829,6 +829,9 @@ let MESON_TAC ths = POP_ASSUM_LIST(K ALL_TAC) THEN ASM_MESON_TAC ths;;
 (* ------------------------------------------------------------------------- *)
 
 let MESON ths tm = prove(tm,MESON_TAC ths);;
+
+let MESON =
+    log_function "MESON" log_term log_thm MESON;;
 
 (* ------------------------------------------------------------------------- *)
 (* Close out the logfile.                                                    *)

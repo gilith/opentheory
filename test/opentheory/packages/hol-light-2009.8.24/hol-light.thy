@@ -64,6 +64,18 @@ require canon {
   package: hol-light-canon-2009.8.24
 }
 
+require meson {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  package: hol-light-meson-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -72,4 +84,5 @@ theory {
   import class;
   import trivia;
   import canon;
+  import meson;
 }

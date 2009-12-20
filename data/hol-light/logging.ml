@@ -258,3 +258,5 @@ let log_result2 n l f x y = log_function2 n log_alpha log_alpha l f x y;;
 let log_value n l f = log_function n log_unit l f ();;
 
 let log_lemma n = log_value n log_thm;;
+
+let log_lemmas n = log_value n (log_list log_thm);;
