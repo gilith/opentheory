@@ -7,12 +7,21 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "canon";;
+
 let PRESIMP_CONV =
   GEN_REWRITE_CONV TOP_DEPTH_CONV
    [NOT_CLAUSES; AND_CLAUSES; OR_CLAUSES; IMP_CLAUSES; EQ_CLAUSES;
     FORALL_SIMP; EXISTS_SIMP; EXISTS_OR_THM; FORALL_AND_THM;
     LEFT_EXISTS_AND_THM; RIGHT_EXISTS_AND_THM;
     LEFT_FORALL_OR_THM; RIGHT_FORALL_OR_THM];;
+
+let PRESIMP_CONV =
+    log_function "PRESIMP_CONV" log_term log_thm PRESIMP_CONV;;
 
 (* ------------------------------------------------------------------------- *)
 (* ACI rearrangements of conjunctions and disjunctions. This is much faster  *)
@@ -37,11 +46,14 @@ let CONJ_ACI_RULE =
     and th' = use_fun (mk_fun (ASSUME p') undefined) p in
     IMP_ANTISYM_RULE (DISCH_ALL th) (DISCH_ALL th');;
 
+let CONJ_ACI_RULE =
+    log_function "CONJ_ACI_RULE" log_term log_thm CONJ_ACI_RULE;;
+
 let DISJ_ACI_RULE =
-  let pth_left = UNDISCH(TAUT `~(a \/ b) ==> ~a`)
-  and pth_right = UNDISCH(TAUT `~(a \/ b) ==> ~b`)
-  and pth = repeat UNDISCH (TAUT `~a ==> ~b ==> ~(a \/ b)`)
-  and pth_neg = UNDISCH(TAUT `(~a <=> ~b) ==> (a <=> b)`)
+  let pth_left = log_lemma "DISJ_ACI_RULE.pth_left" (fun () -> UNDISCH (TAUT `~(a \/ b) ==> ~a`))
+  and pth_right = log_lemma "DISJ_ACI_RULE.pth_right" (fun () -> UNDISCH(TAUT `~(a \/ b) ==> ~b`))
+  and pth = log_lemma "DISJ_ACI_RULE.pth" (fun () -> repeat UNDISCH (TAUT `~a ==> ~b ==> ~(a \/ b)`))
+  and pth_neg = log_lemma "DISJ_ACI_RULE.pth_neg" (fun () -> UNDISCH(TAUT `(~a <=> ~b) ==> (a <=> b)`))
   and a_tm = `a:bool` and b_tm = `b:bool` in
   let NOT_DISJ_PAIR th =
     let p,q = dest_disj(rand(concl th)) in
@@ -69,6 +81,9 @@ let DISJ_ACI_RULE =
     let th1 = IMP_ANTISYM_RULE (DISCH_ALL th) (DISCH_ALL th') in
     PROVE_HYP th1 (INST [p,a_tm; p',b_tm] pth_neg);;
 
+let DISJ_ACI_RULE =
+    log_function "DISJ_ACI_RULE" log_term log_thm DISJ_ACI_RULE;;
+
 (* ------------------------------------------------------------------------- *)
 (* Order canonically, right-associate and remove duplicates.                 *)
 (* ------------------------------------------------------------------------- *)
@@ -77,9 +92,15 @@ let CONJ_CANON_CONV tm =
   let tm' = list_mk_conj(setify(conjuncts tm)) in
   CONJ_ACI_RULE(mk_eq(tm,tm'));;
 
+let CONJ_CANON_CONV =
+    log_function "CONJ_CANON_CONV" log_term log_thm CONJ_CANON_CONV;;
+
 let DISJ_CANON_CONV tm =
   let tm' = list_mk_disj(setify(disjuncts tm)) in
   DISJ_ACI_RULE(mk_eq(tm,tm'));;
+
+let DISJ_CANON_CONV =
+    log_function "DISJ_CANON_CONV" log_term log_thm DISJ_CANON_CONV;;
 
 (* ------------------------------------------------------------------------- *)
 (* General NNF conversion. The user supplies some conversion to be applied   *)
@@ -107,22 +128,23 @@ let (GEN_NNF_CONV:bool->conv*(term->thm*thm)->conv) =
   and pth_eq = TAUT `(p <=> q) <=> p /\ q \/ ~p /\ ~q`
   and pth_not_eq = TAUT `~(p <=> q) <=> p /\ ~q \/ ~p /\ q`
   and pth_eq' = TAUT `(p <=> q) <=> (p \/ ~q) /\ (~p \/ q)`
-  and pth_not_eq' = TAUT `~(p <=> q) <=> (p \/ q) /\ (~p \/ ~q)`
-  and [pth_not_forall; pth_not_exists; pth_not_exu] =
-   (CONJUNCTS o prove)
-   (`(~((!) P) <=> ?x:A. ~(P x)) /\
-     (~((?) P) <=> !x:A. ~(P x)) /\
-     (~((?!) P) <=> (!x:A. ~(P x)) \/ ?x y. P x /\ P y /\ ~(y = x))`,
-    REPEAT CONJ_TAC THEN
-    GEN_REWRITE_TAC (LAND_CONV o funpow 2 RAND_CONV) [GSYM ETA_AX] THEN
-    REWRITE_TAC[NOT_EXISTS_THM; NOT_FORALL_THM; EXISTS_UNIQUE_DEF;
-                DE_MORGAN_THM; NOT_IMP] THEN
-    REWRITE_TAC[CONJ_ASSOC; EQ_SYM_EQ])
-  and pth_exu = prove
+  and pth_not_eq' = TAUT `~(p <=> q) <=> (p \/ q) /\ (~p \/ ~q)` in
+  let pth_not_quant tm =
+   log_lemma "GEN_NNF_CONV.pth_not_quant" (fun () -> prove
+     (tm,
+      GEN_REWRITE_TAC (LAND_CONV o funpow 2 RAND_CONV) [GSYM ETA_AX] THEN
+      REWRITE_TAC[NOT_EXISTS_THM; NOT_FORALL_THM; EXISTS_UNIQUE_DEF;
+                  DE_MORGAN_THM; NOT_IMP] THEN
+      REWRITE_TAC[CONJ_ASSOC; EQ_SYM_EQ])) in
+  let pth_not_forall = pth_not_quant `(~((!) P) <=> ?x:A. ~(P x))`
+  and pth_not_exists = pth_not_quant `(~((?) P) <=> !x:A. ~(P x))`
+  and pth_not_exu = pth_not_quant
+        `(~((?!) P) <=> (!x:A. ~(P x)) \/ ?x y. P x /\ P y /\ ~(y = x))`
+  and pth_exu = log_lemma "GEN_NNF_CONV.pth_exu" (fun () -> prove
    (`((?!) P) <=> (?x:A. P x) /\ !x y. ~(P x) \/ ~(P y) \/ (y = x)`,
     GEN_REWRITE_TAC (LAND_CONV o RAND_CONV) [GSYM ETA_AX] THEN
     REWRITE_TAC[EXISTS_UNIQUE_DEF; TAUT `a /\ b ==> c <=> ~a \/ ~b \/ c`] THEN
-    REWRITE_TAC[EQ_SYM_EQ])
+    REWRITE_TAC[EQ_SYM_EQ]))
   and p_tm = `p:bool` and q_tm = `q:bool` in
   let rec NNF_DCONV cf baseconvs tm =
     match tm with
@@ -333,7 +355,8 @@ let (GEN_NNF_CONV:bool->conv*(term->thm*thm)->conv) =
           let th1 = NNF_CONV cf baseconvs t in
           TRANS (INST [t,p_tm] pth_not_not) th1
     | _ -> let tm' = mk_neg tm in try base1 tm' with Failure _ -> REFL tm' in
-  NNF_CONV;;
+  fun cf -> fun baseconvs -> fun tm ->
+  log_lemma "GEN_NNF_CONV _ _ _" (fun () -> NNF_CONV cf baseconvs tm);;
 
 (* ------------------------------------------------------------------------- *)
 (* Some common special cases.                                                *)
@@ -342,8 +365,14 @@ let (GEN_NNF_CONV:bool->conv*(term->thm*thm)->conv) =
 let NNF_CONV =
   (GEN_NNF_CONV false (ALL_CONV,fun t -> REFL t,REFL(mk_neg t)) :conv);;
 
+let NNF_CONV =
+    log_function "NNF_CONV" log_term log_thm NNF_CONV;;
+
 let NNFC_CONV =
   (GEN_NNF_CONV true (ALL_CONV,fun t -> REFL t,REFL(mk_neg t)) :conv);;
+
+let NNFC_CONV =
+    log_function "NNFC_CONV" log_term log_thm NNFC_CONV;;
 
 (* ------------------------------------------------------------------------- *)
 (* Skolemize a term already in NNF (doesn't matter if it's not prenex).      *)
@@ -362,6 +391,9 @@ let SKOLEM_CONV =
     LEFT_OR_EXISTS_THM;
     SKOLEM_THM];;
 
+let SKOLEM_CONV =
+    log_function "SKOLEM_CONV" log_term log_thm SKOLEM_CONV;;
+
 (* ------------------------------------------------------------------------- *)
 (* Put a term already in NNF into prenex form.                               *)
 (* ------------------------------------------------------------------------- *)
@@ -372,6 +404,9 @@ let PRENEX_CONV =
     LEFT_OR_FORALL_THM; RIGHT_OR_FORALL_THM;
     OR_EXISTS_THM; LEFT_OR_EXISTS_THM; RIGHT_OR_EXISTS_THM;
     LEFT_AND_EXISTS_THM; RIGHT_AND_EXISTS_THM];;
+
+let PRENEX_CONV =
+    log_function "PRENEX_CONV" log_term log_thm PRENEX_CONV;;
 
 (* ------------------------------------------------------------------------- *)
 (* Weak and normal DNF conversion. The "weak" form gives a disjunction of    *)
@@ -421,6 +456,12 @@ let WEAK_DNF_CONV,DNF_CONV =
     TRANS th (strengthen(rand(concl th))) in
   weakdnf,strongdnf;;
 
+let WEAK_DNF_CONV =
+    log_function "WEAK_DNF_CONV" log_term log_thm WEAK_DNF_CONV;;
+
+let DNF_CONV =
+    log_function "DNF_CONV" log_term log_thm DNF_CONV;;
+
 (* ------------------------------------------------------------------------- *)
 (* Likewise for CNF.                                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -463,6 +504,12 @@ let WEAK_CNF_CONV,CNF_CONV =
     TRANS th (strengthen(rand(concl th))) in
   weakcnf,strongcnf;;
 
+let WEAK_CNF_CONV =
+    log_function "WEAK_CNF_CONV" log_term log_thm WEAK_CNF_CONV;;
+
+let CNF_CONV =
+    log_function "CNF_CONV" log_term log_thm CNF_CONV;;
+
 (* ------------------------------------------------------------------------- *)
 (* Simply right-associate w.r.t. a binary operator.                          *)
 (* ------------------------------------------------------------------------- *)
@@ -489,6 +536,9 @@ let ASSOC_CONV th =
     | _ -> REFL tm in
   assoc;;
 
+let ASSOC_CONV =
+    log_function2 "ASSOC_CONV" log_thm log_term log_thm ASSOC_CONV;;
+
 (* ------------------------------------------------------------------------- *)
 (* Eliminate select terms from a goal.                                       *)
 (* ------------------------------------------------------------------------- *)
@@ -496,9 +546,9 @@ let ASSOC_CONV th =
 let SELECT_ELIM_TAC =
   let SELECT_ELIM_CONV =
     let SELECT_ELIM_THM =
-      let pth = prove
+      let pth = log_lemma "SELECT_ELIM_TAC.SELECT_ELIM_CONV.SELECT_ELIM_THM.pth" (fun () -> prove
        (`(P:A->bool)((@) P) <=> (?) P`,
-        REWRITE_TAC[EXISTS_THM] THEN BETA_TAC THEN REFL_TAC)
+        REWRITE_TAC[EXISTS_THM] THEN BETA_TAC THEN REFL_TAC))
       and ptm = `P:A->bool` in
       fun tm -> let stm,atm = dest_comb tm in
                 if is_const stm & fst(dest_const stm) = "@" then
@@ -548,9 +598,9 @@ let SELECT_ELIM_TAC =
 
 let LAMBDA_ELIM_CONV =
   let HALF_MK_ABS_CONV =
-    let pth = prove
+    let pth = log_lemma "LAMBDA_ELIM_CONV.HALF_MK_ABS_CONV.pth" (fun () -> prove
      (`(s = \x. t x) <=> (!x. s x = t x)`,
-      REWRITE_TAC[FUN_EQ_THM]) in
+      REWRITE_TAC[FUN_EQ_THM])) in
     let rec conv vs tm =
       if vs = [] then REFL tm else
       (GEN_REWRITE_CONV I [pth] THENC BINDER_CONV(conv (tl vs))) tm in
@@ -571,9 +621,9 @@ let LAMBDA_ELIM_CONV =
     then BINDER_CONV (ELIM_LAMBDA conv) tm
     else COMB_CONV (ELIM_LAMBDA conv) tm in
   let APPLY_PTH =
-    let pth = prove
+    let pth = log_lemma "LAMBDA_ELIM_CONV.APPLY_PTH.pth" (fun () -> prove
      (`(!a. (a = c) ==> (P = Q a)) ==> (P <=> !a. (a = c) ==> Q a)`,
-      SIMP_TAC[LEFT_FORALL_IMP_THM; EXISTS_REFL]) in
+      SIMP_TAC[LEFT_FORALL_IMP_THM; EXISTS_REFL])) in
     MATCH_MP pth in
   let LAMB1_CONV tm =
     let atm = find_lambda tm in
@@ -591,6 +641,9 @@ let LAMBDA_ELIM_CONV =
     try (LAMB1_CONV THENC conv) tm with Failure _ -> REFL tm in
   conv;;
 
+let LAMBDA_ELIM_CONV =
+    log_function "LAMBDA_ELIM_CONV" log_term log_thm LAMBDA_ELIM_CONV;;
+
 (* ------------------------------------------------------------------------- *)
 (* Eliminate conditionals; CONDS_ELIM_CONV aims for disjunctive splitting,   *)
 (* for refutation procedures, and CONDS_CELIM_CONV for conjunctive.          *)
@@ -598,14 +651,14 @@ let LAMBDA_ELIM_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let CONDS_ELIM_CONV,CONDS_CELIM_CONV =
-  let th_cond = prove
+  let th_cond = log_lemma "CONDS_ELIM_CONV,CONDS_CELIM_CONV.th_cond" (fun () -> prove
    (`((b <=> F) ==> x = x0) /\ ((b <=> T) ==> x = x1)
      ==> x = (b /\ x1 \/ ~b /\ x0)`,
-    BOOL_CASES_TAC `b:bool` THEN ASM_REWRITE_TAC[])
-  and th_cond' = prove
+    BOOL_CASES_TAC `b:bool` THEN ASM_REWRITE_TAC[]))
+  and th_cond' = log_lemma "CONDS_ELIM_CONV,CONDS_CELIM_CONV.th_cond'" (fun () -> prove
    (`((b <=> F) ==> x = x0) /\ ((b <=> T) ==> x = x1)
      ==> x = ((~b \/ x1) /\ (b \/ x0))`,
-    BOOL_CASES_TAC `b:bool` THEN ASM_REWRITE_TAC[])
+    BOOL_CASES_TAC `b:bool` THEN ASM_REWRITE_TAC[]))
   and propsimps = basic_net()
   and false_tm = `F` and true_tm = `T` in
   let match_th = MATCH_MP th_cond and match_th' = MATCH_MP th_cond'
@@ -650,6 +703,12 @@ let CONDS_ELIM_CONV,CONDS_CELIM_CONV =
     else REFL tm in
   CONDS_ELIM_CONV true,CONDS_ELIM_CONV false;;
 
+let CONDS_ELIM_CONV =
+    log_function "CONDS_ELIM_CONV" log_term log_thm CONDS_ELIM_CONV;;
+
+let CONDS_CELIM_CONV =
+    log_function "CONDS_CELIM_CONV" log_term log_thm CONDS_CELIM_CONV;;
+
 (* ------------------------------------------------------------------------- *)
 (* Fix up all head arities to be consistent, in "first order logic" style.   *)
 (* Applied to the assumptions (not conclusion) in a goal.                    *)
@@ -676,9 +735,9 @@ let ASM_FOL_TAC =
   let get_thm_heads th sofar =
     get_heads (freesl(hyp th)) (concl th) sofar in
   let APP_CONV =
-    let th = prove
+    let th = log_lemma "ASM_FOL_TAC.APP_CONV.th" (fun () -> prove
      (`!(f:A->B) x. f x = I f x`,
-      REWRITE_TAC[I_THM]) in
+      REWRITE_TAC[I_THM])) in
     REWR_CONV th in
   let rec APP_N_CONV n tm =
     if n = 1 then APP_CONV tm
@@ -725,3 +784,9 @@ let rec PROP_ATOM_CONV conv tm =
         -> BINOP_CONV (PROP_ATOM_CONV conv) tm
   | Comb(Const("~",_),_) -> RAND_CONV (PROP_ATOM_CONV conv) tm
   | _ -> TRY_CONV conv tm;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

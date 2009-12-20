@@ -53,6 +53,17 @@ require trivia {
   package: hol-light-trivia-2009.8.24
 }
 
+require canon {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  package: hol-light-canon-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -60,4 +71,5 @@ theory {
   import ind-defs;
   import class;
   import trivia;
+  import canon;
 }

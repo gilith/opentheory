@@ -38,12 +38,11 @@ do
         echo -n '} in article "' >> $thy
         echo -n $file >> $thy
         echo '"; }' >> $thy
-        $prog compile -o $pdir/$file $thy || exit 1
-        ls -l $file
-        ls -l $pdir/$file
 
         sum=$base.sum
-        $prog summarize --summary-text $sum $pdir/$file
+        $prog compile --article $pdir/$file --summary-text $sum $thy || exit 1
+        ls -l $file
+        ls -l $pdir/$file
     else
         echo -n "skipping "
         ls -l $file

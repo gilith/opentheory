@@ -7,6 +7,12 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "meson";;
+
 let meson_depth = ref false;;   (* Use depth not inference bound.            *)
 
 let meson_prefine = ref true;;  (* Use Plaisted's positive refinement.       *)
@@ -823,3 +829,9 @@ let MESON_TAC ths = POP_ASSUM_LIST(K ALL_TAC) THEN ASM_MESON_TAC ths;;
 (* ------------------------------------------------------------------------- *)
 
 let MESON ths tm = prove(tm,MESON_TAC ths);;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

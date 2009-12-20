@@ -87,8 +87,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -191,8 +189,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -243,8 +239,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -338,8 +332,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -408,8 +400,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -482,8 +472,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -519,8 +507,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -557,8 +543,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
@@ -647,8 +631,6 @@ remove
 app
 thm
 save
-pop
-error
 "hol-light.new_basic_definition"
 return
 pop
