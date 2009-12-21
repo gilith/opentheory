@@ -603,16 +603,19 @@ let NUM_SIMPLIFY_CONV =
   and contains_quantifier =
     can (find_term (fun t -> is_forall t or is_exists t or is_uexists t))
   and BETA2_CONV = RATOR_CONV BETA_CONV THENC BETA_CONV
-  and PRE_ELIM_THM'' = CONV_RULE (RAND_CONV NNF_CONV) PRE_ELIM_THM
-  and SUB_ELIM_THM'' = CONV_RULE (RAND_CONV NNF_CONV) SUB_ELIM_THM
-  and DIVMOD_ELIM_THM'' = CONV_RULE (RAND_CONV NNF_CONV) DIVMOD_ELIM_THM
-  and pth_evenodd = prove
+  and PRE_ELIM_THM'' = log_lemma "NUM_SIMPLIFY_CONV.PRE_ELIM_THM''" (fun () ->
+        CONV_RULE (RAND_CONV NNF_CONV) PRE_ELIM_THM)
+  and SUB_ELIM_THM'' = log_lemma "NUM_SIMPLIFY_CONV.SUB_ELIM_THM''" (fun () ->
+        CONV_RULE (RAND_CONV NNF_CONV) SUB_ELIM_THM)
+  and DIVMOD_ELIM_THM'' = log_lemma "NUM_SIMPLIFY_CONV.DIVMOD_ELIM_THM''" (fun () ->
+        CONV_RULE (RAND_CONV NNF_CONV) DIVMOD_ELIM_THM)
+  and pth_evenodd = log_lemma "NUM_SIMPLIFY_CONV.pth_evenodd" (fun () -> prove
    (`(EVEN(x) <=> (!y. ~(x = SUC(2 * y)))) /\
      (ODD(x) <=> (!y. ~(x = 2 * y))) /\
      (~EVEN(x) <=> (!y. ~(x = 2 * y))) /\
      (~ODD(x) <=> (!y. ~(x = SUC(2 * y))))`,
     REWRITE_TAC[GSYM NOT_EXISTS_THM; GSYM EVEN_EXISTS; GSYM ODD_EXISTS] THEN
-    REWRITE_TAC[NOT_EVEN; NOT_ODD]) in
+    REWRITE_TAC[NOT_EVEN; NOT_ODD])) in
   let rec NUM_MULTIPLY_CONV pos tm =
     if is_forall tm or is_exists tm or is_uexists tm then
        BINDER_CONV (NUM_MULTIPLY_CONV pos) tm
@@ -665,20 +668,23 @@ let NUM_SIMPLIFY_CONV =
   NUM_REDUCE_CONV THENC
   GEN_REWRITE_CONV ONCE_DEPTH_CONV [pth_evenodd];;
 
+let NUM_SIMPLIFY_CONV =
+    log_function "NUM_SIMPLIFY_CONV" log_term log_thm NUM_SIMPLIFY_CONV;;
+
 (* ----------------------------------------------------------------------- *)
 (* Natural number version of ring procedure with this normalization.       *)
 (* ----------------------------------------------------------------------- *)
 
 let NUM_RING =
-  let NUM_INTEGRAL_LEMMA = prove
+  let NUM_INTEGRAL_LEMMA = log_lemma "NUM_RING.NUM_INTEGRAL_LEMMA" (fun () -> prove
    (`(w = x + d) /\ (y = z + e)
      ==> ((w * y + x * z = w * z + x * y) <=> (w = x) \/ (y = z))`,
     DISCH_THEN(fun th -> REWRITE_TAC[th]) THEN
     REWRITE_TAC[LEFT_ADD_DISTRIB; RIGHT_ADD_DISTRIB; GSYM ADD_ASSOC] THEN
     ONCE_REWRITE_TAC[AC ADD_AC
      `a + b + c + d + e = a + c + e + b + d`] THEN
-    REWRITE_TAC[EQ_ADD_LCANCEL; EQ_ADD_LCANCEL_0; MULT_EQ_0]) in
-  let NUM_INTEGRAL = prove
+    REWRITE_TAC[EQ_ADD_LCANCEL; EQ_ADD_LCANCEL_0; MULT_EQ_0])) in
+  let NUM_INTEGRAL = log_lemma "NUM_RING.NUM_INTEGRAL" (fun () -> prove
    (`(!x. 0 * x = 0) /\
      (!x y z. (x + y = x + z) <=> (y = z)) /\
      (!w x y z. (w * y + x * z = w * z + x * y) <=> (w = x) \/ (y = z))`,
@@ -688,7 +694,7 @@ let NUM_RING =
     DISJ_CASES_TAC (SPECL [`y:num`; `z:num`] LE_CASES) THEN
     REPEAT(FIRST_X_ASSUM
      (CHOOSE_THEN SUBST1_TAC o REWRITE_RULE[LE_EXISTS])) THEN
-    ASM_MESON_TAC[NUM_INTEGRAL_LEMMA; ADD_SYM; MULT_SYM]) in
+    ASM_MESON_TAC[NUM_INTEGRAL_LEMMA; ADD_SYM; MULT_SYM])) in
   let rawring =
     RING(dest_numeral,mk_numeral,NUM_EQ_CONV,
          genvar bool_ty,`(+):num->num->num`,genvar bool_ty,
@@ -700,6 +706,9 @@ let NUM_RING =
   fun tm -> let th = initconv tm in
             if rand(concl th) = t_tm then th
             else EQ_MP (SYM th) (rawring(rand(concl th)));;
+
+let NUM_RING =
+    log_function "NUM_RING" log_term log_thm NUM_RING;;
 
 (* ------------------------------------------------------------------------- *)
 (* Close out the logfile.                                                    *)

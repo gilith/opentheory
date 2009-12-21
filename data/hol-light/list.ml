@@ -7,10 +7,16 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "list";;
+
 let LIST_INDUCT_TAC =
-  let list_INDUCT = prove
+  let list_INDUCT = log_lemma "LIST_INDUCT_TAC.list_INDUCT" (fun () -> prove
    (`!P:(A)list->bool. P [] /\ (!h t. P t ==> P (CONS h t)) ==> !l. P l`,
-    MATCH_ACCEPT_TAC list_INDUCT) in
+    MATCH_ACCEPT_TAC list_INDUCT)) in
   MATCH_MP_TAC list_INDUCT THEN
   CONJ_TAC THENL [ALL_TAC; GEN_TAC THEN GEN_TAC THEN DISCH_TAC];;
 
@@ -73,21 +79,21 @@ let ALL2_DEF = new_recursive_definition list_RECURSION
         if l2 = [] then F
         else P h1 (HD l2) /\ ALL2 P t1 (TL l2))`;;
 
-let ALL2 = prove
+let ALL2 = log_lemma "ALL2" (fun () -> prove
  (`(ALL2 P [] [] <=> T) /\
    (ALL2 P (CONS h1 t1) [] <=> F) /\
    (ALL2 P [] (CONS h2 t2) <=> F) /\
    (ALL2 P (CONS h1 t1) (CONS h2 t2) <=> P h1 h2 /\ ALL2 P t1 t2)`,
-  REWRITE_TAC[distinctness "list"; ALL2_DEF; HD; TL]);;
+  REWRITE_TAC[distinctness "list"; ALL2_DEF; HD; TL]));;
 
 let MAP2_DEF = new_recursive_definition list_RECURSION
   `(MAP2 f [] l = []) /\
    (MAP2 f (CONS h1 t1) l = CONS (f h1 (HD l)) (MAP2 f t1 (TL l)))`;;
 
-let MAP2 = prove
+let MAP2 = log_lemma "MAP2" (fun () -> prove
  (`(MAP2 f [] [] = []) /\
    (MAP2 f (CONS h1 t1) (CONS h2 t2) = CONS (f h1 h2) (MAP2 f t1 t2))`,
-  REWRITE_TAC[MAP2_DEF; HD; TL]);;
+  REWRITE_TAC[MAP2_DEF; HD; TL]));;
 
 let EL = new_recursive_definition num_RECURSION
   `(EL 0 l = HD l) /\
@@ -104,271 +110,271 @@ let ITLIST2_DEF = new_recursive_definition list_RECURSION
   `(ITLIST2 f [] l2 b = b) /\
    (ITLIST2 f (CONS h1 t1) l2 b = f h1 (HD l2) (ITLIST2 f t1 (TL l2) b))`;;
 
-let ITLIST2 = prove
+let ITLIST2 = log_lemma "ITLIST2" (fun () -> prove
  (`(ITLIST2 f [] [] b = b) /\
    (ITLIST2 f (CONS h1 t1) (CONS h2 t2) b = f h1 h2 (ITLIST2 f t1 t2 b))`,
-  REWRITE_TAC[ITLIST2_DEF; HD; TL]);;
+  REWRITE_TAC[ITLIST2_DEF; HD; TL]));;
 
 let ZIP_DEF = new_recursive_definition list_RECURSION
   `(ZIP [] l2 = []) /\
    (ZIP (CONS h1 t1) l2 = CONS (h1,HD l2) (ZIP t1 (TL l2)))`;;
 
-let ZIP = prove
+let ZIP = log_lemma "ZIP" (fun () -> prove
  (`(ZIP [] [] = []) /\
    (ZIP (CONS h1 t1) (CONS h2 t2) = CONS (h1,h2) (ZIP t1 t2))`,
-  REWRITE_TAC[ZIP_DEF; HD; TL]);;
+  REWRITE_TAC[ZIP_DEF; HD; TL]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Various trivial theorems.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-let NOT_CONS_NIL = prove
+let NOT_CONS_NIL = log_lemma "NOT_CONS_NIL" (fun () -> prove
  (`!(h:A) t. ~(CONS h t = [])`,
-  REWRITE_TAC[distinctness "list"]);;
+  REWRITE_TAC[distinctness "list"]));;
 
-let LAST_CLAUSES = prove
+let LAST_CLAUSES = log_lemma "LAST_CLAUSES" (fun () -> prove
  (`(LAST [h:A] = h) /\
    (LAST (CONS h (CONS k t)) = LAST (CONS k t))`,
-  REWRITE_TAC[LAST; NOT_CONS_NIL]);;
+  REWRITE_TAC[LAST; NOT_CONS_NIL]));;
 
-let APPEND_NIL = prove
+let APPEND_NIL = log_lemma "APPEND_NIL" (fun () -> prove
  (`!l:A list. APPEND l [] = l`,
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[APPEND]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[APPEND]));;
 
-let APPEND_ASSOC = prove
+let APPEND_ASSOC = log_lemma "APPEND_ASSOC" (fun () -> prove
  (`!(l:A list) m n. APPEND l (APPEND m n) = APPEND (APPEND l m) n`,
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[APPEND]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[APPEND]));;
 
-let REVERSE_APPEND = prove
+let REVERSE_APPEND = log_lemma "REVERSE_APPEND" (fun () -> prove
  (`!(l:A list) m. REVERSE (APPEND l m) = APPEND (REVERSE m) (REVERSE l)`,
   LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[APPEND; REVERSE; APPEND_NIL; APPEND_ASSOC]);;
+  ASM_REWRITE_TAC[APPEND; REVERSE; APPEND_NIL; APPEND_ASSOC]));;
 
-let REVERSE_REVERSE = prove
+let REVERSE_REVERSE = log_lemma "REVERSE_REVERSE" (fun () -> prove
  (`!l:A list. REVERSE(REVERSE l) = l`,
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[REVERSE; REVERSE_APPEND; APPEND]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[REVERSE; REVERSE_APPEND; APPEND]));;
 
-let CONS_11 = prove
+let CONS_11 = log_lemma "CONS_11" (fun () -> prove
  (`!(h1:A) h2 t1 t2. (CONS h1 t1 = CONS h2 t2) <=> (h1 = h2) /\ (t1 = t2)`,
-  REWRITE_TAC[injectivity "list"]);;
+  REWRITE_TAC[injectivity "list"]));;
 
-let list_CASES = prove
+let list_CASES = log_lemma "list_CASES" (fun () -> prove
  (`!l:(A)list. (l = []) \/ ?h t. l = CONS h t`,
   LIST_INDUCT_TAC THEN REWRITE_TAC[CONS_11; NOT_CONS_NIL] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
-let LENGTH_APPEND = prove
+let LENGTH_APPEND = log_lemma "LENGTH_APPEND" (fun () -> prove
  (`!(l:A list) m. LENGTH(APPEND l m) = LENGTH l + LENGTH m`,
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[APPEND; LENGTH; ADD_CLAUSES]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[APPEND; LENGTH; ADD_CLAUSES]));;
 
-let MAP_APPEND = prove
+let MAP_APPEND = log_lemma "MAP_APPEND" (fun () -> prove
  (`!f:A->B. !l1 l2. MAP f (APPEND l1 l2) = APPEND (MAP f l1) (MAP f l2)`,
-  GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MAP; APPEND]);;
+  GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MAP; APPEND]));;
 
-let LENGTH_MAP = prove
+let LENGTH_MAP = log_lemma "LENGTH_MAP" (fun () -> prove
  (`!l. !f:A->B. LENGTH (MAP f l) = LENGTH l`,
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MAP; LENGTH]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MAP; LENGTH]));;
 
-let LENGTH_EQ_NIL = prove
+let LENGTH_EQ_NIL = log_lemma "LENGTH_EQ_NIL" (fun () -> prove
  (`!l:A list. (LENGTH l = 0) <=> (l = [])`,
-  LIST_INDUCT_TAC THEN REWRITE_TAC[LENGTH; NOT_CONS_NIL; NOT_SUC]);;
+  LIST_INDUCT_TAC THEN REWRITE_TAC[LENGTH; NOT_CONS_NIL; NOT_SUC]));;
 
-let LENGTH_EQ_CONS = prove
+let LENGTH_EQ_CONS = log_lemma "LENGTH_EQ_CONS" (fun () -> prove
  (`!l n. (LENGTH l = SUC n) <=> ?h t. (l = CONS h t) /\ (LENGTH t = n)`,
   LIST_INDUCT_TAC THEN REWRITE_TAC[LENGTH; NOT_SUC; NOT_CONS_NIL] THEN
-  ASM_REWRITE_TAC[SUC_INJ; CONS_11] THEN MESON_TAC[]);;
+  ASM_REWRITE_TAC[SUC_INJ; CONS_11] THEN MESON_TAC[]));;
 
-let MAP_o = prove
+let MAP_o = log_lemma "MAP_o" (fun () -> prove
  (`!f:A->B. !g:B->C. !l. MAP (g o f) l = MAP g (MAP f l)`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[MAP; o_THM]);;
+  ASM_REWRITE_TAC[MAP; o_THM]));;
 
-let MAP_EQ = prove
+let MAP_EQ = log_lemma "MAP_EQ" (fun () -> prove
  (`!f g l. ALL (\x. f x = g x) l ==> (MAP f l = MAP g l)`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  REWRITE_TAC[MAP; ALL] THEN ASM_MESON_TAC[]);;
+  REWRITE_TAC[MAP; ALL] THEN ASM_MESON_TAC[]));;
 
-let ALL_IMP = prove
+let ALL_IMP = log_lemma "ALL_IMP" (fun () -> prove
  (`!P Q l. (!x. MEM x l /\ P x ==> Q x) /\ ALL P l ==> ALL Q l`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  REWRITE_TAC[MEM; ALL] THEN ASM_MESON_TAC[]);;
+  REWRITE_TAC[MEM; ALL] THEN ASM_MESON_TAC[]));;
 
-let NOT_EX = prove
+let NOT_EX = log_lemma "NOT_EX" (fun () -> prove
  (`!P l. ~(EX P l) <=> ALL (\x. ~(P x)) l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[EX; ALL; DE_MORGAN_THM]);;
+  ASM_REWRITE_TAC[EX; ALL; DE_MORGAN_THM]));;
 
-let NOT_ALL = prove
+let NOT_ALL = log_lemma "NOT_ALL" (fun () -> prove
  (`!P l. ~(ALL P l) <=> EX (\x. ~(P x)) l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[EX; ALL; DE_MORGAN_THM]);;
+  ASM_REWRITE_TAC[EX; ALL; DE_MORGAN_THM]));;
 
-let ALL_MAP = prove
+let ALL_MAP = log_lemma "ALL_MAP" (fun () -> prove
  (`!P f l. ALL P (MAP f l) <=> ALL (P o f) l`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[ALL; MAP; o_THM]);;
+  ASM_REWRITE_TAC[ALL; MAP; o_THM]));;
 
-let ALL_T = prove
+let ALL_T = log_lemma "ALL_T" (fun () -> prove
  (`!l. ALL (\x. T) l`,
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL]));;
 
-let MAP_EQ_ALL2 = prove
+let MAP_EQ_ALL2 = log_lemma "MAP_EQ_ALL2" (fun () -> prove
  (`!l m. ALL2 (\x y. f x = f y) l m ==> (MAP f l = MAP f m)`,
   REPEAT LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MAP; ALL2; CONS_11] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let ALL2_MAP = prove
+let ALL2_MAP = log_lemma "ALL2_MAP" (fun () -> prove
  (`!P f l. ALL2 P (MAP f l) l <=> ALL (\a. P (f a) a) l`,
   GEN_TAC THEN GEN_TAC THEN
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL2; MAP; ALL]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL2; MAP; ALL]));;
 
-let MAP_EQ_DEGEN = prove
+let MAP_EQ_DEGEN = log_lemma "MAP_EQ_DEGEN" (fun () -> prove
  (`!l f. ALL (\x. f(x) = x) l ==> (MAP f l = l)`,
   LIST_INDUCT_TAC THEN REWRITE_TAC[ALL; MAP; CONS_11] THEN
   REPEAT STRIP_TAC THEN ASM_REWRITE_TAC[] THEN
-  FIRST_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[]);;
+  FIRST_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[]));;
 
-let ALL2_AND_RIGHT = prove
+let ALL2_AND_RIGHT = log_lemma "ALL2_AND_RIGHT" (fun () -> prove
  (`!l m P Q. ALL2 (\x y. P x /\ Q x y) l m <=> ALL P l /\ ALL2 Q l m`,
   LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL; ALL2] THEN
   LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL; ALL2] THEN
-  REWRITE_TAC[CONJ_ACI]);;
+  REWRITE_TAC[CONJ_ACI]));;
 
-let ITLIST_APPEND = prove
+let ITLIST_APPEND = log_lemma "ITLIST_APPEND" (fun () -> prove
  (`!f a l1 l2. ITLIST f (APPEND l1 l2) a = ITLIST f l1 (ITLIST f l2 a)`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[ITLIST; APPEND]);;
+  ASM_REWRITE_TAC[ITLIST; APPEND]));;
 
-let ITLIST_EXTRA = prove
+let ITLIST_EXTRA = log_lemma "ITLIST_EXTRA" (fun () -> prove
  (`!l. ITLIST f (APPEND l [a]) b = ITLIST f l (f a b)`,
-  REWRITE_TAC[ITLIST_APPEND; ITLIST]);;
+  REWRITE_TAC[ITLIST_APPEND; ITLIST]));;
 
-let ALL_MP = prove
+let ALL_MP = log_lemma "ALL_MP" (fun () -> prove
  (`!P Q l. ALL (\x. P x ==> Q x) l /\ ALL P l ==> ALL Q l`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  REWRITE_TAC[ALL] THEN ASM_MESON_TAC[]);;
+  REWRITE_TAC[ALL] THEN ASM_MESON_TAC[]));;
 
-let AND_ALL = prove
+let AND_ALL = log_lemma "AND_ALL" (fun () -> prove
  (`!l. ALL P l /\ ALL Q l <=> ALL (\x. P x /\ Q x) l`,
   CONV_TAC(ONCE_DEPTH_CONV SYM_CONV) THEN
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL; CONJ_ACI]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL; CONJ_ACI]));;
 
-let EX_IMP = prove
+let EX_IMP = log_lemma "EX_IMP" (fun () -> prove
  (`!P Q l. (!x. MEM x l /\ P x ==> Q x) /\ EX P l ==> EX Q l`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  REWRITE_TAC[MEM; EX] THEN ASM_MESON_TAC[]);;
+  REWRITE_TAC[MEM; EX] THEN ASM_MESON_TAC[]));;
 
-let ALL_MEM = prove
+let ALL_MEM = log_lemma "ALL_MEM" (fun () -> prove
  (`!P l. (!x. MEM x l ==> P x) <=> ALL P l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN REWRITE_TAC[ALL; MEM] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let LENGTH_REPLICATE = prove
+let LENGTH_REPLICATE = log_lemma "LENGTH_REPLICATE" (fun () -> prove
  (`!n x. LENGTH(REPLICATE n x) = n`,
-  INDUCT_TAC THEN ASM_REWRITE_TAC[LENGTH; REPLICATE]);;
+  INDUCT_TAC THEN ASM_REWRITE_TAC[LENGTH; REPLICATE]));;
 
-let EX_MAP = prove
+let EX_MAP = log_lemma "EX_MAP" (fun () -> prove
  (`!P f l. EX P (MAP f l) <=> EX (P o f) l`,
   GEN_TAC THEN GEN_TAC THEN
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MAP; EX; o_THM]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MAP; EX; o_THM]));;
 
-let EXISTS_EX = prove
+let EXISTS_EX = log_lemma "EXISTS_EX" (fun () -> prove
  (`!P l. (?x. EX (P x) l) <=> EX (\s. ?x. P x s) l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[EX] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let FORALL_ALL = prove
+let FORALL_ALL = log_lemma "FORALL_ALL" (fun () -> prove
  (`!P l. (!x. ALL (P x) l) <=> ALL (\s. !x. P x s) l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let MEM_APPEND = prove
+let MEM_APPEND = log_lemma "MEM_APPEND" (fun () -> prove
  (`!x l1 l2. MEM x (APPEND l1 l2) <=> MEM x l1 \/ MEM x l2`,
-  GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MEM; APPEND; DISJ_ACI]);;
+  GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MEM; APPEND; DISJ_ACI]));;
 
-let MEM_MAP = prove
+let MEM_MAP = log_lemma "MEM_MAP" (fun () -> prove
  (`!f y l. MEM y (MAP f l) <=> ?x. MEM x l /\ (y = f x)`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[MEM; MAP] THEN MESON_TAC[]);;
+  ASM_REWRITE_TAC[MEM; MAP] THEN MESON_TAC[]));;
 
-let FILTER_APPEND = prove
+let FILTER_APPEND = log_lemma "FILTER_APPEND" (fun () -> prove
  (`!P l1 l2. FILTER P (APPEND l1 l2) = APPEND (FILTER P l1) (FILTER P l2)`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[FILTER; APPEND] THEN
-  GEN_TAC THEN COND_CASES_TAC THEN ASM_REWRITE_TAC[APPEND]);;
+  GEN_TAC THEN COND_CASES_TAC THEN ASM_REWRITE_TAC[APPEND]));;
 
-let FILTER_MAP = prove
+let FILTER_MAP = log_lemma "FILTER_MAP" (fun () -> prove
  (`!P f l. FILTER P (MAP f l) = MAP f (FILTER (P o f) l)`,
   GEN_TAC THEN GEN_TAC THEN LIST_INDUCT_TAC THEN
   ASM_REWRITE_TAC[MAP; FILTER; o_THM] THEN COND_CASES_TAC THEN
-  REWRITE_TAC[MAP]);;
+  REWRITE_TAC[MAP]));;
 
-let MEM_FILTER = prove
+let MEM_FILTER = log_lemma "MEM_FILTER" (fun () -> prove
  (`!P l x. MEM x (FILTER P l) <=> P x /\ MEM x l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MEM; FILTER] THEN
   GEN_TAC THEN COND_CASES_TAC THEN ASM_REWRITE_TAC[MEM] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let EX_MEM = prove
+let EX_MEM = log_lemma "EX_MEM" (fun () -> prove
  (`!P l. (?x. P x /\ MEM x l) <=> EX P l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[EX; MEM] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let MAP_FST_ZIP = prove
+let MAP_FST_ZIP = log_lemma "MAP_FST_ZIP" (fun () -> prove
  (`!l1 l2. (LENGTH l1 = LENGTH l2) ==> (MAP FST (ZIP l1 l2) = l1)`,
   LIST_INDUCT_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_SIMP_TAC[LENGTH; SUC_INJ; MAP; FST; ZIP; NOT_SUC]);;
+  ASM_SIMP_TAC[LENGTH; SUC_INJ; MAP; FST; ZIP; NOT_SUC]));;
 
-let MAP_SND_ZIP = prove
+let MAP_SND_ZIP = log_lemma "MAP_SND_ZIP" (fun () -> prove
  (`!l1 l2. (LENGTH l1 = LENGTH l2) ==> (MAP SND (ZIP l1 l2) = l2)`,
   LIST_INDUCT_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_SIMP_TAC[LENGTH; SUC_INJ; MAP; FST; ZIP; NOT_SUC]);;
+  ASM_SIMP_TAC[LENGTH; SUC_INJ; MAP; FST; ZIP; NOT_SUC]));;
 
-let MEM_ASSOC = prove
+let MEM_ASSOC = log_lemma "MEM_ASSOC" (fun () -> prove
  (`!l x. MEM (x,ASSOC x l) l <=> MEM x (MAP FST l)`,
   LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[MEM; MAP; ASSOC] THEN
   GEN_TAC THEN COND_CASES_TAC THEN ASM_REWRITE_TAC[] THEN
-  ASM_MESON_TAC[PAIR; FST]);;
+  ASM_MESON_TAC[PAIR; FST]));;
 
-let ALL_APPEND = prove
+let ALL_APPEND = log_lemma "ALL_APPEND" (fun () -> prove
  (`!P l1 l2. ALL P (APPEND l1 l2) <=> ALL P l1 /\ ALL P l2`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[ALL; APPEND; GSYM CONJ_ASSOC]);;
+  ASM_REWRITE_TAC[ALL; APPEND; GSYM CONJ_ASSOC]));;
 
-let MEM_EL = prove
+let MEM_EL = log_lemma "MEM_EL" (fun () -> prove
  (`!l n. n < LENGTH l ==> MEM (EL n l) l`,
   LIST_INDUCT_TAC THEN REWRITE_TAC[MEM; CONJUNCT1 LT; LENGTH] THEN
-  INDUCT_TAC THEN ASM_SIMP_TAC[EL; HD; LT_SUC; TL]);;
+  INDUCT_TAC THEN ASM_SIMP_TAC[EL; HD; LT_SUC; TL]));;
 
-let MEM_EXISTS_EL = prove
+let MEM_EXISTS_EL = log_lemma "MEM_EXISTS_EL" (fun () -> prove
  (`!l x. MEM x l <=> ?i. i < LENGTH l /\ x = EL i l`,
   LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[LENGTH; EL; MEM; CONJUNCT1 LT] THEN
   GEN_TAC THEN GEN_REWRITE_TAC RAND_CONV                                        
    [MESON[num_CASES] `(?i. P i) <=> P 0 \/ (?i. P(SUC i))`] THEN 
-  REWRITE_TAC[LT_SUC; LT_0; EL; HD; TL]);; 
+  REWRITE_TAC[LT_SUC; LT_0; EL; HD; TL]));; 
 
-let ALL2_MAP2 = prove
+let ALL2_MAP2 = log_lemma "ALL2_MAP2" (fun () -> prove
  (`!l m. ALL2 P (MAP f l) (MAP g m) = ALL2 (\x y. P (f x) (g y)) l m`,
-  LIST_INDUCT_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL2; MAP]);;
+  LIST_INDUCT_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL2; MAP]));;
 
-let AND_ALL2 = prove
+let AND_ALL2 = log_lemma "AND_ALL2" (fun () -> prove
  (`!P Q l m. ALL2 P l m /\ ALL2 Q l m <=> ALL2 (\x y. P x y /\ Q x y) l m`,
   GEN_TAC THEN GEN_TAC THEN CONV_TAC(ONCE_DEPTH_CONV SYM_CONV) THEN
   LIST_INDUCT_TAC THEN LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL2] THEN
-  REWRITE_TAC[CONJ_ACI]);;
+  REWRITE_TAC[CONJ_ACI]));;
 
-let ALL2_ALL = prove
+let ALL2_ALL = log_lemma "ALL2_ALL" (fun () -> prove
  (`!P l. ALL2 P l l <=> ALL (\x. P x x) l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[ALL2; ALL]);;
+  ASM_REWRITE_TAC[ALL2; ALL]));;
 
-let APPEND_EQ_NIL = prove
+let APPEND_EQ_NIL = log_lemma "APPEND_EQ_NIL" (fun () -> prove
  (`!l m. (APPEND l m = []) <=> (l = []) /\ (m = [])`,
-  REWRITE_TAC[GSYM LENGTH_EQ_NIL; LENGTH_APPEND; ADD_EQ_0]);;
+  REWRITE_TAC[GSYM LENGTH_EQ_NIL; LENGTH_APPEND; ADD_EQ_0]));;
 
-let LENGTH_MAP2 = prove
+let LENGTH_MAP2 = log_lemma "LENGTH_MAP2" (fun () -> prove
  (`!f l m. (LENGTH l = LENGTH m) ==> (LENGTH(MAP2 f l m) = LENGTH m)`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_SIMP_TAC[LENGTH; NOT_CONS_NIL; NOT_SUC; MAP2; SUC_INJ]);;
+  ASM_SIMP_TAC[LENGTH; NOT_CONS_NIL; NOT_SUC; MAP2; SUC_INJ]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Syntax.                                                                   *)
@@ -394,17 +400,17 @@ let mk_flist tms =
 (* Extra monotonicity theorems for inductive definitions.                    *)
 (* ------------------------------------------------------------------------- *)
 
-let MONO_ALL = prove
+let MONO_ALL = log_lemma "MONO_ALL" (fun () -> prove
  (`(!x:A. P x ==> Q x) ==> ALL P l ==> ALL Q l`,
   DISCH_TAC THEN SPEC_TAC(`l:A list`,`l:A list`) THEN
-  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL] THEN ASM_MESON_TAC[]);;
+  LIST_INDUCT_TAC THEN ASM_REWRITE_TAC[ALL] THEN ASM_MESON_TAC[]));;
 
-let MONO_ALL2 = prove
+let MONO_ALL2 = log_lemma "MONO_ALL2" (fun () -> prove
  (`(!x y. (P:A->B->bool) x y ==> Q x y) ==> ALL2 P l l' ==> ALL2 Q l l'`,
   DISCH_TAC THEN
   SPEC_TAC(`l':B list`,`l':B list`) THEN SPEC_TAC(`l:A list`,`l:A list`) THEN
   LIST_INDUCT_TAC THEN REWRITE_TAC[ALL2_DEF] THEN
-  GEN_TAC THEN COND_CASES_TAC THEN REWRITE_TAC[] THEN ASM_MESON_TAC[]);;
+  GEN_TAC THEN COND_CASES_TAC THEN REWRITE_TAC[] THEN ASM_MESON_TAC[]));;
 
 monotonicity_theorems := [MONO_ALL; MONO_ALL2] @ !monotonicity_theorems;;
 
@@ -426,3 +432,9 @@ let char_INDUCT,char_RECURSION = define_type
  "char = ASCII bool bool bool bool bool bool bool bool";;
 
 new_type_abbrev("string",`:char list`);;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

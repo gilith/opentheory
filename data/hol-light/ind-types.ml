@@ -8,10 +8,16 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "ind-types";;
+
+(* ------------------------------------------------------------------------- *)
 (* Abstract left inverses for binary injections (we could construct them...) *)
 (* ------------------------------------------------------------------------- *)
 
-let INJ_INVERSE2 = prove
+let INJ_INVERSE2 = log_lemma "INJ_INVERSE2" (fun () -> prove
  (`!P:A->B->C.
     (!x1 y1 x2 y2. (P x1 y1 = P x2 y2) <=> (x1 = x2) /\ (y1 = y2))
     ==> ?X Y. !x y. (X(P x y) = x) /\ (Y(P x y) = y)`,
@@ -21,7 +27,7 @@ let INJ_INVERSE2 = prove
   REPEAT GEN_TAC THEN ASM_REWRITE_TAC[BETA_THM] THEN
   CONJ_TAC THEN MATCH_MP_TAC SELECT_UNIQUE THEN GEN_TAC THEN BETA_TAC THEN
   EQ_TAC THEN STRIP_TAC THEN ASM_REWRITE_TAC[] THEN
-  W(EXISTS_TAC o rand o snd o dest_exists o snd) THEN REFL_TAC);;
+  W(EXISTS_TAC o rand o snd o dest_exists o snd) THEN REFL_TAC));;
 
 (* ------------------------------------------------------------------------- *)
 (* Define an injective pairing function on ":num".                           *)
@@ -30,24 +36,24 @@ let INJ_INVERSE2 = prove
 let NUMPAIR = new_definition
   `NUMPAIR x y = (2 EXP x) * (2 * y + 1)`;;
 
-let NUMPAIR_INJ_LEMMA = prove
+let NUMPAIR_INJ_LEMMA = log_lemma "NUMPAIR_INJ_LEMMA" (fun () -> prove
  (`!x1 y1 x2 y2. (NUMPAIR x1 y1 = NUMPAIR x2 y2) ==> (x1 = x2)`,
   REWRITE_TAC[NUMPAIR] THEN REPEAT(INDUCT_TAC THEN GEN_TAC) THEN
   ASM_REWRITE_TAC[EXP; GSYM MULT_ASSOC; ARITH; EQ_MULT_LCANCEL;
     NOT_SUC; GSYM NOT_SUC; SUC_INJ] THEN
   DISCH_THEN(MP_TAC o AP_TERM `EVEN`) THEN
-  REWRITE_TAC[EVEN_MULT; EVEN_ADD; ARITH]);;
+  REWRITE_TAC[EVEN_MULT; EVEN_ADD; ARITH]));;
 
-let NUMPAIR_INJ = prove
+let NUMPAIR_INJ = log_lemma "NUMPAIR_INJ" (fun () -> prove
  (`!x1 y1 x2 y2. (NUMPAIR x1 y1 = NUMPAIR x2 y2) <=> (x1 = x2) /\ (y1 = y2)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
   FIRST_ASSUM(SUBST_ALL_TAC o MATCH_MP NUMPAIR_INJ_LEMMA) THEN
   POP_ASSUM MP_TAC THEN REWRITE_TAC[NUMPAIR] THEN
-  REWRITE_TAC[EQ_MULT_LCANCEL; EQ_ADD_RCANCEL; EXP_EQ_0; ARITH]);;
+  REWRITE_TAC[EQ_MULT_LCANCEL; EQ_ADD_RCANCEL; EXP_EQ_0; ARITH]));;
 
-let NUMPAIR_DEST = new_specification
+let NUMPAIR_DEST = log_lemma "NUMPAIR_DEST" (fun () -> new_specification
   ["NUMFST"; "NUMSND"]
-  (MATCH_MP INJ_INVERSE2 NUMPAIR_INJ);;
+  (MATCH_MP INJ_INVERSE2 NUMPAIR_INJ));;
 
 (* ------------------------------------------------------------------------- *)
 (* Also, an injective map bool->num->num (even easier!)                      *)
@@ -56,17 +62,17 @@ let NUMPAIR_DEST = new_specification
 let NUMSUM = new_definition
   `NUMSUM b x = if b then SUC(2 * x) else 2 * x`;;
 
-let NUMSUM_INJ = prove
+let NUMSUM_INJ = log_lemma "NUMSUM_INJ" (fun () -> prove
  (`!b1 x1 b2 x2. (NUMSUM b1 x1 = NUMSUM b2 x2) <=> (b1 = b2) /\ (x1 = x2)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
   POP_ASSUM(MP_TAC o REWRITE_RULE[NUMSUM]) THEN
   DISCH_THEN(fun th -> MP_TAC th THEN MP_TAC(AP_TERM `EVEN` th)) THEN
   REPEAT COND_CASES_TAC THEN REWRITE_TAC[EVEN; EVEN_DOUBLE] THEN
-  REWRITE_TAC[SUC_INJ; EQ_MULT_LCANCEL; ARITH]);;
+  REWRITE_TAC[SUC_INJ; EQ_MULT_LCANCEL; ARITH]));;
 
-let NUMSUM_DEST = new_specification
+let NUMSUM_DEST = log_lemma "NUMSUM_DEST" (fun () -> new_specification
   ["NUMLEFT"; "NUMRIGHT"]
-  (MATCH_MP INJ_INVERSE2 NUMSUM_INJ);;
+  (MATCH_MP INJ_INVERSE2 NUMSUM_INJ));;
 
 (* ------------------------------------------------------------------------- *)
 (* Injection num->Z, where Z == num->A->bool.                                *)
@@ -75,11 +81,11 @@ let NUMSUM_DEST = new_specification
 let INJN = new_definition
  `INJN (m:num) = \(n:num) (a:A). n = m`;;
 
-let INJN_INJ = prove
+let INJN_INJ = log_lemma "INJN_INJ" (fun () -> prove
  (`!n1 n2. (INJN n1 :num->A->bool = INJN n2) <=> (n1 = n2)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
   POP_ASSUM(MP_TAC o C AP_THM `n1:num` o REWRITE_RULE[INJN]) THEN
-  DISCH_THEN(MP_TAC o C AP_THM `a:A`) THEN REWRITE_TAC[BETA_THM]);;
+  DISCH_THEN(MP_TAC o C AP_THM `a:A`) THEN REWRITE_TAC[BETA_THM]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Injection A->Z, where Z == num->A->bool.                                  *)
@@ -88,11 +94,11 @@ let INJN_INJ = prove
 let INJA = new_definition
  `INJA (a:A) = \(n:num) b. b = a`;;
 
-let INJA_INJ = prove
+let INJA_INJ = log_lemma "INJA_INJ" (fun () -> prove
  (`!a1 a2. (INJA a1 = INJA a2) <=> (a1:A = a2)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[INJA; FUN_EQ_THM] THEN EQ_TAC THENL
    [DISCH_THEN(MP_TAC o SPEC `a1:A`) THEN REWRITE_TAC[];
-    DISCH_THEN SUBST1_TAC THEN REWRITE_TAC[]]);;
+    DISCH_THEN SUBST1_TAC THEN REWRITE_TAC[]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Injection (num->Z)->Z, where Z == num->A->bool.                           *)
@@ -101,14 +107,14 @@ let INJA_INJ = prove
 let INJF = new_definition
   `INJF (f:num->(num->A->bool)) = \n. f (NUMFST n) (NUMSND n)`;;
 
-let INJF_INJ = prove
+let INJF_INJ = log_lemma "INJF_INJ" (fun () -> prove
  (`!f1 f2. (INJF f1 :num->A->bool = INJF f2) <=> (f1 = f2)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
   REWRITE_TAC[FUN_EQ_THM] THEN
   MAP_EVERY X_GEN_TAC [`n:num`; `m:num`; `a:A`] THEN
   POP_ASSUM(MP_TAC o REWRITE_RULE[INJF]) THEN
   DISCH_THEN(MP_TAC o C AP_THM `a:A` o C AP_THM `NUMPAIR n m`) THEN
-  REWRITE_TAC[NUMPAIR_DEST]);;
+  REWRITE_TAC[NUMPAIR_DEST]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Injection Z->Z->Z, where Z == num->A->bool.                               *)
@@ -118,7 +124,7 @@ let INJP = new_definition
   `INJP f1 f2:num->A->bool =
         \n a. if NUMLEFT n then f1 (NUMRIGHT n) a else f2 (NUMRIGHT n) a`;;
 
-let INJP_INJ = prove
+let INJP_INJ = log_lemma "INJP_INJ" (fun () -> prove
  (`!(f1:num->A->bool) f1' f2 f2'.
         (INJP f1 f2 = INJP f1' f2') <=> (f1 = f1') /\ (f2 = f2')`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
@@ -126,7 +132,7 @@ let INJP_INJ = prove
   X_GEN_TAC `n:num` THEN POP_ASSUM(MP_TAC o REWRITE_RULE[INJP]) THEN
   DISCH_THEN(MP_TAC o GEN `b:bool` o C AP_THM `NUMSUM b n`) THEN
   DISCH_THEN(fun th -> MP_TAC(SPEC `T` th) THEN MP_TAC(SPEC `F` th)) THEN
-  ASM_SIMP_TAC[NUMSUM_DEST; ETA_AX]);;
+  ASM_SIMP_TAC[NUMSUM_DEST; ETA_AX]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Now, set up "constructor" and "bottom" element.                           *)
@@ -139,9 +145,9 @@ let ZCONSTR = new_definition
 let ZBOT = new_definition
   `ZBOT = INJP (INJN 0) (@z:num->A->bool. T)`;;
 
-let ZCONSTR_ZBOT = prove
+let ZCONSTR_ZBOT = log_lemma "ZCONSTR_ZBOT" (fun () -> prove
  (`!c i r. ~(ZCONSTR c i r :num->A->bool = ZBOT)`,
-  REWRITE_TAC[ZCONSTR; ZBOT; INJP_INJ; INJN_INJ; NOT_SUC]);;
+  REWRITE_TAC[ZCONSTR; ZBOT; INJP_INJ; INJN_INJ; NOT_SUC]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Carve out an inductively defined set.                                     *)
@@ -152,9 +158,9 @@ let ZRECSPACE_RULES,ZRECSPACE_INDUCT,ZRECSPACE_CASES =
    `ZRECSPACE (ZBOT:num->A->bool) /\
     (!c i r. (!n. ZRECSPACE (r n)) ==> ZRECSPACE (ZCONSTR c i r))`;;
 
-let recspace_tydef =
+let recspace_tydef = log_lemma2 "recspace_tydef" (fun () ->
   new_basic_type_definition "recspace" ("_mk_rec","_dest_rec")
-  (CONJUNCT1 ZRECSPACE_RULES);;
+  (CONJUNCT1 ZRECSPACE_RULES));;
 
 (* ------------------------------------------------------------------------- *)
 (* Define lifted constructors.                                               *)
@@ -171,34 +177,34 @@ let CONSTR = new_definition
 (* Some lemmas.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-let MK_REC_INJ = prove
+let MK_REC_INJ = log_lemma "MK_REC_INJ" (fun () -> prove
  (`!x y. (_mk_rec x :(A)recspace = _mk_rec y)
          ==> (ZRECSPACE x /\ ZRECSPACE y ==> (x = y))`,
   REPEAT GEN_TAC THEN DISCH_TAC THEN
   REWRITE_TAC[snd recspace_tydef] THEN
   DISCH_THEN(fun th -> ONCE_REWRITE_TAC[GSYM th]) THEN
-  ASM_REWRITE_TAC[]);;
+  ASM_REWRITE_TAC[]));;
 
-let DEST_REC_INJ = prove
+let DEST_REC_INJ = log_lemma "DEST_REC_INJ" (fun () -> prove
  (`!x y. (_dest_rec x = _dest_rec y) <=> (x:(A)recspace = y)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
   POP_ASSUM(MP_TAC o AP_TERM
     `_mk_rec:(num->A->bool)->(A)recspace`) THEN
-  REWRITE_TAC[fst recspace_tydef]);;
+  REWRITE_TAC[fst recspace_tydef]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Show that the set is freely inductively generated.                        *)
 (* ------------------------------------------------------------------------- *)
 
-let CONSTR_BOT = prove
+let CONSTR_BOT = log_lemma "CONSTR_BOT" (fun () -> prove
  (`!c i r. ~(CONSTR c i r :(A)recspace = BOTTOM)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[CONSTR; BOTTOM] THEN
   DISCH_THEN(MP_TAC o MATCH_MP MK_REC_INJ) THEN
   REWRITE_TAC[ZCONSTR_ZBOT; ZRECSPACE_RULES] THEN
   MATCH_MP_TAC(CONJUNCT2 ZRECSPACE_RULES) THEN
-  REWRITE_TAC[fst recspace_tydef; snd recspace_tydef]);;
+  REWRITE_TAC[fst recspace_tydef; snd recspace_tydef]));;
 
-let CONSTR_INJ = prove
+let CONSTR_INJ = log_lemma "CONSTR_INJ" (fun () -> prove
  (`!c1 i1 r1 c2 i2 r2. (CONSTR c1 i1 r1 :(A)recspace = CONSTR c2 i2 r2) <=>
                        (c1 = c2) /\ (i1 = i2) /\ (r1 = r2)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
@@ -210,9 +216,9 @@ let CONSTR_INJ = prove
     ASM_REWRITE_TAC[] THEN REWRITE_TAC[ZCONSTR] THEN
     REWRITE_TAC[INJP_INJ; INJN_INJ; INJF_INJ; INJA_INJ] THEN
     ONCE_REWRITE_TAC[FUN_EQ_THM] THEN BETA_TAC THEN
-    REWRITE_TAC[SUC_INJ; DEST_REC_INJ]]);;
+    REWRITE_TAC[SUC_INJ; DEST_REC_INJ]]));;
 
-let CONSTR_IND = prove
+let CONSTR_IND = log_lemma "CONSTR_IND" (fun () -> prove
  (`!P. P(BOTTOM) /\
        (!c i r. (!n. P(r n)) ==> P(CONSTR c i r))
        ==> !x:(A)recspace. P(x)`,
@@ -233,13 +239,13 @@ let CONSTR_IND = prove
     REWRITE_TAC[fst recspace_tydef] THEN
     REWRITE_TAC[ITAUT `(a ==> a /\ b) <=> (a ==> b)`] THEN
     DISCH_THEN MATCH_MP_TAC THEN
-    REWRITE_TAC[fst recspace_tydef; snd recspace_tydef]]);;
+    REWRITE_TAC[fst recspace_tydef; snd recspace_tydef]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Now prove the recursion theorem (this subcase is all we need).            *)
 (* ------------------------------------------------------------------------- *)
 
-let CONSTR_REC = prove
+let CONSTR_REC = log_lemma "CONSTR_REC" (fun () -> prove
  (`!Fn:num->A->(num->(A)recspace)->(num->B)->B.
      ?f. (!c i r. f (CONSTR c i r) = Fn c i r (\n. f (r n)))`,
   REPEAT STRIP_TAC THEN (MP_TAC o prove_inductive_relations_exist)
@@ -274,7 +280,7 @@ let CONSTR_REC = prove
     EXISTS_TAC `fn:(A)recspace->B` THEN ASM_REWRITE_TAC[] THEN
     REPEAT GEN_TAC THEN FIRST_ASSUM MATCH_MP_TAC THEN GEN_TAC THEN
     FIRST_ASSUM(fun th -> GEN_REWRITE_TAC I [GSYM th]) THEN
-    REWRITE_TAC[BETA_THM]]);;
+    REWRITE_TAC[BETA_THM]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* The following is useful for coding up functions casewise.                 *)
@@ -284,10 +290,10 @@ let FCONS = new_recursive_definition num_RECURSION
  `(!a f. FCONS (a:A) f 0 = a) /\
   (!a f n. FCONS (a:A) f (SUC n) = f n)`;;
 
-let FCONS_UNDO = prove
+let FCONS_UNDO = log_lemma "FCONS_UNDO" (fun () -> prove
  (`!f:num->A. f = FCONS (f 0) (f o SUC)`,
   GEN_TAC THEN REWRITE_TAC[FUN_EQ_THM] THEN
-  INDUCT_TAC THEN REWRITE_TAC[FCONS; o_THM]);;
+  INDUCT_TAC THEN REWRITE_TAC[FCONS; o_THM]));;
 
 let FNIL = new_definition
   `FNIL (n:num) = @x:A. T`;;
@@ -730,6 +736,12 @@ let define_type_raw =
     let kth = derive_recursion_theorem tybijpairs consindex conthms rath in
     fth,kth;;
 
+let define_type_raw =
+    log_function "define_type_raw"
+    (log_list
+      (log_pair log_type (log_list (log_pair log_name (log_list log_type)))))
+    (log_pair log_thm log_thm) define_type_raw;;
+
 (* ------------------------------------------------------------------------- *)
 (* Parser to present a nice interface a la Melham.                           *)
 (* ------------------------------------------------------------------------- *)
@@ -764,8 +776,9 @@ let parse_inductive_type_specification =
 (* ------------------------------------------------------------------------- *)
 
 let sum_INDUCT,sum_RECURSION =
+  log_lemma2 "sum_INDUCT,sum_RECURSION" (fun () ->
   let define_type = define_type_raw o parse_inductive_type_specification in
-  define_type "sum = INL A | INR B";;
+  define_type "sum = INL A | INR B");;
 
 let OUTL = new_recursive_definition sum_RECURSION
   `OUTL (INL x :A+B) = x`;;
@@ -873,17 +886,25 @@ let define_type_raw =
   fun def -> let ith,rth = define_type_raw def in
              ith,generalize_recursion_theorem rth;;
 
+let define_type_raw =
+    log_function "define_type_raw"
+    (log_list
+      (log_pair log_type (log_list (log_pair log_name (log_list log_type)))))
+    (log_pair log_thm log_thm) define_type_raw;;
+
 (* ------------------------------------------------------------------------- *)
 (* Set up options and lists.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 let option_INDUCT,option_RECURSION =
+  log_lemma2 "option_INDUCT,option_RECURSION" (fun () ->
   let define_type = define_type_raw o parse_inductive_type_specification in
-  define_type "option = NONE | SOME A";;
+  define_type "option = NONE | SOME A");;
 
 let list_INDUCT,list_RECURSION =
+  log_lemma2 "list_INDUCT,list_RECURSION" (fun () ->
   let define_type = define_type_raw o parse_inductive_type_specification in
-  define_type "list = NIL | CONS A list";;
+  define_type "list = NIL | CONS A list");;
 
 (* ------------------------------------------------------------------------- *)
 (* Tools for proving injectivity and distinctness of constructors.           *)
@@ -916,6 +937,10 @@ let prove_constructors_injective =
     let pats = map (rand o lhand o snd o strip_forall) cls in
     end_itlist CONJ (mapfilter (prove_distinctness ax) pats);;
 
+let prove_constructors_injective =
+    log_function "prove_constructors_injective"
+    log_thm log_thm prove_constructors_injective;;
+
 let prove_constructors_distinct =
   let num_ty = `:num` in
   let rec allopairs f l m =
@@ -946,6 +971,10 @@ let prove_constructors_distinct =
     let pats = map (fun f -> map snd (filter ((=)f o fst) lefts)) fns in
     end_itlist CONJ
      (end_itlist (@) (mapfilter (prove_distinct ax) pats));;
+
+let prove_constructors_distinct =
+    log_function "prove_constructors_distinct"
+    log_thm log_thm prove_constructors_distinct;;
 
 (* ------------------------------------------------------------------------- *)
 (* Automatically prove the case analysis theorems.                           *)
@@ -992,6 +1021,10 @@ let prove_cases_thm =
     let ith = BETA_RULE (INST (zip xpreds preds) (SPEC_ALL th)) in
     let eclauses = conjuncts(fst(dest_imp(concl ith))) in
     MP ith (end_itlist CONJ (map prove_eclause eclauses));;
+
+let prove_cases_thm =
+    log_function "prove_cases_thm"
+    log_thm log_thm prove_cases_thm;;
 
 (* ------------------------------------------------------------------------- *)
 (* Now deal with nested recursion. Need a store of previous theorems.        *)
@@ -1043,21 +1076,21 @@ let cases ty =
 let ISO = new_definition
   `ISO (f:A->B) (g:B->A) <=> (!x. f(g x) = x) /\ (!y. g(f y) = y)`;;
 
-let ISO_REFL = prove
+let ISO_REFL = log_lemma "ISO_REFL" (fun () -> prove
  (`ISO (\x:A. x) (\x. x)`,
-  REWRITE_TAC[ISO]);;
+  REWRITE_TAC[ISO]));;
 
-let ISO_FUN = prove
+let ISO_FUN = log_lemma "ISO_FUN" (fun () -> prove
  (`ISO (f:A->A') f' /\ ISO (g:B->B') g'
    ==> ISO (\h a'. g(h(f' a'))) (\h a. g'(h(f a)))`,
-  REWRITE_TAC[ISO; FUN_EQ_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[ISO; FUN_EQ_THM] THEN MESON_TAC[]));;
 
-let ISO_USAGE = prove
+let ISO_USAGE = log_lemma "ISO_USAGE" (fun () -> prove
  (`ISO f g
    ==> (!P. (!x. P x) <=> (!x. P(g x))) /\
        (!P. (?x. P x) <=> (?x. P(g x))) /\
        (!a b. (a = g b) <=> (f a = b))`,
-  REWRITE_TAC[ISO; FUN_EQ_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[ISO; FUN_EQ_THM] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Hence extend type definition to nested types.                             *)
@@ -1110,11 +1143,11 @@ let define_type_raw =
   (* ----------------------------------------------------------------------- *)
 
   let DE_EXISTENTIALIZE_RULE =
-    let pth = prove
+    let pth = log_lemma "define_type_raw.DE_EXISTENTIALIZE_RULE.pth" (fun () -> prove
      (`(?) P ==> (c = (@)P) ==> P c`,
       GEN_REWRITE_TAC (LAND_CONV o RAND_CONV) [GSYM ETA_AX] THEN
       DISCH_TAC THEN DISCH_THEN SUBST1_TAC THEN
-      MATCH_MP_TAC SELECT_AX THEN POP_ASSUM ACCEPT_TAC) in
+      MATCH_MP_TAC SELECT_AX THEN POP_ASSUM ACCEPT_TAC)) in
     let USE_PTH = MATCH_MP pth in
     let rec DE_EXISTENTIALIZE_RULE th =
       if not (is_exists(concl th)) then [],th else
@@ -1366,6 +1399,12 @@ let define_type_raw =
     (inductive_type_store := newentries @ (!inductive_type_store);
      do_list extend_rectype_net newentries; ith1,rth1);;
 
+let define_type_raw =
+    log_function "define_type_raw"
+    (log_list
+      (log_pair log_type (log_list (log_pair log_name (log_list log_type)))))
+    (log_pair log_thm log_thm) define_type_raw;;
+
 (* ----------------------------------------------------------------------- *)
 (* The overall function, with rather crude string-based benignity.         *)
 (* ----------------------------------------------------------------------- *)
@@ -1396,40 +1435,44 @@ let define_type s =
         let retval = define_type_raw defspec in
         the_inductive_types := (s,retval)::(!the_inductive_types); retval;;
 
+let define_type =
+    log_function "define_type"
+    log_name (log_pair log_thm log_thm) define_type;;
+
 (* ------------------------------------------------------------------------- *)
 (* Unwinding, and application of patterns. Add easy cases to default net.    *)
 (* ------------------------------------------------------------------------- *)
 
 let UNWIND_CONV,MATCH_CONV =
-  let pth_0 = prove
+  let pth_0 = log_lemma "UNWIND_CONV,MATCH_CONV.pth_0" (fun () -> prove
    (`(if ?!x. x = a /\ p then @x. x = a /\ p else @x. F) =
      (if p then a else @x. F)`,
     BOOL_CASES_TAC `p:bool` THEN ASM_REWRITE_TAC[COND_ID] THEN
-    MESON_TAC[])
-  and pth_1 = prove
+    MESON_TAC[]))
+  and pth_1 = log_lemma "UNWIND_CONV,MATCH_CONV.pth_1" (fun () -> prove
    (`_MATCH x (_SEQPATTERN r s) =
      (if ?y. r x y then _MATCH x r else _MATCH x s) /\
     _FUNCTION (_SEQPATTERN r s) x =
      (if ?y. r x y then _FUNCTION r x else _FUNCTION s x)`,
     REWRITE_TAC[_MATCH; _SEQPATTERN; _FUNCTION] THEN
-    MESON_TAC[])
-  and pth_2 = prove
+    MESON_TAC[]))
+  and pth_2 = log_lemma "UNWIND_CONV,MATCH_CONV.pth_2" (fun () -> prove
    (`((?y. _UNGUARDED_PATTERN (GEQ s t) (GEQ u y)) <=> s = t) /\
      ((?y. _GUARDED_PATTERN (GEQ s t) p (GEQ u y)) <=> s = t /\ p)`,
     REWRITE_TAC[_UNGUARDED_PATTERN; _GUARDED_PATTERN; GEQ_DEF] THEN
-    MESON_TAC[])
-  and pth_3 = prove
+    MESON_TAC[]))
+  and pth_3 = log_lemma "UNWIND_CONV,MATCH_CONV.pth_3" (fun () -> prove
    (`(_MATCH x (\y z. P y z) = if ?!z. P x z then @z. P x z else @x. F) /\
      (_FUNCTION (\y z. P y z) x = if ?!z. P x z then @z. P x z else @x. F)`,
-    REWRITE_TAC[_MATCH; _FUNCTION])
-  and pth_4 = prove
+    REWRITE_TAC[_MATCH; _FUNCTION]))
+  and pth_4 = log_lemma "UNWIND_CONV,MATCH_CONV.pth_4" (fun () -> prove
    (`(_UNGUARDED_PATTERN (GEQ s t) (GEQ u y) <=> y = u /\ s = t) /\
      (_GUARDED_PATTERN (GEQ s t) p (GEQ u y) <=> y = u /\ s = t /\ p)`,
     REWRITE_TAC[_UNGUARDED_PATTERN; _GUARDED_PATTERN; GEQ_DEF] THEN
-    MESON_TAC[])
-  and pth_5 = prove
+    MESON_TAC[]))
+  and pth_5 = log_lemma "UNWIND_CONV,MATCH_CONV.pth_5" (fun () -> prove
    (`(if ?!z. z = k then @z. z = k else @x. F) = k`,
-    MESON_TAC[]) in
+    MESON_TAC[])) in
   let rec INSIDE_EXISTS_CONV conv tm =
     if is_exists tm then BINDER_CONV (INSIDE_EXISTS_CONV conv) tm
     else conv tm in
@@ -1519,6 +1562,11 @@ let UNWIND_CONV,MATCH_CONV =
   (CHANGED_CONV UNWIND_CONV,
    (MATCH_SEQPATTERN_CONV_GEN ORELSEC MATCH_ONEPATTERN_CONV_GEN));;
 
+let UNWIND_CONV =
+    log_function "UNWIND_CONV" log_term log_thm UNWIND_CONV
+and MATCH_CONV =
+    log_function "MATCH_CONV" log_term log_thm MATCH_CONV;;
+
 let FORALL_UNWIND_CONV =
   let PUSH_FORALL_CONV =
      let econv = REWR_CONV SWAP_FORALL_THM in
@@ -1552,3 +1600,12 @@ let FORALL_UNWIND_CONV =
         CONV_RULE (RAND_CONV FORALL_UNWIND_CONV) (TRANS th3 th4)
     with Failure _ -> REFL tm in
   FORALL_UNWIND_CONV;;
+
+let FORALL_UNWIND_CONV =
+    log_function "FORALL_UNWIND_CONV" log_term log_thm FORALL_UNWIND_CONV;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;
