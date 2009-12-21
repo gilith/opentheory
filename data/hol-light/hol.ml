@@ -144,8 +144,8 @@ loads "pair.ml";;       (* Theory of pairs                                   *)
 loads "num.ml";;        (* Axiom of Infinity, definition of natural numbers  *)
 loads "arith.ml";;      (* Natural number arithmetic                         *)
 loads "wf.ml";;         (* Theory of wellfounded relations                   *)
-(***
 loads "calc_num.ml";;   (* Calculation with natural numbers                  *)
+(***
 loads "normalizer.ml";; (* Polynomial normalizer for rings and semirings     *)
 loads "grobner.ml";;    (* Groebner basis procedure for most semirings.      *)
 loads "ind-types.ml";;  (* Tools for defining inductive types                *)

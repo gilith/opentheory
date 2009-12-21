@@ -151,6 +151,24 @@ require wf {
   package: hol-light-wf-2009.8.24
 }
 
+require calc_num {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  package: hol-light-calc_num-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -165,4 +183,5 @@ theory {
   import num;
   import arith;
   import wf;
+  import calc_num;
 }
