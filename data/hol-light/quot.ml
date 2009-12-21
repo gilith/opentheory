@@ -8,6 +8,12 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "quot";;
+
+(* ------------------------------------------------------------------------- *)
 (* Given a type name "ty" and a curried binary relation R, this defines      *)
 (* a new type "ty" of R-equivalence classes. The abstraction and             *)
 (* representation functions for the new type are called "mk_ty" and          *)
@@ -31,6 +37,11 @@ let define_quotient_type =
     let abs,rep = new_basic_type_definition tyname (absname,repname) th2 in
     abs,CONV_RULE(LAND_CONV BETA_CONV) rep;;
 
+let define_quotient_type =
+    log_function3 "define_quotient_type"
+      log_name (log_pair log_name log_name) log_term (log_pair log_thm log_thm)
+      define_quotient_type;;
+
 (* ------------------------------------------------------------------------- *)
 (* Given a welldefinedness theorem for a curried function f, of the form:    *)
 (*                                                                           *)
@@ -48,10 +59,10 @@ let define_quotient_type =
 (* ------------------------------------------------------------------------- *)
 
 let lift_function =
-  let SELECT_LEMMA = prove
+  let SELECT_LEMMA = log_lemma "lift_function.SELECT_LEMMA" (fun () -> prove
    (`!x:A. (@y. x = y) = x`,
     GEN_TAC THEN GEN_REWRITE_TAC (LAND_CONV o BINDER_CONV) [EQ_SYM_EQ] THEN
-    MATCH_ACCEPT_TAC SELECT_REFL) in
+    MATCH_ACCEPT_TAC SELECT_REFL)) in
   fun tybij2 ->
     let tybl,tybr = dest_comb(concl tybij2) in
     let eqvx = rand(body(rand(rand tybl))) in
@@ -118,6 +129,11 @@ let lift_function =
       let th9 = CONV_RULE (RAND_CONV fconv) th8 in
       eth,GSYM th9;;
 
+let lift_function =
+    log_function4 "lift_function"
+      log_thm (log_pair log_thm log_thm) log_name log_thm
+      (log_pair log_thm log_thm) lift_function;;
+
 (* ------------------------------------------------------------------------- *)
 (* Lifts a theorem. This can be done by higher order rewriting alone.        *)
 (*                                                                           *)
@@ -125,7 +141,7 @@ let lift_function =
 (* ------------------------------------------------------------------------- *)
 
 let lift_theorem =
-  let pth = prove
+  let pth = log_lemma "lift_theorem.pth" (fun () -> prove
    (`(!x:Repty. R x x) /\
      (!x y. R x y <=> R y x) /\
      (!x y z. R x y /\ R y z ==> R x z) /\
@@ -150,7 +166,7 @@ let lift_theorem =
     SUBST1_TAC THENL [ASM_MESON_TAC[]; ALL_TAC] THEN
     GEN_REWRITE_TAC (LAND_CONV o RAND_CONV) [GSYM ETA_AX] THEN
     FIRST_ASSUM(fun th -> GEN_REWRITE_TAC I [th]) THEN
-    CONV_TAC SELECT_CONV THEN ASM_MESON_TAC[]) in
+    CONV_TAC SELECT_CONV THEN ASM_MESON_TAC[])) in
   fun tybij (refl_th,sym_th,trans_th) ->
     let tybij1 = GEN_ALL (fst tybij)
     and tybij2 = GEN_ALL (snd tybij) in
@@ -158,3 +174,14 @@ let lift_theorem =
     let ith = MATCH_MP pth cth in
     fun trths ->
       REWRITE_RULE (ith::trths);;
+
+let lift_theorem =
+    log_function4 "lift_theorem"
+      (log_pair log_thm log_thm) (log_triple log_thm log_thm log_thm)
+      (log_list log_thm) log_thm log_thm lift_theorem;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

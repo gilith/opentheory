@@ -831,7 +831,7 @@ let MESON_TAC ths = POP_ASSUM_LIST(K ALL_TAC) THEN ASM_MESON_TAC ths;;
 let MESON ths tm = prove(tm,MESON_TAC ths);;
 
 let MESON =
-    log_function "MESON" log_term log_thm MESON;;
+    log_function2 "MESON" (log_list log_thm) log_term log_thm MESON;;
 
 (* ------------------------------------------------------------------------- *)
 (* Close out the logfile.                                                    *)

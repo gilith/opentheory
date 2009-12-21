@@ -9,7 +9,11 @@
 
 let curry3 f x y z = f (x,y,z);;
 
+let curry4 f w x y z = f (w,x,y,z);;
+
 let uncurry3 f (x,y,z) = f x y z;;
+
+let uncurry4 f (w,x,y,z) = f w x y z;;
 
 (* ------------------------------------------------------------------------- *)
 (* Setting up the log files: part 1                                          *)
@@ -139,6 +143,10 @@ let log_pair (f : 'a -> unit) (g : 'b -> unit) (x,y) =
 let log_triple (f : 'a -> unit) (g : 'b -> unit) (h : 'c -> unit) (x,y,z) =
     f x; log_pair g h (y,z); log_command "cons";;
 
+let log_quadruple (f : 'a -> unit) (g : 'b -> unit) (h : 'c -> unit)
+      (j : 'd -> unit) (w,x,y,z) =
+    f w; log_triple g h j (x,y,z); log_command "cons";;
+
 let log_call f = log_rule f; log_command "call";;
 
 let log_return f = log_rule f; log_command "return";;
@@ -165,6 +173,10 @@ let log_function2 n log_arg1 log_arg2 log_ret func =
 let log_function3 n log_arg1 log_arg2 log_arg3 log_ret func =
     curry3 (log_function n (log_triple log_arg1 log_arg2 log_arg3) log_ret
     (uncurry3 func));;
+
+let log_function4 n log_arg1 log_arg2 log_arg3 log_arg4 log_ret func =
+    curry4 (log_function n (log_quadruple log_arg1 log_arg2 log_arg3 log_arg4)
+    log_ret (uncurry4 func));;
 
 let log_type =
     let rec log f ty =

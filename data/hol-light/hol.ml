@@ -133,8 +133,8 @@ loads "class.ml";;      (* Classical reasoning: Choice and Extensionality    *)
 loads "trivia.ml";;     (* Some very basic theories, e.g. type ":1"          *)
 loads "canon.ml";;      (* Tools for putting terms in canonical forms        *)
 loads "meson.ml";;      (* First order automation: MESON (model elimination) *)
-(***
 loads "quot.ml";;       (* Derived rules for defining quotient types         *)
+(***
 loads "recursion.ml";;  (* Tools for primitive recursion on inductive types  *)
 
 (* ------------------------------------------------------------------------- *)
