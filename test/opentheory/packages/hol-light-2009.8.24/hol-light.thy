@@ -208,6 +208,49 @@ require grobner {
   package: hol-light-grobner-2009.8.24
 }
 
+require ind-types {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  package: hol-light-ind-types-2009.8.24
+}
+
+require list {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  package: hol-light-list-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -225,4 +268,6 @@ theory {
   import calc-num;
   import normalizer;
   import grobner;
+  import ind-types;
+  import list;
 }
