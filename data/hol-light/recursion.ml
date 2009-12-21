@@ -8,6 +8,12 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "recursion";;
+
+(* ------------------------------------------------------------------------- *)
 (* Prove existence of recursive function. The inner "raw" version requires   *)
 (* exact correspondence with recursion theorem; "canon" requires the         *)
 (* PR argument to come first in the arg list; the outer one is more general. *)
@@ -86,6 +92,10 @@ let prove_recursive_functions_exist =
     let gth = itlist scrub_def (map concl trths) fth in
     PROVE_HYP eth (itlist SIMPLE_CHOOSE evs gth);;
 
+let prove_recursive_functions_exist =
+    log_function2 "prove_recursive_functions_exist"
+      log_thm log_term log_thm prove_recursive_functions_exist;;
+
 (* ------------------------------------------------------------------------- *)
 (* Version that defines function(s).                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -111,3 +121,13 @@ let new_recursive_definition =
     let dths = map2 SPECL fvs (CONJUNCTS dth) in
     let th = end_itlist CONJ dths in
     the_recursive_definitions := th::(!the_recursive_definitions); th;;
+
+let new_recursive_definition =
+    log_function2 "new_recursive_definition"
+      log_thm log_term log_thm new_recursive_definition;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;
