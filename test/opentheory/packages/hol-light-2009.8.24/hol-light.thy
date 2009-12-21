@@ -151,7 +151,7 @@ require wf {
   package: hol-light-wf-2009.8.24
 }
 
-require calc_num {
+require calc-num {
   require: bool
   require: tactics
   require: simp
@@ -166,7 +166,7 @@ require calc_num {
   require: num
   require: arith
   require: wf
-  package: hol-light-calc_num-2009.8.24
+  package: hol-light-calc-num-2009.8.24
 }
 
 theory {
@@ -183,5 +183,5 @@ theory {
   import num;
   import arith;
   import wf;
-  import calc_num;
+  import calc-num;
 }

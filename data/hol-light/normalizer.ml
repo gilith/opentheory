@@ -4,8 +4,14 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "normalizer";;
+
 let SEMIRING_NORMALIZERS_CONV =
-  let SEMIRING_PTHS = prove
+  let SEMIRING_PTHS = log_lemma "SEMIRING_NORMALIZERS_CONV.SEMIRING_PTHS" (fun () -> prove
    (`(!x:A y z. add x (add y z) = add (add x y) z) /\
      (!x y. add x y = add y x) /\
      (!x. add r0 x = x) /\
@@ -84,7 +90,7 @@ let SEMIRING_NORMALIZERS_CONV =
       ALL_TAC] THEN
     SUBGOAL_THEN `!x:A m:num n. pwr (pwr x m) n = pwr x (m * n)`
      (fun th -> ASM_MESON_TAC[th]) THEN
-    GEN_TAC THEN GEN_TAC THEN INDUCT_TAC THEN ASM_REWRITE_TAC[MULT_CLAUSES])
+    GEN_TAC THEN GEN_TAC THEN INDUCT_TAC THEN ASM_REWRITE_TAC[MULT_CLAUSES]))
   and true_tm = concl TRUTH in
   fun sth rth (is_semiring_constant,
                SEMIRING_ADD_CONV,
@@ -561,3 +567,9 @@ let NUM_NORMALIZE_CONV =
       SEMIRING_ADD_CONV,SEMIRING_MUL_CONV,SEMIRING_POW_CONV)
      (<) in
   NUM_NORMALIZE_CONV;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;
