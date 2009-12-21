@@ -169,6 +169,45 @@ require calc-num {
   package: hol-light-calc-num-2009.8.24
 }
 
+require normalizer {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  package: hol-light-normalizer-2009.8.24
+}
+
+require grobner {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  package: hol-light-grobner-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -184,4 +223,6 @@ theory {
   import arith;
   import wf;
   import calc-num;
+  import normalizer;
+  import grobner;
 }

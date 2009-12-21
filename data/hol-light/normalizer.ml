@@ -543,7 +543,7 @@ let SEMIRING_NORMALIZERS_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let NUM_NORMALIZE_CONV =
-  let sth = prove
+  let sth = log_lemma "NUM_NORMALIZE_CONV.sth" (fun () -> prove
    (`(!x y z. x + (y + z) = (x + y) + z) /\
      (!x y. x + y = y + x) /\
      (!x. 0 + x = x) /\
@@ -555,7 +555,7 @@ let NUM_NORMALIZE_CONV =
      (!x. x EXP 0 = 1) /\
      (!x n. x EXP (SUC n) = x * x EXP n)`,
     REWRITE_TAC[EXP; MULT_CLAUSES; ADD_CLAUSES; LEFT_ADD_DISTRIB] THEN
-    REWRITE_TAC[ADD_AC; MULT_AC])
+    REWRITE_TAC[ADD_AC; MULT_AC]))
   and rth = TRUTH
   and is_semiring_constant = is_numeral
   and SEMIRING_ADD_CONV = NUM_ADD_CONV
@@ -567,6 +567,9 @@ let NUM_NORMALIZE_CONV =
       SEMIRING_ADD_CONV,SEMIRING_MUL_CONV,SEMIRING_POW_CONV)
      (<) in
   NUM_NORMALIZE_CONV;;
+
+let NUM_NORMALIZE_CONV =
+    log_function "NUM_NORMALIZE_CONV" log_term log_thm NUM_NORMALIZE_CONV;;
 
 (* ------------------------------------------------------------------------- *)
 (* Close out the logfile.                                                    *)

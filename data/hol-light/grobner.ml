@@ -11,6 +11,12 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "grobner";;
+
+(* ------------------------------------------------------------------------- *)
 (* Type for recording history, i.e. how a polynomial was obtained.           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -331,7 +337,7 @@ let RING_AND_IDEAL_CONV =
   (* We return an IDEAL_CONV and the actual ring prover.                     *)
   (* ----------------------------------------------------------------------- *)
 
-  let pth_step = prove
+  let pth_step = log_lemma "RING_AND_IDEAL_CONV.pth_step" (fun () -> prove
    (`!(add:A->A->A) (mul:A->A->A) (n0:A).
           (!x. mul n0 x = n0) /\
           (!x y z. (add x y = add x z) <=> (y = z)) /\
@@ -347,7 +353,7 @@ let RING_AND_IDEAL_CONV =
     ASM_REWRITE_TAC[GSYM DE_MORGAN_THM] THEN
     REPEAT GEN_TAC THEN DISCH_TAC THEN STRIP_TAC THEN
     FIRST_X_ASSUM(MP_TAC o SPECL [`n0:A`; `n:A`; `d:A`; `c:A`]) THEN
-    ONCE_REWRITE_TAC[GSYM CONTRAPOS_THM] THEN ASM_SIMP_TAC[])
+    ONCE_REWRITE_TAC[GSYM CONTRAPOS_THM] THEN ASM_SIMP_TAC[]))
   and FINAL_RULE = MATCH_MP(TAUT `(p ==> F) ==> (~q = p) ==> q`)
   and false_tm = `F` in
   let rec refute_disj rfn tm =
@@ -686,7 +692,7 @@ let NUM_RING =
   let rawring =
     RING(dest_numeral,mk_numeral,NUM_EQ_CONV,
          genvar bool_ty,`(+):num->num->num`,genvar bool_ty,
-         genvar bool_ty,`(*):num->num->num`,genvar bool_ty,
+         genvar bool_ty,`( * ) : num->num->num`,genvar bool_ty,
          `(EXP):num->num->num`,
          NUM_INTEGRAL,TRUTH,NUM_NORMALIZE_CONV) in
   let initconv = NUM_SIMPLIFY_CONV THENC GEN_REWRITE_CONV DEPTH_CONV [ADD1]
@@ -694,3 +700,9 @@ let NUM_RING =
   fun tm -> let th = initconv tm in
             if rand(concl th) = t_tm then th
             else EQ_MP (SYM th) (rawring(rand(concl th)));;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;
