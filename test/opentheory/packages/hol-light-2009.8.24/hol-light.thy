@@ -89,6 +89,20 @@ require quot {
   package: hol-light-quot-2009.8.24
 }
 
+require pair {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  package: hol-light-pair-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -99,4 +113,5 @@ theory {
   import canon;
   import meson;
   import quot;
+  import pair;
 }

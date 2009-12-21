@@ -7,6 +7,12 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "pair";;
+
 let LET_DEF = new_definition
  `LET (f:A->B) x = f x`;;
 
@@ -48,9 +54,9 @@ let PAIR_EXISTS_THM = prove
 let prod_tybij = new_type_definition
   "prod" ("ABS_prod","REP_prod") PAIR_EXISTS_THM;;
 
-let REP_ABS_PAIR = prove
+let REP_ABS_PAIR = log_lemma "REP_ABS_PAIR" (fun () -> prove
  (`!(x:A) (y:B). REP_prod (ABS_prod (mk_pair x y)) = mk_pair x y`,
-  MESON_TAC[prod_tybij]);;
+  MESON_TAC[prod_tybij]));;
 
 parse_as_infix (",",(14,"right"));;
 
@@ -63,16 +69,16 @@ let FST_DEF = new_definition
 let SND_DEF = new_definition
  `SND (p:A#B) = @y. ?x. p = x,y`;;
 
-let PAIR_EQ = prove
+let PAIR_EQ = log_lemma "PAIR_EQ" (fun () -> prove
  (`!(x:A) (y:B) a b. (x,y = a,b) <=> (x = a) /\ (y = b)`,
   REPEAT GEN_TAC THEN EQ_TAC THENL
    [REWRITE_TAC[COMMA_DEF] THEN
     DISCH_THEN(MP_TAC o AP_TERM `REP_prod:A#B->A->B->bool`) THEN
     REWRITE_TAC[REP_ABS_PAIR] THEN REWRITE_TAC[mk_pair_def; FUN_EQ_THM];
     ALL_TAC] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
-let PAIR_SURJECTIVE = prove
+let PAIR_SURJECTIVE = log_lemma "PAIR_SURJECTIVE" (fun () -> prove
  (`!p:A#B. ?x y. p = x,y`,
   GEN_TAC THEN REWRITE_TAC[COMMA_DEF] THEN
   MP_TAC(SPEC `REP_prod p :A->B->bool` (CONJUNCT2 prod_tybij)) THEN
@@ -80,41 +86,41 @@ let PAIR_SURJECTIVE = prove
   DISCH_THEN(X_CHOOSE_THEN `a:A` (X_CHOOSE_THEN `b:B` MP_TAC)) THEN
   DISCH_THEN(MP_TAC o AP_TERM `ABS_prod:(A->B->bool)->A#B`) THEN
   REWRITE_TAC[CONJUNCT1 prod_tybij] THEN DISCH_THEN SUBST1_TAC THEN
-  MAP_EVERY EXISTS_TAC [`a:A`; `b:B`] THEN REFL_TAC);;
+  MAP_EVERY EXISTS_TAC [`a:A`; `b:B`] THEN REFL_TAC));;
 
-let FST = prove
+let FST = log_lemma "FST" (fun () -> prove
  (`!(x:A) (y:B). FST(x,y) = x`,
   REPEAT GEN_TAC THEN REWRITE_TAC[FST_DEF] THEN
   MATCH_MP_TAC SELECT_UNIQUE THEN GEN_TAC THEN BETA_TAC THEN
   REWRITE_TAC[PAIR_EQ] THEN EQ_TAC THEN
   STRIP_TAC THEN ASM_REWRITE_TAC[] THEN
-  EXISTS_TAC `y:B` THEN ASM_REWRITE_TAC[]);;
+  EXISTS_TAC `y:B` THEN ASM_REWRITE_TAC[]));;
 
-let SND = prove
+let SND = log_lemma "SND" (fun () -> prove
  (`!(x:A) (y:B). SND(x,y) = y`,
   REPEAT GEN_TAC THEN REWRITE_TAC[SND_DEF] THEN
   MATCH_MP_TAC SELECT_UNIQUE THEN GEN_TAC THEN BETA_TAC THEN
   REWRITE_TAC[PAIR_EQ] THEN EQ_TAC THEN
   STRIP_TAC THEN ASM_REWRITE_TAC[] THEN
-  EXISTS_TAC `x:A` THEN ASM_REWRITE_TAC[]);;
+  EXISTS_TAC `x:A` THEN ASM_REWRITE_TAC[]));;
 
-let PAIR = prove
+let PAIR = log_lemma "PAIR" (fun () -> prove
  (`!x:A#B. FST x,SND x = x`,
   GEN_TAC THEN
   (X_CHOOSE_THEN `a:A` (X_CHOOSE_THEN `b:B` SUBST1_TAC)
      (SPEC `x:A#B` PAIR_SURJECTIVE)) THEN
-  REWRITE_TAC[FST; SND]);;
+  REWRITE_TAC[FST; SND]));;
 
-let pair_INDUCT = prove
+let pair_INDUCT = log_lemma "pair_INDUCT" (fun () -> prove
  (`!P. (!x y. P (x,y)) ==> !p. P p`,
   REPEAT STRIP_TAC THEN
   GEN_REWRITE_TAC RAND_CONV [GSYM PAIR] THEN
-  FIRST_ASSUM MATCH_ACCEPT_TAC);;
+  FIRST_ASSUM MATCH_ACCEPT_TAC));;
 
-let pair_RECURSION = prove
+let pair_RECURSION = log_lemma "pair_RECURSION" (fun () -> prove
  (`!PAIR'. ?fn:A#B->C. !a0 a1. fn (a0,a1) = PAIR' a0 a1`,
   GEN_TAC THEN EXISTS_TAC `\p. (PAIR':A->B->C) (FST p) (SND p)` THEN
-  REWRITE_TAC[FST; SND]);;
+  REWRITE_TAC[FST; SND]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Syntax operations.                                                        *)
@@ -173,6 +179,9 @@ let new_definition =
         let th4 = GEN_ALL (GENL avs th3) in
         the_definitions := th4::(!the_definitions); th4;;
 
+let new_definition =
+  log_function "new_definition" log_term log_thm new_definition;;
+
 (* ------------------------------------------------------------------------- *)
 (* A few more useful definitions.                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -195,7 +204,8 @@ let GABS_CONV conv tm =
   let gabs,bod = dest_comb tm in
   let f,qtm = dest_abs bod in
   let xs,bod = strip_forall qtm in
-  AP_TERM gabs (ABS f (itlist MK_FORALL xs (RAND_CONV conv bod)));;
+  log_lemma "GABS_CONV _ _" (fun () ->
+  AP_TERM gabs (ABS f (itlist MK_FORALL xs (RAND_CONV conv bod))));;
 
 (* ------------------------------------------------------------------------- *)
 (* General beta-conversion over linear pattern of nested constructors.       *)
@@ -236,9 +246,9 @@ let GEN_BETA_CONV =
   let GEQ_CONV = REWR_CONV(GSYM GEQ_DEF)
   and DEGEQ_RULE = CONV_RULE(REWR_CONV GEQ_DEF) in
   let GABS_RULE =
-    let pth = prove
+    let pth = log_lemma "GEN_BETA_CONV.GABS_RULE.pth" (fun () -> prove
      (`(?) P ==> P (GABS P)`,
-      SIMP_TAC[GABS_DEF; SELECT_AX; ETA_AX]) in
+      SIMP_TAC[GABS_DEF; SELECT_AX; ETA_AX])) in
     MATCH_MP pth in
   let rec create_iterated_projections tm =
     if frees tm = [] then []
@@ -272,6 +282,9 @@ let GEN_BETA_CONV =
     INSTANTIATE instn (DEGEQ_RULE (SPEC_ALL th6)) in
   GEN_BETA_CONV;;
 
+let GEN_BETA_CONV =
+    log_function "GEN_BETA_CONV" log_term log_thm GEN_BETA_CONV;;
+
 (* ------------------------------------------------------------------------- *)
 (* Add this to the basic "rewrites" and pairs to the inductive type store.   *)
 (* ------------------------------------------------------------------------- *)
@@ -285,45 +298,45 @@ inductive_type_store :=
 (* Convenient rules to eliminate binders over pairs.                         *)
 (* ------------------------------------------------------------------------- *)
 
-let FORALL_PAIR_THM = prove
+let FORALL_PAIR_THM = log_lemma "FORALL_PAIR_THM" (fun () -> prove
  (`!P. (!p. P p) <=> (!p1 p2. P(p1,p2))`,
-  MESON_TAC[PAIR]);;
+  MESON_TAC[PAIR]));;
 
-let EXISTS_PAIR_THM = prove
+let EXISTS_PAIR_THM = log_lemma "EXISTS_PAIR_THM" (fun () -> prove
  (`!P. (?p. P p) <=> ?p1 p2. P(p1,p2)`,
-  MESON_TAC[PAIR]);;
+  MESON_TAC[PAIR]));;
 
-let LAMBDA_PAIR_THM = prove
+let LAMBDA_PAIR_THM = log_lemma "LAMBDA_PAIR_THM" (fun () -> prove
  (`!t. (\p. t p) = (\(x,y). t(x,y))`,
-  REWRITE_TAC[FORALL_PAIR_THM; FUN_EQ_THM]);;
+  REWRITE_TAC[FORALL_PAIR_THM; FUN_EQ_THM]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Related theorems for explicitly paired quantifiers.                       *)
 (* ------------------------------------------------------------------------- *)
 
-let FORALL_PAIRED_THM = prove
+let FORALL_PAIRED_THM = log_lemma "FORALL_PAIRED_THM" (fun () -> prove
  (`!P. (!(x,y). P x y) <=> (!x y. P x y)`,
   GEN_TAC THEN GEN_REWRITE_TAC (LAND_CONV o RATOR_CONV) [FORALL_DEF] THEN
-  REWRITE_TAC[FUN_EQ_THM; FORALL_PAIR_THM]);;
+  REWRITE_TAC[FUN_EQ_THM; FORALL_PAIR_THM]));;
 
-let EXISTS_PAIRED_THM = prove
+let EXISTS_PAIRED_THM = log_lemma "EXISTS_PAIRED_THM" (fun () -> prove
  (`!P. (?(x,y). P x y) <=> (?x y. P x y)`,
   GEN_TAC THEN MATCH_MP_TAC(TAUT `(~p <=> ~q) ==> (p <=> q)`) THEN
-  REWRITE_TAC[REWRITE_RULE[ETA_AX] NOT_EXISTS_THM; FORALL_PAIR_THM]);;
+  REWRITE_TAC[REWRITE_RULE[ETA_AX] NOT_EXISTS_THM; FORALL_PAIR_THM]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Likewise for tripled quantifiers (could continue with the same proof).    *)
 (* ------------------------------------------------------------------------- *)
 
-let FORALL_TRIPLED_THM = prove
+let FORALL_TRIPLED_THM = log_lemma "FORALL_TRIPLED_THM" (fun () -> prove
  (`!P. (!(x,y,z). P x y z) <=> (!x y z. P x y z)`,
   GEN_TAC THEN GEN_REWRITE_TAC (LAND_CONV o RATOR_CONV) [FORALL_DEF] THEN
-  REWRITE_TAC[FUN_EQ_THM; FORALL_PAIR_THM]);;
+  REWRITE_TAC[FUN_EQ_THM; FORALL_PAIR_THM]));;
 
-let EXISTS_TRIPLED_THM = prove
+let EXISTS_TRIPLED_THM = log_lemma "EXISTS_TRIPED_THM" (fun () -> prove
  (`!P. (?(x,y,z). P x y z) <=> (?x y z. P x y z)`,
   GEN_TAC THEN MATCH_MP_TAC(TAUT `(~p <=> ~q) ==> (p <=> q)`) THEN
-  REWRITE_TAC[REWRITE_RULE[ETA_AX] NOT_EXISTS_THM; FORALL_PAIR_THM]);;
+  REWRITE_TAC[REWRITE_RULE[ETA_AX] NOT_EXISTS_THM; FORALL_PAIR_THM]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Expansion of a let-term.                                                  *)
@@ -348,15 +361,18 @@ let let_CONV =
     if length vs <> n then failwith "let_CONV" else
     (EXPAND_BETAS_CONV THENC lete_CONV) tm;;
 
+let let_CONV =
+    log_function "let_CONV" log_term log_thm let_CONV;;
+
 let (LET_TAC:tactic) =
   let is_trivlet tm =
     try let assigs,bod = dest_let tm in
         forall (uncurry (=)) assigs
     with Failure _ -> false
   and PROVE_DEPAIRING_EXISTS =
-    let pth = prove
+    let pth = log_lemma "LET_TAC.PROVE_DEPAIRING_EXISTS.pth" (fun () -> prove
      (`((x,y) = a) <=> (x = FST a) /\ (y = SND a)`,
-      MESON_TAC[PAIR; PAIR_EQ]) in
+      MESON_TAC[PAIR; PAIR_EQ])) in
     let rewr1_CONV = GEN_REWRITE_CONV TOP_DEPTH_CONV [pth]
     and rewr2_RULE = GEN_REWRITE_RULE (LAND_CONV o DEPTH_CONV)
                       [TAUT `(x = x) <=> T`; TAUT `a /\ T <=> a`] in
@@ -383,3 +399,9 @@ let (LET_TAC:tactic) =
      W(fun (asl',w') ->
         let tm' = follow_path path w' in
         CONV_TAC(PATH_CONV path (K(let_CONV tm'))))) gl;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

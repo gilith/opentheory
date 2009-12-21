@@ -140,8 +140,8 @@ loads "recursion.ml";;  (* Tools for primitive recursion on inductive types  *)
 (* Mathematical theories and additional proof tools.                         *)
 (* ------------------------------------------------------------------------- *)
 
-(***
 loads "pair.ml";;       (* Theory of pairs                                   *)
+(***
 loads "num.ml";;        (* Axiom of Infinity, definition of natural numbers  *)
 loads "arith.ml";;      (* Natural number arithmetic                         *)
 loads "wf.ml";;         (* Theory of wellfounded relations                   *)
