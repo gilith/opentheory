@@ -118,6 +118,39 @@ require num {
   package: hol-light-num-2009.8.24
 }
 
+require arith {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  package: hol-light-arith-2009.8.24
+}
+
+require wf {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  package: hol-light-wf-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -130,4 +163,6 @@ theory {
   import quot;
   import pair;
   import num;
+  import arith;
+  import wf;
 }
