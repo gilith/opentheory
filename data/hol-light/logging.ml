@@ -271,4 +271,6 @@ let log_value n l f = log_function n log_unit l f ();;
 
 let log_lemma n = log_value n log_thm;;
 
+let log_lemma2 n = log_value n (log_pair log_thm log_thm);;
+
 let log_lemmas n = log_value n (log_list log_thm);;

@@ -7,6 +7,12 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "num";;
+
 new_type ("ind",0);;
 
 (* ------------------------------------------------------------------------- *)
@@ -26,13 +32,14 @@ let INFINITY_AX = new_axiom
 (* Actually introduce constants.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-let IND_SUC_0_EXISTS = prove
+let IND_SUC_0_EXISTS = log_lemma "IND_SUC_0_EXISTS" (fun () -> prove
  (`?(f:ind->ind) z. (!x1 x2. (f x1 = f x2) = (x1 = x2)) /\ (!x. ~(f x = z))`,
   X_CHOOSE_TAC `f:ind->ind` INFINITY_AX THEN EXISTS_TAC `f:ind->ind` THEN
-  POP_ASSUM MP_TAC THEN REWRITE_TAC[ONE_ONE; ONTO] THEN MESON_TAC[]);;
+  POP_ASSUM MP_TAC THEN REWRITE_TAC[ONE_ONE; ONTO] THEN MESON_TAC[]));;
 
-let IND_SUC_INJ,IND_SUC_0 = CONJ_PAIR
-  (new_specification ["IND_SUC"; "IND_0"] IND_SUC_0_EXISTS);;
+let IND_SUC_INJ,IND_SUC_0 = log_lemma2 "IND_SUC_INJ,IND_SUC_0" (fun () ->
+  CONJ_PAIR
+  (new_specification ["IND_SUC"; "IND_0"] IND_SUC_0_EXISTS));;
 
 (* ------------------------------------------------------------------------- *)
 (* Carve out the natural numbers inductively.                                *)
@@ -43,9 +50,9 @@ let NUM_REP_RULES,NUM_REP_INDUCT,NUM_REP_CASES =
    `NUM_REP IND_0 /\
     (!i. NUM_REP i ==> NUM_REP (IND_SUC i))`;;
 
-let num_tydef = new_basic_type_definition
+let num_tydef = log_lemma2 "num_tydef" (fun () -> new_basic_type_definition
   "num" ("mk_num","dest_num")
-    (CONJUNCT1 NUM_REP_RULES);;
+    (CONJUNCT1 NUM_REP_RULES));;
 
 let ZERO_DEF = new_definition
  `_0 = mk_num IND_0`;;
@@ -57,12 +64,12 @@ let SUC_DEF = new_definition
 (* Distinctness and injectivity of constructors.                             *)
 (* ------------------------------------------------------------------------- *)
 
-let NOT_SUC = prove
+let NOT_SUC = log_lemma "NOT_SUC" (fun () -> prove
  (`!n. ~(SUC n = _0)`,
   REWRITE_TAC[SUC_DEF; ZERO_DEF] THEN
-  MESON_TAC[NUM_REP_RULES; fst num_tydef; snd num_tydef; IND_SUC_0]);;
+  MESON_TAC[NUM_REP_RULES; fst num_tydef; snd num_tydef; IND_SUC_0]));;
 
-let SUC_INJ = prove
+let SUC_INJ = log_lemma "SUC_INJ" (fun () -> prove
  (`!m n. SUC m = SUC n <=> m = n`,
   REPEAT GEN_TAC THEN REWRITE_TAC[SUC_DEF] THEN
   EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
@@ -72,13 +79,13 @@ let SUC_INJ = prove
   REWRITE_TAC[fst num_tydef; snd num_tydef] THEN
   DISCH_TAC THEN ASM_REWRITE_TAC[IND_SUC_INJ] THEN
   DISCH_THEN(MP_TAC o AP_TERM `mk_num`) THEN
-  REWRITE_TAC[fst num_tydef]);;
+  REWRITE_TAC[fst num_tydef]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Induction.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-let num_INDUCTION = prove
+let num_INDUCTION = log_lemma "num_INDUCTION" (fun () -> prove
  (`!P. P(_0) /\ (!n. P(n) ==> P(SUC n)) ==> !n. P n`,
   REPEAT STRIP_TAC THEN
   MP_TAC(SPEC `\i. NUM_REP i /\ P(mk_num i):bool` NUM_REP_INDUCT) THEN
@@ -92,13 +99,13 @@ let num_INDUCTION = prove
         FIRST_ASSUM MATCH_ACCEPT_TAC;
         FIRST_ASSUM MATCH_MP_TAC THEN FIRST_ASSUM MATCH_ACCEPT_TAC]];
     DISCH_THEN(MP_TAC o SPEC `dest_num n`) THEN
-    REWRITE_TAC[fst num_tydef; snd num_tydef]]);;
+    REWRITE_TAC[fst num_tydef; snd num_tydef]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Recursion.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-let num_Axiom = prove
+let num_Axiom = log_lemma "num_Axiom" (fun () -> prove
  (`!(e:A) f. ?!fn. (fn _0 = e) /\
                    (!n. fn (SUC n) = f (fn n) n)`,
   REPEAT GEN_TAC THEN ONCE_REWRITE_TAC[EXISTS_UNIQUE_THM] THEN CONJ_TAC THENL
@@ -125,7 +132,7 @@ let num_Axiom = prove
       FIRST_ASSUM(fun th -> GEN_REWRITE_TAC I [GSYM th]) THEN REFL_TAC];
     REPEAT STRIP_TAC THEN ONCE_REWRITE_TAC[FUN_EQ_THM] THEN
     MATCH_MP_TAC num_INDUCTION THEN ASM_REWRITE_TAC[] THEN
-    REPEAT STRIP_TAC THEN ASM_REWRITE_TAC[]]);;
+    REPEAT STRIP_TAC THEN ASM_REWRITE_TAC[]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* The basic numeral tag; rewrite existing instances of "_0".                *)
@@ -135,9 +142,10 @@ let NUMERAL = new_definition
  `NUMERAL (n:num) = n`;;
 
 let [NOT_SUC; num_INDUCTION; num_Axiom] =
+  log_lemmas "[NOT_SUC; num_INDUCTION; num_Axiom]" (fun () ->
   let th = prove(`_0 = 0`,REWRITE_TAC[NUMERAL]) in
   map (GEN_REWRITE_RULE DEPTH_CONV [th])
-    [NOT_SUC; num_INDUCTION; num_Axiom];;
+    [NOT_SUC; num_INDUCTION; num_Axiom]);;
 
 (* ------------------------------------------------------------------------- *)
 (* Induction tactic.                                                         *)
@@ -147,27 +155,33 @@ let (INDUCT_TAC:tactic) =
   MATCH_MP_TAC num_INDUCTION THEN
   CONJ_TAC THENL [ALL_TAC; GEN_TAC THEN DISCH_TAC];;
 
-let num_RECURSION =
+let num_RECURSION = log_lemma "num_RECURSION" (fun () ->
   let avs = fst(strip_forall(concl num_Axiom)) in
-  GENL avs (EXISTENCE (SPECL avs num_Axiom));;
+  GENL avs (EXISTENCE (SPECL avs num_Axiom)));;
 
 (* ------------------------------------------------------------------------- *)
 (* Cases theorem.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-let num_CASES = prove
+let num_CASES = log_lemma "num_CASES" (fun () -> prove
  (`!m. (m = 0) \/ (?n. m = SUC n)`,
-  INDUCT_TAC THEN MESON_TAC[]);;
+  INDUCT_TAC THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Augmenting inductive type store.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-let num_RECURSION_STD = prove                                                  
- (`!e:Z f. ?fn. (fn 0 = e) /\ (!n. fn (SUC n) = f n (fn n))`,                  
-  REPEAT GEN_TAC THEN                                                  
+let num_RECURSION_STD = log_lemma "num_RECURSION_STD" (fun () -> prove
+ (`!e:Z f. ?fn. (fn 0 = e) /\ (!n. fn (SUC n) = f n (fn n))`,
+  REPEAT GEN_TAC THEN
   MP_TAC(ISPECL [`e:Z`; `(\z n. (f:num->Z->Z) n z)`] num_RECURSION) THEN
-  REWRITE_TAC[]);;
+  REWRITE_TAC[]));;
 
-inductive_type_store := 
+inductive_type_store :=
  ("num",(2,num_INDUCTION,num_RECURSION_STD))::(!inductive_type_store);;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

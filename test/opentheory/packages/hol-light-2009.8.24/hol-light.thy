@@ -103,6 +103,21 @@ require pair {
   package: hol-light-pair-2009.8.24
 }
 
+require num {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  package: hol-light-num-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -114,4 +129,5 @@ theory {
   import meson;
   import quot;
   import pair;
+  import num;
 }
