@@ -30,19 +30,25 @@ do
 
     if test -d $pdir
     then
-        echo "compiling" $file
-
-        thy=$base.thy
-        echo 'theory { interpret {' > $thy
-        cat $int >> $thy
-        echo -n '} in article "' >> $thy
-        echo -n $file >> $thy
-        echo '"; }' >> $thy
-
         sum=$base.sum
-        $prog compile --article $pdir/$file --summary-text $sum $thy || exit 1
-        ls -l $file
-        ls -l $pdir/$file
+
+        if test $file -nt $sum
+        then
+            echo "compiling" $file
+
+            thy=$base.thy
+            echo 'theory { interpret {' > $thy
+            cat $int >> $thy
+            echo -n '} in article "' >> $thy
+            echo -n $file >> $thy
+            echo '"; }' >> $thy
+
+            $prog compile --article $pdir/$file --summary-text $sum $thy || exit 1
+            ls -l $file
+            ls -l $pdir/$file
+        else
+            echo "skipping" $file "(up to date)"
+        fi
     else
         echo -n "skipping "
         ls -l $file

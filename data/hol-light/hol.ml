@@ -100,7 +100,7 @@ loads "fusion.ml";;
 
 loads "logging.ml";;
 
-(***start_logging ();;***)
+start_logging ();;
 
 (* ------------------------------------------------------------------------- *)
 (* Some extra support stuff needed outside the core.                         *)
@@ -170,8 +170,6 @@ loads "database.ml";;   (* List of name-theorem pairs for search system      *)
 (* ------------------------------------------------------------------------- *)
 (* OpenTheory positive number example.                                       *)
 (* ------------------------------------------------------------------------- *)
-
-start_logging ();;
 
 loads "example-pos.ml";;
 
