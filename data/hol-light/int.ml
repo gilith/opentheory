@@ -11,6 +11,12 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "int";;
+
+(* ------------------------------------------------------------------------- *)
 (* Representing predicate.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -28,19 +34,19 @@ let int_abstr,int_rep =
      REWRITE_TAC[is_int; REAL_OF_NUM_EQ; EXISTS_OR_THM; GSYM EXISTS_REFL])) in
   SPEC_ALL(CONJUNCT1 int_tybij),SPEC_ALL(CONJUNCT2 int_tybij);;
 
-let dest_int_rep = prove
+let dest_int_rep = log_lemma "dest_int_rep" (fun () -> prove
  (`!i. ?n. (real_of_int i = &n) \/ (real_of_int i = --(&n))`,
-  REWRITE_TAC[GSYM is_int; int_rep; int_abstr]);;
+  REWRITE_TAC[GSYM is_int; int_rep; int_abstr]));;
 
 (* ------------------------------------------------------------------------- *)
 (* We want the following too.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-let int_eq = prove
+let int_eq = log_lemma "int_eq" (fun () -> prove
  (`!x y. (x = y) <=> (real_of_int x = real_of_int y)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THEN ASM_REWRITE_TAC[] THEN
   POP_ASSUM(MP_TAC o AP_TERM `int_of_real`) THEN
-  REWRITE_TAC[int_abstr]);;
+  REWRITE_TAC[int_abstr]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Set up interface map.                                                     *)
@@ -76,25 +82,25 @@ let int_gt = new_definition
 let int_of_num = new_definition
   `&n = int_of_real(real_of_num n)`;;
 
-let int_of_num_th = prove
+let int_of_num_th = log_lemma "int_of_num_th" (fun () -> prove
  (`!n. real_of_int(int_of_num n) = real_of_num n`,
   REWRITE_TAC[int_of_num; GSYM int_rep; is_int] THEN
-  REWRITE_TAC[REAL_OF_NUM_EQ; EXISTS_OR_THM; GSYM EXISTS_REFL]);;
+  REWRITE_TAC[REAL_OF_NUM_EQ; EXISTS_OR_THM; GSYM EXISTS_REFL]));;
 
 let int_neg = new_definition
  `--i = int_of_real(--(real_of_int i))`;;
 
-let int_neg_th = prove
+let int_neg_th = log_lemma "int_neg_th" (fun () -> prove
  (`!x. real_of_int(int_neg x) = --(real_of_int x)`,
   REWRITE_TAC[int_neg; GSYM int_rep; is_int] THEN
   GEN_TAC THEN STRIP_ASSUME_TAC(SPEC `x:int` dest_int_rep) THEN
   ASM_REWRITE_TAC[REAL_NEG_NEG; EXISTS_OR_THM; REAL_EQ_NEG2;
-    REAL_OF_NUM_EQ; GSYM EXISTS_REFL]);;
+    REAL_OF_NUM_EQ; GSYM EXISTS_REFL]));;
 
 let int_add = new_definition
  `x + y = int_of_real((real_of_int x) + (real_of_int y))`;;
 
-let int_add_th = prove
+let int_add_th = log_lemma "int_add_th" (fun () -> prove
  (`!x y. real_of_int(x + y) = (real_of_int x) + (real_of_int y)`,
   REWRITE_TAC[int_add; GSYM int_rep; is_int] THEN REPEAT GEN_TAC THEN
   X_CHOOSE_THEN `m:num` DISJ_CASES_TAC (SPEC `x:int` dest_int_rep) THEN
@@ -106,68 +112,68 @@ let int_add_th = prove
   REWRITE_TAC[GSYM REAL_OF_NUM_ADD; OR_EXISTS_THM; REAL_NEG_ADD] THEN
   TRY(EXISTS_TAC `d:num` THEN REAL_ARITH_TAC) THEN
   REWRITE_TAC[EXISTS_OR_THM; GSYM REAL_NEG_ADD; REAL_EQ_NEG2;
-    REAL_OF_NUM_ADD; REAL_OF_NUM_EQ; GSYM EXISTS_REFL]);;
+    REAL_OF_NUM_ADD; REAL_OF_NUM_EQ; GSYM EXISTS_REFL]));;
 
 let int_sub = new_definition
   `x - y = int_of_real(real_of_int x - real_of_int y)`;;
 
-let int_sub_th = prove
+let int_sub_th = log_lemma "int_sub_th" (fun () -> prove
  (`!x y. real_of_int(x - y) = (real_of_int x) - (real_of_int y)`,
   REWRITE_TAC[int_sub; real_sub; GSYM int_neg_th; GSYM int_add_th] THEN
-  REWRITE_TAC[int_abstr]);;
+  REWRITE_TAC[int_abstr]));;
 
 let int_mul = new_definition
   `x * y = int_of_real ((real_of_int x) * (real_of_int y))`;;
 
-let int_mul_th = prove
+let int_mul_th = log_lemma "int_mul_th" (fun () -> prove
  (`!x y. real_of_int(x * y) = (real_of_int x) * (real_of_int y)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[int_mul; GSYM int_rep; is_int] THEN
   X_CHOOSE_THEN `m:num` DISJ_CASES_TAC (SPEC `x:int` dest_int_rep) THEN
   X_CHOOSE_THEN `n:num` DISJ_CASES_TAC (SPEC `y:int` dest_int_rep) THEN
   ASM_REWRITE_TAC[REAL_OF_NUM_ADD; REAL_OF_NUM_EQ; EXISTS_OR_THM] THEN
   REWRITE_TAC[REAL_MUL_LNEG; REAL_MUL_RNEG; REAL_NEG_NEG; REAL_OF_NUM_MUL] THEN
-  REWRITE_TAC[REAL_EQ_NEG2; REAL_OF_NUM_EQ; GSYM EXISTS_REFL]);;
+  REWRITE_TAC[REAL_EQ_NEG2; REAL_OF_NUM_EQ; GSYM EXISTS_REFL]));;
 
 let int_abs = new_definition
   `abs x = int_of_real(abs(real_of_int x))`;;
 
-let int_abs_th = prove
+let int_abs_th = log_lemma "int_abs_th" (fun () -> prove
  (`!x. real_of_int(abs x) = abs(real_of_int x)`,
   GEN_TAC THEN REWRITE_TAC[int_abs; real_abs] THEN COND_CASES_TAC THEN
-  REWRITE_TAC[GSYM int_neg; int_neg_th; int_abstr]);;
+  REWRITE_TAC[GSYM int_neg; int_neg_th; int_abstr]));;
 
 let int_max = new_definition
   `int_max x y = int_of_real(max (real_of_int x) (real_of_int y))`;;
 
-let int_max_th = prove
+let int_max_th = log_lemma "int_max_th" (fun () -> prove
  (`!x y. real_of_int(max x y) = max (real_of_int x) (real_of_int y)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[int_max; real_max] THEN
-  COND_CASES_TAC THEN REWRITE_TAC[int_abstr]);;
+  COND_CASES_TAC THEN REWRITE_TAC[int_abstr]));;
 
 let int_min = new_definition
   `int_min x y = int_of_real(min (real_of_int x) (real_of_int y))`;;
 
-let int_min_th = prove
+let int_min_th = log_lemma "int_min_th" (fun () -> prove
  (`!x y. real_of_int(min x y) = min (real_of_int x) (real_of_int y)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[int_min; real_min] THEN
-  COND_CASES_TAC THEN REWRITE_TAC[int_abstr]);;
+  COND_CASES_TAC THEN REWRITE_TAC[int_abstr]));;
 
 let int_pow = new_definition
   `x pow n = int_of_real((real_of_int x) pow n)`;;
 
-let int_pow_th = prove
+let int_pow_th = log_lemma "int_pow_th" (fun () -> prove
  (`!x n. real_of_int(x pow n) = (real_of_int x) pow n`,
   GEN_TAC THEN REWRITE_TAC[int_pow] THEN INDUCT_TAC THEN
   REWRITE_TAC[real_pow] THENL
    [REWRITE_TAC[GSYM int_of_num; int_of_num_th];
     POP_ASSUM(SUBST1_TAC o SYM) THEN
-    ASM_REWRITE_TAC[GSYM int_mul; int_mul_th]]);;
+    ASM_REWRITE_TAC[GSYM int_mul; int_mul_th]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* A couple of theorems peculiar to the integers.                            *)
 (* ------------------------------------------------------------------------- *)
 
-let INT_IMAGE = prove
+let INT_IMAGE = log_lemma "INT_IMAGE" (fun () -> prove
  (`!x. (?n. x = &n) \/ (?n. x = --(&n))`,
   GEN_TAC THEN
   X_CHOOSE_THEN `n:num` DISJ_CASES_TAC (SPEC `x:int` dest_int_rep) THEN
@@ -175,9 +181,9 @@ let INT_IMAGE = prove
   DISCH_THEN SUBST1_TAC THEN REWRITE_TAC[int_of_num; int_neg] THENL
    [DISJ1_TAC; DISJ2_TAC] THEN
   EXISTS_TAC `n:num` THEN REWRITE_TAC[int_abstr] THEN
-  REWRITE_TAC[GSYM int_of_num; int_of_num_th]);;
+  REWRITE_TAC[GSYM int_of_num; int_of_num_th]));;
 
-let INT_LT_DISCRETE = prove
+let INT_LT_DISCRETE = log_lemma "INT_LT_DISCRETE" (fun () -> prove
  (`!x y. x < y <=> (x + &1) <= y`,
   REPEAT GEN_TAC THEN
   REWRITE_TAC[int_le; int_lt; int_add_th] THEN
@@ -194,12 +200,12 @@ let INT_LT_DISCRETE = prove
   REWRITE_TAC[REAL_OF_NUM_LE; REAL_OF_NUM_LT; REAL_OF_NUM_ADD] THEN
   REWRITE_TAC[GSYM ADD1; ONCE_REWRITE_RULE[ADD_SYM] (GSYM ADD1)] THEN
   REWRITE_TAC[SYM(REWRITE_CONV[ARITH_SUC] `SUC 0`)] THEN
-  REWRITE_TAC[ADD_CLAUSES; LE_SUC_LT; LT_SUC_LE]);;
+  REWRITE_TAC[ADD_CLAUSES; LE_SUC_LT; LT_SUC_LE]));;
 
-let INT_GT_DISCRETE = prove
+let INT_GT_DISCRETE = log_lemma "INT_GT_DISCRETE" (fun () -> prove
  (`!x y. x > y <=> x >= (y + &1)`,
   REWRITE_TAC[int_gt; int_ge; real_ge; real_gt; GSYM int_le; GSYM int_lt] THEN
-  MATCH_ACCEPT_TAC INT_LT_DISCRETE);;
+  MATCH_ACCEPT_TAC INT_LT_DISCRETE));;
 
 (* ------------------------------------------------------------------------- *)
 (* Conversions of integer constants to and from OCaml numbers.               *)
@@ -501,63 +507,63 @@ let INT_SUB_TRIANGLE = INT_OF_REAL_THM REAL_SUB_TRIANGLE;;
 (* Another useful "image" theorem.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-let INT_FORALL_POS = prove
+let INT_FORALL_POS = log_lemma "INT_FORALL_POS" (fun () -> prove
  (`(!n. P(&n)) <=> (!i. &0 <= i ==> P(i))`,
   EQ_TAC THEN DISCH_TAC THEN GEN_TAC THENL
    [DISJ_CASES_THEN (CHOOSE_THEN SUBST1_TAC) (SPEC `i:int` INT_IMAGE) THEN
     ASM_REWRITE_TAC[INT_LE_RNEG; INT_ADD_LID; INT_OF_NUM_LE; LE] THEN
     DISCH_THEN SUBST1_TAC THEN ASM_REWRITE_TAC[INT_NEG_0];
-    FIRST_ASSUM MATCH_MP_TAC THEN REWRITE_TAC[INT_OF_NUM_LE; LE_0]]);;
+    FIRST_ASSUM MATCH_MP_TAC THEN REWRITE_TAC[INT_OF_NUM_LE; LE_0]]));;
 
-let INT_EXISTS_POS = prove
+let INT_EXISTS_POS = log_lemma "INT_EXISTS_POS" (fun () -> prove
  (`(?n. P(&n)) <=> (?i. &0 <= i /\ P(i))`,
   GEN_REWRITE_TAC I [TAUT `(p <=> q) <=> (~p <=> ~q)`] THEN
-  REWRITE_TAC[NOT_EXISTS_THM; INT_FORALL_POS] THEN MESON_TAC[]);;
+  REWRITE_TAC[NOT_EXISTS_THM; INT_FORALL_POS] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Sometimes handy in number-theoretic applications.                         *)
 (* ------------------------------------------------------------------------- *)
 
-let INT_ABS_MUL_1 = prove
+let INT_ABS_MUL_1 = log_lemma "INT_ABS_MUL_1" (fun () -> prove
  (`!x y. (abs(x * y) = &1) <=> (abs(x) = &1) /\ (abs(y) = &1)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[INT_ABS_MUL] THEN
   MP_TAC(SPEC `y:int` INT_ABS_POS) THEN SPEC_TAC(`abs(y)`,`b:int`) THEN
   MP_TAC(SPEC `x:int` INT_ABS_POS) THEN SPEC_TAC(`abs(x)`,`a:int`) THEN
-  REWRITE_TAC[GSYM INT_FORALL_POS; INT_OF_NUM_MUL; INT_OF_NUM_EQ; MULT_EQ_1]);;
+  REWRITE_TAC[GSYM INT_FORALL_POS; INT_OF_NUM_MUL; INT_OF_NUM_EQ; MULT_EQ_1]));;
 
-let INT_WOP = prove
+let INT_WOP = log_lemma "INT_WOP" (fun () -> prove
  (`(?x. &0 <= x /\ P x) <=>
    (?x. &0 <= x /\ P x /\ !y. &0 <= y /\ P y ==> x <= y)`,
   ONCE_REWRITE_TAC[MESON[] `(?x. P x /\ Q x) <=> ~(!x. P x ==> ~Q x)`] THEN
   REWRITE_TAC[IMP_CONJ; GSYM INT_FORALL_POS; INT_OF_NUM_LE] THEN
   REWRITE_TAC[NOT_FORALL_THM] THEN GEN_REWRITE_TAC LAND_CONV [num_WOP] THEN
-  REWRITE_TAC[GSYM NOT_LE; CONTRAPOS_THM]);;
+  REWRITE_TAC[GSYM NOT_LE; CONTRAPOS_THM]));;
 
 (* ------------------------------------------------------------------------- *)
 (* A few "pseudo definitions".                                               *)
 (* ------------------------------------------------------------------------- *)
 
-let INT_POW = prove
+let INT_POW = log_lemma "INT_POW" (fun () -> prove
  (`(x pow 0 = &1) /\
    (!n. x pow (SUC n) = x * x pow n)`,
-  REWRITE_TAC(map INT_OF_REAL_THM (CONJUNCTS real_pow)));;
+  REWRITE_TAC(map INT_OF_REAL_THM (CONJUNCTS real_pow))));;
 
-let INT_ABS = prove
+let INT_ABS = log_lemma "INT_ABS" (fun () -> prove
  (`!x. abs(x) = if &0 <= x then x else --x`,
   GEN_TAC THEN MP_TAC(INT_OF_REAL_THM(SPEC `x:real` real_abs)) THEN
-  COND_CASES_TAC THEN REWRITE_TAC[int_eq]);;
+  COND_CASES_TAC THEN REWRITE_TAC[int_eq]));;
 
-let INT_GE = prove
+let INT_GE = log_lemma "INT_GE" (fun () -> prove
  (`!x y. x >= y <=> y <= x`,
-  REWRITE_TAC[int_ge; int_le; real_ge]);;
+  REWRITE_TAC[int_ge; int_le; real_ge]));;
 
-let INT_GT = prove
+let INT_GT = log_lemma "INT_GT" (fun () -> prove
  (`!x y. x > y <=> y < x`,
-  REWRITE_TAC[int_gt; int_lt; real_gt]);;
+  REWRITE_TAC[int_gt; int_lt; real_gt]));;
 
-let INT_LT = prove
+let INT_LT = log_lemma "INT_LT" (fun () -> prove
  (`!x y. x < y <=> ~(y <= x)`,
-  REWRITE_TAC[int_lt; int_le; real_lt]);;
+  REWRITE_TAC[int_lt; int_le; real_lt]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Now a decision procedure for the integers.                                *)
@@ -614,7 +620,7 @@ let INT_MIN = INT_ARITH `!x y. min x y = if x <= y then x else y`;;
 (* Archimedian property for the integers.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-let INT_ARCH = prove
+let INT_ARCH = log_lemma "INT_ARCH" (fun () -> prove
  (`!x d. ~(d = &0) ==> ?c. x < c * d`,
   SUBGOAL_THEN `!x. &0 <= x ==> ?n. x <= &n` ASSUME_TAC THENL
    [REWRITE_TAC[GSYM INT_FORALL_POS; INT_OF_NUM_LE] THEN MESON_TAC[LE_REFL];
@@ -631,13 +637,13 @@ let INT_ARCH = prove
                   INT_ARITH `~(d = &0) ==> &0 < d \/ &0 < --d`];
     ALL_TAC] THEN
   ASM_MESON_TAC[INT_ARITH `--x * y = x * --y`;
-                INT_ARITH `~(d = &0) ==> &0 < d \/ &0 < --d`]);;
+                INT_ARITH `~(d = &0) ==> &0 < d \/ &0 < --d`]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Definitions of ("Euclidean") integer division and remainder.              *)
 (* ------------------------------------------------------------------------- *)
 
-let INT_DIVMOD_EXIST_0 = prove
+let INT_DIVMOD_EXIST_0 = log_lemma "INT_DIVMOD_EXIST_0" (fun () -> prove
  (`!m n:int. ?q r. if n = &0 then q = &0 /\ r = m
                    else &0 <= r /\ r < abs(n) /\ m = q * n + r`,
   REPEAT GEN_TAC THEN ASM_CASES_TAC `n = &0` THEN
@@ -655,7 +661,7 @@ let INT_DIVMOD_EXIST_0 = prove
     ASM_REWRITE_TAC[] THEN FIRST_X_ASSUM(MP_TAC o SPEC `r - abs n`) THEN
     REWRITE_TAC[LEFT_IMP_EXISTS_THM] THEN
     DISCH_THEN(MP_TAC o SPEC `if &0 <= n then q + &1 else q - &1`) THEN
-    ASM_INT_ARITH_TAC]);;
+    ASM_INT_ARITH_TAC]));;
 
 parse_as_infix("div",(22,"left"));;
 parse_as_infix("rem",(22,"left"));;
@@ -663,10 +669,10 @@ parse_as_infix("rem",(22,"left"));;
 let INT_DIVISION_0 =  new_specification ["div"; "rem"]
   (REWRITE_RULE[SKOLEM_THM] INT_DIVMOD_EXIST_0);;
 
-let INT_DIVISION = prove
+let INT_DIVISION = log_lemma "INT_DIVISION" (fun () -> prove
  (`!m n. ~(n = &0)
          ==> m = m div n * n + m rem n /\ &0 <= m rem n /\ m rem n < abs n`,
-  MESON_TAC[INT_DIVISION_0]);;
+  MESON_TAC[INT_DIVISION_0]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Arithmetic operations on integers. Essentially a clone of stuff for reals *)
@@ -931,7 +937,7 @@ let INT_RING,int_ideal_cofactors =
   RING_AND_IDEAL_CONV
       (dest_intconst,mk_intconst,INT_EQ_CONV,
        `(--):int->int`,`(+):int->int->int`,`(-):int->int->int`,
-       genvar bool_ty,`(*):int->int->int`,genvar bool_ty,
+       genvar bool_ty,`( * ):int->int->int`,genvar bool_ty,
        `(pow):int->num->int`,
        INT_INTEGRAL,TRUTH,INT_POLY_CONV) in
   pure,
@@ -944,7 +950,7 @@ let INT_RING,int_ideal_cofactors =
 (* Arithmetic operations also on div and rem, hence the whole lot.           *)
 (* ------------------------------------------------------------------------- *)
 
-let INT_DIVMOD_UNIQ = prove
+let INT_DIVMOD_UNIQ = log_lemma "INT_DIVMOD_UNIQ" (fun () -> prove
  (`!m n q r:int. m = q * n + r /\ &0 <= r /\ r < abs n
                  ==> m div n = q /\ m rem n = r`,
   REPEAT GEN_TAC THEN STRIP_TAC THEN
@@ -960,7 +966,7 @@ let INT_DIVMOD_UNIQ = prove
     ==> ~(abs(m rem n - r) < abs n)`) THEN
   CONJ_TAC THENL
    [MATCH_MP_TAC INT_LE_RMUL THEN ASM_INT_ARITH_TAC;
-    AP_TERM_TAC THEN REPEAT(POP_ASSUM MP_TAC) THEN CONV_TAC INT_RING]);;
+    AP_TERM_TAC THEN REPEAT(POP_ASSUM MP_TAC) THEN CONV_TAC INT_RING]));;
 
 let INT_DIV_CONV,INT_REM_CONV =
   let pth = prove
@@ -1060,9 +1066,9 @@ overload_interface ("mod",`int_mod:int->int->int->bool`);;
 let int_mod = new_definition
   `(mod n) x y = n divides (x - y)`;;
 
-let int_congruent = prove
+let int_congruent = log_lemma "int_congruent" (fun () -> prove
  (`!x y n. (x == y) (mod n) <=> ?d. x - y = n * d`,
-  REWRITE_TAC[int_mod; cong; int_divides]);;
+  REWRITE_TAC[int_mod; cong; int_divides]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Integer coprimality.                                                      *)
@@ -1183,31 +1189,31 @@ let INTEGER_RULE tm = prove(tm,INTEGER_TAC);;
 (* Existence of integer gcd, and the Bezout identity.                        *)
 (* ------------------------------------------------------------------------- *)
 
-let FORALL_UNCURRY = prove
+let FORALL_UNCURRY = log_lemma "FORALL_UNCURRY" (fun () -> prove
  (`!P. (!f:A->B->C. P f) <=> (!f. P (\a b. f(a,b)))`,
   GEN_TAC THEN EQ_TAC THEN SIMP_TAC[] THEN DISCH_TAC THEN
   X_GEN_TAC `f:A->B->C` THEN
-  FIRST_ASSUM(MP_TAC o SPEC `\(a,b). (f:A->B->C) a b`) THEN SIMP_TAC[ETA_AX]);;
+  FIRST_ASSUM(MP_TAC o SPEC `\(a,b). (f:A->B->C) a b`) THEN SIMP_TAC[ETA_AX]));;
 
-let EXISTS_UNCURRY = prove
+let EXISTS_UNCURRY = log_lemma "EXISTS_UNCURRY" (fun () -> prove
  (`!P. (?f:A->B->C. P f) <=> (?f. P (\a b. f(a,b)))`,
   ONCE_REWRITE_TAC[MESON[] `(?x. P x) <=> ~(!x. ~P x)`] THEN
-  REWRITE_TAC[FORALL_UNCURRY]);;
+  REWRITE_TAC[FORALL_UNCURRY]));;
 
-let WF_INT_MEASURE = prove
+let WF_INT_MEASURE = log_lemma "WF_INT_MEASURE" (fun () -> prove
  (`!P m. (!x. &0 <= m(x)) /\ (!x. (!y. m(y) < m(x) ==> P(y)) ==> P(x))
          ==> !x:A. P(x)`,
   REPEAT STRIP_TAC THEN SUBGOAL_THEN `!n x:A. m(x) = &n ==> P(x)` MP_TAC THENL
    [MATCH_MP_TAC num_WF; ALL_TAC] THEN
-  REWRITE_TAC[GSYM INT_OF_NUM_LT; INT_FORALL_POS] THEN ASM_MESON_TAC[]);;
+  REWRITE_TAC[GSYM INT_OF_NUM_LT; INT_FORALL_POS] THEN ASM_MESON_TAC[]));;
 
-let WF_INT_MEASURE_2 = prove
+let WF_INT_MEASURE_2 = log_lemma "WF_INT_MEASURE_2" (fun () -> prove
  (`!P m. (!x y. &0 <= m x y) /\
          (!x y. (!x' y'. m x' y' < m x y ==> P x' y') ==> P x y)
          ==> !x:A y:B. P x y`,
-  REWRITE_TAC[FORALL_UNCURRY; GSYM FORALL_PAIR_THM; WF_INT_MEASURE]);;
+  REWRITE_TAC[FORALL_UNCURRY; GSYM FORALL_PAIR_THM; WF_INT_MEASURE]));;
 
-let INT_GCD_EXISTS = prove
+let INT_GCD_EXISTS = log_lemma "INT_GCD_EXISTS" (fun () -> prove
  (`!a b. ?d. d divides a /\ d divides b /\ ?x y. d = a * x + b * y`,
   let INT_GCD_EXISTS_CASES = INT_ARITH
    `(a = &0 \/ b = &0) \/
@@ -1220,15 +1226,15 @@ let INT_GCD_EXISTS = prove
     REWRITE_TAC[INT_MUL_LZERO; INT_ADD_LID; INT_ADD_RID] THEN
     MESON_TAC[INTEGER_RULE `d divides d`; INT_MUL_RID];
     DISCH_THEN(REPEAT_TCL DISJ_CASES_THEN (ANTE_RES_THEN MP_TAC)) THEN
-    MATCH_MP_TAC MONO_EXISTS THEN INTEGER_TAC]);;
+    MATCH_MP_TAC MONO_EXISTS THEN INTEGER_TAC]));;
 
-let INT_GCD_EXISTS_POS = prove
+let INT_GCD_EXISTS_POS = log_lemma "INT_GCD_EXISTS_POS" (fun () -> prove
  (`!a b. ?d. &0 <= d /\ d divides a /\ d divides b /\ ?x y. d = a * x + b * y`,
   REPEAT GEN_TAC THEN
   X_CHOOSE_TAC `d:int` (SPECL [`a:int`; `b:int`] INT_GCD_EXISTS) THEN
   DISJ_CASES_TAC(SPEC `d:int` INT_LE_NEGTOTAL) THEN
   ASM_MESON_TAC[INTEGER_RULE `(--d) divides x <=> d divides x`;
-                INT_ARITH `a * --x + b * --y = --(a * x + b * y)`]);;
+                INT_ARITH `a * --x + b * --y = --(a * x + b * y)`]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Hence define (positive) gcd function; add elimination to INTEGER_TAC.      *)
@@ -1263,18 +1269,18 @@ let INTEGER_RULE tm = prove(tm,INTEGER_TAC);;
 let num_of_int = new_definition
   `num_of_int x = @n. &n = x`;;
 
-let NUM_OF_INT_OF_NUM = prove
+let NUM_OF_INT_OF_NUM = log_lemma "NUM_OF_INT_OF_NUM" (fun () -> prove
  (`!n. num_of_int(&n) = n`,
-  REWRITE_TAC[num_of_int; INT_OF_NUM_EQ; SELECT_UNIQUE]);;
+  REWRITE_TAC[num_of_int; INT_OF_NUM_EQ; SELECT_UNIQUE]));;
 
-let INT_OF_NUM_OF_INT = prove
+let INT_OF_NUM_OF_INT = log_lemma "INT_OF_NUM_OF_INT" (fun () -> prove
  (`!x. &0 <= x ==> &(num_of_int x) = x`,
   REWRITE_TAC[GSYM INT_FORALL_POS; num_of_int] THEN
-  GEN_TAC THEN CONV_TAC SELECT_CONV THEN MESON_TAC[]);;
+  GEN_TAC THEN CONV_TAC SELECT_CONV THEN MESON_TAC[]));;
 
-let NUM_OF_INT = prove
+let NUM_OF_INT = log_lemma "NUM_OF_INT" (fun () -> prove
  (`!x. &0 <= x <=> (&(num_of_int x) = x)`,
-  MESON_TAC[INT_OF_NUM_OF_INT; INT_POS]);;
+  MESON_TAC[INT_OF_NUM_OF_INT; INT_POS]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Now define similar notions over the natural numbers.                      *)
@@ -1291,9 +1297,9 @@ let num_divides = new_definition
 let num_mod = new_definition
   `(mod n) x y <=> (mod &n) (&x) (&y)`;;
 
-let num_congruent = prove
+let num_congruent = log_lemma "num_congruent" (fun () -> prove
  (`!x y n. (x == y) (mod n) <=> (&x == &y) (mod &n)`,
-  REWRITE_TAC[cong; num_mod]);;
+  REWRITE_TAC[cong; num_mod]));;
 
 let num_coprime = new_definition
  `coprime(a,b) <=> coprime(&a,&b)`;;
@@ -1358,9 +1364,9 @@ let ASM_ARITH_TAC =
 (* Also a similar divisibility procedure for natural numbers.                *)
 (* ------------------------------------------------------------------------- *)
 
-let NUM_GCD = prove
+let NUM_GCD = log_lemma "NUM_GCD" (fun () -> prove
  (`!a b. &(gcd(a,b)) = gcd(&a,&b)`,
-  REWRITE_TAC[num_gcd; GSYM NUM_OF_INT; int_gcd]);;
+  REWRITE_TAC[num_gcd; GSYM NUM_OF_INT; int_gcd]));;
 
 let NUMBER_TAC =
   let pth_relativize = prove
@@ -1386,3 +1392,9 @@ let NUMBER_RULE tm = prove(tm,NUMBER_TAC);;
 (* ------------------------------------------------------------------------- *)
 
 prioritize_num();;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

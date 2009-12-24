@@ -7,6 +7,12 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "sets";;
+
 parse_as_infix("IN",(11,"right"));;
 parse_as_infix("SUBSET",(12,"right"));;
 parse_as_infix("PSUBSET",(12,"right"));;
@@ -34,9 +40,9 @@ let IN = new_definition
 (* Axiom of extensionality in this framework.                                *)
 (* ------------------------------------------------------------------------- *)
 
-let EXTENSION = prove
+let EXTENSION = log_lemma "EXTENSION" (fun () -> prove
  (`!s t. (s = t) <=> !x:A. x IN s <=> x IN t`,
-  REWRITE_TAC[IN; FUN_EQ_THM]);;
+  REWRITE_TAC[IN; FUN_EQ_THM]));;
 
 (* ------------------------------------------------------------------------- *)
 (* General specification.                                                    *)
@@ -52,7 +58,7 @@ let SETSPEC = new_definition
 (* Rewrite rule for eliminating set-comprehension membership assertions.     *)
 (* ------------------------------------------------------------------------- *)
 
-let IN_ELIM_THM = prove
+let IN_ELIM_THM = log_lemma "IN_ELIM_THM" (fun () -> prove
  (`(!P x. x IN GSPEC (\v. P (SETSPEC v)) <=> P (\p t. p /\ (x = t))) /\
    (!p x. x IN GSPEC (\v. ?y. SETSPEC v (p y) y) <=> p x) /\
    (!P x. GSPEC (\v. P (SETSPEC v)) x <=> P (\p t. p /\ (x = t))) /\
@@ -60,7 +66,7 @@ let IN_ELIM_THM = prove
    (!p x. x IN (\y. p y) <=> p x)`,
   REPEAT STRIP_TAC THEN REWRITE_TAC[IN; GSPEC] THEN
   TRY(AP_TERM_TAC THEN REWRITE_TAC[FUN_EQ_THM]) THEN
-  REWRITE_TAC[SETSPEC] THEN MESON_TAC[]);;
+  REWRITE_TAC[SETSPEC] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* These two definitions are needed first, for the parsing of enumerations.  *)
@@ -94,9 +100,9 @@ let INTERS = new_definition
 let DIFF = new_definition
   `s DIFF t =  {x:A | x IN s /\ ~(x IN t)}`;;
 
-let INSERT = prove
+let INSERT = log_lemma "INSERT" (fun () -> prove
  (`x INSERT s = {y:A | y IN s \/ (y = x)}`,
-  REWRITE_TAC[EXTENSION; INSERT_DEF; IN_ELIM_THM]);;
+  REWRITE_TAC[EXTENSION; INSERT_DEF; IN_ELIM_THM]));;
 
 let DELETE = new_definition
   `s DELETE x = {y:A | y IN s /\ ~(y = x)}`;;
@@ -163,69 +169,69 @@ let REST = new_definition
 (* Basic membership properties.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-let NOT_IN_EMPTY = prove
+let NOT_IN_EMPTY = log_lemma "NOT_IN_EMPTY" (fun () -> prove
  (`!x:A. ~(x IN EMPTY)`,
-  REWRITE_TAC[IN; EMPTY]);;
+  REWRITE_TAC[IN; EMPTY]));;
 
-let IN_UNIV = prove
+let IN_UNIV = log_lemma "IN_UNIV" (fun () -> prove
  (`!x:A. x IN UNIV`,
-  REWRITE_TAC[UNIV; IN]);;
+  REWRITE_TAC[UNIV; IN]));;
 
-let IN_UNION = prove
+let IN_UNION = log_lemma "IN_UNION" (fun () -> prove
  (`!s t (x:A). x IN (s UNION t) <=> x IN s \/ x IN t`,
-  REWRITE_TAC[IN_ELIM_THM; UNION]);;
+  REWRITE_TAC[IN_ELIM_THM; UNION]));;
 
-let IN_UNIONS = prove
+let IN_UNIONS = log_lemma "IN_UNIONS" (fun () -> prove
  (`!s (x:A). x IN (UNIONS s) <=> ?t. t IN s /\ x IN t`,
-  REWRITE_TAC[IN_ELIM_THM; UNIONS]);;
+  REWRITE_TAC[IN_ELIM_THM; UNIONS]));;
 
-let IN_INTER = prove
+let IN_INTER = log_lemma "IN_INTER" (fun () -> prove
  (`!s t (x:A). x IN (s INTER t) <=> x IN s /\ x IN t`,
-  REWRITE_TAC[IN_ELIM_THM; INTER]);;
+  REWRITE_TAC[IN_ELIM_THM; INTER]));;
 
-let IN_INTERS = prove
+let IN_INTERS = log_lemma "IN_INTERS" (fun () -> prove
  (`!s (x:A). x IN (INTERS s) <=> !t. t IN s ==> x IN t`,
-  REWRITE_TAC[IN_ELIM_THM; INTERS]);;
+  REWRITE_TAC[IN_ELIM_THM; INTERS]));;
 
-let IN_DIFF = prove
+let IN_DIFF = log_lemma "IN_DIFF" (fun () -> prove
  (`!(s:A->bool) t x. x IN (s DIFF t) <=> x IN s /\ ~(x IN t)`,
-  REWRITE_TAC[IN_ELIM_THM; DIFF]);;
+  REWRITE_TAC[IN_ELIM_THM; DIFF]));;
 
-let IN_INSERT = prove
+let IN_INSERT = log_lemma "IN_INSERT" (fun () -> prove
  (`!x:A. !y s. x IN (y INSERT s) <=> (x = y) \/ x IN s`,
-  ONCE_REWRITE_TAC[DISJ_SYM] THEN REWRITE_TAC[IN_ELIM_THM; INSERT]);;
+  ONCE_REWRITE_TAC[DISJ_SYM] THEN REWRITE_TAC[IN_ELIM_THM; INSERT]));;
 
-let IN_DELETE = prove
+let IN_DELETE = log_lemma "IN_DELETE" (fun () -> prove
  (`!s. !x:A. !y. x IN (s DELETE y) <=> x IN s /\ ~(x = y)`,
-  REWRITE_TAC[IN_ELIM_THM; DELETE]);;
+  REWRITE_TAC[IN_ELIM_THM; DELETE]));;
 
-let IN_SING = prove
+let IN_SING = log_lemma "IN_SING" (fun () -> prove
  (`!x y. x IN {y:A} <=> (x = y)`,
-  REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY]);;
+  REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY]));;
 
-let IN_IMAGE = prove
+let IN_IMAGE = log_lemma "IN_IMAGE" (fun () -> prove
  (`!y:B. !s f. (y IN (IMAGE f s)) <=> ?x:A. (y = f x) /\ x IN s`,
-  ONCE_REWRITE_TAC[CONJ_SYM] THEN REWRITE_TAC[IN_ELIM_THM; IMAGE]);;
+  ONCE_REWRITE_TAC[CONJ_SYM] THEN REWRITE_TAC[IN_ELIM_THM; IMAGE]));;
 
-let IN_REST = prove
+let IN_REST = log_lemma "IN_REST" (fun () -> prove
  (`!x:A. !s. x IN (REST s) <=> x IN s /\ ~(x = CHOICE s)`,
-  REWRITE_TAC[REST; IN_DELETE]);;
+  REWRITE_TAC[REST; IN_DELETE]));;
 
-let FORALL_IN_INSERT = prove
+let FORALL_IN_INSERT = log_lemma "FORALL_IN_INSERT" (fun () -> prove
  (`!P a s. (!x. x IN (a INSERT s) ==> P x) <=> P a /\ (!x. x IN s ==> P x)`,
-  REWRITE_TAC[IN_INSERT] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_INSERT] THEN MESON_TAC[]));;
 
-let EXISTS_IN_INSERT = prove
+let EXISTS_IN_INSERT = log_lemma "EXISTS_IN_INSERT" (fun () -> prove
  (`!P a s. (?x. x IN (a INSERT s) /\ P x) <=> P a \/ ?x. x IN s /\ P x`,
-  REWRITE_TAC[IN_INSERT] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_INSERT] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Basic property of the choice function.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-let CHOICE_DEF = prove
+let CHOICE_DEF = log_lemma "CHOICE_DEF" (fun () -> prove
  (`!s:A->bool. ~(s = EMPTY) ==> (CHOICE s) IN s`,
-  REWRITE_TAC[CHOICE; EXTENSION; NOT_IN_EMPTY; NOT_FORALL_THM; EXISTS_THM]);;
+  REWRITE_TAC[CHOICE; EXTENSION; NOT_IN_EMPTY; NOT_FORALL_THM; EXISTS_THM]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Tactic to automate some routine set theory by reduction to FOL.           *)
@@ -250,655 +256,655 @@ let SET_RULE tm = prove(tm,SET_TAC[]);;
 (* Misc. theorems.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-let NOT_EQUAL_SETS = prove
+let NOT_EQUAL_SETS = log_lemma "NOT_EQUAL_SETS" (fun () -> prove
  (`!s:A->bool. !t. ~(s = t) <=> ?x. x IN t <=> ~(x IN s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* The empty set.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-let MEMBER_NOT_EMPTY = prove
+let MEMBER_NOT_EMPTY = log_lemma "MEMBER_NOT_EMPTY" (fun () -> prove
  (`!s:A->bool. (?x. x IN s) <=> ~(s = EMPTY)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* The universal set.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-let UNIV_NOT_EMPTY = prove
+let UNIV_NOT_EMPTY = log_lemma "UNIV_NOT_EMPTY" (fun () -> prove
  (`~(UNIV:A->bool = EMPTY)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EMPTY_NOT_UNIV = prove
+let EMPTY_NOT_UNIV = log_lemma "EMPTY_NOT_UNIV" (fun () -> prove
  (`~(EMPTY:A->bool = UNIV)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EQ_UNIV = prove
+let EQ_UNIV = log_lemma "EQ_UNIV" (fun () -> prove
  (`(!x:A. x IN s) <=> (s = UNIV)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Set inclusion.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-let SUBSET_TRANS = prove
+let SUBSET_TRANS = log_lemma "SUBSET_TRANS" (fun () -> prove
  (`!(s:A->bool) t u. s SUBSET t /\ t SUBSET u ==> s SUBSET u`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_REFL = prove
+let SUBSET_REFL = log_lemma "SUBSET_REFL" (fun () -> prove
  (`!s:A->bool. s SUBSET s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_ANTISYM = prove
+let SUBSET_ANTISYM = log_lemma "SUBSET_ANTISYM" (fun () -> prove
  (`!(s:A->bool) t. s SUBSET t /\ t SUBSET s ==> s = t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_ANTISYM_EQ = prove
+let SUBSET_ANTISYM_EQ = log_lemma "SUBSET_ANTISYM_EQ" (fun () -> prove
  (`!(s:A->bool) t. s SUBSET t /\ t SUBSET s <=> s = t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EMPTY_SUBSET = prove
+let EMPTY_SUBSET = log_lemma "EMPTY_SUBSET" (fun () -> prove
  (`!s:A->bool. EMPTY SUBSET s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_EMPTY = prove
+let SUBSET_EMPTY = log_lemma "SUBSET_EMPTY" (fun () -> prove
  (`!s:A->bool. s SUBSET EMPTY <=> (s = EMPTY)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_UNIV = prove
+let SUBSET_UNIV = log_lemma "SUBSET_UNIV" (fun () -> prove
  (`!s:A->bool. s SUBSET UNIV`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNIV_SUBSET = prove
+let UNIV_SUBSET = log_lemma "UNIV_SUBSET" (fun () -> prove
  (`!s:A->bool. UNIV SUBSET s <=> (s = UNIV)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SING_SUBSET = prove
+let SING_SUBSET = log_lemma "SING_SUBSET" (fun () -> prove
  (`!s x. {x} SUBSET s <=> x IN s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Proper subset.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-let PSUBSET_TRANS = prove
+let PSUBSET_TRANS = log_lemma "PSUBSET_TRANS" (fun () -> prove
  (`!(s:A->bool) t u. s PSUBSET t /\ t PSUBSET u ==> s PSUBSET u`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let PSUBSET_SUBSET_TRANS = prove
+let PSUBSET_SUBSET_TRANS = log_lemma "PSUBSET_SUBSET_TRANS" (fun () -> prove
  (`!(s:A->bool) t u. s PSUBSET t /\ t SUBSET u ==> s PSUBSET u`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_PSUBSET_TRANS = prove
+let SUBSET_PSUBSET_TRANS = log_lemma "SUBSET_PSUBSET_TRANS" (fun () -> prove
  (`!(s:A->bool) t u. s SUBSET t /\ t PSUBSET u ==> s PSUBSET u`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let PSUBSET_IRREFL = prove
+let PSUBSET_IRREFL = log_lemma "PSUBSET_IRREFL" (fun () -> prove
  (`!s:A->bool. ~(s PSUBSET s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let NOT_PSUBSET_EMPTY = prove
+let NOT_PSUBSET_EMPTY = log_lemma "NOT_PSUBSET_EMPTY" (fun () -> prove
  (`!s:A->bool. ~(s PSUBSET EMPTY)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let NOT_UNIV_PSUBSET = prove
+let NOT_UNIV_PSUBSET = log_lemma "NOT_UNIV_PSUBSET" (fun () -> prove
  (`!s:A->bool. ~(UNIV PSUBSET s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let PSUBSET_UNIV = prove
+let PSUBSET_UNIV = log_lemma "PSUBSET_UNIV" (fun () -> prove
  (`!s:A->bool. s PSUBSET UNIV <=> ?x. ~(x IN s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let PSUBSET_ALT = prove
+let PSUBSET_ALT = log_lemma "PSUBSET_ALT" (fun () -> prove
  (`!s t:A->bool. s PSUBSET t <=> s SUBSET t /\ (?a. a IN t /\ ~(a IN s))`,
-  REWRITE_TAC[PSUBSET] THEN SET_TAC[]);;
+  REWRITE_TAC[PSUBSET] THEN SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Union.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-let UNION_ASSOC = prove
+let UNION_ASSOC = log_lemma "UNION_ASSOC" (fun () -> prove
  (`!(s:A->bool) t u. (s UNION t) UNION u = s UNION (t UNION u)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNION_IDEMPOT = prove
+let UNION_IDEMPOT = log_lemma "UNION_IDEMPOT" (fun () -> prove
  (`!s:A->bool. s UNION s = s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNION_COMM = prove
+let UNION_COMM = log_lemma "UNION_COMM" (fun () -> prove
  (`!(s:A->bool) t. s UNION t = t UNION s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_UNION = prove
+let SUBSET_UNION = log_lemma "SUBSET_UNION" (fun () -> prove
  (`(!s:A->bool. !t. s SUBSET (s UNION t)) /\
    (!s:A->bool. !t. s SUBSET (t UNION s))`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_UNION_ABSORPTION = prove
+let SUBSET_UNION_ABSORPTION = log_lemma "SUBSET_UNION_ABSORPTION" (fun () -> prove
  (`!s:A->bool. !t. s SUBSET t <=> (s UNION t = t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNION_EMPTY = prove
+let UNION_EMPTY = log_lemma "UNION_EMPTY" (fun () -> prove
  (`(!s:A->bool. EMPTY UNION s = s) /\
    (!s:A->bool. s UNION EMPTY = s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNION_UNIV = prove
+let UNION_UNIV = log_lemma "UNION_UNIV" (fun () -> prove
  (`(!s:A->bool. UNIV UNION s = UNIV) /\
    (!s:A->bool. s UNION UNIV = UNIV)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EMPTY_UNION = prove
+let EMPTY_UNION = log_lemma "EMPTY_UNION" (fun () -> prove
  (`!s:A->bool. !t. (s UNION t = EMPTY) <=> (s = EMPTY) /\ (t = EMPTY)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNION_SUBSET = prove
+let UNION_SUBSET = log_lemma "UNION_SUBSET" (fun () -> prove
  (`!s t u. (s UNION t) SUBSET u <=> s SUBSET u /\ t SUBSET u`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Intersection.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-let INTER_ASSOC = prove
+let INTER_ASSOC = log_lemma "INTER_ASSOC" (fun () -> prove
  (`!(s:A->bool) t u. (s INTER t) INTER u = s INTER (t INTER u)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTER_IDEMPOT = prove
+let INTER_IDEMPOT = log_lemma "INTER_IDEMPOT" (fun () -> prove
  (`!s:A->bool. s INTER s = s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTER_COMM = prove
+let INTER_COMM = log_lemma "INTER_COMM" (fun () -> prove
  (`!(s:A->bool) t. s INTER t = t INTER s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTER_SUBSET = prove
+let INTER_SUBSET = log_lemma "INTER_SUBSET" (fun () -> prove
  (`(!s:A->bool. !t. (s INTER t) SUBSET s) /\
    (!s:A->bool. !t. (t INTER s) SUBSET s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_INTER_ABSORPTION = prove
+let SUBSET_INTER_ABSORPTION = log_lemma "SUBSET_INTER_ABSORPTION" (fun () -> prove
  (`!s:A->bool. !t. s SUBSET t <=> (s INTER t = s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTER_EMPTY = prove
+let INTER_EMPTY = log_lemma "INTER_EMPTY" (fun () -> prove
  (`(!s:A->bool. EMPTY INTER s = EMPTY) /\
    (!s:A->bool. s INTER EMPTY = EMPTY)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTER_UNIV = prove
+let INTER_UNIV = log_lemma "INTER_UNIV" (fun () -> prove
  (`(!s:A->bool. UNIV INTER s = s) /\
    (!s:A->bool. s INTER UNIV = s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_INTER = prove
+let SUBSET_INTER = log_lemma "SUBSET_INTER" (fun () -> prove
  (`!s t u. s SUBSET (t INTER u) <=> s SUBSET t /\ s SUBSET u`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Distributivity.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-let UNION_OVER_INTER = prove
+let UNION_OVER_INTER = log_lemma "UNION_OVER_INTER" (fun () -> prove
  (`!s:A->bool. !t u. s INTER (t UNION u) = (s INTER t) UNION (s INTER u)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTER_OVER_UNION = prove
+let INTER_OVER_UNION = log_lemma "INTER_OVER_UNION" (fun () -> prove
  (`!s:A->bool. !t u. s UNION (t INTER u) = (s UNION t) INTER (s UNION u)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Disjoint sets.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-let IN_DISJOINT = prove
+let IN_DISJOINT = log_lemma "IN_DISJOINT" (fun () -> prove
  (`!s:A->bool. !t. DISJOINT s t <=> ~(?x. x IN s /\ x IN t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DISJOINT_SYM = prove
+let DISJOINT_SYM = log_lemma "DISJOINT_SYM" (fun () -> prove
  (`!s:A->bool. !t. DISJOINT s t <=> DISJOINT t s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DISJOINT_EMPTY = prove
+let DISJOINT_EMPTY = log_lemma "DISJOINT_EMPTY" (fun () -> prove
  (`!s:A->bool. DISJOINT EMPTY s /\ DISJOINT s EMPTY`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DISJOINT_EMPTY_REFL = prove
+let DISJOINT_EMPTY_REFL = log_lemma "DISJOINT_EMPTY_REFL" (fun () -> prove
  (`!s:A->bool. (s = EMPTY) <=> (DISJOINT s s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DISJOINT_UNION = prove
+let DISJOINT_UNION = log_lemma "DISJOINT_UNION" (fun () -> prove
  (`!s:A->bool. !t u. DISJOINT (s UNION t) u <=> DISJOINT s u /\ DISJOINT t u`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Set difference.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-let DIFF_EMPTY = prove
+let DIFF_EMPTY = log_lemma "DIFF_EMPTY" (fun () -> prove
  (`!s:A->bool. s DIFF EMPTY = s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EMPTY_DIFF = prove
+let EMPTY_DIFF = log_lemma "EMPTY_DIFF" (fun () -> prove
  (`!s:A->bool. EMPTY DIFF s = EMPTY`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DIFF_UNIV = prove
+let DIFF_UNIV = log_lemma "DIFF_UNIV" (fun () -> prove
  (`!s:A->bool. s DIFF UNIV = EMPTY`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DIFF_DIFF = prove
+let DIFF_DIFF = log_lemma "DIFF_DIFF" (fun () -> prove
  (`!s:A->bool. !t. (s DIFF t) DIFF t = s DIFF t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DIFF_EQ_EMPTY = prove
+let DIFF_EQ_EMPTY = log_lemma "DIFF_EQ_EMPTY" (fun () -> prove
  (`!s:A->bool. s DIFF s = EMPTY`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_DIFF = prove
+let SUBSET_DIFF = log_lemma "SUBSET_DIFF" (fun () -> prove
  (`!s t. (s DIFF t) SUBSET s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Insertsion and deletion.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-let COMPONENT = prove
+let COMPONENT = log_lemma "COMPONENT" (fun () -> prove
  (`!x:A. !s. x IN (x INSERT s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DECOMPOSITION = prove
+let DECOMPOSITION = log_lemma "DECOMPOSITION" (fun () -> prove
  (`!s:A->bool. !x. x IN s <=> ?t. (s = x INSERT t) /\ ~(x IN t)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN STRIP_TAC THEN
   ASM_REWRITE_TAC[IN_INSERT] THEN EXISTS_TAC `s DELETE x:A` THEN
-  POP_ASSUM MP_TAC THEN SET_TAC[]);;
+  POP_ASSUM MP_TAC THEN SET_TAC[]));;
 
-let SET_CASES = prove
+let SET_CASES = log_lemma "SET_CASES" (fun () -> prove
  (`!s:A->bool. (s = EMPTY) \/ ?x:A. ?t. (s = x INSERT t) /\ ~(x IN t)`,
-  MESON_TAC[MEMBER_NOT_EMPTY; DECOMPOSITION]);;
+  MESON_TAC[MEMBER_NOT_EMPTY; DECOMPOSITION]));;
 
-let ABSORPTION = prove
+let ABSORPTION = log_lemma "ABSORPTION" (fun () -> prove
  (`!x:A. !s. x IN s <=> (x INSERT s = s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INSERT_INSERT = prove
+let INSERT_INSERT = log_lemma "INSERT_INSERT" (fun () -> prove
  (`!x:A. !s. x INSERT (x INSERT s) = x INSERT s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INSERT_COMM = prove
+let INSERT_COMM = log_lemma "INSERT_COMM" (fun () -> prove
  (`!x:A. !y s. x INSERT (y INSERT s) = y INSERT (x INSERT s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INSERT_UNIV = prove
+let INSERT_UNIV = log_lemma "INSERT_UNIV" (fun () -> prove
  (`!x:A. x INSERT UNIV = UNIV`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let NOT_INSERT_EMPTY = prove
+let NOT_INSERT_EMPTY = log_lemma "NOT_INSERT_EMPTY" (fun () -> prove
  (`!x:A. !s. ~(x INSERT s = EMPTY)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let NOT_EMPTY_INSERT = prove
+let NOT_EMPTY_INSERT = log_lemma "NOT_EMPTY_INSERT" (fun () -> prove
  (`!x:A. !s. ~(EMPTY = x INSERT s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INSERT_UNION = prove
+let INSERT_UNION = log_lemma "INSERT_UNION" (fun () -> prove
  (`!x:A. !s t. (x INSERT s) UNION t =
                if x IN t then s UNION t else x INSERT (s UNION t)`,
   REPEAT GEN_TAC THEN COND_CASES_TAC THEN
-  POP_ASSUM MP_TAC THEN SET_TAC[]);;
+  POP_ASSUM MP_TAC THEN SET_TAC[]));;
 
-let INSERT_UNION_EQ = prove
+let INSERT_UNION_EQ = log_lemma "INSERT_UNION_EQ" (fun () -> prove
  (`!x:A. !s t. (x INSERT s) UNION t = x INSERT (s UNION t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INSERT_INTER = prove
+let INSERT_INTER = log_lemma "INSERT_INTER" (fun () -> prove
  (`!x:A. !s t. (x INSERT s) INTER t =
                if x IN t then x INSERT (s INTER t) else s INTER t`,
   REPEAT GEN_TAC THEN COND_CASES_TAC THEN
-  POP_ASSUM MP_TAC THEN SET_TAC[]);;
+  POP_ASSUM MP_TAC THEN SET_TAC[]));;
 
-let DISJOINT_INSERT = prove
+let DISJOINT_INSERT = log_lemma "DISJOINT_INSERT" (fun () -> prove
  (`!(x:A) s t. DISJOINT (x INSERT s) t <=> (DISJOINT s t) /\ ~(x IN t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INSERT_SUBSET = prove
+let INSERT_SUBSET = log_lemma "INSERT_SUBSET" (fun () -> prove
  (`!x:A. !s t. (x INSERT s) SUBSET t <=> (x IN t /\ s SUBSET t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_INSERT = prove
+let SUBSET_INSERT = log_lemma "SUBSET_INSERT" (fun () -> prove
  (`!x:A. !s. ~(x IN s) ==> !t. s SUBSET (x INSERT t) <=> s SUBSET t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INSERT_DIFF = prove
+let INSERT_DIFF = log_lemma "INSERT_DIFF" (fun () -> prove
  (`!s t. !x:A. (x INSERT s) DIFF t =
                if x IN t then s DIFF t else x INSERT (s DIFF t)`,
   REPEAT GEN_TAC THEN COND_CASES_TAC THEN
-  POP_ASSUM MP_TAC THEN SET_TAC[]);;
+  POP_ASSUM MP_TAC THEN SET_TAC[]));;
 
-let INSERT_AC = prove
+let INSERT_AC = log_lemma "INSERT_AC" (fun () -> prove
  (`(x INSERT (y INSERT s) = y INSERT (x INSERT s)) /\
    (x INSERT (x INSERT s) = x INSERT s)`,
-  REWRITE_TAC[INSERT_COMM; INSERT_INSERT]);;
+  REWRITE_TAC[INSERT_COMM; INSERT_INSERT]));;
 
-let INTER_ACI = prove
+let INTER_ACI = log_lemma "INTER_ACI" (fun () -> prove
  (`(p INTER q = q INTER p) /\
    ((p INTER q) INTER r = p INTER q INTER r) /\
    (p INTER q INTER r = q INTER p INTER r) /\
    (p INTER p = p) /\
    (p INTER p INTER q = p INTER q)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNION_ACI = prove
+let UNION_ACI = log_lemma "UNION_ACI" (fun () -> prove
  (`(p UNION q = q UNION p) /\
    ((p UNION q) UNION r = p UNION q UNION r) /\
    (p UNION q UNION r = q UNION p UNION r) /\
    (p UNION p = p) /\
    (p UNION p UNION q = p UNION q)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DELETE_NON_ELEMENT = prove
+let DELETE_NON_ELEMENT = log_lemma "DELETE_NON_ELEMENT" (fun () -> prove
  (`!x:A. !s. ~(x IN s) <=> (s DELETE x = s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let IN_DELETE_EQ = prove
+let IN_DELETE_EQ = log_lemma "IN_DELETE_EQ" (fun () -> prove
  (`!s x. !x':A.
      (x IN s <=> x' IN s) <=> (x IN (s DELETE x') <=> x' IN (s DELETE x))`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EMPTY_DELETE = prove
+let EMPTY_DELETE = log_lemma "EMPTY_DELETE" (fun () -> prove
  (`!x:A. EMPTY DELETE x = EMPTY`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DELETE_DELETE = prove
+let DELETE_DELETE = log_lemma "DELETE_DELETE" (fun () -> prove
  (`!x:A. !s. (s DELETE x) DELETE x = s DELETE x`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DELETE_COMM = prove
+let DELETE_COMM = log_lemma "DELETE_COMM" (fun () -> prove
  (`!x:A. !y. !s. (s DELETE x) DELETE y = (s DELETE y) DELETE x`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DELETE_SUBSET = prove
+let DELETE_SUBSET = log_lemma "DELETE_SUBSET" (fun () -> prove
  (`!x:A. !s. (s DELETE x) SUBSET s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_DELETE = prove
+let SUBSET_DELETE = log_lemma "SUBSET_DELETE" (fun () -> prove
  (`!x:A. !s t. s SUBSET (t DELETE x) <=> ~(x IN s) /\ (s SUBSET t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_INSERT_DELETE = prove
+let SUBSET_INSERT_DELETE = log_lemma "SUBSET_INSERT_DELETE" (fun () -> prove
  (`!x:A. !s t. s SUBSET (x INSERT t) <=> ((s DELETE x) SUBSET t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DIFF_INSERT = prove
+let DIFF_INSERT = log_lemma "DIFF_INSERT" (fun () -> prove
  (`!s t. !x:A. s DIFF (x INSERT t) = (s DELETE x) DIFF t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let PSUBSET_INSERT_SUBSET = prove
+let PSUBSET_INSERT_SUBSET = log_lemma "PSUBSET_INSERT_SUBSET" (fun () -> prove
  (`!s t. s PSUBSET t <=> ?x:A. ~(x IN s) /\ (x INSERT s) SUBSET t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let PSUBSET_MEMBER = prove
+let PSUBSET_MEMBER = log_lemma "PSUBSET_MEMBER" (fun () -> prove
  (`!s:A->bool. !t. s PSUBSET t <=> (s SUBSET t /\ ?y. y IN t /\ ~(y IN s))`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DELETE_INSERT = prove
+let DELETE_INSERT = log_lemma "DELETE_INSERT" (fun () -> prove
  (`!x:A. !y s.
       (x INSERT s) DELETE y =
         if x = y then s DELETE y else x INSERT (s DELETE y)`,
   REPEAT GEN_TAC THEN COND_CASES_TAC THEN
-  POP_ASSUM MP_TAC THEN SET_TAC[]);;
+  POP_ASSUM MP_TAC THEN SET_TAC[]));;
 
-let INSERT_DELETE = prove
+let INSERT_DELETE = log_lemma "INSERT_DELETE" (fun () -> prove
  (`!x:A. !s. x IN s ==> (x INSERT (s DELETE x) = s)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DELETE_INTER = prove
+let DELETE_INTER = log_lemma "DELETE_INTER" (fun () -> prove
  (`!s t. !x:A. (s DELETE x) INTER t = (s INTER t) DELETE x`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let DISJOINT_DELETE_SYM = prove
+let DISJOINT_DELETE_SYM = log_lemma "DISJOINT_DELETE_SYM" (fun () -> prove
  (`!s t. !x:A. DISJOINT (s DELETE x) t = DISJOINT (t DELETE x) s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Multiple union.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-let UNIONS_0 = prove
+let UNIONS_0 = log_lemma "UNIONS_0" (fun () -> prove
  (`UNIONS {} = {}`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNIONS_1 = prove
+let UNIONS_1 = log_lemma "UNIONS_1" (fun () -> prove
  (`UNIONS {s} = s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNIONS_2 = prove
+let UNIONS_2 = log_lemma "UNIONS_2" (fun () -> prove
  (`UNIONS {s,t} = s UNION t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNIONS_INSERT = prove
+let UNIONS_INSERT = log_lemma "UNIONS_INSERT" (fun () -> prove
  (`UNIONS (s INSERT u) = s UNION (UNIONS u)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let FORALL_IN_UNIONS = prove
+let FORALL_IN_UNIONS = log_lemma "FORALL_IN_UNIONS" (fun () -> prove
  (`!P s. (!x. x IN UNIONS s ==> P x) <=> !t x. t IN s /\ x IN t ==> P x`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EXISTS_IN_UNIONS = prove
+let EXISTS_IN_UNIONS = log_lemma "EXISTS_IN_UNIONS" (fun () -> prove
  (`!P s. (?x. x IN UNIONS s /\ P x) <=> (?t x. t IN s /\ x IN t /\ P x)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EMPTY_UNIONS = prove
+let EMPTY_UNIONS = log_lemma "EMPTY_UNIONS" (fun () -> prove
  (`!s. (UNIONS s = {}) <=> !t. t IN s ==> t = {}`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTER_UNIONS = prove
+let INTER_UNIONS = log_lemma "INTER_UNIONS" (fun () -> prove
  (`(!s t. UNIONS s INTER t = UNIONS {x INTER t | x IN s}) /\
    (!s t. t INTER UNIONS s = UNIONS {t INTER x | x IN s})`,
   ONCE_REWRITE_TAC[EXTENSION] THEN
   REWRITE_TAC[IN_UNIONS; IN_ELIM_THM; IN_INTER] THEN
-  MESON_TAC[IN_INTER]);;
+  MESON_TAC[IN_INTER]));;
 
-let UNIONS_SUBSET = prove
+let UNIONS_SUBSET = log_lemma "UNIONS_SUBSET" (fun () -> prove
  (`!f t. UNIONS f SUBSET t <=> !s. s IN f ==> s SUBSET t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SUBSET_UNIONS = prove
+let SUBSET_UNIONS = log_lemma "SUBSET_UNIONS" (fun () -> prove
  (`!f g. f SUBSET g ==> UNIONS f SUBSET UNIONS g`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let UNIONS_UNION = prove
+let UNIONS_UNION = log_lemma "UNIONS_UNION" (fun () -> prove
  (`!s t. UNIONS(s UNION t) = (UNIONS s) UNION (UNIONS t)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Multiple intersection.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-let INTERS_0 = prove
+let INTERS_0 = log_lemma "INTERS_0" (fun () -> prove
  (`INTERS {} = (:A)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTERS_1 = prove
+let INTERS_1 = log_lemma "INTERS_1" (fun () -> prove
  (`INTERS {s} = s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTERS_2 = prove
+let INTERS_2 = log_lemma "INTERS_2" (fun () -> prove
  (`INTERS {s,t} = s INTER t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let INTERS_INSERT = prove
+let INTERS_INSERT = log_lemma "INTERS_INSERT" (fun () -> prove
  (`INTERS (s INSERT u) = s INTER (INTERS u)`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Image.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-let IMAGE_CLAUSES = prove
+let IMAGE_CLAUSES = log_lemma "IMAGE_CLAUSES" (fun () -> prove
  (`(IMAGE f {} = {}) /\
    (IMAGE f (x INSERT s) = (f x) INSERT (IMAGE f s))`,
   REWRITE_TAC[IMAGE; IN_ELIM_THM; NOT_IN_EMPTY; IN_INSERT; EXTENSION] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
-let IMAGE_UNION = prove
+let IMAGE_UNION = log_lemma "IMAGE_UNION" (fun () -> prove
  (`!f s t. IMAGE f (s UNION t) = (IMAGE f s) UNION (IMAGE f t)`,
-  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_UNION] THEN MESON_TAC[]);;
+  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_UNION] THEN MESON_TAC[]));;
 
-let IMAGE_ID = prove
+let IMAGE_ID = log_lemma "IMAGE_ID" (fun () -> prove
  (`!s. IMAGE (\x. x) s = s`,
-  REWRITE_TAC[EXTENSION; IN_IMAGE; UNWIND_THM1]);;
+  REWRITE_TAC[EXTENSION; IN_IMAGE; UNWIND_THM1]));;
 
-let IMAGE_I = prove
+let IMAGE_I = log_lemma "IMAGE_I" (fun () -> prove
  (`!s. IMAGE I s = s`,
-  REWRITE_TAC[I_DEF; IMAGE_ID]);;
+  REWRITE_TAC[I_DEF; IMAGE_ID]));;
 
-let IMAGE_o = prove
+let IMAGE_o = log_lemma "IMAGE_o" (fun () -> prove
  (`!f g s. IMAGE (f o g) s = IMAGE f (IMAGE g s)`,
-  REWRITE_TAC[EXTENSION; IN_IMAGE; o_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[EXTENSION; IN_IMAGE; o_THM] THEN MESON_TAC[]));;
 
-let IMAGE_SUBSET = prove
+let IMAGE_SUBSET = log_lemma "IMAGE_SUBSET" (fun () -> prove
  (`!f s t. s SUBSET t ==> (IMAGE f s) SUBSET (IMAGE f t)`,
-  REWRITE_TAC[SUBSET; IN_IMAGE] THEN MESON_TAC[]);;
+  REWRITE_TAC[SUBSET; IN_IMAGE] THEN MESON_TAC[]));;
 
-let IMAGE_INTER_INJ = prove
+let IMAGE_INTER_INJ = log_lemma "IMAGE_INTER_INJ" (fun () -> prove
  (`!f s t. (!x y. (f(x) = f(y)) ==> (x = y))
            ==> (IMAGE f (s INTER t) = (IMAGE f s) INTER (IMAGE f t))`,
-  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_INTER] THEN MESON_TAC[]);;
+  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_INTER] THEN MESON_TAC[]));;
 
-let IMAGE_DIFF_INJ = prove
+let IMAGE_DIFF_INJ = log_lemma "IMAGE_DIFF_INJ" (fun () -> prove
  (`!f s t. (!x y. (f(x) = f(y)) ==> (x = y))
            ==> (IMAGE f (s DIFF t) = (IMAGE f s) DIFF (IMAGE f t))`,
-  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_DIFF] THEN MESON_TAC[]);;
+  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_DIFF] THEN MESON_TAC[]));;
 
-let IMAGE_DELETE_INJ = prove
+let IMAGE_DELETE_INJ = log_lemma "IMAGE_DELETE_INJ" (fun () -> prove
  (`!f s a. (!x. (f(x) = f(a)) ==> (x = a))
            ==> (IMAGE f (s DELETE a) = (IMAGE f s) DELETE (f a))`,
-  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_DELETE] THEN MESON_TAC[]);;
+  REWRITE_TAC[EXTENSION; IN_IMAGE; IN_DELETE] THEN MESON_TAC[]));;
 
-let IMAGE_EQ_EMPTY = prove
+let IMAGE_EQ_EMPTY = log_lemma "IMAGE_EQ_EMPTY" (fun () -> prove
  (`!f s. (IMAGE f s = {}) <=> (s = {})`,
-  REWRITE_TAC[EXTENSION; NOT_IN_EMPTY; IN_IMAGE] THEN MESON_TAC[]);;
+  REWRITE_TAC[EXTENSION; NOT_IN_EMPTY; IN_IMAGE] THEN MESON_TAC[]));;
 
-let FORALL_IN_IMAGE = prove
+let FORALL_IN_IMAGE = log_lemma "FORALL_IN_IMAGE" (fun () -> prove
  (`!f s. (!y. y IN IMAGE f s ==> P y) <=> (!x. x IN s ==> P(f x))`,
-  REWRITE_TAC[IN_IMAGE] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_IMAGE] THEN MESON_TAC[]));;
 
-let EXISTS_IN_IMAGE = prove
+let EXISTS_IN_IMAGE = log_lemma "EXISTS_IN_IMAGE" (fun () -> prove
  (`!f s. (?y. y IN IMAGE f s /\ P y) <=> ?x. x IN s /\ P(f x)`,
-  REWRITE_TAC[IN_IMAGE] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_IMAGE] THEN MESON_TAC[]));;
 
-let SUBSET_IMAGE = prove
+let SUBSET_IMAGE = log_lemma "SUBSET_IMAGE" (fun () -> prove
  (`!f:A->B s t. s SUBSET (IMAGE f t) <=> ?u. u SUBSET t /\ (s = IMAGE f u)`,
   REPEAT GEN_TAC THEN EQ_TAC THENL [ALL_TAC; MESON_TAC[IMAGE_SUBSET]] THEN
   DISCH_TAC THEN EXISTS_TAC `{x | x IN t /\ (f:A->B) x IN s}` THEN
   POP_ASSUM MP_TAC THEN
   REWRITE_TAC[EXTENSION; SUBSET; IN_IMAGE; IN_ELIM_THM] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
-let IMAGE_CONST = prove
+let IMAGE_CONST = log_lemma "IMAGE_CONST" (fun () -> prove
  (`!s c. IMAGE (\x. c) s = if s = {} then {} else {c}`,
   REPEAT GEN_TAC THEN COND_CASES_TAC THEN
   ASM_REWRITE_TAC[IMAGE_CLAUSES] THEN
   REWRITE_TAC[EXTENSION; IN_IMAGE; IN_SING] THEN
-  ASM_MESON_TAC[MEMBER_NOT_EMPTY]);;
+  ASM_MESON_TAC[MEMBER_NOT_EMPTY]));;
 
-let SIMPLE_IMAGE = prove
+let SIMPLE_IMAGE = log_lemma "SIMPLE_IMAGE" (fun () -> prove
  (`!f s. {f x | x IN s} = IMAGE f s`,
-  REWRITE_TAC[EXTENSION; IN_ELIM_THM; IN_IMAGE] THEN MESON_TAC[]);;
+  REWRITE_TAC[EXTENSION; IN_ELIM_THM; IN_IMAGE] THEN MESON_TAC[]));;
 
-let SIMPLE_IMAGE_GEN = prove
+let SIMPLE_IMAGE_GEN = log_lemma "SIMPLE_IMAGE_GEN" (fun () -> prove
  (`!f p. {f x | P x} = IMAGE f {x | P x}`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let IMAGE_UNIONS = prove
+let IMAGE_UNIONS = log_lemma "IMAGE_UNIONS" (fun () -> prove
  (`!f s. IMAGE f (UNIONS s) = UNIONS (IMAGE (IMAGE f) s)`,
   ONCE_REWRITE_TAC[EXTENSION] THEN REWRITE_TAC[IN_UNIONS; IN_IMAGE] THEN
   REWRITE_TAC[LEFT_AND_EXISTS_THM] THEN
   ONCE_REWRITE_TAC[SWAP_EXISTS_THM] THEN
   REWRITE_TAC[GSYM CONJ_ASSOC; UNWIND_THM2; IN_IMAGE] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
-let FUN_IN_IMAGE = prove
+let FUN_IN_IMAGE = log_lemma "FUN_IN_IMAGE" (fun () -> prove
  (`!f s x. x IN s ==> f(x) IN IMAGE f s`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SURJECTIVE_IMAGE_EQ = prove
+let SURJECTIVE_IMAGE_EQ = log_lemma "SURJECTIVE_IMAGE_EQ" (fun () -> prove
  (`!s t. (!y. y IN t ==> ?x. f x = y) /\ (!x. (f x) IN t <=> x IN s)
          ==> IMAGE f s = t`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Misc lemmas.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-let EMPTY_GSPEC = prove
+let EMPTY_GSPEC = log_lemma "EMPTY_GSPEC" (fun () -> prove
  (`{x | F} = {}`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SING_GSPEC = prove
+let SING_GSPEC = log_lemma "SING_GSPEC" (fun () -> prove
  (`(!a. {x | x = a} = {a}) /\
    (!a. {x | a = x} = {a})`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let IN_ELIM_PAIR_THM = prove
+let IN_ELIM_PAIR_THM = log_lemma "IN_ELIM_PAIR_THM" (fun () -> prove
  (`!P a b. (a,b) IN {(x,y) | P x y} <=> P a b`,
-  REWRITE_TAC[IN_ELIM_THM] THEN MESON_TAC[PAIR_EQ]);;
+  REWRITE_TAC[IN_ELIM_THM] THEN MESON_TAC[PAIR_EQ]));;
 
-let FORALL_IN_GSPEC = prove
+let FORALL_IN_GSPEC = log_lemma "FORALL_IN_GSPEC" (fun () -> prove
  (`(!P f. (!z. z IN {f x | P x} ==> Q z) <=> (!x. P x ==> Q(f x))) /\
    (!P f. (!z. z IN {f x y | P x y} ==> Q z) <=>
           (!x y. P x y ==> Q(f x y))) /\
    (!P f. (!z. z IN {f w x y | P w x y} ==> Q z) <=>
           (!w x y. P w x y ==> Q(f w x y)))`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let EXISTS_IN_GSPEC = prove
+let EXISTS_IN_GSPEC = log_lemma "EXISTS_IN_GSPEC" (fun () -> prove
  (`(!P f. (?z. z IN {f x | P x} /\ Q z) <=> (?x. P x /\ Q(f x))) /\
    (!P f. (?z. z IN {f x y | P x y} /\ Q z) <=>
           (?x y. P x y /\ Q(f x y))) /\
    (!P f. (?z. z IN {f w x y | P w x y} /\ Q z) <=>
           (?w x y. P w x y /\ Q(f w x y)))`,
-  SET_TAC[]);;
+  SET_TAC[]));;
 
-let SET_PROVE_CASES = prove
+let SET_PROVE_CASES = log_lemma "SET_PROVE_CASES" (fun () -> prove
  (`!P:(A->bool)->bool.
        P {} /\ (!a s. ~(a IN s) ==> P(a INSERT s))
        ==> !s. P s`,
-  MESON_TAC[SET_CASES]);;
+  MESON_TAC[SET_CASES]));;
 
-let UNIONS_IMAGE = prove
+let UNIONS_IMAGE = log_lemma "UNIONS_IMAGE" (fun () -> prove
  (`!f s. UNIONS (IMAGE f s) = {y | ?x. x IN s /\ y IN f x}`,
   REPEAT GEN_TAC THEN  GEN_REWRITE_TAC I [EXTENSION] THEN
-  REWRITE_TAC[IN_UNIONS; IN_IMAGE; IN_ELIM_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_UNIONS; IN_IMAGE; IN_ELIM_THM] THEN MESON_TAC[]));;
 
-let INTERS_IMAGE = prove
+let INTERS_IMAGE = log_lemma "INTERS_IMAGE" (fun () -> prove
  (`!f s. INTERS (IMAGE f s) = {y | !x. x IN s ==> y IN f x}`,
   REPEAT GEN_TAC THEN  GEN_REWRITE_TAC I [EXTENSION] THEN
-  REWRITE_TAC[IN_INTERS; IN_IMAGE; IN_ELIM_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_INTERS; IN_IMAGE; IN_ELIM_THM] THEN MESON_TAC[]));;
 
-let UNIONS_GSPEC = prove
+let UNIONS_GSPEC = log_lemma "UNIONS_GSPEC" (fun () -> prove
  (`(!P f. UNIONS {f x | P x} = {a | ?x. P x /\ a IN (f x)}) /\
    (!P f. UNIONS {f x y | P x y} = {a | ?x y. P x y /\ a IN (f x y)}) /\
    (!P f. UNIONS {f x y z | P x y z} =
             {a | ?x y z. P x y z /\ a IN (f x y z)})`,
   REPEAT STRIP_TAC THEN GEN_REWRITE_TAC I [EXTENSION] THEN
-  REWRITE_TAC[IN_UNIONS; IN_ELIM_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_UNIONS; IN_ELIM_THM] THEN MESON_TAC[]));;
 
-let INTERS_GSPEC = prove
+let INTERS_GSPEC = log_lemma "INTERS_GSPEC" (fun () -> prove
  (`(!P f. INTERS {f x | P x} = {a | !x. P x ==> a IN (f x)}) /\
    (!P f. INTERS {f x y | P x y} = {a | !x y. P x y ==> a IN (f x y)}) /\
    (!P f. INTERS {f x y z | P x y z} =
                 {a | !x y z. P x y z ==> a IN (f x y z)})`,
   REPEAT STRIP_TAC THEN GEN_REWRITE_TAC I [EXTENSION] THEN
-  REWRITE_TAC[IN_INTERS; IN_ELIM_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_INTERS; IN_ELIM_THM] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Stronger form of induction is sometimes handy.                            *)
 (* ------------------------------------------------------------------------- *)
 
-let FINITE_INDUCT_STRONG = prove
+let FINITE_INDUCT_STRONG = log_lemma "FINITE_INDUCT_STRONG" (fun () -> prove
  (`!P:(A->bool)->bool.
         P {} /\ (!x s. P s /\ ~(x IN s) /\ FINITE s ==> P(x INSERT s))
         ==> !s. FINITE s ==> P s`,
@@ -909,17 +915,17 @@ let FINITE_INDUCT_STRONG = prove
   REPEAT STRIP_TAC THEN ASM_REWRITE_TAC[] THEN ASM_CASES_TAC `x:A IN s` THENL
    [SUBGOAL_THEN `x:A INSERT s = s` (fun th -> ASM_REWRITE_TAC[th]) THEN
     UNDISCH_TAC `x:A IN s` THEN SET_TAC[];
-    FIRST_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[]]);;
+    FIRST_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Basic combining theorems for finite sets.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-let FINITE_EMPTY = prove
+let FINITE_EMPTY = log_lemma "FINITE_EMPTY" (fun () -> prove
  (`FINITE {}`,
-  REWRITE_TAC[FINITE_RULES]);;
+  REWRITE_TAC[FINITE_RULES]));;
 
-let FINITE_SUBSET = prove
+let FINITE_SUBSET = log_lemma "FINITE_SUBSET" (fun () -> prove
  (`!(s:A->bool) t. FINITE t /\ s SUBSET t ==> FINITE s`,
   ONCE_REWRITE_TAC[SWAP_FORALL_THM] THEN
   REWRITE_TAC[IMP_CONJ] THEN REWRITE_TAC[RIGHT_FORALL_IMP_THM] THEN
@@ -936,46 +942,46 @@ let FINITE_SUBSET = prove
        [UNDISCH_TAC `x:A IN t` THEN SET_TAC[]; ASM_REWRITE_TAC[]];
       FIRST_ASSUM MATCH_MP_TAC THEN
       UNDISCH_TAC `t SUBSET x:A INSERT u` THEN
-      UNDISCH_TAC `~(x:A IN t)` THEN SET_TAC[]]]);;
+      UNDISCH_TAC `~(x:A IN t)` THEN SET_TAC[]]]));;
 
-let FINITE_UNION_IMP = prove
+let FINITE_UNION_IMP = log_lemma "FINITE_UNION_IMP" (fun () -> prove
  (`!(s:A->bool) t. FINITE s /\ FINITE t ==> FINITE (s UNION t)`,
   REWRITE_TAC[IMP_CONJ] THEN REWRITE_TAC[RIGHT_FORALL_IMP_THM] THEN
   MATCH_MP_TAC FINITE_INDUCT THEN REWRITE_TAC[UNION_EMPTY] THEN
   SUBGOAL_THEN `!x s t. (x:A INSERT s) UNION t = x INSERT (s UNION t)`
   (fun th -> REWRITE_TAC[th]) THENL
    [SET_TAC[];
-    MESON_TAC[FINITE_RULES]]);;
+    MESON_TAC[FINITE_RULES]]));;
 
-let FINITE_UNION = prove
+let FINITE_UNION = log_lemma "FINITE_UNION" (fun () -> prove
  (`!(s:A->bool) t. FINITE(s UNION t) <=> FINITE(s) /\ FINITE(t)`,
   REPEAT GEN_TAC THEN EQ_TAC THENL
    [REPEAT STRIP_TAC THEN MATCH_MP_TAC FINITE_SUBSET THEN
     EXISTS_TAC `(s:A->bool) UNION t` THEN ASM_REWRITE_TAC[] THEN SET_TAC[];
-    MATCH_ACCEPT_TAC FINITE_UNION_IMP]);;
+    MATCH_ACCEPT_TAC FINITE_UNION_IMP]));;
 
-let FINITE_INTER = prove
+let FINITE_INTER = log_lemma "FINITE_INTER" (fun () -> prove
  (`!(s:A->bool) t. FINITE s \/ FINITE t ==> FINITE (s INTER t)`,
-  MESON_TAC[INTER_SUBSET; FINITE_SUBSET]);;
+  MESON_TAC[INTER_SUBSET; FINITE_SUBSET]));;
 
-let FINITE_INSERT = prove
+let FINITE_INSERT = log_lemma "FINITE_INSERT" (fun () -> prove
  (`!(s:A->bool) x. FINITE (x INSERT s) <=> FINITE s`,
   REPEAT GEN_TAC THEN EQ_TAC THEN DISCH_TAC THENL
    [MATCH_MP_TAC FINITE_SUBSET THEN
     EXISTS_TAC `x:A INSERT s` THEN ASM_REWRITE_TAC[] THEN SET_TAC[];
     MATCH_MP_TAC(CONJUNCT2 FINITE_RULES) THEN
-    ASM_REWRITE_TAC[]]);;
+    ASM_REWRITE_TAC[]]));;
 
-let FINITE_SING = prove
+let FINITE_SING = log_lemma "FINITE_SING" (fun () -> prove
  (`!a. FINITE {a}`,
-  REWRITE_TAC[FINITE_INSERT; FINITE_RULES]);;
+  REWRITE_TAC[FINITE_INSERT; FINITE_RULES]));;
 
-let FINITE_DELETE_IMP = prove
+let FINITE_DELETE_IMP = log_lemma "FINITE_DELETE_IMP" (fun () -> prove
  (`!(s:A->bool) x. FINITE s ==> FINITE (s DELETE x)`,
   REPEAT STRIP_TAC THEN MATCH_MP_TAC FINITE_SUBSET THEN
-  ASM_REWRITE_TAC[] THEN SET_TAC[]);;
+  ASM_REWRITE_TAC[] THEN SET_TAC[]));;
 
-let FINITE_DELETE = prove
+let FINITE_DELETE = log_lemma "FINITE_DELETE" (fun () -> prove
  (`!(s:A->bool) x. FINITE (s DELETE x) <=> FINITE s`,
   REPEAT GEN_TAC THEN EQ_TAC THEN REWRITE_TAC[FINITE_DELETE_IMP] THEN
   ASM_CASES_TAC `x:A IN s` THENL
@@ -983,15 +989,15 @@ let FINITE_DELETE = prove
     (fun th -> GEN_REWRITE_TAC (RAND_CONV o RAND_CONV) [th]) THEN
     REWRITE_TAC[FINITE_INSERT] THEN POP_ASSUM MP_TAC THEN SET_TAC[];
     SUBGOAL_THEN `s DELETE x:A = s` (fun th -> REWRITE_TAC[th]) THEN
-    POP_ASSUM MP_TAC THEN SET_TAC[]]);;
+    POP_ASSUM MP_TAC THEN SET_TAC[]]));;
 
-let FINITE_UNIONS = prove
+let FINITE_UNIONS = log_lemma "FINITE_UNIONS" (fun () -> prove
  (`!s. FINITE(s) ==> (FINITE(UNIONS s) <=> (!t. t IN s ==> FINITE(t)))`,
   MATCH_MP_TAC FINITE_INDUCT THEN
   REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY; UNIONS_0; UNIONS_INSERT] THEN
-  REWRITE_TAC[FINITE_UNION; FINITE_RULES] THEN MESON_TAC[]);;
+  REWRITE_TAC[FINITE_UNION; FINITE_RULES] THEN MESON_TAC[]));;
 
-let FINITE_IMAGE_EXPAND = prove
+let FINITE_IMAGE_EXPAND = log_lemma "FINITE_IMAGE_EXPAND" (fun () -> prove
  (`!(f:A->B) s. FINITE s ==> FINITE {y | ?x. x IN s /\ (y = f x)}`,
   GEN_TAC THEN MATCH_MP_TAC FINITE_INDUCT THEN
   REWRITE_TAC[NOT_IN_EMPTY; REWRITE_RULE[] EMPTY_GSPEC; FINITE_RULES] THEN
@@ -1001,13 +1007,13 @@ let FINITE_IMAGE_EXPAND = prove
   (fun th -> REWRITE_TAC[th]) THENL
    [REWRITE_TAC[EXTENSION; IN_ELIM_THM; IN_INSERT; IN_UNION; NOT_IN_EMPTY] THEN
     MESON_TAC[];
-    REWRITE_TAC[FINITE_UNION; FINITE_INSERT; FINITE_RULES]]);;
+    REWRITE_TAC[FINITE_UNION; FINITE_INSERT; FINITE_RULES]]));;
 
-let FINITE_IMAGE = prove
+let FINITE_IMAGE = log_lemma "FINITE_IMAGE" (fun () -> prove
  (`!(f:A->B) s. FINITE s ==> FINITE (IMAGE f s)`,
-  REWRITE_TAC[IMAGE; FINITE_IMAGE_EXPAND]);;
+  REWRITE_TAC[IMAGE; FINITE_IMAGE_EXPAND]));;
 
-let FINITE_IMAGE_INJ_GENERAL = prove
+let FINITE_IMAGE_INJ_GENERAL = log_lemma "FINITE_IMAGE_INJ_GENERAL" (fun () -> prove
  (`!(f:A->B) A s. (!x y. x IN s /\ y IN s /\ (f(x) = f(y)) ==> (x = y)) /\
                   FINITE A ==> FINITE {x | x IN s /\ f(x) IN A}`,
   GEN_TAC THEN ONCE_REWRITE_TAC[SWAP_FORALL_THM] THEN GEN_TAC THEN
@@ -1028,9 +1034,9 @@ let FINITE_IMAGE_INJ_GENERAL = prove
    [ALL_TAC; ASM_MESON_TAC[]] THEN
   FIRST_ASSUM(MP_TAC o SELECT_RULE) THEN
   ABBREV_TAC `z = @x. x IN s /\ ((f:A->B) x = y)` THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let FINITE_FINITE_PREIMAGE_GENERAL = prove
+let FINITE_FINITE_PREIMAGE_GENERAL = log_lemma "FINITE_FINITE_PREIMAGE_GENERAL" (fun () -> prove
  (`!f:A->B s t.
         FINITE t /\
         (!y. y IN t ==> FINITE {x | x IN s /\ f(x) = y})
@@ -1042,33 +1048,33 @@ let FINITE_FINITE_PREIMAGE_GENERAL = prove
   SUBST1_TAC THENL
    [GEN_REWRITE_TAC I [EXTENSION] THEN REWRITE_TAC[IN_ELIM_THM; IN_UNIONS] THEN
     REWRITE_TAC[EXISTS_IN_IMAGE] THEN SET_TAC[];
-    ASM_SIMP_TAC[FINITE_UNIONS; FINITE_IMAGE; FORALL_IN_IMAGE]]);;
+    ASM_SIMP_TAC[FINITE_UNIONS; FINITE_IMAGE; FORALL_IN_IMAGE]]));;
 
-let FINITE_FINITE_PREIMAGE = prove
+let FINITE_FINITE_PREIMAGE = log_lemma "FINITE_FINITE_PREIMAGE" (fun () -> prove
  (`!f:A->B t.
         FINITE t /\
         (!y. y IN t ==> FINITE {x | f(x) = y})
         ==> FINITE {x | f(x) IN t}`,
   REPEAT GEN_TAC THEN MP_TAC
    (ISPECL [`f:A->B`; `(:A)`; `t:B->bool`] FINITE_FINITE_PREIMAGE_GENERAL) THEN
-  REWRITE_TAC[IN_UNIV]);;
+  REWRITE_TAC[IN_UNIV]));;
 
-let FINITE_IMAGE_INJ_EQ = prove
+let FINITE_IMAGE_INJ_EQ = log_lemma "FINITE_IMAGE_INJ_EQ" (fun () -> prove
  (`!(f:A->B) s. (!x y. x IN s /\ y IN s /\ (f(x) = f(y)) ==> (x = y))
                 ==> (FINITE(IMAGE f s) <=> FINITE s)`,
   REPEAT STRIP_TAC THEN EQ_TAC THEN ASM_SIMP_TAC[FINITE_IMAGE] THEN
   POP_ASSUM MP_TAC THEN REWRITE_TAC[IMP_IMP] THEN
   DISCH_THEN(MP_TAC o MATCH_MP FINITE_IMAGE_INJ_GENERAL) THEN
-  MATCH_MP_TAC EQ_IMP THEN AP_TERM_TAC THEN SET_TAC[]);;
+  MATCH_MP_TAC EQ_IMP THEN AP_TERM_TAC THEN SET_TAC[]));;
 
-let FINITE_IMAGE_INJ = prove
+let FINITE_IMAGE_INJ = log_lemma "FINITE_IMAGE_INJ" (fun () -> prove
  (`!(f:A->B) A. (!x y. (f(x) = f(y)) ==> (x = y)) /\
                 FINITE A ==> FINITE {x | f(x) IN A}`,
   REPEAT GEN_TAC THEN
   MP_TAC(SPECL [`f:A->B`; `A:B->bool`; `UNIV:A->bool`]
-    FINITE_IMAGE_INJ_GENERAL) THEN REWRITE_TAC[IN_UNIV]);;
+    FINITE_IMAGE_INJ_GENERAL) THEN REWRITE_TAC[IN_UNIV]));;
 
-let INFINITE_IMAGE_INJ = prove
+let INFINITE_IMAGE_INJ = log_lemma "INFINITE_IMAGE_INJ" (fun () -> prove
  (`!f:A->B. (!x y. (f x = f y) ==> (x = y))
             ==> !s. INFINITE s ==> INFINITE(IMAGE f s)`,
   GEN_TAC THEN DISCH_TAC THEN GEN_TAC THEN
@@ -1076,22 +1082,22 @@ let INFINITE_IMAGE_INJ = prove
   MATCH_MP_TAC FINITE_SUBSET THEN
   EXISTS_TAC `{x | f(x) IN IMAGE (f:A->B) s}` THEN CONJ_TAC THENL
    [MATCH_MP_TAC FINITE_IMAGE_INJ THEN ASM_REWRITE_TAC[];
-    REWRITE_TAC[SUBSET; IN_ELIM_THM; IMAGE] THEN MESON_TAC[]]);;
+    REWRITE_TAC[SUBSET; IN_ELIM_THM; IMAGE] THEN MESON_TAC[]]));;
 
-let INFINITE_NONEMPTY = prove
+let INFINITE_NONEMPTY = log_lemma "INFINITE_NONEMPTY" (fun () -> prove
  (`!s. INFINITE(s) ==> ~(s = EMPTY)`,
-  MESON_TAC[INFINITE; FINITE_RULES]);;
+  MESON_TAC[INFINITE; FINITE_RULES]));;
 
-let INFINITE_DIFF_FINITE = prove
+let INFINITE_DIFF_FINITE = log_lemma "INFINITE_DIFF_FINITE" (fun () -> prove
  (`!s:A->bool t. INFINITE(s) /\ FINITE(t) ==> INFINITE(s DIFF t)`,
   REPEAT GEN_TAC THEN
   MATCH_MP_TAC(TAUT `(b /\ ~c ==> ~a) ==> a /\ b ==> c`) THEN
   REWRITE_TAC[INFINITE] THEN STRIP_TAC THEN
   MATCH_MP_TAC FINITE_SUBSET THEN
   EXISTS_TAC `(t:A->bool) UNION (s DIFF t)` THEN
-  ASM_REWRITE_TAC[FINITE_UNION] THEN SET_TAC[]);;
+  ASM_REWRITE_TAC[FINITE_UNION] THEN SET_TAC[]));;
 
-let FINITE_SUBSET_IMAGE = prove
+let FINITE_SUBSET_IMAGE = log_lemma "FINITE_SUBSET_IMAGE" (fun () -> prove
  (`!f:A->B s t.
         FINITE(t) /\ t SUBSET (IMAGE f s) <=>
         ?s'. FINITE s' /\ s' SUBSET s /\ (t = IMAGE f s')`,
@@ -1106,17 +1112,17 @@ let FINITE_SUBSET_IMAGE = prove
   REWRITE_TAC[RIGHT_AND_EXISTS_THM] THEN
   ONCE_REWRITE_TAC[SWAP_EXISTS_THM] THEN ONCE_REWRITE_TAC[CONJ_SYM] THEN
   REWRITE_TAC[UNWIND_THM2; GSYM CONJ_ASSOC] THEN
-  ASM_MESON_TAC[SUBSET; IN_IMAGE]);;
+  ASM_MESON_TAC[SUBSET; IN_IMAGE]));;
 
-let FINITE_SUBSET_IMAGE_IMP = prove
+let FINITE_SUBSET_IMAGE_IMP = log_lemma "FINITE_SUBSET_IMAGE_IMP" (fun () -> prove
  (`!f:A->B s t.
         FINITE(t) /\ t SUBSET (IMAGE f s)
         ==> ?s'. FINITE s' /\ s' SUBSET s /\ t SUBSET (IMAGE f s')`,
-  MESON_TAC[SUBSET_REFL; FINITE_SUBSET_IMAGE]);;
+  MESON_TAC[SUBSET_REFL; FINITE_SUBSET_IMAGE]));;
 
-let FINITE_DIFF = prove
+let FINITE_DIFF = log_lemma "FINITE_DIFF" (fun () -> prove
  (`!s t. FINITE s ==> FINITE(s DIFF t)`,
-  MESON_TAC[FINITE_SUBSET; SUBSET_DIFF]);;
+  MESON_TAC[FINITE_SUBSET; SUBSET_DIFF]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Recursion over finite sets; based on Ching-Tsun's code (archive 713).     *)
@@ -1129,12 +1135,12 @@ let FINREC = new_recursive_definition num_RECURSION
                       FINREC f b (s DELETE x) c n  /\
                       (a = f x c))`;;
 
-let FINREC_1_LEMMA = prove
+let FINREC_1_LEMMA = log_lemma "FINREC_1_LEMMA" (fun () -> prove
  (`!f b s a. FINREC f b s a (SUC 0) <=> ?x. (s = {x}) /\ (a = f x b)`,
   REWRITE_TAC[FINREC] THEN
-  REPEAT GEN_TAC THEN AP_TERM_TAC THEN ABS_TAC THEN SET_TAC[]);;
+  REPEAT GEN_TAC THEN AP_TERM_TAC THEN ABS_TAC THEN SET_TAC[]));;
 
-let FINREC_SUC_LEMMA = prove
+let FINREC_SUC_LEMMA = log_lemma "FINREC_SUC_LEMMA" (fun () -> prove
  (`!(f:A->B->B) b.
          (!x y s. ~(x = y) ==> (f x (f y s) = f y (f x s)))
          ==> !n s z.
@@ -1163,9 +1169,9 @@ let FINREC_SUC_LEMMA = prove
       CONJ_TAC THENL
        [MAP_EVERY EXISTS_TAC [`y:A`; `v:B`] THEN
         ONCE_REWRITE_TAC[lem] THEN ASM_REWRITE_TAC[IN_DELETE];
-        FIRST_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[]]]]);;
+        FIRST_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[]]]]));;
 
-let FINREC_UNIQUE_LEMMA = prove
+let FINREC_UNIQUE_LEMMA = log_lemma "FINREC_UNIQUE_LEMMA" (fun () -> prove
  (`!(f:A->B->B) b.
          (!x y s. ~(x = y) ==> (f x (f y s) = f y (f x s)))
          ==> !n1 n2 s a1 a2.
@@ -1179,9 +1185,9 @@ let FINREC_UNIQUE_LEMMA = prove
     IMP_RES_THEN ASSUME_TAC FINREC_SUC_LEMMA THEN REPEAT GEN_TAC THEN
     DISCH_THEN(fun th -> MP_TAC(CONJUNCT1 th) THEN MP_TAC th) THEN
     DISCH_THEN(CONJUNCTS_THEN (ANTE_RES_THEN ASSUME_TAC)) THEN
-    REWRITE_TAC[FINREC] THEN STRIP_TAC THEN ASM_MESON_TAC[]]);;
+    REWRITE_TAC[FINREC] THEN STRIP_TAC THEN ASM_MESON_TAC[]]));;
 
-let FINREC_EXISTS_LEMMA = prove
+let FINREC_EXISTS_LEMMA = log_lemma "FINREC_EXISTS_LEMMA" (fun () -> prove
  (`!(f:A->B->B) b s. FINITE s ==> ?a n. FINREC f b s a n`,
   let lem = prove(`~(x IN s ) ==> ((x:A INSERT s) DELETE x = s)`,SET_TAC[]) in
   GEN_TAC THEN GEN_TAC THEN MATCH_MP_TAC FINITE_INDUCT_STRONG THEN
@@ -1189,9 +1195,9 @@ let FINREC_EXISTS_LEMMA = prove
    [MAP_EVERY EXISTS_TAC [`b:B`; `0`] THEN REWRITE_TAC[FINREC];
     MAP_EVERY EXISTS_TAC [`(f:A->B->B) x a`; `SUC n`] THEN
     REWRITE_TAC[FINREC] THEN MAP_EVERY EXISTS_TAC [`x:A`; `a:B`] THEN
-    FIRST_ASSUM(fun th -> ASM_REWRITE_TAC[MATCH_MP lem th; IN_INSERT])]);;
+    FIRST_ASSUM(fun th -> ASM_REWRITE_TAC[MATCH_MP lem th; IN_INSERT])]));;
 
-let FINREC_FUN_LEMMA = prove
+let FINREC_FUN_LEMMA = log_lemma "FINREC_FUN_LEMMA" (fun () -> prove
  (`!P (R:A->B->C->bool).
        (!s. P s ==> ?a n. R s a n) /\
        (!n1 n2 s a1 a2. R s a1 n1 /\ R s a2 n2 ==> (a1 = a2) /\ (n1 = n2))
@@ -1200,9 +1206,9 @@ let FINREC_FUN_LEMMA = prove
   REPEAT STRIP_TAC THEN BETA_TAC THEN EQ_TAC THENL
    [STRIP_TAC THEN MATCH_MP_TAC SELECT_UNIQUE THEN ASM_MESON_TAC[];
     DISCH_THEN(SUBST1_TAC o SYM) THEN CONV_TAC SELECT_CONV THEN
-    ASM_MESON_TAC[]]);;
+    ASM_MESON_TAC[]]));;
 
-let FINREC_FUN = prove
+let FINREC_FUN = log_lemma "FINREC_FUN" (fun () -> prove
  (`!(f:A->B->B) b.
         (!x y s. ~(x = y) ==> (f x (f y s) = f y (f x s)))
         ==> ?g. (g {} = b) /\
@@ -1237,9 +1243,9 @@ let FINREC_FUN = prove
           DISCH_THEN(ANTE_RES_THEN (MP_TAC o GSYM)) THEN
           DISCH_THEN(fun th -> REWRITE_TAC[th]) THEN
           EXISTS_TAC `n:num` THEN ASM_REWRITE_TAC[]];
-        ASM_REWRITE_TAC[]]]]);;
+        ASM_REWRITE_TAC[]]]]));;
 
-let SET_RECURSION_LEMMA = prove
+let SET_RECURSION_LEMMA = log_lemma "SET_RECURSION_LEMMA" (fun () -> prove
  (`!(f:A->B->B) b.
         (!x y s. ~(x = y) ==> (f x (f y s) = f y (f x s)))
         ==> ?g. (g {} = b) /\
@@ -1256,7 +1262,7 @@ let SET_RECURSION_LEMMA = prove
     SUBGOAL_THEN `FINITE(x:A INSERT s) /\ x IN (x INSERT s)` MP_TAC THENL
      [REWRITE_TAC[IN_INSERT] THEN ASM_MESON_TAC[FINITE_RULES];
       DISCH_THEN(ANTE_RES_THEN SUBST1_TAC) THEN
-      REPEAT AP_TERM_TAC THEN UNDISCH_TAC `~(x:A IN s)` THEN SET_TAC[]]]);;
+      REPEAT AP_TERM_TAC THEN UNDISCH_TAC `~(x:A IN s)` THEN SET_TAC[]]]));;
 
 let ITSET = new_definition
   `ITSET f s b =
@@ -1265,7 +1271,7 @@ let ITSET = new_definition
                    ==> (g (x INSERT s) = if x IN s then g s else f x (g s)))
         s`;;
 
-let FINITE_RECURSION = prove
+let FINITE_RECURSION = log_lemma "FINITE_RECURSION" (fun () -> prove
  (`!(f:A->B->B) b.
         (!x y s. ~(x = y) ==> (f x (f y s) = f y (f x s)))
         ==> (ITSET f {} b = b) /\
@@ -1275,9 +1281,9 @@ let FINITE_RECURSION = prove
                                  else f x (ITSET f s b))`,
   REPEAT GEN_TAC THEN DISCH_TAC THEN REWRITE_TAC[ITSET] THEN
   CONV_TAC SELECT_CONV THEN MATCH_MP_TAC SET_RECURSION_LEMMA THEN
-  ASM_REWRITE_TAC[]);;
+  ASM_REWRITE_TAC[]));;
 
-let FINITE_RECURSION_DELETE = prove
+let FINITE_RECURSION_DELETE = log_lemma "FINITE_RECURSION_DELETE" (fun () -> prove
  (`!(f:A->B->B) b.
         (!x y s. ~(x = y) ==> (f x (f y s) = f y (f x s)))
         ==> (ITSET f {} b = b) /\
@@ -1294,9 +1300,9 @@ let FINITE_RECURSION_DELETE = prove
     REWRITE_TAC[IN_DELETE] THEN DISCH_THEN(SUBST1_TAC o SYM) THEN
     AP_THM_TAC THEN AP_TERM_TAC THEN UNDISCH_TAC `x:A IN s` THEN SET_TAC[];
     DISCH_TAC THEN AP_THM_TAC THEN AP_TERM_TAC THEN
-    UNDISCH_TAC `~(x:A IN s)` THEN SET_TAC[]]);;
+    UNDISCH_TAC `~(x:A IN s)` THEN SET_TAC[]]));;
 
-let ITSET_EQ = prove
+let ITSET_EQ = log_lemma "ITSET_EQ" (fun () -> prove
  (`!s f g b. FINITE(s) /\ (!x. x IN s ==> (f x = g x)) /\
              (!x y s. ~(x = y) ==> (f x (f y s) = f y (f x s))) /\
              (!x y s. ~(x = y) ==> (g x (g y s) = g y (g x s)))
@@ -1307,15 +1313,15 @@ let ITSET_EQ = prove
   SIMP_TAC[FINITE_RECURSION; NOT_IN_EMPTY; IN_INSERT] THEN
   REPEAT STRIP_TAC THEN AP_TERM_TAC THEN
   FIRST_ASSUM(MATCH_MP_TAC o REWRITE_RULE[RIGHT_IMP_FORALL_THM]) THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let SUBSET_RESTRICT = prove
+let SUBSET_RESTRICT = log_lemma "SUBSET_RESTRICT" (fun () -> prove
  (`!s P. {x | x IN s /\ P x} SUBSET s`,
-  SIMP_TAC[SUBSET; IN_ELIM_THM]);;
+  SIMP_TAC[SUBSET; IN_ELIM_THM]));;
 
-let FINITE_RESTRICT = prove
+let FINITE_RESTRICT = log_lemma "FINITE_RESTRICT" (fun () -> prove
  (`!s:A->bool P. FINITE s ==> FINITE {x | x IN s /\ P x}`,
-  MESON_TAC[SUBSET_RESTRICT; FINITE_SUBSET]);;
+  MESON_TAC[SUBSET_RESTRICT; FINITE_SUBSET]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Cardinality.                                                              *)
@@ -1324,15 +1330,15 @@ let FINITE_RESTRICT = prove
 let CARD = new_definition
  `CARD s = ITSET (\x n. SUC n) s 0`;;
 
-let CARD_CLAUSES = prove
+let CARD_CLAUSES = log_lemma "CARD_CLAUSES" (fun () -> prove
  (`(CARD ({}:A->bool) = 0) /\
    (!(x:A) s. FINITE s ==>
                  (CARD (x INSERT s) =
                       if x IN s then CARD s else SUC(CARD s)))`,
   MP_TAC(ISPECL [`\(x:A) n. SUC n`; `0`] FINITE_RECURSION) THEN
-  REWRITE_TAC[CARD]);;
+  REWRITE_TAC[CARD]));;
 
-let CARD_UNION = prove
+let CARD_UNION = log_lemma "CARD_UNION" (fun () -> prove
  (`!(s:A->bool) t. FINITE(s) /\ FINITE(t) /\ (s INTER t = EMPTY)
          ==> (CARD (s UNION t) = CARD s + CARD t)`,
   REWRITE_TAC[TAUT `a /\ b /\ c ==> d <=> a ==> b /\ c ==> d`] THEN
@@ -1356,9 +1362,9 @@ let CARD_UNION = prove
     MESON_TAC[];
     ASM_REWRITE_TAC[SUC_INJ; ADD_CLAUSES] THEN
     FIRST_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[] THEN
-    UNDISCH_TAC `x:A INSERT s INTER t = EMPTY` THEN SET_TAC[]]);;
+    UNDISCH_TAC `x:A INSERT s INTER t = EMPTY` THEN SET_TAC[]]));;
 
-let CARD_DELETE = prove
+let CARD_DELETE = log_lemma "CARD_DELETE" (fun () -> prove
  (`!x:A s. FINITE(s)
            ==> (CARD(s DELETE x) = if x IN s then CARD(s) - 1 else CARD(s))`,
   REPEAT STRIP_TAC THEN COND_CASES_TAC THENL
@@ -1366,29 +1372,29 @@ let CARD_DELETE = prove
      (fun th -> GEN_REWRITE_TAC (RAND_CONV o ONCE_DEPTH_CONV) [th])
     THENL [UNDISCH_TAC `x:A IN s` THEN SET_TAC[]; ALL_TAC] THEN
     ASM_SIMP_TAC[CARD_CLAUSES; FINITE_DELETE; IN_DELETE] THEN ARITH_TAC;
-    AP_TERM_TAC THEN UNDISCH_TAC `~(x:A IN s)` THEN SET_TAC[]]);;
+    AP_TERM_TAC THEN UNDISCH_TAC `~(x:A IN s)` THEN SET_TAC[]]));;
 
-let CARD_UNION_EQ = prove
+let CARD_UNION_EQ = log_lemma "CARD_UNION_EQ" (fun () -> prove
  (`!s t u. FINITE u /\ (s INTER t = {}) /\ (s UNION t = u)
            ==> (CARD s + CARD t = CARD u)`,
-  MESON_TAC[CARD_UNION; FINITE_SUBSET; SUBSET_UNION]);;
+  MESON_TAC[CARD_UNION; FINITE_SUBSET; SUBSET_UNION]));;
 
-let CARD_DIFF = prove
+let CARD_DIFF = log_lemma "CARD_DIFF" (fun () -> prove
  (`!s t. FINITE s /\ t SUBSET s ==> CARD(s DIFF t) = CARD s - CARD t`,
   REPEAT STRIP_TAC THEN
   MATCH_MP_TAC(ARITH_RULE `a + b:num = c ==> a = c - b`) THEN
-  MATCH_MP_TAC CARD_UNION_EQ THEN ASM_SIMP_TAC[] THEN ASM SET_TAC[]);;
+  MATCH_MP_TAC CARD_UNION_EQ THEN ASM_SIMP_TAC[] THEN ASM SET_TAC[]));;
 
-let CARD_EQ_0 = prove
+let CARD_EQ_0 = log_lemma "CARD_EQ_0" (fun () -> prove
  (`!s. FINITE s ==> ((CARD s = 0) <=> (s = {}))`,
   MATCH_MP_TAC FINITE_INDUCT_STRONG THEN
-  SIMP_TAC[CARD_CLAUSES; NOT_INSERT_EMPTY; NOT_SUC]);;
+  SIMP_TAC[CARD_CLAUSES; NOT_INSERT_EMPTY; NOT_SUC]));;
 
 (* ------------------------------------------------------------------------- *)
 (* A stronger still form of induction where we get to choose the element.    *)
 (* ------------------------------------------------------------------------- *)
 
-let FINITE_INDUCT_DELETE = prove
+let FINITE_INDUCT_DELETE = log_lemma "FINITE_INDUCT_DELETE" (fun () -> prove
  (`!P. P {} /\
        (!s. FINITE s /\ ~(s = {}) ==> ?x. x IN s /\ (P(s DELETE x) ==> P s))
        ==> !s:A->bool. FINITE s ==> P s`,
@@ -1400,7 +1406,7 @@ let FINITE_INDUCT_DELETE = prove
   DISCH_THEN(X_CHOOSE_THEN `x:A` (CONJUNCTS_THEN2 ASSUME_TAC MATCH_MP_TAC)) THEN
   FIRST_X_ASSUM(MP_TAC o SPEC `s DELETE (x:A)`) THEN
   ASM_SIMP_TAC[FINITE_DELETE; CARD_DELETE; CARD_EQ_0;
-               ARITH_RULE `n - 1 < n <=> ~(n = 0)`]);;
+               ARITH_RULE `n - 1 < n <=> ~(n = 0)`]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Relational form is often more useful.                                     *)
@@ -1409,11 +1415,11 @@ let FINITE_INDUCT_DELETE = prove
 let HAS_SIZE = new_definition
   `s HAS_SIZE n <=> FINITE s /\ (CARD s = n)`;;
 
-let HAS_SIZE_CARD = prove
+let HAS_SIZE_CARD = log_lemma "HAS_SIZE_CARD" (fun () -> prove
  (`!s n. s HAS_SIZE n ==> (CARD s = n)`,
-  SIMP_TAC[HAS_SIZE]);;
+  SIMP_TAC[HAS_SIZE]));;
 
-let HAS_SIZE_0 = prove
+let HAS_SIZE_0 = log_lemma "HAS_SIZE_0" (fun () -> prove
  (`!(s:A->bool) n. s HAS_SIZE 0 <=> (s = {})`,
   REPEAT GEN_TAC THEN REWRITE_TAC[HAS_SIZE] THEN
   EQ_TAC THEN DISCH_TAC THEN
@@ -1425,9 +1431,9 @@ let HAS_SIZE_0 = prove
   REWRITE_TAC[NOT_INSERT_EMPTY] THEN
   REPEAT GEN_TAC THEN STRIP_TAC THEN
   FIRST_ASSUM(fun th -> REWRITE_TAC[MATCH_MP (CONJUNCT2 CARD_CLAUSES) th]) THEN
-  ASM_REWRITE_TAC[NOT_SUC]);;
+  ASM_REWRITE_TAC[NOT_SUC]));;
 
-let HAS_SIZE_SUC = prove
+let HAS_SIZE_SUC = log_lemma "HAS_SIZE_SUC" (fun () -> prove
  (`!(s:A->bool) n. s HAS_SIZE (SUC n) <=>
                    ~(s = {}) /\ !a. a IN s ==> (s DELETE a) HAS_SIZE n`,
   REPEAT GEN_TAC THEN REWRITE_TAC[HAS_SIZE] THEN
@@ -1448,19 +1454,19 @@ let HAS_SIZE_SUC = prove
     ASM_REWRITE_TAC[FINITE_DELETE; IN_DELETE] THEN
     SUBGOAL_THEN `a INSERT (s DELETE a:A) = s` SUBST1_TAC THENL
      [UNDISCH_TAC `a:A IN s` THEN SET_TAC[];
-      ASM_MESON_TAC[]]]);;
+      ASM_MESON_TAC[]]]));;
 
-let HAS_SIZE_UNION = prove
+let HAS_SIZE_UNION = log_lemma "HAS_SIZE_UNION" (fun () -> prove
  (`!s t m n. s HAS_SIZE m /\ t HAS_SIZE n /\ DISJOINT s t
              ==> (s UNION t) HAS_SIZE (m + n)`,
-  SIMP_TAC[HAS_SIZE; FINITE_UNION; DISJOINT; CARD_UNION]);;
+  SIMP_TAC[HAS_SIZE; FINITE_UNION; DISJOINT; CARD_UNION]));;
 
-let HAS_SIZE_DIFF = prove
+let HAS_SIZE_DIFF = log_lemma "HAS_SIZE_DIFF" (fun () -> prove
  (`!s t m n. s HAS_SIZE m /\ t HAS_SIZE n /\ t SUBSET s
              ==> (s DIFF t) HAS_SIZE (m - n)`,
-  SIMP_TAC[HAS_SIZE; FINITE_DIFF; CARD_DIFF]);;
+  SIMP_TAC[HAS_SIZE; FINITE_DIFF; CARD_DIFF]));;
 
-let HAS_SIZE_UNIONS = prove
+let HAS_SIZE_UNIONS = log_lemma "HAS_SIZE_UNIONS" (fun () -> prove
  (`!s t:A->B->bool m n.
         s HAS_SIZE m /\
         (!x. x IN s ==> t(x) HAS_SIZE n) /\
@@ -1486,13 +1492,13 @@ let HAS_SIZE_UNIONS = prove
   REWRITE_TAC[SET_RULE
    `DISJOINT a (UNIONS s) <=> !x. x IN s ==> DISJOINT a x`] THEN
   ASM_SIMP_TAC[IN_ELIM_THM; LEFT_IMP_EXISTS_THM] THEN
-  ASM_MESON_TAC[IN_INSERT]);;
+  ASM_MESON_TAC[IN_INSERT]));;
 
 (* ------------------------------------------------------------------------- *)
 (* This is often more useful as a rewrite.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_CLAUSES = prove
+let HAS_SIZE_CLAUSES = log_lemma "HAS_SIZE_CLAUSES" (fun () -> prove
  (`(s HAS_SIZE 0 <=> (s = {})) /\
    (s HAS_SIZE (SUC n) <=>
         ?a t. t HAS_SIZE n /\ ~(a IN t) /\ (s = a INSERT t))`,
@@ -1500,7 +1506,7 @@ let HAS_SIZE_CLAUSES = prove
   REWRITE_TAC[HAS_SIZE_0] THEN REPEAT STRIP_TAC THEN EQ_TAC THENL
    [REWRITE_TAC[HAS_SIZE_SUC; GSYM MEMBER_NOT_EMPTY] THEN
     MESON_TAC[lemma; IN_DELETE];
-    SIMP_TAC[LEFT_IMP_EXISTS_THM; HAS_SIZE; CARD_CLAUSES; FINITE_INSERT]]);;
+    SIMP_TAC[LEFT_IMP_EXISTS_THM; HAS_SIZE; CARD_CLAUSES; FINITE_INSERT]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Produce an explicit expansion for "s HAS_SIZE n" for numeral n.           *)
@@ -1547,7 +1553,7 @@ let HAS_SIZE_CONV =
 (* Various useful lemmas about cardinalities of unions etc.                  *)
 (* ------------------------------------------------------------------------- *)
 
-let CARD_SUBSET_EQ = prove
+let CARD_SUBSET_EQ = log_lemma "CARD_SUBSET_EQ" (fun () -> prove
  (`!(a:A->bool) b. FINITE b /\ a SUBSET b /\ (CARD a = CARD b) ==> (a = b)`,
   REPEAT STRIP_TAC THEN
   MP_TAC(SPECL [`a:A->bool`; `b DIFF (a:A->bool)`] CARD_UNION) THEN
@@ -1566,9 +1572,9 @@ let CARD_SUBSET_EQ = prove
   SUBGOAL_THEN `b:A->bool DIFF a = EMPTY` MP_TAC THENL
    [REWRITE_TAC[GSYM HAS_SIZE_0] THEN
     ASM_REWRITE_TAC[HAS_SIZE];
-    UNDISCH_TAC `a:A->bool SUBSET b` THEN SET_TAC[]]);;
+    UNDISCH_TAC `a:A->bool SUBSET b` THEN SET_TAC[]]));;
 
-let CARD_SUBSET = prove
+let CARD_SUBSET = log_lemma "CARD_SUBSET" (fun () -> prove
  (`!(a:A->bool) b. a SUBSET b /\ FINITE(b) ==> CARD(a) <= CARD(b)`,
   REPEAT STRIP_TAC THEN
   SUBGOAL_THEN `b:A->bool = a UNION (b DIFF a)` SUBST1_TAC THENL
@@ -1582,17 +1588,17 @@ let CARD_SUBSET = prove
       MATCH_MP_TAC FINITE_SUBSET THEN EXISTS_TAC `b:A->bool` THEN
       ASM_REWRITE_TAC[] THEN SET_TAC[];
       SET_TAC[]];
-    ARITH_TAC]);;
+    ARITH_TAC]));;
 
-let CARD_SUBSET_LE = prove
+let CARD_SUBSET_LE = log_lemma "CARD_SUBSET_LE" (fun () -> prove
  (`!(a:A->bool) b. FINITE b /\ a SUBSET b /\ (CARD b <= CARD a) ==> (a = b)`,
-  MESON_TAC[CARD_SUBSET; CARD_SUBSET_EQ; LE_ANTISYM]);;
+  MESON_TAC[CARD_SUBSET; CARD_SUBSET_EQ; LE_ANTISYM]));;
 
-let SUBSET_CARD_EQ = prove
+let SUBSET_CARD_EQ = log_lemma "SUBSET_CARD_EQ" (fun () -> prove
  (`!s t. FINITE t /\ s SUBSET t ==> (CARD s = CARD t <=> s = t)`,
-  MESON_TAC[CARD_SUBSET_EQ; LE_ANTISYM; CARD_SUBSET]);;
+  MESON_TAC[CARD_SUBSET_EQ; LE_ANTISYM; CARD_SUBSET]));;
 
-let CARD_PSUBSET = prove
+let CARD_PSUBSET = log_lemma "CARD_PSUBSET" (fun () -> prove
  (`!(a:A->bool) b. a PSUBSET b /\ FINITE(b) ==> CARD(a) < CARD(b)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[SET_RULE
    `a PSUBSET b <=> ?x. x IN b /\ ~(x IN a) /\ a SUBSET (b DELETE x)` ] THEN
@@ -1601,9 +1607,9 @@ let CARD_PSUBSET = prove
   MATCH_MP_TAC LET_TRANS THEN EXISTS_TAC `CARD(b DELETE (x:A))` THEN
   ASM_SIMP_TAC[CARD_SUBSET; FINITE_DELETE] THEN
   ASM_SIMP_TAC[CARD_DELETE; ARITH_RULE `n - 1 < n <=> ~(n = 0)`] THEN
-  ASM_MESON_TAC[CARD_EQ_0; MEMBER_NOT_EMPTY]);;
+  ASM_MESON_TAC[CARD_EQ_0; MEMBER_NOT_EMPTY]));;
 
-let CARD_UNION_LE = prove
+let CARD_UNION_LE = log_lemma "CARD_UNION_LE" (fun () -> prove
  (`!s t:A->bool.
         FINITE s /\ FINITE t ==> CARD(s UNION t) <= CARD(s) + CARD(t)`,
   REPEAT STRIP_TAC THEN MATCH_MP_TAC LE_TRANS THEN
@@ -1611,9 +1617,9 @@ let CARD_UNION_LE = prove
   ASM_SIMP_TAC[LE_ADD_LCANCEL; CARD_SUBSET; SUBSET_DIFF; FINITE_DIFF] THEN
   MATCH_MP_TAC EQ_IMP_LE THEN
   ONCE_REWRITE_TAC[SET_RULE `s UNION t = s UNION (t DIFF s)`] THEN
-  MATCH_MP_TAC CARD_UNION THEN ASM_SIMP_TAC[FINITE_DIFF] THEN SET_TAC[]);;
+  MATCH_MP_TAC CARD_UNION THEN ASM_SIMP_TAC[FINITE_DIFF] THEN SET_TAC[]));;
 
-let CARD_UNIONS_LE = prove
+let CARD_UNIONS_LE = log_lemma "CARD_UNIONS_LE" (fun () -> prove
  (`!s t:A->B->bool m n.
         s HAS_SIZE m /\ (!x. x IN s ==> FINITE(t x) /\ CARD(t x) <= n)
         ==> CARD(UNIONS {t(x) | x IN s}) <= m * n`,
@@ -1634,9 +1640,9 @@ let CARD_UNIONS_LE = prove
     REWRITE_TAC[SET_RULE `{t x | x IN s} = IMAGE t s`] THEN
     ASM_SIMP_TAC[FINITE_UNIONS; FINITE_IMAGE; FORALL_IN_IMAGE; IN_INSERT];
     MATCH_MP_TAC(ARITH_RULE `a <= n /\ b <= x * n ==> a + b <= SUC x * n`) THEN
-    ASM_SIMP_TAC[IN_INSERT]]);;
+    ASM_SIMP_TAC[IN_INSERT]]));;
 
-let CARD_UNION_GEN = prove
+let CARD_UNION_GEN = log_lemma "CARD_UNION_GEN" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t
          ==> CARD(s UNION t) = (CARD(s) + CARD(t)) - CARD(s INTER t)`,
   REPEAT STRIP_TAC THEN
@@ -1644,26 +1650,26 @@ let CARD_UNION_GEN = prove
   ASM_SIMP_TAC[ARITH_RULE `x:num <= y ==> (a + y) - x = a + (y - x)`;
                CARD_SUBSET; INTER_SUBSET; GSYM CARD_DIFF] THEN
   REWRITE_TAC[SET_RULE `t DIFF (s INTER t) = t DIFF s`] THEN
-  MATCH_MP_TAC CARD_UNION THEN ASM_SIMP_TAC[FINITE_DIFF] THEN SET_TAC[]);;
+  MATCH_MP_TAC CARD_UNION THEN ASM_SIMP_TAC[FINITE_DIFF] THEN SET_TAC[]));;
 
-let CARD_UNION_OVERLAP_EQ = prove
+let CARD_UNION_OVERLAP_EQ = log_lemma "CARD_UNION_OVERLAP_EQ" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t
          ==> (CARD(s UNION t) = CARD s + CARD t <=> s INTER t = {})`,
   REPEAT GEN_TAC THEN STRIP_TAC THEN
   ASM_SIMP_TAC[CARD_UNION_GEN] THEN
   REWRITE_TAC[ARITH_RULE `a - b = a <=> b = 0 \/ a = 0`] THEN
-  ASM_SIMP_TAC[ADD_EQ_0; CARD_EQ_0; FINITE_INTER] THEN SET_TAC[]);;
+  ASM_SIMP_TAC[ADD_EQ_0; CARD_EQ_0; FINITE_INTER] THEN SET_TAC[]));;
 
-let CARD_UNION_OVERLAP = prove
+let CARD_UNION_OVERLAP = log_lemma "CARD_UNION_OVERLAP" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t /\ CARD(s UNION t) < CARD(s) + CARD(t)
          ==> ~(s INTER t = {})`,
-  SIMP_TAC[GSYM CARD_UNION_OVERLAP_EQ] THEN ARITH_TAC);;
+  SIMP_TAC[GSYM CARD_UNION_OVERLAP_EQ] THEN ARITH_TAC));;
 
 (* ------------------------------------------------------------------------- *)
 (* Cardinality of image under injective map.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-let CARD_IMAGE_INJ = prove
+let CARD_IMAGE_INJ = log_lemma "CARD_IMAGE_INJ" (fun () -> prove
  (`!(f:A->B) s. (!x y. x IN s /\ y IN s /\ (f(x) = f(y)) ==> (x = y)) /\
                 FINITE s ==> (CARD (IMAGE f s) = CARD s)`,
   GEN_TAC THEN
@@ -1672,22 +1678,22 @@ let CARD_IMAGE_INJ = prove
   REWRITE_TAC[NOT_IN_EMPTY; IMAGE_CLAUSES] THEN
   REPEAT STRIP_TAC THEN
   ASM_SIMP_TAC[CARD_CLAUSES; FINITE_IMAGE; IN_IMAGE] THEN
-  COND_CASES_TAC THEN ASM_MESON_TAC[IN_INSERT]);;
+  COND_CASES_TAC THEN ASM_MESON_TAC[IN_INSERT]));;
 
-let HAS_SIZE_IMAGE_INJ = prove
+let HAS_SIZE_IMAGE_INJ = log_lemma "HAS_SIZE_IMAGE_INJ" (fun () -> prove
  (`!(f:A->B) s n.
         (!x y. x IN s /\ y IN s /\ (f(x) = f(y)) ==> (x = y)) /\ s HAS_SIZE n
         ==> (IMAGE f s) HAS_SIZE n`,
-  SIMP_TAC[HAS_SIZE; FINITE_IMAGE] THEN MESON_TAC[CARD_IMAGE_INJ]);;
+  SIMP_TAC[HAS_SIZE; FINITE_IMAGE] THEN MESON_TAC[CARD_IMAGE_INJ]));;
 
-let CARD_IMAGE_LE = prove
+let CARD_IMAGE_LE = log_lemma "CARD_IMAGE_LE" (fun () -> prove
  (`!(f:A->B) s. FINITE s ==> (CARD (IMAGE f s) <= CARD s)`,
   GEN_TAC THEN MATCH_MP_TAC FINITE_INDUCT_STRONG THEN
   SIMP_TAC[IMAGE_CLAUSES; CARD_CLAUSES; FINITE_IMAGE; LE_REFL] THEN
   REPEAT GEN_TAC THEN COND_CASES_TAC THEN
-  DISCH_THEN(MP_TAC o CONJUNCT1) THEN ARITH_TAC);;
+  DISCH_THEN(MP_TAC o CONJUNCT1) THEN ARITH_TAC));;
 
-let CARD_IMAGE_INJ_EQ = prove
+let CARD_IMAGE_INJ_EQ = log_lemma "CARD_IMAGE_INJ_EQ" (fun () -> prove
  (`!f:A->B s t.
         FINITE s /\
         (!x. x IN s ==> f(x) IN t) /\
@@ -1696,26 +1702,26 @@ let CARD_IMAGE_INJ_EQ = prove
   REPEAT STRIP_TAC THEN
   SUBGOAL_THEN `t = IMAGE (f:A->B) s` SUBST1_TAC THENL
    [REWRITE_TAC[EXTENSION; IN_IMAGE] THEN ASM_MESON_TAC[];
-    MATCH_MP_TAC CARD_IMAGE_INJ THEN ASM_MESON_TAC[]]);;
+    MATCH_MP_TAC CARD_IMAGE_INJ THEN ASM_MESON_TAC[]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Choosing a smaller subset of a given size.                                *)
 (* ------------------------------------------------------------------------- *)
 
-let CHOOSE_SUBSET = prove
+let CHOOSE_SUBSET = log_lemma "CHOOSE_SUBSET" (fun () -> prove
  (`!s:A->bool. FINITE s ==> !n. n <= CARD s ==> ?t. t SUBSET s /\ t HAS_SIZE n`,
   MATCH_MP_TAC FINITE_INDUCT_STRONG THEN
   SIMP_TAC[CARD_CLAUSES; SUBSET_EMPTY; FINITE_RULES; LE; HAS_SIZE_0] THEN
   REWRITE_TAC[EXISTS_REFL] THEN REPEAT STRIP_TAC THENL
    [EXISTS_TAC `(x:A) INSERT s` THEN
     ASM_SIMP_TAC[SUBSET_REFL; FINITE_RULES; HAS_SIZE; CARD_CLAUSES];
-    FIRST_X_ASSUM(MP_TAC o SPEC `n:num`) THEN ASM SET_TAC[]]);;
+    FIRST_X_ASSUM(MP_TAC o SPEC `n:num`) THEN ASM SET_TAC[]]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Cardinality of product.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_PRODUCT_DEPENDENT = prove
+let HAS_SIZE_PRODUCT_DEPENDENT = log_lemma "HAS_SIZE_PRODUCT_DEPENDENT" (fun () -> prove
  (`!s m t n.
          s HAS_SIZE m /\ (!x. x IN s ==> t(x) HAS_SIZE n)
          ==> {(x:A,y:B) | x IN s /\ y IN t(x)} HAS_SIZE (m * n)`,
@@ -1741,9 +1747,9 @@ let HAS_SIZE_PRODUCT_DEPENDENT = prove
   ASM_SIMP_TAC[HAS_SIZE_IMAGE_INJ; PAIR_EQ] THEN
   REWRITE_TAC[DISJOINT; IN_IMAGE; IN_ELIM_THM; IN_INTER; EXTENSION;
               NOT_IN_EMPTY; EXISTS_PAIR_THM; PAIR_EQ] THEN
-  REPEAT STRIP_TAC THEN ASM_MESON_TAC[PAIR_EQ]);;
+  REPEAT STRIP_TAC THEN ASM_MESON_TAC[PAIR_EQ]));;
 
-let FINITE_PRODUCT_DEPENDENT = prove
+let FINITE_PRODUCT_DEPENDENT = log_lemma "FINITE_PRODUCT_DEPENDENT" (fun () -> prove
  (`!s t. FINITE s /\ (!x. x IN s ==> FINITE(t x))
          ==> FINITE {(x:A,y:B) | x IN s /\ y IN (t x)}`,
   REWRITE_TAC[IMP_CONJ] THEN REWRITE_TAC[RIGHT_FORALL_IMP_THM] THEN
@@ -1759,24 +1765,24 @@ let FINITE_PRODUCT_DEPENDENT = prove
     IMAGE (\y. a,y) (t a) UNION {(x,y) | x IN s /\ y IN (t x)}`
    (fun th -> ASM_SIMP_TAC[IN_INSERT; FINITE_IMAGE; FINITE_UNION; th]) THEN
   REWRITE_TAC[EXTENSION; IN_IMAGE; IN_ELIM_THM; IN_INSERT; IN_UNION] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
-let FINITE_PRODUCT = prove
+let FINITE_PRODUCT = log_lemma "FINITE_PRODUCT" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t ==> FINITE {(x:A,y:B) | x IN s /\ y IN t}`,
-  SIMP_TAC[FINITE_PRODUCT_DEPENDENT]);;
+  SIMP_TAC[FINITE_PRODUCT_DEPENDENT]));;
 
-let CARD_PRODUCT = prove
+let CARD_PRODUCT = log_lemma "CARD_PRODUCT" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t
          ==> (CARD {(x:A,y:B) | x IN s /\ y IN t} = CARD s * CARD t)`,
   REPEAT STRIP_TAC THEN
   MP_TAC(SPECL [`s:A->bool`; `CARD(s:A->bool)`; `\x:A. t:B->bool`;
                   `CARD(t:B->bool)`] HAS_SIZE_PRODUCT_DEPENDENT) THEN
-  ASM_SIMP_TAC[HAS_SIZE]);;
+  ASM_SIMP_TAC[HAS_SIZE]));;
 
-let HAS_SIZE_PRODUCT = prove
+let HAS_SIZE_PRODUCT = log_lemma "HAS_SIZE_PRODUCT" (fun () -> prove
  (`!s m t n. s HAS_SIZE m /\ t HAS_SIZE n
              ==> {(x:A,y:B) | x IN s /\ y IN t} HAS_SIZE (m * n)`,
-  SIMP_TAC[HAS_SIZE; CARD_PRODUCT; FINITE_PRODUCT]);;
+  SIMP_TAC[HAS_SIZE; CARD_PRODUCT; FINITE_PRODUCT]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Actually introduce a Cartesian product operation.                         *)
@@ -1787,32 +1793,32 @@ parse_as_infix("CROSS",(22,"right"));;
 let CROSS = new_definition
  `s CROSS t = {x,y | x IN s /\ y IN t}`;;
 
-let IN_CROSS = prove
+let IN_CROSS = log_lemma "IN_CROSS" (fun () -> prove
  (`!x y s t. (x,y) IN (s CROSS t) <=> x IN s /\ y IN t`,
-  REWRITE_TAC[CROSS; IN_ELIM_PAIR_THM]);;
+  REWRITE_TAC[CROSS; IN_ELIM_PAIR_THM]));;
 
-let HAS_SIZE_CROSS = prove
+let HAS_SIZE_CROSS = log_lemma "HAS_SIZE_CROSS" (fun () -> prove
  (`!s t m n. s HAS_SIZE m /\ t HAS_SIZE n ==> (s CROSS t) HAS_SIZE (m * n)`,
-  REWRITE_TAC[CROSS; HAS_SIZE_PRODUCT]);;
+  REWRITE_TAC[CROSS; HAS_SIZE_PRODUCT]));;
 
-let FINITE_CROSS = prove
+let FINITE_CROSS = log_lemma "FINITE_CROSS" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t ==> FINITE(s CROSS t)`,
-  SIMP_TAC[CROSS; FINITE_PRODUCT]);;
+  SIMP_TAC[CROSS; FINITE_PRODUCT]));;
 
-let CARD_CROSS = prove
+let CARD_CROSS = log_lemma "CARD_CROSS" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t ==> CARD(s CROSS t) = CARD s * CARD t`,
-  SIMP_TAC[CROSS; CARD_PRODUCT]);;
+  SIMP_TAC[CROSS; CARD_PRODUCT]));;
 
-let CROSS_EQ_EMPTY = prove
+let CROSS_EQ_EMPTY = log_lemma "CROSS_EQ_EMPTY" (fun () -> prove
  (`!s t. s CROSS t = {} <=> s = {} \/ t = {}`,
   REWRITE_TAC[EXTENSION; FORALL_PAIR_THM; IN_CROSS; NOT_IN_EMPTY] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Cardinality of functions with bounded domain (support) and range.         *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_FUNSPACE = prove
+let HAS_SIZE_FUNSPACE = log_lemma "HAS_SIZE_FUNSPACE" (fun () -> prove
  (`!d n t:B->bool m s:A->bool.
         s HAS_SIZE m /\ t HAS_SIZE n
         ==> {f | (!x. x IN s ==> f(x) IN t) /\ (!x. ~(x IN s) ==> (f x = d))}
@@ -1854,26 +1860,26 @@ let HAS_SIZE_FUNSPACE = prove
   STRIP_TAC THEN CONJ_TAC THENL
    [FIRST_X_ASSUM(MP_TAC o SPEC `a:A`) THEN REWRITE_TAC[];
     X_GEN_TAC `x:A` THEN FIRST_X_ASSUM(MP_TAC o SPEC `x:A`) THEN
-    ASM_MESON_TAC[]]);;
+    ASM_MESON_TAC[]]));;
 
-let CARD_FUNSPACE = prove
+let CARD_FUNSPACE = log_lemma "CARD_FUNSPACE" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t
          ==> (CARD {f | (!x. x IN s ==> f(x) IN t) /\
                         (!x. ~(x IN s) ==> (f x = d))} =
               (CARD t) EXP (CARD s))`,
-  MESON_TAC[HAS_SIZE_FUNSPACE; HAS_SIZE]);;
+  MESON_TAC[HAS_SIZE_FUNSPACE; HAS_SIZE]));;
 
-let FINITE_FUNSPACE = prove
+let FINITE_FUNSPACE = log_lemma "FINITE_FUNSPACE" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t
          ==> FINITE {f | (!x. x IN s ==> f(x) IN t) /\
                          (!x. ~(x IN s) ==> (f x = d))}`,
-  MESON_TAC[HAS_SIZE_FUNSPACE; HAS_SIZE]);;
+  MESON_TAC[HAS_SIZE_FUNSPACE; HAS_SIZE]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Hence cardinality of powerset.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_POWERSET = prove
+let HAS_SIZE_POWERSET = log_lemma "HAS_SIZE_POWERSET" (fun () -> prove
  (`!(s:A->bool) n. s HAS_SIZE n ==> {t | t SUBSET s} HAS_SIZE (2 EXP n)`,
   REPEAT STRIP_TAC THEN SUBGOAL_THEN
    `{t | t SUBSET s} =
@@ -1883,21 +1889,21 @@ let HAS_SIZE_POWERSET = prove
     MATCH_MP_TAC HAS_SIZE_FUNSPACE THEN ASM_REWRITE_TAC[] THEN
     CONV_TAC HAS_SIZE_CONV THEN MAP_EVERY EXISTS_TAC [`T`; `F`] THEN
     REWRITE_TAC[EXTENSION; IN_UNIV; IN_INSERT; NOT_IN_EMPTY] THEN
-    CONV_TAC TAUT]);;
+    CONV_TAC TAUT]));;
 
-let CARD_POWERSET = prove
+let CARD_POWERSET = log_lemma "CARD_POWERSET" (fun () -> prove
  (`!s:A->bool. FINITE s ==> (CARD {t | t SUBSET s} = 2 EXP (CARD s))`,
-  MESON_TAC[HAS_SIZE_POWERSET; HAS_SIZE]);;
+  MESON_TAC[HAS_SIZE_POWERSET; HAS_SIZE]));;
 
-let FINITE_POWERSET = prove
+let FINITE_POWERSET = log_lemma "FINITE_POWERSET" (fun () -> prove
  (`!s:A->bool. FINITE s ==> FINITE {t | t SUBSET s}`,
-  MESON_TAC[HAS_SIZE_POWERSET; HAS_SIZE]);;
+  MESON_TAC[HAS_SIZE_POWERSET; HAS_SIZE]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Set of numbers is infinite.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_NUMSEG_LT = prove
+let HAS_SIZE_NUMSEG_LT = log_lemma "HAS_SIZE_NUMSEG_LT" (fun () -> prove
  (`!n. {m | m < n} HAS_SIZE n`,
   INDUCT_TAC THENL
    [SUBGOAL_THEN `{m | m < 0} = {}`
@@ -1908,29 +1914,29 @@ let HAS_SIZE_NUMSEG_LT = prove
       ALL_TAC] THEN
     RULE_ASSUM_TAC(REWRITE_RULE[HAS_SIZE]) THEN
     ASM_SIMP_TAC[HAS_SIZE; CARD_CLAUSES; FINITE_INSERT] THEN
-    REWRITE_TAC[IN_ELIM_THM; LT_REFL]]);;
+    REWRITE_TAC[IN_ELIM_THM; LT_REFL]]));;
 
-let CARD_NUMSEG_LT = prove
+let CARD_NUMSEG_LT = log_lemma "CARD_NUMSEG_LT" (fun () -> prove
  (`!n. CARD {m | m < n} = n`,
-  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LT]);;
+  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LT]));;
 
-let FINITE_NUMSEG_LT = prove
+let FINITE_NUMSEG_LT = log_lemma "FINITE_NUMSEG_LT" (fun () -> prove
  (`!n:num. FINITE {m | m < n}`,
-  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LT]);;
+  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LT]));;
 
-let HAS_SIZE_NUMSEG_LE = prove
+let HAS_SIZE_NUMSEG_LE = log_lemma "HAS_SIZE_NUMSEG_LE" (fun () -> prove
  (`!n. {m | m <= n} HAS_SIZE (n + 1)`,
-  REWRITE_TAC[GSYM LT_SUC_LE; HAS_SIZE_NUMSEG_LT; ADD1]);;
+  REWRITE_TAC[GSYM LT_SUC_LE; HAS_SIZE_NUMSEG_LT; ADD1]));;
 
-let FINITE_NUMSEG_LE = prove
+let FINITE_NUMSEG_LE = log_lemma "FINITE_NUMSEG_LE" (fun () -> prove
  (`!n. FINITE {m | m <= n}`,
-  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LE]);;
+  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LE]));;
 
-let CARD_NUMSEG_LE = prove
+let CARD_NUMSEG_LE = log_lemma "CARD_NUMSEG_LE" (fun () -> prove
  (`!n. CARD {m | m <= n} = n + 1`,
-  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LE]);;
+  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] HAS_SIZE_NUMSEG_LE]));;
 
-let num_FINITE = prove
+let num_FINITE = log_lemma "num_FINITE" (fun () -> prove
  (`!s:num->bool. FINITE s <=> ?a. !x. x IN s ==> x <= a`,
   GEN_TAC THEN EQ_TAC THENL
    [SPEC_TAC(`s:num->bool`,`s:num->bool`) THEN
@@ -1938,32 +1944,32 @@ let num_FINITE = prove
     REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY] THEN MESON_TAC[LE_CASES; LE_TRANS];
     DISCH_THEN(X_CHOOSE_TAC `n:num`) THEN MATCH_MP_TAC FINITE_SUBSET THEN
     EXISTS_TAC `{m:num | m <= n}` THEN REWRITE_TAC[FINITE_NUMSEG_LE] THEN
-    ASM_SIMP_TAC[SUBSET; IN_ELIM_THM]]);;
+    ASM_SIMP_TAC[SUBSET; IN_ELIM_THM]]));;
 
-let num_FINITE_AVOID = prove
+let num_FINITE_AVOID = log_lemma "num_FINITE_AVOID" (fun () -> prove
  (`!s:num->bool. FINITE(s) ==> ?a. ~(a IN s)`,
-  MESON_TAC[num_FINITE; LT; NOT_LT]);;
+  MESON_TAC[num_FINITE; LT; NOT_LT]));;
 
-let num_INFINITE = prove
+let num_INFINITE = log_lemma "num_INFINITE" (fun () -> prove
  (`INFINITE(:num)`,
-  REWRITE_TAC[INFINITE] THEN MESON_TAC[num_FINITE_AVOID; IN_UNIV]);;
+  REWRITE_TAC[INFINITE] THEN MESON_TAC[num_FINITE_AVOID; IN_UNIV]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Set of strings is infinite.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-let string_INFINITE = prove
+let string_INFINITE = log_lemma "string_INFINITE" (fun () -> prove
  (`INFINITE(:string)`,
   MP_TAC num_INFINITE THEN REWRITE_TAC[INFINITE; CONTRAPOS_THM] THEN
   DISCH_THEN(MP_TAC o ISPEC `LENGTH:string->num` o MATCH_MP FINITE_IMAGE) THEN
   MATCH_MP_TAC EQ_IMP THEN AP_TERM_TAC THEN
-  REWRITE_TAC[EXTENSION; IN_UNIV; IN_IMAGE] THEN MESON_TAC[LENGTH_REPLICATE]);;
+  REWRITE_TAC[EXTENSION; IN_UNIV; IN_IMAGE] THEN MESON_TAC[LENGTH_REPLICATE]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Indexing of finite sets.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_INDEX = prove
+let HAS_SIZE_INDEX = log_lemma "HAS_SIZE_INDEX" (fun () -> prove
  (`!s n. s HAS_SIZE n
          ==> ?f:num->A. (!m. m < n ==> f(m) IN s) /\
                         (!x. x IN s ==> ?!m. m < n /\ (f m = x))`,
@@ -1983,7 +1989,7 @@ let HAS_SIZE_INDEX = prove
   ASM_REWRITE_TAC[IN_DELETE] THEN
   CONV_TAC(ONCE_DEPTH_CONV COND_ELIM_CONV) THEN
   ASM_CASES_TAC `a:A = x` THEN ASM_SIMP_TAC[] THEN
-  ASM_MESON_TAC[LT_REFL; IN_DELETE]);;
+  ASM_MESON_TAC[LT_REFL; IN_DELETE]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping between finite sets and lists.                                    *)
@@ -1996,7 +2002,7 @@ let set_of_list = new_recursive_definition list_RECURSION
 let list_of_set = new_definition
   `list_of_set s = @l. (set_of_list l = s) /\ (LENGTH l = CARD s)`;;
 
-let LIST_OF_SET_PROPERTIES = prove
+let LIST_OF_SET_PROPERTIES = log_lemma "LIST_OF_SET_PROPERTIES" (fun () -> prove
  (`!s:A->bool. FINITE(s)
                ==> (set_of_list(list_of_set s) = s) /\
                    (LENGTH(list_of_set s) = CARD s)`,
@@ -2008,43 +2014,43 @@ let LIST_OF_SET_PROPERTIES = prove
     ASM_REWRITE_TAC[set_of_list] THEN
     FIRST_ASSUM(fun th -> REWRITE_TAC
      [MATCH_MP (CONJUNCT2 CARD_CLAUSES) th]) THEN
-    ASM_REWRITE_TAC[]]);;
+    ASM_REWRITE_TAC[]]));;
 
-let SET_OF_LIST_OF_SET = prove
+let SET_OF_LIST_OF_SET = log_lemma "SET_OF_LIST_OF_SET" (fun () -> prove
  (`!s. FINITE(s) ==> (set_of_list(list_of_set s) = s)`,
-  MESON_TAC[LIST_OF_SET_PROPERTIES]);;
+  MESON_TAC[LIST_OF_SET_PROPERTIES]));;
 
-let LENGTH_LIST_OF_SET = prove
+let LENGTH_LIST_OF_SET = log_lemma "LENGTH_LIST_OF_SET" (fun () -> prove
  (`!s. FINITE(s) ==> (LENGTH(list_of_set s) = CARD s)`,
-  MESON_TAC[LIST_OF_SET_PROPERTIES]);;
+  MESON_TAC[LIST_OF_SET_PROPERTIES]));;
 
-let MEM_LIST_OF_SET = prove
+let MEM_LIST_OF_SET = log_lemma "MEM_LIST_OF_SET" (fun () -> prove
  (`!s:A->bool. FINITE(s) ==> !x. MEM x (list_of_set s) <=> x IN s`,
   GEN_TAC THEN DISCH_THEN(MP_TAC o MATCH_MP SET_OF_LIST_OF_SET) THEN
   DISCH_THEN(fun th -> GEN_REWRITE_TAC (BINDER_CONV o funpow 2 RAND_CONV)
     [GSYM th]) THEN
   SPEC_TAC(`list_of_set(s:A->bool)`,`l:A list`) THEN
   LIST_INDUCT_TAC THEN REWRITE_TAC[MEM; set_of_list; NOT_IN_EMPTY] THEN
-  ASM_REWRITE_TAC[IN_INSERT]);;
+  ASM_REWRITE_TAC[IN_INSERT]));;
 
-let FINITE_SET_OF_LIST = prove
+let FINITE_SET_OF_LIST = log_lemma "FINITE_SET_OF_LIST" (fun () -> prove
  (`!l. FINITE(set_of_list l)`,
-  LIST_INDUCT_TAC THEN ASM_SIMP_TAC[set_of_list; FINITE_RULES]);;
+  LIST_INDUCT_TAC THEN ASM_SIMP_TAC[set_of_list; FINITE_RULES]));;
 
-let IN_SET_OF_LIST = prove
+let IN_SET_OF_LIST = log_lemma "IN_SET_OF_LIST" (fun () -> prove
  (`!x l. x IN (set_of_list l) <=> MEM x l`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN
   REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY; MEM; set_of_list] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let SET_OF_LIST_APPEND = prove
+let SET_OF_LIST_APPEND = log_lemma "SET_OF_LIST_APPEND" (fun () -> prove
  (`!l1 l2. set_of_list(APPEND l1 l2) = set_of_list(l1) UNION set_of_list(l2)`,
-  REWRITE_TAC[EXTENSION; IN_SET_OF_LIST; IN_UNION; MEM_APPEND]);;
+  REWRITE_TAC[EXTENSION; IN_SET_OF_LIST; IN_UNION; MEM_APPEND]));;
 
-let SET_OF_LIST_MAP = prove
+let SET_OF_LIST_MAP = log_lemma "SET_OF_LIST_MAP" (fun () -> prove
  (`!f l. set_of_list(MAP f l) = IMAGE f (set_of_list l)`,
   GEN_TAC THEN LIST_INDUCT_TAC THEN
-  ASM_REWRITE_TAC[set_of_list; MAP; IMAGE_CLAUSES]);;
+  ASM_REWRITE_TAC[set_of_list; MAP; IMAGE_CLAUSES]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Mappings from finite set enumerations to lists (no "setification").       *)
@@ -2079,37 +2085,37 @@ let PAIRWISE = new_recursive_definition list_RECURSION
   `(PAIRWISE (r:A->A->bool) [] <=> T) /\
    (PAIRWISE (r:A->A->bool) (CONS h t) <=> ALL (r h) t /\ PAIRWISE r t)`;;
 
-let PAIRWISE_EMPTY = prove
+let PAIRWISE_EMPTY = log_lemma "PAIRWISE_EMPTY" (fun () -> prove
  (`!r. pairwise r {} <=> T`,
-  REWRITE_TAC[pairwise; NOT_IN_EMPTY] THEN MESON_TAC[]);;
+  REWRITE_TAC[pairwise; NOT_IN_EMPTY] THEN MESON_TAC[]));;
 
-let PAIRWISE_SING = prove
+let PAIRWISE_SING = log_lemma "PAIRWISE_SING" (fun () -> prove
  (`!r x. pairwise r {x} <=> T`,
-  REWRITE_TAC[pairwise; IN_SING] THEN MESON_TAC[]);;
+  REWRITE_TAC[pairwise; IN_SING] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Some additional properties of "set_of_list".                              *)
 (* ------------------------------------------------------------------------- *)
 
-let CARD_SET_OF_LIST_LE = prove
+let CARD_SET_OF_LIST_LE = log_lemma "CARD_SET_OF_LIST_LE" (fun () -> prove
  (`!l. CARD(set_of_list l) <= LENGTH l`,
   LIST_INDUCT_TAC THEN
   SIMP_TAC[LENGTH; set_of_list; CARD_CLAUSES; FINITE_SET_OF_LIST] THEN
-  ASM_ARITH_TAC);;
+  ASM_ARITH_TAC));;
 
-let HAS_SIZE_SET_OF_LIST = prove
+let HAS_SIZE_SET_OF_LIST = log_lemma "HAS_SIZE_SET_OF_LIST" (fun () -> prove
  (`!l. (set_of_list l) HAS_SIZE (LENGTH l) <=> PAIRWISE (\x y. ~(x = y)) l`,
   REWRITE_TAC[HAS_SIZE; FINITE_SET_OF_LIST] THEN LIST_INDUCT_TAC THEN
   ASM_SIMP_TAC[CARD_CLAUSES; LENGTH; set_of_list; PAIRWISE; ALL;
                FINITE_SET_OF_LIST; GSYM ALL_MEM; IN_SET_OF_LIST] THEN
   COND_CASES_TAC THEN ASM_REWRITE_TAC[SUC_INJ] THEN
-  ASM_MESON_TAC[CARD_SET_OF_LIST_LE; ARITH_RULE `~(SUC n <= n)`]);;
+  ASM_MESON_TAC[CARD_SET_OF_LIST_LE; ARITH_RULE `~(SUC n <= n)`]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Classic result on function of finite set into itself.                     *)
 (* ------------------------------------------------------------------------- *)
 
-let SURJECTIVE_IFF_INJECTIVE_GEN = prove
+let SURJECTIVE_IFF_INJECTIVE_GEN = log_lemma "SURJECTIVE_IFF_INJECTIVE_GEN" (fun () -> prove
  (`!s t f:A->B.
         FINITE s /\ FINITE t /\ (CARD s = CARD t) /\ (IMAGE f s) SUBSET t
         ==> ((!y. y IN t ==> ?x. x IN s /\ (f x = y)) <=>
@@ -2127,16 +2133,16 @@ let SURJECTIVE_IFF_INJECTIVE_GEN = prove
       ASM_MESON_TAC[CARD_EQ_0; MEMBER_NOT_EMPTY]];
     SUBGOAL_THEN `IMAGE (f:A->B) s = t` MP_TAC THENL
      [ALL_TAC; ASM_MESON_TAC[EXTENSION; IN_IMAGE]] THEN
-    ASM_MESON_TAC[CARD_SUBSET_EQ; CARD_IMAGE_INJ]]);;
+    ASM_MESON_TAC[CARD_SUBSET_EQ; CARD_IMAGE_INJ]]));;
 
-let SURJECTIVE_IFF_INJECTIVE = prove
+let SURJECTIVE_IFF_INJECTIVE = log_lemma "SURJECTIVE_IFF_INJECTIVE" (fun () -> prove
  (`!s f:A->A.
         FINITE s /\ (IMAGE f s) SUBSET s
         ==> ((!y. y IN s ==> ?x. x IN s /\ (f x = y)) <=>
              (!x y. x IN s /\ y IN s /\ (f x = f y) ==> (x = y)))`,
-  SIMP_TAC[SURJECTIVE_IFF_INJECTIVE_GEN]);;
+  SIMP_TAC[SURJECTIVE_IFF_INJECTIVE_GEN]));;
 
-let IMAGE_IMP_INJECTIVE_GEN = prove
+let IMAGE_IMP_INJECTIVE_GEN = log_lemma "IMAGE_IMP_INJECTIVE_GEN" (fun () -> prove
  (`!s t f:A->B.
         FINITE s /\ (CARD s = CARD t) /\ (IMAGE f s = t)
         ==> !x y. x IN s /\ y IN s /\ (f x = f y) ==> (x = y)`,
@@ -2144,18 +2150,18 @@ let IMAGE_IMP_INJECTIVE_GEN = prove
   MP_TAC(ISPECL [`s:A->bool`; `t:B->bool`; `f:A->B`]
                 SURJECTIVE_IFF_INJECTIVE_GEN) THEN
   ASM_SIMP_TAC[SUBSET_REFL; FINITE_IMAGE] THEN
-  ASM_MESON_TAC[EXTENSION; IN_IMAGE]);;
+  ASM_MESON_TAC[EXTENSION; IN_IMAGE]));;
 
-let IMAGE_IMP_INJECTIVE = prove
+let IMAGE_IMP_INJECTIVE = log_lemma "IMAGE_IMP_INJECTIVE" (fun () -> prove
  (`!s f. FINITE s /\ (IMAGE f s = s)
        ==> !x y. x IN s /\ y IN s /\ (f x = f y) ==> (x = y)`,
-  MESON_TAC[IMAGE_IMP_INJECTIVE_GEN]);;
+  MESON_TAC[IMAGE_IMP_INJECTIVE_GEN]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Converse relation between cardinality and injection.                      *)
 (* ------------------------------------------------------------------------- *)
 
-let CARD_LE_INJ = prove
+let CARD_LE_INJ = log_lemma "CARD_LE_INJ" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t /\ CARD s <= CARD t
    ==> ?f:A->B. (IMAGE f s) SUBSET t /\
                 !x y. x IN s /\ y IN s /\ (f x = f y) ==> (x = y)`,
@@ -2174,40 +2180,40 @@ let CARD_LE_INJ = prove
   DISCH_THEN(X_CHOOSE_THEN `f:A->B` STRIP_ASSUME_TAC) THEN
   EXISTS_TAC `\z:A. if z = x then (y:B) else f(z)` THEN
   REWRITE_TAC[IN_INSERT; SUBSET; IN_IMAGE] THEN
-  ASM_MESON_TAC[SUBSET; IN_IMAGE]);;
+  ASM_MESON_TAC[SUBSET; IN_IMAGE]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Occasionally handy rewrites.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-let FORALL_IN_CLAUSES = prove
+let FORALL_IN_CLAUSES = log_lemma "FORALL_IN_CLAUSES" (fun () -> prove
  (`(!P. (!x. x IN {} ==> P x) <=> T) /\
    (!P a s. (!x. x IN (a INSERT s) ==> P x) <=> P a /\ (!x. x IN s ==> P x))`,
-  REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY] THEN MESON_TAC[]));;
 
-let EXISTS_IN_CLAUSES = prove
+let EXISTS_IN_CLAUSES = log_lemma "EXISTS_IN_CLAUSES" (fun () -> prove
  (`(!P. (?x. x IN {} /\ P x) <=> F) /\
    (!P a s. (?x. x IN (a INSERT s) /\ P x) <=> P a \/ (?x. x IN s /\ P x))`,
-  REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY] THEN MESON_TAC[]);;
+  REWRITE_TAC[IN_INSERT; NOT_IN_EMPTY] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Useful general properties of functions.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-let SURJECTIVE_ON_RIGHT_INVERSE = prove
+let SURJECTIVE_ON_RIGHT_INVERSE = log_lemma "SURJECTIVE_ON_RIGHT_INVERSE" (fun () -> prove
  (`!f t. (!y. y IN t ==> ?x. x IN s /\ (f(x) = y)) <=>
          (?g. !y. y IN t ==> g(y) IN s /\ (f(g(y)) = y))`,
-  REWRITE_TAC[RIGHT_IMP_EXISTS_THM; SKOLEM_THM]);;
+  REWRITE_TAC[RIGHT_IMP_EXISTS_THM; SKOLEM_THM]));;
 
-let INJECTIVE_ON_LEFT_INVERSE = prove
+let INJECTIVE_ON_LEFT_INVERSE = log_lemma "INJECTIVE_ON_LEFT_INVERSE" (fun () -> prove
  (`!f s. (!x y. x IN s /\ y IN s /\ (f x = f y) ==> (x = y)) <=>
          (?g. !x. x IN s ==> (g(f(x)) = x))`,
   let lemma = MESON[]
    `(!x. x IN s ==> (g(f(x)) = x)) <=>
     (!y x. x IN s /\ (y = f x) ==> (g y = x))` in
-  REWRITE_TAC[lemma; GSYM SKOLEM_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[lemma; GSYM SKOLEM_THM] THEN MESON_TAC[]));;
 
-let BIJECTIVE_ON_LEFT_RIGHT_INVERSE = prove
+let BIJECTIVE_ON_LEFT_RIGHT_INVERSE = log_lemma "BIJECTIVE_ON_LEFT_RIGHT_INVERSE" (fun () -> prove
  (`!f s t.
         (!x. x IN s ==> f(x) IN t)
         ==> ((!x y. x IN s /\ y IN s /\ f(x) = f(y) ==> x = y) /\
@@ -2218,42 +2224,42 @@ let BIJECTIVE_ON_LEFT_RIGHT_INVERSE = prove
   REPEAT GEN_TAC THEN DISCH_TAC THEN
   REWRITE_TAC[INJECTIVE_ON_LEFT_INVERSE; SURJECTIVE_ON_RIGHT_INVERSE] THEN
   REWRITE_TAC[RIGHT_AND_EXISTS_THM] THEN AP_TERM_TAC THEN ABS_TAC THEN
-  EQ_TAC THEN ASM_MESON_TAC[]);;
+  EQ_TAC THEN ASM_MESON_TAC[]));;
 
-let SURJECTIVE_RIGHT_INVERSE = prove
+let SURJECTIVE_RIGHT_INVERSE = log_lemma "SURJECTIVE_RIGHT_INVERSE" (fun () -> prove
  (`(!y. ?x. f(x) = y) <=> (?g. !y. f(g(y)) = y)`,
-  MESON_TAC[SURJECTIVE_ON_RIGHT_INVERSE; IN_UNIV]);;
+  MESON_TAC[SURJECTIVE_ON_RIGHT_INVERSE; IN_UNIV]));;
 
-let INJECTIVE_LEFT_INVERSE = prove
+let INJECTIVE_LEFT_INVERSE = log_lemma "INJECTIVE_LEFT_INVERSE" (fun () -> prove
  (`(!x y. (f x = f y) ==> (x = y)) <=> (?g. !x. g(f(x)) = x)`,
   let th = REWRITE_RULE[IN_UNIV]
    (ISPECL [`f:A->B`; `UNIV:A->bool`] INJECTIVE_ON_LEFT_INVERSE) in
-  REWRITE_TAC[th]);;
+  REWRITE_TAC[th]));;
 
-let BIJECTIVE_LEFT_RIGHT_INVERSE = prove
+let BIJECTIVE_LEFT_RIGHT_INVERSE = log_lemma "BIJECTIVE_LEFT_RIGHT_INVERSE" (fun () -> prove
  (`!f:A->B.
        (!x y. f(x) = f(y) ==> x = y) /\ (!y. ?x. f x = y) <=>
        ?g. (!y. f(g(y)) = y) /\ (!x. g(f(x)) = x)`,
   GEN_TAC THEN
   MP_TAC(ISPECL [`f:A->B`; `(:A)`; `(:B)`] BIJECTIVE_ON_LEFT_RIGHT_INVERSE) THEN
-  REWRITE_TAC[IN_UNIV]);;
+  REWRITE_TAC[IN_UNIV]));;
 
-let FUNCTION_FACTORS_RIGHT = prove
+let FUNCTION_FACTORS_RIGHT = log_lemma "FUNCTION_FACTORS_RIGHT" (fun () -> prove
  (`!f g. (!x. ?y. g(y) = f(x)) <=> ?h. f = g o h`,
-  REWRITE_TAC[FUN_EQ_THM; o_THM; GSYM SKOLEM_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[FUN_EQ_THM; o_THM; GSYM SKOLEM_THM] THEN MESON_TAC[]));;
 
-let FUNCTION_FACTORS_LEFT = prove
+let FUNCTION_FACTORS_LEFT = log_lemma "FUNCTION_FACTORS_LEFT" (fun () -> prove
  (`!f g. (!x y. (g x = g y) ==> (f x = f y)) <=> ?h. f = h o g`,
   let lemma = prove
    (`(f = h o g) <=> !y x. (y = g x) ==> (h y = f x)`,
     REWRITE_TAC[FUN_EQ_THM; o_THM] THEN MESON_TAC[]) in
-  REWRITE_TAC[lemma; GSYM SKOLEM_THM] THEN MESON_TAC[]);;
+  REWRITE_TAC[lemma; GSYM SKOLEM_THM] THEN MESON_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Existence of bijections between two finite sets of same size.             *)
 (* ------------------------------------------------------------------------- *)
 
-let CARD_EQ_BIJECTION = prove
+let CARD_EQ_BIJECTION = log_lemma "CARD_EQ_BIJECTION" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t /\ CARD s = CARD t
    ==> ?f:A->B. (!x. x IN s ==> f(x) IN t) /\
                 (!y. y IN t ==> ?x. x IN s /\ f x = y) /\
@@ -2262,18 +2268,18 @@ let CARD_EQ_BIJECTION = prove
   DISCH_THEN(fun th -> STRIP_TAC THEN MP_TAC th) THEN
   ASM_REWRITE_TAC[LE_REFL] THEN MATCH_MP_TAC MONO_EXISTS THEN
   ASM_SIMP_TAC[SURJECTIVE_IFF_INJECTIVE_GEN] THEN
-  MESON_TAC[SUBSET; IN_IMAGE]);;
+  MESON_TAC[SUBSET; IN_IMAGE]));;
 
-let CARD_EQ_BIJECTIONS = prove
+let CARD_EQ_BIJECTIONS = log_lemma "CARD_EQ_BIJECTIONS" (fun () -> prove
  (`!s t. FINITE s /\ FINITE t /\ CARD s = CARD t
    ==> ?f:A->B g. (!x. x IN s ==> f(x) IN t /\ g(f x) = x) /\
                   (!y. y IN t ==> g(y) IN s /\ f(g y) = y)`,
   REPEAT GEN_TAC THEN DISCH_THEN(MP_TAC o MATCH_MP CARD_EQ_BIJECTION) THEN
   MATCH_MP_TAC MONO_EXISTS THEN REWRITE_TAC[SURJECTIVE_ON_RIGHT_INVERSE] THEN
   GEN_TAC THEN REWRITE_TAC[LEFT_AND_EXISTS_THM; RIGHT_AND_EXISTS_THM] THEN
-  MATCH_MP_TAC MONO_EXISTS THEN MESON_TAC[]);;
+  MATCH_MP_TAC MONO_EXISTS THEN MESON_TAC[]));;
 
-let BIJECTIONS_HAS_SIZE = prove
+let BIJECTIONS_HAS_SIZE = log_lemma "BIJECTIONS_HAS_SIZE" (fun () -> prove
  (`!s t f:A->B g.
         (!x. x IN s ==> f(x) IN t /\ g(f x) = x) /\
         (!y. y IN t ==> g(y) IN s /\ f(g y) = y) /\
@@ -2281,9 +2287,9 @@ let BIJECTIONS_HAS_SIZE = prove
         ==> t HAS_SIZE n`,
   REPEAT STRIP_TAC THEN SUBGOAL_THEN `t = IMAGE (f:A->B) s` SUBST_ALL_TAC THENL
    [ASM SET_TAC[];
-    MATCH_MP_TAC HAS_SIZE_IMAGE_INJ THEN ASM_MESON_TAC[]]);;
+    MATCH_MP_TAC HAS_SIZE_IMAGE_INJ THEN ASM_MESON_TAC[]]));;
 
-let BIJECTIONS_HAS_SIZE_EQ = prove
+let BIJECTIONS_HAS_SIZE_EQ = log_lemma "BIJECTIONS_HAS_SIZE_EQ" (fun () -> prove
  (`!s t f:A->B g.
         (!x. x IN s ==> f(x) IN t /\ g(f x) = x) /\
         (!y. y IN t ==> g(y) IN s /\ f(g y) = y)
@@ -2293,9 +2299,9 @@ let BIJECTIONS_HAS_SIZE_EQ = prove
   [TAUT `a /\ b /\ c ==> d <=> a /\ b ==> c ==> d`] BIJECTIONS_HAS_SIZE) THENL
    [MAP_EVERY EXISTS_TAC [`f:A->B`; `g:B->A`];
     MAP_EVERY EXISTS_TAC [`g:B->A`; `f:A->B`]] THEN
-  ASM_MESON_TAC[]);;
+  ASM_MESON_TAC[]));;
 
-let BIJECTIONS_CARD_EQ = prove
+let BIJECTIONS_CARD_EQ = log_lemma "BIJECTIONS_CARD_EQ" (fun () -> prove
  (`!s t f:A->B g.
         (FINITE s \/ FINITE t) /\
         (!x. x IN s ==> f(x) IN t /\ g(f x) = x) /\
@@ -2303,13 +2309,13 @@ let BIJECTIONS_CARD_EQ = prove
         ==> CARD s = CARD t`,
   REPEAT GEN_TAC THEN DISCH_THEN(CONJUNCTS_THEN2
    MP_TAC (MP_TAC o MATCH_MP BIJECTIONS_HAS_SIZE_EQ)) THEN
-  MESON_TAC[HAS_SIZE]);;
+  MESON_TAC[HAS_SIZE]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Transitive relation with finitely many predecessors is wellfounded.       *)
 (* ------------------------------------------------------------------------- *)
 
-let WF_FINITE = prove
+let WF_FINITE = log_lemma "WF_FINITE" (fun () -> prove
  (`!(<<). (!x. ~(x << x)) /\ (!x y z. x << y /\ y << z ==> x << z) /\
           (!x:A. FINITE {y | y << x})
           ==> WF(<<)`,
@@ -2325,7 +2331,7 @@ let WF_FINITE = prove
   EXISTS_TAC `s(0) INSERT {y:A | y << s(0)}` THEN
   ASM_REWRITE_TAC[FINITE_INSERT] THEN
   REWRITE_TAC[SUBSET; FORALL_IN_IMAGE; IN_UNIV; IN_INSERT] THEN
-  INDUCT_TAC THEN REWRITE_TAC[IN_ELIM_THM] THEN ASM_MESON_TAC[LT_0]);;
+  INDUCT_TAC THEN REWRITE_TAC[IN_ELIM_THM] THEN ASM_MESON_TAC[LT_0]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Cardinal comparisons (more theory in Examples/card.ml)                    *)
@@ -2348,15 +2354,21 @@ let ge_c = new_definition
 let gt_c = new_definition
  `s >_c t <=> t <_c s`;;
 
-let LE_C = prove
+let LE_C = log_lemma "LE_C" (fun () -> prove
  (`!s t. s <=_c t <=> ?g. !x. x IN s ==> ?y. y IN t /\ (g y = x)`,
   REWRITE_TAC[le_c; INJECTIVE_ON_LEFT_INVERSE; SURJECTIVE_ON_RIGHT_INVERSE;
               RIGHT_IMP_EXISTS_THM; SKOLEM_THM; RIGHT_AND_EXISTS_THM] THEN
-  MESON_TAC[]);;
+  MESON_TAC[]));;
 
-let GE_C = prove
+let GE_C = log_lemma "GE_C" (fun () -> prove
  (`!s t. s >=_c t <=> ?f. !y. y IN t ==> ?x. x IN s /\ (y = f x)`,
-  REWRITE_TAC[ge_c; LE_C] THEN MESON_TAC[]);;
+  REWRITE_TAC[ge_c; LE_C] THEN MESON_TAC[]));;
 
 let COUNTABLE = new_definition
   `COUNTABLE t <=> (:num) >=_c t`;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

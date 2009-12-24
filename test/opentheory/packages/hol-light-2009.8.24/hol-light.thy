@@ -251,6 +251,281 @@ require list {
   package: hol-light-list-2009.8.24
 }
 
+require realax {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  package: hol-light-realax-2009.8.24
+}
+
+require calc-int {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  package: hol-light-calc-int-2009.8.24
+}
+
+require realarith {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  package: hol-light-realarith-2009.8.24
+}
+
+require real {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  require: realarith
+  package: hol-light-real-2009.8.24
+}
+
+require calc-rat {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  require: realarith
+  require: real
+  package: hol-light-calc-rat-2009.8.24
+}
+
+require int {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  require: realarith
+  require: real
+  require: calc-rat
+  package: hol-light-int-2009.8.24
+}
+
+require sets {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  require: realarith
+  require: real
+  require: calc-rat
+  require: int
+  package: hol-light-sets-2009.8.24
+}
+
+require iter {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  require: realarith
+  require: real
+  require: calc-rat
+  require: int
+  require: sets
+  package: hol-light-iter-2009.8.24
+}
+
+require cart {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  require: realarith
+  require: real
+  require: calc-rat
+  require: int
+  require: sets
+  require: iter
+  package: hol-light-cart-2009.8.24
+}
+
+require define {
+  require: bool
+  require: tactics
+  require: simp
+  require: theorems
+  require: ind-defs
+  require: class
+  require: trivia
+  require: canon
+  require: meson
+  require: quot
+  require: pair
+  require: num
+  require: arith
+  require: wf
+  require: calc-num
+  require: normalizer
+  require: grobner
+  require: ind-types
+  require: list
+  require: realax
+  require: calc-int
+  require: realarith
+  require: real
+  require: calc-rat
+  require: int
+  require: sets
+  require: iter
+  require: cart
+  package: hol-light-define-2009.8.24
+}
+
 theory {
   import bool;
   import tactics;
@@ -270,4 +545,14 @@ theory {
   import grobner;
   import ind-types;
   import list;
+  import realax;
+  import calc-int;
+  import realarith;
+  import real;
+  import calc-rat;
+  import int;
+  import sets;
+  import iter;
+  import cart;
+  import define;
 }

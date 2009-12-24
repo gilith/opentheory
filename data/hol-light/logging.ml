@@ -215,7 +215,23 @@ let log_thm =
         (log_list log_term (hyp th); log_term (concl th); log_command "thm") in
     log_dict log;;
 
-let log_save_thm th = (log_thm th; log_command "save");;
+(* ------------------------------------------------------------------------- *)
+(* Saving theorems.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+let save_thm th = (log_thm th; log_command "save"; th);;
+
+(* ------------------------------------------------------------------------- *)
+(* Collecting together local inferences and logging only the result.         *)
+(* ------------------------------------------------------------------------- *)
+
+let log_value n l f = log_function n log_unit l f ();;
+
+let log_lemma n = log_value n log_thm;;
+
+let log_lemma2 n = log_value n (log_pair log_thm log_thm);;
+
+let log_lemmas n = log_value n (log_list log_thm);;
 
 (* ------------------------------------------------------------------------- *)
 (* Logged version of the logical kernel                                      *)
@@ -254,23 +270,3 @@ let new_basic_type_definition =
     log_function3 "new_basic_type_definition" log_name
       (log_pair log_name log_name) log_thm (log_pair log_thm log_thm)
     new_basic_type_definition;;
-
-(* ------------------------------------------------------------------------- *)
-(* Collecting together local inferences and logging only the result.         *)
-(* ------------------------------------------------------------------------- *)
-
-(***
-let log_alpha _ = log_nil ();;
-
-let log_result n l f x = log_function n log_alpha l f x;;
-
-let log_result2 n l f x y = log_function2 n log_alpha log_alpha l f x y;;
-***)
-
-let log_value n l f = log_function n log_unit l f ();;
-
-let log_lemma n = log_value n log_thm;;
-
-let log_lemma2 n = log_value n (log_pair log_thm log_thm);;
-
-let log_lemmas n = log_value n (log_list log_thm);;

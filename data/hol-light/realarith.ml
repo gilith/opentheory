@@ -7,116 +7,122 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
-let REAL_LTE_TOTAL = prove
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "realarith";;
+
+let REAL_LTE_TOTAL = log_lemma "REAL_LTE_TOTAL" (fun () -> prove
  (`!x y. x < y \/ y <= x`,
-  REWRITE_TAC[real_lt] THEN CONV_TAC TAUT);;
+  REWRITE_TAC[real_lt] THEN CONV_TAC TAUT));;
 
-let REAL_LET_TOTAL = prove
+let REAL_LET_TOTAL = log_lemma "REAL_LET_TOTAL" (fun () -> prove
  (`!x y. x <= y \/ y < x`,
-  REWRITE_TAC[real_lt] THEN CONV_TAC TAUT);;
+  REWRITE_TAC[real_lt] THEN CONV_TAC TAUT));;
 
-let REAL_LT_IMP_LE = prove
+let REAL_LT_IMP_LE = log_lemma "REAL_LT_IMP_LE" (fun () -> prove
  (`!x y. x < y ==> x <= y`,
-  MESON_TAC[real_lt; REAL_LE_TOTAL]);;
+  MESON_TAC[real_lt; REAL_LE_TOTAL]));;
 
-let REAL_LTE_TRANS = prove
+let REAL_LTE_TRANS = log_lemma "REAL_LTE_TRANS" (fun () -> prove
  (`!x y z. x < y /\ y <= z ==> x < z`,
-  MESON_TAC[real_lt; REAL_LE_TRANS]);;
+  MESON_TAC[real_lt; REAL_LE_TRANS]));;
 
-let REAL_LET_TRANS = prove
+let REAL_LET_TRANS = log_lemma "REAL_LET_TRANS" (fun () -> prove
  (`!x y z. x <= y /\ y < z ==> x < z`,
-  MESON_TAC[real_lt; REAL_LE_TRANS]);;
+  MESON_TAC[real_lt; REAL_LE_TRANS]));;
 
-let REAL_LT_TRANS = prove
+let REAL_LT_TRANS = log_lemma "REAL_LT_TRANS" (fun () -> prove
  (`!x y z. x < y /\ y < z ==> x < z`,
-  MESON_TAC[REAL_LTE_TRANS; REAL_LT_IMP_LE]);;
+  MESON_TAC[REAL_LTE_TRANS; REAL_LT_IMP_LE]));;
 
-let REAL_LE_ADD = prove
+let REAL_LE_ADD = log_lemma "REAL_LE_ADD" (fun () -> prove
  (`!x y. &0 <= x /\ &0 <= y ==> &0 <= x + y`,
-  MESON_TAC[REAL_LE_LADD_IMP; REAL_ADD_RID; REAL_LE_TRANS]);;
+  MESON_TAC[REAL_LE_LADD_IMP; REAL_ADD_RID; REAL_LE_TRANS]));;
 
-let REAL_LTE_ANTISYM = prove
+let REAL_LTE_ANTISYM = log_lemma "REAL_LTE_ANTISYM" (fun () -> prove
  (`!x y. ~(x < y /\ y <= x)`,
-  MESON_TAC[real_lt]);;
+  MESON_TAC[real_lt]));;
 
-let REAL_SUB_LE = prove
+let REAL_SUB_LE = log_lemma "REAL_SUB_LE" (fun () -> prove
  (`!x y. &0 <= (x - y) <=> y <= x`,
-  REWRITE_TAC[real_sub; GSYM REAL_LE_LNEG; REAL_LE_NEG2]);;
+  REWRITE_TAC[real_sub; GSYM REAL_LE_LNEG; REAL_LE_NEG2]));;
 
-let REAL_NEG_SUB = prove
+let REAL_NEG_SUB = log_lemma "REAL_NEG_SUB" (fun () -> prove
  (`!x y. --(x - y) = y - x`,
   REWRITE_TAC[real_sub; REAL_NEG_ADD; REAL_NEG_NEG] THEN
-  REWRITE_TAC[REAL_ADD_AC]);;
+  REWRITE_TAC[REAL_ADD_AC]));;
 
-let REAL_LE_LT = prove
+let REAL_LE_LT = log_lemma "REAL_LE_LT" (fun () -> prove
  (`!x y. x <= y <=> x < y \/ (x = y)`,
-  REWRITE_TAC[real_lt] THEN MESON_TAC[REAL_LE_ANTISYM; REAL_LE_TOTAL]);;
+  REWRITE_TAC[real_lt] THEN MESON_TAC[REAL_LE_ANTISYM; REAL_LE_TOTAL]));;
 
-let REAL_SUB_LT = prove
+let REAL_SUB_LT = log_lemma "REAL_SUB_LT" (fun () -> prove
  (`!x y. &0 < (x - y) <=> y < x`,
   REWRITE_TAC[real_lt] THEN ONCE_REWRITE_TAC[GSYM REAL_NEG_SUB] THEN
-  REWRITE_TAC[REAL_LE_LNEG; REAL_ADD_RID; REAL_SUB_LE]);;
+  REWRITE_TAC[REAL_LE_LNEG; REAL_ADD_RID; REAL_SUB_LE]));;
 
-let REAL_NOT_LT = prove
+let REAL_NOT_LT = log_lemma "REAL_NOT_LT" (fun () -> prove
  (`!x y. ~(x < y) <=> y <= x`,
-  REWRITE_TAC[real_lt]);;
+  REWRITE_TAC[real_lt]));;
 
-let REAL_SUB_0 = prove
+let REAL_SUB_0 = log_lemma "REAL_SUB_0" (fun () -> prove
  (`!x y. (x - y = &0) <=> (x = y)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[GSYM REAL_LE_ANTISYM] THEN
   GEN_REWRITE_TAC (LAND_CONV o LAND_CONV) [GSYM REAL_NOT_LT] THEN
-  REWRITE_TAC[REAL_SUB_LE; REAL_SUB_LT] THEN REWRITE_TAC[REAL_NOT_LT]);;
+  REWRITE_TAC[REAL_SUB_LE; REAL_SUB_LT] THEN REWRITE_TAC[REAL_NOT_LT]));;
 
-let REAL_LT_LE = prove
+let REAL_LT_LE = log_lemma "REAL_LT_LE" (fun () -> prove
  (`!x y. x < y <=> x <= y /\ ~(x = y)`,
-  MESON_TAC[real_lt; REAL_LE_TOTAL; REAL_LE_ANTISYM]);;
+  MESON_TAC[real_lt; REAL_LE_TOTAL; REAL_LE_ANTISYM]));;
 
-let REAL_LT_REFL = prove
+let REAL_LT_REFL = log_lemma "REAL_LT_REFL" (fun () -> prove
  (`!x. ~(x < x)`,
-  REWRITE_TAC[real_lt; REAL_LE_REFL]);;
+  REWRITE_TAC[real_lt; REAL_LE_REFL]));;
 
-let REAL_LTE_ADD = prove
+let REAL_LTE_ADD = log_lemma "REAL_LTE_ADD" (fun () -> prove
  (`!x y. &0 < x /\ &0 <= y ==> &0 < x + y`,
-  MESON_TAC[REAL_LE_LADD_IMP; REAL_ADD_RID; REAL_LTE_TRANS]);;
+  MESON_TAC[REAL_LE_LADD_IMP; REAL_ADD_RID; REAL_LTE_TRANS]));;
 
-let REAL_LET_ADD = prove
+let REAL_LET_ADD = log_lemma "REAL_LET_ADD" (fun () -> prove
  (`!x y. &0 <= x /\ &0 < y ==> &0 < x + y`,
-  MESON_TAC[REAL_LTE_ADD; REAL_ADD_SYM]);;
+  MESON_TAC[REAL_LTE_ADD; REAL_ADD_SYM]));;
 
-let REAL_LT_ADD = prove
+let REAL_LT_ADD = log_lemma "REAL_LT_ADD" (fun () -> prove
  (`!x y. &0 < x /\ &0 < y ==> &0 < x + y`,
-  MESON_TAC[REAL_LT_IMP_LE; REAL_LTE_ADD]);;
+  MESON_TAC[REAL_LT_IMP_LE; REAL_LTE_ADD]));;
 
-let REAL_ENTIRE = prove
+let REAL_ENTIRE = log_lemma "REAL_ENTIRE" (fun () -> prove
  (`!x y. (x * y = &0) <=> (x = &0) \/ (y = &0)`,
   REPEAT GEN_TAC THEN EQ_TAC THEN STRIP_TAC THEN
   ASM_REWRITE_TAC[REAL_MUL_LZERO; REAL_MUL_RZERO] THEN
   ASM_CASES_TAC `x = &0` THEN ASM_REWRITE_TAC[] THEN
-  FIRST_ASSUM(MP_TAC o AP_TERM `(*) (inv x)`) THEN
+  FIRST_ASSUM(MP_TAC o AP_TERM `( * ) (inv x)`) THEN
   REWRITE_TAC[REAL_MUL_ASSOC] THEN
   FIRST_ASSUM(fun th -> REWRITE_TAC[MATCH_MP REAL_MUL_LINV th]) THEN
-  REWRITE_TAC[REAL_MUL_LID; REAL_MUL_RZERO]);;
+  REWRITE_TAC[REAL_MUL_LID; REAL_MUL_RZERO]));;
 
-let REAL_LE_NEGTOTAL = prove
+let REAL_LE_NEGTOTAL = log_lemma "REAL_LE_NEGTOTAL" (fun () -> prove
  (`!x. &0 <= x \/ &0 <= --x`,
-  REWRITE_TAC[REAL_LE_RNEG; REAL_ADD_LID; REAL_LE_TOTAL]);;
+  REWRITE_TAC[REAL_LE_RNEG; REAL_ADD_LID; REAL_LE_TOTAL]));;
 
-let REAL_LE_SQUARE = prove
+let REAL_LE_SQUARE = log_lemma "REAL_LE_SQUARE" (fun () -> prove
  (`!x. &0 <= x * x`,
   GEN_TAC THEN DISJ_CASES_TAC(SPEC `x:real` REAL_LE_NEGTOTAL) THEN
   POP_ASSUM(fun th -> MP_TAC(MATCH_MP REAL_LE_MUL (CONJ th th))) THEN
-  REWRITE_TAC[REAL_MUL_LNEG; REAL_MUL_RNEG; REAL_NEG_NEG]);;
+  REWRITE_TAC[REAL_MUL_LNEG; REAL_MUL_RNEG; REAL_NEG_NEG]));;
 
-let REAL_MUL_RID = prove
+let REAL_MUL_RID = log_lemma "REAL_MUL_RID" (fun () -> prove
  (`!x. x * &1 = x`,
-  MESON_TAC[REAL_MUL_LID; REAL_MUL_SYM]);;
+  MESON_TAC[REAL_MUL_LID; REAL_MUL_SYM]));;
 
-let REAL_POW_2 = prove
+let REAL_POW_2 = log_lemma "REAL_POW_2" (fun () -> prove
  (`!x. x pow 2 = x * x`,
   REWRITE_TAC[num_CONV `2`; num_CONV `1`] THEN
-  REWRITE_TAC[real_pow; REAL_MUL_RID]);;
+  REWRITE_TAC[real_pow; REAL_MUL_RID]));;
 
-let REAL_POLY_CLAUSES = prove
+let REAL_POLY_CLAUSES = log_lemma "REAL_POLY_CLAUSES" (fun () -> prove
  (`(!x y z. x + (y + z) = (x + y) + z) /\
    (!x y. x + y = y + x) /\
    (!x. &0 + x = x) /\
@@ -129,16 +135,16 @@ let REAL_POLY_CLAUSES = prove
    (!x n. x pow (SUC n) = x * x pow n)`,
   REWRITE_TAC[real_pow; REAL_ADD_LDISTRIB; REAL_MUL_LZERO] THEN
   REWRITE_TAC[REAL_MUL_ASSOC; REAL_ADD_LID; REAL_MUL_LID] THEN
-  REWRITE_TAC[REAL_ADD_AC] THEN REWRITE_TAC[REAL_MUL_SYM]);;
+  REWRITE_TAC[REAL_ADD_AC] THEN REWRITE_TAC[REAL_MUL_SYM]));;
 
-let REAL_POLY_NEG_CLAUSES = prove
+let REAL_POLY_NEG_CLAUSES = log_lemma "REAL_POLY_NEG_CLAUSES" (fun () -> prove
  (`(!x. --x = --(&1) * x) /\
    (!x y. x - y = x + --(&1) * y)`,
-  REWRITE_TAC[REAL_MUL_LNEG; real_sub; REAL_MUL_LID]);;
+  REWRITE_TAC[REAL_MUL_LNEG; real_sub; REAL_MUL_LID]));;
 
-let REAL_POS = prove
+let REAL_POS = log_lemma "REAL_POS" (fun () -> prove
  (`!n. &0 <= &n`,
-  REWRITE_TAC[REAL_OF_NUM_LE; LE_0]);;
+  REWRITE_TAC[REAL_OF_NUM_LE; LE_0]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Data structure for Positivstellensatz refutations.                        *)
@@ -164,7 +170,7 @@ type positivstellensatz =
 (* ------------------------------------------------------------------------- *)
 
 let GEN_REAL_ARITH =
-  let pth = prove
+  let pth = log_lemma "GEN_REAL_ARITH.pth" (fun () -> prove
    (`(x < y <=> y - x > &0) /\
      (x <= y <=> y - x >= &0) /\
      (x > y <=> x - y > &0) /\
@@ -176,9 +182,9 @@ let GEN_REAL_ARITH =
      (~(x >= y) <=> y - x > &0) /\
      (~(x = y) <=> x - y > &0 \/ --(x - y) > &0)`,
     REWRITE_TAC[real_gt; real_ge; REAL_SUB_LT; REAL_SUB_LE; REAL_NEG_SUB] THEN
-    REWRITE_TAC[REAL_SUB_0; real_lt] THEN MESON_TAC[REAL_LE_ANTISYM])
+    REWRITE_TAC[REAL_SUB_0; real_lt] THEN MESON_TAC[REAL_LE_ANTISYM]))
   and pth_final = TAUT `(~p ==> F) ==> p`
-  and pth_add = prove
+  and pth_add = log_lemma "GEN_REAL_ARITH.pth_add" (fun () -> prove
    (`((x = &0) /\ (y = &0) ==> (x + y = &0)) /\
      ((x = &0) /\ y >= &0 ==> x + y >= &0) /\
      ((x = &0) /\ y > &0 ==> x + y > &0) /\
@@ -190,8 +196,8 @@ let GEN_REAL_ARITH =
      (x > &0 /\ y > &0 ==> x + y > &0)`,
     SIMP_TAC[REAL_ADD_LID; REAL_ADD_RID; real_ge; real_gt] THEN
     REWRITE_TAC[REAL_LE_LT] THEN
-    MESON_TAC[REAL_ADD_LID; REAL_ADD_RID; REAL_LT_ADD])
-  and pth_mul = prove
+    MESON_TAC[REAL_ADD_LID; REAL_ADD_RID; REAL_LT_ADD]))
+  and pth_mul = log_lemma "GEN_REAL_ARITH.pth_mul" (fun () -> prove
    (`((x = &0) /\ (y = &0) ==> (x * y = &0)) /\
      ((x = &0) /\ y >= &0 ==> (x * y = &0)) /\
      ((x = &0) /\ y > &0 ==> (x * y = &0)) /\
@@ -202,13 +208,13 @@ let GEN_REAL_ARITH =
      (x > &0 /\ y >= &0 ==> x * y >= &0) /\
      (x > &0 /\ y > &0 ==> x * y > &0)`,
     SIMP_TAC[REAL_MUL_LZERO; REAL_MUL_RZERO; real_ge; real_gt] THEN
-    SIMP_TAC[REAL_LT_LE; REAL_LE_MUL] THEN MESON_TAC[REAL_ENTIRE])
-  and pth_emul = prove
+    SIMP_TAC[REAL_LT_LE; REAL_LE_MUL] THEN MESON_TAC[REAL_ENTIRE]))
+  and pth_emul = log_lemma "GEN_REAL_ARITH.pth_emul" (fun () -> prove
    (`(y = &0) ==> !x. x * y = &0`,
-    SIMP_TAC[REAL_MUL_RZERO])
-  and pth_square = prove
+    SIMP_TAC[REAL_MUL_RZERO]))
+  and pth_square = log_lemma "GEN_REAL_ARITH.pth_square" (fun () -> prove
    (`!x. x * x >= &0`,
-    REWRITE_TAC[real_ge; REAL_POW_2; REAL_LE_SQUARE])
+    REWRITE_TAC[real_ge; REAL_POW_2; REAL_LE_SQUARE]))
   and MATCH_MP_RULE th =
     let net = itlist
      (fun th -> net_of_conv (lhand(concl th)) (PART_MATCH lhand th))
@@ -428,7 +434,7 @@ let REAL_LINEAR_PROVER =
     let one_tm = `&1`
     and zero_tm = `&0`
     and add_tm = `(+):real->real->real`
-    and mul_tm = `(*):real->real->real` in
+    and mul_tm = `( * ):real->real->real` in
     let rec lin_of_hol tm =
       if tm = zero_tm then undefined
       else if not (is_comb tm) then (tm |=> Int 1)
@@ -630,3 +636,9 @@ let REAL_ARITH =
     REAL_INT_EQ_CONV,REAL_INT_GE_CONV,REAL_INT_GT_CONV,
     REAL_POLY_CONV,REAL_POLY_NEG_CONV,REAL_POLY_ADD_CONV,REAL_POLY_MUL_CONV,
     REAL_LINEAR_PROVER);;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

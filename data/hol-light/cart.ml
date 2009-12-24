@@ -4,25 +4,31 @@
 (*              (c) Copyright, John Harrison 1998-2007                       *)
 (* ========================================================================= *)
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "cart";;
+
 let dimindex = new_definition
   `dimindex(s:A->bool) = if FINITE(:A) then CARD(:A) else 1`;;
 
-let DIMINDEX_NONZERO = prove
+let DIMINDEX_NONZERO = log_lemma "DIMINDEX_NONZERO" (fun () -> prove
  (`!s:A->bool. ~(dimindex(s) = 0)`,
   GEN_TAC THEN REWRITE_TAC[dimindex] THEN
-  COND_CASES_TAC THEN ASM_SIMP_TAC[CARD_EQ_0; ARITH] THEN SET_TAC[]);;
+  COND_CASES_TAC THEN ASM_SIMP_TAC[CARD_EQ_0; ARITH] THEN SET_TAC[]));;
 
-let DIMINDEX_GE_1 = prove
+let DIMINDEX_GE_1 = log_lemma "DIMINDEX_GE_1" (fun () -> prove
  (`!s:A->bool. 1 <= dimindex(s)`,
-  REWRITE_TAC[ARITH_RULE `1 <= x <=> ~(x = 0)`; DIMINDEX_NONZERO]);;
+  REWRITE_TAC[ARITH_RULE `1 <= x <=> ~(x = 0)`; DIMINDEX_NONZERO]));;
 
-let DIMINDEX_UNIV = prove
+let DIMINDEX_UNIV = log_lemma "DIMINDEX_UNIV" (fun () -> prove
  (`!s. dimindex(s:A->bool) = dimindex(:A)`,
-  REWRITE_TAC[dimindex]);;
+  REWRITE_TAC[dimindex]));;
 
-let DIMINDEX_UNIQUE = prove
+let DIMINDEX_UNIQUE = log_lemma "DIMINDEX_UNIQUE" (fun () -> prove
  (`(:A) HAS_SIZE n ==> dimindex(:A) = n`,
-  MESON_TAC[dimindex; HAS_SIZE]);;
+  MESON_TAC[dimindex; HAS_SIZE]));;
 
 (* ------------------------------------------------------------------------- *)
 (* An indexing type with that size, parametrized by base type.               *)
@@ -34,52 +40,52 @@ let finite_image_tybij =
     EXISTS_TAC `1` THEN REWRITE_TAC[IN_NUMSEG; LE_REFL; DIMINDEX_GE_1]) in
   new_type_definition "finite_image" ("finite_index","dest_finite_image") th;;
 
-let FINITE_IMAGE_IMAGE = prove
+let FINITE_IMAGE_IMAGE = log_lemma "FINITE_IMAGE_IMAGE" (fun () -> prove
  (`UNIV:(A)finite_image->bool = IMAGE finite_index (1..dimindex(:A))`,
   REWRITE_TAC[EXTENSION; IN_UNIV; IN_IMAGE] THEN
-  MESON_TAC[finite_image_tybij]);;
+  MESON_TAC[finite_image_tybij]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Dimension of such a type, and indexing over it.                           *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_FINITE_IMAGE = prove
+let HAS_SIZE_FINITE_IMAGE = log_lemma "HAS_SIZE_FINITE_IMAGE" (fun () -> prove
  (`!s. (UNIV:(A)finite_image->bool) HAS_SIZE dimindex(s:A->bool)`,
   GEN_TAC THEN SIMP_TAC[FINITE_IMAGE_IMAGE] THEN
   MATCH_MP_TAC HAS_SIZE_IMAGE_INJ THEN
   ONCE_REWRITE_TAC[DIMINDEX_UNIV] THEN REWRITE_TAC[HAS_SIZE_NUMSEG_1] THEN
-  MESON_TAC[finite_image_tybij]);;
+  MESON_TAC[finite_image_tybij]));;
 
-let CARD_FINITE_IMAGE = prove
+let CARD_FINITE_IMAGE = log_lemma "CARD_FINITE_IMAGE" (fun () -> prove
  (`!s. CARD(UNIV:(A)finite_image->bool) = dimindex(s:A->bool)`,
-  MESON_TAC[HAS_SIZE_FINITE_IMAGE; HAS_SIZE]);;
+  MESON_TAC[HAS_SIZE_FINITE_IMAGE; HAS_SIZE]));;
 
-let FINITE_FINITE_IMAGE = prove
+let FINITE_FINITE_IMAGE = log_lemma "FINITE_FINITE_IMAGE" (fun () -> prove
  (`FINITE(UNIV:(A)finite_image->bool)`,
-  MESON_TAC[HAS_SIZE_FINITE_IMAGE; HAS_SIZE]);;
+  MESON_TAC[HAS_SIZE_FINITE_IMAGE; HAS_SIZE]));;
 
-let DIMINDEX_FINITE_IMAGE = prove
+let DIMINDEX_FINITE_IMAGE = log_lemma "DIMINDEX_FINITE_IMAGE" (fun () -> prove
  (`!s t. dimindex(s:(A)finite_image->bool) = dimindex(t:A->bool)`,
   REPEAT GEN_TAC THEN GEN_REWRITE_TAC LAND_CONV [dimindex] THEN
   MP_TAC(ISPEC `t:A->bool` HAS_SIZE_FINITE_IMAGE) THEN
-  SIMP_TAC[FINITE_FINITE_IMAGE; HAS_SIZE]);;
+  SIMP_TAC[FINITE_FINITE_IMAGE; HAS_SIZE]));;
 
-let FINITE_INDEX_WORKS = prove
+let FINITE_INDEX_WORKS = log_lemma "FINITE_INDEX_WORKS" (fun () -> prove
  (`!i:(A)finite_image.
         ?!n. 1 <= n /\ n <= dimindex(:A) /\ (finite_index n = i)`,
-  REWRITE_TAC[CONJ_ASSOC; GSYM IN_NUMSEG] THEN MESON_TAC[finite_image_tybij]);;
+  REWRITE_TAC[CONJ_ASSOC; GSYM IN_NUMSEG] THEN MESON_TAC[finite_image_tybij]));;
 
-let FINITE_INDEX_INJ = prove
+let FINITE_INDEX_INJ = log_lemma "FINITE_INDEX_INJ" (fun () -> prove
  (`!i j. 1 <= i /\ i <= dimindex(:A) /\
          1 <= j /\ j <= dimindex(:A)
          ==> ((finite_index i :A finite_image = finite_index j) <=>
               (i = j))`,
-  MESON_TAC[FINITE_INDEX_WORKS]);;
+  MESON_TAC[FINITE_INDEX_WORKS]));;
 
-let FORALL_FINITE_INDEX = prove
+let FORALL_FINITE_INDEX = log_lemma "FORALL_FINITE_INDEX" (fun () -> prove
  (`(!k:(N)finite_image. P k) =
    (!i. 1 <= i /\ i <= dimindex(:N) ==> P(finite_index i))`,
-  MESON_TAC[FINITE_INDEX_WORKS]);;
+  MESON_TAC[FINITE_INDEX_WORKS]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Hence finite Cartesian products, with indexing and lambdas.               *)
@@ -94,11 +100,11 @@ parse_as_infix("$",(25,"left"));;
 let finite_index = new_definition
   `x$i = dest_cart x (finite_index i)`;;
 
-let CART_EQ = prove
+let CART_EQ = log_lemma "CART_EQ" (fun () -> prove
  (`!x:A^B y.
     (x = y) <=> !i. 1 <= i /\ i <= dimindex(:B) ==> (x$i = y$i)`,
   REPEAT GEN_TAC THEN REWRITE_TAC[finite_index; GSYM FORALL_FINITE_INDEX] THEN
-  REWRITE_TAC[GSYM FUN_EQ_THM; ETA_AX] THEN MESON_TAC[cart_tybij]);;
+  REWRITE_TAC[GSYM FUN_EQ_THM; ETA_AX] THEN MESON_TAC[cart_tybij]));;
 
 parse_as_binder "lambda";;
 
@@ -106,7 +112,7 @@ let lambda = new_definition
   `(lambda) g =
      @f:A^B. !i. 1 <= i /\ i <= dimindex(:B) ==> (f$i = g i)`;;
 
-let LAMBDA_BETA = prove
+let LAMBDA_BETA = log_lemma "LAMBDA_BETA" (fun () -> prove
  (`!i. 1 <= i /\ i <= dimindex(:B)
        ==> (((lambda) g:A^B) $i = g i)`,
   REWRITE_TAC[lambda] THEN CONV_TAC SELECT_CONV THEN
@@ -115,29 +121,29 @@ let LAMBDA_BETA = prove
   REWRITE_TAC[finite_index; REWRITE_RULE[] cart_tybij] THEN
   REPEAT STRIP_TAC THEN AP_TERM_TAC THEN MATCH_MP_TAC SELECT_UNIQUE THEN
   GEN_TAC THEN REWRITE_TAC[] THEN
-  ASM_MESON_TAC[FINITE_INDEX_INJ; DIMINDEX_FINITE_IMAGE]);;
+  ASM_MESON_TAC[FINITE_INDEX_INJ; DIMINDEX_FINITE_IMAGE]));;
 
-let LAMBDA_UNIQUE = prove
+let LAMBDA_UNIQUE = log_lemma "LAMBDA_UNIQUE" (fun () -> prove
  (`!f:A^B g.
         (!i. 1 <= i /\ i <= dimindex(:B) ==> (f$i = g i)) <=>
         ((lambda) g = f)`,
-  SIMP_TAC[CART_EQ; LAMBDA_BETA] THEN MESON_TAC[]);;
+  SIMP_TAC[CART_EQ; LAMBDA_BETA] THEN MESON_TAC[]));;
 
-let LAMBDA_ETA = prove
+let LAMBDA_ETA = log_lemma "LAMBDA_ETA" (fun () -> prove
  (`!g. (lambda i. g$i) = g`,
-  REWRITE_TAC[CART_EQ; LAMBDA_BETA]);;
+  REWRITE_TAC[CART_EQ; LAMBDA_BETA]));;
 
 (* ------------------------------------------------------------------------- *)
 (* For some purposes we can avoid side-conditions on the index.              *)
 (* ------------------------------------------------------------------------- *)
 
-let FINITE_INDEX_INRANGE = prove
+let FINITE_INDEX_INRANGE = log_lemma "FINITE_INDEX_INRANGE" (fun () -> prove
  (`!i. ?k. 1 <= k /\ k <= dimindex(:N) /\ !x:A^N. x$i = x$k`,
-  REWRITE_TAC[finite_index] THEN MESON_TAC[FINITE_INDEX_WORKS]);;
+  REWRITE_TAC[finite_index] THEN MESON_TAC[FINITE_INDEX_WORKS]));;
 
-let CART_EQ_FULL = prove
+let CART_EQ_FULL = log_lemma "CART_EQ_FULL" (fun () -> prove
  (`!x y:A^N. x = y <=> !i. x$i = y$i`,
-  REPEAT GEN_TAC THEN EQ_TAC THEN SIMP_TAC[] THEN SIMP_TAC[CART_EQ]);;
+  REPEAT GEN_TAC THEN EQ_TAC THEN SIMP_TAC[] THEN SIMP_TAC[CART_EQ]));;
 
 (* ------------------------------------------------------------------------- *)
 (* We need a non-standard sum to "paste" together Cartesian products.        *)
@@ -162,30 +168,30 @@ let sndcart = new_definition
   `(sndcart:A^(M,N)finite_sum->A^N) f =
         lambda i. f$(i + dimindex(:M))`;;
 
-let FINITE_SUM_IMAGE = prove
+let FINITE_SUM_IMAGE = log_lemma "FINITE_SUM_IMAGE" (fun () -> prove
  (`UNIV:(A,B)finite_sum->bool =
        IMAGE mk_finite_sum (1..(dimindex(:A)+dimindex(:B)))`,
   REWRITE_TAC[EXTENSION; IN_UNIV; IN_IMAGE] THEN
-  MESON_TAC[finite_sum_tybij]);;
+  MESON_TAC[finite_sum_tybij]));;
 
-let DIMINDEX_HAS_SIZE_FINITE_SUM = prove
+let DIMINDEX_HAS_SIZE_FINITE_SUM = log_lemma "DIMINDEX_HAS_SIZE_FINITE_SUM" (fun () -> prove
  (`(UNIV:(M,N)finite_sum->bool) HAS_SIZE (dimindex(:M) + dimindex(:N))`,
   SIMP_TAC[FINITE_SUM_IMAGE] THEN
   MATCH_MP_TAC HAS_SIZE_IMAGE_INJ THEN
   ONCE_REWRITE_TAC[DIMINDEX_UNIV] THEN REWRITE_TAC[HAS_SIZE_NUMSEG_1] THEN
-  MESON_TAC[finite_sum_tybij]);;
+  MESON_TAC[finite_sum_tybij]));;
 
-let DIMINDEX_FINITE_SUM = prove
+let DIMINDEX_FINITE_SUM = log_lemma "DIMINDEX_FINITE_SUM" (fun () -> prove
  (`dimindex(:(M,N)finite_sum) = dimindex(:M) + dimindex(:N)`,
   GEN_REWRITE_TAC LAND_CONV [dimindex] THEN
-  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] DIMINDEX_HAS_SIZE_FINITE_SUM]);;
+  REWRITE_TAC[REWRITE_RULE[HAS_SIZE] DIMINDEX_HAS_SIZE_FINITE_SUM]));;
 
-let FSTCART_PASTECART = prove
+let FSTCART_PASTECART = log_lemma "FSTCART_PASTECART" (fun () -> prove
  (`!x y. fstcart(pastecart (x:A^M) (y:A^N)) = x`,
   SIMP_TAC[pastecart; fstcart; CART_EQ; LAMBDA_BETA; DIMINDEX_FINITE_SUM;
-           ARITH_RULE `a <= b ==> a <= b + c`]);;
+           ARITH_RULE `a <= b ==> a <= b + c`]));;
 
-let SNDCART_PASTECART = prove
+let SNDCART_PASTECART = log_lemma "SNDCART_PASTECART" (fun () -> prove
  (`!x y. sndcart(pastecart (x:A^M) (y:A^N)) = y`,
   SIMP_TAC[pastecart; sndcart; CART_EQ; LAMBDA_BETA] THEN REPEAT STRIP_TAC THEN
   W(fun (_,w) -> MP_TAC (PART_MATCH (lhs o rand) LAMBDA_BETA (lhand w))) THEN
@@ -194,28 +200,28 @@ let SNDCART_PASTECART = prove
      (ARITH_RULE `1 <= i /\ i <= b ==> 1 <= i + a /\ i + a <= a + b`) THEN
     ASM_REWRITE_TAC[];
     DISCH_THEN SUBST1_TAC THEN REWRITE_TAC[] THEN
-    ASM_SIMP_TAC[ADD_SUB; ARITH_RULE `1 <= i ==> ~(i + a <= a)`]]);;
+    ASM_SIMP_TAC[ADD_SUB; ARITH_RULE `1 <= i ==> ~(i + a <= a)`]]));;
 
-let PASTECART_FST_SND = prove
+let PASTECART_FST_SND = log_lemma "PASTECART_FST_SND" (fun () -> prove
  (`!z. pastecart (fstcart z) (sndcart z) = z`,
   SIMP_TAC[pastecart; fstcart; sndcart; CART_EQ; LAMBDA_BETA] THEN
   REPEAT GEN_TAC THEN COND_CASES_TAC THEN ASM_REWRITE_TAC[] THEN
   ASM_SIMP_TAC[DIMINDEX_FINITE_SUM; LAMBDA_BETA;
      ARITH_RULE `i <= a + b ==> i - a <= b`;
      ARITH_RULE `~(i <= a) ==> 1 <= i - a`;
-     ARITH_RULE `~(i <= a) ==> ((i - a) + a = i)`]);;
+     ARITH_RULE `~(i <= a) ==> ((i - a) + a = i)`]));;
 
-let PASTECART_EQ = prove
+let PASTECART_EQ = log_lemma "PASTECART_EQ" (fun () -> prove
  (`!x y. (x = y) <=> (fstcart x = fstcart y) /\ (sndcart x = sndcart y)`,
-  MESON_TAC[PASTECART_FST_SND]);;
+  MESON_TAC[PASTECART_FST_SND]));;
 
-let FORALL_PASTECART = prove
+let FORALL_PASTECART = log_lemma "FORALL_PASTECART" (fun () -> prove
  (`(!p. P p) <=> !x y. P (pastecart x y)`,
-  MESON_TAC[PASTECART_FST_SND; FSTCART_PASTECART; SNDCART_PASTECART]);;
+  MESON_TAC[PASTECART_FST_SND; FSTCART_PASTECART; SNDCART_PASTECART]));;
 
-let EXISTS_PASTECART = prove
+let EXISTS_PASTECART = log_lemma "EXISTS_PASTECART" (fun () -> prove
  (`(?p. P p) <=> ?x y. P (pastecart x y)`,
-  MESON_TAC[PASTECART_FST_SND; FSTCART_PASTECART; SNDCART_PASTECART]);;
+  MESON_TAC[PASTECART_FST_SND; FSTCART_PASTECART; SNDCART_PASTECART]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Automatically define a type of size n.                                    *)
@@ -246,11 +252,11 @@ let define_finite_type =
 (* Predefine the cases 2 and 3, which are useful for real^2 and real^3.      *)
 (* ------------------------------------------------------------------------- *)
 
-let HAS_SIZE_1 = prove
+let HAS_SIZE_1 = log_lemma "HAS_SIZE_1" (fun () -> prove
  (`(:1) HAS_SIZE 1`,
   SUBGOAL_THEN `(:1) = {one}` SUBST1_TAC THENL
    [REWRITE_TAC[EXTENSION; IN_UNIV; IN_SING] THEN MESON_TAC[one];
-    SIMP_TAC[NOT_IN_EMPTY; HAS_SIZE; FINITE_RULES; CARD_CLAUSES; ARITH]]);;
+    SIMP_TAC[NOT_IN_EMPTY; HAS_SIZE; FINITE_RULES; CARD_CLAUSES; ARITH]]));;
 
 let HAS_SIZE_2 = define_finite_type 2;;
 
@@ -264,7 +270,7 @@ let DIMINDEX_3 = MATCH_MP DIMINDEX_UNIQUE HAS_SIZE_3;;
 (* Finiteness lemma.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-let FINITE_CART = prove
+let FINITE_CART = log_lemma "FINITE_CART" (fun () -> prove
  (`!P. (!i. 1 <= i /\ i <= dimindex(:N) ==> FINITE {x | P i x})
        ==> FINITE {v:A^N | !i. 1 <= i /\ i <= dimindex(:N) ==> P i (v$i)}`,
   GEN_TAC THEN DISCH_TAC THEN
@@ -303,7 +309,7 @@ let FINITE_CART = prove
   EXISTS_TAC `(lambda i. if i = SUC n then @x. F else (v:A^N)$i):A^N` THEN
   SIMP_TAC[CART_EQ; LAMBDA_BETA; ARITH_RULE `i <= n ==> ~(i = SUC n)`] THEN
   ASM_MESON_TAC[LE; ARITH_RULE `1 <= SUC n`;
-                ARITH_RULE `n < i /\ ~(i = SUC n) ==> SUC n < i`]);;
+                ARITH_RULE `n < i /\ ~(i = SUC n) ==> SUC n < i`]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Explicit construction of a vector from a list of components.              *)
@@ -311,3 +317,9 @@ let FINITE_CART = prove
 
 let vector = new_definition
   `(vector l):A^N = lambda i. EL (i - 1) l`;;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;

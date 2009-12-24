@@ -100,7 +100,7 @@ loads "fusion.ml";;
 
 loads "logging.ml";;
 
-start_logging ();;
+(***start_logging ();;***)
 
 (* ------------------------------------------------------------------------- *)
 (* Some extra support stuff needed outside the core.                         *)
@@ -149,7 +149,6 @@ loads "normalizer.ml";; (* Polynomial normalizer for rings and semirings     *)
 loads "grobner.ml";;    (* Groebner basis procedure for most semirings.      *)
 loads "ind-types.ml";;  (* Tools for defining inductive types                *)
 loads "list.ml";;       (* Theory of lists                                   *)
-(***
 loads "realax.ml";;     (* Definition of real numbers                        *)
 loads "calc_int.ml";;   (* Calculation with integer-valued reals             *)
 loads "realarith.ml";;  (* Universal linear real decision procedure          *)
@@ -167,6 +166,13 @@ loads "define.ml";;     (* Support for general recursive definitions         *)
 
 loads "help.ml";;       (* Online help using the entries in Help directory   *)
 loads "database.ml";;   (* List of name-theorem pairs for search system      *)
-***)
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory positive number example.                                       *)
+(* ------------------------------------------------------------------------- *)
+
+start_logging ();;
+
+loads "example-pos.ml";;
 
 stop_logging ();;

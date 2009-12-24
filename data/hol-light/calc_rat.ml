@@ -8,6 +8,12 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "calc-rat";;
+
+(* ------------------------------------------------------------------------- *)
 (* Constant for decimal fractions written #xxx.yyy                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -18,7 +24,7 @@ let DECIMAL = new_definition
 (* Various handy lemmas.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-let RAT_LEMMA1 = prove
+let RAT_LEMMA1 = log_lemma "RAT_LEMMA1" (fun () -> prove
  (`~(y1 = &0) /\ ~(y2 = &0) ==>
       ((x1 / y1) + (x2 / y2) = (x1 * y2 + x2 * y1) * inv(y1) * inv(y2))`,
   STRIP_TAC THEN REWRITE_TAC[real_div; REAL_ADD_RDISTRIB] THEN BINOP_TAC THENL
@@ -28,24 +34,24 @@ let RAT_LEMMA1 = prove
   GEN_REWRITE_TAC LAND_CONV [GSYM REAL_MUL_RID] THEN
   REWRITE_TAC[GSYM REAL_MUL_ASSOC] THEN REWRITE_TAC[REAL_EQ_MUL_LCANCEL] THEN
   DISJ2_TAC THEN CONV_TAC SYM_CONV THEN MATCH_MP_TAC REAL_MUL_RINV THEN
-  ASM_REWRITE_TAC[]);;
+  ASM_REWRITE_TAC[]));;
 
-let RAT_LEMMA2 = prove
+let RAT_LEMMA2 = log_lemma "RAT_LEMMA2" (fun () -> prove
  (`&0 < y1 /\ &0 < y2 ==>
       ((x1 / y1) + (x2 / y2) = (x1 * y2 + x2 * y1) * inv(y1) * inv(y2))`,
   DISCH_TAC THEN MATCH_MP_TAC RAT_LEMMA1 THEN POP_ASSUM MP_TAC THEN
   ONCE_REWRITE_TAC[GSYM CONTRAPOS_THM] THEN
   REWRITE_TAC[DE_MORGAN_THM] THEN STRIP_TAC THEN
-  ASM_REWRITE_TAC[REAL_LT_REFL]);;
+  ASM_REWRITE_TAC[REAL_LT_REFL]));;
 
-let RAT_LEMMA3 = prove
+let RAT_LEMMA3 = log_lemma "RAT_LEMMA3" (fun () -> prove
  (`&0 < y1 /\ &0 < y2 ==>
       ((x1 / y1) - (x2 / y2) = (x1 * y2 - x2 * y1) * inv(y1) * inv(y2))`,
   DISCH_THEN(MP_TAC o GEN_ALL o MATCH_MP RAT_LEMMA2) THEN
   REWRITE_TAC[real_div] THEN DISCH_TAC THEN
-  ASM_REWRITE_TAC[real_sub; GSYM REAL_MUL_LNEG]);;
+  ASM_REWRITE_TAC[real_sub; GSYM REAL_MUL_LNEG]));;
 
-let RAT_LEMMA4 = prove
+let RAT_LEMMA4 = log_lemma "RAT_LEMMA4" (fun () -> prove
  (`&0 < y1 /\ &0 < y2 ==> (x1 / y1 <= x2 / y2 <=> x1 * y2 <= x2 * y1)`,
   let lemma = prove
    (`&0 < y ==> (&0 <= x * y <=> &0 <= x)`,
@@ -67,26 +73,26 @@ let RAT_LEMMA4 = prove
   EXISTS_TAC `&0 <= (x2 * y1 - x1 * y2) * inv y2` THEN
   REWRITE_TAC[REAL_MUL_ASSOC] THEN CONJ_TAC THEN
   MATCH_MP_TAC lemma THEN MATCH_MP_TAC REAL_LT_INV THEN
-  ASM_REWRITE_TAC[]);;
+  ASM_REWRITE_TAC[]));;
 
-let RAT_LEMMA5 = prove
+let RAT_LEMMA5 = log_lemma "RAT_LEMMA5" (fun () -> prove
  (`&0 < y1 /\ &0 < y2 ==> ((x1 / y1 = x2 / y2) <=> (x1 * y2 = x2 * y1))`,
   REPEAT DISCH_TAC THEN REWRITE_TAC[GSYM REAL_LE_ANTISYM] THEN
   MATCH_MP_TAC(TAUT `(a <=> a') /\ (b <=> b') ==> (a /\ b <=> a' /\ b')`) THEN
-  CONJ_TAC THEN MATCH_MP_TAC RAT_LEMMA4 THEN ASM_REWRITE_TAC[]);;
+  CONJ_TAC THEN MATCH_MP_TAC RAT_LEMMA4 THEN ASM_REWRITE_TAC[]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Create trivial rational from integer or decimal, and postconvert back.    *)
 (* ------------------------------------------------------------------------- *)
 
 let REAL_INT_RAT_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_INT_RAT_CONV.pth" (fun () -> prove
    (`(&x = &x / &1) /\
      (--(&x) = --(&x) / &1) /\
      (DECIMAL x y = &x / &y) /\
      (--(DECIMAL x y) = --(&x) / &y)`,
     REWRITE_TAC[REAL_DIV_1; DECIMAL] THEN
-    REWRITE_TAC[real_div; REAL_MUL_LNEG]) in
+    REWRITE_TAC[real_div; REAL_MUL_LNEG])) in
   TRY_CONV(GEN_REWRITE_CONV I [pth]);;
 
 (* ------------------------------------------------------------------------- *)
@@ -94,9 +100,9 @@ let REAL_INT_RAT_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RAT_LE_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_LE_CONV.pth" (fun () -> prove
    (`&0 < y1 ==> &0 < y2 ==> (x1 / y1 <= x2 / y2 <=> x1 * y2 <= x2 * y1)`,
-    REWRITE_TAC[IMP_IMP; RAT_LEMMA4])
+    REWRITE_TAC[IMP_IMP; RAT_LEMMA4]))
   and x1 = `x1:real` and x2 = `x2:real`
   and y1 = `y1:real` and y2 = `y2:real`
   and dest_le = dest_binop `(<=)`
@@ -113,11 +119,11 @@ let REAL_RAT_LE_CONV =
    BINOP_CONV REAL_INT_RAT_CONV THENC RAW_REAL_RAT_LE_CONV;;
 
 let REAL_RAT_LT_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_LT_CONV.pth" (fun () -> prove
    (`&0 < y1 ==> &0 < y2 ==> (x1 / y1 < x2 / y2 <=> x1 * y2 < x2 * y1)`,
     REWRITE_TAC[IMP_IMP] THEN
     GEN_REWRITE_TAC (RAND_CONV o ONCE_DEPTH_CONV) [GSYM REAL_NOT_LE] THEN
-    SIMP_TAC[TAUT `(~a <=> ~b) <=> (a <=> b)`; RAT_LEMMA4])
+    SIMP_TAC[TAUT `(~a <=> ~b) <=> (a <=> b)`; RAT_LEMMA4]))
   and x1 = `x1:real` and x2 = `x2:real`
   and y1 = `y1:real` and y2 = `y2:real`
   and dest_lt = dest_binop `(<)`
@@ -140,9 +146,9 @@ let REAL_RAT_GT_CONV =
   GEN_REWRITE_CONV I [real_gt] THENC REAL_RAT_LT_CONV;;
 
 let REAL_RAT_EQ_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_EQ_CONV.pth" (fun () -> prove
    (`&0 < y1 ==> &0 < y2 ==> ((x1 / y1 = x2 / y2) <=> (x1 * y2 = x2 * y1))`,
-    REWRITE_TAC[IMP_IMP; RAT_LEMMA5])
+    REWRITE_TAC[IMP_IMP; RAT_LEMMA5]))
   and x1 = `x1:real` and x2 = `x2:real`
   and y1 = `y1:real` and y2 = `y2:real`
   and dest_eq = dest_binop `(=) :real->real->bool`
@@ -163,14 +169,14 @@ let REAL_RAT_EQ_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RAT_NEG_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_NEG_CONV.pth" (fun () -> prove
    (`(--(&0) = &0) /\
      (--(--(&n)) = &n) /\
      (--(&m / &n) = --(&m) / &n) /\
      (--(--(&m) / &n) = &m / &n) /\
      (--(DECIMAL m n) = --(&m) / &n)`,
     REWRITE_TAC[real_div; REAL_INV_NEG; REAL_MUL_LNEG; REAL_NEG_NEG;
-     REAL_NEG_0; DECIMAL])
+     REAL_NEG_0; DECIMAL]))
   and ptm = `(--)` in
   let conv1 = GEN_REWRITE_CONV I [pth] in
   fun tm -> try conv1 tm
@@ -182,18 +188,18 @@ let REAL_RAT_NEG_CONV =
             with Failure _ -> failwith "REAL_RAT_NEG_CONV";;
 
 let REAL_RAT_ABS_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_ABS_CONV.pth" (fun () -> prove
    (`(abs(&n) = &n) /\
      (abs(--(&n)) = &n) /\
      (abs(&m / &n) = &m / &n) /\
      (abs(--(&m) / &n) = &m / &n) /\
      (abs(DECIMAL m n) = &m / &n) /\
      (abs(--(DECIMAL m n)) = &m / &n)`,
-    REWRITE_TAC[DECIMAL; REAL_ABS_DIV; REAL_ABS_NEG; REAL_ABS_NUM]) in
+    REWRITE_TAC[DECIMAL; REAL_ABS_DIV; REAL_ABS_NEG; REAL_ABS_NUM])) in
   GEN_REWRITE_CONV I [pth];;
 
 let REAL_RAT_INV_CONV =
-  let pth1 = prove
+  let pth1 = log_lemma "REAL_RAT_INV_CONV.pth1" (fun () -> prove
    (`(inv(&0) = &0) /\
      (inv(&1) = &1) /\
      (inv(-- &1) = --(&1)) /\
@@ -202,8 +208,8 @@ let REAL_RAT_INV_CONV =
     REWRITE_TAC[REAL_INV_0; REAL_INV_1; REAL_INV_NEG;
                 REAL_INV_DIV; REAL_DIV_1] THEN
     REWRITE_TAC[real_div; REAL_INV_NEG; REAL_MUL_RNEG; REAL_INV_1;
-                REAL_MUL_RID])
-  and pth2 = prove
+                REAL_MUL_RID]))
+  and pth2 = log_lemma "REAL_RAT_INV_CONV.pth2" (fun () -> prove
    (`(inv(&n) = &1 / &n) /\
      (inv(--(&n)) = --(&1) / &n) /\
      (inv(&m / &n) = &n / &m) /\
@@ -212,7 +218,7 @@ let REAL_RAT_INV_CONV =
      (inv(--(DECIMAL m n)) = --(&n) / &m)`,
     REWRITE_TAC[DECIMAL; REAL_INV_DIV] THEN
     REWRITE_TAC[REAL_INV_NEG; real_div; REAL_MUL_RNEG; REAL_MUL_AC;
-      REAL_MUL_LID; REAL_MUL_LNEG; REAL_INV_MUL; REAL_INV_INV]) in
+      REAL_MUL_LID; REAL_MUL_LNEG; REAL_INV_MUL; REAL_INV_INV])) in
   GEN_REWRITE_CONV I [pth1] ORELSEC
   GEN_REWRITE_CONV I [pth2];;
 
@@ -221,7 +227,7 @@ let REAL_RAT_INV_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RAT_ADD_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_ADD_CONV.pth" (fun () -> prove
    (`&0 < y1 ==> &0 < y2 ==> &0 < y3 ==>
      ((x1 * y2 + x2 * y1) * y3 = x3 * y1 * y2)
      ==> (x1 / y1 + x2 / y2 = x3 / y3)`,
@@ -233,7 +239,7 @@ let REAL_RAT_ADD_CONV =
     SUBGOAL_THEN `&0 < y1 * y2 /\ &0 < y3` MP_TAC THENL
      [ASM_REWRITE_TAC[] THEN MATCH_MP_TAC REAL_LT_MUL THEN
       ASM_REWRITE_TAC[];
-      DISCH_THEN(fun th -> ASM_REWRITE_TAC[MATCH_MP RAT_LEMMA5 th])])
+      DISCH_THEN(fun th -> ASM_REWRITE_TAC[MATCH_MP RAT_LEMMA5 th])]))
   and dest_divop = dest_binop `(/)`
   and dest_addop = dest_binop `(+)`
   and x1 = `x1:real` and x2 = `x2:real` and x3 = `x3:real`
@@ -267,9 +273,9 @@ let REAL_RAT_ADD_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RAT_SUB_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_SUB_CONV.pth" (fun () -> prove
    (`x - y = x + --y`,
-    REWRITE_TAC[real_sub]) in
+    REWRITE_TAC[real_sub])) in
   GEN_REWRITE_CONV I [pth] THENC
   RAND_CONV REAL_RAT_NEG_CONV THENC REAL_RAT_ADD_CONV;;
 
@@ -278,10 +284,10 @@ let REAL_RAT_SUB_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RAT_MUL_CONV =
-  let pth_nocancel = prove
+  let pth_nocancel = log_lemma "REAL_RAT_MUL_CONV.pth_nocancel" (fun () -> prove
    (`(x1 / y1) * (x2 / y2) = (x1 * x2) / (y1 * y2)`,
-    REWRITE_TAC[real_div; REAL_INV_MUL; REAL_MUL_AC])
-  and pth_cancel = prove
+    REWRITE_TAC[real_div; REAL_INV_MUL; REAL_MUL_AC]))
+  and pth_cancel = log_lemma "REAL_RAT_MUL_CONV.pth_cancel" (fun () -> prove
    (`~(d1 = &0) /\ ~(d2 = &0) /\
      (d1 * u1 = x1) /\ (d2 * u2 = x2) /\
      (d2 * v1 = y1) /\ (d1 * v2 = y2)
@@ -293,9 +299,9 @@ let REAL_RAT_MUL_CONV =
     ONCE_REWRITE_TAC[AC REAL_MUL_AC
      `((d1 * u1) * (id2 * iv1)) * ((d2 * u2) * id1 * iv2) =
       (u1 * u2) * (iv1 * iv2) * (id2 * d2) * (id1 * d1)`] THEN
-    ASM_SIMP_TAC[REAL_MUL_LINV; REAL_MUL_RID])
+    ASM_SIMP_TAC[REAL_MUL_LINV; REAL_MUL_RID]))
   and dest_divop = dest_binop `(/)`
-  and dest_mulop = dest_binop `(*)`
+  and dest_mulop = dest_binop `( * )`
   and x1 = `x1:real` and x2 = `x2:real`
   and y1 = `y1:real` and y2 = `y2:real`
   and u1 = `u1:real` and u2 = `u2:real`
@@ -339,9 +345,9 @@ let REAL_RAT_MUL_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RAT_DIV_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_DIV_CONV.pth" (fun () -> prove
    (`x / y = x * inv(y)`,
-    REWRITE_TAC[real_div]) in
+    REWRITE_TAC[real_div])) in
   let rawconv = GEN_REWRITE_CONV I [pth] THENC
                 RAND_CONV REAL_RAT_INV_CONV THENC REAL_RAT_MUL_CONV in
   let div_tm = `(/)` in
@@ -359,9 +365,9 @@ let REAL_RAT_DIV_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RAT_POW_CONV =
-  let pth = prove
+  let pth = log_lemma "REAL_RAT_POW_CONV.pth" (fun () -> prove
    (`(x / y) pow n = (x pow n) / (y pow n)`,
-    REWRITE_TAC[REAL_POW_DIV]) in
+    REWRITE_TAC[REAL_POW_DIV])) in
   REAL_INT_POW_CONV ORELSEC
   (LAND_CONV REAL_INT_RAT_CONV THENC
    GEN_REWRITE_CONV I [pth] THENC
@@ -428,7 +434,7 @@ let REAL_POLY_CONV =
   and inv_tm = `inv:real->real`
   and add_tm = `(+):real->real->real`
   and sub_tm = `(-):real->real->real`
-  and mul_tm = `(*):real->real->real`
+  and mul_tm = `( * ):real->real->real`
   and div_tm = `(/):real->real->real`
   and pow_tm = `(pow):real->num->real`
   and abs_tm = `abs:real->real`
@@ -471,7 +477,7 @@ let REAL_POLY_CONV =
 (* ------------------------------------------------------------------------- *)
 
 let REAL_RING,real_ideal_cofactors =
-  let REAL_INTEGRAL = prove
+  let REAL_INTEGRAL = log_lemma "REAL_INTEGRAL" (fun () -> prove
    (`(!x. &0 * x = &0) /\
      (!x y z. (x + y = x + z) <=> (y = z)) /\
      (!w x y z. (w * y + x * z = w * z + x * y) <=> (w = x) \/ (y = z))`,
@@ -479,19 +485,19 @@ let REAL_RING,real_ideal_cofactors =
     REWRITE_TAC[GSYM REAL_OF_NUM_EQ;
                 GSYM REAL_OF_NUM_ADD; GSYM REAL_OF_NUM_MUL] THEN
     ONCE_REWRITE_TAC[GSYM REAL_SUB_0] THEN
-    REWRITE_TAC[GSYM REAL_ENTIRE] THEN REAL_ARITH_TAC)
-  and REAL_RABINOWITSCH = prove
+    REWRITE_TAC[GSYM REAL_ENTIRE] THEN REAL_ARITH_TAC))
+  and REAL_RABINOWITSCH = log_lemma "REAL_REABINOWITSCH" (fun () -> prove
    (`!x y:real. ~(x = y) <=> ?z. (x - y) * z = &1`,
     REPEAT GEN_TAC THEN
     GEN_REWRITE_TAC (LAND_CONV o RAND_CONV) [GSYM REAL_SUB_0] THEN
-    MESON_TAC[REAL_MUL_RINV; REAL_MUL_LZERO; REAL_ARITH `~(&1 = &0)`])
+    MESON_TAC[REAL_MUL_RINV; REAL_MUL_LZERO; REAL_ARITH `~(&1 = &0)`]))
   and init = GEN_REWRITE_CONV ONCE_DEPTH_CONV [DECIMAL]
   and real_ty = `:real` in
   let pure,ideal =
     RING_AND_IDEAL_CONV
         (rat_of_term,term_of_rat,REAL_RAT_EQ_CONV,
          `(--):real->real`,`(+):real->real->real`,`(-):real->real->real`,
-         `(inv):real->real`,`(*):real->real->real`,`(/):real->real->real`,
+         `(inv):real->real`,`( * ):real->real->real`,`(/):real->real->real`,
          `(pow):real->num->real`,
          REAL_INTEGRAL,REAL_RABINOWITSCH,REAL_POLY_CONV) in
   (fun tm -> let th = init tm in EQ_MP (SYM th) (pure(rand(concl th)))),
@@ -571,3 +577,9 @@ let REAL_FIELD =
     let th1 = setup_conv bod in
     let ths = map BASIC_REAL_FIELD (conjuncts(rand(concl th1))) in
     EQ_MP (SYM th0) (GENL avs (EQ_MP (SYM th1) (end_itlist CONJ ths)));;
+
+(* ------------------------------------------------------------------------- *)
+(* Close out the logfile.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+logfile_end ();;
