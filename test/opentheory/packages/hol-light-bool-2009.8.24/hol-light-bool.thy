@@ -9,7 +9,7 @@ require def {
 }
 
 require rule {
-  require: def
+  import: def
   package: hol-light-bool-rule-2009.8.24
 }
 

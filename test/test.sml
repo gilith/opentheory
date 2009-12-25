@@ -438,7 +438,7 @@ fun import name =
             {finder = finder,
              savable = false,
              simulations = HolLight.simulations,
-             requires = InstanceSet.empty,
+             imports = InstanceSet.empty,
              interpretation = Interpretation.natural,
              package = PackageName.fromString name};
 

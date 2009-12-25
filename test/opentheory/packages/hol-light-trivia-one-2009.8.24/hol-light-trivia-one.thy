@@ -9,7 +9,7 @@ require def {
 }
 
 require thm {
-  require: def
+  import: def
   package: hol-light-trivia-one-thm-2009.8.24
 }
 

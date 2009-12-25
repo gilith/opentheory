@@ -15,7 +15,7 @@ type name = string
 datatype require =
     Require of
       {name : name,
-       requires : name list,
+       imports : name list,
        interpretation : Interpretation.interpretation,
        package : PackageName.name}
 
@@ -24,6 +24,10 @@ datatype require =
 (* ------------------------------------------------------------------------- *)
 
 val name : require -> name
+
+val imports : require -> name list
+
+val interpretation : require -> Interpretation.interpretation
 
 val package : require -> PackageName.name
 

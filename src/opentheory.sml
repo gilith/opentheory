@@ -393,7 +393,7 @@ fun compile {filename} =
       and finder = finder ()
       and savable = List.exists savableCompileOutput outs
       and ref sim = simulations
-      and req = InstanceSet.empty
+      and imps = InstanceSet.empty
       and int = Interpretation.natural
 
       val (graph,inst) =
@@ -401,7 +401,7 @@ fun compile {filename} =
             {finder = finder,
              savable = savable,
              simulations = sim,
-             requires = req,
+             imports = imps,
              interpretation = int,
              package = pkg}
 

@@ -9,28 +9,28 @@ require eta {
 }
 
 require select {
-  require: eta
+  import: eta
   package: hol-light-class-select-2009.8.24
 }
 
 require cond {
-  require: eta
-  require: select
+  import: eta
+  import: select
   package: hol-light-class-cond-2009.8.24
 }
 
 require skolem {
-  require: eta
-  require: select
-  require: cond
+  import: eta
+  import: select
+  import: cond
   package: hol-light-class-skolem-2009.8.24
 }
 
 require bool {
-  require: eta
-  require: select
-  require: cond
-  require: skolem
+  import: eta
+  import: select
+  import: cond
+  import: skolem
   package: hol-light-class-bool-2009.8.24
 }
 

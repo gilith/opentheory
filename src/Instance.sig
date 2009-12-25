@@ -18,7 +18,7 @@ type instance
 
 datatype instance' =
     Instance' of
-      {requires : instance list,
+      {imports : instance list,
        interpretation : Interpretation.interpretation,
        package : PackageName.name option,
        theory : instance Theory.theory,
@@ -30,7 +30,7 @@ val mk : instance' -> instance
 
 val dest : instance -> instance'
 
-val requires : instance -> instance list
+val imports : instance -> instance list
 
 val interpretation : instance -> Interpretation.interpretation
 
@@ -63,7 +63,7 @@ val theoryImports : instance -> instance list
 
 val fromTheory :
     {savable : bool,
-     requires : instance list,
+     imports : instance list,
      simulations : Simulation.simulations,
      importToInstance : 'a -> instance,
      interpretation : Interpretation.interpretation,

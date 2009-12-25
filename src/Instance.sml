@@ -21,7 +21,7 @@ datatype instance =
 
 and instance' =
     Instance' of
-      {requires : instance list,
+      {imports : instance list,
        interpretation : Interpretation.interpretation,
        package : PackageName.name option,
        theory : instance Theory.theory,
@@ -68,9 +68,9 @@ fun mk inst' =
 
 fun dest (Instance {instance = x, ...}) = x;
 
-fun requires inst =
+fun imports inst =
     let
-      val Instance' {requires = x, ...} = dest inst
+      val Instance' {imports = x, ...} = dest inst
     in
       x
     end;
@@ -146,7 +146,7 @@ fun theoryImports inst =
 fun fromTheory info =
     let
       val {savable,
-           requires = req,
+           imports = req,
            simulations,
            importToInstance = impToInst,
            interpretation = int,
@@ -174,7 +174,7 @@ fun fromTheory info =
 
       val instance' =
           Instance'
-            {requires = req,
+            {imports = req,
              interpretation = int,
              package = pkg,
              theory = thy,
@@ -199,7 +199,7 @@ struct
     open S;
   end;
 
-  fun requiresInstance inst = fromList (Instance.requires inst);
+  fun importsInstance inst = fromList (Instance.imports inst);
 
 end
 

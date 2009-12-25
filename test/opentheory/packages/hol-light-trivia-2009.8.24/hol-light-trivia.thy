@@ -9,7 +9,7 @@ require comb {
 }
 
 require one {
-  require: comb
+  import: comb
   package: hol-light-trivia-one-2009.8.24
 }
 

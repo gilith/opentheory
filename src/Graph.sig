@@ -41,7 +41,7 @@ val lookup : graph -> PackageName.name -> InstanceSet.set
 val match :
     graph ->
     {savable : bool,
-     requiresAtLeast : InstanceSet.set,
+     importsAtLeast : InstanceSet.set,
      interpretationEquivalentTo : Interpretation.interpretation,
      package : PackageName.name} ->
     InstanceSet.set
@@ -53,7 +53,7 @@ val match :
 val importTheory :
     graph ->
     {savable : bool,
-     requires : InstanceSet.set,
+     imports : InstanceSet.set,
      simulations : Simulation.simulations,
      importToInstance : PackageRequire.name -> Instance.instance,
      interpretation : Interpretation.interpretation,
@@ -67,7 +67,7 @@ val matchImportPackageName :
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     requiresAtLeast : InstanceSet.set,
+     importsAtLeast : InstanceSet.set,
      interpretationEquivalentTo : Interpretation.interpretation,
      package : PackageName.name} ->
     graph * Instance.instance
@@ -77,7 +77,7 @@ val importPackageName :
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     requires : InstanceSet.set,
+     imports : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name} ->
     graph * Instance.instance
@@ -87,7 +87,7 @@ val importPackage :
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     requires : InstanceSet.set,
+     imports : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      package : Package.package} ->
     graph * Instance.instance
@@ -97,7 +97,7 @@ val importContents :
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     requires : InstanceSet.set,
+     imports : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name option,
      directory : string,
@@ -109,7 +109,7 @@ val importRequire :
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     requires : InstanceSet.set,
+     imports : InstanceSet.set,
      interpretation : Interpretation.interpretation,
      requireNameToInstance : PackageRequire.name -> Instance.instance,
      require : PackageRequire.require} ->

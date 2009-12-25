@@ -13,6 +13,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val closeBlockString = "}"
+and importKeywordString = "import"
 and interpretKeywordString = "interpret"
 and openBlockString = "{"
 and packageKeywordString = "package"
@@ -28,7 +29,7 @@ type name = string;
 datatype require =
     Require of
       {name : name,
-       requires : name list,
+       imports : name list,
        interpretation : Interpretation.interpretation,
        package : PackageName.name};
 
@@ -38,6 +39,10 @@ datatype require =
 
 fun name (Require {name = x, ...}) = x;
 
+fun imports (Require {imports = x, ...}) = x;
+
+fun interpretation (Require {interpretation = x, ...}) = x;
+
 fun package (Require {package = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
@@ -45,13 +50,13 @@ fun package (Require {package = x, ...}) = x;
 (* ------------------------------------------------------------------------- *)
 
 datatype constraint =
-    RequireConstraint of name
+    ImportConstraint of name
   | InterpretConstraint of Interpretation.rewrite
   | PackageConstraint of PackageName.name;
 
-fun destRequireConstraint c =
+fun destImportConstraint c =
     case c of
-      RequireConstraint r => SOME r
+      ImportConstraint r => SOME r
     | _ => NONE;
 
 fun destInterpretConstraint c =
@@ -66,7 +71,7 @@ fun destPackageConstraint c =
 
 fun mkRequire (name,cs) =
     let
-      val requires = List.mapPartial destRequireConstraint cs
+      val imports = List.mapPartial destImportConstraint cs
 
       val rws = List.mapPartial destInterpretConstraint cs
 
@@ -81,22 +86,22 @@ fun mkRequire (name,cs) =
     in
       Require
         {name = name,
-         requires = requires,
+         imports = imports,
          interpretation = interpretation,
          package = package}
     end;
 
 fun destRequire req =
     let
-      val Require {name,requires,interpretation,package} = req
+      val Require {name,imports,interpretation,package} = req
 
-      val reqs = map RequireConstraint requires
+      val imps = map ImportConstraint imports
 
       val rws = Interpretation.toRewriteList interpretation
 
       val ints = map InterpretConstraint rws
 
-      val cs = reqs @ ints @ [PackageConstraint package]
+      val cs = imps @ ints @ [PackageConstraint package]
     in
       (name,cs)
     end;
@@ -110,7 +115,7 @@ local
       let
         fun ins (req,(m,l)) =
             let
-              val Require {name = n, requires = rs, ...} = req
+              val Require {name = n, imports = rs, ...} = req
 
               val m = StringMap.insert m (n,(rs,req))
 
@@ -180,6 +185,7 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 val ppCloseBlock = Print.addString closeBlockString
+and ppImportKeyword = Print.addString importKeywordString
 and ppInterpretKeyword = Print.addString interpretKeywordString
 and ppOpenBlock = Print.addString openBlockString
 and ppPackageKeyword = Print.addString packageKeywordString
@@ -207,8 +213,8 @@ local
 in
   fun ppConstraint c =
       case c of
-        RequireConstraint r =>
-        ppNameValue ppRequireKeyword (ppName r)
+        ImportConstraint r =>
+        ppNameValue ppImportKeyword (ppName r)
       | InterpretConstraint r =>
         ppNameValue ppInterpretKeyword (Interpretation.ppRewrite r)
       | PackageConstraint p =>
@@ -259,6 +265,7 @@ local
   open Parse;
 
   val closeBlockParser = exactString closeBlockString
+  and importKeywordParser = exactString importKeywordString
   and interpretKeywordParser = exactString interpretKeywordString
   and openBlockParser = exactString openBlockString
   and packageKeywordParser = exactString packageKeywordString
@@ -275,11 +282,11 @@ local
         (fn (c,cs) => implode (c :: cs))
       end;
 
-  val requireConstraintParser =
-      (requireKeywordParser ++ manySpace ++
+  val importConstraintParser =
+      (importKeywordParser ++ manySpace ++
        separatorParser ++ manySpace ++
        nameParser) >>
-      (fn ((),((),((),((),r)))) => RequireConstraint r);
+      (fn ((),((),((),((),r)))) => ImportConstraint r);
 
   val interpretConstraintParser =
       (interpretKeywordParser ++ manySpace ++
@@ -294,7 +301,7 @@ local
       (fn ((),((),((),((),p)))) => PackageConstraint p);
 
   val constraintParser =
-      requireConstraintParser ||
+      importConstraintParser ||
       interpretConstraintParser ||
       packageConstraintParser;
 

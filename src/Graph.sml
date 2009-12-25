@@ -46,7 +46,7 @@ fun lookupPackages packages package =
 fun add graph inst =
     let
 (*OpenTheoryDebug
-      val insts = Instance.requires inst @ Instance.theoryImports inst
+      val insts = Instance.imports inst @ Instance.theoryImports inst
 
       val _ = List.all (fn i => member i graph) insts orelse
               raise Bug "Graph.add: parent instance not in graph"
@@ -87,7 +87,7 @@ fun lookup (Graph {packages,...}) package =
 fun match graph spec =
     let
       val {savable = sav,
-           requiresAtLeast = req,
+           importsAtLeast = req,
            interpretationEquivalentTo = int,
            package = pkg} = spec
 
@@ -101,7 +101,7 @@ fun match graph spec =
 
       fun matchReq inst =
           let
-            val req' = InstanceSet.requiresInstance inst
+            val req' = InstanceSet.importsInstance inst
           in
             InstanceSet.subset req req'
           end
@@ -134,7 +134,7 @@ fun match graph spec =
 fun importTheory graph info =
     let
       val {savable,
-           requires = req,
+           imports = req,
            simulations,
            importToInstance,
            interpretation = int,
@@ -147,7 +147,7 @@ fun importTheory graph info =
       val inst =
           Instance.fromTheory
             {savable = savable,
-             requires = req,
+             imports = req,
              simulations = simulations,
              importToInstance = importToInstance,
              interpretation = int,
@@ -165,13 +165,13 @@ fun matchImportPackageName graph info =
       val {finder,
            savable,
            simulations,
-           requiresAtLeast = req,
+           importsAtLeast = req,
            interpretationEquivalentTo = int,
            package = pkg} = info
 
       val matchInfo =
           {savable = savable,
-           requiresAtLeast = req,
+           importsAtLeast = req,
            interpretationEquivalentTo = int,
            package = pkg}
 
@@ -184,7 +184,7 @@ fun matchImportPackageName graph info =
               {finder = finder,
                savable = savable,
                simulations = simulations,
-               requires = req,
+               imports = req,
                interpretation = int,
                package = pkg}
         in
@@ -197,7 +197,7 @@ and importPackageName graph info =
       val {finder,
            savable,
            simulations,
-           requires = req,
+           imports = req,
            interpretation = int,
            package = pkg} = info
 
@@ -212,7 +212,7 @@ and importPackageName graph info =
           {finder = finder,
            savable = savable,
            simulations = simulations,
-           requires = req,
+           imports = req,
            interpretation = int,
            package = pkg}
     in
@@ -224,7 +224,7 @@ and importPackage graph info =
       val {finder,
            savable,
            simulations,
-           requires = req,
+           imports = req,
            interpretation = int,
            package = pkg} = info
 
@@ -234,7 +234,7 @@ and importPackage graph info =
           {finder = finder,
            savable = savable,
            simulations = simulations,
-           requires = req,
+           imports = req,
            interpretation = int,
            package = name,
            directory = directory,
@@ -248,7 +248,7 @@ and importContents graph info =
       val {finder,
            savable,
            simulations,
-           requires = req,
+           imports = req,
            interpretation = int,
            package = pkg,
            directory = dir,
@@ -269,7 +269,7 @@ and importContents graph info =
                 {finder = finder,
                  savable = savable,
                  simulations = simulations,
-                 requires = req,
+                 imports = req,
                  interpretation = int,
                  requireNameToInstance = reqToInst,
                  require = require}
@@ -293,7 +293,7 @@ and importContents graph info =
       val info =
           {savable = savable,
            simulations = simulations,
-           requires = req,
+           imports = req,
            interpretation = int,
            package = pkg,
            directory = dir,
@@ -308,22 +308,22 @@ and importRequire graph info =
       val {finder,
            savable,
            simulations,
-           requires = req,
+           imports = imps,
            interpretation = int,
            requireNameToInstance = reqToInst,
            require} = info
 
       val PackageRequire.Require
             {name = _,
-             requires = reqs,
+             imports = reqs,
              interpretation = reqInt,
              package = pkg} = require
 
-      val requiresAtLeast =
+      val importsAtLeast =
           let
             fun add (r,s) = InstanceSet.add s (reqToInst r)
           in
-            List.foldl add req reqs
+            List.foldl add imps reqs
           end
 
       val interpretationEquivalentTo = Interpretation.compose reqInt int
@@ -332,7 +332,7 @@ and importRequire graph info =
           {finder = finder,
            savable = savable,
            simulations = simulations,
-           requiresAtLeast = requiresAtLeast,
+           importsAtLeast = importsAtLeast,
            interpretationEquivalentTo = interpretationEquivalentTo,
            package = pkg}
     in
