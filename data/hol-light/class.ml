@@ -11,10 +11,16 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "class-eta";;
+logfile "class-eta-axiom";;
 
 let ETA_AX = new_axiom
   `!t:A->B. (\x. t x) = t`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "class-eta-thm";;
 
 let ETA_CONV =
   let t = `t:A->B` in
@@ -44,7 +50,7 @@ let FUN_EQ_THM = log_lemma "FUN_EQ_THM" (fun () -> prove
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "class-select";;
+logfile "class-select-axiom";;
 
 (* ------------------------------------------------------------------------- *)
 (* Indefinite descriptor (giving AC).                                        *)
@@ -60,6 +66,12 @@ let mk_select = mk_binder "@";;
 
 let SELECT_AX = new_axiom
  `!P (x:A). P x ==> P((@) P)`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "class-select-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Useful for compatibility. (The old EXISTS_DEF.)                           *)
