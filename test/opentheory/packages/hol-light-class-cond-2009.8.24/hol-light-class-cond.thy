@@ -8,12 +8,19 @@ require def {
   package: hol-light-class-cond-def-2009.8.24
 }
 
+require alt {
+  import: def
+  package: hol-light-class-cond-alt-2009.8.24
+}
+
 require thm {
   import: def
+  import: alt
   package: hol-light-class-cond-thm-2009.8.24
 }
 
 theory {
   import def;
+  import alt;
   import thm;
 }

@@ -77,7 +77,7 @@ let one_DEF = new_definition
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "trivia-one-thm";;
+logfile "trivia-one-alt";;
 
 let one = log_lemma "one" (fun () -> prove
  (`!v:1. v = one`,
@@ -85,6 +85,12 @@ let one = log_lemma "one" (fun () -> prove
   REWRITE_TAC[CONJUNCT1 one_tydef] THEN DISCH_TAC THEN
   ONCE_REWRITE_TAC[GSYM (CONJUNCT1 one_tydef)] THEN
   ASM_REWRITE_TAC[]));;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "trivia-one-thm";;
 
 let one_axiom = log_lemma "one_axiom" (fun () -> prove
  (`!f g. f = (g:A->1)`,

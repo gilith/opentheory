@@ -22,11 +22,14 @@ if ! test -x $prog ; then echo "$prog not an executable" ; exit 1 ; fi
 int=$opentheory/test/interpretations/hol-light.int
 if ! test -r $int ; then echo "$int not readable" ; exit 1 ; fi
 
+rdir=$opentheory/test/opentheory
+if ! test -d $rdir ; then echo "$rdir not a directory" ; exit 1 ; fi
+
 for file in $(ls -tr *.art)
 do
     echo
     base=$(basename $file .art)
-    pdir=$opentheory/test/opentheory/packages/hol-light-$base-$ver
+    pdir=$rdir/packages/hol-light-$base-$ver
 
     if test -d $pdir
     then

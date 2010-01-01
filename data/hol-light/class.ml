@@ -396,12 +396,18 @@ let COND_DEF = new_definition
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "class-cond-thm";;
+logfile "class-cond-alt";;
 
 let COND_CLAUSES = log_lemma "COND_CLAUSES" (fun () -> prove
  (`!(t1:A) t2. ((if T then t1 else t2) = t1) /\
                ((if F then t1 else t2) = t2)`,
   REWRITE_TAC[COND_DEF]));;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "class-cond-thm";;
 
 let is_cond tm =
   try fst(dest_const(rator(rator (rator tm)))) = "COND"

@@ -8,12 +8,19 @@ require def {
   package: hol-light-trivia-one-def-2009.8.24
 }
 
+require alt {
+  import: def
+  package: hol-light-trivia-one-alt-2009.8.24
+}
+
 require thm {
   import: def
+  import: alt
   package: hol-light-trivia-one-thm-2009.8.24
 }
 
 theory {
   import def;
+  import alt;
   import thm;
 }
