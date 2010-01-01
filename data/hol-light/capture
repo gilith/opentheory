@@ -2,7 +2,7 @@
 
 ver=2009.8.24
 
-echo '#use "hol.ml";;' | ocaml
+# echo '#use "hol.ml";;' | ocaml
 
 opentheory=../..
 

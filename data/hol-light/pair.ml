@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "pair";;
+logfile "pair-def";;
 
 let LET_DEF = new_definition
  `LET (f:A->B) x = f x`;;
@@ -69,6 +69,12 @@ let FST_DEF = new_definition
 let SND_DEF = new_definition
  `SND (p:A#B) = @y. ?x. p = x,y`;;
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "pair-alt";;
+
 let PAIR_EQ = log_lemma "PAIR_EQ" (fun () -> prove
  (`!(x:A) (y:B) a b. (x,y = a,b) <=> (x = a) /\ (y = b)`,
   REPEAT GEN_TAC THEN EQ_TAC THENL
@@ -103,6 +109,12 @@ let SND = log_lemma "SND" (fun () -> prove
   REWRITE_TAC[PAIR_EQ] THEN EQ_TAC THEN
   STRIP_TAC THEN ASM_REWRITE_TAC[] THEN
   EXISTS_TAC `x:A` THEN ASM_REWRITE_TAC[]));;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "pair-thm";;
 
 let PAIR = log_lemma "PAIR" (fun () -> prove
  (`!x:A#B. FST x,SND x = x`,
