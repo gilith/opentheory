@@ -13,33 +13,6 @@
 
 logfile "pair-def";;
 
-let LET_DEF = new_definition
- `LET (f:A->B) x = f x`;;
-
-let LET_END_DEF = new_definition
- `LET_END (t:A) = t`;;
-
-let GABS_DEF = new_definition
- `GABS (P:A->bool) = (@) P`;;
-
-let GEQ_DEF = new_definition
- `GEQ a b = (a:A = b)`;;
-
-let _SEQPATTERN = new_definition
- `_SEQPATTERN = \r s x. if ?y. r x y then r x else s x`;;
-
-let _UNGUARDED_PATTERN = new_definition
- `_UNGUARDED_PATTERN = \p r. p /\ r`;;
-
-let _GUARDED_PATTERN = new_definition
- `_GUARDED_PATTERN = \p g r. p /\ g /\ r`;;
-
-let _MATCH = new_definition
- `_MATCH =  \e r. if (?!) (r e) then (@) (r e) else @z. F`;;
-
-let _FUNCTION = new_definition
- `_FUNCTION = \r x. if (?!) (r x) then (@) (r x) else @z. F`;;
-
 (* ------------------------------------------------------------------------- *)
 (* Pair type.                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -115,6 +88,33 @@ let SND = log_lemma "SND" (fun () -> prove
 (* ------------------------------------------------------------------------- *)
 
 logfile "pair-thm";;
+
+let LET_DEF = new_definition
+ `LET (f:A->B) x = f x`;;
+
+let LET_END_DEF = new_definition
+ `LET_END (t:A) = t`;;
+
+let GABS_DEF = new_definition
+ `GABS (P:A->bool) = (@) P`;;
+
+let GEQ_DEF = new_definition
+ `GEQ a b = (a:A = b)`;;
+
+let _SEQPATTERN = new_definition
+ `_SEQPATTERN = \r s x. if ?y. r x y then r x else s x`;;
+
+let _UNGUARDED_PATTERN = new_definition
+ `_UNGUARDED_PATTERN = \p r. p /\ r`;;
+
+let _GUARDED_PATTERN = new_definition
+ `_GUARDED_PATTERN = \p g r. p /\ g /\ r`;;
+
+let _MATCH = new_definition
+ `_MATCH =  \e r. if (?!) (r e) then (@) (r e) else @z. F`;;
+
+let _FUNCTION = new_definition
+ `_FUNCTION = \r x. if (?!) (r x) then (@) (r x) else @z. F`;;
 
 let PAIR = log_lemma "PAIR" (fun () -> prove
  (`!x:A#B. FST x,SND x = x`,
@@ -254,7 +254,7 @@ let GEN_BETA_CONV =
       let th = BETA_RULE(PINST [ity,zty] [list_mk_abs(avs,a),gcon] fth) in
       SYM(SPEC_ALL(SELECT_RULE th)) in
     let ths = map mk_projector avs in
-    (projection_cache := (conname,ths)::(!projection_cache); ths) in
+    ((***projection_cache := (conname,ths)::(!projection_cache);***) ths) in
   let GEQ_CONV = REWR_CONV(GSYM GEQ_DEF)
   and DEGEQ_RULE = CONV_RULE(REWR_CONV GEQ_DEF) in
   let GABS_RULE =

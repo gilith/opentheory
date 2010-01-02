@@ -14,13 +14,11 @@ require alt {
 }
 
 require thm {
-  import: def
   import: alt
   package: hol-light-class-cond-thm-2009.8.24
 }
 
 theory {
-  import def;
   import alt;
   import thm;
 }
