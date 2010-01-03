@@ -89,6 +89,20 @@ require class-bool {
   package: hol-light-class-bool-2009.8.24
 }
 
+require trivia-comb {
+  import: bool-rule
+  import: tactics
+  import: simp
+  import: theorems
+  import: ind-defs
+  import: class-eta-thm
+  import: class-select-thm
+  import: class-cond-thm
+  import: class-skolem
+  import: class-bool
+  package: hol-light-trivia-comb-2009.8.24
+}
+
 require def {
   import: bool-rule
   import: tactics
@@ -100,6 +114,7 @@ require def {
   import: class-cond-thm
   import: class-skolem
   import: class-bool
+  import: trivia-comb
   package: hol-light-trivia-one-def-2009.8.24
 }
 
@@ -114,6 +129,7 @@ require alt {
   import: class-cond-thm
   import: class-skolem
   import: class-bool
+  import: trivia-comb
   import: def
   package: hol-light-trivia-one-alt-2009.8.24
 }
