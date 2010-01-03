@@ -748,7 +748,8 @@ val infixTokens =
        {token = " /\\ ", precedence = ~1, leftAssoc = false},
        {token = " \\/ ", precedence = ~2, leftAssoc = false},
        {token = " ==> ", precedence = ~3, leftAssoc = false},
-       {token = " <=> ", precedence = ~4, leftAssoc = false}];
+       {token = " <=> ", precedence = ~4, leftAssoc = false},
+       {token = ", ", precedence = ~1000, leftAssoc = false}];
 
 local
   val negString = "~";

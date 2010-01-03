@@ -1,3 +1,7 @@
 type "fun" -> "->"
 type "prod" -> "*"
+type "1" -> "unit"
 const "@" -> "select"
+const "COND" -> "cond"
+const "FST" -> "fst"
+const "SND" -> "snd"
