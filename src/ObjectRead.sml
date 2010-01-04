@@ -44,10 +44,13 @@ local
   val alignment : columnAlignment list =
       [{leftAlign = true, padChar = #"."},
        {leftAlign = false, padChar = #"."}];
+
+  val countToString = Print.toString Print.ppPrettyInt;
 in
   fun ppInferenceCount (InferenceCount m) =
       let
-        fun inc (n,i,z) = [Name.toString n ^ " ...", " " ^ Int.toString i] :: z
+        fun inc (n,i,z) =
+            [Name.toString n ^ " ...", " " ^ countToString i] :: z
 
         val table = NameMap.foldr inc [] m
 

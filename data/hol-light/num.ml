@@ -11,9 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "num";;
-
-new_type ("ind",0);;
+logfile "num-inj-surj";;
 
 (* ------------------------------------------------------------------------- *)
 (* We assert the axiom of infinity as in HOL88, but then we can forget it!   *)
@@ -25,8 +23,22 @@ let ONE_ONE = new_definition
 let ONTO = new_definition
   `ONTO(f:A->B) = !y. ?x. y = f x`;;
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "num-infinity";;
+
+new_type ("ind",0);;
+
 let INFINITY_AX = new_axiom
   `?f:ind->ind. ONE_ONE f /\ ~(ONTO f)`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "num-def";;
 
 (* ------------------------------------------------------------------------- *)
 (* Actually introduce constants.                                             *)
@@ -59,6 +71,12 @@ let ZERO_DEF = new_definition
 
 let SUC_DEF = new_definition
  `SUC n = mk_num(IND_SUC(dest_num n))`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "num-alt";;
 
 (* ------------------------------------------------------------------------- *)
 (* Distinctness and injectivity of constructors.                             *)
@@ -135,11 +153,23 @@ let num_Axiom = log_lemma "num_Axiom" (fun () -> prove
     REPEAT STRIP_TAC THEN ASM_REWRITE_TAC[]]));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "num-numeral";;
+
+(* ------------------------------------------------------------------------- *)
 (* The basic numeral tag; rewrite existing instances of "_0".                *)
 (* ------------------------------------------------------------------------- *)
 
 let NUMERAL = new_definition
  `NUMERAL (n:num) = n`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "num-thm";;
 
 let [NOT_SUC; num_INDUCTION; num_Axiom] =
   log_lemmas "[NOT_SUC; num_INDUCTION; num_Axiom]" (fun () ->
