@@ -4,4 +4,47 @@ description: HOL Light num theory
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 
-theory { article "num.art"; }
+require inj-surj {
+  package: hol-light-num-inj-surj-2009.8.24
+}
+
+require axiom {
+  import: inj-surj
+  package: hol-light-num-infinity-2009.8.24
+}
+
+require def {
+  import: inj-surj
+  import: axiom
+  package: hol-light-num-def-2009.8.24
+}
+
+require alt {
+  import: inj-surj
+  import: axiom
+  import: def
+  package: hol-light-num-alt-2009.8.24
+}
+
+require numeral {
+  import: inj-surj
+  import: axiom
+  import: alt
+  package: hol-light-num-numeral-2009.8.24
+}
+
+require thm {
+  import: inj-surj
+  import: axiom
+  import: alt
+  import: numeral
+  package: hol-light-num-thm-2009.8.24
+}
+
+theory {
+  import inj-surj;
+  import axiom;
+  import alt;
+  import numeral;
+  import thm;
+}
