@@ -49,10 +49,11 @@ local
 in
   fun ppInferenceCount (InferenceCount m) =
       let
-        fun inc (n,i,z) =
-            [Name.toString n ^ " ...", " " ^ countToString i] :: z
+        fun mkRow (n,i) = [Name.toString n ^ " ...", " " ^ countToString i]
 
-        val table = NameMap.foldr inc [] m
+        val infs = sortMap snd (revCompare Int.compare) (NameMap.toList m)
+
+        val table = map mkRow infs
 
         val rows = alignTable alignment table
       in

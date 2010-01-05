@@ -18,6 +18,8 @@ require axiom-choice {
 
 require cond-def {
   import: bool-def
+  import: axiom-extensionality
+  import: axiom-choice
   package: cond-def-1.0
 }
 

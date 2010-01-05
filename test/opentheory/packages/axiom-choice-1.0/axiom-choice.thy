@@ -4,12 +4,12 @@ description: Axiom of choice
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 
-require def {
+require bool-def {
   package: bool-def-1.0
 }
 
 require axiom {
-  import: def
+  import: bool-def
   package: hol-light-class-select-axiom-2009.8.24
 }
 
