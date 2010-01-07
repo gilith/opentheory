@@ -2,7 +2,7 @@ name: hol-light
 version: 2009.8.24
 description: HOL Light theories
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: HOLLight
 
 require bool {
   package: hol-light-bool-2009.8.24

@@ -2,7 +2,7 @@ name: hol-light-num
 version: 2009.8.24
 description: HOL Light num theory
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: HOLLight
 
 require inj-surj {
   package: hol-light-num-inj-surj-2009.8.24

@@ -2,7 +2,7 @@ name: hol-light-class
 version: 2009.8.24
 description: HOL Light class theory
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: HOLLight
 
 require eta {
   package: hol-light-class-eta-2009.8.24
