@@ -394,6 +394,35 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Listing packages in the package directory.                                *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun addName (s,pkgs) =
+      PackageNameSet.add pkgs (PackageName.fromString s);
+in
+  fun list dir =
+      let
+        val Directory {rootDirectory = root, ...} = dir
+
+        val pkgDir = mkPackagesDirectory {rootDirectory = root}
+
+        val dirStrm = OS.FileSys.openDir pkgDir
+
+        fun readAll acc =
+            case OS.FileSys.readDir dirStrm of
+              NONE => acc
+            | SOME s => readAll (s :: acc)
+
+        val pkgs = readAll []
+
+        val () = OS.FileSys.closeDir dirStrm
+      in
+        List.foldl addName PackageNameSet.empty pkgs
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Installing new packages into the package directory.                       *)
 (* ------------------------------------------------------------------------- *)
 

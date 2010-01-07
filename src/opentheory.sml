@@ -102,7 +102,7 @@ val defaultSimulations =
 val simulations = ref defaultSimulations;
 
 (* ------------------------------------------------------------------------- *)
-(* Compilation.                                                              *)
+(* Options for compiling packages to articles.                               *)
 (* ------------------------------------------------------------------------- *)
 
 datatype compileOutput =
@@ -147,7 +147,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Tool help.                                                                *)
+(* Options for displaying command help.                                      *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -157,7 +157,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package info.                                                             *)
+(* Options for displaying package information.                               *)
 (* ------------------------------------------------------------------------- *)
 
 datatype info =
@@ -191,33 +191,54 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Options for listing available packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val listOutput = ref "-";
+
+local
+  open Useful Options;
+in
+  val listOpts : opt list =
+      [{switches = ["-o","--output"], arguments = ["FILE"],
+        description = "write the package list to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => listOutput := s)}];
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Commands.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 datatype command =
     Compile
   | Help
-  | Info;
+  | Info
+  | List;
 
-val allCommands = [Compile,Help,Info];
+val allCommands = [Compile,Help,Info,List];
 
 fun commandString cmd =
     case cmd of
       Compile => "compile"
     | Help => "help"
-    | Info => "info";
+    | Info => "info"
+    | List => "list";
 
 fun commandArgs cmd =
     case cmd of
       Compile => " input.thy"
     | Help => ""
-    | Info => " <package-name>";
+    | Info => " <package-name>"
+    | List => "";
 
 fun commandDescription cmd =
     case cmd of
       Compile => "compile a theory package"
     | Help => "display command help"
-    | Info => "display package information";
+    | Info => "display package information"
+    | List => "list available theory packages";
 
 val allCommandStrings = map commandString allCommands;
 
@@ -235,7 +256,8 @@ fun commandOpts cmd =
     case cmd of
       Compile => compileOpts
     | Help => helpOpts
-    | Info => infoOpts;
+    | Info => infoOpts
+    | List => listOpts;
 
 val allCommandOptions =
     let
@@ -261,7 +283,7 @@ end;
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20100105)"^"\n";
+val versionString = program^" "^version^" (release 20100106)"^"\n";
 
 local
   fun mkProgramOptions header opts =
@@ -319,54 +341,6 @@ fun fail mesg = Options.fail (programOptions ()) mesg;
 fun usage mesg = Options.usage (programOptions ()) mesg;
 
 fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
-
-(* ------------------------------------------------------------------------- *)
-(* Displaying package information.                                           *)
-(* ------------------------------------------------------------------------- *)
-
-fun info name =
-    let
-      val find = finder ()
-
-      val pkg = PackageName.fromString name
-    in
-      case PackageFinder.find find pkg of
-        NONE => raise Error ("can't find package "^name)
-      | SOME p =>
-        let
-          val s =
-              case !infoQuery of
-                PackageInfo =>
-                let
-                  val t = Package.tags p
-                in
-                  Print.toStream Tag.ppList t
-                end
-              | FileInfo =>
-                let
-                  val {directory = d} = Package.directory p
-
-                  fun mk {filename = f} =
-                      OS.Path.joinDirFile {dir = d, file = f} ^ "\n"
-
-                  val fl = Package.filenames p
-                in
-                  Stream.map mk (Stream.fromList fl)
-                end
-              | DepInfo =>
-                let
-                  fun mk n = PackageName.toString n ^ "\n"
-
-                  val pl = Package.dependencies p
-                in
-                  Stream.map mk (Stream.fromList pl)
-                end
-
-          val ref f = infoOutput
-        in
-          Stream.toTextFile {filename = f} s
-        end
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Compiling packages to articles.                                           *)
@@ -435,6 +409,79 @@ fun compile {filename} =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Displaying command help.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun help () = usage ("displaying command help");
+
+(* ------------------------------------------------------------------------- *)
+(* Displaying package information.                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun info name =
+    let
+      val find = finder ()
+
+      val pkg = PackageName.fromString name
+    in
+      case PackageFinder.find find pkg of
+        NONE => raise Error ("can't find package "^name)
+      | SOME p =>
+        let
+          val s =
+              case !infoQuery of
+                PackageInfo =>
+                let
+                  val t = Package.tags p
+                in
+                  Print.toStream Tag.ppList t
+                end
+              | FileInfo =>
+                let
+                  val {directory = d} = Package.directory p
+
+                  fun mk {filename = f} =
+                      OS.Path.joinDirFile {dir = d, file = f} ^ "\n"
+
+                  val fl = Package.filenames p
+                in
+                  Stream.map mk (Stream.fromList fl)
+                end
+              | DepInfo =>
+                let
+                  fun mk n = PackageName.toString n ^ "\n"
+
+                  val pl = Package.dependencies p
+                in
+                  Stream.map mk (Stream.fromList pl)
+                end
+
+          val ref f = infoOutput
+        in
+          Stream.toTextFile {filename = f} s
+        end
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Listing available packages.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun list () =
+    let
+      val dir = directory ()
+
+      val pkgs = PackageNameSet.toList (Directory.list dir)
+
+      fun mk n = PackageName.toString n ^ "\n"
+
+      val strm = Stream.map mk (Stream.fromList pkgs)
+
+      val ref f = listOutput
+    in
+      Stream.toTextFile {filename = f} strm
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -461,8 +508,9 @@ let
   val () =
       case (cmd,work) of
         (Compile,[filename]) => compile {filename = filename}
-      | (Help,[]) => usage ("displaying command help")
+      | (Help,[]) => help ()
       | (Info,[pkg]) => info pkg
+      | (List,[]) => list ()
       | _ =>
         commandUsage cmd ("bad arguments for " ^ commandString cmd ^ " command")
 in

@@ -65,6 +65,12 @@ val pp : directory Print.pp
 val lookup : directory -> PackageFinder.finder
 
 (* ------------------------------------------------------------------------- *)
+(* Listing packages in the package directory.                                *)
+(* ------------------------------------------------------------------------- *)
+
+val list : directory -> PackageNameSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Installing new packages into the package directory.                       *)
 (* ------------------------------------------------------------------------- *)
 
