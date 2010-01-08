@@ -8,12 +8,6 @@
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
-(* OpenTheory logging.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-logfile "arith";;
-
-(* ------------------------------------------------------------------------- *)
 (* Note: all the following proofs are intuitionistic and intensional, except *)
 (* for the least number principle num_WOP.                                   *)
 (* (And except the arith rewrites at the end; these could be done that way   *)
@@ -35,6 +29,12 @@ parse_as_infix("DIV",(22,"left"));;
 parse_as_infix("MOD",(22,"left"));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-pre-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* The predecessor function.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
@@ -43,12 +43,24 @@ let PRE = new_recursive_definition num_RECURSION
   (!n. PRE (SUC n) = n)`;;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-add-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Addition.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 let ADD = new_recursive_definition num_RECURSION
  `(!n. 0 + n = n) /\
   (!m n. (SUC m) + n = SUC(m + n))`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-add-thm";;
 
 let ADD_0 = log_lemma "ADD_0" (fun () -> prove
  (`!m. m + 0 = m`,
@@ -100,6 +112,12 @@ let EQ_ADD_RCANCEL_0 = log_lemma "EQ_ADD_RCANCEL_0" (fun () -> prove
   ONCE_REWRITE_TAC[ADD_SYM] THEN MATCH_ACCEPT_TAC EQ_ADD_LCANCEL_0));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-bit-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Now define "bitwise" binary representation of numerals.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -109,6 +127,12 @@ let BIT0 = new_definition
 let BIT1 = new_definition
  `BIT1 n = SUC(n + n)`;;
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-bit-thm";;
+
 let BIT0_THM = log_lemma "BIT0_THM" (fun () -> prove
  (`!n. NUMERAL (BIT0 n) = NUMERAL n + NUMERAL n`,
   REWRITE_TAC[NUMERAL; BIT0]));;
@@ -116,6 +140,12 @@ let BIT0_THM = log_lemma "BIT0_THM" (fun () -> prove
 let BIT1_THM = log_lemma "BIT1_THM" (fun () -> prove
  (`!n. NUMERAL (BIT1 n) = SUC(NUMERAL n + NUMERAL n)`,
   REWRITE_TAC[NUMERAL; BIT1]));;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-numeral-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Following is handy before num_CONV arrives.                               *)
@@ -161,12 +191,24 @@ let ADD1 = log_lemma "ADD1" (fun () -> prove
   REWRITE_TAC[BIT1_THM; ADD_CLAUSES]));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-mult-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Multiplication.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 let MULT = new_recursive_definition num_RECURSION
  `(!n. 0 * n = 0) /\
   (!m n. (SUC m) * n = (m * n) + n)`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-mult-thm";;
 
 let MULT_0 = log_lemma "MULT_0" (fun () -> prove
  (`!m. m * 0 = 0`,
@@ -234,12 +276,24 @@ let MULT_EQ_1 = log_lemma "MULT_EQ_1" (fun () -> prove
   CONV_TAC TAUT));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-exp-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Exponentiation.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 let EXP = new_recursive_definition num_RECURSION
  `(!m. m EXP 0 = 1) /\
   (!m n. m EXP (SUC n) = m * (m EXP n))`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-exp-thm";;
 
 let EXP_EQ_0 = log_lemma "EXP_EQ_0" (fun () -> prove
  (`!m n. (m EXP n = 0) <=> (m = 0) /\ ~(n = 0)`,
@@ -285,6 +339,12 @@ let EXP_MULT = log_lemma "EXP_MULT" (fun () -> prove
     REWRITE_TAC[MULT_EXP] THEN MATCH_ACCEPT_TAC MULT_SYM]));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-ord-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Define the orderings recursively too.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -301,6 +361,12 @@ let GE = new_definition
 
 let GT = new_definition
   `m > n <=> n < m`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-ord-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Step cases.                                                               *)
@@ -679,6 +745,12 @@ let num_MAX = log_lemma "num_MAX" (fun () -> prove
     REPEAT STRIP_TAC THEN EXISTS_TAC `m:num` THEN ASM_REWRITE_TAC[]]));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-even-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Oddness and evenness (recursively rather than inductively!)               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -689,6 +761,12 @@ let EVEN = new_recursive_definition num_RECURSION
 let ODD = new_recursive_definition num_RECURSION
   `(ODD 0 <=> F) /\
    (!n. ODD (SUC n) <=> ~(ODD n))`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-even-thm";;
 
 let NOT_EVEN = log_lemma "NOT_EVEN" (fun () -> prove
  (`!n. ~(EVEN n) <=> ODD n`,
@@ -804,12 +882,24 @@ let EVEN_ODD_DECOMPOSITION = log_lemma "EVEN_ODD_DECOMPOSITION" (fun () -> prove
   EXISTS_TAC `SUC k` THEN ASM_REWRITE_TAC[EXP; MULT_ASSOC]));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-sub-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Cutoff subtraction, also defined recursively. (Not the HOL88 defn.)       *)
 (* ------------------------------------------------------------------------- *)
 
 let SUB = new_recursive_definition num_RECURSION
  `(!m. m - 0 = m) /\
   (!m n. m - (SUC n) = PRE(m - n))`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-sub-thm";;
 
 let SUB_0 = log_lemma "SUB_0" (fun () -> prove
  (`!m. (0 - m = 0) /\ (m - 0 = m)`,
@@ -894,12 +984,24 @@ let ODD_SUB = log_lemma "ODD_SUB" (fun () -> prove
   CONV_TAC TAUT));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-fact-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* The factorial function.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 let FACT = new_recursive_definition num_RECURSION
   `(FACT 0 = 1) /\
    (!n. FACT (SUC n) = (SUC n) * FACT(n))`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-fact-thm";;
 
 let FACT_LT = log_lemma "FACT_LT" (fun () -> prove
  (`!n. 0 < FACT n`,
@@ -926,6 +1028,12 @@ let FACT_MONO = log_lemma "FACT_MONO" (fun () -> prove
   GEN_REWRITE_TAC LAND_CONV [GSYM(el 2 (CONJUNCTS MULT_CLAUSES))] THEN
   REWRITE_TAC[LE_MULT_RCANCEL] THEN
   REWRITE_TAC[ONE; LE_SUC; LE_0]));;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-exp-thm-more";;
 
 (* ------------------------------------------------------------------------- *)
 (* More complicated theorems about exponential.                              *)
@@ -1028,6 +1136,12 @@ let EXP_MONO_EQ = log_lemma "EXP_MONO_EQ" (fun () -> prove
   REWRITE_TAC[GSYM LE_ANTISYM; EXP_MONO_LE] THEN CONV_TAC TAUT));;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-div-exist";;
+
+(* ------------------------------------------------------------------------- *)
 (* Division and modulus, via existence proof of their basic property.        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1057,13 +1171,31 @@ let DIVMOD_EXIST_0 = log_lemma "DIVMOD_EXIST_0" (fun () -> prove
   REPEAT GEN_TAC THEN ASM_CASES_TAC `n = 0` THEN
   ASM_SIMP_TAC[DIVMOD_EXIST; RIGHT_EXISTS_AND_THM; EXISTS_REFL]));;
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-div-def";;
+
 let DIVISION_0 = log_lemma "DIVISION_0" (fun () ->
   new_specification ["DIV"; "MOD"]
   (REWRITE_RULE[SKOLEM_THM] DIVMOD_EXIST_0));;
 
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-div-alt";;
+
 let DIVISION = log_lemma "DIVISION" (fun () -> prove
  (`!m n. ~(n = 0) ==> (m = m DIV n * n + m MOD n) /\ m MOD n < n`,
   MESON_TAC[DIVISION_0]));;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-div-thm";;
 
 let DIVMOD_UNIQ_LEMMA = log_lemma "DIVMOD_UNIQ_LEMMA" (fun () -> prove
  (`!m n q1 r1 q2 r2. ((m = q1 * n + r1) /\ r1 < n) /\
@@ -1479,6 +1611,12 @@ let LE_IMP =
     log_function "LE_IMP" log_thm log_thm LE_IMP;;
 
 (* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-max-def";;
+
+(* ------------------------------------------------------------------------- *)
 (* Maximum and minimum of natural numbers.                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1496,6 +1634,12 @@ parse_as_binder "minimal";;
 
 let minimal = new_definition
   `(minimal) (P:num->bool) = @n. P n /\ !m. m < n ==> ~(P m)`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-max-thm";;
 
 let MINIMAL = log_lemma "MINIMAL" (fun () -> prove
  (`!P. (?n. P n) <=> P((minimal) P) /\ (!m. m < (minimal) P ==> ~(P m))`,
