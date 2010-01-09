@@ -1611,42 +1611,6 @@ let LE_IMP =
     log_function "LE_IMP" log_thm log_thm LE_IMP;;
 
 (* ------------------------------------------------------------------------- *)
-(* OpenTheory logging.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-logfile "arith-max-def";;
-
-(* ------------------------------------------------------------------------- *)
-(* Maximum and minimum of natural numbers.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-let MAX = new_definition
-  `!m n. MAX m n = if m <= n then n else m`;;
-
-let MIN = new_definition
-  `!m n. MIN m n = if m <= n then m else n`;;
-
-(* ------------------------------------------------------------------------- *)
-(* Binder for "the minimal n such that".                                     *)
-(* ------------------------------------------------------------------------- *)
-
-parse_as_binder "minimal";;
-
-let minimal = new_definition
-  `(minimal) (P:num->bool) = @n. P n /\ !m. m < n ==> ~(P m)`;;
-
-(* ------------------------------------------------------------------------- *)
-(* OpenTheory logging.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-logfile "arith-max-thm";;
-
-let MINIMAL = log_lemma "MINIMAL" (fun () -> prove
- (`!P. (?n. P n) <=> P((minimal) P) /\ (!m. m < (minimal) P ==> ~(P m))`,
-  GEN_TAC THEN REWRITE_TAC[minimal] THEN CONV_TAC(RAND_CONV SELECT_CONV) THEN
-  REWRITE_TAC[GSYM num_WOP]));;
-
-(* ------------------------------------------------------------------------- *)
 (* A common lemma for transitive relations.                                  *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1683,6 +1647,48 @@ let TRANSITIVE_STEPWISE_LE = log_lemma "TRANSITIVE_STEPWISE_LE" (fun () -> prove
   REPEAT GEN_TAC THEN MATCH_MP_TAC(TAUT
    `(a /\ a' ==> (c <=> b)) ==> a /\ a' /\ b ==> c`) THEN
   MATCH_ACCEPT_TAC TRANSITIVE_STEPWISE_LE_EQ));;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-max-def";;
+
+(* ------------------------------------------------------------------------- *)
+(* Maximum and minimum of natural numbers.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+let MAX = new_definition
+  `!m n. MAX m n = if m <= n then n else m`;;
+
+let MIN = new_definition
+  `!m n. MIN m n = if m <= n then m else n`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-minimal-def";;
+
+(* ------------------------------------------------------------------------- *)
+(* Binder for "the minimal n such that".                                     *)
+(* ------------------------------------------------------------------------- *)
+
+parse_as_binder "minimal";;
+
+let minimal = new_definition
+  `(minimal) (P:num->bool) = @n. P n /\ !m. m < n ==> ~(P m)`;;
+
+(* ------------------------------------------------------------------------- *)
+(* OpenTheory logging.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+logfile "arith-minimal-alt";;
+
+let MINIMAL = log_lemma "MINIMAL" (fun () -> prove
+ (`!P. (?n. P n) <=> P((minimal) P) /\ (!m. m < (minimal) P ==> ~(P m))`,
+  GEN_TAC THEN REWRITE_TAC[minimal] THEN CONV_TAC(RAND_CONV SELECT_CONV) THEN
+  REWRITE_TAC[GSYM num_WOP]));;
 
 (* ------------------------------------------------------------------------- *)
 (* Close out the logfile.                                                    *)
