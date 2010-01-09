@@ -13,6 +13,13 @@ require num-def {
   package: num-def-1.0
 }
 
+require numeral-def {
+  import: axiom-infinity
+  import: num-def
+  package: numeral-def-1.0
+}
+
 theory {
   import num-def;
+  import numeral-def;
 }

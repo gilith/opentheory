@@ -208,6 +208,73 @@ require def-numeral {
   package: hol-light-num-numeral-2009.8.24
 }
 
+require num-thm {
+  import: bool-rule
+  import: tactics
+  import: simp
+  import: theorems
+  import: ind-defs
+  import: class-eta-thm
+  import: class-select-thm
+  import: class-cond-thm
+  import: class-skolem
+  import: class-bool
+  import: trivia-comb
+  import: trivia-one-thm
+  import: canon
+  import: meson
+  import: quot
+  import: pair-thm
+  import: def-numeral
+  package: hol-light-num-thm-2009.8.24
+}
+
+require add-thm {
+  import: bool-rule
+  import: tactics
+  import: simp
+  import: theorems
+  import: ind-defs
+  import: class-eta-thm
+  import: class-select-thm
+  import: class-cond-thm
+  import: class-skolem
+  import: class-bool
+  import: trivia-comb
+  import: trivia-one-thm
+  import: canon
+  import: meson
+  import: quot
+  import: pair-thm
+  import: def-numeral
+  import: num-thm
+  package: hol-light-arith-add-thm-2009.8.24
+}
+
+require def-bit {
+  import: bool-rule
+  import: tactics
+  import: simp
+  import: theorems
+  import: ind-defs
+  import: class-eta-thm
+  import: class-select-thm
+  import: class-cond-thm
+  import: class-skolem
+  import: class-bool
+  import: trivia-comb
+  import: trivia-one-thm
+  import: canon
+  import: meson
+  import: quot
+  import: pair-thm
+  import: def-numeral
+  import: num-thm
+  import: add-thm
+  package: hol-light-arith-bit-def-2009.8.24
+}
+
 theory {
   import def-numeral;
+  import def-bit;
 }
