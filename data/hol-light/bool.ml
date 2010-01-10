@@ -133,7 +133,7 @@ let mk_uexists = mk_binder "?!";;
 (* Log the rule theorems as another theory.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "bool-rule";;
+logfile "bool-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Rule allowing easy instantiation of polymorphic proformas.                *)

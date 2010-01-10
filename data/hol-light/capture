@@ -19,11 +19,11 @@ if ! test -d $rdir ; then echo "$rdir not a directory" ; exit 1 ; fi
 echo '#use "hol.ml";;' | ocaml
 
 if ! test -r bool-def.art ; then echo "bool-def.art not readable" ; exit 1 ; fi
-if ! test -r bool-rule.art ; then echo "bool-rule.art not readable" ; exit 1 ; fi
-cat bool-def.art bool-rule.art > $adir/bool.art
+if ! test -r bool-thm.art ; then echo "bool-thm.art not readable" ; exit 1 ; fi
+cat bool-def.art bool-thm.art > $adir/bool.art
 
-if ! test -r tactics.art ; then echo "tactics.art not readable" ; exit 1 ; fi
-cat tactics.art > $adir/tactics.art
+if ! test -r tactics-thm.art ; then echo "tactics-thm.art not readable" ; exit 1 ; fi
+cat tactics-thm.art > $adir/tactics.art
 
 for file in $(ls -tr *.art)
 do

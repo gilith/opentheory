@@ -13,6 +13,12 @@ require numeral-def {
   package: numeral-def-1.0
 }
 
+require pre-def {
+  import: num-def
+  import: numeral-def
+  package: pre-def-1.0
+}
+
 require add-def {
   import: num-def
   import: numeral-def
@@ -22,5 +28,6 @@ require add-def {
 theory {
   import num-def;
   import numeral-def;
+  import pre-def;
   import add-def;
 }

@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "drule";;
+logfile "drule-thm";;
 
 type instantiation =
   (int * term) list * (term * term) list * (hol_type * hol_type) list;;

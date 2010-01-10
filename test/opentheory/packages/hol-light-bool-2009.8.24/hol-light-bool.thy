@@ -8,12 +8,12 @@ require def {
   package: hol-light-bool-def-2009.8.24
 }
 
-require rule {
+require thm {
   import: def
-  package: hol-light-bool-rule-2009.8.24
+  package: hol-light-bool-thm-2009.8.24
 }
 
 theory {
   import def;
-  import rule;
+  import thm;
 }
