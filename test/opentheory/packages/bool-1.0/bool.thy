@@ -9,10 +9,12 @@ require bool-def {
 }
 
 require axiom-extensionality {
+  import: bool-def
   package: axiom-extensionality-1.0
 }
 
 require axiom-choice {
+  import: bool-def
   package: axiom-choice-1.0
 }
 

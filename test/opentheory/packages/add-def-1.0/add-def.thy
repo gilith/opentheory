@@ -1,6 +1,6 @@
-name: num-def
+name: add-def
 version: 1.0
-description: Definition of the natural numbers
+description: Definition of natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 
@@ -188,26 +188,6 @@ require pair-thm {
   package: hol-light-pair-thm-2009.8.24
 }
 
-require numeral {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  import: class-select-thm
-  import: class-cond-thm
-  import: class-skolem
-  import: class-bool
-  import: trivia-comb
-  import: trivia-one-thm
-  import: canon
-  import: meson
-  import: quot
-  import: pair-thm
-  package: hol-light-num-numeral-2009.8.24
-}
-
 require num-thm {
   import: bool-rule
   import: tactics
@@ -225,11 +205,10 @@ require num-thm {
   import: meson
   import: quot
   import: pair-thm
-  import: numeral
   package: hol-light-num-thm-2009.8.24
 }
 
-require bit {
+require add-def {
   import: bool-rule
   import: tactics
   import: simp
@@ -246,12 +225,10 @@ require bit {
   import: meson
   import: quot
   import: pair-thm
-  import: numeral
   import: num-thm
-  package: hol-light-num-bit-2009.8.24
+  package: hol-light-arith-add-def-2009.8.24
 }
 
 theory {
-  import numeral;
-  import bit;
+  import add-def;
 }

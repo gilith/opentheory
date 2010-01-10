@@ -19,27 +19,10 @@ require add-thm {
   package: hol-light-arith-add-thm-2009.8.24
 }
 
-require bit-def {
-  import: pre-def
-  import: add-def
-  import: add-thm
-  package: hol-light-arith-bit-def-2009.8.24
-}
-
-require bit-thm {
-  import: pre-def
-  import: add-def
-  import: add-thm
-  import: bit-def
-  package: hol-light-arith-bit-thm-2009.8.24
-}
-
 require numeral-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   package: hol-light-arith-numeral-thm-2009.8.24
 }
 
@@ -47,8 +30,6 @@ require mult-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   package: hol-light-arith-mult-def-2009.8.24
 }
@@ -57,8 +38,6 @@ require mult-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   package: hol-light-arith-mult-thm-2009.8.24
@@ -68,8 +47,6 @@ require exp-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -80,8 +57,6 @@ require exp-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -93,8 +68,6 @@ require ord-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -107,8 +80,6 @@ require ord-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -122,8 +93,6 @@ require even-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -138,8 +107,6 @@ require even-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -155,8 +122,6 @@ require sub-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -173,8 +138,6 @@ require sub-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -192,8 +155,6 @@ require fact-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -212,8 +173,6 @@ require fact-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -233,8 +192,6 @@ require exp-thm-more {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -255,8 +212,6 @@ require div-exist {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -278,8 +233,6 @@ require div-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -298,12 +251,10 @@ require div-def {
   package: hol-light-arith-div-def-2009.8.24
 }
 
-require div-alt {
+require div-thm {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -320,31 +271,6 @@ require div-alt {
   import: exp-thm-more
   import: div-exist
   import: div-def
-  package: hol-light-arith-div-alt-2009.8.24
-}
-
-require div-thm {
-  import: pre-def
-  import: add-def
-  import: add-thm
-  import: bit-def
-  import: bit-thm
-  import: numeral-thm
-  import: mult-def
-  import: mult-thm
-  import: exp-def
-  import: exp-thm
-  import: ord-def
-  import: ord-thm
-  import: even-def
-  import: even-thm
-  import: sub-def
-  import: sub-thm
-  import: fact-def
-  import: fact-thm
-  import: exp-thm-more
-  import: div-exist
-  import: div-alt
   package: hol-light-arith-div-thm-2009.8.24
 }
 
@@ -352,8 +278,6 @@ require max-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -369,7 +293,7 @@ require max-def {
   import: fact-thm
   import: exp-thm-more
   import: div-exist
-  import: div-alt
+  import: div-def
   import: div-thm
   package: hol-light-arith-max-def-2009.8.24
 }
@@ -378,8 +302,6 @@ require minimal-def {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -395,7 +317,7 @@ require minimal-def {
   import: fact-thm
   import: exp-thm-more
   import: div-exist
-  import: div-alt
+  import: div-def
   import: div-thm
   import: max-def
   package: hol-light-arith-minimal-def-2009.8.24
@@ -405,8 +327,6 @@ require minimal-alt {
   import: pre-def
   import: add-def
   import: add-thm
-  import: bit-def
-  import: bit-thm
   import: numeral-thm
   import: mult-def
   import: mult-thm
@@ -422,7 +342,7 @@ require minimal-alt {
   import: fact-thm
   import: exp-thm-more
   import: div-exist
-  import: div-alt
+  import: div-def
   import: div-thm
   import: max-def
   import: minimal-def
@@ -433,8 +353,6 @@ theory {
   import pre-def;
   import add-def;
   import add-thm;
-  import bit-def;
-  import bit-thm;
   import numeral-thm;
   import mult-def;
   import mult-thm;
@@ -450,7 +368,7 @@ theory {
   import fact-thm;
   import exp-thm-more;
   import div-exist;
-  import div-alt;
+  import div-def;
   import div-thm;
   import max-def;
   import minimal-alt;

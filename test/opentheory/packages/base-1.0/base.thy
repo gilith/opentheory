@@ -23,9 +23,16 @@ require function {
   package: function-1.0
 }
 
+require axiom-infinity {
+  import: bool
+  import: function
+  package: axiom-infinity-1.0
+}
+
 require num {
   import: bool
   import: function
+  import: axiom-infinity
   package: num-1.0
 }
 
@@ -34,5 +41,6 @@ theory {
   import unit;
   import pair;
   import function;
+  import axiom-infinity;
   import num;
 }

@@ -111,7 +111,7 @@ fun destRequire req =
 (* ------------------------------------------------------------------------- *)
 
 local
-  val toMap =
+  fun toMap reql =
       let
         fun ins (req,(m,l)) =
             let
@@ -123,8 +123,23 @@ local
             in
               (m,l)
             end
+
+        val reqs_namel as (reqs,_) = List.foldl ins (StringMap.new (), []) reql
+
+        fun check (n,(rs,_)) =
+            case List.find (fn r => not (StringMap.inDomain r reqs)) rs of
+              NONE => ()
+            | SOME r =>
+              let
+                val err = "require block \"" ^ n ^ "\" " ^
+                          "imports non-block \"" ^ r ^ "\""
+              in
+                raise Error ("PackageRequire.sort: unknown import:\n" ^ err)
+              end
+
+        val () = StringMap.app check reqs
       in
-        List.foldl ins (StringMap.new (), [])
+        reqs_namel
       end;
 
   fun sortMap requires (dealt,dealtset) (stack,stackset) work =

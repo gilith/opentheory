@@ -41,10 +41,20 @@ require thm {
   package: hol-light-num-thm-2009.8.24
 }
 
+require bit {
+  import: inj-surj
+  import: axiom
+  import: alt
+  import: numeral
+  import: thm
+  package: hol-light-num-bit-2009.8.24
+}
+
 theory {
   import inj-surj;
   import axiom;
   import alt;
   import numeral;
   import thm;
+  import bit;
 }

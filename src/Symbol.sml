@@ -168,13 +168,13 @@ end;
 local
   fun mergeTypeOps (ot1,ot2) =
       if TypeOp.equal ot1 ot2 then SOME ot2
-      else raise Error ("Symbol.union: duplicate type op name" ^
-                        Name.toString (TypeOp.name ot1));
+      else raise Error ("Symbol.union: duplicate type op name " ^
+                        Name.quotedToString (TypeOp.name ot1));
 
   fun mergeConsts (c1,c2) =
       if Const.equal c1 c2 then SOME c2
-      else raise Error ("Symbol.union: duplicate const name: " ^
-                        Name.toString (Const.name c1));
+      else raise Error ("Symbol.union: duplicate const name " ^
+                        Name.quotedToString (Const.name c1));
 in
   fun union sym1 sym2 =
       let

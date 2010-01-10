@@ -115,23 +115,19 @@ let EQ_ADD_RCANCEL_0 = log_lemma "EQ_ADD_RCANCEL_0" (fun () -> prove
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "arith-bit-def";;
+logfile "arith-numeral-thm";;
 
 (* ------------------------------------------------------------------------- *)
-(* Now define "bitwise" binary representation of numerals.                   *)
+(* Now relate "bitwise" binary representation of numerals to addition.       *)
 (* ------------------------------------------------------------------------- *)
 
-let BIT0 = new_definition
- `BIT0 n = n + n`;;
+let BIT0 = log_lemma "BIT0" (fun () -> prove
+  (`!n. BIT0 n = n + n`,
+   INDUCT_TAC THEN ASM_REWRITE_TAC[BIT0_DEF; ADD_CLAUSES]));;
 
-let BIT1 = new_definition
- `BIT1 n = SUC(n + n)`;;
-
-(* ------------------------------------------------------------------------- *)
-(* OpenTheory logging.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-logfile "arith-bit-thm";;
+let BIT1 = log_lemma "BIT1" (fun () -> prove
+  (`!n. BIT1 n = SUC (n + n)`,
+   REWRITE_TAC[BIT1_DEF; BIT0]));;
 
 let BIT0_THM = log_lemma "BIT0_THM" (fun () -> prove
  (`!n. NUMERAL (BIT0 n) = NUMERAL n + NUMERAL n`,
@@ -140,12 +136,6 @@ let BIT0_THM = log_lemma "BIT0_THM" (fun () -> prove
 let BIT1_THM = log_lemma "BIT1_THM" (fun () -> prove
  (`!n. NUMERAL (BIT1 n) = SUC(NUMERAL n + NUMERAL n)`,
   REWRITE_TAC[NUMERAL; BIT1]));;
-
-(* ------------------------------------------------------------------------- *)
-(* OpenTheory logging.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-logfile "arith-numeral-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Following is handy before num_CONV arrives.                               *)
@@ -1185,17 +1175,11 @@ let DIVISION_0 = log_lemma "DIVISION_0" (fun () ->
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "arith-div-alt";;
+logfile "arith-div-thm";;
 
 let DIVISION = log_lemma "DIVISION" (fun () -> prove
  (`!m n. ~(n = 0) ==> (m = m DIV n * n + m MOD n) /\ m MOD n < n`,
   MESON_TAC[DIVISION_0]));;
-
-(* ------------------------------------------------------------------------- *)
-(* OpenTheory logging.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-logfile "arith-div-thm";;
 
 let DIVMOD_UNIQ_LEMMA = log_lemma "DIVMOD_UNIQ_LEMMA" (fun () -> prove
  (`!m n q1 r1 q2 r2. ((m = q1 * n + r1) /\ r1 < n) /\
