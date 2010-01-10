@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "canon";;
+logfile "canon-thm";;
 
 let PRESIMP_CONV =
   GEN_REWRITE_CONV TOP_DEPTH_CONV
