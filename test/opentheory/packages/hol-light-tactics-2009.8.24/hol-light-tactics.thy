@@ -4,4 +4,10 @@ description: HOL Light tactics theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "tactics.art"; }
+require thm {
+  package: hol-light-tactics-thm-2009.8.24
+}
+
+theory {
+  import thm;
+}

@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "equal";;
+logfile "equal-thm";;
 
 type conv = term->thm;;
 

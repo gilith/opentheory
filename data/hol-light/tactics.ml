@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "tactics";;
+logfile "tactics-thm";;
 
 let null_inst = ([],[],[] :instantiation);;
 
