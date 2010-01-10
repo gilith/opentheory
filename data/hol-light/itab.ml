@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "itab";;
+logfile "itab-thm";;
 
 let UNIFY_ACCEPT_TAC mvs th (asl,w) =
   let insts = term_unify mvs (concl th) w in

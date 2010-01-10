@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "simp";;
+logfile "simp-thm";;
 
 type gconv = int * conv;;
 
