@@ -4,4 +4,10 @@ description: HOL Light ind-defs theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "ind-defs.art"; }
+require thm {
+  package: hol-light-ind-defs-thm-2009.8.24
+}
+
+theory {
+  import thm;
+}

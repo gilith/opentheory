@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "ind-defs";;
+logfile "ind-defs-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Strip off exactly n arguments from combination.                           *)
