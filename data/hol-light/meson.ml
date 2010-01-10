@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "meson";;
+logfile "meson-thm";;
 
 let meson_depth = ref false;;   (* Use depth not inference bound.            *)
 

@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "quot";;
+logfile "quot-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Given a type name "ty" and a curried binary relation R, this defines      *)

@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "wf";;
+logfile "wf-thm";;
 
 parse_as_infix("<<",(12,"right"));;
 

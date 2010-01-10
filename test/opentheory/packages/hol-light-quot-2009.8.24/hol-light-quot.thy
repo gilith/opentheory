@@ -4,4 +4,10 @@ description: HOL Light quot theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "quot.art"; }
+require thm {
+  package: hol-light-quot-thm-2009.8.24
+}
+
+theory {
+  import thm;
+}

@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "recursion";;
+logfile "recursion-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Prove existence of recursive function. The inner "raw" version requires   *)
