@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "calc-int";;
+logfile "calc-int-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Syntax operations on integer constants of type ":real".                   *)

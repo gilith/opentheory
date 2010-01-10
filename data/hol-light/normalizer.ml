@@ -8,7 +8,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "normalizer";;
+logfile "normalizer-thm";;
 
 let SEMIRING_NORMALIZERS_CONV =
   let SEMIRING_PTHS = log_lemma "SEMIRING_NORMALIZERS_CONV.SEMIRING_PTHS" (fun () -> prove

@@ -8,7 +8,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "cart";;
+logfile "cart-thm";;
 
 let dimindex = new_definition
   `dimindex(s:A->bool) = if FINITE(:A) then CARD(:A) else 1`;;

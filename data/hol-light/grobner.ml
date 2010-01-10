@@ -14,7 +14,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "grobner";;
+logfile "grobner-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Type for recording history, i.e. how a polynomial was obtained.           *)

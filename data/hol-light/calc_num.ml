@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "calc-num";;
+logfile "calc-num-thm";;
 
 let DENUMERAL = GEN_REWRITE_RULE DEPTH_CONV [NUMERAL];;
 

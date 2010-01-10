@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "realax";;
+logfile "realax-thm";;
 
 parse_as_infix("++",(16,"right"));;
 parse_as_infix("**",(20,"right"));;

@@ -4,4 +4,10 @@ description: HOL Light ind-types theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "ind-types.art"; }
+require thm {
+  package: hol-light-ind-types-thm-2009.8.24
+}
+
+theory {
+  import thm;
+}

@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "realarith";;
+logfile "realarith-thm";;
 
 let REAL_LTE_TOTAL = log_lemma "REAL_LTE_TOTAL" (fun () -> prove
  (`!x y. x < y \/ y <= x`,

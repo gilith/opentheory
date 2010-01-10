@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "calc-rat";;
+logfile "calc-rat-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Constant for decimal fractions written #xxx.yyy                           *)

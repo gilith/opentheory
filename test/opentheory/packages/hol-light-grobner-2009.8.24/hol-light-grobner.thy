@@ -4,4 +4,10 @@ description: HOL Light grobner theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "grobner.art"; }
+require thm {
+  package: hol-light-grobner-thm-2009.8.24
+}
+
+theory {
+  import thm;
+}

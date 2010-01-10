@@ -457,7 +457,7 @@ val () = import "hol-light-bool-def-2009.8.24";
 
 (* Boolean theorems from HOL Light *)
 
-val () = import "hol-light-bool-rule-2009.8.24";
+val () = import "hol-light-bool-thm-2009.8.24";
 
 (* Boolean definitions plus theorems from HOL Light *)
 

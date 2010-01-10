@@ -4,4 +4,10 @@ description: HOL Light sets theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "sets.art"; }
+require thm {
+  package: hol-light-sets-thm-2009.8.24
+}
+
+theory {
+  import thm;
+}

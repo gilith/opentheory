@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "real";;
+logfile "real-thm";;
 
 (* ------------------------------------------------------------------------- *)
 (* Additional commutativity properties of the inclusion map.                 *)

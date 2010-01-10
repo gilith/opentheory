@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "sets";;
+logfile "sets-thm";;
 
 parse_as_infix("IN",(11,"right"));;
 parse_as_infix("SUBSET",(12,"right"));;

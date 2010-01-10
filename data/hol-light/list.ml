@@ -11,7 +11,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "list";;
+logfile "list-thm";;
 
 let LIST_INDUCT_TAC =
   let list_INDUCT = log_lemma "LIST_INDUCT_TAC.list_INDUCT" (fun () -> prove

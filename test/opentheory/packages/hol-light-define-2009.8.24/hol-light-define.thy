@@ -4,4 +4,10 @@ description: HOL Light define theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "define.art"; }
+require thm {
+  package: hol-light-define-thm-2009.8.24
+}
+
+theory {
+  import thm;
+}

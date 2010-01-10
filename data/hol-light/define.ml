@@ -8,7 +8,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "define";;
+logfile "define-thm";;
 
 let CASEWISE_DEF = new_recursive_definition list_RECURSION
  `(CASEWISE [] f x = @y. T) /\

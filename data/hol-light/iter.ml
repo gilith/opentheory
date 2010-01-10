@@ -9,7 +9,7 @@
 (* OpenTheory logging.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-logfile "iter";;
+logfile "iter-thm";;
 
 prioritize_num();;
 
