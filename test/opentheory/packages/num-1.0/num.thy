@@ -16,13 +16,13 @@ require numeral-def {
 require pre-def {
   import: num-def
   import: numeral-def
-  package: pre-def-1.0
+  package: num-pre-def-1.0
 }
 
 require add-def {
   import: num-def
   import: numeral-def
-  package: add-def-1.0
+  package: num-add-def-1.0
 }
 
 theory {

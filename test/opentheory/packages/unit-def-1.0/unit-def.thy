@@ -4,136 +4,78 @@ description: Definition of the unit type
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 
-require bool-rule {
-  package: hol-light-bool-rule-2009.8.24
+require bool-thm {
+  package: hol-light-bool-thm-2009.8.24
 }
 
-require tactics {
-  import: bool-rule
-  package: hol-light-tactics-2009.8.24
+require tactics-thm {
+  import: bool-thm
+  package: hol-light-tactics-thm-2009.8.24
 }
 
-require simp {
-  import: bool-rule
-  import: tactics
-  package: hol-light-simp-2009.8.24
+require simp-thm {
+  import: bool-thm
+  import: tactics-thm
+  package: hol-light-simp-thm-2009.8.24
 }
 
-require theorems {
-  import: bool-rule
-  import: tactics
-  import: simp
-  package: hol-light-theorems-2009.8.24
+require theorems-thm {
+  import: bool-thm
+  import: tactics-thm
+  import: simp-thm
+  package: hol-light-theorems-thm-2009.8.24
 }
 
-require ind-defs {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  package: hol-light-ind-defs-2009.8.24
+require ind-defs-thm {
+  import: bool-thm
+  import: tactics-thm
+  import: simp-thm
+  import: theorems-thm
+  package: hol-light-ind-defs-thm-2009.8.24
 }
 
-require class-eta-thm {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  package: hol-light-class-eta-thm-2009.8.24
+require class-thm {
+  import: bool-thm
+  import: tactics-thm
+  import: simp-thm
+  import: theorems-thm
+  import: ind-defs-thm
+  package: hol-light-class-thm-2009.8.24
 }
 
-require class-select-thm {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  package: hol-light-class-select-thm-2009.8.24
+require trivia-comb-thm {
+  import: bool-thm
+  import: tactics-thm
+  import: simp-thm
+  import: theorems-thm
+  import: ind-defs-thm
+  import: class-thm
+  package: hol-light-trivia-comb-thm-2009.8.24
 }
 
-require class-cond-thm {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  import: class-select-thm
-  package: hol-light-class-cond-thm-2009.8.24
-}
-
-require class-skolem {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  import: class-select-thm
-  import: class-cond-thm
-  package: hol-light-class-skolem-2009.8.24
-}
-
-require class-bool {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  import: class-select-thm
-  import: class-cond-thm
-  import: class-skolem
-  package: hol-light-class-bool-2009.8.24
-}
-
-require trivia-comb {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  import: class-select-thm
-  import: class-cond-thm
-  import: class-skolem
-  import: class-bool
-  package: hol-light-trivia-comb-2009.8.24
-}
-
-require def {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  import: class-select-thm
-  import: class-cond-thm
-  import: class-skolem
-  import: class-bool
-  import: trivia-comb
+require trivia-one-def {
+  import: bool-thm
+  import: tactics-thm
+  import: simp-thm
+  import: theorems-thm
+  import: ind-defs-thm
+  import: class-thm
+  import: trivia-comb-thm
   package: hol-light-trivia-one-def-2009.8.24
 }
 
-require alt {
-  import: bool-rule
-  import: tactics
-  import: simp
-  import: theorems
-  import: ind-defs
-  import: class-eta-thm
-  import: class-select-thm
-  import: class-cond-thm
-  import: class-skolem
-  import: class-bool
-  import: trivia-comb
-  import: def
+require trivia-one-alt {
+  import: bool-thm
+  import: tactics-thm
+  import: simp-thm
+  import: theorems-thm
+  import: ind-defs-thm
+  import: class-thm
+  import: trivia-comb-thm
+  import: trivia-one-def
   package: hol-light-trivia-one-alt-2009.8.24
 }
 
 theory {
-  import alt;
+  import trivia-one-alt;
 }
