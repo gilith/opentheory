@@ -283,7 +283,7 @@ end;
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20100106)"^"\n";
+val versionString = program^" "^version^" (release 20100110)"^"\n";
 
 local
   fun mkProgramOptions header opts =

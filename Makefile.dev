@@ -169,7 +169,7 @@ lines: $(LINES)
 # Create a snapshop of all packages
 ###############################################################################
 
-repo/packages.tgz:
+repo/packages.tgz: test/opentheory/packages
 	cd test/opentheory && tar cvzf ../../$@ --exclude .gitignore packages
 
 ###############################################################################
@@ -321,6 +321,7 @@ release: release-stamp mosml mlton polyml
 	$(MAKE) tarball
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 	ssh gilith@login.gilith.com '/bin/bash -l scripts/install_opentheory'
+	echo Completed release
 
 ###############################################################################
 # The build scripts.
