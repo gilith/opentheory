@@ -191,7 +191,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Options for listing available packages.                                   *)
+(* Options for listing installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val listOutput = ref "-";
@@ -238,7 +238,7 @@ fun commandDescription cmd =
       Compile => "compile a theory package"
     | Help => "display command help"
     | Info => "display package information"
-    | List => "list available theory packages";
+    | List => "list installed theory packages";
 
 val allCommandStrings = map commandString allCommands;
 
@@ -463,7 +463,7 @@ fun info name =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Listing available packages.                                               *)
+(* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 fun list () =

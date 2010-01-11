@@ -205,8 +205,7 @@ and importPackageName graph info =
           case PackageFinder.find finder pkg of
             SOME p => p
           | NONE =>
-            raise Error ("Graph.importPackageName: couldn't find package " ^
-                         PackageName.toString pkg)
+            raise Error ("couldn't find package " ^ PackageName.toString pkg)
 
       val info =
           {finder = finder,
@@ -242,6 +241,27 @@ and importPackage graph info =
     in
       importContents graph info
     end
+    handle Error err =>
+      let
+        val {package = pkg, ...} = info
+        val Package.Package {name,...} = pkg
+
+        val err =
+            case name of
+              NONE =>
+(*OpenTheoryDebug
+              "while importing unnamed package:\n" ^
+*)
+              err
+            | SOME n =>
+              "while importing package " ^ PackageName.toString n ^ ":\n" ^ err
+
+(*OpenTheoryDebug
+        val err = "Graph.importPackage: " ^ err
+*)
+      in
+        raise Error err
+      end
 
 and importContents graph info =
     let

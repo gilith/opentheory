@@ -130,12 +130,8 @@ local
             case List.find (fn r => not (StringMap.inDomain r reqs)) rs of
               NONE => ()
             | SOME r =>
-              let
-                val err = "require block \"" ^ n ^ "\" " ^
-                          "imports non-block \"" ^ r ^ "\""
-              in
-                raise Error ("PackageRequire.sort: unknown import:\n" ^ err)
-              end
+              raise Error ("require block \"" ^ n ^ "\" " ^
+                           "imports unknown \"" ^ r ^ "\"")
 
         val () = StringMap.app check reqs
       in
@@ -163,7 +159,7 @@ local
             val l = r :: rev (r :: l)
             val err = join " -> " l
           in
-            raise Error ("PackageRequire.sort: circular dependency:\n" ^ err)
+            raise Error ("circular dependency:\n" ^ err)
           end
         else
           let
@@ -192,7 +188,10 @@ in
         val stackset = StringSet.empty
       in
         sortMap reqs (dealt,dealtset) (stack,stackset) work
-      end;
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("PackageRequire.sort: " ^ err);
+*)
 end;
 
 (* ------------------------------------------------------------------------- *)
