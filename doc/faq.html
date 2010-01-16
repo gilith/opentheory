@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Frequently Asked Questions About the opentheory Tool</title>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+</head>
+
+<body>
+
+<h1>Frequently Asked Questions About the opentheory Tool</h1>
+
+<h4>What does the tool do?</h4>
+
+<p>The opentheory tool processes OpenTheory packages, which contains
+statements and proofs of theorems in higher order logic. These
+packages are used to share proofs between the different theorem prover
+implementations of higher order logic, including
+
+<a href="http://hol.sourceforge.net/">HOL4</a>,
+
+<a href="http://www.lemma-one.com/ProofPower/index/index.html">ProofPower/HOL</a>
+
+and
+
+<a href="http://www.cl.cam.ac.uk/users/jrh/hol-light/index.html">HOL Light</a>.
+
+See the
+
+<a href="http://www.gilith.com/research/opentheory">OpenTheory project</a>
+
+home page for more details.</p>
+
+<hr />
+
+<h4>Where can I download the tool?</h4>
+
+<p>The most recent version of the opentheory tool can be downloaded from
+
+<a href="http://www.gilith.com/software/opentheory/"><tt>http://www.gilith.com/software/opentheory/</tt></a>.</p>
+
+<hr />
+
+<h4>Where is the tool documentation?</h4>
+
+<p>The
+
+<a href="notes.html"><tt>doc/notes.html</tt></a>
+
+file of the opentheory release contains a collection of links to tool
+documentation.</p>
+
+<hr />
+
+<h4>What version of ML should I use to compile opentheory?</h4>
+
+<p>I strongly recommend using MLton (or Poly/ML) over Moscow ML to run
+opentheory, for reasons of speed (MLton is about 10 times faster than
+Moscow ML).</p>
+
+<hr />
+
+<h4>How can I see what theory packages I have installed?</h4>
+
+<p>The command
+
+<blockquote>
+<tt>opentheory list</tt>
+</blockquote>
+
+displays all installed packages.</p>
+
+<hr />
+
+<h4>Where are the packages installed?</h4>
+
+<p>By default, opentheory installs packages in the
+directory <tt>~/.opentheory</tt>. It is possible to specify a
+different package directory using the global option
+
+<tt>-d, --root-dir DIR</tt>.</p>
+
+<hr />
+
+<h4>How can I view the contents of a theory package?</h4>
+
+<p>The command
+
+<blockquote>
+<tt>opentheory compile --summary-text - ~/.opentheory/packages/NAME-VERSION/NAME.thy</tt>
+</blockquote>
+
+compiles a text summary of the theory package <tt>NAME-VERSION</tt>,
+and displays it on <tt>stdout</tt>.</p>
+
+<hr />
+
+<h4>How can I import a theory package into a theorem prover?</h4>
+
+<p>There are two steps to this:
+
+<ol>
+
+<li>Compile the theory package to a proof article file using the
+  command
+
+<blockquote>
+<tt>opentheory compile --article NAME.art ~/.opentheory/packages/NAME-VERSION/NAME.thy</tt>
+</blockquote></li>
+
+<li>Read the proof article file <tt>NAME.art</tt> into the theorem
+  prover, using existing type operators, constants and theorems to
+  satisfy the the <tt>input-types</tt>, <tt>input-consts</tt>
+  and <tt>assumed</tt> sections of the theory summary.</li>
+
+</ol></p>
+
+<hr />
+
+<img src="logo.png" alt="opentheory" />
+
+</body>
+</html>
