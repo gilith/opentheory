@@ -35,6 +35,14 @@ val add : graph -> Instance.instance -> graph
 val lookup : graph -> PackageName.name -> InstanceSet.set
 
 (* ------------------------------------------------------------------------- *)
+(* Ancestor instances.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val parents : Instance.instance -> InstanceSet.set
+
+val ancestors : Instance.instance -> InstanceSet.set  (* not including self *)
+
+(* ------------------------------------------------------------------------- *)
 (* Finding matching theory instances.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -114,5 +122,11 @@ val importRequire :
      requireNameToInstance : PackageRequire.name -> Instance.instance,
      require : PackageRequire.require} ->
     graph * Instance.instance
+
+(* ------------------------------------------------------------------------- *)
+(* Compiling instances to package requirements.                              *)
+(* ------------------------------------------------------------------------- *)
+
+val mkRequires : InstanceSet.set -> PackageRequire.require InstanceMap.map
 
 end

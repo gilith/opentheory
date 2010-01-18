@@ -37,18 +37,56 @@ fun instances (Graph {instances = x, ...}) = x;
 fun member inst graph = InstanceSet.member inst (instances graph);
 
 (* ------------------------------------------------------------------------- *)
-(* Adding instances.                                                         *)
+(* Ancestor instances.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun parentsList inst =
+    let
+      val imps = Instance.imports inst
+
+      val thyImps = Instance.theoryImports inst
+    in
+      imps @ thyImps
+    end;
+
+fun parents inst = InstanceSet.fromList (parentsList inst);
+
+local
+  fun ancsInst acc inst insts =
+      if InstanceSet.member inst acc then ancsList acc insts
+      else ancsPar (InstanceSet.add acc inst) inst insts
+
+  and ancsPar acc inst insts =
+      ancsList acc (parentsList inst @ insts)
+
+  and ancsList acc insts =
+      case insts of
+        [] => acc
+      | inst :: insts => ancsInst acc inst insts;
+in
+  fun ancestors inst = ancsPar InstanceSet.empty inst [];
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Looking up theory instances by package name.                              *)
 (* ------------------------------------------------------------------------- *)
 
 fun lookupPackages packages package =
     Option.getOpt (PackageNameMap.peek packages package, InstanceSet.empty);
 
+fun lookup (Graph {packages,...}) package =
+    lookupPackages packages package;
+
+(* ------------------------------------------------------------------------- *)
+(* Adding instances.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
 fun add graph inst =
     let
 (*OpenTheoryDebug
-      val insts = Instance.imports inst @ Instance.theoryImports inst
+      val insts = parents inst
 
-      val _ = List.all (fn i => member i graph) insts orelse
+      val _ = InstanceSet.all (fn i => member i graph) insts orelse
               raise Bug "Graph.add: parent instance not in graph"
 *)
 
@@ -72,13 +110,6 @@ fun add graph inst =
         {instances = instances,
          packages = packages}
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Looking up theory instances by package name.                              *)
-(* ------------------------------------------------------------------------- *)
-
-fun lookup (Graph {packages,...}) package =
-    lookupPackages packages package;
 
 (* ------------------------------------------------------------------------- *)
 (* Finding matching theory instances.                                        *)
@@ -358,5 +389,63 @@ and importRequire graph info =
     in
       matchImportPackageName graph info
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Compiling instances to package requirements.                              *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun avoidName s n =
+      let
+        fun avoidNum i =
+            let
+              val ni = n ^ "-" ^ Int.toString i
+            in
+              if StringSet.member ni s then avoidNum (i + 1) else ni
+            end
+      in
+        if StringSet.member n s then avoidNum 1 else n
+      end;
+
+  fun instName instReq inst =
+      case InstanceMap.peek instReq inst of
+        NONE => raise Error "set of theory instances is not closed"
+      | SOME req => PackageRequire.name req;
+
+  fun add (inst,(avoid,instReq)) =
+      case Instance.package inst of
+        NONE => raise Error "theory instance has no package"
+      | SOME pkg =>
+        let
+          val name = avoidName avoid (PackageName.base pkg)
+
+          val avoid = StringSet.add avoid name
+
+          val imps = map (instName instReq) (Instance.imports inst)
+
+          val int = Instance.interpretation inst
+
+          val req =
+              PackageRequire.Require
+                {name = name,
+                 imports = imps,
+                 interpretation = int,
+                 package = pkg}
+
+          val instReq = InstanceMap.insert instReq (inst,req)
+        in
+          (avoid,instReq)
+        end;
+in
+  fun mkRequires insts =
+      let
+        val avoid = StringSet.empty
+        and instReq = InstanceMap.new ()
+
+        val (_,instReq) = InstanceSet.foldl add (avoid,instReq) insts
+      in
+        instReq
+      end;
+end;
 
 end

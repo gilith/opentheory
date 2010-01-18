@@ -107,12 +107,14 @@ val simulations = ref defaultSimulations;
 
 datatype compileOutput =
     ArticleCompileOutput of {filename : string}
-  | SummaryTextCompileOutput of {filename : string};
+  | SummaryTextCompileOutput of {filename : string}
+  | TheoryCompileOutput of {filename : string};
 
 fun savableCompileOutput output =
     case output of
       ArticleCompileOutput _ => true
-    | SummaryTextCompileOutput _ => false;
+    | SummaryTextCompileOutput _ => false
+    | TheoryCompileOutput _ => false;
 
 val compileOutput : compileOutput list ref = ref [];
 
@@ -128,6 +130,18 @@ in
              let
                val ref outs = compileOutput
                val outs = outs @ [ArticleCompileOutput {filename = s}]
+               val () = compileOutput := outs
+             in
+               ()
+             end)},
+       {switches = ["--theory"], arguments = ["FILE"],
+        description = "write the compiled theory to FILE",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+             let
+               val ref outs = compileOutput
+               val outs = outs @ [TheoryCompileOutput {filename = s}]
                val () = compileOutput := outs
              in
                ()
@@ -283,7 +297,7 @@ end;
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20100116)"^"\n";
+val versionString = program^" "^version^" (release 20100117)"^"\n";
 
 local
   fun mkProgramOptions header opts =
@@ -381,9 +395,7 @@ fun compile {filename} =
 
       val art = Instance.article inst
 
-      val ths = Article.saved art
-
-      val sum = Summary.fromThmSet ths
+      val sum = Instance.summary inst
 
       fun output out =
           case out of
@@ -391,6 +403,31 @@ fun compile {filename} =
             Article.toTextFile {article = art, filename = filename}
           | SummaryTextCompileOutput {filename} =>
             Summary.toTextFile {summary = sum, filename = filename}
+          | TheoryCompileOutput {filename} =>
+            let
+              val instReq = Graph.mkRequires (Graph.ancestors inst)
+
+              fun instName inst =
+                  case InstanceMap.peek instReq inst of
+                    NONE => raise Bug "unknown theory import"
+                  | SOME req => PackageRequire.name req
+
+              val tags = []
+
+              val reqs = InstanceMap.foldr (fn (_,r,l) => r :: l) [] instReq
+
+              val thy = Theory.map instName (Instance.theory inst)
+
+              val contents =
+                  PackageContents.Contents
+                    {tags = tags,
+                     requires = reqs,
+                     theory = thy}
+            in
+              PackageContents.toTextFile
+                {contents = contents,
+                 filename = filename}
+            end
 
       val () = List.app output outs
 

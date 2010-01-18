@@ -95,7 +95,7 @@ and displays it on <tt>stdout</tt>.</p>
 
 <hr />
 
-<h4>How can I import a theory package into a theorem prover?</h4>
+<h4>How can I import a theory package into my theorem prover?</h4>
 
 <p>There are two steps to this:
 
@@ -108,12 +108,65 @@ and displays it on <tt>stdout</tt>.</p>
 <tt>opentheory compile --article NAME.art ~/.opentheory/packages/NAME-VERSION/NAME.thy</tt>
 </blockquote></li>
 
-<li>Read the proof article file <tt>NAME.art</tt> into the theorem
-  prover, using existing type operators, constants and theorems to
-  satisfy the the <tt>input-types</tt>, <tt>input-consts</tt>
+<li>Read the proof article file <tt>NAME.art</tt> into your theorem
+  prover, using existing type operators, constants and theorems for
+  the ones in the <tt>input-types</tt>, <tt>input-consts</tt>
   and <tt>assumed</tt> sections of the theory summary.</li>
 
 </ol></p>
+
+<hr />
+
+<h4>How can I read a proof article file into my theorem prover?</h4>
+
+<p>If your higher order logic theorem prover does not already have a
+reader for proof articles, there are detailed instructions for
+implementing one in the
+
+<a href="http://www.gilith.com/research/opentheory/article.html">file
+format standard</a>.
+
+It might be useful to refer to the article reader implementation in the
+opentheory tool (although it needs to keep track of more state to
+compress articles), in particular the following files in the release:
+<ul>
+
+<li><tt>src/Command.sig</tt> &nbsp; <tt>src/Command.sml</tt></li>
+
+<li><tt>src/Object.sig</tt> &nbsp; <tt>src/Object.sml</tt></li>
+
+<li><tt>src/ObjectRead.sig</tt> &nbsp; <tt>src/ObjectRead.sml</tt></li>
+
+<li><tt>src/HolLight.sig</tt> &nbsp; <tt>src/HolLight.sml</tt></li>
+
+</ul></p>
+
+<hr />
+
+<h4>What are the <tt>NAME.thy</tt> files used for?</h4>
+
+<p>The theory file <tt>NAME.thy</tt>, normally found inside a package
+directory <tt>NAME-VERSION</tt>, contains instructions for how to
+construct the theory exported by the package. This might be as simple
+as
+
+<blockquote>
+<tt>theory { article "NAME.art"; }</tt>
+</blockquote>
+
+which says that the theory is constructed by reading the article
+file <tt>NAME.art</tt>, but more complex theories are possible that
+import and combine other theory packages.</p>
+
+<p>Theory files also contain some meta-information about the package
+in the form of tags, for example:
+<blockquote>
+<tt>name: bool<br />
+version: 1.0<br />
+description: Basic boolean theory<br />
+author: Joe Hurd &lt;joe@gilith.com&gt;<br />
+license: PublicDomain</tt>
+</blockquote></p>
 
 <hr />
 
