@@ -445,7 +445,10 @@ in
         val (_,instReq) = InstanceSet.foldl add (avoid,instReq) insts
       in
         instReq
-      end;
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Graph.mkRequires: " ^ err);
+*)
 end;
 
 end
