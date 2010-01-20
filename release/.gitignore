@@ -2,4 +2,6 @@
 *.png
 *.txt
 favicon.ico
+foo.thy
+logging.ml
 opentheory.tar.gz

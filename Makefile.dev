@@ -309,15 +309,31 @@ RELEASE_STAMP = scripts/release_stamp
 release-stamp: $(RELEASE_STAMP)
 	 $(RELEASE_STAMP) -p opentheory doc/*.html src/opentheory.sml
 
+doc/logging.ml: data/hol-light/logging.ml
+	cp -v $^ $@
+
+doc/foo.thy: test/interpretations/hol-light.int
+	echo 'theory {' > $@
+	echo '  interpret {' >> $@
+	cat $^ | perl -ne '$$f = $$_; chomp $$f; print "    $$f\n";' | cat >> $@
+	echo '  } in ' >> $@
+	echo '  article "foo.art";' >> $@
+	echo '}' >> $@
+
+.PHONY: documentation
+documentation: doc/logging.ml doc/foo.thy
+
 .PHONY: tarball
 tarball: clean doc/DONT-RELEASE Makefile.dev
 	cd .. ; tar cvzhf opentheory/release/opentheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
 
 .PHONY: release
-release: release-stamp mosml mlton polyml
+release: release-stamp mosml mlton polyml documentation
 	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/*.png
 	cp -v doc/*.html doc/*.txt doc/*.png $(RELEASE_DIR)/
 	cp -v doc/favicon.ico $(RELEASE_DIR)/
+	cp -v doc/logging.ml $(RELEASE_DIR)/
+	cp -v doc/foo.thy $(RELEASE_DIR)/
 	$(MAKE) tarball
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 	ssh gilith@login.gilith.com '/bin/bash -l scripts/install_opentheory'
