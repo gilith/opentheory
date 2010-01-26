@@ -334,8 +334,6 @@ and importContents graph info =
             (graph,reqInsts)
           end
 
-      val requires = PackageRequire.sort requires
-
       val (graph,reqInsts) =
           List.foldl importReq (graph, StringMap.new ()) requires
 
