@@ -210,8 +210,13 @@ stop_logging ();;</tt>
 </blockquote></li>
 
 <li>Running the <tt>NAME.ml</tt> file through HOL Light in the usual
-way will generate a raw proof article file
-called <tt>foo.art</tt>.</li>
+way
+<blockquote>
+<tt>ocaml<br />
+#use "hol.ml";;<br />
+#use "NAME.ml";;</tt>
+</blockquote>
+will generate a raw proof article file called <tt>foo.art</tt>.</li>
 
 <li>The proof article file <tt>foo.art</tt> can be compressed and
 converted to the OpenTheory standard namespace with the command
