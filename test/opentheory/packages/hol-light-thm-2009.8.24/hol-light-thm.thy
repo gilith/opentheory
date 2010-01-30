@@ -530,6 +530,7 @@ theory {
   import bool-thm;
   import tactics-thm;
   import simp-thm;
+  import theorems-thm;
   import ind-defs-thm;
   import class-thm;
   import trivia-thm;
