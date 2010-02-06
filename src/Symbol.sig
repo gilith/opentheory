@@ -48,6 +48,8 @@ val addConstSet : symbol -> ConstSet.set -> symbol
 
 val addType : symbol -> Type.ty -> symbol
 
+val addVar : symbol -> Var.var -> symbol
+
 val addTerm : symbol -> Term.term -> symbol
 
 val addSequent : symbol -> Sequent.sequent -> symbol

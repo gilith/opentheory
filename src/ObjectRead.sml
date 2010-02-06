@@ -136,6 +136,8 @@ fun execute cmd state =
       val {simulations,known,interpretation,savable} = parameters
     in
       case cmd of
+      (* SPECIAL COMMANDS *)
+
       (* Numbers *)
 
         Command.Num i =>
@@ -156,6 +158,25 @@ fun execute cmd state =
       | Command.Name n =>
         let
           val obj = ObjectProv.mkName n
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* REGULAR COMMANDS *)
+
+      (* Lambda abstraction terms *)
+
+      | Command.AbsTerm =>
+        let
+          val (stack,objV,objB) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkAbs objV objB
 
           val stack = ObjectStack.push stack obj
         in
@@ -302,21 +323,6 @@ fun execute cmd state =
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
           val obj = ObjectProv.mkApp objF objA
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      | Command.Abs =>
-        let
-          val (stack,objV,objB) = ObjectStack.pop2 stack
-
-          val obj = ObjectProv.mkAbs objV objB
 
           val stack = ObjectStack.push stack obj
         in

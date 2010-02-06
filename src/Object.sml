@@ -13,75 +13,120 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 datatype object =
-    Oerror
-  | Oint of int
-  | Oname of Name.name
-  | Olist of object list
-  | Otype of Type.ty
-  | Oterm of Term.term
-  | Othm of Thm.thm
-  | Ocall of Name.name;
+    Error
+  | Int of int
+  | Name of Name.name
+  | TypeOp of TypeOp.typeOp
+  | Type of Type.ty
+  | Const of Const.const
+  | Var of Var.var
+  | Term of Term.term
+  | Thm of Thm.thm
+  | List of object list
+  | Call of Name.name;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun destOerror Oerror = ()
-  | destOerror _ = raise Error "destOerror";
-val isOerror = can destOerror;
+(* Error objects *)
 
-fun destOint (Oint n) = n
-  | destOint _ = raise Error "destOint";
-val isOint = can destOint;
+fun destError ob =
+    case ob of
+      Error => ()
+    | _ => raise Useful.Error "destError";
 
-fun destOname (Oname n) = n
-  | destOname _ = raise Error "destOname";
-val isOname = can destOname;
+val isError = can destError;
 
-fun destOlist (Olist l) = l
-  | destOlist _ = raise Error "destOlist";
-val isOlist = can destOlist;
+(* Int objects *)
 
-val onil = Olist [];
-fun mkOnil () = onil;
-fun isOnil (Olist []) = true
-  | isOnil _ = false;
+fun destInt ob =
+    case ob of
+      Int i => i
+    | _ => raise Useful.Error "destInt";
 
-fun mkOcons (Ocall _, _) = raise Error "Object.mkOcons: cannot cons Ocall"
-  | mkOcons (h, Olist t) = Olist (h :: t)
-  | mkOcons (_, _) = raise Error "Object.mkOcons";
-fun destOcons (Olist (h :: t)) = (h, Olist t)
-  | destOcons _ = raise Error "Object.destOcons";
-val isOcons = can destOcons;
+val isInt = can destInt;
 
-val ounit = Olist [];
-fun mkOunit () = ounit;
-fun isOunit (Olist []) = true
-  | isOunit _ = false;
+(* Name objects *)
 
-fun mkOpair (x,y) = Olist [x,y];
-fun destOpair (Olist [x,y]) = (x,y)
-  | destOpair _ = raise Error "destOpair";
-val isOpair = can destOpair;
+fun destName ob =
+    case ob of
+      Name n => n
+    | _ => raise Useful.Error "destName";
 
-fun mkOtriple (x,y,z) = Olist [x,y,z];
-fun destOtriple (Olist [x,y,z]) = (x,y,z)
-  | destOtriple _ = raise Error "destOtriple";
-val isOtriple = can destOtriple;
+val isName = can destName;
 
-fun destOtype (Otype ty) = ty
-  | destOtype _ = raise Error "Object.destOtype";
-val isOtype = can destOtype;
+(* List objects *)
 
-fun mkOtypes tys = Olist (map Otype tys);
-fun destOtypes obj = map destOtype (destOlist obj);
-val isOtypes = can destOtypes;
+fun destList ob =
+    case ob of
+      List l => l
+    | _ => raise Useful.Error "destList";
 
-fun mkOtypeVar (Oname n) = Otype (Type.mkVar n)
-  | mkOtypeVar _ = raise Error "Object.mkOtypeVar";
-fun destOtypeVar (Otype ty) = Oname (Type.destVar ty)
-  | destOtypeVar _ = raise Error "Object.destOtypeVar";
-val isOtypeVar = can destOtypeVar;
+val isList = can destList;
+
+(* Nil list objects *)
+
+val nilList = List [];
+
+fun mkNilList () = nilList;
+
+fun isNilList ob =
+    case ob of
+      List [] => true
+    | _ => false;
+
+(* Cons list objects *)
+
+fun mkConsList (h,t) =
+    case h of
+      Call _ => raise Useful.Error "Object.mkConsList: cannot cons Call object"
+    | _ =>
+      case t of
+        List l => List (h :: l)
+      | _ => raise Useful.Error "Object.mkConsList";
+
+fun destConsList ob =
+    case ob of
+      List (h :: t) => (h, List t)
+    | _ => raise Useful.Error "Object.destConsList";
+
+val isConsList = can destConsList;
+
+(* Unit objects *)
+
+val unit = List [];
+
+fun mkUnit () = unit;
+
+fun isUnit ob =
+    case ob of
+      List [] => true
+    | _ => false;
+
+(* Pair objects *)
+
+fun mkPair (x,y) = List [x,y];
+
+fun destPair ob =
+    case ob of
+      List [x,y] => (x,y)
+    | _ => raise Useful.Error "Object.destPair";
+
+val isPair = can destPair;
+
+(* Triple objects *)
+
+fun mkTriple (x,y,z) = List [x,y,z];
+
+fun destTriple ob =
+    case ob of
+      List [x,y,z] => (x,y,z)
+    | _ => raise Useful.Error "Object.destTriple";
+
+val isTriple = can destTriple;
+
+(* Type operator objects *)
 
 fun mkOtypeOp (ot,tys) =
     let
@@ -96,9 +141,61 @@ fun destOtypeOp (Otype ty) =
     in
       (ot, mkOtypes l)
     end
-  | destOtypeOp _ = raise Error "Object.destOtypeOp";
+  | destOtypeOp _ = raise Useful.Error "Object.destOtypeOp";
 
 val isOtypeOp = can destOtypeOp;
+
+(* Type objects *)
+
+fun destType ob =
+    case ob of
+      Type ty => ty
+    | _ => raise Useful.Error "Object.destType";
+
+val isType = can destType;
+
+(* Type list objects *)
+
+fun mkTypes tys = List (map Type tys);
+
+fun destTypes ob = map destType (destList ob);
+
+val isTypes = can destTypes;
+
+(* Type variable type objects *)
+
+fun mkVarType ob =
+    case ob of
+      Name n => Type (Type.mkVar n)
+    | _ => raise Useful.Error "Object.mkVarType";
+
+fun destVarType ob =
+    case ob of
+      Type ty => Name (Type.destVar ty)
+    | _ => raise Useful.Error "Object.destVarType";
+
+val isVarType = can destVarType;
+
+(* Type operator type objects *)
+
+fun mkOtypeOp (ot,tys) =
+    let
+      val tys = destOtypes tys
+    in
+      Otype (Type.mkOp (ot,tys))
+    end;
+
+fun destOtypeOp (Otype ty) =
+    let
+      val (ot,l) = Type.destOp ty
+    in
+      (ot, mkOtypes l)
+    end
+  | destOtypeOp _ = raise Useful.Error "Object.destOtypeOp";
+
+val isOtypeOp = can destOtypeOp;
+
+(* Term variable objects *)
 
 fun mkOvar v =
     let
@@ -106,24 +203,36 @@ fun mkOvar v =
     in
       mkOpair (Oname n, Otype ty)
     end;
+
 fun destOvar var =
     let
       val (n,ty) = destOpair var
     in
       Var.mk (destOname n, destOtype ty)
     end;
+
 val isOvar = can destOvar;
 
+(* Term objects *)
+
 fun destOterm (Oterm tm) = tm
-  | destOterm _ = raise Error "destOterm";
+  | destOterm _ = raise Useful.Error "destOterm";
+
 val isOterm = can destOterm;
 
+(* Term list objects *)
+
 fun mkOterms tys = Olist (map Oterm tys);
+
 fun destOterms obj = map destOterm (destOlist obj);
+
 val isOterms = can destOterms;
 
+(* Term variable term objects *)
+
 fun mkOtermVar (Oname n, Otype ty) = Oterm (Term.mkVar (Var.mk (n,ty)))
-  | mkOtermVar _ = raise Error "Object.mkOtermVar";
+  | mkOtermVar _ = raise Useful.Error "Object.mkOtermVar";
+
 fun destOtermVar (Oterm t) =
     let
       val v = Term.destVar t
@@ -131,43 +240,58 @@ fun destOtermVar (Oterm t) =
     in
       (Oname n, Otype ty)
     end
-  | destOtermVar _ = raise Error "Object.destOtermVar";
+  | destOtermVar _ = raise Useful.Error "Object.destOtermVar";
+
 val isOtermVar = can destOtermVar;
+
+(* Constant term objects *)
 
 fun mkOtermConst (c,oty) =
     case oty of
       Otype ty => Oterm (Term.mkConst (c,ty))
-    | _ => raise Error "Object.mkOtermConst";
+    | _ => raise Useful.Error "Object.mkOtermConst";
+
 fun destOtermConst (Oterm t) =
     let
       val (c,ty) = Term.destConst t
     in
       (c, Otype ty)
     end
-  | destOtermConst _ = raise Error "Object.destOtermConst";
+  | destOtermConst _ = raise Useful.Error "Object.destOtermConst";
+
 val isOtermConst = can destOtermConst;
 
+(* Function application term objects *)
+
 fun mkOtermApp (Oterm f, Oterm a) = Oterm (Term.mkApp (f,a))
-  | mkOtermApp _ = raise Error "Object.mkOtermApp";
+  | mkOtermApp _ = raise Useful.Error "Object.mkOtermApp";
+
 fun destOtermApp (Oterm t) =
     let
       val (f,a) = Term.destApp t
     in
       (Oterm f, Oterm a)
     end
-  | destOtermApp _ = raise Error "Object.destOtermApp";
+  | destOtermApp _ = raise Useful.Error "Object.destOtermApp";
+
 val isOtermApp = can destOtermApp;
 
+(* Lambda abstraction term objects *)
+
 fun mkOtermAbs (Oterm v, Oterm b) = Oterm (Term.mkAbs (Term.destVar v, b))
-  | mkOtermAbs _ = raise Error "Object.mkOtermAbs";
+  | mkOtermAbs _ = raise Useful.Error "Object.mkOtermAbs";
+
 fun destOtermAbs (Oterm t) =
     let
       val (v,b) = Term.destAbs t
     in
       (Oterm (Term.mkVar v), Oterm b)
     end
-  | destOtermAbs _ = raise Error "Object.destOtermAbs";
+  | destOtermAbs _ = raise Useful.Error "Object.destOtermAbs";
+
 val isOtermAbs = can destOtermAbs;
+
+(* Sequent objects *)
 
 fun mkOseq seq =
     let
@@ -176,18 +300,26 @@ fun mkOseq seq =
     in
       (mkOterms h, Oterm c)
     end;
+
 fun destOseq (h,c) =
     Sequent.Sequent
       {hyp = TermAlphaSet.fromList (destOterms h),
        concl = destOterm c};
+
 val isOseq = can destOseq;
 
+(* Theorem objects *)
+
 fun destOthm (Othm th) = th
-  | destOthm _ = raise Error "destOthm";
+  | destOthm _ = raise Useful.Error "destOthm";
+
 val isOthm = can destOthm;
 
+(* Function call objects *)
+
 fun destOcall (Ocall n) = n
-  | destOcall _ = raise Error "destOcall";
+  | destOcall _ = raise Useful.Error "destOcall";
+
 val isOcall = can destOcall;
 
 (* ------------------------------------------------------------------------- *)
@@ -207,9 +339,18 @@ fun compare ob1_ob2 =
       | (Oname n1, Oname n2) => Name.compare (n1,n2)
       | (Oname _, _) => LESS
       | (_, Oname _) => GREATER
+      | (OtypeOp ot1, OtypeOp ot2) => TypeOp.compare (ot1,ot2)
+      | (OtypeOp _, _) => LESS
+      | (_, OtypeOp _) => GREATER
       | (Otype ty1, Otype ty2) => Type.compare (ty1,ty2)
       | (Otype _, _) => LESS
       | (_, Otype _) => GREATER
+      | (Oconst c1, Oconst c2) => Const.compare (c1,c2)
+      | (Oconst _, _) => LESS
+      | (_, Oconst _) => GREATER
+      | (Ovar v1, Ovar v2) => Var.compare (v1,v2)
+      | (Ovar _, _) => LESS
+      | (_, Ovar _) => GREATER
       | (Oterm tm1, Oterm tm2) => Term.compare (tm1,tm2)
       | (Oterm _, _) => LESS
       | (_, Oterm _) => GREATER
@@ -247,18 +388,15 @@ fun symbolAddList sym obs =
         Oerror => symbolAddList sym obs
       | Oint _ => symbolAddList sym obs
       | Oname _ => symbolAddList sym obs
-      | Olist l =>
-        let
-          val obs = l @ obs
-        in
-          symbolAddList sym obs
-        end
+      | OtypeOp ot => Symbol.addTypeOp sym ot
       | Otype ty =>
         let
           val sym = Symbol.addType sym ty
         in
           symbolAddList sym obs
         end
+      | Oconst c => Symbol.addConst sym c
+      | Ovar v => Symbol.addVar sym v
       | Oterm tm =>
         let
           val sym = Symbol.addTerm sym tm
@@ -268,6 +406,12 @@ fun symbolAddList sym obs =
       | Othm th =>
         let
           val sym = Symbol.addSequent sym (Thm.sequent th)
+        in
+          symbolAddList sym obs
+        end
+      | Olist l =>
+        let
+          val obs = l @ obs
         in
           symbolAddList sym obs
         end
@@ -286,31 +430,29 @@ fun toCommand ob =
       Oerror => (Command.Error,[])
     | Oint i => (Command.Num i, [])
     | Oname n => (Command.Name n, [])
-    | Olist l =>
-      (case l of
-         [] => (Command.Nil,[])
-       | h :: t => (Command.Cons, [h, Olist t]))
+    | OtypeOp ot => (Command.TypeOp, [Oname (TypeOp.name ot)])
     | Otype ty =>
       (case Type.dest ty of
-         TypeTerm.VarTy' n => (Command.TypeVar, [Oname n])
-       | TypeTerm.OpTy' (ot,tys) =>
-         (Command.TypeOp, [Oname (TypeOp.name ot), mkOtypes tys]))
+         TypeTerm.VarTy' n => (Command.VarType, [Oname n])
+       | TypeTerm.OpTy' (ot,tys) => (Command.OpType, [OtypeOp ot, mkOtypes tys]))
+    | Oconst c => (Command.Const, [Oname (Const.name c)])
+    | Ovar (TypeTerm.Var (n,ty)) => (Command.Var, [Oname n, Otype ty])
     | Oterm tm =>
       (case Term.dest tm of
-         TypeTerm.Const' (c,ty) =>
-         (Command.Const, [Oname (Const.name c), Otype ty])
-       | TypeTerm.Var' (TypeTerm.Var (n,ty)) =>
-         (Command.Var, [Oname n, Otype ty])
-       | TypeTerm.App' (f,a) =>
-         (Command.App, [Oterm f, Oterm a])
-       | TypeTerm.Abs' (v,b) =>
-         (Command.Abs, [Oterm (Term.mkVar v), Oterm b]))
+         TypeTerm.Const' (c,ty) => (Command.ConstTerm, [Oconst c, Otype ty])
+       | TypeTerm.Var' v => (Command.Var, [Ovar v])
+       | TypeTerm.App' (f,a) => (Command.AppTerm, [Oterm f, Oterm a])
+       | TypeTerm.Abs' (v,b) => (Command.AbsTerm, [Ovar v, Oterm b]))
     | Othm th =>
       let
         val (hyp,concl) = mkOseq (Thm.sequent th)
       in
         (Command.Thm,[hyp,concl])
       end
+    | Olist l =>
+      (case l of
+         [] => (Command.Nil,[])
+       | h :: t => (Command.Cons, [h, Olist t]))
     | Ocall _ => raise Bug "Object.toCommand: Ocall";
 
 (* ------------------------------------------------------------------------- *)
@@ -322,7 +464,10 @@ fun pp ob =
       Oerror => Print.ppString "ERROR"
     | Oint n => Print.ppInt n
     | Oname s => Name.ppQuoted s
+    | OtypeOp ot => TypeOp.pp ot
     | Otype ty => Type.pp ty
+    | Oconst c => Const.pp c
+    | Ovar v => Var.pp v
     | Oterm tm => Term.pp tm
     | Othm th => Thm.pp th
     | Olist l => Print.ppList pp l

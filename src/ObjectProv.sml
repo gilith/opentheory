@@ -355,7 +355,7 @@ fun mkApp objF objA =
       mk ob prov
     end;
 
-fun mkAbs objV objB =
+fun mkAbsTerm objV objB =
     let
       val Object {object = obV, ...} = objV
       and Object {object = obB, ...} = objB

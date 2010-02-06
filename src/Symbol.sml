@@ -179,6 +179,12 @@ fun addType sym ty =
     handle Error err => raise Error ("Symbol.addType: " ^ err);
 *)
 
+fun addVar sym v =
+    addX Term.addTypeSharingTypeOps addNothing sym (Var.typeOf v)
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Symbol.addVar: " ^ err);
+*)
+
 fun addTerm sym tm =
     addX Term.addSharingTypeOps Term.addSharingConsts sym tm
 (*OpenTheoryDebug

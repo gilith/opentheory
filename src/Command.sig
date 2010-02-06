@@ -11,25 +11,30 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 datatype command =
+  (* Special commands *)
     Num of int
   | Name of Name.name
+  (* Regular commands *)
+  | AbsTerm
+  | AppTerm
+  | Call
+  | Cons
+  | Const
+  | ConstTerm
+  | Def
   | Error
   | Nil
-  | Cons
-  | TypeVar
-  | TypeOp
-  | Var
-  | Const
-  | App
-  | Abs
-  | Thm
-  | Call
-  | Return
-  | Def
+  | OpType
+  | Pop
   | Ref
   | Remove
-  | Pop
+  | Return
   | Save
+  | Thm
+  | TypeOp
+  | Var
+  | VarType
+  | VarTerm
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

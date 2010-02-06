@@ -12,49 +12,58 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val absCommandString = "abs"
-and appCommandString = "app"
+val absTermCommandString = "absTerm"
+and appTermCommandString = "appTerm"
 and callCommandString = "call"
 and consCommandString = "cons"
 and constCommandString = "const"
+and constTermCommandString = "constTerm"
 and defCommandString = "def"
 and errorCommandString = "error"
 and negationChar = #"-"
 and nilCommandString = "nil"
+and opTypeCommandString = "opType"
 and popCommandString = "pop"
 and refCommandString = "ref"
 and removeCommandString = "remove"
 and returnCommandString = "return"
 and saveCommandString = "save"
 and thmCommandString = "thm"
-and typeVarCommandString = "type_var"
-and typeOpCommandString = "type_op"
-and varCommandString = "var";
+and typeVarCommandString = "typeVar"
+and typeOpCommandString = "typeOp"
+and varCommandString = "var"
+and varTermCommandString = "varTerm"
+and varTypeCommandString = "varType";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype command =
+  (* Special commands *)
     Num of int
   | Name of Name.name
+  (* Regular commands *)
+  | AbsTerm
+  | AppTerm
+  | Call
+  | Cons
+  | Const
+  | ConstTerm
+  | Def
   | Error
   | Nil
-  | Cons
-  | TypeVar
-  | TypeOp
-  | Var
-  | Const
-  | App
-  | Abs
-  | Thm
-  | Call
-  | Return
-  | Def
+  | OpType
+  | Pop
   | Ref
   | Remove
-  | Pop
-  | Save;
+  | Return
+  | Save
+  | Thm
+  | TypeOp
+  | Var
+  | VarType
+  | VarTerm;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -75,12 +84,15 @@ fun pp cmd =
     | Error => Print.ppString errorCommandString
     | Nil => Print.ppString nilCommandString
     | Cons => Print.ppString consCommandString
-    | TypeVar => Print.ppString typeVarCommandString
     | TypeOp => Print.ppString typeOpCommandString
+    | VarType => Print.ppString varTypeCommandString
+    | OpType => Print.ppString opTypeCommandString
     | Var => Print.ppString varCommandString
     | Const => Print.ppString constCommandString
-    | App => Print.ppString appCommandString
-    | Abs => Print.ppString absCommandString
+    | VarTerm => Print.ppString varTermCommandString
+    | ConstTerm => Print.ppString constTermCommandString
+    | AppTerm => Print.ppString appTermCommandString
+    | AbsTerm => Print.ppString absTermCommandString
     | Thm => Print.ppString thmCommandString
     | Call => Print.ppString callCommandString
     | Return => Print.ppString returnCommandString
@@ -137,20 +149,29 @@ local
   fun commandParser s c = exactString s >> K c;
 in
   val parser =
+      (* Special command parsers *)
       numParser >> Num ||
       nameParser >> Name ||
-      (* Sorted in decreasing length order *)
-      commandParser typeVarCommandString TypeVar ||
-      commandParser typeOpCommandString TypeOp ||
+      (* Regular command parsers are sorted by length to avoid prefix matching *)
+      (* Commands of length 9 *)
+      commandParser constTermCommandString ConstTerm ||
+      (* Commands of length 7 *)
+      commandParser absTermCommandString AbsTerm ||
+      commandParser appTermCommandString AppTerm ||
+      commandParser varTermCommandString VarTerm ||
+      commandParser varTypeCommandString VarType ||
+      (* Commands of length 6 *)
       commandParser removeCommandString Remove ||
       commandParser returnCommandString Return ||
+      commandParser typeOpCommandString TypeOp ||
+      (* Commands of length 5 *)
       commandParser constCommandString Const ||
       commandParser errorCommandString Error ||
+      (* Commands of length 4 *)
       commandParser callCommandString Call ||
-      commandParser appCommandString App ||
       commandParser consCommandString Cons ||
       commandParser saveCommandString Save ||
-      commandParser absCommandString Abs ||
+      (* Commands of length 3 *)
       commandParser defCommandString Def ||
       commandParser nilCommandString Nil ||
       commandParser popCommandString Pop ||
