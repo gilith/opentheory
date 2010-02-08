@@ -29,171 +29,165 @@ datatype object =
 
 (* Error objects *)
 
-val destOerror : object -> unit
+val destError : object -> unit
 
-val isOerror : object -> bool
+val isError : object -> bool
 
 (* Int objects *)
 
-val destOint : object -> int
+val destInt : object -> int
 
-val isOint : object -> bool
+val isInt : object -> bool
 
 (* Name objects *)
 
-val destOname : object -> Name.name
+val destName : object -> Name.name
 
-val isOname : object -> bool
+val isName : object -> bool
 
 (* List objects *)
 
-val destOlist : object -> object list
+val destList : object -> object list
 
-val isOlist : object -> bool
-
-(* Nil list objects *)
-
-val onil : object
-
-val mkOnil : unit -> object
-
-val isOnil : object -> bool
-
-(* Cons list objects *)
-
-val mkOcons : object * object -> object
-
-val destOcons : object -> object * object
-
-val isOcons : object -> bool
+val isList : object -> bool
 
 (* Unit objects *)
 
-val ounit : object
+val unit : object
 
-val mkOunit : unit -> object
+val mkUnit : unit -> object
 
-val isOunit : object -> bool
+val isUnit : object -> bool
 
 (* Pair objects *)
 
-val mkOpair : object * object -> object
+val mkPair : object * object -> object
 
-val destOpair : object -> object * object
+val destPair : object -> object * object
 
-val isOpair : object -> bool
+val isPair : object -> bool
 
 (* Triple objects *)
 
-val mkOtriple : object * object * object -> object
+val mkTriple : object * object * object -> object
 
-val destOtriple : object -> object * object * object
+val destTriple : object -> object * object * object
 
-val isOtriple : object -> bool
+val isTriple : object -> bool
+
+(* Type operator objects *)
+
+val destTypeOp : object -> TypeOp.typeOp
+
+val isTypeOp : object -> bool
 
 (* Type objects *)
 
-val destOtype : object -> Type.ty
+val destType : object -> Type.ty
 
-val isOtype : object -> bool
+val isType : object -> bool
 
 (* Type list objects *)
 
-val mkOtypes : Type.ty list -> object
+val mkTypes : Type.ty list -> object
 
-val destOtypes : object -> Type.ty list
+val destTypes : object -> Type.ty list
 
-val isOtypes : object -> bool
+val isTypes : object -> bool
 
 (* Type variable type objects *)
 
-val mkOtypeVar : object -> object
+val mkVarType : Name.name -> object
 
-val destOtypeVar : object -> object
+val destVarType : object -> Name.name
 
-val isOtypeVar : object -> bool
+val isVarType : object -> bool
 
 (* Type operator type objects *)
 
-val mkOtypeOp : TypeOp.typeOp * object -> object
+val mkOpType : TypeOp.typeOp * Type.ty list -> object
 
-val destOtypeOp : object -> TypeOp.typeOp * object
+val destOpType : object -> TypeOp.typeOp * Type.ty list
 
-val isOtypeOp : object -> bool
+val isOpType : object -> bool
+
+(* Constant objects *)
+
+val destConst : object -> Const.const
+
+val isConst : object -> bool
 
 (* Term variable objects *)
 
-val mkOvar : Var.var -> object
+val destVar : object -> Var.var
 
-val destOvar : object -> Var.var
-
-val isOvar : object -> bool
+val isVar : object -> bool
 
 (* Term objects *)
 
-val destOterm : object -> Term.term
+val destTerm : object -> Term.term
 
-val isOterm : object -> bool
+val isTerm : object -> bool
 
 (* Term list objects *)
 
-val mkOterms : Term.term list -> object
+val mkTerms : Term.term list -> object
 
-val destOterms : object -> Term.term list
+val destTerms : object -> Term.term list
 
-val isOterms : object -> bool
+val isTerms : object -> bool
 
 (* Term variable term objects *)
 
-val mkOtermVar : object * object -> object
+val mkVarTerm : Var.var -> object
 
-val destOtermVar : object -> object * object
+val destVarTerm : object -> Var.var
 
-val isOtermVar : object -> bool
+val isVarTerm : object -> bool
 
 (* Constant term objects *)
 
-val mkOtermConst : Const.const * object -> object
+val mkConstTerm : Const.const * Type.ty -> object
 
-val destOtermConst : object -> Const.const * object
+val destConstTerm : object -> Const.const * Type.ty
 
-val isOtermConst : object -> bool
+val isConstTerm : object -> bool
 
 (* Function application term objects *)
 
-val mkOtermApp : object * object -> object
+val mkAppTerm : Term.term * Term.term -> object
 
-val destOtermApp : object -> object * object
+val destAppTerm : object -> Term.term * Term.term
 
-val isOtermApp : object -> bool
+val isAppTerm : object -> bool
 
 (* Lambda abstraction term objects *)
 
-val mkOtermAbs : object * object -> object
+val mkAbsTerm : Var.var * Term.term -> object
 
-val destOtermAbs : object -> object * object
+val destAbsTerm : object -> Var.var * Term.term
 
-val isOtermAbs : object -> bool
+val isAbsTerm : object -> bool
 
 (* Sequent objects *)
 
-val mkOseq : Sequent.sequent -> object * object
+val mkSeq : Sequent.sequent -> object * object
 
-val destOseq : object * object -> Sequent.sequent
+val destSeq : object * object -> Sequent.sequent
 
-val isOseq : object * object -> bool
+val isSeq : object * object -> bool
 
 (* Theorem objects *)
 
-val destOthm : object -> Thm.thm
+val destThm : object -> Thm.thm
 
-val isOthm : object -> bool
+val isThm : object -> bool
 
 (* Function call objects *)
 
-val destOcall : object -> Name.name
+val destCall : object -> Name.name
 
-val isOcall : object -> bool
+val isCall : object -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)

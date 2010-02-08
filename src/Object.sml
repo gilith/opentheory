@@ -65,34 +65,6 @@ fun destList ob =
 
 val isList = can destList;
 
-(* Nil list objects *)
-
-val nilList = List [];
-
-fun mkNilList () = nilList;
-
-fun isNilList ob =
-    case ob of
-      List [] => true
-    | _ => false;
-
-(* Cons list objects *)
-
-fun mkConsList (h,t) =
-    case h of
-      Call _ => raise Useful.Error "Object.mkConsList: cannot cons Call object"
-    | _ =>
-      case t of
-        List l => List (h :: l)
-      | _ => raise Useful.Error "Object.mkConsList";
-
-fun destConsList ob =
-    case ob of
-      List (h :: t) => (h, List t)
-    | _ => raise Useful.Error "Object.destConsList";
-
-val isConsList = can destConsList;
-
 (* Unit objects *)
 
 val unit = List [];
@@ -128,22 +100,12 @@ val isTriple = can destTriple;
 
 (* Type operator objects *)
 
-fun mkOtypeOp (ot,tys) =
-    let
-      val tys = destOtypes tys
-    in
-      Otype (Type.mkOp (ot,tys))
-    end;
+fun destTypeOp ob =
+    case ob of
+      TypeOp ot => ot
+    | _ => raise Useful.Error "Object.destTypeOp";
 
-fun destOtypeOp (Otype ty) =
-    let
-      val (ot,l) = Type.destOp ty
-    in
-      (ot, mkOtypes l)
-    end
-  | destOtypeOp _ = raise Useful.Error "Object.destOtypeOp";
-
-val isOtypeOp = can destOtypeOp;
+val isTypeOp = can destTypeOp;
 
 (* Type objects *)
 
@@ -164,163 +126,128 @@ val isTypes = can destTypes;
 
 (* Type variable type objects *)
 
-fun mkVarType ob =
-    case ob of
-      Name n => Type (Type.mkVar n)
-    | _ => raise Useful.Error "Object.mkVarType";
+fun mkVarType n = Type (Type.mkVar n);
 
 fun destVarType ob =
     case ob of
-      Type ty => Name (Type.destVar ty)
+      Type ty => Type.destVar ty
     | _ => raise Useful.Error "Object.destVarType";
 
 val isVarType = can destVarType;
 
 (* Type operator type objects *)
 
-fun mkOtypeOp (ot,tys) =
-    let
-      val tys = destOtypes tys
-    in
-      Otype (Type.mkOp (ot,tys))
-    end;
+fun mkOpType (ot,tys) = Type (Type.mkOp (ot,tys));
 
-fun destOtypeOp (Otype ty) =
-    let
-      val (ot,l) = Type.destOp ty
-    in
-      (ot, mkOtypes l)
-    end
-  | destOtypeOp _ = raise Useful.Error "Object.destOtypeOp";
+fun destOpType ob =
+    case ob of
+      Type ty => Type.destOp ty
+    | _ => raise Useful.Error "Object.destOpType";
 
-val isOtypeOp = can destOtypeOp;
+val isOpType = can destOpType;
+
+(* Constant objects *)
+
+fun destConst ob =
+    case ob of
+      Const c => c
+    | _ => raise Useful.Error "Object.destConst";
+
+val isConst = can destConst;
 
 (* Term variable objects *)
 
-fun mkOvar v =
-    let
-      val (n,ty) = Var.dest v
-    in
-      mkOpair (Oname n, Otype ty)
-    end;
+fun destVar ob =
+    case ob of
+      Var v => v
+    | _ => raise Useful.Error "Object.destVar";
 
-fun destOvar var =
-    let
-      val (n,ty) = destOpair var
-    in
-      Var.mk (destOname n, destOtype ty)
-    end;
-
-val isOvar = can destOvar;
+val isVar = can destVar;
 
 (* Term objects *)
 
-fun destOterm (Oterm tm) = tm
-  | destOterm _ = raise Useful.Error "destOterm";
+fun destTerm ob =
+    case ob of
+      Term tm => tm
+    | _ => raise Useful.Error "Object.destTerm";
 
-val isOterm = can destOterm;
+val isTerm = can destTerm;
 
 (* Term list objects *)
 
-fun mkOterms tys = Olist (map Oterm tys);
+fun mkTerms tms = List (map Term tms);
 
-fun destOterms obj = map destOterm (destOlist obj);
+fun destTerms ob = map destTerm (destList ob);
 
-val isOterms = can destOterms;
+val isTerms = can destTerms;
 
 (* Term variable term objects *)
 
-fun mkOtermVar (Oname n, Otype ty) = Oterm (Term.mkVar (Var.mk (n,ty)))
-  | mkOtermVar _ = raise Useful.Error "Object.mkOtermVar";
+fun mkVarTerm v = Term (Term.mkVar v);
 
-fun destOtermVar (Oterm t) =
-    let
-      val v = Term.destVar t
-      val (n,ty) = Var.dest v
-    in
-      (Oname n, Otype ty)
-    end
-  | destOtermVar _ = raise Useful.Error "Object.destOtermVar";
+fun destVarTerm ob = Term.destVar (destTerm ob);
 
-val isOtermVar = can destOtermVar;
+val isVarTerm = can destVarTerm;
 
 (* Constant term objects *)
 
-fun mkOtermConst (c,oty) =
-    case oty of
-      Otype ty => Oterm (Term.mkConst (c,ty))
-    | _ => raise Useful.Error "Object.mkOtermConst";
+fun mkConstTerm c_ty = Term (Term.mkConst c_ty);
 
-fun destOtermConst (Oterm t) =
-    let
-      val (c,ty) = Term.destConst t
-    in
-      (c, Otype ty)
-    end
-  | destOtermConst _ = raise Useful.Error "Object.destOtermConst";
+fun destConstTerm ob = Term.destConst (destTerm ob);
 
-val isOtermConst = can destOtermConst;
+val isConstTerm = can destConstTerm;
 
 (* Function application term objects *)
 
-fun mkOtermApp (Oterm f, Oterm a) = Oterm (Term.mkApp (f,a))
-  | mkOtermApp _ = raise Useful.Error "Object.mkOtermApp";
+fun mkAppTerm f_a = Term (Term.mkApp f_a);
 
-fun destOtermApp (Oterm t) =
-    let
-      val (f,a) = Term.destApp t
-    in
-      (Oterm f, Oterm a)
-    end
-  | destOtermApp _ = raise Useful.Error "Object.destOtermApp";
+fun destAppTerm ob = Term.destApp (destTerm ob);
 
-val isOtermApp = can destOtermApp;
+val isAppTerm = can destAppTerm;
 
 (* Lambda abstraction term objects *)
 
-fun mkOtermAbs (Oterm v, Oterm b) = Oterm (Term.mkAbs (Term.destVar v, b))
-  | mkOtermAbs _ = raise Useful.Error "Object.mkOtermAbs";
+fun mkAbsTerm v_b = Term (Term.mkAbs v_b);
 
-fun destOtermAbs (Oterm t) =
-    let
-      val (v,b) = Term.destAbs t
-    in
-      (Oterm (Term.mkVar v), Oterm b)
-    end
-  | destOtermAbs _ = raise Useful.Error "Object.destOtermAbs";
+fun destAbsTerm ob = Term.destAbs (destTerm ob);
 
-val isOtermAbs = can destOtermAbs;
+val isAbsTerm = can destAbsTerm;
 
 (* Sequent objects *)
 
-fun mkOseq seq =
+fun mkSeq seq =
     let
       val Sequent.Sequent {hyp = h, concl = c} = seq
+
       val h = TermAlphaSet.toList h
     in
-      (mkOterms h, Oterm c)
+      (mkTerms h, Term c)
     end;
 
-fun destOseq (h,c) =
+fun destSeq (h,c) =
     Sequent.Sequent
-      {hyp = TermAlphaSet.fromList (destOterms h),
-       concl = destOterm c};
+      {hyp = TermAlphaSet.fromList (destTerms h),
+       concl = destTerm c};
 
-val isOseq = can destOseq;
+val isSeq = can destSeq;
 
 (* Theorem objects *)
 
-fun destOthm (Othm th) = th
-  | destOthm _ = raise Useful.Error "destOthm";
+fun destThm ob =
+    case ob of
+      Thm th => th
+    | _ => raise Useful.Error "Object.destThm";
 
-val isOthm = can destOthm;
+val isThm = can destThm;
 
 (* Function call objects *)
 
-fun destOcall (Ocall n) = n
-  | destOcall _ = raise Useful.Error "destOcall";
+fun destCall ob =
+    case ob of
+      Call n => n
+    | _ => raise Useful.Error "Object.destCall";
 
-val isOcall = can destOcall;
+val isCall = can destCall;
 
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)
@@ -330,37 +257,37 @@ fun compare ob1_ob2 =
     if Portable.pointerEqual ob1_ob2 then EQUAL
     else
       case ob1_ob2 of
-        (Oerror,Oerror) => EQUAL
-      | (Oerror,_) => LESS
-      | (_,Oerror) => GREATER
-      | (Oint n1, Oint n2) => Int.compare (n1,n2)
-      | (Oint _, _) => LESS
-      | (_, Oint _) => GREATER
-      | (Oname n1, Oname n2) => Name.compare (n1,n2)
-      | (Oname _, _) => LESS
-      | (_, Oname _) => GREATER
-      | (OtypeOp ot1, OtypeOp ot2) => TypeOp.compare (ot1,ot2)
-      | (OtypeOp _, _) => LESS
-      | (_, OtypeOp _) => GREATER
-      | (Otype ty1, Otype ty2) => Type.compare (ty1,ty2)
-      | (Otype _, _) => LESS
-      | (_, Otype _) => GREATER
-      | (Oconst c1, Oconst c2) => Const.compare (c1,c2)
-      | (Oconst _, _) => LESS
-      | (_, Oconst _) => GREATER
-      | (Ovar v1, Ovar v2) => Var.compare (v1,v2)
-      | (Ovar _, _) => LESS
-      | (_, Ovar _) => GREATER
-      | (Oterm tm1, Oterm tm2) => Term.compare (tm1,tm2)
-      | (Oterm _, _) => LESS
-      | (_, Oterm _) => GREATER
-      | (Othm th1, Othm th2) => Thm.dealphaCompare (th1,th2)
-      | (Othm _, _) => LESS
-      | (_, Othm _) => GREATER
-      | (Olist l1, Olist l2) => lexCompare compare (l1,l2)
-      | (Olist _, _) => LESS
-      | (_, Olist _) => GREATER
-      | (Ocall n1, Ocall n2) => Name.compare (n1,n2);
+        (Error,Error) => EQUAL
+      | (Error,_) => LESS
+      | (_,Error) => GREATER
+      | (Int n1, Int n2) => Int.compare (n1,n2)
+      | (Int _, _) => LESS
+      | (_, Int _) => GREATER
+      | (Name n1, Name n2) => Name.compare (n1,n2)
+      | (Name _, _) => LESS
+      | (_, Name _) => GREATER
+      | (TypeOp ot1, TypeOp ot2) => TypeOp.compare (ot1,ot2)
+      | (TypeOp _, _) => LESS
+      | (_, TypeOp _) => GREATER
+      | (Type ty1, Type ty2) => Type.compare (ty1,ty2)
+      | (Type _, _) => LESS
+      | (_, Type _) => GREATER
+      | (Const c1, Const c2) => Const.compare (c1,c2)
+      | (Const _, _) => LESS
+      | (_, Const _) => GREATER
+      | (Var v1, Var v2) => Var.compare (v1,v2)
+      | (Var _, _) => LESS
+      | (_, Var _) => GREATER
+      | (Term tm1, Term tm2) => Term.compare (tm1,tm2)
+      | (Term _, _) => LESS
+      | (_, Term _) => GREATER
+      | (Thm th1, Thm th2) => Thm.dealphaCompare (th1,th2)
+      | (Thm _, _) => LESS
+      | (_, Thm _) => GREATER
+      | (List l1, List l2) => lexCompare compare (l1,l2)
+      | (List _, _) => LESS
+      | (_, List _) => GREATER
+      | (Call n1, Call n2) => Name.compare (n1,n2);
 
 (* ------------------------------------------------------------------------- *)
 (* Extracting the theorems stored in an object.                              *)
@@ -368,10 +295,14 @@ fun compare ob1_ob2 =
 
 val thms =
     let
-      fun f acc [] = acc
-        | f acc (Othm th :: rest) = f (th :: acc) rest
-        | f acc (Olist l :: rest) = f acc (l @ rest)
-        | f acc (_ :: rest) = f acc rest
+      fun f acc obs =
+          case obs of
+            [] => acc
+          | ob :: obs =>
+            case ob of
+              Thm th => f (th :: acc) obs
+            | List l => f acc (l @ obs)
+            | _ => f acc obs
     in
       fn ob => f [] [ob]
     end;
@@ -385,37 +316,37 @@ fun symbolAddList sym obs =
       [] => sym
     | ob :: obs =>
       case ob of
-        Oerror => symbolAddList sym obs
-      | Oint _ => symbolAddList sym obs
-      | Oname _ => symbolAddList sym obs
-      | OtypeOp ot => Symbol.addTypeOp sym ot
-      | Otype ty =>
+        Error => symbolAddList sym obs
+      | Int _ => symbolAddList sym obs
+      | Name _ => symbolAddList sym obs
+      | TypeOp ot => Symbol.addTypeOp sym ot
+      | Type ty =>
         let
           val sym = Symbol.addType sym ty
         in
           symbolAddList sym obs
         end
-      | Oconst c => Symbol.addConst sym c
-      | Ovar v => Symbol.addVar sym v
-      | Oterm tm =>
+      | Const c => Symbol.addConst sym c
+      | Var v => Symbol.addVar sym v
+      | Term tm =>
         let
           val sym = Symbol.addTerm sym tm
         in
           symbolAddList sym obs
         end
-      | Othm th =>
+      | Thm th =>
         let
           val sym = Symbol.addSequent sym (Thm.sequent th)
         in
           symbolAddList sym obs
         end
-      | Olist l =>
+      | List l =>
         let
           val obs = l @ obs
         in
           symbolAddList sym obs
         end
-      | Ocall _ => symbolAddList sym obs;
+      | Call _ => symbolAddList sym obs;
 
 fun symbolAdd sym ob = symbolAddList sym [ob];
 
@@ -427,33 +358,33 @@ val symbol = symbolAdd Symbol.empty;
 
 fun toCommand ob =
     case ob of
-      Oerror => (Command.Error,[])
-    | Oint i => (Command.Num i, [])
-    | Oname n => (Command.Name n, [])
-    | OtypeOp ot => (Command.TypeOp, [Oname (TypeOp.name ot)])
-    | Otype ty =>
+      Error => (Command.Error,[])
+    | Int i => (Command.Num i, [])
+    | Name n => (Command.Name n, [])
+    | TypeOp ot => (Command.TypeOp, [Name (TypeOp.name ot)])
+    | Type ty =>
       (case Type.dest ty of
-         TypeTerm.VarTy' n => (Command.VarType, [Oname n])
-       | TypeTerm.OpTy' (ot,tys) => (Command.OpType, [OtypeOp ot, mkOtypes tys]))
-    | Oconst c => (Command.Const, [Oname (Const.name c)])
-    | Ovar (TypeTerm.Var (n,ty)) => (Command.Var, [Oname n, Otype ty])
-    | Oterm tm =>
+         TypeTerm.VarTy' n => (Command.VarType, [Name n])
+       | TypeTerm.OpTy' (ot,tys) => (Command.OpType, [TypeOp ot, mkTypes tys]))
+    | Const c => (Command.Const, [Name (Const.name c)])
+    | Var (TypeTerm.Var (n,ty)) => (Command.Var, [Name n, Type ty])
+    | Term tm =>
       (case Term.dest tm of
-         TypeTerm.Const' (c,ty) => (Command.ConstTerm, [Oconst c, Otype ty])
-       | TypeTerm.Var' v => (Command.Var, [Ovar v])
-       | TypeTerm.App' (f,a) => (Command.AppTerm, [Oterm f, Oterm a])
-       | TypeTerm.Abs' (v,b) => (Command.AbsTerm, [Ovar v, Oterm b]))
-    | Othm th =>
+         TypeTerm.Const' (c,ty) => (Command.ConstTerm, [Const c, Type ty])
+       | TypeTerm.Var' v => (Command.Var, [Var v])
+       | TypeTerm.App' (f,a) => (Command.AppTerm, [Term f, Term a])
+       | TypeTerm.Abs' (v,b) => (Command.AbsTerm, [Var v, Term b]))
+    | Thm th =>
       let
-        val (hyp,concl) = mkOseq (Thm.sequent th)
+        val (h,c) = mkSeq (Thm.sequent th)
       in
-        (Command.Thm,[hyp,concl])
+        (Command.Thm,[h,c])
       end
-    | Olist l =>
+    | List l =>
       (case l of
          [] => (Command.Nil,[])
-       | h :: t => (Command.Cons, [h, Olist t]))
-    | Ocall _ => raise Bug "Object.toCommand: Ocall";
+       | h :: t => (Command.Cons, [h, List t]))
+    | Call _ => raise Bug "Object.toCommand: Call";
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -461,17 +392,17 @@ fun toCommand ob =
 
 fun pp ob =
     case ob of
-      Oerror => Print.ppString "ERROR"
-    | Oint n => Print.ppInt n
-    | Oname s => Name.ppQuoted s
-    | OtypeOp ot => TypeOp.pp ot
-    | Otype ty => Type.pp ty
-    | Oconst c => Const.pp c
-    | Ovar v => Var.pp v
-    | Oterm tm => Term.pp tm
-    | Othm th => Thm.pp th
-    | Olist l => Print.ppList pp l
-    | Ocall f => Print.ppBracket "<" ">" Name.pp f;
+      Error => Print.ppString "ERROR"
+    | Int n => Print.ppInt n
+    | Name s => Name.ppQuoted s
+    | TypeOp ot => TypeOp.pp ot
+    | Type ty => Type.pp ty
+    | Const c => Const.pp c
+    | Var v => Var.pp v
+    | Term tm => Term.pp tm
+    | Thm th => Thm.pp th
+    | List l => Print.ppList pp l
+    | Call f => Print.ppBracket "<" ">" Name.pp f;
 
 end
 
