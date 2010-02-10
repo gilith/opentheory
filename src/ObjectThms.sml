@@ -81,7 +81,7 @@ local
                 let
                   val th =
                       case ObjectProv.object obj of
-                        Object.Othm th => th
+                        Object.Thm th => th
                       | _ => raise Bug "ObjectThms.add: bad thm"
 
                   val seq = Thm.sequent th

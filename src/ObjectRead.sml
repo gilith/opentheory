@@ -176,7 +176,7 @@ fun execute cmd state =
         let
           val (stack,objV,objB) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkAbs objV objB
+          val obj = ObjectProv.mkAbsTerm objV objB
 
           val stack = ObjectStack.push stack obj
         in
@@ -187,191 +187,13 @@ fun execute cmd state =
              saved = saved}
         end
 
-      (* Errors *)
+      (* Function application terms *)
 
-      | Command.Error =>
-        let
-          val obj = ObjectProv.mkError ()
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      (* Lists *)
-
-      | Command.Nil =>
-        let
-          val obj = ObjectProv.mkNil ()
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      | Command.Cons =>
-        let
-          val (stack,objH,objT) = ObjectStack.pop2 stack
-
-          val obj = ObjectProv.mkCons objH objT
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      (* Types *)
-
-      | Command.TypeVar =>
-        let
-          val (stack,objN) = ObjectStack.pop1 stack
-
-          val obj = ObjectProv.mkTypeVar objN
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      | Command.TypeOp =>
-        let
-          val (stack,objN,objL) = ObjectStack.pop2 stack
-
-          val n = Object.destOname (ObjectProv.object objN)
-          val n = Interpretation.interpretTypeOp interpretation n
-
-          val symbols =
-              [ObjectThms.symbol known,
-               ObjectThms.symbol saved,
-               ObjectStack.symbol stack,
-               ObjectStack.symbolSimulation stack]
-
-          val ot = Symbol.mkTypeOp symbols n
-
-          val obj = ObjectProv.mkTypeOp ot objL
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      (* Terms *)
-
-      | Command.Var =>
-        let
-          val (stack,objN,objT) = ObjectStack.pop2 stack
-
-          val obj = ObjectProv.mkVar objN objT
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      | Command.Const =>
-        let
-          val (stack,objN,objT) = ObjectStack.pop2 stack
-
-          val n = Object.destOname (ObjectProv.object objN)
-          val n = Interpretation.interpretConst interpretation n
-
-          val symbols =
-              [ObjectThms.symbol known,
-               ObjectThms.symbol saved,
-               ObjectStack.symbol stack,
-               ObjectStack.symbolSimulation stack]
-
-          val c = Symbol.mkConst symbols n
-
-          val obj = ObjectProv.mkConst c objT
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      | Command.App =>
+      | Command.AppTerm =>
         let
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkApp objF objA
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      (* Theorems *)
-
-      | Command.Thm =>
-        let
-          val (stack,objH,objC) = ObjectStack.pop2 stack
-
-          val seq =
-              let
-                val obH = ObjectProv.object objH
-                and obC = ObjectProv.object objC
-              in
-                Object.destOseq (obH,obC)
-              end
-
-          val (th,inf) =
-              case ObjectThms.search saved seq of
-                SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
-              | NONE =>
-                case ObjectStack.searchSimulation stack seq of
-                  SOME (th,objS) => (th, ObjectProv.Isimulated objS)
-                | NONE =>
-                  case ObjectStack.search stack seq of
-                    SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
-                  | NONE =>
-                    case ObjectThms.search known seq of
-                      SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
-                    | NONE =>
-                      let
-                        val th = Thm.axiom seq
-(*OpenTheoryTrace1
-                        val () = trace ("making new axiom in " ^
-                                        ObjectStack.topCallToString stack ^
-                                        ":\n" ^ Thm.toString th ^ "\n")
-*)
-                      in
-                        (th,ObjectProv.Iaxiom)
-                      end
-
-          val obj = ObjectProv.mkThm {savable = savable} th inf
+          val obj = ObjectProv.mkAppTerm objF objA
 
           val stack = ObjectStack.push stack obj
         in
@@ -391,10 +213,10 @@ fun execute cmd state =
           val obA = ObjectProv.object objA
           and obN = ObjectProv.object objN
 
-          val _ = not (Object.isOcall obA) orelse
-                  raise Error "cannot use an Ocall object as a call argument"
+          val _ = not (Object.isCall obA) orelse
+                  raise Error "cannot use a Call object as a call argument"
 
-          val n = Object.destOname obN
+          val n = Object.destName obN
 
 (*OpenTheoryDebug
           val () = incrementTheInferenceCount n
@@ -467,6 +289,196 @@ fun execute cmd state =
              saved = saved}
         end
 
+      (* Cons lists *)
+
+      | Command.Cons =>
+        let
+          val (stack,objH,objT) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkCons objH objT
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Constants *)
+
+      | Command.Const =>
+        let
+          val (stack,objN) = ObjectStack.pop1 stack
+
+          val n = Object.destName (ObjectProv.object objN)
+          val n = Interpretation.interpretConst interpretation n
+
+          val symbols =
+              [ObjectThms.symbol known,
+               ObjectThms.symbol saved,
+               ObjectStack.symbol stack,
+               ObjectStack.symbolSimulation stack]
+
+          val c = Symbol.mkConst symbols n
+
+          val obj = ObjectProv.mkConst c
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Constant terms *)
+
+      | Command.ConstTerm =>
+        let
+          val (stack,objC,objT) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkConstTerm objC objT
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Dictionary definitions *)
+
+      | Command.Def =>
+        let
+          val (stack,objI) = ObjectStack.pop1 stack
+          val obI = ObjectProv.object objI
+
+          val objD = ObjectStack.peek stack 0
+          val obD = ObjectProv.object objD
+
+          val _ = not (Object.isCall obD) orelse
+                  raise Error "cannot define a Call object"
+
+          val i = Object.destInt obI
+
+          val dict = ObjectDict.define dict (i,objD)
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Errors *)
+
+      | Command.Error =>
+        let
+          val obj = ObjectProv.mkError ()
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Empty lists *)
+
+      | Command.Nil =>
+        let
+          val obj = ObjectProv.mkNil ()
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Type operator types *)
+
+      | Command.OpType =>
+        let
+          val (stack,objT,objL) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkOpType objT objL
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Popping the stack *)
+
+      | Command.Pop =>
+        let
+          val stack = ObjectStack.pop stack 1
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Dictionary lookups *)
+
+      | Command.Ref =>
+        let
+          val (stack,objI) = ObjectStack.pop1 stack
+
+          val i = Object.destInt (ObjectProv.object objI)
+
+          val objD = ObjectDict.refer dict i
+
+          val obj = ObjectProv.mkRef {savable = savable} objD
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Dictionary removals *)
+
+      | Command.Remove =>
+        let
+          val (stack,objI) = ObjectStack.pop1 stack
+
+          val i = Object.destInt (ObjectProv.object objI)
+
+          val (dict,objD) = ObjectDict.remove dict i
+
+          val obj = ObjectProv.mkRemove {savable = savable} objD
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Function call returns *)
+
       | Command.Return =>
         let
           val (stack,objR,objN) = ObjectStack.pop2 stack
@@ -474,10 +486,10 @@ fun execute cmd state =
           val obR = ObjectProv.object objR
           and obN = ObjectProv.object objN
 
-          val _ = not (Object.isOcall obR) orelse
-                  raise Error "cannot use an Ocall object as a return value"
+          val _ = not (Object.isCall obR) orelse
+                  raise Error "cannot return a Call object from a function"
 
-          val n = Object.destOname obN
+          val n = Object.destName obN
 
           val (stack,n') = ObjectStack.popCall stack
 
@@ -513,89 +525,144 @@ fun execute cmd state =
              saved = saved}
         end
 
-      (* Dictionary *)
-
-      | Command.Def =>
-        let
-          val (stack,objI) = ObjectStack.pop1 stack
-          val obI = ObjectProv.object objI
-
-          val objD = ObjectStack.peek stack 0
-          val obD = ObjectProv.object objD
-
-          val _ = not (Object.isOcall obD) orelse
-                  raise Error "cannot def an Ocall object"
-
-          val i = Object.destOint obI
-
-          val dict = ObjectDict.define dict (i,objD)
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      | Command.Ref =>
-        let
-          val (stack,objI) = ObjectStack.pop1 stack
-
-          val i = Object.destOint (ObjectProv.object objI)
-
-          val objD = ObjectDict.refer dict i
-
-          val obj = ObjectProv.mkRef {savable = savable} objD
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      | Command.Remove =>
-        let
-          val (stack,objI) = ObjectStack.pop1 stack
-
-          val i = Object.destOint (ObjectProv.object objI)
-
-          val (dict,objD) = ObjectDict.remove dict i
-
-          val obj = ObjectProv.mkRemove {savable = savable} objD
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      (* General *)
-
-      | Command.Pop =>
-        let
-          val stack = ObjectStack.pop stack 1
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
+      (* Saving theorems *)
 
       | Command.Save =>
         let
           val objT = ObjectStack.peek stack 0
 
-          val _ = Object.isOthm (ObjectProv.object objT) orelse
-                  raise Error "can only save Othm objects"
+          val _ = Object.isThm (ObjectProv.object objT) orelse
+                  raise Error "can only save Thm objects"
 
           val saved = ObjectThms.add saved objT
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Theorems *)
+
+      | Command.Thm =>
+        let
+          val (stack,objH,objC) = ObjectStack.pop2 stack
+
+          val seq =
+              let
+                val obH = ObjectProv.object objH
+                and obC = ObjectProv.object objC
+              in
+                Object.destSeq (obH,obC)
+              end
+
+          val (th,inf) =
+              case ObjectThms.search saved seq of
+                SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
+              | NONE =>
+                case ObjectStack.searchSimulation stack seq of
+                  SOME (th,objS) => (th, ObjectProv.Isimulated objS)
+                | NONE =>
+                  case ObjectStack.search stack seq of
+                    SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
+                  | NONE =>
+                    case ObjectThms.search known seq of
+                      SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
+                    | NONE =>
+                      let
+                        val th = Thm.axiom seq
+(*OpenTheoryTrace1
+                        val () = trace ("making new axiom in " ^
+                                        ObjectStack.topCallToString stack ^
+                                        ":\n" ^ Thm.toString th ^ "\n")
+*)
+                      in
+                        (th,ObjectProv.Iaxiom)
+                      end
+
+          val obj = ObjectProv.mkThm {savable = savable} th inf
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Type operators *)
+
+      | Command.TypeOp =>
+        let
+          val (stack,objN) = ObjectStack.pop1 stack
+
+          val n = Object.destName (ObjectProv.object objN)
+          val n = Interpretation.interpretTypeOp interpretation n
+
+          val symbols =
+              [ObjectThms.symbol known,
+               ObjectThms.symbol saved,
+               ObjectStack.symbol stack,
+               ObjectStack.symbolSimulation stack]
+
+          val ot = Symbol.mkTypeOp symbols n
+
+          val obj = ObjectProv.mkTypeOp ot
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Term variables *)
+
+      | Command.Var =>
+        let
+          val (stack,objN,objT) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkVar objN objT
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Term variable terms *)
+
+      | Command.VarTerm =>
+        let
+          val (stack,objV) = ObjectStack.pop1 stack
+
+          val obj = ObjectProv.mkVarTerm objV
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             saved = saved}
+        end
+
+      (* Type variable types *)
+
+      | Command.VarType =>
+        let
+          val (stack,objN) = ObjectStack.pop1 stack
+
+          val obj = ObjectProv.mkVarType objN
+
+          val stack = ObjectStack.push stack obj
         in
           State
             {parameters = parameters,

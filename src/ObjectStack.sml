@@ -74,7 +74,7 @@ fun push stack obj =
           end
 
       val call =
-          if not (Object.isOcall (ObjectProv.object obj)) then call
+          if not (Object.isCall (ObjectProv.object obj)) then call
           else SOME (obj,stack)
     in
       Stack
@@ -168,7 +168,7 @@ fun addAlignCalls call stack cmds =
         else
           let
 (*OpenTheoryDebug
-            val _ = Object.isOcall (ObjectProv.object obj) orelse
+            val _ = Object.isCall (ObjectProv.object obj) orelse
                     raise Bug "ObjectStack.addAlignCalls: bad call"
 *)
 

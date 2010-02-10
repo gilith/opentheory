@@ -22,10 +22,10 @@ fun mkName s = Name.mk (namespace,s);
 
 fun typeSubstToSubst oins =
     let
-      fun f (x,y) = (Type.destVar (Object.destOtype y), Object.destOtype x)
+      fun f (x,y) = (Type.destVar (Object.destType y), Object.destType x)
 
-      val l = Object.destOlist oins
-      val l = map (f o Object.destOpair) l
+      val l = Object.destList oins
+      val l = map (f o Object.destPair) l
 
       val tyM = TypeSubst.fromListMap (rev l)
 
@@ -38,10 +38,10 @@ fun typeSubstToSubst oins =
 
 fun substToSubst oins =
     let
-      fun f (x,y) = (Term.destVar (Object.destOterm y), Object.destOterm x)
+      fun f (x,y) = (Term.destVar (Object.destTerm y), Object.destTerm x)
 
-      val l = Object.destOlist oins
-      val l = map (f o Object.destOpair) l
+      val l = Object.destList oins
+      val l = map (f o Object.destPair) l
 
       val tyM = TypeSubst.emptyMap
 
@@ -60,7 +60,7 @@ fun newBasicDefinition ctxt =
     let
       val Simulation.Context {interpretation = int, input, ...} = ctxt
 
-      val tm = Object.destOterm input
+      val tm = Object.destTerm input
 
       val (v,def) = Term.destEq tm
 
@@ -76,7 +76,7 @@ fun newBasicDefinition ctxt =
 
               val tm = Term.mkEq (Term.mkVar v, def)
             in
-              SOME (Object.Oterm tm)
+              SOME (Object.Term tm)
             end
 
       val thms =
@@ -93,14 +93,14 @@ fun newBasicTypeDefinition ctxt =
     let
       val Simulation.Context {interpretation = int, input, ...} = ctxt
 
-      val (tyName,absRepName,nonEmptyThOb) = Object.destOtriple input
+      val (tyName,absRepName,nonEmptyThOb) = Object.destTriple input
 
-      val tyName' = Object.destOname tyName
-      and (absName,repName) = Object.destOpair absRepName
-      and nonEmptyTh = Object.destOthm nonEmptyThOb
+      val tyName' = Object.destName tyName
+      and (absName,repName) = Object.destPair absRepName
+      and nonEmptyTh = Object.destThm nonEmptyThOb
 
-      val absName' = Object.destOname absName
-      and repName' = Object.destOname repName
+      val absName' = Object.destName absName
+      and repName' = Object.destName repName
 
       val tyName = Interpretation.interpretTypeOp int tyName'
       and absName = Interpretation.interpretConst int absName'
@@ -115,13 +115,13 @@ fun newBasicTypeDefinition ctxt =
           if unchanged then NONE
           else
             let
-              val absN = Object.Oname absName
-              and repN = Object.Oname repName
+              val absN = Object.Name absName
+              and repN = Object.Name repName
 
-              val tyN = Object.Oname tyName
-              and absRepN = Object.mkOpair (absN,repN)
+              val tyN = Object.Name tyName
+              and absRepN = Object.mkPair (absN,repN)
             in
-              SOME (Object.mkOtriple (tyN,absRepN,nonEmptyThOb))
+              SOME (Object.mkTriple (tyN,absRepN,nonEmptyThOb))
             end
 
       val tyVars =
@@ -150,10 +150,10 @@ fun abs ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val (otm,oth) = Object.destOpair input
+      val (otm,oth) = Object.destPair input
 
-      val v = Term.destVar (Object.destOterm otm)
-      and th = Object.destOthm oth
+      val v = Term.destVar (Object.destTerm otm)
+      and th = Object.destThm oth
 
       val input = NONE
 
@@ -171,7 +171,7 @@ fun assume ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val tm = Object.destOterm input
+      val tm = Object.destTerm input
 
       val input = NONE
 
@@ -189,7 +189,7 @@ fun beta ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val tm = Object.destOterm input
+      val tm = Object.destTerm input
 
       val input = NONE
 
@@ -207,10 +207,10 @@ fun deductAntisymRule ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val (oth1,oth2) = Object.destOpair input
+      val (oth1,oth2) = Object.destPair input
 
-      val th1 = Object.destOthm oth1
-      and th2 = Object.destOthm oth2
+      val th1 = Object.destThm oth1
+      and th2 = Object.destThm oth2
 
       val input = NONE
 
@@ -228,10 +228,10 @@ fun eqMp ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val (oth1,oth2) = Object.destOpair input
+      val (oth1,oth2) = Object.destPair input
 
-      val th1 = Object.destOthm oth1
-      and th2 = Object.destOthm oth2
+      val th1 = Object.destThm oth1
+      and th2 = Object.destThm oth2
 
       val input = NONE
 
@@ -249,10 +249,10 @@ fun inst ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val (oins,oth) = Object.destOpair input
+      val (oins,oth) = Object.destPair input
 
       val ins = substToSubst oins
-      and th = Object.destOthm oth
+      and th = Object.destThm oth
 
       val input = NONE
 
@@ -270,10 +270,10 @@ fun instType ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val (oins,oth) = Object.destOpair input
+      val (oins,oth) = Object.destPair input
 
       val ins = typeSubstToSubst oins
-      and th = Object.destOthm oth
+      and th = Object.destThm oth
 
       val input = NONE
 
@@ -291,10 +291,10 @@ fun mkComb ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val (oth1,oth2) = Object.destOpair input
+      val (oth1,oth2) = Object.destPair input
 
-      val th1 = Object.destOthm oth1
-      and th2 = Object.destOthm oth2
+      val th1 = Object.destThm oth1
+      and th2 = Object.destThm oth2
 
       val input = NONE
 
@@ -312,7 +312,7 @@ fun refl ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val tm = Object.destOterm input
+      val tm = Object.destTerm input
 
       val input = NONE
 
@@ -330,10 +330,10 @@ fun trans ctxt =
     let
       val Simulation.Context {input,...} = ctxt
 
-      val (oth1,oth2) = Object.destOpair input
+      val (oth1,oth2) = Object.destPair input
 
-      val th1 = Object.destOthm oth1
-      and th2 = Object.destOthm oth2
+      val th1 = Object.destThm oth1
+      and th2 = Object.destThm oth2
 
       val input = NONE
 

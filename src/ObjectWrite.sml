@@ -35,14 +35,17 @@ fun nullMinDict (MinDict {keys,...}) = ObjectMap.null keys;
 local
   fun storable ob =
       case ob of
-        Object.Oerror => false
-      | Object.Oint _ => false
-      | Object.Oname _ => false
-      | Object.Olist l => not (null l)
-      | Object.Otype _ => true
-      | Object.Oterm _ => true
-      | Object.Othm _ => true
-      | Object.Ocall _ => raise Bug "ObjectWrite.storable: Ocall";
+        Object.Error => false
+      | Object.Int _ => false
+      | Object.Name _ => false
+      | Object.List l => not (null l)
+      | Object.TypeOp _ => true
+      | Object.Type _ => true
+      | Object.Const _ => true
+      | Object.Var _ => true
+      | Object.Term _ => true
+      | Object.Thm _ => true
+      | Object.Call _ => raise Bug "ObjectWrite.storable: Call";
 
   fun registerTop refs ob =
       let
@@ -246,7 +249,7 @@ in
           let
             val n =
                 case ob of
-                  Object.Ocall n => n
+                  Object.Call n => n
                 | _ => raise Error "Pcall: bad call"
 
             val cmds = Command.Call :: Command.Name n :: cmds

@@ -102,17 +102,23 @@ val mkNil : unit -> object
 
 val mkCons : object -> object -> object
 
-val mkTypeVar : object -> object
+val mkTypeOp : TypeOp.typeOp -> object
 
-val mkTypeOp : TypeOp.typeOp -> object -> object
+val mkVarType : object -> object
+
+val mkOpType : object -> object -> object
+
+val mkConst : Const.const -> object
 
 val mkVar : object -> object -> object
 
-val mkConst : Const.const -> object -> object
+val mkVarTerm : object -> object
 
-val mkApp : object -> object -> object
+val mkConstTerm : object -> object -> object
 
-val mkAbs : object -> object -> object
+val mkAppTerm : object -> object -> object
+
+val mkAbsTerm : object -> object -> object
 
 val mkThm : {savable : bool} -> Thm.thm -> inference -> object
 

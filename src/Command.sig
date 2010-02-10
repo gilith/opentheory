@@ -33,8 +33,8 @@ datatype command =
   | Thm
   | TypeOp
   | Var
-  | VarType
   | VarTerm
+  | VarType
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

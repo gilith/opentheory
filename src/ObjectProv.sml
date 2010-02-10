@@ -132,7 +132,7 @@ fun destCall obj =
     let
       val Object {object = f, provenance = a, ...} = obj
 
-      val f = Object.destOcall f
+      val f = Object.destCall f
       and a = destCallProvenance a
     in
       (f,a)
@@ -140,13 +140,13 @@ fun destCall obj =
 
 fun parents obj = parentsProvenance (provenance obj);
 
-fun isThm obj = Object.isOthm (object obj);
+fun isThm obj = Object.isThm (object obj);
 
 fun containsThms obj =
     let
 (*OpenTheoryDebug
-      val _ = not (Object.isOcall (object obj)) orelse
-              raise Bug "ObjectProv.containsThms: Ocall"
+      val _ = not (Object.isCall (object obj)) orelse
+              raise Bug "ObjectProv.containsThms: Call"
 *)
     in
       containsThmsProvenance (provenance obj)
@@ -218,7 +218,7 @@ local
                  let
                    val th =
                        case ob of
-                         Object.Othm th => th
+                         Object.Thm th => th
                        | _ => raise Bug "ObjectProv.searchList: bad thm"
                  in
                    if Sequent.equal seq (Thm.sequent th) then
@@ -250,7 +250,7 @@ fun mk ob prov =
 
 fun mkNum i =
     let
-      val ob = Object.Oint i
+      val ob = Object.Int i
 
       val prov = Pnull
     in
@@ -259,7 +259,7 @@ fun mkNum i =
 
 fun mkName n =
     let
-      val ob = Object.Oname n
+      val ob = Object.Name n
 
       val prov = Pnull
     in
@@ -268,7 +268,7 @@ fun mkName n =
 
 fun mkError () =
     let
-      val ob = Object.Oerror
+      val ob = Object.Error
 
       val prov = Pnull
     in
@@ -277,7 +277,7 @@ fun mkError () =
 
 fun mkNil () =
     let
-      val ob = Object.onil
+      val ob = Object.List []
 
       val prov = Pnull
     in
@@ -289,31 +289,76 @@ fun mkCons objH objT =
       val Object {object = obH, ...} = objH
       and Object {object = obT, ...} = objT
 
-      val ob = Object.mkOcons (obH,obT)
+      val _ = not (Object.isCall obH) orelse
+              raise Error "head argument cannot be a Call object"
+
+      val ob =
+          case obT of
+            Object.List l => Object.List (obH :: l)
+          | _ => raise Error "tail argument must be a list object"
 
       val prov =
           if containsThms objH orelse containsThms objT then Pcons (objH,objT)
           else Pnull
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkCons: " ^ err);
+*)
 
-fun mkTypeVar objN =
+fun mkTypeOp ot =
     let
-      val Object {object = obN, ...} = objN
-
-      val ob = Object.mkOtypeVar obN
+      val ob = Object.TypeOp ot
 
       val prov = Pnull
     in
       mk ob prov
     end;
 
-fun mkTypeOp ot objL =
+fun mkVarType objN =
     let
-      val Object {object = obL, ...} = objL
+      val Object {object = obN, ...} = objN
 
-      val ob = Object.mkOtypeOp (ot,obL)
+      val ob =
+          case obN of
+            Object.Name n => Object.mkVarType n
+          | _ => raise Error "argument must be a name object"
+
+      val prov = Pnull
+    in
+      mk ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkVarType: " ^ err);
+*)
+
+fun mkOpType objO objL =
+    let
+      val Object {object = obO, ...} = objO
+      and Object {object = obL, ...} = objL
+
+      val ob =
+          case obO of
+            Object.TypeOp ot =>
+            let
+              val tys = Object.destTypes obL
+            in
+              Object.mkOpType (ot,tys)
+            end
+          | _ => raise Error "first argument must be a type operator object"
+
+      val prov = Pnull
+    in
+      mk ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkOpType: " ^ err);
+*)
+
+fun mkConst c =
+    let
+      val ob = Object.Const c
 
       val prov = Pnull
     in
@@ -325,65 +370,125 @@ fun mkVar objN objT =
       val Object {object = obN, ...} = objN
       and Object {object = obT, ...} = objT
 
-      val ob = Object.mkOtermVar (obN,obT)
+      val ob =
+          case obN of
+            Object.Name n =>
+            (case obT of
+               Object.Type ty => Object.Var (Var.mk (n,ty))
+             | _ => raise Error "second argument must be a type object")
+          | _ => raise Error "first argument must be a name object"
 
       val prov = Pnull
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkVar: " ^ err);
+*)
 
-fun mkConst c objT =
+fun mkVarTerm objV =
     let
-      val Object {object = obT, ...} = objT
+      val Object {object = obV, ...} = objV
 
-      val ob = Object.mkOtermConst (c,obT)
+      val ob =
+          case obV of
+            Object.Var v => Object.Term (Term.mkVar v)
+          | _ => raise Error "argument must be a var object"
 
       val prov = Pnull
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkVarTerm: " ^ err);
+*)
 
-fun mkApp objF objA =
+fun mkConstTerm objC objT =
+    let
+      val Object {object = obC, ...} = objC
+      and Object {object = obT, ...} = objT
+
+      val ob =
+          case obC of
+            Object.Const c =>
+            (case obT of
+               Object.Type ty => Object.Term (Term.mkConst (c,ty))
+             | _ => raise Error "second argument must be a type object")
+          | _ => raise Error "first argument must be a const object"
+
+      val prov = Pnull
+    in
+      mk ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkConstTerm: " ^ err);
+*)
+
+fun mkAppTerm objF objA =
     let
       val Object {object = obF, ...} = objF
       and Object {object = obA, ...} = objA
 
-      val ob = Object.mkOtermApp (obF,obA)
+      val ob =
+          case obF of
+            Object.Term f =>
+            (case obA of
+               Object.Term a => Object.Term (Term.mkApp (f,a))
+             | _ => raise Error "second argument must be a term object")
+          | _ => raise Error "first argument must be a term object"
 
       val prov = Pnull
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkAppTerm: " ^ err);
+*)
 
 fun mkAbsTerm objV objB =
     let
       val Object {object = obV, ...} = objV
       and Object {object = obB, ...} = objB
 
-      val ob = Object.mkOtermAbs (obV,obB)
+      val ob =
+          case obV of
+            Object.Var v =>
+            (case obB of
+               Object.Term b => Object.Term (Term.mkAbs (v,b))
+             | _ => raise Error "second argument must be a term object")
+          | _ => raise Error "first argument must be a var object"
 
       val prov = Pnull
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkAbsTerm: " ^ err);
+*)
 
 fun mkThm {savable} th inf =
     let
-      val ob = Object.Othm th
+      val ob = Object.Thm th
 
       val prov = Pthm (if savable then inf else Iaxiom)
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkThm: " ^ err);
+*)
 
 fun mkCall n objA =
     let
-      val ob = Object.Ocall n
+      val ob = Object.Call n
 
       val prov = Pcall objA
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkCall: " ^ err);
+*)
 
 fun mkReturn {savable} objR =
     let
@@ -397,7 +502,10 @@ fun mkReturn {savable} objR =
           else provR
     in
       mk ob prov
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkReturn: " ^ err);
+*)
 
 val mkRef = mkReturn;
 
@@ -411,21 +519,21 @@ fun build savable srch =
     let
       fun bld ob =
           case ob of
-            Object.Olist (obH :: obT) =>
+            Object.List (obH :: obT) =>
             let
               val objH = bld obH
 
-              val objT = bld (Object.Olist obT)
+              val objT = bld (Object.List obT)
             in
               mkCons objH objT
             end
-          | Object.Othm th =>
+          | Object.Thm th =>
             let
               val inf = srch th
             in
               mkThm savable th inf
             end
-          | Object.Ocall _ => raise Error "cannot build an Ocall object"
+          | Object.Call _ => raise Error "cannot build an Ocall object"
           | _ =>
             let
               val prov = Pnull
@@ -436,8 +544,7 @@ fun build savable srch =
       bld
     end
 (*OpenTheoryDebug
-      handle Error err =>
-        raise Bug ("ObjectProv.build: " ^ err);
+    handle Error err => raise Bug ("ObjectProv.build: " ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -632,7 +739,7 @@ local
       let
         val ob = ObjectProv.object obj
 
-        val th = Object.destOthm ob
+        val th = Object.destThm ob
       in
         ThmSet.add set th
       end;
