@@ -371,7 +371,7 @@ fun toCommand ob =
     | Term tm =>
       (case Term.dest tm of
          TypeTerm.Const' (c,ty) => (Command.ConstTerm, [Const c, Type ty])
-       | TypeTerm.Var' v => (Command.Var, [Var v])
+       | TypeTerm.Var' v => (Command.VarTerm, [Var v])
        | TypeTerm.App' (f,a) => (Command.AppTerm, [Term f, Term a])
        | TypeTerm.Abs' (v,b) => (Command.AbsTerm, [Var v, Term b]))
     | Thm th =>

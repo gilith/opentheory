@@ -3,10 +3,12 @@
 nil
 # Construct the conclusion term
 "T"
-"bool"
-nil
-type_op
 const
+"bool"
+typeOp
+nil
+opType
+constTerm
 # Construct the theorem
 thm
 # Export the theorem

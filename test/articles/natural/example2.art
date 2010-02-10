@@ -4,21 +4,26 @@ nil
 # Construct the conclusion term
 "x"
 "bool"
+typeOp
 nil
-type_op
+opType
 var
 "x"
 "bool"
+typeOp
 nil
-type_op
+opType
 var
-abs
+varTerm
+absTerm
 "T"
-"bool"
-nil
-type_op
 const
-app
+"bool"
+typeOp
+nil
+opType
+constTerm
+appTerm
 # Construct the assumed theorem
 thm
 # Construct the hypothesis list
@@ -26,21 +31,26 @@ nil
 # Construct the conclusion term
 "y"
 "bool"
+typeOp
 nil
-type_op
+opType
 var
 "y"
 "bool"
+typeOp
 nil
-type_op
+opType
 var
-abs
+varTerm
+absTerm
 "T"
-"bool"
-nil
-type_op
 const
-app
+"bool"
+typeOp
+nil
+opType
+constTerm
+appTerm
 # Construct the exported theorem
 thm
 # Export the theorem

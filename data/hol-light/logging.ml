@@ -178,32 +178,37 @@ let log_function4 n log_arg1 log_arg2 log_arg3 log_arg4 log_ret func =
     curry4 (log_function n (log_quadruple log_arg1 log_arg2 log_arg3 log_arg4)
     log_ret (uncurry4 func));;
 
+let log_type_op n = (log_name n; log_command "typeOp");;
+
 let log_type =
     let rec log f ty =
         if is_type ty then
           let (n,l) = dest_type ty in
-            (log_name n; log_list f l; log_command "type_op")
+          (log_type_op n; log_list f l; log_command "opType")
         else
-          (log_name (dest_vartype ty); log_command "type_var") in
+          (log_name (dest_vartype ty); log_command "varType") in
     log_dict log;;
+
+let log_const n =
+    (log_name n; log_command "const");;
 
 let log_var v =
     let (n,ty) = dest_var v in
-      (log_name n; log_type ty; log_command "var");;
+    (log_name n; log_type ty; log_command "var");;
 
 let log_term =
     let rec log f tm =
         if is_const tm then
           let (n,ty) = dest_const tm in
-            (log_name n; log_type ty; log_command "const")
+          (log_const n; log_type ty; log_command "constTerm")
         else if is_var tm then
-          log_var tm
+          (log_var tm; log_command "varTerm")
         else if is_comb tm then
           let (a,b) = dest_comb tm in
-            (f a; f b; log_command "app")
+          (f a; f b; log_command "appTerm")
         else
           let (v,b) = dest_abs tm in
-            (f v; f b; log_command "abs") in
+          (log_var v; f b; log_command "absTerm") in
     log_dict log;;
 
 let log_type_inst = log_list (log_pair log_type log_type);;

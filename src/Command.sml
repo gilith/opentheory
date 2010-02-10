@@ -62,8 +62,8 @@ datatype command =
   | Thm
   | TypeOp
   | Var
-  | VarType
-  | VarTerm;
+  | VarTerm
+  | VarType;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -79,28 +79,30 @@ end;
 
 fun pp cmd =
     case cmd of
+    (* Special commands *)
       Num i => ppNum i
     | Name n => Name.ppQuoted n
+    (* Regular commands *)
+    | AbsTerm => Print.ppString absTermCommandString
+    | AppTerm => Print.ppString appTermCommandString
+    | Call => Print.ppString callCommandString
+    | Cons => Print.ppString consCommandString
+    | Const => Print.ppString constCommandString
+    | ConstTerm => Print.ppString constTermCommandString
+    | Def => Print.ppString defCommandString
     | Error => Print.ppString errorCommandString
     | Nil => Print.ppString nilCommandString
-    | Cons => Print.ppString consCommandString
-    | TypeOp => Print.ppString typeOpCommandString
-    | VarType => Print.ppString varTypeCommandString
     | OpType => Print.ppString opTypeCommandString
-    | Var => Print.ppString varCommandString
-    | Const => Print.ppString constCommandString
-    | VarTerm => Print.ppString varTermCommandString
-    | ConstTerm => Print.ppString constTermCommandString
-    | AppTerm => Print.ppString appTermCommandString
-    | AbsTerm => Print.ppString absTermCommandString
-    | Thm => Print.ppString thmCommandString
-    | Call => Print.ppString callCommandString
-    | Return => Print.ppString returnCommandString
-    | Def => Print.ppString defCommandString
+    | Pop => Print.ppString popCommandString
     | Ref => Print.ppString refCommandString
     | Remove => Print.ppString removeCommandString
-    | Pop => Print.ppString popCommandString
-    | Save => Print.ppString saveCommandString;
+    | Return => Print.ppString returnCommandString
+    | Save => Print.ppString saveCommandString
+    | Thm => Print.ppString thmCommandString
+    | TypeOp => Print.ppString typeOpCommandString
+    | Var => Print.ppString varCommandString
+    | VarTerm => Print.ppString varTermCommandString
+    | VarType => Print.ppString varTypeCommandString;
 
 val toString = Print.toString pp;
 
@@ -161,6 +163,7 @@ in
       commandParser varTermCommandString VarTerm ||
       commandParser varTypeCommandString VarType ||
       (* Commands of length 6 *)
+      commandParser opTypeCommandString OpType ||
       commandParser removeCommandString Remove ||
       commandParser returnCommandString Return ||
       commandParser typeOpCommandString TypeOp ||
