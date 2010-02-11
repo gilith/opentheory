@@ -46,7 +46,7 @@ do
             echo -n $file >> $thy
             echo '"; }' >> $thy
 
-            $prog compile --article $pdir/$file --summary-text $sum $thy || exit 1
+            $prog compile --summary-text $sum --article $pdir/$file $thy || exit 1
             ls -l $file
             ls -l $pdir/$file
         else

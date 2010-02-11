@@ -27,12 +27,12 @@ let is_int = new_definition
 (* Type of integers.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-let int_abstr,int_rep =
+let int_abstr,int_rep = log_lemma2 "int_abstr,int_rep" (fun () ->
   let int_tybij =
     new_type_definition "int" ("int_of_real","real_of_int")
     (prove(`?x. is_int x`,EXISTS_TAC `&0` THEN
      REWRITE_TAC[is_int; REAL_OF_NUM_EQ; EXISTS_OR_THM; GSYM EXISTS_REFL])) in
-  SPEC_ALL(CONJUNCT1 int_tybij),SPEC_ALL(CONJUNCT2 int_tybij);;
+  SPEC_ALL(CONJUNCT1 int_tybij),SPEC_ALL(CONJUNCT2 int_tybij));;
 
 let dest_int_rep = log_lemma "dest_int_rep" (fun () -> prove
  (`!i. ?n. (real_of_int i = &n) \/ (real_of_int i = --(&n))`,
@@ -242,10 +242,10 @@ let INT_OF_REAL_THM =
   let dest = `real_of_int`
   and real_ty = `:real`
   and int_ty = `:int`
-  and cond_th = prove
+  and cond_th = log_lemma "INT_OF_REAL_THM.cond_th" (fun () -> prove
    (`real_of_int(if b then x else y) =
        if b then real_of_int x else real_of_int y`,
-    COND_CASES_TAC THEN REWRITE_TAC[]) in
+    COND_CASES_TAC THEN REWRITE_TAC[])) in
   let thlist = map GSYM
    [int_eq; int_le; int_lt; int_ge; int_gt;
     int_of_num_th; int_neg_th; int_add_th; int_mul_th;
@@ -269,6 +269,9 @@ let INT_OF_REAL_THM =
                                    (INT_OF_REAL_THM1 (CONJUNCT2 th))
     else INT_OF_REAL_THM1 th in
   INT_OF_REAL_THM;;
+
+let INT_OF_REAL_THM =
+    log_function "INT_OF_REAL_THM" log_thm log_thm INT_OF_REAL_THM;;
 
 (* ------------------------------------------------------------------------- *)
 (* Collect together all the theorems derived automatically.                  *)
@@ -571,12 +574,12 @@ let INT_LT = log_lemma "INT_LT" (fun () -> prove
 
 let INT_ARITH =
   let atom_CONV =
-    let pth = prove
+    let pth = log_lemma "INT_ARITH.atom_CONV.pth" (fun () -> prove
       (`(~(x <= y) <=> y + &1 <= x) /\
         (~(x < y) <=> y <= x) /\
         (~(x = y) <=> x + &1 <= y \/ y + &1 <= x) /\
         (x < y <=> x + &1 <= y)`,
-       REWRITE_TAC[INT_NOT_LE; INT_NOT_LT; INT_NOT_EQ; INT_LT_DISCRETE]) in
+       REWRITE_TAC[INT_NOT_LE; INT_NOT_LT; INT_NOT_EQ; INT_LT_DISCRETE])) in
     GEN_REWRITE_CONV I [pth]
   and bub_CONV = GEN_REWRITE_CONV TOP_SWEEP_CONV
    [int_eq; int_le; int_lt; int_ge; int_gt;
@@ -599,6 +602,9 @@ let INT_ARITH =
     and th1 = init_CONV (mk_neg tm) in
     let th2 = REAL_ARITH(mk_neg(rand(concl th1))) in
     EQ_MP th0 (EQ_MP (AP_TERM not_tm (SYM th1)) th2);;
+
+let INT_ARITH =
+    log_function "INT_ARITH" log_term log_thm INT_ARITH;;
 
 let INT_ARITH_TAC = CONV_TAC(EQT_INTRO o INT_ARITH);;
 
@@ -666,8 +672,9 @@ let INT_DIVMOD_EXIST_0 = log_lemma "INT_DIVMOD_EXIST_0" (fun () -> prove
 parse_as_infix("div",(22,"left"));;
 parse_as_infix("rem",(22,"left"));;
 
-let INT_DIVISION_0 =  new_specification ["div"; "rem"]
-  (REWRITE_RULE[SKOLEM_THM] INT_DIVMOD_EXIST_0);;
+let INT_DIVISION_0 = log_lemma "INT_DIVISION_0" (fun () ->
+  new_specification ["div"; "rem"]
+  (REWRITE_RULE[SKOLEM_THM] INT_DIVMOD_EXIST_0));;
 
 let INT_DIVISION = log_lemma "INT_DIVISION" (fun () -> prove
  (`!m n. ~(n = &0)

@@ -1513,16 +1513,16 @@ let HAS_SIZE_CLAUSES = log_lemma "HAS_SIZE_CLAUSES" (fun () -> prove
 (* ------------------------------------------------------------------------- *)
 
 let HAS_SIZE_CONV =
-  let pth = prove
+  let pth = log_lemma "HAS_SIZE_CONV.pth" (fun () -> prove
    (`(~(a IN {}) /\ P <=> P) /\
      (~(a IN {b}) /\ P <=> ~(a = b) /\ P) /\
      (~(a IN (b INSERT cs)) /\ P <=> ~(a = b) /\ ~(a IN cs) /\ P)`,
-    SET_TAC[])
-  and qth = prove
+    SET_TAC[]))
+  and qth = log_lemma "HAS_SIZE_CONV.qth" (fun () -> prove
    (`((?s. s HAS_SIZE 0 /\ P s) <=> P {}) /\
      ((?s. s HAS_SIZE (SUC n) /\ P s) <=>
       (?a s. s HAS_SIZE n /\ ~(a IN s) /\ P(a INSERT s)))`,
-    REWRITE_TAC[HAS_SIZE_CLAUSES] THEN MESON_TAC[]) in
+    REWRITE_TAC[HAS_SIZE_CLAUSES] THEN MESON_TAC[])) in
   let qconv_0 = GEN_REWRITE_CONV I [CONJUNCT1 qth]
   and qconv_1 = GEN_REWRITE_CONV I [CONJUNCT2 qth]
   and rconv_0 = GEN_REWRITE_CONV I [CONJUNCT1 pth]
@@ -1548,6 +1548,9 @@ let HAS_SIZE_CONV =
     if evs = [] then th else
     let th' = funpow (length evs) BINDER_CONV NOT_IN_INSERT_CONV tm' in
     TRANS th th';;
+
+let HAS_SIZE_CONV =
+    log_function "HAS_SIZE_CONV" log_term log_thm HAS_SIZE_CONV;;
 
 (* ------------------------------------------------------------------------- *)
 (* Various useful lemmas about cardinalities of unions etc.                  *)
