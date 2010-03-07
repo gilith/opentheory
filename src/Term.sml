@@ -721,147 +721,184 @@ fun rhs tm = snd (destEq tm);
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val maximumSize = ref 1000;
+datatype ppInfo =
+    PpInfo of
+      {abs : string,
+       negations : string list,
+       infixes : Print.infixes,
+       binders : string list,
+       maximumSize : int};
 
-val showTypes = ref false;
+val ppDefault =
+    let
+      val abs = "\\"
 
-val infixTokens =
-    Print.Infixes
-      [(* ML style *)
-       {token = " / ", precedence = 7, leftAssoc = true},
-       {token = " div ", precedence = 7, leftAssoc = true},
-       {token = " mod ", precedence = 7, leftAssoc = true},
-       {token = " * ", precedence = 7, leftAssoc = true},
-       {token = " + ", precedence = 6, leftAssoc = true},
-       {token = " - ", precedence = 6, leftAssoc = true},
-       {token = " ^ ", precedence = 6, leftAssoc = true},
-       {token = " @ ", precedence = 5, leftAssoc = false},
-       {token = " :: ", precedence = 5, leftAssoc = false},
-       {token = " = ", precedence = 4, leftAssoc = true},
-       {token = " <> ", precedence = 4, leftAssoc = true},
-       {token = " <= ", precedence = 4, leftAssoc = true},
-       {token = " < ", precedence = 4, leftAssoc = true},
-       {token = " >= ", precedence = 4, leftAssoc = true},
-       {token = " > ", precedence = 4, leftAssoc = true},
-       {token = " o ", precedence = 3, leftAssoc = true},
-       (* HOL style *)
-       {token = " /\\ ", precedence = ~1, leftAssoc = false},
-       {token = " \\/ ", precedence = ~2, leftAssoc = false},
-       {token = " ==> ", precedence = ~3, leftAssoc = false},
-       {token = " <=> ", precedence = ~4, leftAssoc = false},
-       {token = ", ", precedence = ~1000, leftAssoc = false}];
+      val negations = ["~"]
+
+      val infixes =
+          Print.Infixes
+            [(* ML style *)
+             {token = " / ", precedence = 7, leftAssoc = true},
+             {token = " div ", precedence = 7, leftAssoc = true},
+             {token = " mod ", precedence = 7, leftAssoc = true},
+             {token = " * ", precedence = 7, leftAssoc = true},
+             {token = " + ", precedence = 6, leftAssoc = true},
+             {token = " - ", precedence = 6, leftAssoc = true},
+             {token = " ^ ", precedence = 6, leftAssoc = true},
+             {token = " @ ", precedence = 5, leftAssoc = false},
+             {token = " :: ", precedence = 5, leftAssoc = false},
+             {token = " = ", precedence = 4, leftAssoc = true},
+             {token = " <> ", precedence = 4, leftAssoc = true},
+             {token = " <= ", precedence = 4, leftAssoc = true},
+             {token = " < ", precedence = 4, leftAssoc = true},
+             {token = " >= ", precedence = 4, leftAssoc = true},
+             {token = " > ", precedence = 4, leftAssoc = true},
+             {token = " o ", precedence = 3, leftAssoc = true},
+             (* HOL style *)
+             {token = " /\\ ", precedence = ~1, leftAssoc = false},
+             {token = " \\/ ", precedence = ~2, leftAssoc = false},
+             {token = " ==> ", precedence = ~3, leftAssoc = false},
+             {token = " <=> ", precedence = ~4, leftAssoc = false},
+             {token = ", ", precedence = ~1000, leftAssoc = false}]
+
+      val binders = ["!","?","?!","select"]
+
+      val maximumSize = 1000
+    in
+      PpInfo
+        {abs = abs,
+         negations = negations,
+         infixes = infixes,
+         binders = binders,
+         maximumSize = maximumSize}
+    end;
 
 local
-  val negString = "~";
-
-  val binders = ["\\","!","?","?!","select"];
-
-  val infixStrings = Print.tokensInfixes infixTokens;
-
-  val binderStrings = StringSet.fromList binders;
-
-  val specialStrings =
-      StringSet.add (StringSet.union infixStrings binderStrings) negString;
-
-  fun specialString n = StringSet.member n specialStrings;
-
-  val ppConst =
+  val mkMap =
       let
-        fun f (c,_) =
+        fun add (s,m) = NameMap.insert m (Name.mkGlobal s, s)
+      in
+        StringSet.foldl add (NameMap.new ())
+      end;
+
+  val unionMap =
+      let
+        fun merge (x,y) =
+            if x = y then SOME x
+            else raise Error ("Term.ppInfo: ambiguous name strings: \"" ^
+                              x ^ "\" and \"" ^ y ^ "\"")
+      in
+        NameMap.union merge
+      end;
+in
+  fun ppInfo info =
+      let
+        val PpInfo {abs,negations,infixes,binders,maximumSize} = info
+
+        val negationNames = mkMap (StringSet.fromList negations)
+        and infixNames = mkMap (Print.tokensInfixes infixes)
+        and binderNames = mkMap (StringSet.fromList binders)
+
+        val specialNames =
+            unionMap negationNames (unionMap infixNames binderNames)
+
+        fun ppConst (c,_) =
             let
-              val n = Const.toString c
+              val n = Const.name c
             in
-              if specialString n then "(" ^ n ^ ")" else n
+              case NameMap.peek specialNames n of
+                SOME s => Print.ppBracket "(" ")" Print.ppString s
+              | NONE => Name.pp n
             end
-      in
-        Print.ppMap f Print.ppString
-      end;
 
-  fun destInfix tm =
-      let
-        val (t,b) = destApp tm
-        val (c,a) = destApp t
-        val (n,_) = destConst c
-        val n = Const.toString n
-      in
-        if StringSet.member n infixStrings then (n,a,b)
-        else raise Error "Syntax.destInfix"
-      end;
+        fun destNegation tm =
+            let
+              val (t,a) = destApp tm
+              val (c,_) = destConst t
+              val n = Const.name c
+            in
+              case NameMap.peek negationNames n of
+                SOME s => (s,a)
+              | NONE => raise Error "Term.ppInfo.destNegation"
+            end
 
-  val isInfix = can destInfix;
+        fun stripNegation tm =
+            case total destNegation tm of
+              SOME (s,a) =>
+              let
+                val (sl,t) = stripNegation a
+              in
+                (s :: sl, t)
+              end
+            | NONE => ([],tm)
 
-  fun destNeg tm =
-      let
-        val (c,a) = destApp tm
-        val (n,_) = destConst c
-        val n = Const.toString n
-      in
-        if n = negString then a else raise Error "Syntax.destNeg"
-      end;
+        fun destInfix tm =
+            let
+              val (t,b) = destApp tm
+              val (t,a) = destApp t
+              val (c,_) = destConst t
+              val n = Const.name c
+            in
+              case NameMap.peek infixNames n of
+                SOME s => (s,a,b)
+              | NONE => raise Error "Term.ppInfo.destInfix"
+            end
 
-  fun countNegs tm =
-      case total destNeg tm of
-        NONE => (0,tm)
-      | SOME t => let val (n,r) = countNegs t in (n + 1, r) end;
+        val isInfix = can destInfix
 
-  fun destBinder tm =
-      let
-        val (n,tm) =
-            if isAbs tm then ("\\",tm)
-            else
+        val ppInfix = Print.ppInfixes infixes (total destInfix)
+
+        fun destBinder tm =
+            case total destAbs tm of
+              SOME (v,t) => (abs,v,t)
+            | NONE =>
               let
                 val (c,t) = destApp tm
-                val (n,_) = destConst c
-                val n = Const.toString n
+                val (v,b) = destAbs t
+                val (c,_) = destConst c
+                val n = Const.name c
               in
-                if StringSet.member n binderStrings then (n,t)
-                else raise Error "Syntax.destBinder"
+                case NameMap.peek binderNames n of
+                  SOME s => (s,v,b)
+                | NONE => raise Error "Term.ppInfo.destBinder"
               end
 
-        val (v,b) = destAbs tm
-      in
-        (n,v,b)
-      end;
+        val isBinder = can destBinder
 
-  val isBinder = can destBinder;
+        fun stripBinder tm =
+            let
+              val (n,v,b) = destBinder tm
 
-  fun stripBinder tm =
-      let
-        val (n,v,b) = destBinder tm
+              fun dest vs t =
+                  case total destBinder t of
+                    NONE => (vs,t)
+                  | SOME (n',v,b) =>
+                    if n' = n then dest (v :: vs) b else (vs,t)
 
-        fun dest vs t =
-            case total destBinder t of
-              NONE => (vs,t)
-            | SOME (n',v,b) =>
-              if n' = n then dest (v :: vs) b else (vs,t)
+              val (vs,b) = dest [] b
+            in
+              (n, v, rev vs, b)
+            end
 
-        val (vs,b) = dest [] b
-      in
-        (n, v, rev vs, b)
-      end;
+        fun ppBasic tm =
+            case dest tm of
+              TypeTerm.Var' v => Var.pp v
+            | TypeTerm.Const' c => ppConst c
+            | _ => ppBracket tm
 
-  val infixPrinter = Print.ppInfixes infixTokens (total destInfix);
+        and ppApplication tm =
+            case total destApp tm of
+              NONE => ppBasic tm
+            | SOME (f,x) =>
+              Print.program
+                [ppFunction f,
+                 Print.addBreak 1,
+                 ppBasic x]
 
-  fun basic tm =
-      case dest tm of
-        TypeTerm.Var' v => Var.pp v
-      | TypeTerm.Const' c => ppConst c
-      | _ => ppBtm tm
+        and ppFunction tm =
+            if isInfix tm then ppBracket tm else ppBinder (tm,true)
 
-  and application tm =
-      case total destApp tm of
-        NONE => basic tm
-      | SOME (f,x) =>
-        Print.program
-          [function f,
-           Print.addBreak 1,
-           basic x]
-
-  and function tm = if isInfix tm then ppBtm tm else binder (tm,true)
-
-  and binder (tm,r) =
-      let
-        fun ppBind tm =
+        and ppBind tm =
             let
               val (sym,v,vs,body) = stripBinder tm
 
@@ -876,43 +913,47 @@ local
                       else Print.sequence pp (Print.addString " ")
                     end
             in
-              Print.program
+              Print.blockProgram Print.Inconsistent 2
                 [printSym,
                  Var.pp v,
                  Print.program
                    (map (Print.sequence (Print.addBreak 1) o Var.pp) vs),
                  Print.addString ".",
                  Print.addBreak 1,
-                 if isBinder body then ppBind body else ppTm (body,false)]
+                 if isBinder body then ppBind body else ppTerm body]
             end
 
-        val ppBinder = Print.block Print.Inconsistent 2 o ppBind
-      in
-        if not (isBinder tm) then application
-        else (if r then Print.ppBracket "(" ")" else I) ppBinder
-      end tm
+        and ppBinder (tm,r) =
+            if not (isBinder tm) then ppApplication tm
+            else if r then Print.ppBracket "(" ")" ppBind tm
+            else ppBind tm
 
-  and negs (tm,r) =
-      let
-        val (n,tm) = countNegs tm
+        and ppNegation (tm,r) =
+            let
+              val (syms,tm) = stripNegation tm
+            in
+              Print.blockProgram Print.Inconsistent (length syms)
+                (map Print.addString syms @
+                 [if isInfix tm then ppBracket tm else ppBinder (tm,r)])
+            end
+
+        and ppHanging tm_r = ppInfix ppNegation tm_r
+
+        and ppTerm tm = ppHanging (tm,false)
+
+        and ppBracket tm = Print.ppBracket "(" ")" ppTerm tm
       in
-        Print.blockProgram Print.Inconsistent n
-          [Print.duplicate n (Print.addString negString),
-           if isInfix tm then ppBtm tm else binder (tm,r)]
+        fn tm =>
+           let
+             val n = size tm
+           in
+             if n <= maximumSize then ppTerm tm
+             else Print.ppBracket "term{" "}" Print.ppInt n
+           end
       end
-
-  and ppBtm tm = Print.ppBracket "(" ")" ppTm (tm,false)
-
-  and ppTm tmr = infixPrinter negs tmr;
-in
-  fun pp tm =
-      let
-        val n = size tm
-      in
-        if n <= !maximumSize then ppTm (tm,false)
-        else Print.addString ("term{" ^ Int.toString n ^ "}")
-      end;
 end;
+
+val pp = ppInfo ppDefault;
 
 val toString = Print.toString pp;
 

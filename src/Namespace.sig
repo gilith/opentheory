@@ -12,6 +12,10 @@ sig
 
 type namespace
 
+val toList : namespace -> string list
+
+val fromList : string list -> namespace
+
 (* ------------------------------------------------------------------------- *)
 (* The top level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)

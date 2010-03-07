@@ -219,9 +219,17 @@ val rhs : term -> term
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val maximumSize : int ref
+datatype ppInfo =
+    PpInfo of
+      {abs : string,
+       negations : string list,
+       infixes : Print.infixes,
+       binders : string list,
+       maximumSize : int}
 
-val showTypes : bool ref
+val ppDefault : ppInfo
+
+val ppInfo : ppInfo -> term Print.pp
 
 val pp : term Print.pp
 

@@ -14,6 +14,10 @@ open Useful;
 
 datatype namespace = Namespace of string list;
 
+fun toList (Namespace n) = n;
+
+fun fromList n = Namespace n;
+
 (* ------------------------------------------------------------------------- *)
 (* The top level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)

@@ -1,15 +1,61 @@
+###############################################################################
+# INTERPRETING HOL LIGHT NAMES INTO THE OPENTHEORY STANDARD NAMESPACE
+###############################################################################
+
+# Global
+
+type "bool" -> "bool"
 type "fun" -> "->"
-type "prod" -> "*"
-type "1" -> "unit"
-const "@" -> "select"
-const "_0" -> "zero"
-const "BIT0" -> "bit0"
-const "BIT1" -> "bit1"
-const "COND" -> "cond"
-const "FST" -> "fst"
-const "NUMERAL" -> "numeral"
-const "ONE_ONE" -> "injective"
-const "ONTO" -> "surjective"
-const "PRE" -> "pre"
-const "SND" -> "snd"
-const "SUC" -> "suc"
+type "ind" -> "ind"
+
+# Data
+
+# Data.Bool
+
+const "!" -> "Data.Bool.!"
+const "/\\" -> "Data.Bool./\\"
+const "==>" -> "Data.Bool.==>"
+const "?" -> "Data.Bool.?"
+const "?!" -> "Data.Bool.?!"
+const "\\/" -> "Data.Bool.\\/"
+const "~" -> "Data.Bool.~"
+const "COND" -> "Data.Bool.cond"
+const "F" -> "Data.Bool.F"
+const "@" -> "Data.Bool.select"
+const "T" -> "Data.Bool.T"
+
+# Data.Function
+
+const "ONE_ONE" -> "Data.Function.injective"
+const "ONTO" -> "Data.Function.surjective"
+
+# Data.Pair
+
+type "prod" -> "Data.Pair.*"
+
+const "," -> "Data.Pair.,"
+const "FST" -> "Data.Pair.fst"
+const "SND" -> "Data.Pair.snd"
+
+# Data.Unit
+
+type "1" -> "Data.Unit.unit"
+
+const "one" -> "Data.Unit.()"
+
+# Number
+
+# Number.Natural
+
+type "num" -> "Number.Natural.nat"
+
+const "+" -> "Number.Natural.+"
+const "PRE" -> "Number.Natural.pre"
+const "SUC" -> "Number.Natural.suc"
+const "_0" -> "Number.Natural.zero"
+
+# Number.Numeral
+
+const "BIT0" -> "Number.Numeral.bit0"
+const "BIT1" -> "Number.Numeral.bit1"
+const "NUMERAL" -> "Number.Numeral.numeral"

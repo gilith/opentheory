@@ -35,7 +35,7 @@ def
 constTerm
 7
 def
-"T"
+"Data.Bool.T"
 3
 ref
 var
@@ -90,7 +90,7 @@ call
 nil
 7
 ref
-"T"
+"Data.Bool.T"
 const
 3
 ref
@@ -129,7 +129,7 @@ opType
 constTerm
 16
 def
-"/\\"
+"Data.Bool./\\"
 6
 ref
 var
@@ -206,7 +206,7 @@ call
 nil
 16
 ref
-"/\\"
+"Data.Bool./\\"
 const
 6
 ref
@@ -224,7 +224,7 @@ return
 pop
 16
 ref
-"==>"
+"Data.Bool.==>"
 6
 ref
 var
@@ -258,7 +258,7 @@ call
 nil
 16
 ref
-"==>"
+"Data.Bool.==>"
 const
 6
 ref
@@ -313,7 +313,7 @@ opType
 constTerm
 28
 def
-"!"
+"Data.Bool.!"
 27
 ref
 var
@@ -363,7 +363,7 @@ call
 nil
 28
 ref
-"!"
+"Data.Bool.!"
 const
 33
 def
@@ -383,7 +383,7 @@ return
 pop
 28
 ref
-"?"
+"Data.Bool.?"
 27
 ref
 var
@@ -439,7 +439,7 @@ call
 nil
 28
 ref
-"?"
+"Data.Bool.?"
 const
 27
 ref
@@ -457,7 +457,7 @@ return
 pop
 16
 ref
-"\\/"
+"Data.Bool.\\/"
 6
 ref
 var
@@ -518,7 +518,7 @@ call
 nil
 16
 remove
-"\\/"
+"Data.Bool.\\/"
 const
 6
 remove
@@ -534,7 +534,7 @@ return
 pop
 7
 ref
-"F"
+"Data.Bool.F"
 3
 ref
 var
@@ -553,7 +553,7 @@ call
 nil
 7
 remove
-"F"
+"Data.Bool.F"
 const
 3
 remove
@@ -571,7 +571,7 @@ return
 pop
 9
 ref
-"~"
+"Data.Bool.~"
 5
 ref
 var
@@ -593,7 +593,7 @@ call
 nil
 9
 remove
-"~"
+"Data.Bool.~"
 const
 5
 remove
@@ -609,7 +609,7 @@ return
 pop
 28
 ref
-"?!"
+"Data.Bool.?!"
 27
 ref
 var
@@ -688,7 +688,7 @@ call
 nil
 28
 remove
-"?!"
+"Data.Bool.?!"
 const
 27
 remove

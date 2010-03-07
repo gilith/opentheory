@@ -91,7 +91,7 @@ def
 constTerm
 14
 def
-"T"
+"Data.Bool.T"
 const
 1
 ref
@@ -782,7 +782,7 @@ pop
 nil
 21
 ref
-"/\\"
+"Data.Bool./\\"
 const
 13
 ref
@@ -2917,7 +2917,7 @@ pop
 nil
 21
 ref
-"==>"
+"Data.Bool.==>"
 const
 13
 ref
@@ -4939,7 +4939,7 @@ save
 "hol-light.EQ_MP"
 return
 pop
-"!"
+"Data.Bool.!"
 const
 415
 def
@@ -5828,7 +5828,7 @@ pop
 nil
 425
 ref
-"?"
+"Data.Bool.?"
 const
 418
 ref
@@ -7726,7 +7726,7 @@ pop
 nil
 21
 remove
-"\\/"
+"Data.Bool.\\/"
 const
 13
 remove
@@ -9607,7 +9607,7 @@ pop
 nil
 10
 ref
-"~"
+"Data.Bool.~"
 const
 8
 remove
@@ -9619,7 +9619,7 @@ appTerm
 remove
 269
 remove
-"F"
+"Data.Bool.F"
 const
 1
 remove
@@ -10911,7 +10911,7 @@ pop
 nil
 425
 remove
-"?!"
+"Data.Bool.?!"
 const
 418
 remove
