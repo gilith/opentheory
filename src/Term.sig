@@ -229,8 +229,6 @@ datatype grammar =
 
 val defaultGrammar : grammar
 
-val defaultShow : Show.show
-
 val ppWithGrammar : grammar -> Show.show -> term Print.pp
 
 val ppWithShow : Show.show -> term Print.pp

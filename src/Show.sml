@@ -9,14 +9,14 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of namespace mapping.                                              *)
+(* A type of mappings.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype mapping =
     NamespaceMapping of Namespace.namespace * Namespace.namespace;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of namespace import map.                                           *)
+(* A type of mapping collections.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 datatype show =
@@ -47,13 +47,13 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Subshows.                                                                 *)
+(* Subshows operations.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 val emptySubshows : show StringMap.map = StringMap.new ();
 
 (* ------------------------------------------------------------------------- *)
-(* The empty map.                                                            *)
+(* The empty mapping.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 val natural =
@@ -117,7 +117,7 @@ end;
 val fromList = addList natural;
 
 (* ------------------------------------------------------------------------- *)
-(* Mapping namespaces.                                                       *)
+(* Mapping names.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -157,6 +157,19 @@ fun showName show n =
       case peekNamespace show ns of
         SOME ns => Name.mk (ns,s)
       | NONE => n
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* The default mapping.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val default =
+    let
+      fun openNamespace ns =
+          NamespaceMapping (Namespace.fromList ns, Namespace.global)
+    in
+      (fromList o map openNamespace)
+      [["Data","Bool"]]
     end;
 
 end

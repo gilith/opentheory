@@ -773,15 +773,6 @@ val defaultGrammar =
          maximumSize = maximumSize}
     end;
 
-val defaultShow =
-    let
-      fun openNamespace ns =
-          Show.NamespaceMapping (Namespace.fromList ns, Namespace.global)
-    in
-      (Show.fromList o map openNamespace)
-      [["Data","Bool"]]
-    end;
-
 local
   val mkMap =
       let
@@ -976,7 +967,7 @@ end;
 
 val ppWithShow = ppWithGrammar defaultGrammar;
 
-val pp = ppWithShow defaultShow;
+val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 

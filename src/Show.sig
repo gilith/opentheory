@@ -7,14 +7,14 @@ signature Show =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of namespace mapping.                                              *)
+(* A type of mappings.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype mapping =
     NamespaceMapping of Namespace.namespace * Namespace.namespace
 
 (* ------------------------------------------------------------------------- *)
-(* A type of namespace import map.                                           *)
+(* A type of mapping collections.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 type show
@@ -22,7 +22,7 @@ type show
 val toList : show -> mapping list
 
 (* ------------------------------------------------------------------------- *)
-(* The empty map.                                                            *)
+(* The empty mapping.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 val natural : show
@@ -38,11 +38,17 @@ val addList : show -> mapping list -> show
 val fromList : mapping list -> show
 
 (* ------------------------------------------------------------------------- *)
-(* Mapping namespaces.                                                       *)
+(* Mapping names.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
 val showNamespace : show -> Namespace.namespace -> Namespace.namespace
 
 val showName : show -> Name.name -> Name.name
+
+(* ------------------------------------------------------------------------- *)
+(* The default mapping.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val default : show
 
 end
