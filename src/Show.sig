@@ -7,10 +7,19 @@ signature Show =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* A type of namespace mapping.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+datatype mapping =
+    NamespaceMapping of Namespace.namespace * Namespace.namespace
+
+(* ------------------------------------------------------------------------- *)
 (* A type of namespace import map.                                           *)
 (* ------------------------------------------------------------------------- *)
 
 type show
+
+val toList : show -> mapping list
 
 (* ------------------------------------------------------------------------- *)
 (* The empty map.                                                            *)
@@ -22,18 +31,18 @@ val natural : show
 (* Adding mappings.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val add : show -> Namespace.namespace * Namespace.namespace -> show
+val add : show -> mapping -> show
+
+val addList : show -> mapping list -> show
+
+val fromList : mapping list -> show
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up mappings.                                                      *)
+(* Mapping namespaces.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : show -> Namespace.namespace -> Namespace.namespace option
+val showNamespace : show -> Namespace.namespace -> Namespace.namespace
 
-(* ------------------------------------------------------------------------- *)
-(* Printing.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val pp : show Print.pp
+val showName : show -> Name.name -> Name.name
 
 end

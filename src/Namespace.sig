@@ -12,12 +12,16 @@ sig
 
 type namespace
 
+val append : namespace -> namespace -> namespace
+
 val toList : namespace -> string list
 
 val fromList : string list -> namespace
 
+val fromString : string -> namespace
+
 (* ------------------------------------------------------------------------- *)
-(* The top level namespace.                                                  *)
+(* The top-level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 val global : namespace
@@ -25,7 +29,7 @@ val global : namespace
 val isGlobal : namespace -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Nested namespaces (i.e., everything except the top level).                *)
+(* Nested namespaces (i.e., everything except the top-level).                *)
 (* ------------------------------------------------------------------------- *)
 
 val mkNested : namespace * string -> namespace

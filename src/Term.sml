@@ -721,15 +721,15 @@ fun rhs tm = snd (destEq tm);
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-datatype ppInfo =
-    PpInfo of
+datatype grammar =
+    Grammar of
       {abs : string,
        negations : string list,
        infixes : Print.infixes,
        binders : string list,
        maximumSize : int};
 
-val ppDefault =
+val defaultGrammar =
     let
       val abs = "\\"
 
@@ -765,12 +765,21 @@ val ppDefault =
 
       val maximumSize = 1000
     in
-      PpInfo
+      Grammar
         {abs = abs,
          negations = negations,
          infixes = infixes,
          binders = binders,
          maximumSize = maximumSize}
+    end;
+
+val defaultShow =
+    let
+      fun openNamespace ns =
+          Show.NamespaceMapping (Namespace.fromList ns, Namespace.global)
+    in
+      (Show.fromList o map openNamespace)
+      [["Data","Bool"]]
     end;
 
 local
@@ -785,28 +794,21 @@ local
       let
         fun merge (x,y) =
             if x = y then SOME x
-            else raise Error ("Term.ppInfo: ambiguous name strings: \"" ^
+            else raise Error ("Term.pp: ambiguous name strings: \"" ^
                               x ^ "\" and \"" ^ y ^ "\"")
       in
         NameMap.union merge
       end;
-in
-  fun ppInfo info =
+
+  fun ppTerm abs negations infixes binders specials ppInfixes show =
       let
-        val PpInfo {abs,negations,infixes,binders,maximumSize} = info
-
-        val negationNames = mkMap (StringSet.fromList negations)
-        and infixNames = mkMap (Print.tokensInfixes infixes)
-        and binderNames = mkMap (StringSet.fromList binders)
-
-        val specialNames =
-            unionMap negationNames (unionMap infixNames binderNames)
+        fun showConst c = Show.showName show (Const.name c)
 
         fun ppConst (c,_) =
             let
-              val n = Const.name c
+              val n = showConst c
             in
-              case NameMap.peek specialNames n of
+              case NameMap.peek specials n of
                 SOME s => Print.ppBracket "(" ")" Print.ppString s
               | NONE => Name.pp n
             end
@@ -815,11 +817,11 @@ in
             let
               val (t,a) = destApp tm
               val (c,_) = destConst t
-              val n = Const.name c
+              val n = showConst c
             in
-              case NameMap.peek negationNames n of
+              case NameMap.peek negations n of
                 SOME s => (s,a)
-              | NONE => raise Error "Term.ppInfo.destNegation"
+              | NONE => raise Error "Term.pp.destNegation"
             end
 
         fun stripNegation tm =
@@ -837,16 +839,16 @@ in
               val (t,b) = destApp tm
               val (t,a) = destApp t
               val (c,_) = destConst t
-              val n = Const.name c
+              val n = showConst c
             in
-              case NameMap.peek infixNames n of
+              case NameMap.peek infixes n of
                 SOME s => (s,a,b)
-              | NONE => raise Error "Term.ppInfo.destInfix"
+              | NONE => raise Error "Term.pp.destInfix"
             end
 
         val isInfix = can destInfix
 
-        val ppInfix = Print.ppInfixes infixes (total destInfix)
+        val ppInfix = ppInfixes (total destInfix)
 
         fun destBinder tm =
             case total destAbs tm of
@@ -856,11 +858,11 @@ in
                 val (c,t) = destApp tm
                 val (v,b) = destAbs t
                 val (c,_) = destConst c
-                val n = Const.name c
+                val n = showConst c
               in
-                case NameMap.peek binderNames n of
+                case NameMap.peek binders n of
                   SOME s => (s,v,b)
-                | NONE => raise Error "Term.ppInfo.destBinder"
+                | NONE => raise Error "Term.pp.destBinder"
               end
 
         val isBinder = can destBinder
@@ -920,7 +922,7 @@ in
                    (map (Print.sequence (Print.addBreak 1) o Var.pp) vs),
                  Print.addString ".",
                  Print.addBreak 1,
-                 if isBinder body then ppBind body else ppTerm body]
+                 if isBinder body then ppBind body else ppNormal body]
             end
 
         and ppBinder (tm,r) =
@@ -939,21 +941,42 @@ in
 
         and ppHanging tm_r = ppInfix ppNegation tm_r
 
-        and ppTerm tm = ppHanging (tm,false)
+        and ppNormal tm = ppHanging (tm,false)
 
-        and ppBracket tm = Print.ppBracket "(" ")" ppTerm tm
+        and ppBracket tm = Print.ppBracket "(" ")" ppNormal tm
       in
-        fn tm =>
+        ppNormal
+      end;
+in
+  fun ppWithGrammar gram =
+      let
+        val Grammar {abs,negations,infixes,binders,maximumSize} = gram
+
+        val negationNames = mkMap (StringSet.fromList negations)
+        and infixNames = mkMap (Print.tokensInfixes infixes)
+        and binderNames = mkMap (StringSet.fromList binders)
+
+        val specialNames =
+            unionMap negationNames (unionMap infixNames binderNames)
+
+        val ppInfixes = Print.ppInfixes infixes
+      in
+        fn show => fn tm =>
            let
              val n = size tm
            in
-             if n <= maximumSize then ppTerm tm
-             else Print.ppBracket "term{" "}" Print.ppInt n
+             if n <= maximumSize then
+               ppTerm abs negationNames infixNames binderNames
+                 specialNames ppInfixes show tm
+             else
+               Print.ppBracket "term{" "}" Print.ppInt n
            end
       end
 end;
 
-val pp = ppInfo ppDefault;
+val ppWithShow = ppWithGrammar defaultGrammar;
+
+val pp = ppWithShow defaultShow;
 
 val toString = Print.toString pp;
 

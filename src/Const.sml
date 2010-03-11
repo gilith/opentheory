@@ -56,6 +56,8 @@ val equal = TypeTerm.equalConst;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+fun ppWithShow show = Print.ppMap (Show.showName show o name) Name.pp;
+
 val pp = Print.ppMap name Name.pp;
 
 val toString = Print.toString pp;

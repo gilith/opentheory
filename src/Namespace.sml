@@ -14,12 +14,16 @@ open Useful;
 
 datatype namespace = Namespace of string list;
 
+fun append (Namespace n1) (Namespace n2) = Namespace (n1 @ n2);
+
 fun toList (Namespace n) = n;
 
 fun fromList n = Namespace n;
 
+fun fromString s = fromList [s];
+
 (* ------------------------------------------------------------------------- *)
-(* The top level namespace.                                                  *)
+(* The top-level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 val global = Namespace [];
@@ -27,7 +31,7 @@ val global = Namespace [];
 fun isGlobal (Namespace n) = null n;
 
 (* ------------------------------------------------------------------------- *)
-(* Nested namespaces (i.e., everything except the top level).                *)
+(* Nested namespaces (i.e., everything except the top-level).                *)
 (* ------------------------------------------------------------------------- *)
 
 fun mkNested (Namespace ns, n) = Namespace (ns @ [n]);

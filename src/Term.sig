@@ -219,17 +219,21 @@ val rhs : term -> term
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-datatype ppInfo =
-    PpInfo of
+datatype grammar =
+    Grammar of
       {abs : string,
        negations : string list,
        infixes : Print.infixes,
        binders : string list,
        maximumSize : int}
 
-val ppDefault : ppInfo
+val defaultGrammar : grammar
 
-val ppInfo : ppInfo -> term Print.pp
+val defaultShow : Show.show
+
+val ppWithGrammar : grammar -> Show.show -> term Print.pp
+
+val ppWithShow : Show.show -> term Print.pp
 
 val pp : term Print.pp
 

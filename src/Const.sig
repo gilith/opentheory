@@ -44,6 +44,8 @@ val equal : const -> const -> bool
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val ppWithShow : Show.show -> const Print.pp
+
 val pp : const Print.pp
 
 val toString : const -> string
