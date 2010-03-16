@@ -9,11 +9,73 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val asKeywordString = "as"
+and showTagName = "show";
+
+(* ------------------------------------------------------------------------- *)
 (* A type of mappings.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype mapping =
     NamespaceMapping of Namespace.namespace * Namespace.namespace;
+
+fun toStringMapping m =
+    case m of
+      NamespaceMapping (n1,n2) =>
+      Namespace.quotedToString n1 ^
+      (if Namespace.isGlobal n2 then ""
+       else " " ^ asKeywordString ^ " " ^ Namespace.quotedToString n2);
+
+fun toTagMapping m =
+    let
+      val name = showTagName
+
+      val value = toStringMapping m
+
+      val tag' = Tag.Tag' {name = name, value = value}
+    in
+      Tag.mk tag'
+    end;
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+
+  val asKeywordParser = exactString asKeywordString;
+
+  val asKeywordSpaceParser =
+      (asKeywordParser ++ manySpace) >> (fn ((),()) => ());
+
+  val namespaceSpaceParser =
+      (Namespace.quotedParser ++ manySpace) >> (fn (n,()) => n);
+
+  val asNamespaceParser =
+      (asKeywordSpaceParser ++ namespaceSpaceParser) >> (fn ((),n) => n);
+
+  val possibleAsNamespaceParser =
+      optional asNamespaceParser >>
+      (fn n => Option.getOpt (n,Namespace.global));
+
+  val namespaceMappingParser =
+      (namespaceSpaceParser ++ possibleAsNamespaceParser) >>
+      NamespaceMapping;
+
+  val mappingParser =
+      namespaceMappingParser;
+in
+  val parserMapping = (manySpace ++ mappingParser) >> (fn ((),m) => m);
+end;
+
+fun fromStringMapping s =
+    Parse.fromString parserMapping s
+    handle Parse.NoParse => raise Error "Show.fromStringMapping";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of mapping collections.                                            *)
@@ -158,6 +220,30 @@ fun showName show n =
         SOME ns => Name.mk (ns,s)
       | NONE => n
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing and pretty-printing.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun toTags show = map toTagMapping (toList show);
+
+local
+  fun destTag tag =
+      let
+        val Tag.Tag' {name,value} = Tag.dest tag
+      in
+        if name = showTagName then SOME value else NONE
+      end;
+in
+  fun fromTags tags =
+      let
+        val vs = List.mapPartial destTag tags
+
+        val ms = map fromStringMapping vs
+      in
+        fromList ms
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* The default mapping.                                                      *)

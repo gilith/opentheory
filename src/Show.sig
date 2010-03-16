@@ -50,8 +50,12 @@ val showNamespace : show -> Namespace.namespace -> Namespace.namespace
 val showName : show -> Name.name -> Name.name
 
 (* ------------------------------------------------------------------------- *)
-(* Representing as tags.                                                     *)
+(* Parsing and pretty-printing.                                              *)
 (* ------------------------------------------------------------------------- *)
+
+val toTags : show -> Tag.tag list
+
+val fromTags : Tag.tag list -> show
 
 (* ------------------------------------------------------------------------- *)
 (* The default mapping.                                                      *)

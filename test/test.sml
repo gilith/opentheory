@@ -311,7 +311,8 @@ fun summarize name =
 
       val () =
           time Summary.toTextFile
-            {summary = sum,
+            {show = Show.default,
+             summary = sum,
              filename = sumFilename}
 
       val () = print "\n"
