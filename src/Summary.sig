@@ -22,8 +22,13 @@ val fromThmSet : ThmSet.set -> summary
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
+val ppWithShow : Show.show -> summary Print.pp
+
 val pp : summary Print.pp
 
-val toTextFile : {summary : summary, filename : string} -> unit
+val toTextFile :
+    {show : Show.show,
+     summary : summary,
+     filename : string} -> unit
 
 end

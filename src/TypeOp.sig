@@ -44,6 +44,8 @@ val equal : typeOp -> typeOp -> bool
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val ppWithShow : Show.show -> typeOp Print.pp
+
 val pp : typeOp Print.pp
 
 val toString : typeOp -> string

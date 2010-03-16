@@ -13,6 +13,10 @@ sig
 datatype mapping =
     NamespaceMapping of Namespace.namespace * Namespace.namespace
 
+val toStringMapping : mapping -> string
+
+val fromStringMapping : string -> mapping
+
 (* ------------------------------------------------------------------------- *)
 (* A type of mapping collections.                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -44,6 +48,10 @@ val fromList : mapping list -> show
 val showNamespace : show -> Namespace.namespace -> Namespace.namespace
 
 val showName : show -> Name.name -> Name.name
+
+(* ------------------------------------------------------------------------- *)
+(* Representing as tags.                                                     *)
+(* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
 (* The default mapping.                                                      *)

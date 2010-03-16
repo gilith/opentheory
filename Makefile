@@ -62,6 +62,7 @@ SRC = \
   src/Tag.sig src/Tag.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
+  src/Show.sig src/Show.sml \
   src/MetisNameArity.sig src/MetisNameArity.sml \
   src/MetisTerm.sig src/MetisTerm.sml \
   src/MetisSubst.sig src/MetisSubst.sml \
@@ -90,7 +91,6 @@ SRC = \
   src/TypeOp.sig src/TypeOp.sml \
   src/Type.sig src/Type.sml \
   src/TypeSubst.sig src/TypeSubst.sml \
-  src/Show.sig src/Show.sml \
   src/Var.sig src/Var.sml \
   src/Const.sig src/Const.sml \
   src/Term.sig src/Term.sml \

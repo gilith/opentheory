@@ -57,9 +57,18 @@ val consts : sequent -> ConstSet.set
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val showHyp : bool ref
+datatype grammar =
+    Grammar of
+      {connective : string,
+       hypGrammar : Term.grammar,
+       conclGrammar : Term.grammar,
+       showHyp : bool}
 
-val ppGen : {showHyp : bool, connective : string} -> sequent Print.pp
+val defaultGrammar : grammar
+
+val ppWithGrammar : grammar -> Show.show -> sequent Print.pp
+
+val ppWithShow : Show.show -> sequent Print.pp
 
 val pp : sequent Print.pp
 

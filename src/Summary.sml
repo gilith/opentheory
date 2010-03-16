@@ -98,65 +98,69 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun ppNameList (name,names) =
-      if null names then Print.skip
+  fun ppList ppX prefix name xs =
+      if null xs then Print.skip
       else
         Print.sequence
           (Print.blockProgram Print.Inconsistent 2
-             (Print.addString (name ^ ":") ::
-              map (Print.sequence (Print.addBreak 1) o Name.pp) names))
+             (Print.addString prefix ::
+              Print.addString name ::
+              Print.addString ":" ::
+              map (Print.sequence (Print.addBreak 1) o ppX) xs))
           Print.addNewline;
-
-  fun typeOpName (ot,l) = TypeOp.name ot :: l;
-
-  fun constName (c,l) = Const.name c :: l;
-
-  fun ppSymbol (prefix,sym) =
-      let
-        val ots = TypeOpSet.foldr typeOpName [] (Symbol.typeOps sym)
-        val cs = ConstSet.foldr constName [] (Symbol.consts sym)
-      in
-        Print.sequence
-          (ppNameList (prefix ^ "-types", ots))
-          (ppNameList (prefix ^ "-consts", cs))
-      end;
-
-  val ppThm = Thm.pp;
-
-  val ppSequent = Print.ppMap Thm.axiom ppThm;
-
-  fun ppSequentSet (name,seqs) =
-      let
-        val seqs = SequentSet.toList seqs
-      in
-        Print.blockProgram Print.Consistent 2
-          (Print.addString (name ^ ":") ::
-           map (Print.sequence Print.addNewline o ppSequent) seqs)
-      end;
 in
-  fun ppInfo sum =
+  fun ppInfo show =
       let
-        val Info {input,assumed,defined,axioms,thms} = sum
+        val ppTypeOp = TypeOp.ppWithShow show
+
+        val ppConst = Const.ppWithShow show
+
+        fun ppSymbol (prefix,sym) =
+            let
+              val ots = TypeOpSet.toList (Symbol.typeOps sym)
+              and cs = ConstSet.toList (Symbol.consts sym)
+            in
+              Print.sequence
+                (ppList ppTypeOp prefix "-types" ots)
+                (ppList ppConst prefix "-consts" cs)
+            end
+
+        val ppSequent = Print.ppMap Thm.axiom (Thm.ppWithShow show)
+
+        fun ppSequentSet (name,seqs) =
+            let
+              val seqs = SequentSet.toList seqs
+            in
+              Print.blockProgram Print.Consistent 2
+                (Print.addString name ::
+                 Print.addString ":" ::
+                 map (Print.sequence Print.addNewline o ppSequent) seqs)
+            end
       in
-        Print.blockProgram Print.Consistent 0
-          [ppSymbol ("input",input),
-           ppSequentSet ("assumed",assumed),
-           Print.addNewline,
-           ppSymbol ("defined",defined),
-           ppSequentSet ("axioms",axioms),
-           Print.addNewline,
-           ppSequentSet ("thms",thms)]
+        fn sum =>
+           let
+             val Info {input,assumed,defined,axioms,thms} = sum
+           in
+             Print.blockProgram Print.Consistent 0
+               [ppSymbol ("input",input),
+                ppSequentSet ("assumed",assumed),
+                Print.addNewline,
+                ppSymbol ("defined",defined),
+                ppSequentSet ("axioms",axioms),
+                Print.addNewline,
+                ppSequentSet ("thms",thms)]
+           end
       end;
 end;
 
-val pp = Print.ppMap info ppInfo;
+fun ppWithShow show = Print.ppMap info (ppInfo show);
 
-fun toTextFile {summary,filename} =
+fun toTextFile {show,summary,filename} =
     let
 (*OpenTheoryTrace5
       val () = trace "entering Summary.toTextFile\n"
 *)
-      val lines = Print.toStream pp summary
+      val lines = Print.toStream (ppWithShow show) summary
 
       val () = Stream.toTextFile {filename = filename} lines
 
@@ -166,5 +170,7 @@ fun toTextFile {summary,filename} =
     in
       ()
     end;
+
+val pp = ppWithShow Show.default;
 
 end

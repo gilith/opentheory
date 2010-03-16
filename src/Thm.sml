@@ -327,14 +327,37 @@ fun defineTypeOp name {abs,rep} tyVars nonEmptyTh =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val showHyp = ref false;
+type grammar = Sequent.grammar;
 
-fun pp th =
+val defaultGrammar =
     let
-      val Thm {sequent,...} = dest th
+      val Sequent.Grammar
+            {connective = _,
+             hypGrammar,
+             conclGrammar,
+             showHyp} =
+          Sequent.defaultGrammar
+
+      val connective = "|-"
     in
-      Sequent.ppGen {showHyp = !showHyp, connective = "|-"} sequent
+      Sequent.Grammar
+        {connective = connective,
+         hypGrammar = hypGrammar,
+         conclGrammar = conclGrammar,
+         showHyp = showHyp}
     end;
+
+val ppWithGrammar =
+    fn gram =>
+       let
+         val ppWS = Sequent.ppWithGrammar gram
+       in
+         fn show => ppWS show o sequent
+       end;
+
+val ppWithShow = ppWithGrammar defaultGrammar;
+
+val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 

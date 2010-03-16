@@ -162,7 +162,13 @@ val defineTypeOp :
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val showHyp : bool ref
+type grammar = Sequent.grammar
+
+val defaultGrammar : grammar
+
+val ppWithGrammar : grammar -> Show.show -> thm Print.pp
+
+val ppWithShow : Show.show -> thm Print.pp
 
 val pp : thm Print.pp
 

@@ -107,37 +107,65 @@ fun consts seq =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+datatype grammar =
+    Grammar of
+      {connective : string,
+       hypGrammar : Term.grammar,
+       conclGrammar : Term.grammar,
+       showHyp : bool};
+
+val defaultGrammar =
+    Grammar
+      {connective = "?-",
+       hypGrammar = Term.defaultGrammar,
+       conclGrammar = Term.defaultGrammar,
+       showHyp = false};
+
 local
   fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";
 in
-  fun ppGen {showHyp, connective} =
+  fun ppWithGrammar gram =
       let
+        val Grammar {connective,hypGrammar,conclGrammar,showHyp} = gram
+
         val connective_space = connective ^ " "
         val indent_space = size connective_space
         val space_connective = " " ^ connective
+
+        val ppHypTermWS = Term.ppWithGrammar hypGrammar
+
+        val ppConclWS = Term.ppWithGrammar conclGrammar
       in
-        fn Sequent {hyp,concl} =>
-           if TermAlphaSet.null hyp then
-             Print.blockProgram Print.Inconsistent indent_space
-               [Print.addString connective_space,
-                Term.pp concl]
-           else
-             Print.block Print.Inconsistent 2
-               (Print.ppOp2 space_connective
-                  (Print.ppBracket "{" "}"
-                     (if showHyp then
-                        (Print.ppMap TermAlphaSet.toList
-                           (Print.ppOpList "," Term.pp))
-                      else
-                        Print.ppMap (dots o TermAlphaSet.size)
-                          Print.ppString))
-                  Term.pp (hyp,concl))
+        fn show =>
+           let
+             val ppHypTerm = ppHypTermWS show
+
+             val ppHypSet =
+                 if showHyp then
+                   Print.ppMap TermAlphaSet.toList
+                     (Print.ppOpList "," ppHypTerm)
+                 else
+                   Print.addString o dots o TermAlphaSet.size
+
+             val ppHyp = Print.ppBracket "{" "}" ppHypSet
+
+             val ppConcl = ppConclWS show
+           in
+             fn Sequent {hyp,concl} =>
+                if TermAlphaSet.null hyp then
+                  Print.blockProgram Print.Inconsistent indent_space
+                    [Print.addString connective_space,
+                     ppConcl concl]
+                else
+                  Print.block Print.Inconsistent 2
+                    (Print.ppOp2 space_connective ppHyp ppConcl (hyp,concl))
+           end
       end;
 end;
 
-val showHyp = ref false;
+val ppWithShow = ppWithGrammar defaultGrammar;
 
-fun pp seq = ppGen {showHyp = !showHyp, connective = "?-"} seq;
+val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 

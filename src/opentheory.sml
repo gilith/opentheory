@@ -402,7 +402,16 @@ fun compile {filename} =
             ArticleCompileOutput {filename} =>
             Article.toTextFile {article = art, filename = filename}
           | SummaryTextCompileOutput {filename} =>
-            Summary.toTextFile {summary = sum, filename = filename}
+            let
+              val tags = Package.tags pkg
+
+              val show = Show.fromTags tags
+            in
+              Summary.toTextFile
+                {show = show,
+                 summary = sum,
+                 filename = filename}
+            end
           | TheoryCompileOutput {filename} =>
             let
               val instReq = Graph.mkRequires (Graph.ancestors inst)
