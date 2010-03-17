@@ -330,44 +330,40 @@ end;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
+fun isCommentLine l =
+    case List.find (not o Char.isSpace) l of
+      NONE => true
+    | SOME #"#" => true
+    | _ => false;
+
 fun toTextFile {interpretation,filename} =
     Stream.toTextFile {filename = filename} (Print.toStream pp interpretation);
 
-local
-  (* Comment lines *)
+fun fromTextFile {filename} =
+    let
+      (* Estimating parse error line numbers *)
 
-  fun isComment l =
-      case List.find (not o Char.isSpace) l of
-        NONE => true
-      | SOME #"#" => true
-      | _ => false;
-in
-  fun fromTextFile {filename} =
-      let
-        (* Estimating parse error line numbers *)
+      val lines = Stream.fromTextFile {filename = filename}
 
-        val lines = Stream.fromTextFile {filename = filename}
+      val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
+    in
+      (let
+         (* The character stream *)
 
-        val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
-      in
-        (let
-           (* The character stream *)
+         val chars = Stream.filter (not o isCommentLine) chars
 
-           val chars = Stream.filter (not o isComment) chars
+         val chars = Parse.everything Parse.any chars
 
-           val chars = Parse.everything Parse.any chars
+         (* The interpretation stream *)
 
-           (* The interpretation stream *)
-
-           val rws = Parse.everything parserRewrite' chars
-         in
-           fromRewriteStream rws
-         end
-         handle Parse.NoParse => raise Error "parse error")
-        handle Error err =>
-          raise Error ("error in interpretation file \"" ^ filename ^ "\" " ^
-                       parseErrorLocation () ^ "\n" ^ err)
-      end;
-end;
+         val rws = Parse.everything parserRewrite' chars
+       in
+         fromRewriteStream rws
+       end
+       handle Parse.NoParse => raise Error "parse error")
+      handle Error err =>
+        raise Error ("error in interpretation file \"" ^ filename ^ "\" " ^
+                     parseErrorLocation () ^ "\n" ^ err)
+    end;
 
 end

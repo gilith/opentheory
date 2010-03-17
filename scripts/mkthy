@@ -1,0 +1,22 @@
+#!/bin/bash
+
+opentheory=.
+
+prog=$opentheory/bin/mlton/opentheory
+if ! test -x $prog ; then echo "$prog not an executable" ; exit 1 ; fi
+
+rdir=$opentheory/test/opentheory
+if ! test -d $rdir ; then echo "$rdir not a directory" ; exit 1 ; fi
+
+for file in $(ls $rdir/packages/*/mk.thy)
+do
+    echo
+    pdir=$(dirname $file)
+    pname=$(basename $pdir)
+    pbase=$(echo $pname | sed 's/[-][0-9.]*$//')
+
+    echo "compiling" $pname
+    $prog -d $rdir compile --article $pdir/$pbase.art $pdir/mk.thy || exit 1
+done
+
+echo

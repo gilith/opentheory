@@ -16,7 +16,7 @@ if ! test -r $int ; then echo "$int not readable" ; exit 1 ; fi
 rdir=$opentheory/test/opentheory
 if ! test -d $rdir ; then echo "$rdir not a directory" ; exit 1 ; fi
 
-echo '#use "hol.ml";;' | ocaml
+# echo '#use "hol.ml";;' | ocaml
 
 if ! test -r bool-def.art ; then echo "bool-def.art not readable" ; exit 1 ; fi
 if ! test -r bool-thm.art ; then echo "bool-thm.art not readable" ; exit 1 ; fi
@@ -59,3 +59,6 @@ do
 done
 
 echo
+
+cd $opentheory
+make generic-theories || exit 1

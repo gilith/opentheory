@@ -78,6 +78,8 @@ val parser : (char,interpretation) Parse.parser
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
+val isCommentLine : char list -> bool
+
 val toTextFile : {interpretation : interpretation, filename : string} -> unit
 
 val fromTextFile : {filename : string} -> interpretation

@@ -3,11 +3,8 @@ version: 1.0
 description: Axiom of choice
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
-
-require axiom {
-  package: hol-light-class-select-axiom-2009.8.24
-}
+show: "Data.Bool"
 
 theory {
-  import axiom;
+  article "axiom-choice.art";
 }

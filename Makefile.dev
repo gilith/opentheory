@@ -166,7 +166,15 @@ lines: $(LINES)
 	@echo
 
 ###############################################################################
-# Create a snapshop of all packages
+# Create all the generic theories.
+###############################################################################
+
+.PHONY: generic-theories
+generic-theories:
+	scripts/mkthy
+
+###############################################################################
+# Create a snapshop of all theory packages.
 ###############################################################################
 
 repo/packages.tgz: test/opentheory/packages

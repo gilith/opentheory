@@ -3,6 +3,7 @@ version: 1.0
 description: Basic boolean theory
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
+show: "Data.Bool"
 
 require bool-def {
   package: bool-def-1.0

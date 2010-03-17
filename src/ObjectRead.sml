@@ -46,14 +46,20 @@ local
        {leftAlign = false, padChar = #"."}];
 
   val countToString = Print.toString Print.ppPrettyInt;
+
+  fun mkRow (s,i) = [s ^ " ...", " " ^ countToString i];
+
+  fun mkInfRow (n,i) = mkRow (Name.toString n, i);
+
+  fun mkTotalRow i = mkRow ("Total",i);
 in
   fun ppInferenceCount (InferenceCount m) =
       let
-        fun mkRow (n,i) = [Name.toString n ^ " ...", " " ^ countToString i]
-
         val infs = sortMap snd (revCompare Int.compare) (NameMap.toList m)
 
-        val table = map mkRow infs
+        val tot = foldl (fn ((_,i),k) => i + k) 0 infs
+
+        val table = map mkInfRow infs @ [mkTotalRow tot]
 
         val rows = alignTable alignment table
       in

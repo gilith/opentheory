@@ -93,6 +93,8 @@ fun fromTextFile {filename} =
       (let
          (* The character stream *)
 
+         val chars = Stream.filter (not o Interpretation.isCommentLine) chars
+
          val chars = Parse.everything Parse.any chars
 
          (* The package stream *)
