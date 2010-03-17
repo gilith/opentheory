@@ -3,6 +3,12 @@ version: 1.0
 description: Basic theories
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
+show: "Data.Bool"
+show: "Data.Function"
+show: "Data.Pair"
+show: "Data.Unit"
+show: "Number.Natural"
+show: "Number.Numeral"
 
 require bool {
   package: bool-1.0
