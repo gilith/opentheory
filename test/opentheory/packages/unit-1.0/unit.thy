@@ -10,6 +10,12 @@ require unit-def {
   package: unit-def-1.0
 }
 
+require unit-thm {
+  import: unit-def
+  package: unit-thm-1.0
+}
+
 theory {
   import unit-def;
+  import unit-thm;
 }

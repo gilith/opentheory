@@ -3,6 +3,7 @@ version: 1.0
 description: Constructing a whole set of numbers from the positive subset
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
+show: "Data.Bool"
 
 theory {
   article "example-pos.art";

@@ -4,7 +4,7 @@ require thm {
 
 require example-pos {
   import: thm
-  package: example-pos-2009.8.24
+  package: hol-light-example-pos-2009.8.24
 }
 
 theory {

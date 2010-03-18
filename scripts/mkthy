@@ -1,22 +1,120 @@
-#!/bin/bash
+#!/usr/bin/perl
 
-opentheory=.
+# Copyright (c) 2006 Joe Hurd, All Rights Reserved
 
-prog=$opentheory/bin/mlton/opentheory
-if ! test -x $prog ; then echo "$prog not an executable" ; exit 1 ; fi
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
 
-rdir=$opentheory/test/opentheory
-if ! test -d $rdir ; then echo "$rdir not a directory" ; exit 1 ; fi
+use vars qw($opt_h $opt_e);
 
-for file in $(ls $rdir/packages/*/mk.thy)
-do
-    echo
-    pdir=$(dirname $file)
-    pname=$(basename $pdir)
-    pbase=$(echo $pname | sed 's/[-][0-9.]*$//')
+getopts('he');
 
-    echo "compiling" $pname
-    $prog -d $rdir compile --article $pdir/$pbase.art $pdir/mk.thy || exit 1
-done
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
 
-echo
+# Autoflush STDIN
+$|++;
+
+my $opentheory = ".";
+
+my $prog = "$opentheory/bin/mlton/opentheory";
+[ -x $prog ] or die "mkthy: $prog not an executable";
+
+my $rdir = "$opentheory/test/opentheory";
+[ -d $rdir ] or die "mkthy: $rdir not a directory";
+
+my $rpdir = "$rdir/packages";
+[ -d $rpdir ] or die "mkthy: $rpdir not a directory";
+
+my $cmd = "ls $rpdir/*/mk.thy";
+
+# print STDOUT "cmd = $cmd\n";
+
+open THEORIES, "$cmd |" or
+  die "mkthy: couldn't read mk.thy files: $!\n";
+
+while (my $file = <THEORIES>) {
+    chomp $file;
+
+    print STDOUT "\n";
+
+    # print STDOUT "file = $file\n";
+
+    $file =~ m{^(.+)/([[:alnum:]-]+)-([[:digit:].]+)/mk[.]thy$}
+      or die "mkthy: bad file:\n$file";
+
+    my $pdir = $1;
+    my $pbase = $2;
+    my $pver = $3;
+
+    ($pdir eq $rpdir) or die "mkthy: bad package directory:\n$pdir";
+
+    my $pname = "$pbase-$pver";
+    $pdir = "$rpdir/$pname";
+
+    if ($opt_e || $pname !~ /^example-/) {
+        print STDOUT "compiling $pname\n";
+
+        $cmd = "$prog -d $rdir compile --article $pdir/$pbase.art $pdir/mk.thy";
+        (system ($cmd) == 0) or
+          die "mkthy: couldn't execute command:\n$cmd";
+    }
+    else {
+        print STDOUT "skipping $pname\n";
+    }
+}
+
+close THEORIES;
+
+print STDOUT "\n";
+
+__END__
+
+=pod
+
+=head1 NAME
+
+mkthy - create generic theories
+
+=head1 SYNOPSIS
+
+mkthy [-h] [-e]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=item B<-e>
+
+Make the example theories (big).
+
+=back
+
+=head1 DESCRIPTION
+
+Make generic OpenTheory theories from HOL Light theories.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

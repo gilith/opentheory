@@ -71,7 +71,7 @@ let one_tydef =
   new_type_definition "1" ("one_ABS","one_REP") EXISTS_ONE_REP;;
 
 let one_DEF = new_definition
- `one = @x:1. T`;;
+ `one = one_ABS T`;;
 
 (* ------------------------------------------------------------------------- *)
 (* OpenTheory logging.                                                       *)
@@ -81,10 +81,12 @@ logfile "trivia-one-alt";;
 
 let one = log_lemma "one" (fun () -> prove
  (`!v:1. v = one`,
-  MP_TAC(GEN_ALL (SPEC `one_REP a` (CONJUNCT2 one_tydef))) THEN
+  GEN_TAC THEN
+  MP_TAC(SPEC `one_REP v` (CONJUNCT2 one_tydef)) THEN
   REWRITE_TAC[CONJUNCT1 one_tydef] THEN DISCH_TAC THEN
   ONCE_REWRITE_TAC[GSYM (CONJUNCT1 one_tydef)] THEN
-  ASM_REWRITE_TAC[]));;
+  ASM_REWRITE_TAC[] THEN
+  REWRITE_TAC[one_DEF; CONJUNCT1 one_tydef]));;
 
 (* ------------------------------------------------------------------------- *)
 (* OpenTheory logging.                                                       *)
