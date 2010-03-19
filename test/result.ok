@@ -57,6 +57,7 @@ const "BIT1" -> "Number.Numeral.bit1"
 const "COND" -> "Data.Bool.cond"
 const "F" -> "Data.Bool.F"
 const "FST" -> "Data.Pair.fst"
+const "I" -> "Data.Function.id"
 const "NUMERAL" -> "Number.Numeral.numeral"
 const "ONE_ONE" -> "Data.Function.injective"
 const "ONTO" -> "Data.Function.surjective"
@@ -66,6 +67,7 @@ const "SUC" -> "Number.Natural.suc"
 const "T" -> "Data.Bool.T"
 const "\\/" -> "Data.Bool.\\/"
 const "_0" -> "Number.Natural.zero"
+const "o" -> "Data.Function.o"
 const "one" -> "Data.Unit.()"
 const "~" -> "Data.Bool.~"
 
@@ -77,23 +79,23 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.031
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example2"
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.027
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example3"
-User: 0.002  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.018
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool"
 WARNING: 34 objects left on the stack by articles/hol-light/bool.art
 WARNING: saving 34 theorems left on the stack by articles/hol-light/bool.art
 WARNING: 1363 objects left in the dictionary by articles/hol-light/bool.art
-User: 1.086  System: 0.014  GC: 0.146  Real: 1.111
-User: 1.229  System: 0.013  GC: 0.075  Real: 1.251
+User: 1.088  System: 0.015  GC: 0.144  Real: 1.110
+User: 1.221  System: 0.015  GC: 0.074  Real: 1.248
 
 Compressing article "tactics"
 WARNING: 6 objects left on the stack by articles/hol-light/tactics.art
@@ -115,79 +117,79 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Summarizing compressed article "example2"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Summarizing compressed article "bool"
-User: 0.396  System: 0.003  GC: 0.052  Real: 0.404
-User: 0.006  System: 0.000  GC: 0.001  Real: 0.006
+User: 0.392  System: 0.003  GC: 0.050  Real: 0.398
+User: 0.007  System: 0.000  GC: 0.002  Real: 0.008
 
 Summarizing compressed article "tactics"
-User: 0.033  System: 0.000  GC: 0.002  Real: 0.035
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.033  System: 0.000  GC: 0.003  Real: 0.035
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.004
 
 --------------------------------------------------------------------------
 Compiling theories
 
 Compiling theory "empty"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.018
 theory { }
 
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compiling theory "bool"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.010
 theory { article "bool.art"; }
 
-User: 0.386  System: 0.003  GC: 0.042  Real: 0.393
-User: 1.179  System: 0.009  GC: 0.055  Real: 1.197
+User: 0.381  System: 0.003  GC: 0.039  Real: 0.387
+User: 1.186  System: 0.010  GC: 0.058  Real: 1.204
 
 Compiling theory "tactics"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.004
 theory { article "tactics.art"; }
 
-User: 0.034  System: 0.000  GC: 0.004  Real: 0.035
-User: 0.070  System: 0.001  GC: 0.002  Real: 0.076
+User: 0.031  System: 0.000  GC: 0.001  Real: 0.032
+User: 0.069  System: 0.001  GC: 0.002  Real: 0.073
 
 Compiling theory "boolBool"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.028
 theory {
   article "bool.art";
   article "bool.art";
 }
 
-User: 0.789  System: 0.007  GC: 0.091  Real: 0.803
-User: 1.207  System: 0.008  GC: 0.060  Real: 1.222
+User: 0.782  System: 0.006  GC: 0.091  Real: 0.793
+User: 1.226  System: 0.011  GC: 0.061  Real: 1.247
 
 Compiling theory "tacticsTactics"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.029
 theory {
   article "tactics.art";
   article "tactics.art";
 }
 
-User: 0.064  System: 0.001  GC: 0.003  Real: 0.065
-User: 0.071  System: 0.001  GC: 0.002  Real: 0.073
+User: 0.064  System: 0.001  GC: 0.004  Real: 0.065
+User: 0.073  System: 0.001  GC: 0.002  Real: 0.076
 
 Compiling theory "boolTactics"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.002
 theory {
   article "bool.art";
   article "tactics.art";
 }
 
-User: 0.433  System: 0.003  GC: 0.055  Real: 0.439
-User: 1.290  System: 0.010  GC: 0.062  Real: 1.306
+User: 0.429  System: 0.003  GC: 0.055  Real: 0.435
+User: 1.302  System: 0.009  GC: 0.062  Real: 1.314
 
 Compiling theory "localBoolTactics"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.004
 theory {
   local article "bool.art"; in
   article "tactics.art";
 }
 
-User: 0.418  System: 0.003  GC: 0.043  Real: 0.425
-User: 0.442  System: 0.003  GC: 0.025  Real: 0.446
+User: 0.414  System: 0.004  GC: 0.042  Real: 0.429
+User: 0.430  System: 0.004  GC: 0.023  Real: 0.435
 
 --------------------------------------------------------------------------
 Theory directories

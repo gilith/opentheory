@@ -43,16 +43,6 @@ require class-thm {
   package: hol-light-class-thm-2009.8.24
 }
 
-require trivia-thm {
-  import: bool-thm
-  import: tactics-thm
-  import: simp-thm
-  import: theorems-thm
-  import: ind-defs-thm
-  import: class-thm
-  package: hol-light-trivia-thm-2009.8.24
-}
-
 require canon-thm {
   import: bool-thm
   import: tactics-thm
@@ -60,7 +50,6 @@ require canon-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   package: hol-light-canon-thm-2009.8.24
 }
 
@@ -71,7 +60,6 @@ require meson-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   package: hol-light-meson-thm-2009.8.24
 }
@@ -83,7 +71,6 @@ require quot-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   package: hol-light-quot-thm-2009.8.24
@@ -96,7 +83,6 @@ require pair-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -110,7 +96,6 @@ require num-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -125,7 +110,6 @@ require arith-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -141,7 +125,6 @@ require wf-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -158,7 +141,6 @@ require calc-num-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -176,7 +158,6 @@ require normalizer-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -195,7 +176,6 @@ require grobner-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -215,7 +195,6 @@ require ind-types-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -236,7 +215,6 @@ require list-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -258,7 +236,6 @@ require realax-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -281,7 +258,6 @@ require calc-int-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -305,7 +281,6 @@ require realarith-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -330,7 +305,6 @@ require real-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -356,7 +330,6 @@ require calc-rat-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -383,7 +356,6 @@ require int-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -411,7 +383,6 @@ require sets-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -440,7 +411,6 @@ require iter-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -470,7 +440,6 @@ require cart-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -501,7 +470,6 @@ require define-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -533,7 +501,6 @@ theory {
   import theorems-thm;
   import ind-defs-thm;
   import class-thm;
-  import trivia-thm;
   import canon-thm;
   import meson-thm;
   import quot-thm;

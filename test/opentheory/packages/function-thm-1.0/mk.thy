@@ -37,16 +37,16 @@ require class-thm {
   package: hol-light-class-thm-2009.8.24
 }
 
-require trivia-one-thm {
+require trivia-comb-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  package: hol-light-trivia-one-thm-2009.8.24
+  package: hol-light-trivia-comb-thm-2009.8.24
 }
 
 theory {
-  import trivia-one-thm;
+  import trivia-comb-thm;
 }

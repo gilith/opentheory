@@ -10,6 +10,12 @@ require function-def {
   package: function-def-1.0
 }
 
+require function-thm {
+  import: function-def
+  package: function-thm-1.0
+}
+
 theory {
   import function-def;
+  import function-thm;
 }

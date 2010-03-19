@@ -61,4 +61,4 @@ done
 echo
 
 cd $opentheory
-make generic-theories || exit 1
+make all-generic-theories || exit 1

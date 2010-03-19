@@ -37,14 +37,14 @@ require class-thm {
   package: hol-light-class-thm-2009.8.24
 }
 
-require trivia-thm {
+require trivia-comb-def {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  package: hol-light-trivia-thm-2009.8.24
+  package: hol-light-trivia-comb-def-2009.8.24
 }
 
 require canon-thm {
@@ -54,7 +54,6 @@ require canon-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   package: hol-light-canon-thm-2009.8.24
 }
 
@@ -65,7 +64,6 @@ require meson-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   package: hol-light-meson-thm-2009.8.24
 }
@@ -77,7 +75,6 @@ require quot-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   package: hol-light-quot-thm-2009.8.24
@@ -90,7 +87,6 @@ require pair-thm {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -104,7 +100,6 @@ require num-inj-surj {
   import: theorems-thm
   import: ind-defs-thm
   import: class-thm
-  import: trivia-thm
   import: canon-thm
   import: meson-thm
   import: quot-thm
@@ -113,5 +108,6 @@ require num-inj-surj {
 }
 
 theory {
+  import trivia-comb-def;
   import num-inj-surj;
 }

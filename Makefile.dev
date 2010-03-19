@@ -173,6 +173,10 @@ lines: $(LINES)
 generic-theories:
 	scripts/mkthy
 
+.PHONY: all-generic-theories
+all-generic-theories:
+	scripts/mkthy -e
+
 ###############################################################################
 # Create a snapshop of all theory packages.
 ###############################################################################

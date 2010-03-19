@@ -26,6 +26,8 @@ const "T" -> "Data.Bool.T"
 
 # Data.Function
 
+const "I" -> "Data.Function.id"
+const "o" -> "Data.Function.o"
 const "ONE_ONE" -> "Data.Function.injective"
 const "ONTO" -> "Data.Function.surjective"
 
