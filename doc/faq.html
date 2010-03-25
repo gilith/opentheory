@@ -95,55 +95,6 @@ and displays it on <tt>stdout</tt>.</p>
 
 <hr />
 
-<h4>How can I import a theory package into my theorem prover?</h4>
-
-<p>There are two steps to this:
-
-<ol>
-
-<li>Compile the theory package to a proof article file using the
-  command
-
-<blockquote>
-<tt>opentheory compile --article NAME.art ~/.opentheory/packages/NAME-VERSION/NAME.thy</tt>
-</blockquote></li>
-
-<li>Read the proof article file <tt>NAME.art</tt> into your theorem
-  prover, using existing type operators, constants and theorems for
-  the ones in the <tt>input-types</tt>, <tt>input-consts</tt>
-  and <tt>assumed</tt> sections of the theory summary.</li>
-
-</ol></p>
-
-<hr />
-
-<h4>How can I read a proof article file into my theorem prover?</h4>
-
-<p>If your higher order logic theorem prover does not already have a
-reader for proof articles, there are detailed instructions for
-implementing one in the
-
-<a href="http://www.gilith.com/research/opentheory/article.html">file
-format standard</a>.
-
-It might be useful to refer to the article reader implementation in
-the opentheory tool (although opentheory needs to keep track of more
-state to rename and compress articles), in particular the following
-files in the release:
-<ul>
-
-<li><tt>src/Command.sig</tt> &nbsp; <tt>src/Command.sml</tt></li>
-
-<li><tt>src/Object.sig</tt> &nbsp; <tt>src/Object.sml</tt></li>
-
-<li><tt>src/ObjectRead.sig</tt> &nbsp; <tt>src/ObjectRead.sml</tt></li>
-
-<li><tt>src/HolLight.sig</tt> &nbsp; <tt>src/HolLight.sml</tt></li>
-
-</ul></p>
-
-<hr />
-
 <h4>What are the <tt>NAME.thy</tt> files used for?</h4>
 
 <p>The theory file <tt>NAME.thy</tt>, normally found inside a package
@@ -168,6 +119,14 @@ description: Basic boolean theory<br />
 author: Joe Hurd &lt;joe@gilith.com&gt;<br />
 license: PublicDomain</tt>
 </blockquote></p>
+
+<hr />
+
+<h4>Why do some theory packages contain <kbd>.art</kbd> files?</h4>
+
+<p>The <kbd>article</kbd> command in a theory file instructs the
+opentheory tool to read in an article file, which is conventionally
+saved in a file with <kbd>.art</kbd> suffix.</p>
 
 <hr />
 
@@ -229,6 +188,66 @@ Running this command will generate the proof article
 file <tt>NAME.art</tt>.</li>
 
 </ol></p>
+
+<hr />
+
+<h4>How can I import a theory package into my theorem prover?</h4>
+
+<p>There are two steps to this:
+
+<ol>
+
+<li>Compile the theory package to a proof article file using the
+  command
+
+<blockquote>
+<tt>opentheory compile --article NAME.art ~/.opentheory/packages/NAME-VERSION/NAME.thy</tt>
+</blockquote></li>
+
+<li>Read the proof article file <tt>NAME.art</tt> into your theorem
+  prover, using existing type operators, constants and theorems for
+  the ones in the <tt>input-types</tt>, <tt>input-consts</tt>
+  and <tt>assumed</tt> sections of the theory summary.</li>
+
+</ol></p>
+
+<hr />
+
+<h4>How can I read a proof article file into my theorem prover?</h4>
+
+<p>If your higher order logic theorem prover does not already have a
+reader for proof articles, there are detailed instructions for
+implementing one in the
+
+<a href="http://www.gilith.com/research/opentheory/article.html">file
+format standard</a>.
+
+It might be useful to refer to the article reader implementation in
+the opentheory tool (although opentheory needs to keep track of more
+state to rename and compress articles), in particular the following
+files in the release:
+<ul>
+
+<li><tt>src/Command.sig</tt> &nbsp; <tt>src/Command.sml</tt></li>
+
+<li><tt>src/Object.sig</tt> &nbsp; <tt>src/Object.sml</tt></li>
+
+<li><tt>src/ObjectRead.sig</tt> &nbsp; <tt>src/ObjectRead.sml</tt></li>
+
+<li><tt>src/HolLight.sig</tt> &nbsp; <tt>src/HolLight.sml</tt></li>
+
+</ul></p>
+
+<hr />
+
+<h4>What is the purpose of the <kbd>test.sml</kbd> file in
+the <kbd>test</kbd> directory?</h4>
+
+<p>This file is part of the self-test for opentheory. The file is run
+by Moscow ML, MLton and Poly/ML, generating the
+files <kbd>mosml-result</kbd>, <kbd>mlton-result</kbd>
+and <kbd>polyml-result</kbd> (respectively). These are compared to the
+expected result in the <kbd>result.ok</kbd> file.</p>
 
 <hr />
 
