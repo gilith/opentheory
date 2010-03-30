@@ -216,13 +216,15 @@ file <tt>NAME.art</tt>.</li>
 <h4>How can I read a proof article file into my theorem prover?</h4>
 
 <p>If your higher order logic theorem prover does not already have a
-reader for proof articles, there are detailed instructions for
-implementing one in the
+reader for proof articles, you can contribute to the OpenTheory
+project by implementing one yourself! To do this you need to write an
+ML function that takes as input the article file name, and reads in
+the commands in the article file one by one, processing them exactly
+as described in the
 
-<a href="http://www.gilith.com/research/opentheory/article.html">file
-format standard</a>.
+<a href="http://www.gilith.com/research/opentheory/article.html">article file format standard</a>.</p>
 
-It might be useful to refer to the article reader implementation in
+<p>It might be useful to refer to the article reader implementation in
 the opentheory tool (although opentheory needs to keep track of more
 state to rename and compress articles), in particular the following
 files in the release:
