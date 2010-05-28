@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE NAMES                                                             *)
-(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* PACKAGE BASE NAMES                                                        *)
+(* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure PackageName :> PackageName =
+structure PackageBase :> PackageBase =
 struct
 
 open Useful;
@@ -15,59 +15,43 @@ open Useful;
 val separatorString = "-";
 
 (* ------------------------------------------------------------------------- *)
+(* Helper functions.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun concatWith s =
+    let
+      fun add (x,l) = s :: x :: l
+    in
+      fn [] => ""
+       | x :: xs =>
+         let
+           val xs = List.foldl add [] (rev xs)
+         in
+           String.concat (x :: xs)
+         end
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype name =
-    Name of
-      {base : PackageBase.base,
-       version : PackageVersion.version};
-
-(* ------------------------------------------------------------------------- *)
-(* Constructors and destructors.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun base (Name {base = x, ...}) = x;
-
-fun version (Name {version = x, ...}) = x;
+type base = string;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (i1,i2) =
-    let
-      val Name {base = b1, version = v1} = i1
-      and Name {base = b2, version = v2} = i2
-    in
-      case PackageBase.compare (b1,b2) of
-        LESS => LESS
-      | EQUAL => PackageVersion.compare (v1,v2)
-      | GREATER => GREATER
-    end;
+val compare = String.compare;
 
-fun equal i1 i2 =
-    let
-      val Name {base = b1, version = v1} = i1
-      and Name {base = b2, version = v2} = i2
-    in
-      PackageBase.equal b1 b2 andalso
-      PackageVersion.equal v1 v2
-    end;
+fun equal (b1 : base) b2 = b1 = b2;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppSeparator = Print.addString separatorString;
+val pp = Print.ppString;
 
-fun pp (Name {base = b, version = v}) =
-    Print.program
-      [PackageBase.pp b,
-       ppSeparator,
-       PackageVersion.pp v];
-
-val toString = Print.toString pp;
+fun toString (b : base) = b;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -82,24 +66,33 @@ local
   open Parse;
 
   val separatorParser = exactString separatorString;
+
+  val componentParser =
+      let
+        fun isInitialChar c = Char.isLower c
+
+        fun isSubsequentChar c = Char.isLower c orelse Char.isDigit c
+      in
+        (some isInitialChar ++ many (some isSubsequentChar)) >>
+        (fn (c,cs) => implode (c :: cs))
+      end;
 in
   val parser =
-      PackageBase.parser ++
-      separatorParser ++
-      PackageVersion.parser >>
-      (fn (b,((),v)) => Name {base = b, version = v});
+      componentParser ++
+      many (separatorParser ++ componentParser >> snd) >>
+      (fn (b,l) => concatWith separatorString (b :: l));
 end;
 
 fun fromString s =
     Parse.fromString parser s
     handle Parse.NoParse =>
-      raise Error ("bad package name format: " ^ s);
+      raise Error ("bad package base name format: " ^ s);
 
 end
 
-structure PackageNameOrdered =
-struct type t = PackageName.name val compare = PackageName.compare end
+structure PackageBaseOrdered =
+struct type t = PackageBase.base val compare = PackageBase.compare end
 
-structure PackageNameSet = ElementSet (PackageNameOrdered)
+structure PackageBaseSet = ElementSet (PackageBaseOrdered)
 
-structure PackageNameMap = KeyMap (PackageNameOrdered)
+structure PackageBaseMap = KeyMap (PackageBaseOrdered)

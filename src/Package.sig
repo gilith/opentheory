@@ -35,7 +35,15 @@ val requires : package -> PackageRequire.require list
 
 val theory : package -> PackageTheory.theory
 
+(* ------------------------------------------------------------------------- *)
+(* Package filenames.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
 val filenames : package -> {filename : string} list
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
 
 val dependencies : package -> PackageName.name list
 

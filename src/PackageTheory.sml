@@ -12,31 +12,223 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val theoryKeywordString = "theory";
+val articleKeywordString = "article"
+and closeBlockString = "}"
+and importKeywordString = "import"
+and interpretKeywordString = "interpret"
+and openBlockString = "{"
+and packageKeywordString = "package"
+and quoteString = "\""
+and separatorString = ":";
 
 (* ------------------------------------------------------------------------- *)
 (* Types of package theory syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type theory = PackageRequire.name Theory.theory;
+type name = PackageBase.base
+
+datatype body =
+    Package of Interpretation.interpretation * PackageName.name
+  | Article of Interpretation.interpretation * {filename : string}
+  | Union
+
+datatype theory =
+    Theory of
+      {imports : name list,
+       body : body}
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun imports (Theory {imports = x, ...}) = x;
+
+fun body (Theory {body = x, ...}) = x;
+
+(* ------------------------------------------------------------------------- *)
+(* Article dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun destArticleBody body =
+    case body of
+      Article (_,f) => SOME f
+    | _ => NONE;
+
+fun destArticle thy = destArticleBody (body thy);
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun destPackageBody body =
+    case body of
+      Package (_,n) => SOME n
+    | _ => NONE;
+
+fun destPackage thy = destPackageBody (body thy);
+
+(* ------------------------------------------------------------------------- *)
+(* Theory constraints.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+datatype constraint =
+    ArticleConstraint of {filename : string}
+  | ImportConstraint of name
+  | InterpretConstraint of Interpretation.rewrite
+  | PackageConstraint of PackageName.name;
+
+fun destArticleConstraint c =
+    case c of
+      ArticleConstraint f => SOME f
+    | _ => NONE;
+
+fun destImportConstraint c =
+    case c of
+      ImportConstraint r => SOME r
+    | _ => NONE;
+
+fun destInterpretConstraint c =
+    case c of
+      InterpretConstraint r => SOME r
+    | _ => NONE;
+
+fun destPackageConstraint c =
+    case c of
+      PackageConstraint p => SOME p
+    | _ => NONE;
+
+fun destArticleConstraints cs = List.mapPartial destArticleConstraint cs;
+
+fun destImportConstraints cs = List.mapPartial destImportConstraint cs;
+
+fun destInterpretConstraints cs = List.mapPartial destInterpretConstraint cs;
+
+fun destPackageConstraints cs = List.mapPartial destPackageConstraint cs;
+
+fun mkTheory cs =
+    let
+      val imports = destImportConstraints cs
+
+      val rws = destInterpretConstraints cs
+
+      val body =
+          case (destArticleConstraints cs, destPackageConstraints cs) of
+            ([],[]) =>
+            if null rws then Union
+            else raise Error "interpret has no effect in union theory block"
+          | (_ :: _, _ :: _) =>
+            raise Error "conflicting article and package in theory block"
+          | (_ :: _ :: _, []) =>
+            raise Error "multiple articles in theory block"
+          | ([], _ :: _ :: _) =>
+            raise Error "multiple packages in theory block"
+          | ([f],[]) =>
+            let
+              val int = Interpretation.fromRewriteList rws
+            in
+              Article (int,f)
+            end
+          | ([],[p]) =>
+            let
+              val int = Interpretation.fromRewriteList rws
+            in
+              Package (int,p)
+            end
+    in
+      Theory
+        {imports = imports,
+         body = body}
+    end;
+
+fun destTheory thy =
+    let
+      val Theory {imports,body} = thy
+
+      val ics = map ImportConstraint imports
+
+      val bcs =
+          case body of
+            Package (int,p) =>
+            let
+              val rws = Interpretation.toRewriteList int
+            in
+              map InterpretConstraint rws @ [PackageConstraint p]
+            end
+          | Article (int,f) =>
+            let
+              val rws = Interpretation.toRewriteList int
+            in
+              map InterpretConstraint rws @ [ArticleConstraint f]
+            end
+          | Union =>
+            []
+    in
+      ics @ bcs
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppTheoryKeyword = Print.addString theoryKeywordString;
+val ppArticleKeyword = Print.addString articleKeywordString
+and ppCloseBlock = Print.addString closeBlockString
+and ppImportKeyword = Print.addString importKeywordString
+and ppInterpretKeyword = Print.addString interpretKeywordString
+and ppOpenBlock = Print.addString openBlockString
+and ppPackageKeyword = Print.addString packageKeywordString
+and ppQuote = Print.addString quoteString
+and ppSeparator = Print.addString separatorString;
+
+fun ppBlock ppX x =
+    Print.blockProgram Print.Consistent 0
+      [Print.blockProgram Print.Consistent 2
+         [ppOpenBlock,
+          Print.addBreak 1,
+          ppX x],
+       Print.addBreak 1,
+       ppCloseBlock];
+
+val ppName = PackageBase.pp;
+
+fun ppQuotedFilename {filename} =
+    Print.program
+      [ppQuote,
+       Print.addString filename,
+       ppQuote];
+
+local
+  fun ppNameValue ppN ppV =
+      Print.program
+        [ppN,
+         ppSeparator,
+         Print.addString " ",
+         ppV];
+in
+  fun ppConstraint c =
+      case c of
+        ArticleConstraint f =>
+        ppNameValue ppArticleKeyword (ppQuotedFilename f)
+      | ImportConstraint r =>
+        ppNameValue ppImportKeyword (ppName r)
+      | InterpretConstraint r =>
+        ppNameValue ppInterpretKeyword (Interpretation.ppRewrite r)
+      | PackageConstraint p =>
+        ppNameValue ppPackageKeyword (PackageName.pp p);
+end;
+
+fun ppConstraintList cs =
+    case cs of
+      [] => Print.skip
+    | c :: cs =>
+      Print.blockProgram Print.Consistent 0
+        (ppConstraint c ::
+         map (Print.sequence Print.addNewline o ppConstraint) cs);
 
 fun pp thy =
     let
-      val thy =
-          case thy of
-            Theory.Sequence _ => thy
-          | _ => Theory.Sequence [thy]
+      val cs = destTheory thy
     in
-      Print.blockProgram Print.Consistent 0
-        [ppTheoryKeyword,
-         Print.addString " ",
-         Theory.pp PackageRequire.ppName thy]
+      ppBlock ppConstraintList cs
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -51,18 +243,69 @@ local
 
   open Parse;
 
-  val theoryKeywordParser = exactString theoryKeywordString;
+  val articleKeywordParser = exactString articleKeywordString
+  and closeBlockParser = exactString closeBlockString
+  and importKeywordParser = exactString importKeywordString
+  and interpretKeywordParser = exactString interpretKeywordString
+  and openBlockParser = exactString openBlockString
+  and packageKeywordParser = exactString packageKeywordString
+  and quoteParser = exactString quoteString
+  and separatorParser = exactString separatorString;
+
+  val nameParser = PackageBase.parser;
+
+  val quotedFilenameParser =
+      let
+        fun isFilenameChar c = c <> #"\n" andalso c <> #"\""
+
+        val filenameParser = atLeastOne (some isFilenameChar)
+      in
+        (quoteParser ++ filenameParser ++ quoteParser) >>
+        (fn ((),(f,())) => {filename = implode f})
+      end;
+
+  val articleConstraintParser =
+      (articleKeywordParser ++ manySpace ++
+       separatorParser ++ manySpace ++
+       quotedFilenameParser) >>
+      (fn ((),((),((),((),f)))) => ArticleConstraint f);
+
+  val importConstraintParser =
+      (importKeywordParser ++ manySpace ++
+       separatorParser ++ manySpace ++
+       nameParser) >>
+      (fn ((),((),((),((),r)))) => ImportConstraint r);
+
+  val interpretConstraintParser =
+      (interpretKeywordParser ++ manySpace ++
+       separatorParser ++ manySpace ++
+       Interpretation.parserRewrite) >>
+      (fn ((),((),((),((),r)))) => InterpretConstraint r);
+
+  val packageConstraintParser =
+      (packageKeywordParser ++ manySpace ++
+       separatorParser ++ manySpace ++
+       PackageName.parser) >>
+      (fn ((),((),((),((),p)))) => PackageConstraint p);
+
+  val constraintParser =
+      articleConstraintParser ||
+      importConstraintParser ||
+      interpretConstraintParser ||
+      packageConstraintParser;
+
+  val constraintSpaceParser = constraintParser ++ manySpace >> fst;
 
   val theoryParser =
-      (theoryKeywordParser ++ manySpace ++
-       Theory.parser PackageRequire.parserName) >>
-      (fn ((),((),thy)) =>
-          case thy of
-            Theory.Sequence [thy] => thy
-          | _ => thy);
+      (openBlockParser ++ manySpace ++
+       many constraintSpaceParser ++
+       closeBlockParser) >>
+      (fn ((),((),(cs,()))) => mkTheory cs);
 
   val theorySpaceParser = theoryParser ++ manySpace >> fst;
 in
+  val parserName = nameParser;
+
   val parser = manySpace ++ theorySpaceParser >> snd;
 end;
 

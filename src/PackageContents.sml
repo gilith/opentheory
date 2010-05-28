@@ -9,6 +9,12 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val theoryKeywordString = "theory";
+
+(* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -28,11 +34,41 @@ fun requires (Contents {requires = x, ...}) = x;
 
 fun theory (Contents {theory = x, ...}) = x;
 
-fun dependencies c = map PackageRequire.package (requires c);
+(* ------------------------------------------------------------------------- *)
+(* Article dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun articles c =
+    let
+      val Contents {requires = reqs, theory = thy, ...} = c
+
+      val fs = PackageRequire.articles reqs
+    in
+      case PackageTheory.destArticle thy of
+        SOME f => fs @ [f]
+      | NONE => fs
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun packages c =
+    let
+      val Contents {requires = reqs, theory = thy, ...} = c
+
+      val ps = PackageRequire.packages reqs
+    in
+      case PackageTheory.destPackage thy of
+        SOME p => ps @ [p]
+      | NONE => ps
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
+
+val ppTheoryKeyword = Print.addString theoryKeywordString;
 
 fun ppBlock ppL l =
     if null l then Print.skip
@@ -42,14 +78,20 @@ fun ppBlock ppL l =
          Print.addNewline,
          Print.addNewline];
 
+fun ppTheory thy =
+    Print.blockProgram Print.Consistent 0
+      [ppTheoryKeyword,
+       Print.addString " ",
+       PackageTheory.pp thy];
+
 fun pp pkg =
     let
       val Contents {tags, requires = reqs, theory = thy} = pkg
     in
       Print.blockProgram Print.Consistent 0
-        (ppBlock Tag.ppList tags ::
-         ppBlock PackageRequire.ppList reqs ::
-         [PackageTheory.pp thy])
+        [ppBlock Tag.ppList tags,
+         ppBlock PackageRequire.ppList reqs,
+         ppTheory thy]
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -64,10 +106,14 @@ local
 
   open Parse;
 
+  val theoryKeywordParser = exactString theoryKeywordString;
+
+  val theorySpaceParser = theoryKeywordParser ++ PackageTheory.parser >> snd;
+
   val packageSpaceParser =
       (Tag.parserList ++
        PackageRequire.parserList ++
-       PackageTheory.parser) >>
+       theorySpaceParser) >>
       (fn (ts,(rs,th)) => Contents {tags = ts, requires = rs, theory = th});
 in
   val parser = manySpace ++ packageSpaceParser >> snd;

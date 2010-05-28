@@ -10,17 +10,55 @@ sig
 (* Types of package theory syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type theory = PackageRequire.name Theory.theory
+type name = PackageBase.base
+
+datatype body =
+    Package of Interpretation.interpretation * PackageName.name
+  | Article of Interpretation.interpretation * {filename : string}
+  | Union
+
+datatype theory =
+    Theory of
+      {imports : name list,
+       body : body}
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val imports : theory -> name list
+
+val body : theory -> body
+
+(* ------------------------------------------------------------------------- *)
+(* Article dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val destArticleBody : body -> {filename : string} option
+
+val destArticle : theory -> {filename : string} option
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val destPackageBody : body -> PackageName.name option
+
+val destPackage : theory -> PackageName.name option
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
+
+val ppName : name Print.pp
 
 val pp : theory Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
+
+val parserName : (char,name) Parse.parser
 
 val parser : (char,theory) Parse.parser
 

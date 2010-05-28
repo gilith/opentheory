@@ -37,9 +37,22 @@ fun requires p = PackageContents.requires (contents p);
 
 fun theory p = PackageContents.theory (contents p);
 
-fun filenames p = filename p :: Theory.filenames (theory p);
+(* ------------------------------------------------------------------------- *)
+(* Package filenames.                                                        *)
+(* ------------------------------------------------------------------------- *)
 
-fun dependencies p = PackageContents.dependencies (contents p);
+fun filenames p =
+    let
+      val Package {filename = f, contents = c, ...} = p
+    in
+      {filename = f} :: PackageContents.articles c
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun dependencies p = PackageContents.packages (contents p);
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)

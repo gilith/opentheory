@@ -10,26 +10,38 @@ sig
 (* A type of required theory packages.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type name = string
-
 datatype require =
     Require of
-      {name : name,
-       imports : name list,
-       interpretation : Interpretation.interpretation,
-       package : PackageName.name}
+      {name : PackageTheory.name,
+       theory : PackageTheory.theory}
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val name : require -> name
+val name : require -> PackageTheory.name
 
-val imports : require -> name list
+val theory : require -> PackageTheory.theory
 
-val interpretation : require -> Interpretation.interpretation
+val imports : require -> PackageTheory.name list
 
-val package : require -> PackageName.name
+val body : require -> PackageTheory.body
+
+(* ------------------------------------------------------------------------- *)
+(* Article dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val article : require -> {filename : string} option
+
+val articles : require list -> {filename : string} list
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val package : require -> PackageName.name option
+
+val packages : require list -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Topological sort of requirements.                                         *)
@@ -41,8 +53,6 @@ val sort : require list -> require list
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppName : name Print.pp
-
 val pp : require Print.pp
 
 val ppList : require list Print.pp
@@ -50,8 +60,6 @@ val ppList : require list Print.pp
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
-
-val parserName : (char,name) Parse.parser
 
 val parser : (char,require) Parse.parser
 

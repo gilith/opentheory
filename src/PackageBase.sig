@@ -1,47 +1,39 @@
 (* ========================================================================= *)
-(* PACKAGE NAMES                                                             *)
-(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* PACKAGE BASE NAMES                                                        *)
+(* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature PackageName =
+signature PackageBase =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package names.                                           *)
+(* A type of theory package base names.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-type name
-
-(* ------------------------------------------------------------------------- *)
-(* Constructors and destructors.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-val base : name -> PackageBase.base
-
-val version : name -> PackageVersion.version
+type base
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare : name * name -> order
+val compare : base * base -> order
 
-val equal : name -> name -> bool
+val equal : base -> base -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : name Print.pp
+val pp : base Print.pp
 
-val toString : name -> string
+val toString : base -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,name) Parse.parser
+val parser : (char,base) Parse.parser
 
-val fromString : string -> name
+val fromString : string -> base
 
 end

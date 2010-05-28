@@ -12,26 +12,16 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val closeBlockString = "}"
-and importKeywordString = "import"
-and interpretKeywordString = "interpret"
-and openBlockString = "{"
-and packageKeywordString = "package"
-and requireKeywordString = "require"
-and separatorString = ":";
+val requireKeywordString = "require";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of required theory packages.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type name = string;
-
 datatype require =
     Require of
-      {name : name,
-       imports : name list,
-       interpretation : Interpretation.interpretation,
-       package : PackageName.name};
+      {name : PackageTheory.name,
+       theory : PackageTheory.theory};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -39,72 +29,27 @@ datatype require =
 
 fun name (Require {name = x, ...}) = x;
 
-fun imports (Require {imports = x, ...}) = x;
+fun theory (Require {theory = x, ...}) = x;
 
-fun interpretation (Require {interpretation = x, ...}) = x;
+fun imports req = PackageTheory.imports (theory req);
 
-fun package (Require {package = x, ...}) = x;
+fun body req = PackageTheory.body (theory req);
 
 (* ------------------------------------------------------------------------- *)
-(* Require block constraints.                                                *)
+(* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-datatype constraint =
-    ImportConstraint of name
-  | InterpretConstraint of Interpretation.rewrite
-  | PackageConstraint of PackageName.name;
+fun article req = PackageTheory.destArticle (theory req);
 
-fun destImportConstraint c =
-    case c of
-      ImportConstraint r => SOME r
-    | _ => NONE;
+fun articles reqs = List.mapPartial article reqs;
 
-fun destInterpretConstraint c =
-    case c of
-      InterpretConstraint r => SOME r
-    | _ => NONE;
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
 
-fun destPackageConstraint c =
-    case c of
-      PackageConstraint p => SOME p
-    | _ => NONE;
+fun package req = PackageTheory.destPackage (theory req);
 
-fun mkRequire (name,cs) =
-    let
-      val imports = List.mapPartial destImportConstraint cs
-
-      val rws = List.mapPartial destInterpretConstraint cs
-
-      val interpretation = Interpretation.fromRewriteList rws
-
-      val package =
-          case List.mapPartial destPackageConstraint cs of
-            [] => raise Error "no package specified in require block"
-          | [p] => p
-          | _ :: _ :: _ =>
-            raise Error "multiple packages specified in require block"
-    in
-      Require
-        {name = name,
-         imports = imports,
-         interpretation = interpretation,
-         package = package}
-    end;
-
-fun destRequire req =
-    let
-      val Require {name,imports,interpretation,package} = req
-
-      val imps = map ImportConstraint imports
-
-      val rws = Interpretation.toRewriteList interpretation
-
-      val ints = map InterpretConstraint rws
-
-      val cs = imps @ ints @ [PackageConstraint package]
-    in
-      (name,cs)
-    end;
+fun packages reqs = List.mapPartial package reqs;
 
 (* ------------------------------------------------------------------------- *)
 (* Topological sort of requirements.                                         *)
@@ -115,25 +60,27 @@ local
       let
         fun ins (req,(m,l)) =
             let
-              val Require {name = n, imports = rs, ...} = req
+              val n = name req
+              and rs = imports req
 
-              val m = StringMap.insert m (n,(rs,req))
+              val m = PackageBaseMap.insert m (n,(rs,req))
 
               val l = n :: l
             in
               (m,l)
             end
 
-        val reqs_namel as (reqs,_) = List.foldl ins (StringMap.new (), []) reql
+        val reqs_namel as (reqs,_) =
+            List.foldl ins (PackageBaseMap.new (), []) reql
 
         fun check (n,(rs,_)) =
-            case List.find (fn r => not (StringMap.inDomain r reqs)) rs of
+            case List.find (fn r => not (PackageBaseMap.inDomain r reqs)) rs of
               NONE => ()
             | SOME r =>
-              raise Error ("require block \"" ^ n ^ "\" " ^
-                           "imports unknown \"" ^ r ^ "\"")
+              raise Error ("require block \"" ^ PackageBase.toString n ^ "\" " ^
+                           "imports unknown \"" ^ PackageBase.toString r ^ "\"")
 
-        val () = StringMap.app check reqs
+        val () = PackageBaseMap.app check reqs
       in
         reqs_namel
       end;
@@ -146,31 +93,33 @@ local
          | (r,(req,work,stackset)) :: stack =>
            let
              val dealt = req :: dealt
-             val dealtset = StringSet.add dealtset r
+             val dealtset = PackageBaseSet.add dealtset r
            in
              sortMap requires (dealt,dealtset) (stack,stackset) work
            end)
       | r :: work =>
-        if StringSet.member r dealtset then
+        if PackageBaseSet.member r dealtset then
           sortMap requires (dealt,dealtset) (stack,stackset) work
-        else if StringSet.member r stackset then
+        else if PackageBaseSet.member r stackset then
           let
-            val l = map fst (takeWhile (fn (r',_) => r' <> r) stack)
+            fun notR (r',_) = not (PackageBase.equal r' r)
+
+            val l = map fst (takeWhile notR stack)
             val l = r :: rev (r :: l)
-            val err = join " -> " l
+            val err = join " -> " (map PackageBase.toString l)
           in
             raise Error ("circular dependency:\n" ^ err)
           end
         else
           let
             val (rs,req) =
-                case StringMap.peek requires r of
+                case PackageBaseMap.peek requires r of
                   SOME rs_req => rs_req
                 | NONE => raise Bug "PackageRequire.sort"
 
             val stack = (r,(req,work,stackset)) :: stack
 
-            val stackset = StringSet.add stackset r
+            val stackset = PackageBaseSet.add stackset r
 
             val work = rs
           in
@@ -182,10 +131,10 @@ in
         val (reqs,work) = toMap reqs
 
         val dealt = []
-        val dealtset = StringSet.empty
+        val dealtset = PackageBaseSet.empty
 
         val stack = []
-        val stackset = StringSet.empty
+        val stackset = PackageBaseSet.empty
       in
         sortMap reqs (dealt,dealtset) (stack,stackset) work
       end
@@ -198,61 +147,18 @@ end;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppCloseBlock = Print.addString closeBlockString
-and ppImportKeyword = Print.addString importKeywordString
-and ppInterpretKeyword = Print.addString interpretKeywordString
-and ppOpenBlock = Print.addString openBlockString
-and ppPackageKeyword = Print.addString packageKeywordString
-and ppRequireKeyword = Print.addString requireKeywordString
-and ppSeparator = Print.addString separatorString;
-
-fun ppBlock ppX x =
-    Print.blockProgram Print.Consistent 0
-      [Print.blockProgram Print.Consistent 2
-         [ppOpenBlock,
-          Print.addBreak 1,
-          ppX x],
-       Print.addBreak 1,
-       ppCloseBlock];
-
-val ppName = Print.ppString;
-
-local
-  fun ppNameValue ppN ppV =
-      Print.program
-        [ppN,
-         ppSeparator,
-         Print.addString " ",
-         ppV];
-in
-  fun ppConstraint c =
-      case c of
-        ImportConstraint r =>
-        ppNameValue ppImportKeyword (ppName r)
-      | InterpretConstraint r =>
-        ppNameValue ppInterpretKeyword (Interpretation.ppRewrite r)
-      | PackageConstraint p =>
-        ppNameValue ppPackageKeyword (PackageName.pp p);
-end;
-
-fun ppConstraintList cs =
-    case cs of
-      [] => Print.skip
-    | c :: cs =>
-      Print.blockProgram Print.Consistent 0
-        (ppConstraint c ::
-         map (Print.sequence Print.addNewline o ppConstraint) cs);
+val ppRequireKeyword = Print.addString requireKeywordString;
 
 fun pp req =
     let
-      val (name,cs) = destRequire req
+      val Require {name,theory} = req
     in
       Print.blockProgram Print.Consistent 0
         [ppRequireKeyword,
          Print.addString " ",
-         ppName name,
+         PackageTheory.ppName name,
          Print.addString " ",
-         ppBlock ppConstraintList cs]
+         PackageTheory.pp theory]
     end;
 
 fun ppList reqs =
@@ -278,61 +184,14 @@ local
 
   open Parse;
 
-  val closeBlockParser = exactString closeBlockString
-  and importKeywordParser = exactString importKeywordString
-  and interpretKeywordParser = exactString interpretKeywordString
-  and openBlockParser = exactString openBlockString
-  and packageKeywordParser = exactString packageKeywordString
-  and requireKeywordParser = exactString requireKeywordString
-  and separatorParser = exactString separatorString;
+  val requireKeywordParser = exactString requireKeywordString;
 
-  val nameParser =
-      let
-        fun isInitialChar c = Char.isLower c
-
-        fun isSubsequentChar c = Char.isAlphaNum c orelse c = #"-"
-      in
-        (some isInitialChar ++ many (some isSubsequentChar)) >>
-        (fn (c,cs) => implode (c :: cs))
-      end;
-
-  val importConstraintParser =
-      (importKeywordParser ++ manySpace ++
-       separatorParser ++ manySpace ++
-       nameParser) >>
-      (fn ((),((),((),((),r)))) => ImportConstraint r);
-
-  val interpretConstraintParser =
-      (interpretKeywordParser ++ manySpace ++
-       separatorParser ++ manySpace ++
-       Interpretation.parserRewrite) >>
-      (fn ((),((),((),((),r)))) => InterpretConstraint r);
-
-  val packageConstraintParser =
-      (packageKeywordParser ++ manySpace ++
-       separatorParser ++ manySpace ++
-       PackageName.parser) >>
-      (fn ((),((),((),((),p)))) => PackageConstraint p);
-
-  val constraintParser =
-      importConstraintParser ||
-      interpretConstraintParser ||
-      packageConstraintParser;
-
-  val constraintSpaceParser = constraintParser ++ manySpace >> fst;
-
-  val requireParser =
+  val requireSpaceParser =
       (requireKeywordParser ++ atLeastOneSpace ++
-       nameParser ++ manySpace ++
-       openBlockParser ++ manySpace ++
-       many constraintSpaceParser ++
-       closeBlockParser) >>
-      (fn ((),((),(n,((),((),((),(cs,()))))))) => mkRequire (n,cs));
-
-  val requireSpaceParser = requireParser ++ manySpace >> fst;
+       PackageTheory.parserName ++
+       PackageTheory.parser) >>
+      (fn ((),((),(n,thy))) => Require {name = n, theory = thy});
 in
-  val parserName = nameParser;
-
   val parser = manySpace ++ requireSpaceParser >> snd;
 
   val parserList = manySpace ++ many requireSpaceParser >> snd;

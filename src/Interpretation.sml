@@ -13,7 +13,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val constString = "const"
-and rewriteString = "->"
+and rewriteString = "as"
 and typeOpString = "type";
 
 (* ------------------------------------------------------------------------- *)
