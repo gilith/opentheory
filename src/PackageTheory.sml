@@ -27,15 +27,10 @@ and separatorString = ":";
 
 type name = PackageBase.base
 
-datatype body =
-    Package of Interpretation.interpretation * PackageName.name
-  | Article of Interpretation.interpretation * {filename : string}
-  | Union
-
 datatype theory =
     Theory of
       {imports : name list,
-       body : body}
+       node : PackageNode.node}
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -43,29 +38,19 @@ datatype theory =
 
 fun imports (Theory {imports = x, ...}) = x;
 
-fun body (Theory {body = x, ...}) = x;
+fun node (Theory {node = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun destArticleBody body =
-    case body of
-      Article (_,f) => SOME f
-    | _ => NONE;
-
-fun destArticle thy = destArticleBody (body thy);
+fun article thy = PackageNode.destArticle (node thy);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun destPackageBody body =
-    case body of
-      Package (_,n) => SOME n
-    | _ => NONE;
-
-fun destPackage thy = destPackageBody (body thy);
+fun package thy = PackageNode.destPackage (node thy);
 
 (* ------------------------------------------------------------------------- *)
 (* Theory constraints.                                                       *)
@@ -111,10 +96,10 @@ fun mkTheory cs =
 
       val rws = destInterpretConstraints cs
 
-      val body =
+      val node =
           case (destArticleConstraints cs, destPackageConstraints cs) of
             ([],[]) =>
-            if null rws then Union
+            if null rws then PackageNode.Union
             else raise Error "interpret has no effect in union theory block"
           | (_ :: _, _ :: _) =>
             raise Error "conflicting article and package in theory block"
@@ -126,44 +111,44 @@ fun mkTheory cs =
             let
               val int = Interpretation.fromRewriteList rws
             in
-              Article (int,f)
+              PackageNode.Article (int,f)
             end
           | ([],[p]) =>
             let
               val int = Interpretation.fromRewriteList rws
             in
-              Package (int,p)
+              PackageNode.Package (int,p)
             end
     in
       Theory
         {imports = imports,
-         body = body}
+         node = node}
     end;
 
 fun destTheory thy =
     let
-      val Theory {imports,body} = thy
+      val Theory {imports,node} = thy
 
       val ics = map ImportConstraint imports
 
-      val bcs =
-          case body of
-            Package (int,p) =>
-            let
-              val rws = Interpretation.toRewriteList int
-            in
-              map InterpretConstraint rws @ [PackageConstraint p]
-            end
-          | Article (int,f) =>
+      val ncs =
+          case node of
+            PackageNode.Article (int,f) =>
             let
               val rws = Interpretation.toRewriteList int
             in
               map InterpretConstraint rws @ [ArticleConstraint f]
             end
-          | Union =>
+          | PackageNode.Package (int,p) =>
+            let
+              val rws = Interpretation.toRewriteList int
+            in
+              map InterpretConstraint rws @ [PackageConstraint p]
+            end
+          | PackageNode.Union =>
             []
     in
-      ics @ bcs
+      ics @ ncs
     end;
 
 (* ------------------------------------------------------------------------- *)

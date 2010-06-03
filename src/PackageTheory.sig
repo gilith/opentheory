@@ -12,15 +12,10 @@ sig
 
 type name = PackageBase.base
 
-datatype body =
-    Package of Interpretation.interpretation * PackageName.name
-  | Article of Interpretation.interpretation * {filename : string}
-  | Union
-
 datatype theory =
     Theory of
       {imports : name list,
-       body : body}
+       node : PackageNode.node}
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -28,23 +23,19 @@ datatype theory =
 
 val imports : theory -> name list
 
-val body : theory -> body
+val node : theory -> PackageNode.node
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val destArticleBody : body -> {filename : string} option
-
-val destArticle : theory -> {filename : string} option
+val article : theory -> {filename : string} option
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val destPackageBody : body -> PackageName.name option
-
-val destPackage : theory -> PackageName.name option
+val package : theory -> PackageName.name option
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

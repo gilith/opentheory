@@ -25,7 +25,7 @@ val theory : require -> PackageTheory.theory
 
 val imports : require -> PackageTheory.name list
 
-val body : require -> PackageTheory.body
+val node : require -> PackageNode.node
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)

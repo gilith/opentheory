@@ -22,12 +22,19 @@ datatype instance =
 and instance' =
     Instance' of
       {imports : instance list,
-       interpretation : Interpretation.interpretation,
-       package : PackageName.name option,
-       theory : instance Theory.theory,
-       article : Article.article,
-       thms : ThmSet.set,
-       summary : Summary.summary};
+       node : node,
+       article : Article.article}
+
+and node =
+    Article of
+      {interpretation : Interpretation.interpretation,
+       directory : string,
+       filename : string}
+  | Package of
+      {interpretation : Interpretation.interpretation,
+       package : PackageName.name,
+       theory : instance}
+  | Union;
 
 (* ------------------------------------------------------------------------- *)
 (* Instance IDs.                                                             *)

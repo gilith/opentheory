@@ -33,10 +33,10 @@ fun saved (Article {saved = x, ...}) = ObjectThms.toThmSet x;
 fun savable (Article {savable = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
-(* Appending articles.                                                       *)
+(* Merging articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun append art1 art2 =
+fun union art1 art2 =
     let
       val Article {savable = sav1, saved = ths1} = art1
       and Article {savable = sav2, saved = ths2} = art2
@@ -51,9 +51,9 @@ fun append art1 art2 =
     end;
 
 local
-  fun add (art2,art1) = append art1 art2;
+  fun add (art2,art1) = union art1 art2;
 in
-  fun concat arts =
+  fun unionList arts =
       case arts of
         [] => empty
       | art :: arts => List.foldl add art arts;

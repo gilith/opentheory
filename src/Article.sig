@@ -19,12 +19,12 @@ val saved : article -> ThmSet.set
 val savable : article -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Appending articles.                                                       *)
+(* Merging articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val append : article -> article -> article
+val union : article -> article -> article
 
-val concat : article list -> article
+val unionList : article list -> article
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)

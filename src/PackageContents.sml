@@ -44,7 +44,7 @@ fun articles c =
 
       val fs = PackageRequire.articles reqs
     in
-      case PackageTheory.destArticle thy of
+      case PackageTheory.article thy of
         SOME f => fs @ [f]
       | NONE => fs
     end;
@@ -59,7 +59,7 @@ fun packages c =
 
       val ps = PackageRequire.packages reqs
     in
-      case PackageTheory.destPackage thy of
+      case PackageTheory.package thy of
         SOME p => ps @ [p]
       | NONE => ps
     end;

@@ -98,6 +98,8 @@ SRC = \
   src/Sequent.sig src/Sequent.sml \
   src/Thm.sig src/Thm.sml \
   src/Symbol.sig src/Symbol.sml \
+  src/Context.sig src/Context.sml \
+  src/Summary.sig src/Summary.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
   src/Thms.sig src/Thms.sml \
@@ -113,12 +115,10 @@ SRC = \
   src/ObjectRead.sig src/ObjectRead.sml \
   src/ObjectWrite.sig src/ObjectWrite.sml \
   src/Article.sig src/Article.sml \
-  src/Context.sig src/Context.sml \
-  src/Summary.sig src/Summary.sml \
   src/PackageBase.sig src/PackageBase.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageName.sig src/PackageName.sml \
-  src/Theory.sig src/Theory.sml \
+  src/PackageNode.sig src/PackageNode.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/PackageRequire.sig src/PackageRequire.sml \
   src/Instance.sig src/Instance.sml \
@@ -128,6 +128,7 @@ SRC = \
   src/Graph.sig src/Graph.sml \
   src/Directory.sig src/Directory.sml \
   src/HolLight.sig src/HolLight.sml \
+  src/Theory.sig src/Theory.sml \
   src/Options.sig src/Options.sml
 
 EXTRA_SRC =

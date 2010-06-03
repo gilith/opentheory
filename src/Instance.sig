@@ -21,6 +21,12 @@ datatype instance' =
       {imports : instance list,
        interpretation : Interpretation.interpretation,
        package : PackageName.name option,
+       theory : theory}
+
+and theory =
+    Theory of
+      {
+
        theory : instance Theory.theory,
        article : Article.article,
        thms : ThmSet.set,

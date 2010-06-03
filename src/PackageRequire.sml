@@ -33,13 +33,13 @@ fun theory (Require {theory = x, ...}) = x;
 
 fun imports req = PackageTheory.imports (theory req);
 
-fun body req = PackageTheory.body (theory req);
+fun node req = PackageTheory.node (theory req);
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun article req = PackageTheory.destArticle (theory req);
+fun article req = PackageTheory.article (theory req);
 
 fun articles reqs = List.mapPartial article reqs;
 
@@ -47,7 +47,7 @@ fun articles reqs = List.mapPartial article reqs;
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun package req = PackageTheory.destPackage (theory req);
+fun package req = PackageTheory.package (theory req);
 
 fun packages reqs = List.mapPartial package reqs;
 
