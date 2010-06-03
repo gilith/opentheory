@@ -1,0 +1,115 @@
+(* ========================================================================= *)
+(* HIGHER ORDER LOGIC THEORIES                                               *)
+(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* ========================================================================= *)
+
+structure Theory :> Theory =
+struct
+
+open Useful;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of theories.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+type id = int;
+
+datatype theory =
+    Theory of
+      {id : id,
+       theory : theory'}
+
+and theory' =
+    Theory' of
+      {imports : theory list,
+       node : node,
+       article : Article.article}
+
+and node =
+    Article of
+      {interpretation : Interpretation.interpretation,
+       directory : string,
+       filename : string}
+  | Package of
+      {interpretation : Interpretation.interpretation,
+       package : PackageName.name,
+       theory : theory}
+  | Union;
+
+(* ------------------------------------------------------------------------- *)
+(* Theory IDs.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val newId : unit -> id =
+    let
+      val counter = ref 0
+    in
+      fn () =>
+         let
+           val ref count = counter
+           val () = counter := count + 1
+         in
+           count
+         end
+    end;
+
+fun id (Theory {id = x, ...}) = x;
+
+fun equalId i thy = i = id thy;
+
+fun compare (Theory {id = i1, ...}, Theory {id = i2, ...}) =
+    Int.compare (i1,i2);
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun mk thy' =
+    let
+      val id = newId ()
+    in
+      Theory
+        {id = id,
+         theory = thy'}
+    end;
+
+fun dest (Theory {theory = x, ...}) = x;
+
+fun imports thy =
+    let
+      val Theory' {imports = x, ...} = dest thy
+    in
+      x
+    end;
+
+fun node thy =
+    let
+      val Theory' {node = x, ...} = dest thy
+    in
+      x
+    end;
+
+fun article thy =
+    let
+      val Theory' {article = x, ...} = dest thy
+    in
+      x
+    end;
+
+end
+
+structure TheoryOrdered =
+struct type t = Theory.theory val compare = Theory.compare end
+
+structure TheorySet =
+struct
+
+  local
+    structure S = ElementSet (TheoryOrdered);
+  in
+    open S;
+  end;
+
+end
+
+structure TheoryMap = KeyMap (TheoryOrdered)

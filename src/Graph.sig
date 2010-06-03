@@ -18,41 +18,41 @@ type graph
 
 val empty : graph
 
-val instances : graph -> InstanceSet.set
+val theories : graph -> TheorySet.set
 
-val member : Instance.instance -> graph -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Adding instances.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-val add : graph -> Instance.instance -> graph
+val member : Theory.theory -> graph -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up theory instances by package name.                              *)
+(* Adding theories.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val lookup : graph -> PackageName.name -> InstanceSet.set
+val add : graph -> Theory.theory -> graph
 
 (* ------------------------------------------------------------------------- *)
-(* Ancestor instances.                                                       *)
+(* Looking up theories by package name.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val parents : Instance.instance -> InstanceSet.set
-
-val ancestors : Instance.instance -> InstanceSet.set  (* not including self *)
+val lookup : graph -> PackageName.name -> TheorySet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Finding matching theory instances.                                        *)
+(* Ancestor theories.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val parents : Theory.theory -> TheorySet.set
+
+val ancestors : Theory.theory -> TheorySet.set  (* not including self *)
+
+(* ------------------------------------------------------------------------- *)
+(* Finding matching theories.                                                *)
 (* ------------------------------------------------------------------------- *)
 
 val match :
     graph ->
     {savable : bool,
-     importsAtLeast : InstanceSet.set,
+     importsAtLeast : TheorySet.set,
      interpretationEquivalentTo : Interpretation.interpretation,
      package : PackageName.name} ->
-    InstanceSet.set
+    TheorySet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Importing theory packages.                                                *)
@@ -61,72 +61,72 @@ val match :
 val importTheory :
     graph ->
     {savable : bool,
-     imports : InstanceSet.set,
+     imports : TheorySet.set,
      simulations : Simulation.simulations,
-     importToInstance : PackageRequire.name -> Instance.instance,
+     importToTheory : PackageRequire.name -> Theory.theory,
      interpretation : Interpretation.interpretation,
      package : PackageName.name option,
      directory : string,
      theory : PackageTheory.theory} ->
-    graph * Instance.instance
+    graph * Theory.theory
 
 val matchImportPackageName :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     importsAtLeast : InstanceSet.set,
+     importsAtLeast : TheorySet.set,
      interpretationEquivalentTo : Interpretation.interpretation,
      package : PackageName.name} ->
-    graph * Instance.instance
+    graph * Theory.theory
 
 val importPackageName :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     imports : InstanceSet.set,
+     imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name} ->
-    graph * Instance.instance
+    graph * Theory.theory
 
 val importPackage :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     imports : InstanceSet.set,
+     imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : Package.package} ->
-    graph * Instance.instance
+    graph * Theory.theory
 
 val importContents :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     imports : InstanceSet.set,
+     imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name option,
      directory : string,
      contents : PackageContents.contents} ->
-    graph * Instance.instance
+    graph * Theory.theory
 
 val importRequire :
     graph ->
     {finder : PackageFinder.finder,
      savable : bool,
      simulations : Simulation.simulations,
-     imports : InstanceSet.set,
+     imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     requireNameToInstance : PackageRequire.name -> Instance.instance,
+     requireNameToTheory : PackageRequire.name -> Theory.theory,
      require : PackageRequire.require} ->
-    graph * Instance.instance
+    graph * Theory.theory
 
 (* ------------------------------------------------------------------------- *)
-(* Compiling instances to package requirements.                              *)
+(* Compiling theories to package requirements.                               *)
 (* ------------------------------------------------------------------------- *)
 
-val mkRequires : InstanceSet.set -> PackageRequire.require InstanceMap.map
+val mkRequires : TheorySet.set -> PackageRequire.require TheoryMap.map
 
 end

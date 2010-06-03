@@ -121,14 +121,13 @@ SRC = \
   src/PackageNode.sig src/PackageNode.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/PackageRequire.sig src/PackageRequire.sml \
-  src/Instance.sig src/Instance.sml \
   src/PackageContents.sig src/PackageContents.sml \
   src/Package.sig src/Package.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
+  src/Theory.sig src/Theory.sml \
   src/Graph.sig src/Graph.sml \
   src/Directory.sig src/Directory.sml \
   src/HolLight.sig src/HolLight.sml \
-  src/Theory.sig src/Theory.sml \
   src/Options.sig src/Options.sml
 
 EXTRA_SRC =
