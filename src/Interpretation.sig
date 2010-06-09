@@ -47,8 +47,18 @@ val interpretTypeOp : interpretation -> Name.name -> Name.name
 val interpretConst : interpretation -> Name.name -> Name.name
 
 (* ------------------------------------------------------------------------- *)
+(* A total order.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val compare : interpretation * interpretation -> order
+
+val equal : interpretation -> interpretation -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Composing interpretations.                                                *)
 (* ------------------------------------------------------------------------- *)
+
+(* interpret (compose i1 i2) n = interpret i2 (interpret i1 n) *)
 
 val compose : interpretation -> interpretation -> interpretation
 

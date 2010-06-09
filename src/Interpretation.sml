@@ -94,6 +94,34 @@ datatype interpretation =
       {typeOps : Name.name NameMap.map,
        consts : Name.name NameMap.map}
 
+local
+  val compareName = NameMap.compare Name.compare;
+in
+  fun compare (int1,int2) =
+      let
+        val Interpretation {typeOps = tyOps1, consts = cons1} = int1
+        and Interpretation {typeOps = tyOps2, consts = cons2} = int2
+      in
+        case compareName (tyOps1,tyOps2) of
+          LESS => LESS
+        | EQUAL => compareName (cons1,cons2)
+        | GREATER => GREATER
+      end;
+end;
+
+local
+  val equalName = NameMap.equal Name.equal;
+in
+  fun equal int1 int2 =
+      let
+        val Interpretation {typeOps = tyOps1, consts = cons1} = int1
+        and Interpretation {typeOps = tyOps2, consts = cons2} = int2
+      in
+        equalName tyOps1 tyOps2 andalso
+        equalName cons1 cons2
+      end;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Normalizing interpretations (removing "x" -> "x" rewrites).               *)
 (* ------------------------------------------------------------------------- *)

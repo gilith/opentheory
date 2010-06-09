@@ -19,7 +19,6 @@ type theory
 datatype node =
     Article of
       {interpretation : Interpretation.interpretation,
-       directory : string,
        filename : string}
   | Package of
       {interpretation : Interpretation.interpretation,
@@ -42,6 +41,14 @@ val imports : theory -> theory list
 val node : theory -> node
 
 val article : theory -> Article.article
+
+(* ------------------------------------------------------------------------- *)
+(* Package theories.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val packageNode : node -> PackageName.name option
+
+val package : theory -> PackageName.name option
 
 (* ------------------------------------------------------------------------- *)
 (* Theory IDs.                                                               *)

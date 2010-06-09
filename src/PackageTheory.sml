@@ -44,13 +44,13 @@ fun node (Theory {node = x, ...}) = x;
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun article thy = PackageNode.destArticle (node thy);
+fun article thy = PackageNode.article (node thy);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun package thy = PackageNode.destPackage (node thy);
+fun package thy = PackageNode.package (node thy);
 
 (* ------------------------------------------------------------------------- *)
 (* Theory constraints.                                                       *)
@@ -107,17 +107,21 @@ fun mkTheory cs =
             raise Error "multiple articles in theory block"
           | ([], _ :: _ :: _) =>
             raise Error "multiple packages in theory block"
-          | ([f],[]) =>
+          | ([{filename}],[]) =>
             let
               val int = Interpretation.fromRewriteList rws
             in
-              PackageNode.Article (int,f)
+              PackageNode.Article
+                {interpretation = int,
+                 filename = filename}
             end
           | ([],[p]) =>
             let
               val int = Interpretation.fromRewriteList rws
             in
-              PackageNode.Package (int,p)
+              PackageNode.Package
+                {interpretation = int,
+                 package = p}
             end
     in
       Theory
@@ -133,13 +137,13 @@ fun destTheory thy =
 
       val ncs =
           case node of
-            PackageNode.Article (int,f) =>
+            PackageNode.Article {interpretation = int, filename = f} =>
             let
               val rws = Interpretation.toRewriteList int
             in
-              map InterpretConstraint rws @ [ArticleConstraint f]
+              map InterpretConstraint rws @ [ArticleConstraint {filename = f}]
             end
-          | PackageNode.Package (int,p) =>
+          | PackageNode.Package {interpretation = int, package = p} =>
             let
               val rws = Interpretation.toRewriteList int
             in

@@ -16,7 +16,7 @@ type graph
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val empty : graph
+val empty : {savable : bool} -> graph
 
 val theories : graph -> TheorySet.set
 
@@ -48,9 +48,8 @@ val ancestors : Theory.theory -> TheorySet.set  (* not including self *)
 
 val match :
     graph ->
-    {savable : bool,
-     importsAtLeast : TheorySet.set,
-     interpretationEquivalentTo : Interpretation.interpretation,
+    {imports : TheorySet.set,
+     interpretation : Interpretation.interpretation,
      package : PackageName.name} ->
     TheorySet.set
 
@@ -60,16 +59,15 @@ val match :
 
 val importTheory :
     graph ->
-    {savable : bool,
-     imports : TheorySet.set,
-     simulations : Simulation.simulations,
-     importToTheory : PackageRequire.name -> Theory.theory,
-     interpretation : Interpretation.interpretation,
-     package : PackageName.name option,
+    {simulations : Simulation.simulations,
      directory : string,
+     imports : TheorySet.set,
+     interpretation : Interpretation.interpretation,
+     environment : PackageTheory.name -> Theory.theory,
      theory : PackageTheory.theory} ->
     graph * Theory.theory
 
+(***
 val matchImportPackageName :
     graph ->
     {finder : PackageFinder.finder,
@@ -128,5 +126,6 @@ val importRequire :
 (* ------------------------------------------------------------------------- *)
 
 val mkRequires : TheorySet.set -> PackageRequire.require TheoryMap.map
+***)
 
 end

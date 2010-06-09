@@ -10,21 +10,27 @@ sig
 (* A type of theory package finders.                                         *)
 (* ------------------------------------------------------------------------- *)
 
+datatype package =
+    Package of
+      {name : PackageName.name,
+       directory : string,
+       filename : string}
+
 type finder
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : (PackageName.name -> Package.package option) -> finder
+val mk : (PackageName.name -> package option) -> finder
 
 (* ------------------------------------------------------------------------- *)
 (* Finding packages.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val find : finder -> PackageName.name -> Package.package option
+val find : finder -> PackageName.name -> package option
 
-val get : finder -> PackageName.name -> Package.package
+val get : finder -> PackageName.name -> package
 
 (* ------------------------------------------------------------------------- *)
 (* Finder combinators.                                                       *)

@@ -9,153 +9,137 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory instances.                                               *)
+(* A type of theory graphs.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 datatype graph =
     Graph of
-      {instances : InstanceSet.set,
-       packages : InstanceSet.set PackageNameMap.map};
+      {savable : bool,
+       theories : TheorySet.set,
+       packages : TheorySet.set PackageNameMap.map};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val empty =
+fun empty {savable} =
     let
-      val instances = InstanceSet.empty
+      val theories = TheorySet.empty
 
       val packages = PackageNameMap.new ()
     in
       Graph
-        {instances = instances,
+        {savable = savable,
+         theories = theories,
          packages = packages}
     end;
 
-fun instances (Graph {instances = x, ...}) = x;
+fun theories (Graph {theories = x, ...}) = x;
 
-fun member inst graph = InstanceSet.member inst (instances graph);
+fun member thy graph = TheorySet.member thy (theories graph);
 
 (* ------------------------------------------------------------------------- *)
-(* Ancestor instances.                                                       *)
+(* Ancestor theories.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun parentsList inst =
-    let
-      val imps = Instance.imports inst
-
-      val thyImps = Instance.theoryImports inst
-    in
-      imps @ thyImps
-    end;
-
-fun parents inst = InstanceSet.fromList (parentsList inst);
+fun parents thy = TheorySet.fromList (Theory.imports thy);
 
 local
-  fun ancsInst acc inst insts =
-      if InstanceSet.member inst acc then ancsList acc insts
-      else ancsPar (InstanceSet.add acc inst) inst insts
+  fun ancsThy acc thy thys =
+      if TheorySet.member thy acc then ancsList acc thys
+      else ancsPar (TheorySet.add acc thy) thy thys
 
-  and ancsPar acc inst insts =
-      ancsList acc (parentsList inst @ insts)
+  and ancsPar acc thy thys =
+      ancsList acc (Theory.imports thy @ thys)
 
-  and ancsList acc insts =
-      case insts of
+  and ancsList acc thys =
+      case thys of
         [] => acc
-      | inst :: insts => ancsInst acc inst insts;
+      | thy :: thys => ancsThy acc thy thys;
 in
-  fun ancestors inst = ancsPar InstanceSet.empty inst [];
+  fun ancestors thy = ancsPar TheorySet.empty thy [];
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up theory instances by package name.                              *)
+(* Looking up theories by package name.                                      *)
 (* ------------------------------------------------------------------------- *)
 
 fun lookupPackages packages package =
-    Option.getOpt (PackageNameMap.peek packages package, InstanceSet.empty);
+    Option.getOpt (PackageNameMap.peek packages package, TheorySet.empty);
 
 fun lookup (Graph {packages,...}) package =
     lookupPackages packages package;
 
 (* ------------------------------------------------------------------------- *)
-(* Adding instances.                                                         *)
+(* Adding theories.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun add graph inst =
+fun add graph thy =
     let
 (*OpenTheoryDebug
-      val insts = parents inst
+      val thys = parents thy
 
-      val _ = InstanceSet.all (fn i => member i graph) insts orelse
-              raise Bug "Graph.add: parent instance not in graph"
+      val _ = TheorySet.all (fn i => member i graph) thys orelse
+              raise Bug "Graph.add: parent theory not in graph"
 *)
 
-      val Graph {instances,packages} = graph
+      val Graph {savable,theories,packages} = graph
 
-      val instances = InstanceSet.add instances inst
+(*OpenTheoryDebug
+      val sav = Article.savable (Theory.article thy)
+
+      val _ = sav orelse not savable orelse
+              raise Bug "Graph.add: adding unsavable theory to savable graph"
+*)
+
+      val theories = TheorySet.add theories thy
 
       val packages =
-          case Instance.package inst of
+          case Theory.package thy of
             NONE => packages
           | SOME p =>
             let
               val s = lookupPackages packages p
 
-              val s = InstanceSet.add s inst
+              val s = TheorySet.add s thy
             in
               PackageNameMap.insert packages (p,s)
             end
     in
       Graph
-        {instances = instances,
+        {savable = savable,
+         theories = theories,
          packages = packages}
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Finding matching theory instances.                                        *)
+(* Finding matching theories.                                                *)
 (* ------------------------------------------------------------------------- *)
 
 fun match graph spec =
     let
-      val {savable = sav,
-           importsAtLeast = req,
-           interpretationEquivalentTo = int,
+      val {imports = imp,
+           interpretation = int,
            package = pkg} = spec
 
-      fun matchSav inst =
-          not sav orelse
+      fun matchImp thy =
           let
-            val art = Instance.article inst
+            val imp' = TheorySet.fromList (Theory.imports thy)
           in
-            Article.savable art
+            TheorySet.equal imp imp'
           end
 
-      fun matchReq inst =
-          let
-            val req' = InstanceSet.importsInstance inst
-          in
-            InstanceSet.subset req req'
-          end
+      fun matchInt thy =
+          case Theory.node thy of
+            Theory.Package {interpretation = int', ...} =>
+            Interpretation.equal int int'
+          | _ => raise Bug "Graph.match.matchInt: theory not a Package"
 
-      fun matchInt inst =
-          let
-            val int' = Instance.interpretation inst
-
-            val sum = Instance.summary inst
-
-            val prov = Summary.provides sum
-
-            val sym = Context.symbols prov
-          in
-            Interpretation.restrictEqual sym int int'
-          end
-
-      fun matchInst inst =
-          matchSav inst andalso
-          matchReq inst andalso
-          matchInt inst
+      fun matchThy thy =
+          matchImp thy andalso
+          matchInt thy
     in
-      InstanceSet.filter matchInst (lookup graph pkg)
+      TheorySet.filter matchThy (lookup graph pkg)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -164,31 +148,151 @@ fun match graph spec =
 
 fun importTheory graph info =
     let
-      val {savable,
-           imports = req,
-           simulations,
-           importToInstance,
-           interpretation = int,
-           package = pkg,
-           directory = dir,
+      val {simulations,
+           finder,
+           directory,
+           imports,
+           interpretation,
+           environment,
            theory = thy} = info
 
-      val req = InstanceSet.toList req
+      fun addImp (req,acc) = TheorySet.add acc (environment req)
 
-      val inst =
-          Instance.fromTheory
+      val PackageTheory.Theory {imports = imps, node} = thy
+
+      val imports = List.foldl addImp imports imps
+
+      val info =
+          {simulations = simulations,
+           directory = directory,
+           imports = imports,
+           interpretation = interpretation,
+           node = node}
+    in
+      importNode graph info
+    end
+
+and importNode graph info =
+    let
+      val {simulations,
+           directory,
+           imports,
+           interpretation,
+           node} = indo
+    in
+      case (node,article) of
+        PackageNode.Article {interpretation = int, filename = f} =>
+        let
+          val savable = savable graph
+
+          val known = TheorySet.toArticle imports
+
+          val interpretation = Interpretation.compose int interpretation
+
+          val filename = OS.Path.joinDirFile {dir = directory, file = f}
+
+          val node =
+              Theory.Article
+                {interpretation = interpretation,
+                 filename = filename}
+
+          val article =
+              Article.fromTextFile
+                {savable = savable,
+                 known = known,
+                 interpretation = interpretation,
+                 filename = filename}
+        in
+          (node,article)
+        end
+      | PackageNode.Package {interpretation = int, package = pkg} =>
+        let
+
+val importPackageName :
+    graph ->
+    {finder : PackageFinder.finder,
+     savable : bool,
+     simulations : Simulation.simulations,
+     imports : TheorySet.set,
+     interpretation : Interpretation.interpretation,
+     package : PackageName.name} ->
+    graph * Theory.theory
+
+fun fromTextFile {name,directory,filename} =
+    let
+      val file = OS.Path.joinDirFile {dir = directory, file = filename}
+
+      val contents = PackageContents.fromTextFile {filename = file}
+    in
+      Package
+        {name = name,
+         directory = directory,
+         filename = filename,
+         contents = contents}
+    end;
+          
+
+     known : article,
+     simulations : Simulation.simulations,
+     interpretation : Interpretation.interpretation,
+     filename : string} ->
+
+    {savable : bool,
+     known : article,
+     simulations : Simulation.simulations,
+     interpretation : Interpretation.interpretation,
+     filename : string} ->
+    article
+
+of Interpretation.interpretation * {filename : string}
+  | Package of Interpretation.interpretation * PackageName.name
+  | Union
+
+        Article of
+      {interpretation : Interpretation.interpretation,
+       directory : string,
+       filename : string}
+  | Package of
+      {interpretation : Interpretation.interpretation,
+       package : PackageName.name,
+       theory : theory}
+  | Union
+
+      fun addImp (req,acc) = TheorySet.add acc (environment req)
+
+      val PackageTheory.Theory {imports = imps, node} = thy
+
+      val imp = List.foldl addImp imp imps
+
+      val info =
+          {imports = imp,
+           simulations = simulations,
+           interpretation = int,
+           node = node}
+    in
+      importNode graph info
+    end
+
+
+        {
+
+      val Theory.Theory {
+      val imp = TheorySet.toList imp
+
+      val thy =
+          Theory.fromTheory
             {savable = savable,
-             imports = req,
+             imports = imp,
              simulations = simulations,
-             importToInstance = importToInstance,
+             importToTheory = importToTheory,
              interpretation = int,
              directory = dir,
              package = pkg,
              theory = thy}
 
-      val graph = add graph inst
+      val graph = add graph thy
     in
-      (graph,inst)
+      (graph,thy)
     end;
 
 fun matchImportPackageName graph info =
@@ -196,26 +300,26 @@ fun matchImportPackageName graph info =
       val {finder,
            savable,
            simulations,
-           importsAtLeast = req,
+           importsAtLeast = imp,
            interpretationEquivalentTo = int,
            package = pkg} = info
 
       val matchInfo =
           {savable = savable,
-           importsAtLeast = req,
+           importsAtLeast = imp,
            interpretationEquivalentTo = int,
            package = pkg}
 
-      val insts = match graph matchInfo
+      val thys = match graph matchInfo
     in
-      if not (InstanceSet.null insts) then (graph, InstanceSet.pick insts)
+      if not (TheorySet.null thys) then (graph, TheorySet.pick thys)
       else
         let
           val info =
               {finder = finder,
                savable = savable,
                simulations = simulations,
-               imports = req,
+               imports = imp,
                interpretation = int,
                package = pkg}
         in
@@ -228,7 +332,7 @@ and importPackageName graph info =
       val {finder,
            savable,
            simulations,
-           imports = req,
+           imports = imp,
            interpretation = int,
            package = pkg} = info
 
@@ -242,7 +346,7 @@ and importPackageName graph info =
           {finder = finder,
            savable = savable,
            simulations = simulations,
-           imports = req,
+           imports = imp,
            interpretation = int,
            package = pkg}
     in
@@ -254,7 +358,7 @@ and importPackage graph info =
       val {finder,
            savable,
            simulations,
-           imports = req,
+           imports = imp,
            interpretation = int,
            package = pkg} = info
 
@@ -264,7 +368,7 @@ and importPackage graph info =
           {finder = finder,
            savable = savable,
            simulations = simulations,
-           imports = req,
+           imports = imp,
            interpretation = int,
            package = name,
            directory = directory,
@@ -299,7 +403,7 @@ and importContents graph info =
       val {finder,
            savable,
            simulations,
-           imports = req,
+           imports = imp,
            interpretation = int,
            package = pkg,
            directory = dir,
@@ -307,46 +411,46 @@ and importContents graph info =
 
       val PackageContents.Contents {requires,theory,...} = contents
 
-      fun getRequire reqInsts r =
-          case StringMap.peek reqInsts r of
-            SOME inst => inst
+      fun getRequire impThys r =
+          case StringMap.peek impThys r of
+            SOME thy => thy
           | NONE => raise Error ("unknown require block name: " ^ r)
 
-      fun importReq (require,(graph,reqInsts)) =
+      fun importImp (require,(graph,impThys)) =
           let
-            val reqToInst = getRequire reqInsts
+            val impToThy = getRequire impThys
 
             val info =
                 {finder = finder,
                  savable = savable,
                  simulations = simulations,
-                 imports = req,
+                 imports = imp,
                  interpretation = int,
-                 requireNameToInstance = reqToInst,
+                 requireNameToTheory = impToThy,
                  require = require}
 
-            val (graph,inst) = importRequire graph info
+            val (graph,thy) = importRequire graph info
 
             val name = PackageRequire.name require
 
-            val reqInsts = StringMap.insert reqInsts (name,inst)
+            val impThys = StringMap.insert impThys (name,thy)
           in
-            (graph,reqInsts)
+            (graph,impThys)
           end
 
-      val (graph,reqInsts) =
-          List.foldl importReq (graph, StringMap.new ()) requires
+      val (graph,impThys) =
+          List.foldl importImp (graph, StringMap.new ()) requires
 
-      val impToInst = getRequire reqInsts
+      val impToThy = getRequire impThys
 
       val info =
           {savable = savable,
            simulations = simulations,
-           imports = req,
+           imports = imp,
            interpretation = int,
            package = pkg,
            directory = dir,
-           importToInstance = impToInst,
+           importToTheory = impToThy,
            theory = theory}
     in
       importTheory graph info
@@ -359,23 +463,23 @@ and importRequire graph info =
            simulations,
            imports = imps,
            interpretation = int,
-           requireNameToInstance = reqToInst,
+           requireNameToTheory = impToThy,
            require} = info
 
       val PackageRequire.Require
             {name = _,
-             imports = reqs,
-             interpretation = reqInt,
+             imports = imps,
+             interpretation = impInt,
              package = pkg} = require
 
       val importsAtLeast =
           let
-            fun add (r,s) = InstanceSet.add s (reqToInst r)
+            fun add (r,s) = TheorySet.add s (impToThy r)
           in
-            List.foldl add imps reqs
+            List.foldl add imps imps
           end
 
-      val interpretationEquivalentTo = Interpretation.compose reqInt int
+      val interpretationEquivalentTo = Interpretation.compose impInt int
 
       val info =
           {finder = finder,
@@ -389,7 +493,7 @@ and importRequire graph info =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Compiling instances to package requirements.                              *)
+(* Compiling theories to package requirements.                               *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -405,44 +509,44 @@ local
         if StringSet.member n s then avoidNum 1 else n
       end;
 
-  fun instName instReq inst =
-      case InstanceMap.peek instReq inst of
-        NONE => raise Error "set of theory instances is not closed"
-      | SOME req => PackageRequire.name req;
+  fun thyName thyImp thy =
+      case TheoryMap.peek thyImp thy of
+        NONE => raise Error "set of theory theories is not closed"
+      | SOME imp => PackageRequire.name imp;
 
-  fun add (inst,(avoid,instReq)) =
-      case Instance.package inst of
-        NONE => raise Error "theory instance has no package"
+  fun add (thy,(avoid,thyImp)) =
+      case Theory.package thy of
+        NONE => raise Error "theory theory has no package"
       | SOME pkg =>
         let
           val name = avoidName avoid (PackageName.base pkg)
 
           val avoid = StringSet.add avoid name
 
-          val imps = map (instName instReq) (Instance.imports inst)
+          val imps = map (thyName thyImp) (Theory.imports thy)
 
-          val int = Instance.interpretation inst
+          val int = Theory.interpretation thy
 
-          val req =
+          val imp =
               PackageRequire.Require
                 {name = name,
                  imports = imps,
                  interpretation = int,
                  package = pkg}
 
-          val instReq = InstanceMap.insert instReq (inst,req)
+          val thyImp = TheoryMap.insert thyImp (thy,imp)
         in
-          (avoid,instReq)
+          (avoid,thyImp)
         end;
 in
-  fun mkRequires insts =
+  fun mkRequires thys =
       let
         val avoid = StringSet.empty
-        and instReq = InstanceMap.new ()
+        and thyImp = TheoryMap.new ()
 
-        val (_,instReq) = InstanceSet.foldl add (avoid,instReq) insts
+        val (_,thyImp) = TheorySet.foldl add (avoid,thyImp) thys
       in
-        instReq
+        thyImp
       end
 (*OpenTheoryDebug
       handle Error err => raise Error ("Graph.mkRequires: " ^ err);

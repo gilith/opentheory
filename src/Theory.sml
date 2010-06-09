@@ -28,7 +28,6 @@ and theory' =
 and node =
     Article of
       {interpretation : Interpretation.interpretation,
-       directory : string,
        filename : string}
   | Package of
       {interpretation : Interpretation.interpretation,
@@ -96,6 +95,17 @@ fun article thy =
       x
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Package theories.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun packageNode node =
+    case node of
+      Package {package = pkg, ...} => SOME pkg
+    | _ => NONE;
+
+fun package thy = packageNode (node thy);
+
 end
 
 structure TheoryOrdered =
@@ -109,6 +119,13 @@ struct
   in
     open S;
   end;
+
+  val toArticle =
+      let
+        fun add (thy,acc) = Article.union acc (Theory.article thy)
+      in
+        foldl add Article.empty
+      end;
 
 end
 

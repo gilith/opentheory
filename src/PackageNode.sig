@@ -11,20 +11,24 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 datatype node =
-    Article of Interpretation.interpretation * {filename : string}
-  | Package of Interpretation.interpretation * PackageName.name
+    Article of
+      {interpretation : Interpretation.interpretation,
+       filename : string}
+  | Package of
+      {interpretation : Interpretation.interpretation,
+       package : PackageName.name}
   | Union
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val destArticle : node -> {filename : string} option
+val article : node -> {filename : string} option
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val destPackage : node -> PackageName.name option
+val package : node -> PackageName.name option
 
 end

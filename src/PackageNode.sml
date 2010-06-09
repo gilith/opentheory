@@ -13,26 +13,30 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 datatype node =
-    Article of Interpretation.interpretation * {filename : string}
-  | Package of Interpretation.interpretation * PackageName.name
+    Article of
+      {interpretation : Interpretation.interpretation,
+       filename : string}
+  | Package of
+      {interpretation : Interpretation.interpretation,
+       package : PackageName.name}
   | Union;
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun destArticle node =
+fun article node =
     case node of
-      Article (_,f) => SOME f
+      Article {filename = f, ...} => SOME {filename = f}
     | _ => NONE;
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun destPackage node =
+fun package node =
     case node of
-      Package (_,n) => SOME n
+      Package {package = p, ...} => SOME p
     | _ => NONE;
 
 end
