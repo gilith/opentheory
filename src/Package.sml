@@ -3,7 +3,7 @@
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure PackageContents :> PackageContents =
+structure Package :> Package =
 struct
 
 open Useful;
@@ -18,8 +18,8 @@ val theoryKeywordString = "theory";
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype contents =
-    Contents of
+datatype package =
+    Package of
       {tags : Tag.tag list,
        requires : PackageRequire.require list,
        theory : PackageTheory.theory};
@@ -28,11 +28,11 @@ datatype contents =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun tags (Contents {tags = x, ...}) = x;
+fun tags (Package {tags = x, ...}) = x;
 
-fun requires (Contents {requires = x, ...}) = x;
+fun requires (Package {requires = x, ...}) = x;
 
-fun theory (Contents {theory = x, ...}) = x;
+fun theory (Package {theory = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
@@ -40,7 +40,7 @@ fun theory (Contents {theory = x, ...}) = x;
 
 fun articles c =
     let
-      val Contents {requires = reqs, theory = thy, ...} = c
+      val Package {requires = reqs, theory = thy, ...} = c
 
       val fs = PackageRequire.articles reqs
     in
@@ -55,7 +55,7 @@ fun articles c =
 
 fun packages c =
     let
-      val Contents {requires = reqs, theory = thy, ...} = c
+      val Package {requires = reqs, theory = thy, ...} = c
 
       val ps = PackageRequire.packages reqs
     in
@@ -86,7 +86,7 @@ fun ppTheory thy =
 
 fun pp pkg =
     let
-      val Contents {tags, requires = reqs, theory = thy} = pkg
+      val Package {tags, requires = reqs, theory = thy} = pkg
     in
       Print.blockProgram Print.Consistent 0
         [ppBlock Tag.ppList tags,
@@ -114,7 +114,7 @@ local
       (Tag.parserList ++
        PackageRequire.parserList ++
        theorySpaceParser) >>
-      (fn (ts,(rs,th)) => Contents {tags = ts, requires = rs, theory = th});
+      (fn (ts,(rs,th)) => Package {tags = ts, requires = rs, theory = th});
 in
   val parser = manySpace ++ packageSpaceParser >> snd;
 
@@ -125,8 +125,8 @@ end;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTextFile {contents,filename} =
-    Stream.toTextFile {filename = filename} (Print.toStream pp contents);
+fun toTextFile {package,filename} =
+    Stream.toTextFile {filename = filename} (Print.toStream pp package);
 
 fun fromTextFile {filename} =
     let

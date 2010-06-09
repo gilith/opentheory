@@ -34,6 +34,8 @@ fun empty {savable} =
          packages = packages}
     end;
 
+fun savable (Graph {savable = x, ...}) = x;
+
 fun theories (Graph {theories = x, ...}) = x;
 
 fun member thy graph = TheorySet.member thy (theories graph);
@@ -164,6 +166,7 @@ fun importTheory graph info =
 
       val info =
           {simulations = simulations,
+           finder = finder,
            directory = directory,
            imports = imports,
            interpretation = interpretation,
@@ -178,36 +181,101 @@ and importNode graph info =
            directory,
            imports,
            interpretation,
-           node} = indo
+           node} = info
+
+      val (graph,node,article) =
+          case node of
+            PackageNode.Article {interpretation = int, filename = f} =>
+            let
+              val savable = savable graph
+
+              val known = TheorySet.toArticle imports
+
+              val interpretation = Interpretation.compose int interpretation
+
+              val filename = OS.Path.joinDirFile {dir = directory, file = f}
+
+              val node =
+                  Theory.Article
+                    {interpretation = interpretation,
+                     filename = filename}
+
+              val article =
+                  Article.fromTextFile
+                    {savable = savable,
+                     known = known,
+                     simulations = simulations,
+                     interpretation = interpretation,
+                     filename = filename}
+            in
+              (graph,node,article)
+            end
+          | PackageNode.Package {interpretation = int, package = pkg} =>
+            let
+              val interpretation = Interpretation.compose int interpretation
+
+              val info =
+                  {simulations = simulations,
+                   finder = finder,
+                   imports = imports,
+                   interpretation = interpretation,
+                   package = pkg}
+
+              val (graph,theory) = importPackageName graph info
+
+              val node =
+                  Theory.Package
+                    {interpretation = interpretation,
+                     package = pkg,
+                     theory = theory}
+
+              val article = Theory.article theory
+            in
+              (graph,node,article)
+            end
+          | PackageNode.Union =>
+            let
+              val node = Theory.Union
+
+              val article = TheorySet.toArticle imports
+            in
+              (graph,node,article)
+            end
+
+      val imports = TheorySet.toList imports
+
+      val theory' =
+          Theory.Theory'
+            {imports = imports,
+             node = node,
+             article = article}
+
+      val theory = Theory.mk theory'
     in
-      case (node,article) of
-        PackageNode.Article {interpretation = int, filename = f} =>
-        let
-          val savable = savable graph
+      (graph,theory)
+    end
 
-          val known = TheorySet.toArticle imports
+and importPackageName graph info =
+    let
+      val {simulations,
+           finder,
+           imports,
+           interpretation,
+           package = pkg} = info
 
-          val interpretation = Interpretation.compose int interpretation
+      val spec =
+          {imports = imports,
+           interpretation = interpretation,
+           package = pkg}
 
-          val filename = OS.Path.joinDirFile {dir = directory, file = f}
+      val theories = match graph spec
+    in
+      if not (TheorySet.null theories) then (graph, TheorySet.pick theories)
+      else
+        
 
-          val node =
-              Theory.Article
-                {interpretation = interpretation,
-                 filename = filename}
 
-          val article =
-              Article.fromTextFile
-                {savable = savable,
-                 known = known,
-                 interpretation = interpretation,
-                 filename = filename}
-        in
-          (node,article)
-        end
-      | PackageNode.Package {interpretation = int, package = pkg} =>
-        let
-
+(***
 val importPackageName :
     graph ->
     {finder : PackageFinder.finder,
@@ -552,5 +620,6 @@ in
       handle Error err => raise Error ("Graph.mkRequires: " ^ err);
 *)
 end;
+***)
 
 end

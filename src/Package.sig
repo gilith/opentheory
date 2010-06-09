@@ -3,15 +3,15 @@
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature PackageContents =
+signature Package =
 sig
 
 (* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype contents =
-    Contents of
+datatype package =
+    Package of
       {tags : Tag.tag list,
        requires : PackageRequire.require list,
        theory : PackageTheory.theory}
@@ -20,42 +20,42 @@ datatype contents =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val tags : contents -> Tag.tag list
+val tags : package -> Tag.tag list
 
-val requires : contents -> PackageRequire.require list
+val requires : package -> PackageRequire.require list
 
-val theory : contents -> PackageTheory.theory
+val theory : package -> PackageTheory.theory
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val articles : contents -> {filename : string} list
+val articles : package -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packages : contents -> PackageName.name list
+val packages : package -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : contents Print.pp
+val pp : package Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,contents) Parse.parser
+val parser : (char,package) Parse.parser
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val fromTextFile : {filename : string} -> contents
+val fromTextFile : {filename : string} -> package
 
-val toTextFile : {contents : contents, filename : string} -> unit
+val toTextFile : {package : package, filename : string} -> unit
 
 end
