@@ -178,6 +178,7 @@ fun importTheory graph info =
 and importNode graph info =
     let
       val {simulations,
+           finder,
            directory,
            imports,
            interpretation,
@@ -272,7 +273,74 @@ and importPackageName graph info =
     in
       if not (TheorySet.null theories) then (graph, TheorySet.pick theories)
       else
-        
+        let
+          val pkg =
+              case PackageFinder.find finder pkg of
+                SOME p => p
+              | NONE =>
+                raise Error ("couldn't find package " ^ PackageName.toString pkg)
+
+          val info =
+              {simulations = simulations,
+               finder = finder,
+               imports = imports,
+               interpretation = interpretation,
+               package = pkg}
+        in
+          importPackageInfo graph info
+        end
+    end
+
+and importPackageInfo graph info =
+    let
+      val {simulations,
+           finder,
+           imports,
+           interpretation,
+           package = pkg} = info
+
+      val PackageInfo.Info {directory,...} = pkg
+
+      val pkg = PackageInfo.toPackage pkg
+
+      val info =
+          {simulations = simulations,
+           finder = finder,
+           directory = directory,
+           imports = imports,
+           interpretation = interpretation,
+           package = pkg}
+    in
+      importPackage graph info
+
+      val (graph,thy) = 
+
+      val spec =
+          {imports = imports,
+           interpretation = interpretation,
+           package = pkg}
+
+      val theories = match graph spec
+    in
+      if not (TheorySet.null theories) then (graph, TheorySet.pick theories)
+      else
+        let
+          val pkg =
+              case PackageFinder.find finder pkg of
+                SOME p => p
+              | NONE =>
+                raise Error ("couldn't find package " ^ PackageName.toString pkg)
+
+          val info =
+              {simulations = simulations,
+               finder = finder,
+               imports = imports,
+               interpretation = interpretation,
+               package = pkg}
+        in
+          importPackageInfo graph info
+        end
+    end
 
 
 (***
