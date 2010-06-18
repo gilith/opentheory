@@ -60,10 +60,11 @@ val match :
 val importTheory :
     graph ->
     {simulations : Simulation.simulations,
+     finder : PackageFinder.finder,
      directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     environment : PackageTheory.name -> Theory.theory,
+     environment : Theory.theory PackageBaseMap.map,
      theory : PackageTheory.theory} ->
     graph * Theory.theory
 
@@ -87,17 +88,19 @@ val importPackageName :
      interpretation : Interpretation.interpretation,
      package : PackageName.name} ->
     graph * Theory.theory
+***)
 
 val importPackage :
     graph ->
-    {finder : PackageFinder.finder,
-     savable : bool,
-     simulations : Simulation.simulations,
+    {simulations : Simulation.simulations,
+     finder : PackageFinder.finder,
+     directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : Package.package} ->
     graph * Theory.theory
 
+(***
 val importContents :
     graph ->
     {finder : PackageFinder.finder,

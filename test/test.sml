@@ -350,8 +350,8 @@ fun mkTheoryArticleFilename name =
       OS.Path.joinDirFile {dir = THEORY_DIR, file = file}
     end;
 
-fun fromTextFilePackageTheory filename =
-    PackageContents.theory (PackageContents.fromTextFile filename);
+fun fromTextFilePackage filename =
+    Package.theory (Package.fromTextFile filename);
 
 fun compile name =
     let

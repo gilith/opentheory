@@ -4,60 +4,60 @@
 
 # Global
 
-type "bool" -> "bool"
-type "fun" -> "->"
-type "ind" -> "ind"
+type "bool" as "bool"
+type "fun" as "->"
+type "ind" as "ind"
 
 # Data
 
 # Data.Bool
 
-const "!" -> "Data.Bool.!"
-const "/\\" -> "Data.Bool./\\"
-const "==>" -> "Data.Bool.==>"
-const "?" -> "Data.Bool.?"
-const "?!" -> "Data.Bool.?!"
-const "\\/" -> "Data.Bool.\\/"
-const "~" -> "Data.Bool.~"
-const "COND" -> "Data.Bool.cond"
-const "F" -> "Data.Bool.F"
-const "@" -> "Data.Bool.select"
-const "T" -> "Data.Bool.T"
+const "!" as "Data.Bool.!"
+const "/\\" as "Data.Bool./\\"
+const "==>" as "Data.Bool.==>"
+const "?" as "Data.Bool.?"
+const "?!" as "Data.Bool.?!"
+const "\\/" as "Data.Bool.\\/"
+const "~" as "Data.Bool.~"
+const "COND" as "Data.Bool.cond"
+const "F" as "Data.Bool.F"
+const "@" as "Data.Bool.select"
+const "T" as "Data.Bool.T"
 
 # Data.Function
 
-const "I" -> "Data.Function.id"
-const "o" -> "Data.Function.o"
-const "ONE_ONE" -> "Data.Function.injective"
-const "ONTO" -> "Data.Function.surjective"
+const "I" as "Data.Function.id"
+const "o" as "Data.Function.o"
+const "ONE_ONE" as "Data.Function.injective"
+const "ONTO" as "Data.Function.surjective"
 
 # Data.Pair
 
-type "prod" -> "Data.Pair.*"
+type "prod" as "Data.Pair.*"
 
-const "," -> "Data.Pair.,"
-const "FST" -> "Data.Pair.fst"
-const "SND" -> "Data.Pair.snd"
+const "," as "Data.Pair.,"
+const "FST" as "Data.Pair.fst"
+const "SND" as "Data.Pair.snd"
 
 # Data.Unit
 
-type "1" -> "Data.Unit.unit"
+type "1" as "Data.Unit.unit"
 
-const "one" -> "Data.Unit.()"
+const "one" as "Data.Unit.()"
 
 # Number
 
 # Number.Natural
 
-type "num" -> "Number.Natural.nat"
+type "num" as "Number.Natural.nat"
 
-const "+" -> "Number.Natural.+"
-const "PRE" -> "Number.Natural.pre"
-const "SUC" -> "Number.Natural.suc"
-const "_0" -> "Number.Natural.zero"
+const "+" as "Number.Natural.+"
+const "PRE" as "Number.Natural.pre"
+const "SUC" as "Number.Natural.suc"
+const "_0" as "Number.Natural.zero"
 
 # Number.Numeral
 
-const "BIT0" -> "Number.Numeral.bit0"
-const "BIT1" -> "Number.Numeral.bit1"
-const "NUMERAL" -> "Number.Numeral.numeral"
+const "BIT0" as "Number.Numeral.bit0"
+const "BIT1" as "Number.Numeral.bit1"
+const "NUMERAL" as "Number.Numeral.numeral"

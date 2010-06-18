@@ -9,20 +9,13 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-val theoryKeywordString = "theory";
-
-(* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
 datatype package =
     Package of
       {tags : Tag.tag list,
-       requires : PackageRequire.require list,
-       theory : PackageTheory.theory};
+       theories : PackageTheory.theory list};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -30,69 +23,40 @@ datatype package =
 
 fun tags (Package {tags = x, ...}) = x;
 
-fun requires (Package {requires = x, ...}) = x;
-
-fun theory (Package {theory = x, ...}) = x;
+fun theories (Package {theories = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun articles c =
-    let
-      val Package {requires = reqs, theory = thy, ...} = c
-
-      val fs = PackageRequire.articles reqs
-    in
-      case PackageTheory.article thy of
-        SOME f => fs @ [f]
-      | NONE => fs
-    end;
+fun articles pkg = PackageTheory.articles (theories pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun packages c =
-    let
-      val Package {requires = reqs, theory = thy, ...} = c
-
-      val ps = PackageRequire.packages reqs
-    in
-      case PackageTheory.package thy of
-        SOME p => ps @ [p]
-      | NONE => ps
-    end;
+fun packages pkg = PackageTheory.packages (theories pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppTheoryKeyword = Print.addString theoryKeywordString;
-
-fun ppBlock ppL l =
-    if null l then Print.skip
-    else
+local
+  fun ppThy thy =
       Print.program
-        [ppL l,
+        [Print.addNewline,
          Print.addNewline,
-         Print.addNewline];
-
-fun ppTheory thy =
-    Print.blockProgram Print.Consistent 0
-      [ppTheoryKeyword,
-       Print.addString " ",
-       PackageTheory.pp thy];
-
-fun pp pkg =
+         PackageTheory.pp thy];
+in
+  fun pp pkg =
     let
-      val Package {tags, requires = reqs, theory = thy} = pkg
+      val Package {tags,theories} = pkg
     in
       Print.blockProgram Print.Consistent 0
-        [ppBlock Tag.ppList tags,
-         ppBlock PackageRequire.ppList reqs,
-         ppTheory thy]
+        (Tag.ppList tags ::
+         map ppThy theories)
     end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -106,15 +70,10 @@ local
 
   open Parse;
 
-  val theoryKeywordParser = exactString theoryKeywordString;
-
-  val theorySpaceParser = theoryKeywordParser ++ PackageTheory.parser >> snd;
-
   val packageSpaceParser =
       (Tag.parserList ++
-       PackageRequire.parserList ++
-       theorySpaceParser) >>
-      (fn (ts,(rs,th)) => Package {tags = ts, requires = rs, theory = th});
+       atLeastOne PackageTheory.parser) >>
+      (fn (ts,ths) => Package {tags = ts, theories = ths});
 in
   val parser = manySpace ++ packageSpaceParser >> snd;
 

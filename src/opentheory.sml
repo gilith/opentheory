@@ -369,52 +369,59 @@ fun compile {filename} =
           else usage "please specify a compilation target"
 
       val directory = OS.Path.dir filename
-      val filename = OS.Path.file filename
 
-      val pkg =
-          Package.fromTextFile
-            {name = NONE,
-             directory = directory,
-             filename = filename}
+      val pkg = Package.fromTextFile {filename = filename}
 
-      val graph = Graph.empty
-      and finder = finder ()
-      and savable = List.exists savableCompileOutput outs
-      and ref sim = simulations
-      and imps = InstanceSet.empty
-      and int = Interpretation.natural
+      val savable = List.exists savableCompileOutput outs
 
-      val (graph,inst) =
+      val graph = Graph.empty {savable = savable}
+
+      val finder = finder ()
+
+      val ref sim = simulations
+
+      val imps = TheorySet.empty
+
+      val int = Interpretation.natural
+
+      val (graph,thy) =
           Graph.importPackage graph
-            {finder = finder,
-             savable = savable,
-             simulations = sim,
+            {simulations = sim,
+             finder = finder,
+             directory = directory,
              imports = imps,
              interpretation = int,
              package = pkg}
 
-      val art = Instance.article inst
-
-      val sum = Instance.summary inst
-
       fun output out =
           case out of
             ArticleCompileOutput {filename} =>
-            Article.toTextFile {article = art, filename = filename}
+            let
+              val art = Theory.article thy
+            in
+              Article.toTextFile {article = art, filename = filename}
+            end
           | SummaryTextCompileOutput {filename} =>
             let
               val tags = Package.tags pkg
 
               val show = Show.fromTags tags
+
+              val art = Theory.article thy
+
+              val ths = Article.saved art
+
+              val sum = Summary.fromThmSet ths
             in
               Summary.toTextFile
                 {show = show,
                  summary = sum,
                  filename = filename}
             end
+(***
           | TheoryCompileOutput {filename} =>
             let
-              val instReq = Graph.mkRequires (Graph.ancestors inst)
+              val instReq = Graph.toPamkRequires (Graph.ancestors inst)
 
               fun instName inst =
                   case InstanceMap.peek instReq inst of
@@ -437,6 +444,7 @@ fun compile {filename} =
                 {contents = contents,
                  filename = filename}
             end
+***)
 
       val () = List.app output outs
 
@@ -472,8 +480,10 @@ fun info name =
     in
       case PackageFinder.find find pkg of
         NONE => raise Error ("can't find package "^name)
-      | SOME p =>
+      | SOME pi =>
         let
+          val p = PackageInfo.package pi
+
           val s =
               case !infoQuery of
                 PackageInfo =>
@@ -484,12 +494,12 @@ fun info name =
                 end
               | FileInfo =>
                 let
-                  val {directory = d} = Package.directory p
+                  val {directory = d} = PackageInfo.directory pi
 
                   fun mk {filename = f} =
                       OS.Path.joinDirFile {dir = d, file = f} ^ "\n"
 
-                  val fl = Package.filenames p
+                  val fl = Package.articles p
                 in
                   Stream.map mk (Stream.fromList fl)
                 end
@@ -497,9 +507,9 @@ fun info name =
                 let
                   fun mk n = PackageName.toString n ^ "\n"
 
-                  val pl = Package.dependencies p
+                  val pkgs = Package.packages p
                 in
-                  Stream.map mk (Stream.fromList pl)
+                  Stream.map mk (Stream.fromList pkgs)
                 end
 
           val ref f = infoOutput

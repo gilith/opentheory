@@ -10,16 +10,26 @@ sig
 (* A type of theory package meta-data.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-datatype info =
-    Info of
-      {name : PackageName.name,
-       directory : string,
-       filename : string}
+type info
+
+val mk : {name : PackageName.name, directory : string} -> info
+
+val name : info -> PackageName.name
+
+val directory : info -> {directory : string}
+
+val theoryFilename : info -> {filename : string}
 
 (* ------------------------------------------------------------------------- *)
-(* Using the meta-data to read the package.                                  *)
+(* Read the package.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val toPackage : info -> Package.package
+val package : info -> Package.package
+
+(* ------------------------------------------------------------------------- *)
+(* Is the package installed?                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val installed : info -> bool
 
 end

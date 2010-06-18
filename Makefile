@@ -118,9 +118,7 @@ SRC = \
   src/PackageBase.sig src/PackageBase.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageName.sig src/PackageName.sml \
-  src/PackageNode.sig src/PackageNode.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
-  src/PackageRequire.sig src/PackageRequire.sml \
   src/Package.sig src/Package.sml \
   src/PackageInfo.sig src/PackageInfo.sml \
   src/PackageFinder.sig src/PackageFinder.sml \

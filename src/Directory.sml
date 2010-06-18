@@ -18,7 +18,6 @@ and openTheoryRepoName = "gilith"
 and openTheoryRepoUrl = "http://opentheory.gilith.com/"
 and packagesDirectory = "packages"
 and repoConfigSection = "repo"
-and theoryExtension = "thy"
 and urlRepoSectionKey = "url";
 
 (* ------------------------------------------------------------------------- *)
@@ -41,10 +40,6 @@ fun mkPackageDirectory root pkg =
       OS.Path.joinDirFile
         {dir = directory, file = PackageName.toString pkg}
     end;
-
-fun mkTheoryFilename pkg =
-    OS.Path.joinBaseExt
-      {base = PackageName.base pkg, ext = SOME theoryExtension};
 
 (* ------------------------------------------------------------------------- *)
 (* Repos.                                                                    *)
@@ -293,7 +288,7 @@ datatype directory =
     Directory of
       {rootDirectory : string,
        config : config,
-       packages : Package.package option PackageNameMap.map ref};
+       packages : PackageInfo.info option PackageNameMap.map ref};
 
 fun newPackages () = ref (PackageNameMap.new ());
 
@@ -359,15 +354,9 @@ local
       let
         val directory = mkPackageDirectory root pkg
 
-        val filename = mkTheoryFilename pkg
-
-        val info =
-            {name = SOME pkg,
-             directory = directory,
-             filename = filename}
+        val info = PackageInfo.mk {name = pkg, directory = directory}
       in
-        SOME (Package.fromTextFile info)
-        handle IO.Io _ => NONE
+        if PackageInfo.installed info then SOME info else NONE
       end;
 
   fun lookupCached dir pkg =

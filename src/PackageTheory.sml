@@ -16,6 +16,7 @@ val articleKeywordString = "article"
 and closeBlockString = "}"
 and importKeywordString = "import"
 and interpretKeywordString = "interpret"
+and mainKeywordString = "main"
 and openBlockString = "{"
 and packageKeywordString = "package"
 and quoteString = "\""
@@ -25,32 +26,158 @@ and separatorString = ":";
 (* Types of package theory syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type name = PackageBase.base
+type name = PackageBase.base;
+
+datatype node =
+    Article of
+      {interpretation : Interpretation.interpretation,
+       filename : string}
+  | Package of
+      {interpretation : Interpretation.interpretation,
+       package : PackageName.name}
+  | Union;
 
 datatype theory =
     Theory of
-      {imports : name list,
-       node : PackageNode.node}
+      {name : name,
+       imports : name list,
+       node : node};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
+
+fun name (Theory {name = x, ...}) = x;
 
 fun imports (Theory {imports = x, ...}) = x;
 
 fun node (Theory {node = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
+(* The main theory.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun isMainName n = PackageBase.toString n = mainKeywordString;
+
+fun isMain thy = isMainName (name thy);
+
+(* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun article thy = PackageNode.article (node thy);
+fun articleNode node =
+    case node of
+      Article {filename = f, ...} => SOME {filename = f}
+    | _ => NONE;
+
+fun article thy = articleNode (node thy);
+
+fun articles thys = List.mapPartial article thys;
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun package thy = PackageNode.package (node thy);
+fun packageNode node =
+    case node of
+      Package {package = p, ...} => SOME p
+    | _ => NONE;
+
+fun package thy = packageNode (node thy);
+
+fun packages thys = List.mapPartial package thys;
+
+(* ------------------------------------------------------------------------- *)
+(* Topological sort of theories.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun toMap thyl =
+      let
+        fun ins (thy,(m,l)) =
+            let
+              val n = name thy
+              and ts = imports thy
+
+              val m = PackageBaseMap.insert m (n,(ts,thy))
+
+              val l = n :: l
+            in
+              (m,l)
+            end
+
+        val thys_namel as (thys,_) =
+            List.foldl ins (PackageBaseMap.new (), []) thyl
+
+        fun check (n,(ts,_)) =
+            case List.find (fn t => not (PackageBaseMap.inDomain t thys)) ts of
+              NONE => ()
+            | SOME t =>
+              raise Error ("theory block \"" ^ PackageBase.toString n ^ "\" " ^
+                           "imports unknown \"" ^ PackageBase.toString t ^ "\"")
+
+        val () = PackageBaseMap.app check thys
+      in
+        thys_namel
+      end;
+
+  fun sortMap requires (dealt,dealtset) (stack,stackset) work =
+      case work of
+        [] =>
+        (case stack of
+           [] => rev dealt
+         | (r,(req,work,stackset)) :: stack =>
+           let
+             val dealt = req :: dealt
+             val dealtset = PackageBaseSet.add dealtset r
+           in
+             sortMap requires (dealt,dealtset) (stack,stackset) work
+           end)
+      | r :: work =>
+        if PackageBaseSet.member r dealtset then
+          sortMap requires (dealt,dealtset) (stack,stackset) work
+        else if PackageBaseSet.member r stackset then
+          let
+            fun notR (r',_) = not (PackageBase.equal r' r)
+
+            val l = map fst (takeWhile notR stack)
+            val l = r :: rev (r :: l)
+            val err = join " -> " (map PackageBase.toString l)
+          in
+            raise Error ("circular dependency:\n" ^ err)
+          end
+        else
+          let
+            val (rs,req) =
+                case PackageBaseMap.peek requires r of
+                  SOME rs_req => rs_req
+                | NONE => raise Bug "PackageRequire.sort"
+
+            val stack = (r,(req,work,stackset)) :: stack
+
+            val stackset = PackageBaseSet.add stackset r
+
+            val work = rs
+          in
+            sortMap requires (dealt,dealtset) (stack,stackset) work
+          end;
+in
+  fun sort reqs =
+      let
+        val (reqs,work) = toMap reqs
+
+        val dealt = []
+        val dealtset = PackageBaseSet.empty
+
+        val stack = []
+        val stackset = PackageBaseSet.empty
+      in
+        sortMap reqs (dealt,dealtset) (stack,stackset) work
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("PackageTheory.sort: " ^ err);
+*)
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Theory constraints.                                                       *)
@@ -90,7 +217,7 @@ fun destInterpretConstraints cs = List.mapPartial destInterpretConstraint cs;
 
 fun destPackageConstraints cs = List.mapPartial destPackageConstraint cs;
 
-fun mkTheory cs =
+fun mkTheory (name,cs) =
     let
       val imports = destImportConstraints cs
 
@@ -99,7 +226,7 @@ fun mkTheory cs =
       val node =
           case (destArticleConstraints cs, destPackageConstraints cs) of
             ([],[]) =>
-            if null rws then PackageNode.Union
+            if null rws then Union
             else raise Error "interpret has no effect in union theory block"
           | (_ :: _, _ :: _) =>
             raise Error "conflicting article and package in theory block"
@@ -111,7 +238,7 @@ fun mkTheory cs =
             let
               val int = Interpretation.fromRewriteList rws
             in
-              PackageNode.Article
+              Article
                 {interpretation = int,
                  filename = filename}
             end
@@ -119,40 +246,41 @@ fun mkTheory cs =
             let
               val int = Interpretation.fromRewriteList rws
             in
-              PackageNode.Package
+              Package
                 {interpretation = int,
                  package = p}
             end
     in
       Theory
-        {imports = imports,
+        {name = name,
+         imports = imports,
          node = node}
     end;
 
 fun destTheory thy =
     let
-      val Theory {imports,node} = thy
+      val Theory {name,imports,node} = thy
 
       val ics = map ImportConstraint imports
 
       val ncs =
           case node of
-            PackageNode.Article {interpretation = int, filename = f} =>
+            Article {interpretation = int, filename = f} =>
             let
               val rws = Interpretation.toRewriteList int
             in
               map InterpretConstraint rws @ [ArticleConstraint {filename = f}]
             end
-          | PackageNode.Package {interpretation = int, package = p} =>
+          | Package {interpretation = int, package = p} =>
             let
               val rws = Interpretation.toRewriteList int
             in
               map InterpretConstraint rws @ [PackageConstraint p]
             end
-          | PackageNode.Union =>
+          | Union =>
             []
     in
-      ics @ ncs
+      (name, ics @ ncs)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -215,10 +343,24 @@ fun ppConstraintList cs =
 
 fun pp thy =
     let
-      val cs = destTheory thy
+      val (n,cs) = destTheory thy
     in
-      ppBlock ppConstraintList cs
+      Print.blockProgram Print.Consistent 0
+        [ppName n,
+         Print.addBreak 1,
+         ppBlock ppConstraintList cs]
     end;
+
+fun ppList thys =
+    case thys of
+      [] => Print.skip
+    | thy :: thys =>
+      let
+        fun ppThy t = Print.program [Print.addNewline, Print.addNewline, pp t]
+      in
+        Print.blockProgram Print.Consistent 0
+          (pp thy :: map ppThy thys)
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -285,17 +427,24 @@ local
 
   val constraintSpaceParser = constraintParser ++ manySpace >> fst;
 
-  val theoryParser =
+  val blockParser =
       (openBlockParser ++ manySpace ++
        many constraintSpaceParser ++
        closeBlockParser) >>
-      (fn ((),((),(cs,()))) => mkTheory cs);
+      (fn ((),((),(cs,()))) => cs);
+
+  val theoryParser =
+      (nameParser ++ manySpace ++
+       blockParser) >>
+      (fn (n,((),cs)) => mkTheory (n,cs));
 
   val theorySpaceParser = theoryParser ++ manySpace >> fst;
 in
   val parserName = nameParser;
 
   val parser = manySpace ++ theorySpaceParser >> snd;
+
+  val parserList = manySpace ++ many theorySpaceParser >> snd;
 end;
 
 end

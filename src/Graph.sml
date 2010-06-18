@@ -156,13 +156,17 @@ fun importTheory graph info =
            imports,
            interpretation,
            environment,
-           theory = thy} = info
+           theory} = info
 
-      fun addImp (req,acc) = TheorySet.add acc (environment req)
+      fun addImp (imp,acc) =
+          case PackageBaseMap.peek environment imp of
+            SOME thy => TheorySet.add acc thy
+          | NONE => raise Error ("unknown theory import: " ^
+                                 PackageBase.toString imp)
 
-      val PackageTheory.Theory {imports = imps, node} = thy
+      val imports = List.foldl addImp imports (PackageTheory.imports theory)
 
-      val imports = List.foldl addImp imports imps
+      val node = PackageTheory.node theory
 
       val info =
           {simulations = simulations,
@@ -186,7 +190,7 @@ and importNode graph info =
 
       val (graph,node,article) =
           case node of
-            PackageNode.Article {interpretation = int, filename = f} =>
+            PackageTheory.Article {interpretation = int, filename = f} =>
             let
               val savable = savable graph
 
@@ -211,7 +215,7 @@ and importNode graph info =
             in
               (graph,node,article)
             end
-          | PackageNode.Package {interpretation = int, package = pkg} =>
+          | PackageTheory.Package {interpretation = int, package = pkg} =>
             let
               val interpretation = Interpretation.compose int interpretation
 
@@ -234,7 +238,7 @@ and importNode graph info =
             in
               (graph,node,article)
             end
-          | PackageNode.Union =>
+          | PackageTheory.Union =>
             let
               val node = Theory.Union
 
@@ -245,15 +249,15 @@ and importNode graph info =
 
       val imports = TheorySet.toList imports
 
-      val theory' =
+      val thy' =
           Theory.Theory'
             {imports = imports,
              node = node,
              article = article}
 
-      val theory = Theory.mk theory'
+      val thy = Theory.mk thy'
     in
-      (graph,theory)
+      (graph,thy)
     end
 
 and importPackageName graph info =
@@ -269,9 +273,9 @@ and importPackageName graph info =
            interpretation = interpretation,
            package = pkg}
 
-      val theories = match graph spec
+      val thys = match graph spec
     in
-      if not (TheorySet.null theories) then (graph, TheorySet.pick theories)
+      if not (TheorySet.null thys) then (graph, TheorySet.pick thys)
       else
         let
           val pkg =
@@ -299,9 +303,9 @@ and importPackageInfo graph info =
            interpretation,
            package = pkg} = info
 
-      val PackageInfo.Info {directory,...} = pkg
+      val {directory} = PackageInfo.directory pkg
 
-      val pkg = PackageInfo.toPackage pkg
+      val pkg = PackageInfo.package pkg
 
       val info =
           {simulations = simulations,
@@ -312,8 +316,81 @@ and importPackageInfo graph info =
            package = pkg}
     in
       importPackage graph info
+    end
 
-      val (graph,thy) = 
+and importPackage graph info =
+    let
+      val {simulations,
+           finder,
+           directory,
+           imports,
+           interpretation,
+           package = pkg} = info
+
+      val theories = Package.theories pkg
+
+      val info =
+          {simulations = simulations,
+           finder = finder,
+           directory = directory,
+           imports = imports,
+           interpretation = interpretation,
+           theories = theories}
+
+      val (graph,env) = importTheories graph info
+
+      val info =
+          {simulations = simulations,
+           finder = finder,
+           directory = directory,
+           imports = imports,
+           interpretation = interpretation,
+           environment = env,
+           theory = theory}
+    in
+      importTheory graph info
+    end
+
+and importPackageRequires graph info =
+    let
+      val {simulations,
+           finder,
+           directory,
+           imports,
+           interpretation,
+           requires} = info
+
+      fun addRequire (require,(graph,env)) =
+          let
+            val info =
+                {simulations = simulations,
+                 finder = finder,
+                 directory = directory,
+                 imports = imports,
+                 interpretation = interpretation,
+                 environment = env,
+                 require = require}
+
+            val (graph,thy) = importPackageRequire graph info
+
+            val name = PackageRequire.name require
+
+            val env = PackageBaseMap.insert env (name,thy)
+          in
+            (graph,env)
+          end
+
+      val env = PackageBaseMap.new ()
+    in
+      List.foldl addRequire (graph,env) requires
+    end;
+
+(***
+ raise Bug "not implemented"
+
+      {tags : Tag.tag list,
+       requires : PackageRequire.require list,
+       theory : PackageTheory.theory}
 
       val spec =
           {imports = imports,
@@ -343,7 +420,6 @@ and importPackageInfo graph info =
     end
 
 
-(***
 val importPackageName :
     graph ->
     {finder : PackageFinder.finder,

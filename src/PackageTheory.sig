@@ -12,18 +12,36 @@ sig
 
 type name = PackageBase.base
 
+datatype node =
+    Article of
+      {interpretation : Interpretation.interpretation,
+       filename : string}
+  | Package of
+      {interpretation : Interpretation.interpretation,
+       package : PackageName.name}
+  | Union
+
 datatype theory =
     Theory of
-      {imports : name list,
-       node : PackageNode.node}
+      {name : name,
+       imports : name list,
+       node : node}
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+val name : theory -> name
+
 val imports : theory -> name list
 
-val node : theory -> PackageNode.node
+val node : theory -> node
+
+(* ------------------------------------------------------------------------- *)
+(* The main theory.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val isMain : theory -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
@@ -31,11 +49,21 @@ val node : theory -> PackageNode.node
 
 val article : theory -> {filename : string} option
 
+val articles : theory list -> {filename : string} list
+
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 val package : theory -> PackageName.name option
+
+val packages : theory list -> PackageName.name list
+
+(* ------------------------------------------------------------------------- *)
+(* Topological sort of theories.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val sort : theory list -> theory list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -44,6 +72,8 @@ val package : theory -> PackageName.name option
 val ppName : name Print.pp
 
 val pp : theory Print.pp
+
+val ppList : theory list Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)

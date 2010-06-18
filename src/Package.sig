@@ -13,8 +13,7 @@ sig
 datatype package =
     Package of
       {tags : Tag.tag list,
-       requires : PackageRequire.require list,
-       theory : PackageTheory.theory}
+       theories : PackageTheory.theory list}
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -22,9 +21,7 @@ datatype package =
 
 val tags : package -> Tag.tag list
 
-val requires : package -> PackageRequire.require list
-
-val theory : package -> PackageTheory.theory
+val theories : package -> PackageTheory.theory list
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
