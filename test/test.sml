@@ -330,6 +330,7 @@ val () = summarize "bool";
 
 val () = summarize "tactics";
 
+(***
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Compiling theories";
 (* ------------------------------------------------------------------------- *)
@@ -406,6 +407,7 @@ val () = compile "boolTactics";
 (* Localizing articles *)
 
 val () = compile "localBoolTactics";
+***)
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Theory directories";
@@ -428,22 +430,27 @@ val () = SAY "Importing theory packages";
 
 fun import name =
     let
-      val () = print ("Importing theory package \"" ^ name ^ "\"\n")
+      val () = print ("Importing package \"" ^ name ^ "\"\n")
 
       val finder = Directory.lookup directory
 
-      val graph = Graph.empty
+      val graph = Graph.empty {savable = false}
 
-      val (graph,inst) =
+      val (_,thy) =
           Graph.importPackageName graph
             {finder = finder,
-             savable = false,
              simulations = HolLight.simulations,
-             imports = InstanceSet.empty,
+             imports = TheorySet.empty,
              interpretation = Interpretation.natural,
              package = PackageName.fromString name};
 
-      val () = printer Summary.pp (Instance.summary inst);
+      val art = Theory.article thy
+
+      val ths = Article.saved art
+
+      val sum = Summary.fromThmSet ths
+
+      val () = printer Summary.pp sum
     in
       ()
     end;

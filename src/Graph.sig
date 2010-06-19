@@ -78,17 +78,16 @@ val matchImportPackageName :
      interpretationEquivalentTo : Interpretation.interpretation,
      package : PackageName.name} ->
     graph * Theory.theory
+***)
 
 val importPackageName :
     graph ->
     {finder : PackageFinder.finder,
-     savable : bool,
      simulations : Simulation.simulations,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name} ->
     graph * Theory.theory
-***)
 
 val importPackage :
     graph ->

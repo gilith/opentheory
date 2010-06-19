@@ -4,4 +4,4 @@ description: The empty theory
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 
-theory { }
+main { }

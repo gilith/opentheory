@@ -338,29 +338,33 @@ and importPackage graph info =
            theories = theories}
 
       val (graph,env) = importTheories graph info
-
-      val info =
-          {simulations = simulations,
-           finder = finder,
-           directory = directory,
-           imports = imports,
-           interpretation = interpretation,
-           environment = env,
-           theory = theory}
     in
-      importTheory graph info
+      case List.filter PackageTheory.isMain theories of
+        [] => raise Error "no main theory"
+      | [theory] =>
+        let
+          val name = PackageTheory.name theory
+
+          val thy =
+              case PackageBaseMap.peek env name of
+                SOME thy => thy
+              | NONE => raise Bug "main theory vanished"
+        in
+          (graph,thy)
+        end
+      | _ :: _ :: _ => raise Error "multiple main theories"
     end
 
-and importPackageRequires graph info =
+and importTheories graph info =
     let
       val {simulations,
            finder,
            directory,
            imports,
            interpretation,
-           requires} = info
+           theories} = info
 
-      fun addRequire (require,(graph,env)) =
+      fun impThy (theory,(graph,env)) =
           let
             val info =
                 {simulations = simulations,
@@ -369,11 +373,15 @@ and importPackageRequires graph info =
                  imports = imports,
                  interpretation = interpretation,
                  environment = env,
-                 require = require}
+                 theory = theory}
 
-            val (graph,thy) = importPackageRequire graph info
+            val (graph,thy) = importTheory graph info
 
-            val name = PackageRequire.name require
+            val name = PackageTheory.name theory
+
+            val _ = not (PackageBaseMap.inDomain name env) orelse
+                    raise Error ("duplicate theory name: " ^
+                                 PackageBase.toString name)
 
             val env = PackageBaseMap.insert env (name,thy)
           in
@@ -382,332 +390,14 @@ and importPackageRequires graph info =
 
       val env = PackageBaseMap.new ()
     in
-      List.foldl addRequire (graph,env) requires
-    end;
-
-(***
- raise Bug "not implemented"
-
-      {tags : Tag.tag list,
-       requires : PackageRequire.require list,
-       theory : PackageTheory.theory}
-
-      val spec =
-          {imports = imports,
-           interpretation = interpretation,
-           package = pkg}
-
-      val theories = match graph spec
-    in
-      if not (TheorySet.null theories) then (graph, TheorySet.pick theories)
-      else
-        let
-          val pkg =
-              case PackageFinder.find finder pkg of
-                SOME p => p
-              | NONE =>
-                raise Error ("couldn't find package " ^ PackageName.toString pkg)
-
-          val info =
-              {simulations = simulations,
-               finder = finder,
-               imports = imports,
-               interpretation = interpretation,
-               package = pkg}
-        in
-          importPackageInfo graph info
-        end
-    end
-
-
-val importPackageName :
-    graph ->
-    {finder : PackageFinder.finder,
-     savable : bool,
-     simulations : Simulation.simulations,
-     imports : TheorySet.set,
-     interpretation : Interpretation.interpretation,
-     package : PackageName.name} ->
-    graph * Theory.theory
-
-fun fromTextFile {name,directory,filename} =
-    let
-      val file = OS.Path.joinDirFile {dir = directory, file = filename}
-
-      val contents = PackageContents.fromTextFile {filename = file}
-    in
-      Package
-        {name = name,
-         directory = directory,
-         filename = filename,
-         contents = contents}
-    end;
-          
-
-     known : article,
-     simulations : Simulation.simulations,
-     interpretation : Interpretation.interpretation,
-     filename : string} ->
-
-    {savable : bool,
-     known : article,
-     simulations : Simulation.simulations,
-     interpretation : Interpretation.interpretation,
-     filename : string} ->
-    article
-
-of Interpretation.interpretation * {filename : string}
-  | Package of Interpretation.interpretation * PackageName.name
-  | Union
-
-        Article of
-      {interpretation : Interpretation.interpretation,
-       directory : string,
-       filename : string}
-  | Package of
-      {interpretation : Interpretation.interpretation,
-       package : PackageName.name,
-       theory : theory}
-  | Union
-
-      fun addImp (req,acc) = TheorySet.add acc (environment req)
-
-      val PackageTheory.Theory {imports = imps, node} = thy
-
-      val imp = List.foldl addImp imp imps
-
-      val info =
-          {imports = imp,
-           simulations = simulations,
-           interpretation = int,
-           node = node}
-    in
-      importNode graph info
-    end
-
-
-        {
-
-      val Theory.Theory {
-      val imp = TheorySet.toList imp
-
-      val thy =
-          Theory.fromTheory
-            {savable = savable,
-             imports = imp,
-             simulations = simulations,
-             importToTheory = importToTheory,
-             interpretation = int,
-             directory = dir,
-             package = pkg,
-             theory = thy}
-
-      val graph = add graph thy
-    in
-      (graph,thy)
-    end;
-
-fun matchImportPackageName graph info =
-    let
-      val {finder,
-           savable,
-           simulations,
-           importsAtLeast = imp,
-           interpretationEquivalentTo = int,
-           package = pkg} = info
-
-      val matchInfo =
-          {savable = savable,
-           importsAtLeast = imp,
-           interpretationEquivalentTo = int,
-           package = pkg}
-
-      val thys = match graph matchInfo
-    in
-      if not (TheorySet.null thys) then (graph, TheorySet.pick thys)
-      else
-        let
-          val info =
-              {finder = finder,
-               savable = savable,
-               simulations = simulations,
-               imports = imp,
-               interpretation = int,
-               package = pkg}
-        in
-          importPackageName graph info
-        end
-    end
-
-and importPackageName graph info =
-    let
-      val {finder,
-           savable,
-           simulations,
-           imports = imp,
-           interpretation = int,
-           package = pkg} = info
-
-      val pkg =
-          case PackageFinder.find finder pkg of
-            SOME p => p
-          | NONE =>
-            raise Error ("couldn't find package " ^ PackageName.toString pkg)
-
-      val info =
-          {finder = finder,
-           savable = savable,
-           simulations = simulations,
-           imports = imp,
-           interpretation = int,
-           package = pkg}
-    in
-      importPackage graph info
-    end
-
-and importPackage graph info =
-    let
-      val {finder,
-           savable,
-           simulations,
-           imports = imp,
-           interpretation = int,
-           package = pkg} = info
-
-      val Package.Package {name,directory,contents,...} = pkg
-
-      val info =
-          {finder = finder,
-           savable = savable,
-           simulations = simulations,
-           imports = imp,
-           interpretation = int,
-           package = name,
-           directory = directory,
-           contents = contents}
-    in
-      importContents graph info
-    end
-    handle Error err =>
-      let
-        val {package = pkg, ...} = info
-        val Package.Package {name,...} = pkg
-
-        val err =
-            case name of
-              NONE =>
-(*OpenTheoryDebug
-              "while importing unnamed package:\n" ^
-*)
-              err
-            | SOME n =>
-              "while importing package " ^ PackageName.toString n ^ ":\n" ^ err
-
-(*OpenTheoryDebug
-        val err = "Graph.importPackage: " ^ err
-*)
-      in
-        raise Error err
-      end
-
-and importContents graph info =
-    let
-      val {finder,
-           savable,
-           simulations,
-           imports = imp,
-           interpretation = int,
-           package = pkg,
-           directory = dir,
-           contents} = info
-
-      val PackageContents.Contents {requires,theory,...} = contents
-
-      fun getRequire impThys r =
-          case StringMap.peek impThys r of
-            SOME thy => thy
-          | NONE => raise Error ("unknown require block name: " ^ r)
-
-      fun importImp (require,(graph,impThys)) =
-          let
-            val impToThy = getRequire impThys
-
-            val info =
-                {finder = finder,
-                 savable = savable,
-                 simulations = simulations,
-                 imports = imp,
-                 interpretation = int,
-                 requireNameToTheory = impToThy,
-                 require = require}
-
-            val (graph,thy) = importRequire graph info
-
-            val name = PackageRequire.name require
-
-            val impThys = StringMap.insert impThys (name,thy)
-          in
-            (graph,impThys)
-          end
-
-      val (graph,impThys) =
-          List.foldl importImp (graph, StringMap.new ()) requires
-
-      val impToThy = getRequire impThys
-
-      val info =
-          {savable = savable,
-           simulations = simulations,
-           imports = imp,
-           interpretation = int,
-           package = pkg,
-           directory = dir,
-           importToTheory = impToThy,
-           theory = theory}
-    in
-      importTheory graph info
-    end
-
-and importRequire graph info =
-    let
-      val {finder,
-           savable,
-           simulations,
-           imports = imps,
-           interpretation = int,
-           requireNameToTheory = impToThy,
-           require} = info
-
-      val PackageRequire.Require
-            {name = _,
-             imports = imps,
-             interpretation = impInt,
-             package = pkg} = require
-
-      val importsAtLeast =
-          let
-            fun add (r,s) = TheorySet.add s (impToThy r)
-          in
-            List.foldl add imps imps
-          end
-
-      val interpretationEquivalentTo = Interpretation.compose impInt int
-
-      val info =
-          {finder = finder,
-           savable = savable,
-           simulations = simulations,
-           importsAtLeast = importsAtLeast,
-           interpretationEquivalentTo = interpretationEquivalentTo,
-           package = pkg}
-    in
-      matchImportPackageName graph info
+      List.foldl impThy (graph,env) theories
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Compiling theories to package requirements.                               *)
 (* ------------------------------------------------------------------------- *)
 
+(***
 local
   fun avoidName s n =
       let
