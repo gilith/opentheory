@@ -4,16 +4,16 @@ description: HOL Light bool theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require def {
+bool-def {
   package: hol-light-bool-def-2009.8.24
 }
 
-require thm {
-  import: def
+bool-thm {
+  import: bool-def
   package: hol-light-bool-thm-2009.8.24
 }
 
-theory {
-  import def;
-  import thm;
+main {
+  import: bool-def
+  import: bool-thm
 }

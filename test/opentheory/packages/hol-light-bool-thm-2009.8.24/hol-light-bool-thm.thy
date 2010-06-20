@@ -4,4 +4,6 @@ description: HOL Light theorems about the boolean constants.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "bool-thm.art"; }
+main {
+  article: "bool-thm.art"
+}
