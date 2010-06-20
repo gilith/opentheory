@@ -4,4 +4,6 @@ description: HOL Light definition of pre
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-pre-def.art"; }
+main {
+  article: "arith-pre-def.art"
+}

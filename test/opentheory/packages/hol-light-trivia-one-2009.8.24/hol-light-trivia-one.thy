@@ -4,21 +4,21 @@ description: HOL Light definition and theorems about the unit type.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require def {
+trivia-one-def {
   package: hol-light-trivia-one-def-2009.8.24
 }
 
-require alt {
-  import: def
+trivia-one-alt {
+  import: trivia-one-def
   package: hol-light-trivia-one-alt-2009.8.24
 }
 
-require thm {
-  import: alt
+trivia-one-thm {
+  import: trivia-one-alt
   package: hol-light-trivia-one-thm-2009.8.24
 }
 
-theory {
-  import alt;
-  import thm;
+main {
+  import: trivia-one-alt
+  import: trivia-one-thm
 }

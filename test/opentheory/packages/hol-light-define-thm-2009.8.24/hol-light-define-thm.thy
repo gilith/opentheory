@@ -4,4 +4,6 @@ description: HOL Light define theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "define-thm.art"; }
+main {
+  article: "define-thm.art"
+}

@@ -7,6 +7,6 @@ show: "Data.Bool"
 show: "Number.Natural"
 show: "Number.Numeral"
 
-theory {
-  article "num-pre-def.art";
+main {
+  article: "num-pre-def.art"
 }

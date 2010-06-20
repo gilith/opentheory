@@ -4,4 +4,6 @@ description: HOL Light theorems about the numeral functions
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-numeral-thm.art"; }
+main {
+  article: "arith-numeral-thm.art"
+}

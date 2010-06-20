@@ -6,16 +6,16 @@ license: PublicDomain
 show: "Data.Bool"
 show: "Data.Unit"
 
-require unit-def {
+unit-def {
   package: unit-def-1.0
 }
 
-require unit-thm {
+unit-thm {
   import: unit-def
   package: unit-thm-1.0
 }
 
-theory {
-  import unit-def;
-  import unit-thm;
+main {
+  import: unit-def
+  import: unit-thm
 }

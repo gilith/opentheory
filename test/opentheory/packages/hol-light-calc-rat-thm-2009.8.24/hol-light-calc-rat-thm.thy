@@ -4,4 +4,6 @@ description: HOL Light calc-rat theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "calc-rat-thm.art"; }
+main {
+  article: "calc-rat-thm.art"
+}

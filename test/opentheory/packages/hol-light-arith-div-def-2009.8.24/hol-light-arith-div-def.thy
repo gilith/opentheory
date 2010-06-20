@@ -4,4 +4,6 @@ description: HOL Light definition of div and mod
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-div-def.art"; }
+main {
+  article: "arith-div-def.art"
+}

@@ -4,4 +4,6 @@ description: HOL Light theorems about div and mod
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-div-thm.art"; }
+main {
+  article: "arith-div-thm.art"
+}

@@ -4,4 +4,6 @@ description: HOL Light theorems about factorial
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-fact-thm.art"; }
+main {
+  article: "arith-fact-thm.art"
+}

@@ -4,4 +4,6 @@ description: HOL Light definition of add
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-add-def.art"; }
+main {
+  article: "arith-add-def.art"
+}

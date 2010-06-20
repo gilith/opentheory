@@ -6,6 +6,6 @@ license: PublicDomain
 show: "Data.Bool"
 show: "Data.Function"
 
-theory {
-  article "function-def.art";
+main {
+  article: "function-def.art"
 }

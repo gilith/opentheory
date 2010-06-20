@@ -4,4 +4,6 @@ description: HOL Light calc-num theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "calc-num-thm.art"; }
+main {
+  article: "calc-num-thm.art"
+}

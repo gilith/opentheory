@@ -4,4 +4,6 @@ description: HOL Light definition of the minimal quantifier
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-minimal-def.art"; }
+main {
+  article: "arith-minimal-def.art"
+}

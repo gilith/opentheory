@@ -1,7 +1,7 @@
-require axiom {
+class-eta-axiom {
   package: hol-light-class-eta-axiom-2009.8.24
 }
 
-theory {
-  import axiom;
+main {
+  import: class-eta-axiom
 }

@@ -4,4 +4,6 @@ description: HOL Light int theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "int-thm.art"; }
+main {
+  article: "int-thm.art"
+}

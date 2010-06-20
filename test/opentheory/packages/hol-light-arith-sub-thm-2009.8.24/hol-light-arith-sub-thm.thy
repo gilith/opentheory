@@ -4,4 +4,6 @@ description: HOL Light theorems about subtraction
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-sub-thm.art"; }
+main {
+  article: "arith-sub-thm.art"
+}

@@ -4,4 +4,6 @@ description: HOL Light theorems about add
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-add-thm.art"; }
+main {
+  article: "arith-add-thm.art"
+}

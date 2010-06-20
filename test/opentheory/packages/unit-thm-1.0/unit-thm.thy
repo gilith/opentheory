@@ -6,6 +6,6 @@ license: PublicDomain
 show: "Data.Bool"
 show: "Data.Unit"
 
-theory {
-  article "unit-thm.art";
+main {
+  article: "unit-thm.art"
 }

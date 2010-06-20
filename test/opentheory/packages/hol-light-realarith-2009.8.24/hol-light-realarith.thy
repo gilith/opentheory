@@ -4,10 +4,10 @@ description: HOL Light realarith theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+realarith-thm {
   package: hol-light-realarith-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: realarith-thm
 }

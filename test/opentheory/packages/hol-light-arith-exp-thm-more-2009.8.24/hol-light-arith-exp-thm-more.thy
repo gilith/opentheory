@@ -4,4 +4,6 @@ description: HOL Light extra theorems about exponentiation
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-exp-thm-more.art"; }
+main {
+  article: "arith-exp-thm-more.art"
+}

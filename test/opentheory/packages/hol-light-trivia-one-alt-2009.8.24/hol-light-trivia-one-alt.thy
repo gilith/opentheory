@@ -4,4 +4,6 @@ description: HOL Light alternative definition of the unit type.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "trivia-one-alt.art"; }
+main {
+  article: "trivia-one-alt.art"
+}

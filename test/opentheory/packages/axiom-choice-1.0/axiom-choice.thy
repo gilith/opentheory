@@ -5,6 +5,6 @@ author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"
 
-theory {
-  article "axiom-choice.art";
+main {
+  article: "axiom-choice.art"
 }

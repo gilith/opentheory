@@ -4,4 +4,6 @@ description: HOL Light definition of exponentiation
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-exp-def.art"; }
+main {
+  article: "arith-exp-def.art"
+}

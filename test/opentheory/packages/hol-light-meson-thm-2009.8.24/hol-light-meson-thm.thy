@@ -4,4 +4,6 @@ description: HOL Light meson theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "meson-thm.art"; }
+main {
+  article: "meson-thm.art"
+}

@@ -4,10 +4,10 @@ description: HOL Light define theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+define-thm {
   package: hol-light-define-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: define-thm
 }

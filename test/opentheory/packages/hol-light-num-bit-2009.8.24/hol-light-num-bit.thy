@@ -4,4 +4,6 @@ description: HOL Light definition of bitwise numerals
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "num-bit.art"; }
+main {
+  article: "num-bit.art"
+}

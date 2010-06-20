@@ -6,6 +6,6 @@ license: PublicDomain
 show: "Data.Bool"
 show: "Data.Function"
 
-theory {
-  article "axiom-infinity.art";
+main {
+  article: "axiom-infinity.art"
 }

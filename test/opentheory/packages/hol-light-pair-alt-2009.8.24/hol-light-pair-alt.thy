@@ -4,4 +4,6 @@ description: HOL Light characterization of pairs
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "pair-alt.art"; }
+main {
+  article: "pair-alt.art"
+}

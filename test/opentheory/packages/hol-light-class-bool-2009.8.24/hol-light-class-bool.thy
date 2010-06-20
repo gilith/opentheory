@@ -4,4 +4,6 @@ description: HOL Light classical theorems about booleans.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "class-bool.art"; }
+main {
+  article: "class-bool.art"
+}

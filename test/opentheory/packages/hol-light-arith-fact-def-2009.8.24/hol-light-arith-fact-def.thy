@@ -4,4 +4,6 @@ description: HOL Light definition of factorial
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-fact-def.art"; }
+main {
+  article: "arith-fact-def.art"
+}

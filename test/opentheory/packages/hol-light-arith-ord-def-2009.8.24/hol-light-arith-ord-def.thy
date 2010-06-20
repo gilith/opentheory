@@ -4,4 +4,6 @@ description: HOL Light definition of ordering relations
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-ord-def.art"; }
+main {
+  article: "arith-ord-def.art"
+}

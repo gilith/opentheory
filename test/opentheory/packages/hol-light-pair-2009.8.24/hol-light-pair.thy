@@ -4,21 +4,21 @@ description: HOL Light pair theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require def {
+pair-def {
   package: hol-light-pair-def-2009.8.24
 }
 
-require alt {
-  import: def
+pair-alt {
+  import: pair-def
   package: hol-light-pair-alt-2009.8.24
 }
 
-require thm {
-  import: alt
+pair-thm {
+  import: pair-alt
   package: hol-light-pair-thm-2009.8.24
 }
 
-theory {
-  import alt;
-  import thm;
+main {
+  import: pair-alt
+  import: pair-thm
 }

@@ -4,10 +4,10 @@ description: HOL Light theorems theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+theorems-thm {
   package: hol-light-theorems-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: theorems-thm
 }

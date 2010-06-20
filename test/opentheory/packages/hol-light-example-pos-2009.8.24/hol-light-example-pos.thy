@@ -4,4 +4,6 @@ description: HOL Light example-pos theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "example-pos.art"; }
+main {
+  article: "example-pos.art"
+}

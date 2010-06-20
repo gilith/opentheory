@@ -4,10 +4,10 @@ description: HOL Light normalizer theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+normalizer-thm {
   package: hol-light-normalizer-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: normalizer-thm
 }

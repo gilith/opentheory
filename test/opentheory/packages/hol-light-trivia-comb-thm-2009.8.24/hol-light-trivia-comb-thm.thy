@@ -4,4 +4,6 @@ description: HOL Light theorems about combinators.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "trivia-comb-thm.art"; }
+main {
+  article: "trivia-comb-thm.art"
+}

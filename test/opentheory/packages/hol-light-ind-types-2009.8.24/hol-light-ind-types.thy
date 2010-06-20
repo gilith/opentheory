@@ -4,10 +4,10 @@ description: HOL Light ind-types theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+ind-types-thm {
   package: hol-light-ind-types-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: ind-types-thm
 }

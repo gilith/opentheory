@@ -6,10 +6,10 @@ license: PublicDomain
 show: "Data.Bool"
 show: "Data.Pair"
 
-require pair-def {
+pair-def {
   package: pair-def-1.0
 }
 
-theory {
-  import pair-def;
+main {
+  import: pair-def
 }

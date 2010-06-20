@@ -4,4 +4,6 @@ description: HOL Light axiom of choice.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "class-select-axiom.art"; }
+main {
+  article: "class-select-axiom.art"
+}

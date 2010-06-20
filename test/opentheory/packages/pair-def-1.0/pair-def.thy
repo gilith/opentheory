@@ -6,6 +6,6 @@ license: PublicDomain
 show: "Data.Bool"
 show: "Data.Pair"
 
-theory {
-  article "pair-def.art";
+main {
+  article: "pair-def.art"
 }

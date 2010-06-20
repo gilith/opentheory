@@ -4,4 +4,6 @@ description: HOL Light theorems about ordering relations
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-ord-thm.art"; }
+main {
+  article: "arith-ord-thm.art"
+}

@@ -4,16 +4,16 @@ description: HOL Light definition and theorems about combinators.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require def {
+trivia-comb-def {
   package: hol-light-trivia-comb-def-2009.8.24
 }
 
-require thm {
-  import: def
+trivia-comb-thm {
+  import: trivia-comb-def
   package: hol-light-trivia-comb-thm-2009.8.24
 }
 
-theory {
-  import def;
-  import thm;
+main {
+  import: trivia-comb-def
+  import: trivia-comb-thm
 }

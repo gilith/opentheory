@@ -8,30 +8,30 @@ show: "Data.Function"
 show: "Number.Natural"
 show: "Number.Numeral"
 
-require num-def {
+num-def {
   package: num-def-1.0
 }
 
-require numeral-def {
+numeral-def {
   import: num-def
   package: numeral-def-1.0
 }
 
-require pre-def {
+pre-def {
   import: num-def
   import: numeral-def
   package: num-pre-def-1.0
 }
 
-require add-def {
+add-def {
   import: num-def
   import: numeral-def
   package: num-add-def-1.0
 }
 
-theory {
-  import num-def;
-  import numeral-def;
-  import pre-def;
-  import add-def;
+main {
+  import: num-def
+  import: numeral-def
+  import: pre-def
+  import: add-def
 }

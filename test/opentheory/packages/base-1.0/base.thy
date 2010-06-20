@@ -10,43 +10,43 @@ show: "Data.Unit"
 show: "Number.Natural"
 show: "Number.Numeral"
 
-require bool {
+bool {
   package: bool-1.0
 }
 
-require unit {
+unit {
   import: bool
   package: unit-1.0
 }
 
-require pair {
+pair {
   import: bool
   package: pair-1.0
 }
 
-require function {
+function {
   import: bool
   package: function-1.0
 }
 
-require axiom-infinity {
+axiom-infinity {
   import: bool
   import: function
   package: axiom-infinity-1.0
 }
 
-require num {
+num {
   import: bool
   import: function
   import: axiom-infinity
   package: num-1.0
 }
 
-theory {
-  import bool;
-  import unit;
-  import pair;
-  import function;
-  import axiom-infinity;
-  import num;
+main {
+  import: bool
+  import: unit
+  import: pair
+  import: function
+  import: axiom-infinity
+  import: num
 }

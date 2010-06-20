@@ -4,4 +4,6 @@ description: HOL Light definition of injection and surjection
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "num-inj-surj.art"; }
+main {
+  article: "num-inj-surj.art"
+}

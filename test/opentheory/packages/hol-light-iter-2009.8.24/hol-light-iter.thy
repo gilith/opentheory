@@ -4,10 +4,10 @@ description: HOL Light iter theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+iter-thm {
   package: hol-light-iter-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: iter-thm
 }

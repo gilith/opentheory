@@ -4,4 +4,6 @@ description: HOL Light sets theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "sets-thm.art"; }
+main {
+  article: "sets-thm.art"
+}

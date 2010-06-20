@@ -4,10 +4,10 @@ description: HOL Light calc-num theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+calc-num-thm {
   package: hol-light-calc-num-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: calc-num-thm
 }

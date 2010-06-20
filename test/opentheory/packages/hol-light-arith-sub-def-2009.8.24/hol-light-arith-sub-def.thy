@@ -4,4 +4,6 @@ description: HOL Light definition of subtraction
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-sub-def.art"; }
+main {
+  article: "arith-sub-def.art"
+}

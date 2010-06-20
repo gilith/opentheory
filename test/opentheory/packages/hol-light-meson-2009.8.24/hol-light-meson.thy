@@ -4,10 +4,10 @@ description: HOL Light meson theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+meson-thm {
   package: hol-light-meson-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: meson-thm
 }

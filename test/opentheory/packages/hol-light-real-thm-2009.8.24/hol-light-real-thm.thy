@@ -4,4 +4,6 @@ description: HOL Light real theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "real-thm.art"; }
+main {
+  article: "real-thm.art"
+}

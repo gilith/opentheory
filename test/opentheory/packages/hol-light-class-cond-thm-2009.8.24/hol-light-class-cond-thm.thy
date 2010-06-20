@@ -4,4 +4,6 @@ description: HOL Light theorems about the conditional.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "class-cond-thm.art"; }
+main {
+  article: "class-cond-thm.art"
+}

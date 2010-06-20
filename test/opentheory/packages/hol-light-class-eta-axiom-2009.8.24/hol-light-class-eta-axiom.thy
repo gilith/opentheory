@@ -4,4 +4,6 @@ description: HOL Light axiom of extensionality.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "class-eta-axiom.art"; }
+main {
+  article: "class-eta-axiom.art"
+}

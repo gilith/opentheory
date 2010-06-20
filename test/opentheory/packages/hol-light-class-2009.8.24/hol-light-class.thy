@@ -4,40 +4,40 @@ description: HOL Light class theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require eta {
+class-eta {
   package: hol-light-class-eta-2009.8.24
 }
 
-require select {
-  import: eta
+class-select {
+  import: class-eta
   package: hol-light-class-select-2009.8.24
 }
 
-require cond {
-  import: eta
-  import: select
+class-cond {
+  import: class-eta
+  import: class-select
   package: hol-light-class-cond-2009.8.24
 }
 
-require skolem {
-  import: eta
-  import: select
-  import: cond
+class-skolem {
+  import: class-eta
+  import: class-select
+  import: class-cond
   package: hol-light-class-skolem-2009.8.24
 }
 
-require bool {
-  import: eta
-  import: select
-  import: cond
-  import: skolem
+class-bool {
+  import: class-eta
+  import: class-select
+  import: class-cond
+  import: class-skolem
   package: hol-light-class-bool-2009.8.24
 }
 
-theory {
-  import eta;
-  import select;
-  import cond;
-  import skolem;
-  import bool;
+main {
+  import: class-eta
+  import: class-select
+  import: class-cond
+  import: class-skolem
+  import: class-bool
 }

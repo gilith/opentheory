@@ -4,4 +4,6 @@ description: HOL Light iter theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "iter-thm.art"; }
+main {
+  article: "iter-thm.art"
+}

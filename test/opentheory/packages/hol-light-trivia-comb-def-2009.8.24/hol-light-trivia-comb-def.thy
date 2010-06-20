@@ -4,4 +4,6 @@ description: HOL Light definition of combinators.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "trivia-comb-def.art"; }
+main {
+  article: "trivia-comb-def.art"
+}

@@ -4,4 +4,6 @@ description: HOL Light normalizer theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "normalizer-thm.art"; }
+main {
+  article: "normalizer-thm.art"
+}

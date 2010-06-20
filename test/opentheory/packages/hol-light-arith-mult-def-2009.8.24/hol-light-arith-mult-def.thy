@@ -4,4 +4,6 @@ description: HOL Light definition of multiplication
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-mult-def.art"; }
+main {
+  article: "arith-mult-def.art"
+}

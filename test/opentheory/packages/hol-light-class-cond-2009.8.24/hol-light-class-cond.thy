@@ -4,21 +4,21 @@ description: HOL Light definition and theorems about the conditional.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require def {
+class-cond-def {
   package: hol-light-class-cond-def-2009.8.24
 }
 
-require alt {
-  import: def
+class-cond-alt {
+  import: class-cond-def
   package: hol-light-class-cond-alt-2009.8.24
 }
 
-require thm {
-  import: alt
+class-cond-thm {
+  import: class-cond-alt
   package: hol-light-class-cond-thm-2009.8.24
 }
 
-theory {
-  import alt;
-  import thm;
+main {
+  import: class-cond-alt
+  import: class-cond-thm
 }

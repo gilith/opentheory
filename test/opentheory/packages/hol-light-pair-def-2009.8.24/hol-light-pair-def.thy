@@ -4,4 +4,6 @@ description: HOL Light definition of pairs
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "pair-def.art"; }
+main {
+  article: "pair-def.art"
+}

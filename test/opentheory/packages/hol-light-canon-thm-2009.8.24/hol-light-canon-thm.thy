@@ -4,4 +4,6 @@ description: HOL Light canon theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "canon-thm.art"; }
+main {
+  article: "canon-thm.art"
+}

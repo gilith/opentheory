@@ -4,16 +4,16 @@ description: HOL Light axiom of choice and derived theorems.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require axiom {
+class-select-axiom {
   package: hol-light-class-select-axiom-2009.8.24
 }
 
-require thm {
-  import: axiom
+class-select-thm {
+  import: class-select-axiom
   package: hol-light-class-select-thm-2009.8.24
 }
 
-theory {
-  import axiom;
-  import thm;
+main {
+  import: class-select-axiom
+  import: class-select-thm
 }

@@ -4,4 +4,6 @@ description: HOL Light definition of the numeral tag
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "num-numeral.art"; }
+main {
+  article: "num-numeral.art"
+}

@@ -4,4 +4,6 @@ description: HOL Light theorems about the unit type.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "trivia-one-thm.art"; }
+main {
+  article: "trivia-one-thm.art"
+}

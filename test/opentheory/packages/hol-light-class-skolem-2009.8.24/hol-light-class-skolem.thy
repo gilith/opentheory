@@ -4,4 +4,6 @@ description: HOL Light skolemization theorems.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "class-skolem.art"; }
+main {
+  article: "class-skolem.art"
+}

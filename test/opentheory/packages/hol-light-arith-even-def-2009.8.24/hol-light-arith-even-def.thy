@@ -4,4 +4,6 @@ description: HOL Light definition of even and odd
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-even-def.art"; }
+main {
+  article: "arith-even-def.art"
+}

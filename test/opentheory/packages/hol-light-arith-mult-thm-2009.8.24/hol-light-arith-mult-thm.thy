@@ -4,4 +4,6 @@ description: HOL Light theorems about multiplication
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-mult-thm.art"; }
+main {
+  article: "arith-mult-thm.art"
+}

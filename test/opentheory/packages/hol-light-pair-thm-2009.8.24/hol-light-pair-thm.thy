@@ -4,4 +4,6 @@ description: HOL Light theorems about pairs
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "pair-thm.art"; }
+main {
+  article: "pair-thm.art"
+}

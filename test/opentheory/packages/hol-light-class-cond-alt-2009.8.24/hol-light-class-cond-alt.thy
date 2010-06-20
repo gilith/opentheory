@@ -4,4 +4,6 @@ description: HOL Light alternative definition of the conditional.
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "class-cond-alt.art"; }
+main {
+  article: "class-cond-alt.art"
+}

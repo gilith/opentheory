@@ -4,10 +4,10 @@ description: HOL Light cart theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+cart-thm {
   package: hol-light-cart-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: cart-thm
 }

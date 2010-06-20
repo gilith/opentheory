@@ -1,7 +1,7 @@
-require axiom {
+class-select-axiom {
   package: hol-light-class-select-axiom-2009.8.24
 }
 
-theory {
-  import axiom;
+main {
+  import: class-select-axiom
 }

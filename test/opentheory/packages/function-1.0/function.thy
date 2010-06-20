@@ -6,16 +6,16 @@ license: PublicDomain
 show: "Data.Bool"
 show: "Data.Function"
 
-require function-def {
+function-def {
   package: function-def-1.0
 }
 
-require function-thm {
+function-thm {
   import: function-def
   package: function-thm-1.0
 }
 
-theory {
-  import function-def;
-  import function-thm;
+main {
+  import: function-def
+  import: function-thm
 }

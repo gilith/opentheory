@@ -4,4 +4,6 @@ description: HOL Light cart theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "cart-thm.art"; }
+main {
+  article: "cart-thm.art"
+}

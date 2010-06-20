@@ -4,10 +4,10 @@ description: HOL Light canon theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+canon-thm {
   package: hol-light-canon-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: canon-thm
 }

@@ -4,16 +4,16 @@ description: HOL Light trivia theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require comb {
+trivia-comb {
   package: hol-light-trivia-comb-2009.8.24
 }
 
-require one {
-  import: comb
+trivia-one {
+  import: trivia-comb
   package: hol-light-trivia-one-2009.8.24
 }
 
-theory {
-  import comb;
-  import one;
+main {
+  import: trivia-comb
+  import: trivia-one
 }

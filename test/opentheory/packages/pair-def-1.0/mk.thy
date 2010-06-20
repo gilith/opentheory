@@ -1,26 +1,26 @@
-require bool-thm {
+bool-thm {
   package: hol-light-bool-thm-2009.8.24
 }
 
-require tactics-thm {
+tactics-thm {
   import: bool-thm
   package: hol-light-tactics-thm-2009.8.24
 }
 
-require simp-thm {
+simp-thm {
   import: bool-thm
   import: tactics-thm
   package: hol-light-simp-thm-2009.8.24
 }
 
-require theorems-thm {
+theorems-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
   package: hol-light-theorems-thm-2009.8.24
 }
 
-require ind-defs-thm {
+ind-defs-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -28,7 +28,7 @@ require ind-defs-thm {
   package: hol-light-ind-defs-thm-2009.8.24
 }
 
-require class-thm {
+class-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -37,7 +37,7 @@ require class-thm {
   package: hol-light-class-thm-2009.8.24
 }
 
-require canon-thm {
+canon-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -47,7 +47,7 @@ require canon-thm {
   package: hol-light-canon-thm-2009.8.24
 }
 
-require meson-thm {
+meson-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -58,7 +58,7 @@ require meson-thm {
   package: hol-light-meson-thm-2009.8.24
 }
 
-require quot-thm {
+quot-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -70,7 +70,7 @@ require quot-thm {
   package: hol-light-quot-thm-2009.8.24
 }
 
-require pair-def {
+pair-def {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -83,7 +83,7 @@ require pair-def {
   package: hol-light-pair-def-2009.8.24
 }
 
-require pair-alt {
+pair-alt {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -97,6 +97,6 @@ require pair-alt {
   package: hol-light-pair-alt-2009.8.24
 }
 
-theory {
-  import pair-alt;
+main {
+  import: pair-alt
 }

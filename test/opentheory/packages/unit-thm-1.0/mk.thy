@@ -1,26 +1,26 @@
-require bool-thm {
+bool-thm {
   package: hol-light-bool-thm-2009.8.24
 }
 
-require tactics-thm {
+tactics-thm {
   import: bool-thm
   package: hol-light-tactics-thm-2009.8.24
 }
 
-require simp-thm {
+simp-thm {
   import: bool-thm
   import: tactics-thm
   package: hol-light-simp-thm-2009.8.24
 }
 
-require theorems-thm {
+theorems-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
   package: hol-light-theorems-thm-2009.8.24
 }
 
-require ind-defs-thm {
+ind-defs-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -28,7 +28,7 @@ require ind-defs-thm {
   package: hol-light-ind-defs-thm-2009.8.24
 }
 
-require class-thm {
+class-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -37,7 +37,7 @@ require class-thm {
   package: hol-light-class-thm-2009.8.24
 }
 
-require trivia-one-thm {
+trivia-one-thm {
   import: bool-thm
   import: tactics-thm
   import: simp-thm
@@ -47,6 +47,6 @@ require trivia-one-thm {
   package: hol-light-trivia-one-thm-2009.8.24
 }
 
-theory {
+main {
   import trivia-one-thm;
 }

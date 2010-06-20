@@ -278,7 +278,7 @@ and importPackageName graph info =
       if not (TheorySet.null thys) then (graph, TheorySet.pick thys)
       else
         let
-          val pkg =
+          val package =
               case PackageFinder.find finder pkg of
                 SOME p => p
               | NONE =>
@@ -289,9 +289,12 @@ and importPackageName graph info =
                finder = finder,
                imports = imports,
                interpretation = interpretation,
-               package = pkg}
+               package = package}
         in
           importPackageInfo graph info
+          handle Error err =>
+            raise Error ("while importing package " ^
+                         PackageName.toString pkg ^ "\n" ^ err)
         end
     end
 

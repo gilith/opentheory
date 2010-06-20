@@ -5,6 +5,6 @@ author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"
 
-theory {
-  article "bool-def.art";
+main {
+  article: "bool-def.art"
 }

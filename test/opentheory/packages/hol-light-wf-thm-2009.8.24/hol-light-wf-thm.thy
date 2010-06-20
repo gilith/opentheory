@@ -4,4 +4,6 @@ description: HOL Light wf theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "wf-thm.art"; }
+main {
+  article: "wf-thm.art"
+}

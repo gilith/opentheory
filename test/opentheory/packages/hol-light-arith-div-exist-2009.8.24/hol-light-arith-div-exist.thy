@@ -4,4 +4,6 @@ description: HOL Light proof that div and mod exist
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "arith-div-exist.art"; }
+main {
+  article: "arith-div-exist.art"
+}

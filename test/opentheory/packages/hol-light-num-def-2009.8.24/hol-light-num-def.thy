@@ -4,4 +4,6 @@ description: HOL Light definition of the natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "num-def.art"; }
+main {
+  article: "num-def.art"
+}

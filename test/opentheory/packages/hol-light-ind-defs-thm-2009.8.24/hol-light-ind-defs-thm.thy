@@ -4,4 +4,6 @@ description: HOL Light ind-defs theory theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-theory { article "ind-defs-thm.art"; }
+main {
+  article: "ind-defs-thm.art"
+}

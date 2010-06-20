@@ -4,29 +4,29 @@ description: HOL Light theories
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require bool {
+bool {
   package: hol-light-bool-2009.8.24
 }
 
-require tactics {
+tactics {
   import: bool
   package: hol-light-tactics-2009.8.24
 }
 
-require simp {
+simp {
   import: bool
   import: tactics
   package: hol-light-simp-2009.8.24
 }
 
-require theorems {
+theorems {
   import: bool
   import: tactics
   import: simp
   package: hol-light-theorems-2009.8.24
 }
 
-require ind-defs {
+ind-defs {
   import: bool
   import: tactics
   import: simp
@@ -34,7 +34,7 @@ require ind-defs {
   package: hol-light-ind-defs-2009.8.24
 }
 
-require class {
+class {
   import: bool
   import: tactics
   import: simp
@@ -43,7 +43,7 @@ require class {
   package: hol-light-class-2009.8.24
 }
 
-require trivia {
+trivia {
   import: bool
   import: tactics
   import: simp
@@ -53,7 +53,7 @@ require trivia {
   package: hol-light-trivia-2009.8.24
 }
 
-require canon {
+canon {
   import: bool
   import: tactics
   import: simp
@@ -64,7 +64,7 @@ require canon {
   package: hol-light-canon-2009.8.24
 }
 
-require meson {
+meson {
   import: bool
   import: tactics
   import: simp
@@ -76,7 +76,7 @@ require meson {
   package: hol-light-meson-2009.8.24
 }
 
-require quot {
+quot {
   import: bool
   import: tactics
   import: simp
@@ -89,7 +89,7 @@ require quot {
   package: hol-light-quot-2009.8.24
 }
 
-require pair {
+pair {
   import: bool
   import: tactics
   import: simp
@@ -103,7 +103,7 @@ require pair {
   package: hol-light-pair-2009.8.24
 }
 
-require num {
+num {
   import: bool
   import: tactics
   import: simp
@@ -118,7 +118,7 @@ require num {
   package: hol-light-num-2009.8.24
 }
 
-require arith {
+arith {
   import: bool
   import: tactics
   import: simp
@@ -134,7 +134,7 @@ require arith {
   package: hol-light-arith-2009.8.24
 }
 
-require wf {
+wf {
   import: bool
   import: tactics
   import: simp
@@ -151,7 +151,7 @@ require wf {
   package: hol-light-wf-2009.8.24
 }
 
-require calc-num {
+calc-num {
   import: bool
   import: tactics
   import: simp
@@ -169,7 +169,7 @@ require calc-num {
   package: hol-light-calc-num-2009.8.24
 }
 
-require normalizer {
+normalizer {
   import: bool
   import: tactics
   import: simp
@@ -188,7 +188,7 @@ require normalizer {
   package: hol-light-normalizer-2009.8.24
 }
 
-require grobner {
+grobner {
   import: bool
   import: tactics
   import: simp
@@ -208,7 +208,7 @@ require grobner {
   package: hol-light-grobner-2009.8.24
 }
 
-require ind-types {
+ind-types {
   import: bool
   import: tactics
   import: simp
@@ -229,7 +229,7 @@ require ind-types {
   package: hol-light-ind-types-2009.8.24
 }
 
-require list {
+list {
   import: bool
   import: tactics
   import: simp
@@ -251,7 +251,7 @@ require list {
   package: hol-light-list-2009.8.24
 }
 
-require realax {
+realax {
   import: bool
   import: tactics
   import: simp
@@ -274,7 +274,7 @@ require realax {
   package: hol-light-realax-2009.8.24
 }
 
-require calc-int {
+calc-int {
   import: bool
   import: tactics
   import: simp
@@ -298,7 +298,7 @@ require calc-int {
   package: hol-light-calc-int-2009.8.24
 }
 
-require realarith {
+realarith {
   import: bool
   import: tactics
   import: simp
@@ -323,7 +323,7 @@ require realarith {
   package: hol-light-realarith-2009.8.24
 }
 
-require real {
+real {
   import: bool
   import: tactics
   import: simp
@@ -349,7 +349,7 @@ require real {
   package: hol-light-real-2009.8.24
 }
 
-require calc-rat {
+calc-rat {
   import: bool
   import: tactics
   import: simp
@@ -376,7 +376,7 @@ require calc-rat {
   package: hol-light-calc-rat-2009.8.24
 }
 
-require int {
+int {
   import: bool
   import: tactics
   import: simp
@@ -404,7 +404,7 @@ require int {
   package: hol-light-int-2009.8.24
 }
 
-require sets {
+sets {
   import: bool
   import: tactics
   import: simp
@@ -433,7 +433,7 @@ require sets {
   package: hol-light-sets-2009.8.24
 }
 
-require iter {
+iter {
   import: bool
   import: tactics
   import: simp
@@ -463,7 +463,7 @@ require iter {
   package: hol-light-iter-2009.8.24
 }
 
-require cart {
+cart {
   import: bool
   import: tactics
   import: simp
@@ -494,7 +494,7 @@ require cart {
   package: hol-light-cart-2009.8.24
 }
 
-require define {
+define {
   import: bool
   import: tactics
   import: simp
@@ -526,33 +526,33 @@ require define {
   package: hol-light-define-2009.8.24
 }
 
-theory {
-  import bool;
-  import tactics;
-  import simp;
-  import ind-defs;
-  import class;
-  import trivia;
-  import canon;
-  import meson;
-  import quot;
-  import pair;
-  import num;
-  import arith;
-  import wf;
-  import calc-num;
-  import normalizer;
-  import grobner;
-  import ind-types;
-  import list;
-  import realax;
-  import calc-int;
-  import realarith;
-  import real;
-  import calc-rat;
-  import int;
-  import sets;
-  import iter;
-  import cart;
-  import define;
+main {
+  import: bool
+  import: tactics
+  import: simp
+  import: ind-defs
+  import: class
+  import: trivia
+  import: canon
+  import: meson
+  import: quot
+  import: pair
+  import: num
+  import: arith
+  import: wf
+  import: calc-num
+  import: normalizer
+  import: grobner
+  import: ind-types
+  import: list
+  import: realax
+  import: calc-int
+  import: realarith
+  import: real
+  import: calc-rat
+  import: int
+  import: sets
+  import: iter
+  import: cart
+  import: define
 }

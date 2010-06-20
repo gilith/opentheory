@@ -4,10 +4,10 @@ description: HOL Light int theory
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 
-require thm {
+int-thm {
   package: hol-light-int-thm-2009.8.24
 }
 
-theory {
-  import thm;
+main {
+  import: int-thm
 }
