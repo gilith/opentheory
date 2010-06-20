@@ -48,5 +48,5 @@ trivia-one-thm {
 }
 
 main {
-  import trivia-one-thm;
+  import: trivia-one-thm
 }
