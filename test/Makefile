@@ -26,14 +26,7 @@ TEMP = \
   articles/example1.art articles/example1.sum \
   articles/example2.art articles/example2.sum \
   articles/example3.art articles/example3.sum \
-  articles/tactics.art articles/tactics.sum \
-  theories/bool.art \
-  theories/boolTactics.art \
-  theories/boolBool.art \
-  theories/empty.art \
-  theories/localBoolTactics.art \
-  theories/tactics.art \
-  theories/tacticsTactics.art
+  articles/tactics.art articles/tactics.sum
 
 .PHONY: clean
 clean:

@@ -1,1 +1,0 @@
-theory { article "tactics.art"; }

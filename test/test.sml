@@ -326,91 +326,14 @@ val () = summarize "example1";
 
 val () = summarize "example2";
 
+val () = summarize "example3";
+
 val () = summarize "bool";
 
 val () = summarize "tactics";
 
-(***
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Compiling theories";
-(* ------------------------------------------------------------------------- *)
-
-val THEORY_DIR = "theories";
-
-fun mkTheoryFilename name =
-    let
-      val file = OS.Path.joinBaseExt {base = name, ext = SOME "thy"}
-    in
-      OS.Path.joinDirFile {dir = THEORY_DIR, file = file}
-    end;
-
-fun mkTheoryArticleFilename name =
-    let
-      val file = OS.Path.joinBaseExt {base = name, ext = SOME "art"}
-    in
-      OS.Path.joinDirFile {dir = THEORY_DIR, file = file}
-    end;
-
-fun fromTextFilePackage filename =
-    Package.theory (Package.fromTextFile filename);
-
-fun compile name =
-    let
-      val () = print ("Compiling theory \"" ^ name ^ "\"\n")
-
-      val thyFilename = mkTheoryFilename name
-
-      val thy = time fromTextFilePackageTheory {filename = thyFilename}
-
-      val () = printer PackageTheory.pp thy
-
-      val art =
-          time Theory.toArticle
-            {savable = true,
-             known = Article.empty,
-             simulations = HolLight.simulations,
-             importToArticle = (fn _ => raise Bug "importToArticle"),
-             interpretation = Interpretation.natural,
-             directory = ARTICLE_DIR,
-             theory = thy}
-
-      val artFilename = mkTheoryArticleFilename name
-
-      val () =
-          time Article.toTextFile
-            {article = art,
-             filename = artFilename}
-
-      val () = print "\n"
-    in
-      ()
-    end;
-
-(* The simplest theory: empty *)
-
-val () = compile "empty";
-
-(* The next simplest theory: read one article *)
-
-val () = compile "bool";
-
-val () = compile "tactics";
-
-(* Concatenating two articles *)
-
-val () = compile "boolBool";
-
-val () = compile "tacticsTactics";
-
-val () = compile "boolTactics";
-
-(* Localizing articles *)
-
-val () = compile "localBoolTactics";
-***)
-
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Theory directories";
+val () = SAY "Theory package directories";
 (* ------------------------------------------------------------------------- *)
 
 val DIRECTORY_DIR = "opentheory";
@@ -430,7 +353,7 @@ val () = SAY "Importing theory packages";
 
 fun import name =
     let
-      val () = print ("Importing package \"" ^ name ^ "\"\n")
+      val () = print ("Importing theory package \"" ^ name ^ "\"\n")
 
       val finder = Directory.lookup directory
 
