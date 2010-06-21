@@ -8,9 +8,9 @@ Terms
 
 [\p. p, \q. q, \q. p]
 
-[(\p. p) F = F, (\q. p) q = p, (\q. q) T = T]
+[(\p. p) F <=> F, (\q. p) q <=> p, (\q. q) T <=> T]
 
-[(\p. p) F = F, (\q. q) T = T, (\q. p) q = p]
+[(\p. p) F <=> F, (\q. q) T <=> T, (\q. p) q <=> p]
 
 --------------------------------------------------------------------------
 Substitution
@@ -94,15 +94,15 @@ Compressing article "bool"
 WARNING: 34 objects left on the stack by articles/hol-light/bool.art
 WARNING: saving 34 theorems left on the stack by articles/hol-light/bool.art
 WARNING: 1363 objects left in the dictionary by articles/hol-light/bool.art
-User: 1.096  System: 0.012  GC: 0.151  Real: 1.112
-User: 1.200  System: 0.011  GC: 0.064  Real: 1.216
+User: 1.099  System: 0.014  GC: 0.155  Real: 1.166
+User: 1.223  System: 0.018  GC: 0.068  Real: 1.334
 
 Compressing article "tactics"
 WARNING: 6 objects left on the stack by articles/hol-light/tactics.art
 WARNING: saving 4 theorems left on the stack by articles/hol-light/tactics.art
 WARNING: 198 objects left in the dictionary by articles/hol-light/tactics.art
-User: 0.128  System: 0.001  GC: 0.018  Real: 0.131
-User: 0.071  System: 0.001  GC: 0.004  Real: 0.072
+User: 0.128  System: 0.002  GC: 0.017  Real: 0.143
+User: 0.073  System: 0.001  GC: 0.004  Real: 0.076
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -112,7 +112,7 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Summarizing compressed article "example1"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Summarizing compressed article "example2"
@@ -121,15 +121,15 @@ User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Summarizing compressed article "example3"
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Summarizing compressed article "bool"
-User: 0.385  System: 0.003  GC: 0.040  Real: 0.388
-User: 0.007  System: 0.000  GC: 0.003  Real: 0.008
+User: 0.392  System: 0.003  GC: 0.043  Real: 0.424
+User: 0.006  System: 0.000  GC: 0.000  Real: 0.006
 
 Summarizing compressed article "tactics"
-User: 0.037  System: 0.000  GC: 0.006  Real: 0.038
-User: 0.004  System: 0.000  GC: 0.001  Real: 0.004
+User: 0.034  System: 0.000  GC: 0.004  Real: 0.039
+User: 0.004  System: 0.000  GC: 0.001  Real: 0.005
 
 --------------------------------------------------------------------------
 Theory package directories
@@ -158,11 +158,11 @@ assumed:
 defined-consts: ! /\ ==> ? ?! F T \/ ~
 axioms:
 thms:
-  |- F = !p. p
+  |- F <=> !p. p
   |- (~) = \p. p ==> F
-  |- T = ((\p. p) = \p. p)
+  |- T <=> (\p. p) = \p. p
   |- (!) = \P. P = \x. T
-  |- (==>) = \p q. (p /\ q) = p
+  |- (==>) = \p q. p /\ q <=> p
   |- (/\) = \p q. (\f. f p q) = \f. f T T
   |- (?) = \P. !q. (!x. P x ==> q) ==> q
   |- (\/) = \p q. !r. (p ==> r) ==> (q ==> r) ==> r
@@ -172,11 +172,11 @@ Importing theory package "hol-light-bool-thm-2009.8.24"
 input-types: -> bool
 input-consts: = ! /\ ==> ? ?! F T \/ ~
 assumed:
-  |- F = !p. p
+  |- F <=> !p. p
   |- (~) = \p. p ==> F
-  |- T = ((\p. p) = \p. p)
+  |- T <=> (\p. p) = \p. p
   |- (!) = \P. P = \x. T
-  |- (==>) = \p q. (p /\ q) = p
+  |- (==>) = \p q. p /\ q <=> p
   |- (/\) = \p q. (\f. f p q) = \f. f T T
   |- (?) = \P. !q. (!x. P x ==> q) ==> q
   |- (\/) = \p q. !r. (p ==> r) ==> (q ==> r) ==> r
@@ -195,17 +195,17 @@ thms:
   {.} |- P \/ Q
   {.} |- P \/ Q
   |- (\p. p) = \p. p
-  |- t = (t = T)
+  |- t <=> t <=> T
   |- (!) P ==> P x
   |- (?!) P ==> (?) P
-  |- ~P = (P ==> F)
-  |- ~P ==> P = F
-  |- (P ==> F) = ~P
-  |- P = F ==> ~P
-  |- (\p. p) = (\p. p) = T
-  |- p = q ==> p ==> q
-  |- p = q ==> q ==> p
-  |- (p /\ q) = p = (p ==> q)
+  |- ~P <=> P ==> F
+  |- ~P ==> (P <=> F)
+  |- P ==> F <=> ~P
+  |- (P <=> F) ==> ~P
+  |- (\p. p) = (\p. p) <=> T
+  |- (p <=> q) ==> p ==> q
+  |- (p <=> q) ==> q ==> p
+  |- (p /\ q <=> p) <=> p ==> q
   |- (!x. P x ==> Q) ==> (?) P ==> Q
   |- (p ==> q) ==> (q ==> r) ==> p ==> r
 
@@ -228,22 +228,22 @@ thms:
   {.} |- P \/ Q
   {.} |- P \/ Q
   |- (\p. p) = \p. p
-  |- F = !p. p
-  |- t = (t = T)
+  |- F <=> !p. p
+  |- t <=> t <=> T
   |- (!) P ==> P x
   |- (?!) P ==> (?) P
   |- (~) = \p. p ==> F
-  |- T = ((\p. p) = \p. p)
+  |- T <=> (\p. p) = \p. p
   |- (!) = \P. P = \x. T
-  |- ~P = (P ==> F)
-  |- ~P ==> P = F
-  |- (P ==> F) = ~P
-  |- P = F ==> ~P
-  |- (\p. p) = (\p. p) = T
-  |- p = q ==> p ==> q
-  |- p = q ==> q ==> p
-  |- (==>) = \p q. (p /\ q) = p
-  |- (p /\ q) = p = (p ==> q)
+  |- ~P <=> P ==> F
+  |- ~P ==> (P <=> F)
+  |- P ==> F <=> ~P
+  |- (P <=> F) ==> ~P
+  |- (\p. p) = (\p. p) <=> T
+  |- (p <=> q) ==> p ==> q
+  |- (p <=> q) ==> q ==> p
+  |- (==>) = \p q. p /\ q <=> p
+  |- (p /\ q <=> p) <=> p ==> q
   |- (!x. P x ==> Q) ==> (?) P ==> Q
   |- (/\) = \p q. (\f. f p q) = \f. f T T
   |- (p ==> q) ==> (q ==> r) ==> p ==> r

@@ -358,9 +358,19 @@ fun pp thy =
       val (n,cs) = destTheory thy
     in
       Print.blockProgram Print.Consistent 0
-        [ppName n,
-         Print.addString " ",
-         ppBlock ppConstraintList cs]
+        (ppName n ::
+         Print.addString " " ::
+         (if null cs then
+            [ppOpenBlock,
+             Print.addString " ",
+             ppCloseBlock]
+          else
+            [Print.blockProgram Print.Consistent 2
+               [ppOpenBlock,
+                Print.addNewline,
+                ppConstraintList cs],
+             Print.addNewline,
+             ppCloseBlock]))
     end;
 
 fun ppList thys =

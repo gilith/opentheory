@@ -678,9 +678,13 @@ fun destEqTy ty =
 
 val isEqTy = can destEqTy;
 
-val stringEq = "=";
+val boolEqTy = mkEqTy Type.bool;
 
-val nameEq = Name.mkGlobal stringEq;
+val stringEq = "="
+and stringBoolEq = "<=>";
+
+val nameEq = Name.mkGlobal stringEq
+and nameBoolEq = Name.mkGlobal stringBoolEq;
 
 val constEq =
     let
@@ -793,11 +797,15 @@ local
 
   fun ppTerm abs negations infixes binders specials ppInfixes show =
       let
-        fun showConst c = Show.showName show (Const.name c)
+        fun showConst (c,ty) =
+            if Const.equal c constEq then
+              if Type.equal ty boolEqTy then nameBoolEq else nameEq
+            else
+              Show.showName show (Const.name c)
 
-        fun ppConst (c,_) =
+        fun ppConst c_ty =
             let
-              val n = showConst c
+              val n = showConst c_ty
             in
               case NameMap.peek specials n of
                 SOME s => Print.ppBracket "(" ")" Print.ppString s
@@ -806,9 +814,9 @@ local
 
         fun destNegation tm =
             let
-              val (t,a) = destApp tm
-              val (c,_) = destConst t
-              val n = showConst c
+              val (c,a) = destApp tm
+
+              val n = showConst (destConst c)
             in
               case NameMap.peek negations n of
                 SOME s => (s,a)
@@ -827,10 +835,11 @@ local
 
         fun destInfix tm =
             let
-              val (t,b) = destApp tm
-              val (t,a) = destApp t
-              val (c,_) = destConst t
-              val n = showConst c
+              val (tm,b) = destApp tm
+
+              val (c,a) = destApp tm
+
+              val n = showConst (destConst c)
             in
               case NameMap.peek infixes n of
                 SOME s => (s,a,b)
@@ -847,9 +856,10 @@ local
             | NONE =>
               let
                 val (c,t) = destApp tm
+
                 val (v,b) = destAbs t
-                val (c,_) = destConst c
-                val n = showConst c
+
+                val n = showConst (destConst c)
               in
                 case NameMap.peek binders n of
                   SOME s => (s,v,b)

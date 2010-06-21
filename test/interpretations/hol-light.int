@@ -7,6 +7,7 @@
 type "bool" as "bool"
 type "fun" as "->"
 type "ind" as "ind"
+const "=" as "="
 
 # Data
 
