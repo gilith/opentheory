@@ -777,6 +777,11 @@ val defaultGrammar =
          maximumSize = maximumSize}
     end;
 
+val bit0Name = Name.mkGlobal "bit0"
+and bit1Name = Name.mkGlobal "bit1"
+and numeralName = Name.mkGlobal "numeral"
+and zeroName = Name.mkGlobal "zero";
+
 local
   val mkMap =
       let
@@ -810,6 +815,33 @@ local
               case NameMap.peek specials n of
                 SOME s => Print.ppBracket "(" ")" Print.ppString s
               | NONE => Name.pp n
+            end
+
+        fun destNumber tm =
+            case dest tm of
+              TypeTerm.Const' c =>
+              let
+                val n = showConst c
+              in
+                if Name.equal n zeroName then 0
+                else raise Error "Term.pp.destNumber: bad const"
+              end
+            | TypeTerm.App' (f,x) =>
+              let
+                val n = showConst (destConst f)
+              in
+                if Name.equal n bit0Name then 2 * destNumber x
+                else if Name.equal n bit1Name then 2 * destNumber x + 1
+                else raise Error "Term.pp.destNumber: bad app"
+              end
+            | _ => raise Error "Term.pp.destNumber: bad term"
+
+        fun destNumeral (f,x) =
+            let
+              val n = showConst (destConst f)
+            in
+              if Name.equal n numeralName then destNumber x
+              else raise Error "Term.pp.destNumeral: no marker"
             end
 
         fun destNegation tm =
@@ -887,16 +919,23 @@ local
             case dest tm of
               TypeTerm.Var' v => Var.pp v
             | TypeTerm.Const' c => ppConst c
-            | _ => ppBracket tm
+            | TypeTerm.App' f_x =>
+              (case total destNumeral f_x of
+                 SOME i => Print.ppInt i
+               | NONE => ppBracket tm)
+            | TypeTerm.Abs' _ => ppBracket tm
 
         and ppApplication tm =
             case total destApp tm of
               NONE => ppBasic tm
             | SOME (f,x) =>
-              Print.program
-                [ppFunction f,
-                 Print.addBreak 1,
-                 ppBasic x]
+              case total destNumeral (f,x) of
+                SOME i => Print.ppInt i
+              | NONE =>
+                Print.program
+                  [ppFunction f,
+                   Print.addBreak 1,
+                   ppBasic x]
 
         and ppFunction tm =
             if isInfix tm then ppBracket tm else ppBinder (tm,true)
