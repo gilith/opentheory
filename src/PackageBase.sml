@@ -37,6 +37,8 @@ fun concatWith s =
 
 type base = string;
 
+val main = "main";
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -44,6 +46,22 @@ type base = string;
 val compare = String.compare;
 
 fun equal (b1 : base) b2 = b1 = b2;
+
+(* ------------------------------------------------------------------------- *)
+(* Generating fresh names.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkName {avoid} n : base =
+    let
+      fun mkNum i =
+          let
+            val ni = n ^ "-" ^ Int.toString i
+          in
+            if avoid ni then mkNum (i + 1) else ni
+          end
+    in
+      if avoid n then mkNum 1 else n
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

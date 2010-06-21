@@ -106,6 +106,18 @@ fun packageNode node =
 
 fun package thy = packageNode (node thy);
 
+fun isPackage thy = Option.isSome (package thy);
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun pp thy =
+    Print.blockProgram Print.Consistent 0
+      [Print.addString "Theory<",
+       Print.ppInt (id thy),
+       Print.addString ">"];
+
 end
 
 structure TheoryOrdered =
@@ -129,4 +141,23 @@ struct
 
 end
 
-structure TheoryMap = KeyMap (TheoryOrdered)
+structure TheoryMap =
+struct
+
+  local
+    structure S = KeyMap (TheoryOrdered);
+  in
+    open S;
+  end;
+
+  fun pp ppX =
+      let
+        val ppTX = Print.ppOp2 " =>" Theory.pp ppX
+      in
+        fn m =>
+          Print.blockProgram Print.Consistent 0
+            [Print.addString "TheoryMap",
+             Print.ppList ppTX (toList m)]
+      end;
+
+end

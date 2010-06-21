@@ -16,7 +16,6 @@ val articleKeywordString = "article"
 and closeBlockString = "}"
 and importKeywordString = "import"
 and interpretKeywordString = "interpret"
-and mainKeywordString = "main"
 and openBlockString = "{"
 and packageKeywordString = "package"
 and quoteString = "\""
@@ -54,10 +53,23 @@ fun imports (Theory {imports = x, ...}) = x;
 fun node (Theory {node = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
+(* Generating fresh theory names.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkName {avoid} =
+    let
+      fun memberAvoid name = PackageBaseSet.member name avoid
+    in
+      PackageBase.mkName {avoid = memberAvoid}
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* The main theory.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun isMainName n = PackageBase.toString n = mainKeywordString;
+val mainName = PackageBase.main;
+
+fun isMainName name = PackageBase.equal name mainName;
 
 fun isMain thy = isMainName (name thy);
 
@@ -347,7 +359,7 @@ fun pp thy =
     in
       Print.blockProgram Print.Consistent 0
         [ppName n,
-         Print.addBreak 1,
+         Print.addString " ",
          ppBlock ppConstraintList cs]
     end;
 

@@ -52,9 +52,17 @@ in
     let
       val Package {tags,theories} = pkg
     in
-      Print.blockProgram Print.Consistent 0
-        (Tag.ppList tags ::
-         map ppThy theories)
+      if null tags then
+        case theories of
+          [] => Print.skip
+        | thy :: theories =>
+          Print.blockProgram Print.Consistent 0
+            (PackageTheory.pp thy ::
+             map ppThy theories)
+      else
+        Print.blockProgram Print.Consistent 0
+          (Tag.ppList tags ::
+           map ppThy theories)
     end;
 end;
 

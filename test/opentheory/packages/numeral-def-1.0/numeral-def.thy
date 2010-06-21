@@ -8,5 +8,5 @@ show: "Number.Natural"
 show: "Number.Numeral"
 
 main {
-  article: "numeral-def.art";
+  article: "numeral-def.art"
 }

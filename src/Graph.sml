@@ -9,6 +9,145 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Ancestor theories.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun parents thy = TheorySet.fromList (Theory.imports thy);
+
+local
+  fun ancsThy acc thy thys =
+      if TheorySet.member thy acc then ancsList acc thys
+      else ancsPar (TheorySet.add acc thy) thy thys
+
+  and ancsPar acc thy thys =
+      ancsList acc (Theory.imports thy @ thys)
+
+  and ancsList acc thys =
+      case thys of
+        [] => acc
+      | thy :: thys => ancsThy acc thy thys;
+in
+  fun ancestors thy = ancsPar TheorySet.empty thy [];
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Packaging theories.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun packageTheory {expand} =
+    let
+      fun convert pkg thy (avoid,cache,theories) =
+          case TheoryMap.peek cache thy of
+            SOME name => (name,(avoid,cache,theories))
+          | NONE =>
+            let
+              val (name,(avoid,cache,theories)) =
+                  convert' pkg thy (avoid,cache,theories)
+
+              val cache = TheoryMap.insert cache (thy,name)
+            in
+              (name,(avoid,cache,theories))
+            end
+
+      and convert' pkg thy (avoid,cache,theories) =
+          if expand thy then
+            case Theory.node thy of
+              Theory.Package {package,theory,...} =>
+              let
+                val pkg = PackageName.base package
+              in
+                convert pkg theory (avoid,cache,theories)
+              end
+            | _ => raise Error "cannot expand a non-Package node"
+          else
+            let
+              val imports = Theory.imports thy
+
+              val (imports,(avoid,cache,theories)) =
+                  maps (convert pkg) imports (avoid,cache,theories)
+
+              val pkg =
+                  case Theory.node thy of
+                    Theory.Package {package,...} => PackageName.base package
+                  | _ => pkg
+
+              val name = PackageTheory.mkName {avoid = avoid} pkg
+
+              val avoid = PackageBaseSet.add avoid name
+
+              val node =
+                  case Theory.node thy of
+                    Theory.Article {interpretation,filename} =>
+                    PackageTheory.Article
+                      {interpretation = interpretation,
+                       filename = filename}
+                  | Theory.Package {interpretation,package,...} =>
+                    PackageTheory.Package
+                      {interpretation = interpretation,
+                       package = package}
+                  | Theory.Union =>
+                    PackageTheory.Union
+
+              val theory =
+                  PackageTheory.Theory
+                    {name = name,
+                     imports = imports,
+                     node = node}
+
+              val theories = theory :: theories
+            in
+              (name,(avoid,cache,theories))
+            end
+
+      val pkg = PackageTheory.mainName
+
+      val avoid : PackageBaseSet.set = PackageBaseSet.singleton pkg
+
+      val cache : PackageTheory.name TheoryMap.map = TheoryMap.new ()
+
+      val theories : PackageTheory.theory list = []
+    in
+      fn thy =>
+         let
+           val (name',(_,cache,theories)) =
+               convert' pkg thy (avoid,cache,theories)
+
+(*OpenTheoryTrace3
+           val () = Print.trace (TheoryMap.pp PackageTheory.ppName)
+                      "Graph.packageTheory" cache
+*)
+
+           val theories =
+               case theories of
+                 [] => raise Error "no theories compiled"
+               | theory :: theories =>
+                 let
+                   val PackageTheory.Theory {name,imports,node} = theory
+
+(*OpenTheoryDebug
+                   val _ = PackageBase.equal name name' orelse
+                           raise Error "wrong name of compiled theory"
+*)
+
+                   val theory =
+                       PackageTheory.Theory
+                         {name = pkg,
+                          imports = imports,
+                          node = node}
+                 in
+                   theory :: theories
+                 end
+
+           val theories = rev theories
+         in
+           theories
+         end
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Graph.packageTheory: " ^ err);
+*)
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory graphs.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
@@ -39,28 +178,6 @@ fun savable (Graph {savable = x, ...}) = x;
 fun theories (Graph {theories = x, ...}) = x;
 
 fun member thy graph = TheorySet.member thy (theories graph);
-
-(* ------------------------------------------------------------------------- *)
-(* Ancestor theories.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-fun parents thy = TheorySet.fromList (Theory.imports thy);
-
-local
-  fun ancsThy acc thy thys =
-      if TheorySet.member thy acc then ancsList acc thys
-      else ancsPar (TheorySet.add acc thy) thy thys
-
-  and ancsPar acc thy thys =
-      ancsList acc (Theory.imports thy @ thys)
-
-  and ancsList acc thys =
-      case thys of
-        [] => acc
-      | thy :: thys => ancsThy acc thy thys;
-in
-  fun ancestors thy = ancsPar TheorySet.empty thy [];
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up theories by package name.                                      *)
@@ -395,68 +512,5 @@ and importTheories graph info =
     in
       List.foldl impThy (graph,env) theories
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Compiling theories to package requirements.                               *)
-(* ------------------------------------------------------------------------- *)
-
-(***
-local
-  fun avoidName s n =
-      let
-        fun avoidNum i =
-            let
-              val ni = n ^ "-" ^ Int.toString i
-            in
-              if StringSet.member ni s then avoidNum (i + 1) else ni
-            end
-      in
-        if StringSet.member n s then avoidNum 1 else n
-      end;
-
-  fun thyName thyImp thy =
-      case TheoryMap.peek thyImp thy of
-        NONE => raise Error "set of theory theories is not closed"
-      | SOME imp => PackageRequire.name imp;
-
-  fun add (thy,(avoid,thyImp)) =
-      case Theory.package thy of
-        NONE => raise Error "theory theory has no package"
-      | SOME pkg =>
-        let
-          val name = avoidName avoid (PackageName.base pkg)
-
-          val avoid = StringSet.add avoid name
-
-          val imps = map (thyName thyImp) (Theory.imports thy)
-
-          val int = Theory.interpretation thy
-
-          val imp =
-              PackageRequire.Require
-                {name = name,
-                 imports = imps,
-                 interpretation = int,
-                 package = pkg}
-
-          val thyImp = TheoryMap.insert thyImp (thy,imp)
-        in
-          (avoid,thyImp)
-        end;
-in
-  fun mkRequires thys =
-      let
-        val avoid = StringSet.empty
-        and thyImp = TheoryMap.new ()
-
-        val (_,thyImp) = TheorySet.foldl add (avoid,thyImp) thys
-      in
-        thyImp
-      end
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Graph.mkRequires: " ^ err);
-*)
-end;
-***)
 
 end

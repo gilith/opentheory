@@ -418,33 +418,22 @@ fun compile {filename} =
                  summary = sum,
                  filename = filename}
             end
-(***
           | TheoryCompileOutput {filename} =>
             let
-              val instReq = Graph.toPamkRequires (Graph.ancestors inst)
-
-              fun instName inst =
-                  case InstanceMap.peek instReq inst of
-                    NONE => raise Bug "unknown theory import"
-                  | SOME req => PackageRequire.name req
-
               val tags = []
 
-              val reqs = InstanceMap.foldr (fn (_,r,l) => r :: l) [] instReq
+              val theories =
+                  Graph.packageTheory {expand = Theory.isPackage} thy
 
-              val thy = Theory.map instName (Instance.theory inst)
-
-              val contents =
-                  PackageContents.Contents
+              val package =
+                  Package.Package
                     {tags = tags,
-                     requires = reqs,
-                     theory = thy}
+                     theories = theories}
             in
-              PackageContents.toTextFile
-                {contents = contents,
+              Package.toTextFile
+                {package = package,
                  filename = filename}
             end
-***)
 
       val () = List.app output outs
 

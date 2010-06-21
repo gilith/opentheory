@@ -38,8 +38,18 @@ val imports : theory -> name list
 val node : theory -> node
 
 (* ------------------------------------------------------------------------- *)
+(* Generating fresh theory names.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val mkName : {avoid : PackageBaseSet.set} -> name -> name
+
+(* ------------------------------------------------------------------------- *)
 (* The main theory.                                                          *)
 (* ------------------------------------------------------------------------- *)
+
+val mainName : name
+
+val isMainName : name -> bool
 
 val isMain : theory -> bool
 
