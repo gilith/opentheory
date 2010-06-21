@@ -315,7 +315,7 @@ and importNode graph info =
 
               val interpretation = Interpretation.compose int interpretation
 
-              val filename = OS.Path.joinDirFile {dir = directory, file = f}
+              val filename = OS.Path.concat (directory,f)
 
               val node =
                   Theory.Article
