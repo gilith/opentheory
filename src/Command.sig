@@ -15,21 +15,28 @@ datatype command =
     Num of int
   | Name of Name.name
   (* Regular commands *)
+  | Abs
   | AbsTerm
+  | App
   | AppTerm
-  | Call
+  | Assume
+  | Axiom
+  | BetaConv
   | Cons
   | Const
   | ConstTerm
+  | DeductAntisym
   | Def
-  | Error
+  | DefineConst
+  | DefineTypeOp
+  | EqMp
   | Nil
   | OpType
   | Pop
   | Ref
+  | Refl
   | Remove
-  | Return
-  | Save
+  | Subst
   | Thm
   | TypeOp
   | Var

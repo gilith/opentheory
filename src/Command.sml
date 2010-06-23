@@ -12,22 +12,29 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val absTermCommandString = "absTerm"
+val absCommandString = "abs"
+and absTermCommandString = "absTerm"
+and appCommandString = "app"
 and appTermCommandString = "appTerm"
-and callCommandString = "call"
+and assumeCommandString = "assume"
+and axiomCommandString = "axiom"
+and betaConvCommandString = "betaConv"
 and consCommandString = "cons"
 and constCommandString = "const"
 and constTermCommandString = "constTerm"
+and deductAntisymCommandString = "deductAntisym"
 and defCommandString = "def"
-and errorCommandString = "error"
+and defineConstCommandString = "defineConst"
+and defineTypeOpCommandString = "defineTypeOp"
+and eqMpCommandString = "eqMp"
 and negationChar = #"-"
 and nilCommandString = "nil"
 and opTypeCommandString = "opType"
 and popCommandString = "pop"
 and refCommandString = "ref"
+and reflCommandString = "refl"
 and removeCommandString = "remove"
-and returnCommandString = "return"
-and saveCommandString = "save"
+and substCommandString = "subst"
 and thmCommandString = "thm"
 and typeVarCommandString = "typeVar"
 and typeOpCommandString = "typeOp"
@@ -44,21 +51,28 @@ datatype command =
     Num of int
   | Name of Name.name
   (* Regular commands *)
+  | Abs
   | AbsTerm
+  | App
   | AppTerm
-  | Call
+  | Assume
+  | Axiom
+  | BetaConv
   | Cons
   | Const
   | ConstTerm
+  | DeductAntisym
   | Def
-  | Error
+  | DefineConst
+  | DefineTypeOp
+  | EqMp
   | Nil
   | OpType
   | Pop
   | Ref
+  | Refl
   | Remove
-  | Return
-  | Save
+  | Subst
   | Thm
   | TypeOp
   | Var
@@ -68,6 +82,34 @@ datatype command =
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
+
+val ppAbsCommand = Print.addString absCommandString
+and ppAbsTermCommand = Print.addString absTermCommandString
+and ppAppCommand = Print.addString appCommandString
+and ppAppTermCommand = Print.addString appTermCommandString
+and ppAssumeCommand = Print.addString assumeCommandString
+and ppAxiomCommand = Print.addString axiomCommandString
+and ppBetaConvCommand = Print.addString betaConvCommandString
+and ppConsCommand = Print.addString consCommandString
+and ppConstCommand = Print.addString constCommandString
+and ppConstTermCommand = Print.addString constTermCommandString
+and ppDeductAntisymCommand = Print.addString deductAntisymCommandString
+and ppDefCommand = Print.addString defCommandString
+and ppDefineConstCommand = Print.addString defineConstCommandString
+and ppDefineTypeOpCommand = Print.addString defineTypeOpCommandString
+and ppEqMpCommand = Print.addString eqMpCommandString
+and ppNilCommand = Print.addString nilCommandString
+and ppOpTypeCommand = Print.addString opTypeCommandString
+and ppPopCommand = Print.addString popCommandString
+and ppRefCommand = Print.addString refCommandString
+and ppReflCommand = Print.addString reflCommandString
+and ppRemoveCommand = Print.addString removeCommandString
+and ppSubstCommand = Print.addString substCommandString
+and ppThmCommand = Print.addString thmCommandString
+and ppTypeOpCommand = Print.addString typeOpCommandString
+and ppVarCommand = Print.addString varCommandString
+and ppVarTermCommand = Print.addString varTermCommandString
+and ppVarTypeCommand = Print.addString varTypeCommandString;
 
 local
   fun ppPos n = Print.ppInt n;
@@ -83,26 +125,33 @@ fun pp cmd =
       Num i => ppNum i
     | Name n => Name.ppQuoted n
     (* Regular commands *)
-    | AbsTerm => Print.ppString absTermCommandString
-    | AppTerm => Print.ppString appTermCommandString
-    | Call => Print.ppString callCommandString
-    | Cons => Print.ppString consCommandString
-    | Const => Print.ppString constCommandString
-    | ConstTerm => Print.ppString constTermCommandString
-    | Def => Print.ppString defCommandString
-    | Error => Print.ppString errorCommandString
-    | Nil => Print.ppString nilCommandString
-    | OpType => Print.ppString opTypeCommandString
-    | Pop => Print.ppString popCommandString
-    | Ref => Print.ppString refCommandString
-    | Remove => Print.ppString removeCommandString
-    | Return => Print.ppString returnCommandString
-    | Save => Print.ppString saveCommandString
-    | Thm => Print.ppString thmCommandString
-    | TypeOp => Print.ppString typeOpCommandString
-    | Var => Print.ppString varCommandString
-    | VarTerm => Print.ppString varTermCommandString
-    | VarType => Print.ppString varTypeCommandString;
+    | Abs => ppAbsCommand
+    | AbsTerm => ppAbsTermCommand
+    | App => ppAppCommand
+    | AppTerm => ppAppTermCommand
+    | Assume => ppAssumeCommand
+    | Axiom => ppAxiomCommand
+    | BetaConv => ppBetaConvCommand
+    | Cons => ppConsCommand
+    | Const => ppConstCommand
+    | ConstTerm => ppConstTermCommand
+    | DeductAntisym => ppDeductAntisymCommand
+    | Def => ppDefCommand
+    | DefineConst => ppDefineConstCommand
+    | DefineTypeOp => ppDefineTypeOpCommand
+    | EqMp => ppEqMpCommand
+    | Nil => ppNilCommand
+    | OpType => ppOpTypeCommand
+    | Pop => ppPopCommand
+    | Ref => ppRefCommand
+    | Refl => ppReflCommand
+    | Remove => ppRemoveCommand
+    | Subst => ppSubstCommand
+    | Thm => ppThmCommand
+    | TypeOp => ppTypeOpCommand
+    | Var => ppVarCommand
+    | VarTerm => ppVarTermCommand
+    | VarType => ppVarTypeCommand;
 
 val toString = Print.toString pp;
 

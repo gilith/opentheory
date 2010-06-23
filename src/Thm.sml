@@ -104,6 +104,22 @@ fun abs v th =
       Thm {axioms = axioms, sequent = sequent}
     end;
 
+fun app th1 th2 =
+    let
+      val Thm {axioms = a1, sequent = s1, ...} = th1
+      and Thm {axioms = a2, sequent = s2, ...} = th2
+      val Sequent.Sequent {hyp = h1, concl = c1} = s1
+      and Sequent.Sequent {hyp = h2, concl = c2} = s2
+      val (l1,r1) = Term.destEq c1
+      and (l2,r2) = Term.destEq c2
+      val axioms = SequentSet.union a1 a2
+      and hyp = TermAlphaSet.union h1 h2
+      and concl = Term.mkEq (Term.mkApp (l1,l2), Term.mkApp (r1,r2))
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
+    in
+      Thm {axioms = axioms, sequent = sequent}
+    end;
+
 fun assume t =
     let
       val _ = Type.equal (Term.typeOf t) Type.bool orelse
@@ -181,6 +197,16 @@ fun eqMp th1 th2 =
       Thm {axioms = axioms, sequent = sequent}
     end;
 
+fun refl t =
+    let
+      val axioms = emptyAxioms
+      and hyp = emptyHyp
+      and concl = Term.mkEq (t,t)
+      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
+    in
+      Thm {axioms = axioms, sequent = sequent}
+    end;
+
 local
   fun subAdd (tm,(set,sub)) =
       let
@@ -202,32 +228,6 @@ in
         Thm {axioms = axioms, sequent = sequent}
       end;
 end;
-
-fun app th1 th2 =
-    let
-      val Thm {axioms = a1, sequent = s1, ...} = th1
-      and Thm {axioms = a2, sequent = s2, ...} = th2
-      val Sequent.Sequent {hyp = h1, concl = c1} = s1
-      and Sequent.Sequent {hyp = h2, concl = c2} = s2
-      val (l1,r1) = Term.destEq c1
-      and (l2,r2) = Term.destEq c2
-      val axioms = SequentSet.union a1 a2
-      and hyp = TermAlphaSet.union h1 h2
-      and concl = Term.mkEq (Term.mkApp (l1,l2), Term.mkApp (r1,r2))
-      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
-    in
-      Thm {axioms = axioms, sequent = sequent}
-    end;
-
-fun refl t =
-    let
-      val axioms = emptyAxioms
-      and hyp = emptyHyp
-      and concl = Term.mkEq (t,t)
-      val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
-    in
-      Thm {axioms = axioms, sequent = sequent}
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Definitions.                                                              *)
