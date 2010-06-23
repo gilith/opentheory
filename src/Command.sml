@@ -197,39 +197,74 @@ local
 
   val nameParser = Name.quotedParser;
 
-  fun commandParser s c = exactString s >> K c;
+  val absCommandParser = exactString absCommandString
+  and absTermCommandParser = exactString absTermCommandString
+  and appCommandParser = exactString appCommandString
+  and appTermCommandParser = exactString appTermCommandString
+  and assumeCommandParser = exactString assumeCommandString
+  and axiomCommandParser = exactString axiomCommandString
+  and betaConvCommandParser = exactString betaConvCommandString
+  and consCommandParser = exactString consCommandString
+  and constCommandParser = exactString constCommandString
+  and constTermCommandParser = exactString constTermCommandString
+  and deductAntisymCommandParser = exactString deductAntisymCommandString
+  and defCommandParser = exactString defCommandString
+  and defineConstCommandParser = exactString defineConstCommandString
+  and defineTypeOpCommandParser = exactString defineTypeOpCommandString
+  and eqMpCommandParser = exactString eqMpCommandString
+  and nilCommandParser = exactString nilCommandString
+  and opTypeCommandParser = exactString opTypeCommandString
+  and popCommandParser = exactString popCommandString
+  and refCommandParser = exactString refCommandString
+  and reflCommandParser = exactString reflCommandString
+  and removeCommandParser = exactString removeCommandString
+  and substCommandParser = exactString substCommandString
+  and thmCommandParser = exactString thmCommandString
+  and typeOpCommandParser = exactString typeOpCommandString
+  and varCommandParser = exactString varCommandString
+  and varTermCommandParser = exactString varTermCommandString
+  and varTypeCommandParser = exactString varTypeCommandString;
 in
   val parser =
       (* Special command parsers *)
       numParser >> Num ||
       nameParser >> Name ||
       (* Regular command parsers are sorted by length to avoid prefix matching *)
+      (* Commands of length 13 *)
+      deductAntisymCommandParser >> K DeductAntisym ||
+      (* Commands of length 12 *)
+      defineTypeOpCommandParser >> K DefineTypeOp ||
+      (* Commands of length 11 *)
+      defineConstCommandParser >> K DefineConst ||
       (* Commands of length 9 *)
-      commandParser constTermCommandString ConstTerm ||
+      constTermCommandParser >> K ConstTerm ||
+      (* Commands of length 8 *)
+      betaConvCommandParser >> K BetaConv ||
       (* Commands of length 7 *)
-      commandParser absTermCommandString AbsTerm ||
-      commandParser appTermCommandString AppTerm ||
-      commandParser varTermCommandString VarTerm ||
-      commandParser varTypeCommandString VarType ||
+      absTermCommandParser >> K AbsTerm ||
+      appTermCommandParser >> K AppTerm ||
+      varTermCommandParser >> K VarTerm ||
+      varTypeCommandParser >> K VarType ||
       (* Commands of length 6 *)
-      commandParser opTypeCommandString OpType ||
-      commandParser removeCommandString Remove ||
-      commandParser returnCommandString Return ||
-      commandParser typeOpCommandString TypeOp ||
+      assumeCommandParser >> K Assume ||
+      opTypeCommandParser >> K OpType ||
+      removeCommandParser >> K Remove ||
+      typeOpCommandParser >> K TypeOp ||
       (* Commands of length 5 *)
-      commandParser constCommandString Const ||
-      commandParser errorCommandString Error ||
+      axiomCommandParser >> K Axiom ||
+      constCommandParser >> K Const ||
       (* Commands of length 4 *)
-      commandParser callCommandString Call ||
-      commandParser consCommandString Cons ||
-      commandParser saveCommandString Save ||
+      consCommandParser >> K Cons ||
+      eqMpCommandParser >> K EqMp ||
       (* Commands of length 3 *)
-      commandParser defCommandString Def ||
-      commandParser nilCommandString Nil ||
-      commandParser popCommandString Pop ||
-      commandParser refCommandString Ref ||
-      commandParser thmCommandString Thm ||
-      commandParser varCommandString Var;
+      absCommandParser >> K Abs ||
+      appCommandParser >> K App ||
+      defCommandParser >> K Def ||
+      nilCommandParser >> K Nil ||
+      popCommandParser >> K Pop ||
+      refCommandParser >> K Ref ||
+      thmCommandParser >> K Thm ||
+      varCommandParser >> K Var;
 
   val spacedParser =
       (manySpace ++ parser ++ manySpace) >> (fn ((),(t,())) => [t]);
