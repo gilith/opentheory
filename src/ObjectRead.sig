@@ -12,7 +12,6 @@ sig
 
 type parameters =
      {known : ObjectThms.thms,
-      simulations : Simulation.simulations,
       interpretation : Interpretation.interpretation,
       savable : bool}
 
@@ -30,7 +29,7 @@ val stack : state -> ObjectStack.stack
 
 val dict : state -> ObjectDict.dict
 
-val saved : state -> ObjectThms.thms
+val thms : state -> Thm.thm ObjectProvMap.map
 
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)

@@ -93,4 +93,25 @@ fun pop2 stack =
         end
     end;
 
+fun pop3 stack =
+    let
+      val Stack {size, objects = objs} = stack
+    in
+      case objs of
+        [] => raise Error "ObjectStack.pop3: empty"
+      | [_] => raise Error "ObjectStack.pop3: singleton"
+      | [_,_] => raise Error "ObjectStack.pop3: doubleton"
+      | obj0 :: obj1 :: obj2 :: objs =>
+        let
+          val size = size - 3
+
+          val stack =
+              Stack
+                {size = size,
+                 objects = objs}
+        in
+          (stack,obj2,obj1,obj0)
+        end
+    end;
+
 end

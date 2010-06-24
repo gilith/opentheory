@@ -9,27 +9,13 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Building objects using data in another object.                            *)
-(* ------------------------------------------------------------------------- *)
-
-fun buildObject savable obj =
-    let
-      val thms = ObjectThms.singleton obj
-
-      fun search th =
-          case ObjectThms.search thms (Thm.sequent th) of
-            SOME (_,_,objS) => ObjectProv.Ialpha objS
-          | NONE => raise Error ("couldn't find theorem:\n" ^ Thm.toString th)
-    in
-      ObjectProv.build savable search
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Profiling inference functions.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 (*OpenTheoryDebug
-datatype inferenceCount = InferenceCount of int NameMap.map;
+datatype inferenceCount = InferenceCount of int CommandMap.map;
+
+val newInferenceCount = InferenceCount (CommandMap.new ());
 
 fun incrementInferenceCount (InferenceCount m) n =
     let
@@ -93,8 +79,7 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
-     {simulations : Simulation.simulations,
-      known : ObjectThms.thms,
+     {known : ObjectThms.thms,
       interpretation : Interpretation.interpretation,
       savable : bool};
 
@@ -107,7 +92,7 @@ datatype state =
       {parameters : parameters,
        stack : ObjectStack.stack,
        dict : ObjectDict.dict,
-       saved : ObjectThms.thms};
+       thms : Thm.thm ObjectProvMap.map};
 
 fun initial parameters =
     let
@@ -115,13 +100,13 @@ fun initial parameters =
 
       val dict = ObjectDict.empty
 
-      val saved = ObjectThms.empty
+      val thms = ObjectProvMap.new ()
     in
       State
         {parameters = parameters,
          stack = stack,
          dict = dict,
-         saved = saved}
+         thms = thms}
     end;
 
 fun parameters (State {parameters = x, ...}) = x;
@@ -130,7 +115,7 @@ fun stack (State {stack = x, ...}) = x;
 
 fun dict (State {dict = x, ...}) = x;
 
-fun saved (State {saved = x, ...}) = x;
+fun thms (State {thms = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)
@@ -138,8 +123,13 @@ fun saved (State {saved = x, ...}) = x;
 
 fun execute cmd state =
     let
-      val State {parameters,stack,dict,saved} = state
-      val {simulations,known,interpretation,savable} = parameters
+      val State {parameters,stack,dict,thms} = state
+
+      val {known,interpretation,savable} = parameters
+
+(*OpenTheoryDebug
+      val () = incrementTheInferenceCount cmd
+*)
     in
       case cmd of
       (* SPECIAL COMMANDS *)
@@ -156,7 +146,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Names *)
@@ -171,7 +161,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* REGULAR COMMANDS *)
@@ -182,7 +172,7 @@ fun execute cmd state =
         let
           val (stack,objV,objB) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkAbsTerm objV objB
+          val obj = ObjectProv.mkAbsTerm {savable = savable} objV objB
 
           val stack = ObjectStack.push stack obj
         in
@@ -190,7 +180,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Function application terms *)
@@ -199,7 +189,7 @@ fun execute cmd state =
         let
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkAppTerm objF objA
+          val obj = ObjectProv.mkAppTerm {savable = savable} objF objA
 
           val stack = ObjectStack.push stack obj
         in
@@ -207,9 +197,38 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
+      (* Axioms *)
+
+      | Command.Axiom =>
+        let
+          val (stack,objH,objC) = ObjectStack.pop2 stack
+
+          val seq =
+              let
+                val obH = ObjectProv.object objH
+                and obC = ObjectProv.object objC
+              in
+                Object.destSeq (obH,obC)
+              end
+
+          val obj =
+              case ObjectThms.peekThm known seq of
+                SOME x => x
+              | NONE => ObjectProv.mkAxiom {savable = savable} objH objC seq
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
+(***
       (* Function calls *)
 
       | Command.Call =>
@@ -292,8 +311,9 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
+***)
 
       (* Cons lists *)
 
@@ -301,7 +321,7 @@ fun execute cmd state =
         let
           val (stack,objH,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkCons objH objT
+          val obj = ObjectProv.mkCons {savable = savable} objH objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -309,27 +329,22 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Constants *)
 
       | Command.Const =>
         let
-          val (stack,objN) = ObjectStack.pop1 stack
+          val (stack,objN) = ObjectStack.pop stack
 
           val n = Object.destName (ObjectProv.object objN)
           val n = Interpretation.interpretConst interpretation n
 
-          val symbols =
-              [ObjectThms.symbol known,
-               ObjectThms.symbol saved,
-               ObjectStack.symbol stack,
-               ObjectStack.symbolSimulation stack]
-
-          val c = Symbol.mkConst symbols n
-
-          val obj = ObjectProv.mkConst c
+          val obj =
+              case ObjectThms.peekConst known n of
+                SOME x => x
+              | NONE => ObjectProv.mkConst (Const.mkUndef n)
 
           val stack = ObjectStack.push stack obj
         in
@@ -337,7 +352,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Constant terms *)
@@ -346,7 +361,7 @@ fun execute cmd state =
         let
           val (stack,objC,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkConstTerm objC objT
+          val obj = ObjectProv.mkConstTerm {savable = savable} objC objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -354,23 +369,18 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Dictionary definitions *)
 
       | Command.Def =>
         let
-          val (stack,objI) = ObjectStack.pop1 stack
-          val obI = ObjectProv.object objI
+          val (stack,objI) = ObjectStack.pop stack
 
-          val objD = ObjectStack.peek stack 0
-          val obD = ObjectProv.object objD
+          val objD = ObjectStack.peek stack
 
-          val _ = not (Object.isCall obD) orelse
-                  raise Error "cannot define a Call object"
-
-          val i = Object.destInt obI
+          val i = Object.destNum (ObjectProv.object objI)
 
           val dict = ObjectDict.define dict (i,objD)
         in
@@ -378,29 +388,14 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
-        end
-
-      (* Errors *)
-
-      | Command.Error =>
-        let
-          val obj = ObjectProv.mkError ()
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Empty lists *)
 
       | Command.Nil =>
         let
-          val obj = ObjectProv.mkNil ()
+          val obj = ObjectProv.mkNil
 
           val stack = ObjectStack.push stack obj
         in
@@ -408,7 +403,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Type operator types *)
@@ -417,7 +412,7 @@ fun execute cmd state =
         let
           val (stack,objT,objL) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkOpType objT objL
+          val obj = ObjectProv.mkOpType {savable = savable} objT objL
 
           val stack = ObjectStack.push stack obj
         in
@@ -425,33 +420,31 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Popping the stack *)
 
       | Command.Pop =>
         let
-          val stack = ObjectStack.pop stack 1
+          val (stack,_) = ObjectStack.pop stack
         in
           State
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Dictionary lookups *)
 
       | Command.Ref =>
         let
-          val (stack,objI) = ObjectStack.pop1 stack
+          val (stack,objI) = ObjectStack.pop stack
 
-          val i = Object.destInt (ObjectProv.object objI)
+          val i = Object.destNum (ObjectProv.object objI)
 
-          val objD = ObjectDict.refer dict i
-
-          val obj = ObjectProv.mkRef {savable = savable} objD
+          val obj = ObjectDict.refer dict i
 
           val stack = ObjectStack.push stack obj
         in
@@ -459,20 +452,18 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Dictionary removals *)
 
       | Command.Remove =>
         let
-          val (stack,objI) = ObjectStack.pop1 stack
+          val (stack,objI) = ObjectStack.pop stack
 
-          val i = Object.destInt (ObjectProv.object objI)
+          val i = Object.destNum (ObjectProv.object objI)
 
-          val (dict,objD) = ObjectDict.remove dict i
-
-          val obj = ObjectProv.mkRemove {savable = savable} objD
+          val (dict,obj) = ObjectDict.remove dict i
 
           val stack = ObjectStack.push stack obj
         in
@@ -480,9 +471,10 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
+(***
       (* Function call returns *)
 
       | Command.Return =>
@@ -528,94 +520,50 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
+***)
 
       (* Saving theorems *)
 
-      | Command.Save =>
-        let
-          val objT = ObjectStack.peek stack 0
-
-          val _ = Object.isThm (ObjectProv.object objT) orelse
-                  raise Error "can only save Thm objects"
-
-          val saved = ObjectThms.add saved objT
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             saved = saved}
-        end
-
-      (* Theorems *)
-
       | Command.Thm =>
         let
-          val (stack,objH,objC) = ObjectStack.pop2 stack
+          val (stack,objT,objH,objC) = ObjectStack.pop3 stack
 
-          val seq =
+          val th =
               let
-                val obH = ObjectProv.object objH
+                val obT = ObjectProv.object objT
+                and obH = ObjectProv.object objH
                 and obC = ObjectProv.object objC
+
+                val t = Object.destThm obT
+                and seq = Object.destSeq (obH,obC)
               in
-                Object.destSeq (obH,obC)
+                Rule.alpha seq t
               end
 
-          val (th,inf) =
-              case ObjectThms.search saved seq of
-                SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
-              | NONE =>
-                case ObjectStack.searchSimulation stack seq of
-                  SOME (th,objS) => (th, ObjectProv.Isimulated objS)
-                | NONE =>
-                  case ObjectStack.search stack seq of
-                    SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
-                  | NONE =>
-                    case ObjectThms.search known seq of
-                      SOME (th,_,objS) => (th, ObjectProv.Ialpha objS)
-                    | NONE =>
-                      let
-                        val th = Thm.axiom seq
-(*OpenTheoryTrace1
-                        val () = trace ("making new axiom in " ^
-                                        ObjectStack.topCallToString stack ^
-                                        ":\n" ^ Thm.toString th ^ "\n")
-*)
-                      in
-                        (th,ObjectProv.Iaxiom)
-                      end
-
-          val obj = ObjectProv.mkThm {savable = savable} th inf
-
-          val stack = ObjectStack.push stack obj
+          val thms = ObjectProvMap.insert thms (objT,th)
         in
           State
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Type operators *)
 
       | Command.TypeOp =>
         let
-          val (stack,objN) = ObjectStack.pop1 stack
+          val (stack,objN) = ObjectStack.pop stack
 
           val n = Object.destName (ObjectProv.object objN)
           val n = Interpretation.interpretTypeOp interpretation n
 
-          val symbols =
-              [ObjectThms.symbol known,
-               ObjectThms.symbol saved,
-               ObjectStack.symbol stack,
-               ObjectStack.symbolSimulation stack]
-
-          val ot = Symbol.mkTypeOp symbols n
-
-          val obj = ObjectProv.mkTypeOp ot
+          val obj =
+              case ObjectThms.peekTypeOp known n of
+                SOME x => x
+              | NONE => ObjectProv.mkTypeOp (TypeOp.mkUndef n)
 
           val stack = ObjectStack.push stack obj
         in
@@ -623,7 +571,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Term variables *)
@@ -632,7 +580,7 @@ fun execute cmd state =
         let
           val (stack,objN,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkVar objN objT
+          val obj = ObjectProv.mkVar {savable = savable} objN objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -640,16 +588,16 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Term variable terms *)
 
       | Command.VarTerm =>
         let
-          val (stack,objV) = ObjectStack.pop1 stack
+          val (stack,objV) = ObjectStack.pop stack
 
-          val obj = ObjectProv.mkVarTerm objV
+          val obj = ObjectProv.mkVarTerm {savable = savable} objV
 
           val stack = ObjectStack.push stack obj
         in
@@ -657,14 +605,14 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
 
       (* Type variable types *)
 
       | Command.VarType =>
         let
-          val (stack,objN) = ObjectStack.pop1 stack
+          val (stack,objN) = ObjectStack.pop stack
 
           val obj = ObjectProv.mkVarType objN
 
@@ -674,7 +622,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             saved = saved}
+             thms = thms}
         end
     end
     handle Error err =>

@@ -14,42 +14,42 @@ open Useful;
 
 datatype context =
     Context of
-      {symbols : Symbol.symbol,
+      {symbol : Symbol.symbol,
        sequents : SequentSet.set};
 
 val empty =
     Context
-      {symbols = Symbol.empty,
+      {symbol = Symbol.empty,
        sequents = SequentSet.empty};
 
-fun symbols (Context {symbols = s, ...}) = s;
+fun symbol (Context {symbol = x, ...}) = x;
 
-fun sequents (Context {sequents = s, ...}) = s;
+fun sequents (Context {sequents = x, ...}) = x;
 
 fun addSequent cxt seq =
     let
-      val Context {symbols,sequents} = cxt
+      val Context {symbol,sequents} = cxt
     in
       if SequentSet.member seq sequents then cxt
       else
         let
-          val symbols = Symbol.addSequent symbols seq
+          val symbol = Symbol.addSequent symbol seq
           val sequents = SequentSet.add sequents seq
         in
           Context
-            {symbols = symbols,
+            {symbol = symbol,
              sequents = sequents}
         end
     end;
 
 fun addSequentSet cxt seqs =
     let
-      val Context {symbols,sequents} = cxt
-      val symbols = Symbol.addSequentSet symbols seqs
+      val Context {symbol,sequents} = cxt
+      val symbol = Symbol.addSequentSet symbol seqs
       val sequents = SequentSet.union sequents seqs
     in
       Context
-        {symbols = symbols,
+        {symbol = symbol,
          sequents = sequents}
     end;
 

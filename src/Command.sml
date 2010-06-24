@@ -80,6 +80,98 @@ datatype command =
   | VarType;
 
 (* ------------------------------------------------------------------------- *)
+(* A total ordering.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun compare cmd1_cmd2 =
+    case cmd1_cmd2 of
+      (Num n1, Num n2) => Int.compare (n1,n2)
+    | (Num _, _) => LESS
+    | (_, Num _) => GREATER
+    | (Name n1, Name n2) => Name.compare (n1,n2)
+    | (Name _, _) => LESS
+    | (_, Name _) => GREATER
+    | (Abs,Abs) => EQUAL
+    | (Abs,_) => LESS
+    | (_,Abs) => GREATER
+    | (AbsTerm,AbsTerm) => EQUAL
+    | (AbsTerm,_) => LESS
+    | (_,AbsTerm) => GREATER
+    | (App,App) => EQUAL
+    | (App,_) => LESS
+    | (_,App) => GREATER
+    | (AppTerm,AppTerm) => EQUAL
+    | (AppTerm,_) => LESS
+    | (_,AppTerm) => GREATER
+    | (Assume,Assume) => EQUAL
+    | (Assume,_) => LESS
+    | (_,Assume) => GREATER
+    | (Axiom,Axiom) => EQUAL
+    | (Axiom,_) => LESS
+    | (_,Axiom) => GREATER
+    | (BetaConv,BetaConv) => EQUAL
+    | (BetaConv,_) => LESS
+    | (_,BetaConv) => GREATER
+    | (Cons,Cons) => EQUAL
+    | (Cons,_) => LESS
+    | (_,Cons) => GREATER
+    | (Const,Const) => EQUAL
+    | (Const,_) => LESS
+    | (_,Const) => GREATER
+    | (ConstTerm,ConstTerm) => EQUAL
+    | (ConstTerm,_) => LESS
+    | (_,ConstTerm) => GREATER
+    | (DeductAntisym,DeductAntisym) => EQUAL
+    | (DeductAntisym,_) => LESS
+    | (_,DeductAntisym) => GREATER
+    | (Def,Def) => EQUAL
+    | (Def,_) => LESS
+    | (_,Def) => GREATER
+    | (DefineConst,DefineConst) => EQUAL
+    | (DefineConst,_) => LESS
+    | (_,DefineConst) => GREATER
+    | (DefineTypeOp,DefineTypeOp) => EQUAL
+    | (DefineTypeOp,_) => LESS
+    | (_,DefineTypeOp) => GREATER
+    | (EqMp,EqMp) => EQUAL
+    | (EqMp,_) => LESS
+    | (_,EqMp) => GREATER
+    | (Nil,Nil) => EQUAL
+    | (Nil,_) => LESS
+    | (_,Nil) => GREATER
+    | (OpType,OpType) => EQUAL
+    | (OpType,_) => LESS
+    | (_,OpType) => GREATER
+    | (Pop,Pop) => EQUAL
+    | (Pop,_) => LESS
+    | (_,Pop) => GREATER
+    | (Ref,Ref) => EQUAL
+    | (Ref,_) => LESS
+    | (_,Ref) => GREATER
+    | (Refl,Refl) => EQUAL
+    | (Refl,_) => LESS
+    | (_,Refl) => GREATER
+    | (Remove,Remove) => EQUAL
+    | (Remove,_) => LESS
+    | (_,Remove) => GREATER
+    | (Subst,Subst) => EQUAL
+    | (Subst,_) => LESS
+    | (_,Subst) => GREATER
+    | (Thm,Thm) => EQUAL
+    | (Thm,_) => LESS
+    | (_,Thm) => GREATER
+    | (TypeOp,TypeOp) => EQUAL
+    | (TypeOp,_) => LESS
+    | (_,TypeOp) => GREATER
+    | (Var,Var) => EQUAL
+    | (Var,_) => LESS
+    | (_,Var) => GREATER
+    | (VarTerm,VarTerm) => EQUAL
+    | (VarTerm,_) => LESS
+    | (_,VarTerm) => GREATER
+    | (VarType,VarType) => EQUAL;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -271,3 +363,10 @@ in
 end;
 
 end
+
+structure CommandOrdered =
+struct type t = Command.command val compare = Command.compare end
+
+structure CommandSet = ElementSet (CommandOrdered)
+
+structure CommandMap = KeyMap (CommandOrdered)

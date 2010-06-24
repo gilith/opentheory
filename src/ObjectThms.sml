@@ -108,10 +108,7 @@ in
                             end
                         | _ => otO_conO
 
-                    val objs =
-                        case ObjectProv.provenance obj of
-                          ObjectProv.Default => objs
-                        | ObjectProv.Command {arguments,...} => arguments @ objs
+                    val objs = ObjectProv.parents obj @ objs
                   in
                     adds seen otO_conO objs
                   end

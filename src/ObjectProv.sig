@@ -13,20 +13,30 @@ sig
 type object
 
 (* ------------------------------------------------------------------------- *)
-(* Constructors and destructors.                                             *)
+(* A type of provenances.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 datatype provenance =
     Default
-  | Command of
+  | Special of
       {command : Command.command,
        arguments : object list,
        result : int}
+
+val isDefaultProvenance : provenance -> bool
+
+val parentsProvenance : provenance -> object list
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
 
 datatype object' =
     Object' of
       {object : Object.object,
        provenance : provenance}
+
+val mk : object' -> object
 
 val dest : object -> object'
 
@@ -34,78 +44,48 @@ val object : object -> Object.object
 
 val provenance : object -> provenance
 
-(***
+val isDefault : object -> bool
+
 val parents : object -> object list
-
-val isThm : object -> bool
-
-val containsThms : object -> bool
-
-val stackUses : object -> object list
-
-(* ------------------------------------------------------------------------- *)
-(* Symbols contained in objects.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-val symbol : object -> Symbol.symbol
-
-val symbolList : object list -> Symbol.symbol
-
-val symbolAddList : Symbol.symbol -> object list -> Symbol.symbol
-
-(* ------------------------------------------------------------------------- *)
-(* Searching for theorems contained in objects.                              *)
-(* ------------------------------------------------------------------------- *)
-
-val search : object -> Sequent.sequent -> (Thm.thm * object) option
-
-val searchList : object list -> Sequent.sequent -> (Thm.thm * object) option
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
+(* Special commands *)
+
 val mkNum : int -> object
 
 val mkName : Name.name -> object
 
-val mkError : unit -> object
+(* Regular commands *)
 
-val mkNil : unit -> object
+val mkAbsTerm : {savable : bool} -> object -> object -> object
 
-val mkCons : object -> object -> object
-***)
+val mkAppTerm : {savable : bool} -> object -> object -> object
 
-val mkTypeOp : TypeOp.typeOp -> object
+val mkAxiom : {savable : bool} -> object -> object -> Sequent.sequent -> object
 
-(***
-val mkVarType : object -> object
-
-val mkOpType : object -> object -> object
-***)
+val mkCons : {savable : bool} -> object -> object -> object
 
 val mkConst : Const.const -> object
 
+val mkConstTerm : {savable : bool} -> object -> object -> object
+
+val mkNil : object
+
+val mkOpType : {savable : bool} -> object -> object -> object
+
+val mkTypeOp : TypeOp.typeOp -> object
+
+val mkVar : {savable : bool} -> object -> object -> object
+
+val mkVarTerm : {savable : bool} -> object -> object
+
+val mkVarType : object -> object
+
 (***
-val mkVar : object -> object -> object
-
-val mkVarTerm : object -> object
-
-val mkConstTerm : object -> object -> object
-
-val mkAppTerm : object -> object -> object
-
-val mkAbsTerm : object -> object -> object
-
 val mkThm : {savable : bool} -> Thm.thm -> inference -> object
-
-val mkCall : Name.name -> object -> object
-
-val mkReturn : {savable : bool} -> object -> object
-
-val mkRef : {savable : bool} -> object -> object
-
-val mkRemove : {savable : bool} -> object -> object
 
 (* ------------------------------------------------------------------------- *)
 (* Building objects.                                                         *)

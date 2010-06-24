@@ -14,7 +14,7 @@ type context
 
 val empty : context
 
-val symbols : context -> Symbol.symbol
+val symbol : context -> Symbol.symbol
 
 val sequents : context -> SequentSet.set
 

@@ -64,8 +64,8 @@ in
 
         val (inp,def) =
             let
-              val req = Context.symbols requires
-              val prov = Context.symbols provides
+              val req = Context.symbol requires
+              val prov = Context.symbol provides
               val sym = Symbol.union req prov
             in
               Symbol.partitionUndef sym

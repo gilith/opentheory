@@ -9,21 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Object provenance.                                                        *)
-(*                                                                           *)
-(* Invariants *in order of priority*                                         *)
-(*                                                                           *)
-(* 1. The provenance of an Ocall object is Pcall obj, where obj is the       *)
-(*    object that became the call argument.                                  *)
-(*                                                                           *)
-(* 2. Objects do not contain theorems iff they have provenance Pnull.        *)
-(*    [Objects that do not contain theorems can be easily constructed.]      *)
-(*                                                                           *)
-(* 3. The provenance of a theorem object tracks how the theorem was          *)
-(*    inferred:                                                              *)
-(*      Ialpha obj     - alpha equivalent to theorem object obj              *)
-(*      Isimulated obj - simulated inference rule (using the call obj)       *)
-(*      Iaxiom         - asserted as an axiom (a dependency of the theory)   *)
+(* A type of objects that track their provenance.                            *)
 (* ------------------------------------------------------------------------- *)
 
 type id = int;
@@ -40,7 +26,7 @@ and object' =
 
 and provenance =
     Default
-  | Command of
+  | Special of
       {command : Command.command,
        arguments : object list,
        result : int};
@@ -73,18 +59,26 @@ fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
     Int.compare (i1,i2);
 
 (* ------------------------------------------------------------------------- *)
+(* A type of provenances.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun isDefaultProvenance prov =
+    case prov of
+      Default => true
+    | Special _ => false;
+
+fun parentsProvenance prov =
+    case prov of
+      Default => []
+    | Special {arguments,...} => arguments;
+
+(* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun object' (Object' {object = x, ...}) = x;
 
 fun provenance' (Object' {provenance = x, ...}) = x;
-
-fun dest (Object {id = _, object = x}) = x;
-
-fun object obj = object' (dest obj);
-
-fun provenance obj = provenance' (dest obj);
 
 fun mk obj' =
     let
@@ -95,156 +89,17 @@ fun mk obj' =
          object = obj'}
     end;
 
-(***
-(* ------------------------------------------------------------------------- *)
-(* A type of provenances.                                                    *)
-(* ------------------------------------------------------------------------- *)
+fun dest (Object {id = _, object = x}) = x;
 
-fun destCallProvenance prov =
-    case prov of
-      Pcall obj => obj
-    | _ => raise Error "ObjectProv.destCallProvenance";
+fun object obj = object' (dest obj);
 
-fun parentsProvenance prov =
-    case prov of
-      Pnull => []
-    | Pcall obj => [obj]
-    | Pcons (objH,objT) => [objH,objT]
-    | Pref obj => [obj]
-    | Pthm inf => parentsInference inf;
+fun provenance obj = provenance' (dest obj);
 
-fun containsThmsProvenance prov =
-    case prov of
-      Pnull => false
-(*OpenTheoryDebug
-    | Pcall _ => raise Bug "ObjectProv.containsThmsProvenance: Pcall"
-*)
-    | _ => true;
+fun isDefault obj = isDefaultProvenance (provenance obj);
 
-fun stackUsesProvenance prov =
-    case prov of
-      Pnull => []
-    | Pcall obj => [obj]
-    | Pcons (objH,objT) => [objH,objT]
-    | Pref _ => []
-    | Pthm _ => [];
-
-(* ------------------------------------------------------------------------- *)
-(* Destructors.                                                              *)
-(* ------------------------------------------------------------------------- *)
-
-fun dest (obj : object) = obj;
-
-fun object (Object {object = x, ...}) = x;
-
-fun provenance (Object {provenance = x, ...}) = x;
-
-fun destCall obj =
-    let
-      val Object {object = f, provenance = a, ...} = obj
-
-      val f = Object.destCall f
-      and a = destCallProvenance a
-    in
-      (f,a)
-    end;
+fun allDefault objs = List.all isDefault objs;
 
 fun parents obj = parentsProvenance (provenance obj);
-
-fun isThm obj = Object.isThm (object obj);
-
-fun containsThms obj =
-    let
-(*OpenTheoryDebug
-      val _ = not (Object.isCall (object obj)) orelse
-              raise Bug "ObjectProv.containsThms: Call"
-*)
-    in
-      containsThmsProvenance (provenance obj)
-    end;
-
-fun stackUses obj = stackUsesProvenance (provenance obj);
-
-(* ------------------------------------------------------------------------- *)
-(* Symbols contained in objects.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-val symbolAddList =
-    let
-      fun syms seen sym objs =
-          case objs of
-            [] => sym
-          | obj :: objs =>
-            let
-              val Object {id = i, object = ob, provenance = prov, ...} = obj
-            in
-              if IntSet.member i seen then syms seen sym objs
-              else
-                let
-                  val seen = IntSet.add seen i
-                in
-                  case prov of
-                    Pcall _ => syms seen sym objs
-                  | Pcons (objH,objT) => syms seen sym (objH :: objT :: objs)
-                  | Pref objR => syms seen sym (objR :: objs)
-                  | _ =>
-                    let
-                      val sym = Object.symbolAdd sym ob
-                    in
-                      syms seen sym objs
-                    end
-                end
-            end
-    in
-      syms IntSet.empty
-    end;
-
-val symbolList = symbolAddList Symbol.empty;
-
-fun symbol obj = symbolList [obj];
-
-(* ------------------------------------------------------------------------- *)
-(* Searching for theorems contained in objects.                              *)
-(* ------------------------------------------------------------------------- *)
-
-local
-   fun srch seq seen objs =
-       case objs of
-         [] => NONE
-       | obj :: objs =>
-         let
-           val Object {id = i, object = ob, provenance = prov, ...} = obj
-         in
-           if IntSet.member i seen then srch seq seen objs
-           else
-             let
-               val seen = IntSet.add seen i
-             in
-               case prov of
-                 Pnull => srch seq seen objs
-               | Pcall _ => srch seq seen objs
-               | Pcons (objH,objT) => srch seq seen (objH :: objT :: objs)
-               | Pref objR => srch seq seen (objR :: objs)
-               | Pthm _ =>
-                 let
-                   val th =
-                       case ob of
-                         Object.Thm th => th
-                       | _ => raise Bug "ObjectProv.searchList: bad thm"
-                 in
-                   if Sequent.equal seq (Thm.sequent th) then
-                     SOME (Rule.alpha seq th, obj)
-                   else
-                     srch seq seen objs
-                 end
-             end
-         end;
-in
-  fun searchList objs seq = srch seq IntSet.empty objs;
-end;
-
-fun search obj seq = searchList [obj] seq;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
@@ -254,260 +109,258 @@ fun mkProv ob prov = mk (Object' {object = ob, provenance = prov});
 
 fun mkDefault ob = mkProv ob Default;
 
-(***
-fun mkNum i =
+(* Special commands *)
+
+fun mkNum i = mkDefault (Object.Num i);
+
+fun mkName n = mkDefault (Object.Name n);
+
+(* Regular commands *)
+
+fun mkAbsTerm {savable} objV objB =
     let
-      val ob = Object.Int i
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end;
-
-fun mkName n =
-    let
-      val ob = Object.Name n
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end;
-
-fun mkError () =
-    let
-      val ob = Object.Error
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end;
-
-fun mkNil () =
-    let
-      val ob = Object.List []
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end;
-
-fun mkCons objH objT =
-    let
-      val Object {object = obH, ...} = objH
-      and Object {object = obT, ...} = objT
-
-      val _ = not (Object.isCall obH) orelse
-              raise Error "head argument cannot be a Call object"
+      val obV = object objV
+      and obB = object objB
 
       val ob =
-          case obT of
-            Object.List l => Object.List (obH :: l)
-          | _ => raise Error "tail argument must be a list object"
+          let
+            val v = Object.destVar obV
+            and b = Object.destTerm obB
+          in
+            Object.Term (Term.mkAbs (v,b))
+          end
+
+      val args = [objV,objB]
 
       val prov =
-          if containsThms objH orelse containsThms objT then Pcons (objH,objT)
-          else Pnull
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.AbsTerm,
+               arguments = args,
+               result = 0}
     in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkCons: " ^ err);
-*)
-***)
-
-fun mkTypeOp ot = mkDefault (Object.TypeOp ot);
-
-(***
-fun mkVarType objN =
-    let
-      val Object {object = obN, ...} = objN
-
-      val ob =
-          case obN of
-            Object.Name n => Object.mkVarType n
-          | _ => raise Error "argument must be a name object"
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkVarType: " ^ err);
-*)
-
-fun mkOpType objO objL =
-    let
-      val Object {object = obO, ...} = objO
-      and Object {object = obL, ...} = objL
-
-      val ob =
-          case obO of
-            Object.TypeOp ot =>
-            let
-              val tys = Object.destTypes obL
-            in
-              Object.mkOpType (ot,tys)
-            end
-          | _ => raise Error "first argument must be a type operator object"
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkOpType: " ^ err);
-*)
-***)
-
-fun mkConst con = mkDefault (Object.Const con);
-
-(***
-fun mkVar objN objT =
-    let
-      val Object {object = obN, ...} = objN
-      and Object {object = obT, ...} = objT
-
-      val ob =
-          case obN of
-            Object.Name n =>
-            (case obT of
-               Object.Type ty => Object.Var (Var.mk (n,ty))
-             | _ => raise Error "second argument must be a type object")
-          | _ => raise Error "first argument must be a name object"
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkVar: " ^ err);
-*)
-
-fun mkVarTerm objV =
-    let
-      val Object {object = obV, ...} = objV
-
-      val ob =
-          case obV of
-            Object.Var v => Object.Term (Term.mkVar v)
-          | _ => raise Error "argument must be a var object"
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkVarTerm: " ^ err);
-*)
-
-fun mkConstTerm objC objT =
-    let
-      val Object {object = obC, ...} = objC
-      and Object {object = obT, ...} = objT
-
-      val ob =
-          case obC of
-            Object.Const c =>
-            (case obT of
-               Object.Type ty => Object.Term (Term.mkConst (c,ty))
-             | _ => raise Error "second argument must be a type object")
-          | _ => raise Error "first argument must be a const object"
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkConstTerm: " ^ err);
-*)
-
-fun mkAppTerm objF objA =
-    let
-      val Object {object = obF, ...} = objF
-      and Object {object = obA, ...} = objA
-
-      val ob =
-          case obF of
-            Object.Term f =>
-            (case obA of
-               Object.Term a => Object.Term (Term.mkApp (f,a))
-             | _ => raise Error "second argument must be a term object")
-          | _ => raise Error "first argument must be a term object"
-
-      val prov = Pnull
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAppTerm: " ^ err);
-*)
-
-fun mkAbsTerm objV objB =
-    let
-      val Object {object = obV, ...} = objV
-      and Object {object = obB, ...} = objB
-
-      val ob =
-          case obV of
-            Object.Var v =>
-            (case obB of
-               Object.Term b => Object.Term (Term.mkAbs (v,b))
-             | _ => raise Error "second argument must be a term object")
-          | _ => raise Error "first argument must be a var object"
-
-      val prov = Pnull
-    in
-      mk ob prov
+      mkProv ob prov
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("ObjectProv.mkAbsTerm: " ^ err);
 *)
 
-fun mkThm {savable} th inf =
+fun mkAppTerm {savable} objF objA =
     let
-      val ob = Object.Thm th
+      val obF = object objF
+      and obA = object objA
 
-      val prov = Pthm (if savable then inf else Iaxiom)
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkThm: " ^ err);
-*)
+      val ob =
+          let
+            val f = Object.destTerm obF
+            and a = Object.destTerm obA
+          in
+            Object.Term (Term.mkApp (f,a))
+          end
 
-fun mkCall n objA =
-    let
-      val ob = Object.Call n
-
-      val prov = Pcall objA
-    in
-      mk ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkCall: " ^ err);
-*)
-
-fun mkReturn {savable} objR =
-    let
-      val Object {object = obR, provenance = provR, ...} = objR
-
-      val ob = obR
+      val args = [objF,objA]
 
       val prov =
-          if not (containsThms objR) then Pnull
-          else if savable then Pref objR
-          else provR
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.AppTerm,
+               arguments = args,
+               result = 0}
     in
-      mk ob prov
+      mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkReturn: " ^ err);
+    handle Error err => raise Error ("ObjectProv.mkAppTerm: " ^ err);
 *)
 
-val mkRef = mkReturn;
+fun mkAxiom {savable} objH objC seq =
+    let
+      val ob = Object.Thm (Thm.axiom seq)
 
-val mkRemove = mkRef;
+      val args = [objH,objC]
 
+      val prov =
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.Axiom,
+               arguments = args,
+               result = 0}
+    in
+      mkProv ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkAppTerm: " ^ err);
+*)
+
+fun mkCons {savable} objH objT =
+    let
+      val obH = object objH
+      and obT = object objT
+
+      val ob =
+          let
+            val l = Object.destList obT
+          in
+            Object.List (obH :: l)
+          end
+
+      val args = [objH,objT]
+
+      val prov =
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.Cons,
+               arguments = args,
+               result = 0}
+    in
+      mkProv ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkCons: " ^ err);
+*)
+
+fun mkConst c = mkDefault (Object.Const c);
+
+fun mkConstTerm {savable} objC objT =
+    let
+      val obC = object objC
+      and obT = object objT
+
+      val ob =
+          let
+            val c = Object.destConst obC
+            and ty = Object.destType obT
+          in
+            Object.Term (Term.mkConst (c,ty))
+          end
+
+      val args = [objC,objT]
+
+      val prov =
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.ConstTerm,
+               arguments = args,
+               result = 0}
+    in
+      mkProv ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkConstTerm: " ^ err);
+*)
+
+val mkNil = mkDefault (Object.List []);
+
+fun mkOpType {savable} objO objL =
+    let
+      val obO = object objO
+      and obL = object objL
+
+      val ob =
+          let
+            val ot = Object.destTypeOp obO
+            and tys = Object.destTypes obL
+          in
+            Object.mkOpType (ot,tys)
+          end
+
+      val args = [objO,objL]
+
+      val prov =
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.OpType,
+               arguments = args,
+               result = 0}
+    in
+      mkProv ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkOpType: " ^ err);
+*)
+
+fun mkTypeOp ot = mkDefault (Object.TypeOp ot);
+
+fun mkVar {savable} objN objT =
+    let
+      val obN = object objN
+      and obT = object objT
+
+      val ob =
+          let
+            val n = Object.destName obN
+            and ty = Object.destType obT
+          in
+            Object.Var (Var.mk (n,ty))
+          end
+
+      val args = [objN,objT]
+
+      val prov =
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.Var,
+               arguments = args,
+               result = 0}
+    in
+      mkProv ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkVar: " ^ err);
+*)
+
+fun mkVarTerm {savable} objV =
+    let
+      val obV = object objV
+
+      val ob =
+          let
+            val v = Object.destVar obV
+          in
+            Object.Term (Term.mkVar v)
+          end
+
+      val args = [objV]
+
+      val prov =
+          if not savable orelse allDefault args then Default
+          else
+            Special
+              {command = Command.VarTerm,
+               arguments = args,
+               result = 0}
+    in
+      mkProv ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkVarTerm: " ^ err);
+*)
+
+fun mkVarType objN =
+    let
+      val obN = object objN
+
+      val ob =
+          let
+            val n = Object.destName obN
+          in
+            Object.mkVarType n
+          end
+    in
+      mkDefault ob
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkVarType: " ^ err);
+*)
+
+(***
 (* ------------------------------------------------------------------------- *)
 (* Building objects.                                                         *)
 (* ------------------------------------------------------------------------- *)

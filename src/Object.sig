@@ -201,7 +201,7 @@ val symbolAddList : Symbol.symbol -> object list -> Symbol.symbol
 (* Breaking down objects into commands.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val toCommand : object -> Command.command * object list
+val command : object -> Command.command * object list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

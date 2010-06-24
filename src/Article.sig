@@ -14,7 +14,7 @@ type article
 
 val empty : article
 
-val saved : article -> ThmSet.set
+val thms : article -> Thms.thms
 
 val savable : article -> bool
 
@@ -33,7 +33,6 @@ val unionList : article list -> article
 val fromTextFile :
     {savable : bool,
      known : article,
-     simulations : Simulation.simulations,
      interpretation : Interpretation.interpretation,
      filename : string} ->
     article

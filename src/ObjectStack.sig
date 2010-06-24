@@ -26,4 +26,7 @@ val pop : stack -> stack * ObjectProv.object
 
 val pop2 : stack -> stack * ObjectProv.object * ObjectProv.object
 
+val pop3 :
+    stack -> stack * ObjectProv.object * ObjectProv.object * ObjectProv.object
+
 end

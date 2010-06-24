@@ -328,7 +328,7 @@ val symbol = symbolAdd Symbol.empty;
 (* Breaking down objects into commands.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun toCommand ob =
+fun command ob =
     case ob of
       Num i => (Command.Num i, [])
     | Name n => (Command.Name n, [])
