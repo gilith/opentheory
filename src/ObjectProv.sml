@@ -28,25 +28,22 @@ open Useful;
 
 type id = int;
 
-datatype object' =
+datatype object =
     Object of
       {id : id,
-       object : Object.object,
+       object : object'}
+
+and object' =
+    Object' of
+      {object : Object.object,
        provenance : provenance}
 
 and provenance =
-    Pnull
-  | Pcall of object'
-  | Pcons of object' * object'
-  | Pref of object'
-  | Pthm of inference
-
-and inference =
-    Ialpha of object'
-  | Isimulated of object'
-  | Iaxiom;
-
-type object = object';
+    Default
+  | Command of
+      {command : Command.command,
+       arguments : object list,
+       result : int};
 
 (* ------------------------------------------------------------------------- *)
 (* Object IDs.                                                               *)
@@ -76,15 +73,20 @@ fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
     Int.compare (i1,i2);
 
 (* ------------------------------------------------------------------------- *)
-(* A type of inferences.                                                     *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun parentsInference inf =
-    case inf of
-      Ialpha obj => [obj]
-    | Isimulated obj => [obj]
-    | Iaxiom => [];
+fun object' (Object' {object = x, ...}) = x;
 
+fun provenance' (Object' {provenance = x, ...}) = x;
+
+fun dest (Object {id = _, object = x}) = x;
+
+fun object obj = object' (dest obj);
+
+fun provenance obj = provenance' (dest obj);
+
+(***
 (* ------------------------------------------------------------------------- *)
 (* A type of provenances.                                                    *)
 (* ------------------------------------------------------------------------- *)
@@ -720,6 +722,7 @@ and ppInference level inf =
          pp level obj,
          Print.addString ")"]
     | Iaxiom => Print.addString "Iaxiom";
+***)
 end
 
 structure ObjectProvOrdered =
@@ -734,6 +737,7 @@ in
   open S;
 end;
 
+(***
 local
   fun add (obj,set) =
       let
@@ -1012,6 +1016,7 @@ val toGreatestUseList =
     in
       foldr findUses (empty,[])
     end;
+***)
 
 end
 

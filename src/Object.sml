@@ -13,8 +13,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 datatype object =
-    Error
-  | Int of int
+    Num of int
   | Name of Name.name
   | TypeOp of TypeOp.typeOp
   | Type of Type.ty
@@ -22,37 +21,27 @@ datatype object =
   | Var of Var.var
   | Term of Term.term
   | Thm of Thm.thm
-  | List of object list
-  | Call of Name.name;
+  | List of object list;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-(* Error objects *)
+(* Num objects *)
 
-fun destError ob =
+fun destNum ob =
     case ob of
-      Error => ()
-    | _ => raise Useful.Error "destError";
+      Num i => i
+    | _ => raise Error "destNum";
 
-val isError = can destError;
-
-(* Int objects *)
-
-fun destInt ob =
-    case ob of
-      Int i => i
-    | _ => raise Useful.Error "destInt";
-
-val isInt = can destInt;
+val isNum = can destNum;
 
 (* Name objects *)
 
 fun destName ob =
     case ob of
       Name n => n
-    | _ => raise Useful.Error "destName";
+    | _ => raise Error "destName";
 
 val isName = can destName;
 
@@ -61,7 +50,7 @@ val isName = can destName;
 fun destList ob =
     case ob of
       List l => l
-    | _ => raise Useful.Error "destList";
+    | _ => raise Error "destList";
 
 val isList = can destList;
 
@@ -83,7 +72,7 @@ fun mkPair (x,y) = List [x,y];
 fun destPair ob =
     case ob of
       List [x,y] => (x,y)
-    | _ => raise Useful.Error "Object.destPair";
+    | _ => raise Error "Object.destPair";
 
 val isPair = can destPair;
 
@@ -94,7 +83,7 @@ fun mkTriple (x,y,z) = List [x,y,z];
 fun destTriple ob =
     case ob of
       List [x,y,z] => (x,y,z)
-    | _ => raise Useful.Error "Object.destTriple";
+    | _ => raise Error "Object.destTriple";
 
 val isTriple = can destTriple;
 
@@ -103,7 +92,7 @@ val isTriple = can destTriple;
 fun destTypeOp ob =
     case ob of
       TypeOp ot => ot
-    | _ => raise Useful.Error "Object.destTypeOp";
+    | _ => raise Error "Object.destTypeOp";
 
 val isTypeOp = can destTypeOp;
 
@@ -112,7 +101,7 @@ val isTypeOp = can destTypeOp;
 fun destType ob =
     case ob of
       Type ty => ty
-    | _ => raise Useful.Error "Object.destType";
+    | _ => raise Error "Object.destType";
 
 val isType = can destType;
 
@@ -131,7 +120,7 @@ fun mkVarType n = Type (Type.mkVar n);
 fun destVarType ob =
     case ob of
       Type ty => Type.destVar ty
-    | _ => raise Useful.Error "Object.destVarType";
+    | _ => raise Error "Object.destVarType";
 
 val isVarType = can destVarType;
 
@@ -142,7 +131,7 @@ fun mkOpType (ot,tys) = Type (Type.mkOp (ot,tys));
 fun destOpType ob =
     case ob of
       Type ty => Type.destOp ty
-    | _ => raise Useful.Error "Object.destOpType";
+    | _ => raise Error "Object.destOpType";
 
 val isOpType = can destOpType;
 
@@ -151,7 +140,7 @@ val isOpType = can destOpType;
 fun destConst ob =
     case ob of
       Const c => c
-    | _ => raise Useful.Error "Object.destConst";
+    | _ => raise Error "Object.destConst";
 
 val isConst = can destConst;
 
@@ -160,7 +149,7 @@ val isConst = can destConst;
 fun destVar ob =
     case ob of
       Var v => v
-    | _ => raise Useful.Error "Object.destVar";
+    | _ => raise Error "Object.destVar";
 
 val isVar = can destVar;
 
@@ -169,7 +158,7 @@ val isVar = can destVar;
 fun destTerm ob =
     case ob of
       Term tm => tm
-    | _ => raise Useful.Error "Object.destTerm";
+    | _ => raise Error "Object.destTerm";
 
 val isTerm = can destTerm;
 
@@ -236,18 +225,9 @@ val isSeq = can destSeq;
 fun destThm ob =
     case ob of
       Thm th => th
-    | _ => raise Useful.Error "Object.destThm";
+    | _ => raise Error "Object.destThm";
 
 val isThm = can destThm;
-
-(* Function call objects *)
-
-fun destCall ob =
-    case ob of
-      Call n => n
-    | _ => raise Useful.Error "Object.destCall";
-
-val isCall = can destCall;
 
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)
@@ -257,12 +237,9 @@ fun compare ob1_ob2 =
     if Portable.pointerEqual ob1_ob2 then EQUAL
     else
       case ob1_ob2 of
-        (Error,Error) => EQUAL
-      | (Error,_) => LESS
-      | (_,Error) => GREATER
-      | (Int n1, Int n2) => Int.compare (n1,n2)
-      | (Int _, _) => LESS
-      | (_, Int _) => GREATER
+        (Num n1, Num n2) => Int.compare (n1,n2)
+      | (Num _, _) => LESS
+      | (_, Num _) => GREATER
       | (Name n1, Name n2) => Name.compare (n1,n2)
       | (Name _, _) => LESS
       | (_, Name _) => GREATER
@@ -281,13 +258,10 @@ fun compare ob1_ob2 =
       | (Term tm1, Term tm2) => Term.compare (tm1,tm2)
       | (Term _, _) => LESS
       | (_, Term _) => GREATER
-      | (Thm th1, Thm th2) => Thm.dealphaCompare (th1,th2)
+      | (Thm th1, Thm th2) => Thm.compare (th1,th2)
       | (Thm _, _) => LESS
       | (_, Thm _) => GREATER
-      | (List l1, List l2) => lexCompare compare (l1,l2)
-      | (List _, _) => LESS
-      | (_, List _) => GREATER
-      | (Call n1, Call n2) => Name.compare (n1,n2);
+      | (List l1, List l2) => lexCompare compare (l1,l2);
 
 (* ------------------------------------------------------------------------- *)
 (* Extracting the theorems stored in an object.                              *)
@@ -316,8 +290,7 @@ fun symbolAddList sym obs =
       [] => sym
     | ob :: obs =>
       case ob of
-        Error => symbolAddList sym obs
-      | Int _ => symbolAddList sym obs
+        Num _ => symbolAddList sym obs
       | Name _ => symbolAddList sym obs
       | TypeOp ot => Symbol.addTypeOp sym ot
       | Type ty =>
@@ -345,8 +318,7 @@ fun symbolAddList sym obs =
           val obs = l @ obs
         in
           symbolAddList sym obs
-        end
-      | Call _ => symbolAddList sym obs;
+        end;
 
 fun symbolAdd sym ob = symbolAddList sym [ob];
 
@@ -358,8 +330,7 @@ val symbol = symbolAdd Symbol.empty;
 
 fun toCommand ob =
     case ob of
-      Error => (Command.Error,[])
-    | Int i => (Command.Num i, [])
+      Num i => (Command.Num i, [])
     | Name n => (Command.Name n, [])
     | TypeOp ot => (Command.TypeOp, [Name (TypeOp.name ot)])
     | Type ty =>
@@ -378,13 +349,12 @@ fun toCommand ob =
       let
         val (h,c) = mkSeq (Thm.sequent th)
       in
-        (Command.Thm,[h,c])
+        (Command.Axiom,[h,c])
       end
     | List l =>
       (case l of
          [] => (Command.Nil,[])
-       | h :: t => (Command.Cons, [h, List t]))
-    | Call _ => raise Bug "Object.toCommand: Call";
+       | h :: t => (Command.Cons, [h, List t]));
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -392,17 +362,15 @@ fun toCommand ob =
 
 fun pp ob =
     case ob of
-      Error => Print.ppString "ERROR"
-    | Int n => Print.ppInt n
-    | Name s => Name.ppQuoted s
+      Num n => Command.pp (Command.Num n)
+    | Name s => Command.pp (Command.Name s)
     | TypeOp ot => TypeOp.pp ot
     | Type ty => Type.pp ty
     | Const c => Const.pp c
     | Var v => Var.pp v
     | Term tm => Term.pp tm
     | Thm th => Thm.pp th
-    | List l => Print.ppList pp l
-    | Call f => Print.ppBracket "<" ">" Name.pp f;
+    | List l => Print.ppList pp l;
 
 end
 

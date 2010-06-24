@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* SYMBOLS AND THEOREMS CONTAINED IN A SET OF OBJECTS                        *)
+(* SYMBOLS CONTAINED IN A SET OF THEOREM OBJECTS                             *)
 (* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
@@ -12,40 +12,34 @@ sig
 
 type thms
 
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
 val empty : thms
 
-val size : thms -> {objs : int, thms : int}
-
-val objects : thms -> ObjectProvSet.set
-
-val thmObjects : thms -> ObjectProvSet.set
+val thms : thms -> ThmSet.set
 
 val symbol : thms -> Symbol.symbol
 
+val fromList : (ObjectProv.object * Thm.thm) list -> thms
+
 (* ------------------------------------------------------------------------- *)
-(* Adding objects.                                                           *)
+(* Looking up symbols and theorems.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val singleton : ObjectProv.object -> thms
+val peekThm : thms -> Sequent.sequent -> ObjectProv.object option
 
-val add : thms -> ObjectProv.object -> thms
+val peekTypeOp : thms -> Name.name -> ObjectProv.object option
 
-val addList : thms -> ObjectProv.object list -> thms
+val peekConst : thms -> Name.name -> ObjectProv.object option
 
-val addSet : thms -> ObjectProvSet.set -> thms
+(* ------------------------------------------------------------------------- *)
+(* Merging.                                                                  *)
+(* ------------------------------------------------------------------------- *)
 
 val union : thms -> thms -> thms
 
-val fromList : ObjectProv.object list -> thms
-
-(* ------------------------------------------------------------------------- *)
-(* Searching for theorems.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-val search :
-    thms -> Sequent.sequent ->
-    (Thm.thm * ObjectProv.object * ObjectProv.object) option
-
-val toThmSet : thms -> ThmSet.set
+val unionList : thms list -> thms
 
 end

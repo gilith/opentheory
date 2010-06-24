@@ -13,45 +13,19 @@ sig
 type object
 
 (* ------------------------------------------------------------------------- *)
-(* A type of inferences.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-datatype inference =
-    Ialpha of object
-  | Isimulated of object  (* the call object simulated *)
-  | Iaxiom
-
-(* ------------------------------------------------------------------------- *)
-(* A type of provenances.                                                    *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 datatype provenance =
-    Pnull
-  | Pcall of object  (* the argument object for the call *)
-  | Pcons of object * object
-  | Pref of object
-  | Pthm of inference
-
-(* ------------------------------------------------------------------------- *)
-(* Object IDs.                                                               *)
-(* ------------------------------------------------------------------------- *)
-
-type id = int
-
-val id : object -> id
-
-val equalId : id -> object -> bool
-
-val compare : object * object -> order
-
-(* ------------------------------------------------------------------------- *)
-(* Destructors.                                                              *)
-(* ------------------------------------------------------------------------- *)
+    Default
+  | Command of
+      {command : Command.command,
+       arguments : object list,
+       result : int}
 
 datatype object' =
-    Object of
-      {id : id,
-       object : Object.object,
+    Object' of
+      {object : Object.object,
        provenance : provenance}
 
 val dest : object -> object'
@@ -60,8 +34,7 @@ val object : object -> Object.object
 
 val provenance : object -> provenance
 
-val destCall : object -> Name.name * object
-
+(***
 val parents : object -> object list
 
 val isThm : object -> bool
@@ -157,5 +130,18 @@ val maps :
 (* ------------------------------------------------------------------------- *)
 
 val pp : int -> object Print.pp
+***)
+
+(* ------------------------------------------------------------------------- *)
+(* Object IDs.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type id = int
+
+val id : object -> id
+
+val equalId : id -> object -> bool
+
+val compare : object * object -> order
 
 end

@@ -11,8 +11,7 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 datatype object =
-    Error
-  | Int of int
+    Num of int
   | Name of Name.name
   | TypeOp of TypeOp.typeOp
   | Type of Type.ty
@@ -21,23 +20,16 @@ datatype object =
   | Term of Term.term
   | Thm of Thm.thm
   | List of object list
-  | Call of Name.name
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-(* Error objects *)
+(* Num objects *)
 
-val destError : object -> unit
+val destNum : object -> int
 
-val isError : object -> bool
-
-(* Int objects *)
-
-val destInt : object -> int
-
-val isInt : object -> bool
+val isNum : object -> bool
 
 (* Name objects *)
 
@@ -182,12 +174,6 @@ val isSeq : object * object -> bool
 val destThm : object -> Thm.thm
 
 val isThm : object -> bool
-
-(* Function call objects *)
-
-val destCall : object -> Name.name
-
-val isCall : object -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)

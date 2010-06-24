@@ -19,6 +19,10 @@ datatype thm' =
 
 type thm = thm';
 
+(* ------------------------------------------------------------------------- *)
+(* Theorem destructors.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
 fun dest (th : thm) = th;
 
 fun axioms th =
@@ -397,7 +401,6 @@ struct
       in
         foldl add SequentSet.empty
       end;
-
 end
 
 structure ThmMap = KeyMap (ThmOrdered)
