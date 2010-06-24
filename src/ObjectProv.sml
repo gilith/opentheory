@@ -86,6 +86,15 @@ fun object obj = object' (dest obj);
 
 fun provenance obj = provenance' (dest obj);
 
+fun mk obj' =
+    let
+      val id = newId ()
+    in
+      Object
+        {id = id,
+         object = obj'}
+    end;
+
 (***
 (* ------------------------------------------------------------------------- *)
 (* A type of provenances.                                                    *)
@@ -235,21 +244,17 @@ in
 end;
 
 fun search obj seq = searchList [obj] seq;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk ob prov =
-    let
-      val i = newId ()
-    in
-      Object
-        {id = i,
-         object = ob,
-         provenance = prov}
-    end;
+fun mkProv ob prov = mk (Object' {object = ob, provenance = prov});
 
+fun mkDefault ob = mkProv ob Default;
+
+(***
 fun mkNum i =
     let
       val ob = Object.Int i
@@ -308,16 +313,11 @@ fun mkCons objH objT =
 (*OpenTheoryDebug
     handle Error err => raise Error ("ObjectProv.mkCons: " ^ err);
 *)
+***)
 
-fun mkTypeOp ot =
-    let
-      val ob = Object.TypeOp ot
+fun mkTypeOp ot = mkDefault (Object.TypeOp ot);
 
-      val prov = Pnull
-    in
-      mk ob prov
-    end;
-
+(***
 fun mkVarType objN =
     let
       val Object {object = obN, ...} = objN
@@ -357,16 +357,11 @@ fun mkOpType objO objL =
 (*OpenTheoryDebug
     handle Error err => raise Error ("ObjectProv.mkOpType: " ^ err);
 *)
+***)
 
-fun mkConst c =
-    let
-      val ob = Object.Const c
+fun mkConst con = mkDefault (Object.Const con);
 
-      val prov = Pnull
-    in
-      mk ob prov
-    end;
-
+(***
 fun mkVar objN objT =
     let
       val Object {object = obN, ...} = objN

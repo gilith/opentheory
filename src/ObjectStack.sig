@@ -18,61 +18,12 @@ val size : stack -> int
 
 val null : stack -> bool
 
-val frameSize : stack -> int
-
-val objects : stack -> ObjectProv.object list
-
-val thms : stack -> ObjectThms.thms
-
-val symbol : stack -> Symbol.symbol
-
 val push : stack -> ObjectProv.object -> stack
 
-val pop : stack -> int -> stack
+val peek : stack -> ObjectProv.object
 
-val peek : stack -> int -> ObjectProv.object
-
-val pop1 : stack -> stack * ObjectProv.object
+val pop : stack -> stack * ObjectProv.object
 
 val pop2 : stack -> stack * ObjectProv.object * ObjectProv.object
-
-val popCall : stack -> stack * Name.name
-
-val topCall : stack -> ObjectProv.object option
-
-val callStack : stack -> ObjectProv.object list
-
-val search :
-    stack -> Sequent.sequent ->
-    (Thm.thm * ObjectProv.object * ObjectProv.object) option
-
-(* ------------------------------------------------------------------------- *)
-(* Generating commands to keep the call stack consistent.                    *)
-(* ------------------------------------------------------------------------- *)
-
-val alignCalls :
-    {greatestCall : ObjectProv.id option} -> stack ->
-    stack * Command.command list
-
-val alignUses :
-    {greatestUse : ObjectProv.id option} -> stack ->
-    stack * Command.command list
-
-(* ------------------------------------------------------------------------- *)
-(* The stack is also used to keep track of simulated theorems.               *)
-(* ------------------------------------------------------------------------- *)
-
-val symbolSimulation : stack -> Symbol.symbol
-
-val addSimulation : stack -> ThmSet.set * ObjectProv.object -> stack
-
-val searchSimulation :
-    stack -> Sequent.sequent -> (Thm.thm * ObjectProv.object) option
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty printing.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val topCallToString : stack -> string
 
 end

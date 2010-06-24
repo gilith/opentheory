@@ -74,15 +74,19 @@ val mkError : unit -> object
 val mkNil : unit -> object
 
 val mkCons : object -> object -> object
+***)
 
 val mkTypeOp : TypeOp.typeOp -> object
 
+(***
 val mkVarType : object -> object
 
 val mkOpType : object -> object -> object
+***)
 
 val mkConst : Const.const -> object
 
+(***
 val mkVar : object -> object -> object
 
 val mkVarTerm : object -> object
