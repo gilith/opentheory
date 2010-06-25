@@ -20,18 +20,18 @@ datatype thms =
 val empty =
     let
       val ths = ThmSet.empty
-      val symbol = Symbol.empty
+      and symbol = Symbol.empty
     in
       Thms
         {ths = ths,
          symbol = symbol}
     end;
 
-fun toThmSet (Thms {ths = x, ...}) = x;
+fun thms (Thms {ths = x, ...}) = x;
 
 fun symbol (Thms {symbol = x, ...}) = x;
 
-fun size thms = ThmSet.size (toThmSet thms);
+fun size ths = ThmSet.size (thms ths);
 
 (* ------------------------------------------------------------------------- *)
 (* Adding objects.                                                           *)

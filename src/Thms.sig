@@ -16,6 +16,8 @@ val empty : thms
 
 val size : thms -> int
 
+val thms : thms -> ThmSet.set
+
 val symbol : thms -> Symbol.symbol
 
 (* ------------------------------------------------------------------------- *)
@@ -35,7 +37,5 @@ val union : thms -> thms -> thms
 (* ------------------------------------------------------------------------- *)
 
 val search : thms -> Sequent.sequent -> Thm.thm option
-
-val toThmSet : thms -> ThmSet.set
 
 end

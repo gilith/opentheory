@@ -18,11 +18,7 @@ type thms
 
 val empty : thms
 
-val thms : thms -> ThmSet.set
-
-val symbol : thms -> Symbol.symbol
-
-val fromList : (ObjectProv.object * Thm.thm) list -> thms
+val thms : thms -> Thms.thms
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up symbols and theorems.                                          *)
@@ -41,5 +37,13 @@ val peekConst : thms -> Name.name -> ObjectProv.object option
 val union : thms -> thms -> thms
 
 val unionList : thms list -> thms
+
+(* ------------------------------------------------------------------------- *)
+(* I/O.                                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val toExport : thms -> ObjectExport.export
+
+val fromExport : ObjectExport.export -> thms
 
 end

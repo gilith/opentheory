@@ -14,23 +14,20 @@ open Useful;
 
 datatype thms =
     Thms of
-      {thms : ThmSet.set,
-       symbol : Symbol.symbol,
+      {thms : Thms.thms,
        typeOps : ObjectProv.object NameMap.map,
        consts : ObjectProv.object NameMap.map,
        seqs : ObjectProv.object SequentMap.map};
 
 val empty =
     let
-      val thms = ThmSet.empty
-      and symbol = Symbol.empty
+      val thms = Thms.empty
       and typeOps = NameMap.new ()
       and consts = NameMap.new ()
       and seqs = SequentMap.new ()
     in
       Thms
         {thms = thms,
-         symbol = symbol,
          typeOps = typeOps,
          consts = consts,
          seqs = seqs}
@@ -38,13 +35,75 @@ val empty =
 
 fun thms (Thms {thms = x, ...}) = x;
 
-fun symbol (Thms {symbol = x, ...}) = x;
+(* ------------------------------------------------------------------------- *)
+(* Looking up symbols and theorems.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun peekThm (Thms {seqs,...}) seq = SequentMap.peek seqs seq;
+
+fun peekTypeOp (Thms {typeOps,...}) n = NameMap.peek typeOps n;
+
+fun peekConst (Thms {consts,...}) n = NameMap.peek consts n;
+
+(* ------------------------------------------------------------------------- *)
+(* Merging.                                                                  *)
+(* ------------------------------------------------------------------------- *)
 
 local
-  fun addSyms ((_,th),sym) = Symbol.addSequent sym (Thm.sequent th);
+  fun noDups _ = raise Bug "ObjectThms.union.noDups";
 
-  fun getSyms objThs = List.foldl addSyms Symbol.empty objThs;
+  fun pickSnd (_,obj) = SOME obj;
+in
+  fun union thms1 thms2 =
+      let
+        val Thms
+              {thms = ths1,
+               typeOps = ots1,
+               consts = cons1,
+               seqs = seqs1} = thms1
+        and Thms
+              {thms = ths2,
+               typeOps = ots2,
+               consts = cons2,
+               seqs = seqs2} = thms2
 
+        val ths = Thms.union ths1 ths2
+        and ots = NameMap.union noDups ots1 ots2
+        and cons = NameMap.union noDups cons1 cons2
+        and seqs = SequentMap.union pickSnd seqs1 seqs2
+      in
+        Thms
+          {thms = ths,
+           typeOps = ots,
+           consts = cons,
+           seqs = seqs}
+      end;
+end;
+
+local
+  fun uncurriedUnion (thms1,thms2) = union thms1 thms2;
+in
+  fun unionList thmsl =
+      case thmsl of
+        [] => empty
+      | thms :: thmsl => List.foldl uncurriedUnion thms thmsl;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* I/O.                                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun toExport ths =
+    let
+      fun add (th,exp) =
+          case peekThm ths (Thm.sequent th) of
+            SOME obj => ObjectExport.insert exp (obj,th)
+          | NONE => raise Bug "ObjectThms.toExport.add: vanishing sequent"
+    in
+      ThmSet.foldl add ObjectExport.empty (Thms.thms (thms ths))
+    end;
+
+local
   fun fillTypeOp (ot,otO) =
       let
         val n = TypeOp.name ot
@@ -61,9 +120,25 @@ local
         else NameMap.insert conO (n, ObjectProv.mkConst con)
       end;
 in
-  fun fromList objThs =
+  fun fromExport exp =
       let
-        val sym = getSyms objThs
+        fun split (obj,th,(objs,ths,seqs)) =
+            let
+              val objs = obj :: objs
+              and ths = Thms.add ths th
+              and seqs = SequentMap.insert seqs (Thm.sequent th, obj)
+            in
+              (objs,ths,seqs)
+            end
+
+        val objs = []
+        and ths = Thms.empty
+        and seqs = SequentMap.new ()
+
+        val (objs,ths,seqs) =
+            ObjectProvMap.foldr split (objs,ths,seqs) (ObjectExport.toMap exp)
+
+        val sym = Thms.symbol ths
 
         val ots = Symbol.typeOps sym
         and cons = Symbol.consts sym
@@ -114,19 +189,6 @@ in
                   end
               end
 
-        fun split (obj,th) (ths,seqs) =
-            let
-              val ths = ThmSet.add ths th
-              and seqs = SequentMap.insert seqs (Thm.sequent th, obj)
-            in
-              (obj,(ths,seqs))
-            end
-
-        val ths = ThmSet.empty
-        and seqs = SequentMap.new ()
-
-        val (objs,(ths,seqs)) = maps split objThs (ths,seqs)
-
         val otO = NameMap.new ()
         and conO = NameMap.new ()
 
@@ -137,69 +199,10 @@ in
       in
         Thms
           {thms = ths,
-           symbol = sym,
            typeOps = otO,
            consts = conO,
            seqs = seqs}
       end
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Looking up symbols and theorems.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-fun peekThm (Thms {seqs,...}) seq = SequentMap.peek seqs seq;
-
-fun peekTypeOp (Thms {typeOps,...}) n = NameMap.peek typeOps n;
-
-fun peekConst (Thms {consts,...}) n = NameMap.peek consts n;
-
-(* ------------------------------------------------------------------------- *)
-(* Merging.                                                                  *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  fun noDups _ = raise Bug "ObjectThms.union.noDups";
-
-  fun pickSnd (_,obj) = SOME obj;
-in
-  fun union thms1 thms2 =
-      let
-        val Thms
-              {thms = ths1,
-               symbol = sym1,
-               typeOps = ots1,
-               consts = cons1,
-               seqs = seqs1} = thms1
-        and Thms
-              {thms = ths2,
-               symbol = sym2,
-               typeOps = ots2,
-               consts = cons2,
-               seqs = seqs2} = thms2
-
-        val ths = ThmSet.union ths1 ths2
-        and sym = Symbol.union sym1 sym2
-        and ots = NameMap.union noDups ots1 ots2
-        and cons = NameMap.union noDups cons1 cons2
-        and seqs = SequentMap.union pickSnd seqs1 seqs2
-      in
-        Thms
-          {thms = ths,
-           symbol = sym,
-           typeOps = ots,
-           consts = cons,
-           seqs = seqs}
-      end;
-end;
-
-local
-  fun uncurriedUnion (thms1,thms2) = union thms1 thms2;
-in
-  fun unionList thmsl =
-      case thmsl of
-        [] => empty
-      | thms :: thmsl => List.foldl uncurriedUnion thms thmsl;
 end;
 
 end

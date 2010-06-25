@@ -340,7 +340,7 @@ end;
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun toCommandStream saved =
+fun toCommandStream export =
     let
       fun gen (greatestUse,obj) (stack,dict) =
           let
@@ -408,7 +408,7 @@ fun toCommandStream saved =
 (* Writing objects to text files.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTextFile {filename} objs =
+fun toTextFile {export,filename} =
     let
 (*OpenTheoryTrace3
       val () = Print.trace ObjectProvSet.pp

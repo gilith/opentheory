@@ -11,7 +11,7 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
-     {known : ObjectThms.thms,
+     {import : ObjectThms.thms,
       interpretation : Interpretation.interpretation,
       savable : bool}
 
@@ -29,7 +29,7 @@ val stack : state -> ObjectStack.stack
 
 val dict : state -> ObjectDict.dict
 
-val thms : state -> Thm.thm ObjectProvMap.map
+val export : state -> ObjectExport.export
 
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)

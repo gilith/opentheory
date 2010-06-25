@@ -79,7 +79,7 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
-     {known : ObjectThms.thms,
+     {import : ObjectThms.thms,
       interpretation : Interpretation.interpretation,
       savable : bool};
 
@@ -92,7 +92,7 @@ datatype state =
       {parameters : parameters,
        stack : ObjectStack.stack,
        dict : ObjectDict.dict,
-       thms : Thm.thm ObjectProvMap.map};
+       export : ObjectExport.export};
 
 fun initial parameters =
     let
@@ -100,13 +100,13 @@ fun initial parameters =
 
       val dict = ObjectDict.empty
 
-      val thms = ObjectProvMap.new ()
+      val export = ObjectExport.empty
     in
       State
         {parameters = parameters,
          stack = stack,
          dict = dict,
-         thms = thms}
+         export = export}
     end;
 
 fun parameters (State {parameters = x, ...}) = x;
@@ -115,7 +115,7 @@ fun stack (State {stack = x, ...}) = x;
 
 fun dict (State {dict = x, ...}) = x;
 
-fun thms (State {thms = x, ...}) = x;
+fun export (State {export = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)
@@ -123,9 +123,9 @@ fun thms (State {thms = x, ...}) = x;
 
 fun execute cmd state =
     let
-      val State {parameters,stack,dict,thms} = state
+      val State {parameters,stack,dict,export} = state
 
-      val {known,interpretation,savable} = parameters
+      val {import,interpretation,savable} = parameters
 
 (*OpenTheoryDebug
       val () = incrementTheInferenceCount cmd
@@ -146,7 +146,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Names *)
@@ -161,7 +161,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* REGULAR COMMANDS *)
@@ -180,7 +180,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Lambda abstraction terms *)
@@ -197,7 +197,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The app primitive inference *)
@@ -214,7 +214,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Function application terms *)
@@ -231,7 +231,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The assume primitive inference *)
@@ -248,7 +248,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Axioms *)
@@ -266,7 +266,7 @@ fun execute cmd state =
               end
 
           val obj =
-              case ObjectThms.peekThm known seq of
+              case ObjectThms.peekThm import seq of
                 SOME x => x
               | NONE => ObjectProv.mkAxiom {savable = savable} objH objC seq
 
@@ -276,7 +276,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The betaConv primitive inference *)
@@ -293,7 +293,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Cons lists *)
@@ -310,7 +310,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Constants *)
@@ -323,7 +323,7 @@ fun execute cmd state =
           val n = Interpretation.interpretConst interpretation n
 
           val obj =
-              case ObjectThms.peekConst known n of
+              case ObjectThms.peekConst import n of
                 SOME x => x
               | NONE => ObjectProv.mkConst (Const.mkUndef n)
 
@@ -333,7 +333,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Constant terms *)
@@ -350,7 +350,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The deductAntisym primitive inference *)
@@ -367,7 +367,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Dictionary definitions *)
@@ -386,7 +386,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The defineConst principle of definition *)
@@ -404,7 +404,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The defineTypeOp principle of definition *)
@@ -423,7 +423,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The eqMp primitive inference *)
@@ -440,7 +440,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Empty lists *)
@@ -455,7 +455,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Type operator types *)
@@ -472,7 +472,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Popping the stack *)
@@ -485,7 +485,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Dictionary lookups *)
@@ -504,7 +504,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Dictionary removals *)
@@ -523,7 +523,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The refl primitive inference *)
@@ -540,7 +540,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* The subst primitive inference *)
@@ -557,7 +557,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Saving theorems *)
@@ -578,13 +578,13 @@ fun execute cmd state =
                 Rule.alpha seq t
               end
 
-          val thms = ObjectProvMap.insert thms (objT,th)
+          val export = ObjectExport.insert export (objT,th)
         in
           State
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Type operators *)
@@ -597,7 +597,7 @@ fun execute cmd state =
           val n = Interpretation.interpretTypeOp interpretation n
 
           val obj =
-              case ObjectThms.peekTypeOp known n of
+              case ObjectThms.peekTypeOp import n of
                 SOME x => x
               | NONE => ObjectProv.mkTypeOp (TypeOp.mkUndef n)
 
@@ -607,7 +607,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Term variables *)
@@ -624,7 +624,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Term variable terms *)
@@ -641,7 +641,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
 
       (* Type variable types *)
@@ -658,7 +658,7 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             thms = thms}
+             export = export}
         end
     end
     handle Error err =>
