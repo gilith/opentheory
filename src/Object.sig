@@ -25,6 +25,12 @@ datatype object =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+(* List objects *)
+
+val destList : object -> object list
+
+val isList : object -> bool
+
 (* Num objects *)
 
 val destNum : object -> int
@@ -37,11 +43,13 @@ val destName : object -> Name.name
 
 val isName : object -> bool
 
-(* List objects *)
+(* Name list objects *)
 
-val destList : object -> object list
+val mkNames : Name.name list -> object
 
-val isList : object -> bool
+val destNames : object -> Name.name list
+
+val isNames : object -> bool
 
 (* Unit objects *)
 
@@ -174,6 +182,30 @@ val isSeq : object * object -> bool
 val destThm : object -> Thm.thm
 
 val isThm : object -> bool
+
+(* Type substitution objects *)
+
+val mkTypeSubst : TypeSubst.substMap -> object
+
+val destTypeSubst : object -> TypeSubst.substMap
+
+val isTypeSubst : object -> bool
+
+(* Term substitution objects *)
+
+val mkTermSubst : TermSubst.termSubstMap -> object
+
+val destTermSubst : object -> TermSubst.termSubstMap
+
+val isTermSubst : object -> bool
+
+(* Substitution objects *)
+
+val mkSubst : TermSubst.substMap -> object
+
+val destSubst : object -> TermSubst.substMap
+
+val isSubst : object -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)

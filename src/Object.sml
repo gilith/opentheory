@@ -27,6 +27,15 @@ datatype object =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+(* List objects *)
+
+fun destList ob =
+    case ob of
+      List l => l
+    | _ => raise Error "destList";
+
+val isList = can destList;
+
 (* Num objects *)
 
 fun destNum ob =
@@ -45,14 +54,13 @@ fun destName ob =
 
 val isName = can destName;
 
-(* List objects *)
+(* Name list objects *)
 
-fun destList ob =
-    case ob of
-      List l => l
-    | _ => raise Error "destList";
+fun mkNames tys = List (map Name tys);
 
-val isList = can destList;
+fun destNames ob = map destName (destList ob);
+
+val isNames = can destNames;
 
 (* Unit objects *)
 
@@ -228,6 +236,71 @@ fun destThm ob =
     | _ => raise Error "Object.destThm";
 
 val isThm = can destThm;
+
+(* Type substitution objects *)
+
+local
+  fun mkMaplet (n,ty) = mkPair (Name n, Type ty);
+in
+  fun mkTypeSubst m = List (map mkMaplet (NameMap.toList m));
+end;
+
+local
+  fun destMaplet ob =
+      let
+        val (obN,obT) = destPair ob
+      in
+        (destName obN, destType obT)
+      end;
+in
+  fun destTypeSubst ob =
+      let
+        val ms = map destMaplet (destList ob)
+      in
+        TypeSubst.fromListMap ms
+      end;
+end;
+
+val isTypeSubst = can destTypeSubst;
+
+(* Term substitution objects *)
+
+local
+  fun mkMaplet (v,tm) = mkPair (Var v, Term tm);
+in
+  fun mkTermSubst m = List (map mkMaplet (VarMap.toList m));
+end;
+
+local
+  fun destMaplet ob =
+      let
+        val (obV,obT) = destPair ob
+      in
+        (destVar obV, destTerm obT)
+      end;
+in
+  fun destTermSubst ob =
+      let
+        val ms = map destMaplet (destList ob)
+      in
+        TermSubst.fromListTermMap ms
+      end;
+end;
+
+val isTermSubst = can destTermSubst;
+
+(* Substitution objects *)
+
+fun mkSubst (tyS,tmS) = mkPair (mkTypeSubst tyS, mkTermSubst tmS);
+
+fun destSubst ob =
+    let
+      val (obY,obM) = destPair ob
+    in
+      (destTypeSubst obY, destTermSubst obM)
+    end;
+
+val isSubst = can destSubst;
 
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)

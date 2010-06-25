@@ -17,11 +17,11 @@ datatype inferenceCount = InferenceCount of int CommandMap.map;
 
 val newInferenceCount = InferenceCount (CommandMap.new ());
 
-fun incrementInferenceCount (InferenceCount m) n =
+fun incrementInferenceCount (InferenceCount m) c =
     let
-      val i = Option.getOpt (NameMap.peek m n, 0)
+      val i = Option.getOpt (CommandMap.peek m c, 0)
 
-      val m = NameMap.insert m (n, i + 1)
+      val m = CommandMap.insert m (c, i + 1)
     in
       InferenceCount m
     end;
@@ -35,13 +35,13 @@ local
 
   fun mkRow (s,i) = [s ^ " ...", " " ^ countToString i];
 
-  fun mkInfRow (n,i) = mkRow (Name.toString n, i);
+  fun mkInfRow (n,i) = mkRow (Command.toString n, i);
 
   fun mkTotalRow i = mkRow ("Total",i);
 in
   fun ppInferenceCount (InferenceCount m) =
       let
-        val infs = sortMap snd (revCompare Int.compare) (NameMap.toList m)
+        val infs = sortMap snd (revCompare Int.compare) (CommandMap.toList m)
 
         val tot = foldl (fn ((_,i),k) => i + k) 0 infs
 
@@ -59,15 +59,15 @@ in
 end;
 
 local
-  val inferenceCount = ref (InferenceCount (NameMap.new ()));
+  val inferenceCount = ref newInferenceCount;
 in
   fun theInferenceCount () = !inferenceCount;
 
-  fun incrementTheInferenceCount n =
+  fun incrementTheInferenceCount c =
       let
         val ref i = inferenceCount
 
-        val () = inferenceCount := incrementInferenceCount i n
+        val () = inferenceCount := incrementInferenceCount i c
       in
         ()
       end
@@ -166,6 +166,23 @@ fun execute cmd state =
 
       (* REGULAR COMMANDS *)
 
+      (* The abs primitive inference *)
+
+      | Command.Abs =>
+        let
+          val (stack,objV,objT) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkAbs {savable = savable} objV objT
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
       (* Lambda abstraction terms *)
 
       | Command.AbsTerm =>
@@ -183,6 +200,23 @@ fun execute cmd state =
              thms = thms}
         end
 
+      (* The app primitive inference *)
+
+      | Command.App =>
+        let
+          val (stack,objF,objA) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkApp {savable = savable} objF objA
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
       (* Function application terms *)
 
       | Command.AppTerm =>
@@ -190,6 +224,23 @@ fun execute cmd state =
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
           val obj = ObjectProv.mkAppTerm {savable = savable} objF objA
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
+      (* The assume primitive inference *)
+
+      | Command.Assume =>
+        let
+          val (stack,objT) = ObjectStack.pop stack
+
+          val obj = ObjectProv.mkAssume {savable = savable} objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -228,84 +279,15 @@ fun execute cmd state =
              thms = thms}
         end
 
-(***
-      (* Function calls *)
+      (* The betaConv primitive inference *)
 
-      | Command.Call =>
+      | Command.BetaConv =>
         let
-          val (stack,objA,objN) = ObjectStack.pop2 stack
+          val (stack,objT) = ObjectStack.pop stack
 
-          val obA = ObjectProv.object objA
-          and obN = ObjectProv.object objN
-
-          val _ = not (Object.isCall obA) orelse
-                  raise Error "cannot use a Call object as a call argument"
-
-          val n = Object.destName obN
-
-(*OpenTheoryDebug
-          val () = incrementTheInferenceCount n
-*)
-
-(*OpenTheoryTrace2
-          val traceCall = null (ObjectStack.callStack stack)
-(*OpenTheoryTrace3
-          val traceCall = true
-*)
-          val () =
-              if not traceCall then ()
-              else
-                trace
-                  ("call: " ^ Name.toString n ^ "\n" ^ "  stack = [" ^
-                   Int.toString (ObjectStack.size stack) ^ "], call stack = [" ^
-                   Int.toString (length (ObjectStack.callStack stack)) ^ "]\n")
-
-          val () = if not traceCall then ()
-                   else Print.trace Object.pp "  input" obA
-*)
-
-          val (obA,objA,sims) =
-              case Simulation.peek simulations n of
-                NONE => (obA,objA,ThmSet.empty)
-              | SOME (Simulation.Simulation sim) =>
-                let
-                  val ctxt =
-                      Simulation.Context
-                        {interpretation = interpretation,
-                         input = obA}
-
-                  val result =
-                      sim ctxt
-                      handle Error err =>
-                        let
-                          val ppOb = Print.ppOp2 " =" Print.ppString Object.pp
-                        in
-                          raise Error
-                            ("simulation failed: " ^ Name.toString n ^
-                             "\n" ^ Print.toString ppOb ("input",obA) ^
-                             "\n" ^ err)
-                        end
-
-                  val Simulation.Result {input,thms} = result
-
-                  val (obA,objA) =
-                      case input of
-                        NONE => (obA,objA)
-                      | SOME obA =>
-                        let
-                          val objA = buildObject {savable = savable} objA obA
-                        in
-                          (obA,objA)
-                        end
-                in
-                  (obA,objA,thms)
-                end
-
-          val obj = ObjectProv.mkCall n objA
+          val obj = ObjectProv.mkBetaConv {savable = savable} objT
 
           val stack = ObjectStack.push stack obj
-          val stack = ObjectStack.push stack objA
-          val stack = ObjectStack.addSimulation stack (sims,obj)
         in
           State
             {parameters = parameters,
@@ -313,7 +295,6 @@ fun execute cmd state =
              dict = dict,
              thms = thms}
         end
-***)
 
       (* Cons lists *)
 
@@ -372,6 +353,23 @@ fun execute cmd state =
              thms = thms}
         end
 
+      (* The deductAntisym primitive inference *)
+
+      | Command.DeductAntisym =>
+        let
+          val (stack,objA,objB) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkDeductAntisym {savable = savable} objA objB
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
       (* Dictionary definitions *)
 
       | Command.Def =>
@@ -383,6 +381,60 @@ fun execute cmd state =
           val i = Object.destNum (ObjectProv.object objI)
 
           val dict = ObjectDict.define dict (i,objD)
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
+      (* The defineConst principle of definition *)
+
+      | Command.DefineConst =>
+        let
+          val (stack,objN,objT) = ObjectStack.pop2 stack
+
+          val (obj0,obj1) =
+              ObjectProv.mkDefineConst {savable = savable} objN objT
+
+          val stack = ObjectStack.push2 stack obj0 obj1
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
+      (* The defineTypeOp principle of definition *)
+
+      | Command.DefineTypeOp =>
+        let
+          val (stack,objN,objA,objR,objV,objT) = ObjectStack.pop5 stack
+
+          val (obj0,obj1,obj2,obj3,obj4) =
+              ObjectProv.mkDefineTypeOp {savable = savable}
+                objN objA objR objV objT
+
+          val stack = ObjectStack.push5 stack obj0 obj1 obj2 obj3 obj4
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
+
+      (* The eqMp primitive inference *)
+
+      | Command.EqMp =>
+        let
+          val (stack,objA,objB) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkEqMp {savable = savable} objA objB
+
+          val stack = ObjectStack.push stack obj
         in
           State
             {parameters = parameters,
@@ -474,45 +526,13 @@ fun execute cmd state =
              thms = thms}
         end
 
-(***
-      (* Function call returns *)
+      (* The refl primitive inference *)
 
-      | Command.Return =>
+      | Command.Refl =>
         let
-          val (stack,objR,objN) = ObjectStack.pop2 stack
+          val (stack,objT) = ObjectStack.pop stack
 
-          val obR = ObjectProv.object objR
-          and obN = ObjectProv.object objN
-
-          val _ = not (Object.isCall obR) orelse
-                  raise Error "cannot return a Call object from a function"
-
-          val n = Object.destName obN
-
-          val (stack,n') = ObjectStack.popCall stack
-
-          val _ = Name.equal n' n orelse
-                  raise Error ("call " ^ Name.toString n' ^
-                               " matched by return " ^ Name.toString n)
-(*OpenTheoryTrace2
-          val traceReturn = null (ObjectStack.callStack stack)
-(*OpenTheoryTrace3
-          val traceReturn = true
-*)
-          val () =
-              if not traceReturn then ()
-              else
-                trace
-                  ("return: " ^ Name.toString n ^ "\n" ^
-                   "  stack = [" ^ Int.toString (ObjectStack.size stack) ^
-                   "], call stack = [" ^
-                   Int.toString (length (ObjectStack.callStack stack)) ^ "]\n")
-
-          val () = if not traceReturn then ()
-                   else Print.trace Object.pp "  return" obR
-*)
-
-          val obj = ObjectProv.mkReturn {savable = savable} objR
+          val obj = ObjectProv.mkRefl {savable = savable} objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -522,7 +542,23 @@ fun execute cmd state =
              dict = dict,
              thms = thms}
         end
-***)
+
+      (* The subst primitive inference *)
+
+      | Command.Subst =>
+        let
+          val (stack,objS,objT) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkSubst {savable = savable} objS objT
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             thms = thms}
+        end
 
       (* Saving theorems *)
 

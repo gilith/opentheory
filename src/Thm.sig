@@ -142,13 +142,13 @@ val subst : TermSubst.subst -> thm -> thm
 (* also appear in the type of t.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val defineConst : Name.name -> Term.term -> thm
+val defineConst : Name.name -> Term.term -> Const.const * thm
 
 (* ------------------------------------------------------------------------- *)
 (* Type operator definition                                                  *)
 (*                                                                           *)
 (*           |- p t                                                          *)
-(* ------------------------------  defineTypeOp name {abs,rep} tyVars        *)
+(* ------------------------------  defineTypeOp name {abs} {rep} tyVars      *)
 (*       |- abs (rep a) = a                                                  *)
 (*   |- p r = (rep (abs r) = r)                                              *)
 (*                                                                           *)
@@ -159,8 +159,9 @@ val defineConst : Name.name -> Term.term -> thm
 (* ------------------------------------------------------------------------- *)
 
 val defineTypeOp :
-    Name.name -> {abs : Name.name, rep : Name.name} -> Name.name list -> thm ->
-    thm * thm
+    Name.name -> {abs : Name.name} -> {rep : Name.name} -> Name.name list ->
+    thm ->
+    TypeOp.typeOp * {abs : Const.const} * {rep : Const.const} * thm * thm
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

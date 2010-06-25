@@ -92,17 +92,23 @@ fun axiom sequent =
 fun abs v th =
     let
       val Thm {axioms,sequent,...} = th
+
       val Sequent.Sequent {hyp,concl} = sequent
+
       val (a,b) = Term.destEq concl
+
       val fv =
           let
             fun add (t,z) = VarSet.union z (Term.freeVars t)
           in
             TermAlphaSet.foldl add VarSet.empty hyp
           end
+
       val _ = not (VarSet.member v fv) orelse
               raise Error "Thm.abs: free in hypothesis"
+
       val concl = Term.mkEq (Term.mkAbs (v,a), Term.mkAbs (v,b))
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
@@ -112,13 +118,17 @@ fun app th1 th2 =
     let
       val Thm {axioms = a1, sequent = s1, ...} = th1
       and Thm {axioms = a2, sequent = s2, ...} = th2
+
       val Sequent.Sequent {hyp = h1, concl = c1} = s1
       and Sequent.Sequent {hyp = h2, concl = c2} = s2
+
       val (l1,r1) = Term.destEq c1
       and (l2,r2) = Term.destEq c2
+
       val axioms = SequentSet.union a1 a2
       and hyp = TermAlphaSet.union h1 h2
       and concl = Term.mkEq (Term.mkApp (l1,l2), Term.mkApp (r1,r2))
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
@@ -128,9 +138,11 @@ fun assume t =
     let
       val _ = Type.equal (Term.typeOf t) Type.bool orelse
               raise Error "Thm.assume: not a proposition"
+
       val axioms = emptyAxioms
       and hyp = singleHyp t
       and concl = t
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
@@ -151,7 +163,9 @@ fun betaConv t =
           else
             let
               val tmSubMap = TermSubst.singletonTermMap (v,t2)
+
               val subMap = (TypeSubst.emptyMap,tmSubMap)
+
               val sub = TermSubst.mk subMap
             in
               Option.getOpt (TermSubst.subst sub t1, t1)
@@ -160,6 +174,7 @@ fun betaConv t =
       val axioms = emptyAxioms
       and hyp = emptyHyp
       and concl = Term.mkEq (t,u)
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
@@ -169,6 +184,7 @@ fun deductAntisym th1 th2 =
     let
       val Thm {axioms = a1, sequent = s1, ...} = th1
       and Thm {axioms = a2, sequent = s2, ...} = th2
+
       val Sequent.Sequent {hyp = h1, concl = c1} = s1
       and Sequent.Sequent {hyp = h2, concl = c2} = s2
 
@@ -180,6 +196,7 @@ fun deductAntisym th1 th2 =
       val axioms = SequentSet.union a1 a2
       and hyp = TermAlphaSet.union h1 h2
       and concl = Term.mkEq (c1,c2)
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
@@ -189,13 +206,18 @@ fun eqMp th1 th2 =
     let
       val Thm {axioms = a1, sequent = s1, ...} = th1
       and Thm {axioms = a2, sequent = s2, ...} = th2
+
       val Sequent.Sequent {hyp = h1, concl = c1} = s1
       and Sequent.Sequent {hyp = h2, concl = c2} = s2
+
       val axioms = SequentSet.union a1 a2
       and hyp = TermAlphaSet.union h1 h2
+
       val (c2',concl) = Term.destEq c1
+
       val _ = Term.alphaEqual c2 c2' orelse
               raise Error "Thm.eqMp: not alpha equivalent"
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
@@ -206,6 +228,7 @@ fun refl t =
       val axioms = emptyAxioms
       and hyp = emptyHyp
       and concl = Term.mkEq (t,t)
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
@@ -215,7 +238,9 @@ local
   fun subAdd (tm,(set,sub)) =
       let
         val (tm',sub) = TermSubst.sharingSubst tm sub
+
         val tm = Option.getOpt (tm',tm)
+
         val set = TermAlphaSet.add set tm
       in
         (set,sub)
@@ -224,9 +249,13 @@ in
   fun subst sub th =
       let
         val Thm {axioms,sequent,...} = th
+
         val Sequent.Sequent {hyp,concl} = sequent
+
         val (hyp,sub) = TermAlphaSet.foldl subAdd (emptyHyp,sub) hyp
+
         val concl = Option.getOpt (TermSubst.subst sub concl, concl)
+
         val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
       in
         Thm {axioms = axioms, sequent = sequent}
@@ -240,9 +269,12 @@ end;
 fun defineConst name t =
     let
       val ty = Term.typeOf t
-      val _ = VarSet.null (Term.freeVars t) orelse raise Error "term not closed"
+
+      val _ = VarSet.null (Term.freeVars t) orelse
+              raise Error "Thm.defineConst: term not closed"
+
       val _ = NameSet.subset (Term.typeVars t) (Type.typeVars ty) orelse
-              raise Error "extra type variables in term"
+              raise Error "Thm.defineConst: extra type variables in term"
 
       val c =
           TypeTerm.Const
@@ -252,25 +284,31 @@ fun defineConst name t =
       val axioms = emptyAxioms
       and hyp = emptyHyp
       and concl = Term.mkEq (Term.mkConst (c,ty), t)
+
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
-      Thm {axioms = axioms, sequent = sequent}
-    end
-    handle Error err => raise Error ("Thm.defineConst: " ^ err);
+      (c, Thm {axioms = axioms, sequent = sequent})
+    end;
 
-fun defineTypeOp name {abs,rep} tyVars nonEmptyTh =
+fun defineTypeOp name {abs} {rep} tyVars existenceTh =
     let
-      val Thm {axioms,sequent,...} = nonEmptyTh
+      val Thm {axioms,sequent,...} = existenceTh
+
       val Sequent.Sequent {hyp,concl} = sequent
+
       val _ = TermAlphaSet.null hyp orelse
-              raise Error "existence theorem must not have hypotheses"
+              raise Error "Thm.defineTypeOp: existence theorem must not have hypotheses"
+
       val (pTm,tTm) = Term.destApp concl
+
       val _ = VarSet.null (Term.freeVars pTm) orelse
-              raise Error "predicate is not closed"
+              raise Error "Thm.defineTypeOp: predicate is not closed"
+
       val _ = NameSet.equal (NameSet.fromList tyVars) (Term.typeVars pTm) orelse
-              raise Error "supplied type vars are not the type vars in p"
+              raise Error "Thm.defineTypeOp: supplied type vars are not the type vars in p"
+
       val _ = NameSet.size (NameSet.fromList tyVars) = length tyVars orelse
-              raise Error "supplied type variables contain duplicates"
+              raise Error "Thm.defineTypeOp: supplied type variables contain duplicates"
 
       val prov =
           TypeTerm.DefOpTy
@@ -294,17 +332,22 @@ fun defineTypeOp name {abs,rep} tyVars nonEmptyTh =
 
       val aTy = Type.mkOp (ot, map Type.mkVar tyVars)
       and rTy = Term.typeOf tTm
+
       val absTy = Type.mkFun (rTy,aTy)
       and repTy = Type.mkFun (aTy,rTy)
+
       val absTm = Term.mkConst (absC,absTy)
       and repTm = Term.mkConst (repC,repTy)
 
       val absRepTh =
           let
             val aVar = TypeTerm.Var (Name.mkGlobal "a", aTy)
+
             val aTm = Term.mkVar aVar
+
             val concl =
                 Term.mkEq (Term.mkApp (absTm, Term.mkApp (repTm,aTm)), aTm)
+
             val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
           in
             Thm {axioms = axioms, sequent = sequent}
@@ -313,19 +356,21 @@ fun defineTypeOp name {abs,rep} tyVars nonEmptyTh =
       val repAbsTh =
           let
             val rVar = TypeTerm.Var (Name.mkGlobal "r", rTy)
+
             val rTm = Term.mkVar rVar
+
             val concl =
                 Term.mkEq
                   (Term.mkApp (pTm,rTm),
                    Term.mkEq (Term.mkApp (repTm, Term.mkApp (absTm,rTm)), rTm))
+
             val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
           in
             Thm {axioms = axioms, sequent = sequent}
           end
     in
-      (absRepTh,repAbsTh)
-    end
-    handle Error err => raise Error ("Thm.defineTypeOp: " ^ err);
+      (ot, {abs = absC}, {rep = repC}, absRepTh,repAbsTh)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

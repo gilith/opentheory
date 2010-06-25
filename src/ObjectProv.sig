@@ -60,11 +60,19 @@ val mkName : Name.name -> object
 
 (* Regular commands *)
 
+val mkAbs : {savable : bool} -> object -> object -> object
+
 val mkAbsTerm : {savable : bool} -> object -> object -> object
+
+val mkApp : {savable : bool} -> object -> object -> object
 
 val mkAppTerm : {savable : bool} -> object -> object -> object
 
+val mkAssume : {savable : bool} -> object -> object
+
 val mkAxiom : {savable : bool} -> object -> object -> Sequent.sequent -> object
+
+val mkBetaConv : {savable : bool} -> object -> object
 
 val mkCons : {savable : bool} -> object -> object -> object
 
@@ -72,9 +80,23 @@ val mkConst : Const.const -> object
 
 val mkConstTerm : {savable : bool} -> object -> object -> object
 
+val mkDeductAntisym : {savable : bool} -> object -> object -> object
+
+val mkDefineConst : {savable : bool} -> object -> object -> object * object
+
+val mkDefineTypeOp :
+    {savable : bool} -> object -> object -> object -> object -> object ->
+    object * object * object * object * object
+
+val mkEqMp : {savable : bool} -> object -> object -> object
+
 val mkNil : object
 
 val mkOpType : {savable : bool} -> object -> object -> object
+
+val mkRefl : {savable : bool} -> object -> object
+
+val mkSubst : {savable : bool} -> object -> object -> object
 
 val mkTypeOp : TypeOp.typeOp -> object
 

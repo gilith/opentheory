@@ -20,6 +20,12 @@ val null : stack -> bool
 
 val push : stack -> ObjectProv.object -> stack
 
+val push2 : stack -> ObjectProv.object -> ObjectProv.object -> stack
+
+val push5 :
+    stack -> ObjectProv.object -> ObjectProv.object -> ObjectProv.object ->
+    ObjectProv.object -> ObjectProv.object -> stack
+
 val peek : stack -> ObjectProv.object
 
 val pop : stack -> stack * ObjectProv.object
@@ -28,5 +34,12 @@ val pop2 : stack -> stack * ObjectProv.object * ObjectProv.object
 
 val pop3 :
     stack -> stack * ObjectProv.object * ObjectProv.object * ObjectProv.object
+
+val pop5 :
+    stack ->
+    stack * ObjectProv.object * ObjectProv.object * ObjectProv.object *
+    ObjectProv.object * ObjectProv.object
+
+val objects : stack -> ObjectProv.object list
 
 end

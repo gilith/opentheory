@@ -45,6 +45,32 @@ fun push stack obj =
          objects = objects}
     end;
 
+fun push2 stack obj0 obj1 =
+    let
+      val Stack {size,objects} = stack
+
+      val size = size + 2
+
+      val objects = obj1 :: obj0 :: objects
+    in
+      Stack
+        {size = size,
+         objects = objects}
+    end;
+
+fun push5 stack obj0 obj1 obj2 obj3 obj4 =
+    let
+      val Stack {size,objects} = stack
+
+      val size = size + 5
+
+      val objects = obj4 :: obj3 :: obj2 :: obj1 :: obj0 :: objects
+    in
+      Stack
+        {size = size,
+         objects = objects}
+    end;
+
 fun peek stack =
     let
       val Stack {objects = objs, ...} = stack
@@ -80,7 +106,7 @@ fun pop2 stack =
       case objs of
         [] => raise Error "ObjectStack.pop2: empty"
       | [_] => raise Error "ObjectStack.pop2: singleton"
-      | obj0 :: obj1 :: objs =>
+      | obj1 :: obj0 :: objs =>
         let
           val size = size - 2
 
@@ -89,7 +115,7 @@ fun pop2 stack =
                 {size = size,
                  objects = objs}
         in
-          (stack,obj1,obj0)
+          (stack,obj0,obj1)
         end
     end;
 
@@ -101,7 +127,7 @@ fun pop3 stack =
         [] => raise Error "ObjectStack.pop3: empty"
       | [_] => raise Error "ObjectStack.pop3: singleton"
       | [_,_] => raise Error "ObjectStack.pop3: doubleton"
-      | obj0 :: obj1 :: obj2 :: objs =>
+      | obj2 :: obj1 :: obj0 :: objs =>
         let
           val size = size - 3
 
@@ -110,8 +136,33 @@ fun pop3 stack =
                 {size = size,
                  objects = objs}
         in
-          (stack,obj2,obj1,obj0)
+          (stack,obj0,obj1,obj2)
         end
     end;
+
+fun pop5 stack =
+    let
+      val Stack {size, objects = objs} = stack
+    in
+      case objs of
+        [] => raise Error "ObjectStack.pop5: empty"
+      | [_] => raise Error "ObjectStack.pop5: singleton"
+      | [_,_] => raise Error "ObjectStack.pop5: doubleton"
+      | [_,_,_] => raise Error "ObjectStack.pop5: tripleton"
+      | [_,_,_,_] => raise Error "ObjectStack.pop5: quadraton"
+      | obj4 :: obj3 :: obj2 :: obj1 :: obj0 :: objs =>
+        let
+          val size = size - 5
+
+          val stack =
+              Stack
+                {size = size,
+                 objects = objs}
+        in
+          (stack,obj0,obj1,obj2,obj3,obj4)
+        end
+    end;
+
+fun objects (Stack {objects = x, ...}) = x;
 
 end
