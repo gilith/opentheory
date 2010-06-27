@@ -29,6 +29,7 @@ and provenance =
   | Special of
       {command : Command.command,
        arguments : object list,
+       generated : Object.object list,
        result : int};
 
 (* ------------------------------------------------------------------------- *)
@@ -55,6 +56,8 @@ fun id (Object {id = x, ...}) = x;
 
 fun equalId i obj = i = id obj;
 
+fun equal (Object {id = i1, ...}) (Object {id = i2, ...}) = i1 = i2;
+
 fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
     Int.compare (i1,i2);
 
@@ -62,10 +65,11 @@ fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
 (* A type of provenances.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkSpecialProvenance cmd args res =
+fun mkSpecialProvenance cmd args gen res =
     Special
       {command = cmd,
        arguments = args,
+       generated = gen,
        result = res};
 
 fun isDefaultProvenance prov =
@@ -73,10 +77,24 @@ fun isDefaultProvenance prov =
       Default => true
     | Special _ => false;
 
-fun parentsProvenance prov =
+fun argumentsProvenance prov =
     case prov of
       Default => []
     | Special {arguments,...} => arguments;
+
+fun updateArgumentsProvenance args prov =
+    case prov of
+      Default => raise Error "ObjectProv.updateArgumentProvenance"
+    | Special
+        {command = cmd,
+         arguments = _,
+         generated = gen,
+         result = res} =>
+      Special
+        {command = cmd,
+         arguments = args,
+         generated = gen,
+         result = res};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -105,24 +123,44 @@ fun isDefault obj = isDefaultProvenance (provenance obj);
 
 fun allDefault objs = List.all isDefault objs;
 
-fun parents obj = parentsProvenance (provenance obj);
+fun parents obj = argumentsProvenance (provenance obj);
+
+fun updateProvenance f obj =
+    let
+      val Object' {object = ob, provenance = prov} = dest obj
+
+      val prov = f prov
+    in
+      mk (Object' {object = ob, provenance = prov})
+    end;
+
+fun updateArguments args obj =
+    updateProvenance (updateArgumentsProvenance args) obj;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkSpecial cmd args = mkSpecialProvenance cmd args 0;
+fun mkSpecial cmd args ob = mkSpecialProvenance cmd args [ob] 0;
 
-fun mkSpecial2 cmd args =
-    (mkSpecialProvenance cmd args 0,
-     mkSpecialProvenance cmd args 1);
+fun mkSpecial2 cmd args (ob0,ob1) =
+    let
+      val gen = [ob0,ob1]
+    in
+      (mkSpecialProvenance cmd args gen 0,
+       mkSpecialProvenance cmd args gen 1)
+    end;
 
-fun mkSpecial5 cmd args =
-    (mkSpecialProvenance cmd args 0,
-     mkSpecialProvenance cmd args 1,
-     mkSpecialProvenance cmd args 2,
-     mkSpecialProvenance cmd args 3,
-     mkSpecialProvenance cmd args 4);
+fun mkSpecial5 cmd args (ob0,ob1,ob2,ob3,ob4) =
+    let
+      val gen = [ob0,ob1,ob2,ob3,ob4]
+    in
+      (mkSpecialProvenance cmd args gen 0,
+       mkSpecialProvenance cmd args gen 1,
+       mkSpecialProvenance cmd args gen 2,
+       mkSpecialProvenance cmd args gen 3,
+       mkSpecialProvenance cmd args gen 4)
+    end;
 
 fun mkProv ob prov = mk (Object' {object = ob, provenance = prov});
 
@@ -149,11 +187,13 @@ fun mkAbs {savable} objV objT =
             Object.Thm (Thm.abs v th)
           end
 
-      val args = [objV,objT]
+      val cmd = Command.Abs
+      and args = [objV,objT]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.Abs args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -174,11 +214,13 @@ fun mkAbsTerm {savable} objV objB =
             Object.Term (Term.mkAbs (v,b))
           end
 
-      val args = [objV,objB]
+      val cmd = Command.AbsTerm
+      and args = [objV,objB]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.AbsTerm args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -199,11 +241,13 @@ fun mkApp {savable} objF objA =
             Object.Thm (Thm.app f a)
           end
 
-      val args = [objF,objA]
+      val cmd = Command.App
+      and args = [objF,objA]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.App args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -224,11 +268,13 @@ fun mkAppTerm {savable} objF objA =
             Object.Term (Term.mkApp (f,a))
           end
 
-      val args = [objF,objA]
+      val cmd = Command.AppTerm
+      and args = [objF,objA]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.AppTerm args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -247,11 +293,13 @@ fun mkAssume {savable} objT =
             Object.Thm (Thm.assume t)
           end
 
-      val args = [objT]
+      val cmd = Command.Assume
+      and args = [objT]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.Assume args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -263,11 +311,13 @@ fun mkAxiom {savable} objH objC seq =
     let
       val ob = Object.Thm (Thm.axiom seq)
 
-      val args = [objH,objC]
+      val cmd = Command.Axiom
+      and args = [objH,objC]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.Axiom args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -286,11 +336,13 @@ fun mkBetaConv {savable} objT =
             Object.Thm (Thm.betaConv t)
           end
 
-      val args = [objT]
+      val cmd = Command.BetaConv
+      and args = [objT]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.BetaConv args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -310,11 +362,13 @@ fun mkCons {savable} objH objT =
             Object.List (obH :: l)
           end
 
-      val args = [objH,objT]
+      val cmd = Command.Cons
+      and args = [objH,objT]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.Cons args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -337,11 +391,13 @@ fun mkConstTerm {savable} objC objT =
             Object.Term (Term.mkConst (c,ty))
           end
 
-      val args = [objC,objT]
+      val cmd = Command.ConstTerm
+      and args = [objC,objT]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.ConstTerm args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -362,11 +418,13 @@ fun mkDeductAntisym {savable} objA objB =
             Object.Thm (Thm.deductAntisym a b)
           end
 
-      val args = [objA,objB]
+      val cmd = Command.DeductAntisym
+      and args = [objA,objB]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.DeductAntisym args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -379,7 +437,7 @@ fun mkDefineConst {savable} objN objT =
       val obN = object objN
       and obT = object objT
 
-      val (ob0,ob1) =
+      val obs as (ob0,ob1) =
           let
             val n = Object.destName obN
             and t = Object.destTerm obT
@@ -389,11 +447,13 @@ fun mkDefineConst {savable} objN objT =
             (Object.Const c, Object.Thm th)
           end
 
-      val args = [objN,objT]
+      val cmd = Command.DefineConst
+      and args = [objN,objT]
+      and gen = obs
 
       val (prov0,prov1) =
           if not savable then (Default,Default)
-          else mkSpecial2 Command.DefineConst args
+          else mkSpecial2 cmd args gen
     in
       (mkProv ob0 prov0, mkProv ob1 prov1)
     end
@@ -409,7 +469,7 @@ fun mkDefineTypeOp {savable} objN objA objR objV objT =
       and obV = object objV
       and obT = object objT
 
-      val (ob0,ob1,ob2,ob3,ob4) =
+      val obs as (ob0,ob1,ob2,ob3,ob4) =
           let
             val n = Object.destName obN
             and a = Object.destName obA
@@ -427,11 +487,13 @@ fun mkDefineTypeOp {savable} objN objA objR objV objT =
              Object.Thm ra)
           end
 
-      val args = [objN,objA,objR,objV,objT]
+      val cmd = Command.DefineTypeOp
+      and args = [objN,objA,objR,objV,objT]
+      and gen = obs
 
       val (prov0,prov1,prov2,prov3,prov4) =
           if not savable then (Default,Default,Default,Default,Default)
-          else mkSpecial5 Command.DefineTypeOp args
+          else mkSpecial5 cmd args gen
     in
       (mkProv ob0 prov0,
        mkProv ob1 prov1,
@@ -456,11 +518,13 @@ fun mkEqMp {savable} objA objB =
             Object.Thm (Thm.eqMp a b)
           end
 
-      val args = [objA,objB]
+      val cmd = Command.EqMp
+      and args = [objA,objB]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.EqMp args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -483,11 +547,13 @@ fun mkOpType {savable} objO objL =
             Object.mkOpType (ot,tys)
           end
 
-      val args = [objO,objL]
+      val cmd = Command.OpType
+      and args = [objO,objL]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.OpType args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -506,11 +572,13 @@ fun mkRefl {savable} objT =
             Object.Thm (Thm.refl t)
           end
 
-      val args = [objT]
+      val cmd = Command.Refl
+      and args = [objT]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.Refl args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -531,11 +599,13 @@ fun mkSubst {savable} objS objT =
             Object.Thm (Thm.subst (TermSubst.mk s) th)
           end
 
-      val args = [objS,objT]
+      val cmd = Command.Subst
+      and args = [objS,objT]
+      and gen = ob
 
       val prov =
           if not savable then Default
-          else mkSpecial Command.Subst args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -558,11 +628,13 @@ fun mkVar {savable} objN objT =
             Object.Var (Var.mk (n,ty))
           end
 
-      val args = [objN,objT]
+      val cmd = Command.Var
+      and args = [objN,objT]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.Var args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -581,11 +653,13 @@ fun mkVarTerm {savable} objV =
             Object.Term (Term.mkVar v)
           end
 
-      val args = [objV]
+      val cmd = Command.VarTerm
+      and args = [objV]
+      and gen = ob
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial Command.VarTerm args
+          else mkSpecial cmd args gen
     in
       mkProv ob prov
     end
@@ -610,160 +684,72 @@ fun mkVarType objN =
     handle Error err => raise Error ("ObjectProv.mkVarType: " ^ err);
 *)
 
-(***
 (* ------------------------------------------------------------------------- *)
-(* Building objects.                                                         *)
+(* Folding state over objects.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun build savable srch =
+fun foldl {preDescent,postDescent} =
     let
-      fun bld ob =
-          case ob of
-            Object.List (obH :: obT) =>
-            let
-              val objH = bld obH
-
-              val objT = bld (Object.List obT)
-            in
-              mkCons objH objT
-            end
-          | Object.Thm th =>
-            let
-              val inf = srch th
-            in
-              mkThm savable th inf
-            end
-          | Object.Call _ => raise Error "cannot build an Ocall object"
-          | _ =>
-            let
-              val prov = Pnull
-            in
-              mk ob prov
-            end
+      fun foldlObj (obj,acc) =
+          let
+            val {descend, result = acc} = preDescent obj acc
+          in
+            if not descend then acc
+            else
+              let
+                val acc =
+                    case provenance obj of
+                      Default => acc
+                    | Special {arguments = args, ...} =>
+                      List.foldl foldlObj acc args
+              in
+                postDescent obj acc
+              end
+          end
     in
-      bld
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Bug ("ObjectProv.build: " ^ err);
-*)
-
-(* ------------------------------------------------------------------------- *)
-(* Updating provenance (for compression).                                    *)
-(* ------------------------------------------------------------------------- *)
-
-fun updateProvenance obj prov =
-    let
-      val Object {id = i, object = ob, ...} = obj
-    in
-      Object {id = i, object = ob, provenance = prov}
+      fn acc => fn obj => foldlObj (obj,acc)
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping with state over objects.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  infix ==
-
-  val op== = Portable.pointerEqual;
-
-  fun genMaps lr {preDescent,postDescent} =
-      let
-        fun mapsObj obj acc =
-            let
-              val {descend,result} = preDescent obj acc
-            in
-              if not descend then result
-              else
-                let
-                  val (obj,acc) = result
-
-                  val prov = provenance obj
-
-                  val (prov',acc) = mapsProv prov acc
-
-                  val obj =
-                      if prov' == prov then obj
-                      else updateProvenance obj prov'
-                in
-                  postDescent obj acc
-                end
-            end
-
-        and mapsProv prov acc =
-            case prov of
-              Pnull => (prov,acc)
-            | Pcall obj => mapsProv1 prov acc Pcall obj
-            | Pcons (objH,objT) =>
+fun maps {preDescent,postDescent} =
+    let
+      fun mapsObj obj acc =
+          let
+            val {descend,result} = preDescent obj acc
+          in
+            if not descend then result
+            else
               let
-                val (objH',objT',acc) =
-                    if lr then
+                val (obj',acc) = result
+
+                val (obj',acc) =
+                    case provenance obj' of
+                      Default => result
+                    | Special {arguments = args, ...} =>
                       let
-                        val (objH',acc) = mapsObj objH acc
-                        val (objT',acc) = mapsObj objT acc
+                        val (args',acc) = Useful.maps mapsObj args acc
+
+                        val obj' =
+                            if listEqual equal args' args then obj'
+                            else updateArguments args' obj'
                       in
-                        (objH',objT',acc)
+                        (obj',acc)
                       end
-                    else
-                      let
-                        val (objT',acc) = mapsObj objT acc
-                        val (objH',acc) = mapsObj objH acc
-                      in
-                        (objH',objT',acc)
-                      end
-
-                val prov' =
-                    if objH' == objH andalso objT' == objT then prov
-                    else Pcons (objH',objT')
               in
-                (prov',acc)
+                postDescent obj obj' acc
               end
-            | Pref obj => mapsProv1 prov acc Pref obj
-            | Pthm inf =>
-              let
-                val (inf',acc) = mapsInf inf acc
-
-                val prov' = if inf' == inf then prov else Pthm inf'
-              in
-                (prov',acc)
-              end
-
-        and mapsProv1 prov acc con obj =
-            let
-              val (obj',acc) = mapsObj obj acc
-
-              val prov' = if obj' == obj then prov else con obj'
-            in
-              (prov',acc)
-            end
-
-        and mapsInf inf acc =
-            case inf of
-              Ialpha obj => mapsInf1 inf acc Ialpha obj
-            | Isimulated obj => mapsInf1 inf acc Isimulated obj
-            | Iaxiom => (inf,acc)
-
-        and mapsInf1 inf acc con obj =
-            let
-              val (obj',acc) = mapsObj obj acc
-
-              val inf' = if obj' == obj then inf else con obj'
-            in
-              (inf',acc)
-            end;
-      in
-        mapsObj
-      end;
-in
-  fun maps pre_post obj acc = genMaps true pre_post obj acc;
-
-  fun revMaps pre_post obj acc = genMaps false pre_post obj acc;
-end;
+          end
+    in
+      mapsObj
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
-
+(***
 fun pp level obj =
     let
       val Object {id, object = ob, provenance = prov} = obj

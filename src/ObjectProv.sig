@@ -21,11 +21,12 @@ datatype provenance =
   | Special of
       {command : Command.command,
        arguments : object list,
+       generated : Object.object list,
        result : int}
 
 val isDefaultProvenance : provenance -> bool
 
-val parentsProvenance : provenance -> object list
+val argumentsProvenance : provenance -> object list
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -106,21 +107,14 @@ val mkVarTerm : {savable : bool} -> object -> object
 
 val mkVarType : object -> object
 
-(***
-val mkThm : {savable : bool} -> Thm.thm -> inference -> object
-
 (* ------------------------------------------------------------------------- *)
-(* Building objects.                                                         *)
+(* Folding state over objects.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-val build :
-    {savable : bool} -> (Thm.thm -> inference) -> Object.object -> object
-
-(* ------------------------------------------------------------------------- *)
-(* Updating provenance (for compression).                                    *)
-(* ------------------------------------------------------------------------- *)
-
-val updateProvenance : object -> provenance -> object
+val foldl :
+    {preDescent : object -> 's -> {descend : bool, result : 's},
+     postDescent : object -> 's -> 's} ->
+    's -> object -> 's
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping with state over objects.                                          *)
@@ -128,13 +122,13 @@ val updateProvenance : object -> provenance -> object
 
 val maps :
     {preDescent : object -> 's -> {descend : bool, result : object * 's},
-     postDescent : object -> 's -> object * 's} ->
-    object -> 's -> object  * 's
+     postDescent : object -> object -> 's -> object * 's} ->
+    object -> 's -> object * 's
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
-
+(***
 val pp : int -> object Print.pp
 ***)
 

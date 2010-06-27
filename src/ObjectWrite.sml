@@ -35,49 +35,56 @@ fun nullMinDict (MinDict {keys,...}) = ObjectMap.null keys;
 local
   fun storable ob =
       case ob of
-        Object.Error => false
-      | Object.Int _ => false
+        Object.Num _ => false
       | Object.Name _ => false
-      | Object.List l => not (null l)
       | Object.TypeOp _ => true
       | Object.Type _ => true
       | Object.Const _ => true
       | Object.Var _ => true
       | Object.Term _ => true
       | Object.Thm _ => true
-      | Object.Call _ => raise Bug "ObjectWrite.storable: Call";
+      | Object.List l => not (null l);
 
-  fun registerTop refs ob =
+  fun registerObject refs ob =
       let
         val p = ObjectMap.peek refs ob
+
         val known = Option.isSome p
+
         val k = Option.getOpt (p,0)
+
         val refs = ObjectMap.insert refs (ob, k + 1)
       in
         (known,refs)
       end;
 
-  fun registerDeep refs [] = refs
-    | registerDeep refs (ob :: obs) =
-      if not (storable ob) then registerDeep refs obs
-      else
-        let
-          val (known,refs) = registerTop refs ob
-          val obs = if known then obs else snd (Object.toCommand ob) @ obs
-        in
-          registerDeep refs obs
-        end;
-
-  fun register (obj,refs) =
-      let
-        val ob = ObjectProv.object obj
-      in
-        case ObjectProv.provenance obj of
-          ObjectProv.Pnull => registerDeep refs [ob]
-        | ObjectProv.Pcall _ => refs
-        | ObjectProv.Pcons _ =>
+  fun registerDefault refs obs =
+      case obs of
+        [] => ref
+      | ob :: obs =>
+        if not (storable ob) then registerDefault refs obs
+        else
           let
-            val (known,refs) = registerTop refs ob
+            val (known,refs) = registerObject refs ob
+
+            val obs = if known then obs else snd (Object.command ob) @ obs
+          in
+            registerDefault refs obs
+          end;
+
+  fun registerSpecial refs objs =
+      case objs of
+        [] => ref
+      | obj :: objs =>
+        let
+          val ob = ObjectProv.object obj
+        in
+          case ObjectProv.provenance obj of
+            ObjectProv.Default => registerDefault refs [ob]
+          | ObjectProv.Special {arguments = args, ...} =>
+            let
+              val (known,refs) = registerObject refs ob
+
 (*OpenTheoryDebug
             val _ =
                 not known orelse
@@ -136,9 +143,13 @@ in
   fun newMinDict objs =
       let
         val nextKey = 1
+
         val refs = ObjectMap.new ()
+
         val refs = ObjectProvSet.foldl register refs objs
+
         val refs = ObjectMap.filter (fn (_,n) => n >= 2) refs
+
         val keys = ObjectMap.new ()
       in
         MinDict
