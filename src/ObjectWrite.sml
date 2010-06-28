@@ -45,7 +45,7 @@ local
       | Object.Thm _ => true
       | Object.List l => not (null l);
 
-  fun registerObject refs ob =
+  fun registerReference (ob,refs) =
       let
         val p = ObjectMap.peek refs ob
 
@@ -60,84 +60,72 @@ local
 
   fun registerDefault refs obs =
       case obs of
-        [] => ref
+        [] => refs
       | ob :: obs =>
         if not (storable ob) then registerDefault refs obs
         else
           let
-            val (known,refs) = registerObject refs ob
+            val (known,refs) = registerReference (ob,refs)
 
             val obs = if known then obs else snd (Object.command ob) @ obs
           in
             registerDefault refs obs
           end;
 
-  fun registerSpecial refs objs =
-      case objs of
-        [] => ref
-      | obj :: objs =>
-        let
-          val ob = ObjectProv.object obj
-        in
-          case ObjectProv.provenance obj of
-            ObjectProv.Default => registerDefault refs [ob]
-          | ObjectProv.Special {arguments = args, ...} =>
-            let
-              val (known,refs) = registerObject refs ob
+  fun registerSpecial (obj,refs) =
+      let
+        val ob = ObjectProv.object obj
+      in
+        if not (storable ob) then refs
+        else
+          case ObjectMap.peek refs ob of
+            SOME k => ObjectMap.insert refs (k + 1)
+          | NONE =>
+            case ObjectProv.provenance obj of
+              ObjectProv.Default => registerDefault refs [ob]
+            | ObjectProv.Special {arguments = args, generated = gen, ...} =>
+              let
+                val refs = List.foldl registerSpecial refs args
+
+                val (known,refs) = registerReference (ob,refs)
 
 (*OpenTheoryDebug
-            val _ =
-                not known orelse
-                let
-                  val () = Print.trace (ObjectProv.pp 1) "deja vu obj" obj
-                  val k = ObjectMap.peek refs ob
-                  val () = Print.trace (Print.ppOption Print.ppInt) "refs" k
-                in
-                  raise Error "register: Pcons deja vu"
-                end
+                val _ = not known orelse
+                        raise Bug "ObjectWrite.registerSpecial: redundancy"
 *)
-          in
-            refs
-          end
-        | ObjectProv.Pref _ =>
-          let
-            val (known,refs) = registerTop refs ob
+
+                val refs = List.foldl registerGenerated refs gen
+              in
+                refs
+              end
+      end;
+
+  fun registerThm (obj,th,refs) =
+      let
+        val refs = ob = ObjectProv.object obj
+      in
+        if not (storable ob) then refs
+        else
+          case ObjectMap.peek refs ob of
+            SOME k => ObjectMap.insert refs (k + 1)
+          | NONE =>
+            case ObjectProv.provenance obj of
+              ObjectProv.Default => registerDefault refs [ob]
+            | ObjectProv.Special {arguments = args, generated = gen, ...} =>
+              let
+                val refs = List.foldl registerSpecial refs args
+
+                val (known,refs) = registerReference (ob,refs)
 
 (*OpenTheoryDebug
-            val _ = known orelse
-                    raise Error "register: unknown Pref"
-*)
-          in
-            refs
-          end
-        | ObjectProv.Pthm inf =>
-          let
-            val refs =
-                case inf of
-                  ObjectProv.Ialpha iobj =>
-                  let
-                    val iob = ObjectProv.object iobj
-
-                    val (known,refs) = registerTop refs iob
-(*OpenTheoryDebug
-                    val _ = known orelse
-                            raise Error "register: unknown Ialpha ref"
+                val _ = not known orelse
+                        raise Bug "ObjectWrite.registerSpecial: redundancy"
 *)
 
-                    val refs = registerDeep refs [ob]
-
-                    val (known,refs) = registerTop refs ob
-(*OpenTheoryDebug
-                    val _ = known orelse
-                            raise Error "register: unknown Ialpha thm"
-*)
-                  in
-                    refs
-                  end
-                | _ => registerDeep refs [ob]
-          in
-            refs
-          end
+                val refs = List.foldl registerGenerated refs gen
+              in
+                refs
+              end
       end;
 in
   fun newMinDict objs =
