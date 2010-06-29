@@ -171,11 +171,11 @@ val isAbsTerm : object -> bool
 
 (* Sequent objects *)
 
-val mkSeq : Sequent.sequent -> object * object
+val mkSequent : Sequent.sequent -> object * object
 
-val destSeq : object * object -> Sequent.sequent
+val destSequent : object * object -> Sequent.sequent
 
-val isSeq : object * object -> bool
+val isSequent : object * object -> bool
 
 (* Theorem objects *)
 

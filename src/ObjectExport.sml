@@ -26,7 +26,11 @@ fun size (Export m) = ObjectProvMap.size m;
 
 fun insert (Export m) obj_th = Export (ObjectProvMap.insert m obj_th);
 
+fun foldl f a (Export m) = ObjectProvMap.foldl f a m;
+
 fun toMap (Export m) = m;
+
+fun toList (Export m) = ObjectProvMap.toList m;
 
 (* ------------------------------------------------------------------------- *)
 (* Compression.                                                              *)
@@ -122,9 +126,9 @@ local
         (acc,exp)
       end;
 in
-  fun compressRefs refs (Export m) =
+  fun compressRefs refs exp =
       let
-        val (_,exp) = ObjectProvMap.foldl (advance refs) (initial,empty) m
+        val (_,exp) = foldl (advance refs) (initial,empty) exp
       in
         exp
       end;

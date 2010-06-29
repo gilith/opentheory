@@ -212,7 +212,7 @@ val isAbsTerm = can destAbsTerm;
 
 (* Sequent objects *)
 
-fun mkSeq seq =
+fun mkSequent seq =
     let
       val Sequent.Sequent {hyp = h, concl = c} = seq
 
@@ -221,12 +221,12 @@ fun mkSeq seq =
       (mkTerms h, Term c)
     end;
 
-fun destSeq (h,c) =
+fun destSequent (h,c) =
     Sequent.Sequent
       {hyp = TermAlphaSet.fromList (destTerms h),
        concl = destTerm c};
 
-val isSeq = can destSeq;
+val isSequent = can destSequent;
 
 (* Theorem objects *)
 
@@ -420,7 +420,7 @@ fun command ob =
        | TypeTerm.Abs' (v,b) => (Command.AbsTerm, [Var v, Term b]))
     | Thm th =>
       let
-        val (h,c) = mkSeq (Thm.sequent th)
+        val (h,c) = mkSequent (Thm.sequent th)
       in
         (Command.Axiom,[h,c])
       end

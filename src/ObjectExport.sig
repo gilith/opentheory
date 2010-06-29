@@ -24,7 +24,11 @@ val size : export -> int
 
 val insert : export -> ObjectProv.object * Thm.thm -> export
 
+val foldl : (ObjectProv.object * Thm.thm * 's -> 's) -> 's -> export -> 's
+
 val toMap : export -> Thm.thm ObjectProvMap.map
+
+val toList : export -> (ObjectProv.object * Thm.thm) list
 
 (* ------------------------------------------------------------------------- *)
 (* Compression.                                                              *)

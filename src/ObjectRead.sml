@@ -262,7 +262,7 @@ fun execute cmd state =
                 val obH = ObjectProv.object objH
                 and obC = ObjectProv.object objC
               in
-                Object.destSeq (obH,obC)
+                Object.destSequent (obH,obC)
               end
 
           val obj =
@@ -573,7 +573,7 @@ fun execute cmd state =
                 and obC = ObjectProv.object objC
 
                 val t = Object.destThm obT
-                and seq = Object.destSeq (obH,obC)
+                and seq = Object.destSequent (obH,obC)
               in
                 Rule.alpha seq t
               end
