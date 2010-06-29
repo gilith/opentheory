@@ -30,9 +30,9 @@ val knownTypeOp : symbol -> Name.name -> bool
 
 val knownConst : symbol -> Name.name -> bool
 
-val mkTypeOp : symbol list -> Name.name -> TypeOp.typeOp
+val mkTypeOp : symbol -> Name.name -> TypeOp.typeOp
 
-val mkConst : symbol list -> Name.name -> Const.const
+val mkConst : symbol -> Name.name -> Const.const
 
 (* ------------------------------------------------------------------------- *)
 (* Adding entries.                                                           *)

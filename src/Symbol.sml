@@ -52,35 +52,15 @@ fun knownTypeOp (Symbol {opM,...}) n = NameMap.inDomain n opM;
 
 fun knownConst (Symbol {conM,...}) n = NameMap.inDomain n conM;
 
-fun mkTypeOp syms n =
-    let
-      fun peek sym = peekTypeOp sym n
-    in
-      case List.mapPartial peek syms of
-        [] => TypeOp.mkUndef n
-      | ot :: ots =>
-        if List.all (TypeOp.equal ot) ots then ot
-        else raise Error ("ambiguous type operator name " ^
-                          Name.quotedToString n)
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.mkTypeOp: " ^ err);
-*)
+fun mkTypeOp sym n =
+    case peekTypeOp sym n of
+      SOME ot => ot
+    | NONE => TypeOp.mkUndef n;
 
-fun mkConst syms n =
-    let
-      fun peek sym = peekConst sym n
-    in
-      case List.mapPartial peek syms of
-        [] => Const.mkUndef n
-      | c :: cs =>
-        if List.all (Const.equal c) cs then c
-        else raise Error ("ambiguous constant name " ^
-                          Name.quotedToString n)
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.mkConst: " ^ err);
-*)
+fun mkConst sym n =
+    case peekConst sym n of
+      SOME c => c
+    | NONE => Const.mkUndef n;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding entries.                                                           *)

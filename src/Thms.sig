@@ -7,7 +7,7 @@ signature Thms =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of object set theorems.                                            *)
+(* A type of theorems and their symbols.                                     *)
 (* ------------------------------------------------------------------------- *)
 
 type thms
@@ -21,7 +21,7 @@ val thms : thms -> ThmSet.set
 val symbol : thms -> Symbol.symbol
 
 (* ------------------------------------------------------------------------- *)
-(* Adding objects.                                                           *)
+(* Adding theorems.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val add : thms -> Thm.thm -> thms
@@ -29,6 +29,12 @@ val add : thms -> Thm.thm -> thms
 val addList : thms -> Thm.thm list -> thms
 
 val addSet : thms -> ThmSet.set -> thms
+
+val singleton : Thm.thm -> thms
+
+val fromList : Thm.thm list -> thms
+
+val fromSet : ThmSet.set -> thms
 
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)

@@ -56,21 +56,21 @@ val stripQuant : Const.const -> Term.term -> Var.var list * Term.term
 
 val nameTrue : Name.name
 
-val constTrue : Symbol.symbol list -> Const.const
+val constTrue : Symbol.symbol -> Const.const
 
-val termTrue : Symbol.symbol list -> Term.term
+val termTrue : Symbol.symbol -> Term.term
 
-val isTrue : Symbol.symbol list -> Term.term -> bool
+val isTrue : Symbol.symbol -> Term.term -> bool
 
 (* False *)
 
 val nameFalse : Name.name
 
-val constFalse : Symbol.symbol list -> Const.const
+val constFalse : Symbol.symbol -> Const.const
 
-val termFalse : Symbol.symbol list -> Term.term
+val termFalse : Symbol.symbol -> Term.term
 
-val isFalse : Symbol.symbol list -> Term.term -> bool
+val isFalse : Symbol.symbol -> Term.term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Propositional connectives.                                                *)
@@ -80,81 +80,81 @@ val isFalse : Symbol.symbol list -> Term.term -> bool
 
 val nameNeg : Name.name
 
-val constNeg : Symbol.symbol list -> Const.const
+val constNeg : Symbol.symbol -> Const.const
 
 val tyNeg : Type.ty
 
-val termNeg : Symbol.symbol list -> Term.term
+val termNeg : Symbol.symbol -> Term.term
 
-val mkNeg : Symbol.symbol list -> Term.term -> Term.term
+val mkNeg : Symbol.symbol -> Term.term -> Term.term
 
-val destNeg : Symbol.symbol list -> Term.term -> Term.term
+val destNeg : Symbol.symbol -> Term.term -> Term.term
 
-val isNeg : Symbol.symbol list -> Term.term -> bool
+val isNeg : Symbol.symbol -> Term.term -> bool
 
-val listMkNeg : Symbol.symbol list -> int * Term.term -> Term.term
+val listMkNeg : Symbol.symbol -> int * Term.term -> Term.term
 
-val stripNeg : Symbol.symbol list -> Term.term -> int * Term.term
+val stripNeg : Symbol.symbol -> Term.term -> int * Term.term
 
 (* Implications *)
 
 val nameImp : Name.name
 
-val constImp : Symbol.symbol list -> Const.const
+val constImp : Symbol.symbol -> Const.const
 
 val tyImp : Type.ty
 
-val termImp : Symbol.symbol list -> Term.term
+val termImp : Symbol.symbol -> Term.term
 
-val mkImp : Symbol.symbol list -> Term.term * Term.term -> Term.term
+val mkImp : Symbol.symbol -> Term.term * Term.term -> Term.term
 
-val destImp : Symbol.symbol list -> Term.term -> Term.term * Term.term
+val destImp : Symbol.symbol -> Term.term -> Term.term * Term.term
 
-val isImp : Symbol.symbol list -> Term.term -> bool
+val isImp : Symbol.symbol -> Term.term -> bool
 
-val listMkImp : Symbol.symbol list -> Term.term list * Term.term -> Term.term
+val listMkImp : Symbol.symbol -> Term.term list * Term.term -> Term.term
 
-val stripImp : Symbol.symbol list -> Term.term -> Term.term list * Term.term
+val stripImp : Symbol.symbol -> Term.term -> Term.term list * Term.term
 
 (* Conjunctions *)
 
 val nameConj : Name.name
 
-val constConj : Symbol.symbol list -> Const.const
+val constConj : Symbol.symbol -> Const.const
 
 val tyConj : Type.ty
 
-val termConj : Symbol.symbol list -> Term.term
+val termConj : Symbol.symbol -> Term.term
 
-val mkConj : Symbol.symbol list -> Term.term * Term.term -> Term.term
+val mkConj : Symbol.symbol -> Term.term * Term.term -> Term.term
 
-val destConj : Symbol.symbol list -> Term.term -> Term.term * Term.term
+val destConj : Symbol.symbol -> Term.term -> Term.term * Term.term
 
-val isConj : Symbol.symbol list -> Term.term -> bool
+val isConj : Symbol.symbol -> Term.term -> bool
 
-val listMkConj : Symbol.symbol list -> Term.term list -> Term.term
+val listMkConj : Symbol.symbol -> Term.term list -> Term.term
 
-val stripConj : Symbol.symbol list -> Term.term -> Term.term list
+val stripConj : Symbol.symbol -> Term.term -> Term.term list
 
 (* Disjunctions *)
 
 val nameDisj : Name.name
 
-val constDisj : Symbol.symbol list -> Const.const
+val constDisj : Symbol.symbol -> Const.const
 
 val tyDisj : Type.ty
 
-val termDisj : Symbol.symbol list -> Term.term
+val termDisj : Symbol.symbol -> Term.term
 
-val mkDisj : Symbol.symbol list -> Term.term * Term.term -> Term.term
+val mkDisj : Symbol.symbol -> Term.term * Term.term -> Term.term
 
-val destDisj : Symbol.symbol list -> Term.term -> Term.term * Term.term
+val destDisj : Symbol.symbol -> Term.term -> Term.term * Term.term
 
-val isDisj : Symbol.symbol list -> Term.term -> bool
+val isDisj : Symbol.symbol -> Term.term -> bool
 
-val listMkDisj : Symbol.symbol list -> Term.term list -> Term.term
+val listMkDisj : Symbol.symbol -> Term.term list -> Term.term
 
-val stripDisj : Symbol.symbol list -> Term.term -> Term.term list
+val stripDisj : Symbol.symbol -> Term.term -> Term.term list
 
 (* ------------------------------------------------------------------------- *)
 (* Quantifiers.                                                              *)
@@ -164,63 +164,63 @@ val stripDisj : Symbol.symbol list -> Term.term -> Term.term list
 
 val nameForall : Name.name
 
-val constForall : Symbol.symbol list -> Const.const
+val constForall : Symbol.symbol -> Const.const
 
-val mkForall : Symbol.symbol list -> Var.var * Term.term -> Term.term
+val mkForall : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val destForall : Symbol.symbol list -> Term.term -> Var.var * Term.term
+val destForall : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val isForall : Symbol.symbol list -> Term.term -> bool
+val isForall : Symbol.symbol -> Term.term -> bool
 
-val listMkForall : Symbol.symbol list -> Var.var list * Term.term -> Term.term
+val listMkForall : Symbol.symbol -> Var.var list * Term.term -> Term.term
 
-val stripForall : Symbol.symbol list -> Term.term -> Var.var list * Term.term
+val stripForall : Symbol.symbol -> Term.term -> Var.var list * Term.term
 
 (* Existential quantifiers *)
 
 val nameExists : Name.name
 
-val constExists : Symbol.symbol list -> Const.const
+val constExists : Symbol.symbol -> Const.const
 
-val mkExists : Symbol.symbol list -> Var.var * Term.term -> Term.term
+val mkExists : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val destExists : Symbol.symbol list -> Term.term -> Var.var * Term.term
+val destExists : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val isExists : Symbol.symbol list -> Term.term -> bool
+val isExists : Symbol.symbol -> Term.term -> bool
 
-val listMkExists : Symbol.symbol list -> Var.var list * Term.term -> Term.term
+val listMkExists : Symbol.symbol -> Var.var list * Term.term -> Term.term
 
-val stripExists : Symbol.symbol list -> Term.term -> Var.var list * Term.term
+val stripExists : Symbol.symbol -> Term.term -> Var.var list * Term.term
 
 (* Unique existential quantifiers *)
 
 val nameExistsUnique : Name.name
 
-val constExistsUnique : Symbol.symbol list -> Const.const
+val constExistsUnique : Symbol.symbol -> Const.const
 
-val mkExistsUnique : Symbol.symbol list -> Var.var * Term.term -> Term.term
+val mkExistsUnique : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val destExistsUnique : Symbol.symbol list -> Term.term -> Var.var * Term.term
+val destExistsUnique : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val isExistsUnique : Symbol.symbol list -> Term.term -> bool
+val isExistsUnique : Symbol.symbol -> Term.term -> bool
 
 val listMkExistsUnique :
-    Symbol.symbol list -> Var.var list * Term.term -> Term.term
+    Symbol.symbol -> Var.var list * Term.term -> Term.term
 
 val stripExistsUnique :
-    Symbol.symbol list -> Term.term -> Var.var list * Term.term
+    Symbol.symbol -> Term.term -> Var.var list * Term.term
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
 val nameSelect : Name.name
 
-val constSelect : Symbol.symbol list -> Const.const
+val constSelect : Symbol.symbol -> Const.const
 
-val mkSelect : Symbol.symbol list -> Var.var * Term.term -> Term.term
+val mkSelect : Symbol.symbol -> Var.var * Term.term -> Term.term
 
-val destSelect : Symbol.symbol list -> Term.term -> Var.var * Term.term
+val destSelect : Symbol.symbol -> Term.term -> Var.var * Term.term
 
-val isSelect : Symbol.symbol list -> Term.term -> bool
+val isSelect : Symbol.symbol -> Term.term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* The type of individuals.                                                  *)
@@ -228,8 +228,8 @@ val isSelect : Symbol.symbol list -> Term.term -> bool
 
 val nameInd : Name.name
 
-val typeOpInd : Symbol.symbol list -> TypeOp.typeOp
+val typeOpInd : Symbol.symbol -> TypeOp.typeOp
 
-val tyInd : Symbol.symbol list -> Type.ty
+val tyInd : Symbol.symbol -> Type.ty
 
 end

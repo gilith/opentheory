@@ -398,7 +398,7 @@ fun compile {filename} =
 
               val ths = Article.thms art
 
-              val sum = Summary.fromThmSet ths
+              val sum = Summary.fromThms ths
             in
               Summary.toTextFile
                 {show = show,

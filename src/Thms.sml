@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of object set theorems.                                            *)
+(* A type of theorems and their symbols.                                     *)
 (* ------------------------------------------------------------------------- *)
 
 datatype thms =
@@ -34,40 +34,35 @@ fun symbol (Thms {symbol = x, ...}) = x;
 fun size ths = ThmSet.size (thms ths);
 
 (* ------------------------------------------------------------------------- *)
-(* Adding objects.                                                           *)
+(* Adding theorems.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 fun add thms th =
     let
-      val Thms {ths,symbol} = thms
+      val Thms {ths, symbol = sym} = thms
 
       val ths = ThmSet.add ths th
 
-      val symbol = Symbol.addSequent symbol (Thm.sequent th)
+      val sym = Symbol.addSequent sym (Thm.sequent th)
     in
       Thms
         {ths = ths,
-         symbol = symbol}
+         symbol = sym}
     end;
 
 local
   fun add1 (th,thms) = add thms th;
 in
   fun addList thms thl = List.foldl add1 thms thl;
+
+  fun addSet thms ths = ThmSet.foldl add1 thms ths;
 end;
 
-fun addSet thms s =
-    let
-      val Thms {ths,symbol} = thms
+val singleton = add empty;
 
-      val ths = ThmSet.union ths s
+val fromList = addList empty;
 
-      val symbol = Symbol.addSequentSet symbol (ThmSet.sequents s)
-    in
-      Thms
-        {ths = ths,
-         symbol = symbol}
-    end;
+val fromSet = addSet empty;
 
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)
@@ -75,12 +70,8 @@ fun addSet thms s =
 
 fun union thms1 thms2 =
     let
-      val Thms
-            {ths = ths1,
-             symbol = sym1} = thms1
-      and Thms
-            {ths = ths2,
-             symbol = sym2} = thms2
+      val Thms {ths = ths1, symbol = sym1} = thms1
+      and Thms {ths = ths2, symbol = sym2} = thms2
 
       val ths = ThmSet.union ths1 ths2
 

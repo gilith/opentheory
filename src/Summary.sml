@@ -12,24 +12,40 @@ open Useful;
 (* A type of theory summary.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-datatype summary =
-    Summary of
-      {requires : Context.context,
-       provides : Context.context};
+datatype summary' =
+    Summary' of
+      {requires : Sequents.sequents,
+       provides : Sequents.sequents};
 
-fun requires (Summary {requires = x, ...}) = x;
+type summary = summary'
 
-fun provides (Summary {provides = x, ...}) = x;
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
 
-fun fromThmSet ths =
+fun mk sum : summary = sum;
+
+fun dest sum : summary' = sum;
+
+fun requires' (Summary' {requires = x, ...}) = x;
+
+fun provides' (Summary' {provides = x, ...}) = x;
+
+fun requires sum = requires' (dest sum);
+
+fun provides sum = provides' (dest sum);
+
+fun fromThms ths =
     let
-      val requires = Context.fromSequentSet (ThmSet.axioms ths)
+      val req = Sequents.fromSet (ThmSet.axioms (Thms.thms ths))
+      and prov = Sequents.fromThms ths
 
-      val provides = Context.fromSequentSet (ThmSet.sequents ths)
+      val sum' =
+          Summary'
+            {requires = req,
+             provides = prov}
     in
-      Summary
-        {requires = requires,
-         provides = provides}
+      mk sum'
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -60,12 +76,13 @@ in
 (*OpenTheoryTrace5
         val () = trace "entering Summary.fromThms\n"
 *)
-        val Summary {requires,provides} = summary
+        val Summary' {requires,provides} = dest summary
 
         val (inp,def) =
             let
-              val req = Context.symbol requires
-              val prov = Context.symbol provides
+              val req = Sequents.symbol requires
+              and prov = Sequents.symbol provides
+
               val sym = Symbol.union req prov
             in
               Symbol.partitionUndef sym
@@ -73,12 +90,12 @@ in
 
         val (ass,ax) =
             let
-              val req = Context.sequents requires
+              val req = Sequents.sequents requires
             in
               SequentSet.partition (allSymbolsIn inp) req
             end
 
-        val ths = Context.sequents provides
+        val ths = Sequents.sequents provides
 
 (*OpenTheoryTrace5
         val () = trace "exiting Summary.fromThms\n"

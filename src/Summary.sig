@@ -12,11 +12,24 @@ sig
 
 type summary
 
-val requires : summary -> Context.context
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
 
-val provides : summary -> Context.context
+datatype summary' =
+    Summary' of
+      {requires : Sequents.sequents,
+       provides : Sequents.sequents};
 
-val fromThmSet : ThmSet.set -> summary
+val mk : summary' -> summary
+
+val dest : summary -> summary'
+
+val requires : summary -> Sequents.sequents
+
+val provides : summary -> Sequents.sequents
+
+val fromThms : Thms.thms -> summary
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)

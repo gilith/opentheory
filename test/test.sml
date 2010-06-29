@@ -49,15 +49,17 @@ fun printval p x = (printer p x; x);
 val () = SAY "Symbol tables";
 (* ------------------------------------------------------------------------- *)
 
-val syms : Symbol.symbol list = [];
-
-val mkConj = Syntax.mkConj syms
-and mkDisj = Syntax.mkDisj syms
-and mkForall = Syntax.mkForall syms
-and mkImp = Syntax.mkImp syms
-and mkNeg = Syntax.mkNeg syms
-and termFalse = Syntax.termFalse syms
-and termTrue = Syntax.termTrue syms;
+local
+  val sym = Symbol.empty;
+in
+  val mkConj = Syntax.mkConj sym
+  and mkDisj = Syntax.mkDisj sym
+  and mkForall = Syntax.mkForall sym
+  and mkImp = Syntax.mkImp sym
+  and mkNeg = Syntax.mkNeg sym
+  and termFalse = Syntax.termFalse sym
+  and termTrue = Syntax.termTrue sym;
+end;
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Terms";
@@ -249,8 +251,7 @@ fun compress system name =
       val article =
           time Article.fromTextFile
             {savable = true,
-             simulations = HolLight.simulations,
-             known = Article.empty,
+             import = Article.empty,
              interpretation = int,
              filename = inputFilename}
 

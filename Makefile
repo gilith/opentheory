@@ -100,7 +100,7 @@ SRC = \
   src/Symbol.sig src/Symbol.sml \
   src/Rule.sig src/Rule.sml \
   src/Thms.sig src/Thms.sml \
-  src/Context.sig src/Context.sml \
+  src/Sequents.sig src/Sequents.sml \
   src/Summary.sig src/Summary.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Command.sig src/Command.sml \
