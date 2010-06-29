@@ -9,6 +9,22 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Objects complex enough to be worth storing in a dictionary.               *)
+(* ------------------------------------------------------------------------- *)
+
+fun storableObject ob =
+    case ob of
+      Object.Num _ => false
+    | Object.Name _ => false
+    | Object.TypeOp _ => true
+    | Object.Type _ => true
+    | Object.Const _ => true
+    | Object.Var _ => true
+    | Object.Term _ => true
+    | Object.Thm _ => true
+    | Object.List l => not (null l);
+
+(* ------------------------------------------------------------------------- *)
 (* Minimal dictionaries.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -18,78 +34,55 @@ datatype minDict =
        keys : int ObjectMap.map,
        nextKey : int};
 
-fun nullMinDict (MinDict {keys,...}) = ObjectMap.null keys;
-
 local
-  fun storable ob =
-      case ob of
-        Object.Num _ => false
-      | Object.Name _ => false
-      | Object.TypeOp _ => true
-      | Object.Type _ => true
-      | Object.Const _ => true
-      | Object.Var _ => true
-      | Object.Term _ => true
-      | Object.Thm _ => true
-      | Object.List l => not (null l);
-
-  fun registerReference (ob,refs) =
-      let
-        val p = ObjectMap.peek refs ob
-
-        val known = Option.isSome p
-
-        val k = Option.getOpt (p,0)
-
-        val refs = ObjectMap.insert refs (ob, k + 1)
-      in
-        (known,refs)
-      end;
-
   fun registerGenerated (ob,refs) =
       if ObjectMap.inDomain ob refs then refs
       else ObjectMap.insert refs (ob,0);
 
-  fun registerDefault refs obs =
-      case obs of
-        [] => refs
-      | ob :: obs =>
-        if not (storable ob) then registerDefault refs obs
-        else
-          let
-            val (known,refs) = registerReference (ob,refs)
+  fun registerReference (ob,refs) =
+      let
+        val k = Option.getOpt (ObjectMap.peek refs ob, 0)
+      in
+        ObjectMap.insert refs (ob, k + 1)
+      end;
 
-            val obs = if known then obs else snd (Object.command ob) @ obs
-          in
-            registerDefault refs obs
-          end;
+  fun registerDefault (ob,refs) =
+      if not (storableObject ob) then refs
+      else if ObjectMap.inDomain ob refs then registerReference (ob,refs)
+      else registerDefault' (ob,refs)
+
+  and registerDefault' (ob,refs) =
+      let
+        val (_,args) = Object.command ob
+
+        val refs = List.foldl registerDefault refs args
+      in
+        registerGenerated (ob,refs)
+      end;
 
   fun registerSpecial (obj,refs) =
       let
         val ob = ObjectProv.object obj
       in
-        if not (storable ob) then refs
+        if not (storableObject ob) then refs
+        else if ObjectMap.inDomain ob refs then registerReference (ob,refs)
         else
-          case ObjectMap.peek refs ob of
-            SOME k => ObjectMap.insert refs (ob, k + 1)
-          | NONE =>
-            case ObjectProv.provenance obj of
-              ObjectProv.Default => registerDefault refs [ob]
-            | ObjectProv.Special {arguments = args, generated = gen, ...} =>
-              let
-                val refs = List.foldl registerSpecial refs args
+          case ObjectProv.provenance obj of
+            ObjectProv.Default => registerDefault' (ob,refs)
+          | ObjectProv.Special
+              {arguments = args,
+               generated = gen,
+               result = res,
+               ...} =>
+            let
+              val refs = List.foldl registerSpecial refs args
 
-                val (known,refs) = registerReference (ob,refs)
+              val refs = List.foldl registerGenerated refs gen
 
-(*OpenTheoryDebug
-                val _ = not known orelse
-                        raise Bug "ObjectWrite.registerSpecial: redundancy"
-*)
-
-                val refs = List.foldl registerGenerated refs gen
-              in
-                refs
-              end
+              val refs = if res = 0 then refs else registerReference (ob,refs)
+            in
+              refs
+            end
       end;
 
   fun registerThm (obj,th,refs) =
@@ -98,7 +91,7 @@ local
 
         val refs = registerSpecial (obj,refs)
 
-        val refs = registerDefault refs [h,c]
+        val refs = List.foldl registerDefault refs [h,c]
       in
         refs
       end;
@@ -134,14 +127,14 @@ datatype task =
   | CmdTask of Command.command;
 
 local
-  fun isKey (MinDict {keys,...}) ob = ObjectMap.inDomain ob keys;
-
   fun addKey cmds dict ob =
       let
         val MinDict {refs,keys,nextKey} = dict
 
-        val pointless = ObjectMap.inDomain ob keys orelse
-                        not (ObjectMap.inDomain ob refs)
+        val pointless =
+            not (storableObject ob) orelse
+            ObjectMap.inDomain ob keys orelse
+            not (ObjectMap.inDomain ob refs)
       in
         if pointless then (cmds,dict)
         else
@@ -180,48 +173,50 @@ local
 *)
 
   fun useKey dict ob =
-      let
-        val MinDict {refs,keys,nextKey} = dict
-      in
-        case ObjectMap.peek keys ob of
-          NONE => NONE
-        | SOME key =>
-          case ObjectMap.peek refs ob of
-            NONE => raise Error "no such object"
-          | SOME n =>
-            if n = 1 then
-              let
-                val refs = ObjectMap.delete refs ob
+      if not (storableObject ob) then NONE
+      else
+        let
+          val MinDict {refs,keys,nextKey} = dict
+        in
+          case ObjectMap.peek keys ob of
+            NONE => NONE
+          | SOME key =>
+            case ObjectMap.peek refs ob of
+              NONE => raise Error "no such object"
+            | SOME n =>
+              if n = 1 then
+                let
+                  val refs = ObjectMap.delete refs ob
 
-                val keys = ObjectMap.delete keys ob
+                  val keys = ObjectMap.delete keys ob
 
-                val dict =
-                    MinDict
-                      {refs = refs,
-                       keys = keys,
-                       nextKey = nextKey}
+                  val dict =
+                      MinDict
+                        {refs = refs,
+                         keys = keys,
+                         nextKey = nextKey}
 
-                val cmds = [Command.Num key, Command.Remove]
-              in
-                SOME (cmds,dict)
-              end
-            else
-              let
-                val refs = ObjectMap.insert refs (ob, n - 1)
+                  val cmds = [Command.Num key, Command.Remove]
+                in
+                  SOME (cmds,dict)
+                end
+              else
+                let
+                  val refs = ObjectMap.insert refs (ob, n - 1)
 
-                val dict =
-                    MinDict
-                      {refs = refs,
-                       keys = keys,
-                       nextKey = nextKey}
+                  val dict =
+                      MinDict
+                        {refs = refs,
+                         keys = keys,
+                         nextKey = nextKey}
 
-                val cmds = [Command.Num key, Command.Ref]
-              in
-                SOME (cmds,dict)
-              end
-      end
+                  val cmds = [Command.Num key, Command.Ref]
+                in
+                  SOME (cmds,dict)
+                end
+        end
 (*OpenTheoryDebug
-      handle Error err => raise Error ("useKey: " ^ err);
+        handle Error err => raise Error ("useKey: " ^ err);
 *)
 in
   fun generateMinDict (dict,work) =
@@ -310,17 +305,19 @@ in
                SOME ([],(dict,work))
              end)
         | GenTask (gen,res) =>
-(***
           if res = 0 then
             let
-              val post = List.drop (gen, res + 1)
+              val (ob,gen) = hdTl gen
 
-              val cmds = 
+              val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
+
+              val (cmds,dict) = addKey cmds dict ob
+
+              val cmds = rev cmds
             in
               SOME (cmds,(dict,work))
             end
           else
-***)
             let
               val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
 
@@ -340,192 +337,6 @@ in
             SOME (cmds,(dict,work))
           end;
 end;
-
-(***
-local
-  fun isKey (MinDict {keys,...}) ob = ObjectMap.inDomain ob keys;
-
-  fun addKey dict cmds ob =
-      let
-        val MinDict {nextKey,refs,keys} = dict
-
-(*OpenTheoryDebug
-        val _ = not (ObjectMap.inDomain ob keys) orelse
-                raise Error "deja vu ob"
-*)
-      in
-        case ObjectMap.peek refs ob of
-          NONE => (dict,cmds)
-        | SOME n =>
-          let
-            val key = nextKey
-            val nextKey = nextKey + 1
-            val keys = ObjectMap.insert keys (ob,key)
-            val refs = ObjectMap.insert refs (ob, n - 1)
-            val dict =
-                MinDict {nextKey = nextKey, refs = refs, keys = keys}
-            val cmds = [Command.Def, Command.Num key] @ cmds
-          in
-            (dict,cmds)
-          end
-      end
-(*OpenTheoryDebug
-      handle Error err => raise Error ("addKey: " ^ err);
-*)
-
-  fun useKey dict cmds ob =
-      let
-        val MinDict {nextKey,refs,keys} = dict
-      in
-        case ObjectMap.peek keys ob of
-          NONE => raise Error "no such key"
-        | SOME key =>
-          let
-            val cmds = Command.Num key :: cmds
-          in
-            case ObjectMap.peek refs ob of
-              NONE => raise Error "no such object"
-            | SOME n =>
-              if n = 1 then
-                let
-                  val refs = ObjectMap.delete refs ob
-                  val keys = ObjectMap.delete keys ob
-                  val dict =
-                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
-                  val cmds = Command.Remove :: cmds
-                in
-                  (dict,cmds)
-                end
-              else
-                let
-                  val refs = ObjectMap.insert refs (ob, n - 1)
-                  val dict =
-                      MinDict {nextKey = nextKey, refs = refs, keys = keys}
-                  val cmds = Command.Ref :: cmds
-                in
-                  (dict,cmds)
-                end
-          end
-      end
-(*OpenTheoryDebug
-      handle Error err => raise Error ("useKey: " ^ err);
-*)
-
-  fun generateDeep (ob,(dict,cmds)) =
-      if isKey dict ob then useKey dict cmds ob
-      else
-        let
-          val (cmd,pars) = Object.toCommand ob
-          val (dict,cmds) = foldl generateDeep (dict,cmds) pars
-          val cmds = cmd :: cmds
-        in
-          addKey dict cmds ob
-        end;
-in
-  fun generateMinDict dict cmds objTh =
-      let
-        val ob = ObjectProv.object obj
-      in
-        case ObjectProv.provenance obj of
-          ObjectProv.Pnull =>
-          let
-            val (dict,cmds) = generateDeep (ob,(dict,cmds))
-
-            val stack = ObjectStack.push stack obj
-          in
-            (stack,dict,cmds)
-          end
-        | ObjectProv.Pcall objA =>
-          let
-            val n =
-                case ob of
-                  Object.Call n => n
-                | _ => raise Error "Pcall: bad call"
-
-            val cmds = Command.Call :: Command.Name n :: cmds
-
-            val (stack,objA') = ObjectStack.pop1 stack
-
-            val stack = ObjectStack.push stack obj
-
-            val stack = ObjectStack.push stack objA
-
-(*OpenTheoryDebug
-            val _ = ObjectProv.id objA = ObjectProv.id objA' orelse
-                    raise Error "Pcall: wrong call argument"
-*)
-          in
-            (stack,dict,cmds)
-          end
-        | ObjectProv.Pcons (objH,objT) =>
-          let
-            val cmds = Command.Cons :: cmds
-
-            val (dict,cmds) = addKey dict cmds ob
-
-            val (stack,objH',objT') = ObjectStack.pop2 stack
-
-(*OpenTheoryDebug
-            val _ = ObjectProv.id objH = ObjectProv.id objH' orelse
-                    raise Error "Pcons: wrong head value"
-
-            val _ = ObjectProv.id objT = ObjectProv.id objT' orelse
-                    raise Error "Pcons: wrong tail value"
-*)
-
-            val stack = ObjectStack.push stack obj
-          in
-            (stack,dict,cmds)
-          end
-        | ObjectProv.Pref _ =>
-          let
-            val (dict,cmds) = useKey dict cmds ob
-
-            val stack = ObjectStack.push stack obj
-          in
-            (stack,dict,cmds)
-          end
-        | ObjectProv.Pthm inf =>
-          let
-            val (dict,cmds) =
-                case inf of
-                  ObjectProv.Ialpha iobj =>
-                  let
-                    val iob = ObjectProv.object iobj
-
-                    val (dict,cmds) = useKey dict cmds iob
-
-                    val (dict,cmds) = generateDeep (ob,(dict,cmds))
-
-                    val cmds = Command.Pop :: Command.Pop :: cmds
-                  in
-                    useKey dict cmds ob
-                  end
-                | _ => generateDeep (ob,(dict,cmds))
-
-            val stack = ObjectStack.push stack obj
-          in
-            (stack,dict,cmds)
-          end
-      end
-(*OpenTheoryDebug
-      handle Error err =>
-        let
-          val ppObject = ObjectProv.pp 1
-
-          val ppStack = Print.ppMap ObjectStack.objects (Print.ppList ppObject)
-
-          val () = Print.trace ppStack
-                     "ObjectWrite.generateMinDict: stack" stack
-
-          val () = Print.trace ppObject
-                     "ObjectWrite.generateMinDict: obj" obj
-      in
-        raise Bug ("ObjectWrite.generateMinDict: " ^ err)
-      end;
-*)
-end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Writing objects to a stream of commands.                                  *)
