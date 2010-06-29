@@ -69,6 +69,10 @@ fun addSet thms s =
          symbol = symbol}
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Merging.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
 fun union thms1 thms2 =
     let
       val Thms
@@ -86,6 +90,15 @@ fun union thms1 thms2 =
         {ths = ths,
          symbol = sym}
     end;
+
+local
+  fun uncurriedUnion (thms1,thms2) = union thms1 thms2;
+in
+  fun unionList thmsl =
+      case thmsl of
+        [] => empty
+      | thms :: thmsl => List.foldl uncurriedUnion thms thmsl;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Searching for theorems.                                                   *)

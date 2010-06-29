@@ -32,7 +32,7 @@ val unionList : article list -> article
 
 val fromTextFile :
     {savable : bool,
-     known : article,
+     import : article,
      interpretation : Interpretation.interpretation,
      filename : string} ->
     article

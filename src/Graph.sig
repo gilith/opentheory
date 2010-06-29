@@ -67,8 +67,7 @@ val match :
 
 val importTheory :
     graph ->
-    {simulations : Simulation.simulations,
-     finder : PackageFinder.finder,
+    {finder : PackageFinder.finder,
      directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
@@ -78,8 +77,7 @@ val importTheory :
 
 val importPackageName :
     graph ->
-    {simulations : Simulation.simulations,
-     finder : PackageFinder.finder,
+    {finder : PackageFinder.finder,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : PackageName.name} ->
@@ -87,8 +85,7 @@ val importPackageName :
 
 val importPackageInfo :
     graph ->
-    {simulations : Simulation.simulations,
-     finder : PackageFinder.finder,
+    {finder : PackageFinder.finder,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : PackageInfo.info} ->
@@ -96,8 +93,7 @@ val importPackageInfo :
 
 val importPackage :
     graph ->
-    {simulations : Simulation.simulations,
-     finder : PackageFinder.finder,
+    {finder : PackageFinder.finder,
      directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,

@@ -30,7 +30,13 @@ val addList : thms -> Thm.thm list -> thms
 
 val addSet : thms -> ThmSet.set -> thms
 
+(* ------------------------------------------------------------------------- *)
+(* Merging.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
 val union : thms -> thms -> thms
+
+val unionList : thms list -> thms
 
 (* ------------------------------------------------------------------------- *)
 (* Searching for theorems.                                                   *)

@@ -92,16 +92,6 @@ val directory =
 fun finder () = Directory.lookup (directory ());
 
 (* ------------------------------------------------------------------------- *)
-(* Simulations.                                                              *)
-(* ------------------------------------------------------------------------- *)
-
-val defaultSimulations =
-    Simulation.unionList
-      [HolLight.simulations];
-
-val simulations = ref defaultSimulations;
-
-(* ------------------------------------------------------------------------- *)
 (* Options for compiling packages to articles.                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -378,16 +368,13 @@ fun compile {filename} =
 
       val finder = finder ()
 
-      val ref sim = simulations
-
       val imps = TheorySet.empty
 
       val int = Interpretation.natural
 
       val (graph,thy) =
           Graph.importPackage graph
-            {simulations = sim,
-             finder = finder,
+            {finder = finder,
              directory = directory,
              imports = imps,
              interpretation = int,
@@ -409,7 +396,7 @@ fun compile {filename} =
 
               val art = Theory.article thy
 
-              val ths = Article.saved art
+              val ths = Article.thms art
 
               val sum = Summary.fromThmSet ths
             in

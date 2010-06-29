@@ -20,17 +20,18 @@ datatype article =
 val empty =
     let
       val savable = true
-
-      val saved = ObjectThms.empty
+      and saved = ObjectThms.empty
     in
       Article
         {savable = savable,
          saved = saved}
     end;
 
-fun saved (Article {saved = x, ...}) = ObjectThms.toThmSet x;
-
 fun savable (Article {savable = x, ...}) = x;
+
+fun saved (Article {saved = x, ...}) = x;
+
+fun thms art = ObjectThms.thms (saved art);
 
 (* ------------------------------------------------------------------------- *)
 (* Merging articles.                                                         *)
@@ -63,16 +64,15 @@ end;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun fromTextFile {savable,known,simulations,interpretation,filename} =
+fun fromTextFile {savable,import,interpretation,filename} =
     let
-      val Article {savable = knownSavable, saved = knownSaved} = known
+      val Article {savable = importSavable, saved = importSaved} = import
 
-      val _ = not savable orelse knownSavable orelse
-              raise Error "savable article cannot use unsavable known"
+      val _ = not savable orelse importSavable orelse
+              raise Error "savable article cannot use unsavable import"
 
       val parameters =
-          {known = knownSaved,
-           simulations = simulations,
+          {import = importSaved,
            interpretation = interpretation,
            savable = savable}
 
@@ -82,55 +82,17 @@ fun fromTextFile {savable,known,simulations,interpretation,filename} =
 
       val stack = ObjectRead.stack state
       and dict = ObjectRead.dict state
-      and saved = ObjectRead.saved state
+      and exp = ObjectRead.export state
 
-      val saved =
+      val () =
           let
             val n = ObjectStack.size stack
           in
-            if n = 0 then saved
+            if n = 0 then ()
             else
-              let
-                val () = warn (Int.toString n ^ " object" ^
-                               (if n = 1 then "" else "s") ^
-                               " left on the stack by " ^ filename)
-
-                val ths = ObjectStack.thms stack
-
-                val {thms = n, ...} = ObjectThms.size saved
-
-                val {thms = n', ...} = ObjectThms.size ths
-              in
-                if n = 0 then
-                  if n' = 0 then
-                    let
-                      val () =
-                          warn ("no theorems saved or left on the stack by " ^
-                                filename)
-                    in
-                      saved
-                    end
-                  else
-                    let
-                      val () =
-                          warn ("saving " ^ Int.toString n' ^ " theorem" ^
-                                (if n' = 1 then "" else "s") ^
-                                " left on the stack by " ^ filename)
-                    in
-                      ObjectThms.addSet saved (ObjectThms.thmObjects ths)
-                    end
-                else
-                  let
-                    val () =
-                        if n' = 0 then ()
-                        else
-                          warn (Int.toString n' ^ " unsaved theorem" ^
-                                (if n' = 1 then "" else "s") ^
-                                " left on the stack by " ^ filename)
-                  in
-                    saved
-                  end
-              end
+              warn (Int.toString n ^ " object" ^
+                    (if n = 1 then "" else "s") ^
+                    " left on the stack by " ^ filename)
           end
 
       val () =
@@ -143,12 +105,16 @@ fun fromTextFile {savable,known,simulations,interpretation,filename} =
                     (if n = 1 then "" else "s") ^
                     " left in the dictionary by " ^ filename)
           end
+
+      val saved = ObjectThms.fromExport exp
     in
       Article
         {savable = savable,
          saved = saved}
     end
+(*OpenTheoryDebug
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
+*)
 
 fun toTextFile {article,filename} =
     let
@@ -156,10 +122,12 @@ fun toTextFile {article,filename} =
 
       val _ = savable orelse raise Error "unsavable"
 
-      val objs = ObjectThms.objects saved
+      val exp = ObjectThms.toExport saved
     in
-      ObjectWrite.toTextFile {filename = filename} objs
+      ObjectWrite.toTextFile {export = exp, filename = filename}
     end
+(*OpenTheoryDebug
     handle Error err => raise Error ("Article.toTextFile: " ^ err);
+*)
 
 end

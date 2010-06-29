@@ -98,11 +98,10 @@ SRC = \
   src/Sequent.sig src/Sequent.sml \
   src/Thm.sig src/Thm.sml \
   src/Symbol.sig src/Symbol.sml \
-  src/Context.sig src/Context.sml \
-  src/Summary.sig src/Summary.sml \
-  src/Syntax.sig src/Syntax.sml \
   src/Rule.sig src/Rule.sml \
   src/Thms.sig src/Thms.sml \
+  src/Context.sig src/Context.sml \
+  src/Summary.sig src/Summary.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Command.sig src/Command.sml \
   src/Object.sig src/Object.sml \
@@ -124,6 +123,7 @@ SRC = \
   src/Theory.sig src/Theory.sml \
   src/Graph.sig src/Graph.sml \
   src/Directory.sig src/Directory.sml \
+  src/Syntax.sig src/Syntax.sml \
   src/Options.sig src/Options.sml
 
 EXTRA_SRC =

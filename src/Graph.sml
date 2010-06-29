@@ -267,8 +267,7 @@ fun match graph spec =
 
 fun importTheory graph info =
     let
-      val {simulations,
-           finder,
+      val {finder,
            directory,
            imports,
            interpretation,
@@ -286,8 +285,7 @@ fun importTheory graph info =
       val node = PackageTheory.node theory
 
       val info =
-          {simulations = simulations,
-           finder = finder,
+          {finder = finder,
            directory = directory,
            imports = imports,
            interpretation = interpretation,
@@ -298,8 +296,7 @@ fun importTheory graph info =
 
 and importNode graph info =
     let
-      val {simulations,
-           finder,
+      val {finder,
            directory,
            imports,
            interpretation,
@@ -311,7 +308,7 @@ and importNode graph info =
             let
               val savable = savable graph
 
-              val known = TheorySet.toArticle imports
+              val import = TheorySet.toArticle imports
 
               val interpretation = Interpretation.compose int interpretation
 
@@ -325,8 +322,7 @@ and importNode graph info =
               val article =
                   Article.fromTextFile
                     {savable = savable,
-                     known = known,
-                     simulations = simulations,
+                     import = import,
                      interpretation = interpretation,
                      filename = filename}
             in
@@ -337,8 +333,7 @@ and importNode graph info =
               val interpretation = Interpretation.compose int interpretation
 
               val info =
-                  {simulations = simulations,
-                   finder = finder,
+                  {finder = finder,
                    imports = imports,
                    interpretation = interpretation,
                    package = pkg}
@@ -379,8 +374,7 @@ and importNode graph info =
 
 and importPackageName graph info =
     let
-      val {simulations,
-           finder,
+      val {finder,
            imports,
            interpretation,
            package = pkg} = info
@@ -402,8 +396,7 @@ and importPackageName graph info =
                 raise Error ("couldn't find package " ^ PackageName.toString pkg)
 
           val info =
-              {simulations = simulations,
-               finder = finder,
+              {finder = finder,
                imports = imports,
                interpretation = interpretation,
                package = package}
@@ -417,8 +410,7 @@ and importPackageName graph info =
 
 and importPackageInfo graph info =
     let
-      val {simulations,
-           finder,
+      val {finder,
            imports,
            interpretation,
            package = pkg} = info
@@ -428,8 +420,7 @@ and importPackageInfo graph info =
       val pkg = PackageInfo.package pkg
 
       val info =
-          {simulations = simulations,
-           finder = finder,
+          {finder = finder,
            directory = directory,
            imports = imports,
            interpretation = interpretation,
@@ -440,8 +431,7 @@ and importPackageInfo graph info =
 
 and importPackage graph info =
     let
-      val {simulations,
-           finder,
+      val {finder,
            directory,
            imports,
            interpretation,
@@ -450,8 +440,7 @@ and importPackage graph info =
       val theories = Package.theories pkg
 
       val info =
-          {simulations = simulations,
-           finder = finder,
+          {finder = finder,
            directory = directory,
            imports = imports,
            interpretation = interpretation,
@@ -477,8 +466,7 @@ and importPackage graph info =
 
 and importTheories graph info =
     let
-      val {simulations,
-           finder,
+      val {finder,
            directory,
            imports,
            interpretation,
@@ -487,8 +475,7 @@ and importTheories graph info =
       fun impThy (theory,(graph,env)) =
           let
             val info =
-                {simulations = simulations,
-                 finder = finder,
+                {finder = finder,
                  directory = directory,
                  imports = imports,
                  interpretation = interpretation,
