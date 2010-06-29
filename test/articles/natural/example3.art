@@ -8,8 +8,7 @@ var
 varTerm
 2
 def
-"hol-light.REFL"
-call
+refl
 nil
 "="
 const
@@ -41,7 +40,3 @@ appTerm
 remove
 appTerm
 thm
-"hol-light.REFL"
-return
-save
-pop

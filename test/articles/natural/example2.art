@@ -25,7 +25,7 @@ opType
 constTerm
 appTerm
 # Construct the assumed theorem
-thm
+axiom
 # Construct the hypothesis list
 nil
 # Construct the conclusion term
@@ -51,10 +51,5 @@ nil
 opType
 constTerm
 appTerm
-# Construct the exported theorem
-thm
 # Export the theorem
-save
-# Clean up the stack
-pop
-pop
+thm

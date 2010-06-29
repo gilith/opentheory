@@ -9,9 +9,12 @@ typeOp
 nil
 opType
 constTerm
+1
+def
 # Construct the theorem
-thm
+axiom
 # Export the theorem
-save
-# Clean up the stack
-pop
+nil
+1
+remove
+thm

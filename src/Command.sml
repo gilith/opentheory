@@ -348,6 +348,7 @@ in
       (* Commands of length 4 *)
       consCommandParser >> K Cons ||
       eqMpCommandParser >> K EqMp ||
+      reflCommandParser >> K Refl ||
       (* Commands of length 3 *)
       absCommandParser >> K Abs ||
       appCommandParser >> K App ||
