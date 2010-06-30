@@ -551,6 +551,10 @@ fun execute cmd state =
 
           val obj = ObjectProv.mkSubst {savable = savable} objS objT
 
+(*OpenTheoryTrace4
+          val () = Print.trace ObjectProv.pp "subst objS" objS
+*)
+
           val stack = ObjectStack.push stack obj
         in
           State

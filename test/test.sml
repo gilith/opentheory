@@ -299,14 +299,13 @@ fun summarize name =
       val art =
           time Article.fromTextFile
             {savable = false,
-             known = Article.empty,
-             simulations = HolLight.simulations,
+             import = Article.empty,
              interpretation = Interpretation.natural,
              filename = artFilename}
 
-      val ths = Article.saved art
+      val ths = Article.thms art
 
-      val sum = Summary.fromThmSet ths
+      val sum = Summary.fromThms ths
 
       val sumFilename = mkSummaryFilename name
 
@@ -363,16 +362,15 @@ fun import name =
       val (_,thy) =
           Graph.importPackageName graph
             {finder = finder,
-             simulations = HolLight.simulations,
              imports = TheorySet.empty,
              interpretation = Interpretation.natural,
              package = PackageName.fromString name};
 
       val art = Theory.article thy
 
-      val ths = Article.saved art
+      val ths = Article.thms art
 
-      val sum = Summary.fromThmSet ths
+      val sum = Summary.fromThms ths
 
       val () = printer Summary.pp sum
     in

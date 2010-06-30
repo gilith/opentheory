@@ -345,6 +345,7 @@ in
       (* Commands of length 5 *)
       axiomCommandParser >> K Axiom ||
       constCommandParser >> K Const ||
+      substCommandParser >> K Subst ||
       (* Commands of length 4 *)
       consCommandParser >> K Cons ||
       eqMpCommandParser >> K EqMp ||

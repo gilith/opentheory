@@ -50,9 +50,7 @@ fun peekConst (Thms {consts,...}) n = NameMap.peek consts n;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun noDups _ = raise Bug "ObjectThms.union.noDups";
-
-  fun pickSnd (_,obj) = SOME obj;
+  fun pickSnd (_,x) = SOME x;
 in
   fun union thms1 thms2 =
       let
@@ -68,8 +66,8 @@ in
                seqs = seqs2} = thms2
 
         val ths = Thms.union ths1 ths2
-        and ots = NameMap.union noDups ots1 ots2
-        and cons = NameMap.union noDups cons1 cons2
+        and ots = NameMap.union pickSnd ots1 ots2
+        and cons = NameMap.union pickSnd cons1 cons2
         and seqs = SequentMap.union pickSnd seqs1 seqs2
       in
         Thms
