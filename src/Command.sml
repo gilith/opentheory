@@ -79,6 +79,21 @@ datatype command =
   | VarTerm
   | VarType;
 
+fun isInference cmd =
+    case cmd of
+      Abs => true
+    | App => true
+    | Assume => true
+    | Axiom => true
+    | BetaConv => true
+    | DeductAntisym => true
+    | DefineConst => true
+    | DefineTypeOp => true
+    | EqMp => true
+    | Refl => true
+    | Subst => true
+    | _ => false;
+
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)

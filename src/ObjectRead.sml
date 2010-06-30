@@ -17,14 +17,18 @@ datatype inferenceCount = InferenceCount of int CommandMap.map;
 
 val newInferenceCount = InferenceCount (CommandMap.new ());
 
-fun incrementInferenceCount (InferenceCount m) c =
-    let
-      val i = Option.getOpt (CommandMap.peek m c, 0)
+fun incrementInferenceCount inf cmd =
+    if not (Command.isInference cmd) then inf
+    else
+      let
+        val InferenceCount m = inf
 
-      val m = CommandMap.insert m (c, i + 1)
-    in
-      InferenceCount m
-    end;
+        val i = Option.getOpt (CommandMap.peek m cmd, 0)
+
+        val m = CommandMap.insert m (cmd, i + 1)
+      in
+        InferenceCount m
+      end;
 
 local
   val alignment : columnAlignment list =
