@@ -297,7 +297,7 @@ fun summarize name =
       val artFilename = mkArticleFilename name
 
       val art =
-          time Article.fromTextFile
+          Article.fromTextFile
             {savable = false,
              import = Article.empty,
              interpretation = Interpretation.natural,
@@ -307,7 +307,7 @@ fun summarize name =
 
       val sum = Summary.fromThms ths
 
-      val () = printer (Summary.ppWithShow Show.natural) sum
+      val () = printer Summary.pp sum
     in
       ()
     end;
@@ -328,7 +328,7 @@ val () = summarize "tactics";
 val () = SAY "Theory package directories";
 (* ------------------------------------------------------------------------- *)
 
-val DIRECTORY_DIR = "repo";
+val DIRECTORY_DIR = "directory";
 
 val directory =
     printval Directory.pp (Directory.mk {rootDirectory = DIRECTORY_DIR});
@@ -373,9 +373,10 @@ fun import name =
 
 val () = import "empty-1.0";
 
+(***
 (* Boolean definitions from HOL Light *)
 
-val () = import "hol-light-bool-def-2009.8.24";
+val () = import "bool-def-1.0";
 
 (* Boolean theorems from HOL Light *)
 
@@ -384,3 +385,4 @@ val () = import "hol-light-bool-thm-2009.8.24";
 (* Boolean definitions plus theorems from HOL Light *)
 
 val () = import "hol-light-bool-2009.8.24";
+***)
