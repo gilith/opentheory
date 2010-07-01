@@ -170,23 +170,6 @@ fun execute cmd state =
 
       (* REGULAR COMMANDS *)
 
-      (* The abs primitive inference *)
-
-      | Command.Abs =>
-        let
-          val (stack,objV,objT) = ObjectStack.pop2 stack
-
-          val obj = ObjectProv.mkAbs {savable = savable} objV objT
-
-          val stack = ObjectStack.push stack obj
-        in
-          State
-            {parameters = parameters,
-             stack = stack,
-             dict = dict,
-             export = export}
-        end
-
       (* Lambda abstraction terms *)
 
       | Command.AbsTerm =>
@@ -204,13 +187,13 @@ fun execute cmd state =
              export = export}
         end
 
-      (* The app primitive inference *)
+      (* The abs primitive inference *)
 
-      | Command.App =>
+      | Command.AbsThm =>
         let
-          val (stack,objF,objA) = ObjectStack.pop2 stack
+          val (stack,objV,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkApp {savable = savable} objF objA
+          val obj = ObjectProv.mkAbsThm {savable = savable} objV objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -228,6 +211,23 @@ fun execute cmd state =
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
           val obj = ObjectProv.mkAppTerm {savable = savable} objF objA
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             stack = stack,
+             dict = dict,
+             export = export}
+        end
+
+      (* The app primitive inference *)
+
+      | Command.AppThm =>
+        let
+          val (stack,objF,objA) = ObjectStack.pop2 stack
+
+          val obj = ObjectProv.mkAppThm {savable = savable} objF objA
 
           val stack = ObjectStack.push stack obj
         in

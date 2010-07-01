@@ -21,18 +21,63 @@ pop
 5
 def
 pop
+4
+ref
 nil
-"p"
+"="
+const
+6
+def
+"fun"
+typeOp
+7
+def
 2
 ref
-var
+7
+ref
+2
+ref
+2
+ref
+nil
+cons
+cons
+opType
+8
+def
+nil
+cons
+cons
+opType
+9
+def
+constTerm
+10
+def
 5
 ref
 2
 ref
 constTerm
-6
+11
 def
+appTerm
+12
+def
+3
+ref
+appTerm
+13
+def
+thm
+nil
+"p"
+2
+ref
+var
+11
+ref
 nil
 cons
 cons
@@ -54,55 +99,16 @@ cons
 nil
 "==>"
 const
-7
-def
-"fun"
-typeOp
-8
-def
-2
-ref
-8
-ref
-2
-ref
-2
-ref
-nil
-cons
-cons
-opType
-9
-def
-nil
-cons
-cons
-opType
-10
-def
-constTerm
-11
-def
-"="
-const
-12
-def
-10
-ref
-constTerm
-13
-def
-"p"
-2
-ref
-var
-varTerm
 14
 def
-appTerm
+9
+ref
+constTerm
 15
 def
-"q"
+10
+ref
+"p"
 2
 ref
 var
@@ -112,31 +118,39 @@ def
 appTerm
 17
 def
-appTerm
+"q"
+2
+ref
+var
+varTerm
 18
 def
-11
-ref
-16
-ref
 appTerm
 19
 def
-14
-ref
 appTerm
 20
 def
+15
+ref
+18
+ref
 appTerm
 21
 def
-axiom
+16
+ref
+appTerm
 22
 def
-# |- (p <=> q) ==> q ==> p
-subst
-# |- (_FALSITY_ <=> F) ==> F ==> _FALSITY_
+appTerm
 23
+def
+axiom
+24
+def
+subst
+25
 def
 pop
 nil
@@ -146,16 +160,6 @@ ref
 var
 13
 ref
-6
-ref
-appTerm
-24
-def
-3
-ref
-appTerm
-25
-def
 nil
 cons
 cons
@@ -163,14 +167,14 @@ cons
 2
 ref
 var
-11
+15
 ref
 3
 ref
 appTerm
 26
 def
-6
+11
 ref
 appTerm
 27
@@ -184,16 +188,16 @@ cons
 nil
 cons
 cons
-14
+16
 ref
-11
+15
 ref
-14
+16
 ref
 appTerm
 28
 def
-16
+18
 ref
 appTerm
 29
@@ -201,20 +205,16 @@ def
 nil
 cons
 cons
-16
+18
 ref
 axiom
 30
 def
-# p, p ==> q
-# |- q
 subst
-# _FALSITY_ <=> F, (_FALSITY_ <=> F) ==> F ==> _FALSITY_
-# |- F ==> _FALSITY_
 31
 def
 pop
-23
+25
 ref
 31
 ref
@@ -224,14 +224,9 @@ def
 pop
 32
 ref
-23
+25
 ref
-# _FALSITY_ <=> F
-# |- (_FALSITY_ <=> F) ==> F ==> _FALSITY_ <=> F ==> _FALSITY_
-# |- (_FALSITY_ <=> F) ==> F ==> _FALSITY_
 eqMp
-# _FALSITY_ <=> F
-# |- F ==> _FALSITY_
 33
 def
 pop
@@ -247,10 +242,7 @@ pop
 ref
 4
 ref
-# |- (_FALSITY_ <=> F) <=> F ==> _FALSITY_
-# |- _FALSITY_ <=> F
 eqMp
-# |- F ==> _FALSITY_
 35
 def
 pop
@@ -259,7 +251,7 @@ nil
 2
 ref
 var
-6
+11
 ref
 nil
 cons
@@ -280,7 +272,7 @@ nil
 cons
 cons
 nil
-18
+20
 ref
 29
 ref
@@ -290,9 +282,7 @@ def
 axiom
 37
 def
-# |- (p <=> q) ==> p ==> q
 subst
-# |- (_FALSITY_ <=> F) ==> _FALSITY_ ==> F
 38
 def
 pop
@@ -301,7 +291,7 @@ nil
 2
 ref
 var
-25
+13
 ref
 nil
 cons
@@ -310,9 +300,9 @@ cons
 2
 ref
 var
-11
+15
 ref
-6
+11
 ref
 appTerm
 39
@@ -333,11 +323,7 @@ cons
 cons
 30
 ref
-# p, p ==> q
-# |- q
 subst
-# _FALSITY_ <=> F, (_FALSITY_ <=> F) ==> _FALSITY_ ==> F
-# |- _FALSITY_ ==> F
 41
 def
 pop
@@ -353,12 +339,7 @@ pop
 ref
 38
 ref
-# _FALSITY_ <=> F
-# |- (_FALSITY_ <=> F) ==> _FALSITY_ ==> F <=> _FALSITY_ ==> F
-# |- (_FALSITY_ <=> F) ==> _FALSITY_ ==> F
 eqMp
-# _FALSITY_ <=> F
-# |- _FALSITY_ ==> F
 43
 def
 pop
@@ -374,14 +355,11 @@ pop
 ref
 4
 ref
-# |- (_FALSITY_ <=> F) <=> _FALSITY_ ==> F
-# |- _FALSITY_ <=> F
 eqMp
-# |- _FALSITY_ ==> F
 45
 def
 pop
-6
+11
 ref
 assume
 46
@@ -392,7 +370,7 @@ nil
 2
 ref
 var
-6
+11
 ref
 nil
 cons
@@ -414,11 +392,7 @@ cons
 cons
 30
 ref
-# p, p ==> q
-# |- q
 subst
-# _FALSITY_, _FALSITY_ ==> F
-# |- F
 47
 def
 pop
@@ -434,12 +408,7 @@ pop
 ref
 45
 ref
-# _FALSITY_
-# |- _FALSITY_ ==> F <=> F
-# |- _FALSITY_ ==> F
 eqMp
-# _FALSITY_
-# |- F
 49
 def
 pop
@@ -451,21 +420,39 @@ deductAntisym
 50
 def
 pop
+49
+ref
+11
+ref
+nil
+cons
+3
+ref
+thm
+46
+ref
+11
+ref
+nil
+cons
+11
+ref
+thm
 "/\\"
 const
 51
 def
-10
+9
 ref
 constTerm
 52
 def
-14
+16
 ref
 appTerm
 53
 def
-19
+21
 ref
 "r"
 2
@@ -489,7 +476,7 @@ nil
 2
 ref
 var
-14
+16
 ref
 nil
 cons
@@ -538,11 +525,7 @@ ref
 axiom
 62
 def
-# P /\ Q
-# |- Q
 subst
-# p /\ (q ==> r)
-# |- q ==> r
 63
 def
 pop
@@ -559,7 +542,7 @@ nil
 2
 ref
 var
-14
+16
 ref
 nil
 cons
@@ -588,11 +571,7 @@ ref
 axiom
 65
 def
-# P /\ Q
-# |- P
 subst
-# p /\ (q ==> r)
-# |- p
 66
 def
 pop
@@ -630,13 +609,7 @@ pop
 ref
 66
 ref
-# p /\ (q ==> r), p ==> q
-# |- p <=> q
-# p /\ (q ==> r)
-# |- p
 eqMp
-# p /\ (q ==> r), p ==> q
-# |- q
 71
 def
 pop
@@ -645,7 +618,7 @@ nil
 2
 ref
 var
-16
+18
 ref
 nil
 cons
@@ -667,11 +640,7 @@ cons
 cons
 30
 ref
-# p, p ==> q
-# |- q
 subst
-# q, q ==> r
-# |- r
 72
 def
 pop
@@ -687,13 +656,7 @@ pop
 ref
 63
 ref
-# q, p /\ (q ==> r)
-# |- q ==> r <=> r
-# p /\ (q ==> r)
-# |- q ==> r
 eqMp
-# q, p /\ (q ==> r)
-# |- r
 74
 def
 pop
@@ -709,13 +672,7 @@ pop
 ref
 71
 ref
-# p /\ (q ==> r), p ==> q
-# |- q <=> r
-# p /\ (q ==> r), p ==> q
-# |- q
 eqMp
-# p /\ (q ==> r), p ==> q
-# |- r
 76
 def
 pop
@@ -744,16 +701,16 @@ cons
 nil
 cons
 cons
-14
-ref
 16
+ref
+18
 ref
 nil
 cons
 cons
 53
 ref
-16
+18
 ref
 appTerm
 77
@@ -761,11 +718,7 @@ def
 axiom
 78
 def
-# p, q
-# |- p /\ q
 subst
-# r, p ==> q
-# |- (p ==> q) /\ r
 79
 def
 pop
@@ -789,13 +742,7 @@ pop
 ref
 76
 ref
-# p /\ (q ==> r), p ==> q
-# |- r <=> (p ==> q) /\ r
-# p /\ (q ==> r), p ==> q
-# |- r
 eqMp
-# p /\ (q ==> r), p ==> q
-# |- (p ==> q) /\ r
 82
 def
 pop
@@ -842,11 +789,7 @@ cons
 cons
 65
 ref
-# P /\ Q
-# |- P
 subst
-# (p ==> q) /\ r
-# |- p ==> q
 86
 def
 pop
@@ -892,16 +835,16 @@ nil
 cons
 cons
 nil
-13
+10
 ref
-13
+10
 ref
 77
 ref
 appTerm
 89
 def
-14
+16
 ref
 appTerm
 90
@@ -917,9 +860,7 @@ def
 axiom
 93
 def
-# |- (p /\ q <=> p) <=> p ==> q
 subst
-# |- ((p ==> q) /\ r <=> p ==> q) <=> (p ==> q) ==> r
 94
 def
 pop
@@ -927,12 +868,7 @@ pop
 ref
 88
 ref
-# |- ((p ==> q) /\ r <=> p ==> q) <=> (p ==> q) ==> r
-# p /\ (q ==> r)
-# |- (p ==> q) /\ r <=> p ==> q
 eqMp
-# p /\ (q ==> r)
-# |- (p ==> q) ==> r
 95
 def
 pop
@@ -950,7 +886,7 @@ cons
 2
 ref
 var
-11
+15
 ref
 29
 ref
@@ -973,11 +909,7 @@ cons
 cons
 78
 ref
-# p, q
-# |- p /\ q
 subst
-# p /\ (q ==> r), (p ==> q) ==> r
-# |- (p /\ (q ==> r)) /\ ((p ==> q) ==> r)
 98
 def
 pop
@@ -1001,13 +933,7 @@ pop
 ref
 95
 ref
-# p /\ (q ==> r)
-# |- (p ==> q) ==> r <=> (p /\ (q ==> r)) /\ ((p ==> q) ==> r)
-# p /\ (q ==> r)
-# |- (p ==> q) ==> r
 eqMp
-# p /\ (q ==> r)
-# |- (p /\ (q ==> r)) /\ ((p ==> q) ==> r)
 101
 def
 pop
@@ -1054,11 +980,7 @@ cons
 cons
 65
 ref
-# P /\ Q
-# |- P
 subst
-# (p /\ (q ==> r)) /\ ((p ==> q) ==> r)
-# |- p /\ (q ==> r)
 105
 def
 pop
@@ -1105,10 +1027,7 @@ cons
 cons
 93
 ref
-# |- (p /\ q <=> p) <=> p ==> q
 subst
-# |- ((p /\ (q ==> r)) /\ ((p ==> q) ==> r) <=> p /\ (q ==> r)) <=>
-#    p /\ (q ==> r) ==> (p ==> q) ==> r
 108
 def
 pop
@@ -1116,15 +1035,11 @@ pop
 ref
 107
 ref
-# |- ((p /\ (q ==> r)) /\ ((p ==> q) ==> r) <=> p /\ (q ==> r)) <=>
-#    p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p /\ (q ==> r)) /\ ((p ==> q) ==> r) <=> p /\ (q ==> r)
 eqMp
-# |- p /\ (q ==> r) ==> (p ==> q) ==> r
 109
 def
 pop
-11
+15
 ref
 56
 ref
@@ -1167,11 +1082,7 @@ cons
 cons
 30
 ref
-# p, p ==> q
-# |- q
 subst
-# p /\ (q ==> r), p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p ==> q) ==> r
 113
 def
 pop
@@ -1218,11 +1129,7 @@ cons
 cons
 78
 ref
-# p, q
-# |- p /\ q
 subst
-# p /\ (q ==> r) ==> (p ==> q) ==> r, (p ==> q) ==> r
-# |- (p /\ (q ==> r) ==> (p ==> q) ==> r) /\ ((p ==> q) ==> r)
 116
 def
 pop
@@ -1246,14 +1153,7 @@ pop
 ref
 113
 ref
-# p /\ (q ==> r), p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p ==> q) ==> r <=>
-#    (p /\ (q ==> r) ==> (p ==> q) ==> r) /\ ((p ==> q) ==> r)
-# p /\ (q ==> r), p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p ==> q) ==> r
 eqMp
-# p /\ (q ==> r), p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p /\ (q ==> r) ==> (p ==> q) ==> r) /\ ((p ==> q) ==> r)
 119
 def
 pop
@@ -1300,11 +1200,7 @@ cons
 cons
 65
 ref
-# P /\ Q
-# |- P
 subst
-# (p /\ (q ==> r) ==> (p ==> q) ==> r) /\ ((p ==> q) ==> r)
-# |- p /\ (q ==> r) ==> (p ==> q) ==> r
 123
 def
 pop
@@ -1351,11 +1247,7 @@ cons
 cons
 93
 ref
-# |- (p /\ q <=> p) <=> p ==> q
 subst
-# |- ((p /\ (q ==> r) ==> (p ==> q) ==> r) /\ ((p ==> q) ==> r) <=>
-#     p /\ (q ==> r) ==> (p ==> q) ==> r) <=>
-#    (p /\ (q ==> r) ==> (p ==> q) ==> r) ==> (p ==> q) ==> r
 126
 def
 pop
@@ -1363,15 +1255,7 @@ pop
 ref
 125
 ref
-# |- ((p /\ (q ==> r) ==> (p ==> q) ==> r) /\ ((p ==> q) ==> r) <=>
-#     p /\ (q ==> r) ==> (p ==> q) ==> r) <=>
-#    (p /\ (q ==> r) ==> (p ==> q) ==> r) ==> (p ==> q) ==> r
-# p /\ (q ==> r)
-# |- (p /\ (q ==> r) ==> (p ==> q) ==> r) /\ ((p ==> q) ==> r) <=>
-#    p /\ (q ==> r) ==> (p ==> q) ==> r
 eqMp
-# p /\ (q ==> r)
-# |- (p /\ (q ==> r) ==> (p ==> q) ==> r) ==> (p ==> q) ==> r
 127
 def
 pop
@@ -1402,12 +1286,7 @@ cons
 cons
 30
 ref
-# p, p ==> q
-# |- q
 subst
-# p /\ (q ==> r) ==> (p ==> q) ==> r,
-# (p /\ (q ==> r) ==> (p ==> q) ==> r) ==> (p ==> q) ==> r
-# |- (p ==> q) ==> r
 128
 def
 pop
@@ -1431,13 +1310,7 @@ pop
 ref
 113
 ref
-# p /\ (q ==> r), p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p ==> q) ==> r <=> (p /\ (q ==> r)) /\ ((p ==> q) ==> r)
-# p /\ (q ==> r), p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p ==> q) ==> r
 eqMp
-# p /\ (q ==> r), p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p /\ (q ==> r)) /\ ((p ==> q) ==> r)
 131
 def
 pop
@@ -1476,12 +1349,7 @@ cons
 cons
 78
 ref
-# p, q
-# |- p /\ q
 subst
-# p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- (p /\ (q ==> r) ==> (p ==> q) ==> r) /\
-#    (p /\ (q ==> r) ==> (p ==> q) ==> r)
 133
 def
 pop
@@ -1531,11 +1399,7 @@ cons
 cons
 65
 ref
-# P /\ Q
-# |- P
 subst
-# (p /\ (q ==> r) ==> (p ==> q) ==> r) /\ (p /\ (q ==> r) ==> (p ==> q) ==> r)
-# |- p /\ (q ==> r) ==> (p ==> q) ==> r
 137
 def
 pop
@@ -1582,15 +1446,7 @@ cons
 cons
 93
 ref
-# |- (p /\ q <=> p) <=> p ==> q
 subst
-# |- ((p /\ (q ==> r) ==> (p ==> q) ==> r) /\
-#     (p /\ (q ==> r) ==> (p ==> q) ==> r) <=>
-#     p /\ (q ==> r) ==> (p ==> q) ==> r) <=>
-#    (p /\ (q ==> r) ==> (p ==> q) ==> r)
-#    ==> p /\ (q ==> r)
-#    ==> (p ==> q)
-#    ==> r
 140
 def
 pop
@@ -1598,21 +1454,7 @@ pop
 ref
 139
 ref
-# |- ((p /\ (q ==> r) ==> (p ==> q) ==> r) /\
-#     (p /\ (q ==> r) ==> (p ==> q) ==> r) <=>
-#     p /\ (q ==> r) ==> (p ==> q) ==> r) <=>
-#    (p /\ (q ==> r) ==> (p ==> q) ==> r)
-#    ==> p /\ (q ==> r)
-#    ==> (p ==> q)
-#    ==> r
-# |- (p /\ (q ==> r) ==> (p ==> q) ==> r) /\
-#    (p /\ (q ==> r) ==> (p ==> q) ==> r) <=>
-#    p /\ (q ==> r) ==> (p ==> q) ==> r
 eqMp
-# |- (p /\ (q ==> r) ==> (p ==> q) ==> r)
-#    ==> p /\ (q ==> r)
-#    ==> (p ==> q)
-#    ==> r
 141
 def
 pop
@@ -1643,12 +1485,7 @@ cons
 cons
 30
 ref
-# p, p ==> q
-# |- q
 subst
-# p /\ (q ==> r) ==> (p ==> q) ==> r,
-# (p /\ (q ==> r) ==> (p ==> q) ==> r) ==> p /\ (q ==> r) ==> (p ==> q) ==> r
-# |- p /\ (q ==> r) ==> (p ==> q) ==> r
 142
 def
 pop

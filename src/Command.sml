@@ -12,10 +12,10 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val absCommandString = "abs"
-and absTermCommandString = "absTerm"
-and appCommandString = "app"
+val absTermCommandString = "absTerm"
+and absThmCommandString = "absThm"
 and appTermCommandString = "appTerm"
+and appThmCommandString = "appThm"
 and assumeCommandString = "assume"
 and axiomCommandString = "axiom"
 and betaConvCommandString = "betaConv"
@@ -51,10 +51,10 @@ datatype command =
     Num of int
   | Name of Name.name
   (* Regular commands *)
-  | Abs
   | AbsTerm
-  | App
+  | AbsThm
   | AppTerm
+  | AppThm
   | Assume
   | Axiom
   | BetaConv
@@ -81,8 +81,8 @@ datatype command =
 
 fun isInference cmd =
     case cmd of
-      Abs => true
-    | App => true
+      AbsThm => true
+    | AppThm => true
     | Assume => true
     | Axiom => true
     | BetaConv => true
@@ -106,18 +106,18 @@ fun compare cmd1_cmd2 =
     | (Name n1, Name n2) => Name.compare (n1,n2)
     | (Name _, _) => LESS
     | (_, Name _) => GREATER
-    | (Abs,Abs) => EQUAL
-    | (Abs,_) => LESS
-    | (_,Abs) => GREATER
     | (AbsTerm,AbsTerm) => EQUAL
     | (AbsTerm,_) => LESS
     | (_,AbsTerm) => GREATER
-    | (App,App) => EQUAL
-    | (App,_) => LESS
-    | (_,App) => GREATER
+    | (AbsThm,AbsThm) => EQUAL
+    | (AbsThm,_) => LESS
+    | (_,AbsThm) => GREATER
     | (AppTerm,AppTerm) => EQUAL
     | (AppTerm,_) => LESS
     | (_,AppTerm) => GREATER
+    | (AppThm,AppThm) => EQUAL
+    | (AppThm,_) => LESS
+    | (_,AppThm) => GREATER
     | (Assume,Assume) => EQUAL
     | (Assume,_) => LESS
     | (_,Assume) => GREATER
@@ -190,10 +190,10 @@ fun compare cmd1_cmd2 =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppAbsCommand = Print.addString absCommandString
-and ppAbsTermCommand = Print.addString absTermCommandString
-and ppAppCommand = Print.addString appCommandString
+val ppAbsTermCommand = Print.addString absTermCommandString
+and ppAbsThmCommand = Print.addString absThmCommandString
 and ppAppTermCommand = Print.addString appTermCommandString
+and ppAppThmCommand = Print.addString appThmCommandString
 and ppAssumeCommand = Print.addString assumeCommandString
 and ppAxiomCommand = Print.addString axiomCommandString
 and ppBetaConvCommand = Print.addString betaConvCommandString
@@ -232,10 +232,10 @@ fun pp cmd =
       Num i => ppNum i
     | Name n => Name.ppQuoted n
     (* Regular commands *)
-    | Abs => ppAbsCommand
     | AbsTerm => ppAbsTermCommand
-    | App => ppAppCommand
+    | AbsThm => ppAbsThmCommand
     | AppTerm => ppAppTermCommand
+    | AppThm => ppAppThmCommand
     | Assume => ppAssumeCommand
     | Axiom => ppAxiomCommand
     | BetaConv => ppBetaConvCommand
@@ -304,10 +304,10 @@ local
 
   val nameParser = Name.quotedParser;
 
-  val absCommandParser = exactString absCommandString
-  and absTermCommandParser = exactString absTermCommandString
-  and appCommandParser = exactString appCommandString
+  val absTermCommandParser = exactString absTermCommandString
+  and absThmCommandParser = exactString absThmCommandString
   and appTermCommandParser = exactString appTermCommandString
+  and appThmCommandParser = exactString appThmCommandString
   and assumeCommandParser = exactString assumeCommandString
   and axiomCommandParser = exactString axiomCommandString
   and betaConvCommandParser = exactString betaConvCommandString
@@ -353,6 +353,8 @@ in
       varTermCommandParser >> K VarTerm ||
       varTypeCommandParser >> K VarType ||
       (* Commands of length 6 *)
+      absThmCommandParser >> K AbsThm ||
+      appThmCommandParser >> K AppThm ||
       assumeCommandParser >> K Assume ||
       opTypeCommandParser >> K OpType ||
       removeCommandParser >> K Remove ||
@@ -366,8 +368,6 @@ in
       eqMpCommandParser >> K EqMp ||
       reflCommandParser >> K Refl ||
       (* Commands of length 3 *)
-      absCommandParser >> K Abs ||
-      appCommandParser >> K App ||
       defCommandParser >> K Def ||
       nilCommandParser >> K Nil ||
       popCommandParser >> K Pop ||

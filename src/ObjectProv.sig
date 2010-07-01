@@ -61,13 +61,13 @@ val mkName : Name.name -> object
 
 (* Regular commands *)
 
-val mkAbs : {savable : bool} -> object -> object -> object
-
 val mkAbsTerm : {savable : bool} -> object -> object -> object
 
-val mkApp : {savable : bool} -> object -> object -> object
+val mkAbsThm : {savable : bool} -> object -> object -> object
 
 val mkAppTerm : {savable : bool} -> object -> object -> object
+
+val mkAppThm : {savable : bool} -> object -> object -> object
 
 val mkAssume : {savable : bool} -> object -> object
 

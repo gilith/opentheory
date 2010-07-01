@@ -174,33 +174,6 @@ fun mkName n = mkDefault (Object.Name n);
 
 (* Regular commands *)
 
-fun mkAbs {savable} objV objT =
-    let
-      val obV = object objV
-      and obT = object objT
-
-      val ob =
-          let
-            val v = Object.destVar obV
-            and th = Object.destThm obT
-          in
-            Object.Thm (Thm.abs v th)
-          end
-
-      val cmd = Command.Abs
-      and args = [objV,objT]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else mkSpecial cmd args gen
-    in
-      mkProv ob prov
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAbs: " ^ err);
-*)
-
 fun mkAbsTerm {savable} objV objB =
     let
       val obV = object objV
@@ -228,21 +201,21 @@ fun mkAbsTerm {savable} objV objB =
     handle Error err => raise Error ("ObjectProv.mkAbsTerm: " ^ err);
 *)
 
-fun mkApp {savable} objF objA =
+fun mkAbsThm {savable} objV objT =
     let
-      val obF = object objF
-      and obA = object objA
+      val obV = object objV
+      and obT = object objT
 
       val ob =
           let
-            val f = Object.destThm obF
-            and a = Object.destThm obA
+            val v = Object.destVar obV
+            and th = Object.destThm obT
           in
-            Object.Thm (Thm.app f a)
+            Object.Thm (Thm.abs v th)
           end
 
-      val cmd = Command.App
-      and args = [objF,objA]
+      val cmd = Command.AbsThm
+      and args = [objV,objT]
       and gen = ob
 
       val prov =
@@ -252,7 +225,7 @@ fun mkApp {savable} objF objA =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkApp: " ^ err);
+    handle Error err => raise Error ("ObjectProv.mkAbsThm: " ^ err);
 *)
 
 fun mkAppTerm {savable} objF objA =
@@ -280,6 +253,33 @@ fun mkAppTerm {savable} objF objA =
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("ObjectProv.mkAppTerm: " ^ err);
+*)
+
+fun mkAppThm {savable} objF objA =
+    let
+      val obF = object objF
+      and obA = object objA
+
+      val ob =
+          let
+            val f = Object.destThm obF
+            and a = Object.destThm obA
+          in
+            Object.Thm (Thm.app f a)
+          end
+
+      val cmd = Command.AppThm
+      and args = [objF,objA]
+      and gen = ob
+
+      val prov =
+          if not savable then Default
+          else mkSpecial cmd args gen
+    in
+      mkProv ob prov
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("ObjectProv.mkAppThm: " ^ err);
 *)
 
 fun mkAssume {savable} objT =

@@ -15,10 +15,10 @@ datatype command =
     Num of int
   | Name of Name.name
   (* Regular commands *)
-  | Abs
   | AbsTerm
-  | App
+  | AbsThm
   | AppTerm
+  | AppThm
   | Assume
   | Axiom
   | BetaConv
