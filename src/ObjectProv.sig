@@ -83,10 +83,11 @@ val mkConstTerm : {savable : bool} -> object -> object -> object
 
 val mkDeductAntisym : {savable : bool} -> object -> object -> object
 
-val mkDefineConst : {savable : bool} -> object -> object -> object * object
+val mkDefineConst : {savable : bool} -> Name.name -> object -> object * object
 
 val mkDefineTypeOp :
-    {savable : bool} -> object -> object -> object -> object -> object ->
+    {savable : bool} ->
+    Name.name -> Name.name -> Name.name -> object -> object ->
     object * object * object * object * object
 
 val mkEqMp : {savable : bool} -> object -> object -> object

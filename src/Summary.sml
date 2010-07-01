@@ -74,7 +74,7 @@ in
   fun info summary =
       let
 (*OpenTheoryTrace5
-        val () = trace "entering Summary.fromThms\n"
+        val () = trace "entering Summary.info\n"
 *)
         val Summary' {requires,provides} = dest summary
 
@@ -98,7 +98,7 @@ in
         val ths = Sequents.sequents provides
 
 (*OpenTheoryTrace5
-        val () = trace "exiting Summary.fromThms\n"
+        val () = trace "exiting Summary.info\n"
 *)
       in
         Info

@@ -307,15 +307,7 @@ fun summarize name =
 
       val sum = Summary.fromThms ths
 
-      val sumFilename = mkSummaryFilename name
-
-      val () =
-          time Summary.toTextFile
-            {show = Show.default,
-             summary = sum,
-             filename = sumFilename}
-
-      val () = print "\n"
+      val () = printer (Summary.ppWithShow Show.natural) sum
     in
       ()
     end;
@@ -336,7 +328,7 @@ val () = summarize "tactics";
 val () = SAY "Theory package directories";
 (* ------------------------------------------------------------------------- *)
 
-val DIRECTORY_DIR = "opentheory";
+val DIRECTORY_DIR = "repo";
 
 val directory =
     printval Directory.pp (Directory.mk {rootDirectory = DIRECTORY_DIR});

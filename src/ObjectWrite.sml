@@ -106,7 +106,7 @@ in
 
         val keys = ObjectMap.new ()
 
-        val nextKey = 1
+        val nextKey = 0
       in
         MinDict
           {refs = refs,

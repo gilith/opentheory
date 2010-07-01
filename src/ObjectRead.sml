@@ -399,8 +399,11 @@ fun execute cmd state =
         let
           val (stack,objN,objT) = ObjectStack.pop2 stack
 
+          val n = Object.destName (ObjectProv.object objN)
+          val n = Interpretation.interpretConst interpretation n
+
           val (obj0,obj1) =
-              ObjectProv.mkDefineConst {savable = savable} objN objT
+              ObjectProv.mkDefineConst {savable = savable} n objT
 
           val stack = ObjectStack.push2 stack obj0 obj1
         in
@@ -417,9 +420,17 @@ fun execute cmd state =
         let
           val (stack,objN,objA,objR,objV,objT) = ObjectStack.pop5 stack
 
+          val n = Object.destName (ObjectProv.object objN)
+          val n = Interpretation.interpretTypeOp interpretation n
+
+          val a = Object.destName (ObjectProv.object objA)
+          val a = Interpretation.interpretConst interpretation a
+
+          val r = Object.destName (ObjectProv.object objR)
+          val r = Interpretation.interpretConst interpretation r
+
           val (obj0,obj1,obj2,obj3,obj4) =
-              ObjectProv.mkDefineTypeOp {savable = savable}
-                objN objA objR objV objT
+              ObjectProv.mkDefineTypeOp {savable = savable} n a r objV objT
 
           val stack = ObjectStack.push5 stack obj0 obj1 obj2 obj3 obj4
         in

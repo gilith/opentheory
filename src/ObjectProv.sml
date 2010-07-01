@@ -432,15 +432,13 @@ fun mkDeductAntisym {savable} objA objB =
     handle Error err => raise Error ("ObjectProv.mkDeductAntisym: " ^ err);
 *)
 
-fun mkDefineConst {savable} objN objT =
+fun mkDefineConst {savable} n objT =
     let
-      val obN = object objN
-      and obT = object objT
+      val obT = object objT
 
       val obs as (ob0,ob1) =
           let
-            val n = Object.destName obN
-            and t = Object.destTerm obT
+            val t = Object.destTerm obT
 
             val (c,th) = Thm.defineConst n t
           in
@@ -448,7 +446,7 @@ fun mkDefineConst {savable} objN objT =
           end
 
       val cmd = Command.DefineConst
-      and args = [objN,objT]
+      and args = [mkName n, objT]
       and gen = obs
 
       val (prov0,prov1) =
@@ -461,20 +459,14 @@ fun mkDefineConst {savable} objN objT =
     handle Error err => raise Error ("ObjectProv.mkDefineConst: " ^ err);
 *)
 
-fun mkDefineTypeOp {savable} objN objA objR objV objT =
+fun mkDefineTypeOp {savable} n a r objV objT =
     let
-      val obN = object objN
-      and obA = object objA
-      and obR = object objR
-      and obV = object objV
+      val obV = object objV
       and obT = object objT
 
       val obs as (ob0,ob1,ob2,ob3,ob4) =
           let
-            val n = Object.destName obN
-            and a = Object.destName obA
-            and r = Object.destName obR
-            and v = Object.destNames obV
+            val v = Object.destNames obV
             and t = Object.destThm obT
 
             val (ot,{abs},{rep},ar,ra) =
@@ -488,7 +480,7 @@ fun mkDefineTypeOp {savable} objN objA objR objV objT =
           end
 
       val cmd = Command.DefineTypeOp
-      and args = [objN,objA,objR,objV,objT]
+      and args = [mkName n, mkName a, mkName r, objV, objT]
       and gen = obs
 
       val (prov0,prov1,prov2,prov3,prov4) =
