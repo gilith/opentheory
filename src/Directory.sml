@@ -24,6 +24,54 @@ and urlRepoSectionKey = "url";
 (* Directories and filenames.                                                *)
 (* ------------------------------------------------------------------------- *)
 
+fun createDirectory {directory} = OS.FileSys.mkDir directory;
+
+fun filesDirectory {directory} =
+    let
+      val dirStrmOpt =
+          SOME (OS.FileSys.openDir directory)
+          handle IO.Io _ => NONE
+    in
+      case dirStrmOpt of
+        NONE => NONE
+      | SOME dirStrm =>
+        let
+          fun readAll acc =
+              case OS.FileSys.readDir dirStrm of
+                NONE => acc
+              | SOME f => readAll (StringSet.add acc f)
+
+          val files = readAll StringSet.empty
+
+          val () = OS.FileSys.closeDir dirStrm
+        in
+          SOME files
+        end
+    end;
+
+fun existsDirectory directory = Option.isSome (filesDirectory directory);
+
+fun nukeDirectory {directory} =
+    case filesDirectory {directory = directory} of
+      NONE => ()
+    | SOME files =>
+      let
+        fun nuke file =
+            let
+              val filename =
+                  OS.Path.joinDirFile
+                    {dir = directory, file = file}
+            in
+              OS.FileSys.remove filename
+            end
+
+        val () = StringSet.app nuke files
+
+        val () = OS.FileSys.rmDir directory
+      in
+        ()
+      end;
+
 fun ppDirectory {directory} = Print.ppString directory;
 
 fun mkConfigFilename {rootDirectory} =
@@ -33,12 +81,12 @@ fun mkPackagesDirectory {rootDirectory} =
     OS.Path.joinDirFile
       {dir = rootDirectory, file = packagesDirectory};
 
-fun mkPackageDirectory root pkg =
+fun mkPackageDirectory root name =
     let
       val directory = mkPackagesDirectory root
     in
       OS.Path.joinDirFile
-        {dir = directory, file = PackageName.toString pkg}
+        {dir = directory, file = PackageName.toString name}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -294,13 +342,13 @@ fun newPackages () = ref (PackageNameMap.new ());
 
 fun create {rootDirectory} =
     let
-      val () = OS.FileSys.mkDir rootDirectory
+      val () = createDirectory {directory = rootDirectory}
 
       val () =
           let
             val dir = mkPackagesDirectory {rootDirectory = rootDirectory}
           in
-            OS.FileSys.mkDir dir
+            createDirectory {directory = dir}
           end
 
       val config = defaultConfig
@@ -343,6 +391,20 @@ fun config (Directory {config = x, ...}) = x;
 
 fun repos dir = reposConfig (config dir);
 
+fun packagesDirectory dir =
+    let
+      val Directory {rootDirectory = root, ...} = dir
+    in
+      mkPackagesDirectory {rootDirectory = root}
+    end;
+
+fun packageDirectory dir name =
+    let
+      val Directory {rootDirectory = root, ...} = dir
+    in
+      mkPackageDirectory {rootDirectory = root} name
+    end;
+
 val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 
 (* ------------------------------------------------------------------------- *)
@@ -350,36 +412,36 @@ val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun lookupPackage root pkg =
+  fun lookupPackage dir name =
       let
-        val directory = mkPackageDirectory root pkg
+        val directory = packageDirectory dir name
 
-        val info = PackageInfo.mk {name = pkg, directory = directory}
+        val info = PackageInfo.mk {name = name, directory = directory}
       in
         if PackageInfo.installed info then SOME info else NONE
       end;
 
-  fun lookupCached dir pkg =
+  fun lookupCached dir name =
       let
-        val Directory {rootDirectory,packages,...} = dir
-
-        val ref pkgs = packages
+        val Directory {packages as ref pkgs, ...} = dir
       in
-        case PackageNameMap.peek pkgs pkg of
-          SOME p => p
+        case PackageNameMap.peek pkgs name of
+          SOME pkg => pkg
         | NONE =>
           let
-            val mp = lookupPackage {rootDirectory = rootDirectory} pkg
+            val pkg = lookupPackage dir name
 
-            val pkgs = PackageNameMap.insert pkgs (pkg,mp)
+            val pkgs = PackageNameMap.insert pkgs (name,pkg)
 
             val () = packages := pkgs
           in
-            mp
+            pkg
           end
       end;
 in
   fun lookup dir = PackageFinder.mk (lookupCached dir);
+
+  fun installed dir name = Option.isSome (lookupCached dir name);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -392,22 +454,149 @@ local
 in
   fun list dir =
       let
-        val Directory {rootDirectory = root, ...} = dir
-
-        val pkgDir = mkPackagesDirectory {rootDirectory = root}
-
-        val dirStrm = OS.FileSys.openDir pkgDir
-
-        fun readAll acc =
-            case OS.FileSys.readDir dirStrm of
-              NONE => acc
-            | SOME s => readAll (s :: acc)
-
-        val pkgs = readAll []
-
-        val () = OS.FileSys.closeDir dirStrm
+        val pkgDir = packagesDirectory dir
       in
-        List.foldl addName PackageNameSet.empty pkgs
+        case filesDirectory {directory = pkgDir} of
+          SOME pkgs => StringSet.foldl addName PackageNameSet.empty pkgs
+        | NONE => raise Error "couldn't read packages directory"
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Uninstall a package.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun nukePackageDirectory dir name =
+    let
+      val directory = packageDirectory dir name
+
+      val () = nukeDirectory {directory = directory}
+    in
+      ()
+    end;
+
+fun nuke dir name =
+    let
+      val () = nukePackageDirectory dir name
+    in
+      ()
+    end;
+
+fun uninstall dir name =
+    let
+(*OpenTheoryDebug
+      val () = warn "Directory.uninstall: check dependencies before nuking"
+*)
+    in
+      nuke dir name
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Check whether it is possible to install a new package.                    *)
+(* ------------------------------------------------------------------------- *)
+
+datatype errorInstall =
+    DirectoryExistsInstall
+  | UninstalledDependencyInstall of PackageName.name
+  | NonemptyPathInstall of {filename : string}
+  | NameClashInstall of {filename : string} list;
+
+fun isDirectoryExistsInstall err =
+    case err of
+      DirectoryExistsInstall => true
+    | _ => false;
+
+fun removeDirectoryExistsInstall errs =
+    let
+      val (des,errs) = List.partition isDirectoryExistsInstall errs
+
+      val replace = not (null des)
+    in
+      (replace,errs)
+    end;
+
+fun fatalErrorInstall err =
+    case err of
+      DirectoryExistsInstall => true
+    | UninstalledDependencyInstall _ => true
+    | NonemptyPathInstall _ => false
+    | NameClashInstall _ => true;
+
+fun toStringErrorInstall err =
+    (if fatalErrorInstall err then "Error" else "Warning") ^ ": " ^
+    (case err of
+       DirectoryExistsInstall =>
+       "package directory already exists"
+     | UninstalledDependencyInstall name =>
+       "uninstalled package dependency: " ^ PackageName.toString name
+     | NonemptyPathInstall {filename} =>
+       "file not in package directory: " ^ filename
+     | NameClashInstall fl =>
+       "filename clash:" ^
+       String.concat (map (fn {filename = f} => "\n  " ^ f) fl));
+
+fun toStringErrorInstallList errs =
+    join "\n" (map toStringErrorInstall errs);
+
+local
+  fun checkDep dir (name,errs) =
+      if installed dir name then errs
+      else UninstalledDependencyInstall name :: errs;
+
+  val planCopyInstall =
+      let
+        fun add ({filename},acc) =
+            let
+              val file = OS.Path.file filename
+
+              val filenames = Option.getOpt (StringMap.peek acc file, [])
+
+              val filenames = {filename = filename} :: filenames
+
+              val acc = StringMap.insert acc (file,filenames)
+            in
+              acc
+            end
+      in
+        List.foldl add (StringMap.new ())
+      end;
+
+  fun checkPath ({filename},errs) =
+      let
+        val dir = OS.Path.dir filename
+      in
+        if dir = "" then errs
+        else NonemptyPathInstall {filename = filename} :: errs
+      end;
+
+  fun checkCopyInstall (file,filenames,errs) =
+      let
+        val errs =
+            if length filenames = 1 then errs
+            else NameClashInstall filenames :: errs
+
+        val errs = List.foldl checkPath errs filenames
+      in
+        errs
+      end;
+in
+  fun checkInstall dir name pkg =
+      let
+        val errs = []
+
+        val directory = packageDirectory dir name
+
+        val errs =
+            if not (existsDirectory {directory = directory}) then errs
+            else DirectoryExistsInstall :: errs
+
+        val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
+
+        val plan = planCopyInstall (Package.files pkg)
+
+        val errs = StringMap.foldl checkCopyInstall errs plan
+      in
+        rev errs
       end;
 end;
 
@@ -415,8 +604,82 @@ end;
 (* Installing new packages into the package directory.                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun install dir {filename} =
-    raise Bug "Directory.install: not implemented";
+fun install dir name pkg {filename = src_filename} =
+    let
+      val info =
+          let
+            val directory = packageDirectory dir name
+          in
+            PackageInfo.mk {name = name, directory = directory}
+          end
+
+      val src_dir = OS.Path.dir src_filename
+
+      fun copy_art thy =
+          let
+            val PackageTheory.Theory {name,imports,node} = thy
+          in
+            case node of
+              PackageTheory.Article
+                {interpretation = int,
+                 filename = src_art} =>
+              let
+                val pkg_art = OS.Path.file src_art
+
+                val src_art = OS.Path.concat (src_dir,src_art)
+
+                val art =
+                    Article.fromTextFile
+                      {savable = true,
+                       import = Article.empty,
+                       interpretation = Interpretation.natural,
+                       filename = src_art}
+
+                val {filename = dest_art} =
+                    PackageInfo.joinDirectory info {filename = pkg_art}
+
+                val () =
+                    Article.toTextFile
+                      {article = art,
+                       filename = dest_art}
+
+                val node =
+                    PackageTheory.Article
+                      {interpretation = int,
+                       filename = pkg_art}
+              in
+                PackageTheory.Theory
+                  {name = name,
+                   imports = imports,
+                   node = node}
+              end
+            | _ => thy
+          end
+
+      (* Make the package directory *)
+
+      val () = createDirectory (PackageInfo.directory info)
+
+      (* Copy the articles over *)
+
+      val Package.Package' {tags,theories} = Package.dest pkg
+
+      val theories = map copy_art theories
+
+      val pkg = Package.mk (Package.Package' {tags = tags, theories = theories})
+
+      (* Lastly, write the new package file *)
+
+      val () =
+          let
+            val {filename} = PackageInfo.theoryFile info
+          in
+            Package.toTextFile {package = pkg, filename = filename}
+          end
+    in
+      ()
+    end
+    handle Error err => (nuke dir name; raise Error err);
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)

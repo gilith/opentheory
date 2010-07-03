@@ -16,6 +16,15 @@ type name
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype name' =
+    Name' of
+      {base : PackageBase.base,
+       version : PackageVersion.version};
+
+val mk : name' -> name
+
+val dest : name -> name'
+
 val base : name -> PackageBase.base
 
 val version : name -> PackageVersion.version

@@ -9,21 +9,62 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val nameTag = "name"
+and versionTag = "version";
+
+(* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype package =
-    Package of
+datatype package' =
+    Package' of
       {tags : Tag.tag list,
        theories : PackageTheory.theory list};
+
+type package = package';
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun tags (Package {tags = x, ...}) = x;
+fun mk pkg' : package = pkg';
 
-fun theories (Package {theories = x, ...}) = x;
+fun dest pkg : package' = pkg;
+
+fun tags' (Package' {tags = x, ...}) = x;
+
+fun theories' (Package' {theories = x, ...}) = x;
+
+fun tags pkg = tags' (dest pkg);
+
+fun theories pkg = theories' (dest pkg);
+
+(* ------------------------------------------------------------------------- *)
+(* Package name.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun base pkg =
+    case List.filter (equal nameTag o Tag.name) (tags pkg) of
+      [] => raise Error ("no " ^ nameTag ^ " tag")
+    | [tag] => PackageBase.fromString (Tag.value tag)
+    | _ :: _ :: _ => raise Error ("multiple " ^ nameTag ^ " tags");
+
+fun version pkg =
+    case List.filter (equal versionTag o Tag.name) (tags pkg) of
+      [] => raise Error ("no " ^ versionTag ^ " tag")
+    | [tag] => PackageVersion.fromString (Tag.value tag)
+    | _ :: _ :: _ => raise Error ("multiple " ^ versionTag ^ " tags");
+
+fun name pkg =
+    let
+      val b = base pkg
+      and v = version pkg
+    in
+      PackageName.mk (PackageName.Name' {base = b, version = v})
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
@@ -38,6 +79,12 @@ fun articles pkg = PackageTheory.articles (theories pkg);
 fun packages pkg = PackageTheory.packages (theories pkg);
 
 (* ------------------------------------------------------------------------- *)
+(* File dependencies.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun files pkg = articles pkg;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -48,9 +95,9 @@ local
          Print.addNewline,
          PackageTheory.pp thy];
 in
-  fun pp pkg =
+  fun pp' pkg =
     let
-      val Package {tags,theories} = pkg
+      val Package' {tags,theories} = pkg
     in
       if null tags then
         case theories of
@@ -66,6 +113,8 @@ in
     end;
 end;
 
+val pp = Print.ppMap dest pp';
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -78,10 +127,12 @@ local
 
   open Parse;
 
-  val packageSpaceParser =
+  val packageSpaceParser' =
       (Tag.parserList ++
        atLeastOne PackageTheory.parser) >>
-      (fn (ts,ths) => Package {tags = ts, theories = ths});
+      (fn (ts,ths) => Package' {tags = ts, theories = ths});
+
+  val packageSpaceParser = packageSpaceParser' >> mk;
 in
   val parser = manySpace ++ packageSpaceParser >> snd;
 

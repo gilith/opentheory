@@ -18,18 +18,26 @@ val name : info -> PackageName.name
 
 val directory : info -> {directory : string}
 
-val theoryFilename : info -> {filename : string}
+val joinDirectory : info -> {filename : string} -> {filename : string}
+
+(* ------------------------------------------------------------------------- *)
+(* Is the package properly installed?                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val installed : info -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* The files needed by the package.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val theoryFile : info -> {filename : string}
+
+val files : info -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 val package : info -> Package.package
-
-(* ------------------------------------------------------------------------- *)
-(* Is the package installed?                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val installed : info -> bool
 
 end

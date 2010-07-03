@@ -26,10 +26,14 @@ val equal : version -> version -> bool
 
 val pp : version Print.pp
 
+val toString : version -> string
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 val parser : (char,version) Parse.parser
+
+val fromString : string -> version
 
 end

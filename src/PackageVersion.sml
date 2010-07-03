@@ -95,4 +95,9 @@ in
       Version;
 end;
 
+fun fromString s =
+    Parse.fromString parser s
+    handle Parse.NoParse =>
+      raise Error ("bad package version format: " ^ s);
+
 end

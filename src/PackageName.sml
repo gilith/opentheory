@@ -18,18 +18,28 @@ val separatorString = "-";
 (* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype name =
-    Name of
+datatype name' =
+    Name' of
       {base : PackageBase.base,
        version : PackageVersion.version};
+
+type name = name';
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun base (Name {base = x, ...}) = x;
+fun mk n' : name = n';
 
-fun version (Name {version = x, ...}) = x;
+fun dest n : name' = n;
+
+fun base' (Name' {base = x, ...}) = x;
+
+fun version' (Name' {version = x, ...}) = x;
+
+fun base n = base' (dest n);
+
+fun version n = version' (dest n);
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
@@ -37,8 +47,8 @@ fun version (Name {version = x, ...}) = x;
 
 fun compare (i1,i2) =
     let
-      val Name {base = b1, version = v1} = i1
-      and Name {base = b2, version = v2} = i2
+      val Name' {base = b1, version = v1} = dest i1
+      and Name' {base = b2, version = v2} = dest i2
     in
       case PackageBase.compare (b1,b2) of
         LESS => LESS
@@ -48,8 +58,8 @@ fun compare (i1,i2) =
 
 fun equal i1 i2 =
     let
-      val Name {base = b1, version = v1} = i1
-      and Name {base = b2, version = v2} = i2
+      val Name' {base = b1, version = v1} = dest i1
+      and Name' {base = b2, version = v2} = dest i2
     in
       PackageBase.equal b1 b2 andalso
       PackageVersion.equal v1 v2
@@ -61,11 +71,17 @@ fun equal i1 i2 =
 
 val ppSeparator = Print.addString separatorString;
 
-fun pp (Name {base = b, version = v}) =
-    Print.program
-      [PackageBase.pp b,
-       ppSeparator,
-       PackageVersion.pp v];
+fun pp' n =
+    let
+      val Name' {base = b, version = v} = n
+    in
+      Print.program
+        [PackageBase.pp b,
+         ppSeparator,
+         PackageVersion.pp v]
+    end;
+
+val pp = Print.ppMap dest pp';
 
 val toString = Print.toString pp;
 
@@ -82,12 +98,14 @@ local
   open Parse;
 
   val separatorParser = exactString separatorString;
-in
-  val parser =
+
+  val parser' =
       PackageBase.parser ++
       separatorParser ++
       PackageVersion.parser >>
-      (fn (b,((),v)) => Name {base = b, version = v});
+      (fn (b,((),v)) => Name' {base = b, version = v});
+in
+  val parser = parser' >> mk;
 end;
 
 fun fromString s =

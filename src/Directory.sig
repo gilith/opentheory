@@ -64,6 +64,8 @@ val pp : directory Print.pp
 
 val lookup : directory -> PackageFinder.finder
 
+val installed : directory -> PackageName.name -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
@@ -71,10 +73,42 @@ val lookup : directory -> PackageFinder.finder
 val list : directory -> PackageNameSet.set
 
 (* ------------------------------------------------------------------------- *)
+(* Check whether it is possible to install a new package.                    *)
+(* ------------------------------------------------------------------------- *)
+
+datatype errorInstall =
+    DirectoryExistsInstall
+  | UninstalledDependencyInstall of PackageName.name
+  | NonemptyPathInstall of {filename : string}
+  | NameClashInstall of {filename : string} list
+
+val isDirectoryExistsInstall : errorInstall -> bool
+
+val removeDirectoryExistsInstall :
+    errorInstall list -> bool * errorInstall list
+
+val fatalErrorInstall : errorInstall -> bool
+
+val toStringErrorInstall : errorInstall -> string
+
+val toStringErrorInstallList : errorInstall list -> string
+
+val checkInstall :
+    directory -> PackageName.name -> Package.package -> errorInstall list
+
+(* ------------------------------------------------------------------------- *)
 (* Installing new packages into the package directory.                       *)
 (* ------------------------------------------------------------------------- *)
 
-val install : directory -> {filename : string} -> unit
+val install :
+    directory ->
+    PackageName.name -> Package.package -> {filename : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Installing new packages from the package directory.                       *)
+(* ------------------------------------------------------------------------- *)
+
+val uninstall : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)

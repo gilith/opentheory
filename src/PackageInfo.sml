@@ -18,12 +18,13 @@ val theoryExtension = "thy";
 (* Directories and filenames.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkTheoryFilename pkg =
+fun mkTheoryFile pkg =
     let
       val base = PackageName.base pkg
     in
       OS.Path.joinBaseExt
-        {base = PackageBase.toString base, ext = SOME theoryExtension}
+        {base = PackageBase.toString base,
+         ext = SOME theoryExtension}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -50,15 +51,22 @@ fun name (Info {name = x, ...}) = x;
 
 fun directory (Info {directory = x, ...}) = {directory = x};
 
-fun theoryFilename info =
+fun joinDirectory info =
     let
       val {directory = dir} = directory info
-
-      val file = mkTheoryFilename (name info)
-
-      val filename = OS.Path.joinDirFile {dir = dir, file = file}
     in
-      {filename = filename}
+      fn {filename} => {filename = OS.Path.concat (dir,filename)}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* The package theory file.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun theoryFile info =
+    let
+      val file = mkTheoryFile (name info)
+    in
+      joinDirectory info {filename = file}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -73,7 +81,7 @@ fun package info =
         SOME p => p
       | NONE =>
         let
-          val filename = theoryFilename info
+          val filename = theoryFile info
 
           val p = Package.fromTextFile filename
 
@@ -84,7 +92,18 @@ fun package info =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Is the package installed?                                                 *)
+(* The files needed by the package.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun files info =
+    let
+      val pkg = package info
+    in
+      theoryFile info :: map (joinDirectory info) (Package.files pkg)
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Is the package properly installed?                                        *)
 (* ------------------------------------------------------------------------- *)
 
 fun installed info =

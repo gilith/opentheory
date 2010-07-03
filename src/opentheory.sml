@@ -195,6 +195,21 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Options for installing theory packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val installReplace = ref false;
+
+local
+  open Useful Options;
+in
+  val installOpts : opt list =
+      [{switches = ["-r","--reinstall"], arguments = [],
+        description = "replace the package if it exists",
+        processor = beginOpt endOpt (fn _ => installReplace := true)}];
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Options for listing installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -219,15 +234,17 @@ datatype command =
     Compile
   | Help
   | Info
+  | Install
   | List;
 
-val allCommands = [Compile,Help,Info,List];
+val allCommands = [Compile,Help,Info,Install,List];
 
 fun commandString cmd =
     case cmd of
       Compile => "compile"
     | Help => "help"
     | Info => "info"
+    | Install => "install"
     | List => "list";
 
 fun commandArgs cmd =
@@ -235,6 +252,7 @@ fun commandArgs cmd =
       Compile => " input.thy"
     | Help => ""
     | Info => " <package-name>"
+    | Install => " input.thy"
     | List => "";
 
 fun commandDescription cmd =
@@ -242,6 +260,7 @@ fun commandDescription cmd =
       Compile => "compile a theory package"
     | Help => "display command help"
     | Info => "display package information"
+    | Install => "install a theory package"
     | List => "list installed theory packages";
 
 val allCommandStrings = map commandString allCommands;
@@ -261,6 +280,7 @@ fun commandOpts cmd =
       Compile => compileOpts
     | Help => helpOpts
     | Info => infoOpts
+    | Install => installOpts
     | List => listOpts;
 
 val allCommandOptions =
@@ -298,7 +318,7 @@ local
                 "the special - filename.\n",
        options = opts @ Options.basicOptions};
 
-  val globalUsage = "[global opts] command [command opts] input ...";
+  val globalUsage = "[global options] command [command options] ...";
 
   val globalHeader =
       let
@@ -324,7 +344,7 @@ in
 
   fun commandOptions cmd =
       mkProgramOptions
-        (commandString cmd ^ " [" ^ commandString cmd ^ " opts]" ^
+        (commandString cmd ^ " [" ^ commandString cmd ^ " options]" ^
          commandArgs cmd ^ "\n" ^
          capitalize (commandDescription cmd) ^ ".\n" ^
          "Displaying " ^ commandString cmd ^ " options:")
@@ -413,9 +433,10 @@ fun compile {filename} =
                   Graph.packageTheory {expand = Theory.isPackage} thy
 
               val package =
-                  Package.Package
-                    {tags = tags,
-                     theories = theories}
+                  Package.mk
+                    (Package.Package'
+                       {tags = tags,
+                        theories = theories})
             in
               Package.toTextFile
                 {package = package,
@@ -442,7 +463,7 @@ fun compile {filename} =
 (* Displaying command help.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun help () = usage ("displaying command help");
+fun help () = usage "displaying command help";
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying package information.                                           *)
@@ -470,12 +491,9 @@ fun info name =
                 end
               | FileInfo =>
                 let
-                  val {directory = d} = PackageInfo.directory pi
+                  fun mk {filename} = filename ^ "\n"
 
-                  fun mk {filename = f} =
-                      OS.Path.joinDirFile {dir = d, file = f} ^ "\n"
-
-                  val fl = Package.articles p
+                  val fl = PackageInfo.files pi
                 in
                   Stream.map mk (Stream.fromList fl)
                 end
@@ -493,6 +511,45 @@ fun info name =
           Stream.toTextFile {filename = f} s
         end
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Installing theory packages.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun install filename =
+    let
+      val dir = directory ()
+
+      val pkg = Package.fromTextFile filename
+
+      val name = Package.name pkg
+
+      val errs = Directory.checkInstall dir name pkg
+
+      val (replace,errs) =
+          if not (!installReplace) then (false,errs)
+          else Directory.removeDirectoryExistsInstall errs
+
+      val () =
+          if null errs then ()
+          else
+            let
+              val s = Directory.toStringErrorInstallList errs
+            in
+              if List.exists Directory.fatalErrorInstall errs then
+                raise Error s
+              else
+                warn ("package install warnings:\n" ^ s)
+            end
+
+      val () = if replace then Directory.uninstall dir name else ()
+
+      val () = Directory.install dir name pkg filename
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\ntheory package install failed");
 
 (* ------------------------------------------------------------------------- *)
 (* Listing installed packages.                                               *)
@@ -542,6 +599,7 @@ let
         (Compile,[filename]) => compile {filename = filename}
       | (Help,[]) => help ()
       | (Info,[pkg]) => info pkg
+      | (Install,[filename]) => install {filename = filename}
       | (List,[]) => list ()
       | _ =>
         commandUsage cmd ("bad arguments for " ^ commandString cmd ^ " command")

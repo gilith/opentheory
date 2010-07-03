@@ -10,18 +10,34 @@ sig
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype package =
-    Package of
-      {tags : Tag.tag list,
-       theories : PackageTheory.theory list}
+type package
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype package' =
+    Package' of
+      {tags : Tag.tag list,
+       theories : PackageTheory.theory list}
+
+val mk : package' -> package
+
+val dest : package -> package'
+
 val tags : package -> Tag.tag list
 
 val theories : package -> PackageTheory.theory list
+
+(* ------------------------------------------------------------------------- *)
+(* Package name.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val base : package -> PackageBase.base
+
+val version : package -> PackageVersion.version
+
+val name : package -> PackageName.name
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
@@ -34,6 +50,12 @@ val articles : package -> {filename : string} list
 (* ------------------------------------------------------------------------- *)
 
 val packages : package -> PackageName.name list
+
+(* ------------------------------------------------------------------------- *)
+(* File dependencies.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val files : package -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
