@@ -7,6 +7,34 @@ signature Directory =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* A type of directory operation errors.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+datatype error =
+    PackageExistsError
+  | InstalledDependentError of PackageName.name
+  | UninstalledDependencyError of PackageName.name
+  | NonemptyPathError of {filename : string}
+  | FilenameClashError of {filename : string} list
+
+val isPackageExistsError : error -> bool
+
+val removePackageExistsError : error list -> bool * error list
+
+val destInstalledDependentError : error -> PackageName.name option
+
+val isInstalledDependentError : error -> bool
+
+val removeInstalledDependentError :
+    error list -> PackageName.name list * error list
+
+val isFatalError : error -> bool
+
+val toStringError : error -> string
+
+val toStringErrorList : error list -> string
+
+(* ------------------------------------------------------------------------- *)
 (* Repos.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
@@ -62,7 +90,7 @@ val pp : directory Print.pp
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
 
-val lookup : directory -> PackageFinder.finder
+val lookup : directory -> PackageName.name -> PackageInfo.info option
 
 val installed : directory -> PackageName.name -> bool
 
@@ -70,45 +98,26 @@ val installed : directory -> PackageName.name -> bool
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
-val list : directory -> PackageNameSet.set
+val list : directory -> PackageInfo.info list
 
 (* ------------------------------------------------------------------------- *)
-(* Check whether it is possible to install a new package.                    *)
+(* Installing packages from the package directory.                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype errorInstall =
-    DirectoryExistsInstall
-  | UninstalledDependencyInstall of PackageName.name
-  | NonemptyPathInstall of {filename : string}
-  | NameClashInstall of {filename : string} list
+val checkUninstall : directory -> PackageName.name -> error list
 
-val isDirectoryExistsInstall : errorInstall -> bool
-
-val removeDirectoryExistsInstall :
-    errorInstall list -> bool * errorInstall list
-
-val fatalErrorInstall : errorInstall -> bool
-
-val toStringErrorInstall : errorInstall -> string
-
-val toStringErrorInstallList : errorInstall list -> string
-
-val checkInstall :
-    directory -> PackageName.name -> Package.package -> errorInstall list
+val uninstall : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Installing new packages into the package directory.                       *)
 (* ------------------------------------------------------------------------- *)
 
+val checkInstall :
+    directory -> PackageName.name -> Package.package -> error list
+
 val install :
     directory ->
     PackageName.name -> Package.package -> {filename : string} -> unit
-
-(* ------------------------------------------------------------------------- *)
-(* Installing new packages from the package directory.                       *)
-(* ------------------------------------------------------------------------- *)
-
-val uninstall : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)
@@ -121,5 +130,11 @@ val upload : directory -> repo -> PackageName.name -> unit
 (* ------------------------------------------------------------------------- *)
 
 val download : directory -> repo -> PackageName.name -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* A package finder.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val finder : directory -> PackageFinder.finder
 
 end

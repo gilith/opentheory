@@ -89,7 +89,7 @@ val directory =
            end
     end;
 
-fun finder () = Directory.lookup (directory ());
+fun finder () = Directory.finder (directory ());
 
 (* ------------------------------------------------------------------------- *)
 (* Options for compiling packages to articles.                               *)
@@ -195,18 +195,34 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Options for uninstalling theory packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val recursiveUninstall = ref false;
+
+local
+  open Useful Options;
+in
+  val uninstallOpts : opt list =
+      [{switches = ["--recursive"], arguments = [],
+        description = "recursively uninstall dependent packages",
+        processor = beginOpt endOpt (fn _ => recursiveUninstall := true)}];
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Options for installing theory packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val installReplace = ref false;
+val reinstall = ref false;
 
 local
   open Useful Options;
 in
   val installOpts : opt list =
-      [{switches = ["-r","--reinstall"], arguments = [],
-        description = "replace the package if it exists",
-        processor = beginOpt endOpt (fn _ => installReplace := true)}];
+      [{switches = ["--reinstall"], arguments = [],
+        description = "uninstall the package if it exists",
+        processor = beginOpt endOpt (fn _ => reinstall := true)}] @
+      uninstallOpts;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -235,9 +251,10 @@ datatype command =
   | Help
   | Info
   | Install
-  | List;
+  | List
+  | Uninstall;
 
-val allCommands = [Compile,Help,Info,Install,List];
+val allCommands = [Compile,Help,Info,Install,List,Uninstall];
 
 fun commandString cmd =
     case cmd of
@@ -245,7 +262,8 @@ fun commandString cmd =
     | Help => "help"
     | Info => "info"
     | Install => "install"
-    | List => "list";
+    | List => "list"
+    | Uninstall => "uninstall";
 
 fun commandArgs cmd =
     case cmd of
@@ -253,7 +271,8 @@ fun commandArgs cmd =
     | Help => ""
     | Info => " <package-name>"
     | Install => " input.thy"
-    | List => "";
+    | List => ""
+    | Uninstall => " <package-name>";
 
 fun commandDescription cmd =
     case cmd of
@@ -261,7 +280,8 @@ fun commandDescription cmd =
     | Help => "display command help"
     | Info => "display package information"
     | Install => "install a theory package"
-    | List => "list installed theory packages";
+    | List => "list installed theory packages"
+    | Uninstall => "uninstall a theory package";
 
 val allCommandStrings = map commandString allCommands;
 
@@ -281,7 +301,8 @@ fun commandOpts cmd =
     | Help => helpOpts
     | Info => infoOpts
     | Install => installOpts
-    | List => listOpts;
+    | List => listOpts
+    | Uninstall => uninstallOpts;
 
 val allCommandOptions =
     let
@@ -299,7 +320,7 @@ local
 in
   val globalOpts : opt list =
       [{switches = ["-d","--root-dir"], arguments = ["DIR"],
-        description = "the package directory",
+        description = "the theory package directory",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => rootDirectory := SOME s)}];
@@ -516,6 +537,39 @@ fun info name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+fun uninstall name =
+    let
+      val dir = directory ()
+
+      val errs = Directory.checkUninstall dir name
+
+      val (names,errs) =
+          if not (!recursiveUninstall) then ([],errs)
+          else Directory.removeInstalledDependentError errs
+
+      val names = names @ [name]
+
+      val () =
+          if null errs then ()
+          else
+            let
+              val s = Directory.toStringErrorList errs
+            in
+              if List.exists Directory.isFatalError errs then raise Error s
+              else warn ("package uninstall warnings:\n" ^ s)
+            end
+
+      val () = app (Directory.uninstall dir) names
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\ntheory package uninstall failed");
+
+(* ------------------------------------------------------------------------- *)
+(* Installing theory packages.                                               *)
+(* ------------------------------------------------------------------------- *)
+
 fun install filename =
     let
       val dir = directory ()
@@ -527,22 +581,20 @@ fun install filename =
       val errs = Directory.checkInstall dir name pkg
 
       val (replace,errs) =
-          if not (!installReplace) then (false,errs)
-          else Directory.removeDirectoryExistsInstall errs
+          if not (!reinstall) then (false,errs)
+          else Directory.removePackageExistsError errs
 
       val () =
           if null errs then ()
           else
             let
-              val s = Directory.toStringErrorInstallList errs
+              val s = Directory.toStringErrorList errs
             in
-              if List.exists Directory.fatalErrorInstall errs then
-                raise Error s
-              else
-                warn ("package install warnings:\n" ^ s)
+              if List.exists Directory.isFatalError errs then raise Error s
+              else warn ("package install warnings:\n" ^ s)
             end
 
-      val () = if replace then Directory.uninstall dir name else ()
+      val () = if replace then uninstall name else ()
 
       val () = Directory.install dir name pkg filename
     in
@@ -559,9 +611,9 @@ fun list () =
     let
       val dir = directory ()
 
-      val pkgs = PackageNameSet.toList (Directory.list dir)
+      val pkgs = Directory.list dir
 
-      fun mk n = PackageName.toString n ^ "\n"
+      fun mk info = PackageName.toString (PackageInfo.name info) ^ "\n"
 
       val strm = Stream.map mk (Stream.fromList pkgs)
 

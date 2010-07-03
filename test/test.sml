@@ -347,7 +347,7 @@ fun import name =
     let
       val () = print ("Importing theory package \"" ^ name ^ "\"\n")
 
-      val finder = Directory.lookup directory
+      val finder = Directory.finder directory
 
       val graph = Graph.empty {savable = false}
 

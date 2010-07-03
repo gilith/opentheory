@@ -12,19 +12,19 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val theoryExtension = "thy";
+val packageFileExtension = "thy";
 
 (* ------------------------------------------------------------------------- *)
 (* Directories and filenames.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkTheoryFile pkg =
+fun mkPackageFile pkg =
     let
       val base = PackageName.base pkg
     in
       OS.Path.joinBaseExt
         {base = PackageBase.toString base,
-         ext = SOME theoryExtension}
+         ext = SOME packageFileExtension}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -51,6 +51,10 @@ fun name (Info {name = x, ...}) = x;
 
 fun directory (Info {directory = x, ...}) = {directory = x};
 
+(* ------------------------------------------------------------------------- *)
+(* Package directory operations.                                             *)
+(* ------------------------------------------------------------------------- *)
+
 fun joinDirectory info =
     let
       val {directory = dir} = directory info
@@ -58,13 +62,47 @@ fun joinDirectory info =
       fn {filename} => {filename = OS.Path.concat (dir,filename)}
     end;
 
+fun existsDirectory info =
+    let
+      val {directory = dir} = directory info
+    in
+      OS.FileSys.isDir dir
+      handle OS.SysErr _ => false
+    end;
+
+fun createDirectory info =
+    let
+      val {directory = dir} = directory info
+    in
+      OS.FileSys.mkDir dir
+    end;
+
+local
+  fun delete {filename} = OS.FileSys.remove filename
+in
+  fun nukeDirectory info =
+      let
+        val Info {directory = dir, package = pkg, ...} = info
+
+        val filenames = readDirectory {directory = dir}
+
+        val () = app delete filenames
+
+        val () = pkg := NONE
+
+        val () = OS.FileSys.rmDir dir
+      in
+        ()
+      end;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryFile info =
+fun packageFile info =
     let
-      val file = mkTheoryFile (name info)
+      val file = mkPackageFile (name info)
     in
       joinDirectory info {filename = file}
     end;
@@ -81,7 +119,7 @@ fun package info =
         SOME p => p
       | NONE =>
         let
-          val filename = theoryFile info
+          val filename = packageFile info
 
           val p = Package.fromTextFile filename
 
@@ -99,19 +137,31 @@ fun files info =
     let
       val pkg = package info
     in
-      theoryFile info :: map (joinDirectory info) (Package.files pkg)
+      packageFile info :: map (joinDirectory info) (Package.files pkg)
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Is the package properly installed?                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun installed info =
-    let
-      val _ = package info
-    in
-      true
-    end
-    handle IO.Io _ => false;
+datatype status =
+    Uninstalled
+  | Installed
+  | Corrupt;
+
+fun status info =
+    if not (existsDirectory info) then Uninstalled
+    else
+      let
+        val _ = package info
+      in
+        Installed
+      end
+      handle IO.Io _ => Corrupt;
+
+fun isInstalled info =
+    case status info of
+      Installed => true
+    | _ => false;
 
 end

@@ -18,19 +18,36 @@ val name : info -> PackageName.name
 
 val directory : info -> {directory : string}
 
+(* ------------------------------------------------------------------------- *)
+(* Package directory operations.                                             *)
+(* ------------------------------------------------------------------------- *)
+
 val joinDirectory : info -> {filename : string} -> {filename : string}
+
+val existsDirectory : info -> bool
+
+val createDirectory : info -> unit
+
+val nukeDirectory : info -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Is the package properly installed?                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val installed : info -> bool
+datatype status =
+    Uninstalled
+  | Installed
+  | Corrupt
+
+val status : info -> status
+
+val isInstalled : info -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val theoryFile : info -> {filename : string}
+val packageFile : info -> {filename : string}
 
 val files : info -> {filename : string} list
 
