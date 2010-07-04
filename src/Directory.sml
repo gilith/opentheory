@@ -370,10 +370,10 @@ fun knownPackages (Packages pkgs) name = PackageNameMap.inDomain name pkgs;
 fun unknownPackages pkgs name = not (knownPackages pkgs name);
 
 local
-  fun addInfo (_,info,acc) = info :: acc;
+  fun addName (name,_,acc) = PackageNameSet.add acc name;
 in
   fun listPackages (Packages pkgs) =
-      PackageNameMap.foldr addInfo [] pkgs
+      PackageNameMap.foldl addName PackageNameSet.empty pkgs;
 end;
 
 fun foldlPackages f =
@@ -418,6 +418,45 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Package dependency operations.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun closePackageSet f =
+    let
+      fun step acc name = PackageNameSet.foldl add acc (f name)
+
+      and add (name,acc) =
+          if PackageNameSet.member name acc then acc
+          else step (PackageNameSet.add acc name) name
+    in
+      step PackageNameSet.empty
+    end;
+
+fun sortPackageSet f s =
+    let
+      fun dfsCheck (name,(seen,acc)) =
+          if PackageNameSet.member name seen then (seen,acc)
+          else dfsName (seen,acc) name
+
+      and dfsName (seen,acc) name =
+          let
+            val seen = PackageNameSet.add seen name
+
+            val (seen,acc) = dfsSet (seen,acc) (f name)
+
+            val acc = if PackageNameSet.member name s then name :: acc else acc
+          in
+            (seen,acc)
+          end
+
+      and dfsSet seen_acc names = PackageNameSet.foldl dfsCheck seen_acc names
+
+      val (_,acc) = dfsSet (PackageNameSet.empty,[]) s
+    in
+      rev acc
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Package dependency graphs.                                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -446,20 +485,9 @@ fun childrenPackageDeps (PackageDeps {children,...}) name =
       SOME cs => cs
     | NONE => PackageNameSet.empty;
 
-fun closePackageDeps f =
-    let
-      fun step acc name = PackageNameSet.foldl add acc (f name)
+fun ancestorsPackageDeps deps = closePackageSet (parentsPackageDeps deps);
 
-      and add (name,acc) =
-          if PackageNameSet.member name acc then acc
-          else step (PackageNameSet.add acc name) name
-    in
-      step PackageNameSet.empty
-    end;
-
-fun ancestorsPackageDeps deps = closePackageDeps (parentsPackageDeps deps);
-
-fun descendentsPackageDeps deps = closePackageDeps (childrenPackageDeps deps);
+fun descendentsPackageDeps deps = closePackageSet (childrenPackageDeps deps);
 
 fun addPackageDeps deps (p,c) =
     let
@@ -495,6 +523,8 @@ val fromPackagesPackageDeps =
     in
       foldlPackages add emptyPackageDeps
     end;
+
+fun sortPackageDeps deps = sortPackageSet (parentsPackageDeps deps);
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
@@ -591,22 +621,35 @@ val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun lookup dir name = peekPackages (packages dir) name;
+fun peek dir name = peekPackages (packages dir) name;
 
-fun installed dir name = Option.isSome (lookup dir name);
+fun get dir name =
+    case peek dir name of
+      SOME info => info
+    | NONE => raise Error "Directory.get";
+
+fun installed dir name = Option.isSome (peek dir name);
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun packageDeps dir = fromPackagesPackageDeps (packages dir);
+(* Operations that do not need to create a package dependency graph *)
 
 fun parents dir name =
-    case lookup dir name of
+    case peek dir name of
       SOME info => PackageNameSet.fromList (PackageInfo.packages info)
-    | NONE => raise Bug "Directory.parents: unknown";
+    | NONE => raise Bug "Directory.parents";
 
-fun ancestors dir = closePackageDeps (parents dir);
+fun sortByAge dir set = sortPackageSet (parents dir) set;
+
+fun ancestors dir = closePackageSet (parents dir);
+
+fun ancestorsByAge dir name = sortByAge dir (ancestors dir name);
+
+(* Operations that use a package dependency graph *)
+
+fun packageDeps dir = fromPackagesPackageDeps (packages dir);
 
 fun children dir name =
     let
@@ -628,6 +671,19 @@ fun descendents dir name =
       val deps = packageDeps dir
     in
       descendentsPackageDeps deps name
+    end;
+
+fun descendentsByAge dir name =
+    let
+(*OpenTheoryDebug
+      val _ = installed dir name orelse
+              raise Bug "Directory.descendents: unknown"
+*)
+      val deps = packageDeps dir
+
+      val desc = descendentsPackageDeps deps name
+    in
+      sortPackageDeps deps desc
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -660,49 +716,7 @@ fun list dir =
       listPackages pkgs
     end;
 
-(* ------------------------------------------------------------------------- *)
-(* Uninstalling packages from the package directory.                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun checkUninstall dir name =
-    if not (installed dir name) then [NotInstalledError]
-    else
-      let
-        val errs = []
-
-        val desc = descendents dir name
-
-        val errs =
-            if PackageNameSet.null desc then errs
-            else
-              let
-                fun add (n,acc) = InstalledDescendentError n :: acc
-              in
-                PackageNameSet.foldl add errs desc
-              end
-      in
-        rev errs
-      end;
-
-fun uninstall dir name =
-    let
-(*OpenTheoryDebug
-        val _ = not (List.exists isFatalError (checkUninstall dir name)) orelse
-                raise Bug "Directory.uninstall: fatal error"
-*)
-
-      (* Nuke the theory package *)
-
-      val () = nuke dir name
-
-      (* Update the list of installed packages *)
-
-      val Directory {packages as ref pkgs, ...} = dir
-
-      val () = packages := deletePackages pkgs name
-    in
-      ()
-    end;
+fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Installing new packages into the package directory.                       *)
@@ -855,6 +869,50 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Uninstalling packages from the package directory.                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkUninstall dir name =
+    if not (installed dir name) then [NotInstalledError]
+    else
+      let
+        val errs = []
+
+        val desc = descendents dir name
+
+        val errs =
+            if PackageNameSet.null desc then errs
+            else
+              let
+                fun add (n,acc) = InstalledDescendentError n :: acc
+              in
+                PackageNameSet.foldl add errs desc
+              end
+      in
+        rev errs
+      end;
+
+fun uninstall dir name =
+    let
+(*OpenTheoryDebug
+        val _ = not (List.exists isFatalError (checkUninstall dir name)) orelse
+                raise Bug "Directory.uninstall: fatal error"
+*)
+
+      (* Nuke the theory package *)
+
+      val () = nuke dir name
+
+      (* Update the list of installed packages *)
+
+      val Directory {packages as ref pkgs, ...} = dir
+
+      val () = packages := deletePackages pkgs name
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
 
@@ -872,6 +930,6 @@ fun download dir repo pkg =
 (* A package finder.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun finder dir = PackageFinder.mk (lookup dir);
+fun finder dir = PackageFinder.mk (peek dir);
 
 end

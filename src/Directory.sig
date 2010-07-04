@@ -91,7 +91,9 @@ val pp : directory Print.pp
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
 
-val lookup : directory -> PackageName.name -> PackageInfo.info option
+val peek : directory -> PackageName.name -> PackageInfo.info option
+
+val get : directory -> PackageName.name -> PackageInfo.info
 
 val installed : directory -> PackageName.name -> bool
 
@@ -99,19 +101,27 @@ val installed : directory -> PackageName.name -> bool
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val parents : directory -> PackageName.name -> PackageNameSet.set
+val sortByAge : directory -> PackageNameSet.set -> PackageName.name list
 
-val ancestors : directory -> PackageName.name -> PackageNameSet.set
+val parents : directory -> PackageName.name -> PackageNameSet.set
 
 val children : directory -> PackageName.name -> PackageNameSet.set
 
+val ancestors : directory -> PackageName.name -> PackageNameSet.set
+
 val descendents : directory -> PackageName.name -> PackageNameSet.set
+
+val ancestorsByAge : directory -> PackageName.name -> PackageName.name list
+
+val descendentsByAge : directory -> PackageName.name -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
-val list : directory -> PackageInfo.info list
+val list : directory -> PackageNameSet.set
+
+val listByAge : directory -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Installing new packages into the package directory.                       *)

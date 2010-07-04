@@ -237,13 +237,18 @@ end;
 (* Options for listing installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
+val dependencyOrder = ref false;
+
 val listOutput = ref "-";
 
 local
   open Useful Options;
 in
   val listOpts : opt list =
-      [{switches = ["-o","--output"], arguments = ["FILE"],
+      [{switches = ["--dep-order"], arguments = [],
+        description = "list packages in dependency order",
+        processor = beginOpt endOpt (fn _ => dependencyOrder := true)},
+       {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write the package list to FILE",
         processor =
           beginOpt (stringOpt endOpt)
@@ -504,7 +509,7 @@ fun info name =
 
       val name = PackageName.fromString name
     in
-      case Directory.lookup dir name of
+      case Directory.peek dir name of
         NONE => raise Error ("can't find package " ^ PackageName.toString name)
       | SOME info =>
         let
@@ -577,15 +582,9 @@ fun info name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun uninstallName dir name =
+fun uninstallPackage dir name =
     let
       val errs = Directory.checkUninstall dir name
-
-      val (names,errs) =
-          if not (!recursiveUninstall) then ([],errs)
-          else Directory.removeInstalledDescendentError errs
-
-      val names = List.revAppend (names,[name])
 
       val () =
           if null errs then ()
@@ -597,9 +596,22 @@ fun uninstallName dir name =
               else warn ("package uninstall warnings:\n" ^ s)
             end
 
-      val () = app (Directory.uninstall dir) names
+      val () = Directory.uninstall dir name
 
       val () = print ("uninstalled package " ^ PackageName.toString name ^ "\n")
+    in
+      ()
+    end;
+
+fun uninstallRecursive dir name =
+    let
+      val desc =
+          if not (!recursiveUninstall) then []
+          else Directory.descendentsByAge dir name
+
+      val names = rev (name :: desc)
+
+      val () = app (uninstallPackage dir) names
     in
       ()
     end;
@@ -610,7 +622,7 @@ fun uninstall name =
 
       val name = PackageName.fromString name
     in
-      uninstallName dir name
+      uninstallRecursive dir name
     end
     handle Error err =>
       raise Error (err ^ "\ntheory package uninstall failed");
@@ -643,7 +655,7 @@ fun install filename =
               else warn ("package install warnings:\n" ^ s)
             end
 
-      val () = if replace then uninstallName dir name else ()
+      val () = if replace then uninstallRecursive dir name else ()
 
       val () = Directory.install dir name pkg filename
 
@@ -663,9 +675,11 @@ fun list () =
     let
       val dir = directory ()
 
-      val pkgs = Directory.list dir
+      val pkgs =
+          if !dependencyOrder then Directory.listByAge dir
+          else PackageNameSet.toList (Directory.list dir)
 
-      fun mk info = PackageName.toString (PackageInfo.name info) ^ "\n"
+      fun mk name = PackageName.toString name ^ "\n"
 
       val strm = Stream.map mk (Stream.fromList pkgs)
 
