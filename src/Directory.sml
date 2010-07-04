@@ -902,12 +902,6 @@ fun uninstall dir name =
       (* Nuke the theory package *)
 
       val () = nuke dir name
-
-      (* Update the list of installed packages *)
-
-      val Directory {packages as ref pkgs, ...} = dir
-
-      val () = packages := deletePackages pkgs name
     in
       ()
     end;
