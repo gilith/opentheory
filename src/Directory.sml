@@ -111,7 +111,7 @@ fun toStringError err =
      | NotInstalledError =>
        "package is not installed"
      | UninstalledParentError name =>
-       "uses uninstalled package: " ^ PackageName.toString name);
+       "depends on uninstalled package: " ^ PackageName.toString name);
 
 fun toStringErrorList errs = join "\n" (map toStringError errs);
 
@@ -661,7 +661,7 @@ fun list dir =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Uninstall a package.                                                      *)
+(* Uninstalling packages from the package directory.                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun checkUninstall dir name =
@@ -681,11 +681,16 @@ fun checkUninstall dir name =
                 PackageNameSet.foldl add errs desc
               end
       in
-        errs
+        rev errs
       end;
 
 fun uninstall dir name =
     let
+(*OpenTheoryDebug
+        val _ = not (List.exists isFatalError (checkUninstall dir name)) orelse
+                raise Bug "Directory.uninstall: fatal error"
+*)
+
       (* Nuke the theory package *)
 
       val () = nuke dir name
@@ -746,19 +751,21 @@ local
       end;
 in
   fun checkInstall dir name pkg =
-      if installed dir name then [AlreadyInstalledError]
-      else
-        let
-          val errs = []
+      let
+        val errs = []
 
-          val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
+        val errs =
+            if not (installed dir name) then errs
+            else AlreadyInstalledError :: errs
 
-          val plan = planCopyInstall (Package.files pkg)
+        val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
-          val errs = StringMap.foldl checkCopyInstall errs plan
-        in
-          rev errs
-        end;
+        val plan = planCopyInstall (Package.files pkg)
+
+        val errs = StringMap.foldl checkCopyInstall errs plan
+      in
+        rev errs
+      end;
 end;
 
 local
@@ -805,6 +812,11 @@ local
 in
   fun install dir name pkg {filename = src_filename} =
       let
+(*OpenTheoryDebug
+        val _ = not (List.exists isFatalError (checkInstall dir name pkg)) orelse
+                raise Bug "Directory.install: fatal error"
+*)
+
         val info = packageInfo dir name
 
         val src_dir = OS.Path.dir src_filename

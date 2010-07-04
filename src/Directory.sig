@@ -114,14 +114,6 @@ val descendents : directory -> PackageName.name -> PackageNameSet.set
 val list : directory -> PackageInfo.info list
 
 (* ------------------------------------------------------------------------- *)
-(* Installing packages from the package directory.                           *)
-(* ------------------------------------------------------------------------- *)
-
-val checkUninstall : directory -> PackageName.name -> error list
-
-val uninstall : directory -> PackageName.name -> unit
-
-(* ------------------------------------------------------------------------- *)
 (* Installing new packages into the package directory.                       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -131,6 +123,14 @@ val checkInstall :
 val install :
     directory ->
     PackageName.name -> Package.package -> {filename : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Uninstalling packages from the package directory.                         *)
+(* ------------------------------------------------------------------------- *)
+
+val checkUninstall : directory -> PackageName.name -> error list
+
+val uninstall : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)

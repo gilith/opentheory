@@ -167,7 +167,10 @@ end;
 datatype info =
     PackageInfo
   | FileInfo
-  | DepInfo;
+  | DepInfo
+  | DepPlusInfo
+  | UseInfo
+  | UsePlusInfo;
 
 val infoQuery = ref PackageInfo;
 
@@ -179,14 +182,19 @@ in
   val infoOpts : opt list =
       [{switches = ["--files"], arguments = [],
         description = "list the package files",
-        processor =
-          beginOpt endOpt
-            (fn _ => infoQuery := FileInfo)},
+        processor = beginOpt endOpt (fn _ => infoQuery := FileInfo)},
        {switches = ["--deps"], arguments = [],
-        description = "list the package dependencies",
-        processor =
-          beginOpt endOpt
-            (fn _ => infoQuery := DepInfo)},
+        description = "list direct package dependencies",
+        processor = beginOpt endOpt (fn _ => infoQuery := DepInfo)},
+       {switches = ["--deps+"], arguments = [],
+        description = "list all package dependencies",
+        processor = beginOpt endOpt (fn _ => infoQuery := DepPlusInfo)},
+       {switches = ["--uses"], arguments = [],
+        description = "list direct package users",
+        processor = beginOpt endOpt (fn _ => infoQuery := UseInfo)},
+       {switches = ["--uses+"], arguments = [],
+        description = "list all package users",
+        processor = beginOpt endOpt (fn _ => infoQuery := UsePlusInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write the package information to FILE",
         processor =
@@ -522,11 +530,41 @@ fun info name =
                 let
                   fun mk n = PackageName.toString n ^ "\n"
 
-                  val 
+                  val names = Directory.parents dir name
 
-                  val pkgs = Package.packages pkg
+                  val names = PackageNameSet.toList names
                 in
-                  Stream.map mk (Stream.fromList pkgs)
+                  Stream.map mk (Stream.fromList names)
+                end
+              | DepPlusInfo =>
+                let
+                  fun mk n = PackageName.toString n ^ "\n"
+
+                  val names = Directory.ancestors dir name
+
+                  val names = PackageNameSet.toList names
+                in
+                  Stream.map mk (Stream.fromList names)
+                end
+              | UseInfo =>
+                let
+                  fun mk n = PackageName.toString n ^ "\n"
+
+                  val names = Directory.children dir name
+
+                  val names = PackageNameSet.toList names
+                in
+                  Stream.map mk (Stream.fromList names)
+                end
+              | UsePlusInfo =>
+                let
+                  fun mk n = PackageName.toString n ^ "\n"
+
+                  val names = Directory.descendents dir name
+
+                  val names = PackageNameSet.toList names
+                in
+                  Stream.map mk (Stream.fromList names)
                 end
 
           val ref filename = infoOutput
@@ -560,6 +598,8 @@ fun uninstallName dir name =
             end
 
       val () = app (Directory.uninstall dir) names
+
+      val () = print ("uninstalled package " ^ PackageName.toString name ^ "\n")
     in
       ()
     end;
@@ -606,6 +646,9 @@ fun install filename =
       val () = if replace then uninstallName dir name else ()
 
       val () = Directory.install dir name pkg filename
+
+      val () = print ((if replace then "re" else "") ^ "installed package " ^
+                      PackageName.toString name ^ "\n")
     in
       ()
     end
