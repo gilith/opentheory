@@ -133,11 +133,29 @@ fun package info =
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
+fun articles info =
+    let
+      val pkg = package info
+    in
+      map (joinDirectory info) (Package.articles pkg)
+    end;
+
 fun files info =
     let
       val pkg = package info
     in
       packageFile info :: map (joinDirectory info) (Package.files pkg)
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun packages info =
+    let
+      val pkg = package info
+    in
+      Package.packages pkg
     end;
 
 (* ------------------------------------------------------------------------- *)

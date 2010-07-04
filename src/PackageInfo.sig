@@ -49,6 +49,8 @@ val isInstalled : info -> bool
 
 val packageFile : info -> {filename : string}
 
+val articles : info -> {filename : string} list
+
 val files : info -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
@@ -56,5 +58,11 @@ val files : info -> {filename : string} list
 (* ------------------------------------------------------------------------- *)
 
 val package : info -> Package.package
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val packages : info -> PackageName.name list
 
 end

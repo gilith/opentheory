@@ -48,38 +48,39 @@ fun mkPackageDirectory root name =
 (* ------------------------------------------------------------------------- *)
 
 datatype error =
-    PackageExistsError
-  | InstalledDependentError of PackageName.name
-  | UninstalledDependencyError of PackageName.name
+    AlreadyInstalledError
+  | FilenameClashError of {filename : string} list
+  | InstalledDescendentError of PackageName.name
   | NonemptyPathError of {filename : string}
-  | FilenameClashError of {filename : string} list;
+  | NotInstalledError
+  | UninstalledParentError of PackageName.name;
 
-fun isPackageExistsError err =
+fun isAlreadyInstalledError err =
     case err of
-      PackageExistsError => true
+      AlreadyInstalledError => true
     | _ => false;
 
-fun removePackageExistsError errs =
+fun removeAlreadyInstalledError errs =
     let
-      val (xs,errs) = List.partition isPackageExistsError errs
+      val (xs,errs) = List.partition isAlreadyInstalledError errs
 
       val removed = not (null xs)
     in
       (removed,errs)
     end;
 
-fun destInstalledDependentError err =
+fun destInstalledDescendentError err =
     case err of
-      InstalledDependentError name => SOME name
+      InstalledDescendentError name => SOME name
     | _ => NONE;
 
-fun isInstalledDependentError err =
-    Option.isSome (destInstalledDependentError err);
+fun isInstalledDescendentError err =
+    Option.isSome (destInstalledDescendentError err);
 
-val removeInstalledDependentError =
+val removeInstalledDescendentError =
     let
       fun remove (err,(names,errs)) =
-          case destInstalledDependentError err of
+          case destInstalledDescendentError err of
             SOME name => (name :: names, errs)
           | NONE => (names, err :: errs)
     in
@@ -88,26 +89,29 @@ val removeInstalledDependentError =
 
 fun isFatalError err =
     case err of
-      PackageExistsError => true
-    | InstalledDependentError _ => true
-    | UninstalledDependencyError _ => true
+      AlreadyInstalledError => true
+    | FilenameClashError _ => true
+    | InstalledDescendentError _ => true
     | NonemptyPathError _ => false
-    | FilenameClashError _ => true;
+    | NotInstalledError => true
+    | UninstalledParentError _ => true;
 
 fun toStringError err =
     (if isFatalError err then "Error" else "Warning") ^ ": " ^
     (case err of
-       PackageExistsError =>
-       "package already exists"
-     | UninstalledDependencyError name =>
-       "uninstalled package dependency: " ^ PackageName.toString name
-     | InstalledDependentError name =>
-       "installed package dependent: " ^ PackageName.toString name
+       AlreadyInstalledError =>
+       "package is already installed"
+     | FilenameClashError fl =>
+       "filenames would clash when copied to package directory:" ^
+       String.concat (map (fn {filename = f} => "\n  " ^ f) fl)
+     | InstalledDescendentError name =>
+       "in use by installed package: " ^ PackageName.toString name
      | NonemptyPathError {filename} =>
        "file not in package directory: " ^ filename
-     | FilenameClashError fl =>
-       "filename clash:" ^
-       String.concat (map (fn {filename = f} => "\n  " ^ f) fl));
+     | NotInstalledError =>
+       "package is not installed"
+     | UninstalledParentError name =>
+       "uses uninstalled package: " ^ PackageName.toString name);
 
 fun toStringErrorList errs = join "\n" (map toStringError errs);
 
@@ -372,6 +376,13 @@ in
       PackageNameMap.foldr addInfo [] pkgs
 end;
 
+fun foldlPackages f =
+    let
+      fun f' (_,info,acc) = f (info,acc)
+    in
+      fn acc => fn Packages pkgs => PackageNameMap.foldl f' acc pkgs
+    end;
+
 fun addPackages (Packages pkgs) info =
     let
       val name = PackageInfo.name info
@@ -405,6 +416,85 @@ in
         List.foldl addDir emptyPackages dirs
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependency graphs.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+datatype packageDeps =
+    PackageDeps of
+      {parents : PackageNameSet.set PackageNameMap.map,
+       children : PackageNameSet.set PackageNameMap.map};
+
+val emptyPackageDeps =
+    let
+      val parents = PackageNameMap.new ()
+      and children = PackageNameMap.new ()
+    in
+      PackageDeps
+        {parents = parents,
+         children = children}
+    end;
+
+fun parentsPackageDeps (PackageDeps {parents,...}) name =
+    case PackageNameMap.peek parents name of
+      SOME s => s
+    | NONE => PackageNameSet.empty;
+
+fun childrenPackageDeps (PackageDeps {parents,...}) child =
+    case PackageNameMap.peek parents child of
+      SOME s => s
+    | NONE => PackageNameSet.empty;
+
+fun closePackageDeps f =
+    let
+      fun step acc name = PackageNameSet.foldl add acc (f name)
+
+      and add (name,acc) =
+          if PackageNameSet.member name acc then acc
+          else step (PackageNameSet.add acc name) name
+    in
+      step PackageNameSet.empty
+    end;
+
+fun ancestorsPackageDeps deps = closePackageDeps (parentsPackageDeps deps);
+
+fun descendentsPackageDeps deps = closePackageDeps (childrenPackageDeps deps);
+
+fun addPackageDeps deps (p,c) =
+    let
+      val ps = parentsPackageDeps deps c
+      and cs = childrenPackageDeps deps p
+
+      val PackageDeps {parents,children} = deps
+
+      val parents =
+          if PackageNameSet.member p ps then parents
+          else PackageNameMap.insert parents (c, PackageNameSet.add ps p)
+
+      val children =
+          if PackageNameSet.member c cs then children
+          else PackageNameMap.insert children (p, PackageNameSet.add cs c)
+    in
+      PackageDeps
+        {parents = parents,
+         children = children}
+    end;
+
+fun addInfoPackageDeps deps info =
+    let
+      val name = PackageInfo.name info
+      and pars = PackageInfo.packages info
+    in
+      List.foldl (fn (p,d) => addPackageDeps d (p,name)) deps pars
+    end;
+
+val fromPackagesPackageDeps =
+    let
+      fun add (info,deps) = addInfoPackageDeps deps info
+    in
+      foldlPackages add emptyPackageDeps
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
@@ -470,6 +560,8 @@ fun root (Directory {rootDirectory = x, ...}) = {directory = x};
 
 fun config (Directory {config = x, ...}) = x;
 
+fun packages (Directory {packages = ref x, ...}) = x;
+
 fun repos dir = reposConfig (config dir);
 
 fun packagesDirectory dir =
@@ -496,6 +588,49 @@ fun packageInfo dir name =
 val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 
 (* ------------------------------------------------------------------------- *)
+(* Looking up packages in the package directory.                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun lookup dir name = peekPackages (packages dir) name;
+
+fun installed dir name = Option.isSome (lookup dir name);
+
+(* ------------------------------------------------------------------------- *)
+(* Dependencies in the package directory.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun packageDeps dir = fromPackagesPackageDeps (packages dir);
+
+fun parents dir name =
+    case lookup dir name of
+      SOME info => PackageNameSet.fromList (PackageInfo.packages info)
+    | NONE => raise Bug "Directory.parents: unknown";
+
+fun ancestors dir = closePackageDeps (parents dir);
+
+fun children dir name =
+    let
+(*OpenTheoryDebug
+      val _ = installed dir name orelse
+              raise Bug "Directory.children: unknown"
+*)
+      val deps = packageDeps dir
+    in
+      childrenPackageDeps deps name
+    end;
+
+fun descendents dir name =
+    let
+(*OpenTheoryDebug
+      val _ = installed dir name orelse
+              raise Bug "Directory.descendents: unknown"
+*)
+      val deps = packageDeps dir
+    in
+      descendentsPackageDeps deps name
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Nuke a theory package (be warned: this is not very polite).               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -515,19 +650,6 @@ fun nuke dir name =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up packages in the package directory.                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun lookup dir name =
-    let
-      val Directory {packages = ref pkgs, ...} = dir
-    in
-      peekPackages pkgs name
-    end;
-
-fun installed dir name = Option.isSome (lookup dir name);
-
-(* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -543,21 +665,38 @@ fun list dir =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUninstall dir name =
-    let
-(*OpenTheoryDebug
-      val () = warn "Directory.checkUninstall: check dependencies"
-*)
-    in
-      []
-    end;
+    if not (installed dir name) then [NotInstalledError]
+    else
+      let
+        val errs = []
+
+        val desc = descendents dir name
+
+        val errs =
+            if PackageNameSet.null desc then errs
+            else
+              let
+                fun add (n,acc) = InstalledDescendentError n :: acc
+              in
+                PackageNameSet.foldl add errs desc
+              end
+      in
+        errs
+      end;
 
 fun uninstall dir name =
     let
-(*OpenTheoryDebug
-      val () = warn "Directory.uninstall: check dependencies before nuking"
-*)
+      (* Nuke the theory package *)
+
+      val () = nuke dir name
+
+      (* Update the list of installed packages *)
+
+      val Directory {packages as ref pkgs, ...} = dir
+
+      val () = packages := deletePackages pkgs name
     in
-      nuke dir name
+      ()
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -567,7 +706,7 @@ fun uninstall dir name =
 local
   fun checkDep dir (name,errs) =
       if installed dir name then errs
-      else UninstalledDependencyError name :: errs;
+      else UninstalledParentError name :: errs;
 
   val planCopyInstall =
       let
@@ -607,96 +746,101 @@ local
       end;
 in
   fun checkInstall dir name pkg =
-      let
-        val errs = []
+      if installed dir name then [AlreadyInstalledError]
+      else
+        let
+          val errs = []
 
-        val info = packageInfo dir name
+          val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
-        val errs =
-            if not (PackageInfo.existsDirectory info) then errs
-            else PackageExistsError :: errs
+          val plan = planCopyInstall (Package.files pkg)
 
-        val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
-
-        val plan = planCopyInstall (Package.files pkg)
-
-        val errs = StringMap.foldl checkCopyInstall errs plan
-      in
-        rev errs
-      end;
+          val errs = StringMap.foldl checkCopyInstall errs plan
+        in
+          rev errs
+        end;
 end;
 
-fun install dir name pkg {filename = src_filename} =
-    let
-      val info = packageInfo dir name
-
-      val src_dir = OS.Path.dir src_filename
-
-      fun copy_art thy =
+local
+  fun copy_art src_dir info thy =
+      let
+        val PackageTheory.Theory {name,imports,node} = thy
+      in
+        case node of
+          PackageTheory.Article
+            {interpretation = int,
+             filename = src_filename} =>
           let
-            val PackageTheory.Theory {name,imports,node} = thy
+            val pkg_file = OS.Path.file src_filename
+
+            val src_filename = OS.Path.concat (src_dir,src_filename)
+
+            val art =
+                Article.fromTextFile
+                  {savable = true,
+                   import = Article.empty,
+                   interpretation = Interpretation.natural,
+                   filename = src_filename}
+
+            val {filename = dest_filename} =
+                PackageInfo.joinDirectory info {filename = pkg_file}
+
+            val () =
+                Article.toTextFile
+                  {article = art,
+                   filename = dest_filename}
+
+            val node =
+                PackageTheory.Article
+                  {interpretation = int,
+                   filename = pkg_file}
           in
-            case node of
-              PackageTheory.Article
-                {interpretation = int,
-                 filename = src_art} =>
-              let
-                val pkg_art = OS.Path.file src_art
-
-                val src_art = OS.Path.concat (src_dir,src_art)
-
-                val art =
-                    Article.fromTextFile
-                      {savable = true,
-                       import = Article.empty,
-                       interpretation = Interpretation.natural,
-                       filename = src_art}
-
-                val {filename = dest_art} =
-                    PackageInfo.joinDirectory info {filename = pkg_art}
-
-                val () =
-                    Article.toTextFile
-                      {article = art,
-                       filename = dest_art}
-
-                val node =
-                    PackageTheory.Article
-                      {interpretation = int,
-                       filename = pkg_art}
-              in
-                PackageTheory.Theory
-                  {name = name,
-                   imports = imports,
-                   node = node}
-              end
-            | _ => thy
+            PackageTheory.Theory
+              {name = name,
+               imports = imports,
+               node = node}
           end
+        | _ => thy
+      end;
+in
+  fun install dir name pkg {filename = src_filename} =
+      let
+        val info = packageInfo dir name
 
-      (* Make the package directory *)
+        val src_dir = OS.Path.dir src_filename
 
-      val () = PackageInfo.createDirectory info
+        (* Make the package directory *)
 
-      (* Copy the articles over *)
+        val () = PackageInfo.createDirectory info
 
-      val Package.Package' {tags,theories} = Package.dest pkg
+        (* Copy the articles over *)
 
-      val theories = map copy_art theories
+        val Package.Package' {tags,theories} = Package.dest pkg
 
-      val pkg = Package.mk (Package.Package' {tags = tags, theories = theories})
+        val theories = map (copy_art src_dir info) theories
 
-      (* Lastly, write the new package file *)
+        val pkg =
+            Package.mk (Package.Package' {tags = tags, theories = theories})
 
-      val () =
-          let
-            val {filename} = PackageInfo.packageFile info
-          in
-            Package.toTextFile {package = pkg, filename = filename}
-          end
-    in
-      ()
-    end
-    handle Error err => (nuke dir name; raise Error err);
+        (* Write the new package file *)
+
+        val () =
+            let
+              val {filename} = PackageInfo.packageFile info
+            in
+              Package.toTextFile {package = pkg, filename = filename}
+            end
+
+        (* Lastly, update the list of installed packages *)
+
+        val Directory {packages as ref pkgs, ...} = dir
+
+        val () = packages := addPackages pkgs info
+      in
+        ()
+      end
+      handle Error err => (nuke dir name; raise Error err);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)

@@ -494,27 +494,27 @@ fun info name =
     let
       val find = finder ()
 
-      val pkg = PackageName.fromString name
+      val name = PackageName.fromString name
     in
-      case PackageFinder.find find pkg of
-        NONE => raise Error ("can't find package "^name)
-      | SOME pi =>
+      case PackageFinder.find find name of
+        NONE => raise Error ("can't find package " ^ PackageName.toString name)
+      | SOME info =>
         let
-          val p = PackageInfo.package pi
+          val pkg = PackageInfo.package info
 
-          val s =
+          val strm =
               case !infoQuery of
                 PackageInfo =>
                 let
-                  val t = Package.tags p
+                  val tags = Package.tags pkg
                 in
-                  Print.toStream Tag.ppList t
+                  Print.toStream Tag.ppList tags
                 end
               | FileInfo =>
                 let
                   fun mk {filename} = filename ^ "\n"
 
-                  val fl = PackageInfo.files pi
+                  val fl = PackageInfo.files info
                 in
                   Stream.map mk (Stream.fromList fl)
                 end
@@ -522,14 +522,14 @@ fun info name =
                 let
                   fun mk n = PackageName.toString n ^ "\n"
 
-                  val pkgs = Package.packages p
+                  val pkgs = Package.packages pkg
                 in
                   Stream.map mk (Stream.fromList pkgs)
                 end
 
-          val ref f = infoOutput
+          val ref filename = infoOutput
         in
-          Stream.toTextFile {filename = f} s
+          Stream.toTextFile {filename = filename} strm
         end
     end;
 
@@ -537,17 +537,15 @@ fun info name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun uninstall name =
+fun uninstallName dir name =
     let
-      val dir = directory ()
-
       val errs = Directory.checkUninstall dir name
 
       val (names,errs) =
           if not (!recursiveUninstall) then ([],errs)
-          else Directory.removeInstalledDependentError errs
+          else Directory.removeInstalledDescendentError errs
 
-      val names = names @ [name]
+      val names = List.revAppend (names,[name])
 
       val () =
           if null errs then ()
@@ -562,6 +560,15 @@ fun uninstall name =
       val () = app (Directory.uninstall dir) names
     in
       ()
+    end;
+
+fun uninstall name =
+    let
+      val dir = directory ()
+
+      val name = PackageName.fromString name
+    in
+      uninstallName dir name
     end
     handle Error err =>
       raise Error (err ^ "\ntheory package uninstall failed");
@@ -582,7 +589,7 @@ fun install filename =
 
       val (replace,errs) =
           if not (!reinstall) then (false,errs)
-          else Directory.removePackageExistsError errs
+          else Directory.removeAlreadyInstalledError errs
 
       val () =
           if null errs then ()
@@ -594,7 +601,7 @@ fun install filename =
               else warn ("package install warnings:\n" ^ s)
             end
 
-      val () = if replace then uninstall name else ()
+      val () = if replace then uninstallName dir name else ()
 
       val () = Directory.install dir name pkg filename
     in
@@ -653,6 +660,7 @@ let
       | (Info,[pkg]) => info pkg
       | (Install,[filename]) => install {filename = filename}
       | (List,[]) => list ()
+      | (Uninstall,[pkg]) => uninstall pkg
       | _ =>
         commandUsage cmd ("bad arguments for " ^ commandString cmd ^ " command")
 in

@@ -11,21 +11,22 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 datatype error =
-    PackageExistsError
-  | InstalledDependentError of PackageName.name
-  | UninstalledDependencyError of PackageName.name
-  | NonemptyPathError of {filename : string}
+    AlreadyInstalledError
   | FilenameClashError of {filename : string} list
+  | InstalledDescendentError of PackageName.name
+  | NonemptyPathError of {filename : string}
+  | NotInstalledError
+  | UninstalledParentError of PackageName.name
 
-val isPackageExistsError : error -> bool
+val isAlreadyInstalledError : error -> bool
 
-val removePackageExistsError : error list -> bool * error list
+val removeAlreadyInstalledError : error list -> bool * error list
 
-val destInstalledDependentError : error -> PackageName.name option
+val destInstalledDescendentError : error -> PackageName.name option
 
-val isInstalledDependentError : error -> bool
+val isInstalledDescendentError : error -> bool
 
-val removeInstalledDependentError :
+val removeInstalledDescendentError :
     error list -> PackageName.name list * error list
 
 val isFatalError : error -> bool
