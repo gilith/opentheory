@@ -96,6 +96,18 @@ val lookup : directory -> PackageName.name -> PackageInfo.info option
 val installed : directory -> PackageName.name -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Dependencies in the package directory.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+val parents : directory -> PackageName.name -> PackageNameSet.set
+
+val ancestors : directory -> PackageName.name -> PackageNameSet.set
+
+val children : directory -> PackageName.name -> PackageNameSet.set
+
+val descendents : directory -> PackageName.name -> PackageNameSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 

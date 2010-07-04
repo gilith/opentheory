@@ -438,12 +438,12 @@ val emptyPackageDeps =
 
 fun parentsPackageDeps (PackageDeps {parents,...}) name =
     case PackageNameMap.peek parents name of
-      SOME s => s
+      SOME ps => ps
     | NONE => PackageNameSet.empty;
 
-fun childrenPackageDeps (PackageDeps {parents,...}) child =
-    case PackageNameMap.peek parents child of
-      SOME s => s
+fun childrenPackageDeps (PackageDeps {children,...}) name =
+    case PackageNameMap.peek children name of
+      SOME cs => cs
     | NONE => PackageNameSet.empty;
 
 fun closePackageDeps f =

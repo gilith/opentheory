@@ -492,11 +492,11 @@ fun help () = usage "displaying command help";
 
 fun info name =
     let
-      val find = finder ()
+      val dir = directory ()
 
       val name = PackageName.fromString name
     in
-      case PackageFinder.find find name of
+      case Directory.lookup dir name of
         NONE => raise Error ("can't find package " ^ PackageName.toString name)
       | SOME info =>
         let
@@ -521,6 +521,8 @@ fun info name =
               | DepInfo =>
                 let
                   fun mk n = PackageName.toString n ^ "\n"
+
+                  val 
 
                   val pkgs = Package.packages pkg
                 in
