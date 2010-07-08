@@ -170,10 +170,13 @@ lines: $(LINES)
 # Create all the compilation theories.
 ###############################################################################
 
+MOSML_OPENTHEORY = bin/mosml/opentheory
+
 .PHONY: compilation-theories
 compilation-theories:
-	$(OPENTHEORY) -d test/directory install --reinstall test/theories/empty/empty.thy
-	$(OPENTHEORY) -d test/directory install --reinstall test/theories/bool/bool.thy
+	$(MOSML_OPENTHEORY) -d test/directory install --reinstall test/theories/empty/empty.thy
+	$(MOSML_OPENTHEORY) -d test/directory install --reinstall test/theories/bool-true/bool-true.thy
+	$(MOSML_OPENTHEORY) -d test/directory install --reinstall test/theories/bool/bool.thy
 
 ###############################################################################
 # Create a snapshop of all theory packages.

@@ -1,5 +1,9 @@
-bool.art
-bool.sum
+bool-true-aux.art
+bool-true-aux.sum
+bool-true-def.art
+bool-true-def.sum
+bool-true-thm.art
+bool-true-thm.sum
 empty.art
 empty.sum
 example1.art
@@ -8,5 +12,3 @@ example2.art
 example2.sum
 example3.art
 example3.sum
-tactics.art
-tactics.sum

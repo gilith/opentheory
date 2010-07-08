@@ -275,9 +275,11 @@ val () = compress "natural" "example2";
 
 val () = compress "natural" "example3";
 
-val () = compress "hol-light" "bool";
+val () = compress "hol-light" "bool-true-def";
 
-val () = compress "hol-light" "tactics";
+val () = compress "hol-light" "bool-true-thm";
+
+val () = compress "hol-light" "bool-true-aux";
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Summarizing articles";
@@ -320,9 +322,11 @@ val () = summarize "example2";
 
 val () = summarize "example3";
 
-val () = summarize "bool";
+val () = summarize "bool-true-def";
 
-val () = summarize "tactics";
+val () = summarize "bool-true-thm";
+
+val () = summarize "bool-true-aux";
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Theory package directories";
@@ -373,16 +377,14 @@ fun import name =
 
 val () = import "empty-1.0";
 
-(* Boolean definitions from HOL Light *)
+(* HOL Light definition of the constant T *)
 
-val () = import "bool-1.0";
+val () = import "bool-true-thm-1.0";
 
-(***
-(* Boolean theorems from HOL Light *)
+(* HOL Light theorem about T *)
 
-val () = import "hol-light-bool-thm-2009.8.24";
+val () = import "bool-true-thm-1.0";
 
-(* Boolean definitions plus theorems from HOL Light *)
+(* Compilation of the definition and theorem *)
 
-val () = import "hol-light-bool-2009.8.24";
-***)
+val () = import "bool-true-1.0";

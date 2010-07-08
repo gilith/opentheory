@@ -83,22 +83,22 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example2"
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.007
 
 Compressing article "example3"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.003
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
 
-Compressing article "bool"
-WARNING: 26 objects left in the dictionary by articles/hol-light/bool.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.006
-User: 0.002  System: 0.000  GC: 0.000  Real: 0.003
+Compressing article "bool-true-thm"
+WARNING: 26 objects left in the dictionary by articles/hol-light/bool-true-thm.art
+User: 0.004  System: 0.000  GC: 0.001  Real: 0.004
+User: 0.005  System: 0.000  GC: 0.000  Real: 0.005
 
-Compressing article "tactics"
-WARNING: 145 objects left in the dictionary by articles/hol-light/tactics.art
-User: 0.044  System: 0.001  GC: 0.003  Real: 0.048
-User: 0.006  System: 0.000  GC: 0.000  Real: 0.006
+Compressing article "tactics-aux"
+WARNING: 145 objects left in the dictionary by articles/hol-light/tactics-aux.art
+User: 0.053  System: 0.000  GC: 0.003  Real: 0.054
+User: 0.017  System: 0.000  GC: 0.000  Real: 0.017
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -134,7 +134,7 @@ axioms:
 thms:
   |- x = x
 
-Summarizing compressed article "bool"
+Summarizing compressed article "bool-true-thm"
 input-types: -> bool
 input-consts: = T
 assumed:
@@ -143,7 +143,7 @@ axioms:
 thms:
   |- T
 
-Summarizing compressed article "tactics"
+Summarizing compressed article "tactics-aux"
 input-types: -> bool
 input-consts: = ==> F
 assumed:
@@ -175,6 +175,15 @@ Importing theory package "empty-1.0"
 assumed:
 axioms:
 thms:
+
+Importing theory package "bool-true-thm-1.0"
+input-types: -> bool
+input-consts: = T
+assumed:
+  |- T <=> (\p. p) = \p. p
+axioms:
+thms:
+  |- T
 
 Importing theory package "bool-1.0"
 input-types: -> bool
