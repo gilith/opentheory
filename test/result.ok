@@ -83,22 +83,22 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example2"
-User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.007
 
 Compressing article "example3"
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.003
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool.art
-User: 0.004  System: 0.000  GC: 0.001  Real: 0.005
-User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.006
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.003
 
 Compressing article "tactics"
 WARNING: 145 objects left in the dictionary by articles/hol-light/tactics.art
-User: 0.049  System: 0.001  GC: 0.008  Real: 0.052
-User: 0.006  System: 0.000  GC: 0.000  Real: 0.007
+User: 0.044  System: 0.001  GC: 0.003  Real: 0.048
+User: 0.006  System: 0.000  GC: 0.000  Real: 0.006
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -175,4 +175,22 @@ Importing theory package "empty-1.0"
 assumed:
 axioms:
 thms:
+
+Importing theory package "bool-1.0"
+input-types: -> bool
+input-consts: =
+assumed:
+defined-consts: ! /\ ==> ? ?! F T \/ ~
+axioms:
+thms:
+  |- T
+  |- F <=> !p. p
+  |- (~) = \p. p ==> F
+  |- T <=> (\p. p) = \p. p
+  |- (!) = \P. P = \x. T
+  |- (==>) = \p q. p /\ q <=> p
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+  |- (?) = \P. !q. (!x. P x ==> q) ==> q
+  |- (\/) = \p q. !r. (p ==> r) ==> (q ==> r) ==> r
+  |- (?!) = \P. (?) P /\ !x y. P x /\ P y ==> x = y
 

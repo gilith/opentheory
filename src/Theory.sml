@@ -123,24 +123,6 @@ end
 structure TheoryOrdered =
 struct type t = Theory.theory val compare = Theory.compare end
 
-structure TheorySet =
-struct
-
-  local
-    structure S = ElementSet (TheoryOrdered);
-  in
-    open S;
-  end;
-
-  val toArticle =
-      let
-        fun add (thy,acc) = Article.union acc (Theory.article thy)
-      in
-        foldl add Article.empty
-      end;
-
-end
-
 structure TheoryMap =
 struct
 
@@ -158,6 +140,24 @@ struct
           Print.blockProgram Print.Consistent 0
             [Print.addString "TheoryMap",
              Print.ppList ppTX (toList m)]
+      end;
+
+end
+
+structure TheorySet =
+struct
+
+  local
+    structure S = ElementSet (TheoryMap);
+  in
+    open S;
+  end;
+
+  val toArticle =
+      let
+        fun add (thy,acc) = Article.union acc (Theory.article thy)
+      in
+        foldl add Article.empty
       end;
 
 end

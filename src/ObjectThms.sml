@@ -50,7 +50,7 @@ fun peekConst (Thms {consts,...}) n = NameMap.peek consts n;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun pickSnd (_,x) = SOME x;
+  fun pickSnd (_,(_,x)) = SOME x;
 in
   fun union thms1 thms2 =
       let

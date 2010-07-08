@@ -373,11 +373,11 @@ fun import name =
 
 val () = import "empty-1.0";
 
-(***
 (* Boolean definitions from HOL Light *)
 
-val () = import "bool-def-1.0";
+val () = import "bool-1.0";
 
+(***
 (* Boolean theorems from HOL Light *)
 
 val () = import "hol-light-bool-thm-2009.8.24";

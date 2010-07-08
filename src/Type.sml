@@ -418,6 +418,6 @@ end
 structure TypeOrdered =
 struct type t = Type.ty val compare = Type.compare end
 
-structure TypeSet = ElementSet (TypeOrdered)
-
 structure TypeMap = KeyMap (TypeOrdered)
+
+structure TypeSet = ElementSet (TypeMap)

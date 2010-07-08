@@ -749,11 +749,13 @@ end
 structure ObjectProvOrdered =
 struct type t = ObjectProv.object val compare = ObjectProv.compare end
 
+structure ObjectProvMap = KeyMap (ObjectProvOrdered)
+
 structure ObjectProvSet =
 struct
 
 local
-  structure S = ElementSet (ObjectProvOrdered);
+  structure S = ElementSet (ObjectProvMap);
 in
   open S;
 end;
@@ -783,5 +785,3 @@ end;
 val pp = Print.ppBracket "{" "}" (Print.ppMap size Print.ppInt);
 
 end
-
-structure ObjectProvMap = KeyMap (ObjectProvOrdered)

@@ -67,6 +67,6 @@ end
 structure TypeOpOrdered =
 struct type t = TypeOp.typeOp val compare = TypeOp.compare end
 
-structure TypeOpSet = ElementSet (TypeOpOrdered)
-
 structure TypeOpMap = KeyMap (TypeOpOrdered)
+
+structure TypeOpSet = ElementSet (TypeOpMap)

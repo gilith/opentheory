@@ -450,6 +450,6 @@ end
 structure ObjectOrdered =
 struct type t = Object.object val compare = Object.compare end
 
-structure ObjectSet = ElementSet (ObjectOrdered)
-
 structure ObjectMap = KeyMap (ObjectOrdered)
+
+structure ObjectSet = ElementSet (ObjectMap)

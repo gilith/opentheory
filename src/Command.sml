@@ -384,6 +384,6 @@ end
 structure CommandOrdered =
 struct type t = Command.command val compare = Command.compare end
 
-structure CommandSet = ElementSet (CommandOrdered)
-
 structure CommandMap = KeyMap (CommandOrdered)
+
+structure CommandSet = ElementSet (CommandMap)

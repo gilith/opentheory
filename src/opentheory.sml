@@ -203,7 +203,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Options for uninstalling theory packages.                                   *)
+(* Options for uninstalling theory packages.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 val recursiveUninstall = ref false;
@@ -225,12 +225,18 @@ val reinstall = ref false;
 
 local
   open Useful Options;
+
+  fun addSuffix s {switches,arguments,description,processor} =
+      {switches = map (fn x => x ^ s) switches,
+       arguments = arguments,
+       description = description,
+       processor = processor};
 in
   val installOpts : opt list =
       [{switches = ["--reinstall"], arguments = [],
         description = "uninstall the package if it exists",
         processor = beginOpt endOpt (fn _ => reinstall := true)}] @
-      uninstallOpts;
+      map (addSuffix "-uninstall") uninstallOpts;
 end;
 
 (* ------------------------------------------------------------------------- *)

@@ -415,11 +415,13 @@ end
 structure ThmOrdered =
 struct type t = Thm.thm val compare = Thm.compare end
 
+structure ThmMap = KeyMap (ThmOrdered)
+
 structure ThmSet =
 struct
 
   local
-    structure S = ElementSet (ThmOrdered);
+    structure S = ElementSet (ThmMap);
   in
     open S;
   end;
@@ -447,5 +449,3 @@ struct
         foldl add SequentSet.empty
       end;
 end
-
-structure ThmMap = KeyMap (ThmOrdered)

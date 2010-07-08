@@ -124,7 +124,7 @@ val list : directory -> PackageNameSet.set
 val listByAge : directory -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
-(* Installing new packages into the package directory.                       *)
+(* Installing packages into the package directory.                           *)
 (* ------------------------------------------------------------------------- *)
 
 val checkInstall :

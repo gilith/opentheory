@@ -174,11 +174,13 @@ end
 structure SequentOrdered =
 struct type t = Sequent.sequent val compare = Sequent.compare end
 
+structure SequentMap = KeyMap (SequentOrdered)
+
 structure SequentSet =
 struct
 
   local
-    structure S = ElementSet (SequentOrdered);
+    structure S = ElementSet (SequentMap);
   in
     open S;
   end;
@@ -214,5 +216,3 @@ struct
       end;
 
 end
-
-structure SequentMap = KeyMap (SequentOrdered)

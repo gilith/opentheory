@@ -67,6 +67,6 @@ end
 structure ConstOrdered =
 struct type t = Const.const val compare = Const.compare end
 
-structure ConstSet = ElementSet (ConstOrdered)
-
 structure ConstMap = KeyMap (ConstOrdered)
+
+structure ConstSet = ElementSet (ConstMap)

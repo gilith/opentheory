@@ -114,6 +114,6 @@ end
 structure VarOrdered =
 struct type t = Var.var val compare = Var.compare end
 
-structure VarSet = ElementSet (VarOrdered)
-
 structure VarMap = KeyMap (VarOrdered)
+
+structure VarSet = ElementSet (VarMap)

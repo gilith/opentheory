@@ -719,7 +719,7 @@ fun list dir =
 fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
 
 (* ------------------------------------------------------------------------- *)
-(* Installing new packages into the package directory.                       *)
+(* Installing packages into the package directory.                           *)
 (* ------------------------------------------------------------------------- *)
 
 local

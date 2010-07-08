@@ -198,15 +198,15 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun mergeTypeOps (ot1,ot2) =
+  fun mergeTypeOps ((n,ot1),(_,ot2)) =
       if TypeOp.equal ot1 ot2 then SOME ot2
       else raise Error ("duplicate type operator name " ^
-                        Name.quotedToString (TypeOp.name ot1));
+                        Name.quotedToString n);
 
-  fun mergeConsts (c1,c2) =
+  fun mergeConsts ((n,c1),(_,c2)) =
       if Const.equal c1 c2 then SOME c2
       else raise Error ("duplicate constant name " ^
-                        Name.quotedToString (Const.name c1));
+                        Name.quotedToString n);
 in
   fun union sym1 sym2 =
       let

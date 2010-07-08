@@ -111,6 +111,6 @@ end
 structure PackageBaseOrdered =
 struct type t = PackageBase.base val compare = PackageBase.compare end
 
-structure PackageBaseSet = ElementSet (PackageBaseOrdered)
-
 structure PackageBaseMap = KeyMap (PackageBaseOrdered)
+
+structure PackageBaseSet = ElementSet (PackageBaseMap)

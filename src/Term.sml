@@ -792,7 +792,7 @@ local
 
   val unionMap =
       let
-        fun merge (x,y) =
+        fun merge ((_,x),(_,y)) =
             if x = y then SOME x
             else raise Error ("Term.pp: ambiguous name strings: \"" ^
                               x ^ "\" and \"" ^ y ^ "\"")
@@ -1025,18 +1025,20 @@ end
 structure TermOrdered =
 struct type t = Term.term val compare = Term.compare end
 
-structure TermSet = ElementSet (TermOrdered)
-
 structure TermMap = KeyMap (TermOrdered)
+
+structure TermSet = ElementSet (TermMap)
 
 structure TermAlphaOrdered =
 struct type t = Term.term val compare = Term.alphaCompare end
+
+structure TermAlphaMap = KeyMap (TermAlphaOrdered)
 
 structure TermAlphaSet =
 struct
 
   local
-    structure S = ElementSet (TermAlphaOrdered);
+    structure S = ElementSet (TermAlphaMap);
   in
     open S;
   end;
@@ -1086,5 +1088,3 @@ struct
         | GREATER => GREATER;
 
 end
-
-structure TermAlphaMap = KeyMap (TermAlphaOrdered)
