@@ -79,8 +79,8 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example2"
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
@@ -90,15 +90,20 @@ Compressing article "example3"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
 
+Compressing article "bool-true-def"
+WARNING: 19 objects left in the dictionary by articles/hol-light/bool-true-def.art
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+
 Compressing article "bool-true-thm"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-true-thm.art
-User: 0.004  System: 0.000  GC: 0.001  Real: 0.004
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
 User: 0.005  System: 0.000  GC: 0.000  Real: 0.005
 
-Compressing article "tactics-aux"
-WARNING: 145 objects left in the dictionary by articles/hol-light/tactics-aux.art
-User: 0.053  System: 0.000  GC: 0.003  Real: 0.054
-User: 0.017  System: 0.000  GC: 0.000  Real: 0.017
+Compressing article "bool-true-aux"
+WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -134,6 +139,15 @@ axioms:
 thms:
   |- x = x
 
+Summarizing compressed article "bool-true-def"
+input-types: -> bool
+input-consts: =
+assumed:
+defined-consts: T
+axioms:
+thms:
+  |- T <=> (\p. p) = \p. p
+
 Summarizing compressed article "bool-true-thm"
 input-types: -> bool
 input-consts: = T
@@ -143,18 +157,14 @@ axioms:
 thms:
   |- T
 
-Summarizing compressed article "tactics-aux"
+Summarizing compressed article "bool-true-aux"
 input-types: -> bool
-input-consts: = ==> F
+input-consts: = T
 assumed:
-  {..} |- q
-  |- (p <=> q) ==> p ==> q
-defined-consts: _FALSITY_
+  |- T
 axioms:
 thms:
-  {.} |- _FALSITY_
-  {.} |- F
-  |- _FALSITY_ <=> F
+  |- t <=> t <=> T
 
 --------------------------------------------------------------------------
 Theory package directories
@@ -185,21 +195,22 @@ axioms:
 thms:
   |- T
 
-Importing theory package "bool-1.0"
+Importing theory package "bool-true-thm-1.0"
 input-types: -> bool
-input-consts: =
+input-consts: = T
 assumed:
-defined-consts: ! /\ ==> ? ?! F T \/ ~
+  |- T <=> (\p. p) = \p. p
 axioms:
 thms:
   |- T
-  |- F <=> !p. p
-  |- (~) = \p. p ==> F
+
+Importing theory package "bool-true-1.0"
+input-types: -> bool
+input-consts: =
+assumed:
+defined-consts: T
+axioms:
+thms:
+  |- T
   |- T <=> (\p. p) = \p. p
-  |- (!) = \P. P = \x. T
-  |- (==>) = \p q. p /\ q <=> p
-  |- (/\) = \p q. (\f. f p q) = \f. f T T
-  |- (?) = \P. !q. (!x. P x ==> q) ==> q
-  |- (\/) = \p q. !r. (p ==> r) ==> (q ==> r) ==> r
-  |- (?!) = \P. (?) P /\ !x y. P x /\ P y ==> x = y
 
