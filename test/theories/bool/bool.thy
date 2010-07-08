@@ -60,6 +60,20 @@ bool-exists-unique-def {
   package: bool-exists-unique-def-1.0
 }
 
+axiom-extensionality {
+  package: axiom-extensionality-1.0
+}
+
+axiom-choice {
+  package: axiom-choice-1.0
+}
+
+bool-cond-def {
+  import: axiom-extensionality
+  import: axiom-choice
+  package: bool-cond-def-1.0
+}
+
 main {
   import: bool-true-def
   import: bool-true-thm
@@ -71,4 +85,7 @@ main {
   import: bool-false-def
   import: bool-not-def
   import: bool-exists-unique-def
+  import: axiom-extensionality
+  import: axiom-choice
+  import: bool-cond-def
 }
