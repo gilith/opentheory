@@ -379,7 +379,7 @@ val () = import "empty-1.0";
 
 (* HOL Light definition of the constant T *)
 
-val () = import "bool-true-thm-1.0";
+val () = import "bool-true-def-1.0";
 
 (* HOL Light theorem about T *)
 

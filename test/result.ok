@@ -79,11 +79,11 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example2"
-User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.002  System: 0.000  GC: 0.001  Real: 0.002
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example3"
@@ -102,7 +102,7 @@ User: 0.005  System: 0.000  GC: 0.000  Real: 0.005
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
 User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
 
 --------------------------------------------------------------------------
@@ -186,14 +186,14 @@ assumed:
 axioms:
 thms:
 
-Importing theory package "bool-true-thm-1.0"
+Importing theory package "bool-true-def-1.0"
 input-types: -> bool
-input-consts: = T
+input-consts: =
 assumed:
-  |- T <=> (\p. p) = \p. p
+defined-consts: T
 axioms:
 thms:
-  |- T
+  |- T <=> (\p. p) = \p. p
 
 Importing theory package "bool-true-thm-1.0"
 input-types: -> bool
