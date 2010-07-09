@@ -28,10 +28,14 @@ val homeEnvVar = "HOME"
 and rootHomeDir = ".opentheory";
 
 (* ------------------------------------------------------------------------- *)
-(* The program name.                                                         *)
+(* The program name and version.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 val program = "opentheory";
+
+val version = "1.0";
+
+val versionString = program^" "^version^" (release 20100324)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -344,10 +348,6 @@ in
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => rootDirectory := SOME s)}];
 end;
-
-val version = "1.0";
-
-val versionString = program^" "^version^" (release 20100324)"^"\n";
 
 local
   fun mkProgramOptions header opts =

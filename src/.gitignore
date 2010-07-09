@@ -73,8 +73,6 @@ Print.sig
 Print.sml
 Random.sig
 Random.sml
-RandomMap.sml
-RandomSet.sml
 selftest.sml
 Set.sig
 Set.sml
