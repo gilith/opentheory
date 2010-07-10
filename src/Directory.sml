@@ -12,11 +12,13 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val configFile = "config"
+val articleFileExtension = "art"
+and configFile = "config"
 and nameRepoSectionKey = "name"
 and openTheoryRepoName = "gilith"
 and openTheoryRepoUrl = "http://opentheory.gilith.com/"
 and packagesDirectory = "packages"
+and stagingDirectory = "staging"
 and repoConfigSection = "repo"
 and urlRepoSectionKey = "url";
 
@@ -28,19 +30,29 @@ fun createDirectory {directory} = OS.FileSys.mkDir directory;
 
 fun ppDirectory {directory} = Print.ppString directory;
 
-fun mkConfigFilename {rootDirectory} =
-    OS.Path.joinDirFile {dir = rootDirectory, file = configFile};
+fun mkConfigFilename {rootDirectory = dir} =
+    OS.Path.joinDirFile {dir = dir, file = configFile};
 
-fun mkPackagesDirectory {rootDirectory} =
-    OS.Path.joinDirFile
-      {dir = rootDirectory, file = packagesDirectory};
+fun mkPackagesDirectory {rootDirectory = dir} =
+    OS.Path.joinDirFile {dir = dir, file = packagesDirectory};
 
 fun mkPackageDirectory root name =
     let
-      val directory = mkPackagesDirectory root
+      val dir = mkPackagesDirectory root
+      and file = PackageName.toString name
     in
-      OS.Path.joinDirFile
-        {dir = directory, file = PackageName.toString name}
+      OS.Path.joinDirFile {dir = dir, file = file}
+    end;
+
+fun mkStagingDirectory {rootDirectory = dir} =
+    OS.Path.joinDirFile {dir = dir, file = stagingDirectory};
+
+fun mkStagingPackageDirectory root name =
+    let
+      val dir = mkStagingDirectory root
+      and file = PackageName.toString name
+    in
+      OS.Path.joinDirFile {dir = dir, file = file}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -399,6 +411,13 @@ fun deletePackages (Packages pkgs) name =
       Packages pkgs
     end;
 
+fun removePackages (Packages pkgs) name =
+    let
+      val pkgs = PackageNameMap.remove pkgs name
+    in
+      Packages pkgs
+    end;
+
 local
   fun addDir ({filename},pkgs) =
       let
@@ -538,11 +557,23 @@ datatype directory =
 
 fun create {rootDirectory} =
     let
-      val () = createDirectory {directory = rootDirectory}
+      val () =
+          let
+            val dir = rootDirectory
+          in
+            createDirectory {directory = dir}
+          end
 
       val () =
           let
             val dir = mkPackagesDirectory {rootDirectory = rootDirectory}
+          in
+            createDirectory {directory = dir}
+          end
+
+      val () =
+          let
+            val dir = mkStagingDirectory {rootDirectory = rootDirectory}
           in
             createDirectory {directory = dir}
           end
@@ -579,6 +610,8 @@ fun mk {rootDirectory} =
           in
             ref (readPackages {directory = directory})
           end
+
+      val () = warn "FIXME: clean up staging directory"
     in
       Directory
         {rootDirectory = rootDirectory,
@@ -698,9 +731,7 @@ fun nuke dir name =
 
       val () = PackageInfo.nukeDirectory info
 
-      val () =
-          if unknownPackages pkgs name then ()
-          else packages := deletePackages pkgs name
+      val () = packages := removePackages pkgs name
     in
       ()
     end;
@@ -731,7 +762,10 @@ local
       let
         fun add ({filename},acc) =
             let
-              val file = OS.Path.file filename
+              val file =
+                  OS.Path.joinBaseExt
+                    {base = OS.Path.base (OS.Path.file filename),
+                     ext = SOME articleFileExtension}
 
               val filenames = Option.getOpt (StringMap.peek acc file, [])
 
@@ -864,8 +898,7 @@ in
         val () = packages := addPackages pkgs info
       in
         ()
-      end
-      handle Error err => (nuke dir name; raise Error err);
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
