@@ -611,7 +611,9 @@ fun mk {rootDirectory} =
             ref (readPackages {directory = directory})
           end
 
+(***
       val () = warn "FIXME: clean up staging directory"
+***)
     in
       Directory
         {rootDirectory = rootDirectory,
