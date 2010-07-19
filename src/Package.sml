@@ -12,7 +12,8 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val nameTag = "name"
+val fileSuffixTag = "-file"
+and nameTag = "name"
 and versionTag = "version";
 
 (* ------------------------------------------------------------------------- *)
@@ -82,7 +83,24 @@ fun packages pkg = PackageTheory.packages (theories pkg);
 (* File dependencies.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun files pkg = articles pkg;
+local
+  fun dest tag =
+      let
+        val name = Tag.name tag
+      in
+        if not (String.isSuffix fileSuffixTag name) then NONE
+        else
+          let
+            val value = Tag.value tag
+
+            val filename = PackageTheory.fromStringFilename value
+          in
+            SOME (name,filename)
+          end
+      end;
+in
+  fun extraFiles pkg = List.mapPartial dest (tags pkg);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

@@ -140,11 +140,13 @@ fun articles info =
       map (joinDirectory info) (Package.articles pkg)
     end;
 
-fun files info =
+fun extraFiles info =
     let
+      fun join (n,f) = (n, joinDirectory info f)
+
       val pkg = package info
     in
-      packageFile info :: map (joinDirectory info) (Package.files pkg)
+      map join (Package.extraFiles pkg)
     end;
 
 (* ------------------------------------------------------------------------- *)

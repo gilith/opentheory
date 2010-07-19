@@ -61,7 +61,8 @@ fun mkStagingPackageDirectory root name =
 
 datatype error =
     AlreadyInstalledError
-  | FilenameClashError of {filename : string} list
+  | ArticleExtensionError of {filename : string}
+  | FilenameClashError of {filename : string} * string list
   | InstalledDescendentError of PackageName.name
   | NonemptyPathError of {filename : string}
   | NotInstalledError
@@ -102,6 +103,7 @@ val removeInstalledDescendentError =
 fun isFatalError err =
     case err of
       AlreadyInstalledError => true
+    | ArticleExtensionError _ => false
     | FilenameClashError _ => true
     | InstalledDescendentError _ => true
     | NonemptyPathError _ => false
@@ -113,9 +115,11 @@ fun toStringError err =
     (case err of
        AlreadyInstalledError =>
        "package is already installed"
-     | FilenameClashError fl =>
-       "filenames would clash when copied to package directory:" ^
-       String.concat (map (fn {filename = f} => "\n  " ^ f) fl)
+     | ArticleExtensionError {filename} =>
+       "strange article filename extension: " ^ filename
+     | FilenameClashError ({filename},fl) =>
+       "filename clash in package directory: " ^ filename ^
+       String.concat (map (fn f => "\n  " ^ f) fl)
      | InstalledDescendentError name =>
        "in use by installed package: " ^ PackageName.toString name
      | NonemptyPathError {filename} =>
@@ -760,14 +764,16 @@ local
       if installed dir name then errs
       else UninstalledParentError name :: errs;
 
+  fun normalizeArticle {filename} =
+      OS.Path.joinBaseExt
+        {base = OS.Path.base (OS.Path.file filename),
+         ext = SOME articleFileExtension};
+
   val planCopyInstall =
       let
-        fun add ({filename},acc) =
+        fun add ((src,dest),acc) =
             let
               val file =
-                  OS.Path.joinBaseExt
-                    {base = OS.Path.base (OS.Path.file filename),
-                     ext = SOME articleFileExtension}
 
               val filenames = Option.getOpt (StringMap.peek acc file, [])
 
@@ -777,6 +783,9 @@ local
             in
               acc
             end
+
+        fun addArticle ({filename},acc) =
+            
       in
         List.foldl add (StringMap.new ())
       end;
@@ -800,7 +809,7 @@ local
         errs
       end;
 in
-  fun checkInstall dir name pkg =
+  fun checkStageTheory dir name pkg =
       let
         val errs = []
 
@@ -860,11 +869,13 @@ local
         | _ => thy
       end;
 in
-  fun install dir name pkg {filename = src_filename} =
+  fun stageTheory dir name pkg {filename = src_filename} =
       let
 (*OpenTheoryDebug
-        val _ = not (List.exists isFatalError (checkInstall dir name pkg)) orelse
-                raise Bug "Directory.install: fatal error"
+        val errs = checkStageTheory dir name pkg
+
+        val _ = not (List.exists isFatalError errs) orelse
+                raise Bug "Directory.stageTheory: fatal error"
 *)
 
         val info = packageInfo dir name
@@ -892,16 +903,23 @@ in
             in
               Package.toTextFile {package = pkg, filename = filename}
             end
-
-        (* Lastly, update the list of installed packages *)
-
-        val Directory {packages as ref pkgs, ...} = dir
-
-        val () = packages := addPackages pkgs info
       in
         ()
       end;
 end;
+
+fun installStage dir name =
+    let
+      (*** Rename stage to package dir ***)
+
+      (* Lastly, update the list of installed packages *)
+
+      val Directory {packages as ref pkgs, ...} = dir
+
+      val () = packages := addPackages pkgs info
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Uninstalling packages from the package directory.                         *)

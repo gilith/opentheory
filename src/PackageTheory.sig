@@ -91,6 +91,10 @@ val ppList : theory list Print.pp
 
 val parserName : (char,name) Parse.parser
 
+val parserFilename : (char, {filename : string}) Parse.parser
+
 val parser : (char,theory) Parse.parser
+
+val fromStringFilename : string -> {filename : string}
 
 end

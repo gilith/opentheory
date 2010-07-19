@@ -52,10 +52,10 @@ val articles : package -> {filename : string} list
 val packages : package -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
-(* File dependencies.                                                        *)
+(* Extra file dependencies.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val files : package -> {filename : string} list
+val extraFiles : package -> (string * {filename : string}) list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

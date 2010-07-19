@@ -9,6 +9,13 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val quoteChar = #"\""
+and separatorChar = #".";
+
+(* ------------------------------------------------------------------------- *)
 (* A type of namespaces.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -70,34 +77,32 @@ end;
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
+val escapeChars = [quoteChar,separatorChar];
+
 local
-  fun escapeChar c =
-      case c of
-        #"\\" => "\\\\"
-      | #"\"" => "\\\""
-      | #"." => "\\."
-      | #"\n" => "\\n"
-      | #"\t" => "\\t"
-      | _ => str c;
+  val ppQuote = Print.ppChar quoteChar;
 
-  val escapeString = String.translate escapeChar;
+  val ppSeparator = Print.ppChar separatorChar;
 
-  fun dotify ns = join "." ns;
+  fun ppComponents ppC cs =
+      case cs of
+        [] => Print.skip
+      | c :: cs =>
+        Print.program (ppC c :: map (Print.sequence ppSeparator o ppC) cs);
+
+  val ppComponent = Print.ppEscapeString {escape = escapeChars};
 in
-  fun toString (n as Namespace ns) =
-      if isGlobal n then "<global>" else dotify ns;
+  fun pp (n as Namespace ns) =
+      if isGlobal n then Print.ppString "<global>"
+      else ppComponents Print.ppString ns;
 
-  fun quotedToString (n as Namespace ns) =
-      let
-        val s = if isGlobal n then "" else dotify (map escapeString ns)
-      in
-        "\"" ^ s ^ "\""
-      end;
+  fun ppQuoted (Namespace ns) =
+      Print.program [ppQuote, ppComponents ppComponent ns, ppQuote];
 end;
 
-val pp = Print.ppMap toString Print.ppString;
+val toString = Print.toString pp;
 
-val ppQuoted = Print.ppMap quotedToString Print.ppString;
+val quotedToString = Print.toString ppQuoted;
 
 local
   infixr 9 >>++
@@ -107,34 +112,21 @@ local
 
   open Parse;
 
-  val isSpecialChar = C mem (explode "\\\".");
+  val quoteParser = exactChar quoteChar;
 
-  fun isEscapedChar c =
-      case c of
-        #"\n" => true
-      | #"\t" => true
-      | _ => isSpecialChar c;
+  val separatorParser = exactChar separatorChar;
 
-  val escapeParser =
-      some isSpecialChar ||
-      (exactChar #"n" >> K #"\n") ||
-      (exactChar #"t" >> K #"\t");
+  val componentParser = escapeString {escape = escapeChars};
 
-  val componentCharParser =
-      ((exactChar #"\\" ++ escapeParser) >> snd) ||
-      some (not o isEscapedChar);
-
-  val componentParser = many componentCharParser >> implode;
-
-  val dotComponentParser = (exactChar #"." ++ componentParser) >> snd;
+  val separatorComponentParser = (separatorParser ++ componentParser) >> snd;
 
   val parser =
-      (componentParser ++ many dotComponentParser) >>
+      (componentParser ++ many separatorComponentParser) >>
       (fn ("",[]) => global
         | (n,ns) => Namespace (n :: ns));
 in
   val quotedParser =
-      (exactChar #"\"" ++ parser ++ exactChar #"\"") >> (fn (_,(x,_)) => x);
+      (quoteParser ++ parser ++ quoteParser) >> (fn (_,(x,_)) => x);
 end;
 
 end

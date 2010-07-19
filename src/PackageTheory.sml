@@ -13,13 +13,13 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val articleKeywordString = "article"
-and closeBlockString = "}"
+and closeBlockChar = #"}"
 and importKeywordString = "import"
 and interpretKeywordString = "interpret"
-and openBlockString = "{"
+and openBlockChar = #"{"
 and packageKeywordString = "package"
-and quoteString = "\""
-and separatorString = ":";
+and quoteChar = #"\""
+and separatorChar = #":";
 
 (* ------------------------------------------------------------------------- *)
 (* Types of package theory syntax.                                           *)
@@ -299,14 +299,14 @@ fun destTheory thy =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppArticleKeyword = Print.addString articleKeywordString
-and ppCloseBlock = Print.addString closeBlockString
-and ppImportKeyword = Print.addString importKeywordString
-and ppInterpretKeyword = Print.addString interpretKeywordString
-and ppOpenBlock = Print.addString openBlockString
-and ppPackageKeyword = Print.addString packageKeywordString
-and ppQuote = Print.addString quoteString
-and ppSeparator = Print.addString separatorString;
+val ppArticleKeyword = Print.ppString articleKeywordString
+and ppCloseBlock = Print.ppChar closeBlockChar
+and ppImportKeyword = Print.ppString importKeywordString
+and ppInterpretKeyword = Print.ppString interpretKeywordString
+and ppOpenBlock = Print.ppChar openBlockChar
+and ppPackageKeyword = Print.ppString packageKeywordString
+and ppQuote = Print.ppChar quoteChar
+and ppSeparator = Print.ppChar separatorChar;
 
 fun ppBlock ppX x =
     Print.blockProgram Print.Consistent 0
@@ -322,7 +322,7 @@ val ppName = PackageBase.pp;
 fun ppQuotedFilename {filename} =
     Print.program
       [ppQuote,
-       Print.addString filename,
+       Print.ppString filename,
        ppQuote];
 
 local
@@ -330,7 +330,7 @@ local
       Print.program
         [ppN,
          ppSeparator,
-         Print.addString " ",
+         Print.ppString " ",
          ppV];
 in
   fun ppConstraint c =
@@ -397,30 +397,28 @@ local
   open Parse;
 
   val articleKeywordParser = exactString articleKeywordString
-  and closeBlockParser = exactString closeBlockString
+  and closeBlockParser = exactChar closeBlockChar
   and importKeywordParser = exactString importKeywordString
   and interpretKeywordParser = exactString interpretKeywordString
-  and openBlockParser = exactString openBlockString
+  and openBlockParser = exactChar openBlockChar
   and packageKeywordParser = exactString packageKeywordString
-  and quoteParser = exactString quoteString
-  and separatorParser = exactString separatorString;
+  and quoteParser = exactChar quoteChar
+  and separatorParser = exactChar separatorChar;
 
   val nameParser = PackageBase.parser;
 
-  val quotedFilenameParser =
+  val filenameParser =
       let
-        fun isFilenameChar c = c <> #"\n" andalso c <> #"\""
-
-        val filenameParser = atLeastOne (some isFilenameChar)
+        val fileParser = escapeString {escape = [quoteChar]}
       in
-        (quoteParser ++ filenameParser ++ quoteParser) >>
-        (fn ((),(f,())) => {filename = implode f})
+        (quoteParser ++ fileParser ++ quoteParser) >>
+        (fn ((),(f,())) => {filename = f})
       end;
 
   val articleConstraintParser =
       (articleKeywordParser ++ manySpace ++
        separatorParser ++ manySpace ++
-       quotedFilenameParser) >>
+       filenameParser) >>
       (fn ((),((),((),((),f)))) => ArticleConstraint f);
 
   val importConstraintParser =
@@ -464,9 +462,16 @@ local
 in
   val parserName = nameParser;
 
+  val parserFilename = filenameParser;
+
   val parser = manySpace ++ theorySpaceParser >> snd;
 
   val parserList = manySpace ++ many theorySpaceParser >> snd;
 end;
+
+fun fromStringFilename s =
+    Parse.fromString parserFilename s
+    handle Parse.NoParse =>
+      raise Error ("bad filename format: " ^ s);
 
 end
