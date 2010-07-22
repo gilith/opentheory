@@ -97,6 +97,12 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Is the package installed?                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun isInstalled info = existsDirectory info;
+
+(* ------------------------------------------------------------------------- *)
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
@@ -164,29 +170,5 @@ fun packages info =
     in
       Package.packages pkg
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Is the package properly installed?                                        *)
-(* ------------------------------------------------------------------------- *)
-
-datatype status =
-    Uninstalled
-  | Installed
-  | Corrupt;
-
-fun status info =
-    if not (existsDirectory info) then Uninstalled
-    else
-      let
-        val _ = package info
-      in
-        Installed
-      end
-      handle IO.Io _ => Corrupt;
-
-fun isInstalled info =
-    case status info of
-      Installed => true
-    | _ => false;
 
 end

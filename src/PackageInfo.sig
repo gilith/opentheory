@@ -31,15 +31,8 @@ val createDirectory : info -> unit
 val nukeDirectory : info -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Is the package properly installed?                                        *)
+(* Is the package installed?                                                 *)
 (* ------------------------------------------------------------------------- *)
-
-datatype status =
-    Uninstalled
-  | Installed
-  | Corrupt
-
-val status : info -> status
 
 val isInstalled : info -> bool
 

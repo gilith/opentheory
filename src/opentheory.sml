@@ -533,7 +533,13 @@ fun info name =
                 let
                   fun mk {filename} = filename ^ "\n"
 
-                  val fl = PackageInfo.files info
+                  fun extraFilename {name = _, filename} =
+                      {filename = filename}
+
+                  val fl =
+                      PackageInfo.packageFile info ::
+                      PackageInfo.articles info @
+                      map extraFilename (PackageInfo.extraFiles info)
                 in
                   Stream.map mk (Stream.fromList fl)
                 end
@@ -637,7 +643,7 @@ fun uninstall name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun install filename =
+fun installTheory filename =
     let
       val dir = directory ()
 
@@ -645,7 +651,7 @@ fun install filename =
 
       val name = Package.name pkg
 
-      val errs = Directory.checkInstall dir name pkg
+      val errs = Directory.checkStageTheory dir name pkg
 
       val (replace,errs) =
           if not (!reinstall) then (false,errs)
@@ -663,7 +669,9 @@ fun install filename =
 
       val () = if replace then uninstallRecursive dir name else ()
 
-      val () = Directory.install dir name pkg filename
+      val () = Directory.stageTheory dir name pkg filename
+
+      val () = Directory.installStaged dir name
 
       val () = print ((if replace then "re" else "") ^ "installed package " ^
                       PackageName.toString name ^ "\n")
@@ -723,7 +731,7 @@ let
         (Compile,[filename]) => compile {filename = filename}
       | (Help,[]) => help ()
       | (Info,[pkg]) => info pkg
-      | (Install,[filename]) => install {filename = filename}
+      | (Install,[filename]) => installTheory {filename = filename}
       | (List,[]) => list ()
       | (Uninstall,[pkg]) => uninstall pkg
       | _ =>

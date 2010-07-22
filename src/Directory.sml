@@ -621,9 +621,7 @@ fun mk {rootDirectory} =
             ref (readPackages {directory = directory})
           end
 
-(***
       val () = warn "FIXME: clean up staging directory"
-***)
     in
       Directory
         {rootDirectory = rootDirectory,
@@ -772,23 +770,23 @@ fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
 (* Staging theory files for installation.                                    *)
 (* ------------------------------------------------------------------------- *)
 
+fun normalizeArticle {filename} =
+    let
+      val filename =
+          OS.Path.joinBaseExt
+            {base = OS.Path.base (OS.Path.file filename),
+             ext = SOME articleFileExtension}
+    in
+      {filename = filename}
+    end;
+
+fun normalizeExtraFile {filename} =
+    {filename = OS.Path.file filename};
+
 local
   fun checkDep dir (name,errs) =
       if installed dir name then errs
       else UninstalledParentError name :: errs;
-
-  fun normalizeArticle {filename} =
-      let
-        val filename =
-            OS.Path.joinBaseExt
-              {base = OS.Path.base (OS.Path.file filename),
-               ext = SOME articleFileExtension}
-      in
-        {filename = filename}
-      end;
-
-  fun normalizeExtraFile {filename} =
-      {filename = OS.Path.file filename};
 
   fun mkFileCopyPlan info pkg =
       let
@@ -912,40 +910,40 @@ in
       end;
 end;
 
-(***
 local
-  fun copy_art src_dir info thy =
+  fun copyArticle srcDir info thy =
       let
         val PackageTheory.Theory {name,imports,node} = thy
       in
         case node of
           PackageTheory.Article
             {interpretation = int,
-             filename = src_filename} =>
+             filename = filename} =>
           let
-            val pkg_file = OS.Path.file src_filename
-
-            val src_filename = OS.Path.concat (src_dir,src_filename)
+            val srcFilename = OS.Path.concat (srcDir,filename)
 
             val art =
                 Article.fromTextFile
                   {savable = true,
                    import = Article.empty,
                    interpretation = Interpretation.natural,
-                   filename = src_filename}
+                   filename = srcFilename}
 
-            val {filename = dest_filename} =
-                PackageInfo.joinDirectory info {filename = pkg_file}
+            val {filename = pkgFilename} =
+                normalizeArticle {filename = filename}
+
+            val {filename = destFilename} =
+                PackageInfo.joinDirectory info {filename = pkgFilename}
 
             val () =
                 Article.toTextFile
                   {article = art,
-                   filename = dest_filename}
+                   filename = destFilename}
 
             val node =
                 PackageTheory.Article
                   {interpretation = int,
-                   filename = pkg_file}
+                   filename = pkgFilename}
           in
             PackageTheory.Theory
               {name = name,
@@ -954,8 +952,17 @@ local
           end
         | _ => thy
       end;
+
+  fun copyArticles srcDir info pkg =
+      let
+        val Package.Package' {tags,theories} = Package.dest pkg
+
+        val theories = map (copyArticle srcDir info) theories
+      in
+        Package.mk (Package.Package' {tags = tags, theories = theories})
+      end;
 in
-  fun stageTheory dir name pkg {filename = src_filename} =
+  fun stageTheory dir name pkg {filename = srcFilename} =
       let
 (*OpenTheoryDebug
         val errs = checkStageTheory dir name pkg
@@ -963,23 +970,27 @@ in
         val _ = not (List.exists isFatalError errs) orelse
                 raise Bug "Directory.stageTheory: fatal error"
 *)
+        (* Identify the source and stage directories *)
 
-        val info = packageInfo dir name
+        val srcDir = OS.Path.dir srcFilename
 
-        val src_dir = OS.Path.dir src_filename
+        val stageDir = stagingPackageDirectory dir name
 
-        (* Make the package directory *)
+        (* Make a package info for the stage directory *)
+
+        val info = PackageInfo.mk {name = name, directory = stageDir}
+
+        (* Create the stage directory *)
 
         val () = PackageInfo.createDirectory info
 
         (* Copy the articles over *)
 
-        val Package.Package' {tags,theories} = Package.dest pkg
+        val pkg = copyArticles srcDir info pkg
 
-        val theories = map (copy_art src_dir info) theories
+        (* Copy the extra files over *)
 
-        val pkg =
-            Package.mk (Package.Package' {tags = tags, theories = theories})
+        val () = warn "FIXME: copy the extra files over"
 
         (* Write the new package file *)
 
@@ -993,7 +1004,6 @@ in
         ()
       end;
 end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)
