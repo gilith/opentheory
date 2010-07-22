@@ -55,7 +55,7 @@ val packages : package -> PackageName.name list
 (* Extra file dependencies.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val extraFiles : package -> (string * {filename : string}) list
+val extraFiles : package -> {name : string, filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

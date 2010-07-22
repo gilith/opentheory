@@ -142,7 +142,12 @@ fun articles info =
 
 fun extraFiles info =
     let
-      fun join (n,f) = (n, joinDirectory info f)
+      fun join {name,filename} =
+          let
+            val {filename} = joinDirectory info {filename = filename}
+          in
+            {name = name, filename = filename}
+          end
 
       val pkg = package info
     in

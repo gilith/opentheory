@@ -93,9 +93,9 @@ local
           let
             val value = Tag.value tag
 
-            val filename = PackageTheory.fromStringFilename value
+            val {filename} = PackageTheory.fromStringFilename value
           in
-            SOME (name,filename)
+            SOME {name = name, filename = filename}
           end
       end;
 in

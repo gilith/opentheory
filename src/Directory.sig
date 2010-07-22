@@ -12,9 +12,10 @@ sig
 
 datatype error =
     AlreadyInstalledError
-  | FilenameClashError of {filename : string} list
+  | FilenameClashError of
+      {srcs : {name : string, filename : string option} list,
+       dest : {filename : string}}
   | InstalledDescendentError of PackageName.name
-  | NonemptyPathError of {filename : string}
   | NotInstalledError
   | UninstalledParentError of PackageName.name
 
@@ -124,15 +125,21 @@ val list : directory -> PackageNameSet.set
 val listByAge : directory -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
-(* Installing packages into the package directory.                           *)
+(* Staging theory files for installation.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val checkInstall :
+val checkStageTheory :
     directory -> PackageName.name -> Package.package -> error list
 
-val install :
+val stageTheory :
     directory ->
     PackageName.name -> Package.package -> {filename : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Installing staged packages into the package directory.                    *)
+(* ------------------------------------------------------------------------- *)
+
+val installStaged : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uninstalling packages from the package directory.                         *)

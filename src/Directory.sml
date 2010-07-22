@@ -28,6 +28,8 @@ and urlRepoSectionKey = "url";
 
 fun createDirectory {directory} = OS.FileSys.mkDir directory;
 
+fun renameDirectory {src,dest} = OS.FileSys.rename {old = src, new = dest};
+
 fun ppDirectory {directory} = Print.ppString directory;
 
 fun mkConfigFilename {rootDirectory = dir} =
@@ -61,10 +63,10 @@ fun mkStagingPackageDirectory root name =
 
 datatype error =
     AlreadyInstalledError
-  | ArticleExtensionError of {filename : string}
-  | FilenameClashError of {filename : string} * string list
+  | FilenameClashError of
+      {srcs : {name : string, filename : string option} list,
+       dest : {filename : string}}
   | InstalledDescendentError of PackageName.name
-  | NonemptyPathError of {filename : string}
   | NotInstalledError
   | UninstalledParentError of PackageName.name;
 
@@ -103,10 +105,8 @@ val removeInstalledDescendentError =
 fun isFatalError err =
     case err of
       AlreadyInstalledError => true
-    | ArticleExtensionError _ => false
     | FilenameClashError _ => true
     | InstalledDescendentError _ => true
-    | NonemptyPathError _ => false
     | NotInstalledError => true
     | UninstalledParentError _ => true;
 
@@ -115,15 +115,21 @@ fun toStringError err =
     (case err of
        AlreadyInstalledError =>
        "package is already installed"
-     | ArticleExtensionError {filename} =>
-       "strange article filename extension: " ^ filename
-     | FilenameClashError ({filename},fl) =>
-       "filename clash in package directory: " ^ filename ^
-       String.concat (map (fn f => "\n  " ^ f) fl)
+     | FilenameClashError {srcs,dest} =>
+       let
+         fun toStringSrc {name,filename} =
+             "\n  " ^ name ^
+             (case filename of
+                SOME sf => " " ^ sf
+              | NONE => "")
+
+         val {filename = df} = dest
+       in
+         "filename clash in package directory: " ^ df ^
+         String.concat (map toStringSrc srcs)
+       end
      | InstalledDescendentError name =>
        "in use by installed package: " ^ PackageName.toString name
-     | NonemptyPathError {filename} =>
-       "file not in package directory: " ^ filename
      | NotInstalledError =>
        "package is not installed"
      | UninstalledParentError name =>
@@ -654,6 +660,13 @@ fun packageInfo dir name =
       PackageInfo.mk {name = name, directory = directory}
     end;
 
+fun stagingPackageDirectory dir name =
+    let
+      val Directory {rootDirectory = root, ...} = dir
+    in
+      mkStagingPackageDirectory {rootDirectory = root} name
+    end;
+
 val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 
 (* ------------------------------------------------------------------------- *)
@@ -756,7 +769,7 @@ fun list dir =
 fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
 
 (* ------------------------------------------------------------------------- *)
-(* Installing packages into the package directory.                           *)
+(* Staging theory files for installation.                                    *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -765,48 +778,113 @@ local
       else UninstalledParentError name :: errs;
 
   fun normalizeArticle {filename} =
-      OS.Path.joinBaseExt
-        {base = OS.Path.base (OS.Path.file filename),
-         ext = SOME articleFileExtension};
-
-  val planCopyInstall =
       let
-        fun add ((src,dest),acc) =
+        val filename =
+            OS.Path.joinBaseExt
+              {base = OS.Path.base (OS.Path.file filename),
+               ext = SOME articleFileExtension}
+      in
+        {filename = filename}
+      end;
+
+  fun normalizeExtraFile {filename} =
+      {filename = OS.Path.file filename};
+
+  fun mkFileCopyPlan info pkg =
+      let
+        fun add (src, {filename = dest}) plan =
             let
-              val file =
+              val hits = Option.getOpt (StringMap.peek plan dest, [])
 
-              val filenames = Option.getOpt (StringMap.peek acc file, [])
+              val hits = src :: hits
 
-              val filenames = {filename = filename} :: filenames
-
-              val acc = StringMap.insert acc (file,filenames)
+              val plan = StringMap.insert plan (dest,hits)
             in
-              acc
+              plan
             end
 
-        fun addArticle ({filename},acc) =
-            
+        fun addReserved ((name,filename),plan) =
+            let
+              val src = {name = name, filename = NONE}
+              and dest = filename
+            in
+              add (src,dest) plan
+            end
+
+        fun addArticle ({filename},plan) =
+            let
+              val src = {name = "article file", filename = SOME filename}
+
+              val dest =
+                  PackageInfo.joinDirectory info
+                    (normalizeArticle {filename = filename})
+            in
+              add (src,dest) plan
+            end
+
+        fun addExtra ({name,filename},plan) =
+            let
+              val src = {name = name, filename = SOME filename}
+
+              val dest =
+                  PackageInfo.joinDirectory info
+                    (normalizeExtraFile {filename = filename})
+            in
+              add (src,dest) plan
+            end
+
+        val reserved =
+            [("package file", PackageInfo.packageFile info)]
+
+        val plan = StringMap.new ()
+
+        val plan = List.foldl addReserved plan reserved
+
+        val plan = List.foldl addArticle plan (Package.articles pkg)
+
+        val plan = List.foldl addExtra plan (Package.extraFiles pkg)
       in
-        List.foldl add (StringMap.new ())
+        plan
       end;
 
-  fun checkPath ({filename},errs) =
+(*OpenTheoryDebug
+  val ppFileCopyPlan =
       let
-        val dir = OS.Path.dir filename
+        fun ppSrc {name,filename} =
+            Print.program
+              (Print.ppString name ::
+               (case filename of
+                  NONE => []
+                | SOME sf => [Print.addString " ", Print.ppString sf]))
+
+        fun ppCopy (dest,srcs) =
+            Print.blockProgram Print.Consistent 2
+              (Print.ppString dest ::
+               Print.ppString ":" ::
+               map (Print.sequence Print.addNewline o ppSrc) srcs)
       in
-        if dir = "" then errs
-        else NonemptyPathError {filename = filename} :: errs
+        fn plan =>
+           case StringMap.toList plan of
+             [] => Print.skip
+           | cp :: cps =>
+             Print.blockProgram Print.Consistent 0
+               (ppCopy cp ::
+                map (Print.sequence Print.addNewline o ppCopy) cps)
       end;
+*)
 
-  fun checkCopyInstall (file,filenames,errs) =
+  val checkFileCopyPlan =
       let
-        val errs =
-            if length filenames = 1 then errs
-            else FilenameClashError filenames :: errs
-
-        val errs = List.foldl checkPath errs filenames
+        fun check (dest,srcs,errs) =
+            if length srcs <= 1 then errs
+            else
+              let
+                val dest = {filename = dest}
+              in
+                FilenameClashError {srcs = srcs, dest = dest} :: errs
+              end
       in
-        errs
+        StringMap.foldl check
       end;
 in
   fun checkStageTheory dir name pkg =
@@ -819,14 +897,22 @@ in
 
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
-        val plan = planCopyInstall (Package.files pkg)
+        val info = packageInfo dir name
 
-        val errs = StringMap.foldl checkCopyInstall errs plan
+        val plan = mkFileCopyPlan info pkg
+
+(*OpenTheoryDebug
+        val () =
+            Print.trace ppFileCopyPlan "Directory.checkStageTheory: plan" plan
+*)
+
+        val errs = checkFileCopyPlan errs plan
       in
         rev errs
       end;
 end;
 
+(***
 local
   fun copy_art src_dir info thy =
       let
@@ -907,12 +993,25 @@ in
         ()
       end;
 end;
+***)
 
-fun installStage dir name =
+(* ------------------------------------------------------------------------- *)
+(* Installing staged packages into the package directory.                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun installStaged dir name =
     let
-      (*** Rename stage to package dir ***)
+      val info = packageInfo dir name
 
-      (* Lastly, update the list of installed packages *)
+      (* Rename staged package directory to package directory *)
+
+      val stageDir = stagingPackageDirectory dir name
+
+      val {directory = pkgDir} = PackageInfo.directory info
+
+      val () = renameDirectory {src = stageDir, dest = pkgDir}
+
+      (* Update the list of installed packages *)
 
       val Directory {packages as ref pkgs, ...} = dir
 

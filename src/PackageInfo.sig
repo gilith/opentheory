@@ -51,7 +51,7 @@ val packageFile : info -> {filename : string}
 
 val articles : info -> {filename : string} list
 
-val extraFiles : info -> (string * {filename : string}) list
+val extraFiles : info -> {name : string, filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)
