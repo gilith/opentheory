@@ -1069,7 +1069,7 @@ fun installStaged dir name =
 
         val Directory {packages as ref pkgs, ...} = dir
 
-        val () = packages := addPackages pkgs info
+        val () = packages := addPackages pkgs pkgInfo
       in
         ()
       end
