@@ -689,6 +689,13 @@ fun installTheory filename =
 
       val name = Package.name pkg
 
+      val srcDir =
+          let
+            val {filename = thyFile} = filename
+          in
+            {directory = OS.Path.dir thyFile}
+          end
+
       val errs = Directory.checkStageTheory dir name pkg
 
       val (replace,errs) =
@@ -707,7 +714,7 @@ fun installTheory filename =
 
       val () = if replace then uninstallRecursive dir name else ()
 
-      val () = Directory.stageTheory dir name pkg filename
+      val () = Directory.stageTheory dir name pkg srcDir
 
       val () = Directory.installStaged dir name
 

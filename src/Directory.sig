@@ -139,7 +139,7 @@ val checkStageTheory :
 
 val stageTheory :
     directory ->
-    PackageName.name -> Package.package -> {filename : string} -> unit
+    PackageName.name -> Package.package -> {directory : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)

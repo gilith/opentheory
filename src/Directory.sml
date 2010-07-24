@@ -63,7 +63,7 @@ fun mkStagingPackageDirectory root name =
 
 local
   fun warnFile {filename} =
-      warn ("activity in staging directory: " ^ filename);
+      warn ("activity in staging area: " ^ filename);
 in
   fun checkStagingDirectory dir =
       let
@@ -707,6 +707,13 @@ fun stagingPackageDirectory dir name =
       mkStagingPackageDirectory {rootDirectory = root} name
     end;
 
+fun stagingPackageInfo dir name =
+    let
+      val directory = stagingPackageDirectory dir name
+    in
+      PackageInfo.mk {name = name, directory = directory}
+    end;
+
 val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 
 (* ------------------------------------------------------------------------- *)
@@ -994,7 +1001,7 @@ local
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
 in
-  fun stageTheory dir name pkg {filename = srcFilename} =
+  fun stageTheory dir name pkg {directory = srcDir} =
       let
 (*OpenTheoryDebug
         val errs = checkStageTheory dir name pkg
@@ -1002,39 +1009,41 @@ in
         val _ = not (List.exists isFatalError errs) orelse
                 raise Bug "Directory.stageTheory: fatal error"
 *)
-        (* Identify the source and stage directories *)
-
-        val srcDir = OS.Path.dir srcFilename
-
-        val stageDir = stagingPackageDirectory dir name
-
         (* Make a package info for the stage directory *)
 
-        val info = PackageInfo.mk {name = name, directory = stageDir}
+        val stageInfo = stagingPackageInfo dir name
 
         (* Create the stage directory *)
 
-        val () = PackageInfo.createDirectory info
-
-        (* Copy the articles over *)
-
-        val pkg = copyArticles srcDir info pkg
-
-        (* Copy the extra files over *)
-
-        val () = warn "FIXME: copy the extra files over"
-
-        (* Write the new theory file *)
-
-        val () =
-            let
-              val {filename} = PackageInfo.theoryFile info
-            in
-              Package.toTextFile {package = pkg, filename = filename}
-            end
+        val () = PackageInfo.createDirectory stageInfo
       in
-        ()
-      end;
+        let
+          (* Copy the articles over *)
+
+          val pkg = copyArticles srcDir stageInfo pkg
+
+          (* Copy the extra files over *)
+
+          val () = warn "FIXME: copy the extra files over"
+
+          (* Write the new theory file *)
+
+          val () =
+              let
+                val {filename} = PackageInfo.theoryFile stageInfo
+              in
+                Package.toTextFile {package = pkg, filename = filename}
+              end
+        in
+          ()
+        end
+        handle e =>
+          let
+            val () = PackageInfo.nukeDirectory stageInfo
+          in
+            raise e
+          end
+      end
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1043,23 +1052,33 @@ end;
 
 fun installStaged dir name =
     let
-      val info = packageInfo dir name
+      val stageInfo = stagingPackageInfo dir name
 
-      (* Rename staged package directory to package directory *)
-
-      val stageDir = stagingPackageDirectory dir name
-
-      val {directory = pkgDir} = PackageInfo.directory info
-
-      val () = renameDirectory {src = stageDir, dest = pkgDir}
-
-      (* Update the list of installed packages *)
-
-      val Directory {packages as ref pkgs, ...} = dir
-
-      val () = packages := addPackages pkgs info
+      val pkgInfo = packageInfo dir name
     in
-      ()
+      let
+        (* Rename staged package directory to package directory *)
+
+        val {directory = stageDir} = PackageInfo.directory stageInfo
+
+        val {directory = pkgDir} = PackageInfo.directory pkgInfo
+
+        val () = renameDirectory {src = stageDir, dest = pkgDir}
+
+        (* Update the list of installed packages *)
+
+        val Directory {packages as ref pkgs, ...} = dir
+
+        val () = packages := addPackages pkgs info
+      in
+        ()
+      end
+      handle e =>
+        let
+          val () = PackageInfo.nukeDirectory stageInfo
+        in
+          raise e
+        end
     end;
 
 (* ------------------------------------------------------------------------- *)
