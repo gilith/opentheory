@@ -46,6 +46,10 @@ fun mkPackageDirectory root name =
       OS.Path.joinDirFile {dir = dir, file = file}
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* The package staging directory.                                            *)
+(* ------------------------------------------------------------------------- *)
+
 fun mkStagingDirectory {rootDirectory = dir} =
     OS.Path.joinDirFile {dir = dir, file = stagingDirectory};
 
@@ -55,6 +59,37 @@ fun mkStagingPackageDirectory root name =
       and file = PackageName.toString name
     in
       OS.Path.joinDirFile {dir = dir, file = file}
+    end;
+
+local
+  fun warnFile {filename} =
+      warn ("activity in staging directory: " ^ filename);
+in
+  fun checkStagingDirectory dir =
+      let
+        val files = readDirectory dir
+      in
+        List.app warnFile files
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Article filenames.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun isArticleFilename {filename} =
+    case OS.Path.ext (OS.Path.file filename) of
+      SOME ext => ext = articleFileExtension
+    | NONE => false;
+
+fun normalizeArticleFilename {filename} =
+    let
+      val filename =
+          OS.Path.joinBaseExt
+            {base = OS.Path.base (OS.Path.file filename),
+             ext = SOME articleFileExtension}
+    in
+      {filename = filename}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -621,7 +656,14 @@ fun mk {rootDirectory} =
             ref (readPackages {directory = directory})
           end
 
-      val () = warn "FIXME: clean up staging directory"
+      val () =
+          let
+            val directory = mkStagingDirectory {rootDirectory = rootDirectory}
+
+            val () = checkStagingDirectory {directory = directory}
+          in
+            ()
+          end
     in
       Directory
         {rootDirectory = rootDirectory,
@@ -770,16 +812,6 @@ fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
 (* Staging theory files for installation.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun normalizeArticle {filename} =
-    let
-      val filename =
-          OS.Path.joinBaseExt
-            {base = OS.Path.base (OS.Path.file filename),
-             ext = SOME articleFileExtension}
-    in
-      {filename = filename}
-    end;
-
 fun normalizeExtraFile {filename} =
     {filename = OS.Path.file filename};
 
@@ -815,7 +847,7 @@ local
 
               val dest =
                   PackageInfo.joinDirectory info
-                    (normalizeArticle {filename = filename})
+                    (normalizeArticleFilename {filename = filename})
             in
               add (src,dest) plan
             end
@@ -832,7 +864,7 @@ local
             end
 
         val reserved =
-            [("package file", PackageInfo.packageFile info)]
+            [("theory file", PackageInfo.theoryFile info)]
 
         val plan = StringMap.new ()
 
@@ -930,7 +962,7 @@ local
                    filename = srcFilename}
 
             val {filename = pkgFilename} =
-                normalizeArticle {filename = filename}
+                normalizeArticleFilename {filename = filename}
 
             val {filename = destFilename} =
                 PackageInfo.joinDirectory info {filename = pkgFilename}
@@ -992,11 +1024,11 @@ in
 
         val () = warn "FIXME: copy the extra files over"
 
-        (* Write the new package file *)
+        (* Write the new theory file *)
 
         val () =
             let
-              val {filename} = PackageInfo.packageFile info
+              val {filename} = PackageInfo.theoryFile info
             in
               Package.toTextFile {package = pkg, filename = filename}
             end

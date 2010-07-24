@@ -12,20 +12,25 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val packageFileExtension = "thy";
+val theoryFileExtension = "thy";
 
 (* ------------------------------------------------------------------------- *)
-(* Directories and filenames.                                                *)
+(* Theory filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkPackageFile pkg =
+fun mkTheoryFile pkg =
     let
       val base = PackageName.base pkg
     in
       OS.Path.joinBaseExt
         {base = PackageBase.toString base,
-         ext = SOME packageFileExtension}
+         ext = SOME theoryFileExtension}
     end;
+
+fun isTheoryFilename {filename} =
+    case OS.Path.ext (OS.Path.file filename) of
+      SOME ext => ext = theoryFileExtension
+    | NONE => false;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
@@ -106,9 +111,9 @@ fun isInstalled info = existsDirectory info;
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun packageFile info =
+fun theoryFile info =
     let
-      val file = mkPackageFile (name info)
+      val file = mkTheoryFile (name info)
     in
       joinDirectory info {filename = file}
     end;
@@ -125,7 +130,7 @@ fun package info =
         SOME p => p
       | NONE =>
         let
-          val filename = packageFile info
+          val filename = theoryFile info
 
           val p = Package.fromTextFile filename
 

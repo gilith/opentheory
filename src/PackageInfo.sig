@@ -7,6 +7,12 @@ signature PackageInfo =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* Theory filenames.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val isTheoryFilename : {filename : string} -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -40,7 +46,7 @@ val isInstalled : info -> bool
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val packageFile : info -> {filename : string}
+val theoryFile : info -> {filename : string}
 
 val articles : info -> {filename : string} list
 

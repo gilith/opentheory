@@ -53,6 +53,44 @@ fun annotateOptions s =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Input types.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+datatype input =
+    ArticleInput of {filename : string}
+  | PackageInput of PackageName.name
+  | TheoryInput of {filename : string};
+
+fun fromStringInput inp =
+    case total PackageName.fromString inp of
+      SOME name => PackageInput name
+    | NONE =>
+      let
+        val filename = {filename = inp}
+      in
+        if Directory.isArticleFilename filename then ArticleInput filename
+        else if PackageInfo.isTheoryFilename filename then TheoryInput filename
+        else raise Error ("unknown type of input: " ^ inp)
+      end;
+
+(* ------------------------------------------------------------------------- *)
+(* Output types.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype output =
+    ArticleOutput of {filename : string}
+  | SummaryTextOutput of {filename : string}
+  | TheoryOutput of {filename : string};
+
+fun savableOutput output =
+    case output of
+      ArticleOutput _ => true
+    | SummaryTextOutput _ => false
+    | TheoryOutput _ => false;
+
+val savableOutputList = List.exists savableOutput;
+
+(* ------------------------------------------------------------------------- *)
 (* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -537,7 +575,7 @@ fun info name =
                       {filename = filename}
 
                   val fl =
-                      PackageInfo.packageFile info ::
+                      PackageInfo.theoryFile info ::
                       PackageInfo.articles info @
                       map extraFilename (PackageInfo.extraFiles info)
                 in
