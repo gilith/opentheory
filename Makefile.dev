@@ -154,6 +154,20 @@ src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
 src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 ###############################################################################
+# Initialize following a repo clone.
+###############################################################################
+
+.PHONY: init
+init:
+	$(MAKE) $(OPENTHEORY)
+	rm -rf test/directory
+	$(OPENTHEORY) -d test/directory init
+	$(OPENTHEORY) -d test/directory install test/theories/empty/empty.thy
+	$(OPENTHEORY) -d test/directory install test/theories/bool-true-def/bool-true-def.thy
+	$(OPENTHEORY) -d test/directory install test/theories/bool-true-thm/bool-true-thm.thy
+	$(OPENTHEORY) -d test/directory install test/theories/bool-true/bool-true.thy
+
+###############################################################################
 # Counting the number of lines of code.
 ###############################################################################
 
@@ -180,8 +194,8 @@ compilation-theories: $(OPENTHEORY)
 # Create a snapshop of all theory packages.
 ###############################################################################
 
-repo/packages.tgz: test/opentheory/packages
-	cd test/opentheory && tar cvzf ../../$@ --exclude .gitignore packages
+repo/packages.tgz: test/directory/packages
+	cd test/directory && tar cvzf ../../$@ --exclude .gitignore packages
 
 ###############################################################################
 # Profiling using MLton.

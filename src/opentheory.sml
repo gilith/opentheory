@@ -53,48 +53,55 @@ fun annotateOptions s =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Input types.                                                              *)
+(* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-datatype input =
-    ArticleInput of {filename : string}
-  | PackageInput of PackageName.name
-  | TheoryInput of {filename : string};
+val rootDirectoryOption : string option ref = ref NONE;
 
-fun fromStringInput inp =
-    case total PackageName.fromString inp of
-      SOME name => PackageInput name
-    | NONE =>
-      let
-        val filename = {filename = inp}
-      in
-        if Directory.isArticleFilename filename then ArticleInput filename
-        else if PackageInfo.isTheoryFilename filename then TheoryInput filename
-        else raise Error ("unknown type of input: " ^ inp)
-      end;
+val rootDirectory =
+    let
+      val rdir : {directory : string, autoInit : bool} option ref = ref NONE
+    in
+      fn () =>
+         case !rdir of
+           SOME dir => dir
+         | NONE =>
+           let
+             val dir =
+                 case !rootDirectoryOption of
+                   SOME d => {directory = d, autoInit = false}
+                 | NONE =>
+                   case OS.Process.getEnv homeEnvVar of
+                     NONE => raise Error "please specify the package directory"
+                   | SOME homeDir =>
+                     let
+                       val d =
+                           OS.Path.joinDirFile
+                             {dir = homeDir, file = rootHomeDir}
+                     in
+                       {directory = d, autoInit = true}
+                     end
+
+             val () = rdir := SOME dir
+           in
+             dir
+           end
+    end;
 
 (* ------------------------------------------------------------------------- *)
-(* Output types.                                                             *)
+(* Initializing a package directory.                                         *)
 (* ------------------------------------------------------------------------- *)
 
-datatype output =
-    ArticleOutput of {filename : string}
-  | SummaryTextOutput of {filename : string}
-  | TheoryOutput of {filename : string};
-
-fun savableOutput output =
-    case output of
-      ArticleOutput _ => true
-    | SummaryTextOutput _ => false
-    | TheoryOutput _ => false;
-
-val savableOutputList = List.exists savableOutput;
+fun initDirectory {rootDirectory = r} =
+    let
+      val () = chat ("Creating package directory " ^ r)
+    in
+      Directory.create {rootDirectory = r}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
-
-val rootDirectory : string option ref = ref NONE;
 
 val directory =
     let
@@ -106,30 +113,26 @@ val directory =
          | NONE =>
            let
              val dir =
-                 case !rootDirectory of
-                   SOME r => Directory.mk {rootDirectory = r}
-                 | NONE =>
-                   case OS.Process.getEnv homeEnvVar of
-                     SOME d =>
-                     let
-                       val r = OS.Path.joinDirFile {dir = d, file = rootHomeDir}
-                     in
-                       if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
-                         Directory.mk {rootDirectory = r}
-                       else
-                         let
-                           val () = chat ("Creating package directory " ^ r)
-                         in
-                           Directory.create {rootDirectory = r}
-                         end
-                     end
-                   | NONE => raise Error "please specify the package directory"
+                 let
+                   val {directory = r, autoInit} = rootDirectory ()
+                 in
+                   if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
+                     Directory.mk {rootDirectory = r}
+                   else if autoInit then
+                     initDirectory {rootDirectory = r}
+                   else
+                     raise Error ("package directory does not exist: " ^ r)
+                 end
 
              val () = rdir := SOME dir
            in
              dir
            end
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package finder.                                                           *)
+(* ------------------------------------------------------------------------- *)
 
 fun finder () = Directory.finder (directory ());
 
@@ -207,56 +210,106 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 datatype info =
-    PackageInfo
+    AncestorInfo
+  | ArticleInfo
+  | ChildInfo
+  | DescendentInfo
   | FileInfo
-  | DepInfo
-  | DepPlusInfo
-  | UseInfo
-  | UsePlusInfo;
+  | MetaInfo
+  | NameInfo
+  | ParentInfo
+  | SummaryInfo
+  | TheoryInfo;
 
-val infoQuery = ref PackageInfo;
+fun savableInfo info =
+    case info of
+      ArticleInfo => true
+    | _ => false;
 
-val infoOutput = ref "-";
+val infoOutputFilename = ref {filename = "-"};
+
+val infoOutputList : (info * {filename : string}) list ref = ref [];
+
+fun setInfoOutputFilename filename =
+    let
+      val () = infoOutputFilename := {filename = filename}
+    in
+      ()
+    end;
+
+fun mkInfoOutput info = (info, !infoOutputFilename);
+
+fun addInfoOutput info =
+    let
+      val () = infoOutputList := !infoOutputList @ [mkInfoOutput info]
+    in
+      ()
+    end;
 
 local
   open Useful Options;
 in
   val infoOpts : opt list =
-      [{switches = ["--files"], arguments = [],
+      [{switches = ["--name"], arguments = [],
+        description = "display the package name",
+        processor = beginOpt endOpt (fn _ => addInfoOutput MetaInfo)},
+       {switches = ["--meta"], arguments = [],
+        description = "display the package meta-information",
+        processor = beginOpt endOpt (fn _ => addInfoOutput MetaInfo)},
+       {switches = ["--files"], arguments = [],
         description = "list the package files",
-        processor = beginOpt endOpt (fn _ => infoQuery := FileInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput FileInfo)},
        {switches = ["--deps"], arguments = [],
         description = "list direct package dependencies",
-        processor = beginOpt endOpt (fn _ => infoQuery := DepInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput ParentInfo)},
        {switches = ["--deps+"], arguments = [],
         description = "list all package dependencies",
-        processor = beginOpt endOpt (fn _ => infoQuery := DepPlusInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput AncestorInfo)},
        {switches = ["--uses"], arguments = [],
         description = "list direct package users",
-        processor = beginOpt endOpt (fn _ => infoQuery := UseInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput ChildInfo)},
        {switches = ["--uses+"], arguments = [],
         description = "list all package users",
-        processor = beginOpt endOpt (fn _ => infoQuery := UsePlusInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput DescendentInfo)},
+       {switches = ["--summary"], arguments = [],
+        description = "display the package summary",
+        processor = beginOpt endOpt (fn _ => addInfoOutput SummaryInfo)},
+       {switches = ["--theory"], arguments = [],
+        description = "display the package theory graph",
+        processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
+       {switches = ["--article"], arguments = [],
+        description = "compile the package to an article",
+        processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write the package information to FILE",
+        description = "write subsequent package information to FILE",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => infoOutput := s)}];
+            (fn _ => fn s => setInfoOutputFilename s)}];
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Options for displaying command help.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val initOpts : opt list = [];
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* Options for uninstalling theory packages.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val recursiveUninstall = ref false;
+val autoUninstall = ref false;
 
 local
   open Useful Options;
 in
   val uninstallOpts : opt list =
-      [{switches = ["--recursive"], arguments = [],
-        description = "recursively uninstall dependent packages",
-        processor = beginOpt endOpt (fn _ => recursiveUninstall := true)}];
+      [{switches = ["--auto"], arguments = [],
+        description = "also uninstall dependent packages",
+        processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -308,38 +361,38 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 datatype command =
-    Compile
-  | Help
+    Help
   | Info
+  | Init
   | Install
   | List
   | Uninstall;
 
-val allCommands = [Compile,Help,Info,Install,List,Uninstall];
+val allCommands = [Help,Info,Init,Install,List,Uninstall];
 
 fun commandString cmd =
     case cmd of
-      Compile => "compile"
-    | Help => "help"
+      Help => "help"
     | Info => "info"
+    | Init => "init"
     | Install => "install"
     | List => "list"
     | Uninstall => "uninstall";
 
 fun commandArgs cmd =
     case cmd of
-      Compile => " input.thy"
-    | Help => ""
-    | Info => " <package-name>"
-    | Install => " input.thy"
+      Help => ""
+    | Info => " <package-name>|input.thy|input.art"
+    | Init => ""
+    | Install => " <package-name>|input.thy"
     | List => ""
     | Uninstall => " <package-name>";
 
 fun commandDescription cmd =
     case cmd of
-      Compile => "compile a theory package"
-    | Help => "display command help"
+      Help => "display command help"
     | Info => "display package information"
+    | Init => "initialize package directory"
     | Install => "install a theory package"
     | List => "list installed theory packages"
     | Uninstall => "uninstall a theory package";
@@ -358,9 +411,9 @@ end;
 
 fun commandOpts cmd =
     case cmd of
-      Compile => compileOpts
-    | Help => helpOpts
+      Help => helpOpts
     | Info => infoOpts
+    | Init => initOpts
     | Install => installOpts
     | List => listOpts
     | Uninstall => uninstallOpts;
@@ -384,7 +437,7 @@ in
         description = "the theory package directory",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => rootDirectory := SOME s)}];
+            (fn _ => fn s => rootDirectoryOption := SOME s)}];
 end;
 
 local
@@ -443,6 +496,40 @@ fun fail mesg = Options.fail (programOptions ()) mesg;
 fun usage mesg = Options.usage (programOptions ()) mesg;
 
 fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
+
+(* ------------------------------------------------------------------------- *)
+(* Input types.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+datatype input =
+    ArticleInput of {filename : string}
+  | PackageInput of PackageName.name
+  | TheoryInput of {filename : string};
+
+fun fromStringInput cmd inp =
+    case total PackageName.fromString inp of
+      SOME name => PackageInput name
+    | NONE =>
+      let
+        val filename = {filename = inp}
+      in
+        if Directory.isArticleFilename filename then ArticleInput filename
+        else if PackageInfo.isTheoryFilename filename then TheoryInput filename
+        else commandUsage cmd ("unknown type of input: " ^ inp)
+      end;
+
+fun defaultInfoOutputList inp =
+    case inp of
+      ArticleInput _ => [mkInfoOutput SummaryInfo]
+    | PackageInput _ => [mkInfoOutput MetaInfo]
+    | TheoryInput _ => [mkInfoOutput SummaryInfo];
+
+fun readInfoOutputList inp =
+    let
+      val l = !infoOutputList
+    in
+      if null l then defaultInfoOutputList inp else l
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Compiling packages to articles.                                           *)
@@ -547,11 +634,112 @@ fun help () = usage "displaying command help";
 (* Displaying package information.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun info name =
+local
+  fun getCached r f () =
+      case !r of
+        SOME x => x
+      | NONE =>
+        let
+          val x = f ()
+
+          val () = r := SOME x
+        in
+          x
+        end;
+
+  local
+    val cache : PackageInfo.info option option ref = ref NONE;
+
+    fun compute () = NONE;
+  in
+    fun setInfo info = cache := SOME (SOME info);
+
+    val getInfo = getCached cache compute;
+  end;
+
+  local
+    val cache : Package.package option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.package info)
+        | NONE => NONE;
+  in
+    fun setPackage pkg = cache := SOME (SOME pkg);
+
+    val getPackage = getCached cache compute;
+  end;
+
+  local
+    val cache : {directory : string} option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.directory info)
+        | NONE => NONE;
+  in
+    fun setDirectory dir = cache := SOME (SOME dir);
+
+    val getDirectory = getCached cache compute;
+  end;
+
+  local
+    val cache : PackageName.name option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.name info)
+        | NONE =>
+          case getPackage () of
+            SOME pkg => SOME (Package.name pkg)
+          | NONE => NONE;
+  in
+    val getName = getCached cache compute;
+  end;
+
+  fun processInfoOutput (inf,file) =
+      Stream.toTextFile file
+        (case inf of
+           MetaInfo =>
+           let
+             val pkg =
+                 case getPackage () of
+                   SOME p => p
+                 | NONE => raise Error "no package"
+
+             val tags = Package.tags pkg
+           in
+             Print.toStream Tag.ppList tags
+           end
+         | _ => raise Bug "not implemented");
+
+  fun processInfoOutputList infs =
+      let
+        val sav = List.exists (savableInfo o fst) infs
+      in
+        List.app processInfoOutput infs
+      end;
+in
+  fun infoPackage name infs =
     let
       val dir = directory ()
+    in
+      case Directory.peek dir name of
+        NONE => raise Error ("can't find package " ^ PackageName.toString name)
+      | SOME info =>
+        let
+          val () = setInfo info
+        in
+          processInfoOutputList infs
+        end
+    end;
 
-      val name = PackageName.fromString name
+(***
+
+      app processInfo infs
+    end;
+
+      val dir = directory ()
     in
       case Directory.peek dir name of
         NONE => raise Error ("can't find package " ^ PackageName.toString name)
@@ -559,77 +747,92 @@ fun info name =
         let
           val pkg = PackageInfo.package info
 
-          val strm =
-              case !infoQuery of
-                PackageInfo =>
-                let
-                  val tags = Package.tags pkg
-                in
-                  Print.toStream Tag.ppList tags
-                end
-              | FileInfo =>
-                let
-                  fun mk {filename} = filename ^ "\n"
+          fun process (inf,file) =
+              Stream.toTextFile file
+                (case inf of
+                   MetaInfo =>
+                   let
+                     val tags = Package.tags pkg
+                   in
+                     Print.toStream Tag.ppList tags
+                   end
+                 | FileInfo =>
+                   let
+                     fun mk {filename} = filename ^ "\n"
 
-                  fun extraFilename {name = _, filename} =
-                      {filename = filename}
+                     fun extraFilename {name = _, filename} =
+                         {filename = filename}
 
-                  val fl =
-                      PackageInfo.theoryFile info ::
-                      PackageInfo.articles info @
-                      map extraFilename (PackageInfo.extraFiles info)
-                in
-                  Stream.map mk (Stream.fromList fl)
-                end
-              | DepInfo =>
-                let
-                  fun mk n = PackageName.toString n ^ "\n"
+                     val fl =
+                         PackageInfo.theoryFile info ::
+                         PackageInfo.articles info @
+                         map extraFilename (PackageInfo.extraFiles info)
+                   in
+                     Stream.map mk (Stream.fromList fl)
+                   end
+                 | ParentInfo =>
+                   let
+                     fun mk n = PackageName.toString n ^ "\n"
 
-                  val names = Directory.parents dir name
+                     val names = Directory.parents dir name
 
-                  val names = PackageNameSet.toList names
-                in
-                  Stream.map mk (Stream.fromList names)
-                end
-              | DepPlusInfo =>
-                let
-                  fun mk n = PackageName.toString n ^ "\n"
+                     val names = PackageNameSet.toList names
+                   in
+                     Stream.map mk (Stream.fromList names)
+                   end
+                 | AncestorInfo =>
+                   let
+                     fun mk n = PackageName.toString n ^ "\n"
 
-                  val names = Directory.ancestors dir name
+                     val names = Directory.ancestors dir name
 
-                  val names = PackageNameSet.toList names
-                in
-                  Stream.map mk (Stream.fromList names)
-                end
-              | UseInfo =>
-                let
-                  fun mk n = PackageName.toString n ^ "\n"
+                     val names = PackageNameSet.toList names
+                   in
+                     Stream.map mk (Stream.fromList names)
+                   end
+                 | ChildInfo =>
+                   let
+                     fun mk n = PackageName.toString n ^ "\n"
 
-                  val names = Directory.children dir name
+                     val names = Directory.children dir name
 
-                  val names = PackageNameSet.toList names
-                in
-                  Stream.map mk (Stream.fromList names)
-                end
-              | UsePlusInfo =>
-                let
-                  fun mk n = PackageName.toString n ^ "\n"
+                     val names = PackageNameSet.toList names
+                   in
+                     Stream.map mk (Stream.fromList names)
+                   end
+                 | DescendentInfo =>
+                   let
+                     fun mk n = PackageName.toString n ^ "\n"
 
-                  val names = Directory.descendents dir name
+                     val names = Directory.descendents dir name
 
-                  val names = PackageNameSet.toList names
-                in
-                  Stream.map mk (Stream.fromList names)
-                end
-
-          val ref filename = infoOutput
+                     val names = PackageNameSet.toList names
+                   in
+                     Stream.map mk (Stream.fromList names)
+                   end
+                 | _ => raise Bug "not implemented")
         in
-          Stream.toTextFile {filename = filename} strm
+          List.app process infs
         end
+    end;
+***)
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Initializing a package directory.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun init () =
+    let
+      val {directory = d, autoInit = _} = rootDirectory ()
+
+      val _ = initDirectory {rootDirectory = d}
+    in
+      ()
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Installing theory packages.                                               *)
+(* Uninstalling theory packages.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun uninstallPackage dir name =
@@ -653,10 +856,10 @@ fun uninstallPackage dir name =
       ()
     end;
 
-fun uninstallRecursive dir name =
+fun uninstallAuto dir name =
     let
       val desc =
-          if not (!recursiveUninstall) then []
+          if not (!autoUninstall) then []
           else Directory.descendentsByAge dir name
 
       val names = rev (name :: desc)
@@ -672,7 +875,7 @@ fun uninstall name =
 
       val name = PackageName.fromString name
     in
-      uninstallRecursive dir name
+      uninstallAuto dir name
     end
     handle Error err =>
       raise Error (err ^ "\ntheory package uninstall failed");
@@ -712,7 +915,7 @@ fun installTheory filename =
               else warn ("package install warnings:\n" ^ s)
             end
 
-      val () = if replace then uninstallRecursive dir name else ()
+      val () = if replace then uninstallAuto dir name else ()
 
       val () = Directory.stageTheory dir name pkg srcDir
 
@@ -773,10 +976,28 @@ let
 
   val () =
       case (cmd,work) of
-        (Compile,[filename]) => compile {filename = filename}
-      | (Help,[]) => help ()
-      | (Info,[pkg]) => info pkg
-      | (Install,[filename]) => installTheory {filename = filename}
+        (Help,[]) => help ()
+      | (Info,[inp]) =>
+        let
+          val inp = fromStringInput cmd inp
+
+          val infs = readInfoOutputList inp
+        in
+          case inp of
+            ArticleInput _ => raise Bug "not implemented"
+          | PackageInput name => infoPackage name infs
+          | TheoryInput _ => raise Bug "not implemented"
+        end
+      | (Init,[]) => init ()
+      | (Install,[inp]) =>
+        let
+          val inp = fromStringInput cmd inp
+        in
+          case inp of
+            ArticleInput _ => commandUsage cmd "cannot install an article"
+          | PackageInput _ => raise Bug "not implemented"
+          | TheoryInput filename => installTheory filename
+        end
       | (List,[]) => list ()
       | (Uninstall,[pkg]) => uninstall pkg
       | _ =>
