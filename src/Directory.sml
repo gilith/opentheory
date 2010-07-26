@@ -487,14 +487,18 @@ end;
 
 fun closePackageSet f =
     let
-      fun step acc name = PackageNameSet.foldl add acc (f name)
+      fun add acc set = PackageNameSet.foldl check acc set
 
-      and add (name,acc) =
+      and check (name,acc) =
           if PackageNameSet.member name acc then acc
-          else step (PackageNameSet.add acc name) name
+          else expand (PackageNameSet.add acc name) name
+
+      and expand acc name = add acc (f name)
     in
-      step PackageNameSet.empty
+      add PackageNameSet.empty
     end;
+
+fun closePackageSet1 f n = closePackageSet f (PackageNameSet.singleton n);
 
 fun sortPackageSet f s =
     let
@@ -549,9 +553,9 @@ fun childrenPackageDeps (PackageDeps {children,...}) name =
       SOME cs => cs
     | NONE => PackageNameSet.empty;
 
-fun ancestorsPackageDeps deps = closePackageSet (parentsPackageDeps deps);
+fun ancestorsPackageDeps deps = closePackageSet1 (parentsPackageDeps deps);
 
-fun descendentsPackageDeps deps = closePackageSet (childrenPackageDeps deps);
+fun descendentsPackageDeps deps = closePackageSet1 (childrenPackageDeps deps);
 
 fun addPackageDeps deps (p,c) =
     let
@@ -742,7 +746,9 @@ fun parents dir name =
 
 fun sortByAge dir set = sortPackageSet (parents dir) set;
 
-fun ancestors dir = closePackageSet (parents dir);
+fun ancestors dir = closePackageSet1 (parents dir);
+
+fun ancestorsSet dir names = closePackageSet (parents dir) names;
 
 fun ancestorsByAge dir name = sortByAge dir (ancestors dir name);
 

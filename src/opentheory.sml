@@ -684,6 +684,65 @@ local
   end;
 
   local
+    val cache : bool option option ref = ref NONE;
+
+    fun compute () = NONE;
+  in
+    fun setSavable sav = cache := SOME (SOME sav);
+
+    val getSavable = getCached cache compute;
+  end;
+
+  local
+    val cache : (Graph.graph * Theory.theory) option option ref = ref NONE;
+
+    fun compute () =
+        case getDirectory () of
+          NONE => NONE
+        | SOME {directory = dir} =>
+          case getPackage () of
+            NONE => NONE
+          | SOME pkg =>
+            case getSavable () of
+              NONE => NONE
+            | SOME sav =>
+              let
+                val finder = finder ()
+
+                val graph = Graph.empty {savable = sav}
+
+                val imps = TheorySet.empty
+
+                val int = Interpretation.natural
+
+                val thy =
+                    Graph.importPackage graph
+                      {finder = finder,
+                       directory = dir,
+                       imports = imps,
+                       interpretation = int,
+                       package = pkg}
+              in
+                SOME thy
+              end;
+  in
+    val getTheory = getCached cache compute;
+  end;
+
+  local
+    val cache : Article.article option option ref = ref NONE;
+
+    fun compute () =
+        case getTheory () of
+          SOME (_,thy) => SOME (Theory.article thy)
+        | NONE => NONE;
+  in
+    fun setArticle art = cache := SOME (SOME art);
+
+    val getArticle = getCached cache compute;
+  end;
+
+  local
     val cache : PackageName.name option option ref = ref NONE;
 
     fun compute () =
@@ -697,27 +756,130 @@ local
     val getName = getCached cache compute;
   end;
 
-  fun processInfoOutput (inf,file) =
-      Stream.toTextFile file
-        (case inf of
-           MetaInfo =>
-           let
-             val pkg =
-                 case getPackage () of
-                   SOME p => p
-                 | NONE => raise Error "no package"
+  fun outputPackageNameSet names file =
+      let
+        fun mk n = PackageName.toString n ^ "\n"
 
-             val tags = Package.tags pkg
-           in
-             Print.toStream Tag.ppList tags
-           end
-         | _ => raise Bug "not implemented");
+        val names = PackageNameSet.toList names
+
+        val strm = Stream.map mk (Stream.fromList names)
+      in
+        Stream.toTextFile file strm
+      end;
+
+  fun processInfoOutput (inf,file) =
+      case inf of
+        AncestorInfo =>
+        let
+          val dir = directory ()
+
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no package"
+
+          val names = PackageNameSet.fromList (Package.packages pkg)
+
+          val names = Directory.ancestorsSet dir names
+        in
+          outputPackageNameSet names file
+        end
+      | ArticleInfo =>
+        let
+          val art =
+              case getArticle () of
+                SOME a => a
+              | NONE => raise Error "no article"
+
+          val {filename} = file
+        in
+          Article.toTextFile {article = art, filename = filename}
+        end
+      | ChildInfo =>
+        let
+          val dir = directory ()
+
+          val name =
+              case getName () of
+                SOME n => n
+              | NONE => raise Error "no name"
+
+          val names = Directory.children dir name
+        in
+          outputPackageNameSet names file
+        end
+      | DescendentInfo =>
+        let
+          val dir = directory ()
+
+          val name =
+              case getName () of
+                SOME n => n
+              | NONE => raise Error "no name"
+
+          val names = Directory.descendents dir name
+        in
+          outputPackageNameSet names file
+        end
+      | FileInfo => raise Bug "not implemented"
+      | MetaInfo =>
+        let
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no package"
+
+          val tags = Package.tags pkg
+
+          val strm = Print.toStream Tag.ppList tags
+        in
+          Stream.toTextFile file strm
+        end
+      | NameInfo =>
+        let
+          val name =
+              case getName () of
+                SOME n => n
+              | NONE => raise Error "no name"
+
+          val strm = Print.toStream PackageName.pp name
+        in
+          Stream.toTextFile file strm
+        end
+      | ParentInfo =>
+        let
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no package"
+
+          val names = PackageNameSet.fromList (Package.packages pkg)
+        in
+          outputPackageNameSet names file
+        end
+      | SummaryInfo => raise Bug "not implemented"
+      | TheoryInfo => raise Bug "not implemented";
 
   fun processInfoOutputList infs =
       let
         val sav = List.exists (savableInfo o fst) infs
+
+        val () = setSavable sav
+
+        val () = List.app processInfoOutput infs
+
+(*OpenTheoryDebug
+        val () =
+            let
+              val i = ObjectRead.theInferenceCount ()
+
+              val s = Print.toString ObjectRead.ppInferenceCount i
+            in
+              print ("Inference functions:\n" ^ s ^ "\n")
+            end
+*)
       in
-        List.app processInfoOutput infs
+        ()
       end;
 in
   fun infoPackage name infs =

@@ -116,6 +116,8 @@ val children : directory -> PackageName.name -> PackageNameSet.set
 
 val ancestors : directory -> PackageName.name -> PackageNameSet.set
 
+val ancestorsSet : directory -> PackageNameSet.set -> PackageNameSet.set
+
 val descendents : directory -> PackageName.name -> PackageNameSet.set
 
 val ancestorsByAge : directory -> PackageName.name -> PackageName.name list
