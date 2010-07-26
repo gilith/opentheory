@@ -635,6 +635,8 @@ fun help () = usage "displaying command help";
 (* ------------------------------------------------------------------------- *)
 
 local
+  fun extraFilename {name = _, filename} = {filename = filename};
+
   fun getCached r f () =
       case !r of
         SOME x => x
@@ -671,6 +673,20 @@ local
   end;
 
   local
+    val cache : PackageName.name option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.name info)
+        | NONE =>
+          case getPackage () of
+            SOME pkg => SOME (Package.name pkg)
+          | NONE => NONE;
+  in
+    val getName = getCached cache compute;
+  end;
+
+  local
     val cache : {directory : string} option option ref = ref NONE;
 
     fun compute () =
@@ -681,6 +697,43 @@ local
     fun setDirectory dir = cache := SOME (SOME dir);
 
     val getDirectory = getCached cache compute;
+  end;
+
+  local
+    val cache : {filename : string} list option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info =>
+          let
+            val files =
+                PackageInfo.theoryFile info ::
+                PackageInfo.articles info @
+                map extraFilename (PackageInfo.extraFiles info)
+          in
+            SOME files
+          end
+        | NONE =>
+          case getPackage () of
+            SOME pkg =>
+            let
+              val joinDir =
+                  case getDirectory () of
+                    NONE => I
+                  | SOME {directory = dir} =>
+                    fn {filename} => {filename = OS.Path.concat (dir,filename)}
+
+              val files =
+                  Package.articles pkg @
+                  map extraFilename (Package.extraFiles pkg)
+            in
+              SOME (map joinDir files)
+            end
+          | NONE => NONE;
+  in
+    fun setFiles files = cache := SOME (SOME files);
+
+    val getFiles = getCached cache compute;
   end;
 
   local
@@ -743,17 +796,21 @@ local
   end;
 
   local
-    val cache : PackageName.name option option ref = ref NONE;
+    val cache : Summary.summary option option ref = ref NONE;
 
     fun compute () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.name info)
-        | NONE =>
-          case getPackage () of
-            SOME pkg => SOME (Package.name pkg)
-          | NONE => NONE;
+        case getArticle () of
+          SOME art =>
+          let
+            val ths = Article.thms art
+
+            val sum = Summary.fromThms ths
+          in
+            SOME sum
+          end
+        | NONE => NONE;
   in
-    val getName = getCached cache compute;
+    val getSummary = getCached cache compute;
   end;
 
   fun outputPackageNameSet names file =
@@ -821,7 +878,19 @@ local
         in
           outputPackageNameSet names file
         end
-      | FileInfo => raise Bug "not implemented"
+      | FileInfo =>
+        let
+          fun mk {filename} = filename ^ "\n"
+
+          val files =
+              case getFiles () of
+                SOME f => f
+              | NONE => raise Error "no files"
+
+          val strm = Stream.map mk (Stream.fromList files)
+        in
+          Stream.toTextFile file strm
+        end
       | MetaInfo =>
         let
           val pkg =
@@ -857,8 +926,49 @@ local
         in
           outputPackageNameSet names file
         end
-      | SummaryInfo => raise Bug "not implemented"
-      | TheoryInfo => raise Bug "not implemented";
+      | SummaryInfo =>
+        let
+          val sum =
+              case getSummary () of
+                SOME s => s
+              | NONE => raise Error "no summary"
+
+          val show =
+              case getPackage () of
+                SOME pkg => Show.fromTags (Package.tags pkg)
+              | NONE => Show.default
+
+          val {filename} = file
+        in
+          Summary.toTextFile
+            {show = show,
+             summary = sum,
+             filename = filename}
+        end
+      | TheoryInfo =>
+        let
+          val thy =
+              case getTheory () of
+                SOME (_,t) => t
+              | NONE => raise Error "no theory"
+
+          val tags = []
+
+          val theories =
+              Graph.packageTheory {expand = Theory.isPackage} thy
+
+          val package =
+              Package.mk
+                (Package.Package'
+                   {tags = tags,
+                    theories = theories})
+
+          val {filename} = file
+        in
+          Package.toTextFile
+            {package = package,
+             filename = filename}
+        end;
 
   fun processInfoOutputList infs =
       let
@@ -883,101 +993,69 @@ local
       end;
 in
   fun infoPackage name infs =
-    let
-      val dir = directory ()
-    in
-      case Directory.peek dir name of
-        NONE => raise Error ("can't find package " ^ PackageName.toString name)
-      | SOME info =>
-        let
-          val () = setInfo info
-        in
-          processInfoOutputList infs
-        end
-    end;
+      let
+        val dir = directory ()
+      in
+        case Directory.peek dir name of
+          NONE => raise Error ("can't find package " ^ PackageName.toString name)
+        | SOME info =>
+          let
+            val () = setInfo info
+          in
+            processInfoOutputList infs
+          end
+      end;
 
-(***
+  fun infoTheory {filename} infs =
+      let
+        val dir = OS.Path.dir filename
 
-      app processInfo infs
-    end;
+        fun joinDir {filename} =
+            {filename = OS.Path.concat (dir,filename)}
 
-      val dir = directory ()
-    in
-      case Directory.peek dir name of
-        NONE => raise Error ("can't find package " ^ PackageName.toString name)
-      | SOME info =>
-        let
-          val pkg = PackageInfo.package info
+        val pkg = Package.fromTextFile {filename = filename}
 
-          fun process (inf,file) =
-              Stream.toTextFile file
-                (case inf of
-                   MetaInfo =>
-                   let
-                     val tags = Package.tags pkg
-                   in
-                     Print.toStream Tag.ppList tags
-                   end
-                 | FileInfo =>
-                   let
-                     fun mk {filename} = filename ^ "\n"
+        val files =
+            {filename = filename} ::
+            map joinDir (Package.articles pkg) @
+            map (joinDir o extraFilename) (Package.extraFiles pkg)
 
-                     fun extraFilename {name = _, filename} =
-                         {filename = filename}
+        val () = setDirectory {directory = dir}
 
-                     val fl =
-                         PackageInfo.theoryFile info ::
-                         PackageInfo.articles info @
-                         map extraFilename (PackageInfo.extraFiles info)
-                   in
-                     Stream.map mk (Stream.fromList fl)
-                   end
-                 | ParentInfo =>
-                   let
-                     fun mk n = PackageName.toString n ^ "\n"
+        val () = setPackage pkg
 
-                     val names = Directory.parents dir name
+        val () = setFiles files
+      in
+        processInfoOutputList infs
+      end;
 
-                     val names = PackageNameSet.toList names
-                   in
-                     Stream.map mk (Stream.fromList names)
-                   end
-                 | AncestorInfo =>
-                   let
-                     fun mk n = PackageName.toString n ^ "\n"
+  fun infoArticle {filename} infs =
+      let
+        val dir = OS.Path.dir filename
 
-                     val names = Directory.ancestors dir name
+        val sav = List.exists (savableInfo o fst) infs
 
-                     val names = PackageNameSet.toList names
-                   in
-                     Stream.map mk (Stream.fromList names)
-                   end
-                 | ChildInfo =>
-                   let
-                     fun mk n = PackageName.toString n ^ "\n"
+        val imp = Article.empty
 
-                     val names = Directory.children dir name
+        val int = Interpretation.natural
 
-                     val names = PackageNameSet.toList names
-                   in
-                     Stream.map mk (Stream.fromList names)
-                   end
-                 | DescendentInfo =>
-                   let
-                     fun mk n = PackageName.toString n ^ "\n"
+        val art =
+            Article.fromTextFile
+              {savable = sav,
+               import = imp,
+               interpretation = int,
+               filename = filename}
 
-                     val names = Directory.descendents dir name
+        val files = [{filename = filename}]
 
-                     val names = PackageNameSet.toList names
-                   in
-                     Stream.map mk (Stream.fromList names)
-                   end
-                 | _ => raise Bug "not implemented")
-        in
-          List.app process infs
-        end
-    end;
-***)
+        val () = setDirectory {directory = dir}
+
+        val () = setArticle art
+
+        val () = setFiles files
+      in
+        processInfoOutputList infs
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1146,9 +1224,9 @@ let
           val infs = readInfoOutputList inp
         in
           case inp of
-            ArticleInput _ => raise Bug "not implemented"
+            ArticleInput file => infoArticle file infs
           | PackageInput name => infoPackage name infs
-          | TheoryInput _ => raise Bug "not implemented"
+          | TheoryInput file => infoTheory file infs
         end
       | (Init,[]) => init ()
       | (Install,[inp]) =>
@@ -1158,7 +1236,7 @@ let
           case inp of
             ArticleInput _ => commandUsage cmd "cannot install an article"
           | PackageInput _ => raise Bug "not implemented"
-          | TheoryInput filename => installTheory filename
+          | TheoryInput file => installTheory file
         end
       | (List,[]) => list ()
       | (Uninstall,[pkg]) => uninstall pkg
