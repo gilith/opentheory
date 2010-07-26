@@ -95,7 +95,8 @@ local
       let
         fun isInitialChar c = Char.isLower c
 
-        fun isSubsequentChar c = Char.isAlphaNum c
+        fun isSubsequentChar c =
+            c = #"-" orelse Char.isLower c orelse Char.isDigit c
       in
         (some isInitialChar ++ many (some isSubsequentChar)) >>
         (fn (c,cs) => implode (c :: cs))

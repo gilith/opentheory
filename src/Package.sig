@@ -55,6 +55,10 @@ val packages : package -> PackageName.name list
 (* Extra file dependencies.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+val mkExtraFile : {name : string, filename : string} -> Tag.tag
+
+val destExtraFile : Tag.tag -> {name : string, filename : string} option
+
 val extraFiles : package -> {name : string, filename : string} list
 
 (* ------------------------------------------------------------------------- *)

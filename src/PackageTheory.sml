@@ -299,6 +299,8 @@ fun destTheory thy =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val escapeCharsFilename = [quoteChar];
+
 val ppArticleKeyword = Print.ppString articleKeywordString
 and ppCloseBlock = Print.ppChar closeBlockChar
 and ppImportKeyword = Print.ppString importKeywordString
@@ -319,10 +321,10 @@ fun ppBlock ppX x =
 
 val ppName = PackageBase.pp;
 
-fun ppQuotedFilename {filename} =
+fun ppFilename {filename} =
     Print.program
       [ppQuote,
-       Print.ppString filename,
+       Print.ppEscapeString {escape = escapeCharsFilename} filename,
        ppQuote];
 
 local
@@ -336,7 +338,7 @@ in
   fun ppConstraint c =
       case c of
         ArticleConstraint f =>
-        ppNameValue ppArticleKeyword (ppQuotedFilename f)
+        ppNameValue ppArticleKeyword (ppFilename f)
       | ImportConstraint r =>
         ppNameValue ppImportKeyword (ppName r)
       | InterpretConstraint r =>
@@ -384,6 +386,8 @@ fun ppList thys =
           (pp thy :: map ppThy thys)
       end;
 
+val toStringFilename = Print.toString ppFilename;
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -409,7 +413,7 @@ local
 
   val filenameParser =
       let
-        val fileParser = escapeString {escape = [quoteChar]}
+        val fileParser = escapeString {escape = escapeCharsFilename}
       in
         (quoteParser ++ fileParser ++ quoteParser) >>
         (fn ((),(f,())) => {filename = f})

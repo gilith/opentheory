@@ -81,9 +81,13 @@ val sort : theory list -> theory list
 
 val ppName : name Print.pp
 
+val ppFilename : {filename : string} Print.pp
+
 val pp : theory Print.pp
 
 val ppList : theory list Print.pp
+
+val toStringFilename : {filename : string} -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)

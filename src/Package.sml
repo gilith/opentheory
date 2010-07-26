@@ -83,24 +83,33 @@ fun packages pkg = PackageTheory.packages (theories pkg);
 (* File dependencies.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun dest tag =
-      let
-        val name = Tag.name tag
-      in
-        if not (String.isSuffix fileSuffixTag name) then NONE
-        else
-          let
-            val value = Tag.value tag
+fun mkExtraFile {name,filename} =
+    let
+(*OpenTheoryDebug
+      val _ = String.isSuffix fileSuffixTag name orelse
+              raise Bug "Package.mkExtraFile"
+*)
+      val value = PackageTheory.toStringFilename {filename = filename}
+    in
+      Tag.mk (Tag.Tag' {name = name, value = value})
+    end;
 
-            val {filename} = PackageTheory.fromStringFilename value
-          in
-            SOME {name = name, filename = filename}
-          end
-      end;
-in
-  fun extraFiles pkg = List.mapPartial dest (tags pkg);
-end;
+fun destExtraFile tag =
+    let
+      val name = Tag.name tag
+    in
+      if not (String.isSuffix fileSuffixTag name) then NONE
+      else
+        let
+          val value = Tag.value tag
+
+          val {filename} = PackageTheory.fromStringFilename value
+        in
+          SOME {name = name, filename = filename}
+        end
+    end;
+
+fun extraFiles pkg = List.mapPartial destExtraFile (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

@@ -153,15 +153,14 @@ fun toStringError err =
      | FilenameClashError {srcs,dest} =>
        let
          fun toStringSrc {name,filename} =
-             "\n  " ^ name ^
+             name ^
              (case filename of
-                SOME sf => " " ^ sf
+                SOME sf => ": " ^ PackageTheory.toStringFilename {filename = sf}
               | NONE => "")
-
-         val {filename = df} = dest
        in
-         "filename clash in package directory: " ^ df ^
-         String.concat (map toStringSrc srcs)
+         "filename clash in package directory:\n" ^
+         "Package file " ^ PackageTheory.toStringFilename dest ^ "\n" ^
+         " is target for " ^ join "\n  and also for " (map toStringSrc srcs)
        end
      | InstalledDescendentError name =>
        "in use by installed package: " ^ PackageName.toString name
@@ -498,8 +497,6 @@ fun closePackageSet f =
       add PackageNameSet.empty
     end;
 
-fun closePackageSet1 f n = closePackageSet f (PackageNameSet.singleton n);
-
 fun sortPackageSet f s =
     let
       fun dfsCheck (name,(seen,acc)) =
@@ -553,9 +550,19 @@ fun childrenPackageDeps (PackageDeps {children,...}) name =
       SOME cs => cs
     | NONE => PackageNameSet.empty;
 
-fun ancestorsPackageDeps deps = closePackageSet1 (parentsPackageDeps deps);
+fun ancestorsPackageDeps deps =
+    let
+      val step = parentsPackageDeps deps
+    in
+      fn name => closePackageSet step (step name)
+    end;
 
-fun descendentsPackageDeps deps = closePackageSet1 (childrenPackageDeps deps);
+fun descendentsPackageDeps deps =
+    let
+      val step = childrenPackageDeps deps
+    in
+      fn name => closePackageSet step (step name)
+    end;
 
 fun addPackageDeps deps (p,c) =
     let
@@ -746,7 +753,12 @@ fun parents dir name =
 
 fun sortByAge dir set = sortPackageSet (parents dir) set;
 
-fun ancestors dir = closePackageSet1 (parents dir);
+fun ancestors dir =
+    let
+      val step = parents dir
+    in
+      fn name => closePackageSet step (step name)
+    end;
 
 fun ancestorsSet dir names = closePackageSet (parents dir) names;
 
@@ -944,7 +956,7 @@ in
 
         val plan = mkFileCopyPlan info pkg
 
-(*OpenTheoryDebug
+(*OpenTheoryTrace1
         val () =
             Print.trace ppFileCopyPlan "Directory.checkStageTheory: plan" plan
 *)
@@ -998,11 +1010,46 @@ local
         | _ => thy
       end;
 
+  fun copyExtraFile srcDir info tag =
+      case Package.destExtraFile tag of
+        NONE => tag
+      | SOME {name,filename} =>
+        let
+          val srcFilename = OS.Path.concat (srcDir,filename)
+
+          val {filename = pkgFilename} =
+              normalizeExtraFile {filename = filename}
+
+          val {filename = destFilename} =
+              PackageInfo.joinDirectory info {filename = pkgFilename}
+
+          val cmd = "cp " ^ srcFilename ^ " " ^ destFilename
+
+(*OpenTheoryTrace1
+          val () = print (cmd ^ "\n")
+*)
+
+          val () =
+              if OS.Process.isSuccess (OS.Process.system cmd) then ()
+              else raise Error "copy failed"
+        in
+          Package.mkExtraFile {name = name, filename = pkgFilename}
+        end;
+
   fun copyArticles srcDir info pkg =
       let
         val Package.Package' {tags,theories} = Package.dest pkg
 
         val theories = map (copyArticle srcDir info) theories
+      in
+        Package.mk (Package.Package' {tags = tags, theories = theories})
+      end;
+
+  fun copyExtraFiles srcDir info pkg =
+      let
+        val Package.Package' {tags,theories} = Package.dest pkg
+
+        val tags = map (copyExtraFile srcDir info) tags
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
@@ -1030,7 +1077,7 @@ in
 
           (* Copy the extra files over *)
 
-          val () = warn "FIXME: copy the extra files over"
+          val pkg = copyExtraFiles srcDir stageInfo pkg
 
           (* Write the new theory file *)
 
