@@ -154,18 +154,22 @@ src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
 src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 ###############################################################################
-# Initialize following a repo clone.
+# Initialization following a repo clone.
 ###############################################################################
+
+PACKAGE_DIR = test/directory
+
+THEORY_DIR = test/theories
 
 .PHONY: init
 init:
 	$(MAKE) $(OPENTHEORY)
-	rm -rf test/directory
-	$(OPENTHEORY) -d test/directory init
-	$(OPENTHEORY) -d test/directory install test/theories/empty/empty.thy
-	$(OPENTHEORY) -d test/directory install test/theories/bool-true-def/bool-true-def.thy
-	$(OPENTHEORY) -d test/directory install test/theories/bool-true-thm/bool-true-thm.thy
-	$(OPENTHEORY) -d test/directory install test/theories/bool-true/bool-true.thy
+	rm -rf $(PACKAGE_DIR)
+	$(OPENTHEORY) -d $(PACKAGE_DIR) init
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/empty/empty.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true-def/bool-true-def.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true-thm/bool-true-thm.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true/bool-true.thy
 
 ###############################################################################
 # Counting the number of lines of code.
@@ -186,16 +190,16 @@ lines: $(LINES)
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
-	$(OPENTHEORY) -d test/directory install --reinstall test/theories/empty/empty.thy
-	$(OPENTHEORY) -d test/directory install --reinstall test/theories/bool-true/bool-true.thy
-	$(OPENTHEORY) -d test/directory install --reinstall test/theories/bool/bool.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/empty/empty.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/bool-true/bool-true.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/bool/bool.thy
 
 ###############################################################################
 # Create a snapshop of all theory packages.
 ###############################################################################
 
-repo/packages.tgz: test/directory/packages
-	cd test/directory && tar cvzf ../../$@ --exclude .gitignore packages
+repo/packages.tgz: $(PACKAGE_DIR)/packages
+	cd $(PACKAGE_DIR) && tar cvzf ../../$@ --exclude .gitignore packages
 
 ###############################################################################
 # Profiling using MLton.
