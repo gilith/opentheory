@@ -10,7 +10,7 @@ sig
 (* Article filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val isArticleFilename : {filename : string} -> bool
+val isArticleFile : {filename : string} -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A type of directory operation errors.                                     *)
@@ -156,6 +156,12 @@ val installStaged : directory -> PackageName.name -> unit
 val checkUninstall : directory -> PackageName.name -> error list
 
 val uninstall : directory -> PackageName.name -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Make tarball ready for uploading.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val tarball : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)

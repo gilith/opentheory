@@ -138,8 +138,6 @@ src/Print.sig: ../basic/src/Print.sig $(COPY) ; @$(COPY) $< $@
 src/Print.sml: ../basic/src/Print.sml $(COPY) ; @$(COPY) $< $@
 src/Random.sig: ../basic/src/Random.sig $(COPY) ; @$(COPY) $< $@
 src/Random.sml: ../basic/src/Random.sml $(COPY) ; @$(COPY) $< $@
-src/RandomMap.sml: ../basic/src/RandomMap.sml $(COPY) ; @$(COPY) $< $@
-src/RandomSet.sml: ../basic/src/RandomSet.sml $(COPY) ; @$(COPY) $< $@
 src/Set.sig: ../basic/src/Set.sig $(COPY) ; @$(COPY) $< $@
 src/Set.sml: ../basic/src/Set.sml $(COPY) ; @$(COPY) $< $@
 src/Sharing.sig: ../basic/src/Sharing.sig $(COPY) ; @$(COPY) $< $@
@@ -192,7 +190,7 @@ lines: $(LINES)
 compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/empty/empty.thy
 	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/bool-true/bool-true.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/bool/bool.thy
+#	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/bool/bool.thy
 
 ###############################################################################
 # Create a snapshop of all theory packages.

@@ -59,6 +59,9 @@ val mkExtraFile : {name : string, filename : string} -> Tag.tag
 
 val destExtraFile : Tag.tag -> {name : string, filename : string} option
 
+val filenameExtraFile :
+    {name : string, filename : string} -> {filename : string}
+
 val extraFiles : package -> {name : string, filename : string} list
 
 (* ------------------------------------------------------------------------- *)

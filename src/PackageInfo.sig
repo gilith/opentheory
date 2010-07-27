@@ -10,7 +10,7 @@ sig
 (* Theory filenames.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val isTheoryFilename : {filename : string} -> bool
+val isTheoryFile : {filename : string} -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
@@ -51,6 +51,8 @@ val theoryFile : info -> {filename : string}
 val articles : info -> {filename : string} list
 
 val extraFiles : info -> {name : string, filename : string} list
+
+val allFiles : info -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)

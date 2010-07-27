@@ -111,6 +111,8 @@ fun destExtraFile tag =
 
 fun extraFiles pkg = List.mapPartial destExtraFile (tags pkg);
 
+fun filenameExtraFile {name = _, filename} = {filename = filename};
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

@@ -454,8 +454,8 @@ fun fromStringInput cmd inp =
       let
         val filename = {filename = inp}
       in
-        if Directory.isArticleFilename filename then ArticleInput filename
-        else if PackageInfo.isTheoryFilename filename then TheoryInput filename
+        if Directory.isArticleFile filename then ArticleInput filename
+        else if PackageInfo.isTheoryFile filename then TheoryInput filename
         else commandUsage cmd ("unknown type of input: " ^ inp)
       end;
 
@@ -483,8 +483,6 @@ fun help () = usage "displaying command help";
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun extraFilename {name = _, filename} = {filename = filename};
-
   fun getCached r f () =
       case !r of
         SOME x => x
@@ -554,30 +552,13 @@ local
         case getInfo () of
           SOME info =>
           let
-            val files =
-                PackageInfo.theoryFile info ::
-                PackageInfo.articles info @
-                map extraFilename (PackageInfo.extraFiles info)
+            val files = PackageInfo.allFiles info
+
+            val files = map (PackageInfo.joinDirectory info) files
           in
             SOME files
           end
-        | NONE =>
-          case getPackage () of
-            SOME pkg =>
-            let
-              val joinDir =
-                  case getDirectory () of
-                    NONE => I
-                  | SOME {directory = dir} =>
-                    fn {filename} => {filename = OS.Path.concat (dir,filename)}
-
-              val files =
-                  Package.articles pkg @
-                  map extraFilename (Package.extraFiles pkg)
-            in
-              SOME (map joinDir files)
-            end
-          | NONE => NONE;
+        | NONE => NONE;
   in
     fun setFiles files = cache := SOME (SOME files);
 
@@ -866,7 +847,7 @@ in
         val files =
             {filename = filename} ::
             map joinDir (Package.articles pkg) @
-            map (joinDir o extraFilename) (Package.extraFiles pkg)
+            map (joinDir o Package.filenameExtraFile) (Package.extraFiles pkg)
 
         val () = setDirectory {directory = dir}
 

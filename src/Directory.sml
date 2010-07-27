@@ -77,12 +77,12 @@ end;
 (* Article filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun isArticleFilename {filename} =
+fun isArticleFile {filename} =
     case OS.Path.ext (OS.Path.file filename) of
       SOME ext => ext = articleFileExtension
     | NONE => false;
 
-fun normalizeArticleFilename {filename} =
+fun normalizeArticleFile {filename} =
     let
       val filename =
           OS.Path.joinBaseExt
@@ -872,7 +872,7 @@ local
 
               val dest =
                   PackageInfo.joinDirectory info
-                    (normalizeArticleFilename {filename = filename})
+                    (normalizeArticleFile {filename = filename})
             in
               add (src,dest) plan
             end
@@ -987,7 +987,7 @@ local
                    filename = srcFilename}
 
             val {filename = pkgFilename} =
-                normalizeArticleFilename {filename = filename}
+                normalizeArticleFile {filename = filename}
 
             val {filename = destFilename} =
                 PackageInfo.joinDirectory info {filename = pkgFilename}
@@ -1171,6 +1171,12 @@ fun uninstall dir name =
     in
       ()
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Make tarball ready for uploading.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun tarball dir name = raise Bug "Directory.tarball";
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)

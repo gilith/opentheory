@@ -21,13 +21,16 @@ val theoryFileExtension = "thy";
 fun mkTheoryFile pkg =
     let
       val base = PackageName.base pkg
+
+      val filename =
+          OS.Path.joinBaseExt
+            {base = PackageBase.toString base,
+             ext = SOME theoryFileExtension}
     in
-      OS.Path.joinBaseExt
-        {base = PackageBase.toString base,
-         ext = SOME theoryFileExtension}
+      {filename = filename}
     end;
 
-fun isTheoryFilename {filename} =
+fun isTheoryFile {filename} =
     case OS.Path.ext (OS.Path.file filename) of
       SOME ext => ext = theoryFileExtension
     | NONE => false;
@@ -111,12 +114,7 @@ fun isInstalled info = existsDirectory info;
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryFile info =
-    let
-      val file = mkTheoryFile (name info)
-    in
-      joinDirectory info {filename = file}
-    end;
+fun theoryFile info = mkTheoryFile (name info);
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)
@@ -130,7 +128,7 @@ fun package info =
         SOME p => p
       | NONE =>
         let
-          val filename = theoryFile info
+          val filename = joinDirectory info (theoryFile info)
 
           val p = Package.fromTextFile filename
 
@@ -144,26 +142,14 @@ fun package info =
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun articles info =
-    let
-      val pkg = package info
-    in
-      map (joinDirectory info) (Package.articles pkg)
-    end;
+fun articles info = Package.articles (package info);
 
-fun extraFiles info =
-    let
-      fun join {name,filename} =
-          let
-            val {filename} = joinDirectory info {filename = filename}
-          in
-            {name = name, filename = filename}
-          end
+fun extraFiles info = Package.extraFiles (package info);
 
-      val pkg = package info
-    in
-      map join (Package.extraFiles pkg)
-    end;
+fun allFiles info =
+    theoryFile info ::
+    articles info @
+    map Package.filenameExtraFile (extraFiles info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
