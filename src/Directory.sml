@@ -870,9 +870,7 @@ local
             let
               val src = {name = "article file", filename = SOME filename}
 
-              val dest =
-                  PackageInfo.joinDirectory info
-                    (normalizeArticleFile {filename = filename})
+              val dest = normalizeArticleFile {filename = filename}
             in
               add (src,dest) plan
             end
@@ -881,9 +879,7 @@ local
             let
               val src = {name = name, filename = SOME filename}
 
-              val dest =
-                  PackageInfo.joinDirectory info
-                    (normalizeExtraFile {filename = filename})
+              val dest = normalizeExtraFile {filename = filename}
             in
               add (src,dest) plan
             end
@@ -1083,7 +1079,9 @@ in
 
           val () =
               let
-                val {filename} = PackageInfo.theoryFile stageInfo
+                val file = PackageInfo.theoryFile stageInfo
+
+                val {filename} = PackageInfo.joinDirectory stageInfo file
               in
                 Package.toTextFile {package = pkg, filename = filename}
               end
