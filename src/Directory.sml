@@ -14,12 +14,15 @@ open Useful;
 
 val articleFileExtension = "art"
 and configFile = "config"
+and localRepoName = "local"
 and nameRepoSectionKey = "name"
 and openTheoryRepoName = "gilith"
 and openTheoryRepoUrl = "http://opentheory.gilith.com/"
 and packagesDirectory = "packages"
 and stagingDirectory = "staging"
 and repoConfigSection = "repo"
+and repoFileExtension = "pkg"
+and reposDirectory = "repos"
 and urlRepoSectionKey = "url";
 
 (* ------------------------------------------------------------------------- *)
@@ -32,18 +35,34 @@ fun renameDirectory {src,dest} = OS.FileSys.rename {old = src, new = dest};
 
 fun ppDirectory {directory} = Print.ppString directory;
 
+(* ------------------------------------------------------------------------- *)
+(* The config file.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
 fun mkConfigFilename {rootDirectory = dir} =
-    OS.Path.joinDirFile {dir = dir, file = configFile};
+    let
+      val filename = OS.Path.joinDirFile {dir = dir, file = configFile}
+    in
+      {filename = filename}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* The packages directory.                                                   *)
+(* ------------------------------------------------------------------------- *)
 
 fun mkPackagesDirectory {rootDirectory = dir} =
-    OS.Path.joinDirFile {dir = dir, file = packagesDirectory};
+    let
+      val directory = OS.Path.joinDirFile {dir = dir, file = packagesDirectory}
+    in
+      {directory = directory}
+    end;
 
 fun mkPackageDirectory root name =
     let
-      val dir = mkPackagesDirectory root
-      and file = PackageName.toString name
+      val {directory = dir} = mkPackagesDirectory root
+      and {directory = file} = PackageInfo.packageDirectory name
     in
-      OS.Path.joinDirFile {dir = dir, file = file}
+      {directory = OS.Path.joinDirFile {dir = dir, file = file}}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -51,14 +70,18 @@ fun mkPackageDirectory root name =
 (* ------------------------------------------------------------------------- *)
 
 fun mkStagingDirectory {rootDirectory = dir} =
-    OS.Path.joinDirFile {dir = dir, file = stagingDirectory};
+    let
+      val directory = OS.Path.joinDirFile {dir = dir, file = stagingDirectory}
+    in
+      {directory = directory}
+    end;
 
 fun mkStagingPackageDirectory root name =
     let
-      val dir = mkStagingDirectory root
-      and file = PackageName.toString name
+      val {directory = dir} = mkStagingDirectory root
+      and {directory = file} = PackageInfo.packageDirectory name
     in
-      OS.Path.joinDirFile {dir = dir, file = file}
+      {directory = OS.Path.joinDirFile {dir = dir, file = file}}
     end;
 
 local
@@ -72,6 +95,27 @@ in
         List.app warnFile files
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* The repos directory.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkReposDirectory {rootDirectory = dir} =
+    let
+      val directory = OS.Path.joinDirFile {dir = dir, file = reposDirectory}
+    in
+      {directory = directory}
+    end;
+
+fun mkRepoFilename root name =
+    let
+      val {directory = dir} = mkReposDirectory root
+
+      val file =
+          OS.Path.joinBaseExt {base = name, ext = SOME repoFileExtension}
+    in
+      {filename = OS.Path.joinDirFile {dir = dir, file = file}}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Article filenames.                                                        *)
@@ -145,6 +189,8 @@ fun isFatalError err =
     | NotInstalledError => true
     | UninstalledParentError _ => true;
 
+val existsFatalError = List.exists isFatalError;
+
 fun toStringError err =
     (if isFatalError err then "Error" else "Warning") ^ ": " ^
     (case err of
@@ -208,6 +254,8 @@ fun filenamesRepo repo pkg =
 fun containsRepo repo pkg = Option.isSome (filenamesRepo repo pkg);
 
 val ppRepo = Print.ppMap nameRepo Print.ppString;
+
+val toStringRepo = Print.toString ppRepo;
 
 val openTheoryRepo =
     mkRepo
@@ -432,6 +480,13 @@ in
       PackageNameMap.foldl addName PackageNameSet.empty pkgs;
 end;
 
+fun appPackages f =
+    let
+      fun f' (_,info) = f info
+    in
+      fn Packages pkgs => PackageNameMap.app f' pkgs
+    end;
+
 fun foldlPackages f =
     let
       fun f' (_,info,acc) = f (info,acc)
@@ -589,7 +644,7 @@ fun addInfoPackageDeps deps info =
       val name = PackageInfo.name info
       and pars = PackageInfo.packages info
     in
-      List.foldl (fn (p,d) => addPackageDeps d (p,name)) deps pars
+      PackageNameSet.foldl (fn (p,d) => addPackageDeps d (p,name)) deps pars
     end;
 
 val fromPackagesPackageDeps =
@@ -624,21 +679,28 @@ fun create {rootDirectory} =
           let
             val dir = mkPackagesDirectory {rootDirectory = rootDirectory}
           in
-            createDirectory {directory = dir}
+            createDirectory dir
           end
 
       val () =
           let
             val dir = mkStagingDirectory {rootDirectory = rootDirectory}
           in
-            createDirectory {directory = dir}
+            createDirectory dir
+          end
+
+      val () =
+          let
+            val dir = mkReposDirectory {rootDirectory = rootDirectory}
+          in
+            createDirectory dir
           end
 
       val config = defaultConfig
 
       val () =
           let
-            val filename = mkConfigFilename {rootDirectory = rootDirectory}
+            val {filename} = mkConfigFilename {rootDirectory = rootDirectory}
           in
             writeConfig {config = config, filename = filename}
           end
@@ -657,21 +719,21 @@ fun mk {rootDirectory} =
           let
             val filename = mkConfigFilename {rootDirectory = rootDirectory}
           in
-            readConfig {filename = filename}
+            readConfig filename
           end
 
       val packages =
           let
             val directory = mkPackagesDirectory {rootDirectory = rootDirectory}
           in
-            ref (readPackages {directory = directory})
+            ref (readPackages directory)
           end
 
       val () =
           let
             val directory = mkStagingDirectory {rootDirectory = rootDirectory}
 
-            val () = checkStagingDirectory {directory = directory}
+            val () = checkStagingDirectory directory
           in
             ()
           end
@@ -706,7 +768,7 @@ fun packageDirectory dir name =
 
 fun packageInfo dir name =
     let
-      val directory = packageDirectory dir name
+      val {directory} = packageDirectory dir name
     in
       PackageInfo.mk {name = name, directory = directory}
     end;
@@ -720,9 +782,30 @@ fun stagingPackageDirectory dir name =
 
 fun stagingPackageInfo dir name =
     let
-      val directory = stagingPackageDirectory dir name
+      val {directory} = stagingPackageDirectory dir name
     in
       PackageInfo.mk {name = name, directory = directory}
+    end;
+
+fun reposDirectory dir =
+    let
+      val Directory {rootDirectory = root, ...} = dir
+    in
+      mkReposDirectory {rootDirectory = root}
+    end;
+
+fun repoFilename dir repo =
+    let
+      val Directory {rootDirectory = root, ...} = dir
+    in
+      mkRepoFilename {rootDirectory = root} (nameRepo repo)
+    end;
+
+fun localRepoFilename dir =
+    let
+      val Directory {rootDirectory = root, ...} = dir
+    in
+      mkRepoFilename {rootDirectory = root} localRepoName
     end;
 
 val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
@@ -748,7 +831,7 @@ fun installed dir name = Option.isSome (peek dir name);
 
 fun parents dir name =
     case peek dir name of
-      SOME info => PackageNameSet.fromList (PackageInfo.packages info)
+      SOME info => PackageInfo.packages info
     | NONE => raise Bug "Directory.parents";
 
 fun sortByAge dir set = sortPackageSet (parents dir) set;
@@ -804,23 +887,6 @@ fun descendentsByAge dir name =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Nuke a theory package (be warned: this is not very polite).               *)
-(* ------------------------------------------------------------------------- *)
-
-fun nuke dir name =
-    let
-      val Directory {packages as ref pkgs, ...} = dir
-
-      val info = packageInfo dir name
-
-      val () = PackageInfo.nukeDirectory info
-
-      val () = packages := removePackages pkgs name
-    in
-      ()
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -832,6 +898,51 @@ fun list dir =
     end;
 
 fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
+
+(* ------------------------------------------------------------------------- *)
+(* Updating the local package list.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun initLocal dir =
+    let
+      val {filename} = localRepoFilename dir
+    in
+      OS.FileSys.remove filename
+      handle OS.SysErr _ => ()
+    end;
+
+fun addLocal dir info =
+    let
+      val name = PackageInfo.name info
+      and chk = PackageInfo.readChecksum info
+
+      val {filename} = localRepoFilename dir
+
+      val cmd =
+          "echo \"" ^ PackageName.toString name ^ " " ^ chk ^ "\"" ^
+          " >> " ^ filename
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "adding to the installed package list failed"
+    in
+      ()
+    end;
+
+fun updateLocal dir =
+    let
+      val pkgs = packages dir
+
+      val () = initLocal dir
+
+      val () = appPackages (addLocal dir) pkgs
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Staging theory files for installation.                                    *)
@@ -1055,7 +1166,7 @@ in
 (*OpenTheoryDebug
         val errs = checkStageTheory dir name pkg
 
-        val _ = not (List.exists isFatalError errs) orelse
+        val _ = not (existsFatalError errs) orelse
                 raise Bug "Directory.stageTheory: fatal error"
 *)
         (* Make a package info for the stage directory *)
@@ -1085,6 +1196,14 @@ in
               in
                 Package.toTextFile {package = pkg, filename = filename}
               end
+
+          (* Create the tarball *)
+
+          val () = PackageInfo.createTarball stageInfo
+
+          (* Create the checksum *)
+
+          val () = PackageInfo.createChecksum stageInfo
         in
           ()
         end
@@ -1115,6 +1234,10 @@ fun installStaged dir name =
         val {directory = pkgDir} = PackageInfo.directory pkgInfo
 
         val () = renameDirectory {src = stageDir, dest = pkgDir}
+
+        (* Add to the checksum list of installed packages *)
+
+        val () = addLocal dir pkgInfo
 
         (* Update the list of installed packages *)
 
@@ -1159,29 +1282,58 @@ fun checkUninstall dir name =
 fun uninstall dir name =
     let
 (*OpenTheoryDebug
-        val _ = not (List.exists isFatalError (checkUninstall dir name)) orelse
+        val errs = checkUninstall dir name
+
+        val _ = not (existsFatalError errs) orelse
                 raise Bug "Directory.uninstall: fatal error"
 *)
 
-      (* Nuke the theory package *)
+      val Directory {packages as ref pkgs, ...} = dir
 
-      val () = nuke dir name
+      val info = packageInfo dir name
+
+      (* Nuke the package directory *)
+
+      val () = PackageInfo.nukeDirectory info
+
+      (* Update the list of installed packages *)
+
+      val () = packages := removePackages pkgs name
+
+      (* Update the checksum list of installed packages *)
+
+      val () = updateLocal dir
     in
       ()
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Make tarball ready for uploading.                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun tarball dir name = raise Bug "Directory.tarball";
-
-(* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun upload dir repo pkg =
-    raise Bug "Directory.upload: not implemented";
+fun checkUpload dir repo name =
+    if not (installed dir name) then [NotInstalledError]
+    else
+      let
+        val errs = []
+      in
+        errs
+      end;
+
+fun upload dir repo name =
+    let
+(*OpenTheoryDebug
+        val errs = checkUpload dir repo name
+
+        val _ = not (existsFatalError errs) orelse
+                raise Bug "Directory.upload: fatal error"
+*)
+
+      val info = packageInfo dir name
+
+    in
+      raise Bug "Directory.upload: not implemented"
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages from a repo to the package directory.                *)

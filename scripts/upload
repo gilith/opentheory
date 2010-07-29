@@ -60,7 +60,7 @@ sub upload_dir {
 my @repo_exclusions =
    ();
 
-my $repo_remote_dir = "public_html/research/opentheory/repo";
+my $repo_remote_dir = "public_opentheory";
 upload_dir "repo", $repo_remote_dir, \@repo_exclusions;
 
 __END__

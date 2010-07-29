@@ -7,6 +7,12 @@ signature PackageInfo =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* Package directory name.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val packageDirectory : PackageName.name -> {directory : string}
+
+(* ------------------------------------------------------------------------- *)
 (* Theory filenames.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -61,9 +67,21 @@ val allFiles : info -> {filename : string} list
 val package : info -> Package.package
 
 (* ------------------------------------------------------------------------- *)
+(* Package tarball.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val tarball : info -> {filename : string}
+
+val createTarball : info -> unit
+
+val createChecksum : info -> unit
+
+val readChecksum : info -> string
+
+(* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packages : info -> PackageName.name list
+val packages : info -> PackageNameSet.set
 
 end

@@ -38,6 +38,8 @@ val removeInstalledDescendentError :
 
 val isFatalError : error -> bool
 
+val existsFatalError : error list -> bool
+
 val toStringError : error -> string
 
 val toStringErrorList : error list -> string
@@ -57,6 +59,8 @@ val containsRepo : repo -> PackageName.name -> bool
 val filenamesRepo : repo -> PackageName.name -> {filename : string} list option
 
 val ppRepo : repo Print.pp
+
+val toStringRepo : repo -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
@@ -158,14 +162,16 @@ val checkUninstall : directory -> PackageName.name -> error list
 val uninstall : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Make tarball ready for uploading.                                         *)
+(* Updating the local package list.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val tarball : directory -> PackageName.name -> unit
+val updateLocal : directory -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
+
+val checkUpload : directory -> repo -> PackageName.name -> error list
 
 val upload : directory -> repo -> PackageName.name -> unit
 
