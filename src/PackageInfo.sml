@@ -254,25 +254,13 @@ local
 
   open Parse;
 
-  fun isChecksumChar c =
-      Char.isDigit c orelse
-      c = #"a" orelse c = #"b" orelse c = #"c" orelse
-      c = #"d" orelse c = #"e" orelse c = #"f";
-
-  val checksumCharParser = some isChecksumChar;
-
-  val checksumParser =
-      atLeastOne checksumCharParser >> (fn cs => {checksum = implode cs});
-
   val separatorParser = exactString " *";
 in
-  val parserChecksum = checksumParser;
-
   fun parserChecksumTarball info =
       let
         val {filename = tarFile} = tarball info
       in
-        (checksumParser ++
+        (Checksum.parser ++
          separatorParser ++
          exactString tarFile ++
          exactChar #"\n" ++

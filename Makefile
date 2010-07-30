@@ -60,6 +60,7 @@ SRC = \
   src/Parse.sig src/Parse.sml \
   src/Config.sig src/Config.sml \
   src/Tag.sig src/Tag.sml \
+  src/Checksum.sig src/Checksum.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
   src/Show.sig src/Show.sml \

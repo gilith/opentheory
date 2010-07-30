@@ -84,9 +84,7 @@ val checksum : info -> {filename : string}
 
 val createChecksum : info -> unit
 
-val parserChecksum : (char, {checksum : string}) Parse.parser
-
-val readChecksum : info -> {checksum : string}
+val readChecksum : info -> Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)

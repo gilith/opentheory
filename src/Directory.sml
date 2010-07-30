@@ -204,7 +204,7 @@ fun toStringErrorList errs = join "\n" (map toStringError errs);
 (* ------------------------------------------------------------------------- *)
 
 datatype packageChecksum =
-    PackageChecksum of {checksum : string} PackageNameMap.map;
+    PackageChecksum of Checksum.checksum PackageNameMap.map;
 
 val emptyPackageChecksum = PackageChecksum (PackageNameMap.new ());
 
@@ -237,7 +237,7 @@ in
   val parserPackageChecksum =
       (PackageName.parser ++
        exactChar #" " ++
-       PackageInfo.parserChecksum ++
+       Checksum.parser ++
        exactChar #"\n") >>
       (fn (n,((),(c,()))) => [(n,c)]);
 end;
@@ -1005,12 +1005,13 @@ fun deleteLocal dir =
 fun addLocal dir info =
     let
       val name = PackageInfo.name info
-      and {checksum = chk} = PackageInfo.readChecksum info
+      and chk = PackageInfo.readChecksum info
 
       val {filename} = localRepoFilename dir
 
       val cmd =
-          "echo \"" ^ PackageName.toString name ^ " " ^ chk ^ "\"" ^
+          "echo \"" ^ PackageName.toString name ^ " " ^
+          Checksum.toString chk ^ "\"" ^
           " >> " ^ filename
 
 (*OpenTheoryTrace1
