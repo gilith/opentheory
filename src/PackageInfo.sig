@@ -7,14 +7,10 @@ signature PackageInfo =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Package directory name.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-val packageDirectory : PackageName.name -> {directory : string}
-
-(* ------------------------------------------------------------------------- *)
 (* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
+
+val mkTarball : PackageName.name -> {filename : string}
 
 val destTarball : {filename : string} -> PackageName.name option
 
@@ -60,9 +56,9 @@ val isInstalled : info -> bool
 
 val theoryFile : info -> {filename : string}
 
-val articles : info -> {filename : string} list
+val articleFiles : info -> {filename : string} list
 
-val extraFiles : info -> {name : string, filename : string} list
+val extraFiles : info -> Package.extraFile list
 
 val allFiles : info -> {filename : string} list
 
@@ -79,6 +75,12 @@ val package : info -> Package.package
 val tarball : info -> {filename : string}
 
 val createTarball : info -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Package checksum.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val checksum : info -> {filename : string}
 
 val createChecksum : info -> unit
 

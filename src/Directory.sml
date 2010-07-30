@@ -59,7 +59,7 @@ fun mkPackagesDirectory {rootDirectory = dir} =
 fun mkPackageDirectory root name =
     let
       val {directory = dir} = mkPackagesDirectory root
-      and {directory = file} = PackageInfo.packageDirectory name
+      and file = PackageName.toString name
     in
       {directory = OS.Path.joinDirFile {dir = dir, file = file}}
     end;
@@ -78,7 +78,7 @@ fun mkStagingDirectory {rootDirectory = dir} =
 fun mkStagingPackageDirectory root name =
     let
       val {directory = dir} = mkStagingDirectory root
-      and {directory = file} = PackageInfo.packageDirectory name
+      and file = PackageName.toString name
     in
       {directory = OS.Path.joinDirFile {dir = dir, file = file}}
     end;
@@ -1044,9 +1044,6 @@ fun updateLocal dir =
 (* Staging theory files for installation.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun normalizeExtraFile {filename} =
-    {filename = OS.Path.file filename};
-
 local
   fun checkDep dir (name,errs) =
       if installed dir name then errs
@@ -1082,17 +1079,24 @@ local
               add (src,dest) plan
             end
 
-        fun addExtra ({name,filename},plan) =
+        fun addExtra (extra,plan) =
             let
+              val name = Package.nameExtraFile extra
+              and {filename} = Package.filenameExtraFile extra
+
               val src = {name = name, filename = SOME filename}
 
-              val dest = normalizeExtraFile {filename = filename}
+              val extra = Package.normalizeExtraFile extra
+
+              val dest = Package.filenameExtraFile extra
             in
               add (src,dest) plan
             end
 
         val reserved =
-            [("theory file", PackageInfo.theoryFile info)]
+            [("theory file", PackageInfo.theoryFile info),
+             ("tarball", PackageInfo.tarball info),
+             ("checksum file", PackageInfo.checksum info)]
 
         val plan = StringMap.new ()
 
@@ -1214,14 +1218,17 @@ local
       end;
 
   fun copyExtraFile srcDir info tag =
-      case Package.destExtraFile tag of
+      case Package.fromTagExtraFile tag of
         NONE => tag
-      | SOME {name,filename} =>
+      | SOME extra =>
         let
-          val srcFilename = OS.Path.concat (srcDir,filename)
+          val {filename = srcFilename} = Package.filenameExtraFile extra
 
-          val {filename = pkgFilename} =
-              normalizeExtraFile {filename = filename}
+          val srcFilename = OS.Path.concat (srcDir,srcFilename)
+
+          val extra = Package.normalizeExtraFile extra
+
+          val {filename = pkgFilename} = Package.filenameExtraFile extra
 
           val {filename = destFilename} =
               PackageInfo.joinDirectory info {filename = pkgFilename}
@@ -1236,7 +1243,7 @@ local
               if OS.Process.isSuccess (OS.Process.system cmd) then ()
               else raise Error "copy failed"
         in
-          Package.mkExtraFile {name = name, filename = pkgFilename}
+          Package.toTagExtraFile extra
         end;
 
   fun copyArticles srcDir info pkg =

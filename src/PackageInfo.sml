@@ -16,19 +16,6 @@ val checksumFilename = "checksum.txt"
 and tarballFileExtension = "tgz";
 
 (* ------------------------------------------------------------------------- *)
-(* Package directory name.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun packageDirectory name = {directory = PackageName.toString name};
-
-fun joinPackageDirectory name =
-    let
-      val {directory = dir} = packageDirectory name
-    in
-      fn {filename} => {filename = OS.Path.concat (dir,filename)}
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -171,13 +158,13 @@ fun package info =
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun articles info = Package.articles (package info);
+fun articleFiles info = Package.articles (package info);
 
 fun extraFiles info = Package.extraFiles (package info);
 
 fun allFiles info =
     theoryFile info ::
-    articles info @
+    articleFiles info @
     map Package.filenameExtraFile (extraFiles info);
 
 (* ------------------------------------------------------------------------- *)
@@ -223,13 +210,21 @@ fun createTarball info =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Package checksum.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun checksum (_ : info) = {filename = checksumFilename};
+
 fun createChecksum info =
     let
       val {directory = dir} = directory info
 
       val {filename = tarFile} = tarball info
 
-      val cmd = "sha1sum --binary " ^ tarFile ^ " > " ^ checksumFilename
+      val {filename = chkFile} = checksum info
+
+      val cmd = "sha1sum --binary " ^ tarFile ^ " > " ^ chkFile
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")
@@ -287,7 +282,7 @@ end;
 
 fun readChecksum info =
     let
-      val file = joinDirectory info {filename = checksumFilename}
+      val file = joinDirectory info (checksum info)
 
       val strm = Stream.fromTextFile file
 

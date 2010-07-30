@@ -111,18 +111,34 @@ fun packages pkg = PackageTheory.packages (theories pkg);
 (* File dependencies.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkExtraFile {name,filename} =
+datatype extraFile =
+    ExtraFile of
+      {name : string,
+       filename : string};
+
+fun nameExtraFile (ExtraFile {name = x, ...}) = x;
+
+fun filenameExtraFile (ExtraFile {filename = x, ...}) = {filename = x};
+
+fun normalizeExtraFile (ExtraFile {name,filename}) =
+    let
+      val filename = OS.Path.file filename
+    in
+      ExtraFile {name = name, filename = filename}
+    end;
+
+fun toTagExtraFile (ExtraFile {name,filename}) =
     let
 (*OpenTheoryDebug
       val _ = String.isSuffix fileSuffixTag name orelse
-              raise Bug "Package.mkExtraFile"
+              raise Bug "Package.toTagExtraFile"
 *)
       val value = PackageTheory.toStringFilename {filename = filename}
     in
       Tag.mk (Tag.Tag' {name = name, value = value})
     end;
 
-fun destExtraFile tag =
+fun fromTagExtraFile tag =
     let
       val name = Tag.name tag
     in
@@ -133,13 +149,11 @@ fun destExtraFile tag =
 
           val {filename} = PackageTheory.fromStringFilename value
         in
-          SOME {name = name, filename = filename}
+          SOME (ExtraFile {name = name, filename = filename})
         end
     end;
 
-fun extraFiles pkg = List.mapPartial destExtraFile (tags pkg);
-
-fun filenameExtraFile {name = _, filename} = {filename = filename};
+fun extraFiles pkg = List.mapPartial fromTagExtraFile (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

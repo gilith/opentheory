@@ -65,14 +65,19 @@ val packages : package -> PackageName.name list
 (* Extra file dependencies.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val mkExtraFile : {name : string, filename : string} -> Tag.tag
+type extraFile
 
-val destExtraFile : Tag.tag -> {name : string, filename : string} option
+val nameExtraFile : extraFile -> string
 
-val filenameExtraFile :
-    {name : string, filename : string} -> {filename : string}
+val filenameExtraFile : extraFile -> {filename : string}
 
-val extraFiles : package -> {name : string, filename : string} list
+val normalizeExtraFile : extraFile -> extraFile
+
+val toTagExtraFile : extraFile -> Tag.tag
+
+val fromTagExtraFile : Tag.tag -> extraFile option
+
+val extraFiles : package -> extraFile list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
