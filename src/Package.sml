@@ -12,9 +12,37 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val fileSuffixTag = "-file"
+val fileExtension = "thy"
+and fileSuffixTag = "-file"
 and nameTag = "name"
 and versionTag = "version";
+
+(* ------------------------------------------------------------------------- *)
+(* Theory package filenames.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkFilename base =
+    let
+      val filename =
+          OS.Path.joinBaseExt
+            {base = PackageBase.toString base,
+             ext = SOME fileExtension}
+    in
+      {filename = filename}
+    end;
+
+fun destFilename {filename} =
+    let
+      val {base,ext} = OS.Path.splitBaseExt (OS.Path.file filename)
+    in
+      case ext of
+        NONE => NONE
+      | SOME x =>
+        if x <> fileExtension then NONE
+        else total PackageBase.fromString base
+    end;
+
+fun isFilename file = Option.isSome (destFilename file);
 
 (* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)

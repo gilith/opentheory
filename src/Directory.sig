@@ -7,12 +7,6 @@ signature Directory =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Article filenames.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-val isArticleFile : {filename : string} -> bool
-
-(* ------------------------------------------------------------------------- *)
 (* A type of directory operation errors.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -50,13 +44,11 @@ val toStringErrorList : error list -> string
 
 type repo
 
-val mkRepo : {name : string, url : string} -> repo
+val mkRepo : {name : string, url : string, filename : string} -> repo
 
 val nameRepo : repo -> string
 
 val containsRepo : repo -> PackageName.name -> bool
-
-val filenamesRepo : repo -> PackageName.name -> {filename : string} list option
 
 val ppRepo : repo Print.pp
 
@@ -69,8 +61,6 @@ val toStringRepo : repo -> string
 type config
 
 val emptyConfig : config
-
-val reposConfig : config -> repo list
 
 val readConfig : {filename : string} -> config
 

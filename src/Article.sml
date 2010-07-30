@@ -9,6 +9,31 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val fileExtension = "art";
+
+(* ------------------------------------------------------------------------- *)
+(* Article filenames.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun isFilename {filename} =
+    case OS.Path.ext (OS.Path.file filename) of
+      SOME ext => ext = fileExtension
+    | NONE => false;
+
+fun normalizeFilename {filename} =
+    let
+      val filename =
+          OS.Path.joinBaseExt
+            {base = OS.Path.base (OS.Path.file filename),
+             ext = SOME fileExtension}
+    in
+      {filename = filename}
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of proof articles.                                                 *)
 (* ------------------------------------------------------------------------- *)
 

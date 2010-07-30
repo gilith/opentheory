@@ -13,10 +13,12 @@ sig
 val packageDirectory : PackageName.name -> {directory : string}
 
 (* ------------------------------------------------------------------------- *)
-(* Theory filenames.                                                         *)
+(* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val isTheoryFile : {filename : string} -> bool
+val destTarball : {filename : string} -> PackageName.name option
+
+val isTarball : {filename : string} -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
@@ -27,6 +29,10 @@ type info
 val mk : {name : PackageName.name, directory : string} -> info
 
 val name : info -> PackageName.name
+
+val base : info -> PackageBase.base
+
+val version : info -> PackageVersion.version
 
 val directory : info -> {directory : string}
 
@@ -76,7 +82,9 @@ val createTarball : info -> unit
 
 val createChecksum : info -> unit
 
-val readChecksum : info -> string
+val parserChecksum : (char, {checksum : string}) Parse.parser
+
+val readChecksum : info -> {checksum : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)

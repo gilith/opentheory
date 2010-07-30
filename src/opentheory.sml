@@ -489,6 +489,7 @@ fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
 datatype input =
     ArticleInput of {filename : string}
   | PackageInput of PackageName.name
+  | TarballInput of {filename : string}
   | TheoryInput of {filename : string};
 
 fun fromStringInput cmd inp =
@@ -498,8 +499,9 @@ fun fromStringInput cmd inp =
       let
         val filename = {filename = inp}
       in
-        if Directory.isArticleFile filename then ArticleInput filename
-        else if PackageInfo.isTheoryFile filename then TheoryInput filename
+        if Article.isFilename filename then ArticleInput filename
+        else if PackageInfo.isTarball filename then TarballInput filename
+        else if Package.isFilename filename then TheoryInput filename
         else commandUsage cmd ("unknown type of input: " ^ inp)
       end;
 
@@ -507,6 +509,7 @@ fun defaultInfoOutputList inp =
     case inp of
       ArticleInput _ => [mkInfoOutput SummaryInfo]
     | PackageInput _ => [mkInfoOutput MetaInfo]
+    | TarballInput _ => [mkInfoOutput NameInfo]
     | TheoryInput _ => [mkInfoOutput SummaryInfo];
 
 fun readInfoOutputList inp =
@@ -573,6 +576,8 @@ local
             SOME pkg => SOME (Package.name pkg)
           | NONE => NONE;
   in
+    fun setName name = cache := SOME (SOME name);
+
     val getName = getCached cache compute;
   end;
 
@@ -879,6 +884,18 @@ in
           end
       end;
 
+  fun infoTarball file infs =
+      let
+        val name =
+            case PackageInfo.destTarball file of
+              SOME n => n
+            | NONE => raise Bug "infoTarball: bad filename"
+
+        val () = setName name
+      in
+        processInfoOutputList infs
+      end;
+
   fun infoTheory {filename} infs =
       let
         val dir = OS.Path.dir filename
@@ -1133,6 +1150,7 @@ let
           case inp of
             ArticleInput file => infoArticle file infs
           | PackageInput name => infoPackage name infs
+          | TarballInput file => infoTarball file infs
           | TheoryInput file => infoTheory file infs
         end
       | (Init,[]) => init ()
@@ -1143,6 +1161,7 @@ let
           case inp of
             ArticleInput _ => commandUsage cmd "cannot install an article"
           | PackageInput _ => raise Bug "not implemented"
+          | TarballInput _ => raise Bug "not implemented"
           | TheoryInput file => installTheory file
         end
       | (List,[]) => list ()

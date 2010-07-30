@@ -7,6 +7,16 @@ signature Package =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* Theory package filenames.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val mkFilename : PackageBase.base -> {filename : string}
+
+val destFilename : {filename : string} -> PackageBase.base option
+
+val isFilename : {filename : string} -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Types of theory package syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 

@@ -12,8 +12,7 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val articleFileExtension = "art"
-and configFile = "config"
+val configFile = "config"
 and localRepoName = "local"
 and nameRepoSectionKey = "name"
 and openTheoryRepoName = "gilith"
@@ -117,24 +116,7 @@ fun mkRepoFilename root name =
       {filename = OS.Path.joinDirFile {dir = dir, file = file}}
     end;
 
-(* ------------------------------------------------------------------------- *)
-(* Article filenames.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-fun isArticleFile {filename} =
-    case OS.Path.ext (OS.Path.file filename) of
-      SOME ext => ext = articleFileExtension
-    | NONE => false;
-
-fun normalizeArticleFile {filename} =
-    let
-      val filename =
-          OS.Path.joinBaseExt
-            {base = OS.Path.base (OS.Path.file filename),
-             ext = SOME articleFileExtension}
-    in
-      {filename = filename}
-    end;
+fun mkLocalRepoFilename root = mkRepoFilename root localRepoName;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of directory operation errors.                                     *)
@@ -221,19 +203,89 @@ fun toStringErrorList errs = join "\n" (map toStringError errs);
 (* Repos.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
+datatype packageChecksum =
+    PackageChecksum of {checksum : string} PackageNameMap.map;
+
+val emptyPackageChecksum = PackageChecksum (PackageNameMap.new ());
+
+fun peekPackageChecksum (PackageChecksum m) = PackageNameMap.peek m;
+
+fun memberPackageChecksum n (PackageChecksum m) = PackageNameMap.inDomain n m;
+
+fun insertPackageChecksum pc (n,c) =
+    if memberPackageChecksum n pc then
+      raise Error ("multiple entries for package " ^ PackageName.toString n)
+    else
+      let
+        val PackageChecksum m = pc
+
+        val m = PackageNameMap.insert m (n,c)
+      in
+        PackageChecksum m
+      end;
+
+fun uncurriedInsertPackageChecksum (n_c,pc) = insertPackageChecksum pc n_c;
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+in
+  val parserPackageChecksum =
+      (PackageName.parser ++
+       exactChar #" " ++
+       PackageInfo.parserChecksum ++
+       exactChar #"\n") >>
+      (fn (n,((),(c,()))) => [(n,c)]);
+end;
+
+fun fromTextFilePackageChecksum {filename} =
+    let
+      (* Estimating parse error line numbers *)
+
+      val lines = Stream.fromTextFile {filename = filename}
+
+      val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
+    in
+      (let
+         (* The character stream *)
+
+         val chars = Parse.everything Parse.any chars
+
+         (* The package stream *)
+
+         val pkgs = Parse.everything parserPackageChecksum chars
+       in
+         Stream.foldl uncurriedInsertPackageChecksum emptyPackageChecksum pkgs
+       end
+       handle Parse.NoParse => raise Error "parse error")
+      handle Error err =>
+        raise Error ("error in repo file \"" ^ filename ^ "\" " ^
+                     parseErrorLocation () ^ "\n" ^ err)
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Repos.                                                                    *)
+(* ------------------------------------------------------------------------- *)
+
 datatype repo =
     Repo of
       {name : string,
        url : string,
-       packages : {filename : string} list option PackageNameMap.map ref};
+       filename : string,
+       packages : packageChecksum option ref};
 
-fun mkRepo {name,url} =
+fun mkRepo {name,url,filename} =
     let
-      val packages = ref (PackageNameMap.new ())
+      val packages = ref NONE
     in
       Repo
         {name = name,
          url = url,
+         filename = filename,
          packages = packages}
     end;
 
@@ -241,24 +293,45 @@ fun nameRepo (Repo {name = x, ...}) = x;
 
 fun urlRepo (Repo {url = x, ...}) = x;
 
-fun filenamesRepo repo pkg =
+fun filenameRepo (Repo {filename = x, ...}) = {filename = x};
+
+fun packagesRepo repo =
     let
       val Repo {packages, ...} = repo
+
       val ref pkgs = packages
     in
-      case PackageNameMap.peek pkgs pkg of
-        SOME pf => pf
-      | NONE => raise Bug "Directory.filesRepo: web repos not implemented"
+      case pkgs of
+        SOME pc => pc
+      | NONE =>
+        let
+          val pc = fromTextFilePackageChecksum (filenameRepo repo)
+
+          val () = packages := SOME pc
+        in
+          pc
+        end
     end;
 
-fun containsRepo repo pkg = Option.isSome (filenamesRepo repo pkg);
+fun peekRepo repo pkg = peekPackageChecksum (packagesRepo repo) pkg;
+
+fun containsRepo repo pkg = Option.isSome (peekRepo repo pkg);
 
 val ppRepo = Print.ppMap nameRepo Print.ppString;
 
 val toStringRepo = Print.toString ppRepo;
 
-val openTheoryRepo =
-    mkRepo
+(* ------------------------------------------------------------------------- *)
+(* Repo configuration.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+datatype repoConfig =
+    RepoConfig of
+      {name : string,
+       url : string};
+
+val openTheoryRepoConfig =
+    RepoConfig
       {name = openTheoryRepoName,
        url = openTheoryRepoUrl};
 
@@ -268,7 +341,7 @@ val openTheoryRepo =
 
 datatype config =
     Config of
-      {repos : repo list};
+      {repos : repoConfig list};
 
 val emptyConfig =
     let
@@ -365,7 +438,7 @@ local
               | NONE =>
                 raise Error ("missing \"" ^ urlRepoSectionKey ^ "\" key")
         in
-          mkRepo
+          RepoConfig
             {name = name,
              url = url}
         end;
@@ -418,18 +491,17 @@ end;
 local
   fun toRepoSection repo =
       let
-        val n = nameRepo repo
-        and u = urlRepo repo
+        val RepoConfig {name,url} = repo
       in
         Config.Section
           {name = repoConfigSection,
            keyValues =
              [Config.KeyValue
                 {key = nameRepoSectionKey,
-                 value = n},
+                 value = name},
               Config.KeyValue
                 {key = urlRepoSectionKey,
-                 value = u}]}
+                 value = url}]}
       end;
 
   fun toSections config =
@@ -453,7 +525,7 @@ fun writeConfig {config,filename} =
 
 val defaultConfig =
     let
-      val repos = [openTheoryRepo]
+      val repos = [openTheoryRepoConfig]
     in
       Config {repos = repos}
     end;
@@ -666,6 +738,23 @@ datatype directory =
        config : config,
        packages : packages ref};
 
+fun createLocal root =
+    let
+      val {filename} = mkLocalRepoFilename root
+
+      val cmd = "touch " ^ filename
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "creating an empty installed package list failed"
+    in
+      ()
+    end;
+
 fun create {rootDirectory} =
     let
       val () =
@@ -704,6 +793,8 @@ fun create {rootDirectory} =
           in
             writeConfig {config = config, filename = filename}
           end
+
+      val () = createLocal {rootDirectory = rootDirectory}
 
       val packages = ref emptyPackages
     in
@@ -750,7 +841,7 @@ fun config (Directory {config = x, ...}) = x;
 
 fun packages (Directory {packages = ref x, ...}) = x;
 
-fun repos dir = reposConfig (config dir);
+fun repos dir = raise Bug "Directory.repos: not implemented";
 
 fun packagesDirectory dir =
     let
@@ -805,7 +896,7 @@ fun localRepoFilename dir =
     let
       val Directory {rootDirectory = root, ...} = dir
     in
-      mkRepoFilename {rootDirectory = root} localRepoName
+      mkLocalRepoFilename {rootDirectory = root}
     end;
 
 val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
@@ -903,7 +994,7 @@ fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
 (* Updating the local package list.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun initLocal dir =
+fun deleteLocal dir =
     let
       val {filename} = localRepoFilename dir
     in
@@ -914,7 +1005,7 @@ fun initLocal dir =
 fun addLocal dir info =
     let
       val name = PackageInfo.name info
-      and chk = PackageInfo.readChecksum info
+      and {checksum = chk} = PackageInfo.readChecksum info
 
       val {filename} = localRepoFilename dir
 
@@ -935,11 +1026,16 @@ fun addLocal dir info =
 
 fun updateLocal dir =
     let
-      val pkgs = packages dir
+      val () = deleteLocal dir
 
-      val () = initLocal dir
+      val () =
+          let
+            val {directory = rootDir} = root dir
+          in
+            createLocal {rootDirectory = rootDir}
+          end
 
-      val () = appPackages (addLocal dir) pkgs
+      val () = appPackages (addLocal dir) (packages dir)
     in
       ()
     end;
@@ -981,7 +1077,7 @@ local
             let
               val src = {name = "article file", filename = SOME filename}
 
-              val dest = normalizeArticleFile {filename = filename}
+              val dest = Article.normalizeFilename {filename = filename}
             in
               add (src,dest) plan
             end
@@ -1094,7 +1190,7 @@ local
                    filename = srcFilename}
 
             val {filename = pkgFilename} =
-                normalizeArticleFile {filename = filename}
+                Article.normalizeFilename {filename = filename}
 
             val {filename = destFilename} =
                 PackageInfo.joinDirectory info {filename = pkgFilename}
@@ -1227,6 +1323,10 @@ fun installStaged dir name =
       val pkgInfo = packageInfo dir name
     in
       let
+        (* Add to the checksum list of installed packages *)
+
+        val () = addLocal dir stageInfo
+
         (* Rename staged package directory to package directory *)
 
         val {directory = stageDir} = PackageInfo.directory stageInfo
@@ -1234,10 +1334,6 @@ fun installStaged dir name =
         val {directory = pkgDir} = PackageInfo.directory pkgInfo
 
         val () = renameDirectory {src = stageDir, dest = pkgDir}
-
-        (* Add to the checksum list of installed packages *)
-
-        val () = addLocal dir pkgInfo
 
         (* Update the list of installed packages *)
 

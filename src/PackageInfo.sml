@@ -13,8 +13,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val checksumFilename = "checksum.txt"
-and tarballFileExtension = "tgz"
-and theoryFileExtension = "thy";
+and tarballFileExtension = "tgz";
 
 (* ------------------------------------------------------------------------- *)
 (* Package directory name.                                                   *)
@@ -30,41 +29,31 @@ fun joinPackageDirectory name =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Theory filenames.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun mkTheoryFile name =
-    let
-      val base = PackageName.base name
-
-      val filename =
-          OS.Path.joinBaseExt
-            {base = PackageBase.toString base,
-             ext = SOME theoryFileExtension}
-    in
-      {filename = filename}
-    end;
-
-fun isTheoryFile {filename} =
-    case OS.Path.ext (OS.Path.file filename) of
-      SOME ext => ext = theoryFileExtension
-    | NONE => false;
-
-(* ------------------------------------------------------------------------- *)
 (* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 fun mkTarball name =
     let
-      val base = PackageName.base name
-
       val filename =
           OS.Path.joinBaseExt
-            {base = PackageBase.toString base,
+            {base = PackageName.toString name,
              ext = SOME tarballFileExtension}
     in
       {filename = filename}
     end;
+
+fun destTarball {filename} =
+    let
+      val {base,ext} = OS.Path.splitBaseExt (OS.Path.file filename)
+    in
+      case ext of
+        NONE => NONE
+      | SOME x =>
+        if x <> tarballFileExtension then NONE
+        else total PackageName.fromString base
+    end;
+
+fun isTarball file = Option.isSome (destTarball file);
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
@@ -87,6 +76,10 @@ fun mk {name,directory} =
     end;
 
 fun name (Info {name = x, ...}) = x;
+
+fun base info = PackageName.base (name info);
+
+fun version info = PackageName.version (name info);
 
 fun directory (Info {directory = x, ...}) = {directory = x};
 
@@ -145,7 +138,7 @@ fun isInstalled info = existsDirectory info;
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryFile info = mkTheoryFile (name info);
+fun theoryFile info = Package.mkFilename (base info);
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)
@@ -162,6 +155,11 @@ fun package info =
           val filename = joinDirectory info (theoryFile info)
 
           val p = Package.fromTextFile filename
+
+(*OpenTheoryDebug
+          val _ = PackageName.equal (name info) (Package.name p) orelse
+                  raise Bug "PackageInfo.package: different name"
+*)
 
           val () = pkg := SOME p
         in
@@ -268,19 +266,22 @@ local
 
   val checksumCharParser = some isChecksumChar;
 
-  val checksumStringParser = atLeastOne checksumCharParser >> implode;
+  val checksumParser =
+      atLeastOne checksumCharParser >> (fn cs => {checksum = implode cs});
 
   val separatorParser = exactString " *";
 in
-  fun parserChecksum info =
+  val parserChecksum = checksumParser;
+
+  fun parserChecksumTarball info =
       let
         val {filename = tarFile} = tarball info
       in
-        (checksumStringParser ++
+        (checksumParser ++
          separatorParser ++
          exactString tarFile ++
          exactChar #"\n" ++
-         finished) >> (fn (s,((),((),((),())))) => s)
+         finished) >> (fn (c,((),((),((),())))) => c)
       end
 end;
 
@@ -292,7 +293,7 @@ fun readChecksum info =
 
       val strm = Stream.listConcat (Stream.map explode strm)
     in
-      Parse.fromStream (parserChecksum info) strm
+      Parse.fromStream (parserChecksumTarball info) strm
     end
     handle Parse.NoParse => raise Error "bad checksum format";
 
