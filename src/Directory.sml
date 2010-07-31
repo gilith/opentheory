@@ -20,7 +20,6 @@ and openTheoryRepoUrl = "http://opentheory.gilith.com/"
 and packagesDirectory = "packages"
 and stagingDirectory = "staging"
 and repoConfigSection = "repo"
-and repoFileExtension = "pkg"
 and reposDirectory = "repos"
 and urlRepoSectionKey = "url";
 
@@ -110,8 +109,7 @@ fun mkRepoFilename root name =
     let
       val {directory = dir} = mkReposDirectory root
 
-      val file =
-          OS.Path.joinBaseExt {base = name, ext = SOME repoFileExtension}
+      val {filename = file} = DirectoryChecksums.mkFilename name
     in
       {filename = OS.Path.joinDirFile {dir = dir, file = file}}
     end;
