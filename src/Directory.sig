@@ -39,22 +39,6 @@ val toStringError : error -> string
 val toStringErrorList : error list -> string
 
 (* ------------------------------------------------------------------------- *)
-(* Repos.                                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-type repo
-
-val mkRepo : {name : string, url : string, filename : string} -> repo
-
-val nameRepo : repo -> string
-
-val containsRepo : repo -> PackageName.name -> bool
-
-val ppRepo : repo Print.pp
-
-val toStringRepo : repo -> string
-
-(* ------------------------------------------------------------------------- *)
 (* Configuration.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
@@ -84,7 +68,7 @@ val root : directory -> {directory : string}
 
 val config : directory -> config
 
-val repos : directory -> repo list
+val repos : directory -> DirectoryRepo.repo list
 
 val pp : directory Print.pp
 
@@ -161,15 +145,17 @@ val updateLocal : directory -> unit
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
 
-val checkUpload : directory -> repo -> PackageName.name -> error list
+val checkUpload :
+    directory -> DirectoryRepo.repo -> PackageName.name -> error list
 
-val upload : directory -> repo -> PackageName.name -> unit
+val upload :
+    directory -> DirectoryRepo.repo -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages from a repo to the package directory.                *)
 (* ------------------------------------------------------------------------- *)
 
-val download : directory -> repo -> PackageName.name -> unit
+val download : directory -> DirectoryRepo.repo -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder.                                                         *)

@@ -104,6 +104,10 @@ datatype checksums =
       {filename : string,
        packages : packages option ref};
 
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
 fun mk {filename} =
     let
       val packages = ref NONE
@@ -139,6 +143,6 @@ fun packages chks =
 
 fun peek chks n = peekPackages (packages chks) n;
 
-fun member chks n = memberPackages n (packages chks);
+fun member n chks = memberPackages n (packages chks);
 
 end

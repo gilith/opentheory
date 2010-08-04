@@ -266,60 +266,6 @@ fun fromTextFilePackageChecksum {filename} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Repos.                                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-datatype repo =
-    Repo of
-      {name : string,
-       url : string,
-       filename : string,
-       packages : packageChecksum option ref};
-
-fun mkRepo {name,url,filename} =
-    let
-      val packages = ref NONE
-    in
-      Repo
-        {name = name,
-         url = url,
-         filename = filename,
-         packages = packages}
-    end;
-
-fun nameRepo (Repo {name = x, ...}) = x;
-
-fun urlRepo (Repo {url = x, ...}) = x;
-
-fun filenameRepo (Repo {filename = x, ...}) = {filename = x};
-
-fun packagesRepo repo =
-    let
-      val Repo {packages, ...} = repo
-
-      val ref pkgs = packages
-    in
-      case pkgs of
-        SOME pc => pc
-      | NONE =>
-        let
-          val pc = fromTextFilePackageChecksum (filenameRepo repo)
-
-          val () = packages := SOME pc
-        in
-          pc
-        end
-    end;
-
-fun peekRepo repo pkg = peekPackageChecksum (packagesRepo repo) pkg;
-
-fun containsRepo repo pkg = Option.isSome (peekRepo repo pkg);
-
-val ppRepo = Print.ppMap nameRepo Print.ppString;
-
-val toStringRepo = Print.toString ppRepo;
-
-(* ------------------------------------------------------------------------- *)
 (* Repo configuration.                                                       *)
 (* ------------------------------------------------------------------------- *)
 

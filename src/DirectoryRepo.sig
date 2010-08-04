@@ -1,37 +1,45 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY CHECKSUMS                                               *)
+(* PACKAGE DIRECTORY REPOSITORIES                                            *)
 (* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature DirectoryChecksums =
+signature DirectoryRepo =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Checksums filenames.                                                      *)
+(* A type of repos.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val mkFilename : string -> {filename : string}
+type name = string
 
-(* ------------------------------------------------------------------------- *)
-(* A type of package directory checkums.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-type checksums
+type repo
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : {filename : string} -> checksums
+val mk : {name : name, url : string, filename : string} -> repo
 
-val filename : checksums -> {filename : string}
+val name : repo -> name
+
+val url : repo -> {url : string}
+
+val filename : repo -> {filename : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : checksums -> PackageName.name -> Checksum.checksum option
+val peek : repo -> PackageName.name -> Checksum.checksum option
 
-val member : PackageName.name -> checksums -> bool
+val member : PackageName.name -> repo -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : repo Print.pp
+
+val toString : repo -> string
 
 end
