@@ -29,30 +29,31 @@ fun mkFilename base =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* The pure package checksums.                                               *)
+(* A pure type of package checksums.                                         *)
 (* ------------------------------------------------------------------------- *)
 
-datatype packages = Packages of Checksum.checksum PackageNameMap.map;
+datatype pureChecksums =
+    PureChecksums of Checksum.checksum PackageNameMap.map;
 
-val emptyPackages = Packages (PackageNameMap.new ());
+val emptyPure = PureChecksums (PackageNameMap.new ());
 
-fun peekPackages (Packages m) = PackageNameMap.peek m;
+fun peekPure (PureChecksums m) = PackageNameMap.peek m;
 
-fun memberPackages n (Packages m) = PackageNameMap.inDomain n m;
+fun memberPure n (PureChecksums m) = PackageNameMap.inDomain n m;
 
-fun insertPackages pc (n,c) =
-    if memberPackages n pc then
+fun insertPure pc (n,c) =
+    if memberPure n pc then
       raise Error ("multiple entries for package " ^ PackageName.toString n)
     else
       let
-        val Packages m = pc
+        val PureChecksums m = pc
 
         val m = PackageNameMap.insert m (n,c)
       in
-        Packages m
+        PureChecksums m
       end;
 
-fun uncurriedInsertPackages (n_c,pc) = insertPackages pc n_c;
+fun uncurriedInsertPure (n_c,pc) = insertPure pc n_c;
 
 local
   infixr 9 >>++
@@ -70,7 +71,7 @@ in
       (fn (n,((),(c,()))) => [(n,c)]);
 end;
 
-fun fromTextFilePackages {filename} =
+fun fromTextFilePure {filename} =
     let
       (* Estimating parse error line numbers *)
 
@@ -87,7 +88,7 @@ fun fromTextFilePackages {filename} =
 
          val pkgs = Parse.everything parserPackageChecksum chars
        in
-         Stream.foldl uncurriedInsertPackages emptyPackages pkgs
+         Stream.foldl uncurriedInsertPure emptyPure pkgs
        end
        handle Parse.NoParse => raise Error "parse error")
       handle Error err =>
@@ -102,7 +103,7 @@ fun fromTextFilePackages {filename} =
 datatype checksums =
     Checksums of
       {filename : string,
-       packages : packages option ref};
+       checksums : pureChecksums option ref};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -110,30 +111,30 @@ datatype checksums =
 
 fun mk {filename} =
     let
-      val packages = ref NONE
+      val checksums = ref NONE
     in
       Checksums
         {filename = filename,
-         packages = packages}
+         checksums = checksums}
     end;
 
 fun filename (Checksums {filename = x, ...}) = {filename = x};
 
-fun packages chks =
+fun checksums chks =
     let
-      val Checksums {packages, ...} = chks
+      val Checksums {checksums = roc, ...} = chks
 
-      val ref pkgs = packages
+      val ref oc = roc
     in
-      case pkgs of
-        SOME pc => pc
+      case oc of
+        SOME c => c
       | NONE =>
         let
-          val pc = fromTextFilePackages (filename chks)
+          val c = fromTextFilePure (filename chks)
 
-          val () = packages := SOME pc
+          val () = roc := SOME c
         in
-          pc
+          c
         end
     end;
 
@@ -141,8 +142,8 @@ fun packages chks =
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun peek chks n = peekPackages (packages chks) n;
+fun peek chks n = peekPure (checksums chks) n;
 
-fun member n chks = memberPackages n (packages chks);
+fun member n chks = memberPure n (checksums chks);
 
 end

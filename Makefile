@@ -124,6 +124,7 @@ SRC = \
   src/Theory.sig src/Theory.sml \
   src/Graph.sig src/Graph.sml \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
+  src/DirectoryPackages.sig src/DirectoryPackages.sml \
   src/DirectoryRepo.sig src/DirectoryRepo.sml \
   src/Directory.sig src/Directory.sml \
   src/Syntax.sig src/Syntax.sml \
