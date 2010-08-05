@@ -19,7 +19,7 @@ and stagingDirectory = "staging"
 and reposDirectory = "repos";
 
 (* ------------------------------------------------------------------------- *)
-(* Directories and filenames.                                                *)
+(* Directory operations.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 fun createDirectory {directory} = OS.FileSys.mkDir directory;
@@ -34,7 +34,7 @@ fun ppDirectory {directory} = Print.ppString directory;
 
 fun mkConfigFilename {rootDirectory = dir} =
     let
-      val {filename = file} = DirectoryConfig.filename
+      val file = configFile
 
       val filename = OS.Path.joinDirFile {dir = dir, file = file}
     in
@@ -79,7 +79,7 @@ fun mkPackageDirectory root name =
 (* The package staging directory.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkStagingDirectory {rootDirectory = dir} =
+fun mkStagingPackagesDirectory {rootDirectory = dir} =
     let
       val directory = OS.Path.joinDirFile {dir = dir, file = stagingDirectory}
     in
@@ -88,7 +88,7 @@ fun mkStagingDirectory {rootDirectory = dir} =
 
 fun mkStagingPackageDirectory root name =
     let
-      val {directory = dir} = mkStagingDirectory root
+      val {directory = dir} = mkStagingPackagesDirectory root
       and file = PackageName.toString name
 
       val directory = OS.Path.joinDirFile {dir = dir, file = file}
@@ -100,7 +100,7 @@ local
   fun warnFile {filename} =
       warn ("activity in staging area: " ^ filename);
 in
-  fun checkStagingDirectory dir =
+  fun checkStagingPackagesDirectory dir =
       let
         val files = readDirectory dir
       in
@@ -124,8 +124,10 @@ fun mkRepoFilename root name =
       val {directory = dir} = mkReposDirectory root
 
       val {filename = file} = DirectoryChecksums.mkFilename name
+
+      val filename = OS.Path.joinDirFile {dir = dir, file = file}
     in
-      {filename = OS.Path.joinDirFile {dir = dir, file = file}}
+      {filename = filename}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -210,621 +212,201 @@ fun toStringError err =
 fun toStringErrorList errs = join "\n" (map toStringError errs);
 
 (* ------------------------------------------------------------------------- *)
-(* Repos.                                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-datatype packageChecksum =
-    PackageChecksum of Checksum.checksum PackageNameMap.map;
-
-val emptyPackageChecksum = PackageChecksum (PackageNameMap.new ());
-
-fun peekPackageChecksum (PackageChecksum m) = PackageNameMap.peek m;
-
-fun memberPackageChecksum n (PackageChecksum m) = PackageNameMap.inDomain n m;
-
-fun insertPackageChecksum pc (n,c) =
-    if memberPackageChecksum n pc then
-      raise Error ("multiple entries for package " ^ PackageName.toString n)
-    else
-      let
-        val PackageChecksum m = pc
-
-        val m = PackageNameMap.insert m (n,c)
-      in
-        PackageChecksum m
-      end;
-
-fun uncurriedInsertPackageChecksum (n_c,pc) = insertPackageChecksum pc n_c;
-
-local
-  infixr 9 >>++
-  infixr 8 ++
-  infixr 7 >>
-  infixr 6 ||
-
-  open Parse;
-in
-  val parserPackageChecksum =
-      (PackageName.parser ++
-       exactChar #" " ++
-       Checksum.parser ++
-       exactChar #"\n") >>
-      (fn (n,((),(c,()))) => [(n,c)]);
-end;
-
-fun fromTextFilePackageChecksum {filename} =
-    let
-      (* Estimating parse error line numbers *)
-
-      val lines = Stream.fromTextFile {filename = filename}
-
-      val {chars,parseErrorLocation} = Parse.initialize {lines = lines}
-    in
-      (let
-         (* The character stream *)
-
-         val chars = Parse.everything Parse.any chars
-
-         (* The package stream *)
-
-         val pkgs = Parse.everything parserPackageChecksum chars
-       in
-         Stream.foldl uncurriedInsertPackageChecksum emptyPackageChecksum pkgs
-       end
-       handle Parse.NoParse => raise Error "parse error")
-      handle Error err =>
-        raise Error ("error in repo file \"" ^ filename ^ "\" " ^
-                     parseErrorLocation () ^ "\n" ^ err)
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Repo configuration.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-datatype repoConfig =
-    RepoConfig of
-      {name : string,
-       url : string};
-
-val openTheoryRepoConfig =
-    RepoConfig
-      {name = openTheoryRepoName,
-       url = openTheoryRepoUrl};
-
-(* ------------------------------------------------------------------------- *)
-(* Configuration.                                                            *)
-(* ------------------------------------------------------------------------- *)
-
-datatype config =
-    Config of
-      {repos : repoConfig list};
-
-val emptyConfig =
-    let
-      val repos = []
-    in
-      Config {repos = repos}
-    end;
-
-fun reposConfig (Config {repos = x, ...}) = x;
-
-fun addRepoConfig config r =
-    let
-      val Config {repos = rs} = config
-
-      val rs = rs @ [r]
-    in
-      Config {repos = rs}
-    end;
-
-local
-  local
-    datatype repoSectionState =
-        RepoSectionState of
-          {name : string option,
-           url : string option};
-
-    val initialRepoSectionState =
-        let
-          val name = NONE
-          and url = NONE
-        in
-          RepoSectionState
-            {name = name,
-             url = url}
-        end;
-
-    fun addNameRepoSectionState n state =
-        let
-          val RepoSectionState {name,url} = state
-
-          val name =
-              case name of
-                NONE => SOME n
-              | SOME n' =>
-                raise Error ("duplicate \"" ^ nameRepoSectionKey ^
-                             "\" keys: " ^ n ^ " and " ^ n')
-        in
-          RepoSectionState
-            {name = name,
-             url = url}
-        end;
-
-    fun addUrlRepoSectionState u state =
-        let
-          val RepoSectionState {name,url} = state
-
-          val url =
-              case url of
-                NONE => SOME u
-              | SOME u' =>
-                raise Error ("duplicate \"" ^ urlRepoSectionKey ^
-                             "\" keys: " ^ u ^ " and " ^ u')
-        in
-          RepoSectionState
-            {name = name,
-             url = url}
-        end;
-
-    fun processRepoSectionState (kv,state) =
-        let
-          val Config.KeyValue {key,value} = kv
-        in
-          if key = nameRepoSectionKey then
-            addNameRepoSectionState value state
-          else if key = urlRepoSectionKey then
-            addUrlRepoSectionState value state
-          else
-            raise Error ("unknown key \"" ^ key ^ "\"")
-        end;
-
-    fun finalRepoSectionState state =
-        let
-          val RepoSectionState {name,url} = state
-
-          val name =
-              case name of
-                SOME n => n
-              | NONE =>
-                raise Error ("missing \"" ^ nameRepoSectionKey ^ "\" key")
-
-          val url =
-              case url of
-                SOME u => u
-              | NONE =>
-                raise Error ("missing \"" ^ urlRepoSectionKey ^ "\" key")
-        in
-          RepoConfig
-            {name = name,
-             url = url}
-        end;
-  in
-    fun fromRepoSection kvs =
-        let
-          val state = initialRepoSectionState
-
-          val state = List.foldl processRepoSectionState state kvs
-        in
-          finalRepoSectionState state
-        end
-        handle Error err =>
-          raise Error ("in \"" ^ repoConfigSection ^
-                       "\" section of config file:\n" ^ err);
-  end;
-
-  fun addSection (sect,conf) =
-      let
-        val Config.Section {name,keyValues} = sect
-      in
-        if name = repoConfigSection then
-          let
-            val r = fromRepoSection keyValues
-          in
-            addRepoConfig conf r
-          end
-        else
-          raise Error ("unknown config section \"" ^ name ^ "\"")
-      end;
-
-  fun fromSections conf =
-      let
-        val Config.Config {sections} = conf
-      in
-        List.foldl addSection emptyConfig sections
-      end;
-in
-  fun readConfig filename =
-      let
-        val conf = Config.fromTextFile filename handle IO.Io _ => Config.empty
-      in
-        fromSections conf
-      end
-(*OpenTheoryDebug
-      handle Error err => raise Bug ("Directory.readConfig: " ^ err);
-*)
-end;
-
-local
-  fun toRepoSection repo =
-      let
-        val RepoConfig {name,url} = repo
-      in
-        Config.Section
-          {name = repoConfigSection,
-           keyValues =
-             [Config.KeyValue
-                {key = nameRepoSectionKey,
-                 value = name},
-              Config.KeyValue
-                {key = urlRepoSectionKey,
-                 value = url}]}
-      end;
-
-  fun toSections config =
-      let
-        val Config {repos = rs} = config
-
-        val sections = map toRepoSection rs
-      in
-        Config.Config {sections = sections}
-      end;
-in
-  val ppConfig = Print.ppMap toSections Config.pp;
-end;
-
-fun writeConfig {config,filename} =
-    let
-      val s = Print.toStream ppConfig config
-    in
-      Stream.toTextFile {filename = filename} s
-    end;
-
-val defaultConfig =
-    let
-      val repos = [openTheoryRepoConfig]
-    in
-      Config {repos = repos}
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* A type of theory packages.                                                *)
-(* ------------------------------------------------------------------------- *)
-
-datatype packages =
-    Packages of PackageInfo.info PackageNameMap.map;
-
-val emptyPackages = Packages (PackageNameMap.new ());
-
-fun peekPackages (Packages pkgs) name = PackageNameMap.peek pkgs name;
-
-fun knownPackages (Packages pkgs) name = PackageNameMap.inDomain name pkgs;
-
-fun unknownPackages pkgs name = not (knownPackages pkgs name);
-
-local
-  fun addName (name,_,acc) = PackageNameSet.add acc name;
-in
-  fun listPackages (Packages pkgs) =
-      PackageNameMap.foldl addName PackageNameSet.empty pkgs;
-end;
-
-fun appPackages f =
-    let
-      fun f' (_,info) = f info
-    in
-      fn Packages pkgs => PackageNameMap.app f' pkgs
-    end;
-
-fun foldlPackages f =
-    let
-      fun f' (_,info,acc) = f (info,acc)
-    in
-      fn acc => fn Packages pkgs => PackageNameMap.foldl f' acc pkgs
-    end;
-
-fun addPackages (Packages pkgs) info =
-    let
-      val name = PackageInfo.name info
-
-      val pkgs = PackageNameMap.insert pkgs (name,info)
-    in
-      Packages pkgs
-    end;
-
-fun deletePackages (Packages pkgs) name =
-    let
-      val pkgs = PackageNameMap.delete pkgs name
-    in
-      Packages pkgs
-    end;
-
-fun removePackages (Packages pkgs) name =
-    let
-      val pkgs = PackageNameMap.remove pkgs name
-    in
-      Packages pkgs
-    end;
-
-local
-  fun addDir ({filename},pkgs) =
-      let
-        val name = PackageName.fromString (OS.Path.file filename)
-
-        val info = PackageInfo.mk {name = name, directory = filename}
-      in
-        addPackages pkgs info
-      end;
-in
-  fun readPackages dir =
-      let
-        val dirs = readDirectory dir
-      in
-        List.foldl addDir emptyPackages dirs
-      end;
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Package dependency operations.                                            *)
-(* ------------------------------------------------------------------------- *)
-
-fun closePackageSet f =
-    let
-      fun add acc set = PackageNameSet.foldl check acc set
-
-      and check (name,acc) =
-          if PackageNameSet.member name acc then acc
-          else expand (PackageNameSet.add acc name) name
-
-      and expand acc name = add acc (f name)
-    in
-      add PackageNameSet.empty
-    end;
-
-fun sortPackageSet f s =
-    let
-      fun dfsCheck (name,(seen,acc)) =
-          if PackageNameSet.member name seen then (seen,acc)
-          else dfsName (seen,acc) name
-
-      and dfsName (seen,acc) name =
-          let
-            val seen = PackageNameSet.add seen name
-
-            val (seen,acc) = dfsSet (seen,acc) (f name)
-
-            val acc = if PackageNameSet.member name s then name :: acc else acc
-          in
-            (seen,acc)
-          end
-
-      and dfsSet seen_acc names = PackageNameSet.foldl dfsCheck seen_acc names
-
-      val (_,acc) = dfsSet (PackageNameSet.empty,[]) s
-    in
-      rev acc
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Package dependency graphs.                                                *)
-(* ------------------------------------------------------------------------- *)
-
-datatype packageDeps =
-    PackageDeps of
-      {parents : PackageNameSet.set PackageNameMap.map,
-       children : PackageNameSet.set PackageNameMap.map};
-
-val emptyPackageDeps =
-    let
-      val parents = PackageNameMap.new ()
-      and children = PackageNameMap.new ()
-    in
-      PackageDeps
-        {parents = parents,
-         children = children}
-    end;
-
-fun parentsPackageDeps (PackageDeps {parents,...}) name =
-    case PackageNameMap.peek parents name of
-      SOME ps => ps
-    | NONE => PackageNameSet.empty;
-
-fun childrenPackageDeps (PackageDeps {children,...}) name =
-    case PackageNameMap.peek children name of
-      SOME cs => cs
-    | NONE => PackageNameSet.empty;
-
-fun ancestorsPackageDeps deps =
-    let
-      val step = parentsPackageDeps deps
-    in
-      fn name => closePackageSet step (step name)
-    end;
-
-fun descendentsPackageDeps deps =
-    let
-      val step = childrenPackageDeps deps
-    in
-      fn name => closePackageSet step (step name)
-    end;
-
-fun addPackageDeps deps (p,c) =
-    let
-      val ps = parentsPackageDeps deps c
-      and cs = childrenPackageDeps deps p
-
-      val PackageDeps {parents,children} = deps
-
-      val parents =
-          if PackageNameSet.member p ps then parents
-          else PackageNameMap.insert parents (c, PackageNameSet.add ps p)
-
-      val children =
-          if PackageNameSet.member c cs then children
-          else PackageNameMap.insert children (p, PackageNameSet.add cs c)
-    in
-      PackageDeps
-        {parents = parents,
-         children = children}
-    end;
-
-fun addInfoPackageDeps deps info =
-    let
-      val name = PackageInfo.name info
-      and pars = PackageInfo.packages info
-    in
-      PackageNameSet.foldl (fn (p,d) => addPackageDeps d (p,name)) deps pars
-    end;
-
-val fromPackagesPackageDeps =
-    let
-      fun add (info,deps) = addInfoPackageDeps deps info
-    in
-      foldlPackages add emptyPackageDeps
-    end;
-
-fun sortPackageDeps deps = sortPackageSet (parentsPackageDeps deps);
-
-(* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
 
 datatype directory =
     Directory of
       {rootDirectory : string,
-       config : config,
-       packages : packages ref};
+       config : DirectoryConfig.config,
+       packages : DirectoryPackages.packages,
+       repos : DirectoryRepo.repo list};
 
-fun createLocal root =
-    let
-      val {filename} = mkLocalRepoFilename root
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
 
-      val cmd = "touch " ^ filename
-
-(*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "creating an empty installed package list failed"
-    in
-      ()
-    end;
-
-fun create {rootDirectory} =
-    let
-      val () =
-          let
-            val dir = rootDirectory
-          in
-            createDirectory {directory = dir}
-          end
-
-      val () =
-          let
-            val dir = mkPackagesDirectory {rootDirectory = rootDirectory}
-          in
-            createDirectory dir
-          end
-
-      val () =
-          let
-            val dir = mkStagingDirectory {rootDirectory = rootDirectory}
-          in
-            createDirectory dir
-          end
-
-      val () =
-          let
-            val dir = mkReposDirectory {rootDirectory = rootDirectory}
-          in
-            createDirectory dir
-          end
-
-      val config = defaultConfig
-
-      val () =
-          let
-            val {filename} = mkConfigFilename {rootDirectory = rootDirectory}
-          in
-            writeConfig {config = config, filename = filename}
-          end
-
-      val () = createLocal {rootDirectory = rootDirectory}
-
-      val packages = ref emptyPackages
-    in
-      Directory
-        {rootDirectory = rootDirectory,
-         config = config,
-         packages = packages}
-    end;
-
-fun mk {rootDirectory} =
+fun mk {rootDirectory = rootDir} =
     let
       val config =
           let
-            val filename = mkConfigFilename {rootDirectory = rootDirectory}
+            val filename = mkConfigFilename {rootDirectory = rootDir}
           in
-            readConfig filename
+            DirectoryConfig.fromTextFile filename
           end
 
       val packages =
           let
-            val directory = mkPackagesDirectory {rootDirectory = rootDirectory}
+            val {directory = dir} =
+                mkPackagesDirectory {rootDirectory = rootDir}
+
+            val {filename = file} =
+                mkInstalledFilename {rootDirectory = rootDir}
           in
-            ref (readPackages directory)
+            DirectoryPackages.mk {directory = dir, filename = file}
           end
 
       val () =
           let
-            val directory = mkStagingDirectory {rootDirectory = rootDirectory}
+            val dir = mkStagingPackagesDirectory {rootDirectory = rootDir}
 
-            val () = checkStagingDirectory directory
+            val () = checkStagingPackagesDirectory dir
           in
             ()
           end
+
+      val repos =
+          let
+            fun mkRepo cfg =
+                let
+                  val {name} = DirectoryConfig.nameRepo cfg
+                  and {url} = DirectoryConfig.urlRepo cfg
+
+                  val {filename = file} =
+                      mkRepoFilename {rootDirectory = rootDir} name
+                in
+                  DirectoryRepo.mk {name = name, url = url, filename = file}
+                end
+
+            val cfgs = DirectoryConfig.repos config
+          in
+            List.map mkRepo cfgs
+          end
     in
       Directory
-        {rootDirectory = rootDirectory,
+        {rootDirectory = rootDir,
          config = config,
-         packages = packages}
+         packages = packages,
+         repos = repos}
     end;
 
 fun root (Directory {rootDirectory = x, ...}) = {directory = x};
 
 fun config (Directory {config = x, ...}) = x;
 
-fun packages (Directory {packages = ref x, ...}) = x;
+fun packages (Directory {packages = x, ...}) = x;
 
-fun repos dir = raise Bug "Directory.repos: not implemented";
+fun repos (Directory {repos = x, ...}) = x;
+
+(* ------------------------------------------------------------------------- *)
+(* Creating a new theory package directory.                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun create {rootDir} =
+    let
+      val () = createDirectory {directory = rootDir}
+
+      val () =
+          let
+            val dir = mkPackagesDirectory {rootDirectory = rootDir}
+          in
+            createDirectory dir
+          end
+
+      val () =
+          let
+            val dir = mkStagingPackagesDirectory {rootDirectory = rootDir}
+          in
+            createDirectory dir
+          end
+
+      val () =
+          let
+            val dir = mkReposDirectory {rootDirectory = rootDir}
+          in
+            createDirectory dir
+          end
+
+      val () =
+          let
+            val cfg = DirectoryConfig.default
+
+            val {filename = file} = mkConfigFilename {rootDirectory = rootDir}
+          in
+            DirectoryConfig.toTextFile {config = cfg, filename = file}
+          end
+
+      val () =
+          let
+            val file = mkInstalledFilename {rootDirectory = rootDir}
+          in
+            DirectoryChecksums.create file
+          end
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Directories and filenames.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun configFilename dir =
+    let
+      val {directory = rootDir} = root dir
+    in
+      mkConfigFilename {rootDirectory = rootDir}
+    end;
+
+fun installedFilename dir =
+    let
+      val {directory = rootDir} = root dir
+    in
+      mkInstalledFilename {rootDirectory = rootDir}
+    end;
 
 fun packagesDirectory dir =
     let
-      val Directory {rootDirectory = root, ...} = dir
+      val {directory = rootDir} = root dir
     in
-      mkPackagesDirectory {rootDirectory = root}
+      mkPackagesDirectory {rootDirectory = rootDir}
     end;
 
 fun packageDirectory dir name =
     let
-      val Directory {rootDirectory = root, ...} = dir
+      val {directory = rootDir} = root dir
     in
-      mkPackageDirectory {rootDirectory = root} name
+      mkPackageDirectory {rootDirectory = rootDir} name
     end;
+
+fun stagingPackagesDirectory dir =
+    let
+      val {directory = rootDir} = root dir
+    in
+      mkStagingPackagesDirectory {rootDirectory = rootDir}
+    end;
+
+fun stagingPackageDirectory dir name =
+    let
+      val {directory = rootDir} = root dir
+    in
+      mkStagingPackageDirectory {rootDirectory = rootDir} name
+    end;
+
+fun reposDirectory dir =
+    let
+      val {directory = rootDir} = root dir
+    in
+      mkReposDirectory {rootDirectory = rootDir}
+    end;
+
+fun repoFilename dir repo =
+    let
+      val {directory = rootDir} = root dir
+
+      val name = DirectoryRepo.name repo
+    in
+      mkRepoFilename {rootDirectory = rootDir} name
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package information.                                                      *)
+(* ------------------------------------------------------------------------- *)
 
 fun packageInfo dir name =
     let
       val {directory} = packageDirectory dir name
     in
       PackageInfo.mk {name = name, directory = directory}
-    end;
-
-fun stagingPackageDirectory dir name =
-    let
-      val Directory {rootDirectory = root, ...} = dir
-    in
-      mkStagingPackageDirectory {rootDirectory = root} name
     end;
 
 fun stagingPackageInfo dir name =
@@ -834,34 +416,11 @@ fun stagingPackageInfo dir name =
       PackageInfo.mk {name = name, directory = directory}
     end;
 
-fun reposDirectory dir =
-    let
-      val Directory {rootDirectory = root, ...} = dir
-    in
-      mkReposDirectory {rootDirectory = root}
-    end;
-
-fun repoFilename dir repo =
-    let
-      val Directory {rootDirectory = root, ...} = dir
-    in
-      mkRepoFilename {rootDirectory = root} (nameRepo repo)
-    end;
-
-fun localRepoFilename dir =
-    let
-      val Directory {rootDirectory = root, ...} = dir
-    in
-      mkLocalRepoFilename {rootDirectory = root}
-    end;
-
-val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
-
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun peek dir name = peekPackages (packages dir) name;
+fun peek dir name = DirectoryPackages.peek (packages dir) name;
 
 fun get dir name =
     case peek dir name of
@@ -1407,5 +966,11 @@ fun download dir repo pkg =
 (* ------------------------------------------------------------------------- *)
 
 fun finder dir = PackageFinder.mk (peek dir);
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
 
 end

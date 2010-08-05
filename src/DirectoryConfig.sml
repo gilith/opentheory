@@ -19,7 +19,7 @@ and repoConfigSection = "repo"
 and urlRepoSectionKey = "url";
 
 (* ------------------------------------------------------------------------- *)
-(* Repo configuration.                                                       *)
+(* A type of repo configuration data.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 datatype repo =
@@ -27,10 +27,9 @@ datatype repo =
       {name : string,
        url : string};
 
-val openTheoryRepo =
-    Repo
-      {name = openTheoryRepoName,
-       url = openTheoryRepoUrl};
+fun nameRepo (Repo {name = x, ...}) = {name = x};
+
+fun urlRepo (Repo {url = x, ...}) = {url = x};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
@@ -241,6 +240,11 @@ fun toTextFile {config,filename} =
 (* ------------------------------------------------------------------------- *)
 (* The default configuration.                                                *)
 (* ------------------------------------------------------------------------- *)
+
+val openTheoryRepo =
+    Repo
+      {name = openTheoryRepoName,
+       url = openTheoryRepoUrl};
 
 val default =
     let

@@ -122,20 +122,39 @@ fun filename (Checksums {filename = x, ...}) = {filename = x};
 
 fun checksums chks =
     let
-      val Checksums {checksums = roc, ...} = chks
+      val Checksums {checksums = rox, ...} = chks
 
-      val ref oc = roc
+      val ref ox = rox
     in
-      case oc of
-        SOME c => c
+      case ox of
+        SOME x => x
       | NONE =>
         let
-          val c = fromTextFilePure (filename chks)
+          val x = fromTextFilePure (filename chks)
 
-          val () = roc := SOME c
+          val () = rox := SOME x
         in
-          c
+          x
         end
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Creating a new package checksums file.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun create {filename} =
+    let
+      val cmd = "touch " ^ filename
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "creating an empty installed package file failed"
+    in
+      ()
     end;
 
 (* ------------------------------------------------------------------------- *)
