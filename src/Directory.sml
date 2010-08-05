@@ -13,15 +13,10 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val configFile = "config"
-and localRepoName = "local"
-and nameRepoSectionKey = "name"
-and openTheoryRepoName = "gilith"
-and openTheoryRepoUrl = "http://opentheory.gilith.com/"
+and installedName = "installed"
 and packagesDirectory = "packages"
 and stagingDirectory = "staging"
-and repoConfigSection = "repo"
-and reposDirectory = "repos"
-and urlRepoSectionKey = "url";
+and reposDirectory = "repos";
 
 (* ------------------------------------------------------------------------- *)
 (* Directories and filenames.                                                *)
@@ -39,7 +34,22 @@ fun ppDirectory {directory} = Print.ppString directory;
 
 fun mkConfigFilename {rootDirectory = dir} =
     let
-      val filename = OS.Path.joinDirFile {dir = dir, file = configFile}
+      val {filename = file} = DirectoryConfig.filename
+
+      val filename = OS.Path.joinDirFile {dir = dir, file = file}
+    in
+      {filename = filename}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* The list of installed packages.                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkInstalledFilename {rootDirectory = dir} =
+    let
+      val {filename = file} = DirectoryChecksums.mkFilename installedName
+
+      val filename = OS.Path.joinDirFile {dir = dir, file = file}
     in
       {filename = filename}
     end;
@@ -59,8 +69,10 @@ fun mkPackageDirectory root name =
     let
       val {directory = dir} = mkPackagesDirectory root
       and file = PackageName.toString name
+
+      val directory = OS.Path.joinDirFile {dir = dir, file = file}
     in
-      {directory = OS.Path.joinDirFile {dir = dir, file = file}}
+      {directory = directory}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -78,8 +90,10 @@ fun mkStagingPackageDirectory root name =
     let
       val {directory = dir} = mkStagingDirectory root
       and file = PackageName.toString name
+
+      val directory = OS.Path.joinDirFile {dir = dir, file = file}
     in
-      {directory = OS.Path.joinDirFile {dir = dir, file = file}}
+      {directory = directory}
     end;
 
 local
@@ -113,8 +127,6 @@ fun mkRepoFilename root name =
     in
       {filename = OS.Path.joinDirFile {dir = dir, file = file}}
     end;
-
-fun mkLocalRepoFilename root = mkRepoFilename root localRepoName;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of directory operation errors.                                     *)

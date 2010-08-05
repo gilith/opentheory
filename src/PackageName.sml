@@ -120,4 +120,56 @@ struct type t = PackageName.name val compare = PackageName.compare end
 
 structure PackageNameMap = KeyMap (PackageNameOrdered)
 
-structure PackageNameSet = ElementSet (PackageNameMap)
+structure PackageNameSet =
+struct
+
+  local
+    structure S = ElementSet (PackageNameMap);
+  in
+    open S;
+  end;
+
+  fun close f =
+      let
+        fun adds acc set = foldl check acc set
+
+        and check (name,acc) =
+            if member name acc then acc
+            else expand (add acc name) name
+
+        and expand acc name = adds acc (f name)
+      in
+        adds empty
+      end;
+
+  fun sort f s =
+      let
+        fun dfsCheck (name,(seen,acc)) =
+            if member name seen then (seen,acc)
+            else dfsName (seen,acc) name
+
+        and dfsName (seen,acc) name =
+            let
+              val seen = add seen name
+
+              val (seen,acc) = dfsSet (seen,acc) (f name)
+
+              val acc = if member name s then name :: acc else acc
+            in
+              (seen,acc)
+            end
+
+        and dfsSet seen_acc names = foldl dfsCheck seen_acc names
+
+        val (_,acc) = dfsSet (empty,[]) s
+      in
+        rev acc
+      end;
+
+  val pp =
+      Print.ppMap
+        toList
+        (Print.ppBracket "{" "}" (Print.ppOpList "," PackageName.pp));
+
+end
+

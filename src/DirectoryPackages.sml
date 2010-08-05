@@ -9,6 +9,79 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* A type of package dependency graphs.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+datatype packageDeps =
+    PackageDeps of
+      {parents : PackageNameSet.set PackageNameMap.map,
+       children : PackageNameSet.set PackageNameMap.map};
+
+val emptyPackageDeps =
+    let
+      val parents = PackageNameMap.new ()
+      and children = PackageNameMap.new ()
+    in
+      PackageDeps
+        {parents = parents,
+         children = children}
+    end;
+
+fun parentsPackageDeps (PackageDeps {parents,...}) name =
+    case PackageNameMap.peek parents name of
+      SOME ps => ps
+    | NONE => PackageNameSet.empty;
+
+fun childrenPackageDeps (PackageDeps {children,...}) name =
+    case PackageNameMap.peek children name of
+      SOME cs => cs
+    | NONE => PackageNameSet.empty;
+
+fun ancestorsPackageDeps deps =
+    let
+      val step = parentsPackageDeps deps
+    in
+      fn name => PackageNameSet.close step (step name)
+    end;
+
+fun descendentsPackageDeps deps =
+    let
+      val step = childrenPackageDeps deps
+    in
+      fn name => PackageNameSet.close step (step name)
+    end;
+
+fun addPackageDeps deps (p,c) =
+    let
+      val ps = parentsPackageDeps deps c
+      and cs = childrenPackageDeps deps p
+
+      val PackageDeps {parents,children} = deps
+
+      val parents =
+          if PackageNameSet.member p ps then parents
+          else PackageNameMap.insert parents (c, PackageNameSet.add ps p)
+
+      val children =
+          if PackageNameSet.member c cs then children
+          else PackageNameMap.insert children (p, PackageNameSet.add cs c)
+    in
+      PackageDeps
+        {parents = parents,
+         children = children}
+    end;
+
+fun addInfoPackageDeps deps info =
+    let
+      val name = PackageInfo.name info
+      and pars = PackageInfo.packages info
+    in
+      PackageNameSet.foldl (fn (p,d) => addPackageDeps d (p,name)) deps pars
+    end;
+
+fun sortPackageDeps deps = PackageNameSet.sort (parentsPackageDeps deps);
+
+(* ------------------------------------------------------------------------- *)
 (* A pure type of installed packages.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -67,6 +140,13 @@ fun removePure (PurePackages pkgs) name =
       PurePackages pkgs
     end;
 
+val packageDepsPure =
+    let
+      fun add (info,deps) = addInfoPackageDeps deps info
+    in
+      foldlPure add emptyPackageDeps
+    end;
+
 local
   fun add ({filename},pkgs) =
       let
@@ -93,6 +173,7 @@ datatype packages =
     Packages of
       {directory : string,
        packages : purePackages option ref,
+       dependencies : packageDeps option ref,
        checksums : DirectoryChecksums.checksums};
 
 (* ------------------------------------------------------------------------- *)
@@ -103,11 +184,14 @@ fun mk {directory,filename} =
     let
       val packages = ref NONE
 
+      val dependencies = ref NONE
+
       val checksums = DirectoryChecksums.mk {filename = filename}
     in
       Packages
         {directory = directory,
          packages = packages,
+         dependencies = dependencies,
          checksums = checksums}
     end;
 
@@ -124,6 +208,24 @@ fun packages pkgs =
       | NONE =>
         let
           val x = fromDirectoryPure (directory pkgs)
+
+          val () = rox := SOME x
+        in
+          x
+        end
+    end;
+
+fun dependencies pkgs =
+    let
+      val Packages {dependencies = rox, ...} = pkgs
+
+      val ref ox = rox
+    in
+      case ox of
+        SOME x => x
+      | NONE =>
+        let
+          val x = packageDepsPure (packages pkgs)
 
           val () = rox := SOME x
         in

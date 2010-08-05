@@ -123,6 +123,7 @@ SRC = \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \
   src/Graph.sig src/Graph.sml \
+  src/DirectoryConfig.sig src/DirectoryConfig.sml \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
   src/DirectoryPackages.sig src/DirectoryPackages.sml \
   src/DirectoryRepo.sig src/DirectoryRepo.sml \
