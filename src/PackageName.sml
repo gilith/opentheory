@@ -142,7 +142,7 @@ struct
         adds empty
       end;
 
-  fun sort f s =
+  fun preOrder children set =
       let
         fun dfsCheck (name,(seen,acc)) =
             if member name seen then (seen,acc)
@@ -152,19 +152,21 @@ struct
             let
               val seen = add seen name
 
-              val (seen,acc) = dfsSet (seen,acc) (f name)
+              val (seen,acc) = dfsSet (seen,acc) (children name)
 
-              val acc = if member name s then name :: acc else acc
+              val acc = if member name set then name :: acc else acc
             in
               (seen,acc)
             end
 
         and dfsSet seen_acc names = foldl dfsCheck seen_acc names
 
-        val (_,acc) = dfsSet (empty,[]) s
+        val (_,acc) = dfsSet (empty,[]) set
       in
-        rev acc
+        acc
       end;
+
+  fun postOrder children set = rev (preOrder children set);
 
   val pp =
       Print.ppMap

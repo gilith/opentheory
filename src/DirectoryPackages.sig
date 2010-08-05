@@ -33,6 +33,30 @@ val peek : packages -> PackageName.name -> PackageInfo.info option
 val member : PackageName.name -> packages -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Dependencies in the installed packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val installed : packages -> PackageNameSet.set
+
+(* Simple *)
+
+val parents : packages -> PackageName.name -> PackageNameSet.set
+
+val children : packages -> PackageName.name -> PackageNameSet.set
+
+val ancestors : packages -> PackageName.name -> PackageNameSet.set
+
+val descendents : packages -> PackageName.name -> PackageNameSet.set
+
+(* Sets *)
+
+val ancestorsSet : packages -> PackageNameSet.set -> PackageNameSet.set
+
+(* Generate a valid installation order *)
+
+val installOrder : packages -> PackageNameSet.set -> PackageName.name list
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

@@ -79,7 +79,8 @@ fun addInfoPackageDeps deps info =
       PackageNameSet.foldl (fn (p,d) => addPackageDeps d (p,name)) deps pars
     end;
 
-fun sortPackageDeps deps = PackageNameSet.sort (parentsPackageDeps deps);
+fun installOrderPackageDeps deps =
+    PackageNameSet.postOrder (parentsPackageDeps deps);
 
 (* ------------------------------------------------------------------------- *)
 (* A pure type of installed packages.                                        *)
@@ -99,7 +100,7 @@ fun memberPure name (PurePackages pkgs) = PackageNameMap.inDomain name pkgs;
 local
   fun add (name,_,acc) = PackageNameSet.add acc name;
 in
-  fun listPure (PurePackages pkgs) =
+  fun toNameSetPure (PurePackages pkgs) =
       PackageNameMap.foldl add PackageNameSet.empty pkgs;
 end;
 
@@ -246,6 +247,32 @@ fun size pkgs = sizePure (packages pkgs);
 fun peek pkgs name = peekPure (packages pkgs) name;
 
 fun member name pkgs = memberPure name (packages pkgs);
+
+(* ------------------------------------------------------------------------- *)
+(* Dependencies in the installed packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun installed pkgs = toNameSetPure (packages pkgs);
+
+(* Simple *)
+
+(***
+val parents : packages -> PackageName.name -> PackageNameSet.set
+
+val children : packages -> PackageName.name -> PackageNameSet.set
+
+val ancestors : packages -> PackageName.name -> PackageNameSet.set
+
+val descendents : packages -> PackageName.name -> PackageNameSet.set
+
+(* Sets *)
+
+val ancestorsSet : packages -> PackageNameSet.set -> PackageNameSet.set
+
+(* Generate a valid installation order *)
+
+val installOrder : packages -> PackageNameSet.set -> PackageName.name list
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
