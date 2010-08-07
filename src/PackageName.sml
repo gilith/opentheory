@@ -118,7 +118,27 @@ end
 structure PackageNameOrdered =
 struct type t = PackageName.name val compare = PackageName.compare end
 
-structure PackageNameMap = KeyMap (PackageNameOrdered)
+structure PackageNameMap =
+struct
+
+  local
+    structure S = KeyMap (PackageNameOrdered);
+  in
+    open S;
+  end;
+
+  local
+    fun toStrm oiter =
+        case oiter of
+          NONE => Stream.Nil
+        | SOME iter => Stream.Cons (readIterator iter, toCons iter)
+
+    and toCons iter () = toStrm (advanceIterator iter);
+  in
+    fun toStream m = toStrm (mkIterator m);
+  end;
+
+end
 
 structure PackageNameSet =
 struct

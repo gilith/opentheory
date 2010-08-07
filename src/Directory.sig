@@ -44,7 +44,9 @@ val toStringErrorList : error list -> string
 
 type directory
 
-val create : {rootDirectory : string} -> directory
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val mk : {rootDirectory : string} -> directory
 
@@ -54,7 +56,11 @@ val config : directory -> DirectoryConfig.config
 
 val repos : directory -> DirectoryRepo.repo list
 
-val pp : directory Print.pp
+(* ------------------------------------------------------------------------- *)
+(* Creating a new theory package directory.                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val create : {rootDirectory : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)
@@ -122,12 +128,6 @@ val checkUninstall : directory -> PackageName.name -> error list
 val uninstall : directory -> PackageName.name -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Updating the local package list.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val updateLocal : directory -> unit
-
-(* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
 
@@ -148,5 +148,11 @@ val download : directory -> DirectoryRepo.repo -> PackageName.name -> unit
 (* ------------------------------------------------------------------------- *)
 
 val finder : directory -> PackageFinder.finder
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : directory Print.pp
 
 end

@@ -65,6 +65,18 @@ val descendentsSet : packages -> PackageNameSet.set -> PackageNameSet.set
 val installOrder : packages -> PackageNameSet.set -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
+(* Adding a new package.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val add : packages -> PackageInfo.info -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Deleting a package.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val delete : packages -> PackageName.name -> unit
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

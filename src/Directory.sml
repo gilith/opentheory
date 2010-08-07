@@ -461,63 +461,12 @@ fun installOrder dir names =
 fun list dir = DirectoryPackages.list (packages dir);
 
 (* ------------------------------------------------------------------------- *)
-(* Updating the local package list.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-fun deleteLocal dir =
-    let
-      val {filename} = localRepoFilename dir
-    in
-      OS.FileSys.remove filename
-      handle OS.SysErr _ => ()
-    end;
-
-fun addLocal dir info =
-    let
-      val name = PackageInfo.name info
-      and chk = PackageInfo.readChecksum info
-
-      val {filename} = localRepoFilename dir
-
-      val cmd =
-          "echo \"" ^ PackageName.toString name ^ " " ^
-          Checksum.toString chk ^ "\"" ^
-          " >> " ^ filename
-
-(*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "adding to the installed package list failed"
-    in
-      ()
-    end;
-
-fun updateLocal dir =
-    let
-      val () = deleteLocal dir
-
-      val () =
-          let
-            val {directory = rootDir} = root dir
-          in
-            createLocal {rootDirectory = rootDir}
-          end
-
-      val () = appPackages (addLocal dir) (packages dir)
-    in
-      ()
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Staging theory files for installation.                                    *)
 (* ------------------------------------------------------------------------- *)
 
 local
   fun checkDep dir (name,errs) =
-      if installed dir name then errs
+      if member dir name then errs
       else UninstalledParentError name :: errs;
 
   fun mkFileCopyPlan info pkg =
@@ -625,7 +574,7 @@ in
         val errs = []
 
         val errs =
-            if not (installed dir name) then errs
+            if not (member dir name) then errs
             else AlreadyInstalledError :: errs
 
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
@@ -799,12 +748,16 @@ fun installStaged dir name =
       val stageInfo = stagingPackageInfo dir name
 
       val pkgInfo = packageInfo dir name
+
+      val () =
+          if PackageInfo.existsDirectory stageInfo then ()
+          else raise Error "staged package directory does not exist"
+
+      val () =
+          if not (PackageInfo.existsDirectory pkgInfo) then ()
+          else raise Error "package directory already exists"
     in
       let
-        (* Add to the checksum list of installed packages *)
-
-        val () = addLocal dir stageInfo
-
         (* Rename staged package directory to package directory *)
 
         val {directory = stageDir} = PackageInfo.directory stageInfo
@@ -815,9 +768,9 @@ fun installStaged dir name =
 
         (* Update the list of installed packages *)
 
-        val Directory {packages as ref pkgs, ...} = dir
+        val Directory {packages = pkgs, ...} = dir
 
-        val () = packages := addPackages pkgs pkgInfo
+        val () = DirectoryPackages.add pkgs pkgInfo
       in
         ()
       end
@@ -834,7 +787,7 @@ fun installStaged dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUninstall dir name =
-    if not (installed dir name) then [NotInstalledError]
+    if not (member dir name) then [NotInstalledError]
     else
       let
         val errs = []
@@ -862,7 +815,7 @@ fun uninstall dir name =
                 raise Bug "Directory.uninstall: fatal error"
 *)
 
-      val Directory {packages as ref pkgs, ...} = dir
+      val Directory {packages = pkgs, ...} = dir
 
       val info = packageInfo dir name
 
@@ -870,13 +823,9 @@ fun uninstall dir name =
 
       val () = PackageInfo.nukeDirectory info
 
-      (* Update the list of installed packages *)
+      (* Delete from the list of installed packages *)
 
-      val () = packages := removePackages pkgs name
-
-      (* Update the checksum list of installed packages *)
-
-      val () = updateLocal dir
+      val () = DirectoryPackages.delete pkgs name
     in
       ()
     end;
@@ -886,7 +835,7 @@ fun uninstall dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUpload dir repo name =
-    if not (installed dir name) then [NotInstalledError]
+    if not (member dir name) then [NotInstalledError]
     else
       let
         val errs = []

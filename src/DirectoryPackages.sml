@@ -323,6 +323,66 @@ fun descendents pkgs name =
 fun installOrder pkgs = PackageNameSet.postOrder (parents' pkgs);
 
 (* ------------------------------------------------------------------------- *)
+(* Adding a new package.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun add pkgs info =
+    let
+      val Packages
+            {directory = _,
+             packages = rop,
+             dependencies = rod,
+             checksums = chks} = pkgs
+
+      val () =
+          case !rop of
+            NONE => ()
+          | SOME p => rop := SOME (addPure p info)
+
+      val () =
+          case !rod of
+            NONE => ()
+          | SOME d => rod := SOME (addInfoPackageDeps d info)
+
+      val () =
+          let
+            val n = PackageInfo.name info
+            and c = PackageInfo.readChecksum info
+          in
+            DirectoryChecksums.add chks (n,c)
+          end
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Deleting a package.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun delete pkgs name =
+    let
+      val Packages
+            {directory = _,
+             packages = rop,
+             dependencies = rod,
+             checksums = chks} = pkgs
+
+      val () =
+          case !rop of
+            NONE => ()
+          | SOME p => rop := SOME (deletePure p name)
+
+      val () =
+          case !rod of
+            NONE => ()
+          | SOME _ => rod := NONE;
+
+      val () = DirectoryChecksums.delete chks name
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

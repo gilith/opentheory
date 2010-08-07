@@ -55,6 +55,9 @@ fun insertPure pc (n,c) =
 
 fun uncurriedInsertPure (n_c,pc) = insertPure pc n_c;
 
+fun deletePure (PureChecksums m) n =
+    PureChecksums (PackageNameMap.delete m n);
+
 local
   infixr 9 >>++
   infixr 8 ++
@@ -92,9 +95,23 @@ fun fromTextFilePure {filename} =
        end
        handle Parse.NoParse => raise Error "parse error")
       handle Error err =>
-        raise Error ("error in repo file \"" ^ filename ^ "\" " ^
+        raise Error ("error in installed package list \"" ^ filename ^ "\" " ^
                      parseErrorLocation () ^ "\n" ^ err)
     end;
+
+local
+  fun toLinePackageChecksum (n,c) =
+      PackageName.toString n ^ " " ^ Checksum.toString c ^ "\n";
+in
+  fun toTextFilePure {checksums = PureChecksums m, filename = f} =
+      let
+        val strm = PackageNameMap.toStream m
+
+        val strm = Stream.map toLinePackageChecksum strm
+      in
+        Stream.toTextFile {filename = f} strm
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of package directory checkums.                                     *)
@@ -152,7 +169,7 @@ fun create {filename} =
 
       val () =
           if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "creating an empty installed package file failed"
+          else raise Error "creating an empty installed package list failed"
     in
       ()
     end;
@@ -164,5 +181,50 @@ fun create {filename} =
 fun peek chks n = peekPure (checksums chks) n;
 
 fun member n chks = memberPure n (checksums chks);
+
+(* ------------------------------------------------------------------------- *)
+(* Adding a new package.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun add chks (n,c) =
+    let
+      val Checksums {filename = f, checksums = rox} = chks
+
+      val () =
+          case !rox of
+            NONE => ()
+          | SOME x => rox := SOME (insertPure x (n,c))
+
+      val cmd =
+          "echo \"" ^ PackageName.toString n ^ " " ^
+          Checksum.toString c ^ "\"" ^ " >> " ^ f
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "adding to the installed package list failed"
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Deleting a package.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun delete chks n =
+    let
+      val x = deletePure (checksums chks) n
+
+      val Checksums {filename = f, checksums = rox} = chks
+
+      val () = rox := SOME x
+
+      val () = toTextFilePure {checksums = x, filename = f}
+    in
+      ()
+    end;
 
 end

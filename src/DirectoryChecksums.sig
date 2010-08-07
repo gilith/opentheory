@@ -40,4 +40,16 @@ val peek : checksums -> PackageName.name -> Checksum.checksum option
 
 val member : PackageName.name -> checksums -> bool
 
+(* ------------------------------------------------------------------------- *)
+(* Adding a new package.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val add : checksums -> PackageName.name * Checksum.checksum -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Deleting a package.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val delete : checksums -> PackageName.name -> unit
+
 end
