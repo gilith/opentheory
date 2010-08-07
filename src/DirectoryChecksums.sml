@@ -227,4 +227,27 @@ fun delete chks n =
       ()
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Updating the package list.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun update chks {url} =
+    let
+      val Checksums {filename = f, checksums = rox} = chks
+
+      val () = rox := NONE
+
+      val cmd = "curl --silent --show-error " ^ url ^ " --output " ^ f
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "updating the package list failed"
+    in
+      ()
+    end;
+
 end

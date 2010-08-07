@@ -144,7 +144,7 @@ fun finder () = Directory.finder (directory ());
 
 val repoOption : string option ref = ref NONE;
 
-fun repo () =
+fun repository () =
     let
       val dir = directory ()
 
@@ -159,6 +159,24 @@ fun repo () =
       | SOME repo =>
         case List.find (equal repo o DirectoryRepo.name) repos of
           SOME r => r
+        | NONE => raise Error ("no repo named " ^ repo ^ " in config file")
+    end;
+
+fun repositories () =
+    let
+      val dir = directory ()
+
+      val repos = Directory.repos dir
+
+      val () =
+          if not (null repos) then ()
+          else raise Error "no repos listed in config file"
+    in
+      case !repoOption of
+        NONE => repos
+      | SOME repo =>
+        case List.find (equal repo o DirectoryRepo.name) repos of
+          SOME r => [r]
         | NONE => raise Error ("no repo named " ^ repo ^ " in config file")
     end;
 
@@ -324,6 +342,21 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Options for updating package lists.                                       *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val updateOpts : opt list =
+      [{switches = ["--repo"], arguments = ["REPO"],
+        description = "specify the repo to update",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => repoOption := SOME s)}];
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Options for uploading packages.                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -349,9 +382,10 @@ datatype command =
   | Install
   | List
   | Uninstall
+  | Update
   | Upload;
 
-val allCommands = [Help,Info,Init,Install,List,Uninstall,Upload];
+val allCommands = [Help,Info,Init,Install,List,Uninstall,Update,Upload];
 
 fun commandString cmd =
     case cmd of
@@ -361,6 +395,7 @@ fun commandString cmd =
     | Install => "install"
     | List => "list"
     | Uninstall => "uninstall"
+    | Update => "update"
     | Upload => "upload";
 
 fun commandArgs cmd =
@@ -371,6 +406,7 @@ fun commandArgs cmd =
     | Install => " <package-name>|input.thy"
     | List => ""
     | Uninstall => " <package-name>"
+    | Update => ""
     | Upload => " <package-name>";
 
 fun commandDescription cmd =
@@ -381,7 +417,19 @@ fun commandDescription cmd =
     | Install => "install a theory package"
     | List => "list installed theory packages"
     | Uninstall => "uninstall a theory package"
+    | Update => "update repo package lists"
     | Upload => "upload a theory package to a repo";
+
+fun commandOpts cmd =
+    case cmd of
+      Help => helpOpts
+    | Info => infoOpts
+    | Init => initOpts
+    | Install => installOpts
+    | List => listOpts
+    | Uninstall => uninstallOpts
+    | Update => updateOpts
+    | Upload => uploadOpts;
 
 val allCommandStrings = map commandString allCommands;
 
@@ -394,16 +442,6 @@ in
         SOME (c,_) => SOME c
       | NONE => NONE;
 end;
-
-fun commandOpts cmd =
-    case cmd of
-      Help => helpOpts
-    | Info => infoOpts
-    | Init => initOpts
-    | Install => installOpts
-    | List => listOpts
-    | Uninstall => uninstallOpts
-    | Upload => uploadOpts;
 
 val allCommandOptions =
     let
@@ -983,7 +1021,7 @@ fun uninstallPackage dir name =
 
       val () = Directory.uninstall dir name
 
-      val () = print ("uninstalled package " ^ PackageName.toString name ^ "\n")
+      val () = chat ("uninstalled package " ^ PackageName.toString name)
     in
       ()
     end;
@@ -1053,8 +1091,8 @@ fun installTheory filename =
 
       val () = Directory.installStaged dir name
 
-      val () = print ((if replace then "re" else "") ^ "installed package " ^
-                      PackageName.toString name ^ "\n")
+      val () = chat ((if replace then "re" else "") ^ "installed package " ^
+                     PackageName.toString name)
     in
       ()
     end
@@ -1085,6 +1123,29 @@ fun list () =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Update repo package lists.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun updateRepo repo =
+    let
+      val () = DirectoryRepo.update repo
+
+      val () = chat ("updated package list for repo " ^
+                     DirectoryRepo.toString repo)
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\nrepo update failed");
+
+fun update () =
+    let
+      val repos = repositories ()
+    in
+      List.app updateRepo repos
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Upload a theory package to a repo.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1092,9 +1153,11 @@ fun upload name =
     let
       val dir = directory ()
 
-      val repo = repo ()
+      val repo = repository ()
 
       val name = PackageName.fromString name
+
+      val () = updateRepo repo
 
       val errs = Directory.checkUpload dir repo name
 
@@ -1110,8 +1173,8 @@ fun upload name =
 
       val () = Directory.upload dir repo name
 
-      val () = print ("uploaded package " ^ PackageName.toString name ^
-                      " to " ^ DirectoryRepo.toString repo ^ " repo\n")
+      val () = chat ("uploaded package " ^ PackageName.toString name ^
+                     " to " ^ DirectoryRepo.toString repo ^ " repo")
     in
       ()
     end
@@ -1170,6 +1233,7 @@ let
         end
       | (List,[]) => list ()
       | (Uninstall,[pkg]) => uninstall pkg
+      | (Update,[]) => update ()
       | (Upload,[pkg]) => upload pkg
       | _ =>
         commandUsage cmd ("bad arguments for " ^ commandString cmd ^ " command")

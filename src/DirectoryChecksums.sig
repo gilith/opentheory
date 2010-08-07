@@ -52,4 +52,10 @@ val add : checksums -> PackageName.name * Checksum.checksum -> unit
 
 val delete : checksums -> PackageName.name -> unit
 
+(* ------------------------------------------------------------------------- *)
+(* Updating the package list.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val update : checksums -> {url : string} -> unit
+
 end

@@ -51,6 +51,19 @@ fun peek repo n = DirectoryChecksums.peek (checksums repo) n;
 fun member n repo = DirectoryChecksums.member n (checksums repo);
 
 (* ------------------------------------------------------------------------- *)
+(* Updating the package list.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun update repo =
+    let
+      val {url = u} = url repo
+
+      val u = u ^ "opentheory/installed.pkg"
+    in
+      DirectoryChecksums.update (checksums repo) {url = u}
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
