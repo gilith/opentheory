@@ -127,6 +127,7 @@ SRC = \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
   src/DirectoryPackages.sig src/DirectoryPackages.sml \
   src/DirectoryRepo.sig src/DirectoryRepo.sml \
+  src/DirectoryError.sig src/DirectoryError.sml \
   src/Directory.sig src/Directory.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Options.sig src/Options.sml

@@ -131,87 +131,6 @@ fun mkRepoFilename root name =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of directory operation errors.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-datatype error =
-    AlreadyInstalledError
-  | FilenameClashError of
-      {srcs : {name : string, filename : string option} list,
-       dest : {filename : string}}
-  | InstalledDescendentError of PackageName.name
-  | NotInstalledError
-  | UninstalledParentError of PackageName.name;
-
-fun isAlreadyInstalledError err =
-    case err of
-      AlreadyInstalledError => true
-    | _ => false;
-
-fun removeAlreadyInstalledError errs =
-    let
-      val (xs,errs) = List.partition isAlreadyInstalledError errs
-
-      val removed = not (null xs)
-    in
-      (removed,errs)
-    end;
-
-fun destInstalledDescendentError err =
-    case err of
-      InstalledDescendentError name => SOME name
-    | _ => NONE;
-
-fun isInstalledDescendentError err =
-    Option.isSome (destInstalledDescendentError err);
-
-val removeInstalledDescendentError =
-    let
-      fun remove (err,(names,errs)) =
-          case destInstalledDescendentError err of
-            SOME name => (name :: names, errs)
-          | NONE => (names, err :: errs)
-    in
-      List.foldr remove ([],[])
-    end;
-
-fun isFatalError err =
-    case err of
-      AlreadyInstalledError => true
-    | FilenameClashError _ => true
-    | InstalledDescendentError _ => true
-    | NotInstalledError => true
-    | UninstalledParentError _ => true;
-
-val existsFatalError = List.exists isFatalError;
-
-fun toStringError err =
-    (if isFatalError err then "Error" else "Warning") ^ ": " ^
-    (case err of
-       AlreadyInstalledError =>
-       "package is already installed"
-     | FilenameClashError {srcs,dest} =>
-       let
-         fun toStringSrc {name,filename} =
-             name ^
-             (case filename of
-                SOME sf => ": " ^ PackageTheory.toStringFilename {filename = sf}
-              | NONE => "")
-       in
-         "filename clash in package directory:\n" ^
-         "Package file " ^ PackageTheory.toStringFilename dest ^ "\n" ^
-         " is target for " ^ join "\n  and also for " (map toStringSrc srcs)
-       end
-     | InstalledDescendentError name =>
-       "in use by installed package: " ^ PackageName.toString name
-     | NotInstalledError =>
-       "package is not installed"
-     | UninstalledParentError name =>
-       "depends on uninstalled package: " ^ PackageName.toString name);
-
-fun toStringErrorList errs = join "\n" (map toStringError errs);
-
-(* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -467,7 +386,7 @@ fun list dir = DirectoryPackages.list (packages dir);
 local
   fun checkDep dir (name,errs) =
       if member dir name then errs
-      else UninstalledParentError name :: errs;
+      else DirectoryError.UninstalledParent name :: errs;
 
   fun mkFileCopyPlan info pkg =
       let
@@ -563,7 +482,7 @@ local
               let
                 val dest = {filename = dest}
               in
-                FilenameClashError {srcs = srcs, dest = dest} :: errs
+                DirectoryError.FilenameClash {srcs = srcs, dest = dest} :: errs
               end
       in
         StringMap.foldl check
@@ -575,7 +494,7 @@ in
 
         val errs =
             if not (member dir name) then errs
-            else AlreadyInstalledError :: errs
+            else DirectoryError.AlreadyInstalled :: errs
 
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
@@ -689,7 +608,7 @@ in
 (*OpenTheoryDebug
         val errs = checkStageTheory dir name pkg
 
-        val _ = not (existsFatalError errs) orelse
+        val _ = not (DirectoryError.existsFatal errs) orelse
                 raise Bug "Directory.stageTheory: fatal error"
 *)
         (* Make a package info for the stage directory *)
@@ -787,7 +706,7 @@ fun installStaged dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUninstall dir name =
-    if not (member dir name) then [NotInstalledError]
+    if not (member dir name) then [DirectoryError.NotInstalled]
     else
       let
         val errs = []
@@ -798,7 +717,7 @@ fun checkUninstall dir name =
             if PackageNameSet.null desc then errs
             else
               let
-                fun add (n,acc) = InstalledDescendentError n :: acc
+                fun add (n,acc) = DirectoryError.InstalledDescendent n :: acc
               in
                 PackageNameSet.foldl add errs desc
               end
@@ -811,7 +730,7 @@ fun uninstall dir name =
 (*OpenTheoryDebug
         val errs = checkUninstall dir name
 
-        val _ = not (existsFatalError errs) orelse
+        val _ = not (DirectoryError.existsFatal errs) orelse
                 raise Bug "Directory.uninstall: fatal error"
 *)
 
@@ -835,7 +754,7 @@ fun uninstall dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUpload dir repo name =
-    if not (member dir name) then [NotInstalledError]
+    if not (member dir name) then [DirectoryError.NotInstalled]
     else
       let
         val errs = []
@@ -848,7 +767,7 @@ fun upload dir repo name =
 (*OpenTheoryDebug
         val errs = checkUpload dir repo name
 
-        val _ = not (existsFatalError errs) orelse
+        val _ = not (DirectoryError.existsFatal errs) orelse
                 raise Bug "Directory.upload: fatal error"
 *)
 

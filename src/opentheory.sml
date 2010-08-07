@@ -95,8 +95,10 @@ val rootDirectory =
 fun initDirectory {rootDirectory = r} =
     let
       val () = chat ("Creating package directory " ^ r)
+
+      val () = Directory.create {rootDirectory = r}
     in
-      Directory.create {rootDirectory = r}
+      Directory.mk {rootDirectory = r}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -155,7 +157,7 @@ fun repo () =
       case !repoOption of
         NONE => hd repos
       | SOME repo =>
-        case List.find (equal repo o Directory.nameRepo) repos of
+        case List.find (equal repo o DirectoryRepo.name) repos of
           SOME r => r
         | NONE => raise Error ("no repo named " ^ repo ^ " in config file")
     end;
@@ -973,9 +975,9 @@ fun uninstallPackage dir name =
           if null errs then ()
           else
             let
-              val s = Directory.toStringErrorList errs
+              val s = DirectoryError.toStringList errs
             in
-              if Directory.existsFatalError errs then raise Error s
+              if DirectoryError.existsFatal errs then raise Error s
               else warn ("package uninstall warnings:\n" ^ s)
             end
 
@@ -990,7 +992,7 @@ fun uninstallAuto dir name =
     let
       val desc =
           if not (!autoUninstall) then []
-          else Directory.descendentsByAge dir name
+          else Directory.installOrder dir (Directory.descendents dir name)
 
       val names = rev (name :: desc)
 
@@ -1033,15 +1035,15 @@ fun installTheory filename =
 
       val (replace,errs) =
           if not (!reinstall) then (false,errs)
-          else Directory.removeAlreadyInstalledError errs
+          else DirectoryError.removeAlreadyInstalled errs
 
       val () =
           if null errs then ()
           else
             let
-              val s = Directory.toStringErrorList errs
+              val s = DirectoryError.toStringList errs
             in
-              if Directory.existsFatalError errs then raise Error s
+              if DirectoryError.existsFatal errs then raise Error s
               else warn ("package install warnings:\n" ^ s)
             end
 
@@ -1067,9 +1069,11 @@ fun list () =
     let
       val dir = directory ()
 
+      val pkgs = Directory.list dir
+
       val pkgs =
-          if !dependencyOrder then Directory.listByAge dir
-          else PackageNameSet.toList (Directory.list dir)
+          if !dependencyOrder then Directory.installOrder dir pkgs
+          else PackageNameSet.toList pkgs
 
       fun mk name = PackageName.toString name ^ "\n"
 
@@ -1098,16 +1102,16 @@ fun upload name =
           if null errs then ()
           else
             let
-              val s = Directory.toStringErrorList errs
+              val s = DirectoryError.toStringList errs
             in
-              if Directory.existsFatalError errs then raise Error s
+              if DirectoryError.existsFatal errs then raise Error s
               else warn ("package upload warnings:\n" ^ s)
             end
 
       val () = Directory.upload dir repo name
 
       val () = print ("uploaded package " ^ PackageName.toString name ^
-                      " to " ^ Directory.toStringRepo repo ^ " repo\n")
+                      " to " ^ DirectoryRepo.toString repo ^ " repo\n")
     in
       ()
     end

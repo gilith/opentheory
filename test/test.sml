@@ -341,7 +341,7 @@ val directory =
 val () = SAY "Config files";
 (* ------------------------------------------------------------------------- *)
 
-val config = printval Directory.ppConfig (Directory.config directory);
+val config = printval DirectoryConfig.pp (Directory.config directory);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Importing theory packages";

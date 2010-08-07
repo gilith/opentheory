@@ -7,38 +7,6 @@ signature Directory =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of directory operation errors.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-datatype error =
-    AlreadyInstalledError
-  | FilenameClashError of
-      {srcs : {name : string, filename : string option} list,
-       dest : {filename : string}}
-  | InstalledDescendentError of PackageName.name
-  | NotInstalledError
-  | UninstalledParentError of PackageName.name
-
-val isAlreadyInstalledError : error -> bool
-
-val removeAlreadyInstalledError : error list -> bool * error list
-
-val destInstalledDescendentError : error -> PackageName.name option
-
-val isInstalledDescendentError : error -> bool
-
-val removeInstalledDescendentError :
-    error list -> PackageName.name list * error list
-
-val isFatalError : error -> bool
-
-val existsFatalError : error list -> bool
-
-val toStringError : error -> string
-
-val toStringErrorList : error list -> string
-
-(* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -107,7 +75,8 @@ val list : directory -> PackageNameSet.set
 (* ------------------------------------------------------------------------- *)
 
 val checkStageTheory :
-    directory -> PackageName.name -> Package.package -> error list
+    directory -> PackageName.name -> Package.package ->
+    DirectoryError.error list
 
 val stageTheory :
     directory ->
@@ -123,7 +92,8 @@ val installStaged : directory -> PackageName.name -> unit
 (* Uninstalling packages from the package directory.                         *)
 (* ------------------------------------------------------------------------- *)
 
-val checkUninstall : directory -> PackageName.name -> error list
+val checkUninstall :
+    directory -> PackageName.name -> DirectoryError.error list
 
 val uninstall : directory -> PackageName.name -> unit
 
@@ -132,7 +102,8 @@ val uninstall : directory -> PackageName.name -> unit
 (* ------------------------------------------------------------------------- *)
 
 val checkUpload :
-    directory -> DirectoryRepo.repo -> PackageName.name -> error list
+    directory -> DirectoryRepo.repo -> PackageName.name ->
+    DirectoryError.error list
 
 val upload :
     directory -> DirectoryRepo.repo -> PackageName.name -> unit
