@@ -39,22 +39,6 @@ val toStringError : error -> string
 val toStringErrorList : error list -> string
 
 (* ------------------------------------------------------------------------- *)
-(* Configuration.                                                            *)
-(* ------------------------------------------------------------------------- *)
-
-type config
-
-val emptyConfig : config
-
-val readConfig : {filename : string} -> config
-
-val writeConfig : {config : config, filename : string} -> unit
-
-val ppConfig : config Print.pp
-
-val defaultConfig : config
-
-(* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -66,7 +50,7 @@ val mk : {rootDirectory : string} -> directory
 
 val root : directory -> {directory : string}
 
-val config : directory -> config
+val config : directory -> DirectoryConfig.config
 
 val repos : directory -> DirectoryRepo.repo list
 
@@ -80,13 +64,11 @@ val peek : directory -> PackageName.name -> PackageInfo.info option
 
 val get : directory -> PackageName.name -> PackageInfo.info
 
-val installed : directory -> PackageName.name -> bool
+val member : directory -> PackageName.name -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
-
-val sortByAge : directory -> PackageNameSet.set -> PackageName.name list
 
 val parents : directory -> PackageName.name -> PackageNameSet.set
 
@@ -94,21 +76,25 @@ val children : directory -> PackageName.name -> PackageNameSet.set
 
 val ancestors : directory -> PackageName.name -> PackageNameSet.set
 
-val ancestorsSet : directory -> PackageNameSet.set -> PackageNameSet.set
-
 val descendents : directory -> PackageName.name -> PackageNameSet.set
 
-val ancestorsByAge : directory -> PackageName.name -> PackageName.name list
+(* Sets *)
 
-val descendentsByAge : directory -> PackageName.name -> PackageName.name list
+val ancestorsSet : directory -> PackageNameSet.set -> PackageNameSet.set
+
+val descendentsSet : directory -> PackageNameSet.set -> PackageNameSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Generate a valid installation order.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val installOrder : directory -> PackageNameSet.set -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
 val list : directory -> PackageNameSet.set
-
-val listByAge : directory -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Staging theory files for installation.                                    *)

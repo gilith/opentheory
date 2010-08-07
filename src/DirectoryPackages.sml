@@ -37,19 +37,17 @@ fun childrenPackageDeps (PackageDeps {children,...}) name =
       SOME cs => cs
     | NONE => PackageNameSet.empty;
 
-fun ancestorsPackageDeps deps =
-    let
-      val step = parentsPackageDeps deps
-    in
-      fn name => PackageNameSet.close step (step name)
-    end;
+fun ancestorsSetPackageDeps deps =
+    PackageNameSet.close (parentsPackageDeps deps);
 
-fun descendentsPackageDeps deps =
-    let
-      val step = childrenPackageDeps deps
-    in
-      fn name => PackageNameSet.close step (step name)
-    end;
+fun ancestorsPackageDeps deps name =
+    ancestorsSetPackageDeps deps (parentsPackageDeps deps name);
+
+fun descendentsSetPackageDeps deps =
+    PackageNameSet.close (childrenPackageDeps deps);
+
+fun descendentsPackageDeps deps name =
+    descendentsSetPackageDeps deps (childrenPackageDeps deps name);
 
 fun addPackageDeps deps (p,c) =
     let
@@ -246,33 +244,83 @@ fun size pkgs = sizePure (packages pkgs);
 
 fun peek pkgs name = peekPure (packages pkgs) name;
 
+fun get pkgs name =
+    case peek pkgs name of
+      SOME info => info
+    | NONE => raise Error "DirectoryPackages.get";
+
 fun member name pkgs = memberPure name (packages pkgs);
+
+(* ------------------------------------------------------------------------- *)
+(* All installed packages.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun list pkgs = toNameSetPure (packages pkgs);
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun installed pkgs = toNameSetPure (packages pkgs);
+fun parents' pkgs =
+    let
+      val Packages {dependencies = ref odeps, ...} = pkgs
+    in
+      case odeps of
+        SOME deps => parentsPackageDeps deps
+      | NONE => fn name => PackageInfo.packages (get pkgs name)
+    end;
 
-(* Simple *)
+fun parents pkgs name =
+    let
+(*OpenTheoryDebug
+      val _ = member name pkgs orelse
+              raise Bug "DirectoryPackages.parents: unknown package"
+*)
+    in
+      parents' pkgs name
+    end;
 
-(***
-val parents : packages -> PackageName.name -> PackageNameSet.set
+fun children' pkgs = childrenPackageDeps (dependencies pkgs);
 
-val children : packages -> PackageName.name -> PackageNameSet.set
+fun children pkgs name =
+    let
+(*OpenTheoryDebug
+      val _ = member name pkgs orelse
+              raise Bug "DirectoryPackages.children: unknown package"
+*)
+    in
+      children' pkgs name
+    end;
 
-val ancestors : packages -> PackageName.name -> PackageNameSet.set
+fun ancestorsSet pkgs = PackageNameSet.close (parents' pkgs);
 
-val descendents : packages -> PackageName.name -> PackageNameSet.set
+fun ancestors pkgs name =
+    let
+(*OpenTheoryDebug
+      val _ = member name pkgs orelse
+              raise Bug "DirectoryPackages.ancestors: unknown package"
+*)
+    in
+      ancestorsSet pkgs (parents' pkgs name)
+    end;
 
-(* Sets *)
+fun descendentsSet pkgs = PackageNameSet.close (children' pkgs);
 
-val ancestorsSet : packages -> PackageNameSet.set -> PackageNameSet.set
+fun descendents pkgs name =
+    let
+(*OpenTheoryDebug
+      val _ = member name pkgs orelse
+              raise Bug "DirectoryPackages.descendents: unknown package"
+*)
+    in
+      descendentsSet pkgs (children' pkgs name)
+    end;
 
-(* Generate a valid installation order *)
+(* ------------------------------------------------------------------------- *)
+(* Generate a valid installation order.                                      *)
+(* ------------------------------------------------------------------------- *)
 
-val installOrder : packages -> PackageNameSet.set -> PackageName.name list
-***)
+fun installOrder pkgs = PackageNameSet.postOrder (parents' pkgs);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

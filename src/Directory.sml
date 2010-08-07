@@ -292,7 +292,7 @@ fun repos (Directory {repos = x, ...}) = x;
 (* Creating a new theory package directory.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun create {rootDir} =
+fun create {rootDirectory = rootDir} =
     let
       val () = createDirectory {directory = rootDir}
 
@@ -427,83 +427,38 @@ fun get dir name =
       SOME info => info
     | NONE => raise Error "Directory.get";
 
-fun installed dir name = Option.isSome (peek dir name);
+fun member dir name = Option.isSome (peek dir name);
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-(* Operations that do not need to create a package dependency graph *)
+fun parents dir name = DirectoryPackages.parents (packages dir) name;
 
-fun parents dir name =
-    case peek dir name of
-      SOME info => PackageInfo.packages info
-    | NONE => raise Bug "Directory.parents";
+fun children dir name = DirectoryPackages.children (packages dir) name;
 
-fun sortByAge dir set = sortPackageSet (parents dir) set;
+fun ancestors dir name = DirectoryPackages.ancestors (packages dir) name;
 
-fun ancestors dir =
-    let
-      val step = parents dir
-    in
-      fn name => closePackageSet step (step name)
-    end;
+fun descendents dir name = DirectoryPackages.descendents (packages dir) name;
 
-fun ancestorsSet dir names = closePackageSet (parents dir) names;
+fun ancestorsSet dir names =
+    DirectoryPackages.ancestorsSet (packages dir) names;
 
-fun ancestorsByAge dir name = sortByAge dir (ancestors dir name);
+fun descendentsSet dir names =
+    DirectoryPackages.descendentsSet (packages dir) names;
 
-(* Operations that use a package dependency graph *)
+(* ------------------------------------------------------------------------- *)
+(* Generate a valid installation order.                                      *)
+(* ------------------------------------------------------------------------- *)
 
-fun packageDeps dir = fromPackagesPackageDeps (packages dir);
-
-fun children dir name =
-    let
-(*OpenTheoryDebug
-      val _ = installed dir name orelse
-              raise Bug "Directory.children: unknown"
-*)
-      val deps = packageDeps dir
-    in
-      childrenPackageDeps deps name
-    end;
-
-fun descendents dir name =
-    let
-(*OpenTheoryDebug
-      val _ = installed dir name orelse
-              raise Bug "Directory.descendents: unknown"
-*)
-      val deps = packageDeps dir
-    in
-      descendentsPackageDeps deps name
-    end;
-
-fun descendentsByAge dir name =
-    let
-(*OpenTheoryDebug
-      val _ = installed dir name orelse
-              raise Bug "Directory.descendents: unknown"
-*)
-      val deps = packageDeps dir
-
-      val desc = descendentsPackageDeps deps name
-    in
-      sortPackageDeps deps desc
-    end;
+fun installOrder dir names =
+    DirectoryPackages.installOrder (packages dir) names;
 
 (* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun list dir =
-    let
-      val Directory {packages = ref pkgs, ...} = dir
-    in
-      listPackages pkgs
-    end;
-
-fun listByAge dir = sortPackageDeps (packageDeps dir) (list dir);
+fun list dir = DirectoryPackages.list (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Updating the local package list.                                          *)
