@@ -58,7 +58,7 @@ sub upload_dir {
 }
 
 my @repo_exclusions =
-   ();
+   ('opentheory');
 
 my $repo_remote_dir = "public_opentheory";
 upload_dir "repo", $repo_remote_dir, \@repo_exclusions;

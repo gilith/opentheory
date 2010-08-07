@@ -157,7 +157,7 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 PACKAGE_DIR = test/directory
 
-THEORY_DIR = test/theories
+THEORY_DIR = data/theories
 
 .PHONY: init
 init:
@@ -183,21 +183,14 @@ lines: $(LINES)
 	@echo
 
 ###############################################################################
-# Create all the compilation theories.
+# Install all of the compilation theories.
 ###############################################################################
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/empty/empty.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/bool-true/bool-true.thy
-#	$(OPENTHEORY) -d $(PACKAGE_DIR) install --reinstall $(THEORY_DIR)/bool/bool.thy
-
-###############################################################################
-# Create a snapshop of all theory packages.
-###############################################################################
-
-repo/packages.tgz: $(PACKAGE_DIR)/packages
-	cd $(PACKAGE_DIR) && tar cvzf ../../$@ --exclude .gitignore packages
+	$(OPENTHEORY) install --reinstall $(THEORY_DIR)/empty/empty.thy
+	$(OPENTHEORY) install --reinstall $(THEORY_DIR)/bool-true/bool-true.thy
+#	$(OPENTHEORY) install --reinstall $(THEORY_DIR)/bool/bool.thy
 
 ###############################################################################
 # Profiling using MLton.

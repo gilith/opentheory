@@ -1,7 +1,7 @@
 .git
 .gitignore
 opentheory/Makefile.dev
-opentheory/data/hol-light
+opentheory/data
 opentheory/doc/DONT-RELEASE
 opentheory/doc/IMPORT-METIS
 opentheory/release
@@ -13,12 +13,3 @@ opentheory/scripts/mosml_dep
 opentheory/scripts/release_stamp
 opentheory/src/benchmark.sml
 opentheory/test/hol-light
-opentheory/test/directory/packages/a*
-opentheory/test/directory/packages/b*
-opentheory/test/directory/packages/c*
-opentheory/test/directory/packages/ex*
-opentheory/test/directory/packages/f*
-opentheory/test/directory/packages/h*
-opentheory/test/directory/packages/n*
-opentheory/test/directory/packages/p*
-opentheory/test/directory/packages/u*
