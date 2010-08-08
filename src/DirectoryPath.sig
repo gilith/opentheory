@@ -10,15 +10,18 @@ sig
 (* The config file.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val mkConfigFilename : {rootDirectory : string} -> {filename : string}
+val mkConfigFilename :
+    {rootDirectory : string} -> {filename : string}
 
 (* ------------------------------------------------------------------------- *)
 (* The list of installed packages.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val mkInstalledFilename : {rootDirectory : string} -> {filename : string}
+val mkInstalledFilename :
+    {rootDirectory : string} -> {filename : string}
 
-val mkInstalledUrl : {rootUrl : string} -> {url : string}
+val mkInstalledUrl :
+    {rootUrl : string} -> {url : string}
 
 (* ------------------------------------------------------------------------- *)
 (* The packages directory.                                                   *)
