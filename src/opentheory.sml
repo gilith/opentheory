@@ -1130,8 +1130,8 @@ fun updateRepo repo =
     let
       val () = DirectoryRepo.update repo
 
-      val () = chat ("updated package list for repo " ^
-                     DirectoryRepo.toString repo)
+      val () = chat ("updated package list for " ^
+                     DirectoryRepo.toString repo ^ " repo")
     in
       ()
     end

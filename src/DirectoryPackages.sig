@@ -16,11 +16,7 @@ type packages
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : {directory : string, filename : string} -> packages
-
-val directory : packages -> {directory : string}
-
-val filename : packages -> {filename : string}
+val mk : {rootDirectory : string} -> packages
 
 val size : packages -> int
 

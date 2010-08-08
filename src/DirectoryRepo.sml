@@ -17,30 +17,30 @@ type name = string;
 datatype repo =
     Repo of
       {name : string,
-       url : string,
+       rootUrl : string,
        checksums : DirectoryChecksums.checksums};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk {name,url,filename} =
+fun mk {name, rootDirectory = rootDir, rootUrl} =
     let
-      val checksums = DirectoryChecksums.mk {filename = filename}
+      val checksums =
+          DirectoryChecksums.mk
+            (DirectoryPath.mkRepoFilename {rootDirectory = rootDir} name)
     in
       Repo
         {name = name,
-         url = url,
+         rootUrl = rootUrl,
          checksums = checksums}
     end;
 
 fun name (Repo {name = x, ...}) = x;
 
-fun url (Repo {url = x, ...}) = {url = x};
+fun rootUrl (Repo {rootUrl = x, ...}) = {rootUrl = x};
 
 fun checksums (Repo {checksums = x, ...}) = x;
-
-fun filename repo = DirectoryChecksums.filename (checksums repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
@@ -56,11 +56,9 @@ fun member n repo = DirectoryChecksums.member n (checksums repo);
 
 fun update repo =
     let
-      val {url = u} = url repo
-
-      val u = u ^ "opentheory/installed.pkg"
+      val url = DirectoryPath.mkInstalledUrl (rootUrl repo)
     in
-      DirectoryChecksums.update (checksums repo) {url = u}
+      DirectoryChecksums.update (checksums repo) url
     end;
 
 (* ------------------------------------------------------------------------- *)

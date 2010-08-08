@@ -179,13 +179,22 @@ datatype packages =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk {directory,filename} =
+fun mk {rootDirectory = rootDir} =
     let
+      val {directory} =
+          DirectoryPath.mkPackagesDirectory {rootDirectory = rootDir}
+
       val packages = ref NONE
 
       val dependencies = ref NONE
 
-      val checksums = DirectoryChecksums.mk {filename = filename}
+      val checksums =
+          let
+            val file =
+                DirectoryPath.mkInstalledFilename {rootDirectory = rootDir}
+          in
+            DirectoryChecksums.mk file
+          end
     in
       Packages
         {directory = directory,
@@ -233,8 +242,6 @@ fun dependencies pkgs =
     end;
 
 fun checksums (Packages {checksums = x, ...}) = x;
-
-fun filename pkgs = DirectoryChecksums.filename (checksums pkgs);
 
 fun size pkgs = sizePure (packages pkgs);
 

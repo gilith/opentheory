@@ -18,7 +18,7 @@ type directory
 
 val mk : {rootDirectory : string} -> directory
 
-val root : directory -> {directory : string}
+val rootDirectory : directory -> {rootDirectory : string}
 
 val config : directory -> DirectoryConfig.config
 

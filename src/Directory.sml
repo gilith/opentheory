@@ -9,16 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-val configFile = "config"
-and installedName = "installed"
-and packagesDirectory = "packages"
-and stagingDirectory = "staging"
-and reposDirectory = "repos";
-
-(* ------------------------------------------------------------------------- *)
 (* Directory operations.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -26,75 +16,9 @@ fun createDirectory {directory} = OS.FileSys.mkDir directory;
 
 fun renameDirectory {src,dest} = OS.FileSys.rename {old = src, new = dest};
 
-fun ppDirectory {directory} = Print.ppString directory;
-
-(* ------------------------------------------------------------------------- *)
-(* The config file.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-fun mkConfigFilename {rootDirectory = dir} =
-    let
-      val file = configFile
-
-      val filename = OS.Path.joinDirFile {dir = dir, file = file}
-    in
-      {filename = filename}
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* The list of installed packages.                                           *)
-(* ------------------------------------------------------------------------- *)
-
-fun mkInstalledFilename {rootDirectory = dir} =
-    let
-      val {filename = file} = DirectoryChecksums.mkFilename installedName
-
-      val filename = OS.Path.joinDirFile {dir = dir, file = file}
-    in
-      {filename = filename}
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* The packages directory.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun mkPackagesDirectory {rootDirectory = dir} =
-    let
-      val directory = OS.Path.joinDirFile {dir = dir, file = packagesDirectory}
-    in
-      {directory = directory}
-    end;
-
-fun mkPackageDirectory root name =
-    let
-      val {directory = dir} = mkPackagesDirectory root
-      and file = PackageName.toString name
-
-      val directory = OS.Path.joinDirFile {dir = dir, file = file}
-    in
-      {directory = directory}
-    end;
-
 (* ------------------------------------------------------------------------- *)
 (* The package staging directory.                                            *)
 (* ------------------------------------------------------------------------- *)
-
-fun mkStagingPackagesDirectory {rootDirectory = dir} =
-    let
-      val directory = OS.Path.joinDirFile {dir = dir, file = stagingDirectory}
-    in
-      {directory = directory}
-    end;
-
-fun mkStagingPackageDirectory root name =
-    let
-      val {directory = dir} = mkStagingPackagesDirectory root
-      and file = PackageName.toString name
-
-      val directory = OS.Path.joinDirFile {dir = dir, file = file}
-    in
-      {directory = directory}
-    end;
 
 local
   fun warnFile {filename} =
@@ -107,28 +31,6 @@ in
         List.app warnFile files
       end;
 end;
-
-(* ------------------------------------------------------------------------- *)
-(* The repos directory.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-fun mkReposDirectory {rootDirectory = dir} =
-    let
-      val directory = OS.Path.joinDirFile {dir = dir, file = reposDirectory}
-    in
-      {directory = directory}
-    end;
-
-fun mkRepoFilename root name =
-    let
-      val {directory = dir} = mkReposDirectory root
-
-      val {filename = file} = DirectoryChecksums.mkFilename name
-
-      val filename = OS.Path.joinDirFile {dir = dir, file = file}
-    in
-      {filename = filename}
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
@@ -149,25 +51,19 @@ fun mk {rootDirectory = rootDir} =
     let
       val config =
           let
-            val filename = mkConfigFilename {rootDirectory = rootDir}
+            val filename =
+                DirectoryPath.mkConfigFilename {rootDirectory = rootDir}
           in
             DirectoryConfig.fromTextFile filename
           end
 
-      val packages =
-          let
-            val {directory = dir} =
-                mkPackagesDirectory {rootDirectory = rootDir}
-
-            val {filename = file} =
-                mkInstalledFilename {rootDirectory = rootDir}
-          in
-            DirectoryPackages.mk {directory = dir, filename = file}
-          end
+      val packages = DirectoryPackages.mk {rootDirectory = rootDir}
 
       val () =
           let
-            val dir = mkStagingPackagesDirectory {rootDirectory = rootDir}
+            val dir =
+                DirectoryPath.mkStagingPackagesDirectory
+                  {rootDirectory = rootDir}
 
             val () = checkStagingPackagesDirectory dir
           in
@@ -180,11 +76,11 @@ fun mk {rootDirectory = rootDir} =
                 let
                   val {name} = DirectoryConfig.nameRepo cfg
                   and {url} = DirectoryConfig.urlRepo cfg
-
-                  val {filename = file} =
-                      mkRepoFilename {rootDirectory = rootDir} name
                 in
-                  DirectoryRepo.mk {name = name, url = url, filename = file}
+                  DirectoryRepo.mk
+                    {name = name,
+                     rootUrl = url,
+                     rootDirectory = rootDir}
                 end
 
             val cfgs = DirectoryConfig.repos config
@@ -199,7 +95,7 @@ fun mk {rootDirectory = rootDir} =
          repos = repos}
     end;
 
-fun root (Directory {rootDirectory = x, ...}) = {directory = x};
+fun rootDirectory (Directory {rootDirectory = x, ...}) = {rootDirectory = x};
 
 fun config (Directory {config = x, ...}) = x;
 
@@ -217,21 +113,27 @@ fun create {rootDirectory = rootDir} =
 
       val () =
           let
-            val dir = mkPackagesDirectory {rootDirectory = rootDir}
+            val dir =
+                DirectoryPath.mkPackagesDirectory
+                  {rootDirectory = rootDir}
           in
             createDirectory dir
           end
 
       val () =
           let
-            val dir = mkStagingPackagesDirectory {rootDirectory = rootDir}
+            val dir =
+                DirectoryPath.mkStagingPackagesDirectory
+                  {rootDirectory = rootDir}
           in
             createDirectory dir
           end
 
       val () =
           let
-            val dir = mkReposDirectory {rootDirectory = rootDir}
+            val dir =
+                DirectoryPath.mkReposDirectory
+                  {rootDirectory = rootDir}
           in
             createDirectory dir
           end
@@ -240,14 +142,18 @@ fun create {rootDirectory = rootDir} =
           let
             val cfg = DirectoryConfig.default
 
-            val {filename = file} = mkConfigFilename {rootDirectory = rootDir}
+            val {filename = file} =
+                DirectoryPath.mkConfigFilename
+                  {rootDirectory = rootDir}
           in
             DirectoryConfig.toTextFile {config = cfg, filename = file}
           end
 
       val () =
           let
-            val file = mkInstalledFilename {rootDirectory = rootDir}
+            val file =
+                DirectoryPath.mkInstalledFilename
+                  {rootDirectory = rootDir}
           in
             DirectoryChecksums.create file
           end
@@ -260,62 +166,28 @@ fun create {rootDirectory = rootDir} =
 (* ------------------------------------------------------------------------- *)
 
 fun configFilename dir =
-    let
-      val {directory = rootDir} = root dir
-    in
-      mkConfigFilename {rootDirectory = rootDir}
-    end;
+    DirectoryPath.mkConfigFilename (rootDirectory dir);
 
 fun installedFilename dir =
-    let
-      val {directory = rootDir} = root dir
-    in
-      mkInstalledFilename {rootDirectory = rootDir}
-    end;
+    DirectoryPath.mkInstalledFilename (rootDirectory dir);
 
 fun packagesDirectory dir =
-    let
-      val {directory = rootDir} = root dir
-    in
-      mkPackagesDirectory {rootDirectory = rootDir}
-    end;
+    DirectoryPath.mkPackagesDirectory (rootDirectory dir);
 
 fun packageDirectory dir name =
-    let
-      val {directory = rootDir} = root dir
-    in
-      mkPackageDirectory {rootDirectory = rootDir} name
-    end;
+    DirectoryPath.mkPackageDirectory (rootDirectory dir) name;
 
 fun stagingPackagesDirectory dir =
-    let
-      val {directory = rootDir} = root dir
-    in
-      mkStagingPackagesDirectory {rootDirectory = rootDir}
-    end;
+    DirectoryPath.mkStagingPackagesDirectory (rootDirectory dir);
 
 fun stagingPackageDirectory dir name =
-    let
-      val {directory = rootDir} = root dir
-    in
-      mkStagingPackageDirectory {rootDirectory = rootDir} name
-    end;
+    DirectoryPath.mkStagingPackageDirectory (rootDirectory dir) name;
 
 fun reposDirectory dir =
-    let
-      val {directory = rootDir} = root dir
-    in
-      mkReposDirectory {rootDirectory = rootDir}
-    end;
+    DirectoryPath.mkReposDirectory (rootDirectory dir);
 
 fun repoFilename dir repo =
-    let
-      val {directory = rootDir} = root dir
-
-      val name = DirectoryRepo.name repo
-    in
-      mkRepoFilename {rootDirectory = rootDir} name
-    end;
+    DirectoryPath.mkRepoFilename (rootDirectory dir) repo;
 
 (* ------------------------------------------------------------------------- *)
 (* Package information.                                                      *)
@@ -352,13 +224,17 @@ fun member dir name = Option.isSome (peek dir name);
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun parents dir name = DirectoryPackages.parents (packages dir) name;
+fun parents dir name =
+    DirectoryPackages.parents (packages dir) name;
 
-fun children dir name = DirectoryPackages.children (packages dir) name;
+fun children dir name =
+    DirectoryPackages.children (packages dir) name;
 
-fun ancestors dir name = DirectoryPackages.ancestors (packages dir) name;
+fun ancestors dir name =
+    DirectoryPackages.ancestors (packages dir) name;
 
-fun descendents dir name = DirectoryPackages.descendents (packages dir) name;
+fun descendents dir name =
+    DirectoryPackages.descendents (packages dir) name;
 
 fun ancestorsSet dir names =
     DirectoryPackages.ancestorsSet (packages dir) names;
@@ -794,6 +670,11 @@ fun finder dir = PackageFinder.mk (peek dir);
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Print.ppMap root (Print.ppBracket "<" ">" ppDirectory);
+fun pp dir =
+    let
+      val {rootDirectory = rootDir} = rootDirectory dir
+    in
+      Print.ppBracket "<" ">" Print.ppString rootDir
+    end;
 
 end

@@ -18,13 +18,11 @@ type repo
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : {name : name, url : string, filename : string} -> repo
+val mk : {name : name, rootDirectory : string, rootUrl : string} -> repo
 
 val name : repo -> name
 
-val url : repo -> {url : string}
-
-val filename : repo -> {filename : string}
+val rootUrl : repo -> {rootUrl : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)

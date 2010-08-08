@@ -125,6 +125,7 @@ SRC = \
   src/Graph.sig src/Graph.sml \
   src/DirectoryConfig.sig src/DirectoryConfig.sml \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
+  src/DirectoryPath.sig src/DirectoryPath.sml \
   src/DirectoryPackages.sig src/DirectoryPackages.sml \
   src/DirectoryRepo.sig src/DirectoryRepo.sml \
   src/DirectoryError.sig src/DirectoryError.sml \
