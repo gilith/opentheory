@@ -50,6 +50,18 @@ fun peek repo n = DirectoryChecksums.peek (checksums repo) n;
 
 fun member n repo = DirectoryChecksums.member n (checksums repo);
 
+fun first repos n = Useful.first (fn repo => peek repo n) repos;
+
+fun find repos (n,c) =
+    let
+      fun pred r =
+          case peek r n of
+            SOME c' => Checksum.equal c' c
+          | NONE => false
+    in
+      List.find pred repos
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)

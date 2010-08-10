@@ -7,6 +7,12 @@ signature Directory =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* Creating a new theory package directory.                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val create : {rootDirectory : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -22,14 +28,6 @@ val rootDirectory : directory -> {rootDirectory : string}
 
 val config : directory -> DirectoryConfig.config
 
-val repos : directory -> DirectoryRepo.repo list
-
-(* ------------------------------------------------------------------------- *)
-(* Creating a new theory package directory.                                  *)
-(* ------------------------------------------------------------------------- *)
-
-val create : {rootDirectory : string} -> unit
-
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
@@ -39,6 +37,16 @@ val peek : directory -> PackageName.name -> PackageInfo.info option
 val get : directory -> PackageName.name -> PackageInfo.info
 
 val member : directory -> PackageName.name -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Looking up repos in the package directory.                                *)
+(* ------------------------------------------------------------------------- *)
+
+val repos : directory -> DirectoryRepo.repo list
+
+val peekRepo : directory -> DirectoryRepo.name -> DirectoryRepo.repo option
+
+val getRepo : directory -> DirectoryRepo.name -> DirectoryRepo.repo
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
@@ -75,12 +83,28 @@ val list : directory -> PackageNameSet.set
 (* ------------------------------------------------------------------------- *)
 
 val checkStageTheory :
-    directory -> PackageName.name -> Package.package ->
+    directory ->
+    PackageName.name -> Package.package ->
     DirectoryError.error list
 
 val stageTheory :
     directory ->
-    PackageName.name -> Package.package -> {directory : string} -> unit
+    PackageName.name -> Package.package -> {directory : string} ->
+    unit
+
+(* ------------------------------------------------------------------------- *)
+(* Staging theory packages for installation.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val checkStagePackage :
+    directory ->
+    DirectoryRepo.repo -> PackageName.name ->
+    DirectoryError.error list
+
+val stagePackage :
+    directory -> PackageFinder.finder ->
+    DirectoryRepo.repo -> PackageName.name ->
+    unit
 
 (* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)
@@ -102,17 +126,14 @@ val uninstall : directory -> PackageName.name -> unit
 (* ------------------------------------------------------------------------- *)
 
 val checkUpload :
-    directory -> DirectoryRepo.repo -> PackageName.name ->
+    directory ->
+    DirectoryRepo.repo -> PackageName.name ->
     DirectoryError.error list
 
 val upload :
-    directory -> DirectoryRepo.repo -> PackageName.name -> unit
-
-(* ------------------------------------------------------------------------- *)
-(* Downloading packages from a repo to the package directory.                *)
-(* ------------------------------------------------------------------------- *)
-
-val download : directory -> DirectoryRepo.repo -> PackageName.name -> unit
+    directory ->
+    DirectoryRepo.repo -> PackageName.name ->
+    unit
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder.                                                         *)

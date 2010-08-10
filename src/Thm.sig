@@ -59,9 +59,9 @@ val dealphaEqual : thm -> thm -> bool
 val axiom : Sequent.sequent -> thm
 
 (* ------------------------------------------------------------------------- *)
-(*         A |- t1 = t2                                                      *)
-(* ----------------------------  abs v                                       *)
-(*   A |- (\v. t1) = (\v. t2)                                                *)
+(*        A |- t = u                                                         *)
+(* --------------------------  abs v                                         *)
+(*   A |- (\v. t) = (\v. u)                                                  *)
 (*                                                                           *)
 (* Side condition: the variable v must not be free in A.                     *)
 (* ------------------------------------------------------------------------- *)
@@ -90,26 +90,26 @@ val assume : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
-(* -----------------------------  betaConv ((\v. t1) t2)                     *)
-(*   |- (\v. t1) t2 = t1[t2/v]                                               *)
+(* -------------------------  betaConv ((\v. t) u)                           *)
+(*   |- (\v. t) u = t[u/v]                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val betaConv : Term.term -> thm
 
 (* ------------------------------------------------------------------------- *)
-(*           A |- t1    B |- t2                                              *)
-(* --------------------------------------  deductAntisym                     *)
-(*   (A - {t2}) u (B - {t1}) |- t1 = t2                                      *)
+(*         A |- t    B |- u                                                  *)
+(* ----------------------------------  deductAntisym                         *)
+(*   (A - {u}) u (B - {t}) |- t = u                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val deductAntisym : thm -> thm -> thm
 
 (* ------------------------------------------------------------------------- *)
-(*   A |- t1 = t2    B |- t1'                                                *)
-(* ----------------------------  eqMp                                       *)
-(*         A u B |- t2                                                       *)
+(*   A |- t = u    B |- t'                                                   *)
+(* -------------------------  eqMp                                           *)
+(*         A u B |- u                                                        *)
 (*                                                                           *)
-(* Side condition: the terms t1 and t1' must be alpha equivalent.            *)
+(* Side condition: the terms t and t' must be alpha equivalent.              *)
 (* ------------------------------------------------------------------------- *)
 
 val eqMp : thm -> thm -> thm
@@ -155,7 +155,7 @@ val defineConst : Name.name -> Term.term -> Const.const * thm
 (* where if p has type 'a -> bool, then abs and rep are new constants with   *)
 (* types 'a -> ty and ty -> 'a, respectively.                                *)
 (*                                                                           *)
-(* Side condition: tyVars lists all the type variables in p.                 *)
+(* Side condition: tyVars lists all the type variables in p precisely once.  *)
 (* ------------------------------------------------------------------------- *)
 
 val defineTypeOp :

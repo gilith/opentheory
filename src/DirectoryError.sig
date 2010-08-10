@@ -34,6 +34,13 @@ val isInstalledDescendent : error -> bool
 val removeInstalledDescendent :
     error list -> PackageName.name list * error list
 
+val destUninstalledParent : error -> PackageName.name option
+
+val isUninstalledParent : error -> bool
+
+val removeUninstalledParent :
+    error list -> PackageName.name list * error list
+
 (* ------------------------------------------------------------------------- *)
 (* Fatal errors.                                                             *)
 (* ------------------------------------------------------------------------- *)

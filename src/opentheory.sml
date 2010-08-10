@@ -133,7 +133,7 @@ val directory =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package finder.                                                           *)
+(* A simple package finder.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 fun finder () = Directory.finder (directory ());
@@ -142,7 +142,7 @@ fun finder () = Directory.finder (directory ());
 (* Package repo.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val repoOption : string option ref = ref NONE;
+val repoOption : string list ref = ref [];
 
 fun repository () =
     let
@@ -155,11 +155,9 @@ fun repository () =
           else raise Error "no repos listed in config file"
     in
       case !repoOption of
-        NONE => hd repos
-      | SOME repo =>
-        case List.find (equal repo o DirectoryRepo.name) repos of
-          SOME r => r
-        | NONE => raise Error ("no repo named " ^ repo ^ " in config file")
+        [] => hd repos
+      | [n] => Directory.getRepo dir n
+      | _ :: _ :: _ => raise Error "too many repos given on command line"
     end;
 
 fun repositories () =
@@ -171,13 +169,11 @@ fun repositories () =
       val () =
           if not (null repos) then ()
           else raise Error "no repos listed in config file"
+
+      val ns = !repoOption
     in
-      case !repoOption of
-        NONE => repos
-      | SOME repo =>
-        case List.find (equal repo o DirectoryRepo.name) repos of
-          SOME r => [r]
-        | NONE => raise Error ("no repo named " ^ repo ^ " in config file")
+      if null ns then repos
+      else List.map (Directory.getRepo dir) ns
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -303,6 +299,8 @@ end;
 
 val reinstall = ref false;
 
+val autoInstall = ref true;
+
 local
   open Useful Options;
 
@@ -315,7 +313,15 @@ in
   val installOpts : opt list =
       [{switches = ["--reinstall"], arguments = [],
         description = "uninstall the package if it exists",
-        processor = beginOpt endOpt (fn _ => reinstall := true)}] @
+        processor = beginOpt endOpt (fn _ => reinstall := true)},
+       {switches = ["--manual"], arguments = [],
+        description = "do not also install required packages",
+        processor = beginOpt endOpt (fn _ => autoInstall := false)},
+       {switches = ["--repo"], arguments = ["REPO"],
+        description = "specify the repos to install from",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => repoOption := !repoOption @ [s])}] @
       map (addSuffix "-uninstall") uninstallOpts;
 end;
 
@@ -350,10 +356,10 @@ local
 in
   val updateOpts : opt list =
       [{switches = ["--repo"], arguments = ["REPO"],
-        description = "specify the repo to update",
+        description = "specify the repos to update",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := SOME s)}];
+            (fn _ => fn s => repoOption := !repoOption @ [s])}];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -368,7 +374,7 @@ in
         description = "specify the target repo",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := SOME s)}];
+            (fn _ => fn s => repoOption := !repoOption @ [s])}];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1054,20 +1060,13 @@ fun uninstall name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun installTheory filename =
+fun installAuto name = raise Bug "installAuto: not implemented";
+(***
+fun installAuto master name =
     let
       val dir = directory ()
 
-      val pkg = Package.fromTextFile filename
-
-      val name = Package.name pkg
-
-      val srcDir =
-          let
-            val {filename = thyFile} = filename
-          in
-            {directory = OS.Path.dir thyFile}
-          end
+      val repos = repositories ()
 
       val errs = Directory.checkStageTheory dir name pkg
 
@@ -1096,8 +1095,125 @@ fun installTheory filename =
     in
       ()
     end
+
+and autoInstallFinder master name =
+    case DirectoryRepo.peek master name of
+      NONE =>
+      raise Error ("package " ^ PackageName.toString name ^
+                   " not found on " ^ DirectoryRepo.toString master ^ " repo")
+    | SOME chk =>
+      let
+        val () = autoInstallPackage master name chk
+      in
+      end;
+
+fun installFinder master =
+    if not (!autoInstall) then finder ()
+    else 
+***)
+
+fun installPackage name = raise Bug "installPackage: not implemented";
+(***
+    let
+      val dir = directory ()
+
+      val repos = repositories ()
+    in
+      case List.find (DirectoryRepo.member name) repos of
+        NONE =>
+        let
+          val err =
+              "can't find package " ^ PackageName.toString name ^
+              " in any repo"
+        in
+          raise Error err
+        end
+      | SOME repo =>
+        let
+          val errs = Directory.checkStagePackage dir repo name
+
+          val (replace,errs) =
+              if not (!reinstall) then (false,errs)
+              else DirectoryError.removeAlreadyInstalled errs
+
+          val () =
+              if null errs then ()
+              else
+                let
+                  val s = DirectoryError.toStringList errs
+                in
+                  if DirectoryError.existsFatal errs then raise Error s
+                  else warn ("package install warnings:\n" ^ s)
+                end
+
+          val () = if replace then uninstallAuto dir name else ()
+
+          val fnd = installFinder (DirectoryRepo.peek repo)
+
+          val () = Directory.stagePackage dir fnd repo name
+
+          val () = Directory.installStaged dir name
+
+          val () = chat ((if replace then "re" else "") ^ "installed package " ^
+                         PackageName.toString name)
+        in
+          ()
+        end
+    end
     handle Error err =>
       raise Error (err ^ "\ntheory package install failed");
+***)
+
+fun installTheory filename =
+    let
+      val dir = directory ()
+
+      val pkg = Package.fromTextFile filename
+
+      val name = Package.name pkg
+
+      val srcDir =
+          let
+            val {filename = thyFile} = filename
+          in
+            {directory = OS.Path.dir thyFile}
+          end
+
+      val errs = Directory.checkStageTheory dir name pkg
+
+      val (replace,errs) =
+          if not (!reinstall) then (false,errs)
+          else DirectoryError.removeAlreadyInstalled errs
+
+      val (pars,errs) =
+          if not (!autoInstall) then ([],errs)
+          else DirectoryError.removeUninstalledParent errs
+
+      val () =
+          if null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else warn ("package install warnings:\n" ^ s)
+            end
+
+      val () = List.app installAuto pars
+
+      val () = if replace then uninstallAuto dir name else ()
+
+      val () = Directory.stageTheory dir name pkg srcDir
+
+      val () = Directory.installStaged dir name
+
+      val () = chat ((if replace then "re" else "") ^ "installed package " ^
+                     PackageName.toString name)
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\npackage install from theory file failed");
 
 (* ------------------------------------------------------------------------- *)
 (* Listing installed packages.                                               *)
@@ -1227,7 +1343,7 @@ let
         in
           case inp of
             ArticleInput _ => commandUsage cmd "cannot install an article"
-          | PackageInput _ => raise Bug "not implemented"
+          | PackageInput name => installPackage name
           | TarballInput _ => raise Bug "not implemented"
           | TheoryInput file => installTheory file
         end

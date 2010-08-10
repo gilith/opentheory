@@ -57,6 +57,24 @@ val removeInstalledDescendent =
       List.foldr remove ([],[])
     end;
 
+fun destUninstalledParent err =
+    case err of
+      UninstalledParent name => SOME name
+    | _ => NONE;
+
+fun isUninstalledParent err =
+    Option.isSome (destUninstalledParent err);
+
+val removeUninstalledParent =
+    let
+      fun remove (err,(names,errs)) =
+          case destUninstalledParent err of
+            SOME name => (name :: names, errs)
+          | NONE => (names, err :: errs)
+    in
+      List.foldr remove ([],[])
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Fatal errors.                                                             *)
 (* ------------------------------------------------------------------------- *)

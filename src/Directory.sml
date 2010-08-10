@@ -33,6 +33,64 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Creating a new theory package directory.                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun create {rootDirectory = rootDir} =
+    let
+      val () = createDirectory {directory = rootDir}
+
+      val () =
+          let
+            val dir =
+                DirectoryPath.mkPackagesDirectory
+                  {rootDirectory = rootDir}
+          in
+            createDirectory dir
+          end
+
+      val () =
+          let
+            val dir =
+                DirectoryPath.mkStagingPackagesDirectory
+                  {rootDirectory = rootDir}
+          in
+            createDirectory dir
+          end
+
+      val () =
+          let
+            val dir =
+                DirectoryPath.mkReposDirectory
+                  {rootDirectory = rootDir}
+          in
+            createDirectory dir
+          end
+
+      val () =
+          let
+            val cfg = DirectoryConfig.default
+
+            val {filename = file} =
+                DirectoryPath.mkConfigFilename
+                  {rootDirectory = rootDir}
+          in
+            DirectoryConfig.toTextFile {config = cfg, filename = file}
+          end
+
+      val () =
+          let
+            val file =
+                DirectoryPath.mkInstalledFilename
+                  {rootDirectory = rootDir}
+          in
+            DirectoryChecksums.create file
+          end
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -101,65 +159,19 @@ fun config (Directory {config = x, ...}) = x;
 
 fun packages (Directory {packages = x, ...}) = x;
 
+(* ------------------------------------------------------------------------- *)
+(* Looking up repos in the package directory.                                *)
+(* ------------------------------------------------------------------------- *)
+
 fun repos (Directory {repos = x, ...}) = x;
 
-(* ------------------------------------------------------------------------- *)
-(* Creating a new theory package directory.                                  *)
-(* ------------------------------------------------------------------------- *)
+fun peekRepo dir n =
+    List.find (equal n o DirectoryRepo.name) (repos dir);
 
-fun create {rootDirectory = rootDir} =
-    let
-      val () = createDirectory {directory = rootDir}
-
-      val () =
-          let
-            val dir =
-                DirectoryPath.mkPackagesDirectory
-                  {rootDirectory = rootDir}
-          in
-            createDirectory dir
-          end
-
-      val () =
-          let
-            val dir =
-                DirectoryPath.mkStagingPackagesDirectory
-                  {rootDirectory = rootDir}
-          in
-            createDirectory dir
-          end
-
-      val () =
-          let
-            val dir =
-                DirectoryPath.mkReposDirectory
-                  {rootDirectory = rootDir}
-          in
-            createDirectory dir
-          end
-
-      val () =
-          let
-            val cfg = DirectoryConfig.default
-
-            val {filename = file} =
-                DirectoryPath.mkConfigFilename
-                  {rootDirectory = rootDir}
-          in
-            DirectoryConfig.toTextFile {config = cfg, filename = file}
-          end
-
-      val () =
-          let
-            val file =
-                DirectoryPath.mkInstalledFilename
-                  {rootDirectory = rootDir}
-          in
-            DirectoryChecksums.create file
-          end
-    in
-      ()
-    end;
+fun getRepo dir n =
+    case peekRepo dir n of
+      SOME r => r
+    | NONE => raise Error ("no repo named " ^ n ^ " in config file");
 
 (* ------------------------------------------------------------------------- *)
 (* Directories and filenames.                                                *)
@@ -535,6 +547,26 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Staging theory packages for installation.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkStagePackage dir repo name =
+    let
+      val errs = []
+
+      val () = raise Bug "Directory.checkStagePackage: not implemented"
+    in
+      errs
+    end;
+
+fun stagePackage dir finder repo name =
+    let
+      val () = raise Bug "Directory.stagePackage: not implemented"
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)
 (* ------------------------------------------------------------------------- *)
 
@@ -652,13 +684,6 @@ fun upload dir repo name =
     in
       raise Bug "Directory.upload: not implemented"
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Downloading packages from a repo to the package directory.                *)
-(* ------------------------------------------------------------------------- *)
-
-fun download dir repo pkg =
-    raise Bug "Directory.download: not implemented";
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder.                                                         *)
