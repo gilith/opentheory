@@ -36,7 +36,7 @@ val peek : directory -> PackageName.name -> PackageInfo.info option
 
 val get : directory -> PackageName.name -> PackageInfo.info
 
-val member : directory -> PackageName.name -> bool
+val member : PackageName.name -> directory -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up repos in the package directory.                                *)

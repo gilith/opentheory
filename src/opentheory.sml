@@ -1060,7 +1060,30 @@ fun uninstall name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun installAuto name = raise Bug "installAuto: not implemented";
+fun installAuto master name = raise Bug "installAuto: not implemented";
+
+fun installAutoFree name =
+    let
+      val dir = directory ()
+    in
+      if Directory.member name dir then ()
+      else
+        let
+          val repos = repositories ()
+        in
+          case List.find (DirectoryRepo.member name) repos of
+            SOME repo => installAuto repo name
+          | NONE =>
+            let
+              val err =
+                  "can't find package " ^ PackageName.toString name ^
+                  " in any repo"
+            in
+              raise Error err
+            end
+        end
+    end;
+
 (***
 fun installAuto master name =
     let
@@ -1199,7 +1222,7 @@ fun installTheory filename =
               else warn ("package install warnings:\n" ^ s)
             end
 
-      val () = List.app installAuto pars
+      val () = List.app installAutoFree pars
 
       val () = if replace then uninstallAuto dir name else ()
 

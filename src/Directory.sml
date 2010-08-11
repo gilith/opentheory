@@ -230,7 +230,7 @@ fun get dir name =
       SOME info => info
     | NONE => raise Error "Directory.get";
 
-fun member dir name = Option.isSome (peek dir name);
+fun member name dir = Option.isSome (peek dir name);
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
@@ -273,7 +273,7 @@ fun list dir = DirectoryPackages.list (packages dir);
 
 local
   fun checkDep dir (name,errs) =
-      if member dir name then errs
+      if member name dir then errs
       else DirectoryError.UninstalledParent name :: errs;
 
   fun mkFileCopyPlan info pkg =
@@ -381,7 +381,7 @@ in
         val errs = []
 
         val errs =
-            if not (member dir name) then errs
+            if not (member name dir) then errs
             else DirectoryError.AlreadyInstalled :: errs
 
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
@@ -614,7 +614,7 @@ fun installStaged dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUninstall dir name =
-    if not (member dir name) then [DirectoryError.NotInstalled]
+    if not (member name dir) then [DirectoryError.NotInstalled]
     else
       let
         val errs = []
@@ -662,7 +662,7 @@ fun uninstall dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUpload dir repo name =
-    if not (member dir name) then [DirectoryError.NotInstalled]
+    if not (member name dir) then [DirectoryError.NotInstalled]
     else
       let
         val errs = []
