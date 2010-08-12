@@ -1072,12 +1072,12 @@ fun installAuto master name =
         end
     | SOME chk =>
       let
-        val () = installAutoChecksum master name chk
+        val () = installAutoFind master name chk
       in
         ()
       end
 
-and installAutoChecksum master name chk =
+and installAutoFind master name chk =
     let
       val dir = directory ()
     in
@@ -1105,22 +1105,29 @@ and installAutoChecksum master name chk =
             in
               raise Error err
             end
-          | SOME repo =>
-            let
-              val () = chat ("installed package " ^ PackageName.toString name)
-            in
-              ()
-            end
+          | SOME repo => installAutoRepo master repo name chk
         end
     end
 
-and installAutoFinder master name =
+and installAutoRepo master repo name chk =
     let
-      val dir = directory ()
-
-      val () = installAuto master name
+      val () = chat ("installed package " ^ PackageName.toString name)
     in
-      Directory.peek dir name
+      ()
+    end
+
+and installAutoFinder master =
+    let
+      fun finder name =
+          let
+            val dir = directory ()
+
+            val () = installAuto master name
+          in
+            Directory.peek dir name
+          end
+    in
+      PackageFinder.mk finder
     end;
 
 fun installAutoFree name =
@@ -1132,8 +1139,8 @@ fun installAutoFree name =
         let
           val repos = repositories ()
         in
-          case List.find (DirectoryRepo.member name) repos of
-            SOME repo => installAuto repo name
+          case DirectoryRepo.first repos name of
+            SOME (repo,chk) => installAutoRepo repo repo name chk
           | NONE =>
             let
               val err =
@@ -1147,7 +1154,7 @@ fun installAutoFree name =
 
 fun installFinder master =
     if not (!autoInstall) then directoryFinder ()
-    else PackageFinder.mk (installAutoFinder master);
+    else installAutoFinder master;
 
 fun installPackage name =
     let
