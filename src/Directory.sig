@@ -38,6 +38,8 @@ val get : directory -> PackageName.name -> PackageInfo.info
 
 val member : PackageName.name -> directory -> bool
 
+val checksum : directory -> PackageName.name -> Checksum.checksum option
+
 (* ------------------------------------------------------------------------- *)
 (* Looking up repos in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
@@ -79,6 +81,20 @@ val installOrder : directory -> PackageNameSet.set -> PackageName.name list
 val list : directory -> PackageNameSet.set
 
 (* ------------------------------------------------------------------------- *)
+(* Staging theory packages for installation.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val checkStagePackage :
+    directory ->
+    DirectoryRepo.repo -> PackageName.name -> Checksum.checksum ->
+    DirectoryError.error list
+
+val stagePackage :
+    directory -> PackageFinder.finder ->
+    DirectoryRepo.repo -> PackageName.name -> Checksum.checksum ->
+    unit
+
+(* ------------------------------------------------------------------------- *)
 (* Staging theory files for installation.                                    *)
 (* ------------------------------------------------------------------------- *)
 
@@ -90,20 +106,6 @@ val checkStageTheory :
 val stageTheory :
     directory ->
     PackageName.name -> Package.package -> {directory : string} ->
-    unit
-
-(* ------------------------------------------------------------------------- *)
-(* Staging theory packages for installation.                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val checkStagePackage :
-    directory ->
-    DirectoryRepo.repo -> PackageName.name ->
-    DirectoryError.error list
-
-val stagePackage :
-    directory -> PackageFinder.finder ->
-    DirectoryRepo.repo -> PackageName.name ->
     unit
 
 (* ------------------------------------------------------------------------- *)

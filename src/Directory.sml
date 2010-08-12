@@ -232,6 +232,8 @@ fun get dir name =
 
 fun member name dir = Option.isSome (peek dir name);
 
+fun checksum dir name = DirectoryPackages.checksum (packages dir) name;
+
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
@@ -266,6 +268,170 @@ fun installOrder dir names =
 (* ------------------------------------------------------------------------- *)
 
 fun list dir = DirectoryPackages.list (packages dir);
+
+(* ------------------------------------------------------------------------- *)
+(* Staging theory packages for installation.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkStagePackage dir repo name chk =
+    if member name dir then [DirectoryError.AlreadyInstalled]
+    else
+      let
+        val errs = []
+
+        val () = raise Bug "Directory.checkStagePackage: not implemented"
+      in
+        errs
+      end;
+
+local
+  fun copyArticle srcDir info thy =
+      let
+        val PackageTheory.Theory {name,imports,node} = thy
+      in
+        case node of
+          PackageTheory.Article
+            {interpretation = int,
+             filename = filename} =>
+          let
+            val srcFilename = OS.Path.concat (srcDir,filename)
+
+            val art =
+                Article.fromTextFile
+                  {savable = true,
+                   import = Article.empty,
+                   interpretation = Interpretation.natural,
+                   filename = srcFilename}
+
+            val {filename = pkgFilename} =
+                Article.normalizeFilename {filename = filename}
+
+            val {filename = destFilename} =
+                PackageInfo.joinDirectory info {filename = pkgFilename}
+
+            val () =
+                Article.toTextFile
+                  {article = art,
+                   filename = destFilename}
+
+            val node =
+                PackageTheory.Article
+                  {interpretation = int,
+                   filename = pkgFilename}
+          in
+            PackageTheory.Theory
+              {name = name,
+               imports = imports,
+               node = node}
+          end
+        | _ => thy
+      end;
+
+  fun copyExtraFile srcDir info tag =
+      case Package.fromTagExtraFile tag of
+        NONE => tag
+      | SOME extra =>
+        let
+          val {filename = srcFilename} = Package.filenameExtraFile extra
+
+          val srcFilename = OS.Path.concat (srcDir,srcFilename)
+
+          val extra = Package.normalizeExtraFile extra
+
+          val {filename = pkgFilename} = Package.filenameExtraFile extra
+
+          val {filename = destFilename} =
+              PackageInfo.joinDirectory info {filename = pkgFilename}
+
+          val cmd = "cp " ^ srcFilename ^ " " ^ destFilename
+
+(*OpenTheoryTrace1
+          val () = print (cmd ^ "\n")
+*)
+
+          val () =
+              if OS.Process.isSuccess (OS.Process.system cmd) then ()
+              else raise Error "copy failed"
+        in
+          Package.toTagExtraFile extra
+        end;
+
+  fun copyArticles srcDir info pkg =
+      let
+        val Package.Package' {tags,theories} = Package.dest pkg
+
+        val theories = map (copyArticle srcDir info) theories
+      in
+        Package.mk (Package.Package' {tags = tags, theories = theories})
+      end;
+
+  fun copyExtraFiles srcDir info pkg =
+      let
+        val Package.Package' {tags,theories} = Package.dest pkg
+
+        val tags = map (copyExtraFile srcDir info) tags
+      in
+        Package.mk (Package.Package' {tags = tags, theories = theories})
+      end;
+in
+  fun stagePackage dir finder repo name chk =
+      let
+(*OpenTheoryDebug
+        val errs = checkStagePackage dir repo name chk
+
+        val _ = not (DirectoryError.existsFatal errs) orelse
+                raise Bug "Directory.stagePackage: fatal error"
+*)
+        (* Make a package info for the stage directory *)
+
+        val stageInfo = stagingPackageInfo dir name
+
+        (* Create the stage directory *)
+
+        val () = PackageInfo.createDirectory stageInfo
+      in
+        let
+          (* Download the tarball *)
+
+          val () = raise Bug "Directory.stagePackage: not implemented"
+
+          (* Create the checksum *)
+
+          val () = PackageInfo.createChecksum stageInfo
+
+          (* Check the checksum *)
+
+          val () =
+              let
+                val chk' = PackageInfo.readChecksum stageInfo
+              in
+                if Checksum.equal chk' chk then ()
+                else
+                  let
+                    val err =
+                        "tarball downloaded for package " ^
+                        PackageName.toString name ^ " has the wrong checksum"
+                  in
+                    raise Error err
+                  end
+              end
+
+          (* Unpack the theory file *)
+
+          (* Unpack the article files *)
+
+          (* Unpack the extra files *)
+        in
+          ()
+        end
+        handle e =>
+          let
+            val () = PackageInfo.nukeDirectory stageInfo
+          in
+            raise e
+          end
+      end
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Staging theory files for installation.                                    *)
@@ -545,26 +711,6 @@ in
           end
       end
 end;
-
-(* ------------------------------------------------------------------------- *)
-(* Staging theory packages for installation.                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun checkStagePackage dir repo name =
-    let
-      val errs = []
-
-      val () = raise Bug "Directory.checkStagePackage: not implemented"
-    in
-      errs
-    end;
-
-fun stagePackage dir finder repo name =
-    let
-      val () = raise Bug "Directory.stagePackage: not implemented"
-    in
-      ()
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)

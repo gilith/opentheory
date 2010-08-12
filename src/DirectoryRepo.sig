@@ -32,7 +32,7 @@ val peek : repo -> PackageName.name -> Checksum.checksum option
 
 val member : PackageName.name -> repo -> bool
 
-val first : repo list -> PackageName.name -> Checksum.checksum option
+val first : repo list -> PackageName.name -> (repo * Checksum.checksum) option
 
 val find : repo list -> PackageName.name * Checksum.checksum -> repo option
 

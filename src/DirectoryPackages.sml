@@ -258,6 +258,8 @@ fun get pkgs name =
 
 fun member name pkgs = memberPure name (packages pkgs);
 
+fun checksum pkgs name = DirectoryChecksums.peek (checksums pkgs) name;
+
 (* ------------------------------------------------------------------------- *)
 (* All installed packages.                                                   *)
 (* ------------------------------------------------------------------------- *)

@@ -136,7 +136,7 @@ val directory =
 (* A simple package finder.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun finder () = Directory.finder (directory ());
+fun directoryFinder () = Directory.finder (directory ());
 
 (* ------------------------------------------------------------------------- *)
 (* Package repo.                                                             *)
@@ -684,7 +684,7 @@ local
               NONE => NONE
             | SOME sav =>
               let
-                val finder = finder ()
+                val finder = directoryFinder ()
 
                 val graph = Graph.empty {savable = sav}
 
@@ -1060,7 +1060,68 @@ fun uninstall name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun installAuto master name = raise Bug "installAuto: not implemented";
+fun installAuto master name =
+    case DirectoryRepo.peek master name of
+      NONE =>
+        let
+          val err =
+              "package " ^ PackageName.toString name ^
+              " not found on " ^ DirectoryRepo.toString master ^ " repo"
+        in
+          raise Error err
+        end
+    | SOME chk =>
+      let
+        val () = installAutoChecksum master name chk
+      in
+        ()
+      end
+
+and installAutoChecksum master name chk =
+    let
+      val dir = directory ()
+    in
+      case Directory.checksum dir name of
+        SOME chk' =>
+        if Checksum.equal chk' chk then ()
+        else
+          let
+            val err =
+                "a package called " ^ PackageName.toString name ^
+                " with a different checksum is already installed"
+          in
+            raise Error err
+          end
+      | NONE =>
+        let
+          val repos = repositories ()
+        in
+          case DirectoryRepo.find repos (name,chk) of
+            NONE =>
+            let
+              val err =
+                  "package " ^ PackageName.toString name ^
+                  " with specific checksum not found on any repo"
+            in
+              raise Error err
+            end
+          | SOME repo =>
+            let
+              val () = chat ("installed package " ^ PackageName.toString name)
+            in
+              ()
+            end
+        end
+    end
+
+and installAutoFinder master name =
+    let
+      val dir = directory ()
+
+      val () = installAuto master name
+    in
+      Directory.peek dir name
+    end;
 
 fun installAutoFree name =
     let
@@ -1084,65 +1145,17 @@ fun installAutoFree name =
         end
     end;
 
-(***
-fun installAuto master name =
-    let
-      val dir = directory ()
-
-      val repos = repositories ()
-
-      val errs = Directory.checkStageTheory dir name pkg
-
-      val (replace,errs) =
-          if not (!reinstall) then (false,errs)
-          else DirectoryError.removeAlreadyInstalled errs
-
-      val () =
-          if null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else warn ("package install warnings:\n" ^ s)
-            end
-
-      val () = if replace then uninstallAuto dir name else ()
-
-      val () = Directory.stageTheory dir name pkg srcDir
-
-      val () = Directory.installStaged dir name
-
-      val () = chat ((if replace then "re" else "") ^ "installed package " ^
-                     PackageName.toString name)
-    in
-      ()
-    end
-
-and autoInstallFinder master name =
-    case DirectoryRepo.peek master name of
-      NONE =>
-      raise Error ("package " ^ PackageName.toString name ^
-                   " not found on " ^ DirectoryRepo.toString master ^ " repo")
-    | SOME chk =>
-      let
-        val () = autoInstallPackage master name chk
-      in
-      end;
-
 fun installFinder master =
-    if not (!autoInstall) then finder ()
-    else 
-***)
+    if not (!autoInstall) then directoryFinder ()
+    else PackageFinder.mk (installAutoFinder master);
 
-fun installPackage name = raise Bug "installPackage: not implemented";
-(***
+fun installPackage name =
     let
       val dir = directory ()
 
       val repos = repositories ()
     in
-      case List.find (DirectoryRepo.member name) repos of
+      case DirectoryRepo.first repos name of
         NONE =>
         let
           val err =
@@ -1151,9 +1164,9 @@ fun installPackage name = raise Bug "installPackage: not implemented";
         in
           raise Error err
         end
-      | SOME repo =>
+      | SOME (repo,chk) =>
         let
-          val errs = Directory.checkStagePackage dir repo name
+          val errs = Directory.checkStagePackage dir repo name chk
 
           val (replace,errs) =
               if not (!reinstall) then (false,errs)
@@ -1171,9 +1184,9 @@ fun installPackage name = raise Bug "installPackage: not implemented";
 
           val () = if replace then uninstallAuto dir name else ()
 
-          val fnd = installFinder (DirectoryRepo.peek repo)
+          val finder = installFinder repo
 
-          val () = Directory.stagePackage dir fnd repo name
+          val () = Directory.stagePackage dir finder repo name chk
 
           val () = Directory.installStaged dir name
 
@@ -1185,7 +1198,6 @@ fun installPackage name = raise Bug "installPackage: not implemented";
     end
     handle Error err =>
       raise Error (err ^ "\ntheory package install failed");
-***)
 
 fun installTheory filename =
     let

@@ -30,6 +30,8 @@ val get : packages -> PackageName.name -> PackageInfo.info
 
 val member : PackageName.name -> packages -> bool
 
+val checksum : packages -> PackageName.name -> Checksum.checksum option
+
 (* ------------------------------------------------------------------------- *)
 (* All installed packages.                                                   *)
 (* ------------------------------------------------------------------------- *)
