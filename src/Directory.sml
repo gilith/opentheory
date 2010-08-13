@@ -279,9 +279,14 @@ fun checkStagePackage dir repo name chk =
       let
         val errs = []
 
-        val () = raise Bug "Directory.checkStagePackage: not implemented"
+        val errs =
+            case DirectoryRepo.peek repo name of
+              NONE => DirectoryError.NotOnRepo :: errs
+            | SOME chk' =>
+              if Checksum.equal chk' chk then errs
+              else DirectoryError.WrongChecksumOnRepo :: errs
       in
-        errs
+        rev errs
       end;
 
 local
@@ -391,36 +396,13 @@ in
         val () = PackageInfo.createDirectory stageInfo
       in
         let
-          (* Download the tarball *)
+          (* Download the package tarball *)
 
-          val () = raise Bug "Directory.stagePackage: not implemented"
+          val () = DirectoryRepo.download repo name stageInfo
 
-          (* Create the checksum *)
+          (* Unpack the tarball *)
 
-          val () = PackageInfo.createChecksum stageInfo
-
-          (* Check the checksum *)
-
-          val () =
-              let
-                val chk' = PackageInfo.readChecksum stageInfo
-              in
-                if Checksum.equal chk' chk then ()
-                else
-                  let
-                    val err =
-                        "tarball downloaded for package " ^
-                        PackageName.toString name ^ " has the wrong checksum"
-                  in
-                    raise Error err
-                  end
-              end
-
-          (* Unpack the theory file *)
-
-          (* Unpack the article files *)
-
-          (* Unpack the extra files *)
+          val () = PackageInfo.unpackTarball stageInfo
         in
           ()
         end

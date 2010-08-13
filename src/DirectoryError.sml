@@ -19,7 +19,9 @@ datatype error =
        dest : {filename : string}}
   | InstalledDescendent of PackageName.name
   | NotInstalled
-  | UninstalledParent of PackageName.name;
+  | NotOnRepo
+  | UninstalledParent of PackageName.name
+  | WrongChecksumOnRepo;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -85,7 +87,9 @@ fun isFatal err =
     | FilenameClash _ => true
     | InstalledDescendent _ => true
     | NotInstalled => true
-    | UninstalledParent _ => true;
+    | NotOnRepo => true
+    | UninstalledParent _ => true
+    | WrongChecksumOnRepo => true
 
 val existsFatal = List.exists isFatal;
 
@@ -114,8 +118,12 @@ fun toString err =
        "in use by installed package: " ^ PackageName.toString name
      | NotInstalled =>
        "package is not installed"
+     | NotOnRepo =>
+       "package does not exist on repo"
      | UninstalledParent name =>
-       "depends on uninstalled package: " ^ PackageName.toString name);
+       "depends on uninstalled package: " ^ PackageName.toString name
+     | WrongChecksumOnRepo =>
+       "package has different checksum on repo");
 
 fun toStringList errs = join "\n" (map toString errs);
 

@@ -210,6 +210,56 @@ fun createTarball info =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
+fun downloadTarball info {url} =
+    let
+      val {filename = f} = joinDirectory info (tarball info)
+
+      val cmd = "curl --silent --show-error " ^ url ^ " --output " ^ f
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "downloading the package tarball failed"
+    in
+      ()
+    end;
+
+fun unpackTarball info =
+    let
+      val {directory = dir} = directory info
+
+      val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
+
+      fun joinDir {filename} =
+          {filename = OS.Path.concat (pkgDir,filename)}
+
+      val {filename = tarFile} = joinDir (tarball info)
+
+      val cmd = "tar xzf " ^ tarFile
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val workingDir = OS.FileSys.getDir ()
+    in
+      let
+        val () = OS.FileSys.chDir baseDir
+
+        val () =
+            if OS.Process.isSuccess (OS.Process.system cmd) then ()
+            else raise Error "unpacking tarball failed"
+
+        val () = OS.FileSys.chDir workingDir
+      in
+        ()
+      end
+      handle e => let val () = OS.FileSys.chDir workingDir in raise e end
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Package checksum.                                                         *)
 (* ------------------------------------------------------------------------- *)

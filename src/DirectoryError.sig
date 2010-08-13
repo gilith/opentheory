@@ -17,7 +17,9 @@ datatype error =
        dest : {filename : string}}
   | InstalledDescendent of PackageName.name
   | NotInstalled
+  | NotOnRepo
   | UninstalledParent of PackageName.name
+  | WrongChecksumOnRepo
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)

@@ -33,6 +33,9 @@ val mkPackagesDirectory :
 val mkPackageDirectory :
     {rootDirectory : string} -> PackageName.name -> {directory : string}
 
+val mkTarballUrl :
+    {rootUrl : string} -> PackageName.name -> {url : string}
+
 (* ------------------------------------------------------------------------- *)
 (* The package staging directory.                                            *)
 (* ------------------------------------------------------------------------- *)

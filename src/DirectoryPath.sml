@@ -17,7 +17,19 @@ and installedName = "installed"
 and directoryDirectory = "opentheory"
 and packagesDirectory = "packages"
 and stagingDirectory = "staging"
+and repoSeparator = "/"
 and reposDirectory = "repos";
+
+(* ------------------------------------------------------------------------- *)
+(* The directory of a repo.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkDirectoryUrl {rootUrl} =
+      let
+        val url = rootUrl ^ directoryDirectory ^ repoSeparator
+      in
+        {url = url}
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* The config file.                                                          *)
@@ -50,9 +62,11 @@ in
         {filename = filename}
       end;
 
-  fun mkInstalledUrl {rootUrl} =
+  fun mkInstalledUrl root =
       let
-        val url = rootUrl ^ "/" ^ directoryDirectory ^ installedFilename
+        val {url} = mkDirectoryUrl root
+
+        val url = url ^ installedFilename
       in
         {url = url}
       end;
@@ -69,6 +83,15 @@ fun mkPackagesDirectory {rootDirectory = dir} =
       {directory = directory}
     end;
 
+fun mkPackagesUrl root =
+    let
+      val {url} = mkDirectoryUrl root
+
+      val url = url ^ packagesDirectory ^ repoSeparator
+    in
+      {url = url}
+    end;
+
 fun mkPackageDirectory root name =
     let
       val {directory = dir} = mkPackagesDirectory root
@@ -77,6 +100,25 @@ fun mkPackageDirectory root name =
       val directory = OS.Path.joinDirFile {dir = dir, file = file}
     in
       {directory = directory}
+    end;
+
+fun mkPackageUrl root name =
+    let
+      val {url} = mkPackagesUrl root
+
+      val url = url ^ PackageName.toString name ^ repoSeparator
+    in
+      {url = url}
+    end;
+
+fun mkTarballUrl root name =
+    let
+      val {url} = mkPackageUrl root name
+      and {filename} = PackageInfo.mkTarball name
+
+      val url = url ^ filename
+    in
+      {url = url}
     end;
 
 (* ------------------------------------------------------------------------- *)

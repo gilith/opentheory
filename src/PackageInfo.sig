@@ -76,6 +76,10 @@ val tarball : info -> {filename : string}
 
 val createTarball : info -> unit
 
+val downloadTarball : info -> {url : string} -> unit
+
+val unpackTarball : info -> unit
+
 (* ------------------------------------------------------------------------- *)
 (* Package checksum.                                                         *)
 (* ------------------------------------------------------------------------- *)

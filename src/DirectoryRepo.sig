@@ -43,6 +43,12 @@ val find : repo list -> PackageName.name * Checksum.checksum -> repo option
 val update : repo -> unit
 
 (* ------------------------------------------------------------------------- *)
+(* Downloading packages.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val download : repo -> PackageName.name -> PackageInfo.info -> unit
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

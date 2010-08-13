@@ -82,6 +82,56 @@ fun update repo =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Downloading packages.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun download repo n info =
+    let
+      val chk =
+          case peek repo n of
+            SOME c => c
+          | NONE =>
+            let
+              val err =
+                  "package " ^ PackageName.toString n ^
+                  " does not exist on " ^ name repo ^ " repo"
+            in
+              raise Error err
+            end
+
+      (* Download the tarball *)
+
+      val url = DirectoryPath.mkTarballUrl (rootUrl repo) n
+
+      val () = PackageInfo.downloadTarball info url
+
+      (* Create the checksum *)
+
+      val () = PackageInfo.createChecksum info
+
+      (* Check the checksum *)
+
+      val () =
+          let
+            val chk' = PackageInfo.readChecksum info
+          in
+            if Checksum.equal chk' chk then ()
+            else
+              let
+                val err =
+                    "tarball for package " ^
+                    PackageName.toString n ^
+                    " downloaded from " ^ name repo ^
+                    " has the wrong checksum"
+              in
+                raise Error err
+              end
+          end
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
