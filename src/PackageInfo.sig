@@ -74,11 +74,11 @@ val package : info -> Package.package
 
 val tarball : info -> {filename : string}
 
-val createTarball : info -> unit
+val createTarball : DirectoryConfig.system -> info -> unit
 
-val downloadTarball : info -> {url : string} -> unit
+val downloadTarball : DirectoryConfig.system -> info -> {url : string} -> unit
 
-val unpackTarball : info -> unit
+val unpackTarball : DirectoryConfig.system -> info -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Package checksum.                                                         *)
@@ -86,7 +86,7 @@ val unpackTarball : info -> unit
 
 val checksum : info -> {filename : string}
 
-val createChecksum : info -> unit
+val createChecksum : DirectoryConfig.system -> info -> unit
 
 val readChecksum : info -> Checksum.checksum
 

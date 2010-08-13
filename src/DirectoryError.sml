@@ -13,24 +13,30 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 datatype error =
-    AlreadyInstalled
+    AncestorNotOnRepo of PackageName.name * DirectoryRepo.name
+  | AncestorWrongChecksumOnRepo of PackageName.name * DirectoryRepo.name
+  | AlreadyInstalled of PackageName.name
+  | AlreadyOnRepo of PackageName.name * DirectoryRepo.name
   | FilenameClash of
       {srcs : {name : string, filename : string option} list,
        dest : {filename : string}}
   | InstalledDescendent of PackageName.name
-  | NotInstalled
-  | NotOnRepo
+  | NotInstalled of PackageName.name
+  | NotOnRepo of PackageName.name * DirectoryRepo.name
   | UninstalledParent of PackageName.name
-  | WrongChecksumOnRepo;
+  | WrongChecksumOnRepo of PackageName.name * DirectoryRepo.name;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun isAlreadyInstalled err =
+fun destAlreadyInstalled err =
     case err of
-      AlreadyInstalled => true
-    | _ => false;
+      AlreadyInstalled n => SOME n
+    | _ => NONE;
+
+fun isAlreadyInstalled err =
+    Option.isSome (destAlreadyInstalled err);
 
 fun removeAlreadyInstalled errs =
     let
@@ -83,13 +89,16 @@ val removeUninstalledParent =
 
 fun isFatal err =
     case err of
-      AlreadyInstalled => true
+      AncestorNotOnRepo _ => true
+    | AncestorWrongChecksumOnRepo _ => true
+    | AlreadyInstalled _ => true
+    | AlreadyOnRepo _ => true
     | FilenameClash _ => true
     | InstalledDescendent _ => true
-    | NotInstalled => true
-    | NotOnRepo => true
+    | NotInstalled _ => true
+    | NotOnRepo _ => true
     | UninstalledParent _ => true
-    | WrongChecksumOnRepo => true
+    | WrongChecksumOnRepo _ => true
 
 val existsFatal = List.exists isFatal;
 
@@ -100,8 +109,17 @@ val existsFatal = List.exists isFatal;
 fun toString err =
     (if isFatal err then "Error" else "Warning") ^ ": " ^
     (case err of
-       AlreadyInstalled =>
-       "package is already installed"
+       AncestorNotOnRepo (name,repo) =>
+       "depends on package " ^ PackageName.toString name ^
+       " missing on " ^ repo ^ " repo"
+     | AncestorWrongChecksumOnRepo (name,repo) =>
+       "depends on package " ^ PackageName.toString name ^
+       " which has different checksum on " ^ repo ^ " repo"
+     | AlreadyOnRepo (name,repo) =>
+       "package " ^ PackageName.toString name ^
+       " already exists on " ^ repo ^ " repo"
+     | AlreadyInstalled name =>
+       "package " ^ PackageName.toString name ^ " is already installed"
      | FilenameClash {srcs,dest} =>
        let
          fun toStringSrc {name,filename} =
@@ -116,14 +134,16 @@ fun toString err =
        end
      | InstalledDescendent name =>
        "in use by installed package: " ^ PackageName.toString name
-     | NotInstalled =>
-       "package is not installed"
-     | NotOnRepo =>
-       "package does not exist on repo"
+     | NotInstalled name =>
+       "package " ^ PackageName.toString name ^ " is not installed"
+     | NotOnRepo (name,repo) =>
+       "package " ^ PackageName.toString name ^
+       " is not on " ^ repo ^ " repo"
      | UninstalledParent name =>
        "depends on uninstalled package: " ^ PackageName.toString name
-     | WrongChecksumOnRepo =>
-       "package has different checksum on repo");
+     | WrongChecksumOnRepo (name,repo) =>
+       "package " ^ PackageName.toString name ^
+       " has different checksum on " ^ repo ^ " repo");
 
 fun toStringList errs = join "\n" (map toString errs);
 

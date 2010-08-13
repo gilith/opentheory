@@ -1345,10 +1345,11 @@ fun upload name =
 
 val () =
 let
+(*OpenTheoryTrace1
   (*BasicDebug val () = print "Running in basic DEBUG mode.\n" *)
   (*MetisDebug val () = print "Running in metis DEBUG mode.\n" *)
   (*OpenTheoryDebug val () = print "Running in opentheory DEBUG mode.\n" *)
-
+*)
   val work = CommandLine.arguments ();
 
   val (_,work) = Options.processOptions globalOptions work

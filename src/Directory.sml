@@ -157,6 +157,8 @@ fun rootDirectory (Directory {rootDirectory = x, ...}) = {rootDirectory = x};
 
 fun config (Directory {config = x, ...}) = x;
 
+fun system dir = DirectoryConfig.system (config dir);
+
 fun packages (Directory {packages = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
@@ -174,7 +176,7 @@ fun getRepo dir n =
     | NONE => raise Error ("no repo named " ^ n ^ " in config file");
 
 (* ------------------------------------------------------------------------- *)
-(* Directories and filenames.                                                *)
+(* Paths.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 fun configFilename dir =
@@ -274,146 +276,67 @@ fun list dir = DirectoryPackages.list (packages dir);
 (* ------------------------------------------------------------------------- *)
 
 fun checkStagePackage dir repo name chk =
-    if member name dir then [DirectoryError.AlreadyInstalled]
+    if member name dir then [DirectoryError.AlreadyInstalled name]
     else
       let
         val errs = []
 
         val errs =
             case DirectoryRepo.peek repo name of
-              NONE => DirectoryError.NotOnRepo :: errs
+              NONE =>
+              let
+                val r = DirectoryRepo.name repo
+              in
+                DirectoryError.NotOnRepo (name,r) :: errs
+              end
             | SOME chk' =>
               if Checksum.equal chk' chk then errs
-              else DirectoryError.WrongChecksumOnRepo :: errs
+              else
+                let
+                  val r = DirectoryRepo.name repo
+                in
+                  DirectoryError.WrongChecksumOnRepo (name,r) :: errs
+                end
       in
         rev errs
       end;
 
-local
-  fun copyArticle srcDir info thy =
-      let
-        val PackageTheory.Theory {name,imports,node} = thy
-      in
-        case node of
-          PackageTheory.Article
-            {interpretation = int,
-             filename = filename} =>
-          let
-            val srcFilename = OS.Path.concat (srcDir,filename)
-
-            val art =
-                Article.fromTextFile
-                  {savable = true,
-                   import = Article.empty,
-                   interpretation = Interpretation.natural,
-                   filename = srcFilename}
-
-            val {filename = pkgFilename} =
-                Article.normalizeFilename {filename = filename}
-
-            val {filename = destFilename} =
-                PackageInfo.joinDirectory info {filename = pkgFilename}
-
-            val () =
-                Article.toTextFile
-                  {article = art,
-                   filename = destFilename}
-
-            val node =
-                PackageTheory.Article
-                  {interpretation = int,
-                   filename = pkgFilename}
-          in
-            PackageTheory.Theory
-              {name = name,
-               imports = imports,
-               node = node}
-          end
-        | _ => thy
-      end;
-
-  fun copyExtraFile srcDir info tag =
-      case Package.fromTagExtraFile tag of
-        NONE => tag
-      | SOME extra =>
-        let
-          val {filename = srcFilename} = Package.filenameExtraFile extra
-
-          val srcFilename = OS.Path.concat (srcDir,srcFilename)
-
-          val extra = Package.normalizeExtraFile extra
-
-          val {filename = pkgFilename} = Package.filenameExtraFile extra
-
-          val {filename = destFilename} =
-              PackageInfo.joinDirectory info {filename = pkgFilename}
-
-          val cmd = "cp " ^ srcFilename ^ " " ^ destFilename
-
-(*OpenTheoryTrace1
-          val () = print (cmd ^ "\n")
-*)
-
-          val () =
-              if OS.Process.isSuccess (OS.Process.system cmd) then ()
-              else raise Error "copy failed"
-        in
-          Package.toTagExtraFile extra
-        end;
-
-  fun copyArticles srcDir info pkg =
-      let
-        val Package.Package' {tags,theories} = Package.dest pkg
-
-        val theories = map (copyArticle srcDir info) theories
-      in
-        Package.mk (Package.Package' {tags = tags, theories = theories})
-      end;
-
-  fun copyExtraFiles srcDir info pkg =
-      let
-        val Package.Package' {tags,theories} = Package.dest pkg
-
-        val tags = map (copyExtraFile srcDir info) tags
-      in
-        Package.mk (Package.Package' {tags = tags, theories = theories})
-      end;
-in
-  fun stagePackage dir finder repo name chk =
-      let
+fun stagePackage dir finder repo name chk =
+    let
 (*OpenTheoryDebug
-        val errs = checkStagePackage dir repo name chk
+      val errs = checkStagePackage dir repo name chk
 
-        val _ = not (DirectoryError.existsFatal errs) orelse
-                raise Bug "Directory.stagePackage: fatal error"
+      val _ = not (DirectoryError.existsFatal errs) orelse
+              raise Bug "Directory.stagePackage: fatal error"
 *)
-        (* Make a package info for the stage directory *)
+      val sys = system dir
 
-        val stageInfo = stagingPackageInfo dir name
+      (* Make a package info for the stage directory *)
 
-        (* Create the stage directory *)
+      val stageInfo = stagingPackageInfo dir name
 
-        val () = PackageInfo.createDirectory stageInfo
+      (* Create the stage directory *)
+
+      val () = PackageInfo.createDirectory stageInfo
+    in
+      let
+        (* Download the package tarball *)
+
+        val () = DirectoryRepo.download sys repo stageInfo
+
+        (* Unpack the tarball *)
+
+        val () = PackageInfo.unpackTarball sys stageInfo
       in
-        let
-          (* Download the package tarball *)
-
-          val () = DirectoryRepo.download repo name stageInfo
-
-          (* Unpack the tarball *)
-
-          val () = PackageInfo.unpackTarball stageInfo
-        in
-          ()
-        end
-        handle e =>
-          let
-            val () = PackageInfo.nukeDirectory stageInfo
-          in
-            raise e
-          end
+        ()
       end
-end;
+      handle e =>
+        let
+          val () = PackageInfo.nukeDirectory stageInfo
+        in
+          raise e
+        end
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Staging theory files for installation.                                    *)
@@ -530,7 +453,7 @@ in
 
         val errs =
             if not (member name dir) then errs
-            else DirectoryError.AlreadyInstalled :: errs
+            else DirectoryError.AlreadyInstalled name :: errs
 
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
@@ -592,7 +515,7 @@ local
         | _ => thy
       end;
 
-  fun copyExtraFile srcDir info tag =
+  fun copyExtraFile sys srcDir info tag =
       case Package.fromTagExtraFile tag of
         NONE => tag
       | SOME extra =>
@@ -608,7 +531,9 @@ local
           val {filename = destFilename} =
               PackageInfo.joinDirectory info {filename = pkgFilename}
 
-          val cmd = "cp " ^ srcFilename ^ " " ^ destFilename
+          val {cp = cmd} = DirectoryConfig.cpSystem sys
+
+          val cmd = cmd ^ " " ^ srcFilename ^ " " ^ destFilename
 
 (*OpenTheoryTrace1
           val () = print (cmd ^ "\n")
@@ -630,11 +555,11 @@ local
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
 
-  fun copyExtraFiles srcDir info pkg =
+  fun copyExtraFiles sys srcDir info pkg =
       let
         val Package.Package' {tags,theories} = Package.dest pkg
 
-        val tags = map (copyExtraFile srcDir info) tags
+        val tags = map (copyExtraFile sys srcDir info) tags
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
@@ -647,6 +572,8 @@ in
         val _ = not (DirectoryError.existsFatal errs) orelse
                 raise Bug "Directory.stageTheory: fatal error"
 *)
+        val sys = system dir
+
         (* Make a package info for the stage directory *)
 
         val stageInfo = stagingPackageInfo dir name
@@ -662,7 +589,7 @@ in
 
           (* Copy the extra files over *)
 
-          val pkg = copyExtraFiles srcDir stageInfo pkg
+          val pkg = copyExtraFiles sys srcDir stageInfo pkg
 
           (* Write the new theory file *)
 
@@ -677,11 +604,11 @@ in
 
           (* Create the tarball *)
 
-          val () = PackageInfo.createTarball stageInfo
+          val () = PackageInfo.createTarball sys stageInfo
 
           (* Create the checksum *)
 
-          val () = PackageInfo.createChecksum stageInfo
+          val () = PackageInfo.createChecksum sys stageInfo
         in
           ()
         end
@@ -742,7 +669,7 @@ fun installStaged dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUninstall dir name =
-    if not (member name dir) then [DirectoryError.NotInstalled]
+    if not (member name dir) then [DirectoryError.NotInstalled name]
     else
       let
         val errs = []
@@ -764,10 +691,10 @@ fun checkUninstall dir name =
 fun uninstall dir name =
     let
 (*OpenTheoryDebug
-        val errs = checkUninstall dir name
+      val errs = checkUninstall dir name
 
-        val _ = not (DirectoryError.existsFatal errs) orelse
-                raise Bug "Directory.uninstall: fatal error"
+      val _ = not (DirectoryError.existsFatal errs) orelse
+              raise Bug "Directory.uninstall: fatal error"
 *)
 
       val Directory {packages = pkgs, ...} = dir
@@ -790,27 +717,72 @@ fun uninstall dir name =
 (* ------------------------------------------------------------------------- *)
 
 fun checkUpload dir repo name =
-    if not (member name dir) then [DirectoryError.NotInstalled]
-    else
+    case peek dir name of
+      NONE => [DirectoryError.NotInstalled name]
+    | SOME info =>
       let
+        fun checkAnc (anc,errs) =
+            let
+              val chk =
+                  case checksum dir anc of
+                    SOME c => c
+                  | NONE =>
+                    let
+                      val err =
+                          "depends on package " ^ PackageName.toString name ^
+                          " which seems to be badly installed"
+                    in
+                      raise Error err
+                    end
+            in
+              case DirectoryRepo.peek repo anc of
+                NONE =>
+                let
+                  val r = DirectoryRepo.name repo
+                in
+                  DirectoryError.AncestorNotOnRepo (anc,r) :: errs
+                end
+              | SOME chk' =>
+                if Checksum.equal chk chk' then errs
+                else
+                  let
+                    val r = DirectoryRepo.name repo
+                  in
+                    DirectoryError.AncestorWrongChecksumOnRepo (anc,r) :: errs
+                  end
+            end
+
         val errs = []
+
+        val errs =
+            if not (DirectoryRepo.member name repo) then errs
+            else
+              let
+                val r = DirectoryRepo.name repo
+              in
+                DirectoryError.AlreadyOnRepo (name,r) :: errs
+              end
+
+        val ancs = ancestors dir name
+
+        val errs = PackageNameSet.foldl checkAnc errs ancs
       in
-        errs
+        rev errs
       end;
 
 fun upload dir repo name =
     let
 (*OpenTheoryDebug
-        val errs = checkUpload dir repo name
+      val errs = checkUpload dir repo name
 
-        val _ = not (DirectoryError.existsFatal errs) orelse
-                raise Bug "Directory.upload: fatal error"
+      val _ = not (DirectoryError.existsFatal errs) orelse
+              raise Bug "Directory.upload: fatal error"
 *)
+      val info = get dir name
 
-      val info = packageInfo dir name
-
+      val () = DirectoryRepo.upload repo info
     in
-      raise Bug "Directory.upload: not implemented"
+      ()
     end;
 
 (* ------------------------------------------------------------------------- *)

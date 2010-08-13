@@ -46,7 +46,13 @@ val update : repo -> unit
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val download : repo -> PackageName.name -> PackageInfo.info -> unit
+val download : DirectoryConfig.system -> repo -> PackageInfo.info -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Uploading packages.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val upload : repo -> PackageInfo.info -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

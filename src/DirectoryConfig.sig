@@ -17,12 +17,28 @@ val nameRepo : repo -> {name : string}
 val urlRepo : repo -> {url : string}
 
 (* ------------------------------------------------------------------------- *)
+(* A type of system configuration data.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+type system
+
+val cpSystem : system -> {cp : string}
+
+val curlSystem : system -> {curl : string}
+
+val tarSystem : system -> {tar : string}
+
+val shaSystem : system -> {sha : string}
+
+(* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 type config
 
 val repos : config -> repo list
+
+val system : config -> system
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

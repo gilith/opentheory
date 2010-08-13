@@ -173,7 +173,7 @@ fun allFiles info =
 
 fun tarball info = mkTarball (name info);
 
-fun createTarball info =
+fun createTarball sys info =
     let
       val {directory = dir} = directory info
 
@@ -186,8 +186,10 @@ fun createTarball info =
 
       val pkgFiles = map joinDir (allFiles info)
 
+      val {tar = cmd} = DirectoryConfig.tarSystem sys
+
       val cmd =
-          "tar czf " ^ tarFile ^
+          cmd ^ " czf " ^ tarFile ^
           String.concat (map (fn {filename = f} => " " ^ f) pkgFiles)
 
 (*OpenTheoryTrace1
@@ -210,11 +212,13 @@ fun createTarball info =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
-fun downloadTarball info {url} =
+fun downloadTarball sys info {url} =
     let
       val {filename = f} = joinDirectory info (tarball info)
 
-      val cmd = "curl --silent --show-error " ^ url ^ " --output " ^ f
+      val {curl = cmd} = DirectoryConfig.curlSystem sys
+
+      val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")
@@ -227,7 +231,7 @@ fun downloadTarball info {url} =
       ()
     end;
 
-fun unpackTarball info =
+fun unpackTarball sys info =
     let
       val {directory = dir} = directory info
 
@@ -238,7 +242,9 @@ fun unpackTarball info =
 
       val {filename = tarFile} = joinDir (tarball info)
 
-      val cmd = "tar xzf " ^ tarFile
+      val {tar = cmd} = DirectoryConfig.tarSystem sys
+
+      val cmd = cmd ^ " xzf " ^ tarFile
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")
@@ -266,7 +272,7 @@ fun unpackTarball info =
 
 fun checksum (_ : info) = {filename = checksumFilename};
 
-fun createChecksum info =
+fun createChecksum sys info =
     let
       val {directory = dir} = directory info
 
@@ -274,7 +280,9 @@ fun createChecksum info =
 
       val {filename = chkFile} = checksum info
 
-      val cmd = "sha1sum --binary " ^ tarFile ^ " > " ^ chkFile
+      val {sha = cmd} = DirectoryConfig.shaSystem sys
+
+      val cmd = cmd ^ " " ^ tarFile ^ " > " ^ chkFile
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")

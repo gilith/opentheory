@@ -11,23 +11,32 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 datatype error =
-    AlreadyInstalled
+    AncestorNotOnRepo of PackageName.name * DirectoryRepo.name
+  | AncestorWrongChecksumOnRepo of PackageName.name * DirectoryRepo.name
+  | AlreadyInstalled of PackageName.name
+  | AlreadyOnRepo of PackageName.name * DirectoryRepo.name
   | FilenameClash of
       {srcs : {name : string, filename : string option} list,
        dest : {filename : string}}
   | InstalledDescendent of PackageName.name
-  | NotInstalled
-  | NotOnRepo
+  | NotInstalled of PackageName.name
+  | NotOnRepo of PackageName.name * DirectoryRepo.name
   | UninstalledParent of PackageName.name
-  | WrongChecksumOnRepo
+  | WrongChecksumOnRepo of PackageName.name * DirectoryRepo.name
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+(* AlreadyInstalled *)
+
+val destAlreadyInstalled : error -> PackageName.name option
+
 val isAlreadyInstalled : error -> bool
 
 val removeAlreadyInstalled : error list -> bool * error list
+
+(* InstalledDescendent *)
 
 val destInstalledDescendent : error -> PackageName.name option
 
@@ -35,6 +44,8 @@ val isInstalledDescendent : error -> bool
 
 val removeInstalledDescendent :
     error list -> PackageName.name list * error list
+
+(* UninstalledParent *)
 
 val destUninstalledParent : error -> PackageName.name option
 

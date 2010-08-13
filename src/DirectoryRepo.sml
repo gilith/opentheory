@@ -43,6 +43,16 @@ fun rootUrl (Repo {rootUrl = x, ...}) = {rootUrl = x};
 fun checksums (Repo {checksums = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
+(* Paths.                                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun installedUrl repo =
+    DirectoryPath.mkInstalledUrl (rootUrl repo);
+
+fun tarballUrl repo n =
+    DirectoryPath.mkTarballUrl (rootUrl repo) n;
+
+(* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
@@ -75,18 +85,16 @@ fun find repos (n,c) =
 (* ------------------------------------------------------------------------- *)
 
 fun update repo =
-    let
-      val url = DirectoryPath.mkInstalledUrl (rootUrl repo)
-    in
-      DirectoryChecksums.update (checksums repo) url
-    end;
+    DirectoryChecksums.update (checksums repo) (installedUrl repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun download repo n info =
+fun download sys repo info =
     let
+      val n = PackageInfo.name info
+
       val chk =
           case peek repo n of
             SOME c => c
@@ -101,13 +109,11 @@ fun download repo n info =
 
       (* Download the tarball *)
 
-      val url = DirectoryPath.mkTarballUrl (rootUrl repo) n
-
-      val () = PackageInfo.downloadTarball info url
+      val () = PackageInfo.downloadTarball sys info (tarballUrl repo n)
 
       (* Create the checksum *)
 
-      val () = PackageInfo.createChecksum info
+      val () = PackageInfo.createChecksum sys info
 
       (* Check the checksum *)
 
@@ -130,6 +136,12 @@ fun download repo n info =
     in
       ()
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Uploading packages.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun upload repo info = raise Bug "not implemented";
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

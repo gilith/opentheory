@@ -119,11 +119,11 @@ SRC = \
   src/PackageName.sig src/PackageName.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/Package.sig src/Package.sml \
+  src/DirectoryConfig.sig src/DirectoryConfig.sml \
   src/PackageInfo.sig src/PackageInfo.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \
   src/Graph.sig src/Graph.sml \
-  src/DirectoryConfig.sig src/DirectoryConfig.sml \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
   src/DirectoryPath.sig src/DirectoryPath.sml \
   src/DirectoryPackages.sig src/DirectoryPackages.sml \

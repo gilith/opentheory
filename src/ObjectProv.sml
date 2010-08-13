@@ -44,7 +44,7 @@ val newId : unit -> id =
          let
            val ref count = counter
            val () = counter := count + 1
-(*OpenTheoryTrace1
+(*OpenTheoryTrace2
            val () = if count mod 1000 = 0 then trace "." else ()
 *)
          in
