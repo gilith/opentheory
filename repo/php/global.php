@@ -18,9 +18,7 @@ define('REPO_ADMIN','Joe Hurd');
 
 define('REPO_ADMIN_EMAIL','joe@gilith.com');
 
-define('REPO_ADMIN_URL','http://www.gilith.com');
-
-define('REPO_PREFIX','research/opentheory/repo');
+define('REPO_ADMIN_URL','http://www.gilith.com/');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Directories.
@@ -28,6 +26,6 @@ define('REPO_PREFIX','research/opentheory/repo');
 
 define('IMAGE_DIR','images');
 
-define('PACKAGE_DIR','packages');
+define('DIRECTORY_DIR','opentheory');
 
 ?>

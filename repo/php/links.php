@@ -44,10 +44,6 @@ function bread_crumbs() {
     $path = ereg_replace('^/','',$path);
     $path = ereg_replace('/$','',$path);
 
-    // Get rid of a fixed path prefix, if it exists
-    $path = ereg_replace('^' . REPO_PREFIX, '', $path);
-    $path = ereg_replace('^/','',$path);
-
     if (strcmp($path,'') == 0) {
       $global_bread_crumbs = array();
     }
