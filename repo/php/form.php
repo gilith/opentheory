@@ -755,31 +755,45 @@ class SelectURL extends SelectText {
 // Selecting files.
 ///////////////////////////////////////////////////////////////////////////////
 
-class SelectFile extends SelectData {
-  function error_message_missing() { return 'Please enter a URL'; }
+class SelectFile extends SelectValue {
+  var $_required;
 
-  function error_message_too_long() {
-    return ('Too long: please cut it down to ' . $this->max_length() .
-            ' characters');
-  }
+  function required() { return $this->_required; }
 
-  function error_message_not_url() {
-    return ('Please begin the URL with <em>http://</em>');
-  }
+  function focus() { return $this->is_value() ? null : $this->field(); }
+
+  function error_message_missing() { return 'Please enter a filename'; }
 
   function validate() {
-    if (!$this->is_error()) {
-      $v = parent::value();
-      if (isset($v) && !ereg('^http://',$v)) {
-        $this->set_error($this->error_message_not_url());
-      }
-    }
-
     parent::validate();
+
+    if (!$this->is_error() && $this->_required && !$this->is_value()) {
+      $this->set_error($this->error_message_missing());
+    }
   }
 
-  function SelectURL($field,$required,$max) {
-    parent::SelectText($field, $required, null, $max);
+  function set_value($value) {
+    trigger_error('can\'t set a file value');
+  }
+
+  function select() {
+    return $this->file_input('');
+  }
+
+  function SelectFile($field,$required) {
+    parent::SelectValue($field);
+
+    $this->_required = $required;
+
+    $value = null;
+
+    if (array_key_exists($field,$_FILES)) {
+      $value =
+        array('client' => $_FILES[$field]['name'],
+              'server' => $_FILES[$field]['tmp_name']);
+    }
+
+    parent::set_value($value);
   }
 }
 

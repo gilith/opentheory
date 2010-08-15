@@ -20,12 +20,25 @@ define('REPO_ADMIN_EMAIL','joe@gilith.com');
 
 define('REPO_ADMIN_URL','http://www.gilith.com/');
 
+define('REPO_PATH','/home/gilith/public_opentheory');
+
+define('OPENTHEORY_BIN','/home/gilith/bin/opentheory');
+
 ///////////////////////////////////////////////////////////////////////////////
-// Directories.
+// Paths.
 ///////////////////////////////////////////////////////////////////////////////
 
 define('IMAGE_DIR','images');
 
 define('DIRECTORY_DIR','opentheory');
+
+define('REPO_DIRECTORY', REPO_PATH . '/' . DIRECTORY_DIR);
+
+///////////////////////////////////////////////////////////////////////////////
+// Commands.
+///////////////////////////////////////////////////////////////////////////////
+
+define('OPENTHEORY_COMMAND',
+       OPENTHEORY_BIN . ' -d ' . REPO_DIRECTORY);
 
 ?>
