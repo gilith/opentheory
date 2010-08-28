@@ -4,6 +4,7 @@ opentheory/Makefile.dev
 opentheory/data
 opentheory/doc/DONT-RELEASE
 opentheory/doc/IMPORT-METIS
+opentheory/doc/logo
 opentheory/release
 opentheory/repo
 opentheory/scripts/copy_src

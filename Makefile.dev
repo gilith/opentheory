@@ -257,7 +257,6 @@ tarball: clean doc/DONT-RELEASE Makefile.dev
 release: release-stamp mosml mlton polyml documentation
 	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/*.png
 	cp -v doc/*.html doc/*.txt doc/*.png $(RELEASE_DIR)/
-	cp -v doc/favicon.ico $(RELEASE_DIR)/
 	cp -v doc/logging.ml $(RELEASE_DIR)/
 	cp -v doc/foo.thy $(RELEASE_DIR)/
 	$(MAKE) tarball
