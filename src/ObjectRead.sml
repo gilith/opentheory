@@ -17,6 +17,8 @@ datatype inferenceCount = InferenceCount of int CommandMap.map;
 
 val newInferenceCount = InferenceCount (CommandMap.new ());
 
+fun nullInferenceCount (InferenceCount m) = CommandMap.null m;
+
 fun incrementInferenceCount inf cmd =
     if not (Command.isInference cmd) then inf
     else

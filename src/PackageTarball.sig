@@ -16,4 +16,11 @@ val destFilename : {filename : string} -> PackageName.name option
 
 val isFilename : {filename : string} -> bool
 
+(* ------------------------------------------------------------------------- *)
+(* Listing the contents.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val contents :
+    DirectoryConfig.system -> {filename : string} -> {filename : string} list
+
 end

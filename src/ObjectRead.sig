@@ -52,6 +52,8 @@ val executeTextFile : {filename : string} -> state -> state
 (*OpenTheoryDebug
 type inferenceCount
 
+val nullInferenceCount : inferenceCount -> bool
+
 val ppInferenceCount : inferenceCount Print.pp
 
 val theInferenceCount : unit -> inferenceCount

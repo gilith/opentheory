@@ -41,4 +41,33 @@ fun destFilename {filename} =
 
 fun isFilename file = Option.isSome (destFilename file);
 
+(* ------------------------------------------------------------------------- *)
+(* Listing the contents.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun contents sys {filename} =
+    let
+      val tmpFile = OS.FileSys.tmpName ()
+
+      val {tar = cmd} = DirectoryConfig.tarSystem sys
+
+      val cmd = cmd ^ " tzf " ^ filename ^ " > " ^ tmpFile
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "listing tarball failed"
+
+      val files = Stream.fromTextFile {filename = tmpFile}
+
+      val files = map (fn f => {filename = chomp f}) (Stream.toList files)
+
+      val () = OS.FileSys.remove tmpFile
+    in
+      files
+    end;
+
 end

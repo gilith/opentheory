@@ -139,6 +139,12 @@ val directory =
 fun directoryFinder () = Directory.finder (directory ());
 
 (* ------------------------------------------------------------------------- *)
+(* Config file.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun config () = Directory.config (directory ());
+
+(* ------------------------------------------------------------------------- *)
 (* Package repo.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -191,14 +197,14 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 datatype info =
-    AncestorInfo
+    AncestorsInfo
   | ArticleInfo
-  | ChildInfo
-  | DescendentInfo
-  | FileInfo
+  | ChildrenInfo
+  | DescendentsInfo
+  | FilesInfo
   | MetaInfo
   | NameInfo
-  | ParentInfo
+  | ParentsInfo
   | SummaryInfo
   | TheoryInfo;
 
@@ -239,19 +245,19 @@ in
         processor = beginOpt endOpt (fn _ => addInfoOutput MetaInfo)},
        {switches = ["--files"], arguments = [],
         description = "list the package files",
-        processor = beginOpt endOpt (fn _ => addInfoOutput FileInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
        {switches = ["--deps"], arguments = [],
         description = "list direct package dependencies",
-        processor = beginOpt endOpt (fn _ => addInfoOutput ParentInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput ParentsInfo)},
        {switches = ["--deps+"], arguments = [],
         description = "list all package dependencies",
-        processor = beginOpt endOpt (fn _ => addInfoOutput AncestorInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput AncestorsInfo)},
        {switches = ["--uses"], arguments = [],
         description = "list direct package users",
-        processor = beginOpt endOpt (fn _ => addInfoOutput ChildInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput ChildrenInfo)},
        {switches = ["--uses+"], arguments = [],
         description = "list all package users",
-        processor = beginOpt endOpt (fn _ => addInfoOutput DescendentInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput DescendentsInfo)},
        {switches = ["--summary"], arguments = [],
         description = "display the package summary",
         processor = beginOpt endOpt (fn _ => addInfoOutput SummaryInfo)},
@@ -564,7 +570,7 @@ fun defaultInfoOutputList inp =
     case inp of
       ArticleInput _ => [mkInfoOutput SummaryInfo]
     | PackageInput _ => [mkInfoOutput MetaInfo]
-    | TarballInput _ => [mkInfoOutput NameInfo]
+    | TarballInput _ => [mkInfoOutput FilesInfo]
     | TheoryInput _ => [mkInfoOutput SummaryInfo];
 
 fun readInfoOutputList inp =
@@ -759,7 +765,7 @@ local
 
   fun processInfoOutput (inf,file) =
       case inf of
-        AncestorInfo =>
+        AncestorsInfo =>
         let
           val dir = directory ()
 
@@ -785,7 +791,7 @@ local
         in
           Article.toTextFile {article = art, filename = filename}
         end
-      | ChildInfo =>
+      | ChildrenInfo =>
         let
           val dir = directory ()
 
@@ -798,7 +804,7 @@ local
         in
           outputPackageNameSet names file
         end
-      | DescendentInfo =>
+      | DescendentsInfo =>
         let
           val dir = directory ()
 
@@ -811,7 +817,7 @@ local
         in
           outputPackageNameSet names file
         end
-      | FileInfo =>
+      | FilesInfo =>
         let
           fun mk {filename} = filename ^ "\n"
 
@@ -848,7 +854,7 @@ local
         in
           Stream.toTextFile file strm
         end
-      | ParentInfo =>
+      | ParentsInfo =>
         let
           val pkg =
               case getPackage () of
@@ -915,10 +921,16 @@ local
         val () =
             let
               val i = ObjectRead.theInferenceCount ()
-
-              val s = Print.toString ObjectRead.ppInferenceCount i
             in
-              print ("Inference functions:\n" ^ s ^ "\n")
+              if ObjectRead.nullInferenceCount i then ()
+              else
+                let
+                  val s = Print.toString ObjectRead.ppInferenceCount i
+
+                  val () = chat ("Inference functions:\n" ^ s ^ "\n")
+                in
+                  ()
+                end
             end
 *)
       in
@@ -941,9 +953,15 @@ in
 
   fun infoTarball {filename} infs =
       let
+        val sys = DirectoryConfig.system (config ())
+
         val dir = OS.Path.dir filename
 
+        val files = PackageTarball.contents sys {filename = filename}
+
         val () = setDirectory {directory = dir}
+
+        val () = setFiles files
       in
         processInfoOutputList infs
       end;
