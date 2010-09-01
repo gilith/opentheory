@@ -101,18 +101,9 @@ $main = null;
 if ($select->is_value()) {
   $value = $select->value();
 
-  $name = $value['name'];
-
   $tarball = $value['tarball'];
 
-  $cmd =
-    OPENTHEORY_COMMAND .
-    ' install' .
-    ' --upload-tarball ' . $name .
-    ' ' . $tarball .
-    ' 2>&1 >/dev/null';
-
-  $output = shell_exec($cmd);
+  $output = opentheory('install',' --stage tarball:' . $tarball);
 
   if (isset($output)) {
     $main =

@@ -120,6 +120,7 @@ SRC = \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/Package.sig src/Package.sml \
   src/DirectoryConfig.sig src/DirectoryConfig.sml \
+  src/PackageTarball.sig src/PackageTarball.sml \
   src/PackageInfo.sig src/PackageInfo.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \

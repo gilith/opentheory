@@ -12,35 +12,7 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val checksumFilename = "checksum.txt"
-and tarballFileExtension = "tgz";
-
-(* ------------------------------------------------------------------------- *)
-(* Tarball filenames.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-fun mkTarball name =
-    let
-      val filename =
-          OS.Path.joinBaseExt
-            {base = PackageName.toString name,
-             ext = SOME tarballFileExtension}
-    in
-      {filename = filename}
-    end;
-
-fun destTarball {filename} =
-    let
-      val {base,ext} = OS.Path.splitBaseExt (OS.Path.file filename)
-    in
-      case ext of
-        NONE => NONE
-      | SOME x =>
-        if x <> tarballFileExtension then NONE
-        else total PackageName.fromString base
-    end;
-
-fun isTarball file = Option.isSome (destTarball file);
+val checksumFilename = "checksum.txt";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
@@ -171,7 +143,7 @@ fun allFiles info =
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun tarball info = mkTarball (name info);
+fun tarball info = PackageTarball.mkFilename (name info);
 
 fun createTarball sys info =
     let

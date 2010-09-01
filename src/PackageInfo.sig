@@ -7,16 +7,6 @@ signature PackageInfo =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Tarball filenames.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-val mkTarball : PackageName.name -> {filename : string}
-
-val destTarball : {filename : string} -> PackageName.name option
-
-val isTarball : {filename : string} -> bool
-
-(* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
 (* ------------------------------------------------------------------------- *)
 

@@ -311,17 +311,17 @@ local
        processor = processor};
 in
   val installOpts : opt list =
-      [{switches = ["--reinstall"], arguments = [],
-        description = "uninstall the package if it exists",
-        processor = beginOpt endOpt (fn _ => reinstall := true)},
-       {switches = ["--manual"], arguments = [],
+      [{switches = ["--manual"], arguments = [],
         description = "do not also install required packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)},
        {switches = ["--repo"], arguments = ["REPO"],
         description = "specify the repos to install from",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := !repoOption @ [s])}] @
+            (fn _ => fn s => repoOption := !repoOption @ [s])},
+       {switches = ["--reinstall"], arguments = [],
+        description = "uninstall the package if it exists",
+        processor = beginOpt endOpt (fn _ => reinstall := true)}] @
       map (addSuffix "-uninstall") uninstallOpts;
 end;
 
@@ -539,17 +539,26 @@ datatype input =
   | TheoryInput of {filename : string};
 
 fun fromStringInput cmd inp =
-    case total PackageName.fromString inp of
-      SOME name => PackageInput name
+    case total (destPrefix "article:") inp of
+      SOME f => ArticleInput {filename = f}
     | NONE =>
-      let
-        val filename = {filename = inp}
-      in
-        if Article.isFilename filename then ArticleInput filename
-        else if PackageInfo.isTarball filename then TarballInput filename
-        else if Package.isFilename filename then TheoryInput filename
-        else commandUsage cmd ("unknown type of input: " ^ inp)
-      end;
+      case total (destPrefix "tarball:") inp of
+        SOME f => TarballInput {filename = f}
+      | NONE =>
+        case total (destPrefix "theory:") inp of
+          SOME f => TheoryInput {filename = f}
+        | NONE =>
+          case total PackageName.fromString inp of
+            SOME name => PackageInput name
+          | NONE =>
+            let
+              val f = {filename = inp}
+            in
+              if Article.isFilename f then ArticleInput f
+              else if PackageInfo.isTarball f then TarballInput f
+              else if Package.isFilename f then TheoryInput f
+              else commandUsage cmd ("unknown type of input: " ^ inp)
+            end;
 
 fun defaultInfoOutputList inp =
     case inp of
@@ -757,7 +766,7 @@ local
           val pkg =
               case getPackage () of
                 SOME p => p
-              | NONE => raise Error "no package"
+              | NONE => raise Error "no package information available"
 
           val names = PackageNameSet.fromList (Package.packages pkg)
 
@@ -770,7 +779,7 @@ local
           val art =
               case getArticle () of
                 SOME a => a
-              | NONE => raise Error "no article"
+              | NONE => raise Error "no article information available"
 
           val {filename} = file
         in
@@ -783,7 +792,7 @@ local
           val name =
               case getName () of
                 SOME n => n
-              | NONE => raise Error "no name"
+              | NONE => raise Error "no name information available"
 
           val names = Directory.children dir name
         in
@@ -796,7 +805,7 @@ local
           val name =
               case getName () of
                 SOME n => n
-              | NONE => raise Error "no name"
+              | NONE => raise Error "no name information available"
 
           val names = Directory.descendents dir name
         in
@@ -809,7 +818,7 @@ local
           val files =
               case getFiles () of
                 SOME f => f
-              | NONE => raise Error "no files"
+              | NONE => raise Error "no files information available"
 
           val strm = Stream.map mk (Stream.fromList files)
         in
@@ -820,7 +829,7 @@ local
           val pkg =
               case getPackage () of
                 SOME p => p
-              | NONE => raise Error "no package"
+              | NONE => raise Error "no package information available"
 
           val tags = Package.tags pkg
 
@@ -833,7 +842,7 @@ local
           val name =
               case getName () of
                 SOME n => n
-              | NONE => raise Error "no name"
+              | NONE => raise Error "no name information available"
 
           val strm = Print.toStream PackageName.pp name
         in
@@ -844,7 +853,7 @@ local
           val pkg =
               case getPackage () of
                 SOME p => p
-              | NONE => raise Error "no package"
+              | NONE => raise Error "no package information available"
 
           val names = PackageNameSet.fromList (Package.packages pkg)
         in
@@ -855,7 +864,7 @@ local
           val sum =
               case getSummary () of
                 SOME s => s
-              | NONE => raise Error "no summary"
+              | NONE => raise Error "no summary information available"
 
           val show =
               case getPackage () of
@@ -874,7 +883,7 @@ local
           val thy =
               case getTheory () of
                 SOME (_,t) => t
-              | NONE => raise Error "no theory"
+              | NONE => raise Error "no theory information available"
 
           val tags = []
 
@@ -930,14 +939,11 @@ in
           end
       end;
 
-  fun infoTarball file infs =
+  fun infoTarball {filename} infs =
       let
-        val name =
-            case PackageInfo.destTarball file of
-              SOME n => n
-            | NONE => raise Bug "infoTarball: bad filename"
+        val dir = OS.Path.dir filename
 
-        val () = setName name
+        val () = setDirectory {directory = dir}
       in
         processInfoOutputList infs
       end;
@@ -982,13 +988,9 @@ in
                interpretation = int,
                filename = filename}
 
-        val files = [{filename = filename}]
-
         val () = setDirectory {directory = dir}
 
         val () = setArticle art
-
-        val () = setFiles files
       in
         processInfoOutputList infs
       end;
