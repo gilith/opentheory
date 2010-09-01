@@ -66,7 +66,11 @@ val tarball : info -> {filename : string}
 
 val createTarball : DirectoryConfig.system -> info -> unit
 
+val copyTarball : DirectoryConfig.system -> info -> {filename : string} -> unit
+
 val downloadTarball : DirectoryConfig.system -> info -> {url : string} -> unit
+
+val contentsTarball : DirectoryConfig.system -> info -> PackageTarball.contents
 
 val unpackTarball : DirectoryConfig.system -> info -> unit
 

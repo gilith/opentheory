@@ -272,7 +272,50 @@ fun installOrder dir names =
 fun list dir = DirectoryPackages.list (packages dir);
 
 (* ------------------------------------------------------------------------- *)
-(* Staging theory packages for installation.                                 *)
+(* Post-stage functions.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun postStagePackage dir stageInfo = ();
+
+fun postStageTarball dir finder stageInfo chk contents =
+    let
+      val sys = system dir
+
+      (* Create the tarball checksum *)
+
+      val () = PackageInfo.createChecksum sys stageInfo
+
+      val chk =
+          let
+            val chk' = PackageInfo.readChecksum stageInfo
+          in
+            case chk of
+              NONE => chk'
+            | SOME c =>
+              if Checksum.equal c chk' then c
+              else raise Error "checksum of downloaded tarball does not match"
+          end
+
+      (* Check the contents of the tarball *)
+
+      val contents =
+          case contents of
+            SOME c => c
+          | NONE => PackageInfo.contentsTarball sys stageInfo
+
+      (* Unpack the tarball *)
+
+      val () = PackageInfo.unpackTarball sys stageInfo
+
+      (* Common post-stage operations *)
+
+      val () = postStagePackage dir stageInfo
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Staging packages for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 fun checkStagePackage dir repo name chk =
@@ -324,9 +367,60 @@ fun stagePackage dir finder repo name chk =
 
         val () = DirectoryRepo.download sys repo stageInfo
 
-        (* Unpack the tarball *)
+        (* Common post-stage operations *)
 
-        val () = PackageInfo.unpackTarball sys stageInfo
+        val () = postStageTarball dir finder stageInfo (SOME chk) NONE
+      in
+        ()
+      end
+      handle e =>
+        let
+          val () = PackageInfo.nukeDirectory stageInfo
+        in
+          raise e
+        end
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Staging tarballs for installation.                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkStageTarball dir contents =
+    let
+      val PackageTarball.Contents {name,...} = contents
+    in
+      if member name dir then [DirectoryError.AlreadyInstalled name]
+      else []
+    end;
+
+fun stageTarball dir finder tarFile contents =
+    let
+(*OpenTheoryDebug
+      val errs = checkStageTarball dir contents
+
+      val _ = not (DirectoryError.existsFatal errs) orelse
+              raise Bug "Directory.stageTarball: fatal error"
+*)
+      val PackageTarball.Contents {name,...} = contents
+
+      val sys = system dir
+
+      (* Make a package info for the stage directory *)
+
+      val stageInfo = stagingPackageInfo dir name
+
+      (* Create the stage directory *)
+
+      val () = PackageInfo.createDirectory stageInfo
+    in
+      let
+        (* Copy the package tarball *)
+
+        val () = PackageInfo.copyTarball sys stageInfo tarFile
+
+        (* Common post-stage operations *)
+
+        val () = postStageTarball dir finder stageInfo NONE (SOME contents)
       in
         ()
       end
@@ -609,6 +703,10 @@ in
           (* Create the checksum *)
 
           val () = PackageInfo.createChecksum sys stageInfo
+
+          (* Common post-stage operations *)
+
+          val () = postStagePackage dir stageInfo
         in
           ()
         end

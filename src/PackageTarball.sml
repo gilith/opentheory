@@ -45,7 +45,13 @@ fun isFilename file = Option.isSome (destFilename file);
 (* Listing the contents.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun contents sys {filename} =
+datatype contents =
+    Contents of
+      {name : PackageName.name,
+       theoryFile : {filename : string},
+       otherFiles : {filename : string} list}
+
+fun rawContents sys {filename} =
     let
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -69,5 +75,47 @@ fun contents sys {filename} =
     in
       files
     end;
+
+local
+  fun split {filename} =
+      let
+        val {dir,file} = OS.Path.splitDirFile filename
+      in
+        (dir, {filename = file})
+      end;
+in
+  fun contents sys tarFile =
+      let
+        val files = rawContents sys tarFile
+
+        val (dirs,files) = unzip (map split files)
+
+        val dir =
+            case dirs of
+              [] => raise Error "empty tarball"
+            | d :: ds =>
+              case List.find (not o equal d) ds of
+                NONE => d
+              | SOME d' =>
+                raise Error ("inconsistent directories in tarball:\n" ^
+                             "  \"" ^ d ^ "\"\n" ^
+                             "  \"" ^ d' ^ "\"")
+
+        val name = PackageName.fromString dir
+
+        val theoryFile = Package.mkFilename (PackageName.base name)
+
+        val otherFiles =
+            case List.partition (equal theoryFile) files of
+              ([],_) => raise Error "no theory file in tarball"
+            | ([_],l) => l
+            | (_ :: _ :: _, _) => raise Error "multiple theory files in tarball"
+      in
+        Contents
+          {name = name,
+           theoryFile = theoryFile,
+           otherFiles = otherFiles}
+      end;
+end;
 
 end

@@ -184,6 +184,25 @@ fun createTarball sys info =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
+fun copyTarball sys info {filename = src} =
+    let
+      val {filename = dest} = joinDirectory info (tarball info)
+
+      val {cp = cmd} = DirectoryConfig.cpSystem sys
+
+      val cmd = cmd ^ " " ^ src ^ " " ^ dest
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "copying the package tarball failed"
+    in
+      ()
+    end;
+
 fun downloadTarball sys info {url} =
     let
       val {filename = f} = joinDirectory info (tarball info)
@@ -202,6 +221,9 @@ fun downloadTarball sys info {url} =
     in
       ()
     end;
+
+fun contentsTarball sys info =
+    PackageTarball.contents sys (tarball info);
 
 fun unpackTarball sys info =
     let

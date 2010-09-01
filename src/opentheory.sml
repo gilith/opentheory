@@ -145,6 +145,12 @@ fun directoryFinder () = Directory.finder (directory ());
 fun config () = Directory.config (directory ());
 
 (* ------------------------------------------------------------------------- *)
+(* System interface.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun system () = DirectoryConfig.system (config ());
+
+(* ------------------------------------------------------------------------- *)
 (* Package repo.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -239,7 +245,7 @@ in
   val infoOpts : opt list =
       [{switches = ["--name"], arguments = [],
         description = "display the package name",
-        processor = beginOpt endOpt (fn _ => addInfoOutput MetaInfo)},
+        processor = beginOpt endOpt (fn _ => addInfoOutput NameInfo)},
        {switches = ["--meta"], arguments = [],
         description = "display the package meta-information",
         processor = beginOpt endOpt (fn _ => addInfoOutput MetaInfo)},
@@ -937,6 +943,30 @@ local
         ()
       end;
 in
+  fun infoArticle {filename} infs =
+      let
+        val dir = OS.Path.dir filename
+
+        val sav = List.exists (savableInfo o fst) infs
+
+        val imp = Article.empty
+
+        val int = Interpretation.natural
+
+        val art =
+            Article.fromTextFile
+              {savable = sav,
+               import = imp,
+               interpretation = int,
+               filename = filename}
+
+        val () = setDirectory {directory = dir}
+
+        val () = setArticle art
+      in
+        processInfoOutputList infs
+      end;
+
   fun infoPackage name infs =
       let
         val dir = directory ()
@@ -953,15 +983,14 @@ in
 
   fun infoTarball {filename} infs =
       let
-        val sys = DirectoryConfig.system (config ())
+        val sys = system ()
 
-        val dir = OS.Path.dir filename
+        val PackageTarball.Contents {name,theoryFile,otherFiles} =
+            PackageTarball.contents sys {filename = filename}
 
-        val files = PackageTarball.contents sys {filename = filename}
+        val () = setName name
 
-        val () = setDirectory {directory = dir}
-
-        val () = setFiles files
+        val () = setFiles (theoryFile :: otherFiles)
       in
         processInfoOutputList infs
       end;
@@ -988,30 +1017,6 @@ in
       in
         processInfoOutputList infs
       end;
-
-  fun infoArticle {filename} infs =
-      let
-        val dir = OS.Path.dir filename
-
-        val sav = List.exists (savableInfo o fst) infs
-
-        val imp = Article.empty
-
-        val int = Interpretation.natural
-
-        val art =
-            Article.fromTextFile
-              {savable = sav,
-               import = imp,
-               interpretation = int,
-               filename = filename}
-
-        val () = setDirectory {directory = dir}
-
-        val () = setArticle art
-      in
-        processInfoOutputList infs
-      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1031,7 +1036,7 @@ fun init () =
 (* Uninstalling theory packages.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun uninstallPackage dir name =
+fun uninstallPackage auto dir name =
     let
       val errs = Directory.checkUninstall dir name
 
@@ -1047,20 +1052,27 @@ fun uninstallPackage dir name =
 
       val () = Directory.uninstall dir name
 
-      val () = chat ("uninstalled package " ^ PackageName.toString name)
+      val () =
+          chat ((if auto then "auto-" else "") ^
+                "uninstalled package " ^ PackageName.toString name)
     in
       ()
     end;
 
 fun uninstallAuto dir name =
     let
-      val desc =
-          if not (!autoUninstall) then []
-          else Directory.installOrder dir (Directory.descendents dir name)
+      val () =
+          if not (!autoUninstall) then ()
+          else
+            let
+              val desc = Directory.descendents dir name
 
-      val names = rev (name :: desc)
+              val desc = rev (Directory.installOrder dir desc)
+            in
+              List.app (uninstallPackage true dir) desc
+            end
 
-      val () = app (uninstallPackage dir) names
+      val () = uninstallPackage false dir name
     in
       ()
     end;
@@ -1131,17 +1143,17 @@ and installAutoFind master name chk =
 
 and installAutoRepo master repo name chk =
     let
-      val () = chat ("installed package " ^ PackageName.toString name)
+      val () = chat ("auto-installed package " ^ PackageName.toString name)
     in
       ()
     end
 
 and installAutoFinder master =
     let
+      val dir = directory ()
+
       fun finder name =
           let
-            val dir = directory ()
-
             val () = installAuto master name
           in
             Directory.peek dir name
@@ -1172,9 +1184,27 @@ fun installAutoFree name =
         end
     end;
 
+fun installAutoFinderFree () =
+    let
+      val dir = directory ()
+
+      fun finder name =
+          let
+            val () = installAutoFree name
+          in
+            Directory.peek dir name
+          end
+    in
+      PackageFinder.mk finder
+    end;
+
 fun installFinder master =
     if not (!autoInstall) then directoryFinder ()
     else installAutoFinder master;
+
+fun installFinderFree () =
+    if not (!autoInstall) then directoryFinder ()
+    else installAutoFinderFree ();
 
 fun installPackage name =
     let
@@ -1217,14 +1247,58 @@ fun installPackage name =
 
           val () = Directory.installStaged dir name
 
-          val () = chat ((if replace then "re" else "") ^ "installed package " ^
-                         PackageName.toString name)
+          val () =
+              chat ((if replace then "re" else "") ^ "installed package " ^
+                    PackageName.toString name)
         in
           ()
         end
     end
     handle Error err =>
-      raise Error (err ^ "\ntheory package install failed");
+      raise Error (err ^ "\npackage install failed");
+
+fun installTarball tarFile =
+    let
+      val dir = directory ()
+
+      val sys = Directory.system dir
+
+      val contents = PackageTarball.contents sys tarFile
+
+      val PackageTarball.Contents {name,...} = contents
+
+      val errs = Directory.checkStageTarball dir contents
+
+      val (replace,errs) =
+          if not (!reinstall) then (false,errs)
+          else DirectoryError.removeAlreadyInstalled errs
+
+      val () =
+          if null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else warn ("package install warnings:\n" ^ s)
+            end
+
+      val () = if replace then uninstallAuto dir name else ()
+
+      val finder = installFinderFree ()
+
+      val () = Directory.stageTarball dir finder tarFile contents
+
+      val () = Directory.installStaged dir name
+
+      val () =
+          chat ((if replace then "re" else "") ^ "installed package " ^
+                PackageName.toString name ^ " from tarball")
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\npackage install from tarball failed");
 
 fun installTheory filename =
     let
@@ -1261,16 +1335,17 @@ fun installTheory filename =
               else warn ("package install warnings:\n" ^ s)
             end
 
-      val () = List.app installAutoFree pars
-
       val () = if replace then uninstallAuto dir name else ()
+
+      val () = List.app installAutoFree pars
 
       val () = Directory.stageTheory dir name pkg srcDir
 
       val () = Directory.installStaged dir name
 
-      val () = chat ((if replace then "re" else "") ^ "installed package " ^
-                     PackageName.toString name)
+      val () =
+          chat ((if replace then "re" else "") ^ "installed package " ^
+                PackageName.toString name ^ " from theory file")
     in
       ()
     end
@@ -1402,7 +1477,7 @@ let
           case inp of
             ArticleInput _ => commandUsage cmd "cannot install an article"
           | PackageInput name => installPackage name
-          | TarballInput _ => raise Bug "not implemented"
+          | TarballInput file => installTarball file
           | TheoryInput file => installTheory file
         end
       | (List,[]) => list ()

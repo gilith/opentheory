@@ -20,7 +20,12 @@ val isFilename : {filename : string} -> bool
 (* Listing the contents.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val contents :
-    DirectoryConfig.system -> {filename : string} -> {filename : string} list
+datatype contents =
+    Contents of
+      {name : PackageName.name,
+       theoryFile : {filename : string},
+       otherFiles : {filename : string} list}
+
+val contents : DirectoryConfig.system -> {filename : string} -> contents
 
 end

@@ -28,6 +28,8 @@ val rootDirectory : directory -> {rootDirectory : string}
 
 val config : directory -> DirectoryConfig.config
 
+val system : directory -> DirectoryConfig.system
+
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
@@ -81,7 +83,7 @@ val installOrder : directory -> PackageNameSet.set -> PackageName.name list
 val list : directory -> PackageNameSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Staging theory packages for installation.                                 *)
+(* Staging packages for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 val checkStagePackage :
@@ -92,6 +94,20 @@ val checkStagePackage :
 val stagePackage :
     directory -> PackageFinder.finder ->
     DirectoryRepo.repo -> PackageName.name -> Checksum.checksum ->
+    unit
+
+(* ------------------------------------------------------------------------- *)
+(* Staging tarballs for installation.                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val checkStageTarball :
+    directory ->
+    PackageTarball.contents ->
+    DirectoryError.error list
+
+val stageTarball :
+    directory -> PackageFinder.finder ->
+    {filename : string} -> PackageTarball.contents ->
     unit
 
 (* ------------------------------------------------------------------------- *)
