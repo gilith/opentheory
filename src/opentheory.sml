@@ -555,7 +555,7 @@ fun fromStringInput cmd inp =
               val f = {filename = inp}
             in
               if Article.isFilename f then ArticleInput f
-              else if PackageInfo.isTarball f then TarballInput f
+              else if PackageTarball.isFilename f then TarballInput f
               else if Package.isFilename f then TheoryInput f
               else commandUsage cmd ("unknown type of input: " ^ inp)
             end;

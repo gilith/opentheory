@@ -114,7 +114,7 @@ fun mkPackageUrl root name =
 fun mkTarballUrl root name =
     let
       val {url} = mkPackageUrl root name
-      and {filename} = PackageInfo.mkTarball name
+      and {filename} = PackageTarball.mkFilename name
 
       val url = url ^ filename
     in
