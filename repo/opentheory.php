@@ -13,5 +13,7 @@ require_once 'php/error.php';
 require_once 'php/input.php';
 require_once 'php/output.php';
 require_once 'php/form.php';
+require_once 'php/directory.php';
+require_once 'php/check.php';
 
 ?>

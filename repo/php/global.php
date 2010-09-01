@@ -32,13 +32,10 @@ define('IMAGE_DIR','images');
 
 define('DIRECTORY_DIR','opentheory');
 
-define('REPO_DIRECTORY', REPO_PATH . '/' . DIRECTORY_DIR);
+define('LOG_FILE','log');
 
-///////////////////////////////////////////////////////////////////////////////
-// Commands.
-///////////////////////////////////////////////////////////////////////////////
+define('DIRECTORY_PATH', REPO_PATH . '/' . DIRECTORY_DIR);
 
-define('OPENTHEORY_COMMAND',
-       OPENTHEORY_BIN . ' -d ' . REPO_DIRECTORY);
+define('LOG_PATH', REPO_PATH . '/' . LOG_FILE);
 
 ?>
