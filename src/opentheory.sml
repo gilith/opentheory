@@ -313,6 +313,8 @@ val reinstall = ref false;
 
 val autoInstall = ref true;
 
+val checksumInstall : Checksum.checksum option ref = ref NONE;
+
 local
   open Useful Options;
 
@@ -331,6 +333,11 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => repoOption := !repoOption @ [s])},
+       {switches = ["--checksum"], arguments = ["CHECKSUM"],
+        description = "specify the package checksum",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
        {switches = ["--reinstall"], arguments = [],
         description = "uninstall the package if it exists",
         processor = beginOpt endOpt (fn _ => reinstall := true)}] @
@@ -1047,7 +1054,7 @@ fun uninstallPackage auto dir name =
               val s = DirectoryError.toStringList errs
             in
               if DirectoryError.existsFatal errs then raise Error s
-              else warn ("package uninstall warnings:\n" ^ s)
+              else chat ("package uninstall warnings:\n" ^ s)
             end
 
       val () = Directory.uninstall dir name
@@ -1143,6 +1150,26 @@ and installAutoFind master name chk =
 
 and installAutoRepo master repo name chk =
     let
+      val dir = directory ()
+
+      val errs = Directory.checkStagePackage dir repo name chk
+
+      val () =
+          if null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else chat ("package auto-install warnings:\n" ^ s)
+            end
+
+      val finder = installAutoFinder master
+
+      val () = Directory.stagePackage dir finder repo name chk
+
+      val () = Directory.installStaged dir name chk
+
       val () = chat ("auto-installed package " ^ PackageName.toString name)
     in
       ()
@@ -1236,7 +1263,7 @@ fun installPackage name =
                   val s = DirectoryError.toStringList errs
                 in
                   if DirectoryError.existsFatal errs then raise Error s
-                  else warn ("package install warnings:\n" ^ s)
+                  else chat ("package install warnings:\n" ^ s)
                 end
 
           val () = if replace then uninstallAuto dir name else ()
@@ -1245,7 +1272,7 @@ fun installPackage name =
 
           val () = Directory.stagePackage dir finder repo name chk
 
-          val () = Directory.installStaged dir name
+          val () = Directory.installStaged dir name chk
 
           val () =
               chat ((if replace then "re" else "") ^ "installed package " ^
@@ -1262,6 +1289,15 @@ fun installTarball tarFile =
       val dir = directory ()
 
       val sys = Directory.system dir
+
+      val chk = PackageTarball.checksum sys tarFile
+
+      val () =
+          case !checksumInstall of
+            NONE => ()
+          | SOME chk' =>
+            if Checksum.equal chk' chk then ()
+            else raise Error "tarball checksum does not match"
 
       val contents = PackageTarball.contents sys tarFile
 
@@ -1280,7 +1316,7 @@ fun installTarball tarFile =
               val s = DirectoryError.toStringList errs
             in
               if DirectoryError.existsFatal errs then raise Error s
-              else warn ("package install warnings:\n" ^ s)
+              else chat ("package install warnings:\n" ^ s)
             end
 
       val () = if replace then uninstallAuto dir name else ()
@@ -1289,7 +1325,7 @@ fun installTarball tarFile =
 
       val () = Directory.stageTarball dir finder tarFile contents
 
-      val () = Directory.installStaged dir name
+      val () = Directory.installStaged dir name chk
 
       val () =
           chat ((if replace then "re" else "") ^ "installed package " ^
@@ -1332,16 +1368,16 @@ fun installTheory filename =
               val s = DirectoryError.toStringList errs
             in
               if DirectoryError.existsFatal errs then raise Error s
-              else warn ("package install warnings:\n" ^ s)
+              else chat ("package install warnings:\n" ^ s)
             end
 
       val () = if replace then uninstallAuto dir name else ()
 
       val () = List.app installAutoFree pars
 
-      val () = Directory.stageTheory dir name pkg srcDir
+      val chk = Directory.stageTheory dir name pkg srcDir
 
-      val () = Directory.installStaged dir name
+      val () = Directory.installStaged dir name chk
 
       val () =
           chat ((if replace then "re" else "") ^ "installed package " ^
@@ -1381,7 +1417,9 @@ fun list () =
 
 fun updateRepo repo =
     let
-      val () = DirectoryRepo.update repo
+      val sys = system ()
+
+      val () = DirectoryRepo.update sys repo
 
       val () = chat ("updated package list for " ^
                      DirectoryRepo.toString repo ^ " repo")
@@ -1421,7 +1459,7 @@ fun upload name =
               val s = DirectoryError.toStringList errs
             in
               if DirectoryError.existsFatal errs then raise Error s
-              else warn ("package upload warnings:\n" ^ s)
+              else chat ("package upload warnings:\n" ^ s)
             end
 
       val () = Directory.upload dir repo name
@@ -1432,7 +1470,7 @@ fun upload name =
       ()
     end
     handle Error err =>
-      raise Error (err ^ "\ntheory package upload failed");
+      raise Error (err ^ "\npackage upload failed");
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)

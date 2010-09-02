@@ -118,4 +118,59 @@ in
       end;
 end;
 
+(* ------------------------------------------------------------------------- *)
+(* Creating a checksum.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+
+  val separatorParser = exactString " *";
+in
+  fun parserChecksum {filename} =
+      (Checksum.parser ++
+       separatorParser ++
+       exactString filename ++
+       exactChar #"\n" ++
+       finished) >> (fn (c,((),((),((),())))) => c);
+end;
+
+fun readChecksum tarFile tmpFile =
+    let
+      val strm = Stream.fromTextFile tmpFile
+
+      val strm = Stream.listConcat (Stream.map explode strm)
+    in
+      Parse.fromStream (parserChecksum tarFile) strm
+    end
+    handle Parse.NoParse => raise Error "bad checksum format";
+
+fun checksum sys {filename = tarFile} =
+    let
+      val tmpFile = OS.FileSys.tmpName ()
+
+      val {sha = cmd} = DirectoryConfig.shaSystem sys
+
+      val cmd = cmd ^ " " ^ tarFile ^ " > " ^ tmpFile
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "creating tarball checksum failed"
+
+      val chk = readChecksum {filename = tarFile} {filename = tmpFile}
+
+      val () = OS.FileSys.remove tmpFile
+    in
+      chk
+    end;
+
 end

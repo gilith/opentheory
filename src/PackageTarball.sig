@@ -28,4 +28,11 @@ datatype contents =
 
 val contents : DirectoryConfig.system -> {filename : string} -> contents
 
+(* ------------------------------------------------------------------------- *)
+(* Creating a checksum.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val checksum :
+    DirectoryConfig.system -> {filename : string} -> Checksum.checksum
+
 end

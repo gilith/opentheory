@@ -122,13 +122,13 @@ val checkStageTheory :
 val stageTheory :
     directory ->
     PackageName.name -> Package.package -> {directory : string} ->
-    unit
+    Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)
 (* ------------------------------------------------------------------------- *)
 
-val installStaged : directory -> PackageName.name -> unit
+val installStaged : directory -> PackageName.name -> Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uninstalling packages from the package directory.                         *)

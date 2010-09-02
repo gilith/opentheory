@@ -335,7 +335,7 @@ fun installOrder pkgs = PackageNameSet.postOrder (parents' pkgs);
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun add pkgs info =
+fun add sys pkgs info chk =
     let
       val Packages
             {directory = _,
@@ -356,9 +356,8 @@ fun add pkgs info =
       val () =
           let
             val n = PackageInfo.name info
-            and c = PackageInfo.readChecksum info
           in
-            DirectoryChecksums.add chks (n,c)
+            DirectoryChecksums.add sys chks (n,chk)
           end
     in
       ()

@@ -30,7 +30,7 @@ val filename : checksums -> {filename : string}
 (* Creating a new package checksums file.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val create : {filename : string} -> unit
+val create : DirectoryConfig.system -> {filename : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
@@ -44,7 +44,9 @@ val member : PackageName.name -> checksums -> bool
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val add : checksums -> PackageName.name * Checksum.checksum -> unit
+val add :
+    DirectoryConfig.system ->
+    checksums -> PackageName.name * Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Deleting a package.                                                       *)
@@ -56,6 +58,6 @@ val delete : checksums -> PackageName.name -> unit
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val update : checksums -> {url : string} -> unit
+val update : DirectoryConfig.system -> checksums -> {url : string} -> unit
 
 end

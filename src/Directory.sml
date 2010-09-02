@@ -67,15 +67,17 @@ fun create {rootDirectory = rootDir} =
             createDirectory dir
           end
 
-      val () =
+      val sys =
           let
             val cfg = DirectoryConfig.default
 
             val {filename = file} =
                 DirectoryPath.mkConfigFilename
                   {rootDirectory = rootDir}
+
+            val () = DirectoryConfig.toTextFile {config = cfg, filename = file}
           in
-            DirectoryConfig.toTextFile {config = cfg, filename = file}
+            DirectoryConfig.system cfg
           end
 
       val () =
@@ -84,7 +86,7 @@ fun create {rootDirectory = rootDir} =
                 DirectoryPath.mkInstalledFilename
                   {rootDirectory = rootDir}
           in
-            DirectoryChecksums.create file
+            DirectoryChecksums.create sys file
           end
     in
       ()
@@ -400,10 +402,6 @@ fun stageTarball dir finder tarFile contents =
 
         val () = PackageInfo.copyTarball sys stageInfo tarFile
 
-        (* Create the tarball checksum *)
-
-        val () = PackageInfo.createChecksum sys stageInfo
-
         (* Common post-stage operations *)
 
         val () = postStageTarball dir finder stageInfo contents
@@ -473,8 +471,7 @@ local
 
         val reserved =
             [("theory file", PackageInfo.theoryFile info),
-             ("tarball", PackageInfo.tarball info),
-             ("checksum file", PackageInfo.checksum info)]
+             ("tarball", PackageInfo.tarball info)]
 
         val plan = StringMap.new ()
 
@@ -686,15 +683,11 @@ in
 
           val () = PackageInfo.createTarball sys stageInfo
 
-          (* Create the checksum *)
-
-          val () = PackageInfo.createChecksum sys stageInfo
-
           (* Common post-stage operations *)
 
           val () = postStagePackage dir stageInfo
         in
-          ()
+          PackageInfo.checksumTarball sys stageInfo
         end
         handle e =>
           let
@@ -709,8 +702,10 @@ end;
 (* Installing staged packages into the package directory.                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun installStaged dir name =
+fun installStaged dir name chk =
     let
+      val sys = system dir
+
       val stageInfo = stagingPackageInfo dir name
 
       val pkgInfo = packageInfo dir name
@@ -736,7 +731,7 @@ fun installStaged dir name =
 
         val Directory {packages = pkgs, ...} = dir
 
-        val () = DirectoryPackages.add pkgs pkgInfo
+        val () = DirectoryPackages.add sys pkgs pkgInfo chk
       in
         ()
       end

@@ -66,7 +66,9 @@ val installOrder : packages -> PackageNameSet.set -> PackageName.name list
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val add : packages -> PackageInfo.info -> unit
+val add :
+    DirectoryConfig.system ->
+    packages -> PackageInfo.info -> Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Deleting a package.                                                       *)

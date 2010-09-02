@@ -34,4 +34,6 @@ val toString : checksum -> string
 
 val parser : (char,checksum) Parse.parser
 
+val fromString : string -> checksum
+
 end

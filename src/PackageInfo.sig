@@ -70,19 +70,11 @@ val copyTarball : DirectoryConfig.system -> info -> {filename : string} -> unit
 
 val downloadTarball : DirectoryConfig.system -> info -> {url : string} -> unit
 
+val checksumTarball : DirectoryConfig.system -> info -> Checksum.checksum
+
 val contentsTarball : DirectoryConfig.system -> info -> PackageTarball.contents
 
 val unpackTarball : DirectoryConfig.system -> info -> unit
-
-(* ------------------------------------------------------------------------- *)
-(* Package checksum.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-val checksum : info -> {filename : string}
-
-val createChecksum : DirectoryConfig.system -> info -> unit
-
-val readChecksum : info -> Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)

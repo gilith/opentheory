@@ -54,4 +54,9 @@ in
   val parser = checksumStringParser >> Checksum;
 end;
 
+fun fromString s =
+    Parse.fromString parser s
+    handle Parse.NoParse =>
+      raise Error ("bad checksum format: " ^ s);
+
 end

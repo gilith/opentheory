@@ -159,9 +159,11 @@ fun checksums chks =
 (* Creating a new package checksums file.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun create {filename} =
+fun create sys {filename} =
     let
-      val cmd = "touch " ^ filename
+      val {touch = cmd} = DirectoryConfig.touchSystem sys
+
+      val cmd = cmd ^ " " ^ filename
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")
@@ -186,7 +188,7 @@ fun member n chks = memberPure n (checksums chks);
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun add chks (n,c) =
+fun add sys chks (n,c) =
     let
       val Checksums {filename = f, checksums = rox} = chks
 
@@ -195,8 +197,10 @@ fun add chks (n,c) =
             NONE => ()
           | SOME x => rox := SOME (insertPure x (n,c))
 
+      val {echo = cmd} = DirectoryConfig.echoSystem sys
+
       val cmd =
-          "echo \"" ^ PackageName.toString n ^ " " ^
+          cmd ^ " \"" ^ PackageName.toString n ^ " " ^
           Checksum.toString c ^ "\"" ^ " >> " ^ f
 
 (*OpenTheoryTrace1
@@ -231,13 +235,15 @@ fun delete chks n =
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun update chks {url} =
+fun update sys chks {url} =
     let
       val Checksums {filename = f, checksums = rox} = chks
 
       val () = rox := NONE
 
-      val cmd = "curl --silent --show-error " ^ url ^ " --output " ^ f
+      val {curl = cmd} = DirectoryConfig.curlSystem sys
+
+      val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")

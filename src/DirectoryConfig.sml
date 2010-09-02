@@ -16,6 +16,8 @@ val cpSystemDefault = "cp"
 and cpSystemKey = "cp"
 and curlSystemDefault = "curl --silent --show-error --user-agent opentheory"
 and curlSystemKey = "curl"
+and echoSystemDefault = "echo"
+and echoSystemKey = "echo"
 and nameRepoKey = "name"
 and nameRepoOpenTheory = "gilith"
 and repoSection = "repo"
@@ -24,6 +26,8 @@ and shaSystemKey = "sha"
 and systemSection = "system"
 and tarSystemDefault = "tar"
 and tarSystemKey = "tar"
+and touchSystemDefault = "touch"
+and touchSystemKey = "touch"
 and urlRepoKey = "url"
 and urlRepoOpenTheory = "http://opentheory.gilith.com/";
 
@@ -189,20 +193,26 @@ datatype system =
     System of
       {cp : string,
        curl : string,
+       echo : string,
        sha : string,
-       tar : string};
+       tar : string,
+       touch : string};
 
 fun cpSystem (System {cp = x, ...}) = {cp = x};
 
 fun curlSystem (System {curl = x, ...}) = {curl = x};
 
+fun echoSystem (System {echo = x, ...}) = {echo = x};
+
 fun shaSystem (System {sha = x, ...}) = {sha = x};
 
 fun tarSystem (System {tar = x, ...}) = {tar = x};
 
+fun touchSystem (System {touch = x, ...}) = {touch = x};
+
 fun toSectionSystem sys =
     let
-      val System {cp,curl,sha,tar} = sys
+      val System {cp,curl,echo,sha,tar,touch} = sys
     in
       Config.Section
         {name = systemSection,
@@ -214,11 +224,17 @@ fun toSectionSystem sys =
               {key = curlSystemKey,
                value = curl},
             Config.KeyValue
+              {key = echoSystemKey,
+               value = echo},
+            Config.KeyValue
               {key = shaSystemKey,
                value = sha},
             Config.KeyValue
               {key = tarSystemKey,
-               value = tar}]}
+               value = tar},
+            Config.KeyValue
+              {key = touchSystemKey,
+               value = touch}]}
     end;
 
 local
@@ -226,26 +242,32 @@ local
       SystemSectionState of
         {cp : string option,
          curl : string option,
+         echo : string option,
          sha : string option,
-         tar : string option};
+         tar : string option,
+         touch : string option};
 
   val initialSystemSectionState =
       let
         val cp = NONE
         and curl = NONE
+        and echo = NONE
         and sha = NONE
         and tar = NONE
+        and touch = NONE
       in
         SystemSectionState
           {cp = cp,
            curl = curl,
+           echo = echo,
            sha = sha,
-           tar = tar}
+           tar = tar,
+           touch = touch}
       end;
 
   fun addCpSystemSectionState x state =
       let
-        val SystemSectionState {cp,curl,sha,tar} = state
+        val SystemSectionState {cp,curl,echo,sha,tar,touch} = state
 
         val cp =
             case cp of
@@ -263,13 +285,15 @@ local
         SystemSectionState
           {cp = cp,
            curl = curl,
+           echo = echo,
            sha = sha,
-           tar = tar}
+           tar = tar,
+           touch = touch}
       end;
 
   fun addCurlSystemSectionState x state =
       let
-        val SystemSectionState {cp,curl,sha,tar} = state
+        val SystemSectionState {cp,curl,echo,sha,tar,touch} = state
 
         val curl =
             case curl of
@@ -287,13 +311,41 @@ local
         SystemSectionState
           {cp = cp,
            curl = curl,
+           echo = echo,
            sha = sha,
-           tar = tar}
+           tar = tar,
+           touch = touch}
+      end;
+
+  fun addEchoSystemSectionState x state =
+      let
+        val SystemSectionState {cp,curl,echo,sha,tar,touch} = state
+
+        val echo =
+            case echo of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "duplicate " ^
+                    Config.toStringKey {key = echoSystemKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        SystemSectionState
+          {cp = cp,
+           curl = curl,
+           echo = echo,
+           sha = sha,
+           tar = tar,
+           touch = touch}
       end;
 
   fun addShaSystemSectionState x state =
       let
-        val SystemSectionState {cp,curl,sha,tar} = state
+        val SystemSectionState {cp,curl,echo,sha,tar,touch} = state
 
         val sha =
             case sha of
@@ -311,13 +363,15 @@ local
         SystemSectionState
           {cp = cp,
            curl = curl,
+           echo = echo,
            sha = sha,
-           tar = tar}
+           tar = tar,
+           touch = touch}
       end;
 
   fun addTarSystemSectionState x state =
       let
-        val SystemSectionState {cp,curl,sha,tar} = state
+        val SystemSectionState {cp,curl,echo,sha,tar,touch} = state
 
         val tar =
             case tar of
@@ -335,8 +389,36 @@ local
         SystemSectionState
           {cp = cp,
            curl = curl,
+           echo = echo,
            sha = sha,
-           tar = tar}
+           tar = tar,
+           touch = touch}
+      end;
+
+  fun addTouchSystemSectionState x state =
+      let
+        val SystemSectionState {cp,curl,echo,sha,tar,touch} = state
+
+        val touch =
+            case touch of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "duplicate " ^
+                    Config.toStringKey {key = touchSystemKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        SystemSectionState
+          {cp = cp,
+           curl = curl,
+           echo = echo,
+           sha = sha,
+           tar = tar,
+           touch = touch}
       end;
 
   fun processSystemSectionState (kv,state) =
@@ -345,14 +427,16 @@ local
       in
         if key = cpSystemKey then addCpSystemSectionState value state
         else if key = curlSystemKey then addCurlSystemSectionState value state
+        else if key = echoSystemKey then addEchoSystemSectionState value state
         else if key = shaSystemKey then addShaSystemSectionState value state
         else if key = tarSystemKey then addTarSystemSectionState value state
+        else if key = touchSystemKey then addTouchSystemSectionState value state
         else raise Error ("unknown key: " ^ Config.toStringKey {key = key})
       end;
 
   fun finalSystemSectionState sys state =
       let
-        val SystemSectionState {cp,curl,sha,tar} = state
+        val SystemSectionState {cp,curl,echo,sha,tar,touch} = state
 
         val cp =
             case cp of
@@ -364,6 +448,11 @@ local
               SOME x => x
             | NONE => let val {curl = x} = curlSystem sys in x end
 
+        val echo =
+            case echo of
+              SOME x => x
+            | NONE => let val {echo = x} = echoSystem sys in x end
+
         val sha =
             case sha of
               SOME x => x
@@ -373,12 +462,19 @@ local
             case tar of
               SOME x => x
             | NONE => let val {tar = x} = tarSystem sys in x end
+
+        val touch =
+            case touch of
+              SOME x => x
+            | NONE => let val {touch = x} = touchSystem sys in x end
       in
         System
           {cp = cp,
            curl = curl,
+           echo = echo,
            sha = sha,
-           tar = tar}
+           tar = tar,
+           touch = touch}
       end;
 in
   fun fromSectionSystem sys kvs =
@@ -404,8 +500,10 @@ val defaultSystem =
     System
       {cp = cpSystemDefault,
        curl = curlSystemDefault,
+       echo = echoSystemDefault,
        sha = shaSystemDefault,
-       tar = tarSystemDefault};
+       tar = tarSystemDefault,
+       touch = touchSystemDefault};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)

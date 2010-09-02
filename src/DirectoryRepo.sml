@@ -84,8 +84,8 @@ fun find repos (n,c) =
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun update repo =
-    DirectoryChecksums.update (checksums repo) (installedUrl repo);
+fun update sys repo =
+    DirectoryChecksums.update sys (checksums repo) (installedUrl repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)
@@ -111,15 +111,11 @@ fun download sys repo info =
 
       val () = PackageInfo.downloadTarball sys info (tarballUrl repo n)
 
-      (* Create the checksum *)
-
-      val () = PackageInfo.createChecksum sys info
-
       (* Check the checksum *)
 
       val () =
           let
-            val chk' = PackageInfo.readChecksum info
+            val chk' = PackageInfo.checksumTarball sys info
           in
             if Checksum.equal chk' chk then ()
             else

@@ -40,7 +40,7 @@ val find : repo list -> PackageName.name * Checksum.checksum -> repo option
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val update : repo -> unit
+val update : DirectoryConfig.system -> repo -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)

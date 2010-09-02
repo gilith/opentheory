@@ -26,9 +26,13 @@ val cpSystem : system -> {cp : string}
 
 val curlSystem : system -> {curl : string}
 
-val tarSystem : system -> {tar : string}
+val echoSystem : system -> {echo : string}
 
 val shaSystem : system -> {sha : string}
+
+val tarSystem : system -> {tar : string}
+
+val touchSystem : system -> {touch : string}
 
 (* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
