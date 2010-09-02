@@ -260,6 +260,25 @@ fun unpackTarball sys info =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
+fun uploadTarball sys info {url} =
+    let
+      val {filename = f} = joinDirectory info (tarball info)
+
+      val {curl = cmd} = DirectoryConfig.curlSystem sys
+
+      val cmd = cmd ^ " " ^ url ^ " --output " ^ f
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "downloading the package tarball failed"
+    in
+      ()
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Package checksum.                                                         *)
 (* ------------------------------------------------------------------------- *)

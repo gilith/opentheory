@@ -18,7 +18,8 @@ and directoryDirectory = "opentheory"
 and packagesDirectory = "packages"
 and stagingDirectory = "staging"
 and repoSeparator = "/"
-and reposDirectory = "repos";
+and reposDirectory = "repos"
+and uploadDirectory = "upload";
 
 (* ------------------------------------------------------------------------- *)
 (* The directory of a repo.                                                  *)
@@ -162,6 +163,19 @@ fun mkRepoFilename root name =
       val filename = OS.Path.joinDirFile {dir = dir, file = file}
     in
       {filename = filename}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* The repo upload script.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkUploadUrl root =
+    let
+      val {rootUrl = url} = root
+
+      val url = url ^ uploadDirectory ^ repoSeparator
+    in
+      {url = url}
     end;
 
 end

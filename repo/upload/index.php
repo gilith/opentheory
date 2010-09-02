@@ -101,9 +101,11 @@ $main = null;
 if ($select->is_value()) {
   $value = $select->value();
 
+  $name = $value['name'];
+
   $tarball = $value['tarball'];
 
-  $output = opentheory('install',' --stage tarball:' . $tarball);
+  $output = opentheory('install',' tarball:' . $tarball);
 
   if (isset($output)) {
     $main =

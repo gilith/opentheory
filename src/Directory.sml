@@ -277,31 +277,9 @@ fun list dir = DirectoryPackages.list (packages dir);
 
 fun postStagePackage dir stageInfo = ();
 
-fun postStageTarball dir finder stageInfo chk contents =
+fun postStageTarball dir finder stageInfo contents =
     let
       val sys = system dir
-
-      (* Create the tarball checksum *)
-
-      val () = PackageInfo.createChecksum sys stageInfo
-
-      val chk =
-          let
-            val chk' = PackageInfo.readChecksum stageInfo
-          in
-            case chk of
-              NONE => chk'
-            | SOME c =>
-              if Checksum.equal c chk' then c
-              else raise Error "checksum of downloaded tarball does not match"
-          end
-
-      (* Check the contents of the tarball *)
-
-      val contents =
-          case contents of
-            SOME c => c
-          | NONE => PackageInfo.contentsTarball sys stageInfo
 
       (* Unpack the tarball *)
 
@@ -367,9 +345,13 @@ fun stagePackage dir finder repo name chk =
 
         val () = DirectoryRepo.download sys repo stageInfo
 
+        (* List the contents of the tarball *)
+
+        val contents = PackageInfo.contentsTarball sys stageInfo
+
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir finder stageInfo (SOME chk) NONE
+        val () = postStageTarball dir finder stageInfo contents
       in
         ()
       end
@@ -418,9 +400,13 @@ fun stageTarball dir finder tarFile contents =
 
         val () = PackageInfo.copyTarball sys stageInfo tarFile
 
+        (* Create the tarball checksum *)
+
+        val () = PackageInfo.createChecksum sys stageInfo
+
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir finder stageInfo NONE (SOME contents)
+        val () = postStageTarball dir finder stageInfo contents
       in
         ()
       end

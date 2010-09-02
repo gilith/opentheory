@@ -56,4 +56,10 @@ val mkReposDirectory :
 val mkRepoFilename :
     {rootDirectory : string} -> string -> {filename : string}
 
+(* ------------------------------------------------------------------------- *)
+(* The repo upload script.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val mkUploadUrl : {rootUrl : string} -> {url : string}
+
 end
