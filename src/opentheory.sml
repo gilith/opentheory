@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20100901)"^"\n";
+val versionString = program^" "^version^" (release 20100902)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -94,8 +94,6 @@ val rootDirectory =
 
 fun initDirectory {rootDirectory = r} =
     let
-      val () = chat ("Creating package directory " ^ r)
-
       val () = Directory.create {rootDirectory = r}
     in
       Directory.mk {rootDirectory = r}
@@ -121,7 +119,13 @@ val directory =
                    if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
                      Directory.mk {rootDirectory = r}
                    else if autoInit then
-                     initDirectory {rootDirectory = r}
+                     let
+                       val () = Directory.create {rootDirectory = r}
+
+                       val () = chat ("auto-initialized package directory " ^ r)
+                     in
+                       Directory.mk {rootDirectory = r}
+                     end
                    else
                      raise Error ("package directory does not exist: " ^ r)
                  end
@@ -1034,7 +1038,9 @@ fun init () =
     let
       val {directory = d, autoInit = _} = rootDirectory ()
 
-      val _ = initDirectory {rootDirectory = d}
+      val () = Directory.create {rootDirectory = d}
+
+      val () = chat ("initialized package directory " ^ d)
     in
       ()
     end;
@@ -1417,9 +1423,7 @@ fun list () =
 
 fun updateRepo repo =
     let
-      val sys = system ()
-
-      val () = DirectoryRepo.update sys repo
+      val () = DirectoryRepo.update repo
 
       val () = chat ("updated package list for " ^
                      DirectoryRepo.toString repo ^ " repo")

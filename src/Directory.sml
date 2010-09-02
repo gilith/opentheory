@@ -17,7 +17,7 @@ fun createDirectory {directory} = OS.FileSys.mkDir directory;
 fun renameDirectory {src,dest} = OS.FileSys.rename {old = src, new = dest};
 
 (* ------------------------------------------------------------------------- *)
-(* The package staging directory.                                            *)
+(* Clean up the package staging area.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -29,6 +29,58 @@ in
         val files = readDirectory dir
       in
         List.app warnFile files
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Clean up the repo package lists.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun delFile (name,file) =
+      let
+        val () = OS.FileSys.remove file
+
+        val () = warn ("removing package list for old " ^ name ^ " repo")
+      in
+        ()
+      end;
+in
+  fun checkReposDirectory cfgs {directory = dir} =
+      let
+        val dirStrm = OS.FileSys.openDir dir
+
+        fun readAll dels utds =
+            case OS.FileSys.readDir dirStrm of
+              NONE => (dels,utds)
+            | SOME file =>
+              let
+                val name =
+                    case DirectoryChecksums.destFilename {filename = file} of
+                      SOME n => n
+                    | NONE =>
+                      raise Error ("bad filename "^file^" in repos directory")
+
+                val filename = OS.Path.joinDirFile {dir = dir, file = file}
+              in
+                case DirectoryConfig.findRepo cfgs {name = name} of
+                  NONE => readAll ((name,filename) :: dels) utds
+                | SOME cfg =>
+                  let
+                    val utds =
+                        if false then name :: utds else utds
+                  in
+                    readAll dels utds
+                  end
+              end
+
+        val (dels,utds) = readAll [] []
+
+        val () = OS.FileSys.closeDir dirStrm
+
+        val () = List.app delFile dels
+      in
+        utds
       end;
 end;
 
@@ -117,7 +169,14 @@ fun mk {rootDirectory = rootDir} =
             DirectoryConfig.fromTextFile filename
           end
 
-      val packages = DirectoryPackages.mk {rootDirectory = rootDir}
+      val packages =
+          let
+            val sys = DirectoryConfig.system config
+          in
+            DirectoryPackages.mk
+              {system = sys,
+               rootDirectory = rootDir}
+          end
 
       val () =
           let
@@ -132,18 +191,28 @@ fun mk {rootDirectory = rootDir} =
 
       val repos =
           let
+            val sys = DirectoryConfig.system config
+
+            val cfgs = DirectoryConfig.repos config
+
+            val dir =
+                DirectoryPath.mkStagingPackagesDirectory
+                  {rootDirectory = rootDir}
+
+            val utds = checkReposDirectory cfgs dir
+
             fun mkRepo cfg =
                 let
                   val {name} = DirectoryConfig.nameRepo cfg
                   and {url} = DirectoryConfig.urlRepo cfg
                 in
                   DirectoryRepo.mk
-                    {name = name,
+                    {system = sys,
+                     name = name,
                      rootUrl = url,
-                     rootDirectory = rootDir}
+                     rootDirectory = rootDir,
+                     upToDate = List.exists (equal name) utds}
                 end
-
-            val cfgs = DirectoryConfig.repos config
           in
             List.map mkRepo cfgs
           end
@@ -345,7 +414,7 @@ fun stagePackage dir finder repo name chk =
       let
         (* Download the package tarball *)
 
-        val () = DirectoryRepo.download sys repo stageInfo
+        val () = DirectoryRepo.download repo stageInfo
 
         (* List the contents of the tarball *)
 
@@ -731,7 +800,7 @@ fun installStaged dir name chk =
 
         val Directory {packages = pkgs, ...} = dir
 
-        val () = DirectoryPackages.add sys pkgs pkgInfo chk
+        val () = DirectoryPackages.add pkgs pkgInfo chk
       in
         ()
       end

@@ -16,6 +16,8 @@ val nameRepo : repo -> {name : string}
 
 val urlRepo : repo -> {url : string}
 
+val findRepo : repo list -> {name : string} -> repo option
+
 (* ------------------------------------------------------------------------- *)
 (* A type of system configuration data.                                      *)
 (* ------------------------------------------------------------------------- *)

@@ -179,7 +179,7 @@ datatype packages =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk {rootDirectory = rootDir} =
+fun mk {system = sys, rootDirectory = rootDir} =
     let
       val {directory} =
           DirectoryPath.mkPackagesDirectory {rootDirectory = rootDir}
@@ -190,10 +190,13 @@ fun mk {rootDirectory = rootDir} =
 
       val checksums =
           let
-            val file =
+            val {filename} =
                 DirectoryPath.mkInstalledFilename {rootDirectory = rootDir}
           in
-            DirectoryChecksums.mk file
+            DirectoryChecksums.mk
+              {system = sys,
+               filename = filename,
+               updateFrom = NONE}
           end
     in
       Packages
@@ -335,7 +338,7 @@ fun installOrder pkgs = PackageNameSet.postOrder (parents' pkgs);
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun add sys pkgs info chk =
+fun add pkgs info chk =
     let
       val Packages
             {directory = _,
@@ -357,7 +360,7 @@ fun add sys pkgs info chk =
           let
             val n = PackageInfo.name info
           in
-            DirectoryChecksums.add sys chks (n,chk)
+            DirectoryChecksums.add chks (n,chk)
           end
     in
       ()

@@ -223,10 +223,18 @@ fun downloadTarball sys info {url} =
     end;
 
 fun checksumTarball sys info =
-    PackageTarball.checksum sys (tarball info);
+    let
+      val tarFile = joinDirectory info (tarball info)
+    in
+      PackageTarball.checksum sys tarFile
+    end;
 
 fun contentsTarball sys info =
-    PackageTarball.contents sys (tarball info);
+    let
+      val tarFile = joinDirectory info (tarball info)
+    in
+      PackageTarball.contents sys tarFile
+    end;
 
 fun unpackTarball sys info =
     let
@@ -269,7 +277,10 @@ fun uploadTarball sys info {url} =
 
       val {curl = cmd} = DirectoryConfig.curlSystem sys
 
-      val cmd = cmd ^ " " ^ url ^ " --output " ^ f
+      val cmd =
+          cmd ^ " " ^ url ^
+          " --form \"t=@" ^ f ^ "\"" ^
+          " --form \"s=upload package\""
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")
@@ -277,7 +288,7 @@ fun uploadTarball sys info {url} =
 
       val () =
           if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "downloading the package tarball failed"
+          else raise Error "uploading the package tarball failed"
     in
       ()
     end;

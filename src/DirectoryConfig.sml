@@ -44,6 +44,21 @@ fun nameRepo (Repo {name = x, ...}) = {name = x};
 
 fun urlRepo (Repo {url = x, ...}) = {url = x};
 
+fun findRepo repos {name = n} =
+    let
+      fun pred repo =
+          let
+            val {name = n'} = nameRepo repo
+          in
+            n' = n
+          end
+    in
+      case List.filter pred repos of
+        [] => NONE
+      | [repo] => SOME repo
+      | _ :: _ :: _ => raise Bug "multiple repos with the same name"
+    end;
+
 fun toSectionRepo repo =
     let
       val Repo {name,url} = repo

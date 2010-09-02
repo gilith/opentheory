@@ -18,7 +18,12 @@ type repo
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : {name : name, rootDirectory : string, rootUrl : string} -> repo
+val mk :
+    {system : DirectoryConfig.system,
+     name : name,
+     rootDirectory : string,
+     rootUrl : string,
+     upToDate : bool} -> repo
 
 val name : repo -> name
 
@@ -40,13 +45,13 @@ val find : repo list -> PackageName.name * Checksum.checksum -> repo option
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val update : DirectoryConfig.system -> repo -> unit
+val update : repo -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val download : DirectoryConfig.system -> repo -> PackageInfo.info -> unit
+val download : repo -> PackageInfo.info -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages.                                                       *)

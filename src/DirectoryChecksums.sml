@@ -28,6 +28,38 @@ fun mkFilename base =
       {filename = filename}
     end;
 
+fun destFilename {filename} =
+    let
+      val {base,ext} = OS.Path.splitBaseExt (OS.Path.file filename)
+    in
+      case ext of
+        NONE => NONE
+      | SOME x => if x = fileExtension then SOME base else NONE
+    end;
+
+fun isFilename file = Option.isSome (destFilename file);
+
+(* ------------------------------------------------------------------------- *)
+(* Creating a new package checksums file.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun create sys {filename} =
+    let
+      val {touch = cmd} = DirectoryConfig.touchSystem sys
+
+      val cmd = cmd ^ " " ^ filename
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "creating an empty installed package list failed"
+    in
+      ()
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* A pure type of package checksums.                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -95,7 +127,7 @@ fun fromTextFilePure {filename} =
        end
        handle Parse.NoParse => raise Error "parse error")
       handle Error err =>
-        raise Error ("error in installed package list \"" ^ filename ^ "\" " ^
+        raise Error ("error in package list \"" ^ filename ^ "\" " ^
                      parseErrorLocation () ^ "\n" ^ err)
     end;
 
@@ -117,21 +149,58 @@ end;
 (* A type of package directory checkums.                                     *)
 (* ------------------------------------------------------------------------- *)
 
+datatype checksumsState =
+    UpdateFrom of {url : string}
+  | UpToDate
+  | Ready of pureChecksums;
+
 datatype checksums =
     Checksums of
-      {filename : string,
-       checksums : pureChecksums option ref};
+      {system : DirectoryConfig.system,
+       filename : string,
+       checksums : checksumsState ref};
+
+(* ------------------------------------------------------------------------- *)
+(* Updating the package list.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun update chks {url} =
+    let
+      val Checksums {system = sys, filename = f, checksums = rox} = chks
+
+      val () = rox := UpToDate
+
+      val {curl = cmd} = DirectoryConfig.curlSystem sys
+
+      val cmd = cmd ^ " " ^ url ^ " --output " ^ f
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "updating repo package list failed"
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk {filename} =
+fun mk {system,filename,updateFrom} =
     let
-      val checksums = ref NONE
+      val state =
+          case updateFrom of
+            SOME url => UpdateFrom url
+          | NONE => UpToDate
+
+      val checksums = ref state
     in
       Checksums
-        {filename = filename,
+        {system = system,
+         filename = filename,
          checksums = checksums}
     end;
 
@@ -144,36 +213,25 @@ fun checksums chks =
       val ref ox = rox
     in
       case ox of
-        SOME x => x
-      | NONE =>
+        Ready x => x
+      | UpdateFrom url =>
         let
+          val () = update chks url
+
           val x = fromTextFilePure (filename chks)
 
-          val () = rox := SOME x
+          val () = rox := Ready x
         in
           x
         end
-    end;
+      | UpToDate =>
+        let
+          val x = fromTextFilePure (filename chks)
 
-(* ------------------------------------------------------------------------- *)
-(* Creating a new package checksums file.                                    *)
-(* ------------------------------------------------------------------------- *)
-
-fun create sys {filename} =
-    let
-      val {touch = cmd} = DirectoryConfig.touchSystem sys
-
-      val cmd = cmd ^ " " ^ filename
-
-(*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "creating an empty installed package list failed"
-    in
-      ()
+          val () = rox := Ready x
+        in
+          x
+        end
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -188,14 +246,21 @@ fun member n chks = memberPure n (checksums chks);
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun add sys chks (n,c) =
+fun add chks (n,c) =
     let
-      val Checksums {filename = f, checksums = rox} = chks
+      val Checksums {system = sys, filename = f, checksums = rox} = chks
+
+(*OpenTheoryDebug
+      val () =
+          case !rox of
+            UpdateFrom _ => raise Bug "DirectoryChecksums.add: UpdateFrom"
+          | _ => ()
+*)
 
       val () =
           case !rox of
-            NONE => ()
-          | SOME x => rox := SOME (insertPure x (n,c))
+            Ready x => rox := Ready (insertPure x (n,c))
+          | _ => ()
 
       val {echo = cmd} = DirectoryConfig.echoSystem sys
 
@@ -220,38 +285,24 @@ fun add sys chks (n,c) =
 
 fun delete chks n =
     let
-      val x = deletePure (checksums chks) n
-
-      val Checksums {filename = f, checksums = rox} = chks
-
-      val () = rox := SOME x
-
-      val () = toTextFilePure {checksums = x, filename = f}
-    in
-      ()
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Updating the package list.                                                *)
-(* ------------------------------------------------------------------------- *)
-
-fun update sys chks {url} =
-    let
-      val Checksums {filename = f, checksums = rox} = chks
-
-      val () = rox := NONE
-
-      val {curl = cmd} = DirectoryConfig.curlSystem sys
-
-      val cmd = cmd ^ " " ^ url ^ " --output " ^ f
-
-(*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+(*OpenTheoryDebug
+      val () =
+          let
+            val Checksums {system = _, filename = _, checksums = rox} = chks
+          in
+            case !rox of
+              UpdateFrom _ => raise Bug "DirectoryChecksums.delete: UpdateFrom"
+            | _ => ()
+          end
 *)
 
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "updating the package list failed"
+      val x = deletePure (checksums chks) n
+
+      val Checksums {system = _, filename = f, checksums = rox} = chks
+
+      val () = rox := Ready x
+
+      val () = toTextFilePure {checksums = x, filename = f}
     in
       ()
     end;

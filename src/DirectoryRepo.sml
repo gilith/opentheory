@@ -16,7 +16,8 @@ type name = string;
 
 datatype repo =
     Repo of
-      {name : string,
+      {system : DirectoryConfig.system,
+       name : string,
        rootUrl : string,
        checksums : DirectoryChecksums.checksums};
 
@@ -24,17 +25,31 @@ datatype repo =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk {name, rootDirectory = rootDir, rootUrl} =
+fun mk {system = sys, name, rootDirectory = rootDir, rootUrl, upToDate} =
     let
       val checksums =
-          DirectoryChecksums.mk
-            (DirectoryPath.mkRepoFilename {rootDirectory = rootDir} name)
+          let
+            val {filename} =
+                DirectoryPath.mkRepoFilename {rootDirectory = rootDir} name
+
+            val updateFrom =
+                if upToDate then NONE
+                else SOME (DirectoryPath.mkInstalledUrl {rootUrl = rootUrl})
+          in
+            DirectoryChecksums.mk
+              {system = sys,
+               filename = filename,
+               updateFrom = updateFrom}
+          end
     in
       Repo
-        {name = name,
+        {system = sys,
+         name = name,
          rootUrl = rootUrl,
          checksums = checksums}
     end;
+
+fun system (Repo {system = x, ...}) = x;
 
 fun name (Repo {name = x, ...}) = x;
 
@@ -84,15 +99,17 @@ fun find repos (n,c) =
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun update sys repo =
-    DirectoryChecksums.update sys (checksums repo) (installedUrl repo);
+fun update repo =
+    DirectoryChecksums.update (checksums repo) (installedUrl repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun download sys repo info =
+fun download repo info =
     let
+      val sys = system repo
+
       val n = PackageInfo.name info
 
       val chk =

@@ -12,6 +12,16 @@ sig
 
 val mkFilename : string -> {filename : string}
 
+val destFilename : {filename : string} -> string option
+
+val isFilename : {filename : string} -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Creating a new package checksums file.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+val create : DirectoryConfig.system -> {filename : string} -> unit
+
 (* ------------------------------------------------------------------------- *)
 (* A type of package directory checkums.                                     *)
 (* ------------------------------------------------------------------------- *)
@@ -22,15 +32,12 @@ type checksums
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : {filename : string} -> checksums
+val mk :
+    {system : DirectoryConfig.system,
+     filename : string,
+     updateFrom : {url : string} option} -> checksums
 
 val filename : checksums -> {filename : string}
-
-(* ------------------------------------------------------------------------- *)
-(* Creating a new package checksums file.                                    *)
-(* ------------------------------------------------------------------------- *)
-
-val create : DirectoryConfig.system -> {filename : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
@@ -44,9 +51,7 @@ val member : PackageName.name -> checksums -> bool
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val add :
-    DirectoryConfig.system ->
-    checksums -> PackageName.name * Checksum.checksum -> unit
+val add : checksums -> PackageName.name * Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Deleting a package.                                                       *)
@@ -58,6 +63,6 @@ val delete : checksums -> PackageName.name -> unit
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val update : DirectoryConfig.system -> checksums -> {url : string} -> unit
+val update : checksums -> {url : string} -> unit
 
 end
