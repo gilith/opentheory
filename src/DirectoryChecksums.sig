@@ -33,7 +33,7 @@ type checksums
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {system : DirectoryConfig.system,
+    {system : DirectorySystem.system,
      filename : string,
      updateFrom : {url : string} option} -> checksums
 

@@ -146,23 +146,23 @@ val packageDepsPure =
       foldlPure add emptyPackageDeps
     end;
 
-local
-  fun add ({filename},pkgs) =
-      let
-        val name = PackageName.fromString (OS.Path.file filename)
+fun fromDirectoryPure sys =
+    let
+      fun add ({filename},pkgs) =
+          let
+            val name = PackageName.fromString (OS.Path.file filename)
 
-        val info = PackageInfo.mk {name = name, directory = filename}
-      in
-        addPure pkgs info
-      end;
-in
-  fun fromDirectoryPure dir =
-      let
-        val dirs = readDirectory dir
-      in
-        List.foldl add emptyPure dirs
-      end;
-end;
+            val info =
+                PackageInfo.mk
+                  {system = sys,
+                   name = name,
+                   directory = filename}
+          in
+            addPure pkgs info
+          end
+    in
+      fn dir => List.foldl add emptyPure (readDirectory dir)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of installed packages.                                             *)
@@ -170,7 +170,8 @@ end;
 
 datatype packages =
     Packages of
-      {directory : string,
+      {system : DirectorySystem.system,
+       directory : string,
        packages : purePackages option ref,
        dependencies : packageDeps option ref,
        checksums : DirectoryChecksums.checksums};
@@ -200,7 +201,8 @@ fun mk {system = sys, rootDirectory = rootDir} =
           end
     in
       Packages
-        {directory = directory,
+        {system = sys,
+         directory = directory,
          packages = packages,
          dependencies = dependencies,
          checksums = checksums}
@@ -210,7 +212,7 @@ fun directory (Packages {directory = x, ...}) = {directory = x};
 
 fun packages pkgs =
     let
-      val Packages {packages = rox, ...} = pkgs
+      val Packages {system = sys, directory = dir, packages = rox, ...} = pkgs
 
       val ref ox = rox
     in
@@ -218,7 +220,7 @@ fun packages pkgs =
         SOME x => x
       | NONE =>
         let
-          val x = fromDirectoryPure (directory pkgs)
+          val x = fromDirectoryPure sys {directory = dir}
 
           val () = rox := SOME x
         in
@@ -341,7 +343,8 @@ fun installOrder pkgs = PackageNameSet.postOrder (parents' pkgs);
 fun add pkgs info chk =
     let
       val Packages
-            {directory = _,
+            {system = _,
+             directory = _,
              packages = rop,
              dependencies = rod,
              checksums = chks} = pkgs
@@ -373,7 +376,8 @@ fun add pkgs info chk =
 fun delete pkgs name =
     let
       val Packages
-            {directory = _,
+            {system = _,
+             directory = _,
              packages = rop,
              dependencies = rod,
              checksums = chks} = pkgs

@@ -16,7 +16,7 @@ type name = string;
 
 datatype repo =
     Repo of
-      {system : DirectoryConfig.system,
+      {system : DirectorySystem.system,
        name : string,
        rootUrl : string,
        checksums : DirectoryChecksums.checksums};
@@ -111,8 +111,6 @@ fun update repo =
 
 fun download repo info =
     let
-      val sys = system repo
-
       val n = PackageInfo.name info
 
       val chk =
@@ -129,13 +127,13 @@ fun download repo info =
 
       (* Download the tarball *)
 
-      val () = PackageInfo.downloadTarball sys info (tarballUrl repo n)
+      val () = PackageInfo.downloadTarball info (tarballUrl repo n)
 
       (* Check the checksum *)
 
       val () =
           let
-            val chk' = PackageInfo.checksumTarball sys info
+            val chk' = PackageInfo.checksumTarball info
           in
             if Checksum.equal chk' chk then ()
             else
@@ -159,11 +157,9 @@ fun download repo info =
 
 fun upload repo info chk =
     let
-      val sys = system repo
-
       (* Upload the tarball *)
 
-      val () = PackageInfo.uploadTarball sys info chk (uploadUrl repo)
+      val () = PackageInfo.uploadTarball info chk (uploadUrl repo)
 
       (* Update the package list *)
 

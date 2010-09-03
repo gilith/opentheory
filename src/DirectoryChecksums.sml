@@ -156,7 +156,7 @@ datatype checksumsState =
 
 datatype checksums =
     Checksums of
-      {system : DirectoryConfig.system,
+      {system : DirectorySystem.system,
        filename : string,
        checksums : checksumsState ref};
 
@@ -170,7 +170,7 @@ fun update chks {url} =
 
       val () = rox := UpToDate
 
-      val {curl = cmd} = DirectoryConfig.curlSystem sys
+      val {curl = cmd} = DirectorySystem.curl sys
 
       val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
@@ -262,7 +262,7 @@ fun add chks (n,c) =
             Ready x => rox := Ready (insertPure x (n,c))
           | _ => ()
 
-      val {echo = cmd} = DirectoryConfig.echoSystem sys
+      val {echo = cmd} = DirectorySystem.echo sys
 
       val cmd =
           cmd ^ " \"" ^ PackageName.toString n ^ " " ^

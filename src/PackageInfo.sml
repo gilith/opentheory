@@ -20,19 +20,23 @@ val checksumFilename = "checksum.txt";
 
 datatype info =
     Info of
-      {name : PackageName.name,
+      {system : DirectorySystem.system,
+       name : PackageName.name,
        directory : string,
        package : Package.package option ref};
 
-fun mk {name,directory} =
+fun mk {system,name,directory} =
     let
       val package = ref NONE
     in
       Info
-        {name = name,
+        {system = system,
+         name = name,
          directory = directory,
          package = package}
     end;
+
+fun system (Info {system = x, ...}) = x;
 
 fun name (Info {name = x, ...}) = x;
 
@@ -156,9 +160,10 @@ fun packages info =
 
 fun tarball info = PackageTarball.mkFilename (name info);
 
-fun createTarball sys info =
+fun createTarball info =
     let
-      val {directory = dir} = directory info
+      val sys = system info
+      and {directory = dir} = directory info
 
       val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
 
@@ -169,7 +174,7 @@ fun createTarball sys info =
 
       val pkgFiles = map joinDir (allFiles info)
 
-      val {tar = cmd} = DirectoryConfig.tarSystem sys
+      val {tar = cmd} = DirectorySystem.tar sys
 
       val cmd =
           cmd ^ " czf " ^ tarFile ^
@@ -195,11 +200,13 @@ fun createTarball sys info =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
-fun copyTarball sys info {filename = src} =
+fun copyTarball info {filename = src} =
     let
+      val sys = system info
+
       val {filename = dest} = joinDirectory info (tarball info)
 
-      val {cp = cmd} = DirectoryConfig.cpSystem sys
+      val {cp = cmd} = DirectorySystem.cp sys
 
       val cmd = cmd ^ " " ^ src ^ " " ^ dest
 
@@ -214,11 +221,13 @@ fun copyTarball sys info {filename = src} =
       ()
     end;
 
-fun downloadTarball sys info {url} =
+fun downloadTarball info {url} =
     let
+      val sys = system info
+
       val {filename = f} = joinDirectory info (tarball info)
 
-      val {curl = cmd} = DirectoryConfig.curlSystem sys
+      val {curl = cmd} = DirectorySystem.curl sys
 
       val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
@@ -233,25 +242,30 @@ fun downloadTarball sys info {url} =
       ()
     end;
 
-fun checksumTarball sys info =
+fun checksumTarball info =
     let
+      val sys = system info
+
       val tarFile = joinDirectory info (tarball info)
     in
       PackageTarball.checksum sys tarFile
     end;
 
-fun contentsTarball sys info =
+fun contentsTarball info =
     let
+      val sys = system info
+
       val tarFile = joinDirectory info (tarball info)
     in
       PackageTarball.contents sys tarFile
     end;
 
-fun extractTarball sys info files =
+fun extractTarball info files =
     if null files then ()
     else
       let
-        val {directory = dir} = directory info
+        val sys = system info
+        and {directory = dir} = directory info
 
         val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
 
@@ -267,7 +281,7 @@ fun extractTarball sys info files =
 
         val {filename = tarFile} = joinDir (tarball info)
 
-        val {tar = cmd} = DirectoryConfig.tarSystem sys
+        val {tar = cmd} = DirectorySystem.tar sys
 
         val cmd =
             cmd ^ " xzf " ^ tarFile ^ String.concat (map mkArg files)
@@ -292,7 +306,7 @@ fun extractTarball sys info files =
         handle e => let val () = OS.FileSys.chDir workingDir in raise e end
       end;
 
-fun unpackTarball sys info contents {minimal} =
+fun unpackTarball info contents {minimal} =
     let
       val PackageTarball.Contents {name = n, theoryFile, otherFiles} = contents
 
@@ -301,7 +315,7 @@ fun unpackTarball sys info contents {minimal} =
                  else raise Bug "PackageInfo.unpackTarball: name clash"
 *)
 
-      val () = extractTarball sys info [theoryFile]
+      val () = extractTarball info [theoryFile]
 
       val pkg = package info
 
@@ -336,16 +350,18 @@ fun unpackTarball sys info contents {minimal} =
 
       val files = if minimal then arts else arts @ exts
 
-      val () = extractTarball sys info files
+      val () = extractTarball info files
     in
       ()
     end;
 
-fun uploadTarball sys info chk {url} =
+fun uploadTarball info chk {url} =
     let
+      val sys = system info
+
       val {filename = f} = joinDirectory info (tarball info)
 
-      val {curl = cmd} = DirectoryConfig.curlSystem sys
+      val {curl = cmd} = DirectorySystem.curl sys
 
       val cmd =
           cmd ^ " " ^ url ^

@@ -19,7 +19,7 @@ type repo
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {system : DirectoryConfig.system,
+    {system : DirectorySystem.system,
      name : name,
      rootDirectory : string,
      rootUrl : string,

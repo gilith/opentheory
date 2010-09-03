@@ -28,7 +28,7 @@ val rootDirectory : directory -> {rootDirectory : string}
 
 val config : directory -> DirectoryConfig.config
 
-val system : directory -> DirectoryConfig.system
+val system : directory -> DirectorySystem.system
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)

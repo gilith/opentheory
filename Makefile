@@ -119,7 +119,7 @@ SRC = \
   src/PackageName.sig src/PackageName.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/Package.sig src/Package.sml \
-  src/DirectoryConfig.sig src/DirectoryConfig.sml \
+  src/DirectorySystem.sig src/DirectorySystem.sml \
   src/PackageTarball.sig src/PackageTarball.sml \
   src/PackageInfo.sig src/PackageInfo.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
@@ -130,6 +130,7 @@ SRC = \
   src/DirectoryPackages.sig src/DirectoryPackages.sml \
   src/DirectoryRepo.sig src/DirectoryRepo.sml \
   src/DirectoryError.sig src/DirectoryError.sml \
+  src/DirectoryConfig.sig src/DirectoryConfig.sml \
   src/Directory.sig src/Directory.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Options.sig src/Options.sml

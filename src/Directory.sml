@@ -190,8 +190,7 @@ fun mk {rootDirectory = rootDir} =
       val repos =
           let
             val sys = DirectoryConfig.system config
-
-            val cfgs = DirectoryConfig.repos config
+            and cfgs = DirectoryConfig.repos config
 
             val dir =
                 DirectoryPath.mkStagingPackagesDirectory
@@ -278,16 +277,18 @@ fun repoFilename dir repo =
 
 fun packageInfo dir name =
     let
-      val {directory} = packageDirectory dir name
+      val sys = system dir
+      and {directory} = packageDirectory dir name
     in
-      PackageInfo.mk {name = name, directory = directory}
+      PackageInfo.mk {system = sys, name = name, directory = directory}
     end;
 
 fun stagingPackageInfo dir name =
     let
-      val {directory} = stagingPackageDirectory dir name
+      val sys = system dir
+      and {directory} = stagingPackageDirectory dir name
     in
-      PackageInfo.mk {name = name, directory = directory}
+      PackageInfo.mk {system = sys, name = name, directory = directory}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -348,11 +349,9 @@ fun postStagePackage dir stageInfo = ();
 
 fun postStageTarball dir finder stageInfo contents minimal =
     let
-      val sys = system dir
-
       (* Unpack the tarball *)
 
-      val () = PackageInfo.unpackTarball sys stageInfo contents minimal
+      val () = PackageInfo.unpackTarball stageInfo contents minimal
 
       (* Check the required packages are installed *)
 
@@ -405,8 +404,6 @@ fun stagePackage dir finder repo name chk minimal =
       val _ = not (DirectoryError.existsFatal errs) orelse
               raise Bug "Directory.stagePackage: fatal error"
 *)
-      val sys = system dir
-
       (* Make a package info for the stage directory *)
 
       val stageInfo = stagingPackageInfo dir name
@@ -422,7 +419,7 @@ fun stagePackage dir finder repo name chk minimal =
 
         (* List the contents of the tarball *)
 
-        val contents = PackageInfo.contentsTarball sys stageInfo
+        val contents = PackageInfo.contentsTarball stageInfo
 
         (* Common post-stage operations *)
 
@@ -460,8 +457,6 @@ fun stageTarball dir finder tarFile contents minimal =
 *)
       val PackageTarball.Contents {name,...} = contents
 
-      val sys = system dir
-
       (* Make a package info for the stage directory *)
 
       val stageInfo = stagingPackageInfo dir name
@@ -473,7 +468,7 @@ fun stageTarball dir finder tarFile contents minimal =
       let
         (* Copy the package tarball *)
 
-        val () = PackageInfo.copyTarball sys stageInfo tarFile
+        val () = PackageInfo.copyTarball stageInfo tarFile
 
         (* Common post-stage operations *)
 
@@ -681,7 +676,7 @@ local
           val {filename = destFilename} =
               PackageInfo.joinDirectory info {filename = pkgFilename}
 
-          val {cp = cmd} = DirectoryConfig.cpSystem sys
+          val {cp = cmd} = DirectorySystem.cp sys
 
           val cmd = cmd ^ " " ^ srcFilename ^ " " ^ destFilename
 
@@ -691,7 +686,7 @@ local
 
           val () =
               if OS.Process.isSuccess (OS.Process.system cmd) then ()
-              else raise Error "copy failed"
+              else raise Error "copying extra file failed"
         in
           Package.toTagExtraFile extra
         end;
@@ -754,13 +749,13 @@ in
 
           (* Create the tarball *)
 
-          val () = PackageInfo.createTarball sys stageInfo
+          val () = PackageInfo.createTarball stageInfo
 
           (* Common post-stage operations *)
 
           val () = postStagePackage dir stageInfo
         in
-          PackageInfo.checksumTarball sys stageInfo
+          PackageInfo.checksumTarball stageInfo
         end
         handle e =>
           let
@@ -777,8 +772,6 @@ end;
 
 fun installStaged dir name chk =
     let
-      val sys = system dir
-
       val stageInfo = stagingPackageInfo dir name
 
       val pkgInfo = packageInfo dir name

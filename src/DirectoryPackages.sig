@@ -17,7 +17,7 @@ type packages
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {system : DirectoryConfig.system,
+    {system : DirectorySystem.system,
      rootDirectory : string} -> packages
 
 val size : packages -> int

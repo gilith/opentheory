@@ -204,30 +204,9 @@ val defaultRepos = [openTheoryRepo];
 (* A type of system configuration data.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype system =
-    System of
-      {cp : string,
-       curl : string,
-       echo : string,
-       sha : string,
-       tar : string,
-       touch : string};
-
-fun cpSystem (System {cp = x, ...}) = {cp = x};
-
-fun curlSystem (System {curl = x, ...}) = {curl = x};
-
-fun echoSystem (System {echo = x, ...}) = {echo = x};
-
-fun shaSystem (System {sha = x, ...}) = {sha = x};
-
-fun tarSystem (System {tar = x, ...}) = {tar = x};
-
-fun touchSystem (System {touch = x, ...}) = {touch = x};
-
 fun toSectionSystem sys =
     let
-      val System {cp,curl,echo,sha,tar,touch} = sys
+      val {cp,curl,echo,sha,tar,touch} = DirectorySystem.dest sys
     in
       Config.Section
         {name = systemSection,
@@ -456,34 +435,34 @@ local
         val cp =
             case cp of
               SOME x => x
-            | NONE => let val {cp = x} = cpSystem sys in x end
+            | NONE => let val {cp = x} = DirectorySystem.cp sys in x end
 
         val curl =
             case curl of
               SOME x => x
-            | NONE => let val {curl = x} = curlSystem sys in x end
+            | NONE => let val {curl = x} = DirectorySystem.curl sys in x end
 
         val echo =
             case echo of
               SOME x => x
-            | NONE => let val {echo = x} = echoSystem sys in x end
+            | NONE => let val {echo = x} = DirectorySystem.echo sys in x end
 
         val sha =
             case sha of
               SOME x => x
-            | NONE => let val {sha = x} = shaSystem sys in x end
+            | NONE => let val {sha = x} = DirectorySystem.sha sys in x end
 
         val tar =
             case tar of
               SOME x => x
-            | NONE => let val {tar = x} = tarSystem sys in x end
+            | NONE => let val {tar = x} = DirectorySystem.tar sys in x end
 
         val touch =
             case touch of
               SOME x => x
-            | NONE => let val {touch = x} = touchSystem sys in x end
+            | NONE => let val {touch = x} = DirectorySystem.touch sys in x end
       in
-        System
+        DirectorySystem.mk
           {cp = cp,
            curl = curl,
            echo = echo,
@@ -512,7 +491,7 @@ in
 end;
 
 val defaultSystem =
-    System
+    DirectorySystem.mk
       {cp = cpSystemDefault,
        curl = curlSystemDefault,
        echo = echoSystemDefault,
@@ -527,7 +506,7 @@ val defaultSystem =
 datatype config =
     Config of
       {repos : repo list,
-       system : system};
+       system : DirectorySystem.system};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)

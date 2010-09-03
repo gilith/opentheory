@@ -1251,50 +1251,63 @@ fun installPackage name =
       val dir = directory ()
 
       val repos = repositories ()
+
+      val (repo,chk) =
+          case !checksumInstall of
+            SOME chk =>
+            (case DirectoryRepo.find repos (name,chk) of
+               SOME repo => (repo,chk)
+             | NONE =>
+               let
+                 val err =
+                     "can't find package " ^ PackageName.toString name ^
+                     " with specified checksum in any repo"
+               in
+                 raise Error err
+               end)
+          | NONE =>
+            (case DirectoryRepo.first repos name of
+               NONE =>
+               let
+                 val err =
+                     "can't find package " ^ PackageName.toString name ^
+                     " in any repo"
+               in
+                 raise Error err
+               end
+             | SOME repo_chk => repo_chk)
+
+      val errs = Directory.checkStagePackage dir repo name chk
+
+      val (replace,errs) =
+          if not (!reinstall) then (false,errs)
+          else DirectoryError.removeAlreadyInstalled errs
+
+      val () =
+          if null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else chat ("package install warnings:\n" ^ s)
+            end
+
+      val () = if replace then uninstallAuto dir name else ()
+
+      val finder = installFinder repo
+
+      val minimal = {minimal = !minimalInstall}
+
+      val () = Directory.stagePackage dir finder repo name chk minimal
+
+      val () = Directory.installStaged dir name chk
+
+      val () =
+          chat ((if replace then "re" else "") ^ "installed package " ^
+                PackageName.toString name)
     in
-      case DirectoryRepo.first repos name of
-        NONE =>
-        let
-          val err =
-              "can't find package " ^ PackageName.toString name ^
-              " in any repo"
-        in
-          raise Error err
-        end
-      | SOME (repo,chk) =>
-        let
-          val errs = Directory.checkStagePackage dir repo name chk
-
-          val (replace,errs) =
-              if not (!reinstall) then (false,errs)
-              else DirectoryError.removeAlreadyInstalled errs
-
-          val () =
-              if null errs then ()
-              else
-                let
-                  val s = DirectoryError.toStringList errs
-                in
-                  if DirectoryError.existsFatal errs then raise Error s
-                  else chat ("package install warnings:\n" ^ s)
-                end
-
-          val () = if replace then uninstallAuto dir name else ()
-
-          val finder = installFinder repo
-
-          val minimal = {minimal = !minimalInstall}
-
-          val () = Directory.stagePackage dir finder repo name chk minimal
-
-          val () = Directory.installStaged dir name chk
-
-          val () =
-              chat ((if replace then "re" else "") ^ "installed package " ^
-                    PackageName.toString name)
-        in
-          ()
-        end
+      ()
     end
     handle Error err =>
       raise Error (err ^ "\npackage install failed");
@@ -1355,6 +1368,10 @@ fun installTarball tarFile =
 
 fun installTheory filename =
     let
+      val () =
+          if not (Option.isSome (!checksumInstall)) then ()
+          else raise Error "can't specify checksum for a theory file install"
+
       val dir = directory ()
 
       val pkg = Package.fromTextFile filename

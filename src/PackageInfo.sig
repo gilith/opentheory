@@ -12,7 +12,10 @@ sig
 
 type info
 
-val mk : {name : PackageName.name, directory : string} -> info
+val mk :
+    {system : DirectorySystem.system,
+     name : PackageName.name,
+     directory : string} -> info
 
 val name : info -> PackageName.name
 
@@ -70,22 +73,18 @@ val package : info -> Package.package
 
 val tarball : info -> {filename : string}
 
-val createTarball : DirectoryConfig.system -> info -> unit
+val createTarball : info -> unit
 
-val copyTarball : DirectoryConfig.system -> info -> {filename : string} -> unit
+val copyTarball : info -> {filename : string} -> unit
 
-val downloadTarball : DirectoryConfig.system -> info -> {url : string} -> unit
+val downloadTarball : info -> {url : string} -> unit
 
-val checksumTarball : DirectoryConfig.system -> info -> Checksum.checksum
+val checksumTarball : info -> Checksum.checksum
 
-val contentsTarball : DirectoryConfig.system -> info -> PackageTarball.contents
+val contentsTarball : info -> PackageTarball.contents
 
-val unpackTarball :
-    DirectoryConfig.system ->
-    info -> PackageTarball.contents -> {minimal : bool} -> unit
+val unpackTarball : info -> PackageTarball.contents -> {minimal : bool} -> unit
 
-val uploadTarball :
-    DirectoryConfig.system ->
-    info -> Checksum.checksum -> {url : string} -> unit
+val uploadTarball : info -> Checksum.checksum -> {url : string} -> unit
 
 end

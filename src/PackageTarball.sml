@@ -55,7 +55,7 @@ fun rawContents sys {filename} =
     let
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {tar = cmd} = DirectoryConfig.tarSystem sys
+      val {tar = cmd} = DirectorySystem.tar sys
 
       val cmd = cmd ^ " tzf " ^ filename ^ " > " ^ tmpFile
 
@@ -154,7 +154,7 @@ fun checksum sys {filename = tarFile} =
     let
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {sha = cmd} = DirectoryConfig.shaSystem sys
+      val {sha = cmd} = DirectorySystem.sha sys
 
       val cmd = cmd ^ " " ^ tarFile ^ " > " ^ tmpFile
 
