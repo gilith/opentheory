@@ -65,12 +65,6 @@ field_text('Tarball') . required_mark() .
 $this->_select_tarball->select() .
 '</p>' .
 '<p>' .
-$this->_select_checksum->form_error() .
-field_text('Checksum') .
-' &nbsp; ' .
-$this->_select_checksum->select() .
-'</p>' .
-'<p>' .
 $this->_select_submit->select() .
 '</p>';
   }

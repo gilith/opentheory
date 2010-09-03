@@ -12,14 +12,18 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val cpSystemDefault = "cp"
+val cleanupInstallDefault = Time.fromSeconds 3600  (* 1 hour *)
+and cleanupInstallKey = "cleanup"
+and cpSystemDefault = "cp"
 and cpSystemKey = "cp"
 and curlSystemDefault = "curl --silent --show-error --user-agent opentheory"
 and curlSystemKey = "curl"
 and echoSystemDefault = "echo"
 and echoSystemKey = "echo"
+and installSection = "install"
 and nameRepoKey = "name"
-and nameRepoOpenTheory = "gilith"
+and refreshRepoDefault = Time.fromSeconds 604800  (* 1 week *)
+and refreshRepoKey = "refresh"
 and repoSection = "repo"
 and shaSystemDefault = "sha1sum --binary"
 and shaSystemKey = "sha"
@@ -28,8 +32,25 @@ and tarSystemDefault = "tar"
 and tarSystemKey = "tar"
 and touchSystemDefault = "touch"
 and touchSystemKey = "touch"
-and urlRepoKey = "url"
-and urlRepoOpenTheory = "http://opentheory.gilith.com/";
+and urlRepoKey = "url";
+
+val nameRepoGilith = "gilith"
+and refreshRepoGilith = refreshRepoDefault
+and urlRepoGilith = "http://opentheory.gilith.com/";
+
+(* ------------------------------------------------------------------------- *)
+(* Time interval functions.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun toStringInterval t = Int.toString (Real.round (Time.toReal t));
+
+fun fromStringInterval s =
+    (case Int.fromString s of
+       NONE => raise Error "not an integer"
+     | SOME i =>
+       if i >= 0 then Time.fromReal (Real.fromInt i)
+       else raise Error "negative number")
+    handle Error err => raise Error ("bad time interval format: " ^ err);
 
 (* ------------------------------------------------------------------------- *)
 (* A type of repo configuration data.                                        *)
@@ -38,11 +59,14 @@ and urlRepoOpenTheory = "http://opentheory.gilith.com/";
 datatype repo =
     Repo of
       {name : string,
-       url : string};
+       url : string,
+       refresh : Time.time};
 
 fun nameRepo (Repo {name = x, ...}) = {name = x};
 
 fun urlRepo (Repo {url = x, ...}) = {url = x};
+
+fun refreshRepo (Repo {refresh = x, ...}) = x;
 
 fun findRepo repos {name = n} =
     let
@@ -61,7 +85,7 @@ fun findRepo repos {name = n} =
 
 fun toSectionRepo repo =
     let
-      val Repo {name,url} = repo
+      val Repo {name,url,refresh} = repo
     in
       Config.Section
         {name = repoSection,
@@ -71,67 +95,98 @@ fun toSectionRepo repo =
                value = name},
             Config.KeyValue
               {key = urlRepoKey,
-               value = url}]}
+               value = url},
+            Config.KeyValue
+              {key = refreshRepoKey,
+               value = toStringInterval refresh}]}
     end;
 
 local
   datatype repoSectionState =
       RepoSectionState of
         {name : string option,
-         url : string option};
+         url : string option,
+         refresh : string option};
 
   val initialRepoSectionState =
       let
         val name = NONE
         and url = NONE
+        and refresh = NONE
       in
         RepoSectionState
           {name = name,
-           url = url}
+           url = url,
+           refresh = refresh}
       end;
 
-  fun addNameRepoSectionState n state =
+  fun addNameRepoSectionState x state =
       let
-        val RepoSectionState {name,url} = state
+        val RepoSectionState {name,url,refresh} = state
 
         val name =
             case name of
-              NONE => SOME n
-            | SOME n' =>
+              NONE => SOME x
+            | SOME x' =>
               let
                 val err =
                     "duplicate " ^
                     Config.toStringKey {key = nameRepoKey} ^
-                    " keys: " ^ n ^ " and " ^ n'
+                    " keys: " ^ x ^ " and " ^ x'
               in
                 raise Error err
               end
       in
         RepoSectionState
           {name = name,
-           url = url}
+           url = url,
+           refresh = refresh}
       end;
 
-  fun addUrlRepoSectionState u state =
+  fun addUrlRepoSectionState x state =
       let
-        val RepoSectionState {name,url} = state
+        val RepoSectionState {name,url,refresh} = state
 
         val url =
             case url of
-              NONE => SOME u
-            | SOME u' =>
+              NONE => SOME x
+            | SOME x' =>
               let
                 val err =
                     "duplicate " ^
                     Config.toStringKey {key = urlRepoKey} ^
-                    " keys: " ^ u ^ " and " ^ u'
+                    " keys: " ^ x ^ " and " ^ x'
               in
                 raise Error err
               end
       in
         RepoSectionState
           {name = name,
-           url = url}
+           url = url,
+           refresh = refresh}
+      end;
+
+  fun addRefreshRepoSectionState x state =
+      let
+        val RepoSectionState {name,url,refresh} = state
+
+        val refresh =
+            case refresh of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "duplicate " ^
+                    Config.toStringKey {key = refreshRepoKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        RepoSectionState
+          {name = name,
+           url = url,
+           refresh = refresh}
       end;
 
   fun processRepoSectionState (kv,state) =
@@ -140,16 +195,17 @@ local
       in
         if key = nameRepoKey then addNameRepoSectionState value state
         else if key = urlRepoKey then addUrlRepoSectionState value state
+        else if key = refreshRepoKey then addRefreshRepoSectionState value state
         else raise Error ("unknown key: " ^ Config.toStringKey {key = key})
       end;
 
   fun finalRepoSectionState state =
       let
-        val RepoSectionState {name,url} = state
+        val RepoSectionState {name,url,refresh} = state
 
         val name =
             case name of
-              SOME n => n
+              SOME x => x
             | NONE =>
               let
                 val err =
@@ -160,7 +216,7 @@ local
 
         val url =
             case url of
-              SOME u => u
+              SOME x => x
             | NONE =>
               let
                 val err =
@@ -168,10 +224,16 @@ local
               in
                 raise Error err
               end
+
+        val refresh =
+            case refresh of
+              SOME x => fromStringInterval x
+            | NONE => refreshRepoDefault
       in
         Repo
           {name = name,
-           url = url}
+           url = url,
+           refresh = refresh}
       end;
 in
   fun fromSectionRepo kvs =
@@ -193,12 +255,115 @@ in
         end;
 end;
 
-val openTheoryRepo =
+val defaultRepo =
     Repo
-      {name = nameRepoOpenTheory,
-       url = urlRepoOpenTheory};
+      {name = nameRepoGilith,
+       url = urlRepoGilith,
+       refresh = refreshRepoGilith};
 
-val defaultRepos = [openTheoryRepo];
+val defaultRepos = [defaultRepo];
+
+(* ------------------------------------------------------------------------- *)
+(* A type of system configuration data.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+datatype install =
+    Install of
+      {cleanup : Time.time};
+
+fun cleanupInstall (Install {cleanup = x, ...}) = x;
+
+fun toSectionInstall ins =
+    let
+      val Install {cleanup} = ins
+    in
+      Config.Section
+        {name = installSection,
+         keyValues =
+           [Config.KeyValue
+              {key = cleanupInstallKey,
+               value = toStringInterval cleanup}]}
+    end;
+
+local
+  datatype installSectionState =
+      InstallSectionState of
+        {cleanup : string option};
+
+  val initialInstallSectionState =
+      let
+        val cleanup = NONE
+      in
+        InstallSectionState
+          {cleanup = cleanup}
+      end;
+
+  fun addCleanupInstallSectionState x state =
+      let
+        val InstallSectionState {cleanup} = state
+
+        val cleanup =
+            case cleanup of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "duplicate " ^
+                    Config.toStringKey {key = cleanupInstallKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        InstallSectionState
+          {cleanup = cleanup}
+      end;
+
+  fun processInstallSectionState (kv,state) =
+      let
+        val Config.KeyValue {key,value} = kv
+      in
+        if key = cleanupInstallKey then
+          addCleanupInstallSectionState value state
+        else
+          raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+      end;
+
+  fun finalInstallSectionState ins state =
+      let
+        val InstallSectionState {cleanup} = state
+
+        val cleanup =
+            case cleanup of
+              SOME x => fromStringInterval x
+            | NONE => cleanupInstall ins
+      in
+        Install
+          {cleanup = cleanup}
+      end;
+in
+  fun fromSectionInstall sys kvs =
+      let
+        val state = initialInstallSectionState
+
+        val state = List.foldl processInstallSectionState state kvs
+      in
+        finalInstallSectionState sys state
+      end
+      handle Error err =>
+        let
+          val err =
+              "in section " ^
+              Config.toStringSectionName {name = installSection} ^
+              " of config file:\n" ^ err
+        in
+          raise Error err
+        end;
+end;
+
+val defaultInstall =
+    Install
+      {cleanup = cleanupInstallDefault};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system configuration data.                                      *)
@@ -506,6 +671,7 @@ val defaultSystem =
 datatype config =
     Config of
       {repos : repo list,
+       install : install,
        system : DirectorySystem.system};
 
 (* ------------------------------------------------------------------------- *)
@@ -515,12 +681,18 @@ datatype config =
 val empty =
     let
       val rs = []
+      and ins = defaultInstall
       and sys = defaultSystem
     in
-      Config {repos = rs, system = sys}
+      Config
+        {repos = rs,
+         install = ins,
+         system = sys}
     end;
 
 fun repos (Config {repos = x, ...}) = x;
+
+fun install (Config {install = x, ...}) = x;
 
 fun system (Config {system = x, ...}) = x;
 
@@ -530,18 +702,25 @@ fun system (Config {system = x, ...}) = x;
 
 fun addRepo cfg r =
     let
-      val Config {repos = rs, system = sys} = cfg
+      val Config {repos = rs, install = ins, system = sys} = cfg
 
       val rs = rs @ [r]
     in
-      Config {repos = rs, system = sys}
+      Config {repos = rs, install = ins, system = sys}
+    end;
+
+fun replaceInstall cfg ins =
+    let
+      val Config {repos = rs, install = _, system = sys} = cfg
+    in
+      Config {repos = rs, install = ins, system = sys}
     end;
 
 fun replaceSystem cfg sys =
     let
-      val Config {repos = rs, system = _} = cfg
+      val Config {repos = rs, install = ins, system = _} = cfg
     in
-      Config {repos = rs, system = sys}
+      Config {repos = rs, install = ins, system = sys}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -550,9 +729,12 @@ fun replaceSystem cfg sys =
 
 fun toSections config =
     let
-      val Config {repos = rs, system = sys} = config
+      val Config {repos = rs, install = ins, system = sys} = config
 
-      val sections = map toSectionRepo rs @ [toSectionSystem sys]
+      val sections =
+          map toSectionRepo rs @
+          [toSectionInstall ins] @
+          [toSectionSystem sys]
     in
       Config.Config {sections = sections}
     end;
@@ -573,6 +755,14 @@ local
             val r = fromSectionRepo keyValues
           in
             addRepo conf r
+          end
+        else if name = installSection then
+          let
+            val ins = install conf
+
+            val ins = fromSectionInstall ins keyValues
+          in
+            replaceInstall conf ins
           end
         else if name = systemSection then
           let
@@ -626,9 +816,10 @@ fun toTextFile {config,filename} =
 val default =
     let
       val rs = defaultRepos
+      and ins = defaultInstall
       and sys = defaultSystem
     in
-      Config {repos = rs, system = sys}
+      Config {repos = rs, install = ins, system = sys}
     end;
 
 end

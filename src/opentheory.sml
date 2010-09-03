@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20100902)"^"\n";
+val versionString = program^" "^version^" (release 20100903)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -1271,7 +1271,7 @@ fun installPackage name =
                let
                  val err =
                      "can't find package " ^ PackageName.toString name ^
-                     " in any repo"
+                     " in any repo package list"
                in
                  raise Error err
                end

@@ -84,7 +84,7 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example2"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example3"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
@@ -98,12 +98,12 @@ User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
 Compressing article "bool-true-thm"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-true-thm.art
 User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.005  System: 0.000  GC: 0.000  Real: 0.005
+User: 0.005  System: 0.000  GC: 0.000  Real: 0.006
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
 User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.008
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -177,6 +177,10 @@ Config files
 [repo]
 name = gilith
 url = http://opentheory.gilith.com/
+refresh = 604800
+
+[install]
+cleanup = 3600
 
 [system]
 cp = cp

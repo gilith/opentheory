@@ -7,6 +7,14 @@ signature DirectoryConfig =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* A type of install configuration data.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+type install
+
+val cleanupInstall : install -> Time.time
+
+(* ------------------------------------------------------------------------- *)
 (* A type of repo configuration data.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -15,6 +23,8 @@ type repo
 val nameRepo : repo -> {name : string}
 
 val urlRepo : repo -> {url : string}
+
+val refreshRepo : repo -> Time.time
 
 val findRepo : repo list -> {name : string} -> repo option
 
@@ -25,6 +35,8 @@ val findRepo : repo list -> {name : string} -> repo option
 type config
 
 val repos : config -> repo list
+
+val install : config -> install
 
 val system : config -> DirectorySystem.system
 

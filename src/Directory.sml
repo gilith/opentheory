@@ -17,18 +17,78 @@ fun createDirectory {directory} = OS.FileSys.mkDir directory;
 fun renameDirectory {src,dest} = OS.FileSys.rename {old = src, new = dest};
 
 (* ------------------------------------------------------------------------- *)
+(* File operations.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun ageFilename {filename} =
+    let
+      val mt = OS.FileSys.modTime filename
+    in
+      Time.- (Time.now (), mt)
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Clean up the package staging area.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun warnFile {filename} =
-      warn ("activity in staging area: " ^ filename);
-in
-  fun checkStagingPackagesDirectory dir =
+  fun delInfo info =
       let
-        val files = readDirectory dir
+        val () = PackageInfo.nukeDirectory info
+
+(*OpenTheoryTrace1
+        val () = trace ("nuked old package " ^
+                        PackageName.toString (PackageInfo.name info) ^
+                        " in staging area\n")
+*)
       in
-        List.app warnFile files
+        ()
+      end;
+in
+  fun checkStagingPackagesDirectory cfg {directory = dir} =
+      let
+        val dirStrm = OS.FileSys.openDir dir
+
+        fun readAll dels =
+            case OS.FileSys.readDir dirStrm of
+              NONE => dels
+            | SOME file =>
+              let
+                val name = PackageName.fromString file
+
+                val directory = OS.Path.joinDirFile {dir = dir, file = file}
+
+                val age = ageFilename {filename = directory}
+
+                val threshold =
+                    DirectoryConfig.cleanupInstall
+                      (DirectoryConfig.install cfg)
+
+                val dels =
+                    if Time.<= (age,threshold) then dels
+                    else
+                      let
+                        val sys = DirectoryConfig.system cfg
+
+                        val info =
+                            PackageInfo.mk
+                              {system = sys,
+                               name = name,
+                               directory = directory}
+                      in
+                        info :: dels
+                      end
+              in
+                readAll dels
+              end
+
+        val dels = readAll []
+
+        val () = OS.FileSys.closeDir dirStrm
+
+        val () = List.app delInfo dels
+      in
+        ()
       end;
 end;
 
@@ -37,11 +97,13 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun delFile (name,file) =
+  fun delFile (name,{filename}) =
       let
-        val () = OS.FileSys.remove file
+        val () = OS.FileSys.remove filename
 
-        val () = warn ("removing package list for old " ^ name ^ " repo")
+(*OpenTheoryTrace1
+        val () = trace ("removed package list for old " ^ name ^ " repo\n")
+*)
       in
         ()
       end;
@@ -61,14 +123,20 @@ in
                     | NONE =>
                       raise Error ("bad filename "^file^" in repos directory")
 
-                val filename = OS.Path.joinDirFile {dir = dir, file = file}
+                val filename =
+                    {filename = OS.Path.joinDirFile {dir = dir, file = file}}
               in
                 case DirectoryConfig.findRepo cfgs {name = name} of
                   NONE => readAll ((name,filename) :: dels) utds
                 | SOME cfg =>
                   let
+                    val age = ageFilename filename
+
+                    val threshold = DirectoryConfig.refreshRepo cfg
+
                     val utds =
-                        if false then name :: utds else utds
+                        if Time.> (age,threshold) then utds
+                        else name :: utds
                   in
                     readAll dels utds
                   end
@@ -182,7 +250,7 @@ fun mk {rootDirectory = rootDir} =
                 DirectoryPath.mkStagingPackagesDirectory
                   {rootDirectory = rootDir}
 
-            val () = checkStagingPackagesDirectory dir
+            val () = checkStagingPackagesDirectory config dir
           in
             ()
           end
@@ -193,7 +261,7 @@ fun mk {rootDirectory = rootDir} =
             and cfgs = DirectoryConfig.repos config
 
             val dir =
-                DirectoryPath.mkStagingPackagesDirectory
+                DirectoryPath.mkReposDirectory
                   {rootDirectory = rootDir}
 
             val utds = checkReposDirectory cfgs dir
