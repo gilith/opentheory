@@ -122,7 +122,7 @@ if ($select->is_value()) {
 
   $tarball = $value['tarball'];
 
-  $args = '';
+  $args = ' --minimal';
 
   if (array_key_exists('checksum',$value)) {
     $args .= ' --checksum ' . $value['checksum'];
