@@ -32,6 +32,11 @@ fun get f n =
       SOME p => p
     | NONE => raise Error "PackageFinder.get";
 
+fun check f n =
+    case find f n of
+      SOME _ => ()
+    | NONE => raise Error "PackageFinder.check";
+
 (* ------------------------------------------------------------------------- *)
 (* Finder combinators.                                                       *)
 (* ------------------------------------------------------------------------- *)

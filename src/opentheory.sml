@@ -313,11 +313,13 @@ end;
 (* Options for installing theory packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val reinstall = ref false;
-
 val autoInstall = ref true;
 
 val checksumInstall : Checksum.checksum option ref = ref NONE;
+
+val minimalInstall = ref false;
+
+val reinstall = ref false;
 
 local
   open Useful Options;
@@ -342,6 +344,9 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
+       {switches = ["--minimal"], arguments = [],
+        description = "do not install the package extra files",
+        processor = beginOpt endOpt (fn _ => minimalInstall := true)},
        {switches = ["--reinstall"], arguments = [],
         description = "uninstall the package if it exists",
         processor = beginOpt endOpt (fn _ => reinstall := true)}] @
@@ -1172,7 +1177,9 @@ and installAutoRepo master repo name chk =
 
       val finder = installAutoFinder master
 
-      val () = Directory.stagePackage dir finder repo name chk
+      val minimal = {minimal = !minimalInstall}
+
+      val () = Directory.stagePackage dir finder repo name chk minimal
 
       val () = Directory.installStaged dir name chk
 
@@ -1276,7 +1283,9 @@ fun installPackage name =
 
           val finder = installFinder repo
 
-          val () = Directory.stagePackage dir finder repo name chk
+          val minimal = {minimal = !minimalInstall}
+
+          val () = Directory.stagePackage dir finder repo name chk minimal
 
           val () = Directory.installStaged dir name chk
 
@@ -1329,7 +1338,9 @@ fun installTarball tarFile =
 
       val finder = installFinderFree ()
 
-      val () = Directory.stageTarball dir finder tarFile contents
+      val minimal = {minimal = !minimalInstall}
+
+      val () = Directory.stageTarball dir finder tarFile contents minimal
 
       val () = Directory.installStaged dir name chk
 
@@ -1452,7 +1463,7 @@ fun upload name =
 
       val name = PackageName.fromString name
 
-      val () = updateRepo repo
+      val () = DirectoryRepo.update repo
 
       val errs = Directory.checkUpload dir repo name
 

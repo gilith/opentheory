@@ -53,6 +53,12 @@ val extraFiles : info -> Package.extraFile list
 val allFiles : info -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val packages : info -> PackageNameSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -74,12 +80,12 @@ val checksumTarball : DirectoryConfig.system -> info -> Checksum.checksum
 
 val contentsTarball : DirectoryConfig.system -> info -> PackageTarball.contents
 
-val unpackTarball : DirectoryConfig.system -> info -> unit
+val unpackTarball :
+    DirectoryConfig.system ->
+    info -> PackageTarball.contents -> {minimal : bool} -> unit
 
-(* ------------------------------------------------------------------------- *)
-(* Package dependencies.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-val packages : info -> PackageNameSet.set
+val uploadTarball :
+    DirectoryConfig.system ->
+    info -> Checksum.checksum -> {url : string} -> unit
 
 end

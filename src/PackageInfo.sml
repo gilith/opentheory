@@ -140,6 +140,17 @@ fun allFiles info =
     map Package.filenameExtraFile (extraFiles info);
 
 (* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun packages info =
+    let
+      val pkg = package info
+    in
+      PackageNameSet.fromList (Package.packages pkg)
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -236,42 +247,101 @@ fun contentsTarball sys info =
       PackageTarball.contents sys tarFile
     end;
 
-fun unpackTarball sys info =
-    let
-      val {directory = dir} = directory info
+fun extractTarball sys info files =
+    if null files then ()
+    else
+      let
+        val {directory = dir} = directory info
 
-      val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
+        val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
 
-      fun joinDir {filename} =
-          {filename = OS.Path.concat (pkgDir,filename)}
+        fun joinDir {filename} =
+            {filename = OS.Path.concat (pkgDir,filename)}
 
-      val {filename = tarFile} = joinDir (tarball info)
+        fun mkArg file =
+            let
+              val {filename} = joinDir file
+            in
+              " " ^ filename
+            end
 
-      val {tar = cmd} = DirectoryConfig.tarSystem sys
+        val {filename = tarFile} = joinDir (tarball info)
 
-      val cmd = cmd ^ " xzf " ^ tarFile
+        val {tar = cmd} = DirectoryConfig.tarSystem sys
+
+        val cmd =
+            cmd ^ " xzf " ^ tarFile ^ String.concat (map mkArg files)
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+        val () = print (cmd ^ "\n")
 *)
 
-      val workingDir = OS.FileSys.getDir ()
-    in
-      let
-        val () = OS.FileSys.chDir baseDir
-
-        val () =
-            if OS.Process.isSuccess (OS.Process.system cmd) then ()
-            else raise Error "unpacking tarball failed"
-
-        val () = OS.FileSys.chDir workingDir
+        val workingDir = OS.FileSys.getDir ()
       in
-        ()
-      end
-      handle e => let val () = OS.FileSys.chDir workingDir in raise e end
+        let
+          val () = OS.FileSys.chDir baseDir
+
+          val () =
+              if OS.Process.isSuccess (OS.Process.system cmd) then ()
+              else raise Error "unpacking tarball failed"
+
+          val () = OS.FileSys.chDir workingDir
+        in
+          ()
+        end
+        handle e => let val () = OS.FileSys.chDir workingDir in raise e end
+      end;
+
+fun unpackTarball sys info contents {minimal} =
+    let
+      val PackageTarball.Contents {name = n, theoryFile, otherFiles} = contents
+
+(*OpenTheoryDebug
+        val () = if PackageName.equal (name info) n then ()
+                 else raise Bug "PackageInfo.unpackTarball: name clash"
+*)
+
+      val () = extractTarball sys info [theoryFile]
+
+      val pkg = package info
+
+      val arts = Package.articles pkg
+
+      val exts = List.map Package.filenameExtraFile (Package.extraFiles pkg)
+
+      val () =
+          let
+            fun add ({filename},set) = StringSet.add set filename
+
+            val filel = arts @ exts
+
+            val files = List.foldl add StringSet.empty filel
+
+            val () =
+                if length filel = StringSet.size files then ()
+                else raise Error "filename clash in package"
+
+            val files' = List.foldl add StringSet.empty otherFiles
+
+            val () =
+                if StringSet.subset files files' then ()
+                else raise Error "extra files in tarball"
+
+            val () =
+                if StringSet.subset files' files then ()
+                else raise Error "missing package files in tarball"
+          in
+            ()
+          end
+
+      val files = if minimal then arts else arts @ exts
+
+      val () = extractTarball sys info files
+    in
+      ()
     end;
 
-fun uploadTarball sys info {url} =
+fun uploadTarball sys info chk {url} =
     let
       val {filename = f} = joinDirectory info (tarball info)
 
@@ -280,6 +350,7 @@ fun uploadTarball sys info {url} =
       val cmd =
           cmd ^ " " ^ url ^
           " --form \"t=@" ^ f ^ "\"" ^
+          " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
           " --form \"s=upload package\""
 
 (*OpenTheoryTrace1
@@ -291,17 +362,6 @@ fun uploadTarball sys info {url} =
           else raise Error "uploading the package tarball failed"
     in
       ()
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Package dependencies.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-fun packages info =
-    let
-      val pkg = package info
-    in
-      PackageNameSet.fromList (Package.packages pkg)
     end;
 
 end

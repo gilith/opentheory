@@ -119,17 +119,15 @@ fun create {rootDirectory = rootDir} =
             createDirectory dir
           end
 
-      val sys =
+      val () =
           let
             val cfg = DirectoryConfig.default
 
             val {filename = file} =
                 DirectoryPath.mkConfigFilename
                   {rootDirectory = rootDir}
-
-            val () = DirectoryConfig.toTextFile {config = cfg, filename = file}
           in
-            DirectoryConfig.system cfg
+            DirectoryConfig.toTextFile {config = cfg, filename = file}
           end
 
       val () =
@@ -138,7 +136,7 @@ fun create {rootDirectory = rootDir} =
                 DirectoryPath.mkInstalledFilename
                   {rootDirectory = rootDir}
           in
-            DirectoryChecksums.create sys file
+            DirectoryChecksums.create file
           end
     in
       ()
@@ -348,13 +346,19 @@ fun list dir = DirectoryPackages.list (packages dir);
 
 fun postStagePackage dir stageInfo = ();
 
-fun postStageTarball dir finder stageInfo contents =
+fun postStageTarball dir finder stageInfo contents minimal =
     let
       val sys = system dir
 
       (* Unpack the tarball *)
 
-      val () = PackageInfo.unpackTarball sys stageInfo
+      val () = PackageInfo.unpackTarball sys stageInfo contents minimal
+
+      (* Check the required packages are installed *)
+
+      val pars = PackageInfo.packages stageInfo
+
+      val () = PackageNameSet.app (PackageFinder.check finder) pars
 
       (* Common post-stage operations *)
 
@@ -393,7 +397,7 @@ fun checkStagePackage dir repo name chk =
         rev errs
       end;
 
-fun stagePackage dir finder repo name chk =
+fun stagePackage dir finder repo name chk minimal =
     let
 (*OpenTheoryDebug
       val errs = checkStagePackage dir repo name chk
@@ -422,7 +426,7 @@ fun stagePackage dir finder repo name chk =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir finder stageInfo contents
+        val () = postStageTarball dir finder stageInfo contents minimal
       in
         ()
       end
@@ -446,7 +450,7 @@ fun checkStageTarball dir contents =
       else []
     end;
 
-fun stageTarball dir finder tarFile contents =
+fun stageTarball dir finder tarFile contents minimal =
     let
 (*OpenTheoryDebug
       val errs = checkStageTarball dir contents
@@ -473,7 +477,7 @@ fun stageTarball dir finder tarFile contents =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir finder stageInfo contents
+        val () = postStageTarball dir finder stageInfo contents minimal
       in
         ()
       end
@@ -928,7 +932,14 @@ fun upload dir repo name =
 *)
       val info = get dir name
 
-      val () = DirectoryRepo.upload repo info
+      val chk =
+          case checksum dir name of
+            SOME c => c
+          | NONE =>
+            raise Error ("package " ^ PackageName.toString name ^
+                         " seems to be badly installed")
+
+      val () = DirectoryRepo.upload repo info chk
     in
       ()
     end;

@@ -720,6 +720,42 @@ class SelectTime extends SelectValue {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Selecting checksums.
+///////////////////////////////////////////////////////////////////////////////
+
+class SelectChecksum extends SelectText {
+  function error_message_missing() { return 'Please enter a checksum'; }
+
+  function error_message_too_short() {
+    return ('This input is too short to be a checksum');
+  }
+
+  function error_message_too_long() {
+    return ('This input is too long to be a checksum');
+  }
+
+  function error_message_not_checksum() {
+    return ('Please use only digits [0-9] and letters [a-f]');
+  }
+
+  function validate() {
+    parent::validate();
+
+    if (!$this->is_error()) {
+      $v = parent::value();
+
+      if (isset($v) && !ereg('([0-9][a-f])+',$v)) {
+        $this->set_error($this->error_message_not_checksum());
+      }
+    }
+  }
+
+  function SelectChecksum($field,$required) {
+    parent::SelectText($field, $required, 5, 60);
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Selecting URLs.
 ///////////////////////////////////////////////////////////////////////////////
 

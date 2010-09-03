@@ -67,6 +67,9 @@ fun installedUrl repo =
 fun tarballUrl repo n =
     DirectoryPath.mkTarballUrl (rootUrl repo) n;
 
+fun uploadUrl repo =
+    DirectoryPath.mkUploadUrl (rootUrl repo);
+
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
@@ -154,7 +157,20 @@ fun download repo info =
 (* Uploading packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun upload repo info = raise Bug "not implemented";
+fun upload repo info chk =
+    let
+      val sys = system repo
+
+      (* Upload the tarball *)
+
+      val () = PackageInfo.uploadTarball sys info chk (uploadUrl repo)
+
+      (* Update the package list *)
+
+      val () = update repo
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

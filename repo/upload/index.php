@@ -8,11 +8,13 @@ require_once '../opentheory.php';
 
 class SelectUploadData extends SelectValue {
   var $_select_tarball;
+  var $_select_checksum;
   var $_select_submit;
 
   function error() {
     $e = $this->_error;
     if (!isset($e)) { $e = $this->_select_tarball->handled_error(); }
+    if (!isset($e)) { $e = $this->_select_checksum->handled_error(); }
     return $e;
   }
 
@@ -20,6 +22,8 @@ class SelectUploadData extends SelectValue {
     parent::validate();
 
     $this->_select_tarball->validate();
+
+    $this->_select_checksum->validate();
 
     if (!$this->is_error()) {
       $file = $this->_select_tarball->value();
@@ -36,6 +40,12 @@ class SelectUploadData extends SelectValue {
            array('name' => $name,
                  'tarball' => $tarball);
 
+        $checksum = $this->_select_checksum->value();
+
+        if (isset($checksum)) {
+          $value['checksum'] = $checksum;
+        }
+
         parent::set_value($value);
       }
       else {
@@ -50,9 +60,15 @@ class SelectUploadData extends SelectValue {
 $this->form_error() .
 $this->_select_tarball->form_error() .
 $this->_select_submit->form_error() .
-field_text('Tarball') .
+field_text('Tarball') . required_mark() .
 ' &nbsp; ' .
 $this->_select_tarball->select() .
+'</p>' .
+'<p>' .
+$this->_select_checksum->form_error() .
+field_text('Checksum') .
+' &nbsp; ' .
+$this->_select_checksum->select() .
 '</p>' .
 '<p>' .
 $this->_select_submit->select() .
@@ -71,6 +87,7 @@ $this->_select_submit->select() .
     parent::SelectValue($field);
 
     $this->_select_tarball = new SelectFile($this->field() . 't', true);
+    $this->_select_checksum = new SelectChecksum($this->field() . 'c', false);
     $this->_select_submit =
       new SelectSubmit($this->field() . 's', 'upload package');
 
@@ -105,7 +122,15 @@ if ($select->is_value()) {
 
   $tarball = $value['tarball'];
 
-  $output = opentheory('install',' tarball:' . $tarball);
+  $args = '';
+
+  if (array_key_exists('checksum',$value)) {
+    $args .= ' --checksum ' . $value['checksum'];
+  }
+
+  $args .= ' tarball:' . $tarball;
+
+  $output = opentheory('install',$args);
 
   if (isset($output)) {
     $main =

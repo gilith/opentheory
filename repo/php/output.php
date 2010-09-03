@@ -219,7 +219,7 @@ navigation() .
     site_image('valid.png','Valid XHTML 1.0') .
     '</a>' .
     '</div>' .
-    site_image('favicon.png','OpenTheory') .
+    site_link(array('admin'), site_image('favicon.png','OpenTheory')) .
     ' &nbsp; ' . repo_name() . ', maintained by ' .
     repo_admin() .
     '.</div>')) .

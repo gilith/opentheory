@@ -301,7 +301,7 @@ function definition_text($s) {
 }
 
 function required_mark() {
-  return span_text('required','*');
+  return span_text('form_required','*');
 }
 
 ///////////////////////////////////////////////////////////////////////////////

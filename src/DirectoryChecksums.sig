@@ -20,7 +20,7 @@ val isFilename : {filename : string} -> bool
 (* Creating a new package checksums file.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val create : DirectoryConfig.system -> {filename : string} -> unit
+val create : {filename : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* A type of package directory checkums.                                     *)

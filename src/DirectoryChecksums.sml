@@ -40,27 +40,6 @@ fun destFilename {filename} =
 fun isFilename file = Option.isSome (destFilename file);
 
 (* ------------------------------------------------------------------------- *)
-(* Creating a new package checksums file.                                    *)
-(* ------------------------------------------------------------------------- *)
-
-fun create sys {filename} =
-    let
-      val {touch = cmd} = DirectoryConfig.touchSystem sys
-
-      val cmd = cmd ^ " " ^ filename
-
-(*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "creating an empty installed package list failed"
-    in
-      ()
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* A pure type of package checksums.                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -106,6 +85,12 @@ in
       (fn (n,((),(c,()))) => [(n,c)]);
 end;
 
+fun isCommentLine l =
+    case l of
+      [] => true
+    | [#"\n"] => true
+    | _ => false;
+
 fun fromTextFilePure {filename} =
     let
       (* Estimating parse error line numbers *)
@@ -116,6 +101,8 @@ fun fromTextFilePure {filename} =
     in
       (let
          (* The character stream *)
+
+         val chars = Stream.filter (not o isCommentLine) chars
 
          val chars = Parse.everything Parse.any chars
 
@@ -140,10 +127,23 @@ in
         val strm = PackageNameMap.toStream m
 
         val strm = Stream.map toLinePackageChecksum strm
+
+        val strm = if Stream.null strm then Stream.singleton "\n" else strm
       in
         Stream.toTextFile {filename = f} strm
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Creating a new package checksums file.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun create {filename} =
+    let
+      val chks = emptyPure
+    in
+      toTextFilePure {checksums = chks, filename = filename}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of package directory checkums.                                     *)

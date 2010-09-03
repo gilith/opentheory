@@ -26,6 +26,8 @@ val find : finder -> PackageName.name -> PackageInfo.info option
 
 val get : finder -> PackageName.name -> PackageInfo.info
 
+val check : finder -> PackageName.name -> unit
+
 (* ------------------------------------------------------------------------- *)
 (* Finder combinators.                                                       *)
 (* ------------------------------------------------------------------------- *)

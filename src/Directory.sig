@@ -94,6 +94,7 @@ val checkStagePackage :
 val stagePackage :
     directory -> PackageFinder.finder ->
     DirectoryRepo.repo -> PackageName.name -> Checksum.checksum ->
+    {minimal : bool} ->
     unit
 
 (* ------------------------------------------------------------------------- *)
@@ -107,7 +108,7 @@ val checkStageTarball :
 
 val stageTarball :
     directory -> PackageFinder.finder ->
-    {filename : string} -> PackageTarball.contents ->
+    {filename : string} -> PackageTarball.contents -> {minimal : bool} ->
     unit
 
 (* ------------------------------------------------------------------------- *)
