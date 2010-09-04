@@ -5,6 +5,8 @@ ElementSet.sig
 ElementSet.sml
 Heap.sig
 Heap.sml
+Html.sig
+Html.sml
 KeyMap.sig
 KeyMap.sml
 Lazy.sig

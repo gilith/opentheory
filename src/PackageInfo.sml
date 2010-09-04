@@ -380,4 +380,17 @@ fun uploadTarball info chk {url} =
       ()
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Package document.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun document info = PackageDocument.mkFilename (name info);
+
+fun writeDocument info doc =
+    let
+      val {filename = f} = joinDirectory info (document info)
+    in
+      PackageDocument.toHtmlFile {document = doc, filename = f}
+    end;
+
 end

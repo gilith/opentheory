@@ -70,6 +70,8 @@ src/ElementSet.sig: ../basic/src/ElementSet.sig $(COPY) ; @$(COPY) $< $@
 src/ElementSet.sml: ../basic/src/ElementSet.sml $(COPY) ; @$(COPY) $< $@
 src/Heap.sig: ../basic/src/Heap.sig $(COPY) ; @$(COPY) $< $@
 src/Heap.sml: ../basic/src/Heap.sml $(COPY) ; @$(COPY) $< $@
+src/Html.sig: ../basic/src/Html.sig $(COPY) ; @$(COPY) $< $@
+src/Html.sml: ../basic/src/Html.sml $(COPY) ; @$(COPY) $< $@
 src/KeyMap.sig: ../basic/src/KeyMap.sig $(COPY) ; @$(COPY) $< $@
 src/KeyMap.sml: ../basic/src/KeyMap.sml $(COPY) ; @$(COPY) $< $@
 src/Lazy.sig: ../basic/src/Lazy.sig $(COPY) ; @$(COPY) $< $@

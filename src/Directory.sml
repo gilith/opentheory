@@ -410,12 +410,85 @@ fun installOrder dir names =
 fun list dir = DirectoryPackages.list (packages dir);
 
 (* ------------------------------------------------------------------------- *)
+(* A package finder.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun finder dir = PackageFinder.mk (peek dir);
+
+(* ------------------------------------------------------------------------- *)
+(* Summarizing packages.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun summary dir info =
+    let
+      val graph = Graph.empty {savable = false}
+
+      val fndr = finder dir
+
+      val {directory} = PackageInfo.directory info
+
+      val imps = TheorySet.empty
+
+      val int = Interpretation.natural
+
+      val pkg = PackageInfo.package info
+
+      val (_,thy) =
+          Graph.importPackage graph
+            {finder = fndr,
+             directory = directory,
+             imports = imps,
+             interpretation = int,
+             package = pkg}
+
+      val art = Theory.article thy
+
+      val ths = Article.thms art
+
+      val sum = Summary.fromThms ths
+    in
+      sum
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Post-stage functions.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun postStagePackage dir stageInfo = ();
+fun postStagePackage dir stageInfo =
+    let
+      (* Create the package document *)
 
-fun postStageTarball dir finder stageInfo contents minimal =
+      val () =
+          let
+            val name = PackageInfo.name stageInfo
+
+            val pkg = PackageInfo.package stageInfo
+
+            val sum = summary dir stageInfo
+
+            val files =
+                let
+                  val {filename = theory} = PackageInfo.theoryFile stageInfo
+                  and {filename = tarball} = PackageInfo.tarball stageInfo
+                in
+                  {theory = theory, tarball = tarball}
+                end
+
+            val doc =
+                PackageDocument.mk
+                  (PackageDocument.Document'
+                     {name = name,
+                      package = pkg,
+                      summary = sum,
+                      files = files})
+          in
+            PackageInfo.writeDocument stageInfo doc
+          end
+    in
+      ()
+    end;
+
+fun postStageTarball dir fndr stageInfo contents minimal =
     let
       (* Unpack the tarball *)
 
@@ -425,7 +498,7 @@ fun postStageTarball dir finder stageInfo contents minimal =
 
       val pars = PackageInfo.packages stageInfo
 
-      val () = PackageNameSet.app (PackageFinder.check finder) pars
+      val () = PackageNameSet.app (PackageFinder.check fndr) pars
 
       (* Common post-stage operations *)
 
@@ -464,7 +537,7 @@ fun checkStagePackage dir repo name chk =
         rev errs
       end;
 
-fun stagePackage dir finder repo name chk minimal =
+fun stagePackage dir fndr repo name chk minimal =
     let
 (*OpenTheoryDebug
       val errs = checkStagePackage dir repo name chk
@@ -491,7 +564,7 @@ fun stagePackage dir finder repo name chk minimal =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir finder stageInfo contents minimal
+        val () = postStageTarball dir fndr stageInfo contents minimal
       in
         ()
       end
@@ -515,7 +588,7 @@ fun checkStageTarball dir contents =
       else []
     end;
 
-fun stageTarball dir finder tarFile contents minimal =
+fun stageTarball dir fndr tarFile contents minimal =
     let
 (*OpenTheoryDebug
       val errs = checkStageTarball dir contents
@@ -540,7 +613,7 @@ fun stageTarball dir finder tarFile contents minimal =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir finder stageInfo contents minimal
+        val () = postStageTarball dir fndr stageInfo contents minimal
       in
         ()
       end
@@ -607,7 +680,8 @@ local
 
         val reserved =
             [("theory file", PackageInfo.theoryFile info),
-             ("tarball", PackageInfo.tarball info)]
+             ("tarball", PackageInfo.tarball info),
+             ("document", PackageInfo.document info)]
 
         val plan = StringMap.new ()
 
@@ -1004,12 +1078,6 @@ fun upload dir repo name =
     in
       ()
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* A package finder.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun finder dir = PackageFinder.mk (peek dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

@@ -172,6 +172,8 @@ end;
 
 fun ppWithShow show = Print.ppMap info (ppInfo show);
 
+fun toHtml show summary = [];
+
 fun toTextFile {show,summary,filename} =
     let
 (*OpenTheoryTrace5

@@ -1,6 +1,6 @@
 name: bool-true
 version: 1.0
-description: Definition and theorem about the constant T
+description: Definition and theorems about the boolean true constant
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"

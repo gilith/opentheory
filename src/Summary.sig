@@ -39,6 +39,8 @@ val ppWithShow : Show.show -> summary Print.pp
 
 val pp : summary Print.pp
 
+val toHtml : Show.show -> summary -> Html.block list
+
 val toTextFile :
     {show : Show.show,
      summary : summary,

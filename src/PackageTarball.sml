@@ -12,7 +12,7 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val tarballFileExtension = "tgz";
+val fileExtension = "tgz";
 
 (* ------------------------------------------------------------------------- *)
 (* Tarball filenames.                                                        *)
@@ -23,7 +23,7 @@ fun mkFilename name =
       val filename =
           OS.Path.joinBaseExt
             {base = PackageName.toString name,
-             ext = SOME tarballFileExtension}
+             ext = SOME fileExtension}
     in
       {filename = filename}
     end;
@@ -35,7 +35,7 @@ fun destFilename {filename} =
       case ext of
         NONE => NONE
       | SOME x =>
-        if x <> tarballFileExtension then NONE
+        if x <> fileExtension then NONE
         else total PackageName.fromString base
     end;
 

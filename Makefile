@@ -58,6 +58,7 @@ SRC = \
   src/Heap.sig src/Heap.sml \
   src/Print.sig src/Print.sml \
   src/Parse.sig src/Parse.sml \
+  src/Html.sig src/Html.sml \
   src/Config.sig src/Config.sml \
   src/Tag.sig src/Tag.sml \
   src/Checksum.sig src/Checksum.sml \
@@ -121,6 +122,7 @@ SRC = \
   src/Package.sig src/Package.sml \
   src/DirectorySystem.sig src/DirectorySystem.sml \
   src/PackageTarball.sig src/PackageTarball.sml \
+  src/PackageDocument.sig src/PackageDocument.sml \
   src/PackageInfo.sig src/PackageInfo.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \

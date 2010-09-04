@@ -12,9 +12,10 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val fileExtension = "thy"
+val baseTag = "name"
+and descriptionTag = "description"
+and fileExtension = "thy"
 and fileSuffixTag = "-file"
-and nameTag = "name"
 and versionTag = "version";
 
 (* ------------------------------------------------------------------------- *)
@@ -76,10 +77,10 @@ fun theories pkg = theories' (dest pkg);
 (* ------------------------------------------------------------------------- *)
 
 fun base pkg =
-    case List.filter (equal nameTag o Tag.name) (tags pkg) of
-      [] => raise Error ("no " ^ nameTag ^ " tag")
+    case List.filter (equal baseTag o Tag.name) (tags pkg) of
+      [] => raise Error ("no " ^ baseTag ^ " tag")
     | [tag] => PackageBase.fromString (Tag.value tag)
-    | _ :: _ :: _ => raise Error ("multiple " ^ nameTag ^ " tags");
+    | _ :: _ :: _ => raise Error ("multiple " ^ baseTag ^ " tags");
 
 fun version pkg =
     case List.filter (equal versionTag o Tag.name) (tags pkg) of
@@ -94,6 +95,15 @@ fun name pkg =
     in
       PackageName.mk (PackageName.Name' {base = b, version = v})
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package description.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun description pkg =
+    case List.find (equal descriptionTag o Tag.name) (tags pkg) of
+      NONE => NONE
+    | SOME tag => SOME (Tag.value tag);
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
