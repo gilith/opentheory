@@ -102,8 +102,8 @@ User: 0.005  System: 0.000  GC: 0.000  Real: 0.006
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
 User: 0.004  System: 0.000  GC: 0.000  Real: 0.008
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -183,12 +183,12 @@ refresh = 604800
 cleanup = 3600
 
 [system]
+chmod = chmod
 cp = cp
 curl = curl --silent --show-error --user-agent opentheory
 echo = echo
 sha = sha1sum --binary
 tar = tar
-touch = touch
 
 --------------------------------------------------------------------------
 Importing theory packages

@@ -17,22 +17,24 @@ type system
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {cp : string,
+    {chmod : string,
+     cp : string,
      curl : string,
      echo : string,
      sha : string,
-     tar : string,
-     touch : string} ->
+     tar : string} ->
     system
 
 val dest :
     system ->
-    {cp : string,
+    {chmod : string,
+     cp : string,
      curl : string,
      echo : string,
      sha : string,
-     tar : string,
-     touch : string}
+     tar : string}
+
+val chmod : system -> {chmod : string}
 
 val cp : system -> {cp : string}
 
@@ -43,7 +45,5 @@ val echo : system -> {echo : string}
 val sha : system -> {sha : string}
 
 val tar : system -> {tar : string}
-
-val touch : system -> {touch : string}
 
 end

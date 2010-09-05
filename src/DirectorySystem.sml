@@ -14,12 +14,12 @@ open Useful;
 
 datatype system =
     System of
-      {cp : string,
+      {chmod : string,
+       cp : string,
        curl : string,
        echo : string,
        sha : string,
-       tar : string,
-       touch : string};
+       tar : string};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -28,6 +28,8 @@ datatype system =
 fun mk data = System data;
 
 fun dest (System data) = data;
+
+fun chmod (System {chmod = x, ...}) = {chmod = x};
 
 fun cp (System {cp = x, ...}) = {cp = x};
 
@@ -38,7 +40,5 @@ fun echo (System {echo = x, ...}) = {echo = x};
 fun sha (System {sha = x, ...}) = {sha = x};
 
 fun tar (System {tar = x, ...}) = {tar = x};
-
-fun touch (System {touch = x, ...}) = {touch = x};
 
 end

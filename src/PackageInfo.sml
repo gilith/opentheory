@@ -217,6 +217,18 @@ fun copyTarball info {filename = src} =
       val () =
           if OS.Process.isSuccess (OS.Process.system cmd) then ()
           else raise Error "copying the package tarball failed"
+
+      val {chmod = cmd} = DirectorySystem.chmod sys
+
+      val cmd = cmd ^ " 644 " ^ dest
+
+(*OpenTheoryTrace1
+      val () = print (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "changing mode of the package tarball failed"
     in
       ()
     end;

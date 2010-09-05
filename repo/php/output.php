@@ -139,11 +139,15 @@ function navigation() {
 
   $nav = ereg_replace('^<p></p>','',$nav);
 
+  $logo = site_image('logo.png','OpenTheory');
   $text = repo_name();
   if ($num_bread_crumbs > 0 || isset($extension)) {
+    $logo = site_link(array(), $logo);
     $text = site_link(array(), $text);
   }
-  $nav = '<h1>' . $text . '</h1>' . $nav;
+  $nav =
+'<div id="logo">' . $logo . '</div>' .
+'<h1>' . $text . '</h1>' . $nav;
 
   return $nav;
 }
@@ -179,6 +183,15 @@ function output($head, $main, $image) {
     $title = repo_name();
   }
 
+  if (is_array($image)) {
+    if (count($image) == 0) {
+      $image = null;
+    }
+    else {
+      $image = implode('</div><div class="image">', $image);
+    }
+  }
+
   if (array_key_exists('favicon',$head)) { $favicon = $head['favicon']; }
   else { $favicon = site_path(array('favicon.ico')); }
 
@@ -200,12 +213,13 @@ function output($head, $main, $image) {
 <div id="document">
 <div id="header">' .
 navigation() .
+'<div id="header-clearer"></div>' .
 '</div>
 <div id="main">' .
 (isset($main)
  ? ('<div id="content">' .
     ((isset($image) && !$mobile)
-     ? ('<div id="image-wrapper"><div id="image">' . $image . '</div></div>')
+     ? ('<div id="image-wrapper"><div class="image">' . $image . '</div></div>')
      : '') .
     $main . '</div>')
  : '') .
