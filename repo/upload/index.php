@@ -151,7 +151,7 @@ site_form(bread_crumbs(),
           'post');
 }
 
-$image = site_image('katoomba.jpg','Katoomba Scenic Railway');
+$image = site_image('easter-island-head.jpg','Easter Island Head');
 
 output(array('title' => $title), $main, $image);
 
