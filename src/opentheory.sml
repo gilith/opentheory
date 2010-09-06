@@ -250,16 +250,16 @@ in
       [{switches = ["--name"], arguments = [],
         description = "display the package name",
         processor = beginOpt endOpt (fn _ => addInfoOutput NameInfo)},
-       {switches = ["--meta"], arguments = [],
-        description = "display the package meta-information",
+       {switches = ["--meta-data"], arguments = [],
+        description = "display the package meta-data",
         processor = beginOpt endOpt (fn _ => addInfoOutput MetaInfo)},
        {switches = ["--files"], arguments = [],
         description = "list the package files",
         processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
-       {switches = ["--deps"], arguments = [],
+       {switches = ["--dependencies"], arguments = [],
         description = "list direct package dependencies",
         processor = beginOpt endOpt (fn _ => addInfoOutput ParentsInfo)},
-       {switches = ["--deps+"], arguments = [],
+       {switches = ["--dependencies+"], arguments = [],
         description = "list all package dependencies",
         processor = beginOpt endOpt (fn _ => addInfoOutput AncestorsInfo)},
        {switches = ["--uses"], arguments = [],
@@ -357,22 +357,69 @@ end;
 (* Options for listing installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val dependencyOrder = ref false;
+datatype orderList =
+    AlphabeticalList
+  | DependencyList
+  | ReverseList of orderList;
 
-val listOutput = ref "-";
+datatype showList =
+    ChecksumList
+  | DescriptionList
+  | NameList;
+
+local
+  val refOrderList = ref AlphabeticalList;
+in
+  fun setOrderList ord = refOrderList := ord;
+
+  fun reverseOrderList () = refOrderList := ReverseList (!refOrderList);
+
+  fun orderList () = !refOrderList;
+end;
+
+local
+  val refShowList : showList list option ref = ref NONE;
+
+  val defaultShowList = [NameList,DescriptionList];
+in
+  fun addShowList s =
+      let
+        val l = Option.getOpt (!refShowList,[])
+
+        val () = refShowList := SOME (l @ [s])
+      in
+        ()
+      end;
+
+  fun showList () = Option.getOpt (!refShowList,defaultShowList);
+end;
+
+val outputList = ref "-";
 
 local
   open Useful Options;
 in
   val listOpts : opt list =
-      [{switches = ["--dep-order"], arguments = [],
+      [{switches = ["--dependency-order"], arguments = [],
         description = "list packages in dependency order",
-        processor = beginOpt endOpt (fn _ => dependencyOrder := true)},
+        processor = beginOpt endOpt (fn _ => setOrderList DependencyList)},
+       {switches = ["--reverse-order"], arguments = [],
+        description = "reverse the order",
+        processor = beginOpt endOpt (fn _ => reverseOrderList ())},
+       {switches = ["--name"], arguments = [],
+        description = "print the package name",
+        processor = beginOpt endOpt (fn _ => addShowList NameList)},
+       {switches = ["--checksum"], arguments = [],
+        description = "print the package checksum",
+        processor = beginOpt endOpt (fn _ => addShowList ChecksumList)},
+       {switches = ["--description"], arguments = [],
+        description = "print the package description",
+        processor = beginOpt endOpt (fn _ => addShowList DescriptionList)},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write the package list to FILE",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => listOutput := s)}];
+            (fn _ => fn s => outputList := s)}];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1426,21 +1473,51 @@ fun installTheory filename =
 (* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+fun sortList dir pkgs ord =
+    case ord of
+      AlphabeticalList => PackageNameSet.toList pkgs
+    | DependencyList => Directory.installOrder dir pkgs
+    | ReverseList ord => rev (sortList dir pkgs ord);
+
 fun list () =
     let
       val dir = directory ()
 
       val pkgs = Directory.list dir
 
-      val pkgs =
-          if !dependencyOrder then Directory.installOrder dir pkgs
-          else PackageNameSet.toList pkgs
+      val pkgs = sortList dir pkgs (orderList ());
 
-      fun mk name = PackageName.toString name ^ "\n"
+      val show = showList ()
+
+      fun mk name =
+          let
+            fun mkShow s =
+                case s of
+                  NameList => PackageName.toString name
+                | ChecksumList =>
+                  (case Directory.checksum dir name of
+                     SOME chk => Checksum.toString chk
+                   | NONE => raise Error "corrupt checksum")
+                | DescriptionList =>
+                  let
+                    val info =
+                        case Directory.peek dir name of
+                          SOME i => i
+                        | NONE => raise Error "corrupt installation"
+                  in
+                    case Package.description (PackageInfo.package info) of
+                      SOME d => d
+                    | NONE => "-"
+                  end
+          in
+            join " " (List.map mkShow show) ^ "\n"
+          end
+          handle Error err =>
+            raise Error ("package " ^ PackageName.toString name ^ ": " ^ err)
 
       val strm = Stream.map mk (Stream.fromList pkgs)
 
-      val ref f = listOutput
+      val ref f = outputList
     in
       Stream.toTextFile {filename = f} strm
     end;
