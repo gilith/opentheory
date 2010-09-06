@@ -15,10 +15,26 @@ require_once 'directory.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 if (!file_exists(DIRECTORY_PATH)) {
-  $output = opentheory('init','');
+  $args = '';
+
+  $output = opentheory('init',$args);
 
   if (isset($output)) {
     trigger_error('couldn\'t initialize directory: ' . $output);
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Check the package lists exist.
+///////////////////////////////////////////////////////////////////////////////
+
+if (!file_exists(site_path(array('packages','all.pkg')))) {
+  $args = ' -o ' . site_path(array('packages','all.pkg'));
+
+  $output = opentheory('list',$args);
+
+  if (isset($output)) {
+    trigger_error('couldn\'t regenerate package list: ' . $output);
   }
 }
 

@@ -132,7 +132,18 @@ if ($select->is_value()) {
 '<pre>' . $output . '</pre>';
   }
   else {
-    jump_path(bread_crumbs(), array('p' => $name));
+    $args = ' -o ' . site_path(array('packages','all.pkg'));
+
+    $output = opentheory('list',$args);
+
+    if (isset($output)) {
+      $main =
+'<p>Failed to regenerate package list:</p>' .
+'<pre>' . $output . '</pre>';
+    }
+    else {
+      jump_path(bread_crumbs(), array('p' => $name));
+    }
   }
 }
 

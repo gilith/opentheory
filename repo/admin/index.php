@@ -14,6 +14,9 @@ if (isset($cmd) && strcmp($cmd,'reset') == 0) {
   $cmd = 'echo "reset package directory" >> ' . LOG_PATH;
   shell_exec($cmd);
 
+  $cmd = 'rm ' . site_path(array('packages','all.pkg'));
+  shell_exec($cmd);
+
   jump_path(bread_crumbs(), null);
 }
 

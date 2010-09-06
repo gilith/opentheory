@@ -212,7 +212,7 @@ datatype info =
   | ChildrenInfo
   | DescendentsInfo
   | FilesInfo
-  | MetaInfo
+  | TagsInfo
   | NameInfo
   | ParentsInfo
   | SummaryInfo
@@ -250,9 +250,9 @@ in
       [{switches = ["--name"], arguments = [],
         description = "display the package name",
         processor = beginOpt endOpt (fn _ => addInfoOutput NameInfo)},
-       {switches = ["--meta-data"], arguments = [],
-        description = "display the package meta-data",
-        processor = beginOpt endOpt (fn _ => addInfoOutput MetaInfo)},
+       {switches = ["--information"], arguments = [],
+        description = "display the package information",
+        processor = beginOpt endOpt (fn _ => addInfoOutput TagsInfo)},
        {switches = ["--files"], arguments = [],
         description = "list the package files",
         processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
@@ -638,7 +638,7 @@ fun fromStringInput cmd inp =
 fun defaultInfoOutputList inp =
     case inp of
       ArticleInput _ => [mkInfoOutput SummaryInfo]
-    | PackageInput _ => [mkInfoOutput MetaInfo]
+    | PackageInput _ => [mkInfoOutput TagsInfo]
     | TarballInput _ => [mkInfoOutput FilesInfo]
     | TheoryInput _ => [mkInfoOutput SummaryInfo];
 
@@ -899,7 +899,7 @@ local
         in
           Stream.toTextFile file strm
         end
-      | MetaInfo =>
+      | TagsInfo =>
         let
           val pkg =
               case getPackage () of

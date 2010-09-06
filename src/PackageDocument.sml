@@ -109,8 +109,8 @@ fun toHtml doc =
             Html.Table (Html.emptyAttrs,ts)
           end
 
-      val metaBlocks =
-          [Html.H2 [Html.Text "Package Meta-Data"],
+      val tagsBlocks =
+          [Html.H2 [Html.Text "Package Information"],
            tagsBlock]
 
       val filesBlock =
@@ -134,7 +134,7 @@ fun toHtml doc =
 
       val blocks =
           nameBlock ::
-          metaBlocks @
+          tagsBlocks @
           downloadBlocks
 
       val body = Html.Body (Html.emptyAttrs,blocks)
