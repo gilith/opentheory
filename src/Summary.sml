@@ -172,7 +172,58 @@ end;
 
 fun ppWithShow show = Print.ppMap info (ppInfo show);
 
-fun toHtml show summary = [];
+local
+  fun ppList ppX prefix name xs =
+      if null xs then Print.skip
+      else
+        Print.sequence
+          (Print.blockProgram Print.Inconsistent 2
+             (Print.ppString prefix ::
+              Print.ppString name ::
+              Print.ppString ":" ::
+              map (Print.sequence (Print.addBreak 1) o ppX) xs))
+          Print.addNewline;
+in
+  fun toHtmlInfo show =
+      let
+        val ppTypeOp = TypeOp.ppWithShow show
+
+        val ppConst = Const.ppWithShow show
+
+        fun ppSymbol (prefix,sym) =
+            let
+              val ots = TypeOpSet.toList (Symbol.typeOps sym)
+              and cs = ConstSet.toList (Symbol.consts sym)
+            in
+              Print.sequence
+                (ppList ppTypeOp prefix "-types" ots)
+                (ppList ppConst prefix "-consts" cs)
+            end
+
+        val toHtmlSequent = Html.toPara (Sequent.ppHtml show)
+
+        fun toHtmlSequentSet name seqs =
+            if SequentSet.null seqs then []
+            else
+              let
+                val seqs = SequentSet.toList seqs
+              in
+                Html.H2 [Html.Text name] ::
+                List.map toHtmlSequent seqs
+              end
+      in
+        fn sum =>
+           let
+             val Info {input,assumed,defined,axioms,thms} = sum
+           in
+             toHtmlSequentSet "Axioms" axioms @
+             toHtmlSequentSet "Theorems" thms @
+             toHtmlSequentSet "Assumptions" assumed
+           end
+      end;
+end;
+
+fun toHtml show = toHtmlInfo show o info;
 
 fun toTextFile {show,summary,filename} =
     let

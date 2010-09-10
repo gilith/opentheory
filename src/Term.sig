@@ -237,4 +237,6 @@ val pp : term Print.pp
 
 val toString : term -> string
 
+val ppHtml : Show.show -> term Print.pp
+
 end

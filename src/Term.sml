@@ -1026,6 +1026,8 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
+fun ppHtml show tm = ppWithShow show tm;
+
 end
 
 structure TermOrdered =

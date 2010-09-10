@@ -169,6 +169,34 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
+fun ppHtml show =
+    let
+      val ppTerm = Term.ppHtml show
+
+      val ppHyp =
+          Print.ppBracket "{" "}"
+            (Print.ppMap TermAlphaSet.toList
+               (Print.ppOpList "," ppTerm))
+
+      val ppTurnstyle = Html.ppFixed (Html.Entity "#8870")
+
+      val ppConcl = ppTerm
+    in
+      fn Sequent {hyp,concl} =>
+         if TermAlphaSet.null hyp then
+           Print.blockProgram Print.Inconsistent 2
+             [ppTurnstyle,
+              Print.ppString " ",
+              ppConcl concl]
+         else
+           Print.blockProgram Print.Inconsistent 2
+             [ppHyp hyp,
+              Print.ppString " ",
+              ppTurnstyle,
+              Print.addBreak 1,
+              ppConcl concl]
+    end;
+
 end
 
 structure SequentOrdered =

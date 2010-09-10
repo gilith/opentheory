@@ -396,13 +396,12 @@ val defaultGrammar =
          showHyp = showHyp}
     end;
 
-val ppWithGrammar =
-    fn gram =>
-       let
-         val ppWS = Sequent.ppWithGrammar gram
-       in
-         fn show => ppWS show o sequent
-       end;
+fun ppWithGrammar gram =
+    let
+      val ppWS = Sequent.ppWithGrammar gram
+    in
+      fn show => ppWS show o sequent
+    end;
 
 val ppWithShow = ppWithGrammar defaultGrammar;
 

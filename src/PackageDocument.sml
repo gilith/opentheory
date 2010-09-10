@@ -132,10 +132,14 @@ fun toHtml doc =
           [Html.H2 [Html.Text "Downloads"],
            filesBlock]
 
+      val summaryBlocks =
+          Summary.toHtml (Show.fromTags tags) summary
+
       val blocks =
           nameBlock ::
           tagsBlocks @
-          downloadBlocks
+          downloadBlocks @
+          summaryBlocks
 
       val body = Html.Body (Html.emptyAttrs,blocks)
     in
