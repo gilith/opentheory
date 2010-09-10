@@ -80,6 +80,8 @@ fun toHtml doc =
 
             val css = join "\n"
                 ["body { margin: 1em; background-color: white; color: black; font-family: sans-serif; }",
+                 "td { background-color: #e0e8ff; margin: 0; border: 1px dotted white; padding-top: 2px; padding-bottom: 2px; padding-left: 10px; padding-right: 10px; }",
+                 "ul { padding-left: 1.25em; }",
                  "p.sequent { font-family: courier, monospace; }",
                  "span.token { color: #007f00; }"]
           in
@@ -130,10 +132,25 @@ fun toHtml doc =
             val {theory,tarball} = files
 
             val tarballItem =
-                Html.ListItem (Html.emptyAttrs, [Html.Text tarball])
+                let
+                  val text =
+                      [Html.Text "Package tarball ",
+                       Html.Anchor (Html.hrefAttrs tarball,
+                                    [Html.Text tarball])]
+                in
+                  Html.ListItem (Html.emptyAttrs,text)
+                end
 
             val theoryItem =
-                Html.ListItem (Html.emptyAttrs, [Html.Text theory])
+                let
+                  val text =
+                      [Html.Text "Theory file ",
+                       Html.Anchor (Html.hrefAttrs theory,
+                                    [Html.Text theory]),
+                       Html.Text " (included in the package tarball)"]
+                in
+                  Html.ListItem (Html.emptyAttrs,text)
+                end
 
             val items = [tarballItem,theoryItem]
           in

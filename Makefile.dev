@@ -188,7 +188,11 @@ lines: $(LINES)
 # Install and upload theories.
 ###############################################################################
 
-OPENTHEORY_INSTALL = $(OPENTHEORY) install --reinstall
+THEORY_INSTALL = $(OPENTHEORY) install
+
+THEORY_LIST = $(OPENTHEORY) list --dependency-order --name
+
+THEORY_UPLOAD = $(OPENTHEORY) upload
 
 .PHONY: hol-light-theories
 hol-light-theories: $(OPENTHEORY)
@@ -196,14 +200,25 @@ hol-light-theories: $(OPENTHEORY)
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
-#	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool/bool.thy
+	$(THEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
+	$(THEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
+#	$(THEORY_INSTALL) $(THEORY_DIR)/bool/bool.thy
+
+.PHONY: reset-repo
+reset-repo:
+	curl --location "http://opentheory.gilith.com/admin/?x=reset"
+
+.PHONY: upload-theories
+upload-theories: $(OPENTHEORY)
+	for pkg in $$($(THEORY_LIST)) ; do if ! $(THEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
 
 .PHONY: theories
 theories:
+	rm -rf $(HOME)/.opentheory
 	$(MAKE) hol-light-theories
 	$(MAKE) compilation-theories
+	$(MAKE) reset-repo
+	$(MAKE) upload-theories
 
 ###############################################################################
 # Profiling using MLton.
