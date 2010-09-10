@@ -185,14 +185,25 @@ lines: $(LINES)
 	@echo
 
 ###############################################################################
-# Install all of the compilation theories.
+# Install and upload theories.
 ###############################################################################
+
+OPENTHEORY_INSTALL = $(OPENTHEORY) install --reinstall
+
+.PHONY: hol-light-theories
+hol-light-theories: $(OPENTHEORY)
+	cd ../hol-light && ./capture
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
-	$(OPENTHEORY) install --reinstall $(THEORY_DIR)/empty/empty.thy
-	$(OPENTHEORY) install --reinstall $(THEORY_DIR)/bool-true/bool-true.thy
-#	$(OPENTHEORY) install --reinstall $(THEORY_DIR)/bool/bool.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
+#	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool/bool.thy
+
+.PHONY: theories
+theories:
+	$(MAKE) hol-light-theories
+	$(MAKE) compilation-theories
 
 ###############################################################################
 # Profiling using MLton.

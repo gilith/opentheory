@@ -727,55 +727,113 @@ fun rhs tm = snd (destEq tm);
 
 datatype grammar =
     Grammar of
-      {abs : string,
-       negations : string list,
+      {abs : Print.token,
+       negations : Print.token list,
        infixes : Print.infixes,
-       binders : string list,
+       binders : Print.token list,
+       ppToken : Print.token Print.pp,
        maximumSize : int};
 
-val defaultGrammar =
-    let
-      val abs = "\\"
+local
+  fun ppBuffer {break,space} tok =
+      if StringSet.member tok break then Print.addBreak 1
+      else if StringSet.member tok space then Print.ppString " "
+      else Print.skip;
+in
+  fun ppTokenGen pre post ppTok tok =
+      Print.program
+        [ppBuffer pre tok,
+         ppTok tok,
+         ppBuffer post tok];
+end;
 
-      val negations = ["~"]
+local
+  val abs = "\\";
 
-      val infixes =
-          Print.Infixes
-            [(* ML style *)
-             {token = "/", precedence = 7, assoc = Print.LeftAssoc},
-             {token = "div", precedence = 7, assoc = Print.LeftAssoc},
-             {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
-             {token = "*", precedence = 7, assoc = Print.LeftAssoc},
-             {token = "+", precedence = 6, assoc = Print.LeftAssoc},
-             {token = "-", precedence = 6, assoc = Print.LeftAssoc},
-             {token = "^", precedence = 6, assoc = Print.LeftAssoc},
-             {token = "@", precedence = 5, assoc = Print.RightAssoc},
-             {token = "::", precedence = 5, assoc = Print.RightAssoc},
-             {token = "=", precedence = 4, assoc = Print.NonAssoc},
-             {token = "<>", precedence = 4, assoc = Print.NonAssoc},
-             {token = "<=", precedence = 4, assoc = Print.NonAssoc},
-             {token = "<", precedence = 4, assoc = Print.NonAssoc},
-             {token = ">=", precedence = 4, assoc = Print.NonAssoc},
-             {token = ">", precedence = 4, assoc = Print.NonAssoc},
-             {token = "o", precedence = 3, assoc = Print.LeftAssoc},
-             (* HOL style *)
-             {token = "/\\", precedence = ~1, assoc = Print.RightAssoc},
-             {token = "\\/", precedence = ~2, assoc = Print.RightAssoc},
-             {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
-             {token = "<=>", precedence = ~4, assoc = Print.RightAssoc},
-             {token = ",", precedence = ~1000, assoc = Print.RightAssoc}]
+  val negations = ["~"];
 
-      val binders = ["!","?","?!","select"]
+  val infixes =
+      Print.Infixes
+        [(* ML style *)
+         {token = "/", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "div", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "*", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "+", precedence = 6, assoc = Print.LeftAssoc},
+         {token = "-", precedence = 6, assoc = Print.LeftAssoc},
+         {token = "^", precedence = 6, assoc = Print.LeftAssoc},
+         {token = "@", precedence = 5, assoc = Print.RightAssoc},
+         {token = "::", precedence = 5, assoc = Print.RightAssoc},
+         {token = "=", precedence = 4, assoc = Print.NonAssoc},
+         {token = "<>", precedence = 4, assoc = Print.NonAssoc},
+         {token = "<=", precedence = 4, assoc = Print.NonAssoc},
+         {token = "<", precedence = 4, assoc = Print.NonAssoc},
+         {token = ">=", precedence = 4, assoc = Print.NonAssoc},
+         {token = ">", precedence = 4, assoc = Print.NonAssoc},
+         {token = "o", precedence = 3, assoc = Print.LeftAssoc},
+         (* HOL style *)
+         {token = "/\\", precedence = ~1, assoc = Print.RightAssoc},
+         {token = "\\/", precedence = ~2, assoc = Print.RightAssoc},
+         {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
+         {token = "<=>", precedence = ~4, assoc = Print.RightAssoc},
+         {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
 
-      val maximumSize = 1000
-    in
+  val binders = ["!","?","?!","select"];
+
+  val pre =
+      {break = StringSet.empty,
+       space = StringSet.delete (Print.tokensInfixes infixes) ","}
+  and post =
+      {break = Print.tokensInfixes infixes,
+       space = StringSet.singleton "select"};
+
+  val ppToken =
+      let
+        val ppTok = Print.ppString
+      in
+        ppTokenGen pre post ppTok
+      end;
+
+  val ppTokenHtml =
+      let
+        val tokenAttrs = Html.singletonAttrs ("class","token")
+
+        fun ppTok tok =
+            let
+              val html =
+                  case tok of
+                    "\\" => Html.Entity "lambda"
+                  | "<=>" => Html.Entity "hArr"
+                  | _ => Html.Text tok
+
+              val html = Html.Span (tokenAttrs,[html])
+            in
+              Html.ppFixed html
+            end
+      in
+        ppTokenGen pre post ppTok
+      end;
+
+  val maximumSize = 1000;
+in
+  val defaultGrammar =
       Grammar
         {abs = abs,
          negations = negations,
          infixes = infixes,
          binders = binders,
-         maximumSize = maximumSize}
-    end;
+         ppToken = ppToken,
+         maximumSize = maximumSize};
+
+  val htmlGrammar =
+      Grammar
+        {abs = abs,
+         negations = negations,
+         infixes = infixes,
+         binders = binders,
+         ppToken = ppTokenHtml,
+         maximumSize = maximumSize};
+end;
 
 val bit0Name = Name.mkGlobal "bit0"
 and bit1Name = Name.mkGlobal "bit1"
@@ -800,7 +858,7 @@ local
         NameMap.union merge
       end;
 
-  fun ppTerm abs negations infixes binders specials ppInfixes show =
+  fun ppTerm abs negations infixes binders specials ppInfixes ppToken show =
       let
         fun showConst (c,ty) =
             if Const.equal c constEq then
@@ -813,7 +871,7 @@ local
               val n = showConst c_ty
             in
               case NameMap.peek specials n of
-                SOME s => Print.ppBracket "(" ")" Print.ppString s
+                SOME s => Print.ppBracket "(" ")" ppToken s
               | NONE => Name.pp n
             end
 
@@ -843,6 +901,8 @@ local
               if Name.equal n numeralName then destNumber x
               else raise Error "Term.pp.destNumeral: no marker"
             end
+
+        val ppNumeral = Print.ppMap Int.toString ppToken
 
         fun destNegation tm =
             let
@@ -880,13 +940,7 @@ local
 
         val isInfix = can destInfix
 
-        fun ppInfixTok tok =
-            Print.program
-              [(if tok = "," then Print.skip else Print.ppString " "),
-               Print.ppString tok,
-               Print.addBreak 1]
-
-        val ppInfix = ppInfixes (total destInfix) ppInfixTok
+        val ppInfix = ppInfixes (total destInfix) ppToken
 
         fun destBinder tm =
             case total destAbs tm of
@@ -927,7 +981,7 @@ local
             | TypeTerm.Const' c => ppConst c
             | TypeTerm.App' f_x =>
               (case total destNumeral f_x of
-                 SOME i => Print.ppInt i
+                 SOME i => ppNumeral i
                | NONE => ppBracket tm)
             | TypeTerm.Abs' _ => ppBracket tm
 
@@ -936,7 +990,7 @@ local
               NONE => ppBasic tm
             | SOME (f,x) =>
               case total destNumeral (f,x) of
-                SOME i => Print.ppInt i
+                SOME i => ppNumeral i
               | NONE =>
                 Print.program
                   [ppFunction f,
@@ -948,21 +1002,10 @@ local
 
         and ppBind tm =
             let
-              val (sym,v,vs,body) = stripBinder tm
-
-              val printSym =
-                  case String.size sym of
-                    0 => Print.ppString "EmptyBinder"
-                  | n =>
-                    let
-                      val pp = Print.ppString sym
-                    in
-                      if not (Char.isAlphaNum (String.sub (sym, n - 1))) then pp
-                      else Print.sequence pp (Print.ppString " ")
-                    end
+              val (tok,v,vs,body) = stripBinder tm
             in
               Print.blockProgram Print.Inconsistent 2
-                [printSym,
+                [ppToken tok,
                  Var.pp v,
                  Print.program
                    (map (Print.sequence (Print.addBreak 1) o Var.pp) vs),
@@ -996,7 +1039,7 @@ local
 in
   fun ppWithGrammar gram =
       let
-        val Grammar {abs,negations,infixes,binders,maximumSize} = gram
+        val Grammar {abs,negations,infixes,binders,ppToken,maximumSize} = gram
 
         val negationNames = mkMap (StringSet.fromList negations)
         and infixNames = mkMap (Print.tokensInfixes infixes)
@@ -1013,7 +1056,7 @@ in
            in
              if n <= maximumSize then
                ppTerm abs negationNames infixNames binderNames
-                 specialNames ppInfixes show tm
+                 specialNames ppInfixes ppToken show tm
              else
                Print.ppBracket "term{" "}" Print.ppInt n
            end
@@ -1026,7 +1069,7 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
-fun ppHtml show tm = ppWithShow show tm;
+val ppHtml = ppWithGrammar htmlGrammar;
 
 end
 

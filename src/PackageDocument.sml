@@ -74,7 +74,19 @@ fun toHtml doc =
 
       val title = Html.Title ("OpenTheory package " ^ PackageName.toString name)
 
-      val head = Html.Head (title,[])
+      val style =
+          let
+            val attrs = Html.singletonAttrs ("type","text/css")
+
+            val css = join "\n"
+                ["body { margin: 1em; background-color: white; color: black; font-family: sans-serif; }",
+                 "p.sequent { font-family: courier, monospace; }",
+                 "span.token { color: #007f00; }"]
+          in
+            Html.Style (attrs,css)
+          end
+
+      val head = Html.Head (title,[],[style])
 
       val nameBlock =
           let

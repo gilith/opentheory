@@ -200,7 +200,7 @@ in
                 (ppList ppConst prefix "-consts" cs)
             end
 
-        val toHtmlSequent = Html.toPara (Sequent.ppHtml show)
+        val toHtmlSequent = Sequent.toHtml show
 
         fun toHtmlSequentSet name seqs =
             if SequentSet.null seqs then []

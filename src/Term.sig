@@ -221,10 +221,11 @@ val rhs : term -> term
 
 datatype grammar =
     Grammar of
-      {abs : string,
-       negations : string list,
+      {abs : Print.token,
+       negations : Print.token list,
        infixes : Print.infixes,
-       binders : string list,
+       binders : Print.token list,
+       ppToken : Print.token Print.pp,
        maximumSize : int}
 
 val defaultGrammar : grammar

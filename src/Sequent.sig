@@ -76,4 +76,6 @@ val toString : sequent -> string
 
 val ppHtml : Show.show -> sequent Print.pp
 
+val toHtml : Show.show -> sequent -> Html.block
+
 end

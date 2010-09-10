@@ -197,6 +197,14 @@ fun ppHtml show =
               ppConcl concl]
     end;
 
+  local
+    val attrs = Html.singletonAttrs ("class","sequent");
+
+    fun mkPara inlines = Html.Para (attrs,inlines);
+  in
+    fun toHtml show = mkPara o Html.toFixed (ppHtml show);
+  end;
+
 end
 
 structure SequentOrdered =
@@ -207,40 +215,40 @@ structure SequentMap = KeyMap (SequentOrdered)
 structure SequentSet =
 struct
 
-  local
-    structure S = ElementSet (SequentMap);
-  in
-    open S;
-  end;
+local
+  structure S = ElementSet (SequentMap);
+in
+  open S;
+end;
 
-  local
-    fun addSeq (seq,share) = Sequent.addSharingTypeOps seq share;
-  in
-    fun addSharingTypeOps set share = foldl addSeq share set;
-  end;
+local
+  fun addSeq (seq,share) = Sequent.addSharingTypeOps seq share;
+in
+  fun addSharingTypeOps set share = foldl addSeq share set;
+end;
 
-  fun typeOps set =
-      let
-        val share = Term.emptySharingTypeOps
+fun typeOps set =
+    let
+      val share = Term.emptySharingTypeOps
 
-        val share = addSharingTypeOps set share
-      in
-        Term.toSetSharingTypeOps share
-      end;
+      val share = addSharingTypeOps set share
+    in
+      Term.toSetSharingTypeOps share
+    end;
 
-  local
-    fun addSeq (seq,share) = Sequent.addSharingConsts seq share;
-  in
-    fun addSharingConsts set share = foldl addSeq share set;
-  end;
+local
+  fun addSeq (seq,share) = Sequent.addSharingConsts seq share;
+in
+  fun addSharingConsts set share = foldl addSeq share set;
+end;
 
-  fun consts set =
-      let
-        val share = Term.emptySharingConsts
+fun consts set =
+    let
+      val share = Term.emptySharingConsts
 
-        val share = addSharingConsts set share
-      in
-        Term.toSetSharingConsts share
-      end;
+      val share = addSharingConsts set share
+    in
+      Term.toSetSharingConsts share
+    end;
 
 end
