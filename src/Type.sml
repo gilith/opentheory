@@ -349,9 +349,9 @@ val maximumSize = ref 1000;
 
 val infixTokens =
     Print.Infixes
-      [{token = " * ", precedence = 3, leftAssoc = false},
-       {token = " + ", precedence = 2, leftAssoc = false},
-       {token = " -> ", precedence = 1, leftAssoc = false}];
+      [{token = "*", precedence = 3, assoc = Print.RightAssoc},
+       {token = "+", precedence = 2, assoc = Print.RightAssoc},
+       {token = "->", precedence = 1, assoc = Print.RightAssoc}];
 
 local
   val typeInfixStrings = Print.tokensInfixes infixTokens;
@@ -374,7 +374,14 @@ local
 
   val isTypeInfix = can destTypeInfix;
 
-  val typeInfixPrinter = Print.ppInfixes infixTokens (total destTypeInfix);
+  fun ppTypeInfix tok =
+      Print.program
+        [Print.ppString " ",
+         Print.ppString tok,
+         Print.addBreak 1];
+
+  val typeInfixPrinter =
+      Print.ppInfixes infixTokens (total destTypeInfix) ppTypeInfix;
 
   fun basic ty =
       if isVar ty then ppTypeVar (destVar ty)
@@ -407,7 +414,7 @@ in
         val n = size ty
       in
         if n <= !maximumSize then ppTypeTop ty
-        else Print.addString ("type{" ^ Int.toString n ^ "}")
+        else Print.ppBracket "type{" "}" Print.ppInt n
       end;
 end;
 

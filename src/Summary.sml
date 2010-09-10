@@ -120,9 +120,9 @@ local
       else
         Print.sequence
           (Print.blockProgram Print.Inconsistent 2
-             (Print.addString prefix ::
-              Print.addString name ::
-              Print.addString ":" ::
+             (Print.ppString prefix ::
+              Print.ppString name ::
+              Print.ppString ":" ::
               map (Print.sequence (Print.addBreak 1) o ppX) xs))
           Print.addNewline;
 in
@@ -149,8 +149,8 @@ in
               val seqs = SequentSet.toList seqs
             in
               Print.blockProgram Print.Consistent 2
-                (Print.addString name ::
-                 Print.addString ":" ::
+                (Print.ppString name ::
+                 Print.ppString ":" ::
                  map (Print.sequence Print.addNewline o ppSequent) seqs)
             end
       in

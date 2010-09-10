@@ -69,7 +69,7 @@ fun equal i1 i2 =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppSeparator = Print.addString separatorString;
+val ppSeparator = Print.ppString separatorString;
 
 fun pp' n =
     let

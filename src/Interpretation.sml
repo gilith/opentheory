@@ -27,11 +27,11 @@ datatype rewrite =
 local
   fun ppName2 prefix (x,y) =
       Print.blockProgram Print.Inconsistent 2
-        [Print.addString prefix,
+        [Print.ppString prefix,
          Print.addBreak 1,
          Name.ppQuoted x,
-         Print.addString " ",
-         Print.addString rewriteString,
+         Print.ppString " ",
+         Print.ppString rewriteString,
          Print.addBreak 1,
          Name.ppQuoted y];
 in

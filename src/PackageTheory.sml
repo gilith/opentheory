@@ -361,10 +361,10 @@ fun pp thy =
     in
       Print.blockProgram Print.Consistent 0
         (ppName n ::
-         Print.addString " " ::
+         Print.ppString " " ::
          (if null cs then
             [ppOpenBlock,
-             Print.addString " ",
+             Print.ppString " ",
              ppCloseBlock]
           else
             [Print.blockProgram Print.Consistent 2

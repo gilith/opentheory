@@ -702,7 +702,7 @@ local
               (Print.ppString name ::
                (case filename of
                   NONE => []
-                | SOME sf => [Print.addString " ", Print.ppString sf]))
+                | SOME sf => [Print.ppString " ", Print.ppString sf]))
 
         fun ppCopy (dest,srcs) =
             Print.blockProgram Print.Consistent 2

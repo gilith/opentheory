@@ -742,28 +742,28 @@ val defaultGrammar =
       val infixes =
           Print.Infixes
             [(* ML style *)
-             {token = " / ", precedence = 7, leftAssoc = true},
-             {token = " div ", precedence = 7, leftAssoc = true},
-             {token = " mod ", precedence = 7, leftAssoc = true},
-             {token = " * ", precedence = 7, leftAssoc = true},
-             {token = " + ", precedence = 6, leftAssoc = true},
-             {token = " - ", precedence = 6, leftAssoc = true},
-             {token = " ^ ", precedence = 6, leftAssoc = true},
-             {token = " @ ", precedence = 5, leftAssoc = false},
-             {token = " :: ", precedence = 5, leftAssoc = false},
-             {token = " = ", precedence = 4, leftAssoc = true},
-             {token = " <> ", precedence = 4, leftAssoc = true},
-             {token = " <= ", precedence = 4, leftAssoc = true},
-             {token = " < ", precedence = 4, leftAssoc = true},
-             {token = " >= ", precedence = 4, leftAssoc = true},
-             {token = " > ", precedence = 4, leftAssoc = true},
-             {token = " o ", precedence = 3, leftAssoc = true},
+             {token = "/", precedence = 7, assoc = Print.LeftAssoc},
+             {token = "div", precedence = 7, assoc = Print.LeftAssoc},
+             {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
+             {token = "*", precedence = 7, assoc = Print.LeftAssoc},
+             {token = "+", precedence = 6, assoc = Print.LeftAssoc},
+             {token = "-", precedence = 6, assoc = Print.LeftAssoc},
+             {token = "^", precedence = 6, assoc = Print.LeftAssoc},
+             {token = "@", precedence = 5, assoc = Print.RightAssoc},
+             {token = "::", precedence = 5, assoc = Print.RightAssoc},
+             {token = "=", precedence = 4, assoc = Print.NonAssoc},
+             {token = "<>", precedence = 4, assoc = Print.NonAssoc},
+             {token = "<=", precedence = 4, assoc = Print.NonAssoc},
+             {token = "<", precedence = 4, assoc = Print.NonAssoc},
+             {token = ">=", precedence = 4, assoc = Print.NonAssoc},
+             {token = ">", precedence = 4, assoc = Print.NonAssoc},
+             {token = "o", precedence = 3, assoc = Print.LeftAssoc},
              (* HOL style *)
-             {token = " /\\ ", precedence = ~1, leftAssoc = false},
-             {token = " \\/ ", precedence = ~2, leftAssoc = false},
-             {token = " ==> ", precedence = ~3, leftAssoc = false},
-             {token = " <=> ", precedence = ~4, leftAssoc = false},
-             {token = ", ", precedence = ~1000, leftAssoc = false}]
+             {token = "/\\", precedence = ~1, assoc = Print.RightAssoc},
+             {token = "\\/", precedence = ~2, assoc = Print.RightAssoc},
+             {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
+             {token = "<=>", precedence = ~4, assoc = Print.RightAssoc},
+             {token = ",", precedence = ~1000, assoc = Print.RightAssoc}]
 
       val binders = ["!","?","?!","select"]
 
@@ -880,7 +880,13 @@ local
 
         val isInfix = can destInfix
 
-        val ppInfix = ppInfixes (total destInfix)
+        fun ppInfixTok tok =
+            Print.program
+              [(if tok = "," then Print.skip else Print.ppString " "),
+               Print.ppString tok,
+               Print.addBreak 1]
+
+        val ppInfix = ppInfixes (total destInfix) ppInfixTok
 
         fun destBinder tm =
             case total destAbs tm of
@@ -946,13 +952,13 @@ local
 
               val printSym =
                   case String.size sym of
-                    0 => Print.addString "EmptyBinder"
+                    0 => Print.ppString "EmptyBinder"
                   | n =>
                     let
-                      val pp = Print.addString sym
+                      val pp = Print.ppString sym
                     in
                       if not (Char.isAlphaNum (String.sub (sym, n - 1))) then pp
-                      else Print.sequence pp (Print.addString " ")
+                      else Print.sequence pp (Print.ppString " ")
                     end
             in
               Print.blockProgram Print.Inconsistent 2
@@ -960,7 +966,7 @@ local
                  Var.pp v,
                  Print.program
                    (map (Print.sequence (Print.addBreak 1) o Var.pp) vs),
-                 Print.addString ".",
+                 Print.ppString ".",
                  Print.addBreak 1,
                  if isBinder body then ppBind body else ppNormal body]
             end
@@ -975,7 +981,7 @@ local
               val (syms,tm) = stripNegation tm
             in
               Print.blockProgram Print.Inconsistent (length syms)
-                (map Print.addString syms @
+                (map Print.ppString syms @
                  [if isInfix tm then ppBracket tm else ppBinder (tm,r)])
             end
 

@@ -41,7 +41,7 @@ fun equal (Version v1) (Version v2) = v1 = v2;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppSeparator = Print.addString separatorString;
+val ppSeparator = Print.ppString separatorString;
 
 fun pp (Version (i,l)) =
     Print.program

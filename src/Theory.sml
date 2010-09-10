@@ -114,9 +114,9 @@ fun isPackage thy = Option.isSome (package thy);
 
 fun pp thy =
     Print.blockProgram Print.Consistent 0
-      [Print.addString "Theory<",
+      [Print.ppString "Theory<",
        Print.ppInt (id thy),
-       Print.addString ">"];
+       Print.ppString ">"];
 
 end
 
@@ -138,7 +138,7 @@ struct
       in
         fn m =>
           Print.blockProgram Print.Consistent 0
-            [Print.addString "TheoryMap",
+            [Print.ppString "TheoryMap",
              Print.ppList ppTX (toList m)]
       end;
 

@@ -58,16 +58,16 @@ fun equal (t1 : tag) t2 = t1 = t2;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppSeparator = Print.addString (separatorString ^ " ");
+val ppSeparator = Print.ppString (separatorString ^ " ");
 
 fun pp tag =
     let
       val Tag' {name,value} = tag
     in
       Print.blockProgram Print.Consistent 0
-        [Print.addString name,
+        [Print.ppString name,
          ppSeparator,
-         Print.addString value]
+         Print.ppString value]
     end;
 
 fun ppList tags =

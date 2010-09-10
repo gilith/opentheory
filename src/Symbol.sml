@@ -277,7 +277,8 @@ local
         else
           Print.sequence
             (Print.blockProgram Print.Inconsistent 2
-               (Print.addString (name ^ ":") ::
+               (Print.ppString name ::
+                Print.ppString ":" ::
                 map (Print.sequence (Print.addBreak 1) o Name.pp) ns))
             Print.addNewline
       end;

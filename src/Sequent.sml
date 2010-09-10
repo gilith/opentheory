@@ -145,7 +145,7 @@ in
                    Print.ppMap TermAlphaSet.toList
                      (Print.ppOpList "," ppHypTerm)
                  else
-                   Print.addString o dots o TermAlphaSet.size
+                   Print.ppString o dots o TermAlphaSet.size
 
              val ppHyp = Print.ppBracket "{" "}" ppHypSet
 
@@ -154,7 +154,7 @@ in
              fn Sequent {hyp,concl} =>
                 if TermAlphaSet.null hyp then
                   Print.blockProgram Print.Inconsistent indent_space
-                    [Print.addString connective_space,
+                    [Print.ppString connective_space,
                      ppConcl concl]
                 else
                   Print.block Print.Inconsistent 2
