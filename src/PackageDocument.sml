@@ -138,7 +138,7 @@ fun toHtml doc =
                        Html.Anchor (Html.hrefAttrs tarball,
                                     [Html.Text tarball])]
                 in
-                  Html.ListItem (Html.emptyAttrs,text)
+                  Html.ListItem (Html.emptyAttrs, [Html.Inline text])
                 end
 
             val theoryItem =
@@ -149,7 +149,7 @@ fun toHtml doc =
                                     [Html.Text theory]),
                        Html.Text " (included in the package tarball)"]
                 in
-                  Html.ListItem (Html.emptyAttrs,text)
+                  Html.ListItem (Html.emptyAttrs, [Html.Inline text])
                 end
 
             val items = [tarballItem,theoryItem]

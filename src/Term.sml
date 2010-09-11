@@ -800,13 +800,24 @@ local
 
         fun ppTok tok =
             let
-              val html =
+              val inlines =
                   case tok of
-                    "\\" => Html.Entity "lambda"
-                  | "<=>" => Html.Entity "hArr"
-                  | _ => Html.Text tok
+                    "\\" => [Html.Entity "lambda"]
+                  | "~" => [Html.Entity "not"]
+                  | "<=" => [Html.Entity "le"]
+                  | "<" => [Html.Entity "lt"]
+                  | ">=" => [Html.Entity "ge"]
+                  | ">" => [Html.Entity "gt"]
+                  | "/\\" => [Html.Entity "and"]
+                  | "\\/" => [Html.Entity "or"]
+                  | "==>" => [Html.Entity "rArr"]
+                  | "<=>" => [Html.Entity "hArr"]
+                  | "!" => [Html.Entity "forall"]
+                  | "?" => [Html.Entity "exist"]
+                  | "?!" => [Html.Entity "exist", Html.Text "!"]
+                  | _ => [Html.Text tok]
 
-              val html = Html.Span (tokenAttrs,[html])
+              val html = Html.Span (tokenAttrs,inlines)
             in
               Html.ppFixed html
             end
