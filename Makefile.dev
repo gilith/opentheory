@@ -285,9 +285,11 @@ tarball: clean doc/DONT-RELEASE Makefile.dev
 release: release-stamp mosml mlton polyml documentation
 	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/*.png
 	cp -v doc/*.html doc/*.txt doc/*.png $(RELEASE_DIR)/
-	cp -v doc/logging.ml $(RELEASE_DIR)/
-	cp -v doc/foo.thy $(RELEASE_DIR)/
 	cp -v doc/favicon.ico $(RELEASE_DIR)/
+	cp -v doc/foo.thy $(RELEASE_DIR)/
+	cp -v doc/GPL-LICENSE $(RELEASE_DIR)/
+	cp -v doc/MIT-LICENSE $(RELEASE_DIR)/
+	cp -v doc/logging.ml $(RELEASE_DIR)/
 	$(MAKE) tarball
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 	ssh gilith@login.gilith.com '/bin/bash -l scripts/install_opentheory'
