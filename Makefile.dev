@@ -206,7 +206,7 @@ compilation-theories: $(OPENTHEORY)
 
 .PHONY: reset-repo
 reset-repo:
-	curl --location "http://opentheory.gilith.com/admin/?x=reset"
+	curl --user-agent opentheory "http://opentheory.gilith.com/admin/?x=reset"
 
 .PHONY: upload-theories
 upload-theories: $(OPENTHEORY)

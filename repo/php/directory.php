@@ -80,4 +80,34 @@ $action . $args .
   return shell_exec($cmd);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Regenerate the package lists.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_list() {
+  $args = ' -o ' . site_path(array('packages','all.pkg'));
+
+  $output = opentheory('list',$args);
+
+  if (isset($output)) {
+    trigger_error('couldn\'t regenerate package list: ' . $output);
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Initialize the opentheory directory.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_init() {
+  $args = '';
+
+  $output = opentheory('init',$args);
+
+  if (isset($output)) {
+    trigger_error('couldn\'t initialize directory: ' . $output);
+  }
+
+  opentheory_list();
+}
+
 ?>

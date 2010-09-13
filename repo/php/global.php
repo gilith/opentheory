@@ -12,7 +12,7 @@
 // Repo details.
 ///////////////////////////////////////////////////////////////////////////////
 
-define('REPO_NAME','Gilith');
+define('REPO_NAME','gilith');
 
 define('REPO_ADMIN','Joe Hurd');
 

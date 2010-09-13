@@ -57,7 +57,8 @@ val download : repo -> PackageInfo.info -> unit
 (* Uploading packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val upload : repo -> PackageInfo.info -> Checksum.checksum -> unit
+val upload :
+    repo -> PackageInfo.info -> Checksum.checksum -> {response : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

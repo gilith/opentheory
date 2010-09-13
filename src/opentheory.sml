@@ -1571,10 +1571,9 @@ fun upload name =
               else chat ("package upload warnings:\n" ^ s)
             end
 
-      val () = Directory.upload dir repo name
+      val {response} = Directory.upload dir repo name
 
-      val () = chat ("uploaded package " ^ PackageName.toString name ^
-                     " to " ^ DirectoryRepo.toString repo ^ " repo")
+      val () = chat response
     in
       ()
     end

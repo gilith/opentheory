@@ -17,7 +17,7 @@ require_once 'links.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 function repo_name() {
-  $name = REPO_NAME . ' OpenTheory Repo';
+  $name = ucfirst(REPO_NAME) . ' OpenTheory Repo';
 
   return $name;
 }
@@ -170,6 +170,14 @@ function repo_admin() {
 ///////////////////////////////////////////////////////////////////////////////
 // The complete page.
 ///////////////////////////////////////////////////////////////////////////////
+
+function output_script($text) {
+  echo REPO_NAME;
+  echo ' repo: ';
+  echo $text;
+  echo "\n";
+  exit;
+}
 
 function output($head, $main, $image) {
   $mobile = is_mobile();

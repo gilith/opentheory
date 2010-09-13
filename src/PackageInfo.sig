@@ -85,7 +85,8 @@ val contentsTarball : info -> PackageTarball.contents
 
 val unpackTarball : info -> PackageTarball.contents -> {minimal : bool} -> unit
 
-val uploadTarball : info -> Checksum.checksum -> {url : string} -> unit
+val uploadTarball :
+    info -> Checksum.checksum -> {url : string} -> {response : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package document.                                                         *)

@@ -1074,9 +1074,9 @@ fun upload dir repo name =
             raise Error ("package " ^ PackageName.toString name ^
                          " seems to be badly installed")
 
-      val () = DirectoryRepo.upload repo info chk
+      val response = DirectoryRepo.upload repo info chk
     in
-      ()
+      response
     end;
 
 (* ------------------------------------------------------------------------- *)

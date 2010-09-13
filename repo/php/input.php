@@ -119,4 +119,10 @@ function is_mobile() {
   return ereg('iPhone',$b);
 }
 
+function is_script() {
+  $b = browser();
+
+  return (strcmp($b,'opentheory') == 0);
+}
+
 ?>

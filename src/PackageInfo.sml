@@ -12,7 +12,7 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val checksumFilename = "checksum.txt";
+val uploadSuccessString = "successfully uploaded";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
@@ -373,13 +373,16 @@ fun uploadTarball info chk {url} =
 
       val {filename = f} = joinDirectory info (tarball info)
 
+      val tmpFile = OS.FileSys.tmpName ()
+
       val {curl = cmd} = DirectorySystem.curl sys
 
       val cmd =
           cmd ^ " " ^ url ^
           " --form \"t=@" ^ f ^ "\"" ^
           " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
-          " --form \"s=upload package\""
+          " --form \"s=upload package\"" ^
+          " --output " ^ tmpFile
 
 (*OpenTheoryTrace1
       val () = print (cmd ^ "\n")
@@ -388,8 +391,22 @@ fun uploadTarball info chk {url} =
       val () =
           if OS.Process.isSuccess (OS.Process.system cmd) then ()
           else raise Error "uploading the package tarball failed"
+
+      val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
+
+      val () = OS.FileSys.remove tmpFile
     in
-      ()
+      case lines of
+        [] => raise Error "no response from repo"
+      | line :: _ =>
+        let
+          val response = chomp (String.concat lines)
+        in
+          if String.isSubstring uploadSuccessString line then
+            {response = response}
+          else
+            raise Error ("error response from repo:\n" ^ response)
+        end
     end;
 
 (* ------------------------------------------------------------------------- *)

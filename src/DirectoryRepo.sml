@@ -159,13 +159,13 @@ fun upload repo info chk =
     let
       (* Upload the tarball *)
 
-      val () = PackageInfo.uploadTarball info chk (uploadUrl repo)
+      val response = PackageInfo.uploadTarball info chk (uploadUrl repo)
 
       (* Update the package list *)
 
       val () = update repo
     in
-      ()
+      response
     end;
 
 (* ------------------------------------------------------------------------- *)

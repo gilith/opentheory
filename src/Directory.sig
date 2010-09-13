@@ -152,7 +152,7 @@ val checkUpload :
 val upload :
     directory ->
     DirectoryRepo.repo -> PackageName.name ->
-    unit
+    {response : string}
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder.                                                         *)
