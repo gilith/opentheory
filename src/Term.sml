@@ -731,21 +731,11 @@ datatype grammar =
        negations : Print.token list,
        infixes : Print.infixes,
        binders : Print.token list,
-       ppToken : Print.token Print.pp,
+       ppConst : (term * Name.name) Print.pp,
+       ppNegation : (term * Print.token) Print.pp,
+       ppInfix : (term * Print.token) Print.pp,
+       ppBinder : (term * Print.token) Print.pp,
        maximumSize : int};
-
-local
-  fun ppBuffer {break,space} tok =
-      if StringSet.member tok break then Print.addBreak 1
-      else if StringSet.member tok space then Print.ppString " "
-      else Print.skip;
-in
-  fun ppTokenGen pre post ppTok tok =
-      Print.program
-        [ppBuffer pre tok,
-         ppTok tok,
-         ppBuffer post tok];
-end;
 
 local
   val abs = "\\";
@@ -780,50 +770,84 @@ local
 
   val binders = ["!","?","?!","select"];
 
-  val pre =
-      {break = StringSet.empty,
-       space = StringSet.delete (Print.tokensInfixes infixes) ","}
-  and post =
-      {break = Print.tokensInfixes infixes,
-       space = StringSet.singleton "select"};
+  fun ppConst (_,n) = Name.pp n;
 
-  val ppToken =
+  fun ppNegation (_,tok) = Print.ppString tok;
+
+  fun ppInfixBuffer ppInf tm_tok =
       let
-        val ppTok = Print.ppString
+        val (_,tok) = tm_tok
+
+        val pps = [ppInf tm_tok, Print.addBreak 1]
+
+        val pps = if tok = "," then pps else Print.ppString " " :: pps
       in
-        ppTokenGen pre post ppTok
+        Print.program pps
       end;
 
-  val ppTokenHtml =
-      let
-        val tokenAttrs = Html.singletonAttrs ("class","token")
+  val ppInfix = ppInfixBuffer (Print.ppMap snd Print.ppString);
 
-        fun ppTok tok =
+  fun ppBinder (_,tok) =
+      let
+        val pps = []
+
+        val pps =
             let
-              val inlines =
-                  case tok of
-                    "\\" => [Html.Entity "lambda"]
-                  | "~" => [Html.Entity "not"]
-                  | "<=" => [Html.Entity "le"]
-                  | "<" => [Html.Entity "lt"]
-                  | ">=" => [Html.Entity "ge"]
-                  | ">" => [Html.Entity "gt"]
-                  | "/\\" => [Html.Entity "and"]
-                  | "\\/" => [Html.Entity "or"]
-                  | "==>" => [Html.Entity "rArr"]
-                  | "<=>" => [Html.Entity "hArr"]
-                  | "!" => [Html.Entity "forall"]
-                  | "?" => [Html.Entity "exist"]
-                  | "?!" => [Html.Entity "exist", Html.Text "!"]
-                  | _ => [Html.Text tok]
+              val n = String.size tok
 
-              val html = Html.Span (tokenAttrs,inlines)
+              val alpha = n > 0 andalso Char.isAlpha (String.sub (tok, n - 1))
             in
-              Html.ppFixed html
+              if alpha then Print.addBreak 1 :: pps else pps
             end
+
+        val pps = Print.ppString tok :: pps
       in
-        ppTokenGen pre post ppTok
+        Print.program pps
       end;
+
+(***
+  local
+    fun toHtmlToken tok =
+        case tok of
+          "\\" => [Html.Entity "lambda"]
+        | "~" => [Html.Entity "not"]
+        | "<=" => [Html.Entity "le"]
+        | "<" => [Html.Entity "lt"]
+        | ">=" => [Html.Entity "ge"]
+        | ">" => [Html.Entity "gt"]
+        | "/\\" => [Html.Entity "and"]
+        | "\\/" => [Html.Entity "or"]
+        | "==>" => [Html.Entity "rArr"]
+        | "<=>" => [Html.Entity "hArr"]
+        | "!" => [Html.Entity "forall"]
+        | "?" => [Html.Entity "exist"]
+        | "?!" => [Html.Entity "exist", Html.Text "!"]
+        | _ => [Html.Text tok];
+
+    fun toHtmlConst class (_,tok) =
+        let
+          val attrs = Html.singletonAttrs ("class",class)
+
+          val inlines = toHtmlToken tok
+        in
+          Html.Span (attrs,inlines)
+        end;
+
+    fun ppConstGen class = Print.ppMap (toHtmlConst class) Html.ppFixed;
+  in
+    val ppConstHtml = ppConstGen "const";
+
+    val ppInfixHtml = ppInfixGen pre post (ppConstGen "infix");
+  end;
+***)
+
+  val ppConstHtml = ppConst;
+
+  val ppNegationHtml = ppNegation;
+
+  val ppInfixHtml = ppInfix;
+
+  val ppBinderHtml = ppBinder;
 
   val maximumSize = 1000;
 in
@@ -833,7 +857,10 @@ in
          negations = negations,
          infixes = infixes,
          binders = binders,
-         ppToken = ppToken,
+         ppConst = ppConst,
+         ppNegation = ppNegation,
+         ppInfix = ppInfix,
+         ppBinder = ppBinder,
          maximumSize = maximumSize};
 
   val htmlGrammar =
@@ -842,7 +869,10 @@ in
          negations = negations,
          infixes = infixes,
          binders = binders,
-         ppToken = ppTokenHtml,
+         ppConst = ppConstHtml,
+         ppNegation = ppNegationHtml,
+         ppInfix = ppInfixHtml,
+         ppBinder = ppBinderHtml,
          maximumSize = maximumSize};
 end;
 
@@ -859,6 +889,7 @@ local
         StringSet.foldl add (NameMap.new ())
       end;
 
+(***
   val unionMap =
       let
         fun merge ((_,x),(_,y)) =
@@ -868,8 +899,14 @@ local
       in
         NameMap.union merge
       end;
+***)
 
-  fun ppTerm abs negations infixes binders specials ppInfixes ppToken show =
+  val ppNumeral = Print.ppInt
+
+  fun ppTerm ppInfixes
+             absToken negationNames infixNames binderNames specialNames
+             ppConstName ppNegationToken ppInfixToken ppBinderToken
+             show =
       let
         fun showConst (c,ty) =
             if Const.equal c constEq then
@@ -877,13 +914,14 @@ local
             else
               Show.showName show (Const.name c)
 
-        fun ppConst c_ty =
+        fun ppConst (tm,c_ty) =
             let
               val n = showConst c_ty
             in
-              case NameMap.peek specials n of
-                SOME s => Print.ppBracket "(" ")" ppToken s
-              | NONE => Name.pp n
+              if NameSet.member n specialNames then
+                Print.ppBracket "(" ")" ppConstName (tm,n)
+              else
+                ppConstName (tm,n)
             end
 
         fun destNumber tm =
@@ -913,15 +951,13 @@ local
               else raise Error "Term.pp.destNumeral: no marker"
             end
 
-        val ppNumeral = Print.ppMap Int.toString ppToken
-
         fun destNegation tm =
             let
               val (c,a) = destApp tm
 
               val n = showConst (destConst c)
             in
-              case NameMap.peek negations n of
+              case NameMap.peek negationNames n of
                 SOME s => (s,a)
               | NONE => raise Error "Term.pp.destNegation"
             end
@@ -938,24 +974,24 @@ local
 
         fun destInfix tm =
             let
-              val (tm,b) = destApp tm
+              val (t,b) = destApp tm
 
-              val (c,a) = destApp tm
+              val (c,a) = destApp t
 
               val n = showConst (destConst c)
             in
-              case NameMap.peek infixes n of
+              case NameMap.peek infixNames n of
                 SOME s => (s,a,b)
               | NONE => raise Error "Term.pp.destInfix"
             end
 
         val isInfix = can destInfix
 
-        val ppInfix = ppInfixes (total destInfix) ppToken
+        val ppInfix = ppInfixes (total destInfix) ppInfixToken
 
         fun destBinder tm =
             case total destAbs tm of
-              SOME (v,t) => (abs,v,t)
+              SOME (v,t) => (absToken,v,t)
             | NONE =>
               let
                 val (c,t) = destApp tm
@@ -964,7 +1000,7 @@ local
 
                 val n = showConst (destConst c)
               in
-                case NameMap.peek binders n of
+                case NameMap.peek binderNames n of
                   SOME s => (s,v,b)
                 | NONE => raise Error "Term.pp.destBinder"
               end
@@ -986,88 +1022,97 @@ local
               (n, v, rev vs, b)
             end
 
-        fun ppBasic tm =
+        fun ppBasicTerm tm =
             case dest tm of
               TypeTerm.Var' v => Var.pp v
-            | TypeTerm.Const' c => ppConst c
+            | TypeTerm.Const' c_ty => ppConst (tm,c_ty)
             | TypeTerm.App' f_x =>
               (case total destNumeral f_x of
                  SOME i => ppNumeral i
-               | NONE => ppBracket tm)
-            | TypeTerm.Abs' _ => ppBracket tm
+               | NONE => ppBracketTerm tm)
+            | TypeTerm.Abs' _ => ppBracketTerm tm
 
-        and ppApplication tm =
+        and ppApplicationTerm tm =
             case total destApp tm of
-              NONE => ppBasic tm
+              NONE => ppBasicTerm tm
             | SOME (f,x) =>
               case total destNumeral (f,x) of
                 SOME i => ppNumeral i
               | NONE =>
                 Print.program
-                  [ppFunction f,
+                  [ppFunctionTerm f,
                    Print.addBreak 1,
-                   ppBasic x]
+                   ppBasicTerm x]
 
-        and ppFunction tm =
-            if isInfix tm then ppBracket tm else ppBinder (tm,true)
+        and ppFunctionTerm tm =
+            if isInfix tm then ppBracketTerm tm
+            else ppBinderTerm (tm,true)
 
-        and ppBind tm =
+        and ppBindTerm tm =
             let
               val (tok,v,vs,body) = stripBinder tm
             in
               Print.blockProgram Print.Inconsistent 2
-                [ppToken tok,
+                [ppBinderToken (tm,tok),
                  Var.pp v,
                  Print.program
                    (map (Print.sequence (Print.addBreak 1) o Var.pp) vs),
                  Print.ppString ".",
                  Print.addBreak 1,
-                 if isBinder body then ppBind body else ppNormal body]
+                 if isBinder body then ppBindTerm body
+                 else ppNormalTerm body]
             end
 
-        and ppBinder (tm,r) =
-            if not (isBinder tm) then ppApplication tm
-            else if r then Print.ppBracket "(" ")" ppBind tm
-            else ppBind tm
+        and ppBinderTerm (tm,r) =
+            if not (isBinder tm) then ppApplicationTerm tm
+            else if r then Print.ppBracket "(" ")" ppBindTerm tm
+            else ppBindTerm tm
 
-        and ppNegation (tm,r) =
+        and ppNegationTerm (tm,r) =
             let
               val (syms,tm) = stripNegation tm
             in
               Print.blockProgram Print.Inconsistent (length syms)
                 (map Print.ppString syms @
-                 [if isInfix tm then ppBracket tm else ppBinder (tm,r)])
+                 [if isInfix tm then ppBracketTerm tm
+                  else ppBinderTerm (tm,r)])
             end
 
-        and ppHanging tm_r = ppInfix ppNegation tm_r
+        and ppHangingTerm tm_r = ppInfix ppNegationTerm tm_r
 
-        and ppNormal tm = ppHanging (tm,false)
+        and ppNormalTerm tm = ppHangingTerm (tm,false)
 
-        and ppBracket tm = Print.ppBracket "(" ")" ppNormal tm
+        and ppBracketTerm tm = Print.ppBracket "(" ")" ppNormalTerm tm
       in
-        ppNormal
+        ppNormalTerm
       end;
 in
   fun ppWithGrammar gram =
       let
-        val Grammar {abs,negations,infixes,binders,ppToken,maximumSize} = gram
+        val Grammar
+              {abs,negations,infixes,binders,
+               ppConst,ppNegation,ppInfix,ppBinder,
+               maximumSize} = gram
+
+        val ppInfixes = Print.ppInfixes infixes
 
         val negationNames = mkMap (StringSet.fromList negations)
         and infixNames = mkMap (Print.tokensInfixes infixes)
         and binderNames = mkMap (StringSet.fromList binders)
 
         val specialNames =
-            unionMap negationNames (unionMap infixNames binderNames)
-
-        val ppInfixes = Print.ppInfixes infixes
+            (NameSet.unionList o List.map NameSet.domain)
+            [negationNames,infixNames,binderNames]
       in
         fn show => fn tm =>
            let
              val n = size tm
            in
              if n <= maximumSize then
-               ppTerm abs negationNames infixNames binderNames
-                 specialNames ppInfixes ppToken show tm
+               ppTerm
+                 ppInfixes
+                 abs negationNames infixNames binderNames specialNames
+                 ppConst ppNegation ppInfix ppBinder show tm
              else
                Print.ppBracket "term{" "}" Print.ppInt n
            end

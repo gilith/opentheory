@@ -49,7 +49,7 @@ in
       let
         val infs = sortMap snd (revCompare Int.compare) (CommandMap.toList m)
 
-        val tot = foldl (fn ((_,i),k) => i + k) 0 infs
+        val tot = List.foldl (fn ((_,i),k) => i + k) 0 infs
 
         val table = map mkInfRow infs @ [mkTotalRow tot]
 

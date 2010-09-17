@@ -92,7 +92,7 @@ local
         fun isSubsequentChar c = Char.isLower c orelse Char.isDigit c
       in
         (some isInitialChar ++ many (some isSubsequentChar)) >>
-        (fn (c,cs) => implode (c :: cs))
+        (fn (c,cs) => String.implode (c :: cs))
       end;
 in
   val parser =

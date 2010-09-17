@@ -144,7 +144,7 @@ fun readChecksum tarFile tmpFile =
     let
       val strm = Stream.fromTextFile tmpFile
 
-      val strm = Stream.listConcat (Stream.map explode strm)
+      val strm = Stream.listConcat (Stream.map String.explode strm)
     in
       Parse.fromStream (parserChecksum tarFile) strm
     end

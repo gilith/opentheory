@@ -230,7 +230,7 @@ val sizeListTy =
     let
       fun add (ty,n) = sizeTy ty + n
     in
-      foldl add 0
+      List.foldl add 0
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -272,7 +272,7 @@ val sizeList =
     let
       fun add (tm,n) = size tm + n
     in
-      foldl add 0
+      List.foldl add 0
     end;
 
 (* ------------------------------------------------------------------------- *)

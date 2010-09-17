@@ -49,7 +49,7 @@ local
 
   val checksumCharParser = some isChecksumChar;
 
-  val checksumStringParser = atLeastOne checksumCharParser >> implode;
+  val checksumStringParser = atLeastOne checksumCharParser >> String.implode;
 in
   val parser = checksumStringParser >> Checksum;
 end;

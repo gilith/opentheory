@@ -37,11 +37,11 @@ val time = Portable.time;
 (* ------------------------------------------------------------------------- *)
 
 fun SAY s =
-  print
-  ("-------------------------------------" ^
-   "-------------------------------------\n" ^ s ^ "\n\n");
+    TextIO.print
+      ("-------------------------------------" ^
+       "-------------------------------------\n" ^ s ^ "\n\n");
 
-fun printer p x = print (Print.toString p x ^ "\n\n");
+fun printer p x = TextIO.print (Print.toString p x ^ "\n\n");
 
 fun printval p x = (printer p x; x);
 
@@ -242,7 +242,7 @@ fun mkArticleFilename name =
 
 fun compress system name =
     let
-      val () = print ("Compressing article \"" ^ name ^ "\"\n")
+      val () = TextIO.print ("Compressing article \"" ^ name ^ "\"\n")
 
       val int = getInt system
 
@@ -262,7 +262,7 @@ fun compress system name =
             {article = article,
              filename = outputFilename}
 
-      val () = print "\n"
+      val () = TextIO.print "\n"
     in
       ()
     end;
@@ -294,7 +294,7 @@ fun mkSummaryFilename name =
 
 fun summarize name =
     let
-      val () = print ("Summarizing compressed article \"" ^ name ^ "\"\n")
+      val () = TextIO.print ("Summarizing compressed article \"" ^ name ^ "\"\n")
 
       val artFilename = mkArticleFilename name
 
@@ -349,7 +349,7 @@ val () = SAY "Importing theory packages";
 
 fun import name =
     let
-      val () = print ("Importing theory package \"" ^ name ^ "\"\n")
+      val () = TextIO.print ("Importing theory package \"" ^ name ^ "\"\n")
 
       val finder = Directory.finder directory
 

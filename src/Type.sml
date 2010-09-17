@@ -374,7 +374,7 @@ local
 
   val isTypeInfix = can destTypeInfix;
 
-  fun ppTypeInfix tok =
+  fun ppTypeInfix (_,tok) =
       Print.program
         [Print.ppString " ",
          Print.ppString tok,

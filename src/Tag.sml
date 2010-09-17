@@ -99,14 +99,14 @@ local
             c = #"-" orelse Char.isLower c orelse Char.isDigit c
       in
         (some isInitialChar ++ many (some isSubsequentChar)) >>
-        (fn (c,cs) => implode (c :: cs))
+        (fn (c,cs) => String.implode (c :: cs))
       end;
 
   val valueParser =
       let
         fun isValueChar c = c <> #"\n"
       in
-        many (some isValueChar) >> implode
+        many (some isValueChar) >> String.implode
       end;
 
   val tagParser =
