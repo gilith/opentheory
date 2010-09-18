@@ -225,10 +225,11 @@ datatype grammar =
        negations : Print.token list,
        infixes : Print.infixes,
        binders : Print.token list,
-       ppConst : (term * Name.name) Print.pp,
-       ppNegation : (term * Print.token) Print.pp,
-       ppInfix : (term * Print.token) Print.pp,
-       ppBinder : (term * Print.token) Print.pp,
+       ppVar : Var.var Print.pp,
+       ppConst : ((Const.const * Type.ty) * Name.name) Print.pp,
+       ppNegation : ((Const.const * Type.ty) * Name.name) Print.pp,
+       ppInfix : ((Const.const * Type.ty) * Name.name) Print.pp,
+       ppBinder : ((Const.const * Type.ty) option * Name.name) Print.pp,
        maximumSize : int}
 
 val defaultGrammar : grammar

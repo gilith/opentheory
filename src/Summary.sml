@@ -183,7 +183,7 @@ fun toHtmlInfo show =
                   (Namespace.toList ns, n)
                 end
 
-            fun toHtmlName name = [Html.Text name]
+            fun toHtmlName name = Name.toHtml (Name.mkGlobal name)
 
             fun toItem flows = Html.ListItem (Html.emptyAttrs,flows)
 

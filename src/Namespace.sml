@@ -12,7 +12,8 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val quoteChar = #"\""
+val globalString = "<global>"
+and quoteChar = #"\""
 and separatorChar = #".";
 
 (* ------------------------------------------------------------------------- *)
@@ -93,7 +94,7 @@ local
   val ppComponent = Print.ppEscapeString {escape = escapeChars};
 in
   fun pp (n as Namespace ns) =
-      if isGlobal n then Print.ppString "<global>"
+      if isGlobal n then Print.ppString globalString
       else ppComponents Print.ppString ns;
 
   fun ppQuoted (Namespace ns) =
@@ -103,6 +104,44 @@ end;
 val toString = Print.toString pp;
 
 val quotedToString = Print.toString ppQuoted;
+
+local
+  fun toHtmlComponent c =
+      case c of
+        "\\" => [Html.Entity "lambda"]
+      | "~" => [Html.Entity "not"]
+      | "<=" => [Html.Entity "le"]
+      | "<" => [Html.Entity "lt"]
+      | ">=" => [Html.Entity "ge"]
+      | ">" => [Html.Entity "gt"]
+      | "/\\" => [Html.Entity "and"]
+      | "\\/" => [Html.Entity "or"]
+      | "==>" => [Html.Entity "rArr"]
+      | "<=>" => [Html.Entity "hArr"]
+      | "!" => [Html.Entity "forall"]
+      | "?" => [Html.Entity "exist"]
+      | "?!" => [Html.Entity "exist", Html.Text "!"]
+      | "->" => [Html.Entity "rarr"]
+      | _ => [Html.Text c];
+
+  val globalHtml = [Html.Text globalString];
+
+  val separatorHtml = [Html.Text (str separatorChar)];
+
+  fun add (c,acc) =
+      let
+        val acc = separatorHtml @ acc
+
+        val acc = toHtmlComponent c @ acc
+      in
+        acc
+      end;
+in
+  fun toHtml (Namespace ns) =
+      case rev ns of
+        [] => globalHtml
+      | c :: cs => List.foldl add (toHtmlComponent c) cs;
+end;
 
 local
   infixr 9 >>++

@@ -112,11 +112,6 @@ fun replace (x,y) n : name = if equal n x then y else n;
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun quotedToString (Name ns_n) =
-    Namespace.quotedToString (Namespace.mkNested ns_n);
-
-val ppQuoted = Print.ppMap quotedToString Print.ppString;
-
 local
   infixr 9 >>++
   infixr 8 ++
@@ -125,16 +120,26 @@ local
 
   open Parse;
 
-  fun process ns =
+  fun fromNamespace ns =
       if Namespace.isGlobal ns then raise NoParse
       else Name (Namespace.destNested ns);
 in
-  val quotedParser = Namespace.quotedParser >> process;
+  val quotedParser = Namespace.quotedParser >> fromNamespace;
 end;
 
-fun toString (Name ns_n) = Namespace.toString (Namespace.mkNested ns_n);
+local
+  fun toNamespace (Name ns_n) = Namespace.mkNested ns_n;
+in
+  val pp = Print.ppMap toNamespace Namespace.pp;
 
-val pp = Print.ppMap toString Print.ppString;
+  val ppQuoted = Print.ppMap toNamespace Namespace.ppQuoted;
+
+  fun toHtml n = Namespace.toHtml (toNamespace n);
+end;
+
+val toString = Print.toString pp;
+
+val quotedToString = Print.toString ppQuoted;
 
 val fromString = mkGlobal;
 

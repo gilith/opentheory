@@ -56,16 +56,18 @@ val rewrite : namespace * namespace -> namespace -> namespace
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
+val pp : namespace Print.pp
+
+val toString : namespace -> string
+
+val toHtml : namespace -> Html.inline list
+
+(* The following can be used for serializing and unserializing *)
+
 val ppQuoted : namespace Print.pp
 
 val quotedToString : namespace -> string
 
 val quotedParser : (char,namespace) Parse.parser
-
-(* Just for interfacing to users or external tools *)
-
-val pp : namespace Print.pp
-
-val toString : namespace -> string
 
 end

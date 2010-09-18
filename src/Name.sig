@@ -58,18 +58,20 @@ val replace : name * name -> name -> name
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
+val pp : name Print.pp
+
+val toString : name -> string
+
+val toHtml : name -> Html.inline list
+
+val fromString : string -> name
+
+(* The following can be used for serializing and unserializing *)
+
 val ppQuoted : name Print.pp
 
 val quotedToString : name -> string
 
 val quotedParser : (char,name) Parse.parser
-
-(* Just for interfacing to users or external tools *)
-
-val pp : name Print.pp
-
-val toString : name -> string
-
-val fromString : string -> name
 
 end
