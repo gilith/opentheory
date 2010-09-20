@@ -157,19 +157,22 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 # Install and upload theories.
 ###############################################################################
 
-THEORY_INSTALL = $(OPENTHEORY) install
-
-THEORY_LIST = $(OPENTHEORY) list --dependency-order --name
-
-THEORY_UPLOAD = $(OPENTHEORY) upload
-
 THEORY_DIR = data/theories
 
 HOL_LIGHT_THEORY_DIR = $(THEORY_DIR)/hol-light
 
+OPENTHEORY_INIT = $(OPENTHEORY) init
+
+OPENTHEORY_INSTALL = $(OPENTHEORY) install
+
+OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
+
+OPENTHEORY_UPLOAD = $(OPENTHEORY) upload
+
 .PHONY: reset-directory
 reset-directory:
 	rm -rf $(HOME)/.opentheory
+	$(OPENTHEORY_INIT)
 
 .PHONY: hol-light-theories
 hol-light-theories: $(OPENTHEORY)
@@ -179,9 +182,10 @@ hol-light-theories: $(OPENTHEORY)
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
-	$(THEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
-	$(THEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
-#	$(THEORY_INSTALL) $(THEORY_DIR)/bool/bool.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-def/bool-def.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-int/bool-int.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool/bool.thy
 
 .PHONY: reset-repo
 reset-repo:
@@ -189,7 +193,7 @@ reset-repo:
 
 .PHONY: upload-theories
 upload-theories: $(OPENTHEORY)
-	for pkg in $$($(THEORY_LIST)) ; do if ! $(THEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
+	for pkg in $$($(OPENTHEORY_LIST)) ; do if ! $(OPENTHEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
 
 .PHONY: theories
 theories:
@@ -203,17 +207,19 @@ theories:
 # Initialization following a repo clone.
 ###############################################################################
 
-PACKAGE_DIR = test/directory
+TEST_PACKAGE_DIR = test/directory
+
+TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_PACKAGE_DIR)
 
 .PHONY: init
 init:
 	$(MAKE) $(OPENTHEORY)
-	rm -rf $(PACKAGE_DIR)
-	$(OPENTHEORY) -d $(PACKAGE_DIR) init
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/empty/empty.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(HOL_LIGHT_THEORY_DIR)/bool-true-def/bool-true-def.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(HOL_LIGHT_THEORY_DIR)/bool-true-thm/bool-true-thm.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true/bool-true.thy
+	rm -rf $(TEST_PACKAGE_DIR)
+	$(TEST_OPENTHEORY) init
+	$(TEST_OPENTHEORY) install $(THEORY_DIR)/empty/empty.thy
+	$(TEST_OPENTHEORY) install $(THEORY_DIR)/bool-def-true/bool-def-true.thy
+	$(TEST_OPENTHEORY) install $(THEORY_DIR)/bool-int-true/bool-int-true.thy
+	$(TEST_OPENTHEORY) install $(THEORY_DIR)/bool-true/bool-true.thy
 
 ###############################################################################
 # Counting the number of lines of code.
