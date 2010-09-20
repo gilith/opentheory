@@ -47,6 +47,8 @@ bool-int-rewr {
 bool-int-quant {
   import: bool-int-true
   import: bool-int-eq
+  import: bool-int-and
+  import: bool-int-rewr
   package: bool-int-quant-1.0
 }
 
