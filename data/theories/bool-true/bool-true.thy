@@ -5,16 +5,16 @@ author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"
 
-bool-true-def {
-  package: bool-true-def-1.0
+bool-def-true {
+  package: bool-def-true-1.0
 }
 
-bool-true-thm {
-  import: bool-true-def
-  package: bool-true-thm-1.0
+bool-int-true {
+  import: bool-def-true
+  package: bool-int-true-1.0
 }
 
 main {
-  import: bool-true-def
-  import: bool-true-thm
+  import: bool-def-true
+  import: bool-int-true
 }

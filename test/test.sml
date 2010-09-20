@@ -275,9 +275,9 @@ val () = compress "natural" "example2";
 
 val () = compress "natural" "example3";
 
-val () = compress "hol-light" "bool-true-def";
+val () = compress "hol-light" "bool-def-true";
 
-val () = compress "hol-light" "bool-true-thm";
+val () = compress "hol-light" "bool-int-true";
 
 val () = compress "hol-light" "bool-true-aux";
 
@@ -322,9 +322,9 @@ val () = summarize "example2";
 
 val () = summarize "example3";
 
-val () = summarize "bool-true-def";
+val () = summarize "bool-def-true";
 
-val () = summarize "bool-true-thm";
+val () = summarize "bool-int-true";
 
 val () = summarize "bool-true-aux";
 
@@ -379,11 +379,11 @@ val () = import "empty-1.0";
 
 (* HOL Light definition of the constant T *)
 
-val () = import "bool-true-def-1.0";
+val () = import "bool-def-true-1.0";
 
 (* HOL Light theorem about T *)
 
-val () = import "bool-true-thm-1.0";
+val () = import "bool-int-true-1.0";
 
 (* Compilation of the definition and theorem *)
 
