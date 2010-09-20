@@ -154,37 +154,6 @@ src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
 src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 ###############################################################################
-# Initialization following a repo clone.
-###############################################################################
-
-PACKAGE_DIR = test/directory
-
-THEORY_DIR = data/theories
-
-.PHONY: init
-init:
-	$(MAKE) $(OPENTHEORY)
-	rm -rf $(PACKAGE_DIR)
-	$(OPENTHEORY) -d $(PACKAGE_DIR) init
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/empty/empty.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true-def/bool-true-def.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true-thm/bool-true-thm.thy
-	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true/bool-true.thy
-
-###############################################################################
-# Counting the number of lines of code.
-###############################################################################
-
-LINES = scripts/ml_lines
-
-.PHONY: lines
-lines: $(LINES)
-	@echo
-	@echo -n 'opentheory '
-	@$(LINES) $(SRC) src/opentheory.sml
-	@echo
-
-###############################################################################
 # Install and upload theories.
 ###############################################################################
 
@@ -194,8 +163,18 @@ THEORY_LIST = $(OPENTHEORY) list --dependency-order --name
 
 THEORY_UPLOAD = $(OPENTHEORY) upload
 
+THEORY_DIR = data/theories
+
+HOL_LIGHT_THEORY_DIR = $(THEORY_DIR)/hol-light
+
+.PHONY: reset-directory
+reset-directory:
+	rm -rf $(HOME)/.opentheory
+
 .PHONY: hol-light-theories
 hol-light-theories: $(OPENTHEORY)
+	rm -rf $(HOL_LIGHT_THEORY_DIR)
+	mkdir $(HOL_LIGHT_THEORY_DIR)
 	cd ../hol-light && ./capture
 
 .PHONY: compilation-theories
@@ -214,11 +193,40 @@ upload-theories: $(OPENTHEORY)
 
 .PHONY: theories
 theories:
-	rm -rf $(HOME)/.opentheory
+	$(MAKE) reset-directory
 	$(MAKE) hol-light-theories
 	$(MAKE) compilation-theories
 	$(MAKE) reset-repo
 	$(MAKE) upload-theories
+
+###############################################################################
+# Initialization following a repo clone.
+###############################################################################
+
+PACKAGE_DIR = test/directory
+
+.PHONY: init
+init:
+	$(MAKE) $(OPENTHEORY)
+	rm -rf $(PACKAGE_DIR)
+	$(OPENTHEORY) -d $(PACKAGE_DIR) init
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/empty/empty.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(HOL_LIGHT_THEORY_DIR)/bool-true-def/bool-true-def.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(HOL_LIGHT_THEORY_DIR)/bool-true-thm/bool-true-thm.thy
+	$(OPENTHEORY) -d $(PACKAGE_DIR) install $(THEORY_DIR)/bool-true/bool-true.thy
+
+###############################################################################
+# Counting the number of lines of code.
+###############################################################################
+
+LINES = scripts/ml_lines
+
+.PHONY: lines
+lines: $(LINES)
+	@echo
+	@echo -n 'opentheory '
+	@$(LINES) $(SRC) src/opentheory.sml
+	@echo
 
 ###############################################################################
 # Profiling using MLton.
