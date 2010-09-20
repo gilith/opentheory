@@ -44,6 +44,12 @@ bool-int-rewr {
   package: bool-int-rewr-1.0
 }
 
+bool-int-quant {
+  import: bool-int-true
+  import: bool-int-eq
+  package: bool-int-quant-1.0
+}
+
 main {
   import: bool-int-true
   import: bool-int-eq
@@ -53,4 +59,5 @@ main {
   import: bool-int-or-dist
   import: bool-int-quant-triv
   import: bool-int-rewr
+  import: bool-int-quant
 }
