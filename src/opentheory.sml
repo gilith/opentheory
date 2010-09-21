@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20100918)"^"\n";
+val versionString = program^" "^version^" (release 20100920)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -223,22 +223,36 @@ fun savableInfo info =
       ArticleInfo => true
     | _ => false;
 
-val infoOutputFilename = ref {filename = "-"};
+val infoOutputList : (info * {filename : string} option) list ref = ref [];
 
-val infoOutputList : (info * {filename : string}) list ref = ref [];
+fun mkInfoOutput info = (info,NONE);
 
-fun setInfoOutputFilename filename =
+fun addInfoOutput info =
     let
-      val () = infoOutputFilename := {filename = filename}
+      val ref l = infoOutputList
+
+      val () = infoOutputList := mkInfoOutput info :: l
     in
       ()
     end;
 
-fun mkInfoOutput info = (info, !infoOutputFilename);
-
-fun addInfoOutput info =
+fun setInfoOutputFilename flag filename =
     let
-      val () = infoOutputList := !infoOutputList @ [mkInfoOutput info]
+      val ref l = infoOutputList
+
+      val l =
+          case l of
+            [] =>
+            raise Error ("no package information specified before " ^
+                         flag ^ " argument")
+          | (i,f) :: l =>
+            case f of
+              SOME {filename = f} =>
+              raise Error ("multiple " ^ flag ^ " arguments:\n" ^
+                           "  " ^ f ^ " and\n  " ^ filename)
+            | NONE => (i, SOME {filename = filename}) :: l
+
+      val () = infoOutputList := l
     in
       ()
     end;
@@ -278,10 +292,10 @@ in
         description = "compile the package to an article",
         processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write subsequent package information to FILE",
+        description = "write previous package information to FILE",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => setInfoOutputFilename s)}];
+            (fn f => fn s => setInfoOutputFilename f s)}];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -642,12 +656,20 @@ fun defaultInfoOutputList inp =
     | TarballInput _ => [mkInfoOutput FilesInfo]
     | TheoryInput _ => [mkInfoOutput SummaryInfo];
 
-fun readInfoOutputList inp =
-    let
-      val l = !infoOutputList
-    in
-      if null l then defaultInfoOutputList inp else l
-    end;
+local
+  fun readList inp =
+      let
+        val l = rev (!infoOutputList)
+      in
+        if null l then defaultInfoOutputList inp else l
+      end;
+
+  val defaultInfoOutputFilename = {filename = "-"};
+
+  fun defaultize (i,f) = (i, Option.getOpt (f,defaultInfoOutputFilename));
+in
+  fun readInfoOutputList inp = List.map defaultize (readList inp);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying command help.                                                  *)

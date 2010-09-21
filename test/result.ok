@@ -79,91 +79,91 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-User: 0.000  System: 0.001  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example2"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.001  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "example3"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.001  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-def-true"
 WARNING: 19 objects left in the dictionary by articles/hol-light/bool-def-true.art
 User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.004  System: 0.001  GC: 0.000  Real: 0.005
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
 
 Compressing article "bool-int-true"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-int-true.art
 User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.005  System: 0.001  GC: 0.000  Real: 0.008
+User: 0.005  System: 0.000  GC: 0.000  Real: 0.005
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.004  System: 0.001  GC: 0.000  Real: 0.006
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.007
 
 --------------------------------------------------------------------------
 Summarizing articles
 
 Summarizing compressed article "empty"
-assumed:
+assumptions:
 axioms:
-thms:
+theorems:
 
 Summarizing compressed article "example1"
 input-types: bool
 input-consts: T
-assumed:
+assumptions:
   |- T
 axioms:
-thms:
+theorems:
   |- T
 
 Summarizing compressed article "example2"
 input-types: bool
 input-consts: T
-assumed:
+assumptions:
   |- (\x. x) T
 axioms:
-thms:
+theorems:
   |- (\y. y) T
 
 Summarizing compressed article "example3"
 input-types: -> bool
 input-consts: =
-assumed:
+assumptions:
 axioms:
-thms:
+theorems:
   |- x = x
 
 Summarizing compressed article "bool-def-true"
 input-types: -> bool
 input-consts: =
-assumed:
+assumptions:
 defined-consts: T
 axioms:
-thms:
+theorems:
   |- T <=> (\p. p) = \p. p
 
 Summarizing compressed article "bool-int-true"
 input-types: -> bool
 input-consts: = T
-assumed:
+assumptions:
   |- T <=> (\p. p) = \p. p
 axioms:
-thms:
+theorems:
   |- T
 
 Summarizing compressed article "bool-true-aux"
 input-types: -> bool
 input-consts: = T
-assumed:
+assumptions:
   |- T
 axioms:
-thms:
+theorems:
   |- t <=> t <=> T
 
 --------------------------------------------------------------------------
@@ -194,35 +194,35 @@ tar = tar
 Importing theory packages
 
 Importing theory package "empty-1.0"
-assumed:
+assumptions:
 axioms:
-thms:
+theorems:
 
 Importing theory package "bool-def-true-1.0"
 input-types: -> bool
 input-consts: =
-assumed:
+assumptions:
 defined-consts: T
 axioms:
-thms:
+theorems:
   |- T <=> (\p. p) = \p. p
 
 Importing theory package "bool-int-true-1.0"
 input-types: -> bool
 input-consts: = T
-assumed:
+assumptions:
   |- T <=> (\p. p) = \p. p
 axioms:
-thms:
+theorems:
   |- T
 
 Importing theory package "bool-true-1.0"
 input-types: -> bool
 input-consts: =
-assumed:
+assumptions:
 defined-consts: T
 axioms:
-thms:
+theorems:
   |- T
   |- T <=> (\p. p) = \p. p
 

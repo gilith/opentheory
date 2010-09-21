@@ -160,12 +160,12 @@ in
            in
              Print.blockProgram Print.Consistent 0
                [ppSymbol ("input",input),
-                ppSequentSet ("assumed",assumed),
+                ppSequentSet ("assumptions",assumed),
                 Print.addNewline,
                 ppSymbol ("defined",defined),
                 ppSequentSet ("axioms",axioms),
                 Print.addNewline,
-                ppSequentSet ("thms",thms)]
+                ppSequentSet ("theorems",thms)]
            end
       end;
 end;

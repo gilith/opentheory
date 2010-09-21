@@ -170,7 +170,7 @@ OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
 OPENTHEORY_UPLOAD = $(OPENTHEORY) upload
 
 .PHONY: reset-directory
-reset-directory:
+reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
@@ -178,7 +178,7 @@ reset-directory:
 hol-light-theories: $(OPENTHEORY)
 	rm -rf $(HOL_LIGHT_THEORY_DIR)
 	mkdir $(HOL_LIGHT_THEORY_DIR)
-	cd ../hol-light && ./capture
+	cd ../hol-light && opentheory/capture
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
@@ -277,15 +277,13 @@ RELEASE_STAMP = scripts/release_stamp
 release-stamp: $(RELEASE_STAMP)
 	 $(RELEASE_STAMP) -p opentheory doc/*.html src/opentheory.sml
 
-doc/logging.ml: data/hol-light/logging.ml
+doc/logging.ml: ../hol-light/logging.ml
 	cp -v $^ $@
 
 doc/foo.thy: test/interpretations/hol-light.int
-	echo 'theory {' > $@
-	echo '  interpret {' >> $@
-	cat $^ | perl -ne '$$f = $$_; chomp $$f; print "    $$f\n";' | cat >> $@
-	echo '  } in ' >> $@
-	echo '  article "foo.art";' >> $@
+	echo 'main {' > $@
+	cat $^ | perl -ne 'chomp $$_; if ($$_ !~ /^ *([#]|$$)/) { print STDOUT "  interpret: $$_\n"; }' >> $@
+	echo '  article: "foo.art"' >> $@
 	echo '}' >> $@
 
 .PHONY: documentation
