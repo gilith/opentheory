@@ -52,6 +52,15 @@ bool-int-quant {
   package: bool-int-quant-1.0
 }
 
+bool-int-mono {
+  import: bool-int-true
+  import: bool-int-eq
+  import: bool-int-and
+  import: bool-int-rewr
+  import: bool-int-quant
+  package: bool-int-mono-1.0
+}
+
 main {
   import: bool-int-true
   import: bool-int-eq
@@ -62,4 +71,5 @@ main {
   import: bool-int-quant-triv
   import: bool-int-rewr
   import: bool-int-quant
+  import: bool-int-mono
 }

@@ -195,11 +195,15 @@ reset-repo:
 upload-theories: $(OPENTHEORY)
 	for pkg in $$($(OPENTHEORY_LIST)) ; do if ! $(OPENTHEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
 
-.PHONY: theories
-theories:
+.PHONY: directory-theories
+directory-theories:
 	$(MAKE) reset-directory
 	$(MAKE) hol-light-theories
 	$(MAKE) compilation-theories
+
+.PHONY: theories
+theories:
+	$(MAKE) directory-theories
 	$(MAKE) reset-repo
 	$(MAKE) upload-theories
 
