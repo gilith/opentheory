@@ -55,6 +55,13 @@ bool-def-exists-unique {
   package: bool-def-exists-unique-1.0
 }
 
+bool-def-cond {
+  import: bool-def-true
+  import: bool-def-imp
+  import: bool-def-false
+  package: bool-def-cond-1.0
+}
+
 main {
   import: bool-def-true
   import: bool-def-and
@@ -65,4 +72,5 @@ main {
   import: bool-def-false
   import: bool-def-not
   import: bool-def-exists-unique
+  import: bool-def-cond
 }

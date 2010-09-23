@@ -185,7 +185,12 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-def/bool-def.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-int/bool-int.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-choice-cond/bool-choice-cond.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-choice/bool-choice.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool/bool.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/unit/unit.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/function-def/function-def.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/function/function.thy
 
 .PHONY: reset-repo
 reset-repo:

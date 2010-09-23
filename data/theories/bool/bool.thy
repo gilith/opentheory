@@ -15,6 +15,7 @@ bool-int {
 }
 
 axiom-extensionality {
+  import: bool-def
   package: axiom-extensionality-1.0
 }
 
@@ -26,6 +27,7 @@ bool-extensionality {
 }
 
 axiom-choice {
+  import: bool-def
   package: axiom-choice-1.0
 }
 

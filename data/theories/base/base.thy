@@ -2,7 +2,7 @@ name: base
 version: 1.0
 description: Basic theories
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: OpenTheory
 show: "Data.Bool"
 show: "Data.Function"
 show: "Data.Pair"
