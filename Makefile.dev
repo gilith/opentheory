@@ -191,6 +191,8 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/unit/unit.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/function-def/function-def.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/function/function.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/pair/pair.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
 
 .PHONY: reset-repo
 reset-repo:

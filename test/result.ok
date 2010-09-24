@@ -57,17 +57,17 @@ const "BIT1" as "Number.Numeral.bit1"
 const "COND" as "Data.Bool.cond"
 const "F" as "Data.Bool.F"
 const "FST" as "Data.Pair.fst"
-const "I" as "Data.Function.id"
+const "I" as "Function.id"
 const "NUMERAL" as "Number.Numeral.numeral"
-const "ONE_ONE" as "Data.Function.injective"
-const "ONTO" as "Data.Function.surjective"
+const "ONE_ONE" as "Function.injective"
+const "ONTO" as "Function.surjective"
 const "PRE" as "Number.Natural.pre"
 const "SND" as "Data.Pair.snd"
 const "SUC" as "Number.Natural.suc"
 const "T" as "Data.Bool.T"
 const "\\/" as "Data.Bool.\\/"
 const "_0" as "Number.Natural.zero"
-const "o" as "Data.Function.o"
+const "o" as "Function.o"
 const "one" as "Data.Unit.()"
 const "~" as "Data.Bool.~"
 
@@ -80,30 +80,30 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.001  GC: 0.000  Real: 0.002
 
 Compressing article "example2"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.001  GC: 0.000  Real: 0.002
 
 Compressing article "example3"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.001  GC: 0.000  Real: 0.002
 
 Compressing article "bool-def-true"
 WARNING: 19 objects left in the dictionary by articles/hol-light/bool-def-true.art
 User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.004  System: 0.001  GC: 0.000  Real: 0.005
 
 Compressing article "bool-int-true"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-int-true.art
 User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.005  System: 0.000  GC: 0.000  Real: 0.005
+User: 0.005  System: 0.001  GC: 0.000  Real: 0.006
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.007
+User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.004  System: 0.001  GC: 0.000  Real: 0.006
 
 --------------------------------------------------------------------------
 Summarizing articles

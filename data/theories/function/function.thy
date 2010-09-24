@@ -4,7 +4,7 @@ description: Basic function theory
 author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
-show: "Data.Function"
+show: "Function"
 
 function-def {
   package: function-def-1.0
