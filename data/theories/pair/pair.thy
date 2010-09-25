@@ -2,7 +2,7 @@ name: pair
 version: 1.0
 description: Definition and theorems about the product type
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: OpenTheory
 show: "Data.Bool"
 show: "Data.Pair"
 
@@ -15,14 +15,14 @@ pair-induct {
   package: pair-induct-1.0
 }
 
-pair-quant {
+pair-abs {
   import: pair-def
   import: pair-induct
-  package: pair-quant-1.0
+  package: pair-abs-1.0
 }
 
 main {
   import: pair-def
   import: pair-induct
-  import: pair-quant
+  import: pair-abs
 }

@@ -62,6 +62,10 @@ bool-def-cond {
   package: bool-def-cond-1.0
 }
 
+bool-def-let {
+  package: bool-def-let-1.0
+}
+
 main {
   import: bool-def-true
   import: bool-def-and
@@ -73,4 +77,5 @@ main {
   import: bool-def-not
   import: bool-def-exists-unique
   import: bool-def-cond
+  import: bool-def-let
 }

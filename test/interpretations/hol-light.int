@@ -8,6 +8,7 @@ type "bool" as "bool"
 type "fun" as "->"
 type "ind" as "ind"
 const "=" as "="
+const "GEQ" as "="
 
 # Data
 
@@ -22,7 +23,9 @@ const "\\/" as "Data.Bool.\\/"
 const "~" as "Data.Bool.~"
 const "COND" as "Data.Bool.cond"
 const "F" as "Data.Bool.F"
+const "LET" as "Data.Bool.let"
 const "@" as "Data.Bool.select"
+const "GABS" as "Data.Bool.select"
 const "T" as "Data.Bool.T"
 
 # Data.Pair
@@ -61,4 +64,3 @@ const "_0" as "Number.Natural.zero"
 
 const "BIT0" as "Number.Numeral.bit0"
 const "BIT1" as "Number.Numeral.bit1"
-const "NUMERAL" as "Number.Numeral.numeral"
