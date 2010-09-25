@@ -29,24 +29,24 @@ pair {
   package: pair-1.0
 }
 
-# axiom-infinity {
-#   import: bool
-#   import: function
-#   package: axiom-infinity-1.0
-# }
+axiom-infinity {
+  import: bool
+  import: function
+  package: axiom-infinity-1.0
+}
 
-# num {
-#   import: bool
-#   import: function
-#   import: axiom-infinity
-#   package: num-1.0
-# }
+natural {
+  import: bool
+  import: function
+  import: axiom-infinity
+  package: natural-1.0
+}
 
 main {
   import: bool
   import: unit
   import: function
   import: pair
-#   import: axiom-infinity
-#   import: num
+  import: axiom-infinity
+  import: natural
 }

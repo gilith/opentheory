@@ -10,6 +10,11 @@ function-def-comb {
   package: function-def-comb-1.0
 }
 
+function-def-inj-surj {
+  package: function-def-inj-surj-1.0
+}
+
 main {
   import: function-def-comb
+  import: function-def-inj-surj
 }
