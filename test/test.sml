@@ -52,11 +52,13 @@ val () = SAY "Symbol tables";
 local
   val sym = Symbol.empty;
 in
-  val mkConj = Syntax.mkConj sym
+  val constForall = Syntax.constForall sym
+  and mkConj = Syntax.mkConj sym
   and mkDisj = Syntax.mkDisj sym
   and mkForall = Syntax.mkForall sym
   and mkImp = Syntax.mkImp sym
   and mkNeg = Syntax.mkNeg sym
+  and mkSelect = Syntax.mkSelect sym
   and termFalse = Syntax.termFalse sym
   and termTrue = Syntax.termTrue sym;
 end;
@@ -105,6 +107,43 @@ val ts =
 val ts' = printval (Print.ppList Term.pp) (sort Term.compare ts);
 
 val ts'' = printval (Print.ppList Term.pp) (sort Term.alphaCompare ts);
+
+val (t1,t2) =
+    let
+      val b = Type.bool
+
+      val bb = Type.mkFun (b,b)
+
+      val bbb = Type.mkFun (bb,b)
+
+      val bbbb = Type.mkFun (bbb,b)
+
+      val f = Var.mk (Name.mkGlobal "f", bbb)
+      and g = Var.mk (Name.mkGlobal "g", bb)
+      and x = Var.mk (Name.mkGlobal "x", b)
+      and y = Var.mk (Name.mkGlobal "y", b)
+
+      val ft = Term.mkVar f
+      and gt = Term.mkVar g
+      and xt = Term.mkVar x
+      and yt = Term.mkVar y
+
+      val pat = Term.mkAbs (y, Term.mkApp (gt, mkConj (xt,yt)))
+
+      val body = Term.mkApp (gt,xt)
+
+      val geq = Term.mkEq (Term.mkApp (ft,pat), body)
+
+      val t1 = mkSelect (f, mkForall (g, mkForall (x,geq)))
+
+      val t2 = Term.mkApp (Term.mkConst (constForall,bbbb), t1)
+    in
+      (t1,t2)
+    end;
+
+val _ = printval Term.pp t1;
+
+val _ = printval Term.pp t2;
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Substitution";

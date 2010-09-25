@@ -915,7 +915,9 @@ local
 
   val bit0Name = mkName "bit0"
   and bit1Name = mkName "bit1"
-  and numeralName = mkName "numeral"
+  and condName = mkName "cond"
+  and forallName = mkName "!"
+  and selectName = mkName "select"
   and zeroName = mkName "zero";
 
   val mkMap =
@@ -937,53 +939,132 @@ local
 
   fun mkSet s = NameSet.domain (mkMap (StringSet.fromList s));
 
+  fun showConst show (c,ty) =
+      if Const.equal c constEq then
+        if Type.equal ty boolEqTy then nameBoolEq else nameEq
+      else
+        Show.showName show (Const.name c);
+
+  fun destCond show tm =
+      let
+        val (tm,b) = destApp tm
+
+        val (tm,a) = destApp tm
+
+        val (tm,c) = destApp tm
+
+        val n = showConst show (destConst tm)
+
+        val () = if Name.equal n condName then ()
+                 else raise Error "Term.pp.destCond: not a cond"
+      in
+        (c,a,b)
+      end;
+
+  fun isCond show = can (destCond show);
+
+  fun destForall show tm =
+      let
+        val (c,t) = destApp tm
+
+        val n = showConst show (destConst c)
+
+        val () = if Name.equal n forallName then ()
+                 else raise Error "Term.pp.destGenAbs: not a forall"
+      in
+        destAbs t
+      end;
+
+  fun stripForall show =
+      let
+        fun dst acc tm =
+            case total (destForall show) tm of
+              NONE => (rev acc, tm)
+            | SOME (v,tm) => dst (v :: acc) tm
+      in
+        dst []
+      end;
+
+  fun destSelect show tm =
+      let
+        val (c,t) = destApp tm
+
+        val n = showConst show (destConst c)
+
+        val () = if Name.equal n selectName then ()
+                 else raise Error "Term.pp.destGenAbs: not a select"
+      in
+        destAbs t
+      end;
+
+  fun destGenAbs show tm =
+      case total destAbs tm of
+        SOME (v,t) => (mkVar v, t)
+      | NONE =>
+        let
+          val (f,tm) = destSelect show tm
+
+          val (vl,tm) = stripForall show tm
+
+          val vs = VarSet.fromList vl
+
+          val () = if length vl = VarSet.size vs then ()
+                   else raise Error "Term.pp.destGenAbs: duplicate vars"
+
+          val () = if not (VarSet.member f vs) then ()
+                   else raise Error "Term.pp.destGenAbs: function is var"
+
+          val (pat,body) = destEq tm
+
+          val (ft,pat) = destApp pat
+
+          val () = if equalVar f ft then ()
+                   else raise Error "Term.pp.destGenAbs: no function"
+
+          val () = if VarSet.equal (freeVars pat) vs then ()
+                   else raise Error "Term.pp.destGenAbs: weird pat vars"
+
+          val () = if not (VarSet.member f (freeVars body)) then ()
+                   else raise Error "Term.pp.destGenAbs: function in body"
+        in
+          (pat,body)
+        end;
+
+  fun destNumeral show tm =
+      case dest tm of
+        TypeTerm.Const' c =>
+        let
+          val n = showConst show c
+        in
+          if Name.equal n zeroName then 0
+          else raise Error "Term.pp.destNumeral: bad const"
+        end
+      | TypeTerm.App' (f,x) =>
+        let
+          val n = showConst show (destConst f)
+        in
+          if Name.equal n bit0Name then 2 * destNumeral show x
+          else if Name.equal n bit1Name then 2 * destNumeral show x + 1
+          else raise Error "Term.pp.destNumeral: bad app"
+        end
+      | _ => raise Error "Term.pp.destNumeral: bad term";
+
+  fun isNumeral show = can (destNumeral show);
+
   val ppNumeral = Print.ppInt
 
   fun ppTerm absName negationNames infixNames binderNames specialNames
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
              ppVar show =
       let
-        fun showConst (c,ty) =
-            if Const.equal c constEq then
-              if Type.equal ty boolEqTy then nameBoolEq else nameEq
-            else
-              Show.showName show (Const.name c)
-
         fun ppConst c_ty =
             let
-              val n = showConst c_ty
+              val n = showConst show c_ty
             in
               if NameSet.member n specialNames then
                 Print.ppBracket "(" ")" ppConstName (c_ty,n)
               else
                 ppConstName (c_ty,n)
-            end
-
-        fun destNumber tm =
-            case dest tm of
-              TypeTerm.Const' c =>
-              let
-                val n = showConst c
-              in
-                if Name.equal n zeroName then 0
-                else raise Error "Term.pp.destNumber: bad const"
-              end
-            | TypeTerm.App' (f,x) =>
-              let
-                val n = showConst (destConst f)
-              in
-                if Name.equal n bit0Name then 2 * destNumber x
-                else if Name.equal n bit1Name then 2 * destNumber x + 1
-                else raise Error "Term.pp.destNumber: bad app"
-              end
-            | _ => raise Error "Term.pp.destNumber: bad term"
-
-        fun destNumeral (f,x) =
-            let
-              val n = showConst (destConst f)
-            in
-              if Name.equal n numeralName then destNumber x
-              else raise Error "Term.pp.destNumeral: no marker"
             end
 
         fun destNegation tm =
@@ -992,11 +1073,13 @@ local
 
               val c = destConst t
 
-              val n = showConst c
+              val n = showConst show c
             in
               if NameSet.member n negationNames then ((c,n),a)
               else raise Error "Term.pp.destNegation"
             end
+
+        val isNegation = can destNegation
 
         fun stripNegation tm =
             case total destNegation tm of
@@ -1016,7 +1099,7 @@ local
 
               val c = destConst t
 
-              val n = showConst c
+              val n = showConst show c
             in
               ((c,n),a,b)
             end
@@ -1042,17 +1125,17 @@ local
         val ppInfix = ppInfixes (total destInfix) ppInfixToken
 
         fun destBinder tm =
-            case total destAbs tm of
-              SOME (v,t) => ((NONE,absName),v,t)
+            case total (destGenAbs show) tm of
+              SOME (v,t) => ((NONE,absName), v, t)
             | NONE =>
               let
                 val (t,a) = destApp tm
 
-                val (v,b) = destAbs a
+                val (v,b) = destGenAbs show a
 
                 val c = destConst t
 
-                val n = showConst c
+                val n = showConst show c
               in
                 if NameSet.member n binderNames then ((SOME c, n), v, b)
                 else raise Error "Term.pp.destBinder"
@@ -1081,31 +1164,32 @@ local
               (c, v, rev vs, b)
             end
 
+        fun destGenApp tm =
+            if isNumeral show tm then raise Error "Term.pp.destGenApp: numeral"
+            else if isCond show tm then raise Error "Term.pp.destGenApp: cond"
+            else if isInfix tm then raise Error "Term.pp.destGenApp: infix"
+            else if isNegation tm then raise Error "Term.pp.destGenApp: negation"
+            else if isBinder tm then raise Error "Term.pp.destGenApp: binder"
+            else destApp tm
+
         fun ppBasicTerm tm =
-            case dest tm of
-              TypeTerm.Var' v => ppVar v
-            | TypeTerm.Const' c_ty => ppConst c_ty
-            | TypeTerm.App' f_x =>
-              (case total destNumeral f_x of
-                 SOME i => ppNumeral i
-               | NONE => ppBracketTerm tm)
-            | TypeTerm.Abs' _ => ppBracketTerm tm
+            case total (destNumeral show) tm of
+              SOME i => ppNumeral i
+            | NONE =>
+              case dest tm of
+                TypeTerm.Var' v => ppVar v
+              | TypeTerm.Const' c_ty => ppConst c_ty
+              | TypeTerm.App' _ => ppBracketTerm tm
+              | TypeTerm.Abs' _ => ppBracketTerm tm
 
         and ppApplicationTerm tm =
-            case total destApp tm of
+            case total destGenApp tm of
               NONE => ppBasicTerm tm
             | SOME (f,x) =>
-              case total destNumeral (f,x) of
-                SOME i => ppNumeral i
-              | NONE =>
-                Print.program
-                  [ppFunctionTerm f,
-                   Print.addBreak 1,
-                   ppBasicTerm x]
-
-        and ppFunctionTerm tm =
-            if isInfix tm then ppBracketTerm tm
-            else ppBinderTerm (tm,true)
+              Print.program
+                [ppApplicationTerm f,
+                 Print.addBreak 1,
+                 ppBasicTerm x]
 
         and ppBindTerm tm =
             let
@@ -1113,9 +1197,9 @@ local
             in
               Print.blockProgram Print.Inconsistent 2
                 [ppBinderName c,
-                 ppVar v,
+                 ppBasicTerm v,
                  Print.program
-                   (map (Print.sequence (Print.addBreak 1) o ppVar) vs),
+                   (map (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs),
                  Print.ppString ".",
                  Print.addBreak 1,
                  if isBinder body then ppBindTerm body
@@ -1135,11 +1219,27 @@ local
               else
                 Print.blockProgram Print.Inconsistent 2
                   (map ppNegationName cs @
-                   [if isInfix tm then ppBracketTerm tm
+                   [if isInfix tm orelse isCond show tm then ppBracketTerm tm
                     else ppBinderTerm (tm,r)])
             end
 
-        and ppHangingTerm tm_r = ppInfix ppNegationTerm tm_r
+        and ppInfixTerm tm_r = ppInfix ppNegationTerm tm_r
+
+        and ppHangingTerm (tm,r) =
+            case total (destCond show) tm of
+              NONE => ppInfixTerm (tm,r)
+            | SOME (c,a,b) =>
+              if r then ppBracketTerm tm
+              else
+                Print.program
+                  [Print.ppString "if ",
+                   ppHangingTerm (c,true),
+                   Print.addBreak 1,
+                   Print.ppString "then ",
+                   ppHangingTerm (a,true),
+                   Print.addBreak 1,
+                   Print.ppString "else ",
+                   ppHangingTerm (b,false)]
 
         and ppNormalTerm tm = ppHangingTerm (tm,false)
 

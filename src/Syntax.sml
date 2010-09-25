@@ -511,7 +511,7 @@ fun stripExistsUnique sym =
 
 (* Hilbert's indefinite choice operator (epsilon) *)
 
-val stringSelect = "?!";
+val stringSelect = "select";
 
 val nameSelect = Name.mkGlobal stringSelect;
 
