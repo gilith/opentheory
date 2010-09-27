@@ -64,3 +64,8 @@ const "SUC" as "Number.Natural.suc"
 const "BIT0" as "Number.Numeral.bit0"
 const "BIT1" as "Number.Numeral.bit1"
 const "_0" as "Number.Numeral.zero"
+
+# Unwanted
+
+const "LET_END" as "Unwanted.id"
+const "NUMERAL" as "Unwanted.id"

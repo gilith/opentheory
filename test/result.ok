@@ -65,6 +65,8 @@ const "GABS" as "Data.Bool.select"
 const "GEQ" as "="
 const "I" as "Function.id"
 const "LET" as "Data.Bool.let"
+const "LET_END" as "Unwanted.id"
+const "NUMERAL" as "Unwanted.id"
 const "ONE_ONE" as "Function.injective"
 const "ONTO" as "Function.surjective"
 const "PRE" as "Number.Natural.pre"
@@ -72,7 +74,7 @@ const "SND" as "Data.Pair.snd"
 const "SUC" as "Number.Natural.suc"
 const "T" as "Data.Bool.T"
 const "\\/" as "Data.Bool.\\/"
-const "_0" as "Number.Natural.zero"
+const "_0" as "Number.Numeral.zero"
 const "o" as "Function.o"
 const "one" as "Data.Unit.()"
 const "~" as "Data.Bool.~"
@@ -81,35 +83,35 @@ const "~" as "Data.Bool.~"
 Compressing articles
 
 Compressing article "empty"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.438
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.007
 
 Compressing article "example1"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.002  GC: 0.000  Real: 0.002
 
 Compressing article "example2"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.002  System: 0.002  GC: 0.000  Real: 0.003
 
 Compressing article "example3"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.002  GC: 0.000  Real: 0.003
 
 Compressing article "bool-def-true"
 WARNING: 19 objects left in the dictionary by articles/hol-light/bool-def-true.art
-User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.005  System: 0.000  GC: 0.001  Real: 0.005
+User: 0.003  System: 0.002  GC: 0.000  Real: 0.005
 
 Compressing article "bool-int-true"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-int-true.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.005  System: 0.000  GC: 0.000  Real: 0.005
+User: 0.005  System: 0.000  GC: 0.001  Real: 0.005
+User: 0.002  System: 0.001  GC: 0.000  Real: 0.004
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.005
+User: 0.004  System: 0.000  GC: 0.001  Real: 0.004
+User: 0.002  System: 0.001  GC: 0.000  Real: 0.003
 
 --------------------------------------------------------------------------
 Summarizing articles

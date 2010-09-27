@@ -1043,8 +1043,19 @@ local
         let
           val n = showConst show (destConst f)
         in
-          if Name.equal n bit0Name then 2 * destNumeral show x
-          else if Name.equal n bit1Name then 2 * destNumeral show x + 1
+          if Name.equal n bit0Name then
+            let
+              val i = destNumeral show x
+            in
+              if i > 0 then 2 * i
+              else raise Error "Term.pp.destNumeral: bit0 zero"
+            end
+          else if Name.equal n bit1Name then
+            let
+              val i = destNumeral show x
+            in
+              2 * i + 1
+            end
           else raise Error "Term.pp.destNumeral: bad app"
         end
       | _ => raise Error "Term.pp.destNumeral: bad term";
