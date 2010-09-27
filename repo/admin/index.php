@@ -7,11 +7,9 @@ require_once '../opentheory.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 $cmd = from_string(input('x'));
-if (isset($cmd) && strcmp($cmd,'reset') == 0) {
-  $cmd = 'rm -r ' . DIRECTORY_PATH;
-  shell_exec($cmd);
 
-  opentheory_init();
+if (isset($cmd) && strcmp($cmd,'reset') == 0) {
+  opentheory_reset();
 
   $cmd = 'echo "reset package directory" >> ' . LOG_PATH;
   shell_exec($cmd);
@@ -26,15 +24,7 @@ if (isset($cmd) && strcmp($cmd,'reset') == 0) {
 
 $title = 'Admin';
 
-$main =
-'<ol>
-<li>' .
-
-site_link(bread_crumbs(),
-          'Reset the package database.',
-          array('x' => 'reset')) .
-'</li>
-</ol>';
+$main = '<p>Administrative interface.</p>';
 
 $image = site_image('katoomba.jpg','Katoomba Scenic Railway');
 

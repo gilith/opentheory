@@ -110,4 +110,16 @@ function opentheory_init() {
   opentheory_list();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Reset the opentheory directory.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_reset() {
+  $cmd = 'rm -r ' . DIRECTORY_PATH;
+
+  shell_exec($cmd);
+
+  opentheory_init();
+}
+
 ?>
