@@ -721,6 +721,19 @@ fun lhs tm = fst (destEq tm);
 
 fun rhs tm = snd (destEq tm);
 
+fun mkRefl tm = mkEq (tm,tm);
+
+fun destRefl tm =
+    let
+      val (l,r) = destEq tm;
+
+      val () = if equal l r then () else raise Error "Term.destRefl"
+    in
+      l
+    end;
+
+val isRefl = can destRefl;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -1366,5 +1379,7 @@ struct
             Useful.lexCompare Term.compare (l1,l2)
           end
         | GREATER => GREATER;
+
+  fun dealphaEqual s1 s2 = dealphaCompare (s1,s2) = EQUAL;
 
 end

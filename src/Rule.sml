@@ -15,6 +15,7 @@ open Useful;
 fun trans th1 th2 =
     let
       val tm = Term.rator (Thm.concl th1)
+
       val th3 = Thm.app (Thm.refl tm) th2
     in
       Thm.eqMp th3 th1
@@ -26,40 +27,44 @@ fun trans th1 th2 =
 
 fun alpha seq th =
     let
-      fun dealpha s = TermSet.fromList (TermAlphaSet.toList s)
+      val hs = TermSet.fromList (TermAlphaSet.toList (Thm.hyp th))
 
-      fun norm th = (dealpha (Thm.hyp th), th)
-
-      fun check (t,(ts,th)) =
-          if TermSet.member t ts then (ts,th)
+      fun check (h,th) =
+          if TermSet.member h hs then th
           else
             let
-              val th0 = Thm.assume t
+              val th0 = Thm.assume h
+
               val th1 = Thm.deductAntisym th0 th
-              val th = Thm.eqMp th1 th0
             in
-              norm th
+              Thm.eqMp th1 th0
             end
 
 (*OpenTheoryTrace5
       val _ = Print.trace Sequent.pp "seq" seq
       val _ = Print.trace Thm.pp "th" th
 *)
-      val Sequent.Sequent {concl = c, hyp = h} = seq
+
+      val Sequent.Sequent {hyp = h, concl = c} = seq
 
       val th = if Term.equal c (Thm.concl th) then th
                else Thm.eqMp (Thm.refl c) th
 
-      val (_,th) = TermAlphaSet.foldl check (norm th) h
-
-      val _ = Term.equal (Thm.concl th) c orelse
-              raise Error "concl is wrong"
-      val _ = TermSet.equal (dealpha h) (dealpha (Thm.hyp th)) orelse
-              raise Error "hyp is wrong"
+      val th = TermAlphaSet.foldl check th h
     in
-      th
+      if Sequent.dealphaEqual (Thm.sequent th) seq then th
+      else raise Error "Rule.alpha: not alpha-equivalent"
     end
-    handle Error err => raise Error ("Rule.alpha: " ^ err);
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "seq = " ^ Sequent.toString seq ^ "\n" ^
+                  "th = " ^ Thm.toString th ^ "\n" ^
+                  "Rule.alpha: " ^ err
+      in
+        raise Error err
+      end;
+*)
 
 fun findAlpha set seq =
     case ThmSet.peek set (Thm.axiom seq) of

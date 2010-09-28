@@ -119,7 +119,7 @@ val defaultGrammar =
       {connective = "?-",
        hypGrammar = Term.defaultGrammar,
        conclGrammar = Term.defaultGrammar,
-       showHyp = false};
+       showHyp = true};
 
 local
   fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";

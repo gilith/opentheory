@@ -214,6 +214,8 @@ fun execute cmd state =
 
           val obj = ObjectProv.mkAppTerm {savable = savable} objF objA
 
+          val obj = ObjectRewrite.apply ObjectRewrite.default obj
+
           val stack = ObjectStack.push stack obj
         in
           State
@@ -230,6 +232,8 @@ fun execute cmd state =
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
           val obj = ObjectProv.mkAppThm {savable = savable} objF objA
+
+          val obj = ObjectRewrite.apply ObjectRewrite.default obj
 
           val stack = ObjectStack.push stack obj
         in

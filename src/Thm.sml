@@ -188,10 +188,8 @@ fun deductAntisym th1 th2 =
       val Sequent.Sequent {hyp = h1, concl = c1} = s1
       and Sequent.Sequent {hyp = h2, concl = c2} = s2
 
-      val h1 =
-          if TermAlphaSet.member c2 h1 then TermAlphaSet.delete h1 c2 else h1
-      and h2 =
-          if TermAlphaSet.member c1 h2 then TermAlphaSet.delete h2 c1 else h2
+      val h1 = TermAlphaSet.remove h1 c2
+      and h2 = TermAlphaSet.remove h2 c1
 
       val axioms = SequentSet.union a1 a2
       and hyp = TermAlphaSet.union h1 h2
@@ -419,32 +417,35 @@ structure ThmMap = KeyMap (ThmOrdered)
 structure ThmSet =
 struct
 
-  local
-    structure S = ElementSet (ThmMap);
-  in
-    open S;
-  end;
+local
+  structure S = ElementSet (ThmMap);
+in
+  open S;
+end;
 
-  fun splitThm (th,(req,prov)) =
-      let
-        val Thm.Thm {axioms,sequent} = Thm.dest th
-        val req = SequentSet.union req axioms
-        val prov = SequentSet.add prov sequent
-      in
-        (req,prov)
-      end;
+fun splitThm (th,(req,prov)) =
+    let
+      val Thm.Thm {axioms,sequent} = Thm.dest th
 
-  val axioms =
-      let
-        fun add (th,acc) = SequentSet.union acc (Thm.axioms th)
-      in
-        foldl add SequentSet.empty
-      end;
+      val req = SequentSet.union req axioms
 
-  val sequents =
-      let
-        fun add (th,acc) = SequentSet.add acc (Thm.sequent th)
-      in
-        foldl add SequentSet.empty
-      end;
+      val prov = SequentSet.add prov sequent
+    in
+      (req,prov)
+    end;
+
+val axioms =
+    let
+      fun add (th,acc) = SequentSet.union acc (Thm.axioms th)
+    in
+      foldl add SequentSet.empty
+    end;
+
+val sequents =
+    let
+      fun add (th,acc) = SequentSet.add acc (Thm.sequent th)
+    in
+      foldl add SequentSet.empty
+    end;
+
 end

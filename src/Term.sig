@@ -215,6 +215,12 @@ val lhs : term -> term
 
 val rhs : term -> term
 
+val mkRefl : term -> term
+
+val destRefl : term -> term
+
+val isRefl : term -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
