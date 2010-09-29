@@ -30,6 +30,8 @@ in
   fun ancestors thy = ancsPar TheorySet.empty thy [];
 end;
 
+fun deadAncestors thy = raise Bug "Graph.deadAncestors: not implemented";
+
 (* ------------------------------------------------------------------------- *)
 (* Packaging theories.                                                       *)
 (* ------------------------------------------------------------------------- *)

@@ -14,6 +14,8 @@ val parents : Theory.theory -> TheorySet.set
 
 val ancestors : Theory.theory -> TheorySet.set  (* not including self *)
 
+val deadAncestors : Theory.theory -> TheorySet.set
+
 (* ------------------------------------------------------------------------- *)
 (* Packaging theories.                                                       *)
 (* ------------------------------------------------------------------------- *)

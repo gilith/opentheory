@@ -40,23 +40,23 @@ fun normalizeFilename {filename} =
 datatype article =
     Article of
       {savable : bool,
-       saved : ObjectThms.thms};
+       thms : ObjectThms.thms};
 
 val empty =
     let
       val savable = true
-      and saved = ObjectThms.empty
+      and thms = ObjectThms.empty
     in
       Article
         {savable = savable,
-         saved = saved}
+         thms = thms}
     end;
 
 fun savable (Article {savable = x, ...}) = x;
 
-fun saved (Article {saved = x, ...}) = x;
+fun objects (Article {thms = x, ...}) = x;
 
-fun thms art = ObjectThms.thms (saved art);
+fun thms art = ObjectThms.thms (objects art);
 
 (* ------------------------------------------------------------------------- *)
 (* Merging articles.                                                         *)
@@ -64,16 +64,16 @@ fun thms art = ObjectThms.thms (saved art);
 
 fun union art1 art2 =
     let
-      val Article {savable = sav1, saved = ths1} = art1
-      and Article {savable = sav2, saved = ths2} = art2
+      val Article {savable = sav1, thms = ths1} = art1
+      and Article {savable = sav2, thms = ths2} = art2
 
       val savable = sav1 andalso sav2
 
-      val saved = ObjectThms.union ths1 ths2
+      val thms = ObjectThms.union ths1 ths2
     in
       Article
         {savable = savable,
-         saved = saved}
+         thms = thms}
     end;
 
 local
@@ -91,13 +91,13 @@ end;
 
 fun fromTextFile {savable,import,interpretation,filename} =
     let
-      val Article {savable = importSavable, saved = importSaved} = import
+      val Article {savable = importSavable, thms = importThms} = import
 
       val _ = not savable orelse importSavable orelse
               raise Error "savable article cannot use unsavable import"
 
       val parameters =
-          {import = importSaved,
+          {import = importThms,
            interpretation = interpretation,
            savable = savable}
 
@@ -131,11 +131,11 @@ fun fromTextFile {savable,import,interpretation,filename} =
                     " left in the dictionary by " ^ filename)
           end
 
-      val saved = ObjectThms.fromExport exp
+      val thms = ObjectThms.fromExport exp
     in
       Article
         {savable = savable,
-         saved = saved}
+         thms = thms}
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
@@ -143,11 +143,11 @@ fun fromTextFile {savable,import,interpretation,filename} =
 
 fun toTextFile {article,filename} =
     let
-      val Article {savable,saved} = article
+      val Article {savable,thms} = article
 
       val _ = savable orelse raise Error "unsavable"
 
-      val exp = ObjectThms.toExport saved
+      val exp = ObjectThms.toExport thms
     in
       ObjectWrite.toTextFile {export = exp, filename = filename}
     end
