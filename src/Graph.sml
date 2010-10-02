@@ -30,7 +30,30 @@ in
   fun ancestors thy = ancsPar TheorySet.empty thy [];
 end;
 
-fun deadAncestors thy = raise Bug "Graph.deadAncestors: not implemented";
+(* ------------------------------------------------------------------------- *)
+(* Theory environments.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+datatype environment = Environment of Theory.theory PackageBaseMap.map
+
+val emptyEnvironment = Environment (PackageBaseMap.new ());
+
+fun peekEnvironment (Environment env) name = PackageBaseMap.peek env name;
+
+fun insertEnvironment (Environment env) (name,thy) =
+    let
+      val () =
+          if not (PackageBaseMap.inDomain name env) then ()
+          else raise Error ("duplicate theory name: " ^
+                            PackageBase.toString name)
+    in
+      Environment (PackageBaseMap.insert env (name,thy))
+    end;
+
+fun mainEnvironment (Environment env) =
+    case PackageBaseMap.peek env PackageTheory.mainName of
+      SOME thy => thy
+    | NONE => raise Error "no main theory";
 
 (* ------------------------------------------------------------------------- *)
 (* Packaging theories.                                                       *)
@@ -273,11 +296,11 @@ fun importTheory graph info =
            directory,
            imports,
            interpretation,
-           environment,
+           environment = env,
            theory} = info
 
       fun addImp (imp,acc) =
-          case PackageBaseMap.peek environment imp of
+          case peekEnvironment env imp of
             SOME thy => TheorySet.add acc thy
           | NONE => raise Error ("unknown theory import: " ^
                                  PackageBase.toString imp)
@@ -449,21 +472,10 @@ and importPackage graph info =
            theories = theories}
 
       val (graph,env) = importTheories graph info
-    in
-      case List.filter PackageTheory.isMain theories of
-        [] => raise Error "no main theory"
-      | [theory] =>
-        let
-          val name = PackageTheory.name theory
 
-          val thy =
-              case PackageBaseMap.peek env name of
-                SOME thy => thy
-              | NONE => raise Bug "main theory vanished"
-        in
-          (graph,thy)
-        end
-      | _ :: _ :: _ => raise Error "multiple main theories"
+      val thy = mainEnvironment env
+    in
+      (graph,thy)
     end
 
 and importTheories graph info =
@@ -488,16 +500,12 @@ and importTheories graph info =
 
             val name = PackageTheory.name theory
 
-            val _ = not (PackageBaseMap.inDomain name env) orelse
-                    raise Error ("duplicate theory name: " ^
-                                 PackageBase.toString name)
-
-            val env = PackageBaseMap.insert env (name,thy)
+            val env = insertEnvironment env (name,thy)
           in
             (graph,env)
           end
 
-      val env = PackageBaseMap.new ()
+      val env = emptyEnvironment
     in
       List.foldl impThy (graph,env) theories
     end;

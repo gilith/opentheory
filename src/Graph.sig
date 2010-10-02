@@ -14,7 +14,21 @@ val parents : Theory.theory -> TheorySet.set
 
 val ancestors : Theory.theory -> TheorySet.set  (* not including self *)
 
-val deadAncestors : Theory.theory -> TheorySet.set
+(* ------------------------------------------------------------------------- *)
+(* Theory environments.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+type environment
+
+val emptyEnvironment : environment
+
+val peekEnvironment :
+    environment -> PackageTheory.name -> Theory.theory option
+
+val insertEnvironment :
+    environment -> PackageTheory.name * Theory.theory -> environment
+
+val mainEnvironment : environment -> Theory.theory
 
 (* ------------------------------------------------------------------------- *)
 (* Packaging theories.                                                       *)
@@ -73,7 +87,7 @@ val importTheory :
      directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     environment : Theory.theory PackageBaseMap.map,
+     environment : environment,
      theory : PackageTheory.theory} ->
     graph * Theory.theory
 
@@ -101,5 +115,14 @@ val importPackage :
      interpretation : Interpretation.interpretation,
      package : Package.package} ->
     graph * Theory.theory
+
+val importTheories :
+    graph ->
+    {finder : PackageFinder.finder,
+     directory : string,
+     imports : TheorySet.set,
+     interpretation : Interpretation.interpretation,
+     theories : PackageTheory.theory list} ->
+    graph * environment
 
 end
