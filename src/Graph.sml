@@ -77,11 +77,11 @@ fun packageTheory {expand} =
       and convert' pkg thy (avoid,cache,theories) =
           if expand thy then
             case Theory.node thy of
-              Theory.Package {package,theory,...} =>
+              Theory.Package {package,main,...} =>
               let
                 val pkg = PackageName.base package
               in
-                convert pkg theory (avoid,cache,theories)
+                convert pkg main (avoid,cache,theories)
               end
             | _ => raise Error "cannot expand a non-Package node"
           else
@@ -369,7 +369,7 @@ and importNode graph info =
                   Theory.Package
                     {interpretation = interpretation,
                      package = pkg,
-                     theory = theory}
+                     main = theory}
 
               val article = Theory.article theory
             in

@@ -23,7 +23,7 @@ datatype node =
   | Package of
       {interpretation : Interpretation.interpretation,
        package : PackageName.name,
-       theory : theory}
+       main : theory}
   | Union
 
 datatype theory' =
