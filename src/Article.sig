@@ -26,8 +26,6 @@ val thms : article -> Thms.thms
 
 val savable : article -> bool
 
-val objects : article -> ObjectThms.thms
-
 (* ------------------------------------------------------------------------- *)
 (* Merging articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
