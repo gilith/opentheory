@@ -7,7 +7,7 @@
 + (* OpenTheory proof logging.                                                 *)
 + (* ------------------------------------------------------------------------- *)
 + 
-+ loads "logging.ml";;
++ loads "opentheory/logging.ml";;
 + 
 + (* ------------------------------------------------------------------------- *)
   (* Some extra support stuff needed outside the core.                         *)

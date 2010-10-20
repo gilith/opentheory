@@ -142,7 +142,7 @@ in the form of tags, for example:
 version: 1.0<br />
 description: Basic boolean theory<br />
 author: Joe Hurd &lt;joe@gilith.com&gt;<br />
-license: PublicDomain</tt>
+license: OpenTheory</tt>
 </blockquote></p>
 
 <hr />
@@ -161,17 +161,23 @@ have extension <kbd>.art</kbd>.</p>
 
 <ol>
 
-<li>Add the
+<li>Change to the HOL Light directory.</li>
 
-<a href="logging.ml"><tt>logging.ml</tt></a>
+<li>Unpack the
 
-file to the HOL Light directory.</li>
+<a href="hol-light.tgz"><tt>hol-light.tgz</tt></a>
+
+tarball to the HOL Light directory:
+
+<blockquote>
+<tt>tar xvzf hol-light.tgz</tt>
+</blockquote></li>
 
 <li>Make
 
 <a href="hol-diff.txt">one change</a>
 
-to the <tt>hol.ml</tt> file.</li>
+to the <tt>hol.ml</tt> HOL Light file.</li>
 
 </ol>
 
@@ -185,7 +191,7 @@ following steps:</p>
 file:
 <blockquote>
 <tt>start_logging ();;<br />
-logfile "foo";;</tt>
+logfile "THEORY";;</tt>
 </blockquote></li>
 
 <li>Add the following lines to the bottom of the <tt>NAME.ml</tt>
@@ -202,17 +208,19 @@ way
 #use "hol.ml";;<br />
 #use "NAME.ml";;</tt>
 </blockquote>
-will generate a raw proof article file called <tt>foo.art</tt>.</li>
-
-<li>The proof article file <tt>foo.art</tt> can be compressed and
-converted to the OpenTheory standard namespace with the command
+will generate a raw proof article file and an associated theory file:
 <blockquote>
-<tt>opentheory info --article -o NAME.art
+<tt>opentheory/articles/THEORY.art<br />
+opentheory/articles/THEORY.thy</tt>
+</blockquote></li>
 
-<a href="foo.thy">foo.thy<a/></tt>
+<li>The raw proof article file can be compressed and converted to the
+OpenTheory standard namespace with the command
+<blockquote>
+<tt>opentheory info --article -o THEORY.art opentheory/articles/THEORY.thy</tt>
 </blockquote>
 Running this command will generate the proof article
-file <tt>NAME.art</tt>.</li>
+file <tt>THEORY.art</tt>.</li>
 
 </ol>
 

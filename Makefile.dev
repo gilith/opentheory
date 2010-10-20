@@ -19,14 +19,6 @@ TEMP += \
 ###############################################################################
 
 #MLPP_OPTS += -r 'OpenTheoryDebug'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-0]'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-2]'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-3]'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-4]'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-5]'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-6]'
-#MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-9]'
 MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
 
@@ -289,17 +281,11 @@ RELEASE_STAMP = scripts/release_stamp
 release-stamp: $(RELEASE_STAMP)
 	 $(RELEASE_STAMP) -p opentheory doc/*.html src/opentheory.sml
 
-doc/logging.ml: ../hol-light/logging.ml
-	cp -v $^ $@
-
-doc/foo.thy: test/interpretations/hol-light.int
-	echo 'main {' > $@
-	cat $^ | perl -ne 'chomp $$_; if ($$_ !~ /^ *([#]|$$)/) { print STDOUT "  interpret: $$_\n"; }' >> $@
-	echo '  article: "foo.art"' >> $@
-	echo '}' >> $@
+doc/hol-light.tgz: Makefile.dev
+	cd ../hol-light && tar cvzf ../opentheory/doc/hol-light.tgz --exclude 'opentheory/articles/*' opentheory/articles opentheory/hol-light.int opentheory/logging.ml
 
 .PHONY: documentation
-documentation: doc/logging.ml doc/foo.thy
+documentation: doc/hol-light.tgz
 
 .PHONY: tarball
 tarball: clean doc/DONT-RELEASE Makefile.dev
@@ -310,10 +296,9 @@ release: release-stamp mosml mlton polyml documentation
 	rm -f $(RELEASE_DIR)/*.html $(RELEASE_DIR)/*.txt $(RELEASE_DIR)/*.png
 	cp -v doc/*.html doc/*.txt doc/*.png $(RELEASE_DIR)/
 	cp -v doc/favicon.ico $(RELEASE_DIR)/
-	cp -v doc/foo.thy $(RELEASE_DIR)/
 	cp -v doc/GPL-LICENSE $(RELEASE_DIR)/
+	cp -v doc/hol-light.tgz $(RELEASE_DIR)/
 	cp -v doc/MIT-LICENSE $(RELEASE_DIR)/
-	cp -v doc/logging.ml $(RELEASE_DIR)/
 	$(MAKE) tarball
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 	ssh gilith@login.gilith.com '/bin/bash -l scripts/install_opentheory'
