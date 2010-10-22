@@ -228,6 +228,8 @@ POLYML = poly
 
 POLYML_OPTS =
 
+POLYML_LINK_OPTS = -lpolymain -lpolyml -segprot POLY rwx rwx
+
 POLYML_SRC = \
   src/Random.sig src/Random.sml \
   src/Portable.sig src/PortablePolyml.sml \
@@ -253,7 +255,7 @@ bin/polyml/%: bin/polyml/%.o
 	@echo '*****************************'
 	@echo
 	@echo $@
-	cd bin/polyml && $(CC) -o $(notdir $@) $(notdir $<) -lpolymain -lpolyml
+	cd bin/polyml && $(CC) -o $(notdir $@) $(notdir $<) $(POLYML_LINK_OPTS)
 	@echo
 
 .PHONY: polyml-info

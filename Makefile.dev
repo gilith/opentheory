@@ -1,9 +1,9 @@
-###############################################################################
+#################################################################-*-makefile-*-
 # OPENTHEORY DEVELOPMENT MAKEFILE
 # Copyright (c) 2005 Joe Hurd, distributed under the GNU GPL version 2
 ###############################################################################
 
-.PRECIOUS: bin/mlton/%.sml bin/mlton/%.mlb
+.PRECIOUS: bin/mlton/%.sml bin/mlton/%.mlb bin/polyml/%.sml
 
 ###############################################################################
 # Cleaning temporary files.
