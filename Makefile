@@ -228,7 +228,11 @@ POLYML = poly
 
 POLYML_OPTS =
 
-POLYML_LINK_OPTS = -lpolymain -lpolyml -segprot POLY rwx rwx
+ifeq ($(shell uname), Darwin)
+  POLYML_LINK_OPTS = -lpolymain -lpolyml -segprot POLY rwx rwx
+else
+  POLYML_LINK_OPTS = -lpolymain -lpolyml
+endif
 
 POLYML_SRC = \
   src/Random.sig src/Random.sml \
