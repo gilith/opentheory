@@ -8,25 +8,25 @@ show: "Data.Function"
 show: "Number.Natural"
 show: "Number.Numeral"
 
-natural-def {
+def {
   package: natural-def-1.0
 }
 
-natural-recursion {
-  import: natural-def
+recursion {
+  import: def
   package: natural-recursion-1.0
 }
 
-natural-cases {
-  import: natural-def
-  import: natural-recursion
+cases {
+  import: def
+  import: recursion
   package: natural-cases-1.0
 }
 
-natural-numeral {
-  import: natural-def
-  import: natural-recursion
-  import: natural-cases
+numeral {
+  import: def
+  import: recursion
+  import: cases
   package: natural-numeral-1.0
 }
 
@@ -43,10 +43,10 @@ natural-numeral {
 # }
 
 main {
-  import: natural-def
-  import: natural-recursion
-  import: natural-cases
-  import: natural-numeral
+  import: def
+  import: recursion
+  import: cases
+  import: numeral
 #   import: pre-def
 #   import: add-def
 }
