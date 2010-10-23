@@ -27,26 +27,31 @@ numeral {
   import: def
   import: recursion
   import: cases
+  import: add
   package: natural-numeral-1.0
 }
 
-# pre-def {
-#   import: num-def
-#   import: numeral-def
-#   package: num-pre-def-1.0
-# }
+pre {
+  import: def
+  import: recursion
+  import: cases
+  import: numeral
+  package: natural-pre-1.0
+}
 
-# add-def {
-#   import: num-def
-#   import: numeral-def
-#   package: num-add-def-1.0
-# }
+add {
+  import: def
+  import: recursion
+  import: cases
+  import: numeral
+  package: natural-add-1.0
+}
 
 main {
   import: def
   import: recursion
   import: cases
   import: numeral
-#   import: pre-def
-#   import: add-def
+  import: pre
+  import: add
 }
