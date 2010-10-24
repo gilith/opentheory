@@ -260,11 +260,18 @@ fun add graph thy =
 (* Finding matching theories.                                                *)
 (* ------------------------------------------------------------------------- *)
 
+datatype specification =
+    Specification of
+      {imports : TheorySet.set,
+       interpretation : Interpretation.interpretation,
+       package : PackageName.name}
+
 fun match graph spec =
     let
-      val {imports = imp,
-           interpretation = int,
-           package = pkg} = spec
+      val Specification
+            {imports = imp,
+             interpretation = int,
+             package = pkg} = spec
 
       fun matchImp thy =
           let
@@ -287,38 +294,120 @@ fun match graph spec =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* An importer is used to import theory packages into a graph.               *)
+(* ------------------------------------------------------------------------- *)
+
+datatype importer =
+    Importer of (graph -> specification -> graph * Theory.theory);
+
+fun applyImporter (Importer f) graph spec = f graph spec;
+
+(* ------------------------------------------------------------------------- *)
 (* Importing theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun importTheory graph info =
+fun importNode importer graph info =
     let
-      val {finder,
-           directory,
+      val {directory,
            imports,
            interpretation,
-           environment = env,
-           theory} = info
+           node} = info
+    in
+      case node of
+          PackageTheory.Article {interpretation = int, filename = f} =>
+          let
+            val savable = savable graph
+
+            val import = TheorySet.toArticle imports
+
+            val interpretation = Interpretation.compose int interpretation
+
+            val filename = OS.Path.concat (directory,f)
+
+            val node =
+                Theory.Article
+                  {interpretation = interpretation,
+                   filename = filename}
+
+            val article =
+                Article.fromTextFile
+                  {savable = savable,
+                   import = import,
+                   interpretation = interpretation,
+                   filename = filename}
+
+            val imports = TheorySet.toList imports
+
+            val thy' =
+                Theory.Theory'
+                  {imports = imports,
+                   node = node,
+                   article = article}
+
+            val thy = Theory.mk thy'
+          in
+            (graph,thy)
+          end
+        | PackageTheory.Package {interpretation = int, package = pkg} =>
+          let
+            val interpretation = Interpretation.compose int interpretation
+
+            val spec =
+                Specification
+                  {imports = imports,
+                   interpretation = interpretation,
+                   package = pkg}
+          in
+            applyImporter importer graph spec
+          end
+        | PackageTheory.Union =>
+          let
+            val node = Theory.Union
+
+            val article = TheorySet.toArticle imports
+
+            val imports = TheorySet.toList imports
+
+            val thy' =
+                Theory.Theory'
+                  {imports = imports,
+                   node = node,
+                   article = article}
+
+            val thy = Theory.mk thy'
+          in
+            (graph,thy)
+          end
+    end;
+
+fun importTheory importer graph env info =
+    let
+      val {directory,imports,interpretation,theory} = info
+
+      val PackageTheory.Theory {name, imports = imps, node} = theory
 
       fun addImp (imp,acc) =
           case peekEnvironment env imp of
             SOME thy => TheorySet.add acc thy
           | NONE => raise Error ("unknown theory import: " ^
-                                 PackageBase.toString imp)
+                                 PackageTheory.toStringName imp)
 
       val imports = List.foldl addImp imports (PackageTheory.imports theory)
 
-      val node = PackageTheory.node theory
-
       val info =
-          {finder = finder,
-           directory = directory,
+          {directory = directory,
            imports = imports,
            interpretation = interpretation,
            node = node}
-    in
-      importNode graph info
-    end
 
+      val (graph,thy) = importNode importer graph info
+
+      val env = insertEnvironment env (name,thy)
+    in
+      (graph,env,thy)
+    end;
+
+(***
 and importNode graph info =
     let
       val {finder,
@@ -509,5 +598,6 @@ and importTheories graph info =
     in
       List.foldl impThy (graph,env) theories
     end;
+***)
 
 end

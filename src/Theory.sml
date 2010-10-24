@@ -32,6 +32,7 @@ and node =
   | Package of
       {interpretation : Interpretation.interpretation,
        package : PackageName.name,
+       theories : theory list,
        main : theory}
   | Union;
 

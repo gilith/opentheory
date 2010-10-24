@@ -70,27 +70,44 @@ val lookup : graph -> PackageName.name -> TheorySet.set
 (* Finding matching theories.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val match :
-    graph ->
-    {imports : TheorySet.set,
-     interpretation : Interpretation.interpretation,
-     package : PackageName.name} ->
-    TheorySet.set
+datatype specification =
+    Specification of
+      {imports : TheorySet.set,
+       interpretation : Interpretation.interpretation,
+       package : PackageName.name}
+
+val match : graph -> specification -> TheorySet.set
+
+(* ------------------------------------------------------------------------- *)
+(* An importer is used to import theory packages into a graph.               *)
+(* ------------------------------------------------------------------------- *)
+
+type importer
+
+val applyImporter :
+    importer -> graph -> specification -> graph * Theory.theory
 
 (* ------------------------------------------------------------------------- *)
 (* Importing theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val importTheory :
-    graph ->
-    {finder : PackageFinder.finder,
-     directory : string,
+val importNode :
+    importer -> graph ->
+    {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     environment : environment,
-     theory : PackageTheory.theory} ->
+     node : PackageTheory.node} ->
     graph * Theory.theory
 
+val importTheory :
+    importer -> graph -> environment ->
+    {directory : string,
+     imports : TheorySet.set,
+     interpretation : Interpretation.interpretation,
+     theory : PackageTheory.theory} ->
+    graph * environment * Theory.theory
+
+(***
 val importPackageName :
     graph ->
     {finder : PackageFinder.finder,
@@ -124,5 +141,6 @@ val importTheories :
      interpretation : Interpretation.interpretation,
      theories : PackageTheory.theory list} ->
     graph * environment
+***)
 
 end

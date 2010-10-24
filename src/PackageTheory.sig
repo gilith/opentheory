@@ -87,6 +87,8 @@ val pp : theory Print.pp
 
 val ppList : theory list Print.pp
 
+val toStringName : name -> string
+
 val toStringFilename : {filename : string} -> string
 
 (* ------------------------------------------------------------------------- *)

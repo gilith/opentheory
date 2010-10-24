@@ -386,6 +386,8 @@ fun ppList thys =
           (pp thy :: map ppThy thys)
       end;
 
+val toStringName = Print.toString ppName;
+
 val toStringFilename = Print.toString ppFilename;
 
 (* ------------------------------------------------------------------------- *)
