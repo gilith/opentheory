@@ -28,6 +28,8 @@ val peekEnvironment :
 val insertEnvironment :
     environment -> PackageTheory.name * Theory.theory -> environment
 
+val theoriesEnvironment : environment -> Theory.theory list
+
 val mainEnvironment : environment -> Theory.theory
 
 (* ------------------------------------------------------------------------- *)
@@ -122,6 +124,7 @@ val importPackage :
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
+     name : PackageName.name,
      package : Package.package} ->
     graph * Theory.theory
 

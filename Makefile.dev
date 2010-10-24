@@ -186,8 +186,8 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/pair/pair.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-numeral/natural-numeral.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-add/natural-add.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural/natural.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
+#	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural/natural.thy
+#	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
 
 .PHONY: reset-repo
 reset-repo:

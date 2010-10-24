@@ -789,30 +789,34 @@ local
         case getDirectory () of
           NONE => NONE
         | SOME {directory = dir} =>
-          case getPackage () of
+          case getName () of
             NONE => NONE
-          | SOME pkg =>
-            case getSavable () of
+          | SOME name =>
+            case getPackage () of
               NONE => NONE
-            | SOME sav =>
-              let
-                val importer = directoryImporter ()
+            | SOME pkg =>
+              case getSavable () of
+                NONE => NONE
+              | SOME sav =>
+                let
+                  val importer = directoryImporter ()
 
-                val graph = Graph.empty {savable = sav}
+                  val graph = Graph.empty {savable = sav}
 
-                val imps = TheorySet.empty
+                  val imps = TheorySet.empty
 
-                val int = Interpretation.natural
+                  val int = Interpretation.natural
 
-                val thy =
-                    Graph.importPackage importer graph
-                      {directory = dir,
-                       imports = imps,
-                       interpretation = int,
-                       package = pkg}
-              in
-                SOME thy
-              end;
+                  val thy =
+                      Graph.importPackage importer graph
+                        {directory = dir,
+                         imports = imps,
+                         interpretation = int,
+                         name = name,
+                         package = pkg}
+                in
+                  SOME thy
+                end;
   in
     val getTheory = getCached cache compute;
   end;

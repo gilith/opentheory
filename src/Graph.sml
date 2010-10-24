@@ -34,24 +34,46 @@ end;
 (* Theory environments.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype environment = Environment of Theory.theory PackageBaseMap.map
+datatype environment =
+    Environment of
+      {named : Theory.theory PackageBaseMap.map,
+       imported : Theory.theory list};
 
-val emptyEnvironment = Environment (PackageBaseMap.new ());
-
-fun peekEnvironment (Environment env) name = PackageBaseMap.peek env name;
-
-fun insertEnvironment (Environment env) (name,thy) =
+val emptyEnvironment =
     let
-      val () =
-          if not (PackageBaseMap.inDomain name env) then ()
-          else raise Error ("duplicate theory name: " ^
-                            PackageBase.toString name)
+      val named = PackageBaseMap.new ()
+      and imported = []
     in
-      Environment (PackageBaseMap.insert env (name,thy))
+      Environment
+        {named = named,
+         imported = imported}
     end;
 
-fun mainEnvironment (Environment env) =
-    case PackageBaseMap.peek env PackageTheory.mainName of
+fun peekEnvironment (Environment {named,...}) name =
+    PackageBaseMap.peek named name;
+
+fun insertEnvironment env (name,thy) =
+    let
+      val Environment {named,imported} = env
+
+      val () =
+          if not (PackageBaseMap.inDomain name named) then ()
+          else raise Error ("duplicate theory name: " ^
+                            PackageBase.toString name)
+
+      val named = PackageBaseMap.insert named (name,thy)
+
+      val imported = thy :: imported
+    in
+      Environment
+        {named = named,
+         imported = imported}
+    end;
+
+fun theoriesEnvironment (Environment {imported,...}) = rev imported;
+
+fun mainEnvironment (Environment {named,...}) =
+    case PackageBaseMap.peek named PackageTheory.mainName of
       SOME thy => thy
     | NONE => raise Error "no main theory";
 
@@ -425,7 +447,7 @@ fun importTheories importer graph info =
 
 fun importPackage importer graph info =
     let
-      val {directory, imports, interpretation, package = pkg} = info
+      val {directory, imports, interpretation, name, package = pkg} = info
 
       val theories = Package.theories pkg
 
@@ -437,7 +459,26 @@ fun importPackage importer graph info =
 
       val (graph,env) = importTheories importer graph info
 
-      val thy = mainEnvironment env
+      val main = mainEnvironment env
+
+      val node =
+          Theory.Package
+            {interpretation = interpretation,
+             package = name,
+             theories = theoriesEnvironment env,
+             main = main}
+
+      val article = Theory.article main
+
+      val imports = TheorySet.toList imports
+
+      val thy' =
+          Theory.Theory'
+              {imports = imports,
+               node = node,
+               article = article}
+
+      val thy = Theory.mk thy'
     in
       (graph,thy)
     end;
@@ -447,13 +488,14 @@ fun importPackageInfo importer graph data =
       val {imports,interpretation,info} = data
 
       val {directory} = PackageInfo.directory info
-
-      val pkg = PackageInfo.package info
+      and name = PackageInfo.name info
+      and pkg = PackageInfo.package info
 
       val data =
           {directory = directory,
            imports = imports,
            interpretation = interpretation,
+           name = name,
            package = pkg}
     in
       importPackage importer graph data

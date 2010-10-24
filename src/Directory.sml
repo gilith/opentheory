@@ -431,20 +431,15 @@ fun summary dir info =
 
       val impt = importer dir
 
-      val {directory} = PackageInfo.directory info
-
       val imps = TheorySet.empty
 
       val int = Interpretation.natural
 
-      val pkg = PackageInfo.package info
-
       val (_,thy) =
-          Graph.importPackage impt graph
-            {directory = directory,
-             imports = imps,
+          Graph.importPackageInfo impt graph
+            {imports = imps,
              interpretation = int,
-             package = pkg}
+             info = info}
 
       val art = Theory.article thy
 
