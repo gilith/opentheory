@@ -74,7 +74,7 @@ datatype specification =
     Specification of
       {imports : TheorySet.set,
        interpretation : Interpretation.interpretation,
-       package : PackageName.name}
+       name : PackageName.name}
 
 val match : graph -> specification -> TheorySet.set
 
@@ -86,6 +86,8 @@ type importer
 
 val applyImporter :
     importer -> graph -> specification -> graph * Theory.theory
+
+val fromFinderImporter : PackageFinder.finder -> importer
 
 (* ------------------------------------------------------------------------- *)
 (* Importing theory packages.                                                *)
@@ -107,40 +109,30 @@ val importTheory :
      theory : PackageTheory.theory} ->
     graph * environment * Theory.theory
 
-(***
-val importPackageName :
-    graph ->
-    {finder : PackageFinder.finder,
+val importTheories :
+    importer -> graph ->
+    {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     package : PackageName.name} ->
-    graph * Theory.theory
-
-val importPackageInfo :
-    graph ->
-    {finder : PackageFinder.finder,
-     imports : TheorySet.set,
-     interpretation : Interpretation.interpretation,
-     package : PackageInfo.info} ->
-    graph * Theory.theory
+     theories : PackageTheory.theory list} ->
+    graph * environment
 
 val importPackage :
-    graph ->
-    {finder : PackageFinder.finder,
-     directory : string,
+    importer -> graph ->
+    {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : Package.package} ->
     graph * Theory.theory
 
-val importTheories :
-    graph ->
-    {finder : PackageFinder.finder,
-     directory : string,
-     imports : TheorySet.set,
+val importPackageInfo :
+    importer -> graph ->
+    {imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     theories : PackageTheory.theory list} ->
-    graph * environment
-***)
+     info : PackageInfo.info} ->
+    graph * Theory.theory
+
+val importPackageName :
+    PackageFinder.finder -> graph -> specification -> graph * Theory.theory
 
 end

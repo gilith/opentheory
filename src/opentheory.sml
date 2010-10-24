@@ -143,6 +143,12 @@ val directory =
 fun directoryFinder () = Directory.finder (directory ());
 
 (* ------------------------------------------------------------------------- *)
+(* A simple package importer.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun directoryImporter () = Directory.importer (directory ());
+
+(* ------------------------------------------------------------------------- *)
 (* Config file.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
@@ -790,7 +796,7 @@ local
               NONE => NONE
             | SOME sav =>
               let
-                val finder = directoryFinder ()
+                val importer = directoryImporter ()
 
                 val graph = Graph.empty {savable = sav}
 
@@ -799,9 +805,8 @@ local
                 val int = Interpretation.natural
 
                 val thy =
-                    Graph.importPackage graph
-                      {finder = finder,
-                       directory = dir,
+                    Graph.importPackage importer graph
+                      {directory = dir,
                        imports = imps,
                        interpretation = int,
                        package = pkg}

@@ -264,14 +264,11 @@ datatype specification =
     Specification of
       {imports : TheorySet.set,
        interpretation : Interpretation.interpretation,
-       package : PackageName.name}
+       name : PackageName.name}
 
 fun match graph spec =
     let
-      val Specification
-            {imports = imp,
-             interpretation = int,
-             package = pkg} = spec
+      val Specification {imports = imp, interpretation = int, name} = spec
 
       fun matchImp thy =
           let
@@ -290,7 +287,7 @@ fun match graph spec =
           matchImp thy andalso
           matchInt thy
     in
-      TheorySet.filter matchThy (lookup graph pkg)
+      TheorySet.filter matchThy (lookup graph name)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -308,10 +305,7 @@ fun applyImporter (Importer f) graph spec = f graph spec;
 
 fun importNode importer graph info =
     let
-      val {directory,
-           imports,
-           interpretation,
-           node} = info
+      val {directory,imports,interpretation,node} = info
     in
       case node of
           PackageTheory.Article {interpretation = int, filename = f} =>
@@ -348,7 +342,7 @@ fun importNode importer graph info =
           in
             (graph,thy)
           end
-        | PackageTheory.Package {interpretation = int, package = pkg} =>
+        | PackageTheory.Package {interpretation = int, package = name} =>
           let
             val interpretation = Interpretation.compose int interpretation
 
@@ -356,7 +350,7 @@ fun importNode importer graph info =
                 Specification
                   {imports = imports,
                    interpretation = interpretation,
-                   package = pkg}
+                   name = name}
           in
             applyImporter importer graph spec
           end
@@ -407,189 +401,19 @@ fun importTheory importer graph env info =
       (graph,env,thy)
     end;
 
-(***
-and importNode graph info =
+fun importTheories importer graph info =
     let
-      val {finder,
-           directory,
-           imports,
-           interpretation,
-           node} = info
-
-      val (graph,node,article) =
-          case node of
-            PackageTheory.Article {interpretation = int, filename = f} =>
-            let
-              val savable = savable graph
-
-              val import = TheorySet.toArticle imports
-
-              val interpretation = Interpretation.compose int interpretation
-
-              val filename = OS.Path.concat (directory,f)
-
-              val node =
-                  Theory.Article
-                    {interpretation = interpretation,
-                     filename = filename}
-
-              val article =
-                  Article.fromTextFile
-                    {savable = savable,
-                     import = import,
-                     interpretation = interpretation,
-                     filename = filename}
-            in
-              (graph,node,article)
-            end
-          | PackageTheory.Package {interpretation = int, package = pkg} =>
-            let
-              val interpretation = Interpretation.compose int interpretation
-
-              val info =
-                  {finder = finder,
-                   imports = imports,
-                   interpretation = interpretation,
-                   package = pkg}
-
-              val (graph,theory) = importPackageName graph info
-
-              val node =
-                  Theory.Package
-                    {interpretation = interpretation,
-                     package = pkg,
-                     main = theory}
-
-              val article = Theory.article theory
-            in
-              (graph,node,article)
-            end
-          | PackageTheory.Union =>
-            let
-              val node = Theory.Union
-
-              val article = TheorySet.toArticle imports
-            in
-              (graph,node,article)
-            end
-
-      val imports = TheorySet.toList imports
-
-      val thy' =
-          Theory.Theory'
-            {imports = imports,
-             node = node,
-             article = article}
-
-      val thy = Theory.mk thy'
-    in
-      (graph,thy)
-    end
-
-and importPackageName graph info =
-    let
-      val {finder,
-           imports,
-           interpretation,
-           package = pkg} = info
-
-      val spec =
-          {imports = imports,
-           interpretation = interpretation,
-           package = pkg}
-
-      val thys = match graph spec
-    in
-      if not (TheorySet.null thys) then (graph, TheorySet.pick thys)
-      else
-        let
-          val package =
-              case PackageFinder.find finder pkg of
-                SOME p => p
-              | NONE =>
-                raise Error ("couldn't find package " ^ PackageName.toString pkg)
-
-          val info =
-              {finder = finder,
-               imports = imports,
-               interpretation = interpretation,
-               package = package}
-        in
-          importPackageInfo graph info
-          handle Error err =>
-            raise Error ("while importing package " ^
-                         PackageName.toString pkg ^ "\n" ^ err)
-        end
-    end
-
-and importPackageInfo graph info =
-    let
-      val {finder,
-           imports,
-           interpretation,
-           package = pkg} = info
-
-      val {directory} = PackageInfo.directory pkg
-
-      val pkg = PackageInfo.package pkg
-
-      val info =
-          {finder = finder,
-           directory = directory,
-           imports = imports,
-           interpretation = interpretation,
-           package = pkg}
-    in
-      importPackage graph info
-    end
-
-and importPackage graph info =
-    let
-      val {finder,
-           directory,
-           imports,
-           interpretation,
-           package = pkg} = info
-
-      val theories = Package.theories pkg
-
-      val info =
-          {finder = finder,
-           directory = directory,
-           imports = imports,
-           interpretation = interpretation,
-           theories = theories}
-
-      val (graph,env) = importTheories graph info
-
-      val thy = mainEnvironment env
-    in
-      (graph,thy)
-    end
-
-and importTheories graph info =
-    let
-      val {finder,
-           directory,
-           imports,
-           interpretation,
-           theories} = info
+      val {directory,imports,interpretation,theories} = info
 
       fun impThy (theory,(graph,env)) =
           let
             val info =
-                {finder = finder,
-                 directory = directory,
+                {directory = directory,
                  imports = imports,
                  interpretation = interpretation,
-                 environment = env,
                  theory = theory}
 
-            val (graph,thy) = importTheory graph info
-
-            val name = PackageTheory.name theory
-
-            val env = insertEnvironment env (name,thy)
+            val (graph,env,_) = importTheory importer graph env info
           in
             (graph,env)
           end
@@ -598,6 +422,72 @@ and importTheories graph info =
     in
       List.foldl impThy (graph,env) theories
     end;
-***)
+
+fun importPackage importer graph info =
+    let
+      val {directory, imports, interpretation, package = pkg} = info
+
+      val theories = Package.theories pkg
+
+      val info =
+          {directory = directory,
+           imports = imports,
+           interpretation = interpretation,
+           theories = theories}
+
+      val (graph,env) = importTheories importer graph info
+
+      val thy = mainEnvironment env
+    in
+      (graph,thy)
+    end;
+
+fun importPackageInfo importer graph data =
+    let
+      val {imports,interpretation,info} = data
+
+      val {directory} = PackageInfo.directory info
+
+      val pkg = PackageInfo.package info
+
+      val data =
+          {directory = directory,
+           imports = imports,
+           interpretation = interpretation,
+           package = pkg}
+    in
+      importPackage importer graph data
+    end;
+
+fun importPackageName finder graph spec =
+    let
+      val thys = match graph spec
+    in
+      if not (TheorySet.null thys) then (graph, TheorySet.pick thys)
+      else
+        let
+          val importer = fromFinderImporter finder
+
+          val Specification {imports,interpretation,name} = spec
+
+          val info = 
+              case PackageFinder.find finder name of
+                SOME i => i
+              | NONE => raise Error ("couldn't find package " ^
+                                     PackageName.toString name)
+
+          val data =
+              {imports = imports,
+               interpretation = interpretation,
+               info = info}
+        in
+          importPackageInfo importer graph data
+          handle Error err =>
+            raise Error ("while importing package " ^
+                         PackageName.toString name ^ "\n" ^ err)
+        end
+    end
+
+and fromFinderImporter finder = Importer (importPackageName finder);
 
 end

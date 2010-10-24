@@ -416,6 +416,12 @@ fun list dir = DirectoryPackages.list (packages dir);
 fun finder dir = PackageFinder.mk (peek dir);
 
 (* ------------------------------------------------------------------------- *)
+(* A package importer.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun importer dir = Graph.fromFinderImporter (finder dir);
+
+(* ------------------------------------------------------------------------- *)
 (* Summarizing packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -423,7 +429,7 @@ fun summary dir info =
     let
       val graph = Graph.empty {savable = false}
 
-      val fndr = finder dir
+      val impt = importer dir
 
       val {directory} = PackageInfo.directory info
 
@@ -434,9 +440,8 @@ fun summary dir info =
       val pkg = PackageInfo.package info
 
       val (_,thy) =
-          Graph.importPackage graph
-            {finder = fndr,
-             directory = directory,
+          Graph.importPackage impt graph
+            {directory = directory,
              imports = imps,
              interpretation = int,
              package = pkg}

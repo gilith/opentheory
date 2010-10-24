@@ -394,12 +394,13 @@ fun import name =
 
       val graph = Graph.empty {savable = false}
 
-      val (_,thy) =
-          Graph.importPackageName graph
-            {finder = finder,
-             imports = TheorySet.empty,
+      val spec =
+          Graph.Specification
+            {imports = TheorySet.empty,
              interpretation = Interpretation.natural,
-             package = PackageName.fromString name};
+             name = PackageName.fromString name}
+
+      val (_,thy) = Graph.importPackageName finder graph spec
 
       val art = Theory.article thy
 
