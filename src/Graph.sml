@@ -532,4 +532,10 @@ fun importPackageName finder graph spec =
 
 and fromFinderImporter finder = Importer (importPackageName finder);
 
+(* ------------------------------------------------------------------------- *)
+(* Linearize mutually recursive theory packages.                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun linearize importer directory theories = theories;
+
 end

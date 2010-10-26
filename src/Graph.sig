@@ -138,4 +138,13 @@ val importPackageInfo :
 val importPackageName :
     PackageFinder.finder -> graph -> specification -> graph * Theory.theory
 
+(* ------------------------------------------------------------------------- *)
+(* Linearize mutually recursive theory packages.                             *)
+(* ------------------------------------------------------------------------- *)
+
+val linearize :
+    importer ->
+    {directory : string} -> PackageTheory.theory list ->
+    PackageTheory.theory list
+
 end

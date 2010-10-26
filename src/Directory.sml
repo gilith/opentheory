@@ -850,6 +850,18 @@ local
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
+
+  fun checkTheory dir info pkg =
+      let
+        val Package.Package' {tags,theories} = Package.dest pkg
+
+        val impt = importer dir
+        and pdir = PackageInfo.directory info
+
+        val theories = Graph.linearize impt pdir theories
+      in
+        Package.mk (Package.Package' {tags = tags, theories = theories})
+      end;
 in
   fun stageTheory dir name pkg {directory = srcDir} =
       let
@@ -877,6 +889,10 @@ in
           (* Copy the extra files over *)
 
           val pkg = copyExtraFiles sys srcDir stageInfo pkg
+
+          (* Check the package theory *)
+
+          val pkg = checkTheory dir stageInfo pkg
 
           (* Write the new theory file *)
 
