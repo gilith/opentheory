@@ -100,16 +100,34 @@ fun package thy = packageNode (node thy);
 fun packages thys = List.mapPartial package thys;
 
 (* ------------------------------------------------------------------------- *)
+(* Union dependencies.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun isUnionNode node =
+    case node of
+      Union => true
+    | _ => false;
+
+fun isUnion thy = isUnionNode (node thy);
+
+fun destUnion thy = if isUnion thy then SOME (imports thy) else NONE;
+
+fun importsUnion thy =
+    case destUnion thy of
+      SOME ts => ts
+    | NONE => [];
+
+(* ------------------------------------------------------------------------- *)
 (* Topological sort of theories.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun toMap thyl =
+  fun toMap parents thyl =
       let
         fun ins (thy,(m,l)) =
             let
               val n = name thy
-              and ts = imports thy
+              and ts = parents thy
 
               val m = PackageBaseMap.insert m (n,(ts,thy))
 
@@ -119,10 +137,12 @@ local
             end
 
         val thys_namel as (thys,_) =
-            List.foldl ins (PackageBaseMap.new (), []) thyl
+            List.foldl ins (PackageBaseMap.new (), []) (rev thyl)
 
-        fun check (n,(ts,_)) =
-            case List.find (fn t => not (PackageBaseMap.inDomain t thys)) ts of
+        fun isName n = PackageBaseMap.inDomain n thys
+
+        fun check (n,(_,thy)) =
+            case List.find (not o isName) (imports thy) of
               NONE => ()
             | SOME t =>
               raise Error ("theory block \"" ^ PackageBase.toString n ^ "\" " ^
@@ -133,61 +153,75 @@ local
         thys_namel
       end;
 
-  fun sortMap requires (dealt,dealtset) (stack,stackset) work =
+  fun sortMap theories (dealt,dealtset) (stack,stackset) work =
       case work of
         [] =>
         (case stack of
            [] => rev dealt
-         | (r,(req,work,stackset)) :: stack =>
+         | (t,(thy,work,stackset)) :: stack =>
            let
-             val dealt = req :: dealt
-             val dealtset = PackageBaseSet.add dealtset r
-           in
-             sortMap requires (dealt,dealtset) (stack,stackset) work
-           end)
-      | r :: work =>
-        if PackageBaseSet.member r dealtset then
-          sortMap requires (dealt,dealtset) (stack,stackset) work
-        else if PackageBaseSet.member r stackset then
-          let
-            fun notR (r',_) = not (PackageBase.equal r' r)
+             val dealt = thy :: dealt
 
-            val l = map fst (takeWhile notR stack)
-            val l = r :: rev (r :: l)
+             val dealtset = PackageBaseSet.add dealtset t
+           in
+             sortMap theories (dealt,dealtset) (stack,stackset) work
+           end)
+      | t :: work =>
+        if PackageBaseSet.member t dealtset then
+          sortMap theories (dealt,dealtset) (stack,stackset) work
+        else if PackageBaseSet.member t stackset then
+          let
+            fun notT (t',_) = not (PackageBase.equal t' t)
+
+            val l = map fst (takeWhile notT stack)
+
+            val l = t :: rev (t :: l)
+
             val err = join " -> " (map PackageBase.toString l)
           in
             raise Error ("circular dependency:\n" ^ err)
           end
         else
           let
-            val (rs,req) =
-                case PackageBaseMap.peek requires r of
-                  SOME rs_req => rs_req
-                | NONE => raise Bug "PackageRequire.sort"
+            val (ts,thy) =
+                case PackageBaseMap.peek theories t of
+                  SOME ts_thy => ts_thy
+                | NONE => raise Bug "PackageTheory.sort"
 
-            val stack = (r,(req,work,stackset)) :: stack
+            val stack = (t,(thy,work,stackset)) :: stack
 
-            val stackset = PackageBaseSet.add stackset r
+            val stackset = PackageBaseSet.add stackset t
 
-            val work = rs
+            val work = ts
           in
-            sortMap requires (dealt,dealtset) (stack,stackset) work
+            sortMap theories (dealt,dealtset) (stack,stackset) work
           end;
-in
-  fun sort reqs =
+
+  fun sortBy parents thys =
       let
-        val (reqs,work) = toMap reqs
+        val (thys,work) = toMap imports thys
 
         val dealt = []
+
         val dealtset = PackageBaseSet.empty
 
         val stack = []
+
         val stackset = PackageBaseSet.empty
       in
-        sortMap reqs (dealt,dealtset) (stack,stackset) work
-      end
+        sortMap thys (dealt,dealtset) (stack,stackset) work
+      end;
+in
+  fun sortImports thys =
+      sortBy imports thys
 (*OpenTheoryDebug
-      handle Error err => raise Error ("PackageTheory.sort: " ^ err);
+      handle Error err => raise Error ("PackageTheory.sortImports: " ^ err);
+*)
+
+  fun sortUnion thys =
+      sortBy importsUnion thys
+(*OpenTheoryDebug
+      handle Error err => raise Error ("PackageTheory.sortUnion: " ^ err);
 *)
 end;
 

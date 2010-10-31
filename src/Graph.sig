@@ -32,6 +32,7 @@ val theoriesEnvironment : environment -> Theory.theory list
 
 val mainEnvironment : environment -> Theory.theory
 
+(***
 (* ------------------------------------------------------------------------- *)
 (* Packaging theories.                                                       *)
 (* ------------------------------------------------------------------------- *)
@@ -39,6 +40,7 @@ val mainEnvironment : environment -> Theory.theory
 val packageTheory :
     {expand : Theory.theory -> bool} ->
     Theory.theory -> PackageTheory.theory list
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory graphs.                                                  *)
@@ -142,7 +144,7 @@ val importPackageName :
 (* Linearize mutually recursive theory packages.                             *)
 (* ------------------------------------------------------------------------- *)
 
-val linearize :
+val linearizeTheories :
     importer ->
     {directory : string} -> PackageTheory.theory list ->
     PackageTheory.theory list

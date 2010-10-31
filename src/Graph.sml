@@ -512,7 +512,7 @@ fun importPackageName finder graph spec =
 
           val Specification {imports,interpretation,name} = spec
 
-          val info = 
+          val info =
               case PackageFinder.find finder name of
                 SOME i => i
               | NONE => raise Error ("couldn't find package " ^
@@ -536,6 +536,41 @@ and fromFinderImporter finder = Importer (importPackageName finder);
 (* Linearize mutually recursive theory packages.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun linearize importer directory theories = theories;
+datatype vanilla = Vanilla of (graph * Theory.theory) PackageBaseMap.map;
+
+val emptyVanilla = Vanilla (PackageBaseMap.new ());
+
+fun addVanilla importer {directory} (theory, Vanilla van) =
+    let
+      val PackageTheory.Theory {name,node,...} = theory
+
+      val graph = empty {savable = false}
+
+      val imports = TheorySet.empty
+
+      val int = Interpretation.natural
+
+      val graph_thy =
+          importNode importer graph
+            {directory = directory,
+             imports = imports,
+             interpretation = int,
+             node = node}
+    in
+      Vanilla (PackageBaseMap.insert van (name,graph_thy))
+    end;
+
+fun fromListVanilla importer dir theories =
+    List.foldl (addVanilla importer dir) emptyVanilla theories;
+
+fun linearizeTheories importer dir theories =
+    let
+      val theories = PackageTheory.sortUnion theories
+
+      val vanilla = fromListVanilla importer dir theories
+
+    in
+      theories
+    end;
 
 end

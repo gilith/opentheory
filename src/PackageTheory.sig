@@ -57,6 +57,8 @@ val isMain : theory -> bool
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
+val articleNode : node -> {filename : string} option
+
 val article : theory -> {filename : string} option
 
 val articles : theory list -> {filename : string} list
@@ -65,15 +67,29 @@ val articles : theory list -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
+val packageNode : node -> PackageName.name option
+
 val package : theory -> PackageName.name option
 
 val packages : theory list -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
+(* Union dependencies.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val isUnionNode : node -> bool
+
+val destUnion : theory -> name list option
+
+val isUnion : theory -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Topological sort of theories.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val sort : theory list -> theory list
+val sortImports : theory list -> theory list
+
+val sortUnion : theory list -> theory list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

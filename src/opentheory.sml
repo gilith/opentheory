@@ -209,6 +209,75 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Options for displaying command help.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val initOpts : opt list = [];
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Options for uninstalling theory packages.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val autoUninstall = ref false;
+
+local
+  open Useful Options;
+in
+  val uninstallOpts : opt list =
+      [{switches = ["--auto"], arguments = [],
+        description = "also uninstall dependent packages",
+        processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Options for installing theory packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val autoInstall = ref true;
+
+val checksumInstall : Checksum.checksum option ref = ref NONE;
+
+val minimalInstall = ref false;
+
+val reinstall = ref false;
+
+local
+  open Useful Options;
+
+  fun addSuffix s {switches,arguments,description,processor} =
+      {switches = map (fn x => x ^ s) switches,
+       arguments = arguments,
+       description = description,
+       processor = processor};
+in
+  val installOpts : opt list =
+      [{switches = ["--repo"], arguments = ["REPO"],
+        description = "specify the repos to install from",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => repoOption := !repoOption @ [s])},
+       {switches = ["--checksum"], arguments = ["CHECKSUM"],
+        description = "specify the package checksum",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
+       {switches = ["--minimal"], arguments = [],
+        description = "do not install the package extra files",
+        processor = beginOpt endOpt (fn _ => minimalInstall := true)},
+       {switches = ["--reinstall"], arguments = [],
+        description = "uninstall the package if it exists",
+        processor = beginOpt endOpt (fn _ => reinstall := true)},
+       {switches = ["--manual"], arguments = [],
+        description = "do not also install required packages",
+        processor = beginOpt endOpt (fn _ => autoInstall := false)}] @
+      map (addSuffix "-uninstall") uninstallOpts;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Options for displaying package information.                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -301,76 +370,10 @@ in
         description = "write previous package information to FILE",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn f => fn s => setInfoOutputFilename f s)}];
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Options for displaying command help.                                      *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  open Useful Options;
-in
-  val initOpts : opt list = [];
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Options for uninstalling theory packages.                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val autoUninstall = ref false;
-
-local
-  open Useful Options;
-in
-  val uninstallOpts : opt list =
-      [{switches = ["--auto"], arguments = [],
-        description = "also uninstall dependent packages",
-        processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Options for installing theory packages.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-val autoInstall = ref true;
-
-val checksumInstall : Checksum.checksum option ref = ref NONE;
-
-val minimalInstall = ref false;
-
-val reinstall = ref false;
-
-local
-  open Useful Options;
-
-  fun addSuffix s {switches,arguments,description,processor} =
-      {switches = map (fn x => x ^ s) switches,
-       arguments = arguments,
-       description = description,
-       processor = processor};
-in
-  val installOpts : opt list =
-      [{switches = ["--manual"], arguments = [],
+            (fn f => fn s => setInfoOutputFilename f s)},
+       {switches = ["--manual"], arguments = [],
         description = "do not also install required packages",
-        processor = beginOpt endOpt (fn _ => autoInstall := false)},
-       {switches = ["--repo"], arguments = ["REPO"],
-        description = "specify the repos to install from",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := !repoOption @ [s])},
-       {switches = ["--checksum"], arguments = ["CHECKSUM"],
-        description = "specify the package checksum",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
-       {switches = ["--minimal"], arguments = [],
-        description = "do not install the package extra files",
-        processor = beginOpt endOpt (fn _ => minimalInstall := true)},
-       {switches = ["--reinstall"], arguments = [],
-        description = "uninstall the package if it exists",
-        processor = beginOpt endOpt (fn _ => reinstall := true)}] @
-      map (addSuffix "-uninstall") uninstallOpts;
+        processor = beginOpt endOpt (fn _ => autoInstall := false)}];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -684,436 +687,6 @@ end;
 fun help () = usage "displaying command help";
 
 (* ------------------------------------------------------------------------- *)
-(* Displaying package information.                                           *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  fun getCached r f () =
-      case !r of
-        SOME x => x
-      | NONE =>
-        let
-          val x = f ()
-
-          val () = r := SOME x
-        in
-          x
-        end;
-
-  local
-    val cache : PackageInfo.info option option ref = ref NONE;
-
-    fun compute () = NONE;
-  in
-    fun setInfo info = cache := SOME (SOME info);
-
-    val getInfo = getCached cache compute;
-  end;
-
-  local
-    val cache : Package.package option option ref = ref NONE;
-
-    fun compute () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.package info)
-        | NONE => NONE;
-  in
-    fun setPackage pkg = cache := SOME (SOME pkg);
-
-    val getPackage = getCached cache compute;
-  end;
-
-  local
-    val cache : PackageName.name option option ref = ref NONE;
-
-    fun compute () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.name info)
-        | NONE =>
-          case getPackage () of
-            SOME pkg => SOME (Package.name pkg)
-          | NONE => NONE;
-  in
-    fun setName name = cache := SOME (SOME name);
-
-    val getName = getCached cache compute;
-  end;
-
-  local
-    val cache : {directory : string} option option ref = ref NONE;
-
-    fun compute () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.directory info)
-        | NONE => NONE;
-  in
-    fun setDirectory dir = cache := SOME (SOME dir);
-
-    val getDirectory = getCached cache compute;
-  end;
-
-  local
-    val cache : {filename : string} list option option ref = ref NONE;
-
-    fun compute () =
-        case getInfo () of
-          SOME info =>
-          let
-            val files = PackageInfo.allFiles info
-
-            val files = map (PackageInfo.joinDirectory info) files
-          in
-            SOME files
-          end
-        | NONE => NONE;
-  in
-    fun setFiles files = cache := SOME (SOME files);
-
-    val getFiles = getCached cache compute;
-  end;
-
-  local
-    val cache : bool option option ref = ref NONE;
-
-    fun compute () = NONE;
-  in
-    fun setSavable sav = cache := SOME (SOME sav);
-
-    val getSavable = getCached cache compute;
-  end;
-
-  local
-    val cache : (Graph.graph * Theory.theory) option option ref = ref NONE;
-
-    fun compute () =
-        case getDirectory () of
-          NONE => NONE
-        | SOME {directory = dir} =>
-          case getPackage () of
-            NONE => NONE
-          | SOME pkg =>
-            case getSavable () of
-              NONE => NONE
-            | SOME sav =>
-              let
-                val importer = directoryImporter ()
-
-                val graph = Graph.empty {savable = sav}
-
-                val imps = TheorySet.empty
-
-                val int = Interpretation.natural
-
-                val theories = Package.theories pkg
-
-                val (graph,env) =
-                    Graph.importTheories importer graph
-                      {directory = dir,
-                       imports = imps,
-                       interpretation = int,
-                       theories = theories}
-
-                val thy = Graph.mainEnvironment env
-              in
-                SOME (graph,thy)
-              end;
-  in
-    val getTheory = getCached cache compute;
-  end;
-
-  local
-    val cache : Article.article option option ref = ref NONE;
-
-    fun compute () =
-        case getTheory () of
-          SOME (_,thy) => SOME (Theory.article thy)
-        | NONE => NONE;
-  in
-    fun setArticle art = cache := SOME (SOME art);
-
-    val getArticle = getCached cache compute;
-  end;
-
-  local
-    val cache : Summary.summary option option ref = ref NONE;
-
-    fun compute () =
-        case getArticle () of
-          SOME art =>
-          let
-            val ths = Article.thms art
-
-            val sum = Summary.fromThms ths
-          in
-            SOME sum
-          end
-        | NONE => NONE;
-  in
-    val getSummary = getCached cache compute;
-  end;
-
-  fun outputPackageNameSet names file =
-      let
-        fun mk n = PackageName.toString n ^ "\n"
-
-        val names = PackageNameSet.toList names
-
-        val strm = Stream.map mk (Stream.fromList names)
-      in
-        Stream.toTextFile file strm
-      end;
-
-  fun processInfoOutput (inf,file) =
-      case inf of
-        AncestorsInfo =>
-        let
-          val dir = directory ()
-
-          val pkg =
-              case getPackage () of
-                SOME p => p
-              | NONE => raise Error "no package information available"
-
-          val names = PackageNameSet.fromList (Package.packages pkg)
-
-          val names = Directory.ancestorsSet dir names
-        in
-          outputPackageNameSet names file
-        end
-      | ArticleInfo =>
-        let
-          val art =
-              case getArticle () of
-                SOME a => a
-              | NONE => raise Error "no article information available"
-
-          val {filename} = file
-        in
-          Article.toTextFile {article = art, filename = filename}
-        end
-      | ChildrenInfo =>
-        let
-          val dir = directory ()
-
-          val name =
-              case getName () of
-                SOME n => n
-              | NONE => raise Error "no name information available"
-
-          val names = Directory.children dir name
-        in
-          outputPackageNameSet names file
-        end
-      | DescendentsInfo =>
-        let
-          val dir = directory ()
-
-          val name =
-              case getName () of
-                SOME n => n
-              | NONE => raise Error "no name information available"
-
-          val names = Directory.descendents dir name
-        in
-          outputPackageNameSet names file
-        end
-      | FilesInfo =>
-        let
-          fun mk {filename} = filename ^ "\n"
-
-          val files =
-              case getFiles () of
-                SOME f => f
-              | NONE => raise Error "no files information available"
-
-          val strm = Stream.map mk (Stream.fromList files)
-        in
-          Stream.toTextFile file strm
-        end
-      | TagsInfo =>
-        let
-          val pkg =
-              case getPackage () of
-                SOME p => p
-              | NONE => raise Error "no package information available"
-
-          val tags = Package.tags pkg
-
-          val strm = Print.toStream Tag.ppList tags
-        in
-          Stream.toTextFile file strm
-        end
-      | NameInfo =>
-        let
-          val name =
-              case getName () of
-                SOME n => n
-              | NONE => raise Error "no name information available"
-
-          val strm = Print.toStream PackageName.pp name
-        in
-          Stream.toTextFile file strm
-        end
-      | ParentsInfo =>
-        let
-          val pkg =
-              case getPackage () of
-                SOME p => p
-              | NONE => raise Error "no package information available"
-
-          val names = PackageNameSet.fromList (Package.packages pkg)
-        in
-          outputPackageNameSet names file
-        end
-      | SummaryInfo =>
-        let
-          val sum =
-              case getSummary () of
-                SOME s => s
-              | NONE => raise Error "no summary information available"
-
-          val show =
-              case getPackage () of
-                SOME pkg => Show.fromTags (Package.tags pkg)
-              | NONE => Show.default
-
-          val {filename} = file
-        in
-          Summary.toTextFile
-            {show = show,
-             summary = sum,
-             filename = filename}
-        end
-      | TheoryInfo =>
-        let
-          val thy =
-              case getTheory () of
-                SOME (_,t) => t
-              | NONE => raise Error "no theory information available"
-
-          val tags = []
-
-          val theories =
-              Graph.packageTheory {expand = Theory.isPackage} thy
-
-          val package =
-              Package.mk
-                (Package.Package'
-                   {tags = tags,
-                    theories = theories})
-
-          val {filename} = file
-        in
-          Package.toTextFile
-            {package = package,
-             filename = filename}
-        end;
-
-  fun processInfoOutputList infs =
-      let
-        val sav = List.exists (savableInfo o fst) infs
-
-        val () = setSavable sav
-
-        val () = List.app processInfoOutput infs
-
-(*OpenTheoryDebug
-        val () =
-            let
-              val i = ObjectRead.theInferenceCount ()
-            in
-              if ObjectRead.nullInferenceCount i then ()
-              else
-                let
-                  val s = Print.toString ObjectRead.ppInferenceCount i
-
-                  val () = chat ("Inference functions:\n" ^ s ^ "\n")
-                in
-                  ()
-                end
-            end
-*)
-      in
-        ()
-      end;
-in
-  fun infoArticle {filename} infs =
-      let
-        val dir = OS.Path.dir filename
-
-        val sav = List.exists (savableInfo o fst) infs
-
-        val imp = Article.empty
-
-        val int = Interpretation.natural
-
-        val art =
-            Article.fromTextFile
-              {savable = sav,
-               import = imp,
-               interpretation = int,
-               filename = filename}
-
-        val () = setDirectory {directory = dir}
-
-        val () = setArticle art
-      in
-        processInfoOutputList infs
-      end;
-
-  fun infoPackage name infs =
-      let
-        val dir = directory ()
-      in
-        case Directory.peek dir name of
-          NONE => raise Error ("can't find package " ^ PackageName.toString name)
-        | SOME info =>
-          let
-            val () = setInfo info
-          in
-            processInfoOutputList infs
-          end
-      end;
-
-  fun infoTarball {filename} infs =
-      let
-        val sys = system ()
-
-        val PackageTarball.Contents {name,theoryFile,otherFiles} =
-            PackageTarball.contents sys {filename = filename}
-
-        val () = setName name
-
-        val () = setFiles (theoryFile :: otherFiles)
-      in
-        processInfoOutputList infs
-      end;
-
-  fun infoTheory {filename} infs =
-      let
-        val dir = OS.Path.dir filename
-
-        fun joinDir {filename} =
-            {filename = OS.Path.concat (dir,filename)}
-
-        val pkg = Package.fromTextFile {filename = filename}
-
-        val files =
-            {filename = filename} ::
-            map joinDir (Package.articles pkg) @
-            map (joinDir o Package.filenameExtraFile) (Package.extraFiles pkg)
-
-        val () = setDirectory {directory = dir}
-
-        val () = setPackage pkg
-
-        val () = setFiles files
-      in
-        processInfoOutputList infs
-      end;
-end;
-
-(* ------------------------------------------------------------------------- *)
 (* Initializing a package directory.                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1324,6 +897,9 @@ fun installFinderFree () =
     if not (!autoInstall) then directoryFinder ()
     else installAutoFinderFree ();
 
+fun installImporterFree () =
+    Graph.fromFinderImporter (installFinderFree ());
+
 fun installPackage name =
     let
       val dir = directory ()
@@ -1499,6 +1075,464 @@ fun installTheory filename =
     end
     handle Error err =>
       raise Error (err ^ "\npackage install from theory file failed");
+
+(* ------------------------------------------------------------------------- *)
+(* Displaying package information.                                           *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun getCached r f () =
+      case !r of
+        SOME x => x
+      | NONE =>
+        let
+          val x = f ()
+
+          val () = r := SOME x
+        in
+          x
+        end;
+
+  local
+    val cache : PackageInfo.info option option ref = ref NONE;
+
+    fun compute () = NONE;
+  in
+    fun setInfo info = cache := SOME (SOME info);
+
+    val getInfo = getCached cache compute;
+  end;
+
+  local
+    val cache : Package.package option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.package info)
+        | NONE => NONE;
+  in
+    fun setPackage pkg = cache := SOME (SOME pkg);
+
+    val getPackage = getCached cache compute;
+  end;
+
+  local
+    val cache : PackageName.name option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.name info)
+        | NONE =>
+          case getPackage () of
+            SOME pkg => SOME (Package.name pkg)
+          | NONE => NONE;
+  in
+    fun setName name = cache := SOME (SOME name);
+
+    val getName = getCached cache compute;
+  end;
+
+  local
+    val cache : {directory : string} option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.directory info)
+        | NONE => NONE;
+  in
+    fun setDirectory dir = cache := SOME (SOME dir);
+
+    val getDirectory = getCached cache compute;
+  end;
+
+  local
+    val cache : PackageTheory.theory list option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info =>
+          let
+            val pkg = PackageInfo.package info
+          in
+            SOME (Package.theories pkg)
+          end
+        | NONE =>
+          case getDirectory () of
+            NONE => NONE
+          | SOME dir =>
+            case getPackage () of
+              NONE => NONE
+            | SOME pkg =>
+              let
+                val importer = installImporterFree ()
+
+                val theories = Package.theories pkg
+
+                val theories = Graph.linearizeTheories importer dir theories
+              in
+                SOME theories
+              end;
+  in
+    fun setTheories thys = cache := SOME (SOME thys);
+
+    val getTheories = getCached cache compute;
+  end;
+
+  local
+    val cache : {filename : string} list option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          SOME info =>
+          let
+            val files = PackageInfo.allFiles info
+
+            val files = map (PackageInfo.joinDirectory info) files
+          in
+            SOME files
+          end
+        | NONE => NONE;
+  in
+    fun setFiles files = cache := SOME (SOME files);
+
+    val getFiles = getCached cache compute;
+  end;
+
+  local
+    val cache : bool option option ref = ref NONE;
+
+    fun compute () = NONE;
+  in
+    fun setSavable sav = cache := SOME (SOME sav);
+
+    val getSavable = getCached cache compute;
+  end;
+
+  local
+    val cache : (Graph.graph * Theory.theory) option option ref = ref NONE;
+
+    fun compute () =
+        case getDirectory () of
+          NONE => NONE
+        | SOME {directory = dir} =>
+          case getTheories () of
+            NONE => NONE
+          | SOME theories =>
+            case getSavable () of
+              NONE => NONE
+            | SOME sav =>
+              let
+                val importer = installImporterFree ()
+
+                val graph = Graph.empty {savable = sav}
+
+                val imps = TheorySet.empty
+
+                val int = Interpretation.natural
+
+                val (graph,env) =
+                    Graph.importTheories importer graph
+                      {directory = dir,
+                       imports = imps,
+                       interpretation = int,
+                       theories = theories}
+
+                val thy = Graph.mainEnvironment env
+              in
+                SOME (graph,thy)
+              end;
+  in
+    val getTheory = getCached cache compute;
+  end;
+
+  local
+    val cache : Article.article option option ref = ref NONE;
+
+    fun compute () =
+        case getTheory () of
+          SOME (_,thy) => SOME (Theory.article thy)
+        | NONE => NONE;
+  in
+    fun setArticle art = cache := SOME (SOME art);
+
+    val getArticle = getCached cache compute;
+  end;
+
+  local
+    val cache : Summary.summary option option ref = ref NONE;
+
+    fun compute () =
+        case getArticle () of
+          SOME art =>
+          let
+            val ths = Article.thms art
+
+            val sum = Summary.fromThms ths
+          in
+            SOME sum
+          end
+        | NONE => NONE;
+  in
+    val getSummary = getCached cache compute;
+  end;
+
+  fun outputPackageNameSet names file =
+      let
+        fun mk n = PackageName.toString n ^ "\n"
+
+        val names = PackageNameSet.toList names
+
+        val strm = Stream.map mk (Stream.fromList names)
+      in
+        Stream.toTextFile file strm
+      end;
+
+  fun processInfoOutput (inf,file) =
+      case inf of
+        AncestorsInfo =>
+        let
+          val dir = directory ()
+
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no package information available"
+
+          val names = PackageNameSet.fromList (Package.packages pkg)
+
+          val names = Directory.ancestorsSet dir names
+        in
+          outputPackageNameSet names file
+        end
+      | ArticleInfo =>
+        let
+          val art =
+              case getArticle () of
+                SOME a => a
+              | NONE => raise Error "no article information available"
+
+          val {filename} = file
+        in
+          Article.toTextFile {article = art, filename = filename}
+        end
+      | ChildrenInfo =>
+        let
+          val dir = directory ()
+
+          val name =
+              case getName () of
+                SOME n => n
+              | NONE => raise Error "no name information available"
+
+          val names = Directory.children dir name
+        in
+          outputPackageNameSet names file
+        end
+      | DescendentsInfo =>
+        let
+          val dir = directory ()
+
+          val name =
+              case getName () of
+                SOME n => n
+              | NONE => raise Error "no name information available"
+
+          val names = Directory.descendents dir name
+        in
+          outputPackageNameSet names file
+        end
+      | FilesInfo =>
+        let
+          fun mk {filename} = filename ^ "\n"
+
+          val files =
+              case getFiles () of
+                SOME f => f
+              | NONE => raise Error "no files information available"
+
+          val strm = Stream.map mk (Stream.fromList files)
+        in
+          Stream.toTextFile file strm
+        end
+      | TagsInfo =>
+        let
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no package information available"
+
+          val tags = Package.tags pkg
+
+          val strm = Print.toStream Tag.ppList tags
+        in
+          Stream.toTextFile file strm
+        end
+      | NameInfo =>
+        let
+          val name =
+              case getName () of
+                SOME n => n
+              | NONE => raise Error "no name information available"
+
+          val strm = Print.toStream PackageName.pp name
+        in
+          Stream.toTextFile file strm
+        end
+      | ParentsInfo =>
+        let
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no package information available"
+
+          val names = PackageNameSet.fromList (Package.packages pkg)
+        in
+          outputPackageNameSet names file
+        end
+      | SummaryInfo =>
+        let
+          val sum =
+              case getSummary () of
+                SOME s => s
+              | NONE => raise Error "no summary information available"
+
+          val show =
+              case getPackage () of
+                SOME pkg => Show.fromTags (Package.tags pkg)
+              | NONE => Show.default
+
+          val {filename} = file
+        in
+          Summary.toTextFile
+            {show = show,
+             summary = sum,
+             filename = filename}
+        end
+      | TheoryInfo =>
+        let
+          val theories =
+              case getTheories () of
+                SOME t => t
+              | NONE => raise Error "no theory information available"
+
+          val tags = []
+
+          val package =
+              Package.mk
+                (Package.Package'
+                   {tags = tags,
+                    theories = theories})
+
+          val {filename} = file
+        in
+          Package.toTextFile
+            {package = package,
+             filename = filename}
+        end;
+
+  fun processInfoOutputList infs =
+      let
+        val sav = List.exists (savableInfo o fst) infs
+
+        val () = setSavable sav
+
+        val () = List.app processInfoOutput infs
+
+(*OpenTheoryDebug
+        val () =
+            let
+              val i = ObjectRead.theInferenceCount ()
+            in
+              if ObjectRead.nullInferenceCount i then ()
+              else
+                let
+                  val s = Print.toString ObjectRead.ppInferenceCount i
+
+                  val () = chat ("Inference functions:\n" ^ s ^ "\n")
+                in
+                  ()
+                end
+            end
+*)
+      in
+        ()
+      end;
+in
+  fun infoArticle {filename} infs =
+      let
+        val dir = OS.Path.dir filename
+
+        val sav = List.exists (savableInfo o fst) infs
+
+        val imp = Article.empty
+
+        val int = Interpretation.natural
+
+        val art =
+            Article.fromTextFile
+              {savable = sav,
+               import = imp,
+               interpretation = int,
+               filename = filename}
+
+        val () = setDirectory {directory = dir}
+
+        val () = setArticle art
+      in
+        processInfoOutputList infs
+      end;
+
+  fun infoPackage name infs =
+      let
+        val dir = directory ()
+      in
+        case Directory.peek dir name of
+          NONE => raise Error ("can't find package " ^ PackageName.toString name)
+        | SOME info =>
+          let
+            val () = setInfo info
+          in
+            processInfoOutputList infs
+          end
+      end;
+
+  fun infoTarball {filename} infs =
+      let
+        val sys = system ()
+
+        val PackageTarball.Contents {name,theoryFile,otherFiles} =
+            PackageTarball.contents sys {filename = filename}
+
+        val () = setName name
+
+        val () = setFiles (theoryFile :: otherFiles)
+      in
+        processInfoOutputList infs
+      end;
+
+  fun infoTheory {filename} infs =
+      let
+        val dir = OS.Path.dir filename
+
+        fun joinDir {filename} =
+            {filename = OS.Path.concat (dir,filename)}
+
+        val pkg = Package.fromTextFile {filename = filename}
+
+        val files =
+            {filename = filename} ::
+            map joinDir (Package.articles pkg) @
+            map (joinDir o Package.filenameExtraFile) (Package.extraFiles pkg)
+
+        val () = setDirectory {directory = dir}
+
+        val () = setPackage pkg
+
+        val () = setFiles files
+      in
+        processInfoOutputList infs
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Listing installed packages.                                               *)
