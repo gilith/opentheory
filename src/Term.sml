@@ -699,7 +699,9 @@ val constEq =
 fun mkEq (l,r) =
     let
       val ty = mkEqTy (typeOf l)
+
       val c = mkConst (constEq,ty)
+
       val t = mkApp (c,l)
     in
       mkApp (t,r)
@@ -708,7 +710,9 @@ fun mkEq (l,r) =
 fun destEq tm =
     let
       val (el,r) = destApp tm
+
       val (e,l) = destApp el
+
       val (c,_) = destConst e
     in
       if Const.equal c constEq then (l,r)

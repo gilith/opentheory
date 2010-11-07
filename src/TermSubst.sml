@@ -506,10 +506,14 @@ val toString = Print.toString pp;
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
 
+(* Types *)
+
 fun sharingSubstType ty sub =
     let
       val Subst {tySub,stm,seen} = sub
+
       val (ty',tySub) = TypeSubst.sharingSubst ty tySub
+
       val sub = Subst {tySub = tySub, stm = stm, seen = seen}
     in
       (ty',sub)
@@ -517,19 +521,76 @@ fun sharingSubstType ty sub =
 
 fun substType (Subst {tySub,...}) ty = TypeSubst.subst tySub ty;
 
+(* Variables *)
+
+fun sharingSubstVar v sub =
+    let
+      val Subst {tySub,stm,seen} = sub
+
+      val (v',tySub) = Var.sharingSubst v tySub
+
+      val sub = Subst {tySub = tySub, stm = stm, seen = seen}
+    in
+      (v',sub)
+    end;
+
+fun substVar (Subst {tySub,...}) v = Var.subst tySub v;
+
+(* Terms *)
+
 fun sharingSubst tm sub =
     let
 (*OpenTheoryTrace3
       val () = Print.trace pp "TermSubst.sharingSubst: sub" sub
 *)
       val Subst {tySub,stm,seen} = sub
+
       val fvShare = Term.newSharingFreeVars
+
       val (tm',tySub,seen,_) = rawSharingSubst stm tm tySub seen fvShare
+
       val sub = Subst {tySub = tySub, stm = stm, seen = seen}
     in
       (tm',sub)
     end;
 
-fun subst sub tm = fst (sharingSubst tm sub);
+fun subst sub tm =
+    let
+      val (tm',_) = sharingSubst tm sub
+    in
+      tm'
+    end;
+
+(* Term sets *)
+
+local
+  fun add (tm,(tms,unchanged,sub)) =
+      let
+        val (tm',sub) = sharingSubst tm sub
+
+        val (tms,unchanged) =
+            case tm' of
+              SOME tm => (tm :: tms, false)
+            | NONE => (tm :: tms, unchanged)
+      in
+        (tms,unchanged,sub)
+      end;
+in
+  fun sharingSubstAlphaSet set sub =
+      let
+        val (tms,unchanged,sub) = TermAlphaSet.foldl add ([],true,sub) set
+
+        val set' = if unchanged then NONE else SOME (TermAlphaSet.fromList tms)
+      in
+        (set',sub)
+      end;
+end;
+
+fun substAlphaSet sub set =
+    let
+      val (set',_) = sharingSubstAlphaSet set sub
+    in
+      set'
+    end;
 
 end

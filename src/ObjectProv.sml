@@ -43,9 +43,13 @@ val newId : unit -> id =
       fn () =>
          let
            val ref count = counter
+
            val () = counter := count + 1
+
 (*OpenTheoryTrace2
-           val () = if count mod 1000 = 0 then trace "." else ()
+           val () =
+               if count mod 1000 <> 0 then ()
+               else Print.trace Print.ppInt "ObjectProv.newId.counter" count
 *)
          in
            count
@@ -214,6 +218,10 @@ fun mkAbsThm {savable} objV objT =
             Object.Thm (Thm.abs v th)
           end
 
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkAbsThm" ob
+*)
+
       val cmd = Command.AbsThm
       and args = [objV,objT]
       and gen = ob
@@ -268,6 +276,10 @@ fun mkAppThm {savable} objF objA =
             Object.Thm (Thm.app f a)
           end
 
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkAppThm" ob
+*)
+
       val cmd = Command.AppThm
       and args = [objF,objA]
       and gen = ob
@@ -293,6 +305,10 @@ fun mkAssume {savable} objT =
             Object.Thm (Thm.assume t)
           end
 
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkAssume" ob
+*)
+
       val cmd = Command.Assume
       and args = [objT]
       and gen = ob
@@ -310,6 +326,10 @@ fun mkAssume {savable} objT =
 fun mkAxiom {savable} objH objC seq =
     let
       val ob = Object.Thm (Thm.axiom seq)
+
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkAxiom" ob
+*)
 
       val cmd = Command.Axiom
       and args = [objH,objC]
@@ -335,6 +355,10 @@ fun mkBetaConv {savable} objT =
           in
             Object.Thm (Thm.betaConv t)
           end
+
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkBetaConv" ob
+*)
 
       val cmd = Command.BetaConv
       and args = [objT]
@@ -418,6 +442,10 @@ fun mkDeductAntisym {savable} objA objB =
             Object.Thm (Thm.deductAntisym a b)
           end
 
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkDeductAntisym" ob
+*)
+
       val cmd = Command.DeductAntisym
       and args = [objA,objB]
       and gen = ob
@@ -444,6 +472,10 @@ fun mkDefineConst {savable} n objT =
           in
             (Object.Const c, Object.Thm th)
           end
+
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkDefineConst" ob1
+*)
 
       val cmd = Command.DefineConst
       and args = [mkName n, objT]
@@ -479,6 +511,12 @@ fun mkDefineTypeOp {savable} n a r objV objT =
              Object.Thm ra)
           end
 
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkDefineTypeOp.absRep" ob3
+
+      val () = Print.trace Object.pp "ObjectProv.mkDefineTypeOp.repAbs" ob4
+*)
+
       val cmd = Command.DefineTypeOp
       and args = [mkName n, mkName a, mkName r, objV, objT]
       and gen = obs
@@ -509,6 +547,10 @@ fun mkEqMp {savable} objA objB =
           in
             Object.Thm (Thm.eqMp a b)
           end
+
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkEqMp" ob
+*)
 
       val cmd = Command.EqMp
       and args = [objA,objB]
@@ -564,6 +606,10 @@ fun mkRefl {savable} objT =
             Object.Thm (Thm.refl t)
           end
 
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkRefl" ob
+*)
+
       val cmd = Command.Refl
       and args = [objT]
       and gen = ob
@@ -590,6 +636,10 @@ fun mkSubst {savable} objS objT =
           in
             Object.Thm (Thm.subst (TermSubst.mk s) th)
           end
+
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectProv.mkSubst" ob
+*)
 
       val cmd = Command.Subst
       and args = [objS,objT]
@@ -743,6 +793,12 @@ fun maps {preDescent,postDescent} =
 (* ------------------------------------------------------------------------- *)
 
 val pp = Print.ppMap object Object.pp;
+
+fun ppProvenance prov =
+    case prov of
+      Default => Print.ppString "Default"
+    | Special {command,arguments,generated,result} =>
+      Print.ppString "Special";
 
 end
 

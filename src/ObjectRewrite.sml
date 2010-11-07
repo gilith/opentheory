@@ -24,8 +24,16 @@ val unwantedNamespace = Namespace.fromList [unwantedString];
 val unwantedIdName = Name.mk (unwantedNamespace,unwantedIdString);
 
 fun destUnwantedIdConst c =
-    if Name.equal unwantedIdName (Const.name c) then ()
-    else raise Error "ObjectRewrite.destUnwantedIdConst";
+    let
+      val n = Const.name c
+
+(*OpenTheoryTrace2
+      val () = Print.trace Name.pp "ObjectRewrite.destUnwantedIdConst.n" n
+*)
+    in
+      if Name.equal n unwantedIdName then ()
+      else raise Error "ObjectRewrite.destUnwantedIdConst"
+    end;
 
 fun destUnwantedIdTerm tm =
     let
@@ -91,6 +99,13 @@ fun unwantedId obj =
     let
       val ObjectProv.Object' {object = ob, provenance = prov} =
           ObjectProv.dest obj
+
+(*OpenTheoryTrace2
+      val () = Print.trace Object.pp "ObjectRewrite.unwantedId.ob" ob
+
+      val () = Print.trace ObjectProv.ppProvenance
+                 "ObjectRewrite.unwantedId.prov" prov
+*)
     in
       case prov of
         ObjectProv.Default =>

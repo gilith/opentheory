@@ -53,7 +53,7 @@ fun alpha seq th =
       val th = TermAlphaSet.foldl check th h
     in
       if Sequent.dealphaEqual (Thm.sequent th) seq then th
-      else raise Error "Rule.alpha: not alpha-equivalent"
+      else raise Error "not alpha-equivalent"
     end
 (*OpenTheoryDebug
     handle Error err =>

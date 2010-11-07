@@ -67,6 +67,15 @@ val sharingSubst : var -> TypeSubst.subst -> var option * TypeSubst.subst
 val subst : TypeSubst.subst -> var -> var option
 
 (* ------------------------------------------------------------------------- *)
+(* Type rewrites.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingRewrite :
+    var -> TypeRewrite.rewrite -> var option * TypeRewrite.rewrite
+
+val rewrite : TypeRewrite.rewrite -> var -> var option
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

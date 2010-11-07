@@ -18,9 +18,9 @@ TEMP += \
 # The ML preprocessor.
 ###############################################################################
 
-#MLPP_OPTS += -r 'OpenTheoryDebug'
-MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
-#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
+MLPP_OPTS += -r 'OpenTheoryDebug'
+#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
+#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-2]'
 
 ###############################################################################
 # The Moscow ML compiler.

@@ -92,10 +92,12 @@ SRC = \
   src/TypeTerm.sig src/TypeTerm.sml \
   src/TypeOp.sig src/TypeOp.sml \
   src/Type.sig src/Type.sml \
+  src/TypeRewrite.sig src/TypeRewrite.sml \
   src/TypeSubst.sig src/TypeSubst.sml \
   src/Var.sig src/Var.sml \
   src/Const.sig src/Const.sml \
   src/Term.sig src/Term.sml \
+  src/TermRewrite.sig src/TermRewrite.sml \
   src/TermSubst.sig src/TermSubst.sml \
   src/Sequent.sig src/Sequent.sml \
   src/Thm.sig src/Thm.sml \

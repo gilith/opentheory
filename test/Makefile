@@ -27,7 +27,8 @@ TEMP = \
   articles/empty.art articles/empty.sum \
   articles/example1.art articles/example1.sum \
   articles/example2.art articles/example2.sum \
-  articles/example3.art articles/example3.sum
+  articles/example3.art articles/example3.sum \
+  articles/example4.art articles/example4.sum
 
 .PHONY: clean
 clean:

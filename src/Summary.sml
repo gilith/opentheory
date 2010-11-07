@@ -78,7 +78,7 @@ in
 *)
         val Summary' {requires,provides} = dest summary
 
-        val (inp,def) =
+        val {undefined = inp, defined = def} =
             let
               val req = Sequents.symbol requires
               and prov = Sequents.symbol provides

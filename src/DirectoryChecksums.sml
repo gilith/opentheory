@@ -175,7 +175,7 @@ fun update chks {url} =
       val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =
@@ -269,7 +269,7 @@ fun add chks (n,c) =
           Checksum.toString c ^ "\"" ^ " >> " ^ f
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =

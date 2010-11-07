@@ -60,7 +60,7 @@ fun rawContents sys {filename} =
       val cmd = cmd ^ " tzf " ^ filename ^ " > " ^ tmpFile
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =
@@ -159,7 +159,7 @@ fun checksum sys {filename = tarFile} =
       val cmd = cmd ^ " " ^ tarFile ^ " > " ^ tmpFile
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =

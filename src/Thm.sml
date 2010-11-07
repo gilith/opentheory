@@ -232,33 +232,14 @@ fun refl t =
       Thm {axioms = axioms, sequent = sequent}
     end;
 
-local
-  fun subAdd (tm,(set,sub)) =
-      let
-        val (tm',sub) = TermSubst.sharingSubst tm sub
+fun subst sub th =
+    let
+      val Thm {axioms,sequent,...} = th
 
-        val tm = Option.getOpt (tm',tm)
-
-        val set = TermAlphaSet.add set tm
-      in
-        (set,sub)
-      end;
-in
-  fun subst sub th =
-      let
-        val Thm {axioms,sequent,...} = th
-
-        val Sequent.Sequent {hyp,concl} = sequent
-
-        val (hyp,sub) = TermAlphaSet.foldl subAdd (emptyHyp,sub) hyp
-
-        val concl = Option.getOpt (TermSubst.subst sub concl, concl)
-
-        val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
-      in
-        Thm {axioms = axioms, sequent = sequent}
-      end;
-end;
+      val sequent = Option.getOpt (Sequent.subst sub sequent, sequent)
+    in
+      Thm {axioms = axioms, sequent = sequent}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Definitions.                                                              *)

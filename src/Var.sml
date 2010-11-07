@@ -75,20 +75,41 @@ fun renameAvoiding avoid (v as TypeTerm.Var (n,ty)) =
 (* Type substitutions.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun sharingSubst (TypeTerm.Var (n,ty)) tyShare =
+fun sharingSubst (TypeTerm.Var (n,ty)) sub =
     let
-      val (ty',tyShare) = TypeSubst.sharingSubst ty tyShare
+      val (ty',sub) = TypeSubst.sharingSubst ty sub
 
       val v' =
           case ty' of
             SOME ty => SOME (TypeTerm.Var (n,ty))
           | NONE => NONE
     in
-      (v',tyShare)
+      (v',sub)
     end;
 
 fun subst sub (TypeTerm.Var (n,ty)) =
     case TypeSubst.subst sub ty of
+      SOME ty => SOME (TypeTerm.Var (n,ty))
+    | NONE => NONE;
+
+(* ------------------------------------------------------------------------- *)
+(* Type rewrites.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingRewrite (TypeTerm.Var (n,ty)) rewr =
+    let
+      val (ty',rewr) = TypeRewrite.sharingRewrite ty rewr
+
+      val v' =
+          case ty' of
+            SOME ty => SOME (TypeTerm.Var (n,ty))
+          | NONE => NONE
+    in
+      (v',rewr)
+    end;
+
+fun rewrite rewr (TypeTerm.Var (n,ty)) =
+    case TypeRewrite.rewrite rewr ty of
       SOME ty => SOME (TypeTerm.Var (n,ty))
     | NONE => NONE;
 

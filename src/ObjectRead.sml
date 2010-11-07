@@ -216,6 +216,11 @@ fun execute cmd state =
 
           val obj = ObjectRewrite.apply ObjectRewrite.default obj
 
+(*OpenTheoryTrace2
+          val () = Print.trace Object.pp "ObjectRead.execute appTerm"
+                     (ObjectProv.object obj)
+*)
+
           val stack = ObjectStack.push stack obj
         in
           State
@@ -234,6 +239,11 @@ fun execute cmd state =
           val obj = ObjectProv.mkAppThm {savable = savable} objF objA
 
           val obj = ObjectRewrite.apply ObjectRewrite.default obj
+
+(*OpenTheoryTrace2
+          val () = Print.trace Object.pp "ObjectRead.execute appThm"
+                     (ObjectProv.object obj)
+*)
 
           val stack = ObjectStack.push stack obj
         in
@@ -698,7 +708,7 @@ fun execute cmd state =
 
         val () = Print.trace ppStack "ObjectRead.execute: stack" stack
 *)
-        val err = "ObjectRead.execute " ^ Command.toString cmd ^ ": " ^ err
+        val err = "while executing " ^ Command.toString cmd ^ " command: " ^ err
       in
         raise Error err
       end;

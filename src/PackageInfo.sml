@@ -181,7 +181,7 @@ fun createTarball info =
           String.concat (map (fn {filename = f} => " " ^ f) pkgFiles)
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val workingDir = OS.FileSys.getDir ()
@@ -211,7 +211,7 @@ fun copyTarball info {filename = src} =
       val cmd = cmd ^ " " ^ src ^ " " ^ dest
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =
@@ -223,7 +223,7 @@ fun copyTarball info {filename = src} =
       val cmd = cmd ^ " 644 " ^ dest
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =
@@ -244,7 +244,7 @@ fun downloadTarball info {url} =
       val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =
@@ -299,7 +299,7 @@ fun extractTarball info files =
             cmd ^ " xzf " ^ tarFile ^ String.concat (map mkArg files)
 
 (*OpenTheoryTrace1
-        val () = print (cmd ^ "\n")
+        val () = trace (cmd ^ "\n")
 *)
 
         val workingDir = OS.FileSys.getDir ()
@@ -385,7 +385,7 @@ fun uploadTarball info chk {url} =
           " --output " ^ tmpFile
 
 (*OpenTheoryTrace1
-      val () = print (cmd ^ "\n")
+      val () = trace (cmd ^ "\n")
 *)
 
       val () =

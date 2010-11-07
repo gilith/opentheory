@@ -823,7 +823,7 @@ local
           val cmd = cmd ^ " " ^ srcFilename ^ " " ^ destFilename
 
 (*OpenTheoryTrace1
-          val () = print (cmd ^ "\n")
+          val () = trace (cmd ^ "\n")
 *)
 
           val () =

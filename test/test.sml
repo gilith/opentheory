@@ -314,6 +314,8 @@ val () = compress "natural" "example2";
 
 val () = compress "natural" "example3";
 
+val () = compress "natural" "example4";
+
 val () = compress "hol-light" "bool-def-true";
 
 val () = compress "hol-light" "bool-int-true";
@@ -348,7 +350,17 @@ fun summarize name =
 
       val sum = Summary.fromThms ths
 
-      val () = printer Summary.pp sum
+      val show = Show.default
+
+      val sumFilename = mkSummaryFilename name
+
+      val () =
+          Summary.toTextFile
+            {show = show,
+             summary = sum,
+             filename = sumFilename}
+
+      val () = printer (Summary.ppWithShow show) sum
     in
       ()
     end;
@@ -360,6 +372,8 @@ val () = summarize "example1";
 val () = summarize "example2";
 
 val () = summarize "example3";
+
+val () = summarize "example4";
 
 val () = summarize "bool-def-true";
 

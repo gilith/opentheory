@@ -44,13 +44,30 @@ val mk : substMap -> subst
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
 
+(* Types *)
+
 val sharingSubstType : Type.ty -> subst -> Type.ty option * subst
 
 val substType : subst -> Type.ty -> Type.ty option
 
+(* Variables *)
+
+val sharingSubstVar : Var.var -> subst -> Var.var option * subst
+
+val substVar : subst -> Var.var -> Var.var option
+
+(* Terms *)
+
 val sharingSubst : Term.term -> subst -> Term.term option * subst
 
 val subst : subst -> Term.term -> Term.term option
+
+(* Term sets *)
+
+val sharingSubstAlphaSet :
+    TermAlphaSet.set -> subst -> TermAlphaSet.set option * subst
+
+val substAlphaSet : subst -> TermAlphaSet.set -> TermAlphaSet.set option
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

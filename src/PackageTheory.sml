@@ -199,7 +199,7 @@ local
 
   fun sortBy parents thys =
       let
-        val (thys,work) = toMap imports thys
+        val (thys,work) = toMap parents thys
 
         val dealt = []
 

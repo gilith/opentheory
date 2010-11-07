@@ -104,6 +104,64 @@ fun consts seq =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Substitutions.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingSubst seq sub =
+    let
+      val Sequent {hyp,concl} = seq
+
+      val (hyp',sub) = TermSubst.sharingSubstAlphaSet hyp sub
+
+      val (concl',sub) = TermSubst.sharingSubst concl sub
+
+      val seq' =
+          case (hyp',concl') of
+            (SOME hyp, SOME concl) => SOME (Sequent {hyp = hyp, concl = concl})
+          | (SOME hyp, NONE) => SOME (Sequent {hyp = hyp, concl = concl})
+          | (NONE, SOME concl) => SOME (Sequent {hyp = hyp, concl = concl})
+          | (NONE,NONE) => NONE
+    in
+      (seq',sub)
+    end;
+
+fun subst sub seq =
+    let
+      val (seq',_) = sharingSubst seq sub
+    in
+      seq'
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingRewrite seq rewr =
+    let
+      val Sequent {hyp,concl} = seq
+
+      val (hyp',rewr) = TermRewrite.sharingRewriteAlphaSet hyp rewr
+
+      val (concl',rewr) = TermRewrite.sharingRewrite concl rewr
+
+      val seq' =
+          case (hyp',concl') of
+            (SOME hyp, SOME concl) => SOME (Sequent {hyp = hyp, concl = concl})
+          | (SOME hyp, NONE) => SOME (Sequent {hyp = hyp, concl = concl})
+          | (NONE, SOME concl) => SOME (Sequent {hyp = hyp, concl = concl})
+          | (NONE,NONE) => NONE
+    in
+      (seq',rewr)
+    end;
+
+fun rewrite rewr seq =
+    let
+      val (seq',_) = sharingRewrite seq rewr
+    in
+      seq'
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -249,6 +307,66 @@ fun consts set =
       val share = addSharingConsts set share
     in
       Term.toSetSharingConsts share
+    end;
+
+local
+  fun add (seq,(seqs,unchanged,sub)) =
+      let
+        val (seq',sub) = Sequent.sharingSubst seq sub
+
+        val (seqs,unchanged) =
+            case seq' of
+              SOME seq => (seq :: seqs, false)
+            | NONE => (seq :: seqs, unchanged)
+      in
+        (seqs,unchanged,sub)
+      end;
+in
+  fun sharingSubst set sub =
+      let
+        val (seqs,unchanged,sub) = foldl add ([],true,sub) set
+
+        val set' = if unchanged then NONE else SOME (fromList seqs)
+      in
+        (set',sub)
+      end;
+end;
+
+fun subst sub set =
+    let
+      val (set',_) = sharingSubst set sub
+    in
+      set'
+    end;
+
+local
+  fun add (seq,(seqs,unchanged,rewr)) =
+      let
+        val (seq',rewr) = Sequent.sharingRewrite seq rewr
+
+        val (seqs,unchanged) =
+            case seq' of
+              SOME seq => (seq :: seqs, false)
+            | NONE => (seq :: seqs, unchanged)
+      in
+        (seqs,unchanged,rewr)
+      end;
+in
+  fun sharingRewrite set rewr =
+      let
+        val (seqs,unchanged,rewr) = foldl add ([],true,rewr) set
+
+        val set' = if unchanged then NONE else SOME (fromList seqs)
+      in
+        (set',rewr)
+      end;
+end;
+
+fun rewrite rewr set =
+    let
+      val (set',_) = sharingRewrite set rewr
+    in
+      set'
     end;
 
 end

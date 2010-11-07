@@ -70,7 +70,17 @@ val unionList : symbol list -> symbol
 (* Partition symbol table entries into undefined and defined.                *)
 (* ------------------------------------------------------------------------- *)
 
-val partitionUndef : symbol -> symbol * symbol
+val partitionUndef : symbol -> {undefined : symbol, defined : symbol}
+
+(* ------------------------------------------------------------------------- *)
+(* Instantiating undefined type operators and constants with definitions.    *)
+(* ------------------------------------------------------------------------- *)
+
+val instType : symbol -> Type.ty' -> Type.ty option
+
+val instTerm : symbol -> Term.term' -> Term.term option
+
+val inst : symbol -> TermRewrite.rewrite
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

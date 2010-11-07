@@ -248,20 +248,59 @@ end;
 
 fun partitionUndef sym =
     let
-      val sym1 = empty
-      and sym2 = empty
+      val usym = empty
+      and dsym = empty
 
-      val (opS1,opS2) = TypeOpSet.partition TypeOp.isUndef (typeOps sym)
+      val (uopS,dopS) = TypeOpSet.partition TypeOp.isUndef (typeOps sym)
 
-      val sym1 = addTypeOpSet sym1 opS1
-      and sym2 = addTypeOpSet sym2 opS2
+      val usym = addTypeOpSet usym uopS
+      and dsym = addTypeOpSet dsym dopS
 
-      val (conS1,conS2) = ConstSet.partition Const.isUndef (consts sym)
+      val (uconS,dconS) = ConstSet.partition Const.isUndef (consts sym)
 
-      val sym1 = addConstSet sym1 conS1
-      and sym2 = addConstSet sym2 conS2
+      val usym = addConstSet usym uconS
+      and dsym = addConstSet dsym dconS
     in
-      (sym1,sym2)
+      {undefined = usym, defined = dsym}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Instantiating undefined type operators and constants with definitions.    *)
+(* ------------------------------------------------------------------------- *)
+
+fun instType sym ty' =
+    case ty' of
+      TypeTerm.VarTy' _ => NONE
+    | TypeTerm.OpTy' (ot,tys) =>
+      if not (TypeOp.isUndef ot) then NONE
+      else
+        let
+          val n = TypeOp.name ot
+        in
+          case peekTypeOp sym n of
+            NONE => NONE
+          | SOME ot => SOME (Type.mkOp (ot,tys))
+        end;
+
+fun instTerm sym tm' =
+    case tm' of
+      TypeTerm.Const' (c,ty) =>
+      if not (Const.isUndef c) then NONE
+      else
+        let
+          val n = Const.name c
+        in
+          case peekConst sym n of
+            NONE => NONE
+          | SOME c => SOME (Term.mkConst (c,ty))
+        end
+    | _ => NONE;
+
+fun inst sym =
+    let
+      val tyRewr = TypeRewrite.new (instType sym)
+    in
+      TermRewrite.new tyRewr (instTerm sym)
     end;
 
 (* ------------------------------------------------------------------------- *)

@@ -54,6 +54,24 @@ val addSharingConsts : sequent -> Term.sharingConsts -> Term.sharingConsts
 val consts : sequent -> ConstSet.set
 
 (* ------------------------------------------------------------------------- *)
+(* Substitutions.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingSubst :
+    sequent -> TermSubst.subst -> sequent option * TermSubst.subst
+
+val subst : TermSubst.subst -> sequent -> sequent option
+
+(* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingRewrite :
+    sequent -> TermRewrite.rewrite -> sequent option * TermRewrite.rewrite
+
+val rewrite : TermRewrite.rewrite -> sequent -> sequent option
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

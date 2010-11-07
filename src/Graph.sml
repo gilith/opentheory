@@ -536,11 +536,19 @@ and fromFinderImporter finder = Importer (importPackageName finder);
 (* Linearize mutually recursive theory packages.                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype vanilla = Vanilla of (graph * Theory.theory) PackageBaseMap.map;
+(* Individual theory blocks *)
+
+datatype vanilla =
+    Vanilla of (graph * Theory.theory * Summary.summary) PackageBaseMap.map;
 
 val emptyVanilla = Vanilla (PackageBaseMap.new ());
 
-fun addVanilla importer {directory} (theory, Vanilla van) =
+fun getVanilla (Vanilla vmap) name =
+    case PackageBaseMap.peek vmap name of
+      SOME x => x
+    | NONE => raise Bug "Graph.getVanilla";
+
+fun addVanilla importer {directory} (theory, Vanilla vmap) =
     let
       val PackageTheory.Theory {name,node,...} = theory
 
@@ -550,27 +558,212 @@ fun addVanilla importer {directory} (theory, Vanilla van) =
 
       val int = Interpretation.natural
 
-      val graph_thy =
+      val (graph,thy) =
           importNode importer graph
             {directory = directory,
              imports = imports,
              interpretation = int,
              node = node}
+
+      val art = Theory.article thy
+
+      val ths = Article.thms art
+
+      val sum = Summary.fromThms ths
     in
-      Vanilla (PackageBaseMap.insert van (name,graph_thy))
+      Vanilla (PackageBaseMap.insert vmap (name,(graph,thy,sum)))
     end;
 
 fun fromListVanilla importer dir theories =
     List.foldl (addVanilla importer dir) emptyVanilla theories;
 
+(* Fixed point calculation of theory block definitions *)
+
+datatype definitions = Definitions of Symbol.symbol PackageBaseMap.map;
+
+val emptyDefinitions = Definitions (PackageBaseMap.new ());
+
+fun getDefinitions (Definitions dmap) name =
+    case PackageBaseMap.peek dmap name of
+      SOME defs => defs
+    | NONE => Symbol.empty;
+
+fun getListDefinitions definitions names =
+    let
+      val defsl = List.map (getDefinitions definitions) names
+    in
+      Symbol.unionList defsl
+    end;
+
+fun addDefinitions vanilla (theory,(changed,definitions)) =
+    let
+      val PackageTheory.Theory {name,imports,...} = theory
+
+      val defs = getDefinitions definitions name
+
+      val idefs = getListDefinitions definitions imports
+
+      val defs' =
+          if PackageTheory.isUnion theory then idefs
+          else
+            let
+              val (_,_,sum) = getVanilla vanilla name
+
+              val Summary.Summary' {requires,provides} = Summary.dest sum
+
+              val {undefined = rind, defined = _} =
+                  Symbol.partitionUndef (Sequents.symbol requires)
+
+              fun addTypeOp (ot,sym) =
+                  let
+                    val n = TypeOp.name ot
+                  in
+                    if not (Symbol.knownTypeOp rind n) then sym
+                    else
+                      case Symbol.peekTypeOp idefs n of
+                        NONE => sym
+                      | SOME ot => Symbol.addTypeOp sym ot
+                  end
+
+              fun addConst (c,sym) =
+                  let
+                    val n = Const.name c
+                  in
+                    if not (Symbol.knownConst rind n) then sym
+                    else
+                      case Symbol.peekConst idefs n of
+                        NONE => sym
+                      | SOME c => Symbol.addConst sym c
+                  end
+
+              val {undefined = pind, defined = pdef} =
+                  Symbol.partitionUndef (Sequents.symbol provides)
+
+              val pdef = TypeOpSet.foldl addTypeOp pdef (Symbol.typeOps pind)
+
+              val pdef = ConstSet.foldl addConst pdef (Symbol.consts pind)
+            in
+              pdef
+            end
+
+(*OpenTheoryDebug
+      val _ = TypeOpSet.subset (Symbol.typeOps defs) (Symbol.typeOps defs')
+              orelse raise Bug "Graph.addDefinitions: shrinking type op defs"
+
+      val _ = ConstSet.subset (Symbol.consts defs) (Symbol.consts defs')
+              orelse raise Bug "Graph.addDefinitions: shrinking const defs"
+*)
+
+      val same =
+          (TypeOpSet.size (Symbol.typeOps defs) =
+           TypeOpSet.size (Symbol.typeOps defs')) andalso
+          (ConstSet.size (Symbol.consts defs) =
+           ConstSet.size (Symbol.consts defs'))
+    in
+      if same then (changed,definitions)
+      else
+        let
+          val Definitions dmap = definitions
+
+          val dmap = PackageBaseMap.insert dmap (name,defs')
+        in
+          (true, Definitions dmap)
+        end
+    end;
+
+fun fromListDefinitions vanilla theories =
+    let
+      fun pass defs =
+          let
+            val (changed,defs) =
+                List.foldl (addDefinitions vanilla) (false,defs) theories
+          in
+            if changed then pass defs else defs
+          end
+    in
+      pass emptyDefinitions
+    end;
+
+(* Individual theory block summaries *)
+
+datatype summary = Summary of Summary.summary PackageBaseMap.map;
+
+val emptySummary = Summary (PackageBaseMap.new ());
+
+fun getSummary (Summary smap) name =
+    case PackageBaseMap.peek smap name of
+      SOME sum => sum
+    | NONE => raise Bug "Graph.getSummary";
+
+fun addSummary vanilla definitions (theory,summary) =
+    let
+      val PackageTheory.Theory {name,imports,...} = theory
+      and Summary smap = summary
+
+      val sum =
+          if PackageTheory.isUnion theory then
+            let
+              val sums = List.map (getSummary summary) imports
+
+              val provs = List.map Summary.provides sums
+
+              val prov = Sequents.unionList provs
+
+              val sum' =
+                  Summary.Summary'
+                    {requires = prov,
+                     provides = prov}
+            in
+              Summary.mk sum'
+            end
+          else
+            let
+              val (_,_,sum) = getVanilla vanilla name
+
+              val req = Sequents.sequents (Summary.requires sum)
+              and prov = Sequents.sequents (Summary.provides sum)
+
+              val idefs = getListDefinitions definitions imports
+
+              val rewr = Symbol.inst idefs
+
+              val (req',rewr) = SequentSet.sharingRewrite req rewr
+
+              val prov' = SequentSet.rewrite rewr prov
+
+              val req = Sequents.fromSet (Option.getOpt (req',req))
+              and prov = Sequents.fromSet (Option.getOpt (prov',prov))
+
+              val sum' =
+                  Summary.Summary'
+                    {requires = req,
+                     provides = prov}
+            in
+              Summary.mk sum'
+            end
+    in
+      Summary (PackageBaseMap.insert smap (name,sum))
+    end;
+
+fun fromListSummary vanilla definitions theories =
+    List.foldl (addSummary vanilla definitions) emptySummary theories;
+
+(* Putting it all together *)
+
 fun linearizeTheories importer dir theories =
     let
-      val theories = PackageTheory.sortUnion theories
-
       val vanilla = fromListVanilla importer dir theories
 
+      val theories' = PackageTheory.sortUnion theories
+
+      val definitions = fromListDefinitions vanilla theories'
+
+      val summary = fromListSummary vanilla definitions theories'
     in
       theories
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Graph.linearizeTheories: " ^ err);
+*)
 
 end

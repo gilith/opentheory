@@ -19,7 +19,7 @@ type summary
 datatype summary' =
     Summary' of
       {requires : Sequents.sequents,
-       provides : Sequents.sequents};
+       provides : Sequents.sequents}
 
 val mk : summary' -> summary
 
