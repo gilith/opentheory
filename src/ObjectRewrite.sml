@@ -27,7 +27,7 @@ fun destUnwantedIdConst c =
     let
       val n = Const.name c
 
-(*OpenTheoryTrace2
+(*OpenTheoryTrace4
       val () = Print.trace Name.pp "ObjectRewrite.destUnwantedIdConst.n" n
 *)
     in
@@ -100,7 +100,7 @@ fun unwantedId obj =
       val ObjectProv.Object' {object = ob, provenance = prov} =
           ObjectProv.dest obj
 
-(*OpenTheoryTrace2
+(*OpenTheoryTrace4
       val () = Print.trace Object.pp "ObjectRewrite.unwantedId.ob" ob
 
       val () = Print.trace ObjectProv.ppProvenance
