@@ -764,6 +764,92 @@ fun fromListSummary vanilla definitions theories =
     handle Error err => raise Error ("Graph.fromListSummary: " ^ err);
 *)
 
+(* Removing dead imports *)
+
+fun removeDeadImports vanilla definitions summary theory =
+    let
+      val PackageTheory.Theory {name,imports,node} = theory
+
+      fun remove (imp,(acc,req,inp)) =
+          let
+            val (req,reqSame) =
+                let
+                  val prov = Summary.provides (getSummary summary imp)
+
+                  val pseqs = Sequents.sequents prov
+
+                  val req' = SequentSet.difference req pseqs
+
+                  val same = SequentSet.size req' = SequentSet.size req
+                in
+                  (req',same)
+                end
+
+            val (inp,inpSame) =
+                let
+                  val pdef = getDefinitions definitions imp
+
+                  fun undefT ot = not (Symbol.knownTypeOp pdef (TypeOp.name ot))
+
+                  fun undefC c = not (Symbol.knownConst pdef (Const.name c))
+
+                  val (ots,cs) = inp
+
+                  val ots' = TypeOpSet.filter undefT ots
+                  and cs' = ConstSet.filter undefC cs
+
+                  val same =
+                      TypeOpSet.size ots' = TypeOpSet.size ots andalso
+                      ConstSet.size cs' = ConstSet.size cs
+                in
+                  ((ots',cs'),same)
+                end
+
+            val same = reqSame andalso inpSame
+
+            val acc =
+                if not same then imp :: acc
+                else
+                  let
+                    val () = warn ("redundant import " ^
+                                   PackageTheory.toStringName imp ^
+                                   " in theory block " ^
+                                   PackageTheory.toStringName name)
+                  in
+                    acc
+                  end
+          in
+            (acc,req,inp)
+          end
+
+      val req =
+          let
+            val sum = getSummary summary name
+          in
+            Sequents.sequents (Summary.requires sum)
+          end
+
+      val inp =
+          let
+            val (_,_,sum) = getVanilla vanilla name
+
+            val psym = Sequents.symbol (Summary.provides sum)
+
+            val {undefined = _, defined = pinp} = Symbol.partitionUndef psym
+          in
+            (Symbol.typeOps pinp, Symbol.consts pinp)
+          end
+
+      val (imports,_,_) = List.foldl remove ([],req,inp) imports
+
+      val imports = rev imports
+    in
+      PackageTheory.Theory
+        {name = name,
+         imports = imports,
+         node = node}
+    end;
+
 (* Putting it all together *)
 
 fun linearizeTheories importer dir theories =
@@ -775,6 +861,9 @@ fun linearizeTheories importer dir theories =
       val definitions = fromListDefinitions vanilla theories'
 
       val summary = fromListSummary vanilla definitions theories'
+
+      val theories =
+          List.map (removeDeadImports vanilla definitions summary) theories
     in
       theories
     end
