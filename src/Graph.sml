@@ -577,7 +577,10 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
     end;
 
 fun fromListVanilla importer dir theories =
-    List.foldl (addVanilla importer dir) emptyVanilla theories;
+    List.foldl (addVanilla importer dir) emptyVanilla theories
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Graph.fromListVanilla: " ^ err);
+*)
 
 (* Fixed point calculation of theory block definitions *)
 
@@ -601,6 +604,10 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
     let
       val PackageTheory.Theory {name,imports,...} = theory
 
+(*OpenTheoryTrace3
+      val () = Print.trace PackageTheory.ppName "Graph.addDefinitions.name" name
+*)
+
       val defs = getDefinitions definitions name
 
       val idefs = getListDefinitions definitions imports
@@ -611,39 +618,24 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
             let
               val (_,_,sum) = getVanilla vanilla name
 
-              val Summary.Summary' {requires,provides} = Summary.dest sum
-
-              val {undefined = rind, defined = _} =
-                  Symbol.partitionUndef (Sequents.symbol requires)
-
               fun addTypeOp (ot,sym) =
-                  let
-                    val n = TypeOp.name ot
-                  in
-                    if not (Symbol.knownTypeOp rind n) then sym
-                    else
-                      case Symbol.peekTypeOp idefs n of
-                        NONE => sym
-                      | SOME ot => Symbol.addTypeOp sym ot
-                  end
+                  case Symbol.peekTypeOp idefs (TypeOp.name ot) of
+                    NONE => sym
+                  | SOME ot => Symbol.addTypeOp sym ot
 
               fun addConst (c,sym) =
-                  let
-                    val n = Const.name c
-                  in
-                    if not (Symbol.knownConst rind n) then sym
-                    else
-                      case Symbol.peekConst idefs n of
-                        NONE => sym
-                      | SOME c => Symbol.addConst sym c
-                  end
+                  case Symbol.peekConst idefs (Const.name c) of
+                    NONE => sym
+                  | SOME c => Symbol.addConst sym c
 
-              val {undefined = pind, defined = pdef} =
+              val provides = Summary.provides sum
+
+              val {undefined = pinp, defined = pdef} =
                   Symbol.partitionUndef (Sequents.symbol provides)
 
-              val pdef = TypeOpSet.foldl addTypeOp pdef (Symbol.typeOps pind)
+              val pdef = TypeOpSet.foldl addTypeOp pdef (Symbol.typeOps pinp)
 
-              val pdef = ConstSet.foldl addConst pdef (Symbol.consts pind)
+              val pdef = ConstSet.foldl addConst pdef (Symbol.consts pinp)
             in
               pdef
             end
@@ -668,6 +660,10 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
           val Definitions dmap = definitions
 
           val dmap = PackageBaseMap.insert dmap (name,defs')
+
+(*OpenTheoryTrace3
+          val () = Print.trace Symbol.pp "Graph.addDefinitions.defs'" defs'
+*)
         in
           (true, Definitions dmap)
         end
@@ -684,7 +680,10 @@ fun fromListDefinitions vanilla theories =
           end
     in
       pass emptyDefinitions
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Graph.fromListDefinitions: " ^ err);
+*)
 
 (* Individual theory block summaries *)
 
@@ -701,6 +700,10 @@ fun addSummary vanilla definitions (theory,summary) =
     let
       val PackageTheory.Theory {name,imports,...} = theory
       and Summary smap = summary
+
+(*OpenTheoryTrace3
+      val () = Print.trace PackageTheory.ppName "Graph.addSummary.name" name
+*)
 
       val sum =
           if PackageTheory.isUnion theory then
@@ -727,6 +730,10 @@ fun addSummary vanilla definitions (theory,summary) =
 
               val idefs = getListDefinitions definitions imports
 
+(*OpenTheoryTrace3
+              val () = Print.trace Symbol.pp "Graph.addSummary.idefs" idefs
+*)
+
               val rewr = Symbol.inst idefs
 
               val (req',rewr) = SequentSet.sharingRewrite req rewr
@@ -743,12 +750,19 @@ fun addSummary vanilla definitions (theory,summary) =
             in
               Summary.mk sum'
             end
+
+(*OpenTheoryTrace3
+      val () = Print.trace Summary.pp "Graph.addSummary.sum" sum
+*)
     in
       Summary (PackageBaseMap.insert smap (name,sum))
     end;
 
 fun fromListSummary vanilla definitions theories =
-    List.foldl (addSummary vanilla definitions) emptySummary theories;
+    List.foldl (addSummary vanilla definitions) emptySummary theories
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Graph.fromListSummary: " ^ err);
+*)
 
 (* Putting it all together *)
 
