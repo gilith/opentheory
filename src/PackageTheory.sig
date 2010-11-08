@@ -59,6 +59,8 @@ val isMain : theory -> bool
 
 val articleNode : node -> {filename : string} option
 
+val isArticleNode : node -> bool
+
 val article : theory -> {filename : string} option
 
 val articles : theory list -> {filename : string} list

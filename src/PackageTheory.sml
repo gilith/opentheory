@@ -82,6 +82,8 @@ fun articleNode node =
       Article {filename = f, ...} => SOME {filename = f}
     | _ => NONE;
 
+fun isArticleNode node = Option.isSome (articleNode node);
+
 fun article thy = articleNode (node thy);
 
 fun articles thys = List.mapPartial article thys;

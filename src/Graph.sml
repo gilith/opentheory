@@ -552,7 +552,9 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
     let
       val PackageTheory.Theory {name,node,...} = theory
 
-      val graph = empty {savable = false}
+      val savable = PackageTheory.isArticleNode node
+
+      val graph = empty {savable = savable}
 
       val imports = TheorySet.empty
 

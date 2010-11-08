@@ -145,8 +145,7 @@ val importPackageName :
 (* ------------------------------------------------------------------------- *)
 
 val linearizeTheories :
-    importer ->
-    {directory : string} -> PackageTheory.theory list ->
-    PackageTheory.theory list
+    importer -> {directory : string} ->
+    PackageTheory.theory list -> PackageTheory.theory list
 
 end
