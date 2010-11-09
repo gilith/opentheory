@@ -30,6 +30,56 @@ in
   fun ancestors thy = ancsPar TheorySet.empty thy [];
 end;
 
+local
+  fun primsList acc thys = List.foldl primsThy acc thys
+
+  and primsThy (thy,acc) =
+      if Theory.isPrimitive thy then TheorySet.add acc thy
+      else primsNode acc (Theory.node thy)
+
+  and primsNode acc node =
+      case node of
+        Theory.Article _ => raise Bug "Graph.primitives: Article"
+      | Theory.Package {theories,...} => primsList acc theories
+      | Theory.Union => acc;
+in
+  fun primitives thy =
+      let
+(*OpenTheoryDebug
+        val _ = not (Theory.isUnion thy) orelse
+                raise Bug "Graph.primitives: Union"
+*)
+      in
+        primsThy (thy,TheorySet.empty)
+      end;
+end;
+
+local
+  fun primsList acc thys = List.foldl primsThy acc thys
+
+  and primsThy (thy,acc) =
+      if Theory.isPrimitive thy then TheorySet.add acc thy
+      else
+        let
+          val Theory.Theory' {imports,node,...} = Theory.dest thy
+        in
+          case node of
+            Theory.Article _ => raise Bug "Graph.visiblePrimitives: Article"
+          | Theory.Package {main,...} => primsThy (main,acc)
+          | Theory.Union => primsList acc imports
+        end;
+in
+  fun visiblePrimitives thy =
+      let
+(*OpenTheoryDebug
+        val _ = not (Theory.isUnion thy) orelse
+                raise Bug "Graph.visiblePrimitives: Union"
+*)
+      in
+        primsThy (thy,TheorySet.empty)
+      end;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Theory environments.                                                      *)
 (* ------------------------------------------------------------------------- *)
@@ -77,6 +127,7 @@ fun mainEnvironment (Environment {named,...}) =
       SOME thy => thy
     | NONE => raise Error "no main theory";
 
+(***
 (* ------------------------------------------------------------------------- *)
 (* Packaging theories.                                                       *)
 (* ------------------------------------------------------------------------- *)
@@ -193,6 +244,7 @@ fun packageTheory {expand} =
 (*OpenTheoryDebug
     handle Error err => raise Error ("Graph.packageTheory: " ^ err);
 *)
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory graphs.                                                  *)
@@ -261,7 +313,7 @@ fun add graph thy =
       val theories = TheorySet.add theories thy
 
       val packages =
-          case Theory.package thy of
+          case Theory.destPackage thy of
             NONE => packages
           | SOME p =>
             let

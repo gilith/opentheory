@@ -44,14 +44,38 @@ val node : theory -> node
 val article : theory -> Article.article
 
 (* ------------------------------------------------------------------------- *)
+(* Article theories.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val isArticleNode : node -> bool
+
+val isArticle : theory -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Package theories.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val packageNode : node -> PackageName.name option
+val destPackageNode : node -> PackageName.name option
 
-val package : theory -> PackageName.name option
+val destPackage : theory -> PackageName.name option
 
 val isPackage : theory -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Union theories.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val isUnionNode : node -> bool
+
+val isUnion : theory -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive theories cannot be expanded.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+val isPrimitiveNode : node -> bool
+
+val isPrimitive : theory -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

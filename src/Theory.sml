@@ -97,17 +97,51 @@ fun article thy =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Article theories.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun isArticleNode node =
+    case node of
+      Article _ => true
+    | _ => false;
+
+fun isArticle thy = isArticleNode (node thy);
+
+(* ------------------------------------------------------------------------- *)
 (* Package theories.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun packageNode node =
+fun destPackageNode node =
     case node of
       Package {package = pkg, ...} => SOME pkg
     | _ => NONE;
 
-fun package thy = packageNode (node thy);
+fun destPackage thy = destPackageNode (node thy);
 
-fun isPackage thy = Option.isSome (package thy);
+fun isPackage thy = Option.isSome (destPackage thy);
+
+(* ------------------------------------------------------------------------- *)
+(* Union theories.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun isUnionNode node =
+    case node of
+      Union => true
+    | _ => false;
+
+fun isUnion thy = isUnionNode (node thy);
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive theories cannot be expanded.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun isPrimitiveNode node =
+    case node of
+      Article _ => true
+    | Package {theories,...} => List.exists isArticle theories
+    | Union => false;
+
+fun isPrimitive thy = isPrimitiveNode (node thy);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

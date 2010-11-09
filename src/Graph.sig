@@ -14,6 +14,10 @@ val parents : Theory.theory -> TheorySet.set
 
 val ancestors : Theory.theory -> TheorySet.set  (* not including self *)
 
+val primitives : Theory.theory -> TheorySet.set
+
+val visiblePrimitives : Theory.theory -> TheorySet.set
+
 (* ------------------------------------------------------------------------- *)
 (* Theory environments.                                                      *)
 (* ------------------------------------------------------------------------- *)
