@@ -115,7 +115,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
           in
             if n = 0 then ()
             else
-              warn (Int.toString n ^ " object" ^
+              warn (Print.toString Print.ppPrettyInt n ^ " object" ^
                     (if n = 1 then "" else "s") ^
                     " left on the stack by " ^ filename)
           end
@@ -126,7 +126,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
           in
             if n = 0 then ()
             else
-              warn (Int.toString n ^ " object" ^
+              warn (Print.toString Print.ppPrettyInt n ^ " object" ^
                     (if n = 1 then "" else "s") ^
                     " left in the dictionary by " ^ filename)
           end
