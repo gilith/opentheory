@@ -904,6 +904,29 @@ fun removeDeadImports vanilla definitions summary theory =
          node = node}
     end;
 
+(* Primitive theories *)
+
+datatype primTheory = PrimTheory of PackageTheory.name * Theory.theory;
+
+fun comparePrimTheory (p1,p2) =
+    let
+      val PrimTheory (n1,t1) = p1
+      and PrimTheory (n2,t2) = p2
+    in
+      case PackageBase.compare (n1,n2) of
+        LESS => LESS
+      | EQUAL => Theory.compare (t1,t2)
+      | GREATER => GREATER
+    end;
+
+(* Primitive theory summaries *)
+
+datatype primTheorySummary =
+    PrimTheorySummary of (primTheory,Summary.summary) Map.map;
+
+val emptyPrimTheorySummary = PrimTheorySummary (Map.new comparePrimTheory);
+
+
 (* Putting it all together *)
 
 fun linearizeTheories importer dir theories =
