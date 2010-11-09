@@ -770,7 +770,7 @@ fun removeDeadImports vanilla definitions summary theory =
     let
       val PackageTheory.Theory {name,imports,node} = theory
 
-      fun remove (imp,(acc,req,inp)) =
+      fun addAlive (imp,(acc,req,inp)) =
           let
             val (req,reqSame) =
                 let
@@ -789,7 +789,7 @@ fun removeDeadImports vanilla definitions summary theory =
                 let
                   val pdef = getDefinitions definitions imp
 
-                  fun undefT ot = not (Symbol.knownTypeOp pdef (TypeOp.name ot))
+                  fun undefT t = not (Symbol.knownTypeOp pdef (TypeOp.name t))
 
                   fun undefC c = not (Symbol.knownConst pdef (Const.name c))
 
@@ -811,10 +811,12 @@ fun removeDeadImports vanilla definitions summary theory =
                 if not same then imp :: acc
                 else
                   let
-                    val () = warn ("redundant import " ^
-                                   PackageTheory.toStringName imp ^
-                                   " in theory block " ^
-                                   PackageTheory.toStringName name)
+                    val () =
+                        warn
+                          ("redundant import " ^
+                           PackageTheory.toStringName imp ^
+                           " in theory block " ^
+                           PackageTheory.toStringName name)
                   in
                     acc
                   end
@@ -835,12 +837,12 @@ fun removeDeadImports vanilla definitions summary theory =
 
             val psym = Sequents.symbol (Summary.provides sum)
 
-            val {undefined = _, defined = pinp} = Symbol.partitionUndef psym
+            val {undefined = pinp, defined = _} = Symbol.partitionUndef psym
           in
             (Symbol.typeOps pinp, Symbol.consts pinp)
           end
 
-      val (imports,_,_) = List.foldl remove ([],req,inp) imports
+      val (imports,_,_) = List.foldl addAlive ([],req,inp) imports
 
       val imports = rev imports
     in
