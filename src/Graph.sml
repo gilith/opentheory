@@ -822,7 +822,25 @@ fun removeDeadImports vanilla definitions summary theory =
     let
       val PackageTheory.Theory {name,imports,node} = theory
 
-      fun addAlive (imp,(acc,req,inp)) =
+      fun removeDefs (ots,cs) imp =
+          let
+            val pdef = getDefinitions definitions imp
+
+            fun undefT t = not (Symbol.knownTypeOp pdef (TypeOp.name t))
+
+            fun undefC c = not (Symbol.knownConst pdef (Const.name c))
+
+            val ots' = TypeOpSet.filter undefT ots
+            and cs' = ConstSet.filter undefC cs
+
+            val same =
+                TypeOpSet.size ots' = TypeOpSet.size ots andalso
+                ConstSet.size cs' = ConstSet.size cs
+          in
+            ((ots',cs'),same)
+          end
+
+      fun addProv (imp,(acc,req,inp)) =
           let
             val (req,reqSame) =
                 let
@@ -837,44 +855,33 @@ fun removeDeadImports vanilla definitions summary theory =
                   (req',same)
                 end
 
-            val (inp,inpSame) =
-                let
-                  val pdef = getDefinitions definitions imp
-
-                  fun undefT t = not (Symbol.knownTypeOp pdef (TypeOp.name t))
-
-                  fun undefC c = not (Symbol.knownConst pdef (Const.name c))
-
-                  val (ots,cs) = inp
-
-                  val ots' = TypeOpSet.filter undefT ots
-                  and cs' = ConstSet.filter undefC cs
-
-                  val same =
-                      TypeOpSet.size ots' = TypeOpSet.size ots andalso
-                      ConstSet.size cs' = ConstSet.size cs
-                in
-                  ((ots',cs'),same)
-                end
-
-            val same = reqSame andalso inpSame
-
-            val acc =
-                if not same then imp :: acc
+            val (acc,inp) =
+                if reqSame then (acc,inp)
                 else
                   let
-                    val () =
-                        warn
-                          ("redundant import " ^
-                           PackageTheory.toStringName imp ^
-                           " in theory block " ^
-                           PackageTheory.toStringName name)
+                    val acc = PackageBaseSet.add acc imp
+
+                    val (inp,_) = removeDefs inp imp
                   in
-                    acc
+                    (acc,inp)
                   end
           in
             (acc,req,inp)
           end
+
+      fun addDef (imp,(acc,inp)) =
+          let
+            val (inp,inpSame) = removeDefs inp imp
+
+            val acc = if inpSame then acc else PackageBaseSet.add acc imp
+          in
+            (acc,inp)
+          end
+
+      fun warnDead imp =
+          warn
+            ("redundant import " ^ PackageTheory.toStringName imp ^
+             " in theory block " ^ PackageTheory.toStringName name)
 
       val req =
           let
@@ -894,9 +901,17 @@ fun removeDeadImports vanilla definitions summary theory =
             (Symbol.typeOps pinp, Symbol.consts pinp)
           end
 
-      val (imports,_,_) = List.foldl addAlive ([],req,inp) imports
+      val alive = PackageBaseSet.empty
 
-      val imports = rev imports
+      val (alive,_,inp) = List.foldl addProv (alive,req,inp) imports
+
+      val (alive,_) = List.foldl addDef (alive,inp) imports
+
+      fun isAlive imp = PackageBaseSet.member imp alive
+
+      val (imports,dead) = List.partition isAlive imports
+
+      val () = List.app warnDead dead
     in
       PackageTheory.Theory
         {name = name,
@@ -904,14 +919,14 @@ fun removeDeadImports vanilla definitions summary theory =
          node = node}
     end;
 
-(* Primitive theories *)
+(* Named theories *)
 
-datatype primTheory = PrimTheory of PackageTheory.name * Theory.theory;
+datatype nameTheory = NameTheory of PackageTheory.name * Theory.theory;
 
-fun comparePrimTheory (p1,p2) =
+fun compareNameTheory (p1,p2) =
     let
-      val PrimTheory (n1,t1) = p1
-      and PrimTheory (n2,t2) = p2
+      val NameTheory (n1,t1) = p1
+      and NameTheory (n2,t2) = p2
     in
       case PackageBase.compare (n1,n2) of
         LESS => LESS
@@ -919,13 +934,17 @@ fun comparePrimTheory (p1,p2) =
       | GREATER => GREATER
     end;
 
-(* Primitive theory summaries *)
+(* Named theory information *)
 
-datatype primTheorySummary =
+(***
+datatype nameTheoryInfo =
+    NameTheoryInfo of
+      {primTheories : nameTheory Set.set,
+
     PrimTheorySummary of (primTheory,Summary.summary) Map.map;
 
 val emptyPrimTheorySummary = PrimTheorySummary (Map.new comparePrimTheory);
-
+***)
 
 (* Putting it all together *)
 
