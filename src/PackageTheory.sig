@@ -89,6 +89,22 @@ val isUnion : theory -> bool
 (* Topological sort of theories.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+type index
+
+val toListIndex : index -> theory list
+
+val fromListIndex : theory list -> index
+
+val peekIndex : index -> name -> theory option
+
+val getIndex : index -> name -> theory
+
+val memberIndex : name -> index -> bool
+
+val mainIndex : index -> theory
+
+val sortIndex : {parents : theory -> name list} -> index -> theory list
+
 val sortImports : theory list -> theory list
 
 val sortUnion : theory list -> theory list

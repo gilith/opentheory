@@ -123,109 +123,122 @@ fun importsUnion thy =
 (* Topological sort of theories.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype index = Index of theory list * theory PackageBaseMap.map;
+
+fun toListIndex (Index (thyl,_)) = thyl;
+
+fun peekIndex (Index (_,idxm)) n = PackageBaseMap.peek idxm n;
+
+fun memberIndex n (Index (_,idxm)) = PackageBaseMap.inDomain n idxm;
+
+fun getIndex idx n =
+    case peekIndex idx n of
+      SOME thy => thy
+    | NONE =>
+      raise Error ("unknown theory block called " ^ PackageBase.toString n);
+
+fun mainIndex idx = getIndex idx mainName;
+
 local
-  fun toMap parents thyl =
+  fun add (thy,idxm) =
       let
-        fun ins (thy,(m,l)) =
-            let
-              val n = name thy
-              and ts = parents thy
+        val n = name thy
 
-              val m = PackageBaseMap.insert m (n,(ts,thy))
-
-              val l = n :: l
-            in
-              (m,l)
-            end
-
-        val thys_namel as (thys,_) =
-            List.foldl ins (PackageBaseMap.new (), []) (rev thyl)
-
-        fun isName n = PackageBaseMap.inDomain n thys
-
-        fun check (n,(_,thy)) =
-            case List.find (not o isName) (imports thy) of
-              NONE => ()
-            | SOME t =>
-              raise Error ("theory block \"" ^ PackageBase.toString n ^ "\" " ^
-                           "imports unknown \"" ^ PackageBase.toString t ^ "\"")
-
-        val () = PackageBaseMap.app check thys
+        val () =
+            if not (PackageBaseMap.inDomain n idxm) then ()
+            else raise Error ("multiple theory blocks called " ^
+                              PackageBase.toString n)
       in
-        thys_namel
+        PackageBaseMap.insert idxm (n,thy)
       end;
 
-  fun sortMap theories (dealt,dealtset) (stack,stackset) work =
-      case work of
-        [] =>
-        (case stack of
-           [] => rev dealt
-         | (t,(thy,work,stackset)) :: stack =>
-           let
-             val dealt = thy :: dealt
-
-             val dealtset = PackageBaseSet.add dealtset t
-           in
-             sortMap theories (dealt,dealtset) (stack,stackset) work
-           end)
-      | t :: work =>
-        if PackageBaseSet.member t dealtset then
-          sortMap theories (dealt,dealtset) (stack,stackset) work
-        else if PackageBaseSet.member t stackset then
-          let
-            fun notT (t',_) = not (PackageBase.equal t' t)
-
-            val l = map fst (takeWhile notT stack)
-
-            val l = t :: rev (t :: l)
-
-            val err = join " -> " (map PackageBase.toString l)
-          in
-            raise Error ("circular dependency:\n" ^ err)
-          end
-        else
-          let
-            val (ts,thy) =
-                case PackageBaseMap.peek theories t of
-                  SOME ts_thy => ts_thy
-                | NONE => raise Bug "PackageTheory.sort"
-
-            val stack = (t,(thy,work,stackset)) :: stack
-
-            val stackset = PackageBaseSet.add stackset t
-
-            val work = ts
-          in
-            sortMap theories (dealt,dealtset) (stack,stackset) work
-          end;
-
-  fun sortBy parents thys =
+  fun checkImps idx thy =
+      case List.find (fn n => not (memberIndex n idx)) (imports thy) of
+        NONE => ()
+      | SOME t =>
+        let
+          val n = name thy
+        in
+          raise Error ("theory block " ^ PackageBase.toString n ^ " " ^
+                       "imports unknown " ^ PackageBase.toString t)
+        end;
+in
+  fun fromListIndex thyl =
       let
-        val (thys,work) = toMap parents thys
+        val idxm = List.foldl add (PackageBaseMap.new ()) thyl
+
+        val idx = Index (thyl,idxm)
+
+        val () = List.app (checkImps idx) thyl
+      in
+        idx
+      end;
+end;
+
+fun sortIndex {parents} idx =
+    let
+      fun sort (dealt,dealtset) (stack,stackset) work =
+          case work of
+            [] =>
+            (case stack of
+               [] => rev dealt
+             | (thy,work,stackset) :: stack =>
+               let
+                 val dealt = thy :: dealt
+
+                 val dealtset = PackageBaseSet.add dealtset (name thy)
+               in
+                 sort (dealt,dealtset) (stack,stackset) work
+               end)
+          | thy :: work =>
+            if PackageBaseSet.member (name thy) dealtset then
+              sort (dealt,dealtset) (stack,stackset) work
+            else if PackageBaseSet.member (name thy) stackset then
+              let
+                fun notT (thy',_,_) =
+                    not (PackageBase.equal (name thy') (name thy))
+
+                val l = takeWhile notT stack
+
+                val l = thy :: List.foldl (fn ((t,_,_),ts) => t :: ts) [thy] l
+
+                val err = join " -> " (List.map (PackageBase.toString o name) l)
+              in
+                raise Error ("circular dependency:\n" ^ err)
+              end
+            else
+              let
+                val thys = List.map (getIndex idx) (parents thy)
+
+                val stack = (thy,work,stackset) :: stack
+
+                val stackset = PackageBaseSet.add stackset (name thy)
+
+                val work = thys
+              in
+                sort (dealt,dealtset) (stack,stackset) work
+              end
 
         val dealt = []
+        and dealtset = PackageBaseSet.empty
+        and stack = []
+        and stackset = PackageBaseSet.empty
+        and work = toListIndex idx
+    in
+      sort (dealt,dealtset) (stack,stackset) work
+    end;
 
-        val dealtset = PackageBaseSet.empty
-
-        val stack = []
-
-        val stackset = PackageBaseSet.empty
-      in
-        sortMap thys (dealt,dealtset) (stack,stackset) work
-      end;
-in
-  fun sortImports thys =
-      sortBy imports thys
+fun sortImports thys =
+    sortIndex {parents = imports} (fromListIndex thys)
 (*OpenTheoryDebug
-      handle Error err => raise Error ("PackageTheory.sortImports: " ^ err);
+    handle Error err => raise Error ("PackageTheory.sortImports: " ^ err);
 *)
 
-  fun sortUnion thys =
-      sortBy importsUnion thys
+fun sortUnion thys =
+    sortIndex {parents = importsUnion} (fromListIndex thys)
 (*OpenTheoryDebug
-      handle Error err => raise Error ("PackageTheory.sortUnion: " ^ err);
+    handle Error err => raise Error ("PackageTheory.sortUnion: " ^ err);
 *)
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Theory constraints.                                                       *)

@@ -818,7 +818,7 @@ fun fromListSummary vanilla definitions theories =
 
 (* Removing dead imports *)
 
-fun removeDeadImports vanilla definitions summary theory =
+fun removeDeadImportsTheory vanilla definitions summary theory =
     let
       val PackageTheory.Theory {name,imports,node} = theory
 
@@ -919,6 +919,47 @@ fun removeDeadImports vanilla definitions summary theory =
          node = node}
     end;
 
+fun removeDeadImports vanilla definitions summary theories =
+    List.map (removeDeadImportsTheory vanilla definitions summary) theories;
+
+(* Removing dead imports *)
+
+fun removeDeadBlocks theories =
+    let
+      fun warnDead thy =
+          warn
+            ("redundant theory block " ^
+             PackageTheory.toStringName (PackageTheory.name thy))
+
+      val idx = PackageTheory.fromListIndex theories
+
+      fun ancs acc work =
+          case work of
+            [] => acc
+          | n :: work =>
+            if PackageBaseSet.member n acc then ancs acc work
+            else
+              let
+                val thy = PackageTheory.getIndex idx n
+
+                val acc = PackageBaseSet.add acc n
+
+                val work = PackageTheory.imports thy @ work
+              in
+                ancs acc work
+              end
+
+      val alive = ancs PackageBaseSet.empty [PackageTheory.mainName]
+
+      fun isAlive thy = PackageBaseSet.member (PackageTheory.name thy) alive
+
+      val (theories,dead) = List.partition isAlive theories
+
+      val () = List.app warnDead dead
+    in
+      theories
+    end;
+
 (* Named theories *)
 
 datatype nameTheory = NameTheory of PackageTheory.name * Theory.theory;
@@ -958,8 +999,9 @@ fun linearizeTheories importer dir theories =
 
       val summary = fromListSummary vanilla definitions theories'
 
-      val theories =
-          List.map (removeDeadImports vanilla definitions summary) theories
+      val theories = removeDeadImports vanilla definitions summary theories
+
+      val theories = removeDeadBlocks theories
     in
       theories
     end
