@@ -836,27 +836,36 @@ fun fromListSummary vanilla definitions theories =
 
 (* Removing dead imports *)
 
+fun removeSequent req seqs =
+    let
+      val req' = SequentSet.difference req seqs
+
+      val same = SequentSet.size req' = SequentSet.size req
+    in
+      (req',same)
+    end;
+
+fun removeSymbol (ots,cs) sym =
+    let
+      fun undefT t = not (Symbol.knownTypeOp sym (TypeOp.name t))
+
+      fun undefC c = not (Symbol.knownConst sym (Const.name c))
+
+      val ots' = TypeOpSet.filter undefT ots
+      and cs' = ConstSet.filter undefC cs
+
+      val same =
+          TypeOpSet.size ots' = TypeOpSet.size ots andalso
+          ConstSet.size cs' = ConstSet.size cs
+    in
+      ((ots',cs'),same)
+    end;
+
 fun removeDeadImportsTheory vanilla definitions summary theory =
     let
       val PackageTheory.Theory {name,imports,node} = theory
 
-      fun removeDefs (ots,cs) imp =
-          let
-            val pdef = getDefinitions definitions imp
-
-            fun undefT t = not (Symbol.knownTypeOp pdef (TypeOp.name t))
-
-            fun undefC c = not (Symbol.knownConst pdef (Const.name c))
-
-            val ots' = TypeOpSet.filter undefT ots
-            and cs' = ConstSet.filter undefC cs
-
-            val same =
-                TypeOpSet.size ots' = TypeOpSet.size ots andalso
-                ConstSet.size cs' = ConstSet.size cs
-          in
-            ((ots',cs'),same)
-          end
+      fun removeDefs inp imp = removeSymbol inp (getDefinitions definitions imp)
 
       fun addProv (imp,(acc,req,inp)) =
           let
@@ -865,12 +874,8 @@ fun removeDeadImportsTheory vanilla definitions summary theory =
                   val prov = Summary.provides (getSummary summary imp)
 
                   val pseqs = Sequents.sequents prov
-
-                  val req' = SequentSet.difference req pseqs
-
-                  val same = SequentSet.size req' = SequentSet.size req
                 in
-                  (req',same)
+                  removeSequent req pseqs
                 end
 
             val (acc,inp) =
@@ -1090,7 +1095,16 @@ fun insertDependency (Dependency dmap) (nt,nts) =
       Dependency (NameTheoryMap.insert dmap (nt,nts))
     end;
 
-fun addDependency vanilla definitions visible (theory,dependency) =
+fun removeReflexivesDependency (Dependency dmap) =
+    let
+      fun remove (nt,nts) = NameTheorySet.remove nts nt
+
+      val dmap = NameTheoryMap.map remove dmap
+    in
+      Dependency dmap
+    end;
+
+fun addTheoryDependency vanilla definitions visible (theory,dependency) =
     let
       val PackageTheory.Theory {name,imports,...} = theory
 
@@ -1139,7 +1153,54 @@ fun addDependency vanilla definitions visible (theory,dependency) =
                     case Theory.node thy of
                       Theory.Article _ =>
                       let
+                        fun pass2 ({name,prov,defs},(deps,acc)) =
+                            if NameTheorySet.member name deps then (deps,acc)
+                            else
+                              let
+                                val (req,inp) = acc
+
+                                val (req,same) = removeSequent req prov
+                              in
+                                if same then (deps,acc)
+                                else
+                                  let
+                                    val deps = NameTheorySet.add deps name
+
+                                    val (inp,_) = removeSymbol inp defs
+                                  in
+                                    (deps,(req,inp))
+                                  end
+                              end
+
+                        fun pass3 ({name,prov,defs},(deps,inp)) =
+                            if NameTheorySet.member name deps then (deps,inp)
+                            else
+                              let
+                                val (inp,same) = removeSymbol inp defs
+                              in
+                                if same then (deps,inp)
+                                else
+                                  let
+                                    val deps = NameTheorySet.add deps name
+                                  in
+                                    (deps,inp)
+                                  end
+                              end
+
                         val deps = getListDeps dependency (Theory.imports thy)
+
+                        fun pass1 ({name,prov,defs},acc) =
+                            if not (NameTheorySet.member name deps) then acc
+                            else
+                              let
+                                val (req,inp) = acc
+
+                                val (req,_) = removeSequent req prov
+
+                                val (inp,_) = removeSymbol inp defs
+                              in
+                                (req,inp)
+                              end
 
                         val sum =
                             let
@@ -1169,18 +1230,17 @@ fun addDependency vanilla definitions visible (theory,dependency) =
                               val {undefined = inp, defined = _} =
                                   Symbol.partitionUndef prov
                             in
-                              inp
+                              (Symbol.typeOps inp, Symbol.consts inp)
                             end
-(***
-                        val iprov = Sequents.union vis iprov
 
-                        val {undefined = _, defined = idefs} =
-                            Symbol.partitionUndef (Sequents.symbol iprov)
+                        val (req,inp) =
+                            List.foldl pass1 (req,inp) visImps
 
-                        val rewr = Symbol.inst idefs
+                        val (deps,(req,inp)) =
+                            List.foldl pass2 (deps,(req,inp)) visImps
 
-                        val sum = Option.getOpt (Summary.rewrite rewr sum, sum)
-***)
+                        val (deps,inp) =
+                            List.foldl pass3 (deps,inp) visImps
                       in
                         (deps,rewr)
                       end
@@ -1222,11 +1282,13 @@ fun addDependency vanilla definitions visible (theory,dependency) =
         end
     end;
 
-fun fromListDependency vanilla definitions visible theories =
+fun fromTheoryListDependency vanilla definitions visible theories =
     let
-      val addDep = addDependency vanilla definitions visible
+      val addDep = addTheoryDependency vanilla definitions visible
+
+      val dependency = List.foldl addDep emptyDependency theories
     in
-      List.foldl addDep emptyDependency theories
+      removeReflexivesDependency dependency
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("Graph.fromListDependency: " ^ err);
@@ -1240,7 +1302,7 @@ fun ppDependency (Dependency dmap) =
 
 fun linearizeTheories importer dir theories =
     let
-      (* Remove redundant imports and blocks *)
+      (* Create theory graphs for each of the theory blocks *)
 
       val theories' = PackageTheory.sortUnion theories
 
@@ -1250,17 +1312,20 @@ fun linearizeTheories importer dir theories =
 
       val summary = fromListSummary vanilla definitions theories'
 
+      (* Remove redundant imports and theory blocks *)
+
       val theories = removeDeadImports vanilla definitions summary theories
 
       val theories = removeDeadBlocks theories
 
-      (* Untangle any cycles *)
+      (* Untangle any theory block cycles *)
 
       val theories' = PackageTheory.sortUnion theories
 
       val visible = fromListVisible vanilla definitions theories'
 
-      val dependency = fromListDependency vanilla definitions visible theories'
+      val dependency =
+          fromTheoryListDependency vanilla definitions visible theories'
 
 (*OpenTheoryTrace3
 *)
