@@ -8,7 +8,12 @@ show: "Data.Function"
 show: "Number.Natural"
 show: "Number.Numeral"
 
+axiom-infinity {
+  package: axiom-infinity-1.0
+}
+
 def {
+  import: axiom-infinity
   package: natural-def-1.0
 }
 

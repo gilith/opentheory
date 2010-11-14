@@ -32,6 +32,24 @@ val provides : summary -> Sequents.sequents
 val fromThms : Thms.thms -> summary
 
 (* ------------------------------------------------------------------------- *)
+(* Substitutions.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingSubst :
+    summary -> TermSubst.subst -> summary option * TermSubst.subst
+
+val subst : TermSubst.subst -> summary -> summary option
+
+(* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingRewrite :
+    summary -> TermRewrite.rewrite -> summary option * TermRewrite.rewrite
+
+val rewrite : TermRewrite.rewrite -> summary -> summary option
+
+(* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 

@@ -16,7 +16,13 @@ thm {
   package: natural-add-thm-1.0
 }
 
+suc {
+  import: thm
+  package: natural-add-suc-1.0
+}
+
 main {
   import: def
   import: thm
+  import: suc
 }

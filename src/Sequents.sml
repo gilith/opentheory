@@ -106,4 +106,54 @@ in
       | sequents :: sequentsl => List.foldl uncurriedUnion sequents sequentsl;
 end;
 
+(* ------------------------------------------------------------------------- *)
+(* Substitutions.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingSubst seqs sub =
+    let
+      val sqs = sequents seqs
+
+      val (sqs',sub) = SequentSet.sharingSubst sqs sub
+
+      val seqs' =
+          case sqs' of
+            SOME sqs => SOME (fromSet sqs)
+          | NONE => NONE
+    in
+      (seqs',sub)
+    end;
+
+fun subst sub seqs =
+    let
+      val (seqs',_) = sharingSubst seqs sub
+    in
+      seqs'
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingRewrite seqs rewr =
+    let
+      val sqs = sequents seqs
+
+      val (sqs',rewr) = SequentSet.sharingRewrite sqs rewr
+
+      val seqs' =
+          case sqs' of
+            SOME sqs => SOME (fromSet sqs)
+          | NONE => NONE
+    in
+      (seqs',rewr)
+    end;
+
+fun rewrite rewr seqs =
+    let
+      val (seqs',_) = sharingRewrite seqs rewr
+    in
+      seqs'
+    end;
+
 end

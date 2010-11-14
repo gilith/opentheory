@@ -129,6 +129,7 @@ SRC = \
   src/PackageInfo.sig src/PackageInfo.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \
+  src/NameTheory.sig src/NameTheory.sml \
   src/Graph.sig src/Graph.sml \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
   src/DirectoryPath.sig src/DirectoryPath.sml \

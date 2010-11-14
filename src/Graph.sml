@@ -55,19 +55,27 @@ in
 end;
 
 local
-  fun primsList acc thys = List.foldl primsThy acc thys
+  fun primsList seen acc thys = List.foldl primsThy (seen,acc) thys
 
-  and primsThy (thy,acc) =
-      if Theory.isPrimitive thy then TheorySet.add acc thy
+  and primsThy (thy,(seen,acc)) =
+      if TheorySet.member thy seen then (seen,acc)
       else
         let
-          val Theory.Theory' {imports,node,...} = Theory.dest thy
+          val seen = TheorySet.add seen thy
         in
-          case node of
-            Theory.Article _ => raise Bug "Graph.visiblePrimitives: Article"
-          | Theory.Package {main,...} => primsThy (main,acc)
-          | Theory.Union => primsList acc imports
-        end;
+          if Theory.isPrimitive thy then (seen, thy :: acc)
+          else primsThy' seen acc (Theory.dest thy)
+        end
+
+  and primsThy' seen acc thy' =
+      let
+        val Theory.Theory' {imports,node,...} = thy'
+      in
+        case node of
+          Theory.Article _ => raise Bug "Graph.visiblePrimitives: Article"
+        | Theory.Package {main,...} => primsThy (main,(seen,acc))
+        | Theory.Union => primsList seen acc imports
+      end;
 in
   fun visiblePrimitives thy =
       let
@@ -75,8 +83,10 @@ in
         val _ = not (Theory.isUnion thy) orelse
                 raise Bug "Graph.visiblePrimitives: Union"
 *)
+
+        val (_,acc) = primsThy (thy,(TheorySet.empty,[]))
       in
-        primsThy (thy,TheorySet.empty)
+        rev acc
       end;
 end;
 
@@ -413,6 +423,8 @@ fun importNode importer graph info =
                    article = article}
 
             val thy = Theory.mk thy'
+
+            val graph = add graph thy
           in
             (graph,thy)
           end
@@ -443,6 +455,8 @@ fun importNode importer graph info =
                    article = article}
 
             val thy = Theory.mk thy'
+
+            val graph = add graph thy
           in
             (graph,thy)
           end
@@ -531,6 +545,8 @@ fun importPackage importer graph info =
                article = article}
 
       val thy = Theory.mk thy'
+
+      val graph = add graph thy
     in
       (graph,thy)
     end;
@@ -585,6 +601,16 @@ fun importPackageName finder graph spec =
 and fromFinderImporter finder = Importer (importPackageName finder);
 
 (* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun pp graph =
+    Print.blockProgram Print.Consistent 0
+      [Print.ppString "Graph{",
+       Print.ppInt (TheorySet.size (theories graph)),
+       Print.ppString "}"];
+
+(* ------------------------------------------------------------------------- *)
 (* Linearize mutually recursive theory packages.                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -599,6 +625,13 @@ fun getVanilla (Vanilla vmap) name =
     case PackageBaseMap.peek vmap name of
       SOME x => x
     | NONE => raise Bug "Graph.getVanilla";
+
+fun getNameTheoryVanilla vanilla name =
+    let
+      val (_,thy,_) = getVanilla vanilla name
+    in
+      NameTheory.mk (name,thy)
+    end;
 
 fun addVanilla importer {directory} (theory, Vanilla vmap) =
     let
@@ -737,7 +770,7 @@ fun fromListDefinitions vanilla theories =
     handle Error err => raise Error ("Graph.fromListDefinitions: " ^ err);
 *)
 
-(* Individual theory block summaries *)
+(* Theory block summaries *)
 
 datatype summary = Summary of Summary.summary PackageBaseMap.map;
 
@@ -777,9 +810,6 @@ fun addSummary vanilla definitions (theory,summary) =
             let
               val (_,_,sum) = getVanilla vanilla name
 
-              val req = Sequents.sequents (Summary.requires sum)
-              and prov = Sequents.sequents (Summary.provides sum)
-
               val idefs = getListDefinitions definitions imports
 
 (*OpenTheoryTrace3
@@ -787,20 +817,8 @@ fun addSummary vanilla definitions (theory,summary) =
 *)
 
               val rewr = Symbol.inst idefs
-
-              val (req',rewr) = SequentSet.sharingRewrite req rewr
-
-              val prov' = SequentSet.rewrite rewr prov
-
-              val req = Sequents.fromSet (Option.getOpt (req',req))
-              and prov = Sequents.fromSet (Option.getOpt (prov',prov))
-
-              val sum' =
-                  Summary.Summary'
-                    {requires = req,
-                     provides = prov}
             in
-              Summary.mk sum'
+              Option.getOpt (Summary.rewrite rewr sum, sum)
             end
 
 (*OpenTheoryTrace3
@@ -960,40 +978,273 @@ fun removeDeadBlocks theories =
       theories
     end;
 
-(* Named theories *)
+(* Visible primitive theories of theory blocks *)
 
-datatype nameTheory = NameTheory of PackageTheory.name * Theory.theory;
+datatype visible =
+    Visible of
+      {name : NameTheory.nameTheory,
+       prov : SequentSet.set,
+       defs : Symbol.symbol} list PackageBaseMap.map;
 
-fun compareNameTheory (p1,p2) =
+val emptyVisible = Visible (PackageBaseMap.new ());
+
+fun getVisible (Visible vmap) name =
+    case PackageBaseMap.peek vmap name of
+      SOME vs => vs
+    | NONE => raise Bug "Graph.getVisible";
+
+fun getListVisible visible names =
     let
-      val NameTheory (n1,t1) = p1
-      and NameTheory (n2,t2) = p2
+      val vsl = List.map (getVisible visible) names
     in
-      case PackageBase.compare (n1,n2) of
-        LESS => LESS
-      | EQUAL => Theory.compare (t1,t2)
-      | GREATER => GREATER
+      List.concat vsl
     end;
 
-(* Named theory information *)
+fun addVisible vanilla definitions (theory,visible) =
+    let
+      val PackageTheory.Theory {name,imports,...} = theory
+      and Visible vmap = visible
 
+(*OpenTheoryTrace3
+      val () = Print.trace PackageTheory.ppName "Graph.addVisible.name" name
+*)
+
+      val vs =
+          if PackageTheory.isUnion theory then getListVisible visible imports
+          else
+            let
+              fun mkVs thy rewr =
+                  let
+                    val art = Theory.article thy
+
+                    val ths = Article.thms art
+
+                    val prov = Sequents.fromThms ths
+
+                    val (prov',rewr) = Sequents.sharingRewrite prov rewr
+
+                    val prov = Option.getOpt (prov',prov)
+
+                    val {undefined = _, defined = defs} =
+                        Symbol.partitionUndef (Sequents.symbol prov)
+
+                    val prov = Sequents.sequents prov
+
+                    val vs =
+                        {name = NameTheory.mk (name,thy),
+                         prov = prov,
+                         defs = defs}
+                  in
+                    (vs,rewr)
+                  end
+
+              val (_,thy,_) = getVanilla vanilla name
+
+              val idefs = getListDefinitions definitions imports
+
+              val rewr = Symbol.inst idefs
+
+              val (vs,_) = maps mkVs (visiblePrimitives thy) rewr
+            in
+              vs
+            end
+    in
+      Visible (PackageBaseMap.insert vmap (name,vs))
+    end;
+
+fun fromListVisible vanilla definitions theories =
+    List.foldl (addVisible vanilla definitions) emptyVisible theories
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Graph.fromListVisible: " ^ err);
+*)
+
+(* Dependencies of named theories *)
+
+datatype dependency =
+    Dependency of NameTheorySet.set NameTheoryMap.map;
+
+val emptyDependency = Dependency (NameTheoryMap.new ());
+
+fun getDependency (Dependency dmap) nt =
+    case NameTheoryMap.peek dmap nt of
+      SOME vs => vs
+    | NONE =>
+      raise Bug ("Graph.getDependency: " ^ Print.toString NameTheory.pp nt);
+
+fun getListDependency dependency nts =
+    if null nts then NameTheorySet.empty
+    else
+      let
+        val depsl = List.map (getDependency dependency) nts
+      in
+        NameTheorySet.unionList depsl
+      end;
+
+fun insertDependency (Dependency dmap) (nt,nts) =
+    let
+(*OpenTheoryDebug
+      val () = if not (NameTheoryMap.inDomain nt dmap) then ()
+               else raise Bug "Graph.insertDependency"
+*)
+    in
+      Dependency (NameTheoryMap.insert dmap (nt,nts))
+    end;
+
+fun addDependency vanilla definitions visible (theory,dependency) =
+    let
+      val PackageTheory.Theory {name,imports,...} = theory
+
+(*OpenTheoryTrace3
+*)
+      val () = Print.trace PackageTheory.ppName "Graph.addDependency.name" name
+    in
+      if PackageTheory.isUnion theory then
+        let
+          val nt = getNameTheoryVanilla vanilla name
+
+          val imps = List.map (getNameTheoryVanilla vanilla) imports
+
+          val deps = getListDependency dependency imps
+        in
+          insertDependency dependency (nt,deps)
+        end
+      else
+        let
+          fun mkNT thy = NameTheory.mk (name,thy)
+
+          fun getDeps dependency thy =
+              getDependency dependency (mkNT thy)
+
+          fun getListDeps dependency thys =
+              getListDependency dependency (List.map mkNT thys)
+
+          val visImps = getListVisible visible imports
+
+          val (graph,primThys) =
+              let
+                val (graph,main,_) = getVanilla vanilla name
+
+                val primThys = primitives main
+              in
+                (graph,primThys)
+              end
+
+(*OpenTheoryTrace3
+*)
+          val () = Print.trace pp "Graph.addDependency.graph" graph
+
+          fun addThy (thy,(dependency,rewr)) =
+              let
+                val (deps,rewr) =
+                    case Theory.node thy of
+                      Theory.Article _ =>
+                      let
+                        val deps = getListDeps dependency (Theory.imports thy)
+
+                        val sum =
+                            let
+                              val art = Theory.article thy
+
+                              val ths = Article.thms art
+                            in
+                              Summary.fromThms ths
+                            end
+
+                        val (req,rewr) =
+                            let
+                              val req = Sequents.sequents (Summary.requires sum)
+
+                              val (req',rewr) =
+                                  SequentSet.sharingRewrite req rewr
+
+                              val req = Option.getOpt (req',req)
+                            in
+                              (req,rewr)
+                            end
+
+                        val inp =
+                            let
+                              val prov = Sequents.symbol (Summary.provides sum)
+
+                              val {undefined = inp, defined = _} =
+                                  Symbol.partitionUndef prov
+                            in
+                              inp
+                            end
 (***
-datatype nameTheoryInfo =
-    NameTheoryInfo of
-      {primTheories : nameTheory Set.set,
+                        val iprov = Sequents.union vis iprov
 
-    PrimTheorySummary of (primTheory,Summary.summary) Map.map;
+                        val {undefined = _, defined = idefs} =
+                            Symbol.partitionUndef (Sequents.symbol iprov)
 
-val emptyPrimTheorySummary = PrimTheorySummary (Map.new comparePrimTheory);
+                        val rewr = Symbol.inst idefs
+
+                        val sum = Option.getOpt (Summary.rewrite rewr sum, sum)
 ***)
+                      in
+                        (deps,rewr)
+                      end
+                    | Theory.Package {main,...} =>
+                      let
+                        val deps = getDeps dependency main
+                      in
+                        (deps,rewr)
+                      end
+                    | Theory.Union =>
+                      let
+                        val deps = getListDeps dependency (Theory.imports thy)
+                      in
+                        (deps,rewr)
+                      end
+
+                val nt = mkNT thy
+
+(*OpenTheoryTrace3
+*)
+                val () = Print.trace NameTheory.pp
+                           "Graph.addDependency.addThy.nt" nt
+
+                val deps =
+                    if not (TheorySet.member thy primThys) then deps
+                    else NameTheorySet.add deps nt
+
+                val dependency = insertDependency dependency (nt,deps)
+              in
+                (dependency,rewr)
+              end
+
+          val rewr = Symbol.inst (getListDefinitions definitions imports)
+
+          val (dependency,_) =
+              TheorySet.foldl addThy (dependency,rewr) (theories graph)
+        in
+          dependency
+        end
+    end;
+
+fun fromListDependency vanilla definitions visible theories =
+    let
+      val addDep = addDependency vanilla definitions visible
+    in
+      List.foldl addDep emptyDependency theories
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Graph.fromListDependency: " ^ err);
+*)
+
+fun ppDependency (Dependency dmap) =
+    NameTheoryMap.pp
+      (Print.ppMap NameTheorySet.toList (Print.ppList NameTheory.pp)) dmap;
 
 (* Putting it all together *)
 
 fun linearizeTheories importer dir theories =
     let
-      val vanilla = fromListVanilla importer dir theories
+      (* Remove redundant imports and blocks *)
 
       val theories' = PackageTheory.sortUnion theories
+
+      val vanilla = fromListVanilla importer dir theories
 
       val definitions = fromListDefinitions vanilla theories'
 
@@ -1002,6 +1253,19 @@ fun linearizeTheories importer dir theories =
       val theories = removeDeadImports vanilla definitions summary theories
 
       val theories = removeDeadBlocks theories
+
+      (* Untangle any cycles *)
+
+      val theories' = PackageTheory.sortUnion theories
+
+      val visible = fromListVisible vanilla definitions theories'
+
+      val dependency = fromListDependency vanilla definitions visible theories'
+
+(*OpenTheoryTrace3
+*)
+      val () = Print.trace ppDependency
+                 "Graph.linearizeTheories.dependency" dependency
     in
       theories
     end

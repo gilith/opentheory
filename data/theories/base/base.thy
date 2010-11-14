@@ -29,16 +29,9 @@ pair {
   package: pair-1.0
 }
 
-axiom-infinity {
-  import: bool
-  import: function
-  package: axiom-infinity-1.0
-}
-
 natural {
   import: bool
   import: function
-  import: axiom-infinity
   package: natural-1.0
 }
 
@@ -47,6 +40,5 @@ main {
   import: unit
   import: function
   import: pair
-  import: axiom-infinity
   import: natural
 }

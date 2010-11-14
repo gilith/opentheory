@@ -48,4 +48,22 @@ val union : sequents -> sequents -> sequents
 
 val unionList : sequents list -> sequents
 
+(* ------------------------------------------------------------------------- *)
+(* Substitutions.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingSubst :
+    sequents -> TermSubst.subst -> sequents option * TermSubst.subst
+
+val subst : TermSubst.subst -> sequents -> sequents option
+
+(* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingRewrite :
+    sequents -> TermRewrite.rewrite -> sequents option * TermRewrite.rewrite
+
+val rewrite : TermRewrite.rewrite -> sequents -> sequents option
+
 end

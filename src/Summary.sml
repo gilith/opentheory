@@ -49,6 +49,72 @@ fun fromThms ths =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Substitutions.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingSubst sum sub =
+    let
+      val Summary' {requires = req, provides = prov} = dest sum
+
+      val (req',sub) = Sequents.sharingSubst req sub
+
+      val (prov',sub) = Sequents.sharingSubst prov sub
+
+      val sum' =
+          case (req',prov') of
+            (SOME req, SOME prov) =>
+            SOME (mk (Summary' {requires = req, provides = prov}))
+          | (SOME req, NONE) =>
+            SOME (mk (Summary' {requires = req, provides = prov}))
+          | (NONE, SOME prov) =>
+            SOME (mk (Summary' {requires = req, provides = prov}))
+          | (NONE,NONE) =>
+            NONE
+    in
+      (sum',sub)
+    end;
+
+fun subst sub sum =
+    let
+      val (sum',_) = sharingSubst sum sub
+    in
+      sum'
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Rewrites.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingRewrite sum rewr =
+    let
+      val Summary' {requires = req, provides = prov} = dest sum
+
+      val (req',rewr) = Sequents.sharingRewrite req rewr
+
+      val (prov',rewr) = Sequents.sharingRewrite prov rewr
+
+      val sum' =
+          case (req',prov') of
+            (SOME req, SOME prov) =>
+            SOME (mk (Summary' {requires = req, provides = prov}))
+          | (SOME req, NONE) =>
+            SOME (mk (Summary' {requires = req, provides = prov}))
+          | (NONE, SOME prov) =>
+            SOME (mk (Summary' {requires = req, provides = prov}))
+          | (NONE,NONE) =>
+            NONE
+    in
+      (sum',rewr)
+    end;
+
+fun rewrite rewr sum =
+    let
+      val (sum',_) = sharingRewrite sum rewr
+    in
+      sum'
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory summary information (for pretty printing).               *)
 (* ------------------------------------------------------------------------- *)
 
