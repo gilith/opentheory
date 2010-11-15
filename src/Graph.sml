@@ -1072,18 +1072,20 @@ val emptyDependency = Dependency (NameTheoryMap.new ());
 
 fun getDependency (Dependency dmap) nt =
     case NameTheoryMap.peek dmap nt of
-      SOME vs => vs
+      SOME nts => nts
     | NONE =>
       raise Bug ("Graph.getDependency: " ^ Print.toString NameTheory.pp nt);
 
-fun getListDependency dependency nts =
-    if null nts then NameTheorySet.empty
-    else
-      let
-        val depsl = List.map (getDependency dependency) nts
-      in
-        NameTheorySet.unionList depsl
-      end;
+local
+  fun add dependency (nt,acc) =
+      NameTheorySet.union acc (getDependency dependency nt);
+in
+  fun getListDependency dependency nts =
+      List.foldl (add dependency) NameTheorySet.empty nts;
+
+  fun getSetDependency dependency nts =
+      NameTheorySet.foldl (add dependency) NameTheorySet.empty nts;
+end;
 
 fun insertDependency (Dependency dmap) (nt,nts) =
     let
@@ -1095,17 +1097,34 @@ fun insertDependency (Dependency dmap) (nt,nts) =
       Dependency (NameTheoryMap.insert dmap (nt,nts))
     end;
 
-fun removeReflexivesDependency (Dependency dmap) =
+fun updateDependency (Dependency dmap) (nt,nts) =
     let
-      fun remove (nt,nts) = NameTheorySet.remove nts nt
-
-      val dmap = NameTheoryMap.map remove dmap
+(*OpenTheoryDebug
+      val () = if NameTheoryMap.inDomain nt dmap then ()
+               else raise Bug "Graph.updateDependency"
+*)
     in
-      Dependency dmap
+      Dependency (NameTheoryMap.insert dmap (nt,nts))
     end;
 
-fun addTheoryDependency vanilla definitions visible (theory,dependency) =
+fun foldlDependency f b (Dependency dmap) = NameTheoryMap.foldl f b dmap;
+
+fun findlDependency p (Dependency dmap) = NameTheoryMap.findl p dmap;
+
+local
+  fun isRefl (nt,nts) = NameTheorySet.member nt nts;
+in
+  val findlReflexiveDependency = findlDependency isRefl;
+end;
+
+fun ppDependency (Dependency dmap) =
+    NameTheoryMap.pp
+      (Print.ppMap NameTheorySet.toList (Print.ppList NameTheory.pp)) dmap;
+
+fun addTheoryDependency vanilla definitions visible t_pd =
     let
+      val (theory,(primTheories,dependency)) = t_pd
+
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace3
@@ -1114,34 +1133,49 @@ fun addTheoryDependency vanilla definitions visible (theory,dependency) =
     in
       if PackageTheory.isUnion theory then
         let
-          val nt = getNameTheoryVanilla vanilla name
+          fun mkNT n = (n, getNameTheoryVanilla vanilla n)
 
-          val imps = List.map (getNameTheoryVanilla vanilla) imports
+          fun addImp ((n,nt),deps) =
+              if not (PackageBaseSet.member n primTheories) then deps
+              else NameTheorySet.add deps nt
 
-          val deps = getListDependency dependency imps
+          val (_,nt) = mkNT name
+
+          val importNts = List.map mkNT imports
+
+          val deps = getListDependency dependency (List.map snd importNts)
+
+          val deps = List.foldl addImp deps importNts
+
+          val dependency = insertDependency dependency (nt,deps)
         in
-          insertDependency dependency (nt,deps)
+          (primTheories,dependency)
         end
       else
         let
           fun mkNT thy = NameTheory.mk (name,thy)
 
+          val (graph,main,_) = getVanilla vanilla name
+
+          val primThys = primitives main
+
+          fun addDeps dependency (thy,acc) =
+              let
+                val nt = mkNT thy
+
+                val acc = NameTheorySet.union acc (getDependency dependency nt)
+              in
+                if not (TheorySet.member thy primThys) then acc
+                else NameTheorySet.add acc nt
+              end
+
           fun getDeps dependency thy =
-              getDependency dependency (mkNT thy)
+              addDeps dependency (thy,NameTheorySet.empty)
 
           fun getListDeps dependency thys =
-              getListDependency dependency (List.map mkNT thys)
+              List.foldl (addDeps dependency) NameTheorySet.empty thys
 
           val visImps = getListVisible visible imports
-
-          val (graph,primThys) =
-              let
-                val (graph,main,_) = getVanilla vanilla name
-
-                val primThys = primitives main
-              in
-                (graph,primThys)
-              end
 
 (*OpenTheoryTrace3
 *)
@@ -1149,6 +1183,13 @@ fun addTheoryDependency vanilla definitions visible (theory,dependency) =
 
           fun addThy (thy,(dependency,rewr)) =
               let
+                val nt = mkNT thy
+
+(*OpenTheoryTrace3
+*)
+                val () = Print.trace NameTheory.pp
+                           "Graph.addDependency.addThy.nt" nt
+
                 val (deps,rewr) =
                     case Theory.node thy of
                       Theory.Article _ =>
@@ -1257,17 +1298,6 @@ fun addTheoryDependency vanilla definitions visible (theory,dependency) =
                         (deps,rewr)
                       end
 
-                val nt = mkNT thy
-
-(*OpenTheoryTrace3
-*)
-                val () = Print.trace NameTheory.pp
-                           "Graph.addDependency.addThy.nt" nt
-
-                val deps =
-                    if not (TheorySet.member thy primThys) then deps
-                    else NameTheorySet.add deps nt
-
                 val dependency = insertDependency dependency (nt,deps)
               in
                 (dependency,rewr)
@@ -1277,8 +1307,12 @@ fun addTheoryDependency vanilla definitions visible (theory,dependency) =
 
           val (dependency,_) =
               TheorySet.foldl addThy (dependency,rewr) (theories graph)
+
+          val primTheories =
+              if not (TheorySet.member main primThys) then primTheories
+              else PackageBaseSet.add primTheories name
         in
-          dependency
+          (primTheories,dependency)
         end
     end;
 
@@ -1286,17 +1320,77 @@ fun fromTheoryListDependency vanilla definitions visible theories =
     let
       val addDep = addTheoryDependency vanilla definitions visible
 
-      val dependency = List.foldl addDep emptyDependency theories
+      val primTheories = PackageBaseSet.empty
+      and dependency = emptyDependency
+
+      val (_,dependency) = List.foldl addDep (primTheories,dependency) theories
+
+(*OpenTheoryTrace3
+      val () = Print.trace ppDependency
+                 "Graph.fromTheoryListDependency.dependency" dependency
+*)
     in
-      removeReflexivesDependency dependency
+      dependency
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.fromListDependency: " ^ err);
+    handle Error err => raise Error ("Graph.fromTheoryListDependency: " ^ err);
 *)
 
-fun ppDependency (Dependency dmap) =
-    NameTheoryMap.pp
-      (Print.ppMap NameTheorySet.toList (Print.ppList NameTheory.pp)) dmap;
+local
+  fun iterate (nt,nts,(dependency,changed)) =
+      let
+        val nts' = getSetDependency dependency nts
+
+        val nts' = NameTheorySet.union nts nts'
+
+        val same = NameTheorySet.size nts' = NameTheorySet.size nts
+
+        val dependency =
+            if same then dependency
+            else updateDependency dependency (nt,nts')
+
+        val changed = changed orelse not same
+      in
+        (dependency,changed)
+      end;
+
+  fun fixedPoint dependency =
+      let
+        val (dependency,changed) =
+            foldlDependency iterate (dependency,false) dependency
+      in
+        if changed then fixedPoint dependency else dependency
+      end;
+
+  fun reportCycle dependency nt =
+      let
+        val n = NameTheory.name nt
+      in
+        raise Error ("theory block cycle including " ^
+                     PackageTheory.toStringName n)
+      end;
+in
+  fun transitiveClosureDependency dependency =
+      let
+        val dependency' = fixedPoint dependency
+
+(*OpenTheoryTrace3
+*)
+        val () = Print.trace ppDependency
+                   "Graph.transitiveClosureDependency.dependency" dependency'
+
+        val () =
+            case findlReflexiveDependency dependency' of
+              NONE => ()
+            | SOME (nt,_) => reportCycle dependency nt
+      in
+        dependency'
+      end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("Graph.transitiveClosureDependency: " ^ err);
+*)
+end;
 
 (* Putting it all together *)
 
@@ -1318,7 +1412,7 @@ fun linearizeTheories importer dir theories =
 
       val theories = removeDeadBlocks theories
 
-      (* Untangle any theory block cycles *)
+      (* Precisely compute dependencies between theory blocks *)
 
       val theories' = PackageTheory.sortUnion theories
 
@@ -1327,10 +1421,9 @@ fun linearizeTheories importer dir theories =
       val dependency =
           fromTheoryListDependency vanilla definitions visible theories'
 
-(*OpenTheoryTrace3
-*)
-      val () = Print.trace ppDependency
-                 "Graph.linearizeTheories.dependency" dependency
+      (* Untangle any theory block cycles *)
+
+      val dependency = transitiveClosureDependency dependency
     in
       theories
     end
