@@ -1128,8 +1128,8 @@ fun addTheoryDependency vanilla definitions visible t_pd =
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace3
-*)
       val () = Print.trace PackageTheory.ppName "Graph.addDependency.name" name
+*)
     in
       if PackageTheory.isUnion theory then
         let
@@ -1178,17 +1178,17 @@ fun addTheoryDependency vanilla definitions visible t_pd =
           val visImps = getListVisible visible imports
 
 (*OpenTheoryTrace3
-*)
           val () = Print.trace pp "Graph.addDependency.graph" graph
+*)
 
           fun addThy (thy,(dependency,rewr)) =
               let
                 val nt = mkNT thy
 
 (*OpenTheoryTrace3
-*)
                 val () = Print.trace NameTheory.pp
                            "Graph.addDependency.addThy.nt" nt
+*)
 
                 val (deps,rewr) =
                     case Theory.node thy of
@@ -1375,9 +1375,9 @@ in
         val dependency' = fixedPoint dependency
 
 (*OpenTheoryTrace3
-*)
         val () = Print.trace ppDependency
                    "Graph.transitiveClosureDependency.dependency" dependency'
+*)
 
         val () =
             case findlReflexiveDependency dependency' of
