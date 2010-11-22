@@ -95,4 +95,6 @@ val equalId : id -> theory -> bool
 
 val compare : theory * theory -> order
 
+val ppId : id Print.pp
+
 end

@@ -147,11 +147,12 @@ fun isPrimitive thy = isPrimitiveNode (node thy);
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val ppId = Print.ppBracket "<" ">" Print.ppInt;
+
 fun pp thy =
     Print.blockProgram Print.Consistent 0
-      [Print.ppString "Theory<",
-       Print.ppInt (id thy),
-       Print.ppString ">"];
+      [Print.ppString "Theory",
+       ppId (id thy)];
 
 end
 

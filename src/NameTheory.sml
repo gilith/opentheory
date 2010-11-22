@@ -43,8 +43,10 @@ fun compare (nt1,nt2) =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun pp (NameTheory name_thy) =
-    Print.ppPair PackageTheory.ppName Theory.pp name_thy;
+fun pp (NameTheory (name,thy)) =
+    Print.blockProgram Print.Consistent 0
+      [PackageTheory.ppName name,
+       Theory.ppId (Theory.id thy)];
 
 end
 
@@ -65,8 +67,9 @@ struct
         val ppNTX = Print.ppOp2 " =>" NameTheory.pp ppX
       in
         fn m =>
-          Print.blockProgram Print.Consistent 0
+          Print.blockProgram Print.Consistent 2
             [Print.ppString "NameTheoryMap",
+             Print.addBreak 1,
              Print.ppList ppNTX (toList m)]
       end;
 
