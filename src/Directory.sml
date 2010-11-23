@@ -858,7 +858,7 @@ local
         val impt = importer dir
         and pdir = PackageInfo.directory info
 
-        val theories = Graph.linearizeTheories impt pdir theories
+        val theories = Dagify.linearizeTheories impt pdir theories
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;

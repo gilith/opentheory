@@ -145,14 +145,6 @@ val importPackageName :
     PackageFinder.finder -> graph -> specification -> graph * Theory.theory
 
 (* ------------------------------------------------------------------------- *)
-(* Linearize mutually recursive theory packages.                             *)
-(* ------------------------------------------------------------------------- *)
-
-val linearizeTheories :
-    importer -> {directory : string} ->
-    PackageTheory.theory list -> PackageTheory.theory list
-
-(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

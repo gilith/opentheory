@@ -131,6 +131,7 @@ SRC = \
   src/Theory.sig src/Theory.sml \
   src/NameTheory.sig src/NameTheory.sml \
   src/Graph.sig src/Graph.sml \
+  src/Dagify.sig src/Dagify.sml \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
   src/DirectoryPath.sig src/DirectoryPath.sml \
   src/DirectoryPackages.sig src/DirectoryPackages.sml \

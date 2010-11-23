@@ -1168,7 +1168,7 @@ local
 
                 val theories = Package.theories pkg
 
-                val theories = Graph.linearizeTheories importer dir theories
+                val theories = Dagify.linearizeTheories importer dir theories
               in
                 SOME theories
               end;
