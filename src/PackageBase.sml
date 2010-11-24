@@ -12,7 +12,9 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val separatorString = "-";
+val avoidString = "a"
+and mainString = "main"
+and separatorString = "-";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -37,7 +39,17 @@ fun concatWith s =
 
 type base = string;
 
-val main = "main";
+val main = mainString;
+
+(* ------------------------------------------------------------------------- *)
+(* Concatenation.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun append b1 b2 = b1 ^ separatorString ^ b2;
+
+fun concat bs =
+    if null bs then raise Error "PackageBase.concat"
+    else concatWith separatorString bs;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
@@ -55,7 +67,9 @@ fun mkName {avoid} n : base =
     let
       fun mkNum i =
           let
-            val ni = n ^ "-" ^ Int.toString i
+            val ai = avoidString ^ Int.toString i
+
+            val ni = append n ai
           in
             if avoid ni then mkNum (i + 1) else ni
           end
@@ -98,7 +112,7 @@ in
   val parser =
       componentParser ++
       many (separatorParser ++ componentParser >> snd) >>
-      (fn (b,l) => concatWith separatorString (b :: l));
+      (fn (b,l) => concat (b :: l));
 end;
 
 fun fromString s =

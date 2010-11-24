@@ -23,8 +23,7 @@ datatype node =
   | Package of
       {interpretation : Interpretation.interpretation,
        package : PackageName.name,
-       theories : theory list,
-       main : theory}
+       theories : (PackageTheory.name * theory) list}
   | Union
 
 datatype theory' =
@@ -61,6 +60,10 @@ val destPackage : theory -> PackageName.name option
 
 val isPackage : theory -> bool
 
+val existsArticleTheory : (PackageTheory.name * theory) list -> bool
+
+val mainTheory : (PackageTheory.name * theory) list -> theory
+
 (* ------------------------------------------------------------------------- *)
 (* Union theories.                                                           *)
 (* ------------------------------------------------------------------------- *)
@@ -76,6 +79,12 @@ val isUnion : theory -> bool
 val isPrimitiveNode : node -> bool
 
 val isPrimitive : theory -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Creating PackageTheory nodes.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val toPackageTheoryNode : node -> PackageTheory.node
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -94,6 +103,8 @@ val id : theory -> id
 val equalId : id -> theory -> bool
 
 val compare : theory * theory -> order
+
+val equal : theory -> theory -> bool
 
 val ppId : id Print.pp
 

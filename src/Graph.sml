@@ -31,9 +31,11 @@ in
 end;
 
 local
-  fun primsList acc thys = List.foldl primsThy acc thys
+  fun primsList acc thys = List.foldl primsNameThy acc thys
 
-  and primsThy (thy,acc) =
+  and primsNameThy ((_,thy),acc) = primsThy acc thy
+
+  and primsThy acc thy =
       if Theory.isPrimitive thy then TheorySet.add acc thy
       else primsNode acc (Theory.node thy)
 
@@ -50,7 +52,7 @@ in
                 raise Bug "Graph.primitives: Union"
 *)
       in
-        primsThy (thy,TheorySet.empty)
+        primsThy TheorySet.empty thy
       end;
 end;
 
@@ -73,7 +75,12 @@ local
       in
         case node of
           Theory.Article _ => raise Bug "Graph.visiblePrimitives: Article"
-        | Theory.Package {main,...} => primsThy (main,(seen,acc))
+        | Theory.Package {theories,...} =>
+          let
+            val main = Theory.mainTheory theories
+          in
+            primsThy (main,(seen,acc))
+          end
         | Theory.Union => primsList seen acc imports
       end;
 in
@@ -97,7 +104,7 @@ end;
 datatype environment =
     Environment of
       {named : Theory.theory PackageBaseMap.map,
-       imported : Theory.theory list};
+       imported : (PackageTheory.name * Theory.theory) list};
 
 val emptyEnvironment =
     let
@@ -123,7 +130,7 @@ fun insertEnvironment env (name,thy) =
 
       val named = PackageBaseMap.insert named (name,thy)
 
-      val imported = thy :: imported
+      val imported = (name,thy) :: imported
     in
       Environment
         {named = named,
@@ -136,125 +143,6 @@ fun mainEnvironment (Environment {named,...}) =
     case PackageBaseMap.peek named PackageTheory.mainName of
       SOME thy => thy
     | NONE => raise Error "no main theory";
-
-(***
-(* ------------------------------------------------------------------------- *)
-(* Packaging theories.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-fun packageTheory {expand} =
-    let
-      fun convert pkg thy (avoid,cache,theories) =
-          case TheoryMap.peek cache thy of
-            SOME name => (name,(avoid,cache,theories))
-          | NONE =>
-            let
-              val (name,(avoid,cache,theories)) =
-                  convert' pkg thy (avoid,cache,theories)
-
-              val cache = TheoryMap.insert cache (thy,name)
-            in
-              (name,(avoid,cache,theories))
-            end
-
-      and convert' pkg thy (avoid,cache,theories) =
-          if expand thy then
-            case Theory.node thy of
-              Theory.Package {package,main,...} =>
-              let
-                val pkg = PackageName.base package
-              in
-                convert pkg main (avoid,cache,theories)
-              end
-            | _ => raise Error "cannot expand a non-Package node"
-          else
-            let
-              val imports = Theory.imports thy
-
-              val (imports,(avoid,cache,theories)) =
-                  maps (convert pkg) imports (avoid,cache,theories)
-
-              val pkg =
-                  case Theory.node thy of
-                    Theory.Package {package,...} => PackageName.base package
-                  | _ => pkg
-
-              val name = PackageTheory.mkName {avoid = avoid} pkg
-
-              val avoid = PackageBaseSet.add avoid name
-
-              val node =
-                  case Theory.node thy of
-                    Theory.Article {interpretation,filename} =>
-                    PackageTheory.Article
-                      {interpretation = interpretation,
-                       filename = filename}
-                  | Theory.Package {interpretation,package,...} =>
-                    PackageTheory.Package
-                      {interpretation = interpretation,
-                       package = package}
-                  | Theory.Union =>
-                    PackageTheory.Union
-
-              val theory =
-                  PackageTheory.Theory
-                    {name = name,
-                     imports = imports,
-                     node = node}
-
-              val theories = theory :: theories
-            in
-              (name,(avoid,cache,theories))
-            end
-
-      val pkg = PackageTheory.mainName
-
-      val avoid : PackageBaseSet.set = PackageBaseSet.singleton pkg
-
-      val cache : PackageTheory.name TheoryMap.map = TheoryMap.new ()
-
-      val theories : PackageTheory.theory list = []
-    in
-      fn thy =>
-         let
-           val (name',(_,cache,theories)) =
-               convert' pkg thy (avoid,cache,theories)
-
-(*OpenTheoryTrace3
-           val () = Print.trace (TheoryMap.pp PackageTheory.ppName)
-                      "Graph.packageTheory" cache
-*)
-
-           val theories =
-               case theories of
-                 [] => raise Error "no theories compiled"
-               | theory :: theories =>
-                 let
-                   val PackageTheory.Theory {name,imports,node} = theory
-
-(*OpenTheoryDebug
-                   val _ = PackageBase.equal name name' orelse
-                           raise Error "wrong name of compiled theory"
-*)
-
-                   val theory =
-                       PackageTheory.Theory
-                         {name = pkg,
-                          imports = imports,
-                          node = node}
-                 in
-                   theory :: theories
-                 end
-
-           val theories = rev theories
-         in
-           theories
-         end
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.packageTheory: " ^ err);
-*)
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory graphs.                                                  *)
@@ -525,16 +413,13 @@ fun importPackage importer graph info =
 
       val (graph,env) = importTheories importer graph info
 
-      val main = mainEnvironment env
-
       val node =
           Theory.Package
             {interpretation = interpretation,
              package = name,
-             theories = theoriesEnvironment env,
-             main = main}
+             theories = theoriesEnvironment env}
 
-      val article = Theory.article main
+      val article = Theory.article (mainEnvironment env)
 
       val imports = TheorySet.toList imports
 

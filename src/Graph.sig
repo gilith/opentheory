@@ -32,19 +32,10 @@ val peekEnvironment :
 val insertEnvironment :
     environment -> PackageTheory.name * Theory.theory -> environment
 
-val theoriesEnvironment : environment -> Theory.theory list
+val theoriesEnvironment :
+    environment -> (PackageTheory.name * Theory.theory) list
 
 val mainEnvironment : environment -> Theory.theory
-
-(***
-(* ------------------------------------------------------------------------- *)
-(* Packaging theories.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-val packageTheory :
-    {expand : Theory.theory -> bool} ->
-    Theory.theory -> PackageTheory.theory list
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory graphs.                                                  *)

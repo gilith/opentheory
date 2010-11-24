@@ -32,8 +32,7 @@ and node =
   | Package of
       {interpretation : Interpretation.interpretation,
        package : PackageName.name,
-       theories : theory list,
-       main : theory}
+       theories : (PackageTheory.name * theory) list}
   | Union;
 
 (* ------------------------------------------------------------------------- *)
@@ -59,6 +58,8 @@ fun equalId i thy = i = id thy;
 
 fun compare (Theory {id = i1, ...}, Theory {id = i2, ...}) =
     Int.compare (i1,i2);
+
+fun equal thy1 thy2 = (id thy1) = (id thy2);
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -120,6 +121,18 @@ fun destPackage thy = destPackageNode (node thy);
 
 fun isPackage thy = Option.isSome (destPackage thy);
 
+fun isArticleTheory (_ : PackageTheory.name, thy) = isArticle thy;
+
+fun existsArticleTheory theories = List.exists isArticleTheory theories;
+
+fun isMainTheory (name, _ : theory) = PackageTheory.isMainName name;
+
+fun mainTheory theories =
+    case List.filter isMainTheory theories of
+      [] => raise Error "Theory.mainTheory: no main theory"
+    | [(_,thy)] => thy
+    | _ :: _ :: _ => raise Error "Theory.mainTheory: multiple main theories";
+
 (* ------------------------------------------------------------------------- *)
 (* Union theories.                                                           *)
 (* ------------------------------------------------------------------------- *)
@@ -138,10 +151,27 @@ fun isUnion thy = isUnionNode (node thy);
 fun isPrimitiveNode node =
     case node of
       Article _ => true
-    | Package {theories,...} => List.exists isArticle theories
+    | Package {theories,...} => existsArticleTheory theories
     | Union => false;
 
 fun isPrimitive thy = isPrimitiveNode (node thy);
+
+(* ------------------------------------------------------------------------- *)
+(* Creating PackageTheory nodes.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun toPackageTheoryNode node =
+    case node of
+      Article {interpretation,filename} =>
+      PackageTheory.Article
+        {interpretation = interpretation,
+         filename = filename}
+    | Package {interpretation,package,...} =>
+      PackageTheory.Package
+        {interpretation = interpretation,
+         package = package}
+    | Union =>
+      PackageTheory.Union;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

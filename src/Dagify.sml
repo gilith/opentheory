@@ -8,7 +8,9 @@ struct
 
 open Useful;
 
-(* Individual theory blocks *)
+(* ------------------------------------------------------------------------- *)
+(* Individual theory blocks.                                                 *)
+(* ------------------------------------------------------------------------- *)
 
 datatype vanilla =
     Vanilla of
@@ -19,7 +21,7 @@ val emptyVanilla = Vanilla (PackageBaseMap.new ());
 fun getVanilla (Vanilla vmap) name =
     case PackageBaseMap.peek vmap name of
       SOME x => x
-    | NONE => raise Bug "Graph.getVanilla";
+    | NONE => raise Bug "Dagify.getVanilla";
 
 fun getNameTheoryVanilla vanilla name =
     let
@@ -59,10 +61,12 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
 fun fromListVanilla importer dir theories =
     List.foldl (addVanilla importer dir) emptyVanilla theories
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.fromListVanilla: " ^ err);
+    handle Error err => raise Error ("Dagify.fromListVanilla: " ^ err);
 *)
 
-(* Fixed point calculation of theory block definitions *)
+(* ------------------------------------------------------------------------- *)
+(* Fixed point calculation of theory block definitions.                      *)
+(* ------------------------------------------------------------------------- *)
 
 datatype definitions = Definitions of Symbol.symbol PackageBaseMap.map;
 
@@ -85,7 +89,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace3
-      val () = Print.trace PackageTheory.ppName "Graph.addDefinitions.name" name
+      val () = Print.trace PackageTheory.ppName "Dagify.addDefinitions.name" name
 *)
 
       val defs = getDefinitions definitions name
@@ -122,10 +126,10 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
 
 (*OpenTheoryDebug
       val _ = TypeOpSet.subset (Symbol.typeOps defs) (Symbol.typeOps defs')
-              orelse raise Bug "Graph.addDefinitions: shrinking type op defs"
+              orelse raise Bug "Dagify.addDefinitions: shrinking type op defs"
 
       val _ = ConstSet.subset (Symbol.consts defs) (Symbol.consts defs')
-              orelse raise Bug "Graph.addDefinitions: shrinking const defs"
+              orelse raise Bug "Dagify.addDefinitions: shrinking const defs"
 *)
 
       val same =
@@ -142,7 +146,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
           val dmap = PackageBaseMap.insert dmap (name,defs')
 
 (*OpenTheoryTrace3
-          val () = Print.trace Symbol.pp "Graph.addDefinitions.defs'" defs'
+          val () = Print.trace Symbol.pp "Dagify.addDefinitions.defs'" defs'
 *)
         in
           (true, Definitions dmap)
@@ -162,10 +166,12 @@ fun fromListDefinitions vanilla theories =
       pass emptyDefinitions
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.fromListDefinitions: " ^ err);
+    handle Error err => raise Error ("Dagify.fromListDefinitions: " ^ err);
 *)
 
-(* Theory block summaries *)
+(* ------------------------------------------------------------------------- *)
+(* Theory block summaries.                                                   *)
+(* ------------------------------------------------------------------------- *)
 
 datatype summary = Summary of Summary.summary PackageBaseMap.map;
 
@@ -174,7 +180,7 @@ val emptySummary = Summary (PackageBaseMap.new ());
 fun getSummary (Summary smap) name =
     case PackageBaseMap.peek smap name of
       SOME sum => sum
-    | NONE => raise Bug "Graph.getSummary";
+    | NONE => raise Bug "Dagify.getSummary";
 
 fun addSummary vanilla definitions (theory,summary) =
     let
@@ -182,7 +188,7 @@ fun addSummary vanilla definitions (theory,summary) =
       and Summary smap = summary
 
 (*OpenTheoryTrace3
-      val () = Print.trace PackageTheory.ppName "Graph.addSummary.name" name
+      val () = Print.trace PackageTheory.ppName "Dagify.addSummary.name" name
 *)
 
       val sum =
@@ -208,7 +214,7 @@ fun addSummary vanilla definitions (theory,summary) =
               val idefs = getListDefinitions definitions imports
 
 (*OpenTheoryTrace3
-              val () = Print.trace Symbol.pp "Graph.addSummary.idefs" idefs
+              val () = Print.trace Symbol.pp "Dagify.addSummary.idefs" idefs
 *)
 
               val rewr = Symbol.inst idefs
@@ -217,7 +223,7 @@ fun addSummary vanilla definitions (theory,summary) =
             end
 
 (*OpenTheoryTrace3
-      val () = Print.trace Summary.pp "Graph.addSummary.sum" sum
+      val () = Print.trace Summary.pp "Dagify.addSummary.sum" sum
 *)
     in
       Summary (PackageBaseMap.insert smap (name,sum))
@@ -226,10 +232,12 @@ fun addSummary vanilla definitions (theory,summary) =
 fun fromListSummary vanilla definitions theories =
     List.foldl (addSummary vanilla definitions) emptySummary theories
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.fromListSummary: " ^ err);
+    handle Error err => raise Error ("Dagify.fromListSummary: " ^ err);
 *)
 
-(* Removing dead imports *)
+(* ------------------------------------------------------------------------- *)
+(* Removing dead theory imports and blocks.                                  *)
+(* ------------------------------------------------------------------------- *)
 
 fun removeSequent req seqs =
     let
@@ -255,6 +263,8 @@ fun removeSymbol (ots,cs) sym =
     in
       ((ots',cs'),same)
     end;
+
+(* Removing dead theory imports *)
 
 fun removeDeadImportsTheory vanilla definitions summary theory =
     let
@@ -340,7 +350,7 @@ fun removeDeadImportsTheory vanilla definitions summary theory =
 fun removeDeadImports vanilla definitions summary theories =
     List.map (removeDeadImportsTheory vanilla definitions summary) theories;
 
-(* Removing dead imports *)
+(* Removing dead theory blocks *)
 
 fun removeDeadBlocks theories =
     let
@@ -378,7 +388,9 @@ fun removeDeadBlocks theories =
       theories
     end;
 
-(* Visible primitive theories of theory blocks *)
+(* ------------------------------------------------------------------------- *)
+(* Visible primitive theories of theory blocks.                              *)
+(* ------------------------------------------------------------------------- *)
 
 datatype visible =
     Visible of
@@ -391,7 +403,7 @@ val emptyVisible = Visible (PackageBaseMap.new ());
 fun getVisible (Visible vmap) name =
     case PackageBaseMap.peek vmap name of
       SOME vs => vs
-    | NONE => raise Bug "Graph.getVisible";
+    | NONE => raise Bug "Dagify.getVisible";
 
 fun getListVisible visible names =
     let
@@ -406,7 +418,7 @@ fun addVisible vanilla definitions (theory,visible) =
       and Visible vmap = visible
 
 (*OpenTheoryTrace3
-      val () = Print.trace PackageTheory.ppName "Graph.addVisible.name" name
+      val () = Print.trace PackageTheory.ppName "Dagify.addVisible.name" name
 *)
 
       val vs =
@@ -455,10 +467,12 @@ fun addVisible vanilla definitions (theory,visible) =
 fun fromListVisible vanilla definitions theories =
     List.foldl (addVisible vanilla definitions) emptyVisible theories
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.fromListVisible: " ^ err);
+    handle Error err => raise Error ("Dagify.fromListVisible: " ^ err);
 *)
 
-(* Visible primitive theories of named theories *)
+(* ------------------------------------------------------------------------- *)
+(* Visible primitive theories of named theories.                             *)
+(* ------------------------------------------------------------------------- *)
 
 datatype generate =
     Generate of NameTheorySet.set NameTheoryMap.map;
@@ -469,7 +483,7 @@ fun getGenerate (Generate gmap) nt =
     case NameTheoryMap.peek gmap nt of
       SOME nts => nts
     | NONE =>
-      raise Bug ("Graph.getGenerate: " ^ Print.toString NameTheory.pp nt);
+      raise Bug ("Dagify.getGenerate: " ^ Print.toString NameTheory.pp nt);
 
 local
   fun add generate (nt,acc) =
@@ -486,7 +500,7 @@ fun insertGenerate (Generate gmap) (nt,nts) =
     let
 (*OpenTheoryDebug
       val () = if not (NameTheoryMap.inDomain nt gmap) then ()
-               else raise Bug "Graph.insertGenerate"
+               else raise Bug "Dagify.insertGenerate"
 *)
     in
       Generate (NameTheoryMap.insert gmap (nt,nts))
@@ -505,7 +519,7 @@ fun addTheoryGenerate vanilla (theory,generate) =
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace3
-      val () = Print.trace PackageTheory.ppName "Graph.addGenerate.name" name
+      val () = Print.trace PackageTheory.ppName "Dagify.addGenerate.name" name
 *)
     in
       if PackageTheory.isUnion theory then
@@ -530,7 +544,7 @@ fun addTheoryGenerate vanilla (theory,generate) =
           val (graph,main,_) = getVanilla vanilla name
 
 (*OpenTheoryTrace3
-          val () = Print.trace pp "Graph.addGenerate.graph" graph
+          val () = Print.trace pp "Dagify.addGenerate.graph" graph
 *)
 
           val primThys = Graph.primitives main
@@ -541,13 +555,18 @@ fun addTheoryGenerate vanilla (theory,generate) =
 
 (*OpenTheoryTrace3
                 val () = Print.trace NameTheory.pp
-                           "Graph.addGenerate.addThy.nt" nt
+                           "Dagify.addGenerate.addThy.nt" nt
 *)
 
                 val gens =
                     case Theory.node thy of
                       Theory.Article _ => NameTheorySet.empty
-                    | Theory.Package {main,...} => getGens generate main
+                    | Theory.Package {theories,...} =>
+                      let
+                        val main = Theory.mainTheory theories
+                      in
+                        getGens generate main
+                      end
                     | Theory.Union => getListGens generate (Theory.imports thy)
 
                 val gens =
@@ -569,15 +588,17 @@ fun fromTheoryListGenerate vanilla theories =
 (*OpenTheoryTrace3
 *)
       val () = Print.trace ppGenerate
-                 "Graph.fromTheoryListGenerate.generate" generate
+                 "Dagify.fromTheoryListGenerate.generate" generate
     in
       generate
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.fromTheoryListGenerate: " ^ err);
+    handle Error err => raise Error ("Dagify.fromTheoryListGenerate: " ^ err);
 *)
 
-(* Primitive dependencies of named theories *)
+(* ------------------------------------------------------------------------- *)
+(* Primitive dependencies of named theories.                                 *)
+(* ------------------------------------------------------------------------- *)
 
 datatype dependency =
     Dependency of NameTheorySet.set NameTheoryMap.map;
@@ -588,7 +609,7 @@ fun getDependency (Dependency dmap) nt =
     case NameTheoryMap.peek dmap nt of
       SOME nts => nts
     | NONE =>
-      raise Bug ("Graph.getDependency: " ^ Print.toString NameTheory.pp nt);
+      raise Bug ("Dagify.getDependency: " ^ Print.toString NameTheory.pp nt);
 
 local
   fun add dependency (nt,acc) =
@@ -605,7 +626,7 @@ fun insertDependency (Dependency dmap) (nt,nts) =
     let
 (*OpenTheoryDebug
       val () = if not (NameTheoryMap.inDomain nt dmap) then ()
-               else raise Bug "Graph.insertDependency"
+               else raise Bug "Dagify.insertDependency"
 *)
     in
       Dependency (NameTheoryMap.insert dmap (nt,nts))
@@ -615,7 +636,7 @@ fun updateDependency (Dependency dmap) (nt,nts) =
     let
 (*OpenTheoryDebug
       val () = if NameTheoryMap.inDomain nt dmap then ()
-               else raise Bug "Graph.updateDependency"
+               else raise Bug "Dagify.updateDependency"
 *)
     in
       Dependency (NameTheoryMap.insert dmap (nt,nts))
@@ -641,7 +662,7 @@ fun addTheoryDependency vanilla definitions visible generate
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace3
-      val () = Print.trace PackageTheory.ppName "Graph.addDependency.name" name
+      val () = Print.trace PackageTheory.ppName "Dagify.addDependency.name" name
 *)
     in
       if PackageTheory.isUnion theory then
@@ -675,7 +696,7 @@ fun addTheoryDependency vanilla definitions visible generate
 
 (*OpenTheoryTrace3
                 val () = Print.trace NameTheory.pp
-                           "Graph.addDependency.addVisThy.nt" nt
+                           "Dagify.addDependency.addVisThy.nt" nt
 *)
 
                 val (deps,rewr) =
@@ -773,8 +794,10 @@ fun addTheoryDependency vanilla definitions visible generate
                       in
                         (deps,rewr)
                       end
-                    | Theory.Package {main,...} =>
+                    | Theory.Package {theories,...} =>
                       let
+                        val main = Theory.mainTheory theories
+
                         val deps = getDeps dependency main
                       in
                         (deps,rewr)
@@ -797,7 +820,7 @@ fun addTheoryDependency vanilla definitions visible generate
 
 (*OpenTheoryTrace3
                 val () = Print.trace NameTheory.pp
-                           "Graph.addDependency.addGenThy.nt" nt
+                           "Dagify.addDependency.addGenThy.nt" nt
 *)
 
                 val deps = getDeps dependency thy
@@ -812,7 +835,7 @@ fun addTheoryDependency vanilla definitions visible generate
           val (graph,_,_) = getVanilla vanilla name
 
 (*OpenTheoryTrace3
-          val () = Print.trace pp "Graph.addDependency.graph" graph
+          val () = Print.trace pp "Dagify.addDependency.graph" graph
 *)
 
           val rewr = Symbol.inst (getListDefinitions definitions imports)
@@ -839,12 +862,12 @@ fun fromTheoryListDependency vanilla definitions visible generate theories =
 (*OpenTheoryTrace3
 *)
       val () = Print.trace ppDependency
-                 "Graph.fromTheoryListDependency.dependency" dependency
+                 "Dagify.fromTheoryListDependency.dependency" dependency
     in
       dependency
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.fromTheoryListDependency: " ^ err);
+    handle Error err => raise Error ("Dagify.fromTheoryListDependency: " ^ err);
 *)
 
 local
@@ -879,14 +902,14 @@ in
 
 (*OpenTheoryTrace3
         val () = Print.trace ppDependency
-                   "Graph.transitiveClosureDependency.dependency" dependency'
+                   "Dagify.transitiveClosureDependency.dependency" dependency'
 *)
       in
         dependency'
       end
 (*OpenTheoryDebug
       handle Error err =>
-        raise Error ("Graph.transitiveClosureDependency: " ^ err);
+        raise Error ("Dagify.transitiveClosureDependency: " ^ err);
 *)
 end;
 
@@ -898,31 +921,313 @@ fun reportCycleDependency dependency nt =
                    PackageTheory.toStringName n)
     end;
 
-(***
-fun addExportableDependency vanilla dependency expanded exported
-      ((n,theory),acc) =
+(* ------------------------------------------------------------------------- *)
+(* Making install plans.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun addExportableDependency vanilla generate dependency expanded exported
+      (theory,(n,acc)) =
     let
       val PackageTheory.Theory {name,imports,...} = theory
 
       fun mkNT thy = NameTheory.mk (name,thy)
 
-      fun addExpMain stack seen thy =
-          let
-            val nt = mkNT thy
-          in
-            if NameTheorySet.member nt expanded 
-          end
+      fun addExp stack (thy,(seen,acc)) =
+          if TheorySet.member thy seen then (seen,acc)
+          else
+            let
+              val seen = TheorySet.add seen thy
+
+              val nt = mkNT thy
+
+              val gens = getGenerate generate nt
+            in
+              if NameTheorySet.subset gens exported then (seen,acc)
+              else
+                let
+                  val acc =
+                      if NameTheorySet.member nt expanded then acc
+                      else
+                        let
+                          val deps = getDependency dependency nt
+
+                          val exportable = NameTheorySet.subset deps exported
+                        in
+                          if not exportable then acc
+                          else (n,nt,stack) :: acc
+                        end
+
+                  val (seen,acc) =
+                      List.foldl (addExp stack) (seen,acc) (Theory.imports thy)
+                in
+                  case Theory.node thy of
+                    Theory.Package {theories,...} =>
+                    let
+                      val stack = nt :: stack
+
+                      val main = Theory.mainTheory theories
+                    in
+                      addExp stack (main,(seen,acc))
+                    end
+                  | _ => (seen,acc)
+                end
+            end
+
+      val stack = []
+      and seen = TheorySet.empty
 
       val (_,main,_) = getVanilla vanilla name
+
+      val (_,acc) = addExp stack (main,(seen,acc))
+
+      val n = n + 1
     in
-      addExpDep main
+      (n,acc)
     end;
 
-fun exportableDependency dependency expanded exported theories =
+fun exportablePlan vanilla generate dependency expanded exported =
     let
+      fun addExpTheory (theory,(n,exp)) =
+          let
+            val PackageTheory.Theory {name,imports,...} = theory
+
+            fun mkNT thy = NameTheory.mk (name,thy)
+
+            fun addExpThy stack (thy,(seen,exp)) =
+                if TheorySet.member thy seen then (seen,exp)
+                else
+                  let
+                    val seen = TheorySet.add seen thy
+
+                    val nt = mkNT thy
+
+                    val gens = getGenerate generate nt
+                  in
+                    if NameTheorySet.subset gens exported then (seen,exp)
+                    else
+                      let
+                        val exp =
+                            if NameTheorySet.member nt expanded then exp
+                            else
+                              let
+                                val deps = getDependency dependency nt
+
+                                val exportable =
+                                    NameTheorySet.subset deps exported
+                              in
+                                if not exportable then exp
+                                else (nt,stack,n) :: exp
+                              end
+
+                        val imps = Theory.imports thy
+
+                        val (seen,exp) =
+                            List.foldl (addExpThy stack) (seen,exp) imps
+                      in
+                        case Theory.node thy of
+                          Theory.Package {theories,...} =>
+                          let
+                            val stack = nt :: stack
+
+                            val main = Theory.mainTheory theories
+                          in
+                            addExpThy stack (main,(seen,exp))
+                          end
+                        | _ => (seen,exp)
+                      end
+                  end
+
+            val stack = []
+            and seen = TheorySet.empty
+
+            val (_,main,_) = getVanilla vanilla name
+
+            val (_,exp) = addExpThy stack (main,(seen,exp))
+
+            val n = n + 1
+          in
+            (n,exp)
+          end
     in
+      fn theories =>
+         let
+           val (_,exp) = List.foldl addExpTheory (0,[]) theories
+         in
+           exp
+         end
     end;
-***)
+
+local
+  fun unexpanded expanded nt = not (NameTheorySet.member nt expanded);
+
+  fun score expanded (nt,stack,n) =
+      let
+        val d = List.length (List.filter (unexpanded expanded) stack)
+      in
+        ((d,n),(nt,stack))
+      end;
+
+  fun compare (((d1,n1),_),((d2,n2),_)) =
+      case Int.compare (d1,d2) of
+        LESS => LESS
+      | EQUAL => Int.compare (n1,n2)
+      | GREATER => GREATER;
+
+  val ppPlan =
+      Print.ppList (Print.ppPair NameTheory.pp (Print.ppList NameTheory.pp));
+in
+  fun fromTheoryListPlan vanilla generate dependency theories =
+      let
+        fun mkPlan expanded exported plan =
+            let
+              val exp =
+                  exportablePlan vanilla generate dependency
+                    expanded exported theories
+            in
+              if null exp then rev plan
+              else
+                let
+                  val exp = List.map (score expanded) exp
+
+                  val ((_,(nt,stack)),_) = minimum compare exp
+
+                  val expanded = NameTheorySet.addList expanded stack
+
+                  val gens = getGenerate generate nt
+
+                  val exported = NameTheorySet.union exported gens
+
+                  val plan = (nt,stack) :: plan
+                in
+                  mkPlan expanded exported plan
+                end
+            end
+
+        val expanded = NameTheorySet.empty
+        and exported = NameTheorySet.empty
+        and plan = []
+
+        val plan = mkPlan expanded exported plan
+
+(*OpenTheoryTrace3
+*)
+        val () = Print.trace ppPlan "Dagify.fromTheoryListPlan.plan" plan
+
+      in
+        plan
+      end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("Dagify.fromTheoryListPlan: " ^ err);
+*)
+end;
+
+local
+  fun mkNameSeg nt t =
+      let
+        val thy = NameTheory.theory nt
+
+        val n =
+            case Theory.node thy of
+              Theory.Package {theories,...} =>
+              let
+                fun isT (_,t') = Theory.equal t t'
+              in
+                case List.find isT theories of
+                  SOME (n,_) => n
+                | NONE => raise Error "mkName.mkSeg: where is t?"
+              end
+            | _ => raise Error "mkName.mkSeg: not a package"
+      in
+        (n,thy)
+      end;
+
+  fun mkName nt stack names =
+      let
+        val t = NameTheory.theory nt
+
+        val (ns,_) = maps mkNameSeg stack t
+
+        val ns = rev ns
+
+        val n = NameTheory.name nt
+
+        val n = PackageBase.concat (n :: ns)
+      in
+        PackageTheory.mkName {avoid = names} n
+      end;
+
+  fun mkImports dependency nt namel exported =
+      let
+        fun addDep (dep,acc) =
+            let
+              val n = NameTheoryMap.get exported dep
+            in
+              PackageBaseSet.add acc n
+            end
+
+        val deps = getDependency dependency nt
+
+        val deps = NameTheorySet.foldl addDep PackageBaseSet.empty deps
+
+        fun isDep n = PackageBaseSet.member n deps
+      in
+        rev (List.filter isDep namel)
+      end;
+
+  fun mkNode nt =
+      Theory.toPackageTheoryNode (Theory.node (NameTheory.theory nt));
+
+  fun addExported generate nt name =
+      let
+        fun addGen (gen,exported) = NameTheoryMap.insert exported (gen,name)
+
+        val gens = getGenerate generate nt
+      in
+        fn exported => NameTheorySet.foldl addGen exported gens
+      end;
+in
+  fun toTheoryListPlan generate dependency =
+      let
+        fun mkTheory (nt,stack) (namel,names,exported) =
+          let
+            val name = mkName nt stack names
+
+            val imports = mkImports dependency nt namel exported
+
+            val node = mkNode nt
+
+            val theory =
+                PackageTheory.Theory
+                  {name = name,
+                   imports = imports,
+                   node = node}
+
+            val namel = name :: namel
+
+            val names = PackageBaseSet.add names name
+
+            val exported = addExported generate nt name exported
+          in
+            (theory,(namel,names,exported))
+          end
+
+      val namel = []
+      and names = PackageBaseSet.empty
+      and exported = NameTheoryMap.new ()
+    in
+      fn plan =>
+         let
+           val (theories,_) = maps mkTheory plan (namel,names,exported)
+         in
+           theories
+         end
+    end
+(*OpenTheoryDebug
+    handle Error err =>
+      raise Error ("Dagify.toTheoryListPlan: " ^ err);
+*)
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Linearize mutually recursive theory packages.                             *)
@@ -968,11 +1273,13 @@ fun linearizeTheories importer dir theories =
               NONE => ()
             | SOME (nt,_) => reportCycleDependency dependency nt
           end
+
+      val plan = fromTheoryListPlan vanilla generate dependency theories
     in
-      theories
+      toTheoryListPlan generate dependency plan
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Graph.linearizeTheories: " ^ err);
+    handle Error err => raise Error ("Dagify.linearizeTheories: " ^ err);
 *)
 
 end
