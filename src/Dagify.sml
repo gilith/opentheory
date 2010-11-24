@@ -1454,6 +1454,10 @@ fun unwind theoryInfo =
 
       val theories = toTheoryListPlan generate dependency plan
 
+(*OpenTheoryTrace3
+      val () =
+          Print.trace PackageTheory.ppList "Dagify.unwind.theories" theories
+*)
       val info =
           {importer = importer,
            directory = directory,
