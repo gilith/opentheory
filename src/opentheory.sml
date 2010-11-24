@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20101022)"^"\n";
+val versionString = program^" "^version^" (release 20101124)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -300,6 +300,8 @@ fun savableInfo info =
 
 val infoOutputList : (info * {filename : string} option) list ref = ref [];
 
+val infoPreserveTheory = ref false;
+
 fun mkInfoOutput info = (info,NONE);
 
 fun addInfoOutput info =
@@ -373,7 +375,10 @@ in
             (fn f => fn s => setInfoOutputFilename f s)},
        {switches = ["--manual"], arguments = [],
         description = "do not also install required packages",
-        processor = beginOpt endOpt (fn _ => autoInstall := false)}];
+        processor = beginOpt endOpt (fn _ => autoInstall := false)},
+       {switches = ["--preserve-theory"], arguments = [],
+        description = "do not optimize theory files",
+        processor = beginOpt endOpt (fn _ => infoPreserveTheory := true)}];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1168,15 +1173,20 @@ local
 
                 val theories = Package.theories pkg
 
-                val thys =
-                    Dagify.mk
-                      {importer = importer,
-                       directory = dir,
-                       theories = theories}
+                val theories =
+                    if !infoPreserveTheory then theories
+                    else
+                      let
+                        val thys =
+                            Dagify.mk
+                              {importer = importer,
+                               directory = dir,
+                               theories = theories}
 
-                val thys = Dagify.unwind thys
-
-                val theories = Dagify.theories thys
+                        val thys = Dagify.unwind thys
+                      in
+                        Dagify.theories thys
+                      end
               in
                 SOME theories
               end;

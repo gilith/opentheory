@@ -37,9 +37,7 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
     let
       val PackageTheory.Theory {name,node,...} = theory
 
-      val savable = PackageTheory.isArticleNode node
-
-      val graph = Graph.empty {savable = savable}
+      val graph = Graph.empty {savable = false}
 
       val imports = TheorySet.empty
 
@@ -1269,27 +1267,7 @@ in
                   exportablePlan vanilla generate dependency
                     expanded exported theories
             in
-              if null exp then
-                let
-                  val main = getMainNameTheoryVanilla vanilla
-
-                  fun isMain (nt,stack) =
-                      NameTheory.equal nt main andalso
-                      let
-(*OpenTheoryDebug
-                        val () = if null stack then ()
-                                 else raise Error "non-null stack for main"
-*)
-                      in
-                        true
-                      end
-
-                  val plan =
-                      if List.exists isMain plan then plan
-                      else (main,[]) :: plan
-                in
-                  rev plan
-                end
+              if null exp then rev plan
               else
                 let
                   val exp = List.map (score expanded) exp
@@ -1365,22 +1343,24 @@ local
         PackageTheory.mkName {avoid = names} n
       end;
 
-  fun mkImports dependency nt namel exported =
+  fun mkImports generate dependency nt namel exported =
       let
-        fun addDep (dep,acc) =
+        fun addImp (imp,acc) =
             let
-              val n = NameTheoryMap.get exported dep
+              val n = NameTheoryMap.get exported imp
             in
               PackageBaseSet.add acc n
             end
 
-        val deps = getDependency dependency nt
+        val imps =
+            if NameTheory.isUnion nt then getGenerate generate nt
+            else getDependency dependency nt
 
-        val deps = NameTheorySet.foldl addDep PackageBaseSet.empty deps
+        val imps = NameTheorySet.foldl addImp PackageBaseSet.empty imps
 
-        fun isDep n = PackageBaseSet.member n deps
+        fun isImp n = PackageBaseSet.member n imps
       in
-        rev (List.filter isDep namel)
+        rev (List.filter isImp namel)
       end;
 
   fun mkNode nt =
@@ -1395,13 +1375,13 @@ local
         fn exported => NameTheorySet.foldl addGen exported gens
       end;
 in
-  fun toTheoryListPlan generate dependency =
+  fun toTheoryListPlan vanilla generate dependency =
       let
         fun mkTheory (nt,stack) (namel,names,exported) =
           let
             val name = mkName nt stack names
 
-            val imports = mkImports dependency nt namel exported
+            val imports = mkImports generate dependency nt namel exported
 
             val node = mkNode nt
 
@@ -1426,9 +1406,17 @@ in
     in
       fn plan =>
          let
-           val (theories,_) = maps mkTheory plan (namel,names,exported)
+           val (theories,state) = maps mkTheory plan (namel,names,exported)
          in
-           theories
+           if List.exists PackageTheory.isMain theories then theories
+           else
+             let
+               val main = getMainNameTheoryVanilla vanilla
+
+               val (theory,_) = mkTheory (main,[]) state
+             in
+               theories @ [theory]
+             end
          end
     end
 (*OpenTheoryDebug
@@ -1475,12 +1463,13 @@ fun unwind theoryInfo =
 
       val plan = fromTheoryListPlan vanilla generate dependency theories
 
-      val theories = toTheoryListPlan generate dependency plan
+      val theories = toTheoryListPlan vanilla generate dependency plan
 
 (*OpenTheoryTrace3
       val () =
           Print.trace PackageTheory.ppList "Dagify.unwind.theories" theories
 *)
+
       val info =
           {importer = importer,
            directory = directory,
