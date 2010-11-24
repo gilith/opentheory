@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* COMPILING RECURSIVE THEORIES INTO DAGS                                    *)
+(* UNWIND MUTUALLY RECURSIVE THEORY PACKAGES                                 *)
 (* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
@@ -236,7 +236,7 @@ fun fromListSummary vanilla definitions theories =
 *)
 
 (* ------------------------------------------------------------------------- *)
-(* Removing dead theory imports and blocks.                                  *)
+(* Removing dead theory imports.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun removeSequent req seqs =
@@ -264,9 +264,7 @@ fun removeSymbol (ots,cs) sym =
       ((ots',cs'),same)
     end;
 
-(* Removing dead theory imports *)
-
-fun removeDeadImportsTheory vanilla definitions summary theory =
+fun removeDeadImportsTheory outputWarning vanilla definitions summary theory =
     let
       val PackageTheory.Theory {name,imports,node} = theory
 
@@ -307,9 +305,11 @@ fun removeDeadImportsTheory vanilla definitions summary theory =
           end
 
       fun warnDead imp =
-          warn
-            ("redundant import " ^ PackageTheory.toStringName imp ^
-             " in theory block " ^ PackageTheory.toStringName name)
+          if not outputWarning then ()
+          else
+            warn
+              ("redundant import " ^ PackageTheory.toStringName imp ^
+               " in theory block " ^ PackageTheory.toStringName name)
 
       val req =
           let
@@ -347,17 +347,26 @@ fun removeDeadImportsTheory vanilla definitions summary theory =
          node = node}
     end;
 
-fun removeDeadImports vanilla definitions summary theories =
-    List.map (removeDeadImportsTheory vanilla definitions summary) theories;
+fun removeDeadImports outputWarning vanilla definitions summary theories =
+    let
+      fun remove thy =
+          removeDeadImportsTheory outputWarning vanilla definitions summary thy
+    in
+      List.map remove theories
+    end;
 
-(* Removing dead theory blocks *)
+(* ------------------------------------------------------------------------- *)
+(* Removing dead theory blocks.                                              *)
+(* ------------------------------------------------------------------------- *)
 
-fun removeDeadBlocks theories =
+fun removeDeadBlocks outputWarning theories =
     let
       fun warnDead thy =
-          warn
-            ("redundant theory block " ^
-             PackageTheory.toStringName (PackageTheory.name thy))
+          if not outputWarning then ()
+          else
+            warn
+              ("redundant theory block " ^
+               PackageTheory.toStringName (PackageTheory.name thy))
 
       val idx = PackageTheory.fromListIndex theories
 
@@ -387,6 +396,52 @@ fun removeDeadBlocks theories =
     in
       theories
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Remove dead theory imports and blocks.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+datatype theories =
+    Theories of
+      {importer : Graph.importer,
+       directory : string,
+       theories : PackageTheory.theory list,
+       vanilla : vanilla,
+       definitions : definitions};
+
+fun removeDead outputWarning {importer,directory,theories} =
+    let
+      val dir = {directory = directory}
+
+      val theories' = PackageTheory.sortUnion theories
+
+      val vanilla = fromListVanilla importer dir theories
+
+      val definitions = fromListDefinitions vanilla theories'
+
+      val summary = fromListSummary vanilla definitions theories'
+
+      (* Remove redundant imports and theory blocks *)
+
+      val theories =
+          removeDeadImports outputWarning vanilla definitions summary theories
+
+      val theories = removeDeadBlocks outputWarning theories
+    in
+      Theories
+        {importer = importer,
+         directory = directory,
+         theories = theories,
+         vanilla = vanilla,
+         definitions = definitions}
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Dagify.removeDead: " ^ err);
+*)
+
+val mk = removeDead true;
+
+fun theories (Theories {theories = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Visible primitive theories of theory blocks.                              *)
@@ -586,9 +641,9 @@ fun fromTheoryListGenerate vanilla theories =
           List.foldl (addTheoryGenerate vanilla) emptyGenerate theories
 
 (*OpenTheoryTrace3
-*)
       val () = Print.trace ppGenerate
                  "Dagify.fromTheoryListGenerate.generate" generate
+*)
     in
       generate
     end
@@ -860,9 +915,9 @@ fun fromTheoryListDependency vanilla definitions visible generate theories =
             emptyDependency theories
 
 (*OpenTheoryTrace3
-*)
       val () = Print.trace ppDependency
                  "Dagify.fromTheoryListDependency.dependency" dependency
+*)
     in
       dependency
     end
@@ -1057,6 +1112,136 @@ fun exportablePlan vanilla generate dependency expanded exported =
          end
     end;
 
+fun addUnionsPlan vanilla dependency expanded exported =
+    let
+      fun isNew news nt = NameTheorySet.member nt news
+
+      fun isExp nt = NameTheorySet.member nt exported
+
+      fun addTheory (theory,news_plan) =
+          let
+            val PackageTheory.Theory {name,imports,...} = theory
+          in
+            if PackageTheory.isUnion theory then
+              let
+                fun mkNT n = getNameTheoryVanilla vanilla n
+
+                val (news,plan) = news_plan
+
+                val nt = mkNT name
+
+                val imps = List.map mkNT imports
+
+                val deps = getDependency dependency nt
+
+                val ok =
+                    not (NameTheorySet.member nt news) andalso
+                    List.exists (isNew news) imps andalso
+                    NameTheorySet.all isExp deps
+              in
+                if not ok then news_plan
+                else
+                  let
+                    val news = NameTheorySet.add news nt
+
+                    val plan = (nt,[]) :: plan
+                  in
+                    (news,plan)
+                  end
+              end
+            else
+              let
+                fun mkNT thy = NameTheory.mk (name,thy)
+
+                fun addThy stack (thy,(seen,news,plan)) =
+                    if TheorySet.member thy seen then (seen,news,plan)
+                    else
+                      let
+                        val seen = TheorySet.add seen thy
+
+                        val nt = mkNT thy
+
+                        val imps = Theory.imports thy
+
+                        val (seen,news,plan) =
+                            List.foldl (addThy stack) (seen,news,plan) imps
+                      in
+                        case Theory.node thy of
+                          Theory.Article _ => (seen,news,plan)
+                        | Theory.Package {theories,...} =>
+                          if not (NameTheorySet.member nt expanded) then
+                            (seen,news,plan)
+                          else
+                            let
+                              val stack = nt :: stack
+
+                              val main = Theory.mainTheory theories
+
+                              val (seen,news,plan) =
+                                  addThy stack (main,(seen,news,plan))
+
+                              val main = mkNT main
+
+                              val ok =
+                                  NameTheorySet.member main news andalso
+                                  not (NameTheorySet.member nt news)
+
+                              val news =
+                                  if not ok then news
+                                  else NameTheorySet.add news nt
+                            in
+                              (seen,news,plan)
+                            end
+                        | Theory.Union =>
+                          let
+                            val imps = List.map mkNT imps
+
+                            val deps = getDependency dependency nt
+
+                            val ok =
+                                not (NameTheorySet.member nt news) andalso
+                                List.exists (isNew news) imps andalso
+                                NameTheorySet.all isExp deps
+                          in
+                            if not ok then (seen,news,plan)
+                            else
+                              let
+                                val news = NameTheorySet.add news nt
+
+                                val plan = (nt,stack) :: plan
+                              in
+                                (seen,news,plan)
+                              end
+                          end
+                      end
+
+                val stack = []
+                and seen = TheorySet.empty
+                and (news,plan) = news_plan
+
+                val (_,main,_) = getVanilla vanilla name
+
+                val (_,news,plan) = addThy stack (main,(seen,news,plan))
+              in
+                (news,plan)
+              end
+          end
+
+      fun pass news plan theories =
+          let
+            val (news',plan) = List.foldl addTheory (news,plan) theories
+
+            val changed = NameTheorySet.size news' > NameTheorySet.size news
+          in
+            if changed then pass news' plan theories else plan
+          end
+    in
+      pass
+    end;
+
+val ppPlan =
+    Print.ppList (Print.ppPair NameTheory.pp (Print.ppList NameTheory.pp));
+
 local
   fun unexpanded expanded nt = not (NameTheorySet.member nt expanded);
 
@@ -1072,9 +1257,6 @@ local
         LESS => LESS
       | EQUAL => Int.compare (n1,n2)
       | GREATER => GREATER;
-
-  val ppPlan =
-      Print.ppList (Print.ppPair NameTheory.pp (Print.ppList NameTheory.pp));
 in
   fun fromTheoryListPlan vanilla generate dependency theories =
       let
@@ -1098,6 +1280,10 @@ in
                   val exported = NameTheorySet.union exported gens
 
                   val plan = (nt,stack) :: plan
+
+                  val plan =
+                      addUnionsPlan vanilla dependency expanded exported
+                        (NameTheorySet.singleton nt) plan theories
                 in
                   mkPlan expanded exported plan
                 end
@@ -1110,9 +1296,8 @@ in
         val plan = mkPlan expanded exported plan
 
 (*OpenTheoryTrace3
-*)
         val () = Print.trace ppPlan "Dagify.fromTheoryListPlan.plan" plan
-
+*)
       in
         plan
       end
@@ -1148,7 +1333,7 @@ local
 
         val (ns,_) = maps mkNameSeg stack t
 
-        val ns = rev ns
+        val ns = List.filter (not o PackageTheory.isMainName) (rev ns)
 
         val n = NameTheory.name nt
 
@@ -1230,26 +1415,17 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Linearize mutually recursive theory packages.                             *)
+(* Unwind mutually recursive theory packages.                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun linearizeTheories importer dir theories =
+fun unwind theoryInfo =
     let
-      (* Create theory graphs for each of the theory blocks *)
-
-      val theories' = PackageTheory.sortUnion theories
-
-      val vanilla = fromListVanilla importer dir theories
-
-      val definitions = fromListDefinitions vanilla theories'
-
-      val summary = fromListSummary vanilla definitions theories'
-
-      (* Remove redundant imports and theory blocks *)
-
-      val theories = removeDeadImports vanilla definitions summary theories
-
-      val theories = removeDeadBlocks theories
+      val Theories
+            {importer,
+             directory,
+             theories,
+             vanilla,
+             definitions} = theoryInfo
 
       (* Precisely compute dependencies between theory blocks *)
 
@@ -1275,11 +1451,18 @@ fun linearizeTheories importer dir theories =
           end
 
       val plan = fromTheoryListPlan vanilla generate dependency theories
+
+      val theories = toTheoryListPlan generate dependency plan
+
+      val info =
+          {importer = importer,
+           directory = directory,
+           theories = theories}
     in
-      toTheoryListPlan generate dependency plan
+      removeDead false info
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Dagify.linearizeTheories: " ^ err);
+    handle Error err => raise Error ("Dagify.unwind: " ^ err);
 *)
 
 end

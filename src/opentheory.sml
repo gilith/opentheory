@@ -1159,7 +1159,7 @@ local
         | NONE =>
           case getDirectory () of
             NONE => NONE
-          | SOME dir =>
+          | SOME {directory = dir} =>
             case getPackage () of
               NONE => NONE
             | SOME pkg =>
@@ -1168,7 +1168,15 @@ local
 
                 val theories = Package.theories pkg
 
-                val theories = Dagify.linearizeTheories importer dir theories
+                val thys =
+                    Dagify.mk
+                      {importer = importer,
+                       directory = dir,
+                       theories = theories}
+
+                val thys = Dagify.unwind thys
+
+                val theories = Dagify.theories thys
               in
                 SOME theories
               end;

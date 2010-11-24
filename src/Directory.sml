@@ -856,9 +856,17 @@ local
         val Package.Package' {tags,theories} = Package.dest pkg
 
         val impt = importer dir
-        and pdir = PackageInfo.directory info
+        and {directory = pdir} = PackageInfo.directory info
 
-        val theories = Dagify.linearizeTheories impt pdir theories
+        val thys =
+            Dagify.mk
+              {importer = impt,
+               directory = pdir,
+               theories = theories}
+
+        val thys = Dagify.unwind thys
+
+        val theories = Dagify.theories thys
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
