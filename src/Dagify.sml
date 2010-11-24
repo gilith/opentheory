@@ -30,6 +30,9 @@ fun getNameTheoryVanilla vanilla name =
       NameTheory.mk (name,thy)
     end;
 
+fun getMainNameTheoryVanilla vanilla =
+    getNameTheoryVanilla vanilla PackageTheory.mainName;
+
 fun addVanilla importer {directory} (theory, Vanilla vmap) =
     let
       val PackageTheory.Theory {name,node,...} = theory
@@ -1266,7 +1269,27 @@ in
                   exportablePlan vanilla generate dependency
                     expanded exported theories
             in
-              if null exp then rev plan
+              if null exp then
+                let
+                  val main = getMainNameTheoryVanilla vanilla
+
+                  fun isMain (nt,stack) =
+                      NameTheory.equal nt main andalso
+                      let
+(*OpenTheoryDebug
+                        val () = if null stack then ()
+                                 else raise Error "non-null stack for main"
+*)
+                      in
+                        true
+                      end
+
+                  val plan =
+                      if List.exists isMain plan then plan
+                      else (main,[]) :: plan
+                in
+                  rev plan
+                end
               else
                 let
                   val exp = List.map (score expanded) exp

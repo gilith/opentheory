@@ -28,6 +28,8 @@ val theory : nameTheory -> Theory.theory
 
 val compare : nameTheory * nameTheory -> order
 
+val equal : nameTheory -> nameTheory -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
