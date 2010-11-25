@@ -16,7 +16,6 @@ pair-induct {
 }
 
 pair-abs {
-  import: pair-def
   import: pair-induct
   package: pair-abs-1.0
 }

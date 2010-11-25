@@ -29,27 +29,86 @@ cases {
 }
 
 numeral {
-  import: def
-  import: recursion
   import: cases
-  import: add
   package: natural-numeral-1.0
 }
 
 pre {
+  import: cases
+  package: natural-pre-1.0
+}
+
+order {
   import: def
-  import: recursion
   import: cases
   import: numeral
-  package: natural-pre-1.0
+  package: natural-order-1.0
 }
 
 add {
   import: def
-  import: recursion
   import: cases
   import: numeral
+  import: order
   package: natural-add-1.0
+}
+
+mult {
+  import: def
+  import: cases
+  import: order
+  import: add
+  package: natural-mult-1.0
+}
+
+exp {
+  import: def
+  import: cases
+  import: numeral
+  import: order
+  import: add
+  import: mult
+  package: natural-exp-1.0
+}
+
+set {
+  import: def
+  import: order
+  package: natural-set-1.0
+}
+
+even-odd {
+  import: def
+  import: cases
+  import: numeral
+  import: order
+  import: add
+  import: mult
+  import: exp
+  import: set
+  package: natural-even-odd-1.0
+}
+
+sub {
+  import: def
+  import: cases
+  import: numeral
+  import: pre
+  import: order
+  import: add
+  import: mult
+  import: even-odd
+  package: natural-sub-1.0
+}
+
+fact {
+  import: def
+  import: cases
+  import: numeral
+  import: order
+  import: add
+  import: mult
+  package: natural-fact-1.0
 }
 
 main {
@@ -58,5 +117,12 @@ main {
   import: cases
   import: numeral
   import: pre
+  import: order
   import: add
+  import: mult
+  import: exp
+  import: set
+  import: even-odd
+  import: sub
+  import: fact
 }

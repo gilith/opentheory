@@ -185,7 +185,13 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/function/function.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/pair/pair.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-numeral/natural-numeral.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-order/natural-order.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-add/natural-add.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-mult/natural-mult.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-exp/natural-exp.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-even-odd/natural-even-odd.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-sub/natural-sub.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-fact/natural-fact.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural/natural.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
 
