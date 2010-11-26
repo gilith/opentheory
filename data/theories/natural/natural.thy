@@ -111,6 +111,23 @@ fact {
   package: natural-fact-1.0
 }
 
+div-mod {
+  import: def
+  import: recursion
+  import: cases
+  import: numeral
+  import: pre
+  import: order
+  import: add
+  import: mult
+  import: exp
+  import: set
+  import: even-odd
+  import: sub
+  import: fact
+  package: natural-div-mod-1.0
+}
+
 main {
   import: def
   import: recursion
@@ -125,4 +142,5 @@ main {
   import: even-odd
   import: sub
   import: fact
+  import: div-mod
 }
