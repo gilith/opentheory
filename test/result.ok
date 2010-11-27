@@ -49,24 +49,36 @@ type "fun" as "->"
 type "num" as "Number.Natural.nat"
 type "prod" as "Data.Pair.*"
 const "!" as "Data.Bool.!"
+const "*" as "Number.Natural.*"
 const "+" as "Number.Natural.+"
 const "," as "Data.Pair.,"
+const "-" as "Number.Natural.-"
 const "/\\" as "Data.Bool./\\"
+const "<" as "Number.Natural.<"
+const "<=" as "Number.Natural.<="
 const "==>" as "Data.Bool.==>"
+const ">" as "Number.Natural.>"
+const ">=" as "Number.Natural.>="
 const "?" as "Data.Bool.?"
 const "?!" as "Data.Bool.?!"
 const "@" as "Data.Bool.select"
 const "BIT0" as "Number.Numeral.bit0"
 const "BIT1" as "Number.Numeral.bit1"
 const "COND" as "Data.Bool.cond"
+const "DIV" as "Number.Natural.div"
+const "EVEN" as "Number.Natural.even"
+const "EXP" as "Number.Natural.exp"
 const "F" as "Data.Bool.F"
+const "FACT" as "Number.Natural.factorial"
 const "FST" as "Data.Pair.fst"
 const "GABS" as "Data.Bool.select"
 const "GEQ" as "="
 const "I" as "Function.id"
 const "LET" as "Data.Bool.let"
 const "LET_END" as "Unwanted.id"
+const "MOD" as "Number.Natural.mod"
 const "NUMERAL" as "Unwanted.id"
+const "ODD" as "Number.Natural.odd"
 const "ONE_ONE" as "Function.injective"
 const "ONTO" as "Function.surjective"
 const "PRE" as "Number.Natural.pre"
@@ -87,35 +99,35 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.000  System: 0.001  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example2"
-User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
-User: 0.001  System: 0.001  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example3"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.001  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example4"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.001  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "bool-def-true"
 WARNING: 19 objects left in the dictionary by articles/hol-light/bool-def-true.art
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
-User: 0.002  System: 0.001  GC: 0.000  Real: 0.003
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-int-true"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-int-true.art
-User: 0.004  System: 0.000  GC: 0.001  Real: 0.004
-User: 0.002  System: 0.001  GC: 0.000  Real: 0.003
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.003  System: 0.000  GC: 0.001  Real: 0.003
-User: 0.002  System: 0.001  GC: 0.000  Real: 0.003
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 --------------------------------------------------------------------------
 Summarizing articles

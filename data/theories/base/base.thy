@@ -35,10 +35,20 @@ natural {
   package: natural-1.0
 }
 
+relation {
+  import: bool
+  import: unit
+  import: function
+  import: pair
+  import: natural
+  package: relation-1.0
+}
+
 main {
   import: bool
   import: unit
   import: function
   import: pair
   import: natural
+  import: relation
 }

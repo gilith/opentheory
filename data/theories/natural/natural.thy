@@ -113,19 +113,19 @@ fact {
 
 div-mod {
   import: def
-  import: recursion
-  import: cases
   import: numeral
-  import: pre
   import: order
   import: add
   import: mult
   import: exp
   import: set
   import: even-odd
-  import: sub
-  import: fact
   package: natural-div-mod-1.0
+}
+
+min-max {
+  import: set
+  package: natural-min-max-1.0
 }
 
 main {
@@ -143,4 +143,5 @@ main {
   import: sub
   import: fact
   import: div-mod
+  import: min-max
 }

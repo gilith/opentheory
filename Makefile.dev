@@ -194,6 +194,7 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-fact/natural-fact.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-div-mod/natural-div-mod.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural/natural.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation/relation.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
 
 .PHONY: reset-repo
