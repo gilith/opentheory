@@ -786,7 +786,7 @@ local
          {token = "<=>", precedence = ~4, assoc = Print.RightAssoc},
          {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
 
-  val binders = ["!","?","?!","select"];
+  val binders = ["!","?","?!","select","minimal"];
 
   local
     val pairName = Name.mkGlobal ",";
