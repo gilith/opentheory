@@ -440,14 +440,8 @@ fun summary dir info =
             {imports = imps,
              interpretation = int,
              info = info}
-
-      val art = Theory.article thy
-
-      val ths = Article.thms art
-
-      val sum = Summary.fromThms ths
     in
-      sum
+      Theory.summary thy
     end;
 
 (* ------------------------------------------------------------------------- *)

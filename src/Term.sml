@@ -1315,6 +1315,10 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
 val ppHtml = ppWithGrammar htmlGrammar;
 
 end

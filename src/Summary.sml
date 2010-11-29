@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory summary.                                                 *)
+(* A type of theory summaries.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 datatype summary' =
@@ -137,10 +137,10 @@ local
            ConstSet.subset (Sequent.consts seq) cs
       end;
 in
-  fun info summary =
+  fun toInfo summary =
       let
 (*OpenTheoryTrace5
-        val () = trace "entering Summary.info\n"
+        val () = trace "entering Summary.toInfo\n"
 *)
         val Summary' {requires,provides} = dest summary
 
@@ -164,7 +164,7 @@ in
         val ths = Sequents.sequents provides
 
 (*OpenTheoryTrace5
-        val () = trace "exiting Summary.info\n"
+        val () = trace "exiting Summary.toInfo\n"
 *)
       in
         Info
@@ -180,6 +180,24 @@ end;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype grammar =
+    Grammar of
+      {assumptionGrammar : Sequent.grammar,
+       axiomGrammar : Sequent.grammar,
+       theoremGrammar : Sequent.grammar};
+
+val defaultGrammar =
+    let
+      val assumptionGrammar = Sequent.defaultGrammar
+      and axiomGrammar = Sequent.defaultGrammar
+      and theoremGrammar = Sequent.defaultGrammar
+    in
+      Grammar
+        {assumptionGrammar = assumptionGrammar,
+         axiomGrammar = axiomGrammar,
+         theoremGrammar = theoremGrammar}
+    end;
+
 local
   fun ppList ppX prefix name xs =
       if null xs then Print.skip
@@ -191,12 +209,28 @@ local
               Print.ppString ":" ::
               map (Print.sequence (Print.addBreak 1) o ppX) xs))
           Print.addNewline;
+
+  fun ppSequentSet ppSeq (name,seqs) =
+      let
+        val seqs = SequentSet.toList seqs
+      in
+        Print.blockProgram Print.Consistent 2
+          (Print.ppString name ::
+           Print.ppString ":" ::
+           List.map (Print.sequence Print.addNewline o ppSeq) seqs)
+      end;
 in
-  fun ppInfo show =
+  fun ppInfoWithShow ppAssumptionWS ppAxiomWS ppTheoremWS show =
       let
         val ppTypeOp = TypeOp.ppWithShow show
 
         val ppConst = Const.ppWithShow show
+
+        val ppAssumption = ppAssumptionWS show
+
+        val ppAxiom = ppAxiomWS show
+
+        val ppTheorem = ppTheoremWS show
 
         fun ppSymbol (prefix,sym) =
             let
@@ -207,39 +241,123 @@ in
                 (ppList ppTypeOp prefix "-types" ots)
                 (ppList ppConst prefix "-consts" cs)
             end
-
-        val ppSequent = Print.ppMap Thm.axiom (Thm.ppWithShow show)
-
-        fun ppSequentSet (name,seqs) =
-            let
-              val seqs = SequentSet.toList seqs
-            in
-              Print.blockProgram Print.Consistent 2
-                (Print.ppString name ::
-                 Print.ppString ":" ::
-                 map (Print.sequence Print.addNewline o ppSequent) seqs)
-            end
       in
-        fn sum =>
+        fn info =>
            let
-             val Info {input,assumed,defined,axioms,thms} = sum
+             val Info {input,assumed,defined,axioms,thms} = info
            in
              Print.blockProgram Print.Consistent 0
                [ppSymbol ("input",input),
-                ppSequentSet ("assumptions",assumed),
+                ppSequentSet ppAssumption ("assumptions",assumed),
                 Print.addNewline,
                 ppSymbol ("defined",defined),
-                ppSequentSet ("axioms",axioms),
+                ppSequentSet ppAxiom ("axioms",axioms),
                 Print.addNewline,
-                ppSequentSet ("theorems",thms)]
+                ppSequentSet ppTheorem ("theorems",thms)]
            end
       end;
 end;
 
-fun ppWithShow show = Print.ppMap info (ppInfo show);
-
-fun toHtmlInfo show =
+fun ppInfoWithGrammar grammar =
     let
+      val Grammar
+            {assumptionGrammar,
+             axiomGrammar,
+             theoremGrammar} = grammar
+
+      val ppAssumptionWS = Sequent.ppWithGrammar assumptionGrammar
+
+      val ppAxiomWS = Sequent.ppWithGrammar axiomGrammar
+
+      val ppTheoremWS = Sequent.ppWithGrammar theoremGrammar
+    in
+      ppInfoWithShow ppAssumptionWS ppAxiomWS ppTheoremWS
+    end;
+
+fun ppWithGrammar grammar =
+    let
+      val ppIWS = ppInfoWithGrammar grammar
+    in
+      fn show => Print.ppMap toInfo (ppIWS show)
+    end;
+
+val ppWithShow = ppWithGrammar defaultGrammar;
+
+fun toTextFile {show,summary,filename} =
+    let
+(*OpenTheoryTrace5
+      val () = trace "entering Summary.toTextFile\n"
+*)
+      val lines = Print.toStream (ppWithShow show) summary
+
+      val () = Stream.toTextFile {filename = filename} lines
+
+(*OpenTheoryTrace5
+      val () = trace "exiting Summary.toTextFile\n"
+*)
+    in
+      ()
+    end;
+
+val pp = ppWithShow Show.default;
+
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun toHtmlConnective class =
+    let
+      val attrs =
+          Html.fromListAttrs
+            [("class",class),
+             ("title",class)]
+
+      val inlines = [Html.Entity "#8870"]
+
+      val conn = Html.Span (attrs,inlines)
+    in
+      fn (_,c) =>
+         case c of
+           "-" => conn
+         | _ => raise Bug "Summary.toHtmlConnective"
+    end;
+
+fun htmlGrammarSequent class =
+    let
+      val connective = "-"
+      and hypGrammar = Term.htmlGrammar
+      and conclGrammar = Term.htmlGrammar
+      and ppConnective = Print.ppMap (toHtmlConnective class) Html.ppFixed
+      and showHyp = true
+    in
+      Sequent.Grammar
+        {connective = connective,
+         hypGrammar = hypGrammar,
+         conclGrammar = conclGrammar,
+         ppConnective = ppConnective,
+         showHyp = showHyp}
+    end;
+
+val htmlGrammar =
+    let
+      val assumptionGrammar = htmlGrammarSequent "Assumption"
+      and axiomGrammar = htmlGrammarSequent "Axiom"
+      and theoremGrammar = htmlGrammarSequent "Theorem"
+    in
+      Grammar
+        {assumptionGrammar = assumptionGrammar,
+         axiomGrammar = axiomGrammar,
+         theoremGrammar = theoremGrammar}
+    end;
+
+fun toHtmlInfo toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS show =
+    let
+      val toHtmlAssumption = toHtmlAssumptionWS show
+
+      val toHtmlAxiom = toHtmlAxiomWS show
+
+      val toHtmlTheorem = toHtmlTheoremWS show
+
       val toHtmlNames =
           let
             fun dest name =
@@ -308,48 +426,51 @@ fun toHtmlInfo show =
             toHtmlConsts name cs
           end
 
-      val toHtmlSequent = Sequent.toHtml show
-
-      fun toHtmlSequentSet name seqs =
+      fun toHtmlSequentSet toHtmlSeq name seqs =
           if SequentSet.null seqs then []
           else
             let
               val seqs = SequentSet.toList seqs
             in
               Html.H2 [Html.Text name] ::
-              List.map toHtmlSequent seqs
+              List.map toHtmlSeq seqs
             end
     in
-      fn sum =>
+      fn info =>
          let
-           val Info {input,assumed,defined,axioms,thms} = sum
+           val Info {input,assumed,defined,axioms,thms} = info
          in
            toHtmlSymbol "Defined" defined @
-           toHtmlSequentSet "Axioms" axioms @
-           toHtmlSequentSet "Theorems" thms @
+           toHtmlSequentSet toHtmlAxiom "Axioms" axioms @
+           toHtmlSequentSet toHtmlTheorem "Theorems" thms @
            toHtmlSymbol "Input" input @
-           toHtmlSequentSet "Assumptions" assumed
+           toHtmlSequentSet toHtmlAssumption "Assumptions" assumed
          end
     end;
 
-fun toHtml show = toHtmlInfo show o info;
-
-fun toTextFile {show,summary,filename} =
+fun toHtmlInfoWithGrammar grammar =
     let
-(*OpenTheoryTrace5
-      val () = trace "entering Summary.toTextFile\n"
-*)
-      val lines = Print.toStream (ppWithShow show) summary
+      val Grammar
+            {assumptionGrammar,
+             axiomGrammar,
+             theoremGrammar} = grammar
 
-      val () = Stream.toTextFile {filename = filename} lines
+      val toHtmlAssumption = Sequent.toHtmlWithGrammar assumptionGrammar
 
-(*OpenTheoryTrace5
-      val () = trace "exiting Summary.toTextFile\n"
-*)
+      val toHtmlAxiom = Sequent.toHtmlWithGrammar axiomGrammar
+
+      val toHtmlTheorem = Sequent.toHtmlWithGrammar theoremGrammar
     in
-      ()
+      toHtmlInfo toHtmlAssumption toHtmlAxiom toHtmlTheorem
     end;
 
-val pp = ppWithShow Show.default;
+fun toHtmlWithGrammar grammar =
+    let
+      val toHIWS = toHtmlInfoWithGrammar grammar
+    in
+      fn show => toHIWS show o toInfo
+    end;
+
+val toHtml = toHtmlWithGrammar htmlGrammar;
 
 end

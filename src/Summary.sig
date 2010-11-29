@@ -7,7 +7,7 @@ signature Summary =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory summary.                                                 *)
+(* A type of theory summaries.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 type summary
@@ -53,15 +53,29 @@ val rewrite : TermRewrite.rewrite -> summary -> summary option
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype grammar =
+    Grammar of
+      {assumptionGrammar : Sequent.grammar,
+       axiomGrammar : Sequent.grammar,
+       theoremGrammar : Sequent.grammar}
+
+val ppWithGrammar : grammar -> Show.show -> summary Print.pp
+
 val ppWithShow : Show.show -> summary Print.pp
 
 val pp : summary Print.pp
-
-val toHtml : Show.show -> summary -> Html.block list
 
 val toTextFile :
     {show : Show.show,
      summary : summary,
      filename : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val toHtmlWithGrammar : grammar -> Show.show -> summary -> Html.block list
+
+val toHtml : Show.show -> summary -> Html.block list
 
 end

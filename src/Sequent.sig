@@ -77,9 +77,10 @@ val rewrite : TermRewrite.rewrite -> sequent -> sequent option
 
 datatype grammar =
     Grammar of
-      {connective : string,
+      {connective : Print.token,
        hypGrammar : Term.grammar,
        conclGrammar : Term.grammar,
+       ppConnective : (sequent * Print.token) Print.pp,
        showHyp : bool}
 
 val defaultGrammar : grammar
@@ -92,7 +93,15 @@ val pp : sequent Print.pp
 
 val toString : sequent -> string
 
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val htmlGrammar : grammar
+
 val ppHtml : Show.show -> sequent Print.pp
+
+val toHtmlWithGrammar : grammar -> Show.show -> sequent -> Html.block
 
 val toHtml : Show.show -> sequent -> Html.block
 

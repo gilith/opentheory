@@ -355,29 +355,23 @@ fun defineTypeOp name {abs} {rep} tyVars existenceTh =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type grammar = Sequent.grammar;
+datatype grammar =
+    Grammar of
+      {sequentGrammar : Sequent.grammar};
 
 val defaultGrammar =
-    let
-      val Sequent.Grammar
-            {connective = _,
-             hypGrammar,
-             conclGrammar,
-             showHyp} =
-          Sequent.defaultGrammar
+    Grammar
+      {sequentGrammar = Sequent.defaultGrammar};
 
-      val connective = "|-"
-    in
-      Sequent.Grammar
-        {connective = connective,
-         hypGrammar = hypGrammar,
-         conclGrammar = conclGrammar,
-         showHyp = showHyp}
-    end;
+val htmlGrammar =
+    Grammar
+      {sequentGrammar = Sequent.htmlGrammar};
 
 fun ppWithGrammar gram =
     let
-      val ppWS = Sequent.ppWithGrammar gram
+      val Grammar {sequentGrammar} = gram
+
+      val ppWS = Sequent.ppWithGrammar sequentGrammar
     in
       fn show => ppWS show o sequent
     end;

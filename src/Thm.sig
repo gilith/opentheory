@@ -167,7 +167,9 @@ val defineTypeOp :
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type grammar = Sequent.grammar
+datatype grammar =
+    Grammar of
+      {sequentGrammar : Sequent.grammar}
 
 val defaultGrammar : grammar
 

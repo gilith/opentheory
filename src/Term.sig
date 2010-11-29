@@ -248,6 +248,12 @@ val pp : term Print.pp
 
 val toString : term -> string
 
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val htmlGrammar : grammar
+
 val ppHtml : Show.show -> term Print.pp
 
 end

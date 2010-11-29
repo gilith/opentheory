@@ -167,28 +167,41 @@ fun rewrite rewr seq =
 
 datatype grammar =
     Grammar of
-      {connective : string,
+      {connective : Print.token,
        hypGrammar : Term.grammar,
        conclGrammar : Term.grammar,
+       ppConnective : (sequent * Print.token) Print.pp,
        showHyp : bool};
 
 val defaultGrammar =
-    Grammar
-      {connective = "?-",
-       hypGrammar = Term.defaultGrammar,
-       conclGrammar = Term.defaultGrammar,
-       showHyp = true};
+    let
+      val connective = "|-"
+      and hypGrammar = Term.defaultGrammar
+      and conclGrammar = Term.defaultGrammar
+      and ppConnective = Print.ppMap snd Print.ppString
+      and showHyp = true
+    in
+      Grammar
+        {connective = connective,
+         hypGrammar = hypGrammar,
+         conclGrammar = conclGrammar,
+         ppConnective = ppConnective,
+         showHyp = showHyp}
+    end;
 
 local
   fun dots n = if n <= 5 then nChars #"." n else ".." ^ Int.toString n ^ "..";
 in
   fun ppWithGrammar gram =
       let
-        val Grammar {connective,hypGrammar,conclGrammar,showHyp} = gram
+        val Grammar
+              {connective,
+               hypGrammar,
+               conclGrammar,
+               ppConnective,
+               showHyp} = gram
 
-        val connective_space = connective ^ " "
-        val indent_space = size connective_space
-        val space_connective = " " ^ connective
+        val indent = size connective + 1
 
         val ppHypTermWS = Term.ppWithGrammar hypGrammar
 
@@ -198,25 +211,34 @@ in
            let
              val ppHypTerm = ppHypTermWS show
 
-             val ppHypSet =
+             val ppHypElts =
                  if showHyp then
                    Print.ppMap TermAlphaSet.toList
                      (Print.ppOpList "," ppHypTerm)
                  else
-                   Print.ppString o dots o TermAlphaSet.size
+                   Print.ppMap (dots o TermAlphaSet.size)
+                     Print.ppString
 
-             val ppHyp = Print.ppBracket "{" "}" ppHypSet
+             val ppHypSet = Print.ppBracket "{" "}" ppHypElts
 
              val ppConcl = ppConclWS show
            in
-             fn Sequent {hyp,concl} =>
-                if TermAlphaSet.null hyp then
-                  Print.blockProgram Print.Inconsistent indent_space
-                    [Print.ppString connective_space,
-                     ppConcl concl]
-                else
-                  Print.block Print.Inconsistent 2
-                    (Print.ppOp2 space_connective ppHyp ppConcl (hyp,concl))
+             fn seq =>
+                let
+                  val Sequent {hyp,concl} = seq
+
+                  val ppConnectiveConcl =
+                      Print.blockProgram Print.Inconsistent indent
+                        [ppConnective (seq,connective),
+                         Print.ppString " ",
+                         ppConcl concl]
+                in
+                  if TermAlphaSet.null hyp then ppConnectiveConcl
+                  else
+                    Print.blockProgram Print.Inconsistent 0
+                      [ppHypSet hyp,
+                       ppConnectiveConcl]
+                end
            end
       end;
 end;
@@ -227,41 +249,52 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
-fun ppHtml show =
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val toHtmlConnective =
     let
-      val ppTerm = Term.ppHtml show
-
-      val ppHyp =
-          Print.ppBracket "{" "}"
-            (Print.ppMap TermAlphaSet.toList
-               (Print.ppOpList "," ppTerm))
-
-      val ppTurnstyle = Html.ppFixed (Html.Entity "#8870")
-
-      val ppConcl = ppTerm
+      val conn = Html.Entity "#8870"
     in
-      fn Sequent {hyp,concl} =>
-         if TermAlphaSet.null hyp then
-           Print.blockProgram Print.Inconsistent 2
-             [ppTurnstyle,
-              Print.ppString " ",
-              ppConcl concl]
-         else
-           Print.blockProgram Print.Inconsistent 2
-             [ppHyp hyp,
-              Print.ppString " ",
-              ppTurnstyle,
-              Print.addBreak 1,
-              ppConcl concl]
+      fn (_,c) =>
+         case c of
+           "-" => conn
+         | _ => raise Bug "Sequent.toHtmlConnective"
     end;
 
-  local
-    val attrs = Html.singletonAttrs ("class","sequent");
+val htmlGrammar =
+    let
+      val connective = "-"
+      and hypGrammar = Term.htmlGrammar
+      and conclGrammar = Term.htmlGrammar
+      and ppConnective = Print.ppMap toHtmlConnective Html.ppFixed
+      and showHyp = true
+    in
+      Grammar
+        {connective = connective,
+         hypGrammar = hypGrammar,
+         conclGrammar = conclGrammar,
+         ppConnective = ppConnective,
+         showHyp = showHyp}
+    end;
 
-    fun mkPara inlines = Html.Para (attrs,inlines);
-  in
-    fun toHtml show = mkPara o Html.toFixed (ppHtml show);
-  end;
+val ppHtml = ppWithGrammar htmlGrammar;
+
+local
+  val attrs = Html.singletonAttrs ("class","sequent");
+
+  fun mkPara inlines = Html.Para (attrs,inlines);
+in
+  fun toHtmlWithGrammar grammar =
+      let
+        val ppHtml = ppWithGrammar grammar
+      in
+        fn show => mkPara o Html.toFixed (ppHtml show)
+      end;
+end;
+
+val toHtml = toHtmlWithGrammar htmlGrammar;
 
 end
 
