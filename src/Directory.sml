@@ -441,7 +441,7 @@ fun summary dir info =
              interpretation = int,
              info = info}
     in
-      Theory.summary thy
+      Graph.summary thy
     end;
 
 (* ------------------------------------------------------------------------- *)

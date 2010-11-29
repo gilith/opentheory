@@ -14,9 +14,19 @@ val parents : Theory.theory -> TheorySet.set
 
 val ancestors : Theory.theory -> TheorySet.set  (* not including self *)
 
+(* ------------------------------------------------------------------------- *)
+(* Primitive theory packages cannot be replaced with their contents.         *)
+(* ------------------------------------------------------------------------- *)
+
 val primitives : Theory.theory -> TheorySet.set
 
 val visiblePrimitives : Theory.theory -> Theory.theory list
+
+(* ------------------------------------------------------------------------- *)
+(* Theory summaries.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val summary : Theory.theory -> PackageSummary.summary
 
 (* ------------------------------------------------------------------------- *)
 (* Theory environments.                                                      *)

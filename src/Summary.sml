@@ -305,12 +305,12 @@ val pp = ppWithShow Show.default;
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun toHtmlConnective class =
+fun toHtmlConnective class title =
     let
       val attrs =
           Html.fromListAttrs
             [("class",class),
-             ("title",class)]
+             ("title",title)]
 
       val inlines = [Html.Entity "#8870"]
 
@@ -322,13 +322,18 @@ fun toHtmlConnective class =
          | _ => raise Bug "Summary.toHtmlConnective"
     end;
 
-fun htmlGrammarSequent class =
+fun htmlGrammarSequent class title =
     let
       val connective = "-"
-      and hypGrammar = Term.htmlGrammar
-      and conclGrammar = Term.htmlGrammar
-      and ppConnective = Print.ppMap (toHtmlConnective class) Html.ppFixed
-      and showHyp = true
+
+      val hypGrammar = Term.htmlGrammar
+
+      val conclGrammar = Term.htmlGrammar
+
+      val ppConnective =
+          Print.ppMap (toHtmlConnective class title) Html.ppFixed
+
+      val showHyp = true
     in
       Sequent.Grammar
         {connective = connective,
@@ -340,9 +345,9 @@ fun htmlGrammarSequent class =
 
 val htmlGrammar =
     let
-      val assumptionGrammar = htmlGrammarSequent "Assumption"
-      and axiomGrammar = htmlGrammarSequent "Axiom"
-      and theoremGrammar = htmlGrammarSequent "Theorem"
+      val assumptionGrammar = htmlGrammarSequent "assumption" "Assumption"
+      and axiomGrammar = htmlGrammarSequent "axiom" "Axiom"
+      and theoremGrammar = htmlGrammarSequent "theorem" "Theorem"
     in
       Grammar
         {assumptionGrammar = assumptionGrammar,

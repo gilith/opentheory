@@ -56,6 +56,10 @@ in
       end;
 end;
 
+(* ------------------------------------------------------------------------- *)
+(* Primitive theory packages cannot be replaced with their contents.         *)
+(* ------------------------------------------------------------------------- *)
+
 local
   fun primsList seen acc thys = List.foldl primsThy (seen,acc) thys
 
@@ -96,6 +100,146 @@ in
         rev acc
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Theory summaries.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+datatype summary = Summary of Summary.summary TheoryMap.map;
+
+val emptySummary = Summary (TheoryMap.new ());
+
+fun addSummary (thy, Summary m) =
+    let
+      val sum = Theory.summary thy
+    in
+      Summary (TheoryMap.insert m (thy,sum))
+    end;
+
+val mkSummary = TheorySet.foldl addSummary emptySummary;
+
+fun peekSummary (Summary m) thy = TheoryMap.peek m thy;
+
+fun getSummary sums thy =
+    case peekSummary sums thy of
+      SOME sum => sum
+    | NONE => raise Bug "Graph.getSummary";
+
+fun getRequires req thy =
+    case TheoryMap.peek req thy of
+      SOME seqs => seqs
+    | NONE => raise Bug "Graph.getRequires";
+
+fun getListRequires req thys =
+    if null thys then SequentMap.new ()
+    else
+      let
+        val seqsl = List.map (getRequires req) thys
+      in
+        SequentMap.unionListDomain (rev seqsl)
+      end;
+
+fun addRequires sums (thy,req) =
+    if TheoryMap.inDomain thy req then req
+    else
+      let
+        val imps = Theory.imports thy
+
+        val (seqs,req) =
+            case peekSummary sums thy of
+              SOME sum =>
+              let
+                fun addSeq (seq,seqs) =
+                    if SequentMap.inDomain seq seqs then seqs
+                    else SequentMap.insert seqs (seq,thy)
+
+                val req = List.foldl (addRequires sums) req imps
+
+                val seqs = getListRequires req imps
+
+                val reqs = Sequents.sequents (Summary.requires sum)
+
+                val seqs = SequentSet.foldl addSeq seqs reqs
+              in
+                (seqs,req)
+              end
+            | NONE =>
+              case Theory.node thy of
+                Theory.Article _ =>
+                let
+                  val seqs = SequentMap.new ()
+                in
+                  (seqs,req)
+                end
+              | Theory.Package {theories,...} =>
+                let
+                  val main = Theory.mainTheory theories
+
+                  val req = addRequires sums (main,req)
+
+                  val seqs = getRequires req main
+                in
+                  (seqs,req)
+                end
+              | Theory.Union =>
+                let
+                  val req = List.foldl (addRequires sums) req imps
+
+                  val seqs = getListRequires req imps
+                in
+                  (seqs,req)
+                end
+      in
+        TheoryMap.insert req (thy,seqs)
+      end;
+
+fun mkRequires sums thy =
+    let
+      val req = TheoryMap.new ()
+
+      val req = addRequires sums (thy,req)
+
+      val seqs = getRequires req thy
+    in
+      SequentMap.mapPartial (Theory.destPackage o snd) seqs
+    end;
+
+fun addProvides sums (thy,acc) =
+    let
+      fun add (seq,acc) = SequentMap.insert acc (seq,thy)
+
+      val seqs = Sequents.sequents (Summary.provides (getSummary sums thy))
+    in
+      SequentSet.foldl add acc seqs
+    end;
+
+fun mkProvides sums thy =
+    let
+      val acc = SequentMap.new ()
+
+      val prims = visiblePrimitives thy
+
+      val acc = List.foldl (addProvides sums) acc (rev prims)
+    in
+      SequentMap.mapPartial (Theory.destPackage o snd) acc
+    end;
+
+fun summary thy =
+    let
+      val sums = mkSummary (primitives thy)
+
+      val sum = Theory.summary thy
+
+      val req = mkRequires sums thy
+
+      val prov = mkProvides sums thy
+    in
+      PackageSummary.mk
+        (PackageSummary.Summary'
+           {summary = sum,
+            requires = req,
+            provides = prov})
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Theory environments.                                                      *)

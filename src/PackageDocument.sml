@@ -49,7 +49,7 @@ datatype document' =
     Document' of
       {name : PackageName.name,
        package : Package.package,
-       summary : Summary.summary,
+       summary : PackageSummary.summary,
        files : {theory : string, tarball : string}}
 
 type document = document';
@@ -167,7 +167,7 @@ fun toHtml doc =
            filesBlock]
 
       val summaryBlocks =
-          Summary.toHtml (Show.fromTags tags) summary
+          PackageSummary.toHtml (Show.fromTags tags) summary
 
       val blocks =
           nameBlock ::

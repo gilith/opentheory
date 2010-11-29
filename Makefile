@@ -121,6 +121,7 @@ SRC = \
   src/PackageBase.sig src/PackageBase.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageName.sig src/PackageName.sml \
+  src/PackageSummary.sig src/PackageSummary.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/Package.sig src/Package.sml \
   src/DirectorySystem.sig src/DirectorySystem.sml \

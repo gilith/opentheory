@@ -59,6 +59,8 @@ datatype grammar =
        axiomGrammar : Sequent.grammar,
        theoremGrammar : Sequent.grammar}
 
+val defaultGrammar : grammar
+
 val ppWithGrammar : grammar -> Show.show -> summary Print.pp
 
 val ppWithShow : Show.show -> summary Print.pp
@@ -73,6 +75,8 @@ val toTextFile :
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
+
+val htmlGrammar : grammar
 
 val toHtmlWithGrammar : grammar -> Show.show -> summary -> Html.block list
 
