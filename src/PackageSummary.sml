@@ -40,7 +40,7 @@ fun summary (Summary' {summary = x, ...}) = x;
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun check sum = Summary.check (summary sum);
+fun check show sum = Summary.check show (summary sum);
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)

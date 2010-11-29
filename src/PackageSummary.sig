@@ -38,7 +38,7 @@ val summary : summary -> Summary.summary
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val check : summary -> unit
+val check : Show.show -> summary -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)

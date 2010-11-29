@@ -53,7 +53,7 @@ val rewrite : TermRewrite.rewrite -> summary -> summary option
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val check : summary -> unit
+val check : Show.show -> summary -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)

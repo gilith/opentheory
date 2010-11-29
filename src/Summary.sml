@@ -180,7 +180,7 @@ end;
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkSequent class seq =
+fun checkSequent show class seq =
     let
       val err =
           case TermAlphaSet.size (Sequent.hyp seq) of
@@ -206,26 +206,26 @@ fun checkSequent class seq =
                  Print.ppString " in ",
                  Print.ppString class,
                  Print.addNewline,
-                 Sequent.pp seq]
+                 Sequent.ppWithShow show seq]
         in
           warn (Print.toString ppErr ())
         end
     end;
 
-fun checkInfo info =
+fun checkInfo show info =
     let
       val Info {assumed,axioms,thms,...} = info
 
-      val () = SequentSet.app (checkSequent "assumption") assumed
+      val () = SequentSet.app (checkSequent show "assumption") assumed
 
-      val () = SequentSet.app (checkSequent "axiom") axioms
+      val () = SequentSet.app (checkSequent show "axiom") axioms
 
-      val () = SequentSet.app (checkSequent "theorem") thms
+      val () = SequentSet.app (checkSequent show "theorem") thms
     in
       ()
     end;
 
-fun check sum = checkInfo (toInfo sum);
+fun check show sum = checkInfo show (toInfo sum);
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)

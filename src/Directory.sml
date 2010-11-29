@@ -452,17 +452,19 @@ fun postStagePackage dir stageInfo warnSummary =
     let
       (* Check the package summary *)
 
+      val pkg = PackageInfo.package stageInfo
+
       val sum = summary dir stageInfo
 
-      val () = if not warnSummary then () else PackageSummary.check sum
+      val () =
+          if not warnSummary then ()
+          else PackageSummary.check (Show.fromTags (Package.tags pkg)) sum
 
       (* Create the package document *)
 
       val () =
           let
             val name = PackageInfo.name stageInfo
-
-            val pkg = PackageInfo.package stageInfo
 
             val files =
                 let
