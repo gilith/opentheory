@@ -177,6 +177,57 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Check summary.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkSequent class seq =
+    let
+      val err =
+          case TermAlphaSet.size (Sequent.hyp seq) of
+            0 => NONE
+          | 1 => SOME "hypothesis"
+          | _ => SOME "hypotheses"
+
+      val err =
+          if Option.isSome err then err
+          else
+            case VarSet.size (Term.freeVars (Sequent.concl seq)) of
+              0 => NONE
+            | 1 => SOME "free variable"
+            | _ => SOME "free variables"
+    in
+      case err of
+        NONE => ()
+      | SOME err =>
+        let
+          fun ppErr () =
+              Print.blockProgram Print.Consistent 2
+                [Print.ppString err,
+                 Print.ppString " in ",
+                 Print.ppString class,
+                 Print.addNewline,
+                 Sequent.pp seq]
+        in
+          warn (Print.toString ppErr ())
+        end
+    end;
+
+fun checkInfo info =
+    let
+      val Info {assumed,axioms,thms,...} = info
+
+      val () = SequentSet.app (checkSequent "assumption") assumed
+
+      val () = SequentSet.app (checkSequent "axiom") axioms
+
+      val () = SequentSet.app (checkSequent "theorem") thms
+    in
+      ()
+    end;
+
+fun check sum = checkInfo (toInfo sum);
+
+(* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 

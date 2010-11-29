@@ -448,8 +448,14 @@ fun summary dir info =
 (* Post-stage functions.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun postStagePackage dir stageInfo =
+fun postStagePackage dir stageInfo warnSummary =
     let
+      (* Check the package summary *)
+
+      val sum = summary dir stageInfo
+
+      val () = if not warnSummary then () else PackageSummary.check sum
+
       (* Create the package document *)
 
       val () =
@@ -457,8 +463,6 @@ fun postStagePackage dir stageInfo =
             val name = PackageInfo.name stageInfo
 
             val pkg = PackageInfo.package stageInfo
-
-            val sum = summary dir stageInfo
 
             val files =
                 let
@@ -496,7 +500,7 @@ fun postStageTarball dir fndr stageInfo contents minimal =
 
       (* Common post-stage operations *)
 
-      val () = postStagePackage dir stageInfo
+      val () = postStagePackage dir stageInfo false
     in
       ()
     end;
@@ -913,7 +917,7 @@ in
 
           (* Common post-stage operations *)
 
-          val () = postStagePackage dir stageInfo
+          val () = postStagePackage dir stageInfo true
         in
           PackageInfo.checksumTarball stageInfo
         end
