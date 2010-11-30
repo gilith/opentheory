@@ -18,15 +18,13 @@ val noAxioms = Axioms (K SequentSet.empty);
 
 fun getAxioms (Axioms f) seq = f seq;
 
-local
-  fun addAxioms axs (seq,acc) = SequentSet.union acc (getAxioms axs seq);
-in
-  fun getListAxioms axs seqs =
-      List.foldl (addAxioms axs) SequentSet.empty seqs;
+fun addAxioms axs (seq,acc) = SequentSet.union acc (getAxioms axs seq);
 
-  fun getSetAxioms axs seqs =
-      SequentSet.foldl (addAxioms axs) SequentSet.empty seqs;
-end;
+fun getListAxioms axs seqs =
+    List.foldl (addAxioms axs) SequentSet.empty seqs;
+
+fun getSetAxioms axs seqs =
+    SequentSet.foldl (addAxioms axs) SequentSet.empty seqs;
 
 fun fromThmsAxioms ths =
     let
@@ -299,6 +297,20 @@ val defaultGrammar =
     end;
 
 local
+  val ppId = Print.ppBracket "(" ")" Print.ppInt;
+
+  val ppIdSet =
+      let
+        fun spaceId i = Print.sequence (Print.addBreak 1) (ppId i)
+
+        fun ppList l =
+            case l of
+              [] => Print.skip
+            | h :: t => Print.program (ppId h :: List.map spaceId t)
+      in
+        Print.ppBracket "{" "}" (Print.ppMap IntSet.toList ppList)
+      end;
+
   fun ppList ppX prefix name xs =
       if null xs then Print.skip
       else
@@ -346,16 +358,53 @@ in
              and axioms = SequentSet.toList axioms
              and thms = SequentSet.toList thms
 
-             val allAxs = getListAxioms axs thms
+             val (_,axMap) =
+                 let
+                   val axSet = getListAxioms axs thms
+
+                   fun add (seq,(n,m)) =
+                       if not (SequentSet.member seq axSet) then (n,m)
+                       else (n + 1, SequentMap.insert m (seq,n))
+                 in
+                   List.foldl add (1, SequentMap.new ()) (assumed @ axioms)
+                 end
+
+             fun ppAx ppSeq seq =
+                 case SequentMap.peek axMap seq of
+                   NONE => ppSeq seq
+                 | SOME n =>
+                   Print.blockProgram Print.Consistent 2
+                     [ppId n,
+                      Print.addBreak 1,
+                      ppSeq seq]
+
+             fun ppTh ppSeq seq =
+                 let
+                   fun add (ax,ids) =
+                       case SequentMap.peek axMap ax of
+                         SOME i => IntSet.add ids i
+                       | NONE => raise Bug "Summary.ppInfoWithShow.ppTh.add"
+
+                   val axSet = getAxioms axs seq
+
+                   val ids = SequentSet.foldl add IntSet.empty axSet
+                 in
+                   if IntSet.null ids then ppSeq seq
+                   else
+                     Print.blockProgram Print.Consistent 2
+                       [ppIdSet ids,
+                        Print.addNewline,
+                        ppSeq seq]
+                 end
            in
              Print.blockProgram Print.Consistent 0
                [ppSymbol ("input",input),
-                ppSequentList ppAssumption ("assumptions",assumed),
+                ppSequentList (ppAx ppAssumption) ("assumptions",assumed),
                 Print.addNewline,
                 ppSymbol ("defined",defined),
-                ppSequentList ppAxiom ("axioms",axioms),
+                ppSequentList (ppAx ppAxiom) ("axioms",axioms),
                 Print.addNewline,
-                ppSequentList ppTheorem ("theorems",thms)]
+                ppSequentList (ppTh ppTheorem) ("theorems",thms)]
            end
       end;
 end;
