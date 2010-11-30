@@ -16,6 +16,18 @@ datatype axioms = Axioms of Sequent.sequent -> SequentSet.set;
 
 val noAxioms = Axioms (K SequentSet.empty);
 
+fun getAxioms (Axioms f) seq = f seq;
+
+local
+  fun addAxioms axs (seq,acc) = SequentSet.union acc (getAxioms axs seq);
+in
+  fun getListAxioms axs seqs =
+      List.foldl (addAxioms axs) SequentSet.empty seqs;
+
+  fun getSetAxioms axs seqs =
+      SequentSet.foldl (addAxioms axs) SequentSet.empty seqs;
+end;
+
 fun fromThmsAxioms ths =
     let
       fun get seq =
@@ -298,15 +310,11 @@ local
               map (Print.sequence (Print.addBreak 1) o ppX) xs))
           Print.addNewline;
 
-  fun ppSequentSet ppSeq (name,seqs) =
-      let
-        val seqs = SequentSet.toList seqs
-      in
-        Print.blockProgram Print.Consistent 2
-          (Print.ppString name ::
-           Print.ppString ":" ::
-           List.map (Print.sequence Print.addNewline o ppSeq) seqs)
-      end;
+  fun ppSequentList ppSeq (name,seqs) =
+      Print.blockProgram Print.Consistent 2
+        (Print.ppString name ::
+         Print.ppString ":" ::
+         List.map (Print.sequence Print.addNewline o ppSeq) seqs);
 in
   fun ppInfoWithShow ppAssumptionWS ppAxiomWS ppTheoremWS show =
       let
@@ -333,15 +341,21 @@ in
         fn axs => fn info =>
            let
              val Info {input,assumed,defined,axioms,thms} = info
+
+             val assumed = SequentSet.toList assumed
+             and axioms = SequentSet.toList axioms
+             and thms = SequentSet.toList thms
+
+             val allAxs = getListAxioms axs thms
            in
              Print.blockProgram Print.Consistent 0
                [ppSymbol ("input",input),
-                ppSequentSet ppAssumption ("assumptions",assumed),
+                ppSequentList ppAssumption ("assumptions",assumed),
                 Print.addNewline,
                 ppSymbol ("defined",defined),
-                ppSequentSet ppAxiom ("axioms",axioms),
+                ppSequentList ppAxiom ("axioms",axioms),
                 Print.addNewline,
-                ppSequentSet ppTheorem ("theorems",thms)]
+                ppSequentList ppTheorem ("theorems",thms)]
            end
       end;
 end;
