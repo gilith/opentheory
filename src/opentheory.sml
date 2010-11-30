@@ -293,14 +293,33 @@ datatype info =
   | SummaryInfo
   | TheoryInfo;
 
+val infoOutputList : (info * {filename : string} option) list ref = ref [];
+
+val infoPreserveTheory = ref false;
+
+val infoShowAxioms = ref false;
+
 fun savableInfo info =
     case info of
       ArticleInfo => true
     | _ => false;
 
-val infoOutputList : (info * {filename : string} option) list ref = ref [];
+fun infoSummaryGrammar () =
+    let
+      val Summary.Grammar
+            {assumptionGrammar,
+             axiomGrammar,
+             theoremGrammar,
+             showAxioms = _} = Summary.defaultGrammar
 
-val infoPreserveTheory = ref false;
+      val showAxioms = !infoShowAxioms
+    in
+      Summary.Grammar
+        {assumptionGrammar = assumptionGrammar,
+         axiomGrammar = axiomGrammar,
+         theoremGrammar = theoremGrammar,
+         showAxioms = showAxioms}
+    end;
 
 fun mkInfoOutput info = (info,NONE);
 
@@ -373,6 +392,9 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn f => fn s => setInfoOutputFilename f s)},
+       {switches = ["--show-axioms"], arguments = [],
+        description = "show the assumptions/axioms for each theorem",
+        processor = beginOpt endOpt (fn _ => infoShowAxioms := true)},
        {switches = ["--manual"], arguments = [],
         description = "do not also install required packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)},
@@ -1277,18 +1299,22 @@ local
   end;
 
   local
-    val cache : Summary.summary option option ref = ref NONE;
+    val cache : Thms.thms option option ref = ref NONE;
 
     fun compute () =
         case getArticle () of
-          SOME art =>
-          let
-            val ths = Article.thms art
+          SOME art => SOME (Article.thms art)
+        | NONE => NONE;
+  in
+    val getThms = getCached cache compute;
+  end;
 
-            val sum = Summary.fromThms ths
-          in
-            SOME sum
-          end
+  local
+    val cache : Summary.summary option option ref = ref NONE;
+
+    fun compute () =
+        case getThms () of
+          SOME ths => SOME (Summary.fromThms ths)
         | NONE => NONE;
   in
     val getSummary = getCached cache compute;
@@ -1409,6 +1435,8 @@ local
         end
       | SummaryInfo =>
         let
+          val grammar = infoSummaryGrammar ()
+
           val sum =
               case getSummary () of
                 SOME s => s
@@ -1421,7 +1449,7 @@ local
 
           val {filename} = file
         in
-          Summary.toTextFile
+          Summary.toTextFileWithGrammar grammar
             {show = show,
              summary = sum,
              filename = filename}

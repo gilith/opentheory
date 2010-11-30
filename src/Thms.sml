@@ -95,8 +95,10 @@ end;
 (* Searching for theorems.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun search (Thms {ths,...}) seq =
-    case ThmSet.peek ths (Thm.axiom seq) of
+fun peek (Thms {ths,...}) seq = ThmSet.peek ths (Thm.axiom seq);
+
+fun search ths seq =
+    case peek ths seq of
       NONE => NONE
     | SOME th => SOME (Rule.alpha seq th);
 

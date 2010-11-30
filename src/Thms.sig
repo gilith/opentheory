@@ -48,6 +48,8 @@ val unionList : thms list -> thms
 (* Searching for theorems.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
+val peek : thms -> Sequent.sequent -> Thm.thm option
+
 val search : thms -> Sequent.sequent -> Thm.thm option
 
 end

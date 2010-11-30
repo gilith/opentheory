@@ -9,6 +9,24 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* A type tracking assumptions/axioms of theorems.                           *)
+(* ------------------------------------------------------------------------- *)
+
+datatype axioms = Axioms of Sequent.sequent -> SequentSet.set;
+
+val noAxioms = Axioms (K SequentSet.empty);
+
+fun fromThmsAxioms ths =
+    let
+      fun get seq =
+          case Thms.peek ths seq of
+            SOME th => Thm.axioms th
+          | NONE => raise Bug "Summary.fromThmsAxioms.get"
+    in
+      Axioms get
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory summaries.                                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -17,15 +35,27 @@ datatype summary' =
       {requires : Sequents.sequents,
        provides : Sequents.sequents};
 
-type summary = summary'
+datatype summary =
+    Summary of
+      {summary' : summary',
+       axioms : axioms};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk sum : summary = sum;
+fun mk sum' =
+    let
+      val axioms = noAxioms
+    in
+      Summary
+        {summary' = sum',
+         axioms = axioms}
+    end;
 
-fun dest sum : summary' = sum;
+fun dest (Summary {summary' = x, ...}) = x;
+
+fun axioms (Summary {axioms = x, ...}) = x;
 
 fun requires' (Summary' {requires = x, ...}) = x;
 
@@ -44,8 +74,12 @@ fun fromThms ths =
           Summary'
             {requires = req,
              provides = prov}
+
+      val axioms = fromThmsAxioms ths
     in
-      mk sum'
+      Summary
+        {summary' = sum',
+         axioms = axioms}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -235,18 +269,21 @@ datatype grammar =
     Grammar of
       {assumptionGrammar : Sequent.grammar,
        axiomGrammar : Sequent.grammar,
-       theoremGrammar : Sequent.grammar};
+       theoremGrammar : Sequent.grammar,
+       showAxioms : bool};
 
 val defaultGrammar =
     let
       val assumptionGrammar = Sequent.defaultGrammar
       and axiomGrammar = Sequent.defaultGrammar
       and theoremGrammar = Sequent.defaultGrammar
+      and showAxioms = false
     in
       Grammar
         {assumptionGrammar = assumptionGrammar,
          axiomGrammar = axiomGrammar,
-         theoremGrammar = theoremGrammar}
+         theoremGrammar = theoremGrammar,
+         showAxioms = showAxioms}
     end;
 
 local
@@ -293,7 +330,7 @@ in
                 (ppList ppConst prefix "-consts" cs)
             end
       in
-        fn info =>
+        fn axs => fn info =>
            let
              val Info {input,assumed,defined,axioms,thms} = info
            in
@@ -309,48 +346,56 @@ in
       end;
 end;
 
-fun ppInfoWithGrammar grammar =
+fun ppWithGrammar grammar =
     let
       val Grammar
             {assumptionGrammar,
              axiomGrammar,
-             theoremGrammar} = grammar
+             theoremGrammar,
+             showAxioms} = grammar
 
       val ppAssumptionWS = Sequent.ppWithGrammar assumptionGrammar
 
       val ppAxiomWS = Sequent.ppWithGrammar axiomGrammar
 
       val ppTheoremWS = Sequent.ppWithGrammar theoremGrammar
-    in
-      ppInfoWithShow ppAssumptionWS ppAxiomWS ppTheoremWS
-    end;
 
-fun ppWithGrammar grammar =
-    let
-      val ppIWS = ppInfoWithGrammar grammar
+      val ppIWS = ppInfoWithShow ppAssumptionWS ppAxiomWS ppTheoremWS
     in
-      fn show => Print.ppMap toInfo (ppIWS show)
+      fn show =>
+         let
+           val ppI = ppIWS show
+         in
+           fn sum =>
+              let
+                val axs = if showAxioms then axioms sum else noAxioms
+
+                val info = toInfo sum
+              in
+                ppI axs info
+              end
+         end
     end;
 
 val ppWithShow = ppWithGrammar defaultGrammar;
 
-fun toTextFile {show,summary,filename} =
+val pp = ppWithShow Show.default;
+
+fun toTextFileWithGrammar grammar =
     let
-(*OpenTheoryTrace5
-      val () = trace "entering Summary.toTextFile\n"
-*)
-      val lines = Print.toStream (ppWithShow show) summary
-
-      val () = Stream.toTextFile {filename = filename} lines
-
-(*OpenTheoryTrace5
-      val () = trace "exiting Summary.toTextFile\n"
-*)
+      val ppWS = ppWithGrammar grammar
     in
-      ()
+      fn {show,summary,filename} =>
+         let
+           val lines = Print.toStream (ppWS show) summary
+
+           val () = Stream.toTextFile {filename = filename} lines
+         in
+           ()
+         end
     end;
 
-val pp = ppWithShow Show.default;
+val toTextFile = toTextFileWithGrammar defaultGrammar;
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)
@@ -399,11 +444,13 @@ val htmlGrammar =
       val assumptionGrammar = htmlGrammarSequent "assumption" "Assumption"
       and axiomGrammar = htmlGrammarSequent "axiom" "Axiom"
       and theoremGrammar = htmlGrammarSequent "theorem" "Theorem"
+      and showAxioms = false
     in
       Grammar
         {assumptionGrammar = assumptionGrammar,
          axiomGrammar = axiomGrammar,
-         theoremGrammar = theoremGrammar}
+         theoremGrammar = theoremGrammar,
+         showAxioms = showAxioms}
     end;
 
 fun toHtmlInfo toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS show =
@@ -509,7 +556,8 @@ fun toHtmlInfoWithGrammar grammar =
       val Grammar
             {assumptionGrammar,
              axiomGrammar,
-             theoremGrammar} = grammar
+             theoremGrammar,
+             showAxioms = _} = grammar
 
       val toHtmlAssumption = Sequent.toHtmlWithGrammar assumptionGrammar
 

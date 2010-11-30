@@ -420,9 +420,11 @@ fun import name =
 
       val ths = Article.thms art
 
+      val show = Show.default
+
       val sum = Summary.fromThms ths
 
-      val () = printer Summary.pp sum
+      val () = printer (Summary.ppWithShow show) sum
     in
       ()
     end;

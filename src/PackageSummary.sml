@@ -95,6 +95,8 @@ fun mkTitle src text seq =
 
 fun htmlGrammar req prov =
     let
+      val Summary.Grammar {showAxioms,...} = Summary.htmlGrammar
+
       val assumptionTitle = mkTitle req "Assumption made"
       and axiomTitle = mkTitle req "Axiom asserted"
       and theoremTitle = mkTitle prov "Theorem proved"
@@ -106,7 +108,8 @@ fun htmlGrammar req prov =
       Summary.Grammar
         {assumptionGrammar = assumptionGrammar,
          axiomGrammar = axiomGrammar,
-         theoremGrammar = theoremGrammar}
+         theoremGrammar = theoremGrammar,
+         showAxioms = showAxioms}
     end;
 
 fun toHtml show sum =

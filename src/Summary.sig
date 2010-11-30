@@ -63,7 +63,8 @@ datatype grammar =
     Grammar of
       {assumptionGrammar : Sequent.grammar,
        axiomGrammar : Sequent.grammar,
-       theoremGrammar : Sequent.grammar}
+       theoremGrammar : Sequent.grammar,
+       showAxioms : bool}
 
 val defaultGrammar : grammar
 
@@ -72,6 +73,12 @@ val ppWithGrammar : grammar -> Show.show -> summary Print.pp
 val ppWithShow : Show.show -> summary Print.pp
 
 val pp : summary Print.pp
+
+val toTextFileWithGrammar :
+    grammar ->
+    {show : Show.show,
+     summary : summary,
+     filename : string} -> unit
 
 val toTextFile :
     {show : Show.show,
