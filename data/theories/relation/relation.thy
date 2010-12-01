@@ -4,8 +4,8 @@ description: Definitions and theorems about relations
 author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
+show: "Data.Pair"
 show: "Number.Natural"
-show: "Number.Numeral"
 show: "Relation"
 
 transitive {

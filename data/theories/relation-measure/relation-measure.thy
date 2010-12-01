@@ -4,6 +4,7 @@ description: Definitions and theorems about natural number measures
 author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
+show: "Number.Natural"
 show: "Relation"
 
 def {

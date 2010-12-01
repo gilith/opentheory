@@ -4,6 +4,8 @@ description: Definitions and theorems about well-founded relations
 author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
+show: "Data.Pair"
+show: "Number.Natural"
 show: "Relation"
 
 def {
