@@ -9,6 +9,7 @@ show: "Data.Unit"
 show: "Function"
 show: "Number.Natural"
 show: "Number.Numeral"
+show: "Relation"
 
 bool {
   package: bool-1.0
@@ -37,6 +38,8 @@ natural {
 
 relation {
   import: bool
+  import: function
+  import: pair
   import: natural
   package: relation-1.0
 }

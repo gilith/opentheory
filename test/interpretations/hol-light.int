@@ -80,6 +80,11 @@ const "BIT0" as "Number.Numeral.bit0"
 const "BIT1" as "Number.Numeral.bit1"
 const "_0" as "Number.Numeral.zero"
 
+# Relation
+
+const "WF" as "Relation.wellFounded"
+const "MEASURE" as "Relation.measure"
+
 # Unwanted
 
 const "LET_END" as "Unwanted.id"
