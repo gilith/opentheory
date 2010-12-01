@@ -23,8 +23,6 @@ val fromStringMapping : string -> mapping
 
 type show
 
-val toList : show -> mapping list
-
 (* ------------------------------------------------------------------------- *)
 (* The empty mapping.                                                        *)
 (* ------------------------------------------------------------------------- *)
@@ -39,8 +37,6 @@ val add : show -> mapping -> show
 
 val addList : show -> mapping list -> show
 
-val fromList : mapping list -> show
-
 (* ------------------------------------------------------------------------- *)
 (* Mapping names.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -48,6 +44,14 @@ val fromList : mapping list -> show
 val showNamespace : show -> Namespace.namespace -> Namespace.namespace
 
 val showName : show -> Name.name -> Name.name
+
+(* ------------------------------------------------------------------------- *)
+(* Converting to/from mappings.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val toList : show -> mapping list
+
+val fromList : mapping list -> show
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty-printing.                                              *)

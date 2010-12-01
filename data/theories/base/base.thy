@@ -44,6 +44,27 @@ relation {
   package: relation-1.0
 }
 
+option {
+  import: bool
+  import: unit
+  import: function
+  import: pair
+  import: natural
+  import: relation
+  package: option-1.0
+}
+
+list {
+  import: bool
+  import: unit
+  import: function
+  import: pair
+  import: natural
+  import: relation
+  import: option
+  package: list-1.0
+}
+
 main {
   import: bool
   import: unit
@@ -51,4 +72,6 @@ main {
   import: pair
   import: natural
   import: relation
+  import: option
+  import: list
 }

@@ -86,28 +86,6 @@ datatype show =
       {subshows : show StringMap.map,
        rewrite : Namespace.namespace option};
 
-local
-  fun dumpRewrite acc ns rewrite =
-      case rewrite of
-        NONE => acc
-      | SOME rw => NamespaceMapping (Namespace.fromList (rev ns), rw) :: acc;
-
-  fun dumpShow acc ns show =
-      let
-        val Show {subshows,rewrite} = show
-
-        val acc = StringMap.foldr (dumpSubshow ns) acc subshows
-
-        val acc = dumpRewrite acc ns rewrite
-      in
-        acc
-      end
-
-  and dumpSubshow ns (n,show,acc) = dumpShow acc (n :: ns) show;
-in
-  val toList = dumpShow [] [];
-end;
-
 (* ------------------------------------------------------------------------- *)
 (* Subshows operations.                                                      *)
 (* ------------------------------------------------------------------------- *)
@@ -176,8 +154,6 @@ in
   val addList = List.foldl add1;
 end;
 
-val fromList = addList natural;
-
 (* ------------------------------------------------------------------------- *)
 (* Mapping names.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -220,6 +196,34 @@ fun showName show n =
         SOME ns => Name.mk (ns,s)
       | NONE => n
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Converting to/from mappings.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun dumpRewrite acc ns rewrite =
+      case rewrite of
+        NONE => acc
+      | SOME rw => NamespaceMapping (Namespace.fromList (rev ns), rw) :: acc;
+
+  fun dumpShow acc ns show =
+      let
+        val Show {subshows,rewrite} = show
+
+        val acc = StringMap.foldr (dumpSubshow ns) acc subshows
+
+        val acc = dumpRewrite acc ns rewrite
+      in
+        acc
+      end
+
+  and dumpSubshow ns (n,show,acc) = dumpShow acc (n :: ns) show;
+in
+  val toList = dumpShow [] [];
+end;
+
+val fromList = addList natural;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty-printing.                                              *)

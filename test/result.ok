@@ -77,6 +77,7 @@ const "I" as "Function.id"
 const "LET" as "Data.Bool.let"
 const "LET_END" as "Unwanted.id"
 const "MAX" as "Number.Natural.max"
+const "MEASURE" as "Relation.measure"
 const "MIN" as "Number.Natural.min"
 const "MOD" as "Number.Natural.mod"
 const "NUMERAL" as "Unwanted.id"
@@ -87,6 +88,7 @@ const "PRE" as "Number.Natural.pre"
 const "SND" as "Data.Pair.snd"
 const "SUC" as "Number.Natural.suc"
 const "T" as "Data.Bool.T"
+const "WF" as "Relation.wellFounded"
 const "\\/" as "Data.Bool.\\/"
 const "_0" as "Number.Numeral.zero"
 const "minimal" as "Number.Natural.minimal"
@@ -102,11 +104,11 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example2"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example3"
@@ -114,22 +116,22 @@ User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example4"
-User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "bool-def-true"
 WARNING: 19 objects left in the dictionary by articles/hol-light/bool-def-true.art
-User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-int-true"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-int-true.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.003  System: 0.000  GC: 0.000  Real: 0.004
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 --------------------------------------------------------------------------

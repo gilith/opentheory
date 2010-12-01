@@ -197,6 +197,8 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation-well-founded/relation-well-founded.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation-measure/relation-measure.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation/relation.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/option/option.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list/list.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
 
 .PHONY: reset-repo

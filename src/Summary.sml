@@ -224,6 +224,32 @@ end;
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
+fun checkShow seqs =
+    let
+      fun add (c,acc) = NameSet.add acc (Const.name c)
+
+      val cs = SequentSet.consts seqs
+
+      val ns = ConstSet.foldl add NameSet.empty cs
+
+      fun changed sh n =
+          let
+            val n' = Show.showName sh n
+          in
+            not (Name.equal n' n)
+          end
+
+      fun chk mp =
+          let
+            val sh = Show.fromList [mp]
+          in
+            if NameSet.exists (changed sh) ns then ()
+            else warn ("redundant show: " ^ Show.toStringMapping mp)
+          end
+    in
+      fn show => List.app chk (Show.toList show)
+    end;
+
 fun checkSequent show class seq =
     let
       val err =
@@ -259,6 +285,8 @@ fun checkSequent show class seq =
 fun checkInfo show info =
     let
       val Info {assumed,axioms,thms,...} = info
+
+      val () = checkShow thms show
 
       val () = SequentSet.app (checkSequent show "assumption") assumed
 
