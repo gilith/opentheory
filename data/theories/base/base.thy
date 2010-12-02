@@ -4,7 +4,10 @@ description: Basic theories
 author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
+show: "Data.List"
+show: "Data.Option"
 show: "Data.Pair"
+show: "Data.Sum"
 show: "Data.Unit"
 show: "Function"
 show: "Number.Natural"
@@ -46,34 +49,20 @@ relation {
 
 sum {
   import: bool
-  import: unit
-  import: function
   import: pair
   import: natural
-  import: relation
   package: sum-1.0
 }
 
 option {
   import: bool
-  import: unit
-  import: function
-  import: pair
   import: natural
-  import: relation
-  import: sum
   package: option-1.0
 }
 
 list {
   import: bool
-  import: unit
-  import: function
-  import: pair
   import: natural
-  import: relation
-  import: sum
-  import: option
   package: list-1.0
 }
 

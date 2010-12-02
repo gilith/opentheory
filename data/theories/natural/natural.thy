@@ -4,7 +4,7 @@ description: Basic theory of natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"
-show: "Data.Function"
+show: "Function"
 show: "Number.Natural"
 show: "Number.Numeral"
 

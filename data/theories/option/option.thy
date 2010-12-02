@@ -4,7 +4,6 @@ description: Basic theory of option types
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"
-show: "Data.Function"
 show: "Data.Option"
 show: "Number.Natural"
 show: "Number.Numeral"

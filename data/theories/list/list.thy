@@ -4,9 +4,7 @@ description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"
-show: "Data.Function"
 show: "Data.List"
-show: "Data.Option"
 show: "Number.Natural"
 show: "Number.Numeral"
 
