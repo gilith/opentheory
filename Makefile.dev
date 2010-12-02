@@ -18,9 +18,8 @@ TEMP += \
 # The ML preprocessor.
 ###############################################################################
 
-#MLPP_OPTS += -r 'OpenTheoryDebug'
+MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
-MLPP_OPTS += -r 'OpenTheoryDebug|OpenTheoryTrace[0-1]'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-1]'
 
 ###############################################################################

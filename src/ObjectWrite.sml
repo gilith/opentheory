@@ -36,11 +36,22 @@ datatype minDict =
 
 local
   fun registerGenerated (ob,refs) =
-      if ObjectMap.inDomain ob refs then refs
-      else ObjectMap.insert refs (ob,0);
+      let
+(*OpenTheoryTrace5
+        val () = Print.trace Object.pp
+                   "ObjectWrite.registerGenerated: ob" ob
+*)
+      in
+        if ObjectMap.inDomain ob refs then refs
+        else ObjectMap.insert refs (ob,0)
+      end;
 
   fun registerReference (ob,refs) =
       let
+(*OpenTheoryTrace5
+        val () = Print.trace Object.pp
+                   "ObjectWrite.registerReference: ob" ob
+*)
         val k = Option.getOpt (ObjectMap.peek refs ob, 0)
       in
         ObjectMap.insert refs (ob, k + 1)
@@ -53,6 +64,10 @@ local
 
   and registerDefault' (ob,refs) =
       let
+(*OpenTheoryTrace5
+        val () = Print.trace Object.pp
+                   "ObjectWrite.registerDefault': ob" ob
+*)
         val (_,args) = Object.command ob
 
         val refs = List.foldl registerDefault refs args
@@ -60,14 +75,12 @@ local
         registerGenerated (ob,refs)
       end;
 
-  stop;
-
   fun registerSpecial (obj,refs) =
       let
 (*OpenTheoryTrace5
+        val () = Print.trace ObjectProv.pp
+                   "ObjectWrite.registerSpecial: obj" obj
 *)
-          val () = Print.trace ObjectProv.pp
-                     "ObjectWrite.registerSpecial: obj" obj
         val ob = ObjectProv.object obj
       in
         if not (storableObject ob) then refs
@@ -81,6 +94,10 @@ local
                result = res,
                ...} =>
             let
+(*OpenTheoryTrace5
+              val () = Print.trace (Print.ppList ObjectProv.pp)
+                        "ObjectWrite.registerSpecial: args" args
+*)
               val refs = List.foldl registerSpecial refs args
 
               val refs = List.foldl registerGenerated refs gen
@@ -95,8 +112,16 @@ local
       let
         val (h,c) = Object.mkSequent (Thm.sequent th)
 
+(*OpenTheoryTrace5
+        val () = Print.trace ObjectProv.pp
+                   "ObjectWrite.registerThm: obj" obj
+*)
         val refs = registerSpecial (obj,refs)
 
+(*OpenTheoryTrace5
+        val () = Print.trace (Print.ppPair Object.pp Object.pp)
+                   "ObjectWrite.registerThm: (h,c)" (h,c)
+*)
         val refs = List.foldl registerDefault refs [h,c]
       in
         refs
@@ -353,7 +378,7 @@ in
         end
       | task :: work =>
         let
-(*OpenTheoryTrace1
+(*OpenTheoryTrace5
           val () = Print.trace ppTask
                      "ObjectWrite.generateMinDict: task" task
 *)
@@ -375,18 +400,17 @@ local
 in
   fun toCommandStream exp =
       let
-(*OpenTheoryTrace1
+(*OpenTheoryTrace4
         val () = Print.trace ObjectExport.pp
                    "ObjectWrite.toCommandStream: exp" exp
 *)
         val dict = newMinDict exp
         and work = map ExpTask (ObjectExport.toList exp)
 
-(*OpenTheoryTrace1
+(*OpenTheoryTrace4
         val () = Print.trace (Print.ppList ppTask)
                    "ObjectWrite.toCommandStream: work" work
 *)
-
         val strm = generateStream (dict,work) ()
       in
         Stream.listConcat strm

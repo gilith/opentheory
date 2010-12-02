@@ -393,7 +393,7 @@ local
           Print.blockProgram Print.Inconsistent 0
             [(case xs of
                 [] => Print.skip
-              | [x] => Print.sequence (basic ty) (Print.addBreak 1)
+              | [x] => Print.sequence (basic x) (Print.addBreak 1)
               | _ =>
                 Print.sequence
                   (Print.ppBracket "(" ")" (Print.ppOpList "," ppTypeTop) xs)
