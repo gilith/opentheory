@@ -141,4 +141,10 @@ fun compress exp =
       compressRefs refs exp
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp = Print.ppMap size (Print.ppBracket "export{" "}" Print.ppInt);
+
 end

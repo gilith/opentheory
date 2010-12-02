@@ -960,6 +960,17 @@ fun installPackage name =
 
       val errs = Directory.checkStagePackage dir repo name chk
 
+      val errs =
+          if not (!reinstall) then errs
+          else
+            let
+              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+              val () = if staged then Directory.cleanupStaged dir name else ()
+            in
+              errs
+            end
+
       val (replace,errs) =
           if not (!reinstall) then (false,errs)
           else DirectoryError.removeAlreadyInstalled errs
@@ -1014,6 +1025,17 @@ fun installTarball tarFile =
 
       val errs = Directory.checkStageTarball dir contents
 
+      val errs =
+          if not (!reinstall) then errs
+          else
+            let
+              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+              val () = if staged then Directory.cleanupStaged dir name else ()
+            in
+              errs
+            end
+
       val (replace,errs) =
           if not (!reinstall) then (false,errs)
           else DirectoryError.removeAlreadyInstalled errs
@@ -1067,6 +1089,17 @@ fun installTheory filename =
           end
 
       val errs = Directory.checkStageTheory dir name pkg
+
+      val errs =
+          if not (!reinstall) then errs
+          else
+            let
+              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+              val () = if staged then Directory.cleanupStaged dir name else ()
+            in
+              errs
+            end
 
       val (replace,errs) =
           if not (!reinstall) then (false,errs)

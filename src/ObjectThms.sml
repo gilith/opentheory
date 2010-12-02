@@ -97,8 +97,12 @@ fun toExport ths =
           case peekThm ths (Thm.sequent th) of
             SOME obj => ObjectExport.insert exp (obj,th)
           | NONE => raise Bug "ObjectThms.toExport.add: vanishing sequent"
+
+      val exp = ObjectExport.empty
+
+      val exp = ThmSet.foldl add exp (Thms.thms (thms ths))
     in
-      ThmSet.foldl add ObjectExport.empty (Thms.thms (thms ths))
+      ObjectExport.compress exp
     end;
 
 local

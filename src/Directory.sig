@@ -132,6 +132,12 @@ val stageTheory :
 val installStaged : directory -> PackageName.name -> Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
+(* Cleaning up staged packages.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val cleanupStaged : directory -> PackageName.name -> unit
+
+(* ------------------------------------------------------------------------- *)
 (* Uninstalling packages from the package directory.                         *)
 (* ------------------------------------------------------------------------- *)
 

@@ -31,66 +31,64 @@ fun ageFilename {filename} =
 (* Clean up the package staging area.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun delInfo info =
-      let
-        val () = PackageInfo.nukeDirectory info
+fun nukeStaged info =
+    let
+      val () = PackageInfo.nukeDirectory info
 
 (*OpenTheoryTrace1
-        val () = trace ("nuked old package " ^
-                        PackageName.toString (PackageInfo.name info) ^
-                        " in staging area\n")
+      val () = trace ("nuked old package " ^
+                      PackageName.toString (PackageInfo.name info) ^
+                      " in staging area\n")
 *)
-      in
-        ()
-      end;
-in
-  fun checkStagingPackagesDirectory cfg {directory = dir} =
-      let
-        val dirStrm = OS.FileSys.openDir dir
+    in
+      ()
+    end;
 
-        fun readAll dels =
-            case OS.FileSys.readDir dirStrm of
-              NONE => dels
-            | SOME file =>
-              let
-                val name = PackageName.fromString file
+fun checkStagingPackagesDirectory cfg {directory = dir} =
+    let
+      val dirStrm = OS.FileSys.openDir dir
 
-                val directory = OS.Path.joinDirFile {dir = dir, file = file}
+      fun readAll dels =
+          case OS.FileSys.readDir dirStrm of
+            NONE => dels
+          | SOME file =>
+            let
+              val name = PackageName.fromString file
 
-                val age = ageFilename {filename = directory}
+              val directory = OS.Path.joinDirFile {dir = dir, file = file}
 
-                val threshold =
-                    DirectoryConfig.cleanupInstall
-                      (DirectoryConfig.install cfg)
+              val age = ageFilename {filename = directory}
 
-                val dels =
-                    if Time.<= (age,threshold) then dels
-                    else
-                      let
-                        val sys = DirectoryConfig.system cfg
+              val threshold =
+                  DirectoryConfig.cleanupInstall
+                    (DirectoryConfig.install cfg)
 
-                        val info =
-                            PackageInfo.mk
-                              {system = sys,
-                               name = name,
-                               directory = directory}
-                      in
-                        info :: dels
-                      end
-              in
-                readAll dels
-              end
+              val dels =
+                  if Time.<= (age,threshold) then dels
+                  else
+                    let
+                      val sys = DirectoryConfig.system cfg
 
-        val dels = readAll []
+                      val info =
+                          PackageInfo.mk
+                            {system = sys,
+                             name = name,
+                             directory = directory}
+                    in
+                      info :: dels
+                    end
+            in
+              readAll dels
+            end
 
-        val () = OS.FileSys.closeDir dirStrm
+      val dels = readAll []
 
-        val () = List.app delInfo dels
-      in
-        ()
-      end;
-end;
+      val () = OS.FileSys.closeDir dirStrm
+
+      val () = List.app nukeStaged dels
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Clean up the repo package lists.                                          *)
@@ -518,6 +516,14 @@ fun checkStagePackage dir repo name chk =
         val errs = []
 
         val errs =
+            let
+              val stageInfo = stagingPackageInfo dir name
+            in
+              if not (PackageInfo.existsDirectory stageInfo) then errs
+              else DirectoryError.AlreadyStaged name :: errs
+            end
+
+        val errs =
             case DirectoryRepo.peek repo name of
               NONE =>
               let
@@ -585,7 +591,20 @@ fun checkStageTarball dir contents =
       val PackageTarball.Contents {name,...} = contents
     in
       if member name dir then [DirectoryError.AlreadyInstalled name]
-      else []
+      else
+        let
+          val errs = []
+
+          val errs =
+              let
+                val stageInfo = stagingPackageInfo dir name
+              in
+                if not (PackageInfo.existsDirectory stageInfo) then errs
+                else DirectoryError.AlreadyStaged name :: errs
+              end
+        in
+          errs
+        end
     end;
 
 fun stageTarball dir fndr tarFile contents minimal =
@@ -742,6 +761,14 @@ in
             if not (member name dir) then errs
             else DirectoryError.AlreadyInstalled name :: errs
 
+        val errs =
+            let
+              val stageInfo = stagingPackageInfo dir name
+            in
+              if not (PackageInfo.existsDirectory stageInfo) then errs
+              else DirectoryError.AlreadyStaged name :: errs
+            end
+
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
         val info = packageInfo dir name
@@ -771,6 +798,12 @@ local
           let
             val srcFilename = OS.Path.concat (srcDir,filename)
 
+(*OpenTheoryTrace1
+            val () =
+                Print.trace Print.ppString
+                  "Directory.stageTheory.copyArticle: srcFilename" srcFilename
+*)
+
             val art =
                 Article.fromTextFile
                   {savable = true,
@@ -783,6 +816,12 @@ local
 
             val {filename = destFilename} =
                 PackageInfo.joinDirectory info {filename = pkgFilename}
+
+(*OpenTheoryTrace1
+            val () =
+                Print.trace Print.ppString
+                  "Directory.stageTheory.copyArticle: destFilename" destFilename
+*)
 
             val () =
                 Article.toTextFile
@@ -808,6 +847,12 @@ local
       | SOME extra =>
         let
           val {filename = srcFilename} = Package.filenameExtraFile extra
+
+(*OpenTheoryTrace1
+          val () =
+              Print.trace Print.ppString
+                "Directory.stageTheory.copyExtraFile: srcFilename" srcFilename
+*)
 
           val srcFilename = OS.Path.concat (srcDir,srcFilename)
 
@@ -853,6 +898,10 @@ local
 
   fun checkTheory dir info pkg =
       let
+(*OpenTheoryTrace1
+        val () = trace "Directory.stageTheory.checkTheory\n"
+*)
+
         val Package.Package' {tags,theories} = Package.dest pkg
 
         val impt = importer dir
@@ -869,6 +918,19 @@ local
         val theories = Dagify.theories thys
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
+      end;
+
+  fun writeTheoryFile stageInfo pkg =
+      let
+(*OpenTheoryTrace1
+        val () = trace "Directory.stageTheory.writeTheoryFile\n"
+*)
+
+        val file = PackageInfo.theoryFile stageInfo
+
+        val {filename} = PackageInfo.joinDirectory stageInfo file
+      in
+        Package.toTextFile {package = pkg, filename = filename}
       end;
 in
   fun stageTheory dir name pkg {directory = srcDir} =
@@ -904,14 +966,7 @@ in
 
           (* Write the new theory file *)
 
-          val () =
-              let
-                val file = PackageInfo.theoryFile stageInfo
-
-                val {filename} = PackageInfo.joinDirectory stageInfo file
-              in
-                Package.toTextFile {package = pkg, filename = filename}
-              end
+          val () = writeTheoryFile stageInfo pkg
 
           (* Create the tarball *)
 
@@ -973,6 +1028,17 @@ fun installStaged dir name chk =
         in
           raise e
         end
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Cleaning up staged packages.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun cleanupStaged dir name =
+    let
+      val stageInfo = stagingPackageInfo dir name
+    in
+      nukeStaged stageInfo
     end;
 
 (* ------------------------------------------------------------------------- *)

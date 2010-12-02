@@ -237,6 +237,7 @@ in
                   else
                     Print.blockProgram Print.Inconsistent 0
                       [ppHypSet hyp,
+                       Print.addBreak 1,
                        ppConnectiveConcl]
                 end
            end

@@ -15,6 +15,7 @@ datatype error =
   | AncestorWrongChecksumOnRepo of PackageName.name * DirectoryRepo.name
   | AlreadyInstalled of PackageName.name
   | AlreadyOnRepo of PackageName.name * DirectoryRepo.name
+  | AlreadyStaged of PackageName.name
   | FilenameClash of
       {srcs : {name : string, filename : string option} list,
        dest : {filename : string}}
@@ -35,6 +36,14 @@ val destAlreadyInstalled : error -> PackageName.name option
 val isAlreadyInstalled : error -> bool
 
 val removeAlreadyInstalled : error list -> bool * error list
+
+(* AlreadyStaged *)
+
+val destAlreadyStaged : error -> PackageName.name option
+
+val isAlreadyStaged : error -> bool
+
+val removeAlreadyStaged : error list -> bool * error list
 
 (* InstalledDescendent *)
 

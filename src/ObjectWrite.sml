@@ -60,8 +60,14 @@ local
         registerGenerated (ob,refs)
       end;
 
+  stop;
+
   fun registerSpecial (obj,refs) =
       let
+(*OpenTheoryTrace5
+*)
+          val () = Print.trace ObjectProv.pp
+                     "ObjectWrite.registerSpecial: obj" obj
         val ob = ObjectProv.object obj
       in
         if not (storableObject ob) then refs
@@ -125,6 +131,14 @@ datatype task =
   | ObTask of Object.object
   | GenTask of Object.object list * int
   | CmdTask of Command.command;
+
+fun ppTask task =
+    case task of
+      ExpTask _ => Print.ppString "ExpTask"
+    | ObjTask _ => Print.ppString "ObjTask"
+    | ObTask _ => Print.ppString "ObTask"
+    | GenTask _ => Print.ppString "GenTask"
+    | CmdTask _ => Print.ppString "CmdTask";
 
 local
   fun addKey cmds dict ob =
@@ -218,6 +232,108 @@ local
 (*OpenTheoryDebug
         handle Error err => raise Error ("useKey: " ^ err);
 *)
+
+  fun generateTask dict task work =
+      case task of
+        ExpTask (obj,th) =>
+        let
+          val (h,c) = Object.mkSequent (Thm.sequent th)
+
+          val work =
+              ObjTask obj ::
+              ObTask h ::
+              ObTask c ::
+              CmdTask Command.Thm ::
+              work
+        in
+          ([],dict,work)
+        end
+      | ObjTask obj =>
+        let
+          val ob = ObjectProv.object obj
+        in
+          case useKey dict ob of
+            SOME (cmds,dict) => (cmds,dict,work)
+          | NONE =>
+            case ObjectProv.provenance obj of
+              ObjectProv.Default =>
+              let
+                val (cmd,args) = Object.command ob
+                and gen = [ob]
+                and res = 0
+
+                val work =
+                    map ObTask args @
+                    CmdTask cmd ::
+                    GenTask (gen,res) ::
+                    work
+              in
+                ([],dict,work)
+              end
+            | ObjectProv.Special
+                {command = cmd,
+                 arguments = args,
+                 generated = gen,
+                 result = res} =>
+              let
+                val work =
+                    map ObjTask args @
+                    CmdTask cmd ::
+                    GenTask (gen,res) ::
+                    work
+              in
+                ([],dict,work)
+              end
+        end
+      | ObTask ob =>
+        (case useKey dict ob of
+           SOME (cmds,dict) => (cmds,dict,work)
+         | NONE =>
+           let
+             val (cmd,args) = Object.command ob
+             and gen = [ob]
+             and res = 0
+
+             val work =
+                 map ObTask args @
+                 CmdTask cmd ::
+                 GenTask (gen,res) ::
+                 work
+           in
+             ([],dict,work)
+           end)
+      | GenTask (gen,res) =>
+        if res = 0 then
+          let
+            val (ob,gen) = hdTl gen
+
+            val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
+
+            val (cmds,dict) = addKey cmds dict ob
+
+            val cmds = rev cmds
+          in
+            (cmds,dict,work)
+          end
+        else
+          let
+            val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
+
+            val (cmds',dict) =
+                case useKey dict (List.nth (gen,res)) of
+                  SOME cmds_dict => cmds_dict
+                | NONE => raise Error "vanishing object"
+
+            val cmds = List.revAppend (cmds,cmds')
+          in
+            (cmds,dict,work)
+          end
+      | CmdTask cmd =>
+        let
+          val cmds = [cmd]
+        in
+          (cmds,dict,work)
+        end;
 in
   fun generateMinDict (dict,work) =
       case work of
@@ -236,106 +352,15 @@ in
           NONE
         end
       | task :: work =>
-        case task of
-          ExpTask (obj,th) =>
-          let
-            val (h,c) = Object.mkSequent (Thm.sequent th)
-
-            val work =
-                ObjTask obj ::
-                ObTask h ::
-                ObTask c ::
-                CmdTask Command.Thm ::
-                work
-          in
-            SOME ([],(dict,work))
-          end
-        | ObjTask obj =>
-          let
-            val ob = ObjectProv.object obj
-          in
-            case useKey dict ob of
-              SOME (cmds,dict) => SOME (cmds,(dict,work))
-            | NONE =>
-              case ObjectProv.provenance obj of
-                ObjectProv.Default =>
-                let
-                  val (cmd,args) = Object.command ob
-                  and gen = [ob]
-                  and res = 0
-
-                  val work =
-                      map ObTask args @
-                      CmdTask cmd ::
-                      GenTask (gen,res) ::
-                      work
-                in
-                  SOME ([],(dict,work))
-                end
-              | ObjectProv.Special
-                  {command = cmd,
-                   arguments = args,
-                   generated = gen,
-                   result = res} =>
-                let
-                  val work =
-                      map ObjTask args @
-                      CmdTask cmd ::
-                      GenTask (gen,res) ::
-                      work
-                in
-                  SOME ([],(dict,work))
-                end
-          end
-        | ObTask ob =>
-          (case useKey dict ob of
-             SOME (cmds,dict) => SOME (cmds,(dict,work))
-           | NONE =>
-             let
-               val (cmd,args) = Object.command ob
-               and gen = [ob]
-               and res = 0
-
-               val work =
-                   map ObTask args @
-                   CmdTask cmd ::
-                   GenTask (gen,res) ::
-                   work
-             in
-               SOME ([],(dict,work))
-             end)
-        | GenTask (gen,res) =>
-          if res = 0 then
-            let
-              val (ob,gen) = hdTl gen
-
-              val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
-
-              val (cmds,dict) = addKey cmds dict ob
-
-              val cmds = rev cmds
-            in
-              SOME (cmds,(dict,work))
-            end
-          else
-            let
-              val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
-
-              val (cmds',dict) =
-                  case useKey dict (List.nth (gen,res)) of
-                    SOME cmds_dict => cmds_dict
-                  | NONE => raise Error "vanishing object"
-
-              val cmds = List.revAppend (cmds,cmds')
-            in
-              SOME (cmds,(dict,work))
-            end
-        | CmdTask cmd =>
-          let
-            val cmds = [cmd]
-          in
-            SOME (cmds,(dict,work))
-          end;
+        let
+(*OpenTheoryTrace1
+          val () = Print.trace ppTask
+                     "ObjectWrite.generateMinDict: task" task
+*)
+          val (cmds,dict,work) = generateTask dict task work
+        in
+          SOME (cmds,(dict,work))
+        end
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -350,8 +375,17 @@ local
 in
   fun toCommandStream exp =
       let
+(*OpenTheoryTrace1
+        val () = Print.trace ObjectExport.pp
+                   "ObjectWrite.toCommandStream: exp" exp
+*)
         val dict = newMinDict exp
         and work = map ExpTask (ObjectExport.toList exp)
+
+(*OpenTheoryTrace1
+        val () = Print.trace (Print.ppList ppTask)
+                   "ObjectWrite.toCommandStream: work" work
+*)
 
         val strm = generateStream (dict,work) ()
       in

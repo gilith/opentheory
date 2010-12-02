@@ -17,6 +17,7 @@ datatype error =
   | AncestorWrongChecksumOnRepo of PackageName.name * DirectoryRepo.name
   | AlreadyInstalled of PackageName.name
   | AlreadyOnRepo of PackageName.name * DirectoryRepo.name
+  | AlreadyStaged of PackageName.name
   | FilenameClash of
       {srcs : {name : string, filename : string option} list,
        dest : {filename : string}}
@@ -41,6 +42,23 @@ fun isAlreadyInstalled err =
 fun removeAlreadyInstalled errs =
     let
       val (xs,errs) = List.partition isAlreadyInstalled errs
+
+      val removed = not (null xs)
+    in
+      (removed,errs)
+    end;
+
+fun destAlreadyStaged err =
+    case err of
+      AlreadyStaged n => SOME n
+    | _ => NONE;
+
+fun isAlreadyStaged err =
+    Option.isSome (destAlreadyStaged err);
+
+fun removeAlreadyStaged errs =
+    let
+      val (xs,errs) = List.partition isAlreadyStaged errs
 
       val removed = not (null xs)
     in
@@ -93,6 +111,7 @@ fun isFatal err =
     | AncestorWrongChecksumOnRepo _ => true
     | AlreadyInstalled _ => true
     | AlreadyOnRepo _ => true
+    | AlreadyStaged _ => true
     | FilenameClash _ => true
     | InstalledDescendent _ => true
     | NotInstalled _ => true
@@ -115,11 +134,14 @@ fun toString err =
      | AncestorWrongChecksumOnRepo (name,repo) =>
        "depends on package " ^ PackageName.toString name ^
        " which has different checksum on " ^ repo ^ " repo"
+     | AlreadyInstalled name =>
+       "package " ^ PackageName.toString name ^ " is already installed"
      | AlreadyOnRepo (name,repo) =>
        "package " ^ PackageName.toString name ^
        " already exists on " ^ repo ^ " repo"
-     | AlreadyInstalled name =>
-       "package " ^ PackageName.toString name ^ " is already installed"
+     | AlreadyStaged name =>
+       "package " ^ PackageName.toString name ^
+       " is already staged for installation"
      | FilenameClash {srcs,dest} =>
        let
          fun toStringSrc {name,filename} =

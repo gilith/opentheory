@@ -36,4 +36,10 @@ val toList : export -> (ObjectProv.object * Thm.thm) list
 
 val compress : export -> export
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : export Print.pp
+
 end

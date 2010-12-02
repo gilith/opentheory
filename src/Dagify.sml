@@ -89,7 +89,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
     let
       val PackageTheory.Theory {name,imports,...} = theory
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace PackageTheory.ppName "Dagify.addDefinitions.name" name
 *)
 
@@ -146,7 +146,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
 
           val dmap = PackageBaseMap.insert dmap (name,defs')
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
           val () = Print.trace Symbol.pp "Dagify.addDefinitions.defs'" defs'
 *)
         in
@@ -188,7 +188,7 @@ fun addSummary vanilla definitions (theory,summary) =
       val PackageTheory.Theory {name,imports,...} = theory
       and Summary smap = summary
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace PackageTheory.ppName "Dagify.addSummary.name" name
 *)
 
@@ -214,7 +214,7 @@ fun addSummary vanilla definitions (theory,summary) =
 
               val idefs = getListDefinitions definitions imports
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
               val () = Print.trace Symbol.pp "Dagify.addSummary.idefs" idefs
 *)
 
@@ -223,7 +223,7 @@ fun addSummary vanilla definitions (theory,summary) =
               Option.getOpt (Summary.rewrite rewr sum, sum)
             end
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace Summary.pp "Dagify.addSummary.sum" sum
 *)
     in
@@ -473,7 +473,7 @@ fun addVisible vanilla definitions (theory,visible) =
       val PackageTheory.Theory {name,imports,...} = theory
       and Visible vmap = visible
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace PackageTheory.ppName "Dagify.addVisible.name" name
 *)
 
@@ -574,7 +574,7 @@ fun addTheoryGenerate vanilla (theory,generate) =
     let
       val PackageTheory.Theory {name,imports,...} = theory
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace PackageTheory.ppName "Dagify.addGenerate.name" name
 *)
     in
@@ -599,8 +599,8 @@ fun addTheoryGenerate vanilla (theory,generate) =
 
           val (graph,main,_) = getVanilla vanilla name
 
-(*OpenTheoryTrace3
-          val () = Print.trace pp "Dagify.addGenerate.graph" graph
+(*OpenTheoryTrace2
+          val () = Print.trace Graph.pp "Dagify.addGenerate.graph" graph
 *)
 
           val primThys = Graph.primitives main
@@ -609,7 +609,7 @@ fun addTheoryGenerate vanilla (theory,generate) =
               let
                 val nt = mkNT thy
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
                 val () = Print.trace NameTheory.pp
                            "Dagify.addGenerate.addThy.nt" nt
 *)
@@ -641,7 +641,7 @@ fun fromTheoryListGenerate vanilla theories =
       val generate =
           List.foldl (addTheoryGenerate vanilla) emptyGenerate theories
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace ppGenerate
                  "Dagify.fromTheoryListGenerate.generate" generate
 *)
@@ -717,7 +717,7 @@ fun addTheoryDependency vanilla definitions visible generate
     let
       val PackageTheory.Theory {name,imports,...} = theory
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace PackageTheory.ppName "Dagify.addDependency.name" name
 *)
     in
@@ -750,7 +750,7 @@ fun addTheoryDependency vanilla definitions visible generate
               let
                 val nt = mkNT thy
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
                 val () = Print.trace NameTheory.pp
                            "Dagify.addDependency.addVisThy.nt" nt
 *)
@@ -874,7 +874,7 @@ fun addTheoryDependency vanilla definitions visible generate
               let
                 val nt = mkNT thy
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
                 val () = Print.trace NameTheory.pp
                            "Dagify.addDependency.addGenThy.nt" nt
 *)
@@ -890,8 +890,8 @@ fun addTheoryDependency vanilla definitions visible generate
 
           val (graph,_,_) = getVanilla vanilla name
 
-(*OpenTheoryTrace3
-          val () = Print.trace pp "Dagify.addDependency.graph" graph
+(*OpenTheoryTrace2
+          val () = Print.trace Graph.pp "Dagify.addDependency.graph" graph
 *)
 
           val rewr = Symbol.inst (getListDefinitions definitions imports)
@@ -915,7 +915,7 @@ fun fromTheoryListDependency vanilla definitions visible generate theories =
             (addTheoryDependency vanilla definitions visible generate)
             emptyDependency theories
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () = Print.trace ppDependency
                  "Dagify.fromTheoryListDependency.dependency" dependency
 *)
@@ -956,7 +956,7 @@ in
       let
         val dependency' = fixedPoint dependency
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
         val () = Print.trace ppDependency
                    "Dagify.transitiveClosureDependency.dependency" dependency'
 *)
@@ -1296,7 +1296,7 @@ in
 
         val plan = mkPlan expanded exported plan
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
         val () = Print.trace ppPlan "Dagify.fromTheoryListPlan.plan" plan
 *)
       in
@@ -1465,7 +1465,7 @@ fun unwind theoryInfo =
 
       val theories = toTheoryListPlan vanilla generate dependency plan
 
-(*OpenTheoryTrace3
+(*OpenTheoryTrace2
       val () =
           Print.trace PackageTheory.ppList "Dagify.unwind.theories" theories
 *)
