@@ -286,7 +286,9 @@ fun checkInfo show info =
     let
       val Info {assumed,axioms,thms,...} = info
 
-      val () = checkShow thms show
+      val seqs = SequentSet.unionList [assumed,axioms,thms]
+
+      val () = checkShow seqs show
 
       val () = SequentSet.app (checkSequent show "assumption") assumed
 

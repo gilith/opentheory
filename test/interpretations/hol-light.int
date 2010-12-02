@@ -28,6 +28,20 @@ const "@" as "Data.Bool.select"
 const "GABS" as "Data.Bool.select"
 const "T" as "Data.Bool.T"
 
+# Data.List
+
+type "list" as "Data.List.list"
+
+const "CONS" as "Data.List.::"
+const "NIL" as "Data.List.[]"
+
+# Data.Option
+
+type "option" as "Data.Option.option"
+
+const "NONE" as "Data.Option.none"
+const "SOME" as "Data.Option.some"
+
 # Data.Pair
 
 type "prod" as "Data.Pair.*"
@@ -35,6 +49,15 @@ type "prod" as "Data.Pair.*"
 const "," as "Data.Pair.,"
 const "FST" as "Data.Pair.fst"
 const "SND" as "Data.Pair.snd"
+
+# Data.Sum
+
+type "sum" as "Data.Sum.+"
+
+const "OUTL" as "Data.Sum.destLeft"
+const "OUTR" as "Data.Sum.destRight"
+const "INL" as "Data.Sum.left"
+const "INR" as "Data.Sum.right"
 
 # Data.Unit
 
