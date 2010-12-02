@@ -44,6 +44,16 @@ relation {
   package: relation-1.0
 }
 
+sum {
+  import: bool
+  import: unit
+  import: function
+  import: pair
+  import: natural
+  import: relation
+  package: sum-1.0
+}
+
 option {
   import: bool
   import: unit
@@ -51,6 +61,7 @@ option {
   import: pair
   import: natural
   import: relation
+  import: sum
   package: option-1.0
 }
 
@@ -61,6 +72,7 @@ list {
   import: pair
   import: natural
   import: relation
+  import: sum
   import: option
   package: list-1.0
 }
@@ -72,6 +84,7 @@ main {
   import: pair
   import: natural
   import: relation
+  import: sum
   import: option
   import: list
 }
