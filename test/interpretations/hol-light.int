@@ -4,111 +4,126 @@
 
 # Global
 
-type "bool" as "bool"
-type "fun" as "->"
-type "ind" as "ind"
-const "=" as "="
-const "GEQ" as "="
+type "HOLLight.bool" as "bool"
+type "HOLLight.fun" as "->"
+type "HOLLight.ind" as "ind"
+const "HOLLight.=" as "="
+const "HOLLight.GEQ" as "="
 
 # Data
 
 # Data.Bool
 
-const "!" as "Data.Bool.!"
-const "/\\" as "Data.Bool./\\"
-const "==>" as "Data.Bool.==>"
-const "?" as "Data.Bool.?"
-const "?!" as "Data.Bool.?!"
-const "\\/" as "Data.Bool.\\/"
-const "~" as "Data.Bool.~"
-const "COND" as "Data.Bool.cond"
-const "F" as "Data.Bool.F"
-const "LET" as "Data.Bool.let"
-const "@" as "Data.Bool.select"
-const "GABS" as "Data.Bool.select"
-const "T" as "Data.Bool.T"
+const "HOLLight.!" as "Data.Bool.!"
+const "HOLLight./\\" as "Data.Bool./\\"
+const "HOLLight.==>" as "Data.Bool.==>"
+const "HOLLight.?" as "Data.Bool.?"
+const "HOLLight.?!" as "Data.Bool.?!"
+const "HOLLight.\\/" as "Data.Bool.\\/"
+const "HOLLight.~" as "Data.Bool.~"
+const "HOLLight.COND" as "Data.Bool.cond"
+const "HOLLight.F" as "Data.Bool.F"
+const "HOLLight.LET" as "Data.Bool.let"
+const "HOLLight.@" as "Data.Bool.select"
+const "HOLLight.GABS" as "Data.Bool.select"
+const "HOLLight.T" as "Data.Bool.T"
 
 # Data.List
 
-type "list" as "Data.List.list"
+type "HOLLight.list" as "Data.List.list"
 
-const "CONS" as "Data.List.::"
-const "NIL" as "Data.List.[]"
+const "HOLLight.CONS" as "Data.List.::"
+const "HOLLight.NIL" as "Data.List.[]"
+const "HOLLight.APPEND" as "Data.List.@"
+const "HOLLight.ALL" as "Data.List.all"
+const "HOLLight.REPLICATE" as "Data.List.duplicate"
+const "HOLLight.EX" as "Data.List.exists"
+const "HOLLight.FILTER" as "Data.List.filter"
+const "HOLLight.HD" as "Data.List.head"
+const "HOLLight.LAST" as "Data.List.last"
+const "HOLLight.LENGTH" as "Data.List.length"
+const "HOLLight.MAP" as "Data.List.map"
+const "HOLLight.MEM" as "Data.List.member"
+const "HOLLight.EL" as "Data.List.nth"
+const "HOLLight.NULL" as "Data.List.null"
+const "HOLLight.REVERSE" as "Data.List.reverse"
+const "HOLLight.TL" as "Data.List.tail"
+const "HOLLight.ZIP" as "Data.List.zip"
 
 # Data.Option
 
-type "option" as "Data.Option.option"
+type "HOLLight.option" as "Data.Option.option"
 
-const "NONE" as "Data.Option.none"
-const "SOME" as "Data.Option.some"
+const "HOLLight.NONE" as "Data.Option.none"
+const "HOLLight.SOME" as "Data.Option.some"
 
 # Data.Pair
 
-type "prod" as "Data.Pair.*"
+type "HOLLight.prod" as "Data.Pair.*"
 
-const "," as "Data.Pair.,"
-const "FST" as "Data.Pair.fst"
-const "SND" as "Data.Pair.snd"
+const "HOLLight.," as "Data.Pair.,"
+const "HOLLight.FST" as "Data.Pair.fst"
+const "HOLLight.SND" as "Data.Pair.snd"
 
 # Data.Sum
 
-type "sum" as "Data.Sum.+"
+type "HOLLight.sum" as "Data.Sum.+"
 
-const "OUTL" as "Data.Sum.destLeft"
-const "OUTR" as "Data.Sum.destRight"
-const "INL" as "Data.Sum.left"
-const "INR" as "Data.Sum.right"
+const "HOLLight.OUTL" as "Data.Sum.destLeft"
+const "HOLLight.OUTR" as "Data.Sum.destRight"
+const "HOLLight.INL" as "Data.Sum.left"
+const "HOLLight.INR" as "Data.Sum.right"
 
 # Data.Unit
 
-type "1" as "Data.Unit.unit"
+type "HOLLight.1" as "Data.Unit.unit"
 
-const "one" as "Data.Unit.()"
+const "HOLLight.one" as "Data.Unit.()"
 
 # Function
 
-const "I" as "Function.id"
-const "o" as "Function.o"
-const "ONE_ONE" as "Function.injective"
-const "ONTO" as "Function.surjective"
+const "HOLLight.I" as "Function.id"
+const "HOLLight.o" as "Function.o"
+const "HOLLight.ONE_ONE" as "Function.injective"
+const "HOLLight.ONTO" as "Function.surjective"
 
 # Number
 
 # Number.Natural
 
-type "num" as "Number.Natural.nat"
+type "HOLLight.num" as "Number.Natural.nat"
 
-const "+" as "Number.Natural.+"
-const "-" as "Number.Natural.-"
-const "*" as "Number.Natural.*"
-const "<" as "Number.Natural.<"
-const "<=" as "Number.Natural.<="
-const ">=" as "Number.Natural.>="
-const ">" as "Number.Natural.>"
-const "DIV" as "Number.Natural.div"
-const "EVEN" as "Number.Natural.even"
-const "EXP" as "Number.Natural.exp"
-const "FACT" as "Number.Natural.factorial"
-const "MAX" as "Number.Natural.max"
-const "MIN" as "Number.Natural.min"
-const "minimal" as "Number.Natural.minimal"
-const "MOD" as "Number.Natural.mod"
-const "ODD" as "Number.Natural.odd"
-const "PRE" as "Number.Natural.pre"
-const "SUC" as "Number.Natural.suc"
+const "HOLLight.+" as "Number.Natural.+"
+const "HOLLight.-" as "Number.Natural.-"
+const "HOLLight.*" as "Number.Natural.*"
+const "HOLLight.<" as "Number.Natural.<"
+const "HOLLight.<=" as "Number.Natural.<="
+const "HOLLight.>=" as "Number.Natural.>="
+const "HOLLight.>" as "Number.Natural.>"
+const "HOLLight.DIV" as "Number.Natural.div"
+const "HOLLight.EVEN" as "Number.Natural.even"
+const "HOLLight.EXP" as "Number.Natural.exp"
+const "HOLLight.FACT" as "Number.Natural.factorial"
+const "HOLLight.MAX" as "Number.Natural.max"
+const "HOLLight.MIN" as "Number.Natural.min"
+const "HOLLight.minimal" as "Number.Natural.minimal"
+const "HOLLight.MOD" as "Number.Natural.mod"
+const "HOLLight.ODD" as "Number.Natural.odd"
+const "HOLLight.PRE" as "Number.Natural.pre"
+const "HOLLight.SUC" as "Number.Natural.suc"
 
 # Number.Numeral
 
-const "BIT0" as "Number.Numeral.bit0"
-const "BIT1" as "Number.Numeral.bit1"
-const "_0" as "Number.Numeral.zero"
+const "HOLLight.BIT0" as "Number.Numeral.bit0"
+const "HOLLight.BIT1" as "Number.Numeral.bit1"
+const "HOLLight._0" as "Number.Numeral.zero"
 
 # Relation
 
-const "WF" as "Relation.wellFounded"
-const "MEASURE" as "Relation.measure"
+const "HOLLight.WF" as "Relation.wellFounded"
+const "HOLLight.MEASURE" as "Relation.measure"
 
 # Unwanted
 
-const "LET_END" as "Unwanted.id"
-const "NUMERAL" as "Unwanted.id"
+const "HOLLight.LET_END" as "Unwanted.id"
+const "HOLLight.NUMERAL" as "Unwanted.id"

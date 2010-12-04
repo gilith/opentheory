@@ -1,5 +1,5 @@
 "p"
-"bool"
+"HOLLight.bool"
 typeOp
 0
 def
@@ -22,7 +22,7 @@ refl
 4
 def
 pop
-"T"
+"HOLLight.T"
 const
 5
 def
@@ -35,11 +35,11 @@ refl
 7
 def
 pop
-"="
+"HOLLight.="
 const
 8
 def
-"fun"
+"HOLLight.fun"
 typeOp
 9
 def

@@ -199,6 +199,11 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation/relation.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/sum/sum.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/option/option.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-dest/list-dest.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-append/list-append.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-map/list-map.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-quant/list-quant.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-reverse/list-reverse.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list/list.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
 
