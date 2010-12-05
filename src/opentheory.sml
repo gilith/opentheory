@@ -287,10 +287,11 @@ datatype info =
   | ChildrenInfo
   | DescendentsInfo
   | FilesInfo
-  | TagsInfo
+  | InferenceInfo
   | NameInfo
   | ParentsInfo
   | SummaryInfo
+  | TagsInfo
   | TheoryInfo;
 
 val infoOutputList : (info * {filename : string} option) list ref = ref [];
@@ -381,6 +382,9 @@ in
        {switches = ["--summary"], arguments = [],
         description = "display the package summary",
         processor = beginOpt endOpt (fn _ => addInfoOutput SummaryInfo)},
+       {switches = ["--inference"], arguments = [],
+        description = "display the number of primitive inferences",
+        processor = beginOpt endOpt (fn _ => addInfoOutput InferenceInfo)},
        {switches = ["--theory"], arguments = [],
         description = "display the package theory graph",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
@@ -1353,6 +1357,17 @@ local
     val getSummary = getCached cache compute;
   end;
 
+  local
+    val cache : Inference.inference option option ref = ref NONE;
+
+    fun compute () =
+        case getArticle () of
+          SOME art => SOME (Article.inference art)
+        | NONE => NONE;
+  in
+    val getInference = getCached cache compute;
+  end;
+
   fun outputPackageNameSet names file =
       let
         fun mk n = PackageName.toString n ^ "\n"
@@ -1431,16 +1446,14 @@ local
         in
           Stream.toTextFile file strm
         end
-      | TagsInfo =>
+      | InferenceInfo =>
         let
-          val pkg =
-              case getPackage () of
-                SOME p => p
-              | NONE => raise Error "no package information available"
+          val inf =
+              case getInference () of
+                SOME i => i
+              | NONE => raise Error "no inference information available"
 
-          val tags = Package.tags pkg
-
-          val strm = Print.toStream Tag.ppList tags
+          val strm = Print.toStream Inference.pp inf
         in
           Stream.toTextFile file strm
         end
@@ -1487,6 +1500,19 @@ local
              summary = sum,
              filename = filename}
         end
+      | TagsInfo =>
+        let
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no package information available"
+
+          val tags = Package.tags pkg
+
+          val strm = Print.toStream Tag.ppList tags
+        in
+          Stream.toTextFile file strm
+        end
       | TheoryInfo =>
         let
           val theories =
@@ -1516,23 +1542,6 @@ local
         val () = setSavable sav
 
         val () = List.app processInfoOutput infs
-
-(*OpenTheoryDebug
-        val () =
-            let
-              val i = ObjectRead.theInferenceCount ()
-            in
-              if ObjectRead.nullInferenceCount i then ()
-              else
-                let
-                  val s = Print.toString ObjectRead.ppInferenceCount i
-
-                  val () = chat ("Inference functions:\n" ^ s ^ "\n")
-                in
-                  ()
-                end
-            end
-*)
       in
         ()
       end;

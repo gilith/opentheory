@@ -9,78 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Profiling inference functions.                                            *)
-(* ------------------------------------------------------------------------- *)
-
-(*OpenTheoryDebug
-datatype inferenceCount = InferenceCount of int CommandMap.map;
-
-val newInferenceCount = InferenceCount (CommandMap.new ());
-
-fun nullInferenceCount (InferenceCount m) = CommandMap.null m;
-
-fun incrementInferenceCount inf cmd =
-    if not (Command.isInference cmd) then inf
-    else
-      let
-        val InferenceCount m = inf
-
-        val i = Option.getOpt (CommandMap.peek m cmd, 0)
-
-        val m = CommandMap.insert m (cmd, i + 1)
-      in
-        InferenceCount m
-      end;
-
-local
-  val alignment : columnAlignment list =
-      [{leftAlign = true, padChar = #"."},
-       {leftAlign = false, padChar = #"."}];
-
-  val countToString = Print.toString Print.ppPrettyInt;
-
-  fun mkRow (s,i) = [s ^ " ...", " " ^ countToString i];
-
-  fun mkInfRow (n,i) = mkRow (Command.toString n, i);
-
-  fun mkTotalRow i = mkRow ("Total",i);
-in
-  fun ppInferenceCount (InferenceCount m) =
-      let
-        val infs = sortMap snd (revCompare Int.compare) (CommandMap.toList m)
-
-        val tot = List.foldl (fn ((_,i),k) => i + k) 0 infs
-
-        val table = map mkInfRow infs @ [mkTotalRow tot]
-
-        val rows = alignTable alignment table
-      in
-        case rows of
-          [] => Print.skip
-        | row :: rows =>
-          Print.blockProgram Print.Consistent 0
-            (Print.ppString row ::
-             map (Print.sequence Print.addNewline o Print.ppString) rows)
-      end;
-end;
-
-local
-  val inferenceCount = ref newInferenceCount;
-in
-  fun theInferenceCount () = !inferenceCount;
-
-  fun incrementTheInferenceCount c =
-      let
-        val ref i = inferenceCount
-
-        val () = inferenceCount := incrementInferenceCount i c
-      in
-        ()
-      end
-end;
-*)
-
-(* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -98,7 +26,8 @@ datatype state =
       {parameters : parameters,
        stack : ObjectStack.stack,
        dict : ObjectDict.dict,
-       export : ObjectExport.export};
+       export : ObjectExport.export,
+       inference : Inference.inference};
 
 fun initial parameters =
     let
@@ -107,12 +36,15 @@ fun initial parameters =
       val dict = ObjectDict.empty
 
       val export = ObjectExport.empty
+
+      val inference = Inference.empty
     in
       State
         {parameters = parameters,
          stack = stack,
          dict = dict,
-         export = export}
+         export = export,
+         inference = inference}
     end;
 
 fun parameters (State {parameters = x, ...}) = x;
@@ -123,19 +55,19 @@ fun dict (State {dict = x, ...}) = x;
 
 fun export (State {export = x, ...}) = x;
 
+fun inference (State {inference = x, ...}) = x;
+
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 fun execute cmd state =
     let
-      val State {parameters,stack,dict,export} = state
+      val State {parameters,stack,dict,export,inference} = state
 
       val {import,interpretation,savable} = parameters
 
-(*OpenTheoryDebug
-      val () = incrementTheInferenceCount cmd
-*)
+      val inference = Inference.add inference cmd
     in
       case cmd of
       (* SPECIAL COMMANDS *)
@@ -152,7 +84,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Names *)
@@ -167,7 +100,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* REGULAR COMMANDS *)
@@ -186,7 +120,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The abs primitive inference *)
@@ -203,7 +138,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Function application terms *)
@@ -227,7 +163,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The app primitive inference *)
@@ -251,7 +188,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The assume primitive inference *)
@@ -268,7 +206,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Axioms *)
@@ -296,7 +235,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The betaConv primitive inference *)
@@ -313,7 +253,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Cons lists *)
@@ -330,7 +271,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Constants *)
@@ -353,7 +295,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Constant terms *)
@@ -370,7 +313,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The deductAntisym primitive inference *)
@@ -387,7 +331,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Dictionary definitions *)
@@ -406,7 +351,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The defineConst principle of definition *)
@@ -427,7 +373,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The defineTypeOp principle of definition *)
@@ -454,7 +401,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The eqMp primitive inference *)
@@ -471,7 +419,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Empty lists *)
@@ -486,7 +435,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Type operator types *)
@@ -503,7 +453,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Popping the stack *)
@@ -516,7 +467,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Dictionary lookups *)
@@ -535,7 +487,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Dictionary removals *)
@@ -554,7 +507,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The refl primitive inference *)
@@ -571,7 +525,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* The subst primitive inference *)
@@ -592,7 +547,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Saving theorems *)
@@ -619,7 +575,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Type operators *)
@@ -642,7 +599,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Term variables *)
@@ -659,7 +617,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Term variable terms *)
@@ -676,7 +635,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
 
       (* Type variable types *)
@@ -693,7 +653,8 @@ fun execute cmd state =
             {parameters = parameters,
              stack = stack,
              dict = dict,
-             export = export}
+             export = export,
+             inference = inference}
         end
     end
     handle Error err =>

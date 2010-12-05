@@ -203,7 +203,13 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-append/list-append.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-map/list-map.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-quant/list-quant.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-filter/list-filter.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-last/list-last.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-reverse/list-reverse.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-length/list-length.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-nth/list-nth.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-duplicate/list-duplicate.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-member/list-member.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list/list.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
 

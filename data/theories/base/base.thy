@@ -62,6 +62,8 @@ option {
 
 list {
   import: bool
+  import: function
+  import: pair
   import: natural
   package: list-1.0
 }

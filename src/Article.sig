@@ -24,6 +24,8 @@ val empty : article
 
 val thms : article -> Thms.thms
 
+val inference : article -> Inference.inference
+
 val savable : article -> bool
 
 (* ------------------------------------------------------------------------- *)

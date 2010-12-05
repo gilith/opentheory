@@ -31,6 +31,8 @@ val dict : state -> ObjectDict.dict
 
 val export : state -> ObjectExport.export
 
+val inference : state -> Inference.inference
+
 (* ------------------------------------------------------------------------- *)
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
@@ -44,19 +46,5 @@ val executeStream : Command.command Stream.stream -> state -> state
 (* ------------------------------------------------------------------------- *)
 
 val executeTextFile : {filename : string} -> state -> state
-
-(* ------------------------------------------------------------------------- *)
-(* Profiling inference functions.                                            *)
-(* ------------------------------------------------------------------------- *)
-
-(*OpenTheoryDebug
-type inferenceCount
-
-val nullInferenceCount : inferenceCount -> bool
-
-val ppInferenceCount : inferenceCount Print.pp
-
-val theInferenceCount : unit -> inferenceCount
-*)
 
 end

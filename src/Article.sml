@@ -40,16 +40,19 @@ fun normalizeFilename {filename} =
 datatype article =
     Article of
       {savable : bool,
-       thms : ObjectThms.thms};
+       thms : ObjectThms.thms,
+       inference : Inference.inference};
 
 val empty =
     let
       val savable = true
       and thms = ObjectThms.empty
+      and inference = Inference.empty
     in
       Article
         {savable = savable,
-         thms = thms}
+         thms = thms,
+         inference = inference}
     end;
 
 fun savable (Article {savable = x, ...}) = x;
@@ -58,22 +61,27 @@ fun objects (Article {thms = x, ...}) = x;
 
 fun thms art = ObjectThms.thms (objects art);
 
+fun inference (Article {inference = x, ...}) = x;
+
 (* ------------------------------------------------------------------------- *)
 (* Merging articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun union art1 art2 =
     let
-      val Article {savable = sav1, thms = ths1} = art1
-      and Article {savable = sav2, thms = ths2} = art2
+      val Article {savable = sav1, thms = ths1, inference = inf1} = art1
+      and Article {savable = sav2, thms = ths2, inference = inf2} = art2
 
       val savable = sav1 andalso sav2
 
       val thms = ObjectThms.union ths1 ths2
+
+      val inference = Inference.union inf1 inf2
     in
       Article
         {savable = savable,
-         thms = thms}
+         thms = thms,
+         inference = inference}
     end;
 
 local
@@ -91,7 +99,10 @@ end;
 
 fun fromTextFile {savable,import,interpretation,filename} =
     let
-      val Article {savable = importSavable, thms = importThms} = import
+      val Article
+            {savable = importSavable,
+             thms = importThms,
+             inference = _} = import
 
       val _ = not savable orelse importSavable orelse
               raise Error "savable article cannot use unsavable import"
@@ -108,6 +119,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
       val stack = ObjectRead.stack state
       and dict = ObjectRead.dict state
       and exp = ObjectRead.export state
+      and inference = ObjectRead.inference state
 
       val () =
           let
@@ -135,7 +147,8 @@ fun fromTextFile {savable,import,interpretation,filename} =
     in
       Article
         {savable = savable,
-         thms = thms}
+         thms = thms,
+         inference = inference}
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("Article.fromTextFile: " ^ err);
@@ -143,7 +156,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
 
 fun toTextFile {article,filename} =
     let
-      val Article {savable,thms} = article
+      val Article {savable, thms, inference = _} = article
 
       val _ = savable orelse raise Error "unsavable"
 

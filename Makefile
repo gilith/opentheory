@@ -108,6 +108,7 @@ SRC = \
   src/Summary.sig src/Summary.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Command.sig src/Command.sml \
+  src/Inference.sig src/Inference.sml \
   src/Object.sig src/Object.sml \
   src/ObjectProv.sig src/ObjectProv.sml \
   src/ObjectRewrite.sig src/ObjectRewrite.sml \
