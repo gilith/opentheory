@@ -48,7 +48,6 @@ const "HOLLight.EL" as "Data.List.nth"
 const "HOLLight.NULL" as "Data.List.null"
 const "HOLLight.REVERSE" as "Data.List.reverse"
 const "HOLLight.TL" as "Data.List.tail"
-const "HOLLight.ZIP" as "Data.List.zip"
 
 # Data.Option
 

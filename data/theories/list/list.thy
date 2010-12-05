@@ -53,6 +53,7 @@ filter {
   import: dest
   import: append
   import: map
+  import: quant
   package: list-filter-1.0
 }
 
@@ -62,6 +63,7 @@ last {
   import: dest
   import: append
   import: map
+  import: quant
   import: filter
   package: list-last-1.0
 }
@@ -72,6 +74,7 @@ reverse {
   import: dest
   import: append
   import: map
+  import: quant
   import: filter
   import: last
   package: list-reverse-1.0
@@ -83,6 +86,7 @@ length {
   import: dest
   import: append
   import: map
+  import: quant
   import: filter
   import: last
   import: reverse
@@ -95,6 +99,7 @@ nth {
   import: dest
   import: append
   import: map
+  import: quant
   import: filter
   import: last
   import: reverse
@@ -108,6 +113,7 @@ duplicate {
   import: dest
   import: append
   import: map
+  import: quant
   import: filter
   import: last
   import: reverse
@@ -123,6 +129,7 @@ member {
   import: dest
   import: append
   import: map
+  import: quant
   import: filter
   import: last
   import: reverse

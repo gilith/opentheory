@@ -117,7 +117,6 @@ const "HOLLight.SUC" as "Number.Natural.suc"
 const "HOLLight.T" as "Data.Bool.T"
 const "HOLLight.TL" as "Data.List.tail"
 const "HOLLight.WF" as "Relation.wellFounded"
-const "HOLLight.ZIP" as "Data.List.zip"
 const "HOLLight.\\/" as "Data.Bool.\\/"
 const "HOLLight._0" as "Number.Numeral.zero"
 const "HOLLight.minimal" as "Number.Natural.minimal"
@@ -133,8 +132,8 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example2"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
