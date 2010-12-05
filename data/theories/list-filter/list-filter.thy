@@ -5,6 +5,7 @@ author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
 show: "Data.List"
+show: "Function"
 
 def {
   package: list-filter-def-1.0

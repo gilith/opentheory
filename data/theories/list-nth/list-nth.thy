@@ -5,6 +5,8 @@ author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
 show: "Data.List"
+show: "Number.Natural"
+show: "Number.Numeral"
 
 def {
   package: list-nth-def-1.0
