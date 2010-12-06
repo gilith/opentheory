@@ -1,6 +1,6 @@
 name: base
 version: 1.0
-description: Basic theories
+description: The standard theory library
 author: Joe Hurd <joe@gilith.com>
 license: OpenTheory
 show: "Data.Bool"
