@@ -101,14 +101,14 @@ sub {
   package: natural-sub-1.0
 }
 
-fact {
+factorial {
   import: def
   import: cases
   import: numeral
   import: order
   import: add
   import: mult
-  package: natural-fact-1.0
+  package: natural-factorial-1.0
 }
 
 div-mod {
@@ -141,7 +141,7 @@ main {
   import: set
   import: even-odd
   import: sub
-  import: fact
+  import: factorial
   import: div-mod
   import: min-max
 }
