@@ -71,22 +71,24 @@ local
 
   fun mkTotalRow i = mkRow ("Total",i);
 in
-  fun pp (Inference m) =
-      let
-        val infs = sortMap snd (revCompare Int.compare) (CommandMap.toList m)
+  fun pp inf =
+      if null inf then Print.ppString "No primitive inferences"
+      else
+        let
+          val Inference m = inf
 
-        val tot = List.foldl (fn ((_,i),k) => i + k) 0 infs
+          val infs = sortMap snd (revCompare Int.compare) (CommandMap.toList m)
 
-        val table = map mkInfRow infs @ [mkTotalRow tot]
+          val tot = List.foldl (fn ((_,i),k) => i + k) 0 infs
 
-        val rows = alignTable alignment table
-      in
-        if List.null rows then Print.ppString "No primitive inferences"
-        else
+          val table = map mkInfRow infs @ [mkTotalRow tot]
+
+          val rows = alignTable alignment table
+        in
           Print.blockProgram Print.Consistent 0
             (Print.ppString "Primitive inferences:" ::
              map (Print.sequence Print.addNewline o Print.ppString) rows)
-      end;
+        end;
 end;
 
 end

@@ -69,14 +69,14 @@ fun inference (Article {inference = x, ...}) = x;
 
 fun union art1 art2 =
     let
-      val Article {savable = sav1, thms = ths1, inference = inf1} = art1
-      and Article {savable = sav2, thms = ths2, inference = inf2} = art2
+      val Article {savable = sav1, thms = ths1, inference = _} = art1
+      and Article {savable = sav2, thms = ths2, inference = _} = art2
 
       val savable = sav1 andalso sav2
 
       val thms = ObjectThms.union ths1 ths2
 
-      val inference = Inference.union inf1 inf2
+      val inference = Inference.empty
     in
       Article
         {savable = savable,
@@ -87,10 +87,7 @@ fun union art1 art2 =
 local
   fun add (art2,art1) = union art1 art2;
 in
-  fun unionList arts =
-      case arts of
-        [] => empty
-      | art :: arts => List.foldl add art arts;
+  fun unionList arts = List.foldl add empty arts;
 end;
 
 (* ------------------------------------------------------------------------- *)

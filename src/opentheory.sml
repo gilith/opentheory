@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20101202)"^"\n";
+val versionString = program^" "^version^" (release 20101206)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -1361,9 +1361,12 @@ local
     val cache : Inference.inference option option ref = ref NONE;
 
     fun compute () =
-        case getArticle () of
-          SOME art => SOME (Article.inference art)
-        | NONE => NONE;
+        case getTheory () of
+          SOME (graph,_) => SOME (TheorySet.inference (Graph.theories graph))
+        | NONE =>
+          case getArticle () of
+            SOME art => SOME (Article.inference art)
+          | NONE => NONE;
   in
     val getInference = getCached cache compute;
   end;

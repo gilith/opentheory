@@ -428,7 +428,7 @@ fun importNode importer graph info =
           let
             val savable = savable graph
 
-            val import = TheorySet.toArticle imports
+            val import = TheorySet.article imports
 
             val interpretation = Interpretation.compose int interpretation
 
@@ -476,7 +476,7 @@ fun importNode importer graph info =
           let
             val node = Theory.Union
 
-            val article = TheorySet.toArticle imports
+            val article = TheorySet.article imports
 
             val imports = TheorySet.toList imports
 
@@ -564,6 +564,8 @@ fun importPackage importer graph info =
              theories = theoriesEnvironment env}
 
       val article = Theory.article (mainEnvironment env)
+
+      val article = Article.unionList [article]  (* zero inference profile *)
 
       val imports = TheorySet.toList imports
 

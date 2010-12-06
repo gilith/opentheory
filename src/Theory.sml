@@ -67,6 +67,17 @@ fun equal thy1 thy2 = (id thy1) = (id thy2);
 
 fun mk thy' =
     let
+(*OpenTheoryDebug
+      val Theory' {node,article,...} = thy'
+
+      val () =
+          case node of
+            Article _ => ()
+          | _ =>
+            if Inference.null (Article.inference article) then ()
+            else raise Bug "Theory.mk: non-article with non-null inferences"
+*)
+
       val id = newId ()
     in
       Theory
@@ -232,7 +243,15 @@ struct
     open S;
   end;
 
-  val toArticle =
+  val inference =
+      let
+        fun add (thy,acc) =
+            Inference.union acc (Article.inference (Theory.article thy))
+      in
+        foldl add Inference.empty
+      end;
+
+  val article =
       let
         fun add (thy,acc) = Article.union acc (Theory.article thy)
       in
