@@ -246,11 +246,15 @@ fun mkInterpretationFilename name =
       OS.Path.joinDirFile {dir = INTERPRETATION_DIR, file = file}
     end;
 
-val holLightInt =
+fun mkInterpretation name =
     Interpretation.fromTextFile
-      {filename = mkInterpretationFilename "hol-light"};
+      {filename = mkInterpretationFilename name};
+
+val holLightInt = mkInterpretation "hol-light";
 
 val _ = printval Interpretation.pp holLightInt;
+
+val _ = printval Interpretation.pp (mkInterpretation "hol-light-examples");
 
 fun getInt s =
     if s = "hol-light" then holLightInt

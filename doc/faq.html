@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Frequently Asked Questions About the opentheory Tool</title>
 <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 </head>
@@ -71,13 +71,13 @@ Moscow ML).</p>
 
 <h4>How can I see what theory packages I have installed?</h4>
 
-<p>The command
+<p>The command</p>
 
 <blockquote>
-<tt>opentheory list</tt>
+<p><tt>opentheory list</tt></p>
 </blockquote>
 
-displays all installed packages.</p>
+<p>displays all installed packages.</p>
 
 <hr />
 
@@ -99,21 +99,21 @@ directory.</p>
 
 <p>The best way to view the contents of a theory
 package <tt>NAME-VERSION</tt> is by opening the
-file
+file</p>
 
 <blockquote>
-<tt>packages/NAME-VERSION/NAME-VERSION.html</tt>
+<p><tt>packages/NAME-VERSION/NAME-VERSION.html</tt></p>
 </blockquote>
 
-in the package directory.</p>
+<p>in the package directory.</p>
 
-<p>On the command line, executing
+<p>On the command line, executing</p>
 
 <blockquote>
-<tt>opentheory info --summary NAME-VERSION</tt>
+<p><tt>opentheory info --summary NAME-VERSION</tt></p>
 </blockquote>
 
-prints a text summary of the theory package <tt>NAME-VERSION</tt>
+<p>prints a text summary of the theory package <tt>NAME-VERSION</tt>
 on <tt>stdout</tt>.</p>
 
 <hr />
@@ -123,31 +123,31 @@ on <tt>stdout</tt>.</p>
 <p>The theory file <tt>NAME.thy</tt>, normally found inside a package
 directory <tt>NAME-VERSION</tt>, contains instructions for how to
 construct the theory exported by the package. This might be as simple
-as
+as</p>
 
 <blockquote>
-<tt>main {<br />
+<p><tt>main {<br />
 &nbsp;&nbsp;article: "NAME.art"<br />
-}</tt>
+}</tt></p>
 </blockquote>
 
-which says that the theory is constructed by reading the article
+<p>which says that the theory is constructed by reading the article
 file <tt>NAME.art</tt>, but more complex theories are possible that
 import and combine other theory packages.</p>
 
 <p>Theory files also contain some meta-information about the package
-in the form of tags, for example:
+in the form of tags, for example:</p>
 <blockquote>
-<tt>name: bool<br />
+<p><tt>name: bool<br />
 version: 1.0<br />
 description: Basic boolean theory<br />
 author: Joe Hurd &lt;joe@gilith.com&gt;<br />
-license: OpenTheory</tt>
-</blockquote></p>
+license: OpenTheory</tt></p>
+</blockquote>
 
 <hr />
 
-<h4>Why do some theory packages contain <kbd>.art</kbd> files?</h4>
+<h4>Why do some theory packages contain <tt>.art</tt> files?</h4>
 
 <p>The <kbd>article:</kbd> directive in a theory file causes the
 opentheory tool to read in a file in article format&mdash;such files
@@ -170,7 +170,7 @@ have extension <kbd>.art</kbd>.</p>
 tarball to the HOL Light directory:
 
 <blockquote>
-<tt>tar xvzf hol-light.tgz</tt>
+<p><tt>tar xvzf hol-light.tgz</tt></p>
 </blockquote></li>
 
 <li>Make
@@ -181,74 +181,72 @@ to the <tt>hol.ml</tt> HOL Light file.</li>
 
 </ol>
 
-<p>Once HOL Light has been prepared, the theory file <tt>NAME.ml</tt>
-can be converted to the proof article file <tt>NAME.art</tt> by the
-following steps:</p>
+<p>Once HOL Light has been prepared, the HOL Light script
+file <tt>NAME.ml</tt> can be converted to the proof article
+file <tt>THEORY.art</tt> by the following steps:</p>
 
 <ol>
 
 <li>Add the following lines to the top of the <tt>NAME.ml</tt> theory
 file:
 <blockquote>
-<tt>start_logging ();;<br />
-logfile "THEORY";;</tt>
+<p><tt>start_logging ();;<br />
+logfile "THEORY";;</tt></p>
 </blockquote></li>
 
 <li>Add the following lines to the bottom of the <tt>NAME.ml</tt>
 theory file:
 <blockquote>
-<tt>logfile_end ();;<br />
-stop_logging ();;</tt>
+<p><tt>logfile_end ();;<br />
+stop_logging ();;</tt></p>
 </blockquote></li>
 
-<li>Running the <tt>NAME.ml</tt> file through HOL Light in the usual
+<li>Run the <tt>NAME.ml</tt> file through HOL Light in the usual
 way
 <blockquote>
-<tt>ocaml<br />
+<p><tt>ocaml<br />
 #use "hol.ml";;<br />
-#use "NAME.ml";;</tt>
+#use "NAME.ml";;</tt></p>
 </blockquote>
-will generate a raw proof article file and an associated theory file:
+to generate a raw proof article file and an associated theory file:
 <blockquote>
-<tt>opentheory/articles/THEORY.art<br />
-opentheory/articles/THEORY.thy</tt>
+<p><tt>opentheory/articles/THEORY.art<br />
+opentheory/articles/THEORY.thy</tt></p>
 </blockquote></li>
 
 <li>The raw proof article file can be compressed and converted to the
 OpenTheory standard namespace with the command
 <blockquote>
-<tt>opentheory info --article -o THEORY.art opentheory/articles/THEORY.thy</tt>
+<p><tt>opentheory info --article -o THEORY.art opentheory/articles/THEORY.thy</tt></p>
 </blockquote>
 Running this command will generate the proof article
 file <tt>THEORY.art</tt>.</li>
 
 </ol>
 
+<p>You can rename the type operators and constants that you define in
+<tt>NAME.ml</tt> by adding lines to
+the <tt>opentheory/hol-light.int</tt> file.</p>
+
 <hr />
 
-<h4>How can I import a theory package into my theorem prover?</h4>
+<h4>How can I convert a theory package into a proof article file?</h4>
 
-<p>There are two steps to this:</p>
-
-<ol>
-
-<li>Compile the theory package to a proof article file using the
-  command
+<p>Compile the theory package <tt>NAME-VERSION</tt> to the proof
+article file <tt>THEORY.art</tt> using the command:</p>
 
 <blockquote>
-<tt>opentheory info --article -o NAME.art NAME-VERSION</tt>
-</blockquote></li>
-
-<li>Read the proof article file <tt>NAME.art</tt> into your theorem
-  prover, using existing type operators, constants and theorems for
-  the ones in the <tt>input-types</tt>, <tt>input-consts</tt>
-  and <tt>assumptions</tt> sections of the theory summary.</li>
-
-</ol>
+<p><tt>opentheory info --article -o THEORY.art NAME-VERSION</tt></p>
+</blockquote>
 
 <hr />
 
 <h4>How can I read a proof article file into my theorem prover?</h4>
+
+<p>Read the proof article file <tt>NAME.art</tt> into your theorem
+prover, using existing type operators, constants and theorems for the
+ones in the <tt>input-types</tt>, <tt>input-consts</tt>
+and <tt>assumptions</tt> sections of the article summary.</p>
 
 <p>If your higher order logic theorem prover does not already have a
 reader for proof articles, you can contribute to the OpenTheory
@@ -262,7 +260,8 @@ as described in the
 <p>It might be useful to refer to the article reader implementation in
 the opentheory tool (although opentheory needs to keep track of more
 state to rename and compress articles), in particular the following
-files in the release:
+files in the release:</p>
+
 <ul>
 
 <li><tt>src/Command.sig</tt> &nbsp; <tt>src/Command.sml</tt></li>
@@ -271,7 +270,7 @@ files in the release:
 
 <li><tt>src/ObjectRead.sig</tt> &nbsp; <tt>src/ObjectRead.sml</tt></li>
 
-</ul></p>
+</ul>
 
 <hr />
 
@@ -286,7 +285,7 @@ expected result in the <kbd>result.ok</kbd> file.</p>
 
 <hr />
 
-<img src="logo.png" alt="opentheory" />
+<p><img src="logo.png" alt="opentheory" /></p>
 
 </body>
 </html>

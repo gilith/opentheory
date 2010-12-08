@@ -1,0 +1,9 @@
+###############################################################################
+# INTERPRETING HOL LIGHT EXAMPLES NAMES INTO THE OPENTHEORY STANDARD NAMESPACE
+###############################################################################
+
+# Data
+
+# Data.Byte
+
+type "HOLLight.byte" as "Data.Byte.byte"
