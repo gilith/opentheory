@@ -6,7 +6,7 @@
 
 # Data.Byte
 
-type "HOLLight.byte" as "Data.Byte.byte"
+const "HOLLight.byte_width" as "Data.Byte.width"
 
 # Data.Word
 

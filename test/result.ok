@@ -124,9 +124,14 @@ const "HOLLight.o" as "Function.o"
 const "HOLLight.one" as "Data.Unit.()"
 const "HOLLight.~" as "Data.Bool.~"
 
-type "HOLLight.byte" as "Data.Byte.byte"
-type "HOLLight.modular" as "Number.Modular.modular"
-const "HOLLight.+" as "Number.Natural.+"
+type "HOLLight.mod" as "Number.Modular.modular"
+type "HOLLight.word" as "Data.Word.word"
+const "HOLLight.byte_width" as "Data.Byte.width"
+const "HOLLight.mod_N" as "Number.Modular.size"
+const "HOLLight.mod_from_num" as "Number.Modular.fromNatural"
+const "HOLLight.mod_to_num" as "Number.Modular.toNatural"
+const "HOLLight.word_size" as "Data.Word.size"
+const "HOLLight.word_width" as "Data.Word.width"
 
 --------------------------------------------------------------------------
 Compressing articles
@@ -136,35 +141,35 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.000  System: 0.005  GC: 0.000  Real: 0.005
 
 Compressing article "example2"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.005  GC: 0.000  Real: 0.006
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example3"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.004  GC: 0.000  Real: 0.005
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example4"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.004  GC: 0.000  Real: 0.005
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "bool-def-true"
 WARNING: 19 objects left in the dictionary by articles/hol-light/bool-def-true.art
-User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.002  System: 0.004  GC: 0.000  Real: 0.006
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-int-true"
 WARNING: 26 objects left in the dictionary by articles/hol-light/bool-int-true.art
-User: 0.004  System: 0.000  GC: 0.000  Real: 0.004
-User: 0.002  System: 0.005  GC: 0.000  Real: 0.007
+User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-true-aux"
 WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
 User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.002  System: 0.004  GC: 0.000  Real: 0.007
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 --------------------------------------------------------------------------
 Summarizing articles

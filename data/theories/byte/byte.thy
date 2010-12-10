@@ -15,8 +15,9 @@ word {
   import: def
   interpret: type "Data.Word.word" as "Data.Byte.byte"
   interpret: const "Data.Word.fromNatural" as "Data.Byte.fromNatural"
-  interpret: const "Data.Word.toNatural" as "Data.Byte.toNatural"
   interpret: const "Data.Word.size" as "Data.Byte.size"
+  interpret: const "Data.Word.toNatural" as "Data.Byte.toNatural"
+  interpret: const "Data.Word.width" as "Data.Byte.width"
   package: word-1.0
 }
 
