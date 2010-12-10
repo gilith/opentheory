@@ -90,7 +90,7 @@ const "HOLLight.ONTO" as "Function.surjective"
 
 # Number.Natural
 
-type "HOLLight.num" as "Number.Natural.nat"
+type "HOLLight.num" as "Number.Natural.natural"
 
 const "HOLLight.+" as "Number.Natural.+"
 const "HOLLight.-" as "Number.Natural.-"

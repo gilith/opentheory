@@ -155,7 +155,7 @@ HOL_LIGHT_THEORY_DIR = $(THEORY_DIR)/hol-light
 
 OPENTHEORY_INIT = $(OPENTHEORY) init
 
-OPENTHEORY_INSTALL = $(OPENTHEORY) install
+OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual
 
 OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
 
@@ -170,10 +170,14 @@ reset-directory: $(OPENTHEORY)
 hol-light-interpretation:
 	cat test/interpretations/hol-light*.int | perl -ne 'chomp $$_; if ($$_ !~ /^ *([#]|$$)/) { print STDOUT "$$_\n"; }' > ../hol-light/opentheory/hol-light.int
 
-.PHONY: hol-light-theories
-hol-light-theories: $(OPENTHEORY)
+.PHONY: reset-hol-light-theories
+reset-hol-light-theories:
 	rm -rf $(HOL_LIGHT_THEORY_DIR)
 	mkdir $(HOL_LIGHT_THEORY_DIR)
+
+.PHONY: hol-light-theories
+hol-light-theories: $(OPENTHEORY)
+	mkdir -p $(HOL_LIGHT_THEORY_DIR)
 	$(MAKE) hol-light-interpretation
 	cd ../hol-light && opentheory/capture
 
@@ -217,6 +221,7 @@ compilation-theories: $(OPENTHEORY)
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-member/list-member.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list/list.thy
 	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
+	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/word/word.thy
 
 .PHONY: reset-repo
 reset-repo:
@@ -228,7 +233,6 @@ upload-theories: $(OPENTHEORY)
 
 .PHONY: directory-theories
 directory-theories:
-	$(MAKE) reset-directory
 	$(MAKE) hol-light-theories
 	$(MAKE) compilation-theories
 

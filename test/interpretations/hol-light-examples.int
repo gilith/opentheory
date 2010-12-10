@@ -7,3 +7,20 @@
 # Data.Byte
 
 type "HOLLight.byte" as "Data.Byte.byte"
+
+# Data.Word
+
+type "HOLLight.word" as "Data.Word.word"
+
+const "HOLLight.word_size" as "Data.Word.size"
+const "HOLLight.word_width" as "Data.Word.width"
+
+# Number
+
+# Number.Modular
+
+type "HOLLight.mod" as "Number.Modular.modular"
+
+const "HOLLight.mod_from_num" as "Number.Modular.fromNatural"
+const "HOLLight.mod_N" as "Number.Modular.size"
+const "HOLLight.mod_to_num" as "Number.Modular.toNatural"
