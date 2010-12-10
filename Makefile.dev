@@ -161,6 +161,48 @@ OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
 
 OPENTHEORY_UPLOAD = $(OPENTHEORY) upload
 
+COMPILATION_THEORIES = \
+  empty \
+  bool-def \
+  bool-int \
+  bool-choice-cond \
+  bool-choice \
+  bool \
+  unit \
+  function-def \
+  function \
+  pair \
+  natural-numeral \
+  natural-order \
+  natural-add \
+  natural-mult \
+  natural-exp \
+  natural-even-odd \
+  natural-sub \
+  natural-factorial \
+  natural-div-mod \
+  natural \
+  relation-well-founded \
+  relation-measure \
+  relation \
+  sum \
+  option \
+  list-dest \
+  list-append \
+  list-map \
+  list-quant \
+  list-filter \
+  list-last \
+  list-reverse \
+  list-length \
+  list-nth \
+  list-duplicate \
+  list-member \
+  list \
+  base \
+  word \
+  byte
+
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
@@ -183,45 +225,7 @@ hol-light-theories: $(OPENTHEORY)
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-def/bool-def.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-int/bool-int.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-choice-cond/bool-choice-cond.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-choice/bool-choice.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/bool/bool.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/unit/unit.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/function-def/function-def.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/function/function.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/pair/pair.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-numeral/natural-numeral.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-order/natural-order.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-add/natural-add.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-mult/natural-mult.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-exp/natural-exp.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-even-odd/natural-even-odd.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-sub/natural-sub.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-factorial/natural-factorial.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural-div-mod/natural-div-mod.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/natural/natural.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation-well-founded/relation-well-founded.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation-measure/relation-measure.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/relation/relation.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/sum/sum.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/option/option.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-dest/list-dest.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-append/list-append.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-map/list-map.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-quant/list-quant.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-filter/list-filter.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-last/list-last.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-reverse/list-reverse.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-length/list-length.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-nth/list-nth.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-duplicate/list-duplicate.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list-member/list-member.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/list/list.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/base/base.thy
-	$(OPENTHEORY_INSTALL) $(THEORY_DIR)/word/word.thy
+	for thy in $(COMPILATION_THEORIES) ; do if ! $(OPENTHEORY) info --manual $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
 
 .PHONY: reset-repo
 reset-repo:
