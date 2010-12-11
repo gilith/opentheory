@@ -10,9 +10,21 @@ const "HOLLight.byte_width" as "Data.Byte.width"
 
 # Data.Char
 
+type "HOLLight.unicode" as "Data.Char.char"
+
+const "HOLLight.Unicode" as "Data.Char.unicode"
+
 # Data.Char.Plane
 
+type "HOLLight.plane" as "Data.Char.Plane.plane"
+
 const "HOLLight.plane_size" as "Data.Char.Plane.size"
+
+# Data.Char.Position
+
+type "HOLLight.position" as "Data.Char.Position.position"
+
+const "HOLLight.position_width" as "Data.Char.Position.width"
 
 # Data.Word
 
