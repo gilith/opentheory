@@ -42,6 +42,8 @@ val isNested : namespace -> bool
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
+val compareComponent : string * string -> order
+
 val compare : namespace * namespace -> order
 
 val equal : namespace -> namespace -> bool

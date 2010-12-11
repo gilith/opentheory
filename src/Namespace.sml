@@ -55,7 +55,30 @@ val isNested = can destNested;
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (Namespace n1, Namespace n2) = lexCompare String.compare (n1,n2);
+fun compareComponent (s1,s2) =
+    case (String.size s1 = 0, String.size s2 = 0) of
+      (true,true) => EQUAL
+    | (true,false) => LESS
+    | (false,true) => GREATER
+    | (false,false) =>
+      let
+        val c1 = String.sub (s1,0)
+        and c2 = String.sub (s2,0)
+      in
+        case (Char.isAlphaNum c1, Char.isAlphaNum c2) of
+          (true,false) => GREATER
+        | (false,true) => LESS
+        | (false,false) => String.compare (s1,s2)
+        | (true,true) =>
+          case (Char.isUpper c1, Char.isUpper c2) of
+            (true,true) => String.compare (s1,s2)
+          | (true,false) => GREATER
+          | (false,true) => LESS
+          | (false,false) => String.compare (s1,s2)
+      end;
+
+fun compare (Namespace n1, Namespace n2) =
+    lexCompare compareComponent (n1,n2);
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting namespaces.                                                     *)

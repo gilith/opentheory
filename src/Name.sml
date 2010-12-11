@@ -35,7 +35,7 @@ val isGlobal = can destGlobal;
 (* ------------------------------------------------------------------------- *)
 
 fun compare (Name n1, Name n2) =
-    prodCompare Namespace.compare String.compare (n1,n2);
+    prodCompare Namespace.compare Namespace.compareComponent (n1,n2);
 
 fun equal (Name (ns1,n1)) (Name (ns2,n2)) =
     n1 = n2 andalso Namespace.equal ns1 ns2;

@@ -547,6 +547,11 @@ val htmlGrammar =
     end;
 
 local
+  fun equalHd x l =
+      case l of
+        [] => false
+      | h :: _ => h = x;
+
   fun dest name =
       let
         val (ns,n) = Name.dest name
@@ -562,11 +567,7 @@ local
 
   fun toUlist names =
       let
-        val (tops,subs) = List.partition (List.null o fst) names
-
-        val items =
-            List.map (toItemName o snd) tops @
-            List.map toItem (categorize subs)
+        val items = categorize names
       in
         Html.Ulist (Html.emptyAttrs,items)
       end
@@ -576,18 +577,24 @@ local
         [] => []
       | (ns,n) :: subs =>
         let
-          val (h,t) = hdTl ns
+          val (item,subs) =
+              case ns of
+                [] => (toItemName n, subs)
+              | h :: t =>
+                let
+                  val (hsubs,subs) = List.partition (equalHd h o fst) subs
 
-          val (hsubs,subs) =
-              List.partition (equal h o hd o fst) subs
+                  val hsubs = (t,n) :: List.map (fn (ns,n) => (tl ns, n)) hsubs
 
-          val hsubs =
-              (t,n) :: List.map (fn (ns,n) => (tl ns, n)) hsubs
+                  val hitem =
+                      [Html.Inline (toHtmlName h),
+                       Html.Block [toUlist hsubs]]
+                in
+                  (toItem hitem, subs)
+                end
         in
-          [Html.Inline (toHtmlName h),
-           Html.Block [toUlist hsubs]] ::
-          categorize subs
-        end
+          item :: categorize subs
+        end;
 in
   fun toHtmlNames ns = toUlist (List.map dest ns);
 end;
