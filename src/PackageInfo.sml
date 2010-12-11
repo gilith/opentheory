@@ -273,7 +273,7 @@ fun contentsTarball info =
     end;
 
 fun extractTarball info files =
-    if null files then ()
+    if List.null files then ()
     else
       let
         val sys = system info

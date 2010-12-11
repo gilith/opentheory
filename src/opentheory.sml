@@ -173,7 +173,7 @@ fun repository () =
       val repos = Directory.repos dir
 
       val () =
-          if not (null repos) then ()
+          if not (List.null repos) then ()
           else raise Error "no repos listed in config file"
     in
       case !repoOption of
@@ -189,12 +189,12 @@ fun repositories () =
       val repos = Directory.repos dir
 
       val () =
-          if not (null repos) then ()
+          if not (List.null repos) then ()
           else raise Error "no repos listed in config file"
 
       val ns = !repoOption
     in
-      if null ns then repos
+      if List.null ns then repos
       else List.map (Directory.getRepo dir) ns
     end;
 
@@ -701,7 +701,7 @@ local
       let
         val l = rev (!infoOutputList)
       in
-        if null l then defaultInfoOutputList inp else l
+        if List.null l then defaultInfoOutputList inp else l
       end;
 
   val defaultInfoOutputFilename = {filename = "-"};
@@ -741,7 +741,7 @@ fun uninstallPackage auto dir name =
       val errs = Directory.checkUninstall dir name
 
       val () =
-          if null errs then ()
+          if List.null errs then ()
           else
             let
               val s = DirectoryError.toStringList errs
@@ -848,7 +848,7 @@ and installAutoRepo master repo name chk =
       val errs = Directory.checkStagePackage dir repo name chk
 
       val () =
-          if null errs then ()
+          if List.null errs then ()
           else
             let
               val s = DirectoryError.toStringList errs
@@ -980,7 +980,7 @@ fun installPackage name =
           else DirectoryError.removeAlreadyInstalled errs
 
       val () =
-          if null errs then ()
+          if List.null errs then ()
           else
             let
               val s = DirectoryError.toStringList errs
@@ -1045,7 +1045,7 @@ fun installTarball tarFile =
           else DirectoryError.removeAlreadyInstalled errs
 
       val () =
-          if null errs then ()
+          if List.null errs then ()
           else
             let
               val s = DirectoryError.toStringList errs
@@ -1114,7 +1114,7 @@ fun installTheory filename =
           else DirectoryError.removeUninstalledParent errs
 
       val () =
-          if null errs then ()
+          if List.null errs then ()
           else
             let
               val s = DirectoryError.toStringList errs
@@ -1718,7 +1718,7 @@ fun upload name =
       val errs = Directory.checkUpload dir repo name
 
       val () =
-          if null errs then ()
+          if List.null errs then ()
           else
             let
               val s = DirectoryError.toStringList errs

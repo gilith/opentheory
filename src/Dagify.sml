@@ -1267,7 +1267,7 @@ in
                   exportablePlan vanilla generate dependency
                     expanded exported theories
             in
-              if null exp then rev plan
+              if List.null exp then rev plan
               else
                 let
                   val exp = List.map (score expanded) exp

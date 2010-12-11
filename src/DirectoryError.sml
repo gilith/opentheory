@@ -43,7 +43,7 @@ fun removeAlreadyInstalled errs =
     let
       val (xs,errs) = List.partition isAlreadyInstalled errs
 
-      val removed = not (null xs)
+      val removed = not (List.null xs)
     in
       (removed,errs)
     end;
@@ -60,7 +60,7 @@ fun removeAlreadyStaged errs =
     let
       val (xs,errs) = List.partition isAlreadyStaged errs
 
-      val removed = not (null xs)
+      val removed = not (List.null xs)
     in
       (removed,errs)
     end;

@@ -131,7 +131,7 @@ fun getRequires req thy =
     | NONE => raise Bug "Graph.getRequires";
 
 fun getListRequires req thys =
-    if null thys then SequentMap.new ()
+    if List.null thys then SequentMap.new ()
     else
       let
         val seqsl = List.map (getRequires req) thys

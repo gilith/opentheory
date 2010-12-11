@@ -22,7 +22,7 @@ fun storableObject ob =
     | Object.Var _ => true
     | Object.Term _ => true
     | Object.Thm _ => true
-    | Object.List l => not (null l);
+    | Object.List l => not (List.null l);
 
 (* ------------------------------------------------------------------------- *)
 (* Minimal dictionaries.                                                     *)

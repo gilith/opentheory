@@ -48,7 +48,7 @@ val main = mainString;
 fun append b1 b2 = b1 ^ separatorString ^ b2;
 
 fun concat bs =
-    if null bs then raise Error "PackageBase.concat"
+    if List.null bs then raise Error "PackageBase.concat"
     else concatWith separatorString bs;
 
 (* ------------------------------------------------------------------------- *)

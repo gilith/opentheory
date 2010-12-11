@@ -287,7 +287,7 @@ fun mkTheory (name,cs) =
       val node =
           case (destArticleConstraints cs, destPackageConstraints cs) of
             ([],[]) =>
-            if null rws then Union
+            if List.null rws then Union
             else raise Error "interpret has no effect in union theory block"
           | (_ :: _, _ :: _) =>
             raise Error "conflicting article and package in theory block"
@@ -411,7 +411,7 @@ fun pp thy =
       Print.blockProgram Print.Consistent 0
         (ppName n ::
          Print.ppString " " ::
-         (if null cs then
+         (if List.null cs then
             [ppOpenBlock,
              Print.ppString " ",
              ppCloseBlock]

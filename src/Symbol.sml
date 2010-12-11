@@ -312,7 +312,7 @@ local
       let
         val ns = List.map fst (NameMap.toList nm)
       in
-        if null ns then Print.skip
+        if List.null ns then Print.skip
         else
           Print.sequence
             (Print.blockProgram Print.Inconsistent 2

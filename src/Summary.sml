@@ -342,7 +342,7 @@ local
       end;
 
   fun ppList ppX prefix name xs =
-      if null xs then Print.skip
+      if List.null xs then Print.skip
       else
         Print.sequence
           (Print.blockProgram Print.Inconsistent 2
@@ -562,7 +562,7 @@ local
 
   fun toUlist names =
       let
-        val (tops,subs) = List.partition (null o fst) names
+        val (tops,subs) = List.partition (List.null o fst) names
 
         val items =
             List.map (toItemName o snd) tops @
@@ -601,13 +601,13 @@ fun toHtmlInfo toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS show =
       val toHtmlTheorem = toHtmlTheoremWS show
 
       fun toHtmlTypeOps name ots =
-          if null ots then []
+          if List.null ots then []
           else
             [Html.H2 [Html.Text (name ^ " Type Operators")],
              toHtmlNames (List.map TypeOp.name ots)]
 
       fun toHtmlConsts name cs =
-          if null cs then []
+          if List.null cs then []
           else
             [Html.H2 [Html.Text (name ^ " Constants")],
              toHtmlNames (List.map Const.name cs)]

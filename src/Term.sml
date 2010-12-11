@@ -1243,7 +1243,7 @@ local
             let
               val (cs,tm) = stripNegation tm
             in
-              if null cs then ppBinderTerm (tm,r)
+              if List.null cs then ppBinderTerm (tm,r)
               else
                 Print.blockProgram Print.Inconsistent 2
                   (List.map ppNegationName cs @

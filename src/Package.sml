@@ -180,7 +180,7 @@ in
     let
       val Package' {tags,theories} = pkg
     in
-      if null tags then
+      if List.null tags then
         case theories of
           [] => Print.skip
         | thy :: theories =>

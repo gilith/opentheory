@@ -36,7 +36,7 @@ fun fromString s = fromList [s];
 
 val global = Namespace [];
 
-fun isGlobal (Namespace n) = null n;
+fun isGlobal (Namespace n) = List.null n;
 
 (* ------------------------------------------------------------------------- *)
 (* Nested namespaces (i.e., everything except the top-level).                *)
