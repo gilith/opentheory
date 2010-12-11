@@ -8,11 +8,21 @@
 
 const "HOLLight.byte_width" as "Data.Byte.width"
 
+# Data.Char
+
+# Data.Char.Plane
+
+const "HOLLight.plane_size" as "Data.Char.Plane.size"
+
 # Data.Word
 
 type "HOLLight.word" as "Data.Word.word"
 
 const "HOLLight.word_size" as "Data.Word.size"
+const "HOLLight.word_to_list" as "Data.Word.toList"
+const "HOLLight.word_to_list_f" as "Data.Word.toList.f"
+const "HOLLight.word_to_num" as "Data.Word.toNatural"
+const "HOLLight.word_from_num" as "Data.Word.fromNatural"
 const "HOLLight.word_width" as "Data.Word.width"
 
 # Number

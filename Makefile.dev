@@ -201,7 +201,8 @@ COMPILATION_THEORIES = \
   list \
   base \
   word \
-  byte
+  byte \
+  char
 
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
@@ -231,20 +232,20 @@ compilation-theories: $(OPENTHEORY)
 reset-repo:
 	curl --user-agent opentheory "http://opentheory.gilith.com/admin/?x=reset"
 
-.PHONY: upload-theories
-upload-theories: $(OPENTHEORY)
-	for pkg in $$($(OPENTHEORY_LIST)) ; do if ! $(OPENTHEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
-
-.PHONY: directory-theories
-directory-theories:
-	$(MAKE) hol-light-theories
-	$(MAKE) compilation-theories
+.PHONY: reset-theories
+reset-theories:
+	$(MAKE) reset-directory
+	$(MAKE) reset-hol-light-theories
 
 .PHONY: theories
 theories:
-	$(MAKE) directory-theories
+	$(MAKE) hol-light-theories
+	$(MAKE) compilation-theories
+
+.PHONY: upload-theories
+upload-theories: $(OPENTHEORY)
 	$(MAKE) reset-repo
-	$(MAKE) upload-theories
+	for pkg in $$($(OPENTHEORY_LIST)) ; do if ! $(OPENTHEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
 
 ###############################################################################
 # Initialization following a repo clone.
@@ -256,6 +257,11 @@ TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_PACKAGE_DIR)
 
 .PHONY: init
 init:
+	@echo
+	@echo '*****************************************************'
+	@echo '* Initialize this development version of opentheory *'
+	@echo '*****************************************************'
+	@echo
 	$(MAKE) $(OPENTHEORY)
 	rm -rf $(TEST_PACKAGE_DIR)
 	$(TEST_OPENTHEORY) init

@@ -5,6 +5,8 @@
 
 IGNORE = '^User: '
 
+REFERENCE_FILE = result.ok
+
 ###############################################################################
 # The default action
 ###############################################################################
@@ -45,12 +47,12 @@ mosml: mosml-result mosml-diff
 
 .PHONY: diff
 mosml-diff:
-	@grep -v $(IGNORE) <result.ok >$(TMPFILE1)
-	@grep -v $(IGNORE) <mosml-result >$(TMPFILE2)
+	@grep -v $(IGNORE) < $(REFERENCE_FILE) > $(TMPFILE1)
+	@grep -v $(IGNORE) < mosml-result > $(TMPFILE2)
 	@diff -c $(TMPFILE1) $(TMPFILE2)
 	@rm -f $(TMPFILE1) $(TMPFILE2)
 
-mosml-result: test.sml ../bin/mosml/Options.uo
+mosml-result: test.sml ../bin/mosml/Options.uo $(REFERENCE_FILE)
 	rm -f $@
 	echo "quit();" | $(MOSML) $< 2>&1 | tee $@
 
@@ -63,12 +65,12 @@ mlton: mlton-result mlton-diff
 
 .PHONY: mlton-diff
 mlton-diff:
-	@grep -v $(IGNORE) <result.ok >$(TMPFILE1)
-	@grep -v $(IGNORE) <mlton-result >$(TMPFILE2)
+	@grep -v $(IGNORE) < $(REFERENCE_FILE) > $(TMPFILE1)
+	@grep -v $(IGNORE) < mlton-result > $(TMPFILE2)
 	@diff -c $(TMPFILE1) $(TMPFILE2)
 	@rm -f $(TMPFILE1) $(TMPFILE2)
 
-mlton-result: ../bin/mlton/selftest
+mlton-result: ../bin/mlton/selftest $(REFERENCE_FILE)
 	rm -f $@
 	$< 2>&1 | tee $@
 
@@ -81,11 +83,11 @@ polyml: polyml-result polyml-diff
 
 .PHONY: polyml-diff
 polyml-diff:
-	@grep -v $(IGNORE) <result.ok >$(TMPFILE1)
-	@grep -v $(IGNORE) <polyml-result >$(TMPFILE2)
+	@grep -v $(IGNORE) < $(REFERENCE_FILE) > $(TMPFILE1)
+	@grep -v $(IGNORE) < polyml-result > $(TMPFILE2)
 	@diff -c $(TMPFILE1) $(TMPFILE2)
 	@rm -f $(TMPFILE1) $(TMPFILE2)
 
-polyml-result: ../bin/polyml/selftest
+polyml-result: ../bin/polyml/selftest $(REFERENCE_FILE)
 	rm -f $@
 	$< 2>&1 | tee $@

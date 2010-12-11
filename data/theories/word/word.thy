@@ -4,6 +4,7 @@ description: Basic functor theory of words
 author: Joe Hurd <joe@gilith.com>
 license: PublicDomain
 show: "Data.Bool"
+show: "Data.List"
 show: "Data.Word"
 show: "Number.Numeral"
 
@@ -20,7 +21,14 @@ modular {
   package: modular-1.0
 }
 
+bits {
+  import: def
+  import: modular
+  package: word-bits-1.0
+}
+
 main {
   import: def
   import: modular
+  import: bits
 }

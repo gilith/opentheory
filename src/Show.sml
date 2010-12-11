@@ -126,10 +126,7 @@ local
         let
           val Show {subshows,rewrite} = show
 
-          val subshow =
-              case StringMap.peek subshows n of
-                SOME s => s
-              | NONE => natural
+          val subshow = Option.getOpt (StringMap.peek subshows n, natural)
 
           val subshow = addPrim subshow ns rw
 
@@ -159,18 +156,18 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun peekPrim show ns =
+  fun peekPrim show nsp =
       let
         val Show {subshows,rewrite} = show
       in
-        case ns of
+        case nsp of
           [] => rewrite
         | n :: ns =>
           case peekSubPrim subshows n ns of
             SOME rw => SOME rw
           | NONE =>
             case rewrite of
-              SOME rw => SOME (Namespace.append rw (Namespace.fromList ns))
+              SOME rw => SOME (Namespace.append rw (Namespace.fromList nsp))
             | NONE => NONE
       end
 
