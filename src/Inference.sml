@@ -81,13 +81,13 @@ in
 
           val tot = List.foldl (fn ((_,i),k) => i + k) 0 infs
 
-          val table = map mkInfRow infs @ [mkTotalRow tot]
+          val table = List.map mkInfRow infs @ [mkTotalRow tot]
 
           val rows = alignTable alignment table
         in
           Print.blockProgram Print.Consistent 0
             (Print.ppString "Primitive inferences:" ::
-             map (Print.sequence Print.addNewline o Print.ppString) rows)
+             List.map (Print.sequence Print.addNewline o Print.ppString) rows)
         end;
 end;
 

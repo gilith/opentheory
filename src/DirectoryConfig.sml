@@ -732,7 +732,7 @@ fun toSections config =
       val Config {repos = rs, install = ins, system = sys} = config
 
       val sections =
-          map toSectionRepo rs @
+          List.map toSectionRepo rs @
           [toSectionInstall ins] @
           [toSectionSystem sys]
     in

@@ -125,12 +125,17 @@ const "HOLLight.one" as "Data.Unit.()"
 const "HOLLight.~" as "Data.Bool.~"
 
 type "HOLLight.mod" as "Number.Modular.modular"
+type "HOLLight.plane" as "Data.Char.Plane.plane"
+type "HOLLight.position" as "Data.Char.Position.position"
+type "HOLLight.unicode" as "Data.Char.char"
 type "HOLLight.word" as "Data.Word.word"
+const "HOLLight.Unicode" as "Data.Char.unicode"
 const "HOLLight.byte_width" as "Data.Byte.width"
 const "HOLLight.mod_N" as "Number.Modular.size"
 const "HOLLight.mod_from_num" as "Number.Modular.fromNatural"
 const "HOLLight.mod_to_num" as "Number.Modular.toNatural"
 const "HOLLight.plane_size" as "Data.Char.Plane.size"
+const "HOLLight.position_width" as "Data.Char.Position.width"
 const "HOLLight.word_from_num" as "Data.Word.fromNatural"
 const "HOLLight.word_size" as "Data.Word.size"
 const "HOLLight.word_to_list" as "Data.Word.toList"
@@ -163,7 +168,7 @@ User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "bool-def-true"
 WARNING: 19 objects left in the dictionary by articles/hol-light/bool-def-true.art
-User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 Compressing article "bool-int-true"

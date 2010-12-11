@@ -322,7 +322,7 @@ fun destTheory thy =
     let
       val Theory {name,imports,node} = thy
 
-      val ics = map ImportConstraint imports
+      val ics = List.map ImportConstraint imports
 
       val ncs =
           case node of
@@ -330,13 +330,13 @@ fun destTheory thy =
             let
               val rws = Interpretation.toRewriteList int
             in
-              map InterpretConstraint rws @ [ArticleConstraint {filename = f}]
+              List.map InterpretConstraint rws @ [ArticleConstraint {filename = f}]
             end
           | Package {interpretation = int, package = p} =>
             let
               val rws = Interpretation.toRewriteList int
             in
-              map InterpretConstraint rws @ [PackageConstraint p]
+              List.map InterpretConstraint rws @ [PackageConstraint p]
             end
           | Union =>
             []
@@ -402,7 +402,7 @@ fun ppConstraintList cs =
     | c :: cs =>
       Print.blockProgram Print.Consistent 0
         (ppConstraint c ::
-         map (Print.sequence Print.addNewline o ppConstraint) cs);
+         List.map (Print.sequence Print.addNewline o ppConstraint) cs);
 
 fun pp thy =
     let
@@ -432,7 +432,7 @@ fun ppList thys =
         fun ppThy t = Print.program [Print.addNewline, Print.addNewline, pp t]
       in
         Print.blockProgram Print.Consistent 0
-          (pp thy :: map ppThy thys)
+          (pp thy :: List.map ppThy thys)
       end;
 
 val toStringName = Print.toString ppName;

@@ -56,9 +56,9 @@ val isName = can destName;
 
 (* Name list objects *)
 
-fun mkNames tys = List (map Name tys);
+fun mkNames tys = List (List.map Name tys);
 
-fun destNames ob = map destName (destList ob);
+fun destNames ob = List.map destName (destList ob);
 
 val isNames = can destNames;
 
@@ -115,9 +115,9 @@ val isType = can destType;
 
 (* Type list objects *)
 
-fun mkTypes tys = List (map Type tys);
+fun mkTypes tys = List (List.map Type tys);
 
-fun destTypes ob = map destType (destList ob);
+fun destTypes ob = List.map destType (destList ob);
 
 val isTypes = can destTypes;
 
@@ -172,9 +172,9 @@ val isTerm = can destTerm;
 
 (* Term list objects *)
 
-fun mkTerms tms = List (map Term tms);
+fun mkTerms tms = List (List.map Term tms);
 
-fun destTerms ob = map destTerm (destList ob);
+fun destTerms ob = List.map destTerm (destList ob);
 
 val isTerms = can destTerms;
 
@@ -242,7 +242,7 @@ val isThm = can destThm;
 local
   fun mkMaplet (n,ty) = mkPair (Name n, Type ty);
 in
-  fun mkTypeSubst m = List (map mkMaplet (NameMap.toList m));
+  fun mkTypeSubst m = List (List.map mkMaplet (NameMap.toList m));
 end;
 
 local
@@ -255,7 +255,7 @@ local
 in
   fun destTypeSubst ob =
       let
-        val ms = map destMaplet (destList ob)
+        val ms = List.map destMaplet (destList ob)
       in
         TypeSubst.fromListMap ms
       end;
@@ -268,7 +268,7 @@ val isTypeSubst = can destTypeSubst;
 local
   fun mkMaplet (v,tm) = mkPair (Var v, Term tm);
 in
-  fun mkTermSubst m = List (map mkMaplet (VarMap.toList m));
+  fun mkTermSubst m = List (List.map mkMaplet (VarMap.toList m));
 end;
 
 local
@@ -281,7 +281,7 @@ local
 in
   fun destTermSubst ob =
       let
-        val ms = map destMaplet (destList ob)
+        val ms = List.map destMaplet (destList ob)
       in
         TermSubst.fromListTermMap ms
       end;

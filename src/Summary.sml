@@ -349,7 +349,7 @@ local
              (Print.ppString prefix ::
               Print.ppString name ::
               Print.ppString ":" ::
-              map (Print.sequence (Print.addBreak 1) o ppX) xs))
+              List.map (Print.sequence (Print.addBreak 1) o ppX) xs))
           Print.addNewline;
 
   fun ppSequentList ppSeq (name,seqs) =
@@ -546,6 +546,52 @@ val htmlGrammar =
          showAxioms = showAxioms}
     end;
 
+local
+  fun dest name =
+      let
+        val (ns,n) = Name.dest name
+      in
+        (Namespace.toList ns, n)
+      end;
+
+  fun toHtmlName name = Name.toHtml (Name.mkGlobal name)
+
+  fun toItem flows = Html.ListItem (Html.emptyAttrs,flows)
+
+  fun toItemName name = toItem [Html.Inline (toHtmlName name)]
+
+  fun toUlist names =
+      let
+        val (tops,subs) = List.partition (null o fst) names
+
+        val items =
+            List.map (toItemName o snd) tops @
+            List.map toItem (categorize subs)
+      in
+        Html.Ulist (Html.emptyAttrs,items)
+      end
+
+  and categorize subs =
+      case subs of
+        [] => []
+      | (ns,n) :: subs =>
+        let
+          val (h,t) = hdTl ns
+
+          val (hsubs,subs) =
+              List.partition (equal h o hd o fst) subs
+
+          val hsubs =
+              (t,n) :: List.map (fn (ns,n) => (tl ns, n)) hsubs
+        in
+          [Html.Inline (toHtmlName h),
+           Html.Block [toUlist hsubs]] ::
+          categorize subs
+        end
+in
+  fun toHtmlNames ns = toUlist (List.map dest ns);
+end;
+
 fun toHtmlInfo toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS show =
     let
       val toHtmlAssumption = toHtmlAssumptionWS show
@@ -553,53 +599,6 @@ fun toHtmlInfo toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS show =
       val toHtmlAxiom = toHtmlAxiomWS show
 
       val toHtmlTheorem = toHtmlTheoremWS show
-
-      val toHtmlNames =
-          let
-            fun dest name =
-                let
-                  val (ns,n) = Name.dest name
-                in
-                  (Namespace.toList ns, n)
-                end
-
-            fun toHtmlName name = Name.toHtml (Name.mkGlobal name)
-
-            fun toItem flows = Html.ListItem (Html.emptyAttrs,flows)
-
-            fun toItemName name = toItem [Html.Inline (toHtmlName name)]
-
-            fun toUlist names =
-                let
-                  val (tops,subs) = List.partition (null o fst) names
-
-                  val items =
-                      List.map (toItemName o snd) tops @
-                      List.map toItem (categorize subs)
-                in
-                  Html.Ulist (Html.emptyAttrs,items)
-                end
-
-            and categorize subs =
-                case subs of
-                  [] => []
-                | (ns,n) :: subs =>
-                  let
-                    val (h,t) = hdTl ns
-
-                    val (hsubs,subs) =
-                        List.partition (equal h o hd o fst) subs
-
-                    val hsubs =
-                        (t,n) :: List.map (fn (ns,n) => (tl ns, n)) hsubs
-                  in
-                    [Html.Inline (toHtmlName h),
-                     Html.Block [toUlist hsubs]] ::
-                    categorize subs
-                  end
-          in
-            toUlist o map dest
-          end
 
       fun toHtmlTypeOps name ots =
           if null ots then []

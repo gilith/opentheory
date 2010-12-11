@@ -75,7 +75,7 @@ fun ppList tags =
       [] => Print.skip
     | tag :: tags =>
       Print.blockProgram Print.Consistent 0
-        (pp tag :: map (Print.sequence Print.addNewline o pp) tags);
+        (pp tag :: List.map (Print.sequence Print.addNewline o pp) tags);
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)

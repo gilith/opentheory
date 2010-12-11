@@ -20,7 +20,7 @@ TEMP += \
 
 MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
-#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-1]'
+#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
 
 ###############################################################################
 # The Moscow ML compiler.

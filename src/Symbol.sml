@@ -310,7 +310,7 @@ fun inst sym =
 local
   fun ppNameMap (name,nm) =
       let
-        val ns = map fst (NameMap.toList nm)
+        val ns = List.map fst (NameMap.toList nm)
       in
         if null ns then Print.skip
         else
@@ -318,7 +318,7 @@ local
             (Print.blockProgram Print.Inconsistent 2
                (Print.ppString name ::
                 Print.ppString ":" ::
-                map (Print.sequence (Print.addBreak 1) o Name.pp) ns))
+                List.map (Print.sequence (Print.addBreak 1) o Name.pp) ns))
             Print.addNewline
       end;
 in

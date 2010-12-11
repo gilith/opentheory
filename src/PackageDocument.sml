@@ -123,7 +123,7 @@ fun toHtml doc =
                   Html.TableRow [n,v]
                 end
 
-            val ts = map tagBlock tags
+            val ts = List.map tagBlock tags
           in
             Html.Table (Html.emptyAttrs,ts)
           end

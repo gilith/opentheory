@@ -141,7 +141,7 @@ fun extraFiles info = Package.extraFiles (package info);
 fun allFiles info =
     theoryFile info ::
     articleFiles info @
-    map Package.filenameExtraFile (extraFiles info);
+    List.map Package.filenameExtraFile (extraFiles info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
@@ -172,13 +172,13 @@ fun createTarball info =
 
       val {filename = tarFile} = joinDir (tarball info)
 
-      val pkgFiles = map joinDir (allFiles info)
+      val pkgFiles = List.map joinDir (allFiles info)
 
       val {tar = cmd} = DirectorySystem.tar sys
 
       val cmd =
           cmd ^ " czf " ^ tarFile ^
-          String.concat (map (fn {filename = f} => " " ^ f) pkgFiles)
+          String.concat (List.map (fn {filename = f} => " " ^ f) pkgFiles)
 
 (*OpenTheoryTrace1
       val () = trace (cmd ^ "\n")
@@ -296,7 +296,7 @@ fun extractTarball info files =
         val {tar = cmd} = DirectorySystem.tar sys
 
         val cmd =
-            cmd ^ " xzf " ^ tarFile ^ String.concat (map mkArg files)
+            cmd ^ " xzf " ^ tarFile ^ String.concat (List.map mkArg files)
 
 (*OpenTheoryTrace1
         val () = trace (cmd ^ "\n")

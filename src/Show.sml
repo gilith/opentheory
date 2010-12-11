@@ -226,7 +226,7 @@ val fromList = addList natural;
 (* Parsing and pretty-printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTags show = map toTagMapping (toList show);
+fun toTags show = List.map toTagMapping (toList show);
 
 local
   fun destTag tag =
@@ -240,7 +240,7 @@ in
       let
         val vs = List.mapPartial destTag tags
 
-        val ms = map fromStringMapping vs
+        val ms = List.map fromStringMapping vs
       in
         fromList ms
       end;
@@ -255,7 +255,7 @@ val default =
       fun openNamespace ns =
           NamespaceMapping (Namespace.fromList ns, Namespace.global)
     in
-      (fromList o map openNamespace)
+      (fromList o List.map openNamespace)
       [["Data","Bool"]]
     end;
 

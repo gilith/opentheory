@@ -49,7 +49,7 @@ fun annotateOptions s =
            description = "(" ^ s ^ ") " ^ description,
            processor = processor}
     in
-      fn opts => map mk opts
+      fn opts => List.map mk opts
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -249,7 +249,7 @@ local
   open Useful Options;
 
   fun addSuffix s {switches,arguments,description,processor} =
-      {switches = map (fn x => x ^ s) switches,
+      {switches = List.map (fn x => x ^ s) switches,
        arguments = arguments,
        description = description,
        processor = processor};
@@ -274,7 +274,7 @@ in
        {switches = ["--manual"], arguments = [],
         description = "do not also install required packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)}] @
-      map (addSuffix "-uninstall") uninstallOpts;
+      List.map (addSuffix "-uninstall") uninstallOpts;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -566,11 +566,11 @@ fun commandOpts cmd =
     | Update => updateOpts
     | Upload => uploadOpts;
 
-val allCommandStrings = map commandString allCommands;
+val allCommandStrings = List.map commandString allCommands;
 
 local
   val allCommandCommandStrings =
-      map (fn c => (c, commandString c)) allCommands;
+      List.map (fn c => (c, commandString c)) allCommands;
 in
   fun commandFromString s =
       case List.find (equal s o snd) allCommandCommandStrings of
@@ -582,7 +582,7 @@ val allCommandOptions =
     let
       fun mk cmd = annotateOptions (commandString cmd) (commandOpts cmd)
     in
-      List.concat (map mk allCommands)
+      List.concat (List.map mk allCommands)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -621,7 +621,7 @@ local
             [{leftAlign = true, padChar = #"."},
              {leftAlign = true, padChar = #" "}]
 
-        val table = alignTable alignment (map f allCommands)
+        val table = alignTable alignment (List.map f allCommands)
       in
         globalUsage ^ "\n" ^
         "where the possible commands are:\n" ^
@@ -1264,7 +1264,7 @@ local
           let
             val files = PackageInfo.allFiles info
 
-            val files = map (PackageInfo.joinDirectory info) files
+            val files = List.map (PackageInfo.joinDirectory info) files
           in
             SOME files
           end
@@ -1612,8 +1612,8 @@ in
 
         val files =
             {filename = filename} ::
-            map joinDir (Package.articles pkg) @
-            map (joinDir o Package.filenameExtraFile) (Package.extraFiles pkg)
+            List.map joinDir (Package.articles pkg) @
+            List.map (joinDir o Package.filenameExtraFile) (Package.extraFiles pkg)
 
         val () = setDirectory {directory = dir}
 

@@ -152,7 +152,7 @@ fun toString err =
        in
          "filename clash in package directory:\n" ^
          "Package file " ^ PackageTheory.toStringFilename dest ^ "\n" ^
-         " is target for " ^ join "\n  and also for " (map toStringSrc srcs)
+         " is target for " ^ join "\n  and also for " (List.map toStringSrc srcs)
        end
      | InstalledDescendent name =>
        "in use by installed package: " ^ PackageName.toString name
@@ -167,6 +167,6 @@ fun toString err =
        "package " ^ PackageName.toString name ^
        " has different checksum on " ^ repo ^ " repo");
 
-fun toStringList errs = join "\n" (map toString errs);
+fun toStringList errs = join "\n" (List.map toString errs);
 
 end

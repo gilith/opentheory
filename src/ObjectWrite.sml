@@ -288,7 +288,7 @@ local
                 and res = 0
 
                 val work =
-                    map ObTask args @
+                    List.map ObTask args @
                     CmdTask cmd ::
                     GenTask (gen,res) ::
                     work
@@ -302,7 +302,7 @@ local
                  result = res} =>
               let
                 val work =
-                    map ObjTask args @
+                    List.map ObjTask args @
                     CmdTask cmd ::
                     GenTask (gen,res) ::
                     work
@@ -320,7 +320,7 @@ local
              and res = 0
 
              val work =
-                 map ObTask args @
+                 List.map ObTask args @
                  CmdTask cmd ::
                  GenTask (gen,res) ::
                  work
@@ -405,7 +405,7 @@ in
                    "ObjectWrite.toCommandStream: exp" exp
 *)
         val dict = newMinDict exp
-        and work = map ExpTask (ObjectExport.toList exp)
+        and work = List.map ExpTask (ObjectExport.toList exp)
 
 (*OpenTheoryTrace4
         val () = Print.trace (Print.ppList ppTask)

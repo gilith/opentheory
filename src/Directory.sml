@@ -727,7 +727,7 @@ local
             Print.blockProgram Print.Consistent 2
               (Print.ppString dest ::
                Print.ppString ":" ::
-               map (Print.sequence Print.addNewline o ppSrc) srcs)
+               List.map (Print.sequence Print.addNewline o ppSrc) srcs)
       in
         fn plan =>
            case StringMap.toList plan of
@@ -735,7 +735,7 @@ local
            | cp :: cps =>
              Print.blockProgram Print.Consistent 0
                (ppCopy cp ::
-                map (Print.sequence Print.addNewline o ppCopy) cps)
+                List.map (Print.sequence Print.addNewline o ppCopy) cps)
       end;
 *)
 
@@ -882,7 +882,7 @@ local
       let
         val Package.Package' {tags,theories} = Package.dest pkg
 
-        val theories = map (copyArticle srcDir info) theories
+        val theories = List.map (copyArticle srcDir info) theories
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
@@ -891,7 +891,7 @@ local
       let
         val Package.Package' {tags,theories} = Package.dest pkg
 
-        val tags = map (copyExtraFile sys srcDir info) tags
+        val tags = List.map (copyExtraFile sys srcDir info) tags
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;

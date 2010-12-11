@@ -89,7 +89,7 @@ local
       case cs of
         [] => Print.skip
       | c :: cs =>
-        Print.program (ppC c :: map (Print.sequence ppSeparator o ppC) cs);
+        Print.program (ppC c :: List.map (Print.sequence ppSeparator o ppC) cs);
 
   val ppComponent = Print.ppEscapeString {escape = escapeChars};
 in

@@ -69,7 +69,7 @@ fun rawContents sys {filename} =
 
       val files = Stream.fromTextFile {filename = tmpFile}
 
-      val files = map (fn f => {filename = chomp f}) (Stream.toList files)
+      val files = List.map (fn f => {filename = chomp f}) (Stream.toList files)
 
       val () = OS.FileSys.remove tmpFile
     in
@@ -88,7 +88,7 @@ in
       let
         val files = rawContents sys tarFile
 
-        val (dirs,files) = unzip (map split files)
+        val (dirs,files) = unzip (List.map split files)
 
         val dir =
             case dirs of

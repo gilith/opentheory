@@ -664,7 +664,7 @@ fun execute cmd state =
 
         val ppStack =
             Print.ppMap
-              (map ObjectProv.object o ObjectStack.objects)
+              (List.map ObjectProv.object o ObjectStack.objects)
               (Print.ppList Object.pp)
 
         val () = Print.trace ppStack "ObjectRead.execute: stack" stack

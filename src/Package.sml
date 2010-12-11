@@ -186,11 +186,11 @@ in
         | thy :: theories =>
           Print.blockProgram Print.Consistent 0
             (PackageTheory.pp thy ::
-             map ppThy theories)
+             List.map ppThy theories)
       else
         Print.blockProgram Print.Consistent 0
           (Tag.ppList tags ::
-           map ppThy theories)
+           List.map ppThy theories)
     end;
 end;
 

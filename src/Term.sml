@@ -1227,7 +1227,7 @@ local
                 [ppBinderName c,
                  ppBasicTerm v,
                  Print.program
-                   (map (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs),
+                   (List.map (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs),
                  Print.ppString ".",
                  Print.addBreak 1,
                  if isBinder body then ppBindTerm body
@@ -1246,7 +1246,7 @@ local
               if null cs then ppBinderTerm (tm,r)
               else
                 Print.blockProgram Print.Inconsistent 2
-                  (map ppNegationName cs @
+                  (List.map ppNegationName cs @
                    [if isInfix tm orelse isCond show tm then ppBracketTerm tm
                     else ppBinderTerm (tm,r)])
             end

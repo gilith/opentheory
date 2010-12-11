@@ -45,7 +45,7 @@ val ppSeparator = Print.ppString separatorString;
 
 fun pp (Version (i,l)) =
     Print.program
-      (Print.ppInt i :: map (Print.sequence ppSeparator o Print.ppInt) l);
+      (Print.ppInt i :: List.map (Print.sequence ppSeparator o Print.ppInt) l);
 
 val toString = Print.toString pp;
 

@@ -309,7 +309,7 @@ fun defineTypeOp name {abs} {rep} tyVars existenceTh =
             {name = rep,
              prov = TypeTerm.RepProvConst prov}
 
-      val aTy = Type.mkOp (ot, map Type.mkVar tyVars)
+      val aTy = Type.mkOp (ot, List.map Type.mkVar tyVars)
       and rTy = Term.typeOf tTm
 
       val absTy = Type.mkFun (rTy,aTy)

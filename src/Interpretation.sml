@@ -47,7 +47,7 @@ fun ppRewriteList rs =
     | r :: rs =>
       Print.blockProgram Print.Consistent 0
         (ppRewrite r ::
-         map (Print.sequence Print.addNewline o ppRewrite) rs);
+         List.map (Print.sequence Print.addNewline o ppRewrite) rs);
 
 val toStringRewrite = Print.toString ppRewrite;
 
