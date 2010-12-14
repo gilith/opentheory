@@ -601,7 +601,7 @@ local
       let
         val class = "namespace"
 
-        val title = "Namespace " ^ Namespace.toString ns
+        val title = Namespace.toString ns
 
         val attrs = Html.fromListAttrs [("class",class),("title",title)]
 
