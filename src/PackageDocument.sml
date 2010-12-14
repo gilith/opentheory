@@ -83,9 +83,9 @@ fun toHtml doc =
                  "h1 { margin-top: 0.5em; }",
                  "td { background-color: #e0e8ff; margin: 0; border: 1px dotted white; padding-top: 2px; padding-bottom: 2px; padding-left: 10px; padding-right: 10px; }",
                  "ul { padding-left: 1.25em; }",
+                 "span.namespace { font-style: italic; }",
                  "p.sequent { font-family: courier, monospace; }",
                  "span.var { color: #007f00; }",
-                 "span.const { color: #000000; }",
                  "span.negation { color: #00003f; }",
                  "span.infix { color: #00007f; }",
                  "span.binder { color: #7f0000; }"]

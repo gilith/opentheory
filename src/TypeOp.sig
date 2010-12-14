@@ -44,7 +44,9 @@ val equal : typeOp -> typeOp -> bool
 (* Reconstructing the arity from the provenance.                             *)
 (* ------------------------------------------------------------------------- *)
 
-val arity : typeOp -> int option
+val varsDef : typeOp -> Name.name list option
+
+val arityDef : typeOp -> int option
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -56,6 +58,6 @@ val pp : typeOp Print.pp
 
 val toString : typeOp -> string
 
-val toHtml : (typeOp * int option) * Name.name -> Html.inline
+val toHtml : (typeOp * Name.name list option) * Name.name -> Html.inline
 
 end

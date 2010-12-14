@@ -63,8 +63,8 @@ and const =
 and provConst =
     UndefProvConst
   | DefProvConst of defConst
-  | AbsProvConst of defOpTy
-  | RepProvConst of defOpTy
+  | AbsProvConst of opTy
+  | RepProvConst of opTy
 
 and defConst = DefConst of term;
 
@@ -192,10 +192,10 @@ and compareProvConst p1_p2 =
     | (DefProvConst d1, DefProvConst d2) => compareDefConst (d1,d2)
     | (DefProvConst _, _) => LESS
     | (_, DefProvConst _) => GREATER
-    | (AbsProvConst d1, AbsProvConst d2) => compareDefOpTy (d1,d2)
+    | (AbsProvConst o1, AbsProvConst o2) => compareOpTy (o1,o2)
     | (AbsProvConst _, _) => LESS
     | (_, AbsProvConst _) => GREATER
-    | (RepProvConst d1, RepProvConst d2) => compareDefOpTy (d1,d2)
+    | (RepProvConst o1, RepProvConst o2) => compareOpTy (o1,o2)
 
 and compareDefConst (DefConst tm1, DefConst tm2) = compare (tm1,tm2);
 

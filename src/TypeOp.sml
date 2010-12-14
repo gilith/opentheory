@@ -56,7 +56,20 @@ val equal = TypeTerm.equalOpTy;
 (* Reconstructing the arity from the provenance.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun arity ot = NONE;
+fun varsDef ot =
+    case prov ot of
+      TypeTerm.UndefProvOpTy => NONE
+    | TypeTerm.DefProvOpTy def =>
+      let
+        val TypeTerm.DefOpTy {vars = vs, ...} = def
+      in
+        SOME vs
+      end;
+
+fun arityDef ot =
+    case varsDef ot of
+      SOME vs => SOME (length vs)
+    | NONE => NONE;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -68,23 +81,34 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
-fun toHtml ((ot,io),n) =
-    let
-      val class = "type-operator"
+local
+  fun ppVars (ot,vso) =
+      Print.blockProgram Print.Inconsistent 0
+        [(case vso of
+            NONE => Print.skip
+          | SOME vs =>
+            case vs of
+              [] => Print.skip
+            | [v] => Print.sequence (Name.pp v) (Print.addBreak 1)
+            | _ =>
+              Print.sequence
+                (Print.ppBracket "(" ")" (Print.ppOpList "," Name.pp) vs)
+                (Print.addBreak 1)),
+         Name.pp (name ot)];
+in
+  fun toHtml (ot_vso,n) =
+      let
+        val class = "type-operator"
 
-      val title = "Type operator " ^ Name.toString (name ot)
+        val title = Print.toString ppVars ot_vso
 
-      val title =
-          case io of
-            NONE => title
-          | SOME i => title ^ " / " ^ Int.toString i
+        val attrs = Html.fromListAttrs [("class",class),("title",title)]
 
-      val attrs = Html.fromListAttrs [("class",class),("title",title)]
-
-      val inlines = Name.toHtml n
-    in
-      Html.Span (attrs,inlines)
-    end;
+        val inlines = Name.toHtml n
+      in
+        Html.Span (attrs,inlines)
+      end;
+end;
 
 end
 

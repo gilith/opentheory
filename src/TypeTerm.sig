@@ -205,8 +205,8 @@ val equalDefConst : defConst -> defConst -> bool
 datatype provConst =
     UndefProvConst
   | DefProvConst of defConst
-  | AbsProvConst of defOpTy
-  | RepProvConst of defOpTy
+  | AbsProvConst of opTy
+  | RepProvConst of opTy
 
 (* Total order *)
 

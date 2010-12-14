@@ -56,7 +56,47 @@ val equal = TypeTerm.equalConst;
 (* Reconstructing the type from the provenance.                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun typeOf c = NONE;
+local
+  fun isoTys ot =
+      let
+        val (pred,tyVars) =
+            case TypeOp.prov ot of
+              TypeTerm.DefProvOpTy def =>
+              let
+                val TypeTerm.DefOpTy {pred,vars} = def
+              in
+                (pred,vars)
+              end
+            | _ => raise Bug "Const.typeOf.AbsProvConst: not a defined type op"
+
+        val abs = Type.mkOp (ot, List.map Type.mkVar tyVars)
+        and rep = Type.domainFun (TypeTerm.typeOf pred)
+      in
+        {abs = abs, rep = rep}
+      end;
+in
+  fun typeOf c =
+      case prov c of
+        TypeTerm.UndefProvConst => NONE
+      | TypeTerm.DefProvConst def =>
+        let
+          val TypeTerm.DefConst tm = def
+        in
+          SOME (TypeTerm.typeOf tm)
+        end
+      | TypeTerm.AbsProvConst ot =>
+        let
+          val {abs,rep} = isoTys ot
+        in
+          SOME (Type.mkFun (rep,abs))
+        end
+      | TypeTerm.RepProvConst ot =>
+        let
+          val {abs,rep} = isoTys ot
+        in
+          SOME (Type.mkFun (abs,rep))
+        end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -72,7 +112,7 @@ fun toHtml ((c,ty),n) =
     let
       val class = "const"
 
-      val title = "Constant " ^ Name.toString (name c)
+      val title = Name.toString (name c)
 
       val title =
           case ty of

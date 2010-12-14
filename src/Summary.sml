@@ -553,7 +553,7 @@ fun htmlGrammarSequent class title =
     end;
 
 local
-  fun toHtmlTypeOp (ot,n) = TypeOp.toHtml ((ot, TypeOp.arity ot), n);
+  fun toHtmlTypeOp (ot,n) = TypeOp.toHtml ((ot, TypeOp.varsDef ot), n);
 
   fun toHtmlConst (c,n) = Const.toHtml ((c, Const.typeOf c), n);
 
@@ -597,24 +597,35 @@ local
 
   fun toHtml ppX x = Html.Raw (Print.toString ppX x)
 
-  fun toHtmlNamespace name = Name.toHtml name
+  fun toHtmlNamespace ns name =
+      let
+        val class = "namespace"
+
+        val title = "Namespace " ^ Namespace.toString ns
+
+        val attrs = Html.fromListAttrs [("class",class),("title",title)]
+
+        val inlines = Name.toHtml name
+      in
+        Html.Span (attrs,inlines)
+      end;
 
   fun toItem flows = Html.ListItem (Html.emptyAttrs,flows)
 in
   fun toHtmlNames ppXName =
       let
-        fun toUlist names =
+        fun toUlist stack names =
             let
 (*OpenTheoryDebug
               val () = if not (List.null names) then ()
                        else raise Bug "Summary.toHtmlNames.toUlist"
 *)
-              val items = toItemList names
+              val items = toItemList stack names
             in
               Html.Ulist (Html.emptyAttrs,items)
             end
 
-        and toItemList subs =
+        and toItemList stack subs =
             case subs of
               [] => []
             | (ns,x) :: subs =>
@@ -627,8 +638,13 @@ in
                 val name = Name.mkGlobal h
 
                 val hitem =
-                    if not (null t) then toHtmlNamespace name
-                    else [toHtml ppXName (x,name)]
+                    if null t then toHtml ppXName (x,name)
+                    else
+                      let
+                        val x = Namespace.fromList (List.revAppend (stack,[h]))
+                      in
+                        toHtmlNamespace x name
+                      end
 
                 val (hsubs,subs) = List.partition (fstHdEqual h) subs
 
@@ -638,14 +654,14 @@ in
 
                 val sitem =
                     if List.null hsubs then []
-                    else [Html.Block [toUlist hsubs]]
+                    else [Html.Block [toUlist (h :: stack) hsubs]]
 
-                val item = toItem (Html.Inline hitem :: sitem)
+                val item = toItem (Html.Inline [hitem] :: sitem)
               in
-                item :: toItemList subs
+                item :: toItemList stack subs
               end
       in
-        fn nxs => toUlist (List.map dest nxs)
+        fn nxs => toUlist [] (List.map dest nxs)
       end;
 end;
 

@@ -138,8 +138,7 @@ fun toHtml var =
           let
             val class = "var"
 
-            and title =
-                "Variable " ^ Name.toString name ^ " : " ^ Type.toString ty
+            and title = Name.toString name ^ " : " ^ Type.toString ty
           in
             Html.fromListAttrs [("class",class),("title",title)]
           end
