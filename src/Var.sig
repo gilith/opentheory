@@ -85,4 +85,6 @@ val pp : var Print.pp
 
 val toString : var -> string
 
+val toHtml : var -> Html.inline
+
 end

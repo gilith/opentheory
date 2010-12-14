@@ -837,65 +837,41 @@ local
 
   val ppBinder = ppBinderBuffer (Print.ppMap snd Name.pp);
 
-  local
-    fun toHtmlVar var =
-        let
-          val (name,ty) = Var.dest var
-
-          val attrs =
-              let
-                val class = "var"
-
-                and title = Type.toString ty
-              in
-                Html.fromListAttrs [("class",class),("title",title)]
-              end
-
-          val inlines = Name.toHtml name
-        in
-          Html.Span (attrs,inlines)
-        end;
-  in
-    val ppVarHtml = Print.ppMap toHtmlVar Html.ppFixed;
-  end;
+  val ppVarHtml = Print.ppMap Var.toHtml Html.ppFixed;
 
   local
-    fun toHtmlConst class (c_ty,name) =
+    fun mkSpan class inlines =
         let
           val attrs = Html.singletonAttrs ("class",class)
-
-          val attrs =
-              case c_ty of
-                NONE => attrs
-              | SOME (c,ty) =>
-                let
-                  val title =
-                      Name.toString (Const.name c) ^ " : " ^
-                      Type.toString ty
-
-                  val attrs' = Html.singletonAttrs ("title",title)
-                in
-                  Html.unionAttrs attrs attrs'
-                end
-
-          val inlines = Name.toHtml name
         in
           Html.Span (attrs,inlines)
         end;
 
-    fun ppGenHtml class = Print.ppMap (toHtmlConst class) Html.ppFixed;
+    fun toHtmlConst ((c,ty),n) = Const.toHtml ((c, SOME ty), n);
+
+    fun toHtmlNegation ((c,ty),n) =
+        mkSpan "negation" [Const.toHtml ((c, SOME ty), n)];
+
+    fun toHtmlInfix ((c,ty),n) =
+        mkSpan "infix" [Const.toHtml ((c, SOME ty), n)];
+
+    fun toHtmlBinder (cty,n) =
+        let
+          val h =
+              case cty of
+                SOME (c,ty) => [Const.toHtml ((c, SOME ty), n)]
+              | NONE => Name.toHtml n
+        in
+          mkSpan "binder" h
+        end;
   in
-    fun ppConstHtml (c,n) =
-        ppGenHtml "const" (SOME c, n);
+    val ppConstHtml = Print.ppMap toHtmlConst Html.ppFixed;
 
-    fun ppNegationHtml (c,n) =
-        ppGenHtml "negation" (SOME c, n);
+    val ppNegationHtml = Print.ppMap toHtmlNegation Html.ppFixed;
 
-    fun ppInfixHtml (c,n) =
-        ppInfixBuffer (ppGenHtml "infix") (SOME c, n);
+    val ppInfixHtml = ppInfixBuffer (Print.ppMap toHtmlInfix Html.ppFixed);
 
-    fun ppBinderHtml c_n =
-        ppBinderBuffer (ppGenHtml "binder") c_n;
+    val ppBinderHtml = ppBinderBuffer (Print.ppMap toHtmlBinder Html.ppFixed);
   end;
 
   val maximumSize = 1000;

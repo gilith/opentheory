@@ -41,6 +41,12 @@ val compare : typeOp * typeOp -> order
 val equal : typeOp -> typeOp -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Reconstructing the arity from the provenance.                             *)
+(* ------------------------------------------------------------------------- *)
+
+val arity : typeOp -> int option
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -49,5 +55,7 @@ val ppWithShow : Show.show -> typeOp Print.pp
 val pp : typeOp Print.pp
 
 val toString : typeOp -> string
+
+val toHtml : (typeOp * int option) * Name.name -> Html.inline
 
 end

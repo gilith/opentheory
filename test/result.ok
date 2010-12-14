@@ -190,8 +190,8 @@ axioms:
 theorems:
 
 Summarizing compressed article "example1"
-input-types: bool
-input-consts: T
+input type operators: bool
+input constants: T
 assumptions:
   |- T
 axioms:
@@ -199,8 +199,8 @@ theorems:
   |- T
 
 Summarizing compressed article "example2"
-input-types: bool
-input-consts: T
+input type operators: bool
+input constants: T
 assumptions:
   |- (\x. x) T
 axioms:
@@ -208,33 +208,33 @@ theorems:
   |- (\y. y) T
 
 Summarizing compressed article "example3"
-input-types: -> bool
-input-consts: =
+input type operators: -> bool
+input constants: =
 assumptions:
 axioms:
 theorems:
   |- x = x
 
 Summarizing compressed article "example4"
-input-types: -> bool
-input-consts: =
+input type operators: -> bool
+input constants: =
 assumptions:
 axioms:
 theorems:
   |- x = x
 
 Summarizing compressed article "bool-def-true"
-input-types: -> bool
-input-consts: =
+input type operators: -> bool
+input constants: =
 assumptions:
-defined-consts: T
+defined constants: T
 axioms:
 theorems:
   |- T <=> (\p. p) = \p. p
 
 Summarizing compressed article "bool-int-true"
-input-types: -> bool
-input-consts: = T
+input type operators: -> bool
+input constants: = T
 assumptions:
   |- T <=> (\p. p) = \p. p
 axioms:
@@ -242,8 +242,8 @@ theorems:
   |- T
 
 Summarizing compressed article "bool-true-aux"
-input-types: -> bool
-input-consts: = T
+input type operators: -> bool
+input constants: = T
 assumptions:
   |- T
 axioms:
@@ -283,17 +283,17 @@ axioms:
 theorems:
 
 Importing theory package "bool-def-true-1.0"
-input-types: -> bool
-input-consts: =
+input type operators: -> bool
+input constants: =
 assumptions:
-defined-consts: T
+defined constants: T
 axioms:
 theorems:
   |- T <=> (\p. p) = \p. p
 
 Importing theory package "bool-int-true-1.0"
-input-types: -> bool
-input-consts: = T
+input type operators: -> bool
+input constants: = T
 assumptions:
   |- T <=> (\p. p) = \p. p
 axioms:
@@ -301,10 +301,10 @@ theorems:
   |- T
 
 Importing theory package "bool-true-1.0"
-input-types: -> bool
-input-consts: =
+input type operators: -> bool
+input constants: =
 assumptions:
-defined-consts: T
+defined constants: T
 axioms:
 theorems:
   |- T

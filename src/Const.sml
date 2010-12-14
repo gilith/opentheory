@@ -53,6 +53,12 @@ val compare = TypeTerm.compareConst;
 val equal = TypeTerm.equalConst;
 
 (* ------------------------------------------------------------------------- *)
+(* Reconstructing the type from the provenance.                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun typeOf c = NONE;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -61,6 +67,24 @@ fun ppWithShow show = Print.ppMap (Show.showName show o name) Name.pp;
 val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
+
+fun toHtml ((c,ty),n) =
+    let
+      val class = "const"
+
+      val title = "Constant " ^ Name.toString (name c)
+
+      val title =
+          case ty of
+            NONE => title
+          | SOME t => title ^ " : " ^ Type.toString t
+
+      val attrs = Html.fromListAttrs [("class",class),("title",title)]
+
+      val inlines = Name.toHtml n
+    in
+      Html.Span (attrs,inlines)
+    end;
 
 end
 

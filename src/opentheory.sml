@@ -311,6 +311,8 @@ fun infoSummaryGrammar () =
             {assumptionGrammar,
              axiomGrammar,
              theoremGrammar,
+             ppTypeOp,
+             ppConst,
              showAxioms = _} = Summary.defaultGrammar
 
       val showAxioms = !infoShowAxioms
@@ -319,6 +321,8 @@ fun infoSummaryGrammar () =
         {assumptionGrammar = assumptionGrammar,
          axiomGrammar = axiomGrammar,
          theoremGrammar = theoremGrammar,
+         ppTypeOp = ppTypeOp,
+         ppConst = ppConst,
          showAxioms = showAxioms}
     end;
 

@@ -41,6 +41,12 @@ val compare : const * const -> order
 val equal : const -> const -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Reconstructing the type from the provenance.                              *)
+(* ------------------------------------------------------------------------- *)
+
+val typeOf : const -> Type.ty option
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -49,5 +55,7 @@ val ppWithShow : Show.show -> const Print.pp
 val pp : const Print.pp
 
 val toString : const -> string
+
+val toHtml : (const * Type.ty option) * Name.name -> Html.inline
 
 end

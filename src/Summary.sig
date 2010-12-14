@@ -64,6 +64,8 @@ datatype grammar =
       {assumptionGrammar : Sequent.grammar,
        axiomGrammar : Sequent.grammar,
        theoremGrammar : Sequent.grammar,
+       ppTypeOp : (TypeOp.typeOp * Name.name) Print.pp,
+       ppConst : (Const.const * Name.name) Print.pp,
        showAxioms : bool}
 
 val defaultGrammar : grammar

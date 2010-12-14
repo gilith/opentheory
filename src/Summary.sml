@@ -310,6 +310,8 @@ datatype grammar =
       {assumptionGrammar : Sequent.grammar,
        axiomGrammar : Sequent.grammar,
        theoremGrammar : Sequent.grammar,
+       ppTypeOp : (TypeOp.typeOp * Name.name) Print.pp,
+       ppConst : (Const.const * Name.name) Print.pp,
        showAxioms : bool};
 
 val defaultGrammar =
@@ -317,12 +319,16 @@ val defaultGrammar =
       val assumptionGrammar = Sequent.defaultGrammar
       and axiomGrammar = Sequent.defaultGrammar
       and theoremGrammar = Sequent.defaultGrammar
+      and ppTypeOp = Print.ppMap snd Name.pp
+      and ppConst = Print.ppMap snd Name.pp
       and showAxioms = false
     in
       Grammar
         {assumptionGrammar = assumptionGrammar,
          axiomGrammar = axiomGrammar,
          theoremGrammar = theoremGrammar,
+         ppTypeOp = ppTypeOp,
+         ppConst = ppConst,
          showAxioms = showAxioms}
     end;
 
@@ -358,11 +364,22 @@ local
          Print.ppString ":" ::
          List.map (Print.sequence Print.addNewline o ppSeq) seqs);
 in
-  fun ppInfoWithShow ppAssumptionWS ppAxiomWS ppTheoremWS show =
+  fun ppInfoWithShow ppTypeOpWS ppConstWS ppAssumptionWS ppAxiomWS ppTheoremWS
+                     show =
       let
-        val ppTypeOp = TypeOp.ppWithShow show
+        fun ppTypeOp ot =
+            let
+              val n = Show.showName show (TypeOp.name ot)
+            in
+              ppTypeOpWS (ot,n)
+            end
 
-        val ppConst = Const.ppWithShow show
+        fun ppConst c =
+            let
+              val n = Show.showName show (Const.name c)
+            in
+              ppConstWS (c,n)
+            end
 
         val ppAssumption = ppAssumptionWS show
 
@@ -376,8 +393,8 @@ in
               and cs = ConstSet.toList (Symbol.consts sym)
             in
               Print.sequence
-                (ppList ppTypeOp prefix "-types" ots)
-                (ppList ppConst prefix "-consts" cs)
+                (ppList ppTypeOp prefix " type operators" ots)
+                (ppList ppConst prefix " constants" cs)
             end
       in
         fn axs => fn info =>
@@ -445,6 +462,8 @@ fun ppWithGrammar grammar =
             {assumptionGrammar,
              axiomGrammar,
              theoremGrammar,
+             ppTypeOp,
+             ppConst,
              showAxioms} = grammar
 
       val ppAssumptionWS = Sequent.ppWithGrammar assumptionGrammar
@@ -453,7 +472,8 @@ fun ppWithGrammar grammar =
 
       val ppTheoremWS = Sequent.ppWithGrammar theoremGrammar
 
-      val ppIWS = ppInfoWithShow ppAssumptionWS ppAxiomWS ppTheoremWS
+      val ppIWS =
+          ppInfoWithShow ppTypeOp ppConst ppAssumptionWS ppAxiomWS ppTheoremWS
     in
       fn show =>
          let
@@ -532,74 +552,105 @@ fun htmlGrammarSequent class title =
          showHyp = showHyp}
     end;
 
-val htmlGrammar =
-    let
-      val assumptionGrammar = htmlGrammarSequent "assumption" "Assumption"
-      and axiomGrammar = htmlGrammarSequent "axiom" "Axiom"
-      and theoremGrammar = htmlGrammarSequent "theorem" "Theorem"
-      and showAxioms = false
-    in
-      Grammar
-        {assumptionGrammar = assumptionGrammar,
-         axiomGrammar = axiomGrammar,
-         theoremGrammar = theoremGrammar,
-         showAxioms = showAxioms}
-    end;
+local
+  fun toHtmlTypeOp (ot,n) = TypeOp.toHtml ((ot, TypeOp.arity ot), n);
+
+  fun toHtmlConst (c,n) = Const.toHtml ((c, Const.typeOf c), n);
+
+  val ppTypeOp = Print.ppMap toHtmlTypeOp Html.ppFixed;
+
+  val ppConst = Print.ppMap toHtmlConst Html.ppFixed;
+in
+  val htmlGrammar =
+      let
+        val assumptionGrammar = htmlGrammarSequent "assumption" "Assumption"
+        and axiomGrammar = htmlGrammarSequent "axiom" "Axiom"
+        and theoremGrammar = htmlGrammarSequent "theorem" "Theorem"
+        and showAxioms = false
+      in
+        Grammar
+          {assumptionGrammar = assumptionGrammar,
+           axiomGrammar = axiomGrammar,
+           theoremGrammar = theoremGrammar,
+           ppTypeOp = ppTypeOp,
+           ppConst = ppConst,
+           showAxioms = showAxioms}
+      end;
+end;
 
 local
-  fun equalHd x l =
+  fun fstNull (l,_) = List.null l;
+
+  fun fstHdEqual x (l,_) =
       case l of
         [] => false
       | h :: _ => h = x;
 
-  fun dest name =
+  fun fstTl (l,x) = (tl l, x);
+
+  fun dest (name,x) =
       let
         val (ns,n) = Name.dest name
       in
-        (Namespace.toList ns, n)
+        (Namespace.toList ns @ [n], x)
       end;
 
-  fun toHtmlName name = Name.toHtml (Name.mkGlobal name)
+  fun toHtml ppX x = Html.Raw (Print.toString ppX x)
+
+  fun toHtmlNamespace name = Name.toHtml name
 
   fun toItem flows = Html.ListItem (Html.emptyAttrs,flows)
-
-  fun toItemName name = toItem [Html.Inline (toHtmlName name)]
-
-  fun toUlist names =
-      let
-        val items = categorize names
-      in
-        Html.Ulist (Html.emptyAttrs,items)
-      end
-
-  and categorize subs =
-      case subs of
-        [] => []
-      | (ns,n) :: subs =>
-        let
-          val (item,subs) =
-              case ns of
-                [] => (toItemName n, subs)
-              | h :: t =>
-                let
-                  val (hsubs,subs) = List.partition (equalHd h o fst) subs
-
-                  val hsubs = (t,n) :: List.map (fn (ns,n) => (tl ns, n)) hsubs
-
-                  val hitem =
-                      [Html.Inline (toHtmlName h),
-                       Html.Block [toUlist hsubs]]
-                in
-                  (toItem hitem, subs)
-                end
-        in
-          item :: categorize subs
-        end;
 in
-  fun toHtmlNames ns = toUlist (List.map dest ns);
+  fun toHtmlNames ppXName =
+      let
+        fun toUlist names =
+            let
+(*OpenTheoryDebug
+              val () = if not (List.null names) then ()
+                       else raise Bug "Summary.toHtmlNames.toUlist"
+*)
+              val items = toItemList names
+            in
+              Html.Ulist (Html.emptyAttrs,items)
+            end
+
+        and toItemList subs =
+            case subs of
+              [] => []
+            | (ns,x) :: subs =>
+              let
+                val (h,t) =
+                    case ns of
+                      [] => raise Bug "Summary.toHtmlNames.toItemList"
+                    | h :: t => (h,t)
+
+                val name = Name.mkGlobal h
+
+                val hitem =
+                    if not (null t) then toHtmlNamespace name
+                    else [toHtml ppXName (x,name)]
+
+                val (hsubs,subs) = List.partition (fstHdEqual h) subs
+
+                val hsubs = (t,x) :: List.map fstTl hsubs
+
+                val hsubs = List.filter (not o fstNull) hsubs
+
+                val sitem =
+                    if List.null hsubs then []
+                    else [Html.Block [toUlist hsubs]]
+
+                val item = toItem (Html.Inline hitem :: sitem)
+              in
+                item :: toItemList subs
+              end
+      in
+        fn nxs => toUlist (List.map dest nxs)
+      end;
 end;
 
-fun toHtmlInfo toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS show =
+fun toHtmlInfo ppTypeOp ppConst toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS
+               show =
     let
       val toHtmlAssumption = toHtmlAssumptionWS show
 
@@ -610,14 +661,22 @@ fun toHtmlInfo toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS show =
       fun toHtmlTypeOps name ots =
           if List.null ots then []
           else
-            [Html.H2 [Html.Text (name ^ " Type Operators")],
-             toHtmlNames (List.map TypeOp.name ots)]
+            let
+              fun dest ot = (TypeOp.name ot, ot)
+            in
+              [Html.H2 [Html.Text (name ^ " Type Operators")],
+               toHtmlNames ppTypeOp (List.map dest ots)]
+            end
 
       fun toHtmlConsts name cs =
           if List.null cs then []
           else
-            [Html.H2 [Html.Text (name ^ " Constants")],
-             toHtmlNames (List.map Const.name cs)]
+            let
+              fun dest c = (Const.name c, c)
+            in
+              [Html.H2 [Html.Text (name ^ " Constants")],
+               toHtmlNames ppConst (List.map dest cs)]
+            end
 
       fun toHtmlSymbol name sym =
           let
@@ -656,6 +715,8 @@ fun toHtmlInfoWithGrammar grammar =
             {assumptionGrammar,
              axiomGrammar,
              theoremGrammar,
+             ppTypeOp,
+             ppConst,
              showAxioms = _} = grammar
 
       val toHtmlAssumption = Sequent.toHtmlWithGrammar assumptionGrammar
@@ -664,7 +725,7 @@ fun toHtmlInfoWithGrammar grammar =
 
       val toHtmlTheorem = Sequent.toHtmlWithGrammar theoremGrammar
     in
-      toHtmlInfo toHtmlAssumption toHtmlAxiom toHtmlTheorem
+      toHtmlInfo ppTypeOp ppConst toHtmlAssumption toHtmlAxiom toHtmlTheorem
     end;
 
 fun toHtmlWithGrammar grammar =

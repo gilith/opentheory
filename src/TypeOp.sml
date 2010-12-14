@@ -53,6 +53,12 @@ val compare = TypeTerm.compareOpTy;
 val equal = TypeTerm.equalOpTy;
 
 (* ------------------------------------------------------------------------- *)
+(* Reconstructing the arity from the provenance.                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun arity ot = NONE;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -61,6 +67,24 @@ fun ppWithShow show = Print.ppMap (Show.showName show o name) Name.pp;
 val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
+
+fun toHtml ((ot,io),n) =
+    let
+      val class = "type-operator"
+
+      val title = "Type operator " ^ Name.toString (name ot)
+
+      val title =
+          case io of
+            NONE => title
+          | SOME i => title ^ " / " ^ Int.toString i
+
+      val attrs = Html.fromListAttrs [("class",class),("title",title)]
+
+      val inlines = Name.toHtml n
+    in
+      Html.Span (attrs,inlines)
+    end;
 
 end
 

@@ -130,6 +130,25 @@ val pp =
 
 val toString = Print.toString pp;
 
+fun toHtml var =
+    let
+      val (name,ty) = dest var
+
+      val attrs =
+          let
+            val class = "var"
+
+            and title =
+                "Variable " ^ Name.toString name ^ " : " ^ Type.toString ty
+          in
+            Html.fromListAttrs [("class",class),("title",title)]
+          end
+
+      val inlines = Name.toHtml name
+    in
+      Html.Span (attrs,inlines)
+    end;
+
 end
 
 structure VarOrdered =
