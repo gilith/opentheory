@@ -200,6 +200,8 @@ COMPILATION_THEORIES = \
   list-member \
   list \
   base \
+  modular-equiv \
+  modular \
   word \
   byte \
   char

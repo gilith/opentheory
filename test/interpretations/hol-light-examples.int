@@ -43,6 +43,7 @@ const "HOLLight.word_width" as "Data.Word.width"
 
 type "HOLLight.mod" as "Number.Modular.modular"
 
+const "HOLLight.mod_add" as "Number.Modular.+"
 const "HOLLight.mod_from_num" as "Number.Modular.fromNatural"
 const "HOLLight.mod_N" as "Number.Modular.size"
 const "HOLLight.mod_to_num" as "Number.Modular.toNatural"
