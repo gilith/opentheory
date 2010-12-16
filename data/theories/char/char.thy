@@ -16,6 +16,7 @@ plane-def {
 plane-modular {
   import: plane-def
   interpret: type "Number.Modular.modular" as "Data.Char.Plane.plane"
+  interpret: const "Number.Modular.+" as "Data.Char.Plane.+"
   interpret: const "Number.Modular.fromNatural" as "Data.Char.Plane.fromNatural"
   interpret: const "Number.Modular.toNatural" as "Data.Char.Plane.toNatural"
   interpret: const "Number.Modular.size" as "Data.Char.Plane.size"
@@ -34,6 +35,7 @@ position-def {
 position-word {
   import: position-def
   interpret: type "Data.Word.word" as "Data.Char.Position.position"
+  interpret: const "Data.Word.+" as "Data.Char.Position.+"
   interpret: const "Data.Word.fromNatural" as "Data.Char.Position.fromNatural"
   interpret: const "Data.Word.size" as "Data.Char.Position.size"
   interpret: const "Data.Word.toList" as "Data.Char.Position.toList"
