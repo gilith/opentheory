@@ -661,7 +661,23 @@ in
                 item :: toItemList stack subs
               end
       in
-        fn nxs => toUlist [] (List.map dest nxs)
+        fn name => fn nxs =>
+            let
+              val n = length nxs
+
+              val name = if n = 1 then name else name ^ "s"
+
+              val title =
+                  Print.toString Print.ppPrettyInt n ^ " " ^
+                  String.map Char.toLower name
+
+              val attrs = Html.singletonAttrs ("title",title)
+
+              val header = Html.Span (attrs, [Html.Text name])
+            in
+              [Html.H2 [header],
+               toUlist [] (List.map dest nxs)]
+            end
       end;
 end;
 
@@ -680,8 +696,7 @@ fun toHtmlInfo ppTypeOp ppConst toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS
             let
               fun dest ot = (TypeOp.name ot, ot)
             in
-              [Html.H2 [Html.Text (name ^ " Type Operators")],
-               toHtmlNames ppTypeOp (List.map dest ots)]
+              toHtmlNames ppTypeOp (name ^ " Type Operator") (List.map dest ots)
             end
 
       fun toHtmlConsts name cs =
@@ -690,8 +705,7 @@ fun toHtmlInfo ppTypeOp ppConst toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS
             let
               fun dest c = (Const.name c, c)
             in
-              [Html.H2 [Html.Text (name ^ " Constants")],
-               toHtmlNames ppConst (List.map dest cs)]
+              toHtmlNames ppConst (name ^ " Constant") (List.map dest cs)
             end
 
       fun toHtmlSymbol name sym =
@@ -703,13 +717,25 @@ fun toHtmlInfo ppTypeOp ppConst toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS
             toHtmlConsts name cs
           end
 
-      fun toHtmlSequentSet toHtmlSeq name seqs =
+      fun toHtmlSequentSet toHtmlSeq name verb seqs =
           if SequentSet.null seqs then []
           else
             let
+              val n = SequentSet.size seqs
+
+              val name = if n = 1 then name else name ^ "s"
+
+              val title =
+                  Print.toString Print.ppPrettyInt n ^ " " ^
+                  String.map Char.toLower name ^ " " ^ verb
+
+              val attrs = Html.singletonAttrs ("title",title)
+
+              val header = Html.Span (attrs, [Html.Text name])
+
               val seqs = SequentSet.toList seqs
             in
-              Html.H2 [Html.Text name] ::
+              Html.H2 [header] ::
               List.map toHtmlSeq seqs
             end
     in
@@ -718,10 +744,10 @@ fun toHtmlInfo ppTypeOp ppConst toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS
            val Info {input,assumed,defined,axioms,thms} = info
          in
            toHtmlSymbol "Defined" defined @
-           toHtmlSequentSet toHtmlAxiom "Axioms" axioms @
-           toHtmlSequentSet toHtmlTheorem "Theorems" thms @
+           toHtmlSequentSet toHtmlAxiom "Axiom" "asserted" axioms @
+           toHtmlSequentSet toHtmlTheorem "Theorem" "proved" thms @
            toHtmlSymbol "Input" input @
-           toHtmlSequentSet toHtmlAssumption "Assumptions" assumed
+           toHtmlSequentSet toHtmlAssumption "Assumption" "made" assumed
          end
     end;
 
