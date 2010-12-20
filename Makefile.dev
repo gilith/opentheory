@@ -161,7 +161,7 @@ OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
 
 OPENTHEORY_UPLOAD = $(OPENTHEORY) upload
 
-COMPILATION_THEORIES = \
+STANDARD_THEORIES = \
   empty \
   bool-def \
   bool-int \
@@ -199,12 +199,16 @@ COMPILATION_THEORIES = \
   list-duplicate \
   list-member \
   list \
-  base \
+  base
+
+EXAMPLE_THEORIES = \
   modular-equiv \
   modular \
   word \
   byte \
   char
+
+COMPILATION_THEORIES = $(STANDARD_THEORIES) $(EXAMPLE_THEORIES)
 
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
