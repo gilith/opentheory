@@ -163,6 +163,7 @@ OPENTHEORY_UPLOAD = $(OPENTHEORY) upload
 
 STANDARD_THEORIES = \
   empty \
+  axiom \
   bool-def \
   bool-int \
   bool-choice-cond \
