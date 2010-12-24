@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// OPENTHEORY OUTPUT
+// OUTPUT
 //
 // Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2
 //
@@ -157,9 +157,9 @@ function navigation() {
 ///////////////////////////////////////////////////////////////////////////////
 
 function repo_admin() {
-  $admin = REPO_ADMIN;
+  $admin = ADMIN_NAME;
 
-  $admin_url = REPO_ADMIN_URL;
+  $admin_url = ADMIN_URL;
   if (isset($admin_url)) {
     $admin = '<a href="' . string_to_html($admin_url) . '">' . $admin . '</a>';
   }
@@ -242,8 +242,7 @@ navigation() .
     '</a>' .
     '</div>' .
     site_image('favicon.png','OpenTheory') .
-    ' &nbsp; ' . repo_name() . ', maintained by ' .
-    repo_admin() .
+    ' &nbsp; ' . repo_name() . ', maintained by ' . repo_admin() .
     '.</div>')) .
 '</div>
 </body>

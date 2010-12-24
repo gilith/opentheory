@@ -17,6 +17,6 @@ require_once 'php/links.php';
 require_once 'php/database.php';
 require_once 'php/output.php';
 require_once 'php/form.php';
-require_once 'php/directory.php';
+require_once 'php/opentheory.php';
 
 ?>

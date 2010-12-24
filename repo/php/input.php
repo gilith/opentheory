@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// OPENTHEORY INPUT PARAMETERS
+// INPUT PARAMETERS
 //
 // Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2
 //
@@ -122,7 +122,7 @@ function is_mobile() {
 function is_script() {
   $b = browser();
 
-  return (strcmp($b,'opentheory') == 0);
+  return (strcmp($b,SCRIPT_NAME) == 0);
 }
 
 ?>
