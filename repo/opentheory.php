@@ -21,6 +21,7 @@ require_once 'php/links.php';  // Generating links
 require_once 'php/form.php';  // Stateful forms
 require_once 'php/privilege.php';  // User privileges
 require_once 'php/database.php';  // Database interface
+require_once 'php/user.php';  // User table
 require_once 'php/output.php';  // SITE-SPECIFIC page output
 
 ///////////////////////////////////////////////////////////////////////////////
