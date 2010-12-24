@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// OPENTHEORY GLOBAL VARIABLES
+// SITE-SPECIFIC CONFIGURATION
 //
 // Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2
 //

@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// OUTPUT
+// SITE-SPECIFIC PAGE OUTPUT
 //
 // Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2
 //
