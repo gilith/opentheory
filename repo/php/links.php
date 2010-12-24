@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// OPENTHEORY LINKS
+// LINKS
 //
 // Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2
 //
@@ -21,10 +21,11 @@ function site_email($address, $subject, $body) {
   is_string($subject) or trigger_error('bad subject');
   is_string($body) or trigger_error('bad body');
 
-  $headers =
-    'From: ' . REPO_ADMIN . ' <' . REPO_ADMIN_EMAIL . '>';
+  $headers = 'From: ' . ADMIN_NAME . ' <' . ADMIN_EMAIL . '>';
 
-  mail($address, '[OpenTheory] ' . $subject, $body, $headers) or
+  $subject = '[' . SITE_NAME . '] ' . $subject;
+
+  mail($address,$subject,$body,$headers) or
     trigger_error('couldn\'t send email');
 }
 
