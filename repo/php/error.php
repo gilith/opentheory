@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// OPENTHEORY ERROR HANDLING
+// ERROR HANDLING
 //
 // Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2
 //
@@ -122,21 +122,25 @@ HTTP_USER_AGENT: ' . print_r($_SERVER['HTTP_USER_AGENT'],true))
 BAD VALUE: $error_output = ' . $error_output;
       }
 
-      mail(REPO_ADMIN_EMAIL,'[OpenTheory] Error',$error_report);
+      $subject = '[' . SITE_NAME . '] Error';
+
+      mail(ADMIN_EMAIL, $subject, $error_report);
 
       if ($fatal) {
-        echo '
-<html>
-<head><title>OpenTheory Error</title></head>
+        $fatal_report =
+'<html>
+<head><title>' . SITE_NAME . ' Error</title></head>
 <body>
-<h1>OpenTheory Error</h1>
+<h1>' . SITE_NAME . ' Error</h1>
 
-<p>Sorry for the inconvenience, but an error on the OpenTheory
+<p>Sorry for the inconvenience, but an error on the ' . SITE_NAME . '
 repo has prevented this web page from being displayed.</p>
 
 <p>Please click the back button to continue browsing.</p>
 </body>
 </html>';
+
+        echo $fatal_report;
       }
     }
 

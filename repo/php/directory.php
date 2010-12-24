@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// OPENTHEORY DIRECTORY
+// OPENTHEORY OPERATIONS
 //
 // Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2
 //
@@ -12,6 +12,16 @@ require_once 'functions.php';
 require_once 'date.php';
 require_once 'input.php';
 require_once 'links.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// Paths.
+///////////////////////////////////////////////////////////////////////////////
+
+define('PACKAGES_DIR','packages');
+
+define('REPO_PATH', SITE_PATH . '/' . REPO_DIR);
+
+define('LOG_PATH', SITE_PATH . '/' . REPO_LOG);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Package name functions.
@@ -55,7 +65,7 @@ function mk_package_document($name) {
 function package_directory_path($name) {
   is_string($name) or trigger_error('bad name');
 
-  return array(DIRECTORY_DIR,'packages',$name);
+  return array(REPO_DIR,PACKAGES_DIR,$name);
 }
 
 function package_path($name) {
@@ -63,7 +73,7 @@ function package_path($name) {
 
   $doc = mk_package_document($name);
 
-  return array(DIRECTORY_DIR,'packages',$name,$doc);
+  return array(REPO_DIR,PACKAGES_DIR,$name,$doc);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,9 +81,11 @@ function package_path($name) {
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory($action,$args) {
+  is_string($action) or trigger_error('bad action');
+
   $cmd =
 OPENTHEORY_BIN .
-' -d ' . DIRECTORY_PATH . ' ' .
+' -d ' . REPO_PATH . ' ' .
 $action . $args .
 ' 2>&1 >> ' . LOG_PATH;
 
@@ -81,21 +93,7 @@ $action . $args .
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Regenerate the package lists.
-///////////////////////////////////////////////////////////////////////////////
-
-function opentheory_list() {
-  $args = ' -o ' . site_path(array('packages','all.pkg'));
-
-  $output = opentheory('list',$args);
-
-  if (isset($output)) {
-    trigger_error('couldn\'t regenerate package list: ' . $output);
-  }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Initialize the opentheory directory.
+// Initialize the opentheory repo.
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_init() {
@@ -111,14 +109,22 @@ function opentheory_init() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Reset the opentheory directory.
+// Reset the opentheory repo.
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_reset() {
-  $cmd = 'rm -r ' . DIRECTORY_PATH;
+  $cmd = 'rm -r ' . REPO_PATH;
 
   shell_exec($cmd);
 
+  opentheory_init();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Check the opentheory repo exists.
+///////////////////////////////////////////////////////////////////////////////
+
+if (!file_exists(REPO_PATH)) {
   opentheory_init();
 }
 

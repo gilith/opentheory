@@ -10,10 +10,12 @@
 
 require_once 'php/global.php';
 require_once 'php/error.php';
+require_once 'php/functions.php';
+require_once 'php/date.php';
 require_once 'php/input.php';
+require_once 'php/links.php';
 require_once 'php/output.php';
 require_once 'php/form.php';
 require_once 'php/directory.php';
-require_once 'php/check.php';
 
 ?>
