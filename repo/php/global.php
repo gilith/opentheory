@@ -44,4 +44,16 @@ define('REPO_LOG','log');
 
 define('IMAGE_DIR','images');
 
+///////////////////////////////////////////////////////////////////////////////
+// Database.
+///////////////////////////////////////////////////////////////////////////////
+
+define('DATABASE_HOST','localhost');
+
+define('DATABASE_USER','opentheory');
+
+define('DATABASE_PASSWORD','interesting_theory');
+
+define('DATABASE_NAME','opentheory');
+
 ?>
