@@ -118,7 +118,9 @@ function navigation() {
       }
     }
 
-    if (isset($bread_crumb) && !isset($found)) {
+    if (isset($bread_crumb) && !isset($found) &&
+        strcmp($bread_crumb,'account') != 0)
+    {
       if ($depth < $num_bread_crumbs) {
         $link = ($depth != $num_bread_crumbs - 1 || isset($extension));
         $text = navigation_text($path,$bread_crumb,true,$link);

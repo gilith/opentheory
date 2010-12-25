@@ -155,7 +155,7 @@ else {
 site_form(bread_crumbs(),
           $select->select(),
           null,
-          'post');
+          'POST');
 }
 
 $image = site_image('elephant-and-castle.jpg','Elephant and Castle');

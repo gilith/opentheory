@@ -846,10 +846,10 @@ function site_form($path, $text, $args = null, $method = 'GET', $atts = null) {
 
   $url = site_url($path,null);
 
-  if (strcmp(strtolower($method),'GET') == 0) {
+  if (strcmp($method,'GET') == 0) {
     $enctype = 'application/x-www-form-urlencoded';
   }
-  elseif (strcmp(strtolower($method),'POST') == 0) {
+  elseif (strcmp($method,'POST') == 0) {
     $enctype = 'multipart/form-data';
   }
   else {
