@@ -153,6 +153,27 @@ function navigation() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Logged in status.
+///////////////////////////////////////////////////////////////////////////////
+
+function logged_in() {
+  $user = effective_user();
+
+  if (isset($user)) {
+    $log = 'Logged in as ' . string_to_html($user->name());
+  }
+  else {
+    $log = 'Not logged in';
+  }
+
+  $log = site_link(array('account'), $log);
+
+  $log = '<div id="loggedin">' . $log . '</div>';
+
+  return $log;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Repo admin.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -220,6 +241,7 @@ function output($head, $main, $image) {
 <body>
 <div id="document">
 <div id="header">' .
+logged_in() .
 navigation() .
 '<div id="header-clearer"></div>' .
 '</div>

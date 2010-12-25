@@ -93,6 +93,16 @@ div#header a {
   color: black;
 }
 
+div#header div#loggedin {
+  float: right;
+  margin-top: 0;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 0;
+  padding: 0;
+  font-size: smaller;
+}
+
 div#header div#logo {
   float: left;
   margin-top: 0;

@@ -193,4 +193,110 @@ class SelectUserPassword extends SelectText {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// A class to collect login information.
+///////////////////////////////////////////////////////////////////////////////
+
+class SelectLoginForm extends SelectValue {
+  var $_select_login;
+  var $_select_password;
+  var $_select_submit;
+
+  function error() {
+    $e = $this->_error;
+    if (!isset($e)) { $e = $this->_select_login->handled_error(); }
+    if (!isset($e)) { $e = $this->_select_password->handled_error(); }
+    return $e;
+  }
+
+  function validate() {
+    $this->_select_login->validate();
+    $this->_select_password->validate();
+
+    if (!$this->is_error()) {
+      $name = $this->_select_login->value();
+      $password = $this->_select_password->value();
+      $user_table = user_table();
+      $user = $user_table->find_user_by_name($name);
+      if (isset($user)) {
+        if ($user->is_password($password)) {
+          $this->set_value($user);
+        }
+        else {
+          $this->set_error('Wrong password');
+        }
+      }
+      else {
+        $this->set_error('Unknown login name');
+      }
+    }
+  }
+
+  function select() {
+    return
+'<table cellpadding="0" cellspacing="0">' .
+($this->is_error()
+ ? ('<tr>' .
+    '<td colspan="3">' .
+    error_text($this->error()) .
+    '</td>' .
+    '</tr>' .
+    '<tr><td height="20"></td></tr>')
+ : '') .
+'<tr>' .
+'<td>' .
+field_text('Login name') .
+'</td>' .
+'<td width="20"></td>' .
+'<td>' .
+$this->_select_login->form_error() .
+$this->_select_login->select() .
+'</td>' .
+'</tr>' .
+'<tr><td height="10"></td></tr>' .
+'<tr>' .
+'<td>' .
+field_text('Password') .
+'</td>' .
+'<td width="20"></td>' .
+'<td>' .
+$this->_select_password->form_error() .
+$this->_select_password->select() .
+'</td>' .
+'</tr>' .
+'<tr><td height="20"></td></tr>' .
+'<tr>' .
+'<td colspan="3">' .
+$this->_select_submit->form_error() .
+$this->_select_submit->select() .
+'</td>' .
+'</tr>' .
+'</table>';
+  }
+
+  function SelectLoginForm($field) {
+    parent::SelectValue($field);
+
+    $this->_select_login = new SelectUserName($this->field() . 'u', true);
+    $this->_select_password = new SelectUserPassword($this->field() . 'p', true);
+    $this->_select_submit = new SelectSubmit($this->field() . 's', 'login');
+    $this->_error = null;
+    $this->_validated_user = null;
+
+    if ($this->_select_submit->is_value()) {
+      $this->validate();
+    }
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// A class to process logouts.
+///////////////////////////////////////////////////////////////////////////////
+
+class SelectLogoutForm extends SelectSubmit {
+  function SelectLogoutForm($field) {
+    parent::SelectSubmit($field,'logout');
+  }
+}
+
 ?>

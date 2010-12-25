@@ -158,7 +158,7 @@ site_form(bread_crumbs(),
           'post');
 }
 
-$image = site_image('easter-island-head.jpg','Easter Island Head');
+$image = site_image('elephant-and-castle.jpg','Elephant and Castle');
 
 output(array('title' => $title), $main, $image);
 

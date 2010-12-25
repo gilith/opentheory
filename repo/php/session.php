@@ -272,4 +272,175 @@ function effective_mobile() {
   return $mobile;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Logging in.
+///////////////////////////////////////////////////////////////////////////////
+
+function login_form($field = '') {
+  is_string($field) or trigger_error('bad field');
+
+  $select = new SelectLoginForm($field);
+
+  $user = $select->value();
+
+  if (isset($user)) {
+    $session_table = session_table();
+    $session = create_new_session($user);
+    $expires = $session->expires();
+    $session_table->insert_session($session);
+    setcookie('session', $session->id(), $expires->to_datetime(), '/');
+    jump_path(array('account'));
+  }
+
+  return $select;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Logging out.
+///////////////////////////////////////////////////////////////////////////////
+
+function logout_form($field) {
+  is_string($field) or trigger_error('bad field');
+
+  $select = new SelectLogoutForm($field);
+
+  $logout = $select->value();
+
+  if (isset($logout)) {
+    $session = effective_session();
+    if (isset($session)) {
+      $session_table = session_table();
+      $session_table->delete_session($session);
+      jump_path(array('account'));
+    }
+  }
+
+  return $select;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// A class to collect site selection.
+///////////////////////////////////////////////////////////////////////////////
+
+$site_options = array(
+  'f' => 'Desktop',
+  'm' => 'Mobile',
+  'd' => 'Auto Detect');
+
+class SelectMobile extends SelectRadio {
+  function SelectMobile($field) {
+    global $site_options;
+
+    parent::SelectRadio($field,$site_options);
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// A class to collect session details.
+///////////////////////////////////////////////////////////////////////////////
+
+class SelectSessionData extends SelectValue {
+  var $_select_mobile;
+  var $_select_submit;
+
+  function error() {
+    $e = $this->_error;
+    if (!isset($e)) { $e = $this->_select_mobile->handled_error(); }
+    return $e;
+  }
+
+  function validate() {
+    parent::validate();
+
+    $this->_select_mobile->validate();
+
+    if (!$this->is_error()) {
+      $data = array();
+
+      $mobile_option = $this->_select_mobile->value();
+      if (strcmp($mobile_option,'f') == 0) { $mobile = false; }
+      elseif (strcmp($mobile_option,'m') == 0) { $mobile = true; }
+      elseif (strcmp($mobile_option,'d') == 0) { $mobile = null; }
+      else { trigger_error('bad mobile_option'); }
+
+      $data['mobile'] = $mobile;
+
+      parent::set_value($data);
+    }
+  }
+
+  function select() {
+    return
+'<p>' .
+$this->form_error() .
+$this->_select_mobile->form_error() .
+field_text('Browser') . '&nbsp; &nbsp;' .
+$this->_select_mobile->select() .
+'</p>' .
+'<p>' .
+$this->_select_submit->form_error() .
+$this->_select_submit->select() .
+'</p>';
+  }
+
+  function submitted() {
+    return $this->_select_submit->is_value();
+  }
+
+  function set_value($data) {
+    is_array($data) or trigger_error('bad data');
+
+    $mobile = $data['mobile'];
+
+    if (!isset($mobile)) { $mobile_option = 'd'; }
+    elseif ($mobile) { $mobile_option = 'm'; }
+    else { $mobile_option = 'f'; }
+
+    $this->_select_mobile->set_value($mobile_option);
+
+    parent::set_value($data);
+  }
+
+  function SelectSessionData($field) {
+    parent::SelectValue($field);
+
+    $this->_select_mobile = new SelectMobile($this->field() . 'm');
+    $this->_select_submit = new SelectSubmit($this->field() . 's', 'update');
+
+    if ($this->_select_submit->is_value()) { $this->validate(); }
+  }
+}
+
+function session_form($field) {
+  is_string($field) or trigger_error('bad field');
+
+  $select = new SelectSessionData($field);
+
+  if ($select->submitted()) {
+    $data = $select->value();
+
+    if (isset($data)) {
+      $session = effective_session();
+      if (isset($session)) {
+        $session->set_mobile($data['mobile']);
+        $session_table = session_table();
+        $session_table->update_session($session);
+        jump_path(array('account'));
+      }
+    }
+  }
+  else {
+    $session = effective_session();
+
+    if (isset($session)) {
+      $data = array();
+      $data['mobile'] = $session->mobile();
+
+      $select->set_value($data);
+    }
+  }
+
+  return $select;
+}
+
 ?>
