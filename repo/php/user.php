@@ -289,14 +289,4 @@ $this->_select_submit->select() .
   }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// A class to process logouts.
-///////////////////////////////////////////////////////////////////////////////
-
-class SelectLogoutForm extends SelectSubmit {
-  function SelectLogoutForm($field) {
-    parent::SelectSubmit($field,'logout');
-  }
-}
-
 ?>

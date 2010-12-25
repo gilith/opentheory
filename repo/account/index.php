@@ -12,8 +12,6 @@ if (isset($user)) {
 
   $select_session = session_form('s');
 
-  $select_logout = logout_form('l');
-
   $main =
 '<h2>' . ucfirst(pretty_privilege($user->privilege())) .
 ' Account \'<kbd>' . string_to_html($user->name()) . '</kbd>\'</h2>
@@ -31,8 +29,7 @@ if (isset($user)) {
 $session_expires->to_string_date() . '</p>' .
 
 site_form(array('account'),
-          $select_session->select() .
-          $select_logout->select());
+          $select_session->select());
 
   $image = site_image('the-castle.jpg','The Castle');
 

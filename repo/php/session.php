@@ -299,23 +299,13 @@ function login_form($field = '') {
 // Logging out.
 ///////////////////////////////////////////////////////////////////////////////
 
-function logout_form($field) {
-  is_string($field) or trigger_error('bad field');
+function logout() {
+  $session = effective_session();
 
-  $select = new SelectLogoutForm($field);
-
-  $logout = $select->value();
-
-  if (isset($logout)) {
-    $session = effective_session();
-    if (isset($session)) {
-      $session_table = session_table();
-      $session_table->delete_session($session);
-      jump_path(array('account'));
-    }
+  if (isset($session)) {
+    $session_table = session_table();
+    $session_table->delete_session($session);
   }
-
-  return $select;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

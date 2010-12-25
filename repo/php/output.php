@@ -162,13 +162,15 @@ function logged_in() {
   $user = effective_user();
 
   if (isset($user)) {
-    $log = 'Logged in as ' . string_to_html($user->name());
+    $log =
+      site_link(array('account'),
+                'Logged in as ' . string_to_html($user->name())) .
+      '&nbsp; &bull; &nbsp;' .
+      site_link(array('logout'), 'Log out');
   }
   else {
-    $log = 'Not logged in';
+    $log = site_link(array('account'), 'Log in');
   }
-
-  $log = site_link(array('account'), $log);
 
   $log = '<div id="loggedin">' . $log . '</div>';
 
