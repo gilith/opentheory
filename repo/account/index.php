@@ -44,7 +44,7 @@ else {
 site_form(array('account'),
           $select->select(),
           null,
-          'POST');
+          'post');
 
   $image = site_image('easter-island-head.jpg','Easter Island Head');
 

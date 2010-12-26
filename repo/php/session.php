@@ -276,6 +276,20 @@ function effective_mobile() {
 // Logging in.
 ///////////////////////////////////////////////////////////////////////////////
 
+function login($user) {
+  isset($user) or trigger_error('bad user');
+
+  $session_table = session_table();
+
+  $session = create_new_session($user);
+
+  $expires = $session->expires();
+
+  $session_table->insert_session($session);
+
+  setcookie('session', $session->id(), $expires->to_datetime(), '/');
+}
+
 function login_form($field = '') {
   is_string($field) or trigger_error('bad field');
 
@@ -284,11 +298,8 @@ function login_form($field = '') {
   $user = $select->value();
 
   if (isset($user)) {
-    $session_table = session_table();
-    $session = create_new_session($user);
-    $expires = $session->expires();
-    $session_table->insert_session($session);
-    setcookie('session', $session->id(), $expires->to_datetime(), '/');
+    login($user);
+
     jump_path(array('account'));
   }
 
@@ -304,6 +315,7 @@ function logout() {
 
   if (isset($session)) {
     $session_table = session_table();
+
     $session_table->delete_session($session);
   }
 }

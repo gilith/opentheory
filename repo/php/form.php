@@ -838,7 +838,7 @@ class SelectFile extends SelectValue {
 // Site forms.
 ///////////////////////////////////////////////////////////////////////////////
 
-function site_form($path, $text, $args = null, $method = 'GET', $atts = null) {
+function site_form($path, $text, $args = null, $method = 'get', $atts = null) {
   is_array($path) or trigger_error('bad path');
   is_string($text) or trigger_error('bad text');
   if (!isset($args)) { $args = array(); }
@@ -846,10 +846,10 @@ function site_form($path, $text, $args = null, $method = 'GET', $atts = null) {
 
   $url = site_url($path,null);
 
-  if (strcmp($method,'GET') == 0) {
+  if (strcmp($method,'get') == 0) {
     $enctype = 'application/x-www-form-urlencoded';
   }
-  elseif (strcmp($method,'POST') == 0) {
+  elseif (strcmp($method,'post') == 0) {
     $enctype = 'multipart/form-data';
   }
   else {
