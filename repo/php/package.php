@@ -14,6 +14,80 @@ require_once 'date.php';
 require_once 'database.php';
 
 ///////////////////////////////////////////////////////////////////////////////
+// A class to store package names.
+///////////////////////////////////////////////////////////////////////////////
+
+class PackageName {
+  var $_base;
+  var $_version;
+
+  function base() { return $this->_base; }
+
+  function version() { return $this->_version; }
+
+  function name() { return ($this->base() . '-' . $this->version()); }
+
+  function tarball() { return ($this->name() . '.tgz'); }
+
+  function document() { return ($this->name() . '.html'); }
+
+  function PackageName($base,$version) {
+    is_string($base) or trigger_error('bad base');
+    is_string($version) or trigger_error('bad version');
+
+    $this->_base = $base;
+    $this->_version = $version;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Package name functions.
+///////////////////////////////////////////////////////////////////////////////
+
+define('PACKAGE_BASE_REGEXP',
+       '[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*');
+
+define('PACKAGE_VERSION_REGEXP',
+       '[0-9]+([.][0-9]+)*');
+
+define('PACKAGE_NAME_REGEXP',
+       '(' . PACKAGE_BASE_REGEXP . ')-(' . PACKAGE_VERSION_REGEXP . ')');
+
+define('PACKAGE_TARBALL_REGEXP',
+       '(' . PACKAGE_NAME_REGEXP . ')[.]tgz');
+
+function from_name_package_name($name) {
+  is_string($name) or trigger_error('bad name');
+
+  $re = '^' . PACKAGE_NAME_REGEXP . '$';
+
+  if (ereg($re,$name,$arr)) {
+    $base = $arr[1];
+    $version = $arr[2];
+
+    return new PackageName($base,$version);
+  }
+  else {
+    return null;
+  }
+}
+
+function from_tarball_package_name($tarball) {
+  is_string($tarball) or trigger_error('bad tarball');
+
+  $re = '^' . PACKAGE_TARBALL_REGEXP . '$';
+
+  if (ereg($re,$tarball,$arr)) {
+    $name = $arr[1];
+
+    return from_name_package_name($name);
+  }
+  else {
+    return null;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // A class to store package information.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +107,7 @@ class Package {
 
   function Package($id,$name,$description,$uploaded) {
     is_int($id) or trigger_error('bad id');
-    is_string($name) or trigger_error('bad name');
+    isset($name) or trigger_error('bad name');
     !isset($description) or is_string($description) or
       trigger_error('bad description');
     isset($uploaded) or trigger_error('bad uploaded');
@@ -50,7 +124,8 @@ class Package {
 ///////////////////////////////////////////////////////////////////////////////
 
 define('PACKAGE_ID_DIGITS',7);
-define('PACKAGE_NAME_CHARS',50);
+define('PACKAGE_BASE_CHARS',50);
+define('PACKAGE_VERSION_CHARS',50);
 define('PACKAGE_DESCRIPTION_CHARS',200);
 
 class PackageTable extends DatabaseTable {
@@ -62,7 +137,8 @@ class PackageTable extends DatabaseTable {
     if (!isset($row)) { return null; }
 
     $id = (integer)$row['id'];
-    $name = $row['name'];
+    $base = $row['base'];
+    $version = $row['version'];
     $description = $row['description'];
     $uploaded_datetime = $row['uploaded'];
 
@@ -78,8 +154,13 @@ class PackageTable extends DatabaseTable {
   }
 
   function find_package_by_name($name) {
-    is_string($name) or trigger_error('bad name');
-    return $this->find_package_where('name = ' . database_value($name));
+    isset($name) or trigger_error('bad name');
+
+    $where =
+      'base = ' . database_value($name->base()) . ' AND ' .
+      'version = ' . database_value($name->version());
+
+    return $this->find_package_where($where);
   }
 
   function insert_package($package) {
@@ -95,13 +176,14 @@ class PackageTable extends DatabaseTable {
     database_query('
       INSERT INTO ' . $this->table() . '
       SET id = ' . database_value($id) . ',
-          name = ' . database_value($name) . ',
+          base = ' . database_value($name->base()) . ',
+          version = ' . database_value($name->version()) . ',
           description = ' . database_value($description) . ',
           uploaded = ' . database_value($uploaded_datetime) . ';');
   }
 
   function create_package($name,$description) {
-    is_string($name) or trigger_error('bad name');
+    isset($name) or trigger_error('bad name');
     !isset($description) or is_string($description) or
       trigger_error('bad description');
 
@@ -119,13 +201,14 @@ class PackageTable extends DatabaseTable {
   function PackageTable($table) {
     $fields =
       array('id' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',
-            'name' => 'varchar(' . PACKAGE_NAME_CHARS . ') NOT NULL',
-            'description' => 'char(' . PACKAGE_DESCRIPTION_CHARS . ')',
+            'base' => 'varchar(' . PACKAGE_BASE_CHARS . ') NOT NULL',
+            'version' => 'varchar(' . PACKAGE_VERSION_CHARS . ') NOT NULL',
+            'description' => 'varchar(' . PACKAGE_DESCRIPTION_CHARS . ')',
             'uploaded' => 'datetime NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (id)',
-            'INDEX (name)',
+            'INDEX (base,version)',
             'INDEX (uploaded)');
 
     parent::DatabaseTable($table,$fields,$indexes);

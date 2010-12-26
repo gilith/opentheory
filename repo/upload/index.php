@@ -31,14 +31,14 @@ class SelectUploadData extends SelectValue {
       $tarname = $file['client'];
       $tarname = ereg_replace('^.*/','',$tarname);
 
-      $name = dest_package_tarball($tarname);
+      $name = from_tarball_package_name($tarname);
 
       if (isset($name)) {
         $tarball = $file['server'];
 
         $value =
-           array('name' => $name,
-                 'tarball' => $tarball);
+          array('tarball' => $tarball,
+                'name' => $name);
 
         $checksum = $this->_select_checksum->value();
 
@@ -112,23 +112,30 @@ $main = null;
 if ($select->is_value()) {
   $value = $select->value();
 
-  $name = $value['name'];
-
   $tarball = $value['tarball'];
 
-  $args = ' --minimal';
+  $name = $value['name'];
 
   if (array_key_exists('checksum',$value)) {
-    $args .= ' --checksum ' . $value['checksum'];
+    $checksum = $value['checksum'];
+  }
+  else {
+    $checksum = null;
   }
 
-  $args .= ' tarball:' . $tarball;
-
-  $output = opentheory('install',$args);
+  $output = opentheory_install($tarball,$name,$checksum);
 
   if (isset($output)) {
+    if (is_script()) {
+      $report =
+        'failed to install package ' . $name . ' from tarball:' . "\n" .
+        $output;
+
+      output_script($report);
+    }
+
     $main =
-'<p>Failed to install package tarball:</p>' .
+'<p>Failed to install package ' . $name . ' from tarball:</p>' .
 '<pre>' . $output . '</pre>';
   }
   else {

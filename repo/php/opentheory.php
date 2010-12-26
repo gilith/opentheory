@@ -24,41 +24,6 @@ define('REPO_PATH', SITE_PATH . '/' . REPO_DIR);
 define('LOG_PATH', SITE_PATH . '/' . REPO_LOG);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Package name functions.
-///////////////////////////////////////////////////////////////////////////////
-
-define('PACKAGE_BASE_REGEXP',
-       '[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*');
-
-define('PACKAGE_VERSION_REGEXP',
-       '[0-9]+([.][0-9]+)*');
-
-define('PACKAGE_NAME_REGEXP',
-       '(' . PACKAGE_BASE_REGEXP . ')-(' . PACKAGE_VERSION_REGEXP . ')');
-
-define('PACKAGE_TARBALL_REGEXP',
-       '(' . PACKAGE_NAME_REGEXP . ')[.]tgz');
-
-function dest_package_tarball($s) {
-  is_string($s) or trigger_error('bad s');
-
-  $re = '^' . PACKAGE_TARBALL_REGEXP . '$';
-
-  if (ereg($re,$s,$arr)) {
-    return $arr[1];
-  }
-  else {
-    return null;
-  }
-}
-
-function mk_package_document($name) {
-  is_string($name) or trigger_error('bad name');
-
-  return $name . '.html';
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // Link to a package.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +45,7 @@ function package_path($name) {
 // Invoke the opentheory program.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory($action,$args) {
+function opentheory_action($action,$args) {
   is_string($action) or trigger_error('bad action');
 
   $cmd =
@@ -99,13 +64,33 @@ $action . $args .
 function opentheory_init() {
   $args = '';
 
-  $output = opentheory('init',$args);
+  $output = opentheory_action('init',$args);
 
   if (isset($output)) {
     trigger_error('couldn\'t initialize directory: ' . $output);
   }
+}
 
-  opentheory_list();
+///////////////////////////////////////////////////////////////////////////////
+// Install a package from a tarball.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_install($tarball,$name,$checksum) {
+  is_string($tarball) or trigger_error('bad tarball');
+  isset($name) or trigger_error('bad name');
+  !isset($checksum) or is_string($checksum) or trigger_error('bad checksum');
+
+  $args = ' --minimal';
+
+  $args .= ' --name ' . $name->name();
+
+  if (isset($checksum)) { $args .= ' --checksum ' . $checksum; }
+
+  $args .= ' tarball:' . $tarball;
+
+  $output = opentheory_action('install',$args);
+
+  return $output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,7 +109,7 @@ function opentheory_reset() {
 // Check the opentheory repo exists.
 ///////////////////////////////////////////////////////////////////////////////
 
-if (!file_exists(REPO_PATH)) {
+if (effective_privilege_is_admin() && !file_exists(REPO_PATH)) {
   opentheory_init();
 }
 

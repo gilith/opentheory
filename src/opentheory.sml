@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20101219)"^"\n";
+val versionString = program^" "^version^" (release 20101226)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -239,6 +239,8 @@ end;
 
 val autoInstall = ref true;
 
+val nameInstall : PackageName.name option ref = ref NONE;
+
 val checksumInstall : Checksum.checksum option ref = ref NONE;
 
 val minimalInstall = ref false;
@@ -260,6 +262,11 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => repoOption := !repoOption @ [s])},
+       {switches = ["--name"], arguments = ["NAME"],
+        description = "specify the package name",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => nameInstall := SOME (PackageName.fromString s))},
        {switches = ["--checksum"], arguments = ["CHECKSUM"],
         description = "specify the package checksum",
         processor =
@@ -937,6 +944,10 @@ fun installImporterFree () =
 
 fun installPackage name =
     let
+      val () =
+          if not (Option.isSome (!nameInstall)) then ()
+          else raise Error "can't specify name for a package install"
+
       val dir = directory ()
 
       val repos = repositories ()
@@ -1031,6 +1042,13 @@ fun installTarball tarFile =
 
       val PackageTarball.Contents {name,...} = contents
 
+      val () =
+          case !nameInstall of
+            NONE => ()
+          | SOME name' =>
+            if PackageName.equal name' name then ()
+            else raise Error "tarball name does not match"
+
       val errs = Directory.checkStageTarball dir contents
 
       val errs =
@@ -1088,6 +1106,13 @@ fun installTheory filename =
       val pkg = Package.fromTextFile filename
 
       val name = Package.name pkg
+
+      val () =
+          case !nameInstall of
+            NONE => ()
+          | SOME name' =>
+            if PackageName.equal name' name then ()
+            else raise Error "theory name does not match"
 
       val srcDir =
           let
