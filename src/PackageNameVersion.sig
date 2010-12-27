@@ -1,56 +1,56 @@
 (* ========================================================================= *)
-(* PACKAGE NAMES                                                             *)
+(* PACKAGE NAME/VERSIONS                                                     *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature PackageName =
+signature PackageNameVersion =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package names.                                           *)
+(* A type of theory package name/versions.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-type name
+type nameVersion
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype name' =
-    Name' of
+datatype nameVersion' =
+    NameVersion' of
       {base : PackageBase.base,
        version : PackageVersion.version};
 
-val mk : name' -> name
+val mk : nameVersion' -> nameVersion
 
-val dest : name -> name'
+val dest : nameVersion -> nameVersion'
 
-val base : name -> PackageBase.base
+val base : nameVersion -> PackageBase.base
 
-val version : name -> PackageVersion.version
+val version : nameVersion -> PackageVersion.version
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare : name * name -> order
+val compare : nameVersion * nameVersion -> order
 
-val equal : name -> name -> bool
+val equal : nameVersion -> nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : name Print.pp
+val pp : nameVersion Print.pp
 
-val toString : name -> string
+val toString : nameVersion -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,name) Parse.parser
+val parser : (char,nameVersion) Parse.parser
 
-val fromString : string -> name
+val fromString : string -> nameVersion
 
 end

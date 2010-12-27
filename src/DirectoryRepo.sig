@@ -33,13 +33,17 @@ val rootUrl : repo -> {rootUrl : string}
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : repo -> PackageName.name -> Checksum.checksum option
+val peek : repo -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
-val member : PackageName.name -> repo -> bool
+val member : PackageNameVersion.nameVersion -> repo -> bool
 
-val first : repo list -> PackageName.name -> (repo * Checksum.checksum) option
+val first :
+    repo list -> PackageNameVersion.nameVersion ->
+    (repo * Checksum.checksum) option
 
-val find : repo list -> PackageName.name * Checksum.checksum -> repo option
+val find :
+    repo list -> PackageNameVersion.nameVersion * Checksum.checksum ->
+    repo option
 
 (* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)

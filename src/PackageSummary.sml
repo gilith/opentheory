@@ -12,7 +12,7 @@ open Useful;
 (* A type tracking the source package of sequents.                           *)
 (* ------------------------------------------------------------------------- *)
 
-type sequentSource = PackageName.name SequentMap.map;
+type sequentSource = PackageNameVersion.nameVersion SequentMap.map;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package summaries.                                       *)
@@ -87,7 +87,7 @@ fun mkTitle src text seq =
     let
       val pkg =
           case SequentMap.peek src seq of
-            SOME n => PackageName.toString n
+            SOME n => PackageNameVersion.toString n
           | NONE => "this package"
     in
       text ^ " in " ^ pkg

@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE NAMES                                                             *)
+(* PACKAGE NAME/VERSIONS                                                     *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure PackageName :> PackageName =
+structure PackageNameVersion :> PackageNameVersion =
 struct
 
 open Useful;
@@ -15,27 +15,27 @@ open Useful;
 val separatorString = "-";
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package names.                                           *)
+(* A type of theory package name/versions.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-datatype name' =
-    Name' of
+datatype nameVersion' =
+    NameVersion' of
       {base : PackageBase.base,
        version : PackageVersion.version};
 
-type name = name';
+type nameVersion = nameVersion';
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk n' : name = n';
+fun mk n' : nameVersion = n';
 
-fun dest n : name' = n;
+fun dest n : nameVersion' = n;
 
-fun base' (Name' {base = x, ...}) = x;
+fun base' (NameVersion' {base = x, ...}) = x;
 
-fun version' (Name' {version = x, ...}) = x;
+fun version' (NameVersion' {version = x, ...}) = x;
 
 fun base n = base' (dest n);
 
@@ -47,8 +47,8 @@ fun version n = version' (dest n);
 
 fun compare (i1,i2) =
     let
-      val Name' {base = b1, version = v1} = dest i1
-      and Name' {base = b2, version = v2} = dest i2
+      val NameVersion' {base = b1, version = v1} = dest i1
+      and NameVersion' {base = b2, version = v2} = dest i2
     in
       case PackageBase.compare (b1,b2) of
         LESS => LESS
@@ -58,8 +58,8 @@ fun compare (i1,i2) =
 
 fun equal i1 i2 =
     let
-      val Name' {base = b1, version = v1} = dest i1
-      and Name' {base = b2, version = v2} = dest i2
+      val NameVersion' {base = b1, version = v1} = dest i1
+      and NameVersion' {base = b2, version = v2} = dest i2
     in
       PackageBase.equal b1 b2 andalso
       PackageVersion.equal v1 v2
@@ -73,7 +73,7 @@ val ppSeparator = Print.ppString separatorString;
 
 fun pp' n =
     let
-      val Name' {base = b, version = v} = n
+      val NameVersion' {base = b, version = v} = n
     in
       Print.program
         [PackageBase.pp b,
@@ -103,7 +103,7 @@ local
       PackageBase.parser ++
       separatorParser ++
       PackageVersion.parser >>
-      (fn (b,((),v)) => Name' {base = b, version = v});
+      (fn (b,((),v)) => NameVersion' {base = b, version = v});
 in
   val parser = parser' >> mk;
 end;
@@ -111,18 +111,21 @@ end;
 fun fromString s =
     Parse.fromString parser s
     handle Parse.NoParse =>
-      raise Error ("bad package name format: " ^ s);
+      raise Error ("bad package name/version format: " ^ s);
 
 end
 
-structure PackageNameOrdered =
-struct type t = PackageName.name val compare = PackageName.compare end
+structure PackageNameVersionOrdered =
+struct
+  type t = PackageNameVersion.nameVersion;
+  val compare = PackageNameVersion.compare;
+end
 
-structure PackageNameMap =
+structure PackageNameVersionMap =
 struct
 
   local
-    structure S = KeyMap (PackageNameOrdered);
+    structure S = KeyMap (PackageNameVersionOrdered);
   in
     open S;
   end;
@@ -140,11 +143,11 @@ struct
 
 end
 
-structure PackageNameSet =
+structure PackageNameVersionSet =
 struct
 
   local
-    structure S = ElementSet (PackageNameMap);
+    structure S = ElementSet (PackageNameVersionMap);
   in
     open S;
   end;
@@ -153,33 +156,33 @@ struct
       let
         fun adds acc set = foldl check acc set
 
-        and check (name,acc) =
-            if member name acc then acc
-            else expand (add acc name) name
+        and check (namever,acc) =
+            if member namever acc then acc
+            else expand (add acc namever) namever
 
-        and expand acc name = adds acc (f name)
+        and expand acc namever = adds acc (f namever)
       in
         adds empty
       end;
 
   fun preOrder children set =
       let
-        fun dfsCheck (name,(seen,acc)) =
-            if member name seen then (seen,acc)
-            else dfsName (seen,acc) name
+        fun dfsCheck (namever,(seen,acc)) =
+            if member namever seen then (seen,acc)
+            else dfsNameVersion (seen,acc) namever
 
-        and dfsName (seen,acc) name =
+        and dfsNameVersion (seen,acc) namever =
             let
-              val seen = add seen name
+              val seen = add seen namever
 
-              val (seen,acc) = dfsSet (seen,acc) (children name)
+              val (seen,acc) = dfsSet (seen,acc) (children namever)
 
-              val acc = if member name set then name :: acc else acc
+              val acc = if member namever set then namever :: acc else acc
             in
               (seen,acc)
             end
 
-        and dfsSet seen_acc names = foldl dfsCheck seen_acc names
+        and dfsSet seen_acc namevers = foldl dfsCheck seen_acc namevers
 
         val (_,acc) = dfsSet (empty,[]) set
       in
@@ -191,7 +194,7 @@ struct
   val pp =
       Print.ppMap
         toList
-        (Print.ppBracket "{" "}" (Print.ppOpList "," PackageName.pp));
+        (Print.ppBracket "{" "}" (Print.ppOpList "," PackageNameVersion.pp));
 
 end
 

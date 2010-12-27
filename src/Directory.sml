@@ -36,9 +36,15 @@ fun nukeStaged info =
       val () = PackageInfo.nukeDirectory info
 
 (*OpenTheoryTrace1
-      val () = trace ("nuked old package " ^
-                      PackageName.toString (PackageInfo.name info) ^
-                      " in staging area\n")
+      val () =
+          let
+            val mesg =
+                "nuked old package " ^
+                PackageNameVersion.toString (PackageInfo.nameVersion info) ^
+                " in staging area\n"
+          in
+            trace mesg
+          end
 *)
     in
       ()
@@ -53,7 +59,7 @@ fun checkStagingPackagesDirectory cfg {directory = dir} =
             NONE => dels
           | SOME file =>
             let
-              val name = PackageName.fromString file
+              val namever = PackageNameVersion.fromString file
 
               val directory = OS.Path.joinDirFile {dir = dir, file = file}
 
@@ -72,7 +78,7 @@ fun checkStagingPackagesDirectory cfg {directory = dir} =
                       val info =
                           PackageInfo.mk
                             {system = sys,
-                             name = name,
+                             nameVersion = namever,
                              directory = directory}
                     in
                       info :: dels
@@ -341,65 +347,71 @@ fun repoFilename dir repo =
 (* Package information.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun packageInfo dir name =
+fun packageInfo dir namever =
     let
       val sys = system dir
-      and {directory} = packageDirectory dir name
+      and {directory} = packageDirectory dir namever
     in
-      PackageInfo.mk {system = sys, name = name, directory = directory}
+      PackageInfo.mk
+        {system = sys,
+         nameVersion = namever,
+         directory = directory}
     end;
 
-fun stagingPackageInfo dir name =
+fun stagingPackageInfo dir namever =
     let
       val sys = system dir
-      and {directory} = stagingPackageDirectory dir name
+      and {directory} = stagingPackageDirectory dir namever
     in
-      PackageInfo.mk {system = sys, name = name, directory = directory}
+      PackageInfo.mk
+        {system = sys,
+         nameVersion = namever,
+         directory = directory}
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun peek dir name = DirectoryPackages.peek (packages dir) name;
+fun peek dir namever = DirectoryPackages.peek (packages dir) namever;
 
-fun get dir name =
-    case peek dir name of
+fun get dir namever =
+    case peek dir namever of
       SOME info => info
     | NONE => raise Error "Directory.get";
 
-fun member name dir = Option.isSome (peek dir name);
+fun member namever dir = Option.isSome (peek dir namever);
 
-fun checksum dir name = DirectoryPackages.checksum (packages dir) name;
+fun checksum dir namever = DirectoryPackages.checksum (packages dir) namever;
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun parents dir name =
-    DirectoryPackages.parents (packages dir) name;
+fun parents dir namever =
+    DirectoryPackages.parents (packages dir) namever;
 
-fun children dir name =
-    DirectoryPackages.children (packages dir) name;
+fun children dir namever =
+    DirectoryPackages.children (packages dir) namever;
 
-fun ancestors dir name =
-    DirectoryPackages.ancestors (packages dir) name;
+fun ancestors dir namever =
+    DirectoryPackages.ancestors (packages dir) namever;
 
-fun descendents dir name =
-    DirectoryPackages.descendents (packages dir) name;
+fun descendents dir namever =
+    DirectoryPackages.descendents (packages dir) namever;
 
-fun ancestorsSet dir names =
-    DirectoryPackages.ancestorsSet (packages dir) names;
+fun ancestorsSet dir namevers =
+    DirectoryPackages.ancestorsSet (packages dir) namevers;
 
-fun descendentsSet dir names =
-    DirectoryPackages.descendentsSet (packages dir) names;
+fun descendentsSet dir namevers =
+    DirectoryPackages.descendentsSet (packages dir) namevers;
 
 (* ------------------------------------------------------------------------- *)
 (* Generate a valid installation order.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun installOrder dir names =
-    DirectoryPackages.installOrder (packages dir) names;
+fun installOrder dir namevers =
+    DirectoryPackages.installOrder (packages dir) namevers;
 
 (* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
@@ -462,8 +474,6 @@ fun postStagePackage dir stageInfo warnSummary =
 
       val () =
           let
-            val name = PackageInfo.name stageInfo
-
             val files =
                 let
                   val {filename = theory} = PackageInfo.theoryFile stageInfo
@@ -475,8 +485,7 @@ fun postStagePackage dir stageInfo warnSummary =
             val doc =
                 PackageDocument.mk
                   (PackageDocument.Document'
-                     {name = name,
-                      package = pkg,
+                     {package = pkg,
                       summary = sum,
                       files = files})
           in
@@ -496,7 +505,7 @@ fun postStageTarball dir fndr stageInfo contents minimal =
 
       val pars = PackageInfo.packages stageInfo
 
-      val () = PackageNameSet.app (PackageFinder.check fndr) pars
+      val () = PackageNameVersionSet.app (PackageFinder.check fndr) pars
 
       (* Common post-stage operations *)
 
@@ -509,27 +518,27 @@ fun postStageTarball dir fndr stageInfo contents minimal =
 (* Staging packages for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkStagePackage dir repo name chk =
-    if member name dir then [DirectoryError.AlreadyInstalled name]
+fun checkStagePackage dir repo namever chk =
+    if member namever dir then [DirectoryError.AlreadyInstalled namever]
     else
       let
         val errs = []
 
         val errs =
             let
-              val stageInfo = stagingPackageInfo dir name
+              val stageInfo = stagingPackageInfo dir namever
             in
               if not (PackageInfo.existsDirectory stageInfo) then errs
-              else DirectoryError.AlreadyStaged name :: errs
+              else DirectoryError.AlreadyStaged namever :: errs
             end
 
         val errs =
-            case DirectoryRepo.peek repo name of
+            case DirectoryRepo.peek repo namever of
               NONE =>
               let
                 val r = DirectoryRepo.name repo
               in
-                DirectoryError.NotOnRepo (name,r) :: errs
+                DirectoryError.NotOnRepo (namever,r) :: errs
               end
             | SOME chk' =>
               if Checksum.equal chk' chk then errs
@@ -537,23 +546,23 @@ fun checkStagePackage dir repo name chk =
                 let
                   val r = DirectoryRepo.name repo
                 in
-                  DirectoryError.WrongChecksumOnRepo (name,r) :: errs
+                  DirectoryError.WrongChecksumOnRepo (namever,r) :: errs
                 end
       in
         rev errs
       end;
 
-fun stagePackage dir fndr repo name chk minimal =
+fun stagePackage dir fndr repo namever chk minimal =
     let
 (*OpenTheoryDebug
-      val errs = checkStagePackage dir repo name chk
+      val errs = checkStagePackage dir repo namever chk
 
       val _ = not (DirectoryError.existsFatal errs) orelse
               raise Bug "Directory.stagePackage: fatal error"
 *)
       (* Make a package info for the stage directory *)
 
-      val stageInfo = stagingPackageInfo dir name
+      val stageInfo = stagingPackageInfo dir namever
 
       (* Create the stage directory *)
 
@@ -588,19 +597,19 @@ fun stagePackage dir fndr repo name chk minimal =
 
 fun checkStageTarball dir contents =
     let
-      val PackageTarball.Contents {name,...} = contents
+      val PackageTarball.Contents {nameVersion = namever, ...} = contents
     in
-      if member name dir then [DirectoryError.AlreadyInstalled name]
+      if member namever dir then [DirectoryError.AlreadyInstalled namever]
       else
         let
           val errs = []
 
           val errs =
               let
-                val stageInfo = stagingPackageInfo dir name
+                val stageInfo = stagingPackageInfo dir namever
               in
                 if not (PackageInfo.existsDirectory stageInfo) then errs
-                else DirectoryError.AlreadyStaged name :: errs
+                else DirectoryError.AlreadyStaged namever :: errs
               end
         in
           errs
@@ -615,11 +624,11 @@ fun stageTarball dir fndr tarFile contents minimal =
       val _ = not (DirectoryError.existsFatal errs) orelse
               raise Bug "Directory.stageTarball: fatal error"
 *)
-      val PackageTarball.Contents {name,...} = contents
+      val PackageTarball.Contents {nameVersion = namever, ...} = contents
 
       (* Make a package info for the stage directory *)
 
-      val stageInfo = stagingPackageInfo dir name
+      val stageInfo = stagingPackageInfo dir namever
 
       (* Create the stage directory *)
 
@@ -649,9 +658,9 @@ fun stageTarball dir fndr tarFile contents minimal =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun checkDep dir (name,errs) =
-      if member name dir then errs
-      else DirectoryError.UninstalledParent name :: errs;
+  fun checkDep dir (namever,errs) =
+      if member namever dir then errs
+      else DirectoryError.UninstalledParent namever :: errs;
 
   fun mkFileCopyPlan info pkg =
       let
@@ -752,25 +761,25 @@ local
         StringMap.foldl check
       end;
 in
-  fun checkStageTheory dir name pkg =
+  fun checkStageTheory dir namever pkg =
       let
         val errs = []
 
         val errs =
-            if not (member name dir) then errs
-            else DirectoryError.AlreadyInstalled name :: errs
+            if not (member namever dir) then errs
+            else DirectoryError.AlreadyInstalled namever :: errs
 
         val errs =
             let
-              val stageInfo = stagingPackageInfo dir name
+              val stageInfo = stagingPackageInfo dir namever
             in
               if not (PackageInfo.existsDirectory stageInfo) then errs
-              else DirectoryError.AlreadyStaged name :: errs
+              else DirectoryError.AlreadyStaged namever :: errs
             end
 
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
-        val info = packageInfo dir name
+        val info = packageInfo dir namever
 
         val plan = mkFileCopyPlan info pkg
 
@@ -932,10 +941,10 @@ local
         Package.toTextFile {package = pkg, filename = filename}
       end;
 in
-  fun stageTheory dir name pkg {directory = srcDir} =
+  fun stageTheory dir namever pkg {directory = srcDir} =
       let
 (*OpenTheoryDebug
-        val errs = checkStageTheory dir name pkg
+        val errs = checkStageTheory dir namever pkg
 
         val _ = not (DirectoryError.existsFatal errs) orelse
                 raise Bug "Directory.stageTheory: fatal error"
@@ -944,7 +953,7 @@ in
 
         (* Make a package info for the stage directory *)
 
-        val stageInfo = stagingPackageInfo dir name
+        val stageInfo = stagingPackageInfo dir namever
 
         (* Create the stage directory *)
 
@@ -990,11 +999,11 @@ end;
 (* Installing staged packages into the package directory.                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun installStaged dir name chk =
+fun installStaged dir namever chk =
     let
-      val stageInfo = stagingPackageInfo dir name
+      val stageInfo = stagingPackageInfo dir namever
 
-      val pkgInfo = packageInfo dir name
+      val pkgInfo = packageInfo dir namever
 
       val () =
           if PackageInfo.existsDirectory stageInfo then ()
@@ -1033,9 +1042,9 @@ fun installStaged dir name chk =
 (* Cleaning up staged packages.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun cleanupStaged dir name =
+fun cleanupStaged dir namever =
     let
-      val stageInfo = stagingPackageInfo dir name
+      val stageInfo = stagingPackageInfo dir namever
     in
       nukeStaged stageInfo
     end;
@@ -1044,30 +1053,30 @@ fun cleanupStaged dir name =
 (* Uninstalling packages from the package directory.                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkUninstall dir name =
-    if not (member name dir) then [DirectoryError.NotInstalled name]
+fun checkUninstall dir namever =
+    if not (member namever dir) then [DirectoryError.NotInstalled namever]
     else
       let
         val errs = []
 
-        val desc = descendents dir name
+        val desc = descendents dir namever
 
         val errs =
-            if PackageNameSet.null desc then errs
+            if PackageNameVersionSet.null desc then errs
             else
               let
                 fun add (n,acc) = DirectoryError.InstalledDescendent n :: acc
               in
-                PackageNameSet.foldl add errs desc
+                PackageNameVersionSet.foldl add errs desc
               end
       in
         rev errs
       end;
 
-fun uninstall dir name =
+fun uninstall dir namever =
     let
 (*OpenTheoryDebug
-      val errs = checkUninstall dir name
+      val errs = checkUninstall dir namever
 
       val _ = not (DirectoryError.existsFatal errs) orelse
               raise Bug "Directory.uninstall: fatal error"
@@ -1075,7 +1084,7 @@ fun uninstall dir name =
 
       val Directory {packages = pkgs, ...} = dir
 
-      val info = packageInfo dir name
+      val info = packageInfo dir namever
 
       (* Nuke the package directory *)
 
@@ -1083,7 +1092,7 @@ fun uninstall dir name =
 
       (* Delete from the list of installed packages *)
 
-      val () = DirectoryPackages.delete pkgs name
+      val () = DirectoryPackages.delete pkgs namever
     in
       ()
     end;
@@ -1092,9 +1101,9 @@ fun uninstall dir name =
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkUpload dir repo name =
-    case peek dir name of
-      NONE => [DirectoryError.NotInstalled name]
+fun checkUpload dir repo namever =
+    case peek dir namever of
+      NONE => [DirectoryError.NotInstalled namever]
     | SOME info =>
       let
         fun checkAnc (anc,errs) =
@@ -1105,7 +1114,8 @@ fun checkUpload dir repo name =
                   | NONE =>
                     let
                       val err =
-                          "depends on package " ^ PackageName.toString name ^
+                          "depends on package " ^
+                          PackageNameVersion.toString namever ^
                           " which seems to be badly installed"
                     in
                       raise Error err
@@ -1131,37 +1141,42 @@ fun checkUpload dir repo name =
         val errs = []
 
         val errs =
-            if not (DirectoryRepo.member name repo) then errs
+            if not (DirectoryRepo.member namever repo) then errs
             else
               let
                 val r = DirectoryRepo.name repo
               in
-                DirectoryError.AlreadyOnRepo (name,r) :: errs
+                DirectoryError.AlreadyOnRepo (namever,r) :: errs
               end
 
-        val ancs = ancestors dir name
+        val ancs = ancestors dir namever
 
-        val errs = PackageNameSet.foldl checkAnc errs ancs
+        val errs = PackageNameVersionSet.foldl checkAnc errs ancs
       in
         rev errs
       end;
 
-fun upload dir repo name =
+fun upload dir repo namever =
     let
 (*OpenTheoryDebug
-      val errs = checkUpload dir repo name
+      val errs = checkUpload dir repo namever
 
       val _ = not (DirectoryError.existsFatal errs) orelse
               raise Bug "Directory.upload: fatal error"
 *)
-      val info = get dir name
+      val info = get dir namever
 
       val chk =
-          case checksum dir name of
+          case checksum dir namever of
             SOME c => c
           | NONE =>
-            raise Error ("package " ^ PackageName.toString name ^
-                         " seems to be badly installed")
+            let
+              val err =
+                  "package " ^ PackageNameVersion.toString namever ^
+                  " seems to be badly installed"
+            in
+              raise Error err
+            end
 
       val response = DirectoryRepo.upload repo info chk
     in

@@ -404,9 +404,9 @@ val config = printval DirectoryConfig.pp (Directory.config directory);
 val () = SAY "Importing theory packages";
 (* ------------------------------------------------------------------------- *)
 
-fun import name =
+fun import namever =
     let
-      val () = TextIO.print ("Importing theory package \"" ^ name ^ "\"\n")
+      val () = TextIO.print ("Importing theory package \"" ^ namever ^ "\"\n")
 
       val finder = Directory.finder directory
 
@@ -416,7 +416,7 @@ fun import name =
           Graph.Specification
             {imports = TheorySet.empty,
              interpretation = Interpretation.natural,
-             name = PackageName.fromString name}
+             nameVersion = PackageNameVersion.fromString namever}
 
       val (_,thy) = Graph.importPackageName finder graph spec
 

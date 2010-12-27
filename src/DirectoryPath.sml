@@ -93,29 +93,29 @@ fun mkPackagesUrl root =
       {url = url}
     end;
 
-fun mkPackageDirectory root name =
+fun mkPackageDirectory root namever =
     let
       val {directory = dir} = mkPackagesDirectory root
-      and file = PackageName.toString name
+      and file = PackageNameVersion.toString namever
 
       val directory = OS.Path.joinDirFile {dir = dir, file = file}
     in
       {directory = directory}
     end;
 
-fun mkPackageUrl root name =
+fun mkPackageUrl root namever =
     let
       val {url} = mkPackagesUrl root
 
-      val url = url ^ PackageName.toString name ^ repoSeparator
+      val url = url ^ PackageNameVersion.toString namever ^ repoSeparator
     in
       {url = url}
     end;
 
-fun mkTarballUrl root name =
+fun mkTarballUrl root namever =
     let
-      val {url} = mkPackageUrl root name
-      and {filename} = PackageTarball.mkFilename name
+      val {url} = mkPackageUrl root namever
+      and {filename} = PackageTarball.mkFilename namever
 
       val url = url ^ filename
     in
@@ -133,10 +133,10 @@ fun mkStagingPackagesDirectory {rootDirectory = dir} =
       {directory = directory}
     end;
 
-fun mkStagingPackageDirectory root name =
+fun mkStagingPackageDirectory root namever =
     let
       val {directory = dir} = mkStagingPackagesDirectory root
-      and file = PackageName.toString name
+      and file = PackageNameVersion.toString namever
 
       val directory = OS.Path.joinDirFile {dir = dir, file = file}
     in
@@ -154,11 +154,11 @@ fun mkReposDirectory {rootDirectory = dir} =
       {directory = directory}
     end;
 
-fun mkRepoFilename root name =
+fun mkRepoFilename root namever =
     let
       val {directory = dir} = mkReposDirectory root
 
-      val {filename = file} = DirectoryChecksums.mkFilename name
+      val {filename = file} = DirectoryChecksums.mkFilename namever
 
       val filename = OS.Path.joinDirFile {dir = dir, file = file}
     in

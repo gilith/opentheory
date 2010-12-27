@@ -18,11 +18,11 @@ val fileExtension = "tgz";
 (* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkFilename name =
+fun mkFilename namever =
     let
       val filename =
           OS.Path.joinBaseExt
-            {base = PackageName.toString name,
+            {base = PackageNameVersion.toString namever,
              ext = SOME fileExtension}
     in
       {filename = filename}
@@ -36,7 +36,7 @@ fun destFilename {filename} =
         NONE => NONE
       | SOME x =>
         if x <> fileExtension then NONE
-        else total PackageName.fromString base
+        else total PackageNameVersion.fromString base
     end;
 
 fun isFilename file = Option.isSome (destFilename file);
@@ -47,7 +47,7 @@ fun isFilename file = Option.isSome (destFilename file);
 
 datatype contents =
     Contents of
-      {name : PackageName.name,
+      {nameVersion : PackageNameVersion.nameVersion,
        theoryFile : {filename : string},
        otherFiles : {filename : string} list}
 
@@ -101,9 +101,9 @@ in
                              "  \"" ^ d ^ "\"\n" ^
                              "  \"" ^ d' ^ "\"")
 
-        val name = PackageName.fromString dir
+        val namever = PackageNameVersion.fromString dir
 
-        val theoryFile = Package.mkFilename (PackageName.base name)
+        val theoryFile = Package.mkFilename (PackageNameVersion.base namever)
 
         val otherFiles =
             case List.partition (equal theoryFile) files of
@@ -112,7 +112,7 @@ in
             | (_ :: _ :: _, _) => raise Error "multiple theory files in tarball"
       in
         Contents
-          {name = name,
+          {nameVersion = namever,
            theoryFile = theoryFile,
            otherFiles = otherFiles}
       end;

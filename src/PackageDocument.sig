@@ -10,9 +10,9 @@ sig
 (* Document filenames.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val mkFilename : PackageName.name -> {filename : string}
+val mkFilename : PackageNameVersion.nameVersion -> {filename : string}
 
-val destFilename : {filename : string} -> PackageName.name option
+val destFilename : {filename : string} -> PackageNameVersion.nameVersion option
 
 val isFilename : {filename : string} -> bool
 
@@ -28,8 +28,7 @@ type document
 
 datatype document' =
     Document' of
-      {name : PackageName.name,
-       package : Package.package,
+      {package : Package.package,
        summary : PackageSummary.summary,
        files : {theory : string, tarball : string}}
 

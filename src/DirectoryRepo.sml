@@ -111,15 +111,15 @@ fun update repo =
 
 fun download repo info =
     let
-      val n = PackageInfo.name info
+      val nv = PackageInfo.nameVersion info
 
       val chk =
-          case peek repo n of
+          case peek repo nv of
             SOME c => c
           | NONE =>
             let
               val err =
-                  "package " ^ PackageName.toString n ^
+                  "package " ^ PackageNameVersion.toString nv ^
                   " does not exist on " ^ name repo ^ " repo"
             in
               raise Error err
@@ -127,7 +127,7 @@ fun download repo info =
 
       (* Download the tarball *)
 
-      val () = PackageInfo.downloadTarball info (tarballUrl repo n)
+      val () = PackageInfo.downloadTarball info (tarballUrl repo nv)
 
       (* Check the checksum *)
 
@@ -140,7 +140,7 @@ fun download repo info =
               let
                 val err =
                     "tarball for package " ^
-                    PackageName.toString n ^
+                    PackageNameVersion.toString nv ^
                     " downloaded from " ^ name repo ^
                     " has the wrong checksum"
               in

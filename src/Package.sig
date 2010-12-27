@@ -47,7 +47,7 @@ val base : package -> PackageBase.base
 
 val version : package -> PackageVersion.version
 
-val name : package -> PackageName.name
+val nameVersion : package -> PackageNameVersion.nameVersion
 
 (* ------------------------------------------------------------------------- *)
 (* Package description.                                                      *)
@@ -77,7 +77,7 @@ val articles : package -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packages : package -> PackageName.name list
+val packages : package -> PackageNameVersion.nameVersion list
 
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)

@@ -10,9 +10,9 @@ sig
 (* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val mkFilename : PackageName.name -> {filename : string}
+val mkFilename : PackageNameVersion.nameVersion -> {filename : string}
 
-val destFilename : {filename : string} -> PackageName.name option
+val destFilename : {filename : string} -> PackageNameVersion.nameVersion option
 
 val isFilename : {filename : string} -> bool
 
@@ -22,7 +22,7 @@ val isFilename : {filename : string} -> bool
 
 datatype contents =
     Contents of
-      {name : PackageName.name,
+      {nameVersion : PackageNameVersion.nameVersion,
        theoryFile : {filename : string},
        otherFiles : {filename : string} list}
 

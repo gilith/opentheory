@@ -76,12 +76,14 @@ fun base pkg = PackageTag.findBase (tags pkg);
 
 fun version pkg = PackageTag.findVersion (tags pkg);
 
-fun name pkg =
+fun nameVersion pkg =
     let
       val b = base pkg
       and v = version pkg
+
+      val nv' = PackageNameVersion.NameVersion' {base = b, version = v}
     in
-      PackageName.mk (PackageName.Name' {base = b, version = v})
+      PackageNameVersion.mk nv'
     end;
 
 (* ------------------------------------------------------------------------- *)

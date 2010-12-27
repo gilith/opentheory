@@ -296,7 +296,7 @@ datatype graph =
     Graph of
       {savable : bool,
        theories : TheorySet.set,
-       packages : TheorySet.set PackageNameMap.map};
+       packages : TheorySet.set PackageNameVersionMap.map};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -306,7 +306,7 @@ fun empty {savable} =
     let
       val theories = TheorySet.empty
 
-      val packages = PackageNameMap.new ()
+      val packages = PackageNameVersionMap.new ()
     in
       Graph
         {savable = savable,
@@ -325,7 +325,9 @@ fun member thy graph = TheorySet.member thy (theories graph);
 (* ------------------------------------------------------------------------- *)
 
 fun lookupPackages packages package =
-    Option.getOpt (PackageNameMap.peek packages package, TheorySet.empty);
+    case PackageNameVersionMap.peek packages package of
+      SOME thys => thys
+    | NONE => TheorySet.empty;
 
 fun lookup (Graph {packages,...}) package =
     lookupPackages packages package;
@@ -363,7 +365,7 @@ fun add graph thy =
 
               val s = TheorySet.add s thy
             in
-              PackageNameMap.insert packages (p,s)
+              PackageNameVersionMap.insert packages (p,s)
             end
     in
       Graph
@@ -380,11 +382,14 @@ datatype specification =
     Specification of
       {imports : TheorySet.set,
        interpretation : Interpretation.interpretation,
-       name : PackageName.name}
+       nameVersion : PackageNameVersion.nameVersion}
 
 fun match graph spec =
     let
-      val Specification {imports = imp, interpretation = int, name} = spec
+      val Specification
+            {imports = imp,
+             interpretation = int,
+             nameVersion = namever} = spec
 
       fun matchImp thy =
           let
@@ -403,7 +408,7 @@ fun match graph spec =
           matchImp thy andalso
           matchInt thy
     in
-      TheorySet.filter matchThy (lookup graph name)
+      TheorySet.filter matchThy (lookup graph namever)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -460,7 +465,7 @@ fun importNode importer graph info =
           in
             (graph,thy)
           end
-        | PackageTheory.Package {interpretation = int, package = name} =>
+        | PackageTheory.Package {interpretation = int, package = namever} =>
           let
             val interpretation = Interpretation.compose int interpretation
 
@@ -468,7 +473,7 @@ fun importNode importer graph info =
                 Specification
                   {imports = imports,
                    interpretation = interpretation,
-                   name = name}
+                   nameVersion = namever}
           in
             applyImporter importer graph spec
           end
@@ -545,7 +550,11 @@ fun importTheories importer graph info =
 
 fun importPackage importer graph info =
     let
-      val {directory, imports, interpretation, name, package = pkg} = info
+      val {directory,
+           imports,
+           interpretation,
+           nameVersion = namever,
+           package = pkg} = info
 
       val theories = Package.theories pkg
 
@@ -560,7 +569,7 @@ fun importPackage importer graph info =
       val node =
           Theory.Package
             {interpretation = interpretation,
-             package = name,
+             package = namever,
              theories = theoriesEnvironment env}
 
       val article = Theory.article (mainEnvironment env)
@@ -587,14 +596,14 @@ fun importPackageInfo importer graph data =
       val {imports,interpretation,info} = data
 
       val {directory} = PackageInfo.directory info
-      and name = PackageInfo.name info
+      and namever = PackageInfo.nameVersion info
       and pkg = PackageInfo.package info
 
       val data =
           {directory = directory,
            imports = imports,
            interpretation = interpretation,
-           name = name,
+           nameVersion = namever,
            package = pkg}
     in
       importPackage importer graph data
@@ -609,13 +618,13 @@ fun importPackageName finder graph spec =
         let
           val importer = fromFinderImporter finder
 
-          val Specification {imports,interpretation,name} = spec
+          val Specification {imports,interpretation,nameVersion} = spec
 
           val info =
-              case PackageFinder.find finder name of
+              case PackageFinder.find finder nameVersion of
                 SOME i => i
               | NONE => raise Error ("couldn't find package " ^
-                                     PackageName.toString name)
+                                     PackageNameVersion.toString nameVersion)
 
           val data =
               {imports = imports,
@@ -625,7 +634,7 @@ fun importPackageName finder graph spec =
           importPackageInfo importer graph data
           handle Error err =>
             raise Error ("while importing package " ^
-                         PackageName.toString name ^ "\n" ^ err)
+                         PackageNameVersion.toString nameVersion ^ "\n" ^ err)
         end
     end
 

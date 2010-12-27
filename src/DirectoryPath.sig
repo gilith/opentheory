@@ -31,10 +31,11 @@ val mkPackagesDirectory :
     {rootDirectory : string} -> {directory : string}
 
 val mkPackageDirectory :
-    {rootDirectory : string} -> PackageName.name -> {directory : string}
+    {rootDirectory : string} -> PackageNameVersion.nameVersion ->
+    {directory : string}
 
 val mkTarballUrl :
-    {rootUrl : string} -> PackageName.name -> {url : string}
+    {rootUrl : string} -> PackageNameVersion.nameVersion -> {url : string}
 
 (* ------------------------------------------------------------------------- *)
 (* The package staging directory.                                            *)
@@ -44,7 +45,8 @@ val mkStagingPackagesDirectory :
     {rootDirectory : string} -> {directory : string}
 
 val mkStagingPackageDirectory :
-    {rootDirectory : string} -> PackageName.name -> {directory : string}
+    {rootDirectory : string} -> PackageNameVersion.nameVersion ->
+    {directory : string}
 
 (* ------------------------------------------------------------------------- *)
 (* The repos directory.                                                      *)

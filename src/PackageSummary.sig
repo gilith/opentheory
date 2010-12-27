@@ -10,7 +10,7 @@ sig
 (* A type tracking the source package of sequents.                           *)
 (* ------------------------------------------------------------------------- *)
 
-type sequentSource = PackageName.name SequentMap.map
+type sequentSource = PackageNameVersion.nameVersion SequentMap.map
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package summaries.                                       *)

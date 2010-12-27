@@ -14,10 +14,10 @@ type info
 
 val mk :
     {system : DirectorySystem.system,
-     name : PackageName.name,
+     nameVersion : PackageNameVersion.nameVersion,
      directory : string} -> info
 
-val name : info -> PackageName.name
+val nameVersion : info -> PackageNameVersion.nameVersion
 
 val base : info -> PackageBase.base
 
@@ -59,7 +59,7 @@ val allFiles : info -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packages : info -> PackageNameSet.set
+val packages : info -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)

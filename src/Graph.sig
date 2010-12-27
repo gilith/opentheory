@@ -73,7 +73,7 @@ val add : graph -> Theory.theory -> graph
 (* Looking up theories by package name.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val lookup : graph -> PackageName.name -> TheorySet.set
+val lookup : graph -> PackageNameVersion.nameVersion -> TheorySet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Finding matching theories.                                                *)
@@ -83,7 +83,7 @@ datatype specification =
     Specification of
       {imports : TheorySet.set,
        interpretation : Interpretation.interpretation,
-       name : PackageName.name}
+       nameVersion : PackageNameVersion.nameVersion}
 
 val match : graph -> specification -> TheorySet.set
 
@@ -131,7 +131,7 @@ val importPackage :
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     name : PackageName.name,
+     nameVersion : PackageNameVersion.nameVersion,
      package : Package.package} ->
     graph * Theory.theory
 

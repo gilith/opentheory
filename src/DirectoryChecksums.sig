@@ -43,21 +43,23 @@ val filename : checksums -> {filename : string}
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : checksums -> PackageName.name -> Checksum.checksum option
+val peek :
+    checksums -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
-val member : PackageName.name -> checksums -> bool
+val member : PackageNameVersion.nameVersion -> checksums -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val add : checksums -> PackageName.name * Checksum.checksum -> unit
+val add :
+    checksums -> PackageNameVersion.nameVersion * Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Deleting a package.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val delete : checksums -> PackageName.name -> unit
+val delete : checksums -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)

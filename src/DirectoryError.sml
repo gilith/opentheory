@@ -13,19 +13,29 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 datatype error =
-    AncestorNotOnRepo of PackageName.name * DirectoryRepo.name
-  | AncestorWrongChecksumOnRepo of PackageName.name * DirectoryRepo.name
-  | AlreadyInstalled of PackageName.name
-  | AlreadyOnRepo of PackageName.name * DirectoryRepo.name
-  | AlreadyStaged of PackageName.name
+    AncestorNotOnRepo of
+      PackageNameVersion.nameVersion * DirectoryRepo.name
+  | AncestorWrongChecksumOnRepo of
+      PackageNameVersion.nameVersion * DirectoryRepo.name
+  | AlreadyInstalled of
+      PackageNameVersion.nameVersion
+  | AlreadyOnRepo of
+      PackageNameVersion.nameVersion * DirectoryRepo.name
+  | AlreadyStaged of
+      PackageNameVersion.nameVersion
   | FilenameClash of
       {srcs : {name : string, filename : string option} list,
        dest : {filename : string}}
-  | InstalledDescendent of PackageName.name
-  | NotInstalled of PackageName.name
-  | NotOnRepo of PackageName.name * DirectoryRepo.name
-  | UninstalledParent of PackageName.name
-  | WrongChecksumOnRepo of PackageName.name * DirectoryRepo.name;
+  | InstalledDescendent of
+      PackageNameVersion.nameVersion
+  | NotInstalled of
+      PackageNameVersion.nameVersion
+  | NotOnRepo of
+      PackageNameVersion.nameVersion * DirectoryRepo.name
+  | UninstalledParent of
+      PackageNameVersion.nameVersion
+  | WrongChecksumOnRepo of
+      PackageNameVersion.nameVersion * DirectoryRepo.name;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -33,7 +43,7 @@ datatype error =
 
 fun destAlreadyInstalled err =
     case err of
-      AlreadyInstalled n => SOME n
+      AlreadyInstalled nv => SOME nv
     | _ => NONE;
 
 fun isAlreadyInstalled err =
@@ -50,7 +60,7 @@ fun removeAlreadyInstalled errs =
 
 fun destAlreadyStaged err =
     case err of
-      AlreadyStaged n => SOME n
+      AlreadyStaged nv => SOME nv
     | _ => NONE;
 
 fun isAlreadyStaged err =
@@ -67,7 +77,7 @@ fun removeAlreadyStaged errs =
 
 fun destInstalledDescendent err =
     case err of
-      InstalledDescendent name => SOME name
+      InstalledDescendent nv => SOME nv
     | _ => NONE;
 
 fun isInstalledDescendent err =
@@ -75,17 +85,17 @@ fun isInstalledDescendent err =
 
 val removeInstalledDescendent =
     let
-      fun remove (err,(names,errs)) =
+      fun remove (err,(nvs,errs)) =
           case destInstalledDescendent err of
-            SOME name => (name :: names, errs)
-          | NONE => (names, err :: errs)
+            SOME nv => (nv :: nvs, errs)
+          | NONE => (nvs, err :: errs)
     in
       List.foldr remove ([],[])
     end;
 
 fun destUninstalledParent err =
     case err of
-      UninstalledParent name => SOME name
+      UninstalledParent nv => SOME nv
     | _ => NONE;
 
 fun isUninstalledParent err =
@@ -93,10 +103,10 @@ fun isUninstalledParent err =
 
 val removeUninstalledParent =
     let
-      fun remove (err,(names,errs)) =
+      fun remove (err,(nvs,errs)) =
           case destUninstalledParent err of
-            SOME name => (name :: names, errs)
-          | NONE => (names, err :: errs)
+            SOME nv => (nv :: nvs, errs)
+          | NONE => (nvs, err :: errs)
     in
       List.foldr remove ([],[])
     end;
@@ -128,19 +138,20 @@ val existsFatal = List.exists isFatal;
 fun toString err =
     (if isFatal err then "Error" else "Warning") ^ ": " ^
     (case err of
-       AncestorNotOnRepo (name,repo) =>
-       "depends on package " ^ PackageName.toString name ^
+       AncestorNotOnRepo (namever,repo) =>
+       "depends on package " ^ PackageNameVersion.toString namever ^
        " missing on " ^ repo ^ " repo"
-     | AncestorWrongChecksumOnRepo (name,repo) =>
-       "depends on package " ^ PackageName.toString name ^
+     | AncestorWrongChecksumOnRepo (namever,repo) =>
+       "depends on package " ^ PackageNameVersion.toString namever ^
        " which has different checksum on " ^ repo ^ " repo"
-     | AlreadyInstalled name =>
-       "package " ^ PackageName.toString name ^ " is already installed"
-     | AlreadyOnRepo (name,repo) =>
-       "package " ^ PackageName.toString name ^
+     | AlreadyInstalled namever =>
+       "package " ^ PackageNameVersion.toString namever ^
+       " is already installed"
+     | AlreadyOnRepo (namever,repo) =>
+       "package " ^ PackageNameVersion.toString namever ^
        " already exists on " ^ repo ^ " repo"
-     | AlreadyStaged name =>
-       "package " ^ PackageName.toString name ^
+     | AlreadyStaged namever =>
+       "package " ^ PackageNameVersion.toString namever ^
        " is already staged for installation"
      | FilenameClash {srcs,dest} =>
        let
@@ -154,17 +165,18 @@ fun toString err =
          "Package file " ^ PackageTheory.toStringFilename dest ^ "\n" ^
          " is target for " ^ join "\n  and also for " (List.map toStringSrc srcs)
        end
-     | InstalledDescendent name =>
-       "in use by installed package: " ^ PackageName.toString name
-     | NotInstalled name =>
-       "package " ^ PackageName.toString name ^ " is not installed"
-     | NotOnRepo (name,repo) =>
-       "package " ^ PackageName.toString name ^
+     | InstalledDescendent namever =>
+       "in use by installed package: " ^ PackageNameVersion.toString namever
+     | NotInstalled namever =>
+       "package " ^ PackageNameVersion.toString namever ^
+       " is not installed"
+     | NotOnRepo (namever,repo) =>
+       "package " ^ PackageNameVersion.toString namever ^
        " is not on " ^ repo ^ " repo"
-     | UninstalledParent name =>
-       "depends on uninstalled package: " ^ PackageName.toString name
-     | WrongChecksumOnRepo (name,repo) =>
-       "package " ^ PackageName.toString name ^
+     | UninstalledParent namever =>
+       "depends on uninstalled package: " ^ PackageNameVersion.toString namever
+     | WrongChecksumOnRepo (namever,repo) =>
+       "package " ^ PackageNameVersion.toString namever ^
        " has different checksum on " ^ repo ^ " repo");
 
 fun toStringList errs = join "\n" (List.map toString errs);

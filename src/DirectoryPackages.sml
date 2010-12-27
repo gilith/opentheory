@@ -14,40 +14,40 @@ open Useful;
 
 datatype packageDeps =
     PackageDeps of
-      {parents : PackageNameSet.set PackageNameMap.map,
-       children : PackageNameSet.set PackageNameMap.map};
+      {parents : PackageNameVersionSet.set PackageNameVersionMap.map,
+       children : PackageNameVersionSet.set PackageNameVersionMap.map};
 
 val emptyPackageDeps =
     let
-      val parents = PackageNameMap.new ()
-      and children = PackageNameMap.new ()
+      val parents = PackageNameVersionMap.new ()
+      and children = PackageNameVersionMap.new ()
     in
       PackageDeps
         {parents = parents,
          children = children}
     end;
 
-fun parentsPackageDeps (PackageDeps {parents,...}) name =
-    case PackageNameMap.peek parents name of
+fun parentsPackageDeps (PackageDeps {parents,...}) namever =
+    case PackageNameVersionMap.peek parents namever of
       SOME ps => ps
-    | NONE => PackageNameSet.empty;
+    | NONE => PackageNameVersionSet.empty;
 
-fun childrenPackageDeps (PackageDeps {children,...}) name =
-    case PackageNameMap.peek children name of
+fun childrenPackageDeps (PackageDeps {children,...}) namever =
+    case PackageNameVersionMap.peek children namever of
       SOME cs => cs
-    | NONE => PackageNameSet.empty;
+    | NONE => PackageNameVersionSet.empty;
 
 fun ancestorsSetPackageDeps deps =
-    PackageNameSet.close (parentsPackageDeps deps);
+    PackageNameVersionSet.close (parentsPackageDeps deps);
 
-fun ancestorsPackageDeps deps name =
-    ancestorsSetPackageDeps deps (parentsPackageDeps deps name);
+fun ancestorsPackageDeps deps namever =
+    ancestorsSetPackageDeps deps (parentsPackageDeps deps namever);
 
 fun descendentsSetPackageDeps deps =
-    PackageNameSet.close (childrenPackageDeps deps);
+    PackageNameVersionSet.close (childrenPackageDeps deps);
 
-fun descendentsPackageDeps deps name =
-    descendentsSetPackageDeps deps (childrenPackageDeps deps name);
+fun descendentsPackageDeps deps namever =
+    descendentsSetPackageDeps deps (childrenPackageDeps deps namever);
 
 fun addPackageDeps deps (p,c) =
     let
@@ -57,12 +57,22 @@ fun addPackageDeps deps (p,c) =
       val PackageDeps {parents,children} = deps
 
       val parents =
-          if PackageNameSet.member p ps then parents
-          else PackageNameMap.insert parents (c, PackageNameSet.add ps p)
+          if PackageNameVersionSet.member p ps then parents
+          else
+            let
+              val ps = PackageNameVersionSet.add ps p
+            in
+              PackageNameVersionMap.insert parents (c,ps)
+            end
 
       val children =
-          if PackageNameSet.member c cs then children
-          else PackageNameMap.insert children (p, PackageNameSet.add cs c)
+          if PackageNameVersionSet.member c cs then children
+          else
+            let
+              val cs = PackageNameVersionSet.add cs c
+            in
+              PackageNameVersionMap.insert children (p,cs)
+            end
     in
       PackageDeps
         {parents = parents,
@@ -71,70 +81,74 @@ fun addPackageDeps deps (p,c) =
 
 fun addInfoPackageDeps deps info =
     let
-      val name = PackageInfo.name info
+      val namever = PackageInfo.nameVersion info
       and pars = PackageInfo.packages info
+
+      fun add (p,d) = addPackageDeps d (p,namever)
     in
-      PackageNameSet.foldl (fn (p,d) => addPackageDeps d (p,name)) deps pars
+      PackageNameVersionSet.foldl add deps pars
     end;
 
 fun installOrderPackageDeps deps =
-    PackageNameSet.postOrder (parentsPackageDeps deps);
+    PackageNameVersionSet.postOrder (parentsPackageDeps deps);
 
 (* ------------------------------------------------------------------------- *)
 (* A pure type of installed packages.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 datatype purePackages =
-    PurePackages of PackageInfo.info PackageNameMap.map;
+    PurePackages of PackageInfo.info PackageNameVersionMap.map;
 
-val emptyPure = PurePackages (PackageNameMap.new ());
+val emptyPure = PurePackages (PackageNameVersionMap.new ());
 
-fun sizePure (PurePackages pkgs) = PackageNameMap.size pkgs;
+fun sizePure (PurePackages pkgs) = PackageNameVersionMap.size pkgs;
 
-fun peekPure (PurePackages pkgs) name = PackageNameMap.peek pkgs name;
+fun peekPure (PurePackages pkgs) namever =
+    PackageNameVersionMap.peek pkgs namever;
 
-fun memberPure name (PurePackages pkgs) = PackageNameMap.inDomain name pkgs;
+fun memberPure namever (PurePackages pkgs) =
+    PackageNameVersionMap.inDomain namever pkgs;
 
 local
-  fun add (name,_,acc) = PackageNameSet.add acc name;
+  fun add (namever,_,acc) = PackageNameVersionSet.add acc namever;
 in
   fun toNameSetPure (PurePackages pkgs) =
-      PackageNameMap.foldl add PackageNameSet.empty pkgs;
+      PackageNameVersionMap.foldl add PackageNameVersionSet.empty pkgs;
 end;
 
 fun appPure f =
     let
       fun f' (_,info) = f info
     in
-      fn PurePackages pkgs => PackageNameMap.app f' pkgs
+      fn PurePackages pkgs => PackageNameVersionMap.app f' pkgs
     end;
 
 fun foldlPure f =
     let
       fun f' (_,info,acc) = f (info,acc)
     in
-      fn acc => fn PurePackages pkgs => PackageNameMap.foldl f' acc pkgs
+      fn acc => fn PurePackages pkgs => PackageNameVersionMap.foldl f' acc pkgs
     end;
 
 fun addPure (PurePackages pkgs) info =
     let
-      val name = PackageInfo.name info
+      val namever = PackageInfo.nameVersion info
 
-      val pkgs = PackageNameMap.insert pkgs (name,info)
+      val pkgs = PackageNameVersionMap.insert pkgs (namever,info)
     in
       PurePackages pkgs
     end;
 
-fun deletePure (PurePackages pkgs) name =
+fun deletePure (PurePackages pkgs) namever =
     let
-      val pkgs = PackageNameMap.delete pkgs name
+      val pkgs = PackageNameVersionMap.delete pkgs namever
     in
       PurePackages pkgs
     end;
 
-fun removePure (PurePackages pkgs) name =
+fun removePure (PurePackages pkgs) namever =
     let
-      val pkgs = PackageNameMap.remove pkgs name
+      val pkgs = PackageNameVersionMap.remove pkgs namever
     in
       PurePackages pkgs
     end;
@@ -150,12 +164,12 @@ fun fromDirectoryPure sys =
     let
       fun add ({filename},pkgs) =
           let
-            val name = PackageName.fromString (OS.Path.file filename)
+            val namever = PackageNameVersion.fromString (OS.Path.file filename)
 
             val info =
                 PackageInfo.mk
                   {system = sys,
-                   name = name,
+                   nameVersion = namever,
                    directory = filename}
           in
             addPure pkgs info
@@ -254,16 +268,16 @@ fun size pkgs = sizePure (packages pkgs);
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun peek pkgs name = peekPure (packages pkgs) name;
+fun peek pkgs namever = peekPure (packages pkgs) namever;
 
-fun get pkgs name =
-    case peek pkgs name of
+fun get pkgs namever =
+    case peek pkgs namever of
       SOME info => info
     | NONE => raise Error "DirectoryPackages.get";
 
-fun member name pkgs = memberPure name (packages pkgs);
+fun member namever pkgs = memberPure namever (packages pkgs);
 
-fun checksum pkgs name = DirectoryChecksums.peek (checksums pkgs) name;
+fun checksum pkgs namever = DirectoryChecksums.peek (checksums pkgs) namever;
 
 (* ------------------------------------------------------------------------- *)
 (* All installed packages.                                                   *)
@@ -281,60 +295,60 @@ fun parents' pkgs =
     in
       case odeps of
         SOME deps => parentsPackageDeps deps
-      | NONE => fn name => PackageInfo.packages (get pkgs name)
+      | NONE => fn namever => PackageInfo.packages (get pkgs namever)
     end;
 
-fun parents pkgs name =
+fun parents pkgs namever =
     let
 (*OpenTheoryDebug
-      val _ = member name pkgs orelse
+      val _ = member namever pkgs orelse
               raise Bug "DirectoryPackages.parents: unknown package"
 *)
     in
-      parents' pkgs name
+      parents' pkgs namever
     end;
 
 fun children' pkgs = childrenPackageDeps (dependencies pkgs);
 
-fun children pkgs name =
+fun children pkgs namever =
     let
 (*OpenTheoryDebug
-      val _ = member name pkgs orelse
+      val _ = member namever pkgs orelse
               raise Bug "DirectoryPackages.children: unknown package"
 *)
     in
-      children' pkgs name
+      children' pkgs namever
     end;
 
-fun ancestorsSet pkgs = PackageNameSet.close (parents' pkgs);
+fun ancestorsSet pkgs = PackageNameVersionSet.close (parents' pkgs);
 
-fun ancestors pkgs name =
+fun ancestors pkgs namever =
     let
 (*OpenTheoryDebug
-      val _ = member name pkgs orelse
+      val _ = member namever pkgs orelse
               raise Bug "DirectoryPackages.ancestors: unknown package"
 *)
     in
-      ancestorsSet pkgs (parents' pkgs name)
+      ancestorsSet pkgs (parents' pkgs namever)
     end;
 
-fun descendentsSet pkgs = PackageNameSet.close (children' pkgs);
+fun descendentsSet pkgs = PackageNameVersionSet.close (children' pkgs);
 
-fun descendents pkgs name =
+fun descendents pkgs namever =
     let
 (*OpenTheoryDebug
-      val _ = member name pkgs orelse
+      val _ = member namever pkgs orelse
               raise Bug "DirectoryPackages.descendents: unknown package"
 *)
     in
-      descendentsSet pkgs (children' pkgs name)
+      descendentsSet pkgs (children' pkgs namever)
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Generate a valid installation order.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun installOrder pkgs = PackageNameSet.postOrder (parents' pkgs);
+fun installOrder pkgs = PackageNameVersionSet.postOrder (parents' pkgs);
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
@@ -361,9 +375,9 @@ fun add pkgs info chk =
 
       val () =
           let
-            val n = PackageInfo.name info
+            val nv = PackageInfo.nameVersion info
           in
-            DirectoryChecksums.add chks (n,chk)
+            DirectoryChecksums.add chks (nv,chk)
           end
     in
       ()
@@ -373,7 +387,7 @@ fun add pkgs info chk =
 (* Deleting a package.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun delete pkgs name =
+fun delete pkgs namever =
     let
       val Packages
             {system = _,
@@ -385,14 +399,14 @@ fun delete pkgs name =
       val () =
           case !rop of
             NONE => ()
-          | SOME p => rop := SOME (deletePure p name)
+          | SOME p => rop := SOME (deletePure p namever)
 
       val () =
           case !rod of
             NONE => ()
           | SOME _ => rod := NONE;
 
-      val () = DirectoryChecksums.delete chks name
+      val () = DirectoryChecksums.delete chks namever
     in
       ()
     end;

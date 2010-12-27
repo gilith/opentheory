@@ -26,43 +26,52 @@ val size : packages -> int
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : packages -> PackageName.name -> PackageInfo.info option
+val peek :
+    packages -> PackageNameVersion.nameVersion -> PackageInfo.info option
 
-val get : packages -> PackageName.name -> PackageInfo.info
+val get : packages -> PackageNameVersion.nameVersion -> PackageInfo.info
 
-val member : PackageName.name -> packages -> bool
+val member : PackageNameVersion.nameVersion -> packages -> bool
 
-val checksum : packages -> PackageName.name -> Checksum.checksum option
+val checksum :
+    packages -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
 (* All installed packages.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val list : packages -> PackageNameSet.set
+val list : packages -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val parents : packages -> PackageName.name -> PackageNameSet.set
+val parents :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
-val children : packages -> PackageName.name -> PackageNameSet.set
+val children :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
-val ancestors : packages -> PackageName.name -> PackageNameSet.set
+val ancestors :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
-val descendents : packages -> PackageName.name -> PackageNameSet.set
+val descendents :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
 (* Sets *)
 
-val ancestorsSet : packages -> PackageNameSet.set -> PackageNameSet.set
+val ancestorsSet :
+    packages -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
-val descendentsSet : packages -> PackageNameSet.set -> PackageNameSet.set
+val descendentsSet :
+    packages -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Generate a valid installation order.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val installOrder : packages -> PackageNameSet.set -> PackageName.name list
+val installOrder :
+    packages -> PackageNameVersionSet.set -> PackageNameVersion.nameVersion list
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
@@ -74,7 +83,7 @@ val add : packages -> PackageInfo.info -> Checksum.checksum -> unit
 (* Deleting a package.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val delete : packages -> PackageName.name -> unit
+val delete : packages -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

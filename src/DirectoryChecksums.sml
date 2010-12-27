@@ -44,30 +44,35 @@ fun isFilename file = Option.isSome (destFilename file);
 (* ------------------------------------------------------------------------- *)
 
 datatype pureChecksums =
-    PureChecksums of Checksum.checksum PackageNameMap.map;
+    PureChecksums of Checksum.checksum PackageNameVersionMap.map;
 
-val emptyPure = PureChecksums (PackageNameMap.new ());
+val emptyPure = PureChecksums (PackageNameVersionMap.new ());
 
-fun peekPure (PureChecksums m) = PackageNameMap.peek m;
+fun peekPure (PureChecksums m) = PackageNameVersionMap.peek m;
 
-fun memberPure n (PureChecksums m) = PackageNameMap.inDomain n m;
+fun memberPure nv (PureChecksums m) = PackageNameVersionMap.inDomain nv m;
 
-fun insertPure pc (n,c) =
-    if memberPure n pc then
-      raise Error ("multiple entries for package " ^ PackageName.toString n)
+fun insertPure pc (nv,c) =
+    if memberPure nv pc then
+      let
+        val err =
+            "multiple entries for package " ^ PackageNameVersion.toString nv
+      in
+        raise Error err
+      end
     else
       let
         val PureChecksums m = pc
 
-        val m = PackageNameMap.insert m (n,c)
+        val m = PackageNameVersionMap.insert m (nv,c)
       in
         PureChecksums m
       end;
 
-fun uncurriedInsertPure (n_c,pc) = insertPure pc n_c;
+fun uncurriedInsertPure (nv_c,pc) = insertPure pc nv_c;
 
-fun deletePure (PureChecksums m) n =
-    PureChecksums (PackageNameMap.delete m n);
+fun deletePure (PureChecksums m) nv =
+    PureChecksums (PackageNameVersionMap.delete m nv);
 
 local
   infixr 9 >>++
@@ -78,7 +83,7 @@ local
   open Parse;
 in
   val parserPackageChecksum =
-      (PackageName.parser ++
+      (PackageNameVersion.parser ++
        exactChar #" " ++
        Checksum.parser ++
        exactChar #"\n") >>
@@ -120,11 +125,11 @@ fun fromTextFilePure {filename} =
 
 local
   fun toLinePackageChecksum (n,c) =
-      PackageName.toString n ^ " " ^ Checksum.toString c ^ "\n";
+      PackageNameVersion.toString n ^ " " ^ Checksum.toString c ^ "\n";
 in
   fun toTextFilePure {checksums = PureChecksums m, filename = f} =
       let
-        val strm = PackageNameMap.toStream m
+        val strm = PackageNameVersionMap.toStream m
 
         val strm = Stream.map toLinePackageChecksum strm
 
@@ -265,7 +270,7 @@ fun add chks (n,c) =
       val {echo = cmd} = DirectorySystem.echo sys
 
       val cmd =
-          cmd ^ " \"" ^ PackageName.toString n ^ " " ^
+          cmd ^ " \"" ^ PackageNameVersion.toString n ^ " " ^
           Checksum.toString c ^ "\"" ^ " >> " ^ f
 
 (*OpenTheoryTrace1

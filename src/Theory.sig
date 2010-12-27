@@ -22,7 +22,7 @@ datatype node =
        filename : string}
   | Package of
       {interpretation : Interpretation.interpretation,
-       package : PackageName.name,
+       package : PackageNameVersion.nameVersion,
        theories : (PackageTheory.name * theory) list}
   | Union
 
@@ -54,9 +54,9 @@ val isArticle : theory -> bool
 (* Package theories.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val destPackageNode : node -> PackageName.name option
+val destPackageNode : node -> PackageNameVersion.nameVersion option
 
-val destPackage : theory -> PackageName.name option
+val destPackage : theory -> PackageNameVersion.nameVersion option
 
 val isPackage : theory -> bool
 

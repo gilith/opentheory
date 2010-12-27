@@ -33,7 +33,7 @@ datatype node =
        filename : string}
   | Package of
       {interpretation : Interpretation.interpretation,
-       package : PackageName.name}
+       package : PackageNameVersion.nameVersion}
   | Union;
 
 datatype theory =
@@ -248,7 +248,7 @@ datatype constraint =
     ArticleConstraint of {filename : string}
   | ImportConstraint of name
   | InterpretConstraint of Interpretation.rewrite
-  | PackageConstraint of PackageName.name;
+  | PackageConstraint of PackageNameVersion.nameVersion;
 
 fun destArticleConstraint c =
     case c of
@@ -330,13 +330,15 @@ fun destTheory thy =
             let
               val rws = Interpretation.toRewriteList int
             in
-              List.map InterpretConstraint rws @ [ArticleConstraint {filename = f}]
+              List.map InterpretConstraint rws @
+              [ArticleConstraint {filename = f}]
             end
           | Package {interpretation = int, package = p} =>
             let
               val rws = Interpretation.toRewriteList int
             in
-              List.map InterpretConstraint rws @ [PackageConstraint p]
+              List.map InterpretConstraint rws @
+              [PackageConstraint p]
             end
           | Union =>
             []
@@ -393,7 +395,7 @@ in
       | InterpretConstraint r =>
         ppNameValue ppInterpretKeyword (Interpretation.ppRewrite r)
       | PackageConstraint p =>
-        ppNameValue ppPackageKeyword (PackageName.pp p);
+        ppNameValue ppPackageKeyword (PackageNameVersion.pp p);
 end;
 
 fun ppConstraintList cs =
@@ -491,7 +493,7 @@ local
   val packageConstraintParser =
       (packageKeywordParser ++ manySpace ++
        separatorParser ++ manySpace ++
-       PackageName.parser) >>
+       PackageNameVersion.parser) >>
       (fn ((),((),((),((),p)))) => PackageConstraint p);
 
   val constraintParser =

@@ -638,7 +638,7 @@ in
                 val name = Name.mkGlobal h
 
                 val hitem =
-                    if null t then toHtml ppXName (x,name)
+                    if List.null t then toHtml ppXName (x,name)
                     else
                       let
                         val x = Namespace.fromList (List.revAppend (stack,[h]))

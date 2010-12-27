@@ -16,17 +16,17 @@ type finder
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : (PackageName.name -> PackageInfo.info option) -> finder
+val mk : (PackageNameVersion.nameVersion -> PackageInfo.info option) -> finder
 
 (* ------------------------------------------------------------------------- *)
 (* Finding packages.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val find : finder -> PackageName.name -> PackageInfo.info option
+val find : finder -> PackageNameVersion.nameVersion -> PackageInfo.info option
 
-val get : finder -> PackageName.name -> PackageInfo.info
+val get : finder -> PackageNameVersion.nameVersion -> PackageInfo.info
 
-val check : finder -> PackageName.name -> unit
+val check : finder -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Finder combinators.                                                       *)

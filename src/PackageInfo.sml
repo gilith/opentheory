@@ -21,28 +21,28 @@ val uploadSuccessString = "successfully uploaded";
 datatype info =
     Info of
       {system : DirectorySystem.system,
-       name : PackageName.name,
+       nameVersion : PackageNameVersion.nameVersion,
        directory : string,
        package : Package.package option ref};
 
-fun mk {system,name,directory} =
+fun mk {system,nameVersion,directory} =
     let
       val package = ref NONE
     in
       Info
         {system = system,
-         name = name,
+         nameVersion = nameVersion,
          directory = directory,
          package = package}
     end;
 
 fun system (Info {system = x, ...}) = x;
 
-fun name (Info {name = x, ...}) = x;
+fun nameVersion (Info {nameVersion = x, ...}) = x;
 
-fun base info = PackageName.base (name info);
+fun base info = PackageNameVersion.base (nameVersion info);
 
-fun version info = PackageName.version (name info);
+fun version info = PackageNameVersion.version (nameVersion info);
 
 fun directory (Info {directory = x, ...}) = {directory = x};
 
@@ -120,8 +120,14 @@ fun package info =
           val p = Package.fromTextFile filename
 
 (*OpenTheoryDebug
-          val _ = PackageName.equal (name info) (Package.name p) orelse
-                  raise Bug "PackageInfo.package: different name"
+          val () =
+              let
+                val n1 = nameVersion info
+                and n2 = Package.nameVersion p
+              in
+                if PackageNameVersion.equal n1 n2 then ()
+                else  raise Bug "PackageInfo.package: different name"
+              end
 *)
 
           val () = pkg := SOME p
@@ -151,14 +157,14 @@ fun packages info =
     let
       val pkg = package info
     in
-      PackageNameSet.fromList (Package.packages pkg)
+      PackageNameVersionSet.fromList (Package.packages pkg)
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun tarball info = PackageTarball.mkFilename (name info);
+fun tarball info = PackageTarball.mkFilename (nameVersion info);
 
 fun createTarball info =
     let
@@ -320,10 +326,11 @@ fun extractTarball info files =
 
 fun unpackTarball info contents {minimal} =
     let
-      val PackageTarball.Contents {name = n, theoryFile, otherFiles} = contents
+      val PackageTarball.Contents
+            {nameVersion = nv, theoryFile, otherFiles} = contents
 
 (*OpenTheoryDebug
-        val () = if PackageName.equal (name info) n then ()
+        val () = if PackageNameVersion.equal (nameVersion info) nv then ()
                  else raise Bug "PackageInfo.unpackTarball: name clash"
 *)
 
@@ -413,7 +420,7 @@ fun uploadTarball info chk {url} =
 (* Package document.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun document info = PackageDocument.mkFilename (name info);
+fun document info = PackageDocument.mkFilename (nameVersion info);
 
 fun writeDocument info doc =
     let

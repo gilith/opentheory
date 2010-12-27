@@ -13,7 +13,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 datatype finder =
-    Finder of PackageName.name -> PackageInfo.info option;
+    Finder of PackageNameVersion.nameVersion -> PackageInfo.info option;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)

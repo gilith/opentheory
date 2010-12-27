@@ -18,11 +18,11 @@ val fileExtension = "html";
 (* Document filenames.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkFilename name =
+fun mkFilename namever =
     let
       val filename =
           OS.Path.joinBaseExt
-            {base = PackageName.toString name,
+            {base = PackageNameVersion.toString namever,
              ext = SOME fileExtension}
     in
       {filename = filename}
@@ -36,7 +36,7 @@ fun destFilename {filename} =
         NONE => NONE
       | SOME x =>
         if x <> fileExtension then NONE
-        else total PackageName.fromString base
+        else total PackageNameVersion.fromString base
     end;
 
 fun isFilename file = Option.isSome (destFilename file);
@@ -47,8 +47,7 @@ fun isFilename file = Option.isSome (destFilename file);
 
 datatype document' =
     Document' of
-      {name : PackageName.name,
-       package : Package.package,
+      {package : Package.package,
        summary : PackageSummary.summary,
        files : {theory : string, tarball : string}}
 
@@ -68,11 +67,19 @@ fun dest doc : document' = doc;
 
 fun toHtml doc =
     let
-      val Document' {name,package,summary,files} = dest doc
+      val Document' {package,summary,files} = dest doc
+
+      val namever = Package.nameVersion package
 
       val tags = Package.tags package
 
-      val title = Html.Title ("OpenTheory package " ^ PackageName.toString name)
+      val title =
+          let
+            val text =
+                "OpenTheory package " ^ PackageNameVersion.toString namever
+          in
+            Html.Title text
+          end
 
       val style =
           let
@@ -98,7 +105,7 @@ fun toHtml doc =
       val nameBlock =
           let
             val text =
-                PackageBase.toString (PackageName.base name) ^ ": " ^
+                PackageBase.toString (PackageNameVersion.base namever) ^ ": " ^
                 Package.description package
           in
             Html.H1 [Html.Text text]

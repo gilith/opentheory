@@ -31,7 +31,7 @@ and node =
        filename : string}
   | Package of
       {interpretation : Interpretation.interpretation,
-       package : PackageName.name,
+       package : PackageNameVersion.nameVersion,
        theories : (PackageTheory.name * theory) list}
   | Union;
 

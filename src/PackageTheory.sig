@@ -18,7 +18,7 @@ datatype node =
        filename : string}
   | Package of
       {interpretation : Interpretation.interpretation,
-       package : PackageName.name}
+       package : PackageNameVersion.nameVersion}
   | Union
 
 datatype theory =
@@ -69,11 +69,11 @@ val articles : theory list -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packageNode : node -> PackageName.name option
+val packageNode : node -> PackageNameVersion.nameVersion option
 
-val package : theory -> PackageName.name option
+val package : theory -> PackageNameVersion.nameVersion option
 
-val packages : theory list -> PackageName.name list
+val packages : theory list -> PackageNameVersion.nameVersion list
 
 (* ------------------------------------------------------------------------- *)
 (* Union dependencies.                                                       *)

@@ -34,13 +34,15 @@ val system : directory -> DirectorySystem.system
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : directory -> PackageName.name -> PackageInfo.info option
+val peek :
+    directory -> PackageNameVersion.nameVersion -> PackageInfo.info option
 
-val get : directory -> PackageName.name -> PackageInfo.info
+val get : directory -> PackageNameVersion.nameVersion -> PackageInfo.info
 
-val member : PackageName.name -> directory -> bool
+val member : PackageNameVersion.nameVersion -> directory -> bool
 
-val checksum : directory -> PackageName.name -> Checksum.checksum option
+val checksum :
+    directory -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up repos in the package directory.                                *)
@@ -56,31 +58,39 @@ val getRepo : directory -> DirectoryRepo.name -> DirectoryRepo.repo
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val parents : directory -> PackageName.name -> PackageNameSet.set
+val parents :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
-val children : directory -> PackageName.name -> PackageNameSet.set
+val children :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
-val ancestors : directory -> PackageName.name -> PackageNameSet.set
+val ancestors :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
-val descendents : directory -> PackageName.name -> PackageNameSet.set
+val descendents :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
 (* Sets *)
 
-val ancestorsSet : directory -> PackageNameSet.set -> PackageNameSet.set
+val ancestorsSet :
+    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
-val descendentsSet : directory -> PackageNameSet.set -> PackageNameSet.set
+val descendentsSet :
+    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Generate a valid installation order.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val installOrder : directory -> PackageNameSet.set -> PackageName.name list
+val installOrder :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersion.nameVersion list
 
 (* ------------------------------------------------------------------------- *)
 (* Listing packages in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
-val list : directory -> PackageNameSet.set
+val list : directory -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Staging packages for installation.                                        *)
@@ -88,12 +98,12 @@ val list : directory -> PackageNameSet.set
 
 val checkStagePackage :
     directory ->
-    DirectoryRepo.repo -> PackageName.name -> Checksum.checksum ->
+    DirectoryRepo.repo -> PackageNameVersion.nameVersion -> Checksum.checksum ->
     DirectoryError.error list
 
 val stagePackage :
     directory -> PackageFinder.finder ->
-    DirectoryRepo.repo -> PackageName.name -> Checksum.checksum ->
+    DirectoryRepo.repo -> PackageNameVersion.nameVersion -> Checksum.checksum ->
     {minimal : bool} ->
     unit
 
@@ -117,34 +127,36 @@ val stageTarball :
 
 val checkStageTheory :
     directory ->
-    PackageName.name -> Package.package ->
+    PackageNameVersion.nameVersion -> Package.package ->
     DirectoryError.error list
 
 val stageTheory :
     directory ->
-    PackageName.name -> Package.package -> {directory : string} ->
+    PackageNameVersion.nameVersion -> Package.package -> {directory : string} ->
     Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)
 (* ------------------------------------------------------------------------- *)
 
-val installStaged : directory -> PackageName.name -> Checksum.checksum -> unit
+val installStaged :
+    directory -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Cleaning up staged packages.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val cleanupStaged : directory -> PackageName.name -> unit
+val cleanupStaged : directory -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uninstalling packages from the package directory.                         *)
 (* ------------------------------------------------------------------------- *)
 
 val checkUninstall :
-    directory -> PackageName.name -> DirectoryError.error list
+    directory -> PackageNameVersion.nameVersion ->
+    DirectoryError.error list
 
-val uninstall : directory -> PackageName.name -> unit
+val uninstall : directory -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages from the package directory to a repo.                  *)
@@ -152,12 +164,12 @@ val uninstall : directory -> PackageName.name -> unit
 
 val checkUpload :
     directory ->
-    DirectoryRepo.repo -> PackageName.name ->
+    DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
     DirectoryError.error list
 
 val upload :
     directory ->
-    DirectoryRepo.repo -> PackageName.name ->
+    DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
     {response : string}
 
 (* ------------------------------------------------------------------------- *)

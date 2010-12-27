@@ -239,7 +239,7 @@ end;
 
 val autoInstall = ref false;
 
-val nameInstall : PackageName.name option ref = ref NONE;
+val nameInstall : PackageNameVersion.nameVersion option ref = ref NONE;
 
 val checksumInstall : Checksum.checksum option ref = ref NONE;
 
@@ -266,7 +266,8 @@ in
         description = "specify the package name",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => nameInstall := SOME (PackageName.fromString s))},
+            (fn _ => fn s =>
+                nameInstall := SOME (PackageNameVersion.fromString s))},
        {switches = ["--checksum"], arguments = ["CHECKSUM"],
         description = "specify the package checksum",
         processor =
@@ -674,7 +675,7 @@ fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
 
 datatype input =
     ArticleInput of {filename : string}
-  | PackageInput of PackageName.name
+  | PackageInput of PackageNameVersion.nameVersion
   | TarballInput of {filename : string}
   | TheoryInput of {filename : string};
 
@@ -688,8 +689,8 @@ fun fromStringInput cmd inp =
         case total (destPrefix "theory:") inp of
           SOME f => TheoryInput {filename = f}
         | NONE =>
-          case total PackageName.fromString inp of
-            SOME name => PackageInput name
+          case total PackageNameVersion.fromString inp of
+            SOME namever => PackageInput namever
           | NONE =>
             let
               val f = {filename = inp}
@@ -747,9 +748,9 @@ fun init () =
 (* Uninstalling theory packages.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun uninstallPackage auto dir name =
+fun uninstallPackage auto dir namever =
     let
-      val errs = Directory.checkUninstall dir name
+      val errs = Directory.checkUninstall dir namever
 
       val () =
           if List.null errs then ()
@@ -761,40 +762,40 @@ fun uninstallPackage auto dir name =
               else chat ("package uninstall warnings:\n" ^ s)
             end
 
-      val () = Directory.uninstall dir name
+      val () = Directory.uninstall dir namever
 
       val () =
           chat ((if auto then "auto-" else "") ^
-                "uninstalled package " ^ PackageName.toString name)
+                "uninstalled package " ^ PackageNameVersion.toString namever)
     in
       ()
     end;
 
-fun uninstallAuto dir name =
+fun uninstallAuto dir namever =
     let
       val () =
           if not (!autoUninstall) then ()
           else
             let
-              val desc = Directory.descendents dir name
+              val desc = Directory.descendents dir namever
 
               val desc = rev (Directory.installOrder dir desc)
             in
               List.app (uninstallPackage true dir) desc
             end
 
-      val () = uninstallPackage false dir name
+      val () = uninstallPackage false dir namever
     in
       ()
     end;
 
-fun uninstall name =
+fun uninstall namever =
     let
       val dir = directory ()
 
-      val name = PackageName.fromString name
+      val namever = PackageNameVersion.fromString namever
     in
-      uninstallAuto dir name
+      uninstallAuto dir namever
     end
     handle Error err =>
       raise Error (err ^ "\ntheory package uninstall failed");
@@ -803,34 +804,34 @@ fun uninstall name =
 (* Installing theory packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun installAuto master name =
-    case DirectoryRepo.peek master name of
+fun installAuto master namever =
+    case DirectoryRepo.peek master namever of
       NONE =>
         let
           val err =
-              "package " ^ PackageName.toString name ^
+              "package " ^ PackageNameVersion.toString namever ^
               " not found on " ^ DirectoryRepo.toString master ^ " repo"
         in
           raise Error err
         end
     | SOME chk =>
       let
-        val () = installAutoFind master name chk
+        val () = installAutoFind master namever chk
       in
         ()
       end
 
-and installAutoFind master name chk =
+and installAutoFind master namever chk =
     let
       val dir = directory ()
     in
-      case Directory.checksum dir name of
+      case Directory.checksum dir namever of
         SOME chk' =>
         if Checksum.equal chk' chk then ()
         else
           let
             val err =
-                "a package called " ^ PackageName.toString name ^
+                "a package called " ^ PackageNameVersion.toString namever ^
                 " with a different checksum is already installed"
           in
             raise Error err
@@ -839,24 +840,24 @@ and installAutoFind master name chk =
         let
           val repos = repositories ()
         in
-          case DirectoryRepo.find repos (name,chk) of
+          case DirectoryRepo.find repos (namever,chk) of
             NONE =>
             let
               val err =
-                  "package " ^ PackageName.toString name ^
+                  "package " ^ PackageNameVersion.toString namever ^
                   " with specific checksum not found on any repo"
             in
               raise Error err
             end
-          | SOME repo => installAutoRepo master repo name chk
+          | SOME repo => installAutoRepo master repo namever chk
         end
     end
 
-and installAutoRepo master repo name chk =
+and installAutoRepo master repo namever chk =
     let
       val dir = directory ()
 
-      val errs = Directory.checkStagePackage dir repo name chk
+      val errs = Directory.checkStagePackage dir repo namever chk
 
       val () =
           if List.null errs then ()
@@ -872,11 +873,12 @@ and installAutoRepo master repo name chk =
 
       val minimal = {minimal = !minimalInstall}
 
-      val () = Directory.stagePackage dir finder repo name chk minimal
+      val () = Directory.stagePackage dir finder repo namever chk minimal
 
-      val () = Directory.installStaged dir name chk
+      val () = Directory.installStaged dir namever chk
 
-      val () = chat ("auto-installed package " ^ PackageName.toString name)
+      val () = chat ("auto-installed package " ^
+                     PackageNameVersion.toString namever)
     in
       ()
     end
@@ -885,31 +887,31 @@ and installAutoFinder master =
     let
       val dir = directory ()
 
-      fun finder name =
+      fun finder namever =
           let
-            val () = installAuto master name
+            val () = installAuto master namever
           in
-            Directory.peek dir name
+            Directory.peek dir namever
           end
     in
       PackageFinder.mk finder
     end;
 
-fun installAutoFree name =
+fun installAutoFree namever =
     let
       val dir = directory ()
     in
-      if Directory.member name dir then ()
+      if Directory.member namever dir then ()
       else
         let
           val repos = repositories ()
         in
-          case DirectoryRepo.first repos name of
-            SOME (repo,chk) => installAutoRepo repo repo name chk
+          case DirectoryRepo.first repos namever of
+            SOME (repo,chk) => installAutoRepo repo repo namever chk
           | NONE =>
             let
               val err =
-                  "can't find package " ^ PackageName.toString name ^
+                  "can't find package " ^ PackageNameVersion.toString namever ^
                   " in any repo"
             in
               raise Error err
@@ -921,11 +923,11 @@ fun installAutoFinderFree () =
     let
       val dir = directory ()
 
-      fun finder name =
+      fun finder namever =
           let
-            val () = installAutoFree name
+            val () = installAutoFree namever
           in
-            Directory.peek dir name
+            Directory.peek dir namever
           end
     in
       PackageFinder.mk finder
@@ -942,7 +944,7 @@ fun installFinderFree () =
 fun installImporterFree () =
     Graph.fromFinderImporter (installFinderFree ());
 
-fun installPackage name =
+fun installPackage namever =
     let
       val () =
           if not (Option.isSome (!nameInstall)) then ()
@@ -955,29 +957,31 @@ fun installPackage name =
       val (repo,chk) =
           case !checksumInstall of
             SOME chk =>
-            (case DirectoryRepo.find repos (name,chk) of
+            (case DirectoryRepo.find repos (namever,chk) of
                SOME repo => (repo,chk)
              | NONE =>
                let
                  val err =
-                     "can't find package " ^ PackageName.toString name ^
+                     "can't find package " ^
+                     PackageNameVersion.toString namever ^
                      " with specified checksum in any repo"
                in
                  raise Error err
                end)
           | NONE =>
-            (case DirectoryRepo.first repos name of
+            (case DirectoryRepo.first repos namever of
                NONE =>
                let
                  val err =
-                     "can't find package " ^ PackageName.toString name ^
+                     "can't find package " ^
+                     PackageNameVersion.toString namever ^
                      " in any repo package list"
                in
                  raise Error err
                end
              | SOME repo_chk => repo_chk)
 
-      val errs = Directory.checkStagePackage dir repo name chk
+      val errs = Directory.checkStagePackage dir repo namever chk
 
       val errs =
           if not (!reinstall) then errs
@@ -985,7 +989,8 @@ fun installPackage name =
             let
               val (staged,errs) = DirectoryError.removeAlreadyStaged errs
 
-              val () = if staged then Directory.cleanupStaged dir name else ()
+              val () =
+                  if staged then Directory.cleanupStaged dir namever else ()
             in
               errs
             end
@@ -1004,19 +1009,19 @@ fun installPackage name =
               else chat ("package install warnings:\n" ^ s)
             end
 
-      val () = if replace then uninstallAuto dir name else ()
+      val () = if replace then uninstallAuto dir namever else ()
 
       val finder = installFinder repo
 
       val minimal = {minimal = !minimalInstall}
 
-      val () = Directory.stagePackage dir finder repo name chk minimal
+      val () = Directory.stagePackage dir finder repo namever chk minimal
 
-      val () = Directory.installStaged dir name chk
+      val () = Directory.installStaged dir namever chk
 
       val () =
           chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageName.toString name)
+                PackageNameVersion.toString namever)
     in
       ()
     end
@@ -1040,13 +1045,13 @@ fun installTarball tarFile =
 
       val contents = PackageTarball.contents sys tarFile
 
-      val PackageTarball.Contents {name,...} = contents
+      val PackageTarball.Contents {nameVersion = namever, ...} = contents
 
       val () =
           case !nameInstall of
             NONE => ()
-          | SOME name' =>
-            if PackageName.equal name' name then ()
+          | SOME namever' =>
+            if PackageNameVersion.equal namever' namever then ()
             else raise Error "tarball name does not match"
 
       val errs = Directory.checkStageTarball dir contents
@@ -1057,7 +1062,8 @@ fun installTarball tarFile =
             let
               val (staged,errs) = DirectoryError.removeAlreadyStaged errs
 
-              val () = if staged then Directory.cleanupStaged dir name else ()
+              val () =
+                  if staged then Directory.cleanupStaged dir namever else ()
             in
               errs
             end
@@ -1076,7 +1082,7 @@ fun installTarball tarFile =
               else chat ("package install warnings:\n" ^ s)
             end
 
-      val () = if replace then uninstallAuto dir name else ()
+      val () = if replace then uninstallAuto dir namever else ()
 
       val finder = installFinderFree ()
 
@@ -1084,11 +1090,11 @@ fun installTarball tarFile =
 
       val () = Directory.stageTarball dir finder tarFile contents minimal
 
-      val () = Directory.installStaged dir name chk
+      val () = Directory.installStaged dir namever chk
 
       val () =
           chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageName.toString name ^ " from tarball")
+                PackageNameVersion.toString namever ^ " from tarball")
     in
       ()
     end
@@ -1105,13 +1111,13 @@ fun installTheory filename =
 
       val pkg = Package.fromTextFile filename
 
-      val name = Package.name pkg
+      val namever = Package.nameVersion pkg
 
       val () =
           case !nameInstall of
             NONE => ()
-          | SOME name' =>
-            if PackageName.equal name' name then ()
+          | SOME namever' =>
+            if PackageNameVersion.equal namever' namever then ()
             else raise Error "theory name does not match"
 
       val srcDir =
@@ -1121,7 +1127,7 @@ fun installTheory filename =
             {directory = OS.Path.dir thyFile}
           end
 
-      val errs = Directory.checkStageTheory dir name pkg
+      val errs = Directory.checkStageTheory dir namever pkg
 
       val errs =
           if not (!reinstall) then errs
@@ -1129,7 +1135,8 @@ fun installTheory filename =
             let
               val (staged,errs) = DirectoryError.removeAlreadyStaged errs
 
-              val () = if staged then Directory.cleanupStaged dir name else ()
+              val () =
+                  if staged then Directory.cleanupStaged dir namever else ()
             in
               errs
             end
@@ -1152,17 +1159,17 @@ fun installTheory filename =
               else chat ("package install warnings:\n" ^ s)
             end
 
-      val () = if replace then uninstallAuto dir name else ()
+      val () = if replace then uninstallAuto dir namever else ()
 
       val () = List.app installAutoFree pars
 
-      val chk = Directory.stageTheory dir name pkg srcDir
+      val chk = Directory.stageTheory dir namever pkg srcDir
 
-      val () = Directory.installStaged dir name chk
+      val () = Directory.installStaged dir namever chk
 
       val () =
           chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageName.toString name ^ " from theory file")
+                PackageNameVersion.toString namever ^ " from theory file")
     in
       ()
     end
@@ -1210,19 +1217,19 @@ local
   end;
 
   local
-    val cache : PackageName.name option option ref = ref NONE;
+    val cache : PackageNameVersion.nameVersion option option ref = ref NONE;
 
     fun compute () =
         case getInfo () of
-          SOME info => SOME (PackageInfo.name info)
+          SOME info => SOME (PackageInfo.nameVersion info)
         | NONE =>
           case getPackage () of
-            SOME pkg => SOME (Package.name pkg)
+            SOME pkg => SOME (Package.nameVersion pkg)
           | NONE => NONE;
   in
-    fun setName name = cache := SOME (SOME name);
+    fun setNameVersion namever = cache := SOME (SOME namever);
 
-    val getName = getCached cache compute;
+    val getNameVersion = getCached cache compute;
   end;
 
   local
@@ -1400,13 +1407,13 @@ local
     val getInference = getCached cache compute;
   end;
 
-  fun outputPackageNameSet names file =
+  fun outputPackageNameVersionSet namevers file =
       let
-        fun mk n = PackageName.toString n ^ "\n"
+        fun mk nv = PackageNameVersion.toString nv ^ "\n"
 
-        val names = PackageNameSet.toList names
+        val namevers = PackageNameVersionSet.toList namevers
 
-        val strm = Stream.map mk (Stream.fromList names)
+        val strm = Stream.map mk (Stream.fromList namevers)
       in
         Stream.toTextFile file strm
       end;
@@ -1422,11 +1429,11 @@ local
                 SOME p => p
               | NONE => raise Error "no package information available"
 
-          val names = PackageNameSet.fromList (Package.packages pkg)
+          val namevers = PackageNameVersionSet.fromList (Package.packages pkg)
 
-          val names = Directory.ancestorsSet dir names
+          val namevers = Directory.ancestorsSet dir namevers
         in
-          outputPackageNameSet names file
+          outputPackageNameVersionSet namevers file
         end
       | ArticleInfo =>
         let
@@ -1443,27 +1450,27 @@ local
         let
           val dir = directory ()
 
-          val name =
-              case getName () of
-                SOME n => n
+          val namever =
+              case getNameVersion () of
+                SOME nv => nv
               | NONE => raise Error "no name information available"
 
-          val names = Directory.children dir name
+          val namevers = Directory.children dir namever
         in
-          outputPackageNameSet names file
+          outputPackageNameVersionSet namevers file
         end
       | DescendentsInfo =>
         let
           val dir = directory ()
 
-          val name =
-              case getName () of
-                SOME n => n
+          val namever =
+              case getNameVersion () of
+                SOME nv => nv
               | NONE => raise Error "no name information available"
 
-          val names = Directory.descendents dir name
+          val namevers = Directory.descendents dir namever
         in
-          outputPackageNameSet names file
+          outputPackageNameVersionSet namevers file
         end
       | FilesInfo =>
         let
@@ -1491,12 +1498,12 @@ local
         end
       | NameInfo =>
         let
-          val name =
-              case getName () of
-                SOME n => n
+          val namever =
+              case getNameVersion () of
+                SOME nv => nv
               | NONE => raise Error "no name information available"
 
-          val strm = Print.toStream PackageName.pp name
+          val strm = Print.toStream PackageNameVersion.pp namever
         in
           Stream.toTextFile file strm
         end
@@ -1507,9 +1514,9 @@ local
                 SOME p => p
               | NONE => raise Error "no package information available"
 
-          val names = PackageNameSet.fromList (Package.packages pkg)
+          val namevers = PackageNameVersionSet.fromList (Package.packages pkg)
         in
-          outputPackageNameSet names file
+          outputPackageNameVersionSet namevers file
         end
       | SummaryInfo =>
         let
@@ -1602,12 +1609,18 @@ in
         processInfoOutputList infs
       end;
 
-  fun infoPackage name infs =
+  fun infoPackage namever infs =
       let
         val dir = directory ()
       in
-        case Directory.peek dir name of
-          NONE => raise Error ("can't find package " ^ PackageName.toString name)
+        case Directory.peek dir namever of
+          NONE =>
+          let
+            val err =
+                "can't find package " ^ PackageNameVersion.toString namever
+          in
+            raise Error err
+          end
         | SOME info =>
           let
             val () = setInfo info
@@ -1620,10 +1633,10 @@ in
       let
         val sys = system ()
 
-        val PackageTarball.Contents {name,theoryFile,otherFiles} =
+        val PackageTarball.Contents {nameVersion,theoryFile,otherFiles} =
             PackageTarball.contents sys {filename = filename}
 
-        val () = setName name
+        val () = setNameVersion nameVersion
 
         val () = setFiles (theoryFile :: otherFiles)
       in
@@ -1660,7 +1673,7 @@ end;
 
 fun sortList dir pkgs ord =
     case ord of
-      AlphabeticalList => PackageNameSet.toList pkgs
+      AlphabeticalList => PackageNameVersionSet.toList pkgs
     | DependencyList => Directory.installOrder dir pkgs
     | ReverseList ord => rev (sortList dir pkgs ord);
 
@@ -1674,19 +1687,19 @@ fun list () =
 
       val show = showList ()
 
-      fun mk name =
+      fun mk namever =
           let
             fun mkShow s =
                 case s of
-                  NameList => PackageName.toString name
+                  NameList => PackageNameVersion.toString namever
                 | ChecksumList =>
-                  (case Directory.checksum dir name of
+                  (case Directory.checksum dir namever of
                      SOME chk => Checksum.toString chk
                    | NONE => raise Error "corrupt checksum")
                 | DescriptionList =>
                   let
                     val info =
-                        case Directory.peek dir name of
+                        case Directory.peek dir namever of
                           SOME i => i
                         | NONE => raise Error "corrupt installation"
                   in
@@ -1696,7 +1709,8 @@ fun list () =
             join " " (List.map mkShow show) ^ "\n"
           end
           handle Error err =>
-            raise Error ("package " ^ PackageName.toString name ^ ": " ^ err)
+            raise Error ("package " ^ PackageNameVersion.toString namever ^
+                         ": " ^ err)
 
       val strm = Stream.map mk (Stream.fromList pkgs)
 
@@ -1732,17 +1746,17 @@ fun update () =
 (* Upload a theory package to a repo.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun upload name =
+fun upload namever =
     let
       val dir = directory ()
 
       val repo = repository ()
 
-      val name = PackageName.fromString name
+      val namever = PackageNameVersion.fromString namever
 
       val () = DirectoryRepo.update repo
 
-      val errs = Directory.checkUpload dir repo name
+      val errs = Directory.checkUpload dir repo namever
 
       val () =
           if List.null errs then ()
@@ -1754,7 +1768,7 @@ fun upload name =
               else chat ("package upload warnings:\n" ^ s)
             end
 
-      val {response} = Directory.upload dir repo name
+      val {response} = Directory.upload dir repo namever
 
       val () = chat response
     in
@@ -1814,7 +1828,7 @@ let
         in
           case inp of
             ArticleInput file => infoArticle file infs
-          | PackageInput name => infoPackage name infs
+          | PackageInput namever => infoPackage namever infs
           | TarballInput file => infoTarball file infs
           | TheoryInput file => infoTheory file infs
         end
@@ -1825,7 +1839,7 @@ let
         in
           case inp of
             ArticleInput _ => commandUsage cmd "cannot install an article"
-          | PackageInput name => installPackage name
+          | PackageInput namever => installPackage namever
           | TarballInput file => installTarball file
           | TheoryInput file => installTheory file
         end
