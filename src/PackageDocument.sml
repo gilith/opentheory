@@ -97,12 +97,9 @@ fun toHtml doc =
 
       val nameBlock =
           let
-            val text = PackageBase.toString (PackageName.base name)
-
             val text =
-                case Package.description package of
-                  NONE => text
-                | SOME desc => text ^ ": " ^ desc
+                PackageBase.toString (PackageName.base name) ^ ": " ^
+                Package.description package
           in
             Html.H1 [Html.Text text]
           end
@@ -111,14 +108,13 @@ fun toHtml doc =
           let
             fun tagBlock tag =
                 let
-                  val Tag.Tag' {name,value} = Tag.dest tag
+                  val PackageTag.Tag' {name,value} = PackageTag.dest tag
 
-                  val n =
-                      Html.TableEntry
-                        (Html.emptyAttrs, Html.Inline [Html.Text name])
-                  and v =
-                      Html.TableEntry
-                        (Html.emptyAttrs, Html.Inline [Html.Text value])
+                  val n = Html.Text (PackageTag.toStringName name)
+                  and v = Html.Text (PackageTag.toStringValue value)
+
+                  val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
+                  and v = Html.TableEntry (Html.emptyAttrs, Html.Inline [v])
                 in
                   Html.TableRow [n,v]
                 end
@@ -167,7 +163,7 @@ fun toHtml doc =
            filesBlock]
 
       val summaryBlocks =
-          PackageSummary.toHtml (Show.fromTags tags) summary
+          PackageSummary.toHtml (PackageTag.toShow tags) summary
 
       val blocks =
           nameBlock ::

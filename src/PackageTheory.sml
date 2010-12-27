@@ -67,7 +67,7 @@ fun mkName {avoid} =
 (* The main theory.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val mainName = PackageBase.main;
+val mainName = PackageBase.mainTheory;
 
 fun isMainName name = PackageBase.equal name mainName;
 

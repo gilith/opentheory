@@ -51,7 +51,7 @@ val theoryFile : info -> {filename : string}
 
 val articleFiles : info -> {filename : string} list
 
-val extraFiles : info -> Package.extraFile list
+val extraFiles : info -> PackageExtra.extra list
 
 val allFiles : info -> {filename : string} list
 

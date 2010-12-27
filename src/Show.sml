@@ -29,17 +29,6 @@ fun toStringMapping m =
       (if Namespace.isGlobal n2 then ""
        else " " ^ asKeywordString ^ " " ^ Namespace.quotedToString n2);
 
-fun toTagMapping m =
-    let
-      val name = showTagName
-
-      val value = toStringMapping m
-
-      val tag' = Tag.Tag' {name = name, value = value}
-    in
-      Tag.mk tag'
-    end;
-
 local
   infixr 9 >>++
   infixr 8 ++
@@ -221,30 +210,6 @@ in
 end;
 
 val fromList = addList natural;
-
-(* ------------------------------------------------------------------------- *)
-(* Parsing and pretty-printing.                                              *)
-(* ------------------------------------------------------------------------- *)
-
-fun toTags show = List.map toTagMapping (toList show);
-
-local
-  fun destTag tag =
-      let
-        val Tag.Tag' {name,value} = Tag.dest tag
-      in
-        if name = showTagName then SOME value else NONE
-      end;
-in
-  fun fromTags tags =
-      let
-        val vs = List.mapPartial destTag tags
-
-        val ms = List.map fromStringMapping vs
-      in
-        fromList ms
-      end;
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* The default mapping.                                                      *)

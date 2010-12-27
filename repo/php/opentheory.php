@@ -42,17 +42,35 @@ function package_path($name) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Invoke the opentheory program.
+// Invoke the opentheory program to carry out an action.
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_action($action,$args) {
   is_string($action) or trigger_error('bad action');
+  is_string($args) or trigger_error('bad args');
 
   $cmd =
 OPENTHEORY_BIN .
 ' -d ' . REPO_PATH . ' ' .
 $action . $args .
 ' 2>&1 >> ' . LOG_PATH;
+
+  return shell_exec($cmd);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Invoke the opentheory program to query information.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_query($action,$args) {
+  is_string($action) or trigger_error('bad action');
+  is_string($args) or trigger_error('bad args');
+
+  $cmd =
+OPENTHEORY_BIN .
+' -d ' . REPO_PATH . ' ' .
+$action . $args .
+' 2>&1';
 
   return shell_exec($cmd);
 }
@@ -91,6 +109,31 @@ function opentheory_install($tarball,$name,$checksum) {
   $output = opentheory_action('install',$args);
 
   return $output;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Query package information.
+///////////////////////////////////////////////////////////////////////////////
+
+define('PACKAGE_BASE_REGEXP',
+       '[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*');
+
+function opentheory_info($name) {
+  isset($name) or trigger_error('bad name');
+
+  $args = ' --information ' . $name->name();
+
+  $output = opentheory_query('info',$args);
+
+  $lines = explode("\n", $output);
+
+  $tags = array();
+
+  foreach ($lines as $line) {
+    
+  }
+
+  return $tags;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

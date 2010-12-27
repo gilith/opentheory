@@ -141,7 +141,7 @@ fun extraFiles info = Package.extraFiles (package info);
 fun allFiles info =
     theoryFile info ::
     articleFiles info @
-    List.map Package.filenameExtraFile (extraFiles info);
+    List.map PackageExtra.filename (extraFiles info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
@@ -333,7 +333,7 @@ fun unpackTarball info contents {minimal} =
 
       val arts = Package.articles pkg
 
-      val exts = List.map Package.filenameExtraFile (Package.extraFiles pkg)
+      val exts = List.map PackageExtra.filename (Package.extraFiles pkg)
 
       val () =
           let

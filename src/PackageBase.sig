@@ -12,8 +12,6 @@ sig
 
 type base
 
-val main : base
-
 (* ------------------------------------------------------------------------- *)
 (* Concatenation.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -51,5 +49,37 @@ val toString : base -> string
 val parser : (char,base) Parse.parser
 
 val fromString : string -> base
+
+(* ------------------------------------------------------------------------- *)
+(* Theory block names.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val mainTheory : base
+
+(* ------------------------------------------------------------------------- *)
+(* Tag names.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+(* Package basics *)
+
+val authorTag : base
+
+val baseTag : base
+
+val descriptionTag : base
+
+val licenseTag : base
+
+val versionTag : base
+
+(* Extra package files *)
+
+val mkExtraTag : string -> base
+
+val destExtraTag : base -> string option
+
+(* Shows *)
+
+val showTag : base
 
 end

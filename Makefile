@@ -60,7 +60,6 @@ SRC = \
   src/Parse.sig src/Parse.sml \
   src/Html.sig src/Html.sml \
   src/Config.sig src/Config.sml \
-  src/Tag.sig src/Tag.sml \
   src/Checksum.sig src/Checksum.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
@@ -124,6 +123,8 @@ SRC = \
   src/PackageName.sig src/PackageName.sml \
   src/PackageSummary.sig src/PackageSummary.sml \
   src/PackageTheory.sig src/PackageTheory.sml \
+  src/PackageExtra.sig src/PackageExtra.sml \
+  src/PackageTag.sig src/PackageTag.sml \
   src/Package.sig src/Package.sml \
   src/DirectorySystem.sig src/DirectorySystem.sml \
   src/PackageTarball.sig src/PackageTarball.sml \

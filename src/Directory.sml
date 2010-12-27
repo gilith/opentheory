@@ -456,7 +456,7 @@ fun postStagePackage dir stageInfo warnSummary =
 
       val () =
           if not warnSummary then ()
-          else PackageSummary.check (Show.fromTags (Package.tags pkg)) sum
+          else PackageSummary.check (Package.show pkg) sum
 
       (* Create the package document *)
 
@@ -685,14 +685,13 @@ local
 
         fun addExtra (extra,plan) =
             let
-              val name = Package.nameExtraFile extra
-              and {filename} = Package.filenameExtraFile extra
+              val PackageExtra.Extra {name,filename} = PackageExtra.dest extra
 
-              val src = {name = name, filename = SOME filename}
+              val src = {name = name ^ " file", filename = SOME filename}
 
-              val extra = Package.normalizeExtraFile extra
+              val extra = PackageExtra.normalize extra
 
-              val dest = Package.filenameExtraFile extra
+              val dest = PackageExtra.filename extra
             in
               add (src,dest) plan
             end
@@ -842,11 +841,11 @@ local
       end;
 
   fun copyExtraFile sys srcDir info tag =
-      case Package.fromTagExtraFile tag of
+      case PackageTag.toExtra tag of
         NONE => tag
       | SOME extra =>
         let
-          val {filename = srcFilename} = Package.filenameExtraFile extra
+          val {filename = srcFilename} = PackageExtra.filename extra
 
 (*OpenTheoryTrace1
           val () =
@@ -856,9 +855,9 @@ local
 
           val srcFilename = OS.Path.concat (srcDir,srcFilename)
 
-          val extra = Package.normalizeExtraFile extra
+          val extra = PackageExtra.normalize extra
 
-          val {filename = pkgFilename} = Package.filenameExtraFile extra
+          val {filename = pkgFilename} = PackageExtra.filename extra
 
           val {filename = destFilename} =
               PackageInfo.joinDirectory info {filename = pkgFilename}
@@ -875,7 +874,7 @@ local
               if OS.Process.isSuccess (OS.Process.system cmd) then ()
               else raise Error "copying extra file failed"
         in
-          Package.toTagExtraFile extra
+          PackageTag.fromExtra extra
         end;
 
   fun copyArticles srcDir info pkg =

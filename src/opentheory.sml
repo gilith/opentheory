@@ -237,7 +237,7 @@ end;
 (* Options for installing theory packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val autoInstall = ref true;
+val autoInstall = ref false;
 
 val nameInstall : PackageName.name option ref = ref NONE;
 
@@ -410,9 +410,9 @@ in
        {switches = ["--show-axioms"], arguments = [],
         description = "show the assumptions/axioms for each theorem",
         processor = beginOpt endOpt (fn _ => infoShowAxioms := true)},
-       {switches = ["--manual"], arguments = [],
-        description = "do not also install required packages",
-        processor = beginOpt endOpt (fn _ => autoInstall := false)},
+       {switches = ["--auto-install"], arguments = [],
+        description = "automatically install required packages",
+        processor = beginOpt endOpt (fn _ => autoInstall := true)},
        {switches = ["--preserve-theory"], arguments = [],
         description = "do not optimize theory files",
         processor = beginOpt endOpt (fn _ => infoPreserveTheory := true)}];
@@ -1522,7 +1522,7 @@ local
 
           val show =
               case getPackage () of
-                SOME pkg => Show.fromTags (Package.tags pkg)
+                SOME pkg => Package.show pkg
               | NONE => Show.default
 
           val {filename} = file
@@ -1541,7 +1541,7 @@ local
 
           val tags = Package.tags pkg
 
-          val strm = Print.toStream Tag.ppList tags
+          val strm = Print.toStream PackageTag.ppList tags
         in
           Stream.toTextFile file strm
         end
@@ -1642,7 +1642,7 @@ in
         val files =
             {filename = filename} ::
             List.map joinDir (Package.articles pkg) @
-            List.map (joinDir o Package.filenameExtraFile) (Package.extraFiles pkg)
+            List.map (joinDir o PackageExtra.filename) (Package.extraFiles pkg)
 
         val () = setDirectory {directory = dir}
 
@@ -1690,9 +1690,7 @@ fun list () =
                           SOME i => i
                         | NONE => raise Error "corrupt installation"
                   in
-                    case Package.description (PackageInfo.package info) of
-                      SOME d => d
-                    | NONE => "-"
+                    Package.description (PackageInfo.package info)
                   end
           in
             join " " (List.map mkShow show) ^ "\n"
@@ -1773,7 +1771,11 @@ val () =
 let
   val work = CommandLine.arguments ();
 
+  (* Process global options *)
+
   val (_,work) = Options.processOptions globalOptions work
+
+  (* Read the command *)
 
   val (cmd,work) =
       case work of
@@ -1783,7 +1785,23 @@ let
           SOME cmd => (cmd,work)
         | NONE => usage ("bad command specified: \"" ^ s ^ "\"")
 
+  (* Set command option defaults *)
+
+  val () =
+      case cmd of
+        Install =>
+        let
+          val () = autoInstall := true
+        in
+          ()
+        end
+      | _ => ()
+
+  (* Process command options *)
+
   val (_,work) = Options.processOptions (commandOptions cmd) work
+
+  (* Process command options *)
 
   val () =
       case (cmd,work) of
@@ -1816,7 +1834,11 @@ let
       | (Update,[]) => update ()
       | (Upload,[pkg]) => upload pkg
       | _ =>
-        commandUsage cmd ("bad arguments for " ^ commandString cmd ^ " command")
+        let
+          val err = "bad arguments for " ^ commandString cmd ^ " command"
+        in
+          commandUsage cmd err
+        end
 in
   succeed ()
 end

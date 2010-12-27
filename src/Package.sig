@@ -28,14 +28,14 @@ type package
 
 datatype package' =
     Package' of
-      {tags : Tag.tag list,
+      {tags : PackageTag.tag list,
        theories : PackageTheory.theory list}
 
 val mk : package' -> package
 
 val dest : package -> package'
 
-val tags : package -> Tag.tag list
+val tags : package -> PackageTag.tag list
 
 val theories : package -> PackageTheory.theory list
 
@@ -53,7 +53,19 @@ val name : package -> PackageName.name
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val description : package -> string option
+val description : package -> string
+
+(* ------------------------------------------------------------------------- *)
+(* Package author.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val author : package -> string
+
+(* ------------------------------------------------------------------------- *)
+(* Package license.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val license : package -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
@@ -68,22 +80,16 @@ val articles : package -> {filename : string} list
 val packages : package -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
-(* Extra file dependencies.                                                  *)
+(* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-type extraFile
+val extraFiles : package -> PackageExtra.extra list
 
-val nameExtraFile : extraFile -> string
+(* ------------------------------------------------------------------------- *)
+(* Show.                                                                     *)
+(* ------------------------------------------------------------------------- *)
 
-val filenameExtraFile : extraFile -> {filename : string}
-
-val normalizeExtraFile : extraFile -> extraFile
-
-val toTagExtraFile : extraFile -> Tag.tag
-
-val fromTagExtraFile : Tag.tag -> extraFile option
-
-val extraFiles : package -> extraFile list
+val show : package -> Show.show
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

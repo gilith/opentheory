@@ -12,11 +12,7 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val baseTag = "name"
-and descriptionTag = "description"
-and fileExtension = "thy"
-and fileSuffixTag = "-file"
-and versionTag = "version";
+val fileExtension = "thy";
 
 (* ------------------------------------------------------------------------- *)
 (* Theory package filenames.                                                 *)
@@ -51,7 +47,7 @@ fun isFilename file = Option.isSome (destFilename file);
 
 datatype package' =
     Package' of
-      {tags : Tag.tag list,
+      {tags : PackageTag.tag list,
        theories : PackageTheory.theory list};
 
 type package = package';
@@ -76,17 +72,9 @@ fun theories pkg = theories' (dest pkg);
 (* Package name.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun base pkg =
-    case List.filter (equal baseTag o Tag.name) (tags pkg) of
-      [] => raise Error ("no " ^ baseTag ^ " tag")
-    | [tag] => PackageBase.fromString (Tag.value tag)
-    | _ :: _ :: _ => raise Error ("multiple " ^ baseTag ^ " tags");
+fun base pkg = PackageTag.findBase (tags pkg);
 
-fun version pkg =
-    case List.filter (equal versionTag o Tag.name) (tags pkg) of
-      [] => raise Error ("no " ^ versionTag ^ " tag")
-    | [tag] => PackageVersion.fromString (Tag.value tag)
-    | _ :: _ :: _ => raise Error ("multiple " ^ versionTag ^ " tags");
+fun version pkg = PackageTag.findVersion (tags pkg);
 
 fun name pkg =
     let
@@ -100,10 +88,19 @@ fun name pkg =
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun description pkg =
-    case List.find (equal descriptionTag o Tag.name) (tags pkg) of
-      NONE => NONE
-    | SOME tag => SOME (Tag.value tag);
+fun description pkg = PackageTag.findDescription (tags pkg);
+
+(* ------------------------------------------------------------------------- *)
+(* Package author.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun author pkg = PackageTag.findAuthor (tags pkg);
+
+(* ------------------------------------------------------------------------- *)
+(* Package license.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun license pkg = PackageTag.findLicense (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
@@ -118,52 +115,16 @@ fun articles pkg = PackageTheory.articles (theories pkg);
 fun packages pkg = PackageTheory.packages (theories pkg);
 
 (* ------------------------------------------------------------------------- *)
-(* File dependencies.                                                        *)
+(* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype extraFile =
-    ExtraFile of
-      {name : string,
-       filename : string};
+fun extraFiles pkg = PackageTag.toExtraList (tags pkg);
 
-fun nameExtraFile (ExtraFile {name = x, ...}) = x;
+(* ------------------------------------------------------------------------- *)
+(* Show.                                                                     *)
+(* ------------------------------------------------------------------------- *)
 
-fun filenameExtraFile (ExtraFile {filename = x, ...}) = {filename = x};
-
-fun normalizeExtraFile (ExtraFile {name,filename}) =
-    let
-      val filename = OS.Path.file filename
-    in
-      ExtraFile {name = name, filename = filename}
-    end;
-
-fun toTagExtraFile (ExtraFile {name,filename}) =
-    let
-(*OpenTheoryDebug
-      val _ = String.isSuffix fileSuffixTag name orelse
-              raise Bug "Package.toTagExtraFile"
-*)
-      val value = PackageTheory.toStringFilename {filename = filename}
-    in
-      Tag.mk (Tag.Tag' {name = name, value = value})
-    end;
-
-fun fromTagExtraFile tag =
-    let
-      val name = Tag.name tag
-    in
-      if not (String.isSuffix fileSuffixTag name) then NONE
-      else
-        let
-          val value = Tag.value tag
-
-          val {filename} = PackageTheory.fromStringFilename value
-        in
-          SOME (ExtraFile {name = name, filename = filename})
-        end
-    end;
-
-fun extraFiles pkg = List.mapPartial fromTagExtraFile (tags pkg);
+fun show pkg = PackageTag.toShow (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -189,7 +150,7 @@ in
              List.map ppThy theories)
       else
         Print.blockProgram Print.Consistent 0
-          (Tag.ppList tags ::
+          (PackageTag.ppList tags ::
            List.map ppThy theories)
     end;
 end;
@@ -209,7 +170,7 @@ local
   open Parse;
 
   val packageSpaceParser' =
-      (Tag.parserList ++
+      (PackageTag.parserList ++
        atLeastOne PackageTheory.parser) >>
       (fn (ts,ths) => Package' {tags = ts, theories = ths});
 
@@ -249,7 +210,7 @@ fun fromTextFile {filename} =
          case Stream.toList pkgs of
            [] => raise Error "missing theory block"
          | [pkg] => pkg
-         | _ :: _ :: _ => raise Error "multiple theory blocks"
+         | _ :: _ :: _ => raise Error "multiple tag blocks"
        end
        handle Parse.NoParse => raise Error "parse error")
       handle Error err =>

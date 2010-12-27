@@ -12,34 +12,22 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val avoidString = "a"
+val authorString = "author"
+and avoidString = "a"
+and baseString = "name"
+and descriptionString = "description"
+and extraSuffixString = "-file"
+and licenseString = "license"
 and mainString = "main"
-and separatorString = "-";
-
-(* ------------------------------------------------------------------------- *)
-(* Helper functions.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun concatWith s =
-    let
-      fun add (x,l) = s :: x :: l
-    in
-      fn [] => ""
-       | x :: xs =>
-         let
-           val xs = List.foldl add [] (rev xs)
-         in
-           String.concat (x :: xs)
-         end
-    end;
+and separatorString = "-"
+and showString = "show"
+and versionString = "version";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
 type base = string;
-
-val main = mainString;
 
 (* ------------------------------------------------------------------------- *)
 (* Concatenation.                                                            *)
@@ -49,7 +37,7 @@ fun append b1 b2 = b1 ^ separatorString ^ b2;
 
 fun concat bs =
     if List.null bs then raise Error "PackageBase.concat"
-    else concatWith separatorString bs;
+    else String.concatWith separatorString bs;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
@@ -119,6 +107,38 @@ fun fromString s =
     Parse.fromString parser s
     handle Parse.NoParse =>
       raise Error ("bad package base name format: " ^ s);
+
+(* ------------------------------------------------------------------------- *)
+(* Theory block names.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val mainTheory = mainString;
+
+(* ------------------------------------------------------------------------- *)
+(* Tag names.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+(* Package basics *)
+
+val authorTag = authorString;
+
+val baseTag = baseString;
+
+val descriptionTag = descriptionString;
+
+val licenseTag = licenseString;
+
+val versionTag = versionString;
+
+(* Extra package files *)
+
+val mkExtraTag = mkSuffix extraSuffixString;
+
+val destExtraTag = total (destSuffix extraSuffixString);
+
+(* Shows *)
+
+val showTag = showString;
 
 end
 
