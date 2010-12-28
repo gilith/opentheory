@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* PACKAGE INFORMATION STORED AS NAME/VALUE TAGS                             *)
+(* PACKAGE INFORMATION STORED AS "NAME: VALUE" TAGS                          *)
 (* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
@@ -7,7 +7,7 @@ signature PackageTag =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of "name: value" tags.                                             *)
+(* A type of "NAME: VALUE" tags.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 type name = PackageName.name

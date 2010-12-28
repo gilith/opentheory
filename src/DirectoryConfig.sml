@@ -12,31 +12,43 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val chmodSystemDefault = "chmod"
-and chmodSystemKey = "chmod"
-and cleanupInstallDefault = Time.fromSeconds 3600  (* 1 hour *)
+val chmodSystemKey = "chmod"
 and cleanupInstallKey = "cleanup"
-and cpSystemDefault = "cp"
 and cpSystemKey = "cp"
-and curlSystemDefault = "curl --silent --show-error --user-agent opentheory"
 and curlSystemKey = "curl"
-and echoSystemDefault = "echo"
 and echoSystemKey = "echo"
 and installSection = "install"
+and licenseSection = "license"
+and nameLicenseKey = "name"
 and nameRepoKey = "name"
-and refreshRepoDefault = Time.fromSeconds 604800  (* 1 week *)
 and refreshRepoKey = "refresh"
 and repoSection = "repo"
-and shaSystemDefault = "sha1sum --binary"
 and shaSystemKey = "sha"
 and systemSection = "system"
-and tarSystemDefault = "tar"
 and tarSystemKey = "tar"
+and urlLicenseKey = "url"
 and urlRepoKey = "url";
 
-val nameRepoGilith = "gilith"
-and refreshRepoGilith = refreshRepoDefault
-and urlRepoGilith = "http://opentheory.gilith.com/";
+val defaultRepoRefresh = Time.fromSeconds 604800;  (* 1 week *)
+
+val gilithRepoName = "gilith"
+and gilithRepoRefresh = defaultRepoRefresh
+and gilithRepoUrl = "http://opentheory.gilith.com/";
+
+val mitLicenseName = "MIT"
+and mitLicenseUrl = "url";
+
+val holLightLicenseName = "HOLLight"
+and holLightLicenseUrl = "url";
+
+val defaultInstallCleanup = Time.fromSeconds 3600;  (* 1 hour *)
+
+val defaultSystemChmod = "chmod"
+and defaultSystemCp = "cp"
+and defaultSystemCurl = "curl --silent --show-error --user-agent opentheory"
+and defaultSystemEcho = "echo"
+and defaultSystemSha = "sha1sum --binary"
+and defaultSystemTar = "tar";
 
 (* ------------------------------------------------------------------------- *)
 (* Time interval functions.                                                  *)
@@ -228,7 +240,7 @@ local
         val refresh =
             case refresh of
               SOME x => fromStringInterval x
-            | NONE => refreshRepoDefault
+            | NONE => defaultRepoRefresh
       in
         Repo
           {name = name,
@@ -257,11 +269,189 @@ end;
 
 val defaultRepo =
     Repo
-      {name = nameRepoGilith,
-       url = urlRepoGilith,
-       refresh = refreshRepoGilith};
+      {name = gilithRepoName,
+       url = gilithRepoUrl,
+       refresh = gilithRepoRefresh};
 
 val defaultRepos = [defaultRepo];
+
+(* ------------------------------------------------------------------------- *)
+(* A type of license configuration data.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+datatype license =
+    License of
+      {name : string,
+       url : string};
+
+fun nameLicense (License {name = x, ...}) = {name = x};
+
+fun urlLicense (License {url = x, ...}) = {url = x};
+
+fun findLicense licenses {name = n} =
+    let
+      fun pred license =
+          let
+            val {name = n'} = nameLicense license
+          in
+            n' = n
+          end
+    in
+      case List.filter pred licenses of
+        [] => NONE
+      | [license] => SOME license
+      | _ :: _ :: _ => raise Bug "multiple licenses with the same name"
+    end;
+
+fun toSectionLicense license =
+    let
+      val License {name,url} = license
+    in
+      Config.Section
+        {name = licenseSection,
+         keyValues =
+           [Config.KeyValue
+              {key = nameLicenseKey,
+               value = name},
+            Config.KeyValue
+              {key = urlLicenseKey,
+               value = url}]}
+    end;
+
+local
+  datatype licenseSectionState =
+      LicenseSectionState of
+        {name : string option,
+         url : string option};
+
+  val initialLicenseSectionState =
+      let
+        val name = NONE
+        and url = NONE
+      in
+        LicenseSectionState
+          {name = name,
+           url = url}
+      end;
+
+  fun addNameLicenseSectionState x state =
+      let
+        val LicenseSectionState {name,url} = state
+
+        val name =
+            case name of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "duplicate " ^
+                    Config.toStringKey {key = nameLicenseKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        LicenseSectionState
+          {name = name,
+           url = url}
+      end;
+
+  fun addUrlLicenseSectionState x state =
+      let
+        val LicenseSectionState {name,url} = state
+
+        val url =
+            case url of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "duplicate " ^
+                    Config.toStringKey {key = urlLicenseKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        LicenseSectionState
+          {name = name,
+           url = url}
+      end;
+
+  fun processLicenseSectionState (kv,state) =
+      let
+        val Config.KeyValue {key,value} = kv
+      in
+        if key = nameLicenseKey then addNameLicenseSectionState value state
+        else if key = urlLicenseKey then addUrlLicenseSectionState value state
+        else raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+      end;
+
+  fun finalLicenseSectionState state =
+      let
+        val LicenseSectionState {name,url} = state
+
+        val name =
+            case name of
+              SOME x => x
+            | NONE =>
+              let
+                val err =
+                    "missing " ^
+                    Config.toStringKey {key = nameLicenseKey} ^ " key"
+              in
+                raise Error err
+              end
+
+        val url =
+            case url of
+              SOME x => x
+            | NONE =>
+              let
+                val err =
+                    "missing " ^
+                    Config.toStringKey {key = urlLicenseKey} ^ " key"
+              in
+                raise Error err
+              end
+      in
+        License
+          {name = name,
+           url = url}
+      end;
+in
+  fun fromSectionLicense kvs =
+      let
+        val state = initialLicenseSectionState
+
+        val state = List.foldl processLicenseSectionState state kvs
+      in
+        finalLicenseSectionState state
+      end
+      handle Error err =>
+        let
+          val err =
+              "in section " ^
+              Config.toStringSectionName {name = licenseSection} ^
+              " of config file:\n" ^ err
+        in
+          raise Error err
+        end;
+end;
+
+val defaultLicense =
+    License
+      {name = mitLicenseName,
+       url = mitLicenseUrl};
+
+val holLightLicense =
+    License
+      {name = holLightLicenseName,
+       url = holLightLicenseUrl};
+
+val defaultLicenses =
+    [defaultLicense,
+     holLightLicense];
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system configuration data.                                      *)
@@ -363,7 +553,7 @@ end;
 
 val defaultInstall =
     Install
-      {cleanup = cleanupInstallDefault};
+      {cleanup = defaultInstallCleanup};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system configuration data.                                      *)
@@ -657,12 +847,12 @@ end;
 
 val defaultSystem =
     DirectorySystem.mk
-      {chmod = chmodSystemDefault,
-       cp = cpSystemDefault,
-       curl = curlSystemDefault,
-       echo = echoSystemDefault,
-       sha = shaSystemDefault,
-       tar = tarSystemDefault};
+      {chmod = defaultSystemChmod,
+       cp = defaultSystemCp,
+       curl = defaultSystemCurl,
+       echo = defaultSystemEcho,
+       sha = defaultSystemSha,
+       tar = defaultSystemTar};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
@@ -671,6 +861,7 @@ val defaultSystem =
 datatype config =
     Config of
       {repos : repo list,
+       licenses : license list,
        install : install,
        system : DirectorySystem.system};
 
@@ -680,17 +871,21 @@ datatype config =
 
 val empty =
     let
-      val rs = []
-      and ins = defaultInstall
-      and sys = defaultSystem
+      val repos = []
+      and licenses = []
+      and install = defaultInstall
+      and system = defaultSystem
     in
       Config
-        {repos = rs,
-         install = ins,
-         system = sys}
+        {repos = repos,
+         licenses = licenses,
+         install = install,
+         system = system}
     end;
 
 fun repos (Config {repos = x, ...}) = x;
+
+fun licenses (Config {licenses = x, ...}) = x;
 
 fun install (Config {install = x, ...}) = x;
 
@@ -700,41 +895,87 @@ fun system (Config {system = x, ...}) = x;
 (* Basic operations.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun addRepo cfg r =
+fun addRepo cfg repo =
     let
-      val Config {repos = rs, install = ins, system = sys} = cfg
+      val Config
+            {repos,
+             licenses,
+             install,
+             system} = cfg
 
-      val rs = rs @ [r]
+      val repos = repos @ [repo]
     in
-      Config {repos = rs, install = ins, system = sys}
+      Config
+        {repos = repos,
+         licenses = licenses,
+         install = install,
+         system = system}
     end;
 
-fun replaceInstall cfg ins =
+fun addLicense cfg license =
     let
-      val Config {repos = rs, install = _, system = sys} = cfg
+      val Config
+            {repos,
+             licenses,
+             install,
+             system} = cfg
+
+      val licenses = licenses @ [license]
     in
-      Config {repos = rs, install = ins, system = sys}
+      Config
+        {repos = repos,
+         licenses = licenses,
+         install = install,
+         system = system}
     end;
 
-fun replaceSystem cfg sys =
+fun replaceInstall cfg install =
     let
-      val Config {repos = rs, install = ins, system = _} = cfg
+      val Config
+            {repos,
+             licenses,
+             install = _,
+             system} = cfg
     in
-      Config {repos = rs, install = ins, system = sys}
+      Config
+        {repos = repos,
+         licenses = licenses,
+         install = install,
+         system = system}
+    end;
+
+fun replaceSystem cfg system =
+    let
+      val Config
+            {repos,
+             licenses,
+             install,
+             system = _} = cfg
+    in
+      Config
+        {repos = repos,
+         licenses = licenses,
+         install = install,
+         system = system}
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun toSections config =
+fun toSections cfg =
     let
-      val Config {repos = rs, install = ins, system = sys} = config
+      val Config
+            {repos,
+             licenses,
+             install,
+             system} = cfg
 
       val sections =
-          List.map toSectionRepo rs @
-          [toSectionInstall ins] @
-          [toSectionSystem sys]
+          List.map toSectionRepo repos @
+          List.map toSectionLicense licenses @
+          [toSectionInstall install] @
+          [toSectionSystem system]
     in
       Config.Config {sections = sections}
     end;
@@ -746,31 +987,37 @@ val pp = Print.ppMap toSections Config.pp;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun addSection (sect,conf) =
+  fun addSection (sect,cfg) =
       let
         val Config.Section {name,keyValues} = sect
       in
         if name = repoSection then
           let
-            val r = fromSectionRepo keyValues
+            val repo = fromSectionRepo keyValues
           in
-            addRepo conf r
+            addRepo cfg repo
+          end
+        else if name = licenseSection then
+          let
+            val license = fromSectionLicense keyValues
+          in
+            addLicense cfg license
           end
         else if name = installSection then
           let
-            val ins = install conf
+            val ins = install cfg
 
             val ins = fromSectionInstall ins keyValues
           in
-            replaceInstall conf ins
+            replaceInstall cfg ins
           end
         else if name = systemSection then
           let
-            val sys = system conf
+            val sys = system cfg
 
             val sys = fromSectionSystem sys keyValues
           in
-            replaceSystem conf sys
+            replaceSystem cfg sys
           end
         else
           let
@@ -782,20 +1029,20 @@ local
           end
       end;
 
-  fun fromSections conf =
+  fun fromSections cfg =
       let
-        val Config.Config {sections} = conf
+        val Config.Config {sections} = cfg
       in
         List.foldl addSection empty sections
       end;
 in
   fun fromTextFile filename =
       let
-        val conf =
+        val cfg =
             Config.fromTextFile filename
             handle IO.Io _ => Config.empty
       in
-        fromSections conf
+        fromSections cfg
       end
 (*OpenTheoryDebug
       handle Error err => raise Bug ("DirectoryConfig.fromTextFile: " ^ err);
@@ -815,11 +1062,16 @@ fun toTextFile {config,filename} =
 
 val default =
     let
-      val rs = defaultRepos
-      and ins = defaultInstall
-      and sys = defaultSystem
+      val repos = defaultRepos
+      and licenses = defaultLicenses
+      and install = defaultInstall
+      and system = defaultSystem
     in
-      Config {repos = rs, install = ins, system = sys}
+      Config
+        {repos = repos,
+         licenses = licenses,
+         install = install,
+         system = system}
     end;
 
 end

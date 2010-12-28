@@ -7,14 +7,6 @@ signature DirectoryConfig =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of install configuration data.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-type install
-
-val cleanupInstall : install -> Time.time
-
-(* ------------------------------------------------------------------------- *)
 (* A type of repo configuration data.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -29,12 +21,32 @@ val refreshRepo : repo -> Time.time
 val findRepo : repo list -> {name : string} -> repo option
 
 (* ------------------------------------------------------------------------- *)
+(* A type of license configuration data.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+type license
+
+val nameLicense : license -> {name : string}
+
+val urlLicense : license -> {url : string}
+
+(* ------------------------------------------------------------------------- *)
+(* A type of install configuration data.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+type install
+
+val cleanupInstall : install -> Time.time
+
+(* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 type config
 
 val repos : config -> repo list
+
+val licenses : config -> license list
 
 val install : config -> install
 
