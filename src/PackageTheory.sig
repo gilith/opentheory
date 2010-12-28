@@ -10,7 +10,7 @@ sig
 (* Types of package theory syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type name = PackageBase.base
+type name = PackageName.name
 
 datatype node =
     Article of
@@ -41,7 +41,7 @@ val node : theory -> node
 (* Generating fresh theory names.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val mkName : {avoid : PackageBaseSet.set} -> name -> name
+val mkName : {avoid : PackageNameSet.set} -> name -> name
 
 (* ------------------------------------------------------------------------- *)
 (* The main theory.                                                          *)

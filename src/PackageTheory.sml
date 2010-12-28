@@ -25,7 +25,7 @@ and separatorChar = #":";
 (* Types of package theory syntax.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type name = PackageBase.base;
+type name = PackageName.name;
 
 datatype node =
     Article of
@@ -58,18 +58,18 @@ fun node (Theory {node = x, ...}) = x;
 
 fun mkName {avoid} =
     let
-      fun memberAvoid name = PackageBaseSet.member name avoid
+      fun memberAvoid name = PackageNameSet.member name avoid
     in
-      PackageBase.mkName {avoid = memberAvoid}
+      PackageName.mkName {avoid = memberAvoid}
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* The main theory.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val mainName = PackageBase.mainTheory;
+val mainName = PackageName.mainTheory;
 
-fun isMainName name = PackageBase.equal name mainName;
+fun isMainName name = PackageName.equal name mainName;
 
 fun isMain thy = isMainName (name thy);
 
@@ -123,19 +123,19 @@ fun importsUnion thy =
 (* Topological sort of theories.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype index = Index of theory list * theory PackageBaseMap.map;
+datatype index = Index of theory list * theory PackageNameMap.map;
 
 fun toListIndex (Index (thyl,_)) = thyl;
 
-fun peekIndex (Index (_,idxm)) n = PackageBaseMap.peek idxm n;
+fun peekIndex (Index (_,idxm)) n = PackageNameMap.peek idxm n;
 
-fun memberIndex n (Index (_,idxm)) = PackageBaseMap.inDomain n idxm;
+fun memberIndex n (Index (_,idxm)) = PackageNameMap.inDomain n idxm;
 
 fun getIndex idx n =
     case peekIndex idx n of
       SOME thy => thy
     | NONE =>
-      raise Error ("unknown theory block called " ^ PackageBase.toString n);
+      raise Error ("unknown theory block called " ^ PackageName.toString n);
 
 fun mainIndex idx = getIndex idx mainName;
 
@@ -145,11 +145,11 @@ local
         val n = name thy
 
         val () =
-            if not (PackageBaseMap.inDomain n idxm) then ()
+            if not (PackageNameMap.inDomain n idxm) then ()
             else raise Error ("multiple theory blocks called " ^
-                              PackageBase.toString n)
+                              PackageName.toString n)
       in
-        PackageBaseMap.insert idxm (n,thy)
+        PackageNameMap.insert idxm (n,thy)
       end;
 
   fun checkImps idx thy =
@@ -159,13 +159,13 @@ local
         let
           val n = name thy
         in
-          raise Error ("theory block " ^ PackageBase.toString n ^ " " ^
-                       "imports unknown " ^ PackageBase.toString t)
+          raise Error ("theory block " ^ PackageName.toString n ^ " " ^
+                       "imports unknown " ^ PackageName.toString t)
         end;
 in
   fun fromListIndex thyl =
       let
-        val idxm = List.foldl add (PackageBaseMap.new ()) thyl
+        val idxm = List.foldl add (PackageNameMap.new ()) thyl
 
         val idx = Index (thyl,idxm)
 
@@ -186,23 +186,23 @@ fun sortIndex {parents} idx =
                let
                  val dealt = thy :: dealt
 
-                 val dealtset = PackageBaseSet.add dealtset (name thy)
+                 val dealtset = PackageNameSet.add dealtset (name thy)
                in
                  sort (dealt,dealtset) (stack,stackset) work
                end)
           | thy :: work =>
-            if PackageBaseSet.member (name thy) dealtset then
+            if PackageNameSet.member (name thy) dealtset then
               sort (dealt,dealtset) (stack,stackset) work
-            else if PackageBaseSet.member (name thy) stackset then
+            else if PackageNameSet.member (name thy) stackset then
               let
                 fun notT (thy',_,_) =
-                    not (PackageBase.equal (name thy') (name thy))
+                    not (PackageName.equal (name thy') (name thy))
 
                 val l = takeWhile notT stack
 
                 val l = thy :: List.foldl (fn ((t,_,_),ts) => t :: ts) [thy] l
 
-                val err = join " -> " (List.map (PackageBase.toString o name) l)
+                val err = join " -> " (List.map (PackageName.toString o name) l)
               in
                 raise Error ("circular dependency:\n" ^ err)
               end
@@ -212,7 +212,7 @@ fun sortIndex {parents} idx =
 
                 val stack = (thy,work,stackset) :: stack
 
-                val stackset = PackageBaseSet.add stackset (name thy)
+                val stackset = PackageNameSet.add stackset (name thy)
 
                 val work = thys
               in
@@ -220,9 +220,9 @@ fun sortIndex {parents} idx =
               end
 
         val dealt = []
-        and dealtset = PackageBaseSet.empty
+        and dealtset = PackageNameSet.empty
         and stack = []
-        and stackset = PackageBaseSet.empty
+        and stackset = PackageNameSet.empty
         and work = toListIndex idx
     in
       sort (dealt,dealtset) (stack,stackset) work
@@ -370,7 +370,7 @@ fun ppBlock ppX x =
        Print.addBreak 1,
        ppCloseBlock];
 
-val ppName = PackageBase.pp;
+val ppName = PackageName.pp;
 
 fun ppFilename {filename} =
     Print.program
@@ -462,7 +462,7 @@ local
   and quoteParser = exactChar quoteChar
   and separatorParser = exactChar separatorChar;
 
-  val nameParser = PackageBase.parser;
+  val nameParser = PackageName.parser;
 
   val filenameParser =
       let

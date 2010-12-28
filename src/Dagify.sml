@@ -14,12 +14,12 @@ open Useful;
 
 datatype vanilla =
     Vanilla of
-      (Graph.graph * Theory.theory * Summary.summary) PackageBaseMap.map;
+      (Graph.graph * Theory.theory * Summary.summary) PackageNameMap.map;
 
-val emptyVanilla = Vanilla (PackageBaseMap.new ());
+val emptyVanilla = Vanilla (PackageNameMap.new ());
 
 fun getVanilla (Vanilla vmap) name =
-    case PackageBaseMap.peek vmap name of
+    case PackageNameMap.peek vmap name of
       SOME x => x
     | NONE => raise Bug "Dagify.getVanilla";
 
@@ -56,7 +56,7 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
 
       val sum = Summary.fromThms ths
     in
-      Vanilla (PackageBaseMap.insert vmap (name,(graph,thy,sum)))
+      Vanilla (PackageNameMap.insert vmap (name,(graph,thy,sum)))
     end;
 
 fun fromListVanilla importer dir theories =
@@ -69,12 +69,12 @@ fun fromListVanilla importer dir theories =
 (* Fixed point calculation of theory block definitions.                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype definitions = Definitions of Symbol.symbol PackageBaseMap.map;
+datatype definitions = Definitions of Symbol.symbol PackageNameMap.map;
 
-val emptyDefinitions = Definitions (PackageBaseMap.new ());
+val emptyDefinitions = Definitions (PackageNameMap.new ());
 
 fun getDefinitions (Definitions dmap) name =
-    case PackageBaseMap.peek dmap name of
+    case PackageNameMap.peek dmap name of
       SOME defs => defs
     | NONE => Symbol.empty;
 
@@ -144,7 +144,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
         let
           val Definitions dmap = definitions
 
-          val dmap = PackageBaseMap.insert dmap (name,defs')
+          val dmap = PackageNameMap.insert dmap (name,defs')
 
 (*OpenTheoryTrace2
           val () = Print.trace Symbol.pp "Dagify.addDefinitions.defs'" defs'
@@ -174,12 +174,12 @@ fun fromListDefinitions vanilla theories =
 (* Theory block summaries.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-datatype summary = Summary of Summary.summary PackageBaseMap.map;
+datatype summary = Summary of Summary.summary PackageNameMap.map;
 
-val emptySummary = Summary (PackageBaseMap.new ());
+val emptySummary = Summary (PackageNameMap.new ());
 
 fun getSummary (Summary smap) name =
-    case PackageBaseMap.peek smap name of
+    case PackageNameMap.peek smap name of
       SOME sum => sum
     | NONE => raise Bug "Dagify.getSummary";
 
@@ -227,7 +227,7 @@ fun addSummary vanilla definitions (theory,summary) =
       val () = Print.trace Summary.pp "Dagify.addSummary.sum" sum
 *)
     in
-      Summary (PackageBaseMap.insert smap (name,sum))
+      Summary (PackageNameMap.insert smap (name,sum))
     end;
 
 fun fromListSummary vanilla definitions theories =
@@ -286,7 +286,7 @@ fun removeDeadImportsTheory outputWarning vanilla definitions summary theory =
                 if reqSame then (acc,inp)
                 else
                   let
-                    val acc = PackageBaseSet.add acc imp
+                    val acc = PackageNameSet.add acc imp
 
                     val (inp,_) = removeDefs inp imp
                   in
@@ -300,7 +300,7 @@ fun removeDeadImportsTheory outputWarning vanilla definitions summary theory =
           let
             val (inp,inpSame) = removeDefs inp imp
 
-            val acc = if inpSame then acc else PackageBaseSet.add acc imp
+            val acc = if inpSame then acc else PackageNameSet.add acc imp
           in
             (acc,inp)
           end
@@ -330,13 +330,13 @@ fun removeDeadImportsTheory outputWarning vanilla definitions summary theory =
             (Symbol.typeOps pinp, Symbol.consts pinp)
           end
 
-      val alive = PackageBaseSet.empty
+      val alive = PackageNameSet.empty
 
       val (alive,_,inp) = List.foldl addProv (alive,req,inp) imports
 
       val (alive,_) = List.foldl addDef (alive,inp) imports
 
-      fun isAlive imp = PackageBaseSet.member imp alive
+      fun isAlive imp = PackageNameSet.member imp alive
 
       val (imports,dead) = List.partition isAlive imports
 
@@ -375,21 +375,21 @@ fun removeDeadBlocks outputWarning theories =
           case work of
             [] => acc
           | n :: work =>
-            if PackageBaseSet.member n acc then ancs acc work
+            if PackageNameSet.member n acc then ancs acc work
             else
               let
                 val thy = PackageTheory.getIndex idx n
 
-                val acc = PackageBaseSet.add acc n
+                val acc = PackageNameSet.add acc n
 
                 val work = PackageTheory.imports thy @ work
               in
                 ancs acc work
               end
 
-      val alive = ancs PackageBaseSet.empty [PackageTheory.mainName]
+      val alive = ancs PackageNameSet.empty [PackageTheory.mainName]
 
-      fun isAlive thy = PackageBaseSet.member (PackageTheory.name thy) alive
+      fun isAlive thy = PackageNameSet.member (PackageTheory.name thy) alive
 
       val (theories,dead) = List.partition isAlive theories
 
@@ -452,12 +452,12 @@ datatype visible =
     Visible of
       {name : NameTheory.nameTheory,
        prov : SequentSet.set,
-       defs : Symbol.symbol} list PackageBaseMap.map;
+       defs : Symbol.symbol} list PackageNameMap.map;
 
-val emptyVisible = Visible (PackageBaseMap.new ());
+val emptyVisible = Visible (PackageNameMap.new ());
 
 fun getVisible (Visible vmap) name =
-    case PackageBaseMap.peek vmap name of
+    case PackageNameMap.peek vmap name of
       SOME vs => vs
     | NONE => raise Bug "Dagify.getVisible";
 
@@ -517,7 +517,7 @@ fun addVisible vanilla definitions (theory,visible) =
               vs
             end
     in
-      Visible (PackageBaseMap.insert vmap (name,vs))
+      Visible (PackageNameMap.insert vmap (name,vs))
     end;
 
 fun fromListVisible vanilla definitions theories =
@@ -1338,7 +1338,7 @@ local
 
         val n = NameTheory.name nt
 
-        val n = PackageBase.concat (n :: ns)
+        val n = PackageName.concat (n :: ns)
       in
         PackageTheory.mkName {avoid = names} n
       end;
@@ -1349,16 +1349,16 @@ local
             let
               val n = NameTheoryMap.get exported imp
             in
-              PackageBaseSet.add acc n
+              PackageNameSet.add acc n
             end
 
         val imps =
             if NameTheory.isUnion nt then getGenerate generate nt
             else getDependency dependency nt
 
-        val imps = NameTheorySet.foldl addImp PackageBaseSet.empty imps
+        val imps = NameTheorySet.foldl addImp PackageNameSet.empty imps
 
-        fun isImp n = PackageBaseSet.member n imps
+        fun isImp n = PackageNameSet.member n imps
       in
         rev (List.filter isImp namel)
       end;
@@ -1393,7 +1393,7 @@ in
 
             val namel = name :: namel
 
-            val names = PackageBaseSet.add names name
+            val names = PackageNameSet.add names name
 
             val exported = addExported generate nt name exported
           in
@@ -1401,7 +1401,7 @@ in
           end
 
       val namel = []
-      and names = PackageBaseSet.empty
+      and names = PackageNameSet.empty
       and exported = NameTheoryMap.new ()
     in
       fn plan =>

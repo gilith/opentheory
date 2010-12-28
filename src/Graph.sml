@@ -247,12 +247,12 @@ fun summary thy =
 
 datatype environment =
     Environment of
-      {named : Theory.theory PackageBaseMap.map,
+      {named : Theory.theory PackageNameMap.map,
        imported : (PackageTheory.name * Theory.theory) list};
 
 val emptyEnvironment =
     let
-      val named = PackageBaseMap.new ()
+      val named = PackageNameMap.new ()
       and imported = []
     in
       Environment
@@ -261,18 +261,18 @@ val emptyEnvironment =
     end;
 
 fun peekEnvironment (Environment {named,...}) name =
-    PackageBaseMap.peek named name;
+    PackageNameMap.peek named name;
 
 fun insertEnvironment env (name,thy) =
     let
       val Environment {named,imported} = env
 
       val () =
-          if not (PackageBaseMap.inDomain name named) then ()
+          if not (PackageNameMap.inDomain name named) then ()
           else raise Error ("duplicate theory name: " ^
-                            PackageBase.toString name)
+                            PackageName.toString name)
 
-      val named = PackageBaseMap.insert named (name,thy)
+      val named = PackageNameMap.insert named (name,thy)
 
       val imported = (name,thy) :: imported
     in
@@ -284,7 +284,7 @@ fun insertEnvironment env (name,thy) =
 fun theoriesEnvironment (Environment {imported,...}) = rev imported;
 
 fun mainEnvironment (Environment {named,...}) =
-    case PackageBaseMap.peek named PackageTheory.mainName of
+    case PackageNameMap.peek named PackageTheory.mainName of
       SOME thy => thy
     | NONE => raise Error "no main theory";
 

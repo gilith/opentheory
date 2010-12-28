@@ -103,7 +103,7 @@ in
 
         val namever = PackageNameVersion.fromString dir
 
-        val theoryFile = Package.mkFilename (PackageNameVersion.base namever)
+        val theoryFile = Package.mkFilename (PackageNameVersion.name namever)
 
         val otherFiles =
             case List.partition (equal theoryFile) files of

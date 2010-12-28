@@ -118,7 +118,7 @@ SRC = \
   src/ObjectRead.sig src/ObjectRead.sml \
   src/ObjectWrite.sig src/ObjectWrite.sml \
   src/Article.sig src/Article.sml \
-  src/PackageBase.sig src/PackageBase.sml \
+  src/PackageName.sig src/PackageName.sml \
   src/PackageVersion.sig src/PackageVersion.sml \
   src/PackageNameVersion.sig src/PackageNameVersion.sml \
   src/PackageSummary.sig src/PackageSummary.sml \

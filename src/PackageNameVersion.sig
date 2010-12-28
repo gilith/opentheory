@@ -18,14 +18,14 @@ type nameVersion
 
 datatype nameVersion' =
     NameVersion' of
-      {base : PackageBase.base,
+      {name : PackageName.name,
        version : PackageVersion.version};
 
 val mk : nameVersion' -> nameVersion
 
 val dest : nameVersion -> nameVersion'
 
-val base : nameVersion -> PackageBase.base
+val name : nameVersion -> PackageName.name
 
 val version : nameVersion -> PackageVersion.version
 

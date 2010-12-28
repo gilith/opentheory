@@ -19,7 +19,7 @@ val mk :
 
 val nameVersion : info -> PackageNameVersion.nameVersion
 
-val base : info -> PackageBase.base
+val name : info -> PackageName.name
 
 val version : info -> PackageVersion.version
 

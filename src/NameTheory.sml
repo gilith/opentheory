@@ -33,7 +33,7 @@ fun compare (nt1,nt2) =
       val NameTheory (n1,t1) = nt1
       and NameTheory (n2,t2) = nt2
     in
-      case PackageBase.compare (n1,n2) of
+      case PackageName.compare (n1,n2) of
         LESS => LESS
       | EQUAL => Theory.compare (t1,t2)
       | GREATER => GREATER

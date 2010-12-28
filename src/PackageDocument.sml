@@ -105,7 +105,7 @@ fun toHtml doc =
       val nameBlock =
           let
             val text =
-                PackageBase.toString (PackageNameVersion.base namever) ^ ": " ^
+                PackageName.toString (PackageNameVersion.name namever) ^ ": " ^
                 Package.description package
           in
             Html.H1 [Html.Text text]

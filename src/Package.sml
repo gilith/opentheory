@@ -18,11 +18,11 @@ val fileExtension = "thy";
 (* Theory package filenames.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkFilename base =
+fun mkFilename name =
     let
       val filename =
           OS.Path.joinBaseExt
-            {base = PackageBase.toString base,
+            {base = PackageName.toString name,
              ext = SOME fileExtension}
     in
       {filename = filename}
@@ -36,7 +36,7 @@ fun destFilename {filename} =
         NONE => NONE
       | SOME x =>
         if x <> fileExtension then NONE
-        else total PackageBase.fromString base
+        else total PackageName.fromString base
     end;
 
 fun isFilename file = Option.isSome (destFilename file);
@@ -72,16 +72,16 @@ fun theories pkg = theories' (dest pkg);
 (* Package name.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun base pkg = PackageTag.findBase (tags pkg);
+fun name pkg = PackageTag.findName (tags pkg);
 
 fun version pkg = PackageTag.findVersion (tags pkg);
 
 fun nameVersion pkg =
     let
-      val b = base pkg
+      val b = name pkg
       and v = version pkg
 
-      val nv' = PackageNameVersion.NameVersion' {base = b, version = v}
+      val nv' = PackageNameVersion.NameVersion' {name = b, version = v}
     in
       PackageNameVersion.mk nv'
     end;

@@ -10,9 +10,9 @@ sig
 (* Theory package filenames.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val mkFilename : PackageBase.base -> {filename : string}
+val mkFilename : PackageName.name -> {filename : string}
 
-val destFilename : {filename : string} -> PackageBase.base option
+val destFilename : {filename : string} -> PackageName.name option
 
 val isFilename : {filename : string} -> bool
 
@@ -43,7 +43,7 @@ val theories : package -> PackageTheory.theory list
 (* Package name.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val base : package -> PackageBase.base
+val name : package -> PackageName.name
 
 val version : package -> PackageVersion.version
 

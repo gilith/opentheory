@@ -40,7 +40,7 @@ fun system (Info {system = x, ...}) = x;
 
 fun nameVersion (Info {nameVersion = x, ...}) = x;
 
-fun base info = PackageNameVersion.base (nameVersion info);
+fun name info = PackageNameVersion.name (nameVersion info);
 
 fun version info = PackageNameVersion.version (nameVersion info);
 
@@ -101,7 +101,7 @@ fun isInstalled info = existsDirectory info;
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryFile info = Package.mkFilename (base info);
+fun theoryFile info = Package.mkFilename (name info);
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)

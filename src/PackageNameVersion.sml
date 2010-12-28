@@ -20,7 +20,7 @@ val separatorString = "-";
 
 datatype nameVersion' =
     NameVersion' of
-      {base : PackageBase.base,
+      {name : PackageName.name,
        version : PackageVersion.version};
 
 type nameVersion = nameVersion';
@@ -33,11 +33,11 @@ fun mk n' : nameVersion = n';
 
 fun dest n : nameVersion' = n;
 
-fun base' (NameVersion' {base = x, ...}) = x;
+fun name' (NameVersion' {name = x, ...}) = x;
 
 fun version' (NameVersion' {version = x, ...}) = x;
 
-fun base n = base' (dest n);
+fun name n = name' (dest n);
 
 fun version n = version' (dest n);
 
@@ -47,10 +47,10 @@ fun version n = version' (dest n);
 
 fun compare (i1,i2) =
     let
-      val NameVersion' {base = b1, version = v1} = dest i1
-      and NameVersion' {base = b2, version = v2} = dest i2
+      val NameVersion' {name = b1, version = v1} = dest i1
+      and NameVersion' {name = b2, version = v2} = dest i2
     in
-      case PackageBase.compare (b1,b2) of
+      case PackageName.compare (b1,b2) of
         LESS => LESS
       | EQUAL => PackageVersion.compare (v1,v2)
       | GREATER => GREATER
@@ -58,10 +58,10 @@ fun compare (i1,i2) =
 
 fun equal i1 i2 =
     let
-      val NameVersion' {base = b1, version = v1} = dest i1
-      and NameVersion' {base = b2, version = v2} = dest i2
+      val NameVersion' {name = b1, version = v1} = dest i1
+      and NameVersion' {name = b2, version = v2} = dest i2
     in
-      PackageBase.equal b1 b2 andalso
+      PackageName.equal b1 b2 andalso
       PackageVersion.equal v1 v2
     end;
 
@@ -73,10 +73,10 @@ val ppSeparator = Print.ppString separatorString;
 
 fun pp' n =
     let
-      val NameVersion' {base = b, version = v} = n
+      val NameVersion' {name = b, version = v} = n
     in
       Print.program
-        [PackageBase.pp b,
+        [PackageName.pp b,
          ppSeparator,
          PackageVersion.pp v]
     end;
@@ -100,10 +100,10 @@ local
   val separatorParser = exactString separatorString;
 
   val parser' =
-      PackageBase.parser ++
+      PackageName.parser ++
       separatorParser ++
       PackageVersion.parser >>
-      (fn (b,((),v)) => NameVersion' {base = b, version = v});
+      (fn (b,((),v)) => NameVersion' {name = b, version = v});
 in
   val parser = parser' >> mk;
 end;

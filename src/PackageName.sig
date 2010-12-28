@@ -1,60 +1,60 @@
 (* ========================================================================= *)
-(* PACKAGE BASE NAMES                                                        *)
+(* PACKAGE NAMES                                                             *)
 (* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature PackageBase =
+signature PackageName =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package base names.                                      *)
+(* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type base
+type name
 
 (* ------------------------------------------------------------------------- *)
 (* Concatenation.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val append : base -> base -> base
+val append : name -> name -> name
 
-val concat : base list -> base
+val concat : name list -> name
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare : base * base -> order
+val compare : name * name -> order
 
-val equal : base -> base -> bool
+val equal : name -> name -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Generating fresh names.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val mkName : {avoid : base -> bool} -> base -> base
+val mkName : {avoid : name -> bool} -> name -> name
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : base Print.pp
+val pp : name Print.pp
 
-val toString : base -> string
+val toString : name -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,base) Parse.parser
+val parser : (char,name) Parse.parser
 
-val fromString : string -> base
+val fromString : string -> name
 
 (* ------------------------------------------------------------------------- *)
 (* Theory block names.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val mainTheory : base
+val mainTheory : name
 
 (* ------------------------------------------------------------------------- *)
 (* Tag names.                                                                *)
@@ -62,24 +62,24 @@ val mainTheory : base
 
 (* Package basics *)
 
-val authorTag : base
+val authorTag : name
 
-val baseTag : base
+val descriptionTag : name
 
-val descriptionTag : base
+val licenseTag : name
 
-val licenseTag : base
+val nameTag : name
 
-val versionTag : base
+val versionTag : name
 
 (* Extra package files *)
 
-val mkExtraTag : string -> base
+val mkExtraTag : string -> name
 
-val destExtraTag : base -> string option
+val destExtraTag : name -> string option
 
 (* Shows *)
 
-val showTag : base
+val showTag : name
 
 end

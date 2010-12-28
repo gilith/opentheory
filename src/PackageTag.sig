@@ -10,7 +10,7 @@ sig
 (* A type of tag names.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-type name = PackageBase.base
+type name = PackageName.name
 
 val toStringName : name -> string
 
@@ -49,7 +49,7 @@ val destName : name -> tag -> value option
 
 val filterName : name -> tag list -> value list
 
-val findName : name -> tag list -> value
+val getName : name -> tag list -> value
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
@@ -63,7 +63,7 @@ val equal : tag -> tag -> bool
 (* Package basics.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val findBase : tag list -> PackageBase.base
+val findName : tag list -> PackageName.name
 
 val findVersion : tag list -> PackageVersion.version
 

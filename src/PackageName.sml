@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE BASE NAMES                                                        *)
+(* PACKAGE NAMES                                                             *)
 (* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure PackageBase :> PackageBase =
+structure PackageName :> PackageName =
 struct
 
 open Useful;
@@ -14,11 +14,11 @@ open Useful;
 
 val authorString = "author"
 and avoidString = "a"
-and baseString = "name"
 and descriptionString = "description"
 and extraSuffixString = "-file"
 and licenseString = "license"
 and mainString = "main"
+and nameString = "name"
 and separatorString = "-"
 and showString = "show"
 and versionString = "version";
@@ -27,7 +27,7 @@ and versionString = "version";
 (* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type base = string;
+type name = string;
 
 (* ------------------------------------------------------------------------- *)
 (* Concatenation.                                                            *)
@@ -36,7 +36,7 @@ type base = string;
 fun append b1 b2 = b1 ^ separatorString ^ b2;
 
 fun concat bs =
-    if List.null bs then raise Error "PackageBase.concat"
+    if List.null bs then raise Error "PackageName.concat"
     else String.concatWith separatorString bs;
 
 (* ------------------------------------------------------------------------- *)
@@ -45,13 +45,13 @@ fun concat bs =
 
 val compare = String.compare;
 
-fun equal (b1 : base) b2 = b1 = b2;
+fun equal (b1 : name) b2 = b1 = b2;
 
 (* ------------------------------------------------------------------------- *)
 (* Generating fresh names.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkName {avoid} n : base =
+fun mkName {avoid} n : name =
     let
       fun mkNum i =
           let
@@ -71,7 +71,7 @@ fun mkName {avoid} n : base =
 
 val pp = Print.ppString;
 
-fun toString (b : base) = b;
+fun toString (b : name) = b;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -106,7 +106,7 @@ end;
 fun fromString s =
     Parse.fromString parser s
     handle Parse.NoParse =>
-      raise Error ("bad package base name format: " ^ s);
+      raise Error ("bad package name format: " ^ s);
 
 (* ------------------------------------------------------------------------- *)
 (* Theory block names.                                                       *)
@@ -122,11 +122,11 @@ val mainTheory = mainString;
 
 val authorTag = authorString;
 
-val baseTag = baseString;
-
 val descriptionTag = descriptionString;
 
 val licenseTag = licenseString;
+
+val nameTag = nameString;
 
 val versionTag = versionString;
 
@@ -142,9 +142,9 @@ val showTag = showString;
 
 end
 
-structure PackageBaseOrdered =
-struct type t = PackageBase.base val compare = PackageBase.compare end
+structure PackageNameOrdered =
+struct type t = PackageName.name val compare = PackageName.compare end
 
-structure PackageBaseMap = KeyMap (PackageBaseOrdered)
+structure PackageNameMap = KeyMap (PackageNameOrdered)
 
-structure PackageBaseSet = ElementSet (PackageBaseMap)
+structure PackageNameSet = ElementSet (PackageNameMap)

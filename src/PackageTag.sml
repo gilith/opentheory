@@ -18,21 +18,21 @@ val separatorString = ":";
 (* A type of tag names.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-type name = PackageBase.base;
+type name = PackageName.name;
 
-val authorName = PackageBase.authorTag
-and baseName = PackageBase.baseTag
-and compareName = PackageBase.compare
-and descriptionName = PackageBase.descriptionTag
-and destExtraName = PackageBase.destExtraTag
-and equalName = PackageBase.equal
-and licenseName = PackageBase.licenseTag
-and mkExtraName = PackageBase.mkExtraTag
-and parserName = PackageBase.parser
-and ppName = PackageBase.pp
-and showName = PackageBase.showTag
-and toStringName = PackageBase.toString
-and versionName = PackageBase.versionTag;
+val authorName = PackageName.authorTag
+and nameName = PackageName.nameTag
+and compareName = PackageName.compare
+and descriptionName = PackageName.descriptionTag
+and destExtraName = PackageName.destExtraTag
+and equalName = PackageName.equal
+and licenseName = PackageName.licenseTag
+and mkExtraName = PackageName.mkExtraTag
+and parserName = PackageName.parser
+and ppName = PackageName.pp
+and showName = PackageName.showTag
+and toStringName = PackageName.toString
+and versionName = PackageName.versionTag;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of tag values.                                                     *)
@@ -94,7 +94,7 @@ fun destName name' tag =
 
 fun filterName name = List.mapPartial (destName name);
 
-fun findName name tags =
+fun getName name tags =
     case filterName name tags of
       [] => raise Error ("no " ^ toStringName name ^ " tag")
     | [v] => v
@@ -121,15 +121,15 @@ fun equal (t1 : tag) t2 = compare (t1,t2) = EQUAL;
 (* Package basics.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun findBase tags = PackageBase.fromString (findName baseName tags);
+fun findName tags = PackageName.fromString (getName nameName tags);
 
-fun findVersion tags = PackageVersion.fromString (findName versionName tags);
+fun findVersion tags = PackageVersion.fromString (getName versionName tags);
 
-fun findDescription tags = findName descriptionName tags;
+fun findDescription tags = getName descriptionName tags;
 
-fun findAuthor tags = findName authorName tags;
+fun findAuthor tags = getName authorName tags;
 
-fun findLicense tags = findName licenseName tags;
+fun findLicense tags = getName licenseName tags;
 
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
