@@ -309,8 +309,8 @@ fun removeDeadImportsTheory outputWarning vanilla definitions summary theory =
           if not outputWarning then ()
           else
             warn
-              ("redundant import " ^ PackageTheory.toStringName imp ^
-               " in theory block " ^ PackageTheory.toStringName name)
+              ("redundant import " ^ PackageName.toString imp ^
+               " in theory block " ^ PackageName.toString name)
 
       val req =
           let
@@ -365,9 +365,13 @@ fun removeDeadBlocks outputWarning theories =
       fun warnDead thy =
           if not outputWarning then ()
           else
-            warn
-              ("redundant theory block " ^
-               PackageTheory.toStringName (PackageTheory.name thy))
+            let
+              val msg =
+                  "redundant theory block " ^
+                  PackageName.toString (PackageTheory.name thy)
+            in
+              warn msg
+            end
 
       val idx = PackageTheory.fromListIndex theories
 
@@ -972,9 +976,10 @@ end;
 fun reportCycleDependency dependency nt =
     let
       val n = NameTheory.name nt
+
+      val err = "theory block cycle including " ^ PackageName.toString n
     in
-      raise Error ("theory block cycle including " ^
-                   PackageTheory.toStringName n)
+      raise Error err
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1340,7 +1345,7 @@ local
 
         val n = PackageName.concat (n :: ns)
       in
-        PackageTheory.mkName {avoid = names} n
+        PackageTheory.variantName {avoid = names} n
       end;
 
   fun mkImports generate dependency nt namel exported =

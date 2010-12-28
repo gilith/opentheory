@@ -53,7 +53,7 @@ fun isUnion nt = Theory.isUnion (theory nt);
 
 fun pp (NameTheory (name,thy)) =
     Print.blockProgram Print.Consistent 0
-      [PackageTheory.ppName name,
+      [PackageName.pp name,
        Theory.ppId (Theory.id thy)];
 
 end

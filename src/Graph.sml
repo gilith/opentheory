@@ -508,8 +508,12 @@ fun importTheory importer graph env info =
       fun addImp (imp,acc) =
           case peekEnvironment env imp of
             SOME thy => TheorySet.add acc thy
-          | NONE => raise Error ("unknown theory import: " ^
-                                 PackageTheory.toStringName imp)
+          | NONE =>
+            let
+              val err = "unknown theory import: " ^ PackageName.toString imp
+            in
+              raise Error err
+            end
 
       val imports = List.foldl addImp imports (PackageTheory.imports theory)
 

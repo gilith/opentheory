@@ -64,9 +64,9 @@ fun renameAvoiding avoid (v as TypeTerm.Var (n,ty)) =
     if not (NameSet.member n avoid) then v
     else
       let
-        fun acceptable n = not (NameSet.member n avoid)
+        fun avoidFn n = NameSet.member n avoid
 
-        val n = Name.variantNum acceptable n
+        val n = Name.variantNum {avoid = avoidFn} n
       in
         TypeTerm.Var (n,ty)
       end;

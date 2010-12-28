@@ -32,7 +32,7 @@ val equal : name -> name -> bool
 (* Generating fresh names.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val mkName : {avoid : name -> bool} -> name -> name
+val variantName : {avoid : name -> bool} -> name -> name
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

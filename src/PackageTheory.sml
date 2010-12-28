@@ -56,11 +56,11 @@ fun node (Theory {node = x, ...}) = x;
 (* Generating fresh theory names.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkName {avoid} =
+fun variantName {avoid} =
     let
       fun memberAvoid name = PackageNameSet.member name avoid
     in
-      PackageName.mkName {avoid = memberAvoid}
+      PackageName.variantName {avoid = memberAvoid}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -370,8 +370,6 @@ fun ppBlock ppX x =
        Print.addBreak 1,
        ppCloseBlock];
 
-val ppName = PackageName.pp;
-
 fun ppFilename {filename} =
     Print.program
       [ppQuote,
@@ -391,7 +389,7 @@ in
         ArticleConstraint f =>
         ppNameValue ppArticleKeyword (ppFilename f)
       | ImportConstraint r =>
-        ppNameValue ppImportKeyword (ppName r)
+        ppNameValue ppImportKeyword (PackageName.pp r)
       | InterpretConstraint r =>
         ppNameValue ppInterpretKeyword (Interpretation.ppRewrite r)
       | PackageConstraint p =>
@@ -411,7 +409,7 @@ fun pp thy =
       val (n,cs) = destTheory thy
     in
       Print.blockProgram Print.Consistent 0
-        (ppName n ::
+        (PackageName.pp n ::
          Print.ppString " " ::
          (if List.null cs then
             [ppOpenBlock,
@@ -437,8 +435,6 @@ fun ppList thys =
           (pp thy :: List.map ppThy thys)
       end;
 
-val toStringName = Print.toString ppName;
-
 val toStringFilename = Print.toString ppFilename;
 
 (* ------------------------------------------------------------------------- *)
@@ -462,8 +458,6 @@ local
   and quoteParser = exactChar quoteChar
   and separatorParser = exactChar separatorChar;
 
-  val nameParser = PackageName.parser;
-
   val filenameParser =
       let
         val fileParser = escapeString {escape = escapeCharsFilename}
@@ -481,7 +475,7 @@ local
   val importConstraintParser =
       (importKeywordParser ++ manySpace ++
        separatorParser ++ manySpace ++
-       nameParser) >>
+       PackageName.parser) >>
       (fn ((),((),((),((),r)))) => ImportConstraint r);
 
   val interpretConstraintParser =
@@ -511,14 +505,12 @@ local
       (fn ((),((),(cs,()))) => cs);
 
   val theoryParser =
-      (nameParser ++ manySpace ++
+      (PackageName.parser ++ manySpace ++
        blockParser) >>
       (fn (n,((),cs)) => mkTheory (n,cs));
 
   val theorySpaceParser = theoryParser ++ manySpace >> fst;
 in
-  val parserName = nameParser;
-
   val parserFilename = filenameParser;
 
   val parser = manySpace ++ theorySpaceParser >> snd;

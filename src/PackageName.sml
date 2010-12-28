@@ -51,13 +51,13 @@ fun equal (b1 : name) b2 = b1 = b2;
 (* Generating fresh names.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkName {avoid} n : name =
+fun mkAvoid i = avoidString ^ Int.toString i;
+
+fun variantName {avoid} n : name =
     let
       fun mkNum i =
           let
-            val ai = avoidString ^ Int.toString i
-
-            val ni = append n ai
+            val ni = append n (mkAvoid i)
           in
             if avoid ni then mkNum (i + 1) else ni
           end

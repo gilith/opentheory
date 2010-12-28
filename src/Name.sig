@@ -42,9 +42,9 @@ val newName : unit -> name
 
 val newNames : int -> name list
 
-val variantPrime : (name -> bool) -> name -> name
+val variantPrime : {avoid : name -> bool} -> name -> name
 
-val variantNum : (name -> bool) -> name -> name
+val variantNum : {avoid : name -> bool} -> name -> name
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting names.                                                          *)

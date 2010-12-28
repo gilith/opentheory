@@ -54,14 +54,16 @@ in
   fun newNames n = List.map numName (newInts n);
 end;
 
-fun variantPrime acceptable =
+fun variantPrime {avoid} =
     let
       fun variant n =
-          if acceptable n then n
+          if not (avoid n) then n
           else
             let
               val Name (ns,s) = n
+
               val s = s ^ "'"
+
               val n = Name (ns,s)
             in
               variant n
@@ -71,11 +73,10 @@ fun variantPrime acceptable =
     end;
 
 local
-  fun isDigitOrPrime #"'" = true
-    | isDigitOrPrime c = Char.isDigit c;
+  fun isDigitOrPrime c = c = #"'" orelse Char.isDigit c;
 in
-  fun variantNum acceptable n =
-      if acceptable n then n
+  fun variantNum {avoid} n =
+      if not (avoid n) then n
       else
         let
           val Name (ns,s) = n
@@ -88,7 +89,7 @@ in
 
                 val n = Name (ns,s_i)
               in
-                if acceptable n then n else variant (i + 1)
+                if avoid n then variant (i + 1) else n
               end
         in
           variant 0

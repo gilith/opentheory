@@ -41,7 +41,7 @@ val node : theory -> node
 (* Generating fresh theory names.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val mkName : {avoid : PackageNameSet.set} -> name -> name
+val variantName : {avoid : PackageNameSet.set} -> name -> name
 
 (* ------------------------------------------------------------------------- *)
 (* The main theory.                                                          *)
@@ -113,23 +113,17 @@ val sortUnion : theory list -> theory list
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val ppName : name Print.pp
-
 val ppFilename : {filename : string} Print.pp
 
 val pp : theory Print.pp
 
 val ppList : theory list Print.pp
 
-val toStringName : name -> string
-
 val toStringFilename : {filename : string} -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
-
-val parserName : (char,name) Parse.parser
 
 val parserFilename : (char, {filename : string}) Parse.parser
 
