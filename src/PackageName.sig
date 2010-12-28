@@ -20,6 +20,8 @@ val append : name -> name -> name
 
 val concat : name list -> name
 
+val destSuffix : name -> name -> name option
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -74,9 +76,7 @@ val versionTag : name
 
 (* Extra package files *)
 
-val mkExtraTag : string -> name
-
-val destExtraTag : name -> string option
+val extraSuffixTag : name
 
 (* Shows *)
 

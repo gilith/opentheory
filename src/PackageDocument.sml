@@ -117,8 +117,8 @@ fun toHtml doc =
                 let
                   val PackageTag.Tag' {name,value} = PackageTag.dest tag
 
-                  val n = Html.Text (PackageTag.toStringName name)
-                  and v = Html.Text (PackageTag.toStringValue value)
+                  val n = Html.Text (PackageName.toString name)
+                  and v = Html.Text value
 
                   val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
                   and v = Html.TableEntry (Html.emptyAttrs, Html.Inline [v])

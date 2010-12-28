@@ -696,7 +696,9 @@ local
             let
               val PackageExtra.Extra {name,filename} = PackageExtra.dest extra
 
-              val src = {name = name ^ " file", filename = SOME filename}
+              val src =
+                  {name = "extra " ^ PackageName.toString name ^ " file",
+                   filename = SOME filename}
 
               val extra = PackageExtra.normalize extra
 

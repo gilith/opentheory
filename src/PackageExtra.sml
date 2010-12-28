@@ -14,7 +14,7 @@ open Useful;
 
 datatype extra' =
     Extra of
-      {name : string,
+      {name : PackageName.name,
        filename : string};
 
 type extra = extra';

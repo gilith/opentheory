@@ -18,14 +18,14 @@ type extra
 
 datatype extra' =
     Extra of
-      {name : string,
+      {name : PackageName.name,
        filename : string}
 
 val mk : extra' -> extra
 
 val dest : extra -> extra'
 
-val name : extra -> string
+val name : extra -> PackageName.name
 
 val filename : extra -> {filename : string}
 

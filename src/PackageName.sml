@@ -15,7 +15,7 @@ open Useful;
 val authorString = "author"
 and avoidString = "a"
 and descriptionString = "description"
-and extraSuffixString = "-file"
+and extraSuffixString = "file"
 and licenseString = "license"
 and mainString = "main"
 and nameString = "name"
@@ -38,6 +38,17 @@ fun append b1 b2 = b1 ^ separatorString ^ b2;
 fun concat bs =
     if List.null bs then raise Error "PackageName.concat"
     else String.concatWith separatorString bs;
+
+fun destSuffix suff =
+    let
+      val sepSuff = separatorString ^ suff
+
+      val sepSuffSize = size sepSuff
+    in
+      fn n =>
+         if not (String.isSuffix sepSuff n) then NONE
+         else SOME (String.substring (n, 0, size n - sepSuffSize))
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
@@ -132,9 +143,7 @@ val versionTag = versionString;
 
 (* Extra package files *)
 
-val mkExtraTag = mkSuffix extraSuffixString;
-
-val destExtraTag = total (destSuffix extraSuffixString);
+val extraSuffixTag = extraSuffixString;
 
 (* Shows *)
 
