@@ -29,19 +29,29 @@ and tarSystemKey = "tar"
 and urlLicenseKey = "url"
 and urlRepoKey = "url";
 
+(* Repo constants *)
+
 val defaultRepoRefresh = Time.fromSeconds 604800;  (* 1 week *)
 
 val gilithRepoName = "gilith"
 and gilithRepoRefresh = defaultRepoRefresh
 and gilithRepoUrl = "http://opentheory.gilith.com/";
 
+(* License constants *)
+
 val mitLicenseName = "MIT"
-and mitLicenseUrl = "url";
+and mitLicenseUrl =
+    "http://www.gilith.com/research/opentheory/licenses/MIT.txt";
 
 val holLightLicenseName = "HOLLight"
-and holLightLicenseUrl = "url";
+and holLightLicenseUrl =
+    "http://www.gilith.com/research/opentheory/licenses/HOLLight.txt";
+
+(* Install constants *)
 
 val defaultInstallCleanup = Time.fromSeconds 3600;  (* 1 hour *)
+
+(* System constants *)
 
 val defaultSystemChmod = "chmod"
 and defaultSystemCp = "cp"
