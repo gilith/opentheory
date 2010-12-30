@@ -28,17 +28,17 @@ class SelectUploadData extends SelectValue {
     if (!$this->is_error()) {
       $file = $this->_select_tarball->value();
 
-      $tarname = $file['client'];
-      $tarname = ereg_replace('^.*/','',$tarname);
+      $tarball_name = $file['client'];
+      $tarball_name = ereg_replace('^.*/','',$tarball_name);
 
-      $name = from_tarball_package_name($tarname);
+      $name_version = from_tarball_package_name_version($tarball_name);
 
-      if (isset($name)) {
+      if (isset($name_version)) {
         $tarball = $file['server'];
 
         $value =
           array('tarball' => $tarball,
-                'name' => $name);
+                'name_version' => $name_version);
 
         $checksum = $this->_select_checksum->value();
 
@@ -114,7 +114,7 @@ if ($select->is_value()) {
 
   $tarball = $value['tarball'];
 
-  $name = $value['name'];
+  $name_version = $value['name_version'];
 
   if (array_key_exists('checksum',$value)) {
     $checksum = $value['checksum'];
@@ -123,29 +123,32 @@ if ($select->is_value()) {
     $checksum = null;
   }
 
-  $output = opentheory_install($tarball,$name,$checksum);
+  $output = opentheory_install($tarball,$name_version,$checksum);
 
   if (isset($output)) {
     if (is_script()) {
       $report =
-        'failed to install package ' . $name . ' from tarball:' . "\n" .
+        'failed to install package ' . $name_version->to_string() .
+        ' from tarball:' . "\n" .
         $output;
 
       output_script($report);
     }
 
     $main =
-'<p>Failed to install package ' . $name . ' from tarball:</p>' .
+'<p>Failed to install package ' . $name_version->to_string() .
+' from tarball:</p>' .
 '<pre>' . $output . '</pre>';
   }
   else {
-    opentheory_list();
+    $tags = opentheory_tags($name_version);
 
     if (is_script()) {
-      output_script('successfully uploaded package ' . $name);
+      $report = 'successfully uploaded package ' . $name_version->to_string();
+      output_script($report);
     }
     else {
-      jump_path(bread_crumbs(), array('p' => $name));
+      jump_path(bread_crumbs(), array('p' => $name_version->to_string()));
     }
   }
 }
@@ -157,7 +160,12 @@ if (isset($main)) {
 }
 else {
   $main =
-'<p>Form to upload packages</p>' .
+'<p>The recommended way to upload packages is to use the
+
+<a href="http://www.gilith.com/software/opentheory/">opentheory</a>
+
+package management tool, but it is also possible to <it>manually</it>
+upload package tarballs using the following form:</p>' .
 
 site_form(bread_crumbs(),
           $select->select(),

@@ -12,80 +12,8 @@ require_once 'global.php';
 require_once 'error.php';
 require_once 'date.php';
 require_once 'database.php';
-
-///////////////////////////////////////////////////////////////////////////////
-// A class to store package names.
-///////////////////////////////////////////////////////////////////////////////
-
-class PackageName {
-  var $_base;
-  var $_version;
-
-  function base() { return $this->_base; }
-
-  function version() { return $this->_version; }
-
-  function name() { return ($this->base() . '-' . $this->version()); }
-
-  function tarball() { return ($this->name() . '.tgz'); }
-
-  function document() { return ($this->name() . '.html'); }
-
-  function PackageName($base,$version) {
-    is_string($base) or trigger_error('bad base');
-    is_string($version) or trigger_error('bad version');
-
-    $this->_base = $base;
-    $this->_version = $version;
-  }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Package name functions.
-///////////////////////////////////////////////////////////////////////////////
-
-define('PACKAGE_BASE_REGEXP',
-       '[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*');
-
-define('PACKAGE_VERSION_REGEXP',
-       '[0-9]+([.][0-9]+)*');
-
-define('PACKAGE_NAME_REGEXP',
-       '(' . PACKAGE_BASE_REGEXP . ')-(' . PACKAGE_VERSION_REGEXP . ')');
-
-define('PACKAGE_TARBALL_REGEXP',
-       '(' . PACKAGE_NAME_REGEXP . ')[.]tgz');
-
-function from_name_package_name($name) {
-  is_string($name) or trigger_error('bad name');
-
-  $re = '^' . PACKAGE_NAME_REGEXP . '$';
-
-  if (ereg($re,$name,$arr)) {
-    $base = $arr[1];
-    $version = $arr[2];
-
-    return new PackageName($base,$version);
-  }
-  else {
-    return null;
-  }
-}
-
-function from_tarball_package_name($tarball) {
-  is_string($tarball) or trigger_error('bad tarball');
-
-  $re = '^' . PACKAGE_TARBALL_REGEXP . '$';
-
-  if (ereg($re,$tarball,$arr)) {
-    $name = $arr[1];
-
-    return from_name_package_name($name);
-  }
-  else {
-    return null;
-  }
-}
+require_once 'name_version.php';
+require_once 'author.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // A class to store package information.
@@ -93,28 +21,57 @@ function from_tarball_package_name($tarball) {
 
 class Package {
   var $_id;
-  var $_name;
+  var $_name_version;
   var $_description;
+  var $_author;
+  var $_license;
   var $_uploaded;
 
   function id() { return $this->_id; }
 
-  function name() { return $this->_name; }
+  function name_version() { return $this->_name_version; }
 
   function description() { return $this->_description; }
 
+  function author() { return $this->_author; }
+
+  function license() { return $this->_license; }
+
   function uploaded() { return $this->_uploaded; }
 
-  function Package($id,$name,$description,$uploaded) {
+  function name() {
+    $namever = $this->name_version();
+    return $namever->name();
+  }
+
+  function version() {
+    $namever = $this->name_version();
+    return $namever->version();
+  }
+
+  function author_name() {
+    $author = $this->author();
+    return $author->name();
+  }
+
+  function author_email() {
+    $author = $this->author();
+    return $author->email();
+  }
+
+  function Package($id,$name_version,$description,$author,$license,$uploaded) {
     is_int($id) or trigger_error('bad id');
-    isset($name) or trigger_error('bad name');
-    !isset($description) or is_string($description) or
-      trigger_error('bad description');
+    isset($name_version) or trigger_error('bad name_version');
+    is_string($description) or trigger_error('bad description');
+    isset($author) or trigger_error('bad author');
+    is_string($license) or trigger_error('bad license');
     isset($uploaded) or trigger_error('bad uploaded');
 
     $this->_id = $id;
-    $this->_name = $name;
+    $this->_name_version = $name_version;
     $this->_description = $description;
+    $this->_author = $author;
+    $this->_license = $license;
     $this->_uploaded = $uploaded;
   }
 }
@@ -124,9 +81,12 @@ class Package {
 ///////////////////////////////////////////////////////////////////////////////
 
 define('PACKAGE_ID_DIGITS',7);
-define('PACKAGE_BASE_CHARS',50);
+define('PACKAGE_NAME_CHARS',100);
 define('PACKAGE_VERSION_CHARS',50);
 define('PACKAGE_DESCRIPTION_CHARS',200);
+define('PACKAGE_AUTHOR_NAME_CHARS',100);
+define('PACKAGE_AUTHOR_EMAIL_CHARS',100);
+define('PACKAGE_LICENSE_CHARS',50);
 
 class PackageTable extends DatabaseTable {
   function find_package_where($where_condition) {
@@ -137,27 +97,36 @@ class PackageTable extends DatabaseTable {
     if (!isset($row)) { return null; }
 
     $id = (integer)$row['id'];
-    $base = $row['base'];
+    $name = $row['name'];
     $version = $row['version'];
     $description = $row['description'];
+    $author_name = $row['author_name'];
+    $author_email = $row['author_email'];
+    $license = $row['license'];
     $uploaded_datetime = $row['uploaded'];
+
+    $name_version = new PackageNameVersion($name,$version);
+
+    $author = new PackageAuthor($author_name,$author_email);
 
     $uploaded = new TimePoint();
     $uploaded->from_database_datetime($uploaded_datetime);
 
-    return new Package($id,$name,$description,$uploaded);
+    return new Package($id,$name_version,$description,
+                       $author,$license,$uploaded);
   }
 
   function find_package($id) {
     is_int($id) or trigger_error('bad package');
+
     return $this->find_package_where('id = ' . database_value($id));
   }
 
-  function find_package_by_name($name) {
-    isset($name) or trigger_error('bad name');
+  function find_package_by_name_version($name_version) {
+    isset($name_version) or trigger_error('bad name_version');
 
     $where =
-      'base = ' . database_value($name->base()) . ' AND ' .
+      'name = ' . database_value($name->name()) . ' AND ' .
       'version = ' . database_value($name->version());
 
     return $this->find_package_where($where);
@@ -168,7 +137,15 @@ class PackageTable extends DatabaseTable {
 
     $name = $package->name();
 
+    $version = $package->version();
+
     $description = $package->description();
+
+    $author_name = $package->author_name();
+
+    $author_email = $package->author_email();
+
+    $license = $package->license();
 
     $uploaded = $package->uploaded();
     $uploaded_datetime = $uploaded->to_database_datetime();
@@ -176,22 +153,27 @@ class PackageTable extends DatabaseTable {
     database_query('
       INSERT INTO ' . $this->table() . '
       SET id = ' . database_value($id) . ',
-          base = ' . database_value($name->base()) . ',
-          version = ' . database_value($name->version()) . ',
+          name = ' . database_value($name) . ',
+          version = ' . database_value($version) . ',
           description = ' . database_value($description) . ',
+          author_name = ' . database_value($author_name) . ',
+          author_email = ' . database_value($author_email) . ',
+          license = ' . database_value($license) . ',
           uploaded = ' . database_value($uploaded_datetime) . ';');
   }
 
-  function create_package($name,$description) {
-    isset($name) or trigger_error('bad name');
-    !isset($description) or is_string($description) or
-      trigger_error('bad description');
+  function create_package($name_version,$description,$author,$license) {
+    isset($name_version) or trigger_error('bad name_version');
+    is_string($description) or trigger_error('bad description');
+    isset($author) or trigger_error('bad author');
+    is_string($license) or trigger_error('bad license');
 
     $id = $this->max_rows('id') + 1;
 
     $uploaded = server_datetime();
 
-    $package = new Package($id,$name,$description,$uploaded);
+    $package = new Package($id,$name_version,$description,
+                           $author,$license,$uploaded);
 
     $this->insert_package($package);
 
@@ -201,14 +183,17 @@ class PackageTable extends DatabaseTable {
   function PackageTable($table) {
     $fields =
       array('id' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',
-            'base' => 'varchar(' . PACKAGE_BASE_CHARS . ') NOT NULL',
+            'name' => 'varchar(' . PACKAGE_NAME_CHARS . ') NOT NULL',
             'version' => 'varchar(' . PACKAGE_VERSION_CHARS . ') NOT NULL',
-            'description' => 'varchar(' . PACKAGE_DESCRIPTION_CHARS . ')',
+            'description' => 'varchar(' . PACKAGE_DESCRIPTION_CHARS . ') NOT NULL',
+            'author_name' => 'varchar(' . PACKAGE_AUTHOR_NAME_CHARS . ') NOT NULL',
+            'author_email' => 'varchar(' . PACKAGE_AUTHOR_EMAIL_CHARS . ') NOT NULL',
+            'license' => 'varchar(' . PACKAGE_LICENSE_CHARS . ') NOT NULL',
             'uploaded' => 'datetime NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (id)',
-            'INDEX (base,version)',
+            'INDEX (name,version)',
             'INDEX (uploaded)');
 
     parent::DatabaseTable($table,$fields,$indexes);
