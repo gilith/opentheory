@@ -3,27 +3,6 @@
 require_once '../opentheory.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Helper functions.
-///////////////////////////////////////////////////////////////////////////////
-
-function render_package($line) {
-  if (ereg('^([^ ]+) (.*)$',$line,$arr)) {
-    $name = $arr[1];
-    $description = $arr[2];
-
-    return
-'<tr><td>' .
-site_link(package_path($name),$name) .
-'</td><td>' .
-$description .
-'</td></tr>';
-  }
-  else {
-    trigger_error('bad line in all.pkg: ' . $line);
-  }
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // Main page.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -32,26 +11,30 @@ $title = 'Packages';
 $main =
 '<h2>All Packages</h2>';
 
-$data = file_get_contents(site_path(array('packages','all.pkg')));
+$package_table = package_table();
 
-$lines = explode("\n",$data);
-
-$pkgs = array();
-
-foreach ($lines as $line) {
-  if (strcmp($line,'') != 0) {
-    $pkgs[] = render_package($line);
-  }
-}
+$pkgs = $package_table->list_packages('name, version');
 
 if (count($pkgs) == 0) {
-  $main .= '<p>No theory packages uploaded to this repo.</p>';
+  $main .= '<p>No theory packages have been uploaded to this repo.</p>';
 }
 else {
-  $main .=
-'<table>' .
-implode($pkgs) .
-'</table>';
+  $main .= '<table>';
+
+  foreach ($pkgs as $pkg) {
+    $name_version = $pkg->name_version();
+
+    $description = $pkg->description();
+
+    $main .=
+'<tr><td>' .
+site_link(package_document_path($name_version), $name_version->to_string()) .
+'</td><td>' .
+string_to_html($description) .
+'</td></tr>';
+  }
+
+  $main .= '</table>';
 }
 
 $image = site_image('tree.jpg','Sunset Tree');

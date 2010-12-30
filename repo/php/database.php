@@ -109,6 +109,8 @@ class DatabaseTable {
 
   function select_unique($select_expression, $where_condition = null) {
     is_string($select_expression) or trigger_error('bad select_expression');
+    !isset($where_condition) or is_string($where_condition) or
+      trigger_error('bad where_condition');
 
     $result = database_query('
       SELECT ' . $select_expression . '
@@ -149,22 +151,9 @@ class DatabaseTable {
   function find_row($where_condition) {
     is_string($where_condition) or trigger_error('bad where_condition');
 
-    $result = database_query('
-      SELECT *
-      FROM ' . $this->table() . '
-      WHERE ' . $where_condition . ';');
+    $select_expression = '*';
 
-    if ($row = mysql_fetch_array($result)) {
-      if (mysql_fetch_array($result)) {
-        trigger_error('multiple rows');
-      }
-      else {
-        return $row;
-      }
-    }
-    else {
-      return null;
-    }
+    return $this->select_unique($select_expression,$where_condition);
   }
 
   function is_field($field) {

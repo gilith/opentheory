@@ -31,17 +31,21 @@ define('REPO_LOG_PATH', SITE_PATH . '/' . REPO_LOG);
 ///////////////////////////////////////////////////////////////////////////////
 
 function package_directory_path($name_version) {
-  is_string($name_version) or trigger_error('bad name_version');
+  isset($name_version) or trigger_error('bad name_version');
 
-  return array(REPO_DIR,PACKAGES_DIR,$name_version);
+  $dir = $name_version->to_string();
+
+  return array(REPO_DIR,PACKAGES_DIR,$dir);
 }
 
-function package_path($name_version) {
-  is_string($name_version) or trigger_error('bad name_version');
+function package_document_path($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
 
-  $doc = mk_package_document($name_version);
+  $dir = $name_version->to_string();
 
-  return array(REPO_DIR,PACKAGES_DIR,$name_version,$doc);
+  $doc = $name_version->document();
+
+  return array(REPO_DIR,PACKAGES_DIR,$dir,$doc);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -76,6 +76,29 @@ class Package {
   }
 }
 
+function from_row_package($row) {
+  is_array($row) or trigger_error('bad row');
+
+  $id = (integer)$row['id'];
+  $name = $row['name'];
+  $version = $row['version'];
+  $description = $row['description'];
+  $author_name = $row['author_name'];
+  $author_email = $row['author_email'];
+  $license = $row['license'];
+  $uploaded_datetime = $row['uploaded'];
+
+  $name_version = new PackageNameVersion($name,$version);
+
+  $author = new PackageAuthor($author_name,$author_email);
+
+  $uploaded = new TimePoint();
+  $uploaded->from_database_datetime($uploaded_datetime);
+
+  return new Package($id,$name_version,$description,
+                     $author,$license,$uploaded);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // The package database table.
 ///////////////////////////////////////////////////////////////////////////////
@@ -96,24 +119,7 @@ class PackageTable extends DatabaseTable {
 
     if (!isset($row)) { return null; }
 
-    $id = (integer)$row['id'];
-    $name = $row['name'];
-    $version = $row['version'];
-    $description = $row['description'];
-    $author_name = $row['author_name'];
-    $author_email = $row['author_email'];
-    $license = $row['license'];
-    $uploaded_datetime = $row['uploaded'];
-
-    $name_version = new PackageNameVersion($name,$version);
-
-    $author = new PackageAuthor($author_name,$author_email);
-
-    $uploaded = new TimePoint();
-    $uploaded->from_database_datetime($uploaded_datetime);
-
-    return new Package($id,$name_version,$description,
-                       $author,$license,$uploaded);
+    return from_row_package($row);
   }
 
   function find_package($id) {
@@ -130,6 +136,23 @@ class PackageTable extends DatabaseTable {
       'version = ' . database_value($name->version());
 
     return $this->find_package_where($where);
+  }
+
+  function list_packages($order_by) {
+    is_string($order_by) or trigger_error('bad order_by');
+
+    $result = database_query('
+      SELECT *
+      FROM ' . $this->table() . '
+      ORDER BY ' . $order_by . ';');
+
+    $pkgs = array();
+
+    while ($row = mysql_fetch_array($result)) {
+      $pkgs[] = from_row_package($row);
+    }
+
+    return $pkgs;
   }
 
   function insert_package($package) {
