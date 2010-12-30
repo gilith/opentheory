@@ -2,7 +2,7 @@ name: bool-int
 version: 1.0
 description: Intuitionistic boolean theorems
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 
 bool-int-true {

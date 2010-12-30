@@ -2,7 +2,7 @@ name: bool
 version: 1.0
 description: Basic boolean theory
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 
 bool-def {

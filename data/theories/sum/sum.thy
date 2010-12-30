@@ -2,7 +2,7 @@ name: sum
 version: 1.0
 description: Basic theory of sum types
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 show: "Data.Sum"
 show: "Number.Natural"

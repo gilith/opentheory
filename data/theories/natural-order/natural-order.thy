@@ -2,7 +2,7 @@ name: natural-order
 version: 1.0
 description: Definitions and theorems about natural number orderings
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Number.Natural"
 show: "Number.Numeral"

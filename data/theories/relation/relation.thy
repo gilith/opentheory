@@ -2,7 +2,7 @@ name: relation
 version: 1.0
 description: Definitions and theorems about relations
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Number.Natural"

@@ -2,7 +2,7 @@ name: option
 version: 1.0
 description: Basic theory of option types
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 show: "Data.Option"
 show: "Number.Natural"

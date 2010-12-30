@@ -2,7 +2,7 @@ name: bool-choice-cond
 version: 1.0
 description: Theorems about the conditional relying on the axiom of choice
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 
 bool-choice-cond-alt {

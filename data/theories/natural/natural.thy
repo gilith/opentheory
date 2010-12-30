@@ -2,7 +2,7 @@ name: natural
 version: 1.0
 description: Basic theory of natural numbers
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 show: "Function"
 show: "Number.Natural"

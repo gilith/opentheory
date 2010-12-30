@@ -2,7 +2,7 @@ name: base
 version: 1.0
 description: The standard theory library
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"

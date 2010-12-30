@@ -2,7 +2,7 @@ name: natural-mult
 version: 1.0
 description: Definitions and theorems about natural number multiplication
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Number.Natural"
 show: "Number.Numeral"

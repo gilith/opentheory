@@ -2,7 +2,7 @@ name: modular
 version: 1.0
 description: Functor theory of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 show: "Number.Modular"
 show: "Number.Numeral"

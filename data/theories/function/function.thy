@@ -2,7 +2,7 @@ name: function
 version: 1.0
 description: Basic function theory
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Function"
 

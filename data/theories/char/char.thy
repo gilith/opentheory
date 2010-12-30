@@ -2,7 +2,7 @@ name: char
 version: 1.0
 description: Theory of Unicode characters
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 show: "Data.Char"
 show: "Data.List"

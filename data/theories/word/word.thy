@@ -2,7 +2,7 @@ name: word
 version: 1.0
 description: Basic functor theory of words
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Word"

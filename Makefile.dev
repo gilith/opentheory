@@ -197,7 +197,7 @@ STANDARD_THEORIES = \
   list-reverse \
   list-length \
   list-nth \
-  list-duplicate \
+  list-replicate \
   list-member \
   list \
   base

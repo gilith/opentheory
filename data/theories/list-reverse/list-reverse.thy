@@ -2,7 +2,7 @@ name: list-reverse
 version: 1.0
 description: Definitions and theorems about the list reverse function
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Data.List"
 

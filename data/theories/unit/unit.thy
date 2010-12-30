@@ -2,7 +2,7 @@ name: unit
 version: 1.0
 description: Definition and theorems about the unit type
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Data.Unit"
 

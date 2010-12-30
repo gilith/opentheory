@@ -2,7 +2,7 @@ name: bool-true
 version: 1.0
 description: Definition and theorems about the boolean true constant
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 
 bool-def-true {

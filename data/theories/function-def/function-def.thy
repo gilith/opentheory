@@ -2,7 +2,7 @@ name: function-def
 version: 1.0
 description: Definition of function constants
 author: Joe Hurd <joe@gilith.com>
-license: OpenTheory
+license: MIT
 show: "Data.Bool"
 show: "Function"
 

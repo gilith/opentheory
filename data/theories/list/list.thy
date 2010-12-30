@@ -2,7 +2,7 @@ name: list
 version: 1.0
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
-license: PublicDomain
+license: MIT
 show: "Data.Bool"
 show: "Data.List"
 show: "Function"
@@ -82,9 +82,9 @@ nth {
   package: list-nth-1.0
 }
 
-duplicate {
+replicate {
   import: length
-  package: list-duplicate-1.0
+  package: list-replicate-1.0
 }
 
 member {
@@ -111,6 +111,6 @@ main {
   import: reverse
   import: length
   import: nth
-  import: duplicate
+  import: replicate
   import: member
 }
