@@ -37,7 +37,7 @@ val destName : name -> tag -> value option
 
 val filterName : name -> tag list -> value list
 
-val getName : name -> tag list -> value
+val getName : name -> tag list -> value  (* raises Error if non-unique *)
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)

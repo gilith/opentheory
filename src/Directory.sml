@@ -432,6 +432,127 @@ fun finder dir = PackageFinder.mk (peek dir);
 fun importer dir = Graph.fromFinderImporter (finder dir);
 
 (* ------------------------------------------------------------------------- *)
+(* Checking package tags.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun getTag name tags errs =
+      case PackageTag.filterName name tags of
+        [] =>
+        let
+          val err = DirectoryError.TagError (name,"is missing")
+        in
+          (err :: errs, NONE)
+        end
+      | [v] => (errs, SOME v)
+      | _ :: _ :: _ =>
+        let
+          val err = DirectoryError.TagError (name,"is declared multiple times")
+        in
+          (err :: errs, NONE)
+        end;
+
+  fun checkNameTag namever tags errs =
+      let
+        val name = PackageName.nameTag
+
+        val (errs,so) = getTag name tags errs
+      in
+        case so of
+          NONE => errs
+        | SOME s =>
+          case total PackageName.fromString s of
+            NONE =>
+            let
+              val msg = "is badly formatted: " ^ s
+
+              val err = DirectoryError.TagError (name,msg)
+            in
+              err :: errs
+            end
+          | SOME n =>
+            let
+              val n' = PackageNameVersion.name namever
+            in
+              if PackageName.equal n n' then errs
+              else
+                let
+                  val msg = "does not match"
+
+                  val err = DirectoryError.TagError (name,msg)
+                in
+                  err :: errs
+                end
+            end
+      end;
+
+  fun checkVersionTag namever tags errs =
+      let
+        val name = PackageName.versionTag
+
+        val (errs,so) = getTag name tags errs
+      in
+        case so of
+          NONE => errs
+        | SOME s =>
+          case total PackageVersion.fromString s of
+            NONE =>
+            let
+              val msg = "is badly formatted: " ^ s
+
+              val err = DirectoryError.TagError (name,msg)
+            in
+              err :: errs
+            end
+          | SOME v =>
+            let
+              val v' = PackageNameVersion.version namever
+            in
+              if PackageVersion.equal v v' then errs
+              else
+                let
+                  val msg = "does not match"
+
+                  val err = DirectoryError.TagError (name,msg)
+                in
+                  err :: errs
+                end
+            end
+      end;
+
+  fun checkDescriptionTag tags errs =
+      let
+        val name = PackageName.descriptionTag
+
+        val (errs,so) = getTag name tags errs
+      in
+        case so of
+          NONE => errs
+        | SOME s =>
+          if s <> "" then errs
+          else
+            let
+              val msg = "is blank"
+
+              val err = DirectoryError.TagError (name,msg)
+            in
+              err :: errs
+            end
+      end;
+in
+  fun checkTags dir namever tags =
+      let
+        val errs = []
+
+        val errs = checkNameTag namever tags errs
+
+        val errs = checkVersionTag namever tags errs
+      in
+        errs
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Summarizing packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -460,9 +581,23 @@ fun summary dir info =
 
 fun postStagePackage dir stageInfo warnSummary =
     let
-      (* Check the package summary *)
+      (* Check the package tags *)
 
       val pkg = PackageInfo.package stageInfo
+
+      val () =
+          let
+            val namever = PackageInfo.nameVersion stageInfo
+
+            val tags = Package.tags pkg
+
+            val errs = checkTags dir namever tags
+          in
+            if not (DirectoryError.existsFatal errs) then ()
+            else raise Error (DirectoryError.toStringList errs)
+          end
+
+      (* Check the package summary *)
 
       val sum = summary dir stageInfo
 
@@ -778,6 +913,8 @@ in
               if not (PackageInfo.existsDirectory stageInfo) then errs
               else DirectoryError.AlreadyStaged namever :: errs
             end
+
+        val errs = checkTags dir namever (Package.tags pkg) @ errs
 
         val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
 
