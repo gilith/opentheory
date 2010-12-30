@@ -55,6 +55,19 @@ val peekRepo : directory -> DirectoryRepo.name -> DirectoryRepo.repo option
 val getRepo : directory -> DirectoryRepo.name -> DirectoryRepo.repo
 
 (* ------------------------------------------------------------------------- *)
+(* Looking up acceptable licenses in the package directory.                  *)
+(* ------------------------------------------------------------------------- *)
+
+val licenses : directory -> DirectoryConfig.license list
+
+val peekLicense :
+    directory -> {name : string} -> DirectoryConfig.license option
+
+val knownLicense : directory -> {name : string} -> bool
+
+val getLicense : directory -> {name : string} -> DirectoryConfig.license
+
+(* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 

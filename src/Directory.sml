@@ -316,6 +316,28 @@ fun getRepo dir n =
     | NONE => raise Error ("no repo named " ^ n ^ " in config file");
 
 (* ------------------------------------------------------------------------- *)
+(* Looking up acceptable licenses in the package directory.                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun licenses dir = DirectoryConfig.licenses (config dir);
+
+fun peekLicense dir n = DirectoryConfig.findLicense (licenses dir) n;
+
+fun knownLicense dir n = Option.isSome (peekLicense dir n);
+
+fun getLicense dir n =
+    case peekLicense dir n of
+      SOME l => l
+    | NONE =>
+      let
+        val {name} = n
+
+        val err = "no license named " ^ name ^ " in config file"
+      in
+        raise Error err
+      end;
+
+(* ------------------------------------------------------------------------- *)
 (* Paths.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
@@ -539,6 +561,46 @@ local
               err :: errs
             end
       end;
+
+  fun checkAuthorTag tags errs =
+      let
+        val name = PackageName.authorTag
+
+        val (errs,so) = getTag name tags errs
+      in
+        case so of
+          NONE => errs
+        | SOME s =>
+          if s <> "" then errs
+          else
+            let
+              val msg = "is blank"
+
+              val err = DirectoryError.TagError (name,msg)
+            in
+              err :: errs
+            end
+      end;
+
+  fun checkLicenseTag dir tags errs =
+      let
+        val name = PackageName.licenseTag
+
+        val (errs,so) = getTag name tags errs
+      in
+        case so of
+          NONE => errs
+        | SOME s =>
+          if knownLicense dir {name = s} then errs
+          else
+            let
+              val msg = s ^ " is not acceptable"
+
+              val err = DirectoryError.TagError (name,msg)
+            in
+              err :: errs
+            end
+      end;
 in
   fun checkTags dir namever tags =
       let
@@ -547,6 +609,12 @@ in
         val errs = checkNameTag namever tags errs
 
         val errs = checkVersionTag namever tags errs
+
+        val errs = checkDescriptionTag tags errs
+
+        val errs = checkAuthorTag tags errs
+
+        val errs = checkLicenseTag dir tags errs
       in
         errs
       end;

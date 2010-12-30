@@ -30,6 +30,8 @@ val nameLicense : license -> {name : string}
 
 val urlLicense : license -> {url : string}
 
+val findLicense : license list -> {name : string} -> license option
+
 (* ------------------------------------------------------------------------- *)
 (* A type of install configuration data.                                     *)
 (* ------------------------------------------------------------------------- *)
