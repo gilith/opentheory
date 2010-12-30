@@ -141,7 +141,7 @@ if ($select->is_value()) {
 '<pre>' . $output . '</pre>';
   }
   else {
-    $tags = opentheory_tags($name_version);
+    $pkg = repo_register($name_version);
 
     if (is_script()) {
       $report = 'successfully uploaded package ' . $name_version->to_string();
