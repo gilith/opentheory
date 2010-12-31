@@ -117,4 +117,27 @@ function dependency_table() {
   return $global_dependency_table;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Package children.
+///////////////////////////////////////////////////////////////////////////////
+
+function package_children($pkg) {
+  isset($pkg) or trigger_error('bad pkg');
+
+  $dependency_table = dependency_table();
+
+  $child_ids = $dependency_table->child_ids($pkg);
+
+  $children = array();
+
+  foreach ($child_ids as $child_id) {
+    $child = find_package($child_id);
+    isset($child) or trigger_error('bad child');
+
+    $children[] = $child;
+  }
+
+  return $children;
+}
+
 ?>

@@ -11,15 +11,17 @@ if (isset($pkg)) { $pkg = from_string_package_name_version(input('pkg')); }
 if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
 
 if (isset($pkg)) {
-  $version_info = $pkg->version();
-
   $author = $pkg->author();
+
+  $uploaded = $pkg->uploaded();
+
+  $children = package_children($pkg);
+
+  $version_info = $pkg->version();
 
   $author_info = $author->to_string();
 
   $license_info = $pkg->license();
-
-  $uploaded = $pkg->uploaded();
 
   $uploaded_info =
     $uploaded->to_string_time() . ' on ' .
@@ -38,8 +40,23 @@ if (isset($pkg)) {
 '<tr><td>uploaded</td><td>' . string_to_html($uploaded_info) . '</td></tr>' .
 '</table>';
 
-  $main .=
-'<h3>Dependencies</h3>';
+  if (count($children) > 0) {
+    $main .=
+'<h3>Dependencies</h3>' .
+'<ul>';
+
+    foreach ($children as $child) {
+      $main .=
+'<li>' .
+$child->link($child->to_string()) .
+' &mdash; ' .
+string_to_html($child->description()) .
+'</li>';
+    }
+
+    $main .=
+'</ul>';
+  }
 
   $main .=
 '<h3>Files</h3>' .
