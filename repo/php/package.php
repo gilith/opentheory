@@ -62,6 +62,13 @@ class Package {
     return $author->email();
   }
 
+  function since_uploaded() {
+    $now = server_datetime();
+    $uploaded = $this->uploaded();
+
+    return $now->subtract($uploaded);
+  }
+
   function is_auxiliary_child($child) {
     isset($child) or trigger_error('bad child');
 
@@ -161,15 +168,18 @@ class PackageTable extends DatabaseTable {
     return $this->find_package_where($where);
   }
 
-  function list_packages($where,$order_by) {
+  function list_packages($where,$order_by,$limit) {
     !isset($where) or is_string($where) or trigger_error('bad where');
     is_string($order_by) or trigger_error('bad order_by');
+    !isset($limit) or is_int($limit) or is_string($limit) or
+      trigger_error('bad limit');
 
     $result = database_query('
       SELECT *
       FROM ' . $this->table() . (isset($where) ? ('
       WHERE ' . $where) : '') . '
-      ORDER BY ' . $order_by . ';');
+      ORDER BY ' . $order_by . (isset($limit) ? ('
+      LIMIT ' . $limit) : '') . ';');
 
     $pkgs = array();
 
@@ -180,12 +190,24 @@ class PackageTable extends DatabaseTable {
     return $pkgs;
   }
 
-  function list_active_packages($order_by) {
-    is_string($order_by) or trigger_error('bad order_by');
+  function list_active_packages() {
+    $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
+
+    $order_by = 'name';
+
+    $limit = null;
+
+    return $this->list_packages($where,$order_by,$limit);
+  }
+
+  function list_recent_packages($limit) {
+    is_int($limit) or trigger_error('bad limit');
 
     $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
 
-    return $this->list_packages($where,$order_by);
+    $order_by = 'uploaded';
+
+    return $this->list_packages($where,$order_by,$limit);
   }
 
   function insert_package($package) {

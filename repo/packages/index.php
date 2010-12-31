@@ -13,13 +13,13 @@ $main =
 
 $package_table = package_table();
 
-$pkgs = $package_table->list_active_packages('name');
+$pkgs = $package_table->list_active_packages();
 
 if (count($pkgs) == 0) {
   $main .= '<p>No theory packages have been uploaded to this repo.</p>';
 }
 else {
-  $main .= '<table>';
+  $main .= '<ul>';
 
   foreach ($pkgs as $pkg) {
     $name_version = $pkg->name_version();
@@ -27,14 +27,14 @@ else {
     $description = $pkg->description();
 
     $main .=
-'<tr><td>' .
+'<li>' .
 site_link(package_document_path($name_version), $name_version->name()) .
-'</td><td>' .
+' &mdash; ' .
 string_to_html($description) .
-'</td></tr>';
+'</li>';
   }
 
-  $main .= '</table>';
+  $main .= '</ul>';
 }
 
 $image = site_image('tree.jpg','Sunset Tree');

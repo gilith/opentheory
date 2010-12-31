@@ -164,7 +164,7 @@ else {
 
 <a href="http://www.gilith.com/software/opentheory/">opentheory</a>
 
-package management tool, but it is also possible to <it>manually</it>
+package management tool, but it is also possible to <i>manually</i>
 upload package tarballs using the following form:</p>' .
 
 site_form(bread_crumbs(),

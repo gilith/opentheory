@@ -53,6 +53,102 @@ function days_in_month($month,$year) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Time interval class.
+///////////////////////////////////////////////////////////////////////////////
+
+class TimeInterval {
+  var $_seconds;
+
+  function seconds() { return $this->_seconds; }
+
+  function negate() {
+    return new TimeInterval(-$this->seconds());
+  }
+
+  function to_string($abbrev = false) {
+    $t = $this->seconds();
+
+    if ($t < 0) {
+      $n = $this->negate();
+      return '-' . $n->to_string();
+    }
+
+    if ($t < 0.1) {
+      $n = (integer)($t * 1000.0);
+      return $n . ($abbrev ? 'ms' : (' millisecond' . (($n == 1) ? '' : 's')));
+    }
+
+    if ($t < 1.0) {
+      $s = sprintf('%.2f',$t);
+      $s = ereg_replace('0$','',$s);
+      $s = ereg_replace('.0$','',$s);
+      $s .= ($abbrev ? 's' : (' second' . ((strcmp($s,'1') == 0) ? '' : 's')));
+      return $s;
+    }
+
+    if ($t < 10.0) {
+      $s = sprintf('%.1f',$t);
+      $s = ereg_replace('.0$','',$s);
+      $s .= ($abbrev ? 's' : (' second' . ((strcmp($s,'1') == 0) ? '' : 's')));
+      return $s;
+    }
+
+    if ($t < 120.0) {
+      $n = (integer)$t;
+      return $n . ($abbrev ? 's' : (' second' . (($n == 1) ? '' : 's')));
+    }
+
+    $t = $t / 60.0;  // Minutes
+
+    if ($t < 120.0) {
+      $n = (integer)$t;
+      return $n . ($abbrev ? 'm' : (' minute' . (($n == 1) ? '' : 's')));
+    }
+
+    $t = $t / 60.0;  // Hours
+
+    if ($t < 48.0) {
+      $n = (integer)$t;
+      return $n . ($abbrev ? 'h' : (' hour' . (($n == 1) ? '' : 's')));
+    }
+
+    $t = $t / 24.0;  // Days
+
+    if ($t < 14.0) {
+      $n = (integer)$t;
+      return $n . ' day' . (($n == 1) ? '' : 's');
+    }
+
+    $days = $t;
+
+    $t = $days / 7.0;  // Weeks
+
+    if ($t < 9.0) {
+      $n = (integer)$t;
+      return $n . ' week' . (($n == 1) ? '' : 's');
+    }
+
+    $t = $days / (365.25 / 12.0);  // Months(ish)
+
+    if ($t < 24.0) {
+      $n = (integer)$t;
+      return $n . ' month' . (($n == 1) ? '' : 's');
+    }
+
+    $t = $days / 365.25;  // Years
+
+    $n = (integer)$t;
+    return $n . ' year' . (($n == 1) ? '' : 's');
+  }
+
+  function TimeInterval($t) {
+    is_int($t) or is_float($t) or trigger_error('bad t');
+
+    $this->_seconds = (float)$t;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Date class.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -914,6 +1010,47 @@ class TimePoint {
     return $ret;
   }
 
+  function subtract($date) {
+    isset($date) or trigger_error('bad date');
+
+    $this->check_date_valid();
+    $date->check_date_valid();
+
+    $t = $this->days_since_epoch() - $date->days_since_epoch();
+
+    $t1 = $this->is_time_valid();
+    $t2 = $date->is_time_valid();
+
+    if ($t1) {
+      if ($t2) {
+        $t *= 24;
+
+        $t += $this->hour() - $date->hour();
+
+        $t *= 60;
+
+        $t += $this->minute() - $date->minute();
+
+        $t *= 60;
+
+        $t += $this->second() - $date->second();
+      }
+      else {
+        trigger_error('datetime - date');
+      }
+    }
+    else {
+      if ($t2) {
+        trigger_error('date - datetime');
+      }
+      else {
+        $t *= 24 * 60 * 60;
+      }
+    }
+
+    return new TimeInterval($t);
+  }
+
   function TimePoint() {
     $this->_year = null;
     $this->_month = null;
@@ -959,102 +1096,6 @@ function date_from_string($s) {
 
 function datetime_cmp($date1,$date2) {
   return $date1->compare($date2);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Time intervals.
-///////////////////////////////////////////////////////////////////////////////
-
-class TimeInterval {
-  var $_seconds;
-
-  function seconds() { return $_seconds; }
-
-  function negate() {
-    return new TimeInterval(-$this->seconds());
-  }
-
-  function to_string($abbrev = false) {
-    $t = $this->seconds();
-
-    if ($t < 0) {
-      $n = new TimeInterval(-$t);
-      return '-' . $n->to_string();
-    }
-
-    if ($t < 0.1) {
-      $n = (integer)($t * 1000.0);
-      return $n . ($abbrev ? 'ms' : (' millisecond' . (($n == 1) ? '' : 's')));
-    }
-
-    if ($t < 1.0) {
-      $s = sprintf('%.2f',$t);
-      $s = ereg_replace('0$','',$s);
-      $s = ereg_replace('.0$','',$s);
-      $s .= ($abbrev ? 's' : (' second' . ((strcmp($s,'1') == 0) ? '' : 's')));
-      return $s;
-    }
-
-    if ($t < 10.0) {
-      $s = sprintf('%.1f',$t);
-      $s = ereg_replace('.0$','',$s);
-      $s .= ($abbrev ? 's' : (' second' . ((strcmp($s,'1') == 0) ? '' : 's')));
-      return $s;
-    }
-
-    if ($t < 120.0) {
-      $n = (integer)$t;
-      return $n . ($abbrev ? 's' : (' second' . (($n == 1) ? '' : 's')));
-    }
-
-    $t = $t / 60.0;  // Minutes
-
-    if ($t < 120.0) {
-      $n = (integer)$t;
-      return $n . ($abbrev ? 'm' : (' minute' . (($n == 1) ? '' : 's')));
-    }
-
-    $t = $t / 60.0;  // Hours
-
-    if ($t < 48.0) {
-      $n = (integer)$t;
-      return $n . ($abbrev ? 'h' : (' hour' . (($n == 1) ? '' : 's')));
-    }
-
-    $t = $t / 24.0;  // Days
-
-    if ($t < 14.0) {
-      $n = (integer)$t;
-      return $n . ' day' . (($n == 1) ? '' : 's');
-    }
-
-    $days = $t;
-
-    $t = $days / 7.0;  // Weeks
-
-    if ($t < 9.0) {
-      $n = (integer)$t;
-      return $n . ' week' . (($n == 1) ? '' : 's');
-    }
-
-    $t = $days / (365.25 / 12.0);  // Months(ish)
-
-    if ($t < 24.0) {
-      $n = (integer)$t;
-      return $n . ' month' . (($n == 1) ? '' : 's');
-    }
-
-    $t = $days / 365.25;  // Years
-
-    $n = (integer)$t;
-    return $n . ' year' . (($n == 1) ? '' : 's');
-  }
-
-  function TimeInterval($t) {
-    is_int($t) or is_float($t) or trigger_error('bad t');
-
-    $this->_seconds = (float)$t;
-  }
 }
 
 ?>
