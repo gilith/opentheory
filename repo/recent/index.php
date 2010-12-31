@@ -25,8 +25,6 @@ if (count($pkgs) == 0) {
   $main .= '<p>No theory packages have been uploaded to this repo.</p>';
 }
 else {
-  //$main .= '<ol>';
-
   foreach ($pkgs as $pkg) {
     $name_version = $pkg->name_version();
 
@@ -45,8 +43,6 @@ string_to_html($description) .
 'Uploaded ' . $since_uploaded->to_string() . ' ago by ' . $author_name .
 '</small></p>';
   }
-
-  //$main .= '</ol>';
 }
 
 $image = site_image('katoomba.jpg','Katoomba Scenic Railway');
