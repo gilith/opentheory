@@ -11,6 +11,7 @@
 require_once 'global.php';
 require_once 'error.php';
 require_once 'date.php';
+require_once 'links.php';
 require_once 'database.php';
 require_once 'name_version.php';
 require_once 'author.php';
@@ -76,6 +77,23 @@ class Package {
     $name2 = $child->name();
 
     return is_prefix_package_name($name1,$name2);
+  }
+
+  function to_string() {
+    $namever = $this->name_version();
+    return $namever->to_string();
+  }
+
+  function site_link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = array('packages');
+
+    $args = array('pkg' => $this->to_string());
+
+    $atts = array('class' => 'package');
+
+    return site_link($path,$text,$args,$atts);
   }
 
   function Package($id,$name_version,$description,$author,
@@ -318,6 +336,14 @@ function find_package($package_id) {
   $package_table = package_table();
 
   return $package_table->find_package($package_id);
+}
+
+function find_package_by_name_version($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $package_table = package_table();
+
+  return $package_table->find_package_by_name_version($name_version);
 }
 
 ?>

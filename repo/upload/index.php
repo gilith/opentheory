@@ -93,12 +93,15 @@ $this->_select_submit->select() .
 // Main page.
 ///////////////////////////////////////////////////////////////////////////////
 
-$pkg = from_string(input('p'));
+$pkg = from_string(input('pkg'));
+if (isset($pkg)) { $pkg = from_string_package_name_version(input('pkg')); }
+if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
+
 if (isset($pkg)) {
   $title = 'Upload Package';
 
   $main =
-'<p>Thank you for uploading ' . $pkg . '</p>';
+'<p>Thank you for uploading ' . $pkg->to_string() . '</p>';
 
   $image = site_image('katoomba.jpg','Katoomba Scenic Railway');
 
@@ -148,7 +151,7 @@ if ($select->is_value()) {
       output_script($report);
     }
     else {
-      jump_path(bread_crumbs(), array('p' => $name_version->to_string()));
+      jump_path(bread_crumbs(), array('pkg' => $name_version->to_string()));
     }
   }
 }

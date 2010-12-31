@@ -26,8 +26,6 @@ if (count($pkgs) == 0) {
 }
 else {
   foreach ($pkgs as $pkg) {
-    $name_version = $pkg->name_version();
-
     $description = $pkg->description();
 
     $since_uploaded = $pkg->since_uploaded();
@@ -36,7 +34,7 @@ else {
 
     $main .=
 '<p class="recent">' .
-site_link(package_document_path($name_version), $name_version->to_string()) .
+$pkg->site_link($pkg->to_string()) .
 ' &mdash; ' .
 string_to_html($description) .
 '<br /><small>' .

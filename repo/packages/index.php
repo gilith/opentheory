@@ -6,6 +6,21 @@ require_once '../opentheory.php';
 // Main page.
 ///////////////////////////////////////////////////////////////////////////////
 
+$pkg = from_string(input('pkg'));
+if (isset($pkg)) { $pkg = from_string_package_name_version(input('pkg')); }
+if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
+
+if (isset($pkg)) {
+  $title = 'Package ' . $pkg->to_string();
+
+  $main =
+'<p>Thank you for uploading ' . $pkg . '</p>';
+
+  $image = site_image('tree.jpg','Sunset Tree');
+
+  output(array('title' => $title), $main, $image);
+}
+
 $title = 'Packages';
 
 $main =
@@ -22,13 +37,11 @@ else {
   $main .= '<ul>';
 
   foreach ($pkgs as $pkg) {
-    $name_version = $pkg->name_version();
-
     $description = $pkg->description();
 
     $main .=
 '<li>' .
-site_link(package_document_path($name_version), $name_version->name()) .
+$pkg->site_link($pkg->name()) .
 ' &mdash; ' .
 string_to_html($description) .
 '</li>';
