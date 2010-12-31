@@ -25,7 +25,7 @@ if (count($pkgs) == 0) {
   $main .= '<p>No theory packages have been uploaded to this repo.</p>';
 }
 else {
-  $main .= '<ul>';
+  //$main .= '<ol>';
 
   foreach ($pkgs as $pkg) {
     $name_version = $pkg->name_version();
@@ -37,16 +37,16 @@ else {
     $author_name = $pkg->author_name();
 
     $main .=
-'<li>' .
+'<p class="recent">' .
 site_link(package_document_path($name_version), $name_version->to_string()) .
 ' &mdash; ' .
 string_to_html($description) .
 '<br /><small>' .
 'Uploaded ' . $since_uploaded->to_string() . ' ago by ' . $author_name .
-'</small></li>';
+'</small></p>';
   }
 
-  $main .= '</ul>';
+  //$main .= '</ol>';
 }
 
 $image = site_image('katoomba.jpg','Katoomba Scenic Railway');
