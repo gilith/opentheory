@@ -165,8 +165,8 @@ fun toHtml doc =
             Html.Ulist (Html.emptyAttrs,items)
           end
 
-      val downloadBlocks =
-          [Html.H2 [Html.Text "Downloads"],
+      val fileBlocks =
+          [Html.H2 [Html.Text "Package Files"],
            filesBlock]
 
       val summaryBlocks =
@@ -175,7 +175,7 @@ fun toHtml doc =
       val blocks =
           nameBlock ::
           tagsBlocks @
-          downloadBlocks @
+          fileBlocks @
           summaryBlocks
 
       val body = Html.Body (Html.emptyAttrs,blocks)

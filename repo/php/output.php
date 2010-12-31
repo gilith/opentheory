@@ -38,6 +38,10 @@ function site_map() {
     $global_site_map['packages'] = null;
     $global_site_map['recent'] = null;
     $global_site_map['upload'] = null;
+
+    if (effective_privilege_is_admin()) {
+      $global_site_map['admin'] = null;
+    }
   }
 
   return $global_site_map;

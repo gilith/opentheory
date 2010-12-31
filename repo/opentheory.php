@@ -41,8 +41,6 @@ require_once 'php/repo.php';  // Repo operations
 // Initialization.
 ///////////////////////////////////////////////////////////////////////////////
 
-//if (effective_privilege_is_admin()) {
-//  require_once 'php/command.php';  // Manually execute commands
-//}
+//require_once 'php/command.php';  // Manually execute commands
 
 ?>

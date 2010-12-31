@@ -17,38 +17,6 @@ require_once 'links.php';
 require_once 'tag.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Paths.
-///////////////////////////////////////////////////////////////////////////////
-
-define('PACKAGES_DIR','packages');
-
-define('REPO_PATH', SITE_PATH . '/' . REPO_DIR);
-
-define('REPO_LOG_PATH', SITE_PATH . '/' . REPO_LOG);
-
-///////////////////////////////////////////////////////////////////////////////
-// Link to a package.
-///////////////////////////////////////////////////////////////////////////////
-
-function package_directory_path($name_version) {
-  isset($name_version) or trigger_error('bad name_version');
-
-  $dir = $name_version->to_string();
-
-  return array(REPO_DIR,PACKAGES_DIR,$dir);
-}
-
-function package_document_path($name_version) {
-  isset($name_version) or trigger_error('bad name_version');
-
-  $dir = $name_version->to_string();
-
-  $doc = $name_version->document();
-
-  return array(REPO_DIR,PACKAGES_DIR,$dir,$doc);
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // Invoke the opentheory program to carry out an action.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -179,7 +147,7 @@ function opentheory_children($name_version) {
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_list() {
-  $args = ' --name --dependency-order';
+  $args = ' --name';
 
   $output = opentheory_query('list',$args);
 

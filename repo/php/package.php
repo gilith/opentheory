@@ -84,16 +84,43 @@ class Package {
     return $namever->to_string();
   }
 
-  function site_link($text) {
+  function link($text) {
     is_string($text) or trigger_error('bad text');
+    $namever = $this->name_version();
+    return $namever->package_link($text);
+  }
 
-    $path = array('packages');
+  function summary_file_name() {
+    $namever = $this->name_version();
+    return $namever->summary_file_name();
+  }
 
-    $args = array('pkg' => $this->to_string());
+  function summary_file_link($text) {
+    is_string($text) or trigger_error('bad text');
+    $namever = $this->name_version();
+    return $namever->summary_file_link($text);
+  }
 
-    $atts = array('class' => 'package');
+  function tarball_name() {
+    $namever = $this->name_version();
+    return $namever->tarball_name();
+  }
 
-    return site_link($path,$text,$args,$atts);
+  function tarball_link($text) {
+    is_string($text) or trigger_error('bad text');
+    $namever = $this->name_version();
+    return $namever->tarball_link($text);
+  }
+
+  function theory_file_name() {
+    $namever = $this->name_version();
+    return $namever->theory_file_name();
+  }
+
+  function theory_file_link($text) {
+    is_string($text) or trigger_error('bad text');
+    $namever = $this->name_version();
+    return $namever->theory_file_link($text);
   }
 
   function Package($id,$name_version,$description,$author,

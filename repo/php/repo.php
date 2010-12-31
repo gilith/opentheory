@@ -24,6 +24,14 @@ require_once 'opentheory.php';
 function repo_register($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
+  // Check whether we are already registered
+
+  $package_table = package_table();
+
+  $pkg = $package_table->find_package_by_name_version($name_version);
+
+  if (isset($pkg)) { return $pkg; }
+
   // Create a new entry in the package table
 
   $tags = opentheory_tags($name_version);
@@ -33,8 +41,6 @@ function repo_register($name_version) {
   $author = author_from_tags($tags);
 
   $license = license_from_tags($tags);
-
-  $package_table = package_table();
 
   $pkg = $package_table->create_package($name_version,$description,$author,
                                         $license);
@@ -46,7 +52,7 @@ function repo_register($name_version) {
   $children = opentheory_children($name_version);
 
   foreach ($children as $child_name_version) {
-    $child = $package_table->find_package_by_name_version($child_name_version);
+    $child = repo_register($child_name_version);
 
     $dependency_table->insert_dependency($pkg,$child);
 

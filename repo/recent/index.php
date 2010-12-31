@@ -34,7 +34,7 @@ else {
 
     $main .=
 '<p class="recent">' .
-$pkg->site_link($pkg->to_string()) .
+$pkg->link($pkg->to_string()) .
 ' &mdash; ' .
 string_to_html($description) .
 '<br /><small>' .

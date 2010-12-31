@@ -10,6 +10,17 @@
 
 require_once 'global.php';
 require_once 'error.php';
+require_once 'links.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// Paths.
+///////////////////////////////////////////////////////////////////////////////
+
+define('REPO_PATH', SITE_PATH . '/' . REPO_DIR);
+
+define('REPO_LOG_PATH', SITE_PATH . '/' . REPO_LOG);
+
+define('REPO_PACKAGES_DIR','packages');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Package name/version regular expressions.
@@ -42,9 +53,87 @@ class PackageNameVersion {
 
   function to_string() { return ($this->name() . '-' . $this->version()); }
 
-  function tarball() { return ($this->to_string() . '.tgz'); }
+  function package_link($text) {
+    is_string($text) or trigger_error('bad text');
 
-  function document() { return ($this->to_string() . '.html'); }
+    $path = array('packages');
+
+    $args = array('pkg' => $this->to_string());
+
+    $atts = array('class' => 'package');
+
+    return site_link($path,$text,$args,$atts);
+  }
+
+  function directory_name() {
+    return $this->to_string();
+  }
+
+  function directory_path() {
+    $dir = $this->directory_name();
+
+    return array(REPO_DIR,REPO_PACKAGES_DIR,$dir);
+  }
+
+  function summary_file_name() {
+    return ($this->to_string() . '.html');
+  }
+
+  function summary_file_path() {
+    $dir = $this->directory_name();
+
+    $file = $this->summary_file_name();
+
+    return array(REPO_DIR,REPO_PACKAGES_DIR,$dir,$file);
+  }
+
+  function summary_file_link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = $this->summary_file_path();
+
+    return site_link($path,$text);
+  }
+
+  function tarball_name() {
+    return ($this->to_string() . '.tgz');
+  }
+
+  function tarball_path() {
+    $dir = $this->directory_name();
+
+    $file = $this->tarball_name();
+
+    return array(REPO_DIR,REPO_PACKAGES_DIR,$dir,$file);
+  }
+
+  function tarball_link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = $this->tarball_path();
+
+    return site_link($path,$text);
+  }
+
+  function theory_file_name() {
+    return ($this->name() . '.thy');
+  }
+
+  function theory_file_path() {
+    $dir = $this->directory_name();
+
+    $file = $this->theory_file_name();
+
+    return array(REPO_DIR,REPO_PACKAGES_DIR,$dir,$file);
+  }
+
+  function theory_file_link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = $this->theory_file_path();
+
+    return site_link($path,$text);
+  }
 
   function PackageNameVersion($name,$version) {
     is_string($name) or trigger_error('bad name');
