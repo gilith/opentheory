@@ -59,6 +59,16 @@ class PackageNameVersion {
 // Package name/version functions.
 ///////////////////////////////////////////////////////////////////////////////
 
+function is_prefix_package_name($name1,$name2) {
+  is_string($name1) or trigger_error('bad name1');
+  is_string($name2) or trigger_error('bad name2');
+
+  $s1 = $name1 . '-';
+  $s2 = $name2 . '-';
+
+  return is_prefix_string($s1,$s2);
+}
+
 function from_string_package_name_version($namever) {
   is_string($namever) or trigger_error('bad namever');
 

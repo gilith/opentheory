@@ -12,7 +12,6 @@ require_once 'global.php';
 require_once 'error.php';
 require_once 'name_version.php';
 require_once 'author.php';
-require_once 'package.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // Package tag constants.

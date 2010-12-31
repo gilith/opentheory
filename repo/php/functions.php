@@ -43,6 +43,25 @@ function deep_copy($value) {
 
 function round_to_percent($x) { return (integer)($x * 100.0 + 0.5) / 100.0; }
 
+function is_prefix_string($s1,$s2) {
+  is_string($s1) or trigger_error('bad s1');
+  is_string($s2) or trigger_error('bad s2');
+
+  $l1 = strlen($s1);
+  $l2 = strlen($s2);
+
+  if ($l1 > $l2) { return false; }
+
+  if ($l1 == $l2) {
+    $s = $s2;
+  }
+  else {
+    $s = substr($s2,0,$l1);
+  }
+
+  return (strcmp($s,$s1) == 0);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Pretty printing.
 ///////////////////////////////////////////////////////////////////////////////

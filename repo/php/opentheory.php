@@ -147,11 +147,39 @@ function opentheory_tags($name_version) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Query package children.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_children($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $args = ' --dependencies ' . $name_version->to_string();
+
+  $output = opentheory_query('info',$args);
+
+  $children = array();
+
+  if (strcmp($output,'') != 0) {
+    $lines = explode("\n", $output);
+
+    foreach ($lines as $line) {
+      $child = from_string_package_name_version($line);
+
+      if (!isset($child)) { trigger_error('bad child'); }
+
+      $children[] = $child;
+    }
+  }
+
+  return $children;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Query package list.
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_list() {
-  $args = ' --name';
+  $args = ' --name --dependency-order';
 
   $output = opentheory_query('list',$args);
 

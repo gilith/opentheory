@@ -31,15 +31,18 @@ require_once 'php/output.php';  // SITE-SPECIFIC page output
 
 require_once 'php/name_version.php';  // Package name/versions
 require_once 'php/author.php';  // Package authors
-require_once 'php/package.php';  // Package table
 require_once 'php/tag.php';  // Package tags
 require_once 'php/opentheory.php';  // Opentheory tool interface
+require_once 'php/package.php';  // Package table
+require_once 'php/dependency.php';  // Package dependency table
 require_once 'php/repo.php';  // Repo operations
 
 ///////////////////////////////////////////////////////////////////////////////
 // Initialization.
 ///////////////////////////////////////////////////////////////////////////////
 
-//require_once 'php/command.php';  // Manually execute commands
+//if (effective_privilege_is_admin()) {
+//  require_once 'php/command.php';  // Manually execute commands
+//}
 
 ?>

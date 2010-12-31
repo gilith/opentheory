@@ -26,6 +26,7 @@ class Package {
   var $_author;
   var $_license;
   var $_uploaded;
+  var $_auxiliary;
 
   function id() { return $this->_id; }
 
@@ -38,6 +39,8 @@ class Package {
   function license() { return $this->_license; }
 
   function uploaded() { return $this->_uploaded; }
+
+  function auxiliary() { return $this->_auxiliary; }
 
   function name() {
     $namever = $this->name_version();
@@ -59,13 +62,25 @@ class Package {
     return $author->email();
   }
 
-  function Package($id,$name_version,$description,$author,$license,$uploaded) {
+  function is_auxiliary_child($child) {
+    isset($child) or trigger_error('bad child');
+
+    $name1 = $this->name();
+    $name2 = $child->name();
+
+    return is_prefix_package_name($name1,$name2);
+  }
+
+  function Package($id,$name_version,$description,$author,
+                   $license,$uploaded,$auxiliary)
+  {
     is_int($id) or trigger_error('bad id');
     isset($name_version) or trigger_error('bad name_version');
     is_string($description) or trigger_error('bad description');
     isset($author) or trigger_error('bad author');
     is_string($license) or trigger_error('bad license');
     isset($uploaded) or trigger_error('bad uploaded');
+    is_bool($auxiliary) or trigger_error('bad auxiliary');
 
     $this->_id = $id;
     $this->_name_version = $name_version;
@@ -73,6 +88,7 @@ class Package {
     $this->_author = $author;
     $this->_license = $license;
     $this->_uploaded = $uploaded;
+    $this->_auxiliary = $auxiliary;
   }
 }
 
@@ -87,6 +103,7 @@ function from_row_package($row) {
   $author_email = $row['author_email'];
   $license = $row['license'];
   $uploaded_datetime = $row['uploaded'];
+  $auxiliary_database = $row['auxiliary'];
 
   $name_version = new PackageNameVersion($name,$version);
 
@@ -95,8 +112,10 @@ function from_row_package($row) {
   $uploaded = new TimePoint();
   $uploaded->from_database_datetime($uploaded_datetime);
 
+  $auxiliary = bool_from_database_bool($auxiliary_database);
+
   return new Package($id,$name_version,$description,
-                     $author,$license,$uploaded);
+                     $author,$license,$uploaded,$auxiliary);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,19 +150,25 @@ class PackageTable extends DatabaseTable {
   function find_package_by_name_version($name_version) {
     isset($name_version) or trigger_error('bad name_version');
 
+    $name = $name_version->name();
+
+    $version = $name_version->version();
+
     $where =
-      'name = ' . database_value($name->name()) . ' AND ' .
-      'version = ' . database_value($name->version());
+      'name = ' . database_value($name) . ' AND ' .
+      'version = ' . database_value($version);
 
     return $this->find_package_where($where);
   }
 
-  function list_packages($order_by) {
+  function list_packages($where,$order_by) {
+    !isset($where) or is_string($where) or trigger_error('bad where');
     is_string($order_by) or trigger_error('bad order_by');
 
     $result = database_query('
       SELECT *
-      FROM ' . $this->table() . '
+      FROM ' . $this->table() . (isset($where) ? ('
+      WHERE ' . $where) : '') . '
       ORDER BY ' . $order_by . ';');
 
     $pkgs = array();
@@ -153,6 +178,14 @@ class PackageTable extends DatabaseTable {
     }
 
     return $pkgs;
+  }
+
+  function list_active_packages($order_by) {
+    is_string($order_by) or trigger_error('bad order_by');
+
+    $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
+
+    return $this->list_packages($where,$order_by);
   }
 
   function insert_package($package) {
@@ -173,6 +206,9 @@ class PackageTable extends DatabaseTable {
     $uploaded = $package->uploaded();
     $uploaded_datetime = $uploaded->to_database_datetime();
 
+    $auxiliary = $package->auxiliary();
+    $auxiliary_database = bool_to_database_bool($auxiliary);
+
     database_query('
       INSERT INTO ' . $this->table() . '
       SET id = ' . database_value($id) . ',
@@ -182,7 +218,19 @@ class PackageTable extends DatabaseTable {
           author_name = ' . database_value($author_name) . ',
           author_email = ' . database_value($author_email) . ',
           license = ' . database_value($license) . ',
-          uploaded = ' . database_value($uploaded_datetime) . ';');
+          uploaded = ' . database_value($uploaded_datetime) . ',
+          auxiliary = ' . database_value($auxiliary_database) . ';');
+  }
+
+  function mark_auxiliary($pkg) {
+    isset($pkg) or trigger_error('bad pkg');
+
+    $id = $pkg->id();
+
+    database_query('
+      UPDATE ' . $this->table() . '
+      SET auxiliary = ' . database_value(DATABASE_TRUE) . '
+      WHERE id = ' . database_value($id) . ';');
   }
 
   function create_package($name_version,$description,$author,$license) {
@@ -195,8 +243,10 @@ class PackageTable extends DatabaseTable {
 
     $uploaded = server_datetime();
 
+    $auxiliary = false;
+
     $package = new Package($id,$name_version,$description,
-                           $author,$license,$uploaded);
+                           $author,$license,$uploaded,$auxiliary);
 
     $this->insert_package($package);
 
@@ -212,7 +262,8 @@ class PackageTable extends DatabaseTable {
             'author_name' => 'varchar(' . PACKAGE_AUTHOR_NAME_CHARS . ') NOT NULL',
             'author_email' => 'varchar(' . PACKAGE_AUTHOR_EMAIL_CHARS . ') NOT NULL',
             'license' => 'varchar(' . PACKAGE_LICENSE_CHARS . ') NOT NULL',
-            'uploaded' => 'datetime NOT NULL');
+            'uploaded' => 'datetime NOT NULL',
+            'auxiliary' => database_bool_type() . ' NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (id)',
@@ -233,6 +284,18 @@ function package_table() {
   }
 
   return $global_package_table;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Look up a package.
+///////////////////////////////////////////////////////////////////////////////
+
+function find_package($package_id) {
+  is_int($package_id) or trigger_error('bad package_id');
+
+  $package_table = package_table();
+
+  return $package_table->find_package($package_id);
 }
 
 ?>

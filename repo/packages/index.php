@@ -13,7 +13,7 @@ $main =
 
 $package_table = package_table();
 
-$pkgs = $package_table->list_packages('name, version');
+$pkgs = $package_table->list_active_packages('name');
 
 if (count($pkgs) == 0) {
   $main .= '<p>No theory packages have been uploaded to this repo.</p>';
@@ -28,7 +28,7 @@ else {
 
     $main .=
 '<tr><td>' .
-site_link(package_document_path($name_version), $name_version->to_string()) .
+site_link(package_document_path($name_version), $name_version->name()) .
 '</td><td>' .
 string_to_html($description) .
 '</td></tr>';
