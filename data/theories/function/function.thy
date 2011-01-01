@@ -1,6 +1,6 @@
 name: function
 version: 1.0
-description: Basic function theory
+description: Basic theory of functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

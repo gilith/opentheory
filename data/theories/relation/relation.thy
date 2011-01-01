@@ -1,6 +1,6 @@
 name: relation
 version: 1.0
-description: Definitions and theorems about relations
+description: Basic theory of relations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

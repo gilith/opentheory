@@ -1,6 +1,6 @@
 name: pair
 version: 1.0
-description: Definition and theorems about the product type
+description: Basic theory of product types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

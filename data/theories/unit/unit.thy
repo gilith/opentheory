@@ -1,6 +1,6 @@
 name: unit
 version: 1.0
-description: Definition and theorems about the unit type
+description: Basic theory of the unit type
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
