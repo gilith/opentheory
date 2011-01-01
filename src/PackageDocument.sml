@@ -105,6 +105,7 @@ fun toHtml doc =
       val nameBlock =
           let
             val text =
+                "Package " ^
                 PackageName.toString (PackageNameVersion.name namever) ^ ": " ^
                 Package.description package
           in
@@ -132,7 +133,7 @@ fun toHtml doc =
           end
 
       val tagsBlocks =
-          [Html.H2 [Html.Text "Package Information"],
+          [Html.H2 [Html.Text "Information"],
            tagsBlock]
 
       val filesBlock =
@@ -166,7 +167,7 @@ fun toHtml doc =
           end
 
       val fileBlocks =
-          [Html.H2 [Html.Text "Package Files"],
+          [Html.H2 [Html.Text "Files"],
            filesBlock]
 
       val summaryBlocks =

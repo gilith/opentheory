@@ -155,6 +155,8 @@ THEORY_DIR = data/theories
 
 HOL_LIGHT_THEORY_DIR = $(THEORY_DIR)/hol-light
 
+OPENTHEORY_INFO = $(OPENTHEORY) info
+
 OPENTHEORY_INIT = $(OPENTHEORY) init
 
 OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual
@@ -235,7 +237,7 @@ hol-light-theories: $(OPENTHEORY)
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)
-	for thy in $(COMPILATION_THEORIES) ; do if ! $(OPENTHEORY) info --manual $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
+	for thy in $(COMPILATION_THEORIES) ; do if ! $(OPENTHEORY_INFO) $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
 
 .PHONY: reset-repo
 reset-repo:
@@ -264,6 +266,10 @@ TEST_PACKAGE_DIR = test/directory
 
 TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_PACKAGE_DIR)
 
+TEST_OPENTHEORY_INIT = $(TEST_OPENTHEORY) init
+
+TEST_OPENTHEORY_INSTALL = $(TEST_OPENTHEORY) install --manual
+
 .PHONY: init
 init:
 	@echo
@@ -273,11 +279,11 @@ init:
 	@echo
 	$(MAKE) $(OPENTHEORY)
 	rm -rf $(TEST_PACKAGE_DIR)
-	$(TEST_OPENTHEORY) init
-	$(TEST_OPENTHEORY) install $(THEORY_DIR)/empty/empty.thy
-	$(TEST_OPENTHEORY) install $(THEORY_DIR)/bool-def-true/bool-def-true.thy
-	$(TEST_OPENTHEORY) install $(THEORY_DIR)/bool-int-true/bool-int-true.thy
-	$(TEST_OPENTHEORY) install $(THEORY_DIR)/bool-true/bool-true.thy
+	$(TEST_OPENTHEORY_INIT)
+	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
+	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-def-true/bool-def-true.thy
+	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-int-true/bool-int-true.thy
+	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
 
 ###############################################################################
 # Counting the number of lines of code.
