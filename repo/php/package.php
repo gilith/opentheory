@@ -245,6 +245,12 @@ class PackageTable extends DatabaseTable {
     return $this->list_packages($where,$order_by,$limit);
   }
 
+  function count_active_packages() {
+    $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
+
+    return $this->count_rows($where);
+  }
+
   function list_recent_packages($limit) {
     is_int($limit) or trigger_error('bad limit');
 
@@ -351,6 +357,15 @@ function package_table() {
   }
 
   return $global_package_table;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Count packages.
+///////////////////////////////////////////////////////////////////////////////
+
+function count_active_packages() {
+  $package_table = package_table();
+  return $package_table->count_active_packages();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

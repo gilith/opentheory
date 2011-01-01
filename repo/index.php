@@ -2,8 +2,45 @@
 
 require_once 'opentheory.php';
 
+///////////////////////////////////////////////////////////////////////////////
+// Constants.
+///////////////////////////////////////////////////////////////////////////////
+
+define('SHORT_RECENT_PACKAGE_LIMIT',3);
+
+///////////////////////////////////////////////////////////////////////////////
+// Main page.
+///////////////////////////////////////////////////////////////////////////////
+
+$num_pkgs = count_active_packages();
+
 $main =
-'<p>Hello and welcome</p>';
+'<p>Welcome to the ' . ucfirst(REPO_NAME) . ' OpenTheory repo, which
+is currently storing ' .
+
+pretty_number($num_pkgs) . ' theory package' . (($num_pkgs == 1) ? '' : 's') .
+
+'. Each theory package contains a collection of theorems, the proofs of
+which have been broken down into the primitive inferences of higher
+order logic.</p>' .
+
+'<p>This web interface is provided to help browse through the ' .
+
+site_link(array('packages'),'available packages') .
+
+', but the recommended way of downloading and processing theory
+packages is to use the
+
+<a href="http://www.gilith.com/software/opentheory/">opentheory</a>
+
+package management tool. For more information on OpenTheory please
+refer to the
+
+<a href="http://www.gilith.com/research/opentheory/">project homepage</a>.</p>' .
+
+'<h2>Recently Uploaded Packages</h2>' .
+
+pretty_recent_packages(SHORT_RECENT_PACKAGE_LIMIT);
 
 $image =
   array(site_image('silver-falls.jpg','Silver Falls'),

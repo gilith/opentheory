@@ -295,7 +295,7 @@ table.package td {
 * Recently uploaded packages.
 ******************************************************************************/
 
-p.recent {
+p.recent-package {
   margin: 0;
   padding-top: 0;
   padding-bottom: 10px;
@@ -303,6 +303,6 @@ p.recent {
   padding-right: 0;
 }
 
-p.recent small {
+p.recent-package small {
   color: #808080;
 }

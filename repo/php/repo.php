@@ -90,4 +90,42 @@ function repo_reset() {
   repo_register_all();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Pretty-print recently uploaded packages.
+///////////////////////////////////////////////////////////////////////////////
+
+function pretty_recent_packages($limit) {
+  is_int($limit) or trigger_error('bad limit');
+
+  $package_table = package_table();
+
+  $pkgs = $package_table->list_recent_packages($limit);
+
+  if (count($pkgs) == 0) {
+    $ret = '<p>No theory packages have been uploaded to this repo.</p>';
+  }
+  else {
+    $ret = '';
+
+    foreach ($pkgs as $pkg) {
+      $description = $pkg->description();
+
+      $since_uploaded = $pkg->since_uploaded();
+
+      $author_name = $pkg->author_name();
+
+      $ret .=
+'<p class="recent-package">' .
+$pkg->link($pkg->to_string()) .
+' &mdash; ' .
+string_to_html($description) .
+'<br /><small>' .
+'Uploaded ' . $since_uploaded->to_string() . ' ago by ' . $author_name .
+'</small></p>';
+    }
+  }
+
+  return $ret;
+}
+
 ?>
