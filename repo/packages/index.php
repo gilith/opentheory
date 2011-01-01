@@ -11,6 +11,8 @@ if (isset($pkg)) { $pkg = from_string_package_name_version(input('pkg')); }
 if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
 
 if (isset($pkg)) {
+  set_bread_crumbs_extension(array());
+
   $author = $pkg->author();
 
   $uploaded = $pkg->uploaded();

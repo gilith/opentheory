@@ -75,13 +75,17 @@ div#header {
 }
 
 div#header h1 {
-  margin: 0;
+  margin-top: 0;
+  margin-bottom: 3px;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
   font-size: 200%;
   font-weight: normal;
 }
 
 div#header p {
-  margin-top: 10px;
+  margin-top: 7px;
   margin-bottom: 0;
   margin-left: 0;
   margin-right: 0;
@@ -91,25 +95,6 @@ div#header p {
 div#header a {
   text-decoration: none;
   color: black;
-}
-
-div#header div#loggedin {
-  float: right;
-  margin-top: 0;
-  margin-bottom: 20px;
-  margin-left: 20px;
-  margin-right: 0;
-  padding: 0;
-  font-size: smaller;
-}
-
-div#header div#logo {
-  float: left;
-  margin-top: 0;
-  margin-bottom: 20px;
-  margin-left: 0;
-  margin-right: 20px;
-  padding: 0;
 }
 
 div#header div#logo {
@@ -125,6 +110,25 @@ div#header div#logo img {
   margin: 0;
   padding: 0;
   display: block;
+}
+
+div#header div#navigation {
+  float: left;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: 0;
+  margin-right: 20px;
+  padding: 0;
+}
+
+div#header div#loggedin {
+  float: right;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: 20px;
+  margin-right: 0;
+  padding: 0;
+  font-size: smaller;
 }
 
 div#header-clearer {

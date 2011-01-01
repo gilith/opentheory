@@ -23,7 +23,13 @@ if (isset($user)) {
 
 <hr />
 
-<h2>Current Session</h2>
+<h2>Current Session</h2>' .
+(effective_privilege_is_admin()
+ ? ('
+
+<p>' . field_text('Cookie') . '&nbsp; &nbsp;' .
+$session->to_string() . '</p>')
+ : '') . '
 
 <p>' . field_text('Expires') . '&nbsp; &nbsp;' .
 $session_expires->to_string_date() . '</p>' .

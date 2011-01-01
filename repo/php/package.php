@@ -250,7 +250,7 @@ class PackageTable extends DatabaseTable {
 
     $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
 
-    $order_by = 'uploaded';
+    $order_by = 'uploaded DESC';
 
     return $this->list_packages($where,$order_by,$limit);
   }

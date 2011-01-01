@@ -3,28 +3,68 @@
 require_once '../opentheory.php';
 
 ///////////////////////////////////////////////////////////////////////////////
+// Check for admin privilege.
+///////////////////////////////////////////////////////////////////////////////
+
+if (!effective_privilege_is_admin()) { jump_path(array()); }
+
+///////////////////////////////////////////////////////////////////////////////
+// Reading the log file.
+///////////////////////////////////////////////////////////////////////////////
+
+define('REPO_LOG_LINES',10);
+
+function read_log($num) {
+  is_int($num) or trigger_error('bad num');
+
+  $cmd_num = $num + 1;
+
+  $cmd = 'tail -n ' . $cmd_num . ' ' . REPO_LOG_PATH . ' 2>&1';
+
+  $output = shell_exec($cmd);
+
+  if (isset($output)) { $output = rtrim($output); }
+  else { $output = ''; }
+
+  if (strcmp($output,'') == 0) {
+    $ret = 'The repo log file is empty.';
+  }
+  else {
+    $lines = explode("\n", $output);
+
+    $munge = (count($lines) == $cmd_num);
+
+    $first = true;
+
+    $ret = '';
+
+    foreach ($lines as $line) {
+      if ($first) { $first = false; }
+      else { $ret .= '<br />'; }
+
+      if ($munge) { $munge = false; $s = '[...]'; }
+      else { $s = $line; }
+
+      $ret .= '<tt>' . string_to_html($s) . '</tt>';
+    }
+  }
+
+  $ret = '<p>' . $ret . '</p>';
+
+  return $ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Main page.
 ///////////////////////////////////////////////////////////////////////////////
 
-$cmd = from_string(input('x'));
-
-if (isset($cmd) && strcmp($cmd,'reset') == 0) {
-  opentheory_reset();
-
-  $cmd = 'echo "reset package directory" >> ' . LOG_PATH;
-  shell_exec($cmd);
-
-  if (is_script()) {
-    output_script('successfully reset the package directory');
-  }
-  else {
-    jump_path(bread_crumbs(), null);
-  }
-}
-
 $title = 'Admin';
 
-$main = '<p>Administrative interface.</p>';
+$main =
+'<h2>Repo Administration<h2>' .
+
+'<h3>Repo Log</h3>' .
+read_log(REPO_LOG_LINES);
 
 $image = site_image('katoomba.jpg','Katoomba Scenic Railway');
 

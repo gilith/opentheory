@@ -17,6 +17,18 @@ require_once 'links.php';
 require_once 'tag.php';
 
 ///////////////////////////////////////////////////////////////////////////////
+// Write to the opentheory repo log.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_log($line) {
+  is_string($line) or trigger_error('bad line');
+
+  $cmd = 'echo "' . $line . '" >> ' . REPO_LOG_PATH;
+
+  shell_exec($cmd);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Invoke the opentheory program to carry out an action.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +42,11 @@ REPO_BIN .
 $action . $args .
 ' 2>&1 >> ' . REPO_LOG_PATH;
 
-  return shell_exec($cmd);
+  $output = shell_exec($cmd);
+
+  if (isset($output)) { $output = rtrim($output); }
+
+  return $output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,7 +63,12 @@ REPO_BIN .
 $action . $args .
 ' 2>&1';
 
-  return rtrim(shell_exec($cmd));
+  $output = shell_exec($cmd);
+
+  if (isset($output)) { $output = rtrim($output); }
+  else { $output = ''; }
+
+  return $output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

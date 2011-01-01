@@ -42,6 +42,8 @@ class Session {
     $this->_mobile = $mobile;
   }
 
+  function to_string() { return $this->id(); }
+
   function Session($id,$user,$expires,$mobile) {
     is_string($id) or trigger_error('bad id');
     isset($user) or trigger_error('bad user');

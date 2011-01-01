@@ -40,7 +40,8 @@ function site_map() {
     $global_site_map['upload'] = null;
 
     if (effective_privilege_is_admin()) {
-      $global_site_map['admin'] = null;
+      $global_site_map['admin'] =
+        array('reset' => null);
     }
   }
 
@@ -153,7 +154,7 @@ function navigation() {
   }
   $nav =
 '<div id="logo">' . $logo . '</div>' .
-'<h1>' . $text . '</h1>' . $nav;
+'<div id="navigation"><h1>' . $text . '</h1>' . $nav . '</div>';
 
   return $nav;
 }

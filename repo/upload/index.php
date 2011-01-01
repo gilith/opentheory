@@ -131,16 +131,14 @@ if ($select->is_value()) {
   if (isset($output)) {
     if (is_script()) {
       $report =
-        'failed to install package ' . $name_version->to_string() .
-        ' from tarball:' . "\n" .
+        'failed to upload package ' . $name_version->to_string() . ':' . "\n" .
         $output;
 
       output_script($report);
     }
 
     $main =
-'<p>Failed to install package ' . $name_version->to_string() .
-' from tarball:</p>' .
+'<p>Failed to upload package ' . $name_version->to_string() . ':</p>' .
 '<pre>' . $output . '</pre>';
   }
   else {
@@ -163,7 +161,9 @@ if (isset($main)) {
 }
 else {
   $main =
-'<p>The recommended way to upload packages is to use the
+'<h2>Upload a Package</h2>
+
+<p>The recommended way to upload packages is to use the
 
 <a href="http://www.gilith.com/software/opentheory/">opentheory</a>
 

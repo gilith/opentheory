@@ -149,6 +149,8 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 # Install and upload theories.
 ###############################################################################
 
+REPO_SESSION = 8cb585f5b6b2e42f917d3448de5221aa
+
 THEORY_DIR = data/theories
 
 HOL_LIGHT_THEORY_DIR = $(THEORY_DIR)/hol-light
@@ -237,7 +239,7 @@ compilation-theories: $(OPENTHEORY)
 
 .PHONY: reset-repo
 reset-repo:
-	curl --user-agent opentheory "http://opentheory.gilith.com/admin/?x=reset"
+	curl --user-agent opentheory "http://opentheory.gilith.com/admin/reset/?session=$(REPO_SESSION)&d=1&x=1"
 
 .PHONY: reset-theories
 reset-theories:
