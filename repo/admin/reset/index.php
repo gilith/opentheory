@@ -81,7 +81,6 @@ if ($select->is_value()) {
 
   if ($delete) {
     opentheory_reset();
-    opentheory_log('reset package directory');
   }
 
   repo_reset();

@@ -83,14 +83,20 @@ $pkg->theory_file_link($pkg->theory_file_name()) .
 
 $title = 'Packages';
 
-$main =
-'<h2>All Packages</h2>';
-
 $package_table = package_table();
 
 $pkgs = $package_table->list_active_packages();
 
-if (count($pkgs) == 0) {
+$num_pkgs = count($pkgs);
+
+$main =
+'<h2>All ' .
+(($num_pkgs >= 10)
+ ? (pretty_number($num_pkgs) . ' ')
+ : '') .
+'Packages</h2>';
+
+if ($num_pkgs == 0) {
   $main .= '<p>No theory packages have been uploaded to this repo.</p>';
 }
 else {

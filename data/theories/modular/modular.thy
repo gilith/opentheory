@@ -1,6 +1,6 @@
 name: modular
 version: 1.0
-description: Functor theory of modular arithmetic
+description: Parametric theory of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

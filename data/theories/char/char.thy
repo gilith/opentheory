@@ -56,8 +56,16 @@ def {
   package: char-def-1.0
 }
 
+utf8 {
+  import: plane
+  import: position
+  import: def
+  package: char-utf8-1.0
+}
+
 main {
   import: plane
   import: position
   import: def
+  import: utf8
 }

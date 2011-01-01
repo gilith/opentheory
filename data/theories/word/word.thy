@@ -1,6 +1,6 @@
 name: word
 version: 1.0
-description: Basic functor theory of words
+description: Parametric theory of words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

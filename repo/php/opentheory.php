@@ -200,6 +200,8 @@ function opentheory_reset() {
 
   shell_exec($cmd);
 
+  opentheory_log('deleted package directory');
+
   opentheory_init();
 }
 
