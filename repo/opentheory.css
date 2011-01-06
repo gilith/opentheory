@@ -158,6 +158,10 @@ div#content {
   padding: 0;
 }
 
+div#content h2 span.more {
+  font-size: 50%;
+}
+
 div#content .top {
   margin-top: 0;
 }

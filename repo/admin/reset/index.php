@@ -101,7 +101,7 @@ $main =
 site_form(bread_crumbs(),
           $select->select());
 
-$image = site_image('katoomba.jpg','Katoomba Scenic Railway');
+$image = site_image('flooded-fenland.jpg','Flooded Fenland');
 
 output(array('title' => $title), $main, $image);
 

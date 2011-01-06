@@ -20,9 +20,10 @@ is currently storing ' .
 
 pretty_number($num_pkgs) . ' theory package' . (($num_pkgs == 1) ? '' : 's') .
 
-'. Each theory package contains a collection of theorems, the proofs of
-which have been broken down into the primitive inferences of higher
-order logic.</p>' .
+'. Each theory package contains a collection of theorems together with
+their proofs. The proofs have been broken down into the primitive
+inferences of higher order logic, allowing them to be checked by
+computer.</p>' .
 
 '<p>This web interface is provided to help browse through the ' .
 
@@ -38,7 +39,11 @@ refer to the
 
 <a href="http://www.gilith.com/research/opentheory/">project homepage</a>.</p>' .
 
-'<h2>Recently Uploaded Packages</h2>' .
+'<h2>Recently Uploaded Packages <span class="more">[' .
+
+site_link(array('recent'),'more') .
+
+']</span></h2>' .
 
 pretty_recent_packages(SHORT_RECENT_PACKAGE_LIMIT);
 

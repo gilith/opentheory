@@ -76,7 +76,7 @@ $pkg->theory_file_link($pkg->theory_file_name()) .
 
   $title = 'Package ' . $pkg->to_string();
 
-  $image = site_image('tree.jpg','Sunset Tree');
+  $image = site_image('sunset-tree.jpg','Sunset Tree');
 
   output(array('title' => $title), $main, $image);
 }
@@ -116,7 +116,7 @@ string_to_html($description) .
   $main .= '</ul>';
 }
 
-$image = site_image('tree.jpg','Sunset Tree');
+$image = site_image('frozen-forest.jpg','Frozen Forest');
 
 output(array('title' => $title), $main, $image);
 

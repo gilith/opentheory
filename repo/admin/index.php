@@ -66,7 +66,7 @@ $main =
 '<h3>Repo Log</h3>' .
 read_log(REPO_LOG_LINES);
 
-$image = site_image('katoomba.jpg','Katoomba Scenic Railway');
+$image = site_image('cedar-point.jpg','Cedar Point');
 
 output(array('title' => $title), $main, $image);
 
