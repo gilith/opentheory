@@ -9,16 +9,14 @@ Maintainer: Joe Hurd
 -}
 module Main(main) where
 
+import Data.Word
+import OpenTheory.Char
 import Test.QuickCheck
 
-import OpenTheory.Char
-
 instance Arbitrary Plane where
-  arbitrary =
-      do x <- Test.QuickCheck.arbitrarySizedIntegral
-         let x' = if x < 0 then -x else x
-         let x'' = x' `mod` 17
-         return (Plane x'')
+  arbitrary = fmap Plane (Test.QuickCheck.suchThat arbitrary predicate)
+      where
+    predicate i = 0 <= i && i < 17
 
 instance Arbitrary Position where
   arbitrary = fmap Position arbitrary
@@ -40,5 +38,17 @@ prop1 cs =
       Just cs' -> cs == cs'
       Nothing -> False
 
+prop2 :: [Data.Word.Word8] -> Bool
+prop2 bs =
+    case OpenTheory.Char.decode bs of
+      Just cs -> OpenTheory.Char.encode cs == bs
+      Nothing -> True
+
+prop3 :: [OpenTheory.Char.Unicode] -> Bool
+prop3 cs = length cs <= length (OpenTheory.Char.encode cs)
+
 main :: IO ()
-main = do check "print then parse" prop1
+main =
+    do check "print then parse" prop1
+       check "parse then print" prop2
+       check "printing grows length" prop3
