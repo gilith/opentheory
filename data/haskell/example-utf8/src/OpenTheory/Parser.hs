@@ -18,6 +18,7 @@ data Token a =
     Error
   | Eof
   | Token a (Token a)
+  deriving (Eq,Show)
 
 fromList :: [a] -> Token a
 fromList [] = Eof
@@ -31,12 +32,13 @@ toList (Token a t) =
       Just t' -> Just (a : t')
       Nothing -> Nothing
 
-newtype Parser a b = Parser { unParser :: (a, Token a) -> Maybe (b, Token a) }
+newtype Parser a b =
+    Parser { unParser :: a -> Token a -> Maybe (b, Token a) }
 
 parse :: Parser a b -> Token a -> Token b
 parse _ Error = Error
 parse _ Eof = Eof
 parse p (Token a t) =
-    case unParser p (a,t) of
+    case unParser p a t of
       Nothing -> Error
       Just (b,t') -> Token b (parse p t')
