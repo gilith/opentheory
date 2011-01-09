@@ -259,7 +259,7 @@ upload-theories: $(OPENTHEORY)
 	for pkg in $$($(OPENTHEORY_LIST)) ; do if ! $(OPENTHEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
 
 ###############################################################################
-# Initialization following a repo clone.
+# Create the test OpenTheory directory.
 ###############################################################################
 
 TEST_PACKAGE_DIR = test/directory
@@ -270,13 +270,8 @@ TEST_OPENTHEORY_INIT = $(TEST_OPENTHEORY) init
 
 TEST_OPENTHEORY_INSTALL = $(TEST_OPENTHEORY) install --manual
 
-.PHONY: init
-init:
-	@echo
-	@echo '*****************************************************'
-	@echo '* Initialize this development version of opentheory *'
-	@echo '*****************************************************'
-	@echo
+.PHONY: test-directory
+test-directory:
 	$(MAKE) $(OPENTHEORY)
 	rm -rf $(TEST_PACKAGE_DIR)
 	$(TEST_OPENTHEORY_INIT)
@@ -284,6 +279,19 @@ init:
 	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-def-true/bool-def-true.thy
 	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-int-true/bool-int-true.thy
 	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
+
+###############################################################################
+# Initialization following a repo clone.
+###############################################################################
+
+.PHONY: init
+init:
+	@echo
+	@echo '******************************************************'
+	@echo '* Initialize this development snapshot of opentheory *'
+	@echo '******************************************************'
+	@echo
+	$(MAKE) test-directory
 
 ###############################################################################
 # Counting the number of lines of code.

@@ -1,4 +1,3 @@
-{-# LANGUAGE StandaloneDeriving #-}
 {- |
 Module: $Header$
 Description: A verified UTF8 parser
