@@ -10,9 +10,9 @@ module Main
   ( main )
 where
 
-import Data.Word
-import OpenTheory.Char
-import OpenTheory.Test
+import qualified Data.Word
+import qualified OpenTheory.Char
+import qualified OpenTheory.Test
 
 prop1 :: [OpenTheory.Char.Unicode] -> Bool
 prop1 cs =

@@ -10,38 +10,38 @@ Portability: portable
 A verified UTF8 parser
 -}
 module OpenTheory.Parser
-  ( Token(..),
+  ( Stream(..),
     fromList,
     toList,
     Parser(..),
     parse )
 where
 
-data Token a =
+data Stream a =
     Error
   | Eof
-  | Token a (Token a)
+  | Stream a (Stream a)
   deriving (Eq,Show)
 
-fromList :: [a] -> Token a
+fromList :: [a] -> Stream a
 fromList [] = Eof
-fromList (a : t) = Token a (fromList t)
+fromList (a : t) = Stream a (fromList t)
 
-toList :: Token a -> Maybe [a]
+toList :: Stream a -> Maybe [a]
 toList Error = Nothing
 toList Eof = Just []
-toList (Token a t) =
+toList (Stream a t) =
     case toList t of
       Just t' -> Just (a : t')
       Nothing -> Nothing
 
 newtype Parser a b =
-    Parser { unParser :: a -> Token a -> Maybe (b, Token a) }
+    Parser { unParser :: a -> Stream a -> Maybe (b, Stream a) }
 
-parse :: Parser a b -> Token a -> Token b
+parse :: Parser a b -> Stream a -> Stream b
 parse _ Error = Error
 parse _ Eof = Eof
-parse p (Token a t) =
+parse p (Stream a t) =
     case unParser p a t of
       Nothing -> Error
-      Just (b,t') -> Token b (parse p t')
+      Just (b,t') -> Stream b (parse p t')

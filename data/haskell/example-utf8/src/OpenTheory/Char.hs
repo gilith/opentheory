@@ -13,23 +13,24 @@ module OpenTheory.Char
   ( Plane(..),
     Position(..),
     Unicode(..),
-    decodeToken,
+    decodeStream,
     decode,
     encode)
 where
 
-import Data.Bits
-import Data.Word
-import OpenTheory.Natural
-import OpenTheory.Parser
-import Test.QuickCheck
+import qualified Data.Bits
+import qualified Data.Word
+import qualified OpenTheory.Natural
+import qualified OpenTheory.Parser
+import qualified Test.QuickCheck
 
 newtype Plane =
     Plane { unPlane :: OpenTheory.Natural.Natural }
   deriving (Eq,Show)
 
-instance Arbitrary Plane where
-  arbitrary = fmap Plane (Test.QuickCheck.suchThat arbitrary predicate)
+instance Test.QuickCheck.Arbitrary Plane where
+  arbitrary = fmap Plane
+                (Test.QuickCheck.suchThat Test.QuickCheck.arbitrary predicate)
       where
     predicate i = i < 17
 
@@ -37,22 +38,23 @@ newtype Position =
     Position { unPosition :: Data.Word.Word16 }
   deriving (Eq,Show)
 
-instance Arbitrary Position where
-  arbitrary = fmap Position arbitrary
+instance Test.QuickCheck.Arbitrary Position where
+  arbitrary = fmap Position Test.QuickCheck.arbitrary
 
 data Unicode =
     Unicode Plane Position
   deriving (Eq,Show)
 
-instance Arbitrary Unicode where
-  arbitrary = fmap (\(pl,pos) -> Unicode pl pos) arbitrary
+instance Test.QuickCheck.Arbitrary Unicode where
+  arbitrary = fmap (\(pl,pos) -> Unicode pl pos)
+                Test.QuickCheck.arbitrary
 
-parser :: Parser Word8 Unicode
+parser :: OpenTheory.Parser.Parser Data.Word.Word8 Unicode
 parser =
-    Parser p
+    OpenTheory.Parser.Parser p
   where
     p b t =
-        if testBit b 7
+        if Data.Bits.testBit b 7
           then
             Nothing
           else
@@ -61,7 +63,7 @@ parser =
             let ch = Unicode pl pos in
             Just (ch,t)
 
-printer :: Unicode -> [Word8]
+printer :: Unicode -> [Data.Word.Word8]
 printer (Unicode pl pos) =
     let pli = unPlane pl in
     let posi = unPosition pos in
@@ -73,11 +75,12 @@ printer (Unicode pl pos) =
       else
         []
 
-decodeToken :: Token Word8 -> Token Unicode
-decodeToken = OpenTheory.Parser.parse parser
+decodeStream :: OpenTheory.Parser.Stream Data.Word.Word8
+             -> OpenTheory.Parser.Stream Unicode
+decodeStream = OpenTheory.Parser.parse parser
 
-decode :: [Word8] -> Maybe [Unicode]
-decode = OpenTheory.Parser.toList . decodeToken . OpenTheory.Parser.fromList
+decode :: [Data.Word.Word8] -> Maybe [Unicode]
+decode = OpenTheory.Parser.toList . decodeStream . OpenTheory.Parser.fromList
 
-encode :: [Unicode] -> [Word8]
+encode :: [Unicode] -> [Data.Word.Word8]
 encode = concat . map printer
