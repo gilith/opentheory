@@ -2,9 +2,12 @@
 Module: $Header$
 Description: A verified UTF8 parser
 License: MIT
-License-file: LICENSE
 
-Maintainer: Joe Hurd
+Maintainer: Joe Hurd <joe@gilith.com>
+Stability: provisional
+Portability: portable
+
+A verified UTF8 parser
 -}
 module OpenTheory.Char
   ( Plane(..),
@@ -17,19 +20,32 @@ where
 
 import Data.Bits
 import Data.Word
+import OpenTheory.Natural
 import OpenTheory.Parser
+import Test.QuickCheck
 
 newtype Plane =
-    Plane { unPlane :: Integer }
+    Plane { unPlane :: OpenTheory.Natural.Natural }
   deriving (Eq,Show)
+
+instance Arbitrary Plane where
+  arbitrary = fmap Plane (Test.QuickCheck.suchThat arbitrary predicate)
+      where
+    predicate i = i < 17
 
 newtype Position =
     Position { unPosition :: Data.Word.Word16 }
   deriving (Eq,Show)
 
+instance Arbitrary Position where
+  arbitrary = fmap Position arbitrary
+
 data Unicode =
     Unicode Plane Position
   deriving (Eq,Show)
+
+instance Arbitrary Unicode where
+  arbitrary = fmap (\(pl,pos) -> Unicode pl pos) arbitrary
 
 parser :: Parser Word8 Unicode
 parser =

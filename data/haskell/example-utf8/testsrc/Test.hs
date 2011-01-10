@@ -2,34 +2,17 @@
 Module: $Header$
 Description: A verified UTF8 parser
 License: MIT
-License-file: LICENSE
 
+License-file: LICENSE
 Maintainer: Joe Hurd
 -}
-module Main(main) where
+module Main
+  ( main )
+where
 
 import Data.Word
 import OpenTheory.Char
-import Test.QuickCheck
-
-instance Arbitrary Plane where
-  arbitrary = fmap Plane (Test.QuickCheck.suchThat arbitrary predicate)
-      where
-    predicate i = 0 <= i && i < 17
-
-instance Arbitrary Position where
-  arbitrary = fmap Position arbitrary
-
-instance Arbitrary Unicode where
-  arbitrary = fmap (\(pl,pos) -> Unicode pl pos) arbitrary
-
-checkArgs :: Test.QuickCheck.Args
-checkArgs = Test.QuickCheck.stdArgs { maxSuccess = 100 }
-
-check :: Testable prop => String -> prop -> IO ()
-check name prop =
-  do putStr (name ++ ": ")
-     Test.QuickCheck.quickCheckWith checkArgs prop
+import OpenTheory.Test
 
 prop1 :: [OpenTheory.Char.Unicode] -> Bool
 prop1 cs =
@@ -48,6 +31,6 @@ prop3 cs = length cs <= length (OpenTheory.Char.encode cs)
 
 main :: IO ()
 main =
-    do check "print then parse" prop1
-       check "parse then print" prop2
-       check "printing grows length" prop3
+    do OpenTheory.Test.check "print then parse" prop1
+       OpenTheory.Test.check "parse then print" prop2
+       OpenTheory.Test.check "printing grows length" prop3

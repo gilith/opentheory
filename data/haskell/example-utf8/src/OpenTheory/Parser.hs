@@ -2,9 +2,12 @@
 Module: $Header$
 Description: A verified UTF8 parser
 License: MIT
-License-file: LICENSE
 
-Maintainer: Joe Hurd
+Maintainer: Joe Hurd <joe@gilith.com>
+Stability: provisional
+Portability: portable
+
+A verified UTF8 parser
 -}
 module OpenTheory.Parser
   ( Token(..),
