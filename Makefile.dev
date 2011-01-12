@@ -228,7 +228,7 @@ reset-hol-light-theories:
 .PHONY: hol-light-theories
 hol-light-theories: $(OPENTHEORY)
 	mkdir -p $(HOL_LIGHT_THEORY_DIR)
-	cd ../hol-light && opentheory/capture
+	cd ../hol-light && opentheory/scripts/capture
 
 .PHONY: compilation-theories
 compilation-theories: $(OPENTHEORY)

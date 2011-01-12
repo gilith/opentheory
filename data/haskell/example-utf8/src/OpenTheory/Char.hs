@@ -25,7 +25,7 @@ import qualified OpenTheory.Parser
 import qualified Test.QuickCheck
 
 newtype Plane =
-    Plane { unPlane :: OpenTheory.Natural.Natural }
+    Plane { unPlane :: Data.Word.Word8 }
   deriving (Eq,Show)
 
 instance Test.QuickCheck.Arbitrary Plane where
