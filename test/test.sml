@@ -326,11 +326,13 @@ val () = compress "hol-light" "bool-true-thm";
 val () = SAY "Summarizing articles";
 (* ------------------------------------------------------------------------- *)
 
+val SUMMARY_DIR = "summaries";
+
 fun mkSummaryFilename name =
     let
       val file = OS.Path.joinBaseExt {base = name, ext = SOME "sum"}
     in
-      OS.Path.joinDirFile {dir = ARTICLE_DIR, file = file}
+      OS.Path.joinDirFile {dir = SUMMARY_DIR, file = file}
     end;
 
 fun summarize name =

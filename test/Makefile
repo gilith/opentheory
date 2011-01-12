@@ -23,13 +23,13 @@ TMPFILE2 = /tmp/test-make-file2
 
 TEMP = \
   $(TMPFILE1) $(TMPFILE2) mosml-result mlton-result polyml-result \
-  articles/bool-true-def.art articles/bool-true-def.sum \
-  articles/bool-true-thm.art articles/bool-true-thm.sum \
-  articles/empty.art articles/empty.sum \
-  articles/example1.art articles/example1.sum \
-  articles/example2.art articles/example2.sum \
-  articles/example3.art articles/example3.sum \
-  articles/example4.art articles/example4.sum
+  articles/bool-true-def.art summaries/bool-true-def.sum \
+  articles/bool-true-thm.art summaries/bool-true-thm.sum \
+  articles/empty.art summaries/empty.sum \
+  articles/example1.art summaries/example1.sum \
+  articles/example2.art summaries/example2.sum \
+  articles/example3.art summaries/example3.sum \
+  articles/example4.art summaries/example4.sum
 
 .PHONY: clean
 clean:
