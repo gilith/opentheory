@@ -142,7 +142,7 @@ in the form of tags, for example:</p>
 version: 1.0<br />
 description: Basic boolean theory<br />
 author: Joe Hurd &lt;joe@gilith.com&gt;<br />
-license: OpenTheory</tt></p>
+license: MIT</tt></p>
 </blockquote>
 
 <hr />
@@ -157,48 +157,21 @@ have extension <kbd>.art</kbd>.</p>
 
 <h4>How can I generate a proof article file from a HOL Light theory file?</h4>
 
-<p>First, prepare HOL Light for logging primitive inferences:</p>
-
 <ol>
 
-<li>Change to the HOL Light directory.</li>
+<li>First, install the
 
-<li>Unpack the
+<a href="http://src.gilith.com/hol-light.html">Proof Logging in HOL Light Development Snapshot</a>.</li>
 
-<a href="hol-light.tgz"><tt>hol-light.tgz</tt></a>
-
-tarball to the HOL Light directory:
-
+<li>Add the following line to the top of the HOL Light theory file <tt>NAME.ml</tt>:
 <blockquote>
-<p><tt>tar xvzf hol-light.tgz</tt></p>
+<p><tt>logfile "THEORY";;</tt></p>
 </blockquote></li>
 
-<li>Make
-
-<a href="hol-diff.txt">one change</a>
-
-to the <tt>hol.ml</tt> HOL Light file.</li>
-
-</ol>
-
-<p>Once HOL Light has been prepared, the HOL Light script
-file <tt>NAME.ml</tt> can be converted to the proof article
-file <tt>THEORY.art</tt> by the following steps:</p>
-
-<ol>
-
-<li>Add the following lines to the top of the <tt>NAME.ml</tt> theory
-file:
-<blockquote>
-<p><tt>start_logging ();;<br />
-logfile "THEORY";;</tt></p>
-</blockquote></li>
-
-<li>Add the following lines to the bottom of the <tt>NAME.ml</tt>
+<li>Add the following line to the bottom of the <tt>NAME.ml</tt>
 theory file:
 <blockquote>
-<p><tt>logfile_end ();;<br />
-stop_logging ();;</tt></p>
+<p><tt>logfile_end ();;</tt></p>
 </blockquote></li>
 
 <li>Run the <tt>NAME.ml</tt> file through HOL Light in the usual
@@ -219,13 +192,13 @@ OpenTheory standard namespace with the command
 <blockquote>
 <p><tt>opentheory info --article -o THEORY.art opentheory/articles/THEORY.thy</tt></p>
 </blockquote>
-Running this command will generate the proof article
+Running this command will generate the OpenTheory proof article
 file <tt>THEORY.art</tt>.</li>
 
 </ol>
 
-<p>You can rename the type operators and constants that you define in
-<tt>NAME.ml</tt> by adding lines to
+<p><b>Note:</b> You can rename the type operators and constants that
+you define in <tt>NAME.ml</tt> by adding lines to
 the <tt>opentheory/hol-light.int</tt> file.</p>
 
 <hr />

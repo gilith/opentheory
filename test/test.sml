@@ -290,7 +290,7 @@ fun compress system name =
       val inputFilename = mkSystemArticleFilename system name
 
       val article =
-          time Article.fromTextFile
+          Article.fromTextFile
             {savable = true,
              import = Article.empty,
              interpretation = int,
@@ -299,7 +299,7 @@ fun compress system name =
       val outputFilename = mkArticleFilename name
 
       val () =
-          time Article.toTextFile
+          Article.toTextFile
             {article = article,
              filename = outputFilename}
 
