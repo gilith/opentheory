@@ -15,4 +15,3 @@ opentheory/scripts/mosml_dep
 opentheory/scripts/release_stamp
 opentheory/scripts/upload
 opentheory/src/benchmark.sml
-opentheory/test/hol-light

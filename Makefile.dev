@@ -220,10 +220,6 @@ reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
-.PHONY: hol-light-interpretation
-hol-light-interpretation:
-	cat test/interpretations/hol-light*.int | perl -ne 'chomp $$_; if ($$_ !~ /^ *([#]|$$)/) { print STDOUT "$$_\n"; }' > ../hol-light/opentheory/hol-light.int
-
 .PHONY: reset-hol-light-theories
 reset-hol-light-theories:
 	rm -rf $(HOL_LIGHT_THEORY_DIR)
@@ -232,7 +228,6 @@ reset-hol-light-theories:
 .PHONY: hol-light-theories
 hol-light-theories: $(OPENTHEORY)
 	mkdir -p $(HOL_LIGHT_THEORY_DIR)
-	$(MAKE) hol-light-interpretation
 	cd ../hol-light && opentheory/capture
 
 .PHONY: compilation-theories
@@ -349,15 +344,8 @@ RELEASE_STAMP = scripts/release_stamp
 release-stamp: $(RELEASE_STAMP)
 	 $(RELEASE_STAMP) -p opentheory doc/*.html src/opentheory.sml
 
-doc/hol-light.tgz: Makefile.dev
-	mv test/interpretations/hol-light-examples.int test/interpretations/hidden-hol-light-examples.int
-	$(MAKE) hol-light-interpretation
-	cd ../hol-light && tar cvzf ../opentheory/doc/hol-light.tgz --exclude 'opentheory/articles/*' opentheory/articles opentheory/hol-light.int opentheory/logging.ml
-	mv test/interpretations/hidden-hol-light-examples.int test/interpretations/hol-light-examples.int
-	$(MAKE) hol-light-interpretation
-
 .PHONY: documentation
-documentation: doc/hol-light.tgz
+documentation:
 
 .PHONY: tarball
 tarball: clean doc/DONT-RELEASE Makefile.dev
@@ -369,7 +357,6 @@ release: release-stamp mosml mlton polyml documentation
 	cp -v doc/*.html doc/*.txt doc/*.png $(RELEASE_DIR)/
 	cp -v doc/favicon.ico $(RELEASE_DIR)/
 	cp -v doc/GPL-LICENSE $(RELEASE_DIR)/
-	cp -v doc/hol-light.tgz $(RELEASE_DIR)/
 	cp -v doc/MIT-LICENSE $(RELEASE_DIR)/
 	$(MAKE) tarball
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
