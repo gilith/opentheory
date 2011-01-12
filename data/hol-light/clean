@@ -1,3 +1,0 @@
-#!/bin/bash
-
-rm -f *.art *.thy *.sum
