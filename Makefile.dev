@@ -271,8 +271,8 @@ test-directory:
 	rm -rf $(TEST_PACKAGE_DIR)
 	$(TEST_OPENTHEORY_INIT)
 	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
-	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-def-true/bool-def-true.thy
-	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-int-true/bool-int-true.thy
+	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true-def/bool-true-def.thy
+	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true-thm/bool-true-thm.thy
 	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
 
 ###############################################################################

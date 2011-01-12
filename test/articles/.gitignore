@@ -1,9 +1,7 @@
-bool-def-true.art
-bool-def-true.sum
-bool-int-true.art
-bool-int-true.sum
-bool-true-aux.art
-bool-true-aux.sum
+bool-true-def.art
+bool-true-def.sum
+bool-true-thm.art
+bool-true-thm.sum
 empty.art
 empty.sum
 example1.art

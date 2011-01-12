@@ -124,26 +124,6 @@ const "HOLLight.T" as "Data.Bool.T"
 const "HOLLight.TL" as "Data.List.tail"
 const "HOLLight.WF" as "Relation.wellFounded"
 
-type "HOLLight.mod" as "Number.Modular.modular"
-type "HOLLight.plane" as "Data.Char.Plane.plane"
-type "HOLLight.position" as "Data.Char.Position.position"
-type "HOLLight.unicode" as "Data.Char.char"
-type "HOLLight.word" as "Data.Word.word"
-const "HOLLight.byte_width" as "Data.Byte.width"
-const "HOLLight.mod_N" as "Number.Modular.size"
-const "HOLLight.mod_add" as "Number.Modular.+"
-const "HOLLight.mod_from_num" as "Number.Modular.fromNatural"
-const "HOLLight.mod_to_num" as "Number.Modular.toNatural"
-const "HOLLight.plane_size" as "Data.Char.Plane.size"
-const "HOLLight.position_width" as "Data.Char.Position.width"
-const "HOLLight.word_from_num" as "Data.Word.fromNatural"
-const "HOLLight.word_size" as "Data.Word.size"
-const "HOLLight.word_to_list" as "Data.Word.toList"
-const "HOLLight.word_to_list_f" as "Data.Word.toList.f"
-const "HOLLight.word_to_num" as "Data.Word.toNatural"
-const "HOLLight.word_width" as "Data.Word.width"
-const "HOLLight.Unicode" as "Data.Char.unicode"
-
 --------------------------------------------------------------------------
 Compressing articles
 
@@ -152,35 +132,30 @@ User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example1"
-User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.000  System: 0.005  GC: 0.000  Real: 0.005
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
+User: 0.000  System: 0.000  GC: 0.000  Real: 0.000
 
 Compressing article "example2"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.005  GC: 0.000  Real: 0.006
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example3"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.005  GC: 0.000  Real: 0.006
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
 Compressing article "example4"
 User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
-User: 0.001  System: 0.005  GC: 0.000  Real: 0.005
+User: 0.001  System: 0.000  GC: 0.000  Real: 0.001
 
-Compressing article "bool-def-true"
-WARNING: 15 objects left in the dictionary by articles/hol-light/bool-def-true.art
+Compressing article "bool-true-def"
+WARNING: 15 objects left in the dictionary by articles/hol-light/bool-true-def.art
 User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.002  System: 0.005  GC: 0.000  Real: 0.007
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
-Compressing article "bool-int-true"
-WARNING: 22 objects left in the dictionary by articles/hol-light/bool-int-true.art
+Compressing article "bool-true-thm"
+WARNING: 22 objects left in the dictionary by articles/hol-light/bool-true-thm.art
 User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.002  System: 0.005  GC: 0.000  Real: 0.007
-
-Compressing article "bool-true-aux"
-WARNING: 24 objects left in the dictionary by articles/hol-light/bool-true-aux.art
-User: 0.003  System: 0.000  GC: 0.000  Real: 0.003
-User: 0.002  System: 0.005  GC: 0.000  Real: 0.007
+User: 0.002  System: 0.000  GC: 0.000  Real: 0.002
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -224,7 +199,7 @@ axioms:
 theorems:
   |- x = x
 
-Summarizing compressed article "bool-def-true"
+Summarizing compressed article "bool-true-def"
 input type operators: -> bool
 input constants: =
 assumptions:
@@ -233,7 +208,7 @@ axioms:
 theorems:
   |- T <=> (\p. p) = \p. p
 
-Summarizing compressed article "bool-int-true"
+Summarizing compressed article "bool-true-thm"
 input type operators: -> bool
 input constants: = T
 assumptions:
@@ -241,15 +216,6 @@ assumptions:
 axioms:
 theorems:
   |- T
-
-Summarizing compressed article "bool-true-aux"
-input type operators: -> bool
-input constants: = T
-assumptions:
-  |- T
-axioms:
-theorems:
-  |- t <=> t <=> T
 
 --------------------------------------------------------------------------
 Theory package directories
@@ -291,7 +257,7 @@ assumptions:
 axioms:
 theorems:
 
-Importing theory package "bool-def-true-1.0"
+Importing theory package "bool-true-def-1.0"
 input type operators: -> bool
 input constants: =
 assumptions:
@@ -300,7 +266,7 @@ axioms:
 theorems:
   |- T <=> (\p. p) = \p. p
 
-Importing theory package "bool-int-true-1.0"
+Importing theory package "bool-true-thm-1.0"
 input type operators: -> bool
 input constants: = T
 assumptions:

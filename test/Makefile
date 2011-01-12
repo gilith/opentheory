@@ -23,9 +23,8 @@ TMPFILE2 = /tmp/test-make-file2
 
 TEMP = \
   $(TMPFILE1) $(TMPFILE2) mosml-result mlton-result polyml-result \
-  articles/bool-def-true.art articles/bool-def-true.sum \
-  articles/bool-int-true.art articles/bool-int-true.sum \
-  articles/bool-true-aux.art articles/bool-true-aux.sum \
+  articles/bool-true-def.art articles/bool-true-def.sum \
+  articles/bool-true-thm.art articles/bool-true-thm.sum \
   articles/empty.art articles/empty.sum \
   articles/example1.art articles/example1.sum \
   articles/example2.art articles/example2.sum \
