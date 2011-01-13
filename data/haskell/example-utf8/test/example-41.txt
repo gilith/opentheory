@@ -1,0 +1,1 @@
+3.2.1  All 32 first bytes of 2-byte sequences (0xc0-0xdf),                    |

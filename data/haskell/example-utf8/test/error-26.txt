@@ -1,0 +1,1 @@
+3.3.2  3-byte sequence with last byte missing (U+0000):     "à€"               |

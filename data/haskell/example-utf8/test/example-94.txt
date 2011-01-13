@@ -1,0 +1,1 @@
+sequences means also, that ASCII characters are *only* allowed to be          |

@@ -20,3 +20,4 @@ Library
   Exposed-modules:
     OpenTheory.Natural
     OpenTheory.Test
+    OpenTheory.Word

@@ -31,9 +31,11 @@ instance Num Natural where
 
   signum x = if unNatural x == 0 then x else Natural 1
 
-  fromInteger = Natural
+  fromInteger x =
+      if 0 <= x then Natural x else error "OpenTheory.Natural.fromInteger"
 
 instance Arbitrary Natural where
-  arbitrary = fmap Natural (Test.QuickCheck.suchThat arbitrary predicate)
+  arbitrary = fmap fromInt arbitrary
       where
-    predicate i = 0 <= i
+    fromInt :: Integer -> Natural
+    fromInt x = Natural (if 0 <= x then x else -(x + 1))
