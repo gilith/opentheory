@@ -24,8 +24,8 @@ prop1 cs =
       Just cs' -> cs == cs'
       Nothing -> False
 
-{- This property is violated by "overlong sequences" -}
-{- We reject overlong sequences, since they're a source of covert channels -}
+{- This property is violated by "overlong sequences", but we reject -}
+{- overlong sequences since they're a source of covert channels. -}
 prop2 :: [Data.Word.Word8] -> Bool
 prop2 bs =
     case OpenTheory.Char.decode bs of
@@ -34,6 +34,12 @@ prop2 bs =
 
 prop3 :: [OpenTheory.Char.Unicode] -> Bool
 prop3 cs = length cs <= length (OpenTheory.Char.encode cs)
+
+prop4 :: [Data.Word.Word8] -> Bool
+prop4 bs =
+    case OpenTheory.Char.decode bs of
+      Just cs -> Data.List.all OpenTheory.Char.isUnicode cs
+      Nothing -> True
 
 readTestFile :: Bool -> FilePath -> IO ()
 readTestFile x f =
@@ -91,6 +97,7 @@ main =
     do OpenTheory.Test.check "print then parse" prop1
        OpenTheory.Test.check "parse then print" prop2
        OpenTheory.Test.check "printing grows length" prop3
+       OpenTheory.Test.check "parse is valid" prop4
        readExampleFile "demo"
        --splitTestFile
        mapM_ (\i -> readExampleFile $ "example-" ++ show i) [0..139]

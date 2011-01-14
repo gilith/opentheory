@@ -13,6 +13,7 @@ module OpenTheory.Char
   ( Plane(..),
     Position(..),
     Unicode(..),
+    isUnicode,
     decodeStream,
     decode,
     encode)
@@ -28,11 +29,13 @@ newtype Plane =
     Plane { unPlane :: Data.Word.Word8 }
   deriving (Eq,Show)
 
+isPlane :: Plane -> Bool
+isPlane pl = unPlane pl < 17
+
 instance Test.QuickCheck.Arbitrary Plane where
-  arbitrary = fmap Plane
-                (Test.QuickCheck.suchThat Test.QuickCheck.arbitrary predicate)
+  arbitrary = Test.QuickCheck.suchThat gen isPlane
       where
-    predicate i = i < 17
+    gen = fmap Plane Test.QuickCheck.arbitrary
 
 newtype Position =
     Position { unPosition :: Data.Word.Word16 }
@@ -45,12 +48,18 @@ newtype Unicode =
     Unicode { unUnicode :: (Plane,Position) }
   deriving (Eq,Show)
 
+isUnicode :: Unicode -> Bool
+isUnicode c =
+    let (pl,pos) = unUnicode c in
+    isPlane pl &&
+    let pli = unPlane pl in
+    let posi = unPosition pos in
+    pli /= 0 || posi < 55296 || (57343 < posi && posi < 65534)
+
 instance Test.QuickCheck.Arbitrary Unicode where
-  arbitrary = fmap Unicode
-                (Test.QuickCheck.suchThat Test.QuickCheck.arbitrary predicate)
+  arbitrary = Test.QuickCheck.suchThat gen isUnicode
       where
-    predicate (Plane pl, Position pos) =
-        pl /= 0 || pos < 55296 || (57343 < pos && pos < 65534)
+    gen = fmap Unicode Test.QuickCheck.arbitrary
 
 isContinuationByte :: Data.Word.Word8 -> Bool
 isContinuationByte b = Data.Bits.testBit b 7 && not (Data.Bits.testBit b 6)
