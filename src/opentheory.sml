@@ -558,8 +558,8 @@ in
 end;
 
 val listFooter =
-    "where FORMAT is a string including " ^
-    "NAME, VERSION, DESCRIPTION and CHECKSUM\n";
+    "where FORMAT is a string containing " ^
+    "NAME, VERSION, DESCRIPTION and CHECKSUM.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for updating package lists.                                       *)
