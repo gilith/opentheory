@@ -208,6 +208,8 @@ in
   val helpOpts : opt list = [];
 end;
 
+val helpFooter = "";
+
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
 (* ------------------------------------------------------------------------- *)
@@ -217,6 +219,8 @@ local
 in
   val initOpts : opt list = [];
 end;
+
+val initFooter = "";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for uninstalling theory packages.                                 *)
@@ -232,6 +236,8 @@ in
         description = "also uninstall dependent packages",
         processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
 end;
+
+val uninstallFooter = "";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for installing theory packages.                                   *)
@@ -284,6 +290,8 @@ in
         processor = beginOpt endOpt (fn _ => autoInstall := false)}] @
       List.map (addSuffix "-uninstall") uninstallOpts;
 end;
+
+val installFooter = "";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying package information.                               *)
@@ -419,6 +427,8 @@ in
         processor = beginOpt endOpt (fn _ => infoPreserveTheory := true)}];
 end;
 
+val infoFooter = "";
+
 (* ------------------------------------------------------------------------- *)
 (* Options for listing installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
@@ -431,7 +441,9 @@ datatype orderList =
 datatype showList =
     ChecksumList
   | DescriptionList
-  | NameList;
+  | NameList
+  | SeparatorList of string
+  | VersionList;
 
 local
   val refOrderList = ref AlphabeticalList;
@@ -446,19 +458,80 @@ end;
 local
   val refShowList : showList list option ref = ref NONE;
 
-  val defaultShowList = [NameList,DescriptionList];
-in
-  fun addShowList s =
-      let
-        val l = Option.getOpt (!refShowList,[])
+  fun getShowList alt = Option.getOpt (!refShowList,alt);
 
-        val () = refShowList := SOME (l @ [s])
+  val defaultShowList = [NameList, SeparatorList "-", VersionList];
+in
+  fun setShowList l =
+      let
+        val () = refShowList := SOME l
       in
         ()
       end;
 
-  fun showList () = Option.getOpt (!refShowList,defaultShowList);
+  fun addShowList s =
+      let
+        val l = getShowList []
+
+        val () = setShowList (l @ [s])
+      in
+        ()
+      end;
+
+  fun showList () = getShowList defaultShowList;
 end;
+
+local
+  fun getSep acc l =
+      case l of
+        SeparatorList s :: l => getSep (s :: acc) l
+      | _ => (String.concat (rev acc), l);
+
+  fun compress l =
+      let
+        val (sl,l) = getSep [] l
+
+        val l = compress' l
+      in
+        if sl = "" then l else SeparatorList sl :: l
+      end
+
+  and compress' l =
+      case l of
+        [] => []
+      | s :: l => s :: compress l;
+in
+  val compressShowList = compress;
+end;
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+
+  val checksumKeywordParser = exactString "CHECKSUM"
+  and descriptionKeywordParser = exactString "DESCRIPTION"
+  and nameKeywordParser = exactString "NAME"
+  and versionKeywordParser = exactString "VERSION";
+
+  val showParser =
+      (checksumKeywordParser >> K ChecksumList) ||
+      (descriptionKeywordParser >> K DescriptionList) ||
+      (nameKeywordParser >> K NameList) ||
+      (versionKeywordParser >> K VersionList) ||
+      any >> (fn c => SeparatorList (str c));
+
+  val showListParser = many showParser;
+in
+  val parserShowList = showListParser >> compressShowList;
+end;
+
+fun fromStringShowList fmt =
+    Parse.fromString parserShowList fmt
+    handle Parse.NoParse => raise Error "bad output format";
 
 val outputList = ref "-";
 
@@ -472,21 +545,21 @@ in
        {switches = ["--reverse-order"], arguments = [],
         description = "reverse the order",
         processor = beginOpt endOpt (fn _ => reverseOrderList ())},
-       {switches = ["--name"], arguments = [],
-        description = "print the package name",
-        processor = beginOpt endOpt (fn _ => addShowList NameList)},
-       {switches = ["--checksum"], arguments = [],
-        description = "print the package checksum",
-        processor = beginOpt endOpt (fn _ => addShowList ChecksumList)},
-       {switches = ["--description"], arguments = [],
-        description = "print the package description",
-        processor = beginOpt endOpt (fn _ => addShowList DescriptionList)},
+       {switches = ["--format"], arguments = ["FORMAT"],
+        description = "set the output format",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => setShowList (fromStringShowList s))},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write the package list to FILE",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => outputList := s)}];
 end;
+
+val listFooter =
+    "where FORMAT is a string including " ^
+    "NAME, VERSION, DESCRIPTION and CHECKSUM\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for updating package lists.                                       *)
@@ -503,6 +576,8 @@ in
             (fn _ => fn s => repoOption := !repoOption @ [s])}];
 end;
 
+val updateFooter = "";
+
 (* ------------------------------------------------------------------------- *)
 (* Options for uploading packages.                                           *)
 (* ------------------------------------------------------------------------- *)
@@ -517,6 +592,8 @@ in
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => repoOption := !repoOption @ [s])}];
 end;
+
+val uploadFooter = "";
 
 (* ------------------------------------------------------------------------- *)
 (* Commands.                                                                 *)
@@ -567,6 +644,17 @@ fun commandDescription cmd =
     | Update => "update repo package lists"
     | Upload => "upload a theory package to a repo";
 
+fun commandFooter cmd =
+    case cmd of
+      Help => helpFooter
+    | Info => infoFooter
+    | Init => initFooter
+    | Install => installFooter
+    | List => listFooter
+    | Uninstall => uninstallFooter
+    | Update => updateFooter
+    | Upload => uploadFooter;
+
 fun commandOpts cmd =
     case cmd of
       Help => helpOpts
@@ -613,11 +701,12 @@ in
 end;
 
 local
-  fun mkProgramOptions header opts =
+  fun mkProgramOptions header footer opts =
       {name = program,
        version = versionString,
        header = "usage: "^program^" "^header^"\n",
-       footer = "Read from stdin or write to stdout using " ^
+       footer = footer ^
+                "Read from stdin or write to stdout using " ^
                 "the special - filename.\n",
        options = opts @ Options.basicOptions};
 
@@ -639,24 +728,40 @@ local
         "where the possible commands are:\n" ^
         join "\n" table ^ "\n"
       end;
+
+  val globalFooter = "";
 in
   val globalOptions =
       mkProgramOptions
         (globalHeader ^ "Displaying global options:")
+        globalFooter
         globalOpts;
 
   fun commandOptions cmd =
-      mkProgramOptions
-        (commandString cmd ^ " [" ^ commandString cmd ^ " options]" ^
-         commandArgs cmd ^ "\n" ^
-         capitalize (commandDescription cmd) ^ ".\n" ^
-         "Displaying " ^ commandString cmd ^ " options:")
-        (commandOpts cmd);
+      let
+        val header =
+            commandString cmd ^ " [" ^ commandString cmd ^ " options]" ^
+            commandArgs cmd ^ "\n" ^
+            capitalize (commandDescription cmd) ^ ".\n" ^
+            "Displaying " ^ commandString cmd ^ " options:"
+
+        val footer = commandFooter cmd
+
+        val opts = commandOpts cmd
+      in
+        mkProgramOptions header footer opts
+      end;
 
   fun programOptions () =
-      mkProgramOptions
-        (globalHeader ^ "Displaying all options:")
-        (annotateOptions "global" globalOpts @ allCommandOptions);
+      let
+        val header = globalHeader ^ "Displaying all options:"
+
+        val footer = globalFooter
+
+        val opts = annotateOptions "global" globalOpts @ allCommandOptions
+      in
+        mkProgramOptions header footer opts
+      end;
 end;
 
 fun exit x : unit = Options.exit (programOptions ()) x;
@@ -1691,11 +1796,15 @@ fun list () =
           let
             fun mkShow s =
                 case s of
-                  NameList => PackageNameVersion.toString namever
-                | ChecksumList =>
-                  (case Directory.checksum dir namever of
-                     SOME chk => Checksum.toString chk
-                   | NONE => raise Error "corrupt checksum")
+                  ChecksumList =>
+                  let
+                    val chk =
+                        case Directory.checksum dir namever of
+                          SOME c => c
+                        | NONE => raise Error "corrupt checksum"
+                  in
+                    Checksum.toString chk
+                  end
                 | DescriptionList =>
                   let
                     val info =
@@ -1705,8 +1814,21 @@ fun list () =
                   in
                     Package.description (PackageInfo.package info)
                   end
+                | NameList =>
+                  let
+                    val name = PackageNameVersion.name namever
+                  in
+                    PackageName.toString name
+                  end
+                | SeparatorList s => s
+                | VersionList =>
+                  let
+                    val version = PackageNameVersion.version namever
+                  in
+                    PackageVersion.toString version
+                  end
           in
-            join " " (List.map mkShow show) ^ "\n"
+            String.concat (List.map mkShow show @ ["\n"])
           end
           handle Error err =>
             raise Error ("package " ^ PackageNameVersion.toString namever ^
