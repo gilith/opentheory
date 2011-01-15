@@ -168,7 +168,7 @@ function opentheory_children($name_version) {
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_list() {
-  $args = ' --name';
+  $args = '';
 
   $output = opentheory_query('list',$args);
 
