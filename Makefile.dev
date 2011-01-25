@@ -211,6 +211,7 @@ EXAMPLE_THEORIES = \
   modular \
   word \
   byte \
+  parser \
   char
 
 COMPILATION_THEORIES = $(STANDARD_THEORIES) $(EXAMPLE_THEORIES)

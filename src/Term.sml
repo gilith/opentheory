@@ -1282,7 +1282,7 @@ in
              else
                Print.ppBracket "term{" "}" Print.ppInt n
            end
-      end
+      end;
 end;
 
 val ppWithShow = ppWithGrammar defaultGrammar;

@@ -345,15 +345,57 @@ end;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val maximumSize = ref 1000;
-
-val infixTokens =
-    Print.Infixes
-      [{token = "*", precedence = 3, assoc = Print.RightAssoc},
-       {token = "+", precedence = 2, assoc = Print.RightAssoc},
-       {token = "->", precedence = 1, assoc = Print.RightAssoc}];
+datatype grammar =
+    Grammar of
+      {infixes : Print.infixes,
+       ppVar : Name.name Print.pp,
+       ppTypeOp : ((TypeOp.typeOp * int) * Name.name) Print.pp,
+       ppInfix : (TypeOp.typeOp * Name.name) Print.pp,
+       maximumSize : int};
 
 local
+  val infixes =
+      Print.Infixes
+        [{token = "*", precedence = 3, assoc = Print.RightAssoc},
+         {token = "+", precedence = 2, assoc = Print.RightAssoc},
+         {token = "->", precedence = 1, assoc = Print.RightAssoc}];
+
+  local
+    val pairName = Name.mkGlobal ",";
+  in
+    fun ppInfixBuffer ppInf ot_n =
+        let
+          val (_,n) = ot_n
+
+          val pps = [ppInf ot_n, Print.addBreak 1]
+
+          val pps =
+              if Name.equal n pairName then pps
+              else Print.ppString " " :: pps
+        in
+          Print.program pps
+        end;
+  end;
+
+  val ppVar = Name.pp;
+
+  val ppTypeOp = Print.ppMap snd Name.pp;
+
+  val ppInfix = ppInfixBuffer (Print.ppMap snd Name.pp);
+
+  val maximumSize = 1000;
+in
+  val defaultGrammar =
+      Grammar
+        {infixes = infixes,
+         ppVar = ppVar,
+         ppTypeOp = ppTypeOp,
+         ppInfix = ppInfix,
+         maximumSize = maximumSize};
+end;
+
+local
+(***
   val typeInfixStrings = Print.tokensInfixes infixTokens;
 
   val ppTypeVar = Name.pp;
@@ -382,41 +424,130 @@ local
 
   val typeInfixPrinter =
       Print.ppInfixes infixTokens (total destTypeInfix) ppTypeInfix;
+***)
 
-  fun basic ty =
-      if isVar ty then ppTypeVar (destVar ty)
-      else if isTypeInfix ty then ppBtype ty
-      else
-        let
-          val (f,xs) = destOp ty
-        in
-          Print.blockProgram Print.Inconsistent 0
-            [(case xs of
-                [] => Print.skip
-              | [x] => Print.sequence (basic x) (Print.addBreak 1)
-              | _ =>
-                Print.sequence
-                  (Print.ppBracket "(" ")" (Print.ppOpList "," ppTypeTop) xs)
-                  (Print.addBreak 1)),
-             TypeOp.pp f]
-        end
+  val mkName = Name.mkGlobal;
 
-  and basicr (ty,_) = basic ty
-
-  and ppBtype ty = Print.ppBracket "(" ")" ppTypeTop ty
-
-  and ppTyper tyr = typeInfixPrinter basicr tyr
-
-  and ppTypeTop ty = ppTyper (ty,false);
-in
-  fun pp ty =
+  val mkMap =
       let
-        val n = size ty
+        fun add (s,m) =
+            let
+              val n = mkName s
+            in
+              case NameMap.peek m n of
+                NONE => NameMap.insert m (n,s)
+              | SOME s' => raise Error ("Type.pp.mkMap: name clash: \"" ^
+                                        s ^ "\" and \"" ^ s' ^ "\"")
+            end
+
+        val emptyMap : Print.token NameMap.map = NameMap.new ();
       in
-        if n <= !maximumSize then ppTypeTop ty
-        else Print.ppBracket "type{" "}" Print.ppInt n
+        StringSet.foldl add emptyMap
+      end;
+
+  fun showTypeOp show ot = Show.showName show (TypeOp.name ot);
+
+  fun ppType infixNames specialNames
+             ppInfixes ppTypeOpName ppInfixName ppVar show =
+      let
+        fun ppTypeOp (ot,a) =
+            let
+              val n = showTypeOp show ot
+            in
+              if NameSet.member n specialNames then
+                Print.ppBracket "(" ")" ppTypeOpName ((ot,a),n)
+              else
+                ppTypeOpName ((ot,a),n)
+            end
+
+        fun destInfixType ty =
+            let
+              val (ot,xs) = destOp ty
+
+              val n = showTypeOp show ot
+            in
+              case xs of
+                [a,b] => ((ot,n),a,b)
+              | _ => raise Error "Type.pp.destInfixType"
+            end;
+
+        fun destInfix ty =
+            let
+              val ((_,n),a,b) = destInfixType ty
+            in
+              case NameMap.peek infixNames n of
+                SOME s => (s,a,b)
+              | NONE => raise Error "Type.pp.destInfix"
+            end
+
+        val isInfix = can destInfix
+
+        fun ppInfixToken (ty,_) =
+            let
+              val (ot_n,_,_) = destInfixType ty
+            in
+              ppInfixName ot_n
+            end
+
+        val ppInfix = ppInfixes (total destInfix) ppInfixToken
+
+        fun ppBasicType ty =
+            if isVar ty then ppVar (destVar ty)
+            else if isInfix ty then ppBracketType ty
+            else
+              let
+                val (ot,xs) = destOp ty
+              in
+                Print.blockProgram Print.Inconsistent 0
+                  [(case xs of
+                      [] => Print.skip
+                    | [x] => Print.sequence (ppBasicType x) (Print.addBreak 1)
+                    | _ =>
+                      Print.sequence
+                        (Print.ppBracket "(" ")"
+                           (Print.ppOpList "," ppNormalType) xs)
+                        (Print.addBreak 1)),
+                   ppTypeOp (ot, length xs)]
+              end
+
+        and ppBasicHangingType (ty,_) = ppBasicType ty
+
+        and ppHangingType ty_r = ppInfix ppBasicHangingType ty_r
+
+        and ppNormalType ty = ppHangingType (ty,false)
+
+        and ppBracketType ty = Print.ppBracket "(" ")" ppNormalType ty
+      in
+        ppNormalType
+      end;
+in
+  fun ppWithGrammar gram =
+      let
+        val Grammar {infixes,ppVar,ppTypeOp,ppInfix,maximumSize} = gram
+
+        val ppInfixes = Print.ppInfixes infixes
+
+        val infixNames = mkMap (Print.tokensInfixes infixes)
+
+        val specialNames = NameSet.domain infixNames
+      in
+        fn show => fn ty =>
+           let
+             val n = size ty
+           in
+             if n <= maximumSize then
+               ppType
+                 infixNames specialNames
+                 ppInfixes ppTypeOp ppInfix ppVar show ty
+             else
+               Print.ppBracket "type{" "}" Print.ppInt n
+           end
       end;
 end;
+
+val ppWithShow = ppWithGrammar defaultGrammar;
+
+val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 

@@ -157,7 +157,19 @@ val stripFun : ty -> ty list * ty
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val maximumSize : int ref
+datatype grammar =
+    Grammar of
+      {infixes : Print.infixes,
+       ppVar : Name.name Print.pp,
+       ppTypeOp : ((TypeOp.typeOp * int) * Name.name) Print.pp,
+       ppInfix : (TypeOp.typeOp * Name.name) Print.pp,
+       maximumSize : int}
+
+val defaultGrammar : grammar
+
+val ppWithGrammar : grammar -> Show.show -> ty Print.pp
+
+val ppWithShow : Show.show -> ty Print.pp
 
 val pp : ty Print.pp
 
