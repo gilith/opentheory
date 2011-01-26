@@ -227,15 +227,14 @@ val isRefl : term -> bool
 
 datatype grammar =
     Grammar of
-      {abs : Print.token,
-       negations : Print.token list,
+      {negations : Print.token list,
        infixes : Print.infixes,
        binders : Print.token list,
-       ppVar : Var.var Print.pp,
-       ppConst : ((Const.const * Type.ty) * Name.name) Print.pp,
-       ppNegation : ((Const.const * Type.ty) * Name.name) Print.pp,
-       ppInfix : ((Const.const * Type.ty) * Name.name) Print.pp,
-       ppBinder : ((Const.const * Type.ty) option * Name.name) Print.pp,
+       ppVar : Show.show -> Var.var Print.pp,
+       ppConst : Show.show -> (Const.const * Type.ty) Print.pp,
+       ppNegation : Show.show -> (Const.const * Type.ty) Print.pp,
+       ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
+       ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
        maximumSize : int}
 
 val defaultGrammar : grammar

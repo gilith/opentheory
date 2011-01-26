@@ -117,35 +117,35 @@ fun rewrite rewr (TypeTerm.Var (n,ty)) =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val showTypes = ref false;
-
-val pp =
-    let
-      val pp1 = Print.ppBracket "(" ")" (Print.ppOp2 " :" Name.pp Type.pp)
-
-      val pp2 = Print.ppMap fst Name.pp
-    in
-      fn TypeTerm.Var n_ty => (if !showTypes then pp1 else pp2) n_ty
-    end;
+val pp = Print.ppMap name Name.pp;
 
 val toString = Print.toString pp;
 
-fun toHtml var =
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun toHtml show =
     let
-      val (name,ty) = dest var
-
-      val attrs =
-          let
-            val class = "var"
-
-            and title = Name.toString name ^ " : " ^ Type.toString ty
-          in
-            Html.fromListAttrs [("class",class),("title",title)]
-          end
-
-      val inlines = Name.toHtml name
+      val ppTy = Type.ppHtml show
     in
-      Html.Span (attrs,inlines)
+      fn var =>
+         let
+           val (name,ty) = dest var
+
+           val attrs =
+               let
+                 val class = "var"
+
+                 and title = Name.toString name ^ " : " ^ Print.toString ppTy ty
+               in
+                 Html.fromListAttrs [("class",class),("title",title)]
+               end
+
+           val inlines = Name.toHtml name
+         in
+           [Html.Span (attrs,inlines)]
+         end
     end;
 
 end

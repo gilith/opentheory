@@ -310,8 +310,8 @@ datatype grammar =
       {assumptionGrammar : Sequent.grammar,
        axiomGrammar : Sequent.grammar,
        theoremGrammar : Sequent.grammar,
-       ppTypeOp : (TypeOp.typeOp * Name.name) Print.pp,
-       ppConst : (Const.const * Name.name) Print.pp,
+       ppTypeOp : Show.show -> TypeOp.typeOp Print.pp,
+       ppConst : Show.show -> Const.const Print.pp,
        showAxioms : bool};
 
 val defaultGrammar =
@@ -319,8 +319,8 @@ val defaultGrammar =
       val assumptionGrammar = Sequent.defaultGrammar
       and axiomGrammar = Sequent.defaultGrammar
       and theoremGrammar = Sequent.defaultGrammar
-      and ppTypeOp = Print.ppMap snd Name.pp
-      and ppConst = Print.ppMap snd Name.pp
+      and ppTypeOp = TypeOp.ppWithShow
+      and ppConst = Const.ppWithShow
       and showAxioms = false
     in
       Grammar
@@ -367,25 +367,11 @@ in
   fun ppInfoWithShow ppTypeOpWS ppConstWS ppAssumptionWS ppAxiomWS ppTheoremWS
                      show =
       let
-        fun ppTypeOp ot =
-            let
-              val n = Show.showName show (TypeOp.name ot)
-            in
-              ppTypeOpWS (ot,n)
-            end
-
-        fun ppConst c =
-            let
-              val n = Show.showName show (Const.name c)
-            in
-              ppConstWS (c,n)
-            end
-
-        val ppAssumption = ppAssumptionWS show
-
-        val ppAxiom = ppAxiomWS show
-
-        val ppTheorem = ppTheoremWS show
+        val ppTypeOp = ppTypeOpWS show
+        and ppConst = ppConstWS show
+        and ppAssumption = ppAssumptionWS show
+        and ppAxiom = ppAxiomWS show
+        and ppTheorem = ppTheoremWS show
 
         fun ppSymbol (prefix,sym) =
             let
@@ -527,7 +513,7 @@ fun toHtmlConnective class title =
     in
       fn (_,c) =>
          case c of
-           "-" => conn
+           "-" => [conn]
          | _ => raise Bug "Summary.toHtmlConnective"
     end;
 
@@ -553,13 +539,19 @@ fun htmlGrammarSequent class title =
     end;
 
 local
-  fun toHtmlTypeOp (ot,n) = TypeOp.toHtml ((ot, TypeOp.varsDef ot), n);
+  fun ppTypeOp show =
+      let
+        val toHtml = TypeOp.toHtml show
+      in
+        fn ot => Html.ppFixed (toHtml (ot, TypeOp.varsDef ot))
+      end;
 
-  fun toHtmlConst (c,n) = Const.toHtml ((c, Const.typeOf c), n);
-
-  val ppTypeOp = Print.ppMap toHtmlTypeOp Html.ppFixed;
-
-  val ppConst = Print.ppMap toHtmlConst Html.ppFixed;
+  fun ppConst show =
+      let
+        val toHtml = Const.toHtml show
+      in
+        fn c => Html.ppFixed (toHtml (c, Const.typeOf c))
+      end;
 in
   val htmlGrammar =
       let
@@ -612,7 +604,7 @@ local
 
   fun toItem flows = Html.ListItem (Html.emptyAttrs,flows)
 in
-  fun toHtmlNames ppXName =
+  fun toHtmlNames ppX =
       let
         fun toUlist stack names =
             let
@@ -638,7 +630,7 @@ in
                 val name = Name.mkGlobal h
 
                 val hitem =
-                    if List.null t then toHtml ppXName (x,name)
+                    if List.null t then toHtml ppX x
                     else
                       let
                         val x = Namespace.fromList (List.revAppend (stack,[h]))
@@ -681,14 +673,15 @@ in
       end;
 end;
 
-fun toHtmlInfo ppTypeOp ppConst toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS
+fun toHtmlInfo ppTypeOpWS ppConstWS
+               toHtmlAssumptionWS toHtmlAxiomWS toHtmlTheoremWS
                show =
     let
-      val toHtmlAssumption = toHtmlAssumptionWS show
-
-      val toHtmlAxiom = toHtmlAxiomWS show
-
-      val toHtmlTheorem = toHtmlTheoremWS show
+      val ppTypeOp = ppTypeOpWS show
+      and ppConst = ppConstWS show
+      and toHtmlAssumption = toHtmlAssumptionWS show
+      and toHtmlAxiom = toHtmlAxiomWS show
+      and toHtmlTheorem = toHtmlTheoremWS show
 
       fun toHtmlTypeOps name ots =
           if List.null ots then []

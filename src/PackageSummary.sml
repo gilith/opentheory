@@ -58,7 +58,7 @@ fun toHtmlConnective class title (seq,c) =
       val conn = Html.Span (attrs,inlines)
     in
       case c of
-        "-" => conn
+        "-" => [conn]
       | _ => raise Bug "PackageSummary.toHtmlConnective"
     end;
 

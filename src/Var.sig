@@ -79,12 +79,14 @@ val rewrite : TypeRewrite.rewrite -> var -> var option
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val showTypes : bool ref
-
 val pp : var Print.pp
 
 val toString : var -> string
 
-val toHtml : var -> Html.inline
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val toHtml : Show.show -> var -> Html.inline list
 
 end

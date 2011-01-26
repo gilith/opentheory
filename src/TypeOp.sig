@@ -58,6 +58,10 @@ val pp : typeOp Print.pp
 
 val toString : typeOp -> string
 
-val toHtml : (typeOp * Name.name list option) * Name.name -> Html.inline
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val toHtml : Show.show -> typeOp * Name.name list option -> Html.inline list
 
 end

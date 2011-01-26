@@ -349,8 +349,8 @@ datatype grammar =
     Grammar of
       {infixes : Print.infixes,
        ppVar : Name.name Print.pp,
-       ppTypeOp : ((TypeOp.typeOp * int) * Name.name) Print.pp,
-       ppInfix : (TypeOp.typeOp * Name.name) Print.pp,
+       ppTypeOp : Show.show -> (TypeOp.typeOp * int) Print.pp,
+       ppInfix : Show.show -> TypeOp.typeOp Print.pp,
        maximumSize : int};
 
 local
@@ -379,9 +379,41 @@ local
 
   val ppVar = Name.pp;
 
-  val ppTypeOp = Print.ppMap snd Name.pp;
+  fun ppTypeOp show =
+      let
+        fun toName (ot,_) = Show.showName show (TypeOp.name ot)
+      in
+        Print.ppMap toName Name.pp
+      end;
 
-  val ppInfix = ppInfixBuffer (Print.ppMap snd Name.pp);
+  fun ppInfix show =
+      let
+        fun toName ot = (ot, Show.showName show (TypeOp.name ot))
+
+        fun ppInf (_,n) = Name.pp n
+      in
+        Print.ppMap toName (ppInfixBuffer ppInf)
+      end;
+
+  val ppVarHtml = Print.ppMap Name.toHtml Html.ppFixed;
+
+  fun ppTypeOpHtml show =
+      let
+        fun toName (ot,_) = Show.showName show (TypeOp.name ot)
+      in
+        Print.ppMap toName (Print.ppMap Name.toHtml Html.ppFixed)
+      end;
+
+  val ppInfixHtml = ppInfixBuffer (Print.ppMap snd Name.pp);
+
+  fun ppInfixHtml show =
+      let
+        fun toName ot = (ot, Show.showName show (TypeOp.name ot))
+
+        fun ppInf (_,n) = Html.ppFixed (Name.toHtml n)
+      in
+        Print.ppMap toName (ppInfixBuffer ppInf)
+      end;
 
   val maximumSize = 1000;
 in
@@ -392,40 +424,17 @@ in
          ppTypeOp = ppTypeOp,
          ppInfix = ppInfix,
          maximumSize = maximumSize};
+
+  val htmlGrammar =
+      Grammar
+        {infixes = infixes,
+         ppVar = ppVarHtml,
+         ppTypeOp = ppTypeOpHtml,
+         ppInfix = ppInfixHtml,
+         maximumSize = maximumSize};
 end;
 
 local
-(***
-  val typeInfixStrings = Print.tokensInfixes infixTokens;
-
-  val ppTypeVar = Name.pp;
-
-  fun destTypeInfix ty =
-      let
-        val (f,xs) = destOp ty
-
-        val f = TypeOp.toString f
-
-        val _ = StringSet.member f typeInfixStrings orelse
-                raise Error "destTypeInfix"
-      in
-        case xs of
-          [a,b] => (f,a,b)
-        | _ => raise Bug ("destTypeInfix: bad arity of type operator " ^ f)
-      end;
-
-  val isTypeInfix = can destTypeInfix;
-
-  fun ppTypeInfix (_,tok) =
-      Print.program
-        [Print.ppString " ",
-         Print.ppString tok,
-         Print.addBreak 1];
-
-  val typeInfixPrinter =
-      Print.ppInfixes infixTokens (total destTypeInfix) ppTypeInfix;
-***)
-
   val mkName = Name.mkGlobal;
 
   val mkMap =
@@ -455,9 +464,9 @@ local
               val n = showTypeOp show ot
             in
               if NameSet.member n specialNames then
-                Print.ppBracket "(" ")" ppTypeOpName ((ot,a),n)
+                Print.ppBracket "(" ")" ppTypeOpName (ot,a)
               else
-                ppTypeOpName ((ot,a),n)
+                ppTypeOpName (ot,a)
             end
 
         fun destInfixType ty =
@@ -484,9 +493,9 @@ local
 
         fun ppInfixToken (ty,_) =
             let
-              val (ot_n,_,_) = destInfixType ty
+              val ((ot,_),_,_) = destInfixType ty
             in
-              ppInfixName ot_n
+              ppInfixName ot
             end
 
         val ppInfix = ppInfixes (total destInfix) ppInfixToken
@@ -531,16 +540,22 @@ in
 
         val specialNames = NameSet.domain infixNames
       in
-        fn show => fn ty =>
+        fn show =>
            let
-             val n = size ty
+             val ppTypeOp = ppTypeOp show
+             and ppInfix = ppInfix show
            in
-             if n <= maximumSize then
-               ppType
-                 infixNames specialNames
-                 ppInfixes ppTypeOp ppInfix ppVar show ty
-             else
-               Print.ppBracket "type{" "}" Print.ppInt n
+             fn ty =>
+                let
+                  val n = size ty
+                in
+                  if n <= maximumSize then
+                    ppType
+                      infixNames specialNames
+                      ppInfixes ppTypeOp ppInfix ppVar show ty
+                  else
+                    Print.ppBracket "type{" "}" Print.ppInt n
+                end
            end
       end;
 end;
@@ -550,6 +565,12 @@ val ppWithShow = ppWithGrammar defaultGrammar;
 val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
+
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val ppHtml = ppWithGrammar htmlGrammar;
 
 end
 

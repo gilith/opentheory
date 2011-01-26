@@ -256,7 +256,7 @@ val toString = Print.toString pp;
 
 val toHtmlConnective =
     let
-      val conn = Html.Entity "#8870"
+      val conn = [Html.Entity "#8870"]
     in
       fn (_,c) =>
          case c of

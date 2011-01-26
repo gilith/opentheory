@@ -108,22 +108,33 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
-fun toHtml ((c,ty),n) =
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun toHtml show =
     let
-      val class = "const"
-
-      val title = Name.toString (name c)
-
-      val title =
-          case ty of
-            NONE => title
-          | SOME t => title ^ " : " ^ Type.toString t
-
-      val attrs = Html.fromListAttrs [("class",class),("title",title)]
-
-      val inlines = Name.toHtml n
+      val ppTy = Type.ppHtml show
     in
-      Html.Span (attrs,inlines)
+      fn (c,ty) =>
+         let
+           val n = Show.showName show (name c)
+
+           val class = "const"
+
+           val title = Name.toString n
+
+           val title =
+               case ty of
+                 NONE => title
+               | SOME t => title ^ " : " ^ Print.toString ppTy t
+
+           val attrs = Html.fromListAttrs [("class",class),("title",title)]
+
+           val inlines = Name.toHtml n
+         in
+           [Html.Span (attrs,inlines)]
+         end
     end;
 
 end

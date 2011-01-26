@@ -56,6 +56,10 @@ val pp : const Print.pp
 
 val toString : const -> string
 
-val toHtml : (const * Type.ty option) * Name.name -> Html.inline
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val toHtml : Show.show -> const * Type.ty option -> Html.inline list
 
 end

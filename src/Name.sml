@@ -110,6 +110,19 @@ fun rewrite x_y (name as Name (ns,n)) =
 fun replace (x,y) n : name = if equal n x then y else n;
 
 (* ------------------------------------------------------------------------- *)
+(* Characters.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun lastChar n =
+    let
+      val (_,s) = dest n
+
+      val i = String.size s
+    in
+      if i = 0 then NONE else SOME (String.sub (s, i - 1))
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 

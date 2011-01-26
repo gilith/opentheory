@@ -161,8 +161,8 @@ datatype grammar =
     Grammar of
       {infixes : Print.infixes,
        ppVar : Name.name Print.pp,
-       ppTypeOp : ((TypeOp.typeOp * int) * Name.name) Print.pp,
-       ppInfix : (TypeOp.typeOp * Name.name) Print.pp,
+       ppTypeOp : Show.show -> (TypeOp.typeOp * int) Print.pp,
+       ppInfix : Show.show -> TypeOp.typeOp Print.pp,
        maximumSize : int}
 
 val defaultGrammar : grammar
@@ -174,5 +174,13 @@ val ppWithShow : Show.show -> ty Print.pp
 val pp : ty Print.pp
 
 val toString : ty -> string
+
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val htmlGrammar : grammar
+
+val ppHtml : Show.show -> ty Print.pp
 
 end

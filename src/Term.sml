@@ -744,16 +744,21 @@ val isRefl = can destRefl;
 
 datatype grammar =
     Grammar of
-      {abs : Print.token,
-       negations : Print.token list,
+      {negations : Print.token list,
        infixes : Print.infixes,
        binders : Print.token list,
-       ppVar : Var.var Print.pp,
-       ppConst : ((Const.const * Type.ty) * Name.name) Print.pp,
-       ppNegation : ((Const.const * Type.ty) * Name.name) Print.pp,
-       ppInfix : ((Const.const * Type.ty) * Name.name) Print.pp,
-       ppBinder : ((Const.const * Type.ty) option * Name.name) Print.pp,
+       ppVar : Show.show -> Var.var Print.pp,
+       ppConst : Show.show -> (Const.const * Type.ty) Print.pp,
+       ppNegation : Show.show -> (Const.const * Type.ty) Print.pp,
+       ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
+       ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
        maximumSize : int};
+
+fun showConst show (c,ty) =
+    if Const.equal c constEq then
+      if Type.equal ty boolEqTy then nameBoolEq else nameEq
+    else
+      Show.showName show (Const.name c);
 
 local
   val abs = "\\";
@@ -806,14 +811,13 @@ local
   end;
 
   local
-    fun isAlpha (_,n) =
-        let
-          val (_,s) = Name.dest n
-
-          val i = String.size s
-        in
-          i > 0 andalso Char.isAlpha (String.sub (s, i - 1))
-        end;
+    fun isAlpha c_n =
+        case c_n of
+          NONE => false
+        | SOME (_,n) =>
+          case Name.lastChar n of
+            NONE => false
+          | SOME c => Char.isAlpha c;
   in
     fun ppBinderBuffer ppBind c_n =
         let
@@ -827,59 +831,128 @@ local
         end;
   end;
 
-  val ppVar = Var.pp;
+  fun ppVar _ = Var.pp;
 
-  val ppConst = Print.ppMap snd Name.pp;
+  fun ppConst show =
+      let
+        val toName = showConst show
+      in
+        Print.ppMap toName Name.pp
+      end;
 
-  val ppNegation = Print.ppMap snd Name.pp;
+  fun ppNegation show =
+      let
+        val toName = showConst show
+      in
+        Print.ppMap toName Name.pp
+      end;
 
-  val ppInfix = ppInfixBuffer (Print.ppMap snd Name.pp);
+  fun ppInfix show =
+      let
+        fun toName cty = (cty, showConst show cty)
 
-  val ppBinder = ppBinderBuffer (Print.ppMap snd Name.pp);
+        fun ppInf (_,n) = Name.pp n
+      in
+        Print.ppMap toName (ppInfixBuffer ppInf)
+      end;
 
-  val ppVarHtml = Print.ppMap Var.toHtml Html.ppFixed;
+  fun ppBinder show =
+      let
+        fun toName cty =
+            case cty of
+              NONE => NONE
+            | SOME cty => SOME (cty, showConst show cty)
+
+        fun ppBind c =
+            case c of
+              NONE => Print.ppString abs
+            | SOME (_,n) => Name.pp n
+      in
+        Print.ppMap toName (ppBinderBuffer ppBind)
+      end;
+
+  fun ppVarHtml show =
+      let
+        val toHtml = Var.toHtml show
+      in
+        Print.ppMap toHtml Html.ppFixed
+      end;
 
   local
     fun mkSpan class inlines =
         let
           val attrs = Html.singletonAttrs ("class",class)
         in
-          Html.Span (attrs,inlines)
+          [Html.Span (attrs,inlines)]
         end;
 
-    fun toHtmlConst ((c,ty),n) = Const.toHtml ((c, SOME ty), n);
-
-    fun toHtmlNegation ((c,ty),n) =
-        mkSpan "negation" [Const.toHtml ((c, SOME ty), n)];
-
-    fun toHtmlInfix ((c,ty),n) =
-        mkSpan "infix" [Const.toHtml ((c, SOME ty), n)];
-
-    fun toHtmlBinder (cty,n) =
+    fun toHtmlConst show =
         let
-          val h =
-              case cty of
-                SOME (c,ty) => [Const.toHtml ((c, SOME ty), n)]
-              | NONE => Name.toHtml n
+          val toHtml = Const.toHtml show
         in
-          mkSpan "binder" h
+          fn (c,ty) => toHtml (c, SOME ty)
+        end;
+
+    fun toHtmlNegation show =
+        let
+          val toHtml = toHtmlConst show
+        in
+          fn cty => mkSpan "negation" (toHtml cty)
+        end;
+
+    fun toHtmlInfix show =
+        let
+          val toHtml = toHtmlConst show
+        in
+          fn (cty,_) => mkSpan "infix" (toHtml cty)
+        end;
+
+    fun toHtmlBinder show =
+        let
+          val toHtml = toHtmlConst show
+        in
+          fn ctyo =>
+             let
+               val h =
+                   case ctyo of
+                     SOME (cty,_) => toHtml cty
+                   | NONE => Name.toHtml (Name.mkGlobal abs)
+             in
+               mkSpan "binder" h
+             end
         end;
   in
-    val ppConstHtml = Print.ppMap toHtmlConst Html.ppFixed;
+    fun ppConstHtml show = Print.ppMap (toHtmlConst show) Html.ppFixed;
 
-    val ppNegationHtml = Print.ppMap toHtmlNegation Html.ppFixed;
+    fun ppNegationHtml show = Print.ppMap (toHtmlNegation show) Html.ppFixed;
 
-    val ppInfixHtml = ppInfixBuffer (Print.ppMap toHtmlInfix Html.ppFixed);
+    fun ppInfixHtml show =
+        let
+          fun toName (c,ty) = ((c,ty), Show.showName show (Const.name c))
 
-    val ppBinderHtml = ppBinderBuffer (Print.ppMap toHtmlBinder Html.ppFixed);
+          val ppInf = Print.ppMap (toHtmlInfix show) Html.ppFixed
+        in
+          Print.ppMap toName (ppInfixBuffer ppInf)
+        end;
+
+    fun ppBinderHtml show =
+        let
+          fun toName cty =
+              case cty of
+                NONE => NONE
+              | SOME (c,ty) => SOME ((c,ty), Show.showName show (Const.name c))
+
+          val ppBind = Print.ppMap (toHtmlBinder show) Html.ppFixed
+        in
+          Print.ppMap toName (ppBinderBuffer ppBind)
+        end;
   end;
 
   val maximumSize = 1000;
 in
   val defaultGrammar =
       Grammar
-        {abs = abs,
-         negations = negations,
+        {negations = negations,
          infixes = infixes,
          binders = binders,
          ppVar = ppVar,
@@ -891,8 +964,7 @@ in
 
   val htmlGrammar =
       Grammar
-        {abs = abs,
-         negations = negations,
+        {negations = negations,
          infixes = infixes,
          binders = binders,
          ppVar = ppVarHtml,
@@ -931,12 +1003,6 @@ local
       end;
 
   fun mkSet s = NameSet.domain (mkMap (StringSet.fromList s));
-
-  fun showConst show (c,ty) =
-      if Const.equal c constEq then
-        if Type.equal ty boolEqTy then nameBoolEq else nameEq
-      else
-        Show.showName show (Const.name c);
 
   fun destCond show tm =
       let
@@ -1057,7 +1123,7 @@ local
 
   val ppNumeral = Print.ppInt
 
-  fun ppTerm absName negationNames infixNames binderNames specialNames
+  fun ppTerm negationNames infixNames binderNames specialNames
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
              ppVar show =
       let
@@ -1066,9 +1132,9 @@ local
               val n = showConst show c_ty
             in
               if NameSet.member n specialNames then
-                Print.ppBracket "(" ")" ppConstName (c_ty,n)
+                Print.ppBracket "(" ")" ppConstName c_ty
               else
-                ppConstName (c_ty,n)
+                ppConstName c_ty
             end
 
         fun destNegation tm =
@@ -1079,7 +1145,7 @@ local
 
               val n = showConst show c
             in
-              if NameSet.member n negationNames then ((c,n),a)
+              if NameSet.member n negationNames then (c,a)
               else raise Error "Term.pp.destNegation"
             end
 
@@ -1121,16 +1187,16 @@ local
 
         fun ppInfixToken (tm,_) =
             let
-              val (c_n,_,_) = destInfixTerm tm
+              val ((c,_),_,_) = destInfixTerm tm
             in
-              ppInfixName c_n
+              ppInfixName c
             end
 
         val ppInfix = ppInfixes (total destInfix) ppInfixToken
 
         fun destBinder tm =
             case total (destGenAbs show) tm of
-              SOME (v,t) => ((NONE,absName), v, t)
+              SOME (v,t) => (NONE,v,t)
             | NONE =>
               let
                 val (t,a) = destApp tm
@@ -1141,13 +1207,13 @@ local
 
                 val n = showConst show c
               in
-                if NameSet.member n binderNames then ((SOME c, n), v, b)
+                if NameSet.member n binderNames then (SOME c, v, b)
                 else raise Error "Term.pp.destBinder"
               end
 
         val isBinder = can destBinder
 
-        fun equalBinder (ct1,_) (ct2,_) =
+        fun equalBinder ct1 ct2 =
             case (ct1,ct2) of
               (NONE,NONE) => true
             | (SOME (c1,_), SOME (c2,_)) => Const.equal c1 c2
@@ -1255,14 +1321,13 @@ in
   fun ppWithGrammar gram =
       let
         val Grammar
-              {abs,negations,infixes,binders,
+              {negations,infixes,binders,
                ppVar,ppConst,ppNegation,ppInfix,ppBinder,
                maximumSize} = gram
 
         val ppInfixes = Print.ppInfixes infixes
 
-        val absName = mkName abs
-        and negationNames = mkSet negations
+        val negationNames = mkSet negations
         and infixNames = mkMap (Print.tokensInfixes infixes)
         and binderNames = mkSet binders
 
@@ -1270,17 +1335,26 @@ in
             NameSet.unionList
               [negationNames, NameSet.domain infixNames, binderNames]
       in
-        fn show => fn tm =>
+        fn show =>
            let
-             val n = size tm
+             val ppConst = ppConst show
+             and ppNegation = ppNegation show
+             and ppInfix = ppInfix show
+             and ppBinder = ppBinder show
+             and ppVar = ppVar show
            in
-             if n <= maximumSize then
-               ppTerm
-                 absName negationNames infixNames binderNames specialNames
-                 ppInfixes ppConst ppNegation ppInfix ppBinder
-                 ppVar show tm
-             else
-               Print.ppBracket "term{" "}" Print.ppInt n
+             fn tm =>
+                let
+                  val n = size tm
+                in
+                  if n <= maximumSize then
+                    ppTerm
+                      negationNames infixNames binderNames specialNames
+                      ppInfixes ppConst ppNegation ppInfix ppBinder
+                      ppVar show tm
+                  else
+                    Print.ppBracket "term{" "}" Print.ppInt n
+                end
            end
       end;
 end;

@@ -81,6 +81,10 @@ val pp = ppWithShow Show.default;
 
 val toString = Print.toString pp;
 
+(* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
 local
   fun ppVars (ot,vso) =
       Print.blockProgram Print.Inconsistent 0
@@ -96,17 +100,19 @@ local
                 (Print.addBreak 1)),
          Name.pp (name ot)];
 in
-  fun toHtml (ot_vso,n) =
+  fun toHtml show (ot,vso) =
       let
+        val n = Show.showName show (name ot)
+
         val class = "type-operator"
 
-        val title = Print.toString ppVars ot_vso
+        val title = Print.toString ppVars (ot,vso)
 
         val attrs = Html.fromListAttrs [("class",class),("title",title)]
 
         val inlines = Name.toHtml n
       in
-        Html.Span (attrs,inlines)
+        [Html.Span (attrs,inlines)]
       end;
 end;
 
