@@ -60,6 +60,7 @@ val toString : const -> string
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val toHtml : Show.show -> const * Type.ty option -> Html.inline list
+val toHtml :
+    Show.show -> (const * Type.ty option) * Name.name -> Html.inline list
 
 end

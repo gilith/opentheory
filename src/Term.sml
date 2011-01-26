@@ -747,18 +747,13 @@ datatype grammar =
       {negations : Print.token list,
        infixes : Print.infixes,
        binders : Print.token list,
+       showConst : Show.show -> Const.const * Type.ty -> Name.name,
        ppVar : Show.show -> Var.var Print.pp,
        ppConst : Show.show -> (Const.const * Type.ty) Print.pp,
        ppNegation : Show.show -> (Const.const * Type.ty) Print.pp,
        ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
        ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
        maximumSize : int};
-
-fun showConst show (c,ty) =
-    if Const.equal c constEq then
-      if Type.equal ty boolEqTy then nameBoolEq else nameEq
-    else
-      Show.showName show (Const.name c);
 
 local
   val abs = "\\";
@@ -792,6 +787,12 @@ local
          {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
 
   val binders = ["!","?","?!","select","minimal"];
+
+  fun showConst show (c,ty) =
+      if Const.equal c constEq then
+        if Type.equal ty boolEqTy then nameBoolEq else nameEq
+      else
+        Show.showName show (Const.name c);
 
   local
     val pairName = Name.mkGlobal ",";
@@ -890,32 +891,42 @@ local
         let
           val toHtml = Const.toHtml show
         in
-          fn (c,ty) => toHtml (c, SOME ty)
+          fn (c,ty) =>
+             let
+               val n = showConst show (c,ty)
+             in
+               toHtml ((c, SOME ty), n)
+             end
         end;
 
     fun toHtmlNegation show =
         let
-          val toHtml = toHtmlConst show
+          val toHtml = Const.toHtml show
         in
-          fn cty => mkSpan "negation" (toHtml cty)
+          fn (c,ty) =>
+             let
+               val n = showConst show (c,ty)
+             in
+               mkSpan "negation" (toHtml ((c, SOME ty), n))
+             end
         end;
 
     fun toHtmlInfix show =
         let
-          val toHtml = toHtmlConst show
+          val toHtml = Const.toHtml show
         in
-          fn (cty,_) => mkSpan "infix" (toHtml cty)
+          fn ((c,ty),n) => mkSpan "infix" (toHtml ((c, SOME ty), n))
         end;
 
     fun toHtmlBinder show =
         let
-          val toHtml = toHtmlConst show
+          val toHtml = Const.toHtml show
         in
-          fn ctyo =>
+          fn ctyno =>
              let
                val h =
-                   case ctyo of
-                     SOME (cty,_) => toHtml cty
+                   case ctyno of
+                     SOME ((c,ty),n) => toHtml ((c, SOME ty), n)
                    | NONE => Name.toHtml (Name.mkGlobal abs)
              in
                mkSpan "binder" h
@@ -928,7 +939,7 @@ local
 
     fun ppInfixHtml show =
         let
-          fun toName (c,ty) = ((c,ty), Show.showName show (Const.name c))
+          fun toName cty = (cty, showConst show cty)
 
           val ppInf = Print.ppMap (toHtmlInfix show) Html.ppFixed
         in
@@ -940,7 +951,7 @@ local
           fun toName cty =
               case cty of
                 NONE => NONE
-              | SOME (c,ty) => SOME ((c,ty), Show.showName show (Const.name c))
+              | SOME cty => SOME (cty, showConst show cty)
 
           val ppBind = Print.ppMap (toHtmlBinder show) Html.ppFixed
         in
@@ -955,6 +966,7 @@ in
         {negations = negations,
          infixes = infixes,
          binders = binders,
+         showConst = showConst,
          ppVar = ppVar,
          ppConst = ppConst,
          ppNegation = ppNegation,
@@ -967,6 +979,7 @@ in
         {negations = negations,
          infixes = infixes,
          binders = binders,
+         showConst = showConst,
          ppVar = ppVarHtml,
          ppConst = ppConstHtml,
          ppNegation = ppNegationHtml,
@@ -1004,129 +1017,129 @@ local
 
   fun mkSet s = NameSet.domain (mkMap (StringSet.fromList s));
 
-  fun destCond show tm =
-      let
-        val (tm,b) = destApp tm
-
-        val (tm,a) = destApp tm
-
-        val (tm,c) = destApp tm
-
-        val n = showConst show (destConst tm)
-
-        val () = if Name.equal n condName then ()
-                 else raise Error "Term.pp.destCond: not a cond"
-      in
-        (c,a,b)
-      end;
-
-  fun isCond show = can (destCond show);
-
-  fun destForall show tm =
-      let
-        val (c,t) = destApp tm
-
-        val n = showConst show (destConst c)
-
-        val () = if Name.equal n forallName then ()
-                 else raise Error "Term.pp.destGenAbs: not a forall"
-      in
-        destAbs t
-      end;
-
-  fun stripForall show =
-      let
-        fun dst acc tm =
-            case total (destForall show) tm of
-              NONE => (rev acc, tm)
-            | SOME (v,tm) => dst (v :: acc) tm
-      in
-        dst []
-      end;
-
-  fun destSelect show tm =
-      let
-        val (c,t) = destApp tm
-
-        val n = showConst show (destConst c)
-
-        val () = if Name.equal n selectName then ()
-                 else raise Error "Term.pp.destGenAbs: not a select"
-      in
-        destAbs t
-      end;
-
-  fun destGenAbs show tm =
-      case total destAbs tm of
-        SOME (v,t) => (mkVar v, t)
-      | NONE =>
-        let
-          val (f,tm) = destSelect show tm
-
-          val (vl,tm) = stripForall show tm
-
-          val vs = VarSet.fromList vl
-
-          val () = if length vl = VarSet.size vs then ()
-                   else raise Error "Term.pp.destGenAbs: duplicate vars"
-
-          val () = if not (VarSet.member f vs) then ()
-                   else raise Error "Term.pp.destGenAbs: function is var"
-
-          val (pat,body) = destEq tm
-
-          val (ft,pat) = destApp pat
-
-          val () = if equalVar f ft then ()
-                   else raise Error "Term.pp.destGenAbs: no function"
-
-          val () = if VarSet.equal (freeVars pat) vs then ()
-                   else raise Error "Term.pp.destGenAbs: weird pat vars"
-
-          val () = if not (VarSet.member f (freeVars body)) then ()
-                   else raise Error "Term.pp.destGenAbs: function in body"
-        in
-          (pat,body)
-        end;
-
-  fun destNumeral show tm =
-      case dest tm of
-        TypeTerm.Const' c =>
-        let
-          val n = showConst show c
-        in
-          if Name.equal n zeroName then 0
-          else raise Error "Term.pp.destNumeral: bad const"
-        end
-      | TypeTerm.App' (f,x) =>
-        let
-          val n = showConst show (destConst f)
-        in
-          if Name.equal n bit0Name then
-            let
-              val i = destNumeral show x
-            in
-              if i > 0 then 2 * i
-              else raise Error "Term.pp.destNumeral: bit0 zero"
-            end
-          else if Name.equal n bit1Name then
-            let
-              val i = destNumeral show x
-            in
-              2 * i + 1
-            end
-          else raise Error "Term.pp.destNumeral: bad app"
-        end
-      | _ => raise Error "Term.pp.destNumeral: bad term";
-
-  fun isNumeral show = can (destNumeral show);
-
-  val ppNumeral = Print.ppInt
-
-  fun ppTerm negationNames infixNames binderNames specialNames
+  fun ppTerm negationNames infixNames binderNames specialNames showConst
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
              ppVar show =
       let
+        fun destCond show tm =
+            let
+              val (tm,b) = destApp tm
+
+              val (tm,a) = destApp tm
+
+              val (tm,c) = destApp tm
+
+              val n = showConst show (destConst tm)
+
+              val () = if Name.equal n condName then ()
+                       else raise Error "Term.pp.destCond: not a cond"
+            in
+              (c,a,b)
+            end
+
+        fun isCond show = can (destCond show)
+
+        fun destForall show tm =
+            let
+              val (c,t) = destApp tm
+
+              val n = showConst show (destConst c)
+
+              val () = if Name.equal n forallName then ()
+                       else raise Error "Term.pp.destForall: not a forall"
+            in
+              destAbs t
+            end
+
+        fun stripForall show =
+            let
+              fun dst acc tm =
+                  case total (destForall show) tm of
+                    NONE => (rev acc, tm)
+                  | SOME (v,tm) => dst (v :: acc) tm
+            in
+              dst []
+            end
+
+        fun destSelect show tm =
+            let
+              val (c,t) = destApp tm
+
+              val n = showConst show (destConst c)
+
+              val () = if Name.equal n selectName then ()
+                       else raise Error "Term.pp.destSelect: not a select"
+            in
+              destAbs t
+            end
+
+        fun destGenAbs show tm =
+            case total destAbs tm of
+              SOME (v,t) => (mkVar v, t)
+            | NONE =>
+              let
+                val (f,tm) = destSelect show tm
+
+                val (vl,tm) = stripForall show tm
+
+                val vs = VarSet.fromList vl
+
+                val () = if length vl = VarSet.size vs then ()
+                         else raise Error "Term.pp.destGenAbs: duplicate vars"
+
+                val () = if not (VarSet.member f vs) then ()
+                         else raise Error "Term.pp.destGenAbs: function is var"
+
+                val (pat,body) = destEq tm
+
+                val (ft,pat) = destApp pat
+
+                val () = if equalVar f ft then ()
+                         else raise Error "Term.pp.destGenAbs: no function"
+
+                val () = if VarSet.equal (freeVars pat) vs then ()
+                         else raise Error "Term.pp.destGenAbs: weird pat vars"
+
+                val () = if not (VarSet.member f (freeVars body)) then ()
+                         else raise Error "Term.pp.destGenAbs: function in body"
+              in
+                (pat,body)
+              end
+
+        fun destNumeral show tm =
+            case dest tm of
+              TypeTerm.Const' c =>
+              let
+                val n = showConst show c
+              in
+                if Name.equal n zeroName then 0
+                else raise Error "Term.pp.destNumeral: bad const"
+              end
+            | TypeTerm.App' (f,x) =>
+              let
+                val n = showConst show (destConst f)
+              in
+                if Name.equal n bit0Name then
+                  let
+                    val i = destNumeral show x
+                  in
+                    if i > 0 then 2 * i
+                    else raise Error "Term.pp.destNumeral: bit0 zero"
+                  end
+                else if Name.equal n bit1Name then
+                  let
+                    val i = destNumeral show x
+                  in
+                    2 * i + 1
+                  end
+                else raise Error "Term.pp.destNumeral: bad app"
+              end
+            | _ => raise Error "Term.pp.destNumeral: bad term"
+
+        fun isNumeral show = can (destNumeral show);
+
+        val ppNumeral = Print.ppInt
+
         fun ppConst c_ty =
             let
               val n = showConst show c_ty
@@ -1322,6 +1335,7 @@ in
       let
         val Grammar
               {negations,infixes,binders,
+               showConst,
                ppVar,ppConst,ppNegation,ppInfix,ppBinder,
                maximumSize} = gram
 
@@ -1350,6 +1364,7 @@ in
                   if n <= maximumSize then
                     ppTerm
                       negationNames infixNames binderNames specialNames
+                      showConst
                       ppInfixes ppConst ppNegation ppInfix ppBinder
                       ppVar show tm
                   else

@@ -543,14 +543,25 @@ local
       let
         val toHtml = TypeOp.toHtml show
       in
-        fn ot => Html.ppFixed (toHtml (ot, TypeOp.varsDef ot))
+        fn ot =>
+           let
+             val vs = TypeOp.varsDef ot
+           in
+             Html.ppFixed (toHtml (ot,vs))
+           end
       end;
 
   fun ppConst show =
       let
         val toHtml = Const.toHtml show
       in
-        fn c => Html.ppFixed (toHtml (c, Const.typeOf c))
+        fn c =>
+           let
+             val ty = Const.typeOf c
+             and n = Show.showName show (Const.name c)
+           in
+             Html.ppFixed (toHtml ((c,ty),n))
+           end
       end;
 in
   val htmlGrammar =

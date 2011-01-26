@@ -212,6 +212,26 @@ end;
 val fromList = addList natural;
 
 (* ------------------------------------------------------------------------- *)
+(* HTML output.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun toHtmlMapping m =
+    case m of
+      NamespaceMapping (n1,n2) =>
+      Namespace.toHtml n1 @
+      (if Namespace.isGlobal n2 then []
+       else Html.Text (" " ^ asKeywordString ^ " ") :: Namespace.toHtml n2);
+
+local
+  fun addHtml (m,l) = toHtmlMapping m @ Html.Break :: l;
+in
+  fun toHtml show =
+      case rev (toList show) of
+        [] => []
+      | m :: ms => List.foldl addHtml (toHtmlMapping m) ms;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* The default mapping.                                                      *)
 (* ------------------------------------------------------------------------- *)
 

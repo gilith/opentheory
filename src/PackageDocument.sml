@@ -88,7 +88,7 @@ fun toHtml doc =
             val css = join "\n"
                 ["body { background-color: white; color: black; font-family: sans-serif; margin: 0.5em; border: 1px dotted black; padding: 1em; }",
                  "h1 { margin-top: 0.5em; }",
-                 "td { background-color: #e0e8ff; margin: 0; border: 1px dotted white; padding-top: 2px; padding-bottom: 2px; padding-left: 10px; padding-right: 10px; }",
+                 "td { background-color: #e0e8ff; margin: 0; border: 1px dotted white; padding-top: 2px; padding-bottom: 2px; padding-left: 10px; padding-right: 10px; vertical-align: top; }",
                  "ul { padding-left: 1.25em; }",
                  "span.namespace { font-style: italic; }",
                  "p.sequent { font-family: courier, monospace; }",
@@ -114,20 +114,40 @@ fun toHtml doc =
 
       val tagsBlock =
           let
-            fun tagBlock tag =
-                let
-                  val PackageTag.Tag' {name,value} = PackageTag.dest tag
+            fun isShowTag tag =
+                PackageName.equal (PackageTag.name tag) PackageName.showTag
 
-                  val n = Html.Text (PackageName.toString name)
-                  and v = Html.Text value
+            fun tagEntry n v =
+                let
+                  val n = Html.Text (PackageName.toString n)
 
                   val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
-                  and v = Html.TableEntry (Html.emptyAttrs, Html.Inline [v])
+                  and v = Html.TableEntry (Html.emptyAttrs, Html.Inline v)
                 in
                   Html.TableRow [n,v]
                 end
 
+            fun tagBlock tag =
+                let
+                  val PackageTag.Tag' {name,value} = PackageTag.dest tag
+
+                  val value = [Html.Text value]
+                in
+                  tagEntry name value
+                end
+
+            val (show,tags) = List.partition isShowTag tags
+
             val ts = List.map tagBlock tags
+
+            val ts =
+                if null show then ts
+                else
+                  let
+                    val show = PackageTag.toShow show
+                  in
+                    ts @ [tagEntry PackageName.showTag (Show.toHtml show)]
+                  end
           in
             Html.Table (Html.emptyAttrs,ts)
           end

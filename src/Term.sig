@@ -230,6 +230,7 @@ datatype grammar =
       {negations : Print.token list,
        infixes : Print.infixes,
        binders : Print.token list,
+       showConst : Show.show -> Const.const * Type.ty -> Name.name,
        ppVar : Show.show -> Var.var Print.pp,
        ppConst : Show.show -> (Const.const * Type.ty) Print.pp,
        ppNegation : Show.show -> (Const.const * Type.ty) Print.pp,

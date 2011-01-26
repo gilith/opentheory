@@ -116,22 +116,20 @@ fun toHtml show =
     let
       val ppTy = Type.ppHtml show
     in
-      fn (c,ty) =>
+      fn ((c,ty),n) =>
          let
-           val n = Show.showName show (name c)
-
            val class = "const"
 
-           val title = Name.toString n
+           val title = Html.encode (Name.toString (name c))
 
            val title =
                case ty of
                  NONE => title
-               | SOME t => title ^ " : " ^ Print.toString ppTy t
+               | SOME t => title ^ " : " ^ Print.toLine ppTy t
 
            val attrs = Html.fromListAttrs [("class",class),("title",title)]
 
-           val inlines = Name.toHtml n
+           val inlines = Name.toHtml (Show.showName show n)
          in
            [Html.Span (attrs,inlines)]
          end
