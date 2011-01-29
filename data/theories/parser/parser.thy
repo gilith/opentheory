@@ -8,7 +8,6 @@ show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
 show: "Data.Parser"
-show: "Data.Parser.Stream"
 
 def {
   package: parser-def-1.0
