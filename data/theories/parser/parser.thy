@@ -7,18 +7,26 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
-show: "Data.Parser"
+show: "Parser"
+show: "Relation"
 
-def {
-  package: parser-def-1.0
+stream {
+  package: parser-stream-1.0
 }
 
-thm {
-  import: def
-  package: parser-thm-1.0
+basic {
+  import: stream
+  package: parser-basic-1.0
+}
+
+rec {
+  import: stream
+  import: basic
+  package: parser-rec-1.0
 }
 
 main {
-  import: def
-  import: thm
+  import: stream
+  import: basic
+  import: rec
 }

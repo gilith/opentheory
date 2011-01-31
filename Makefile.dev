@@ -211,8 +211,12 @@ EXAMPLE_THEORIES = \
   modular \
   word \
   byte \
+  parser-stream \
+  parser-basic \
   parser \
-  char
+  char \
+  examples \
+  base-examples
 
 COMPILATION_THEORIES = $(STANDARD_THEORIES) $(EXAMPLE_THEORIES)
 

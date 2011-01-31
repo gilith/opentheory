@@ -15,6 +15,7 @@ def {
 word {
   import: def
   interpret: type "Data.Word.word" as "Data.Byte.byte"
+  interpret: const "Data.Word.+" as "Data.Byte.+"
   interpret: const "Data.Word.fromNatural" as "Data.Byte.fromNatural"
   interpret: const "Data.Word.size" as "Data.Byte.size"
   interpret: const "Data.Word.toList" as "Data.Byte.toList"

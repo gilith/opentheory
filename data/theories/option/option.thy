@@ -12,6 +12,18 @@ def {
   package: option-def-1.0
 }
 
+thm {
+  import: def
+  package: option-thm-1.0
+}
+
+case {
+  import: def
+  package: option-case-1.0
+}
+
 main {
   import: def
+  import: thm
+  import: case
 }

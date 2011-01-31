@@ -18,6 +18,11 @@ thm {
   package: list-thm-1.0
 }
 
+case {
+  import: def
+  package: list-case-1.0
+}
+
 dest {
   import: def
   package: list-dest-1.0
@@ -102,6 +107,7 @@ member {
 main {
   import: def
   import: thm
+  import: case
   import: dest
   import: append
   import: map
