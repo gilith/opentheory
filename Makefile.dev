@@ -207,13 +207,13 @@ STANDARD_THEORIES = \
   base
 
 EXAMPLE_THEORIES = \
+  parser-stream \
+  parser-basic \
+  parser \
   modular-equiv \
   modular \
   word \
   byte \
-  parser-stream \
-  parser-basic \
-  parser \
   char \
   examples \
   base-examples
