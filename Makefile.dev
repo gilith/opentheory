@@ -214,6 +214,7 @@ EXAMPLE_THEORIES = \
   modular \
   word \
   byte \
+  word16 \
   char \
   examples \
   base-examples
