@@ -159,7 +159,7 @@ OPENTHEORY_INFO = $(OPENTHEORY) info
 
 OPENTHEORY_INIT = $(OPENTHEORY) init
 
-OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual
+OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual --reinstall
 
 OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
 
@@ -203,18 +203,21 @@ STANDARD_THEORIES = \
   list-nth \
   list-replicate \
   list-member \
+  list-concat \
+  list-interval \
+  list-zipwith \
   list \
   base
 
 EXAMPLE_THEORIES = \
-  parser-stream \
-  parser-basic \
-  parser \
   modular-equiv \
   modular \
   word \
   byte \
   word16 \
+  parser-stream \
+  parser-basic \
+  parser \
   char \
   examples \
   base-examples

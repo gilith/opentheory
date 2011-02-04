@@ -22,6 +22,12 @@ def {
   package: modular-def-1.0
 }
 
+thm {
+  import: def
+  package: modular-thm-1.0
+}
+
 main {
   import: def
+  import: thm
 }
