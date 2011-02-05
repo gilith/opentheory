@@ -222,8 +222,6 @@ EXAMPLE_THEORIES = \
   examples \
   base-examples
 
-COMPILATION_THEORIES = $(STANDARD_THEORIES) $(EXAMPLE_THEORIES)
-
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
@@ -234,14 +232,17 @@ reset-hol-light-theories:
 	rm -rf $(HOL_LIGHT_THEORY_DIR)
 	mkdir $(HOL_LIGHT_THEORY_DIR)
 
-.PHONY: hol-light-theories
-hol-light-theories: $(OPENTHEORY)
+.PHONY: standard-theories
+standard-theories: $(OPENTHEORY)
+	mkdir -p $(HOL_LIGHT_THEORY_DIR)
+	cd ../hol-light && OPENTHEORY_STDLIB=1 opentheory/scripts/capture
+	for thy in $(STANDARD_THEORIES) ; do if ! $(OPENTHEORY_INFO) $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
+
+.PHONY: example-theories
+example-theories: $(OPENTHEORY)
 	mkdir -p $(HOL_LIGHT_THEORY_DIR)
 	cd ../hol-light && opentheory/scripts/capture
-
-.PHONY: compilation-theories
-compilation-theories: $(OPENTHEORY)
-	for thy in $(COMPILATION_THEORIES) ; do if ! $(OPENTHEORY_INFO) $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
+	for thy in $(EXAMPLE_THEORIES) ; do if ! $(OPENTHEORY_INFO) $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
 
 .PHONY: reset-repo
 reset-repo:
@@ -254,8 +255,8 @@ reset-theories:
 
 .PHONY: theories
 theories:
-	$(MAKE) hol-light-theories
-	$(MAKE) compilation-theories
+	$(MAKE) standard-theories
+	$(MAKE) example-theories
 
 .PHONY: upload-theories
 upload-theories: $(OPENTHEORY)
