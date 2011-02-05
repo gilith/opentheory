@@ -37,7 +37,6 @@ word {
 }
 
 bytes {
-  import: def
   import: word
   package: word16-bytes-1.0
 }

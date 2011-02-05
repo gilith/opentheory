@@ -5,7 +5,6 @@ author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 show: "Number.Natural"
-show: "Number.Numeral"
 
 def {
   package: modular-equiv-def-1.0

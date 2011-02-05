@@ -25,6 +25,7 @@ case {
 
 dest {
   import: def
+  import: thm
   package: list-dest-1.0
 }
 
@@ -106,58 +107,21 @@ member {
 
 concat {
   import: def
-  import: thm
-  import: case
   import: dest
   import: append
-  import: map
   import: quant
-  import: filter
-  import: last
-  import: reverse
-  import: length
-  import: nth
-  import: replicate
-  import: member
   package: list-concat-1.0
 }
 
 interval {
-  import: def
-  import: thm
-  import: case
-  import: dest
-  import: append
-  import: map
-  import: quant
-  import: filter
-  import: last
-  import: reverse
   import: length
-  import: nth
-  import: replicate
-  import: member
-  import: concat
   package: list-interval-1.0
 }
 
 zipwith {
   import: def
-  import: thm
-  import: case
   import: dest
-  import: append
-  import: map
-  import: quant
-  import: filter
-  import: last
-  import: reverse
   import: length
-  import: nth
-  import: replicate
-  import: member
-  import: concat
-  import: interval
   package: list-zipwith-1.0
 }
 

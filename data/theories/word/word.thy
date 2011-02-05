@@ -28,7 +28,6 @@ modular {
 }
 
 bits {
-  import: def
   import: modular
   package: word-bits-1.0
 }
