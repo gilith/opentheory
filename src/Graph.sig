@@ -107,6 +107,7 @@ val importNode :
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
+     nodeImports : TheorySet.set,
      node : PackageTheory.node} ->
     graph * Theory.theory
 

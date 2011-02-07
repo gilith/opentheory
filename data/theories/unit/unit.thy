@@ -6,16 +6,16 @@ license: MIT
 show: "Data.Bool"
 show: "Data.Unit"
 
-unit-def {
+def {
   package: unit-def-1.0
 }
 
-unit-thm {
-  import: unit-def
+thm {
+  import: def
   package: unit-thm-1.0
 }
 
 main {
-  import: unit-def
-  import: unit-thm
+  import: def
+  import: thm
 }

@@ -426,12 +426,14 @@ fun applyImporter (Importer f) graph spec = f graph spec;
 
 fun importNode importer graph info =
     let
-      val {directory,imports,interpretation,node} = info
+      val {directory,imports,interpretation,nodeImports,node} = info
     in
       case node of
           PackageTheory.Article {interpretation = int, filename = f} =>
           let
             val savable = savable graph
+
+            val imports = TheorySet.union imports nodeImports
 
             val import = TheorySet.article imports
 
@@ -467,6 +469,8 @@ fun importNode importer graph info =
           end
         | PackageTheory.Package {interpretation = int, package = namever} =>
           let
+            val imports = TheorySet.union imports nodeImports
+
             val interpretation = Interpretation.compose int interpretation
 
             val spec =
@@ -479,11 +483,11 @@ fun importNode importer graph info =
           end
         | PackageTheory.Union =>
           let
+            val imports = TheorySet.toList nodeImports
+
             val node = Theory.Union
 
-            val article = TheorySet.article imports
-
-            val imports = TheorySet.toList imports
+            val article = TheorySet.article nodeImports
 
             val thy' =
                 Theory.Theory'
@@ -515,12 +519,14 @@ fun importTheory importer graph env info =
               raise Error err
             end
 
-      val imports = List.foldl addImp imports (PackageTheory.imports theory)
+      val nodeImports =
+          List.foldl addImp TheorySet.empty (PackageTheory.imports theory)
 
       val info =
           {directory = directory,
            imports = imports,
            interpretation = interpretation,
+           nodeImports = nodeImports,
            node = node}
 
       val (graph,thy) = importNode importer graph info
@@ -584,9 +590,9 @@ fun importPackage importer graph info =
 
       val thy' =
           Theory.Theory'
-              {imports = imports,
-               node = node,
-               article = article}
+            {imports = imports,
+             node = node,
+             article = article}
 
       val thy = Theory.mk thy'
 

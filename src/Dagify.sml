@@ -43,11 +43,14 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
 
       val int = Interpretation.natural
 
+      val nodeImports = TheorySet.empty
+
       val (graph,thy) =
           Graph.importNode importer graph
             {directory = directory,
              imports = imports,
              interpretation = int,
+             nodeImports = nodeImports,
              node = node}
 
       val art = Theory.article thy
