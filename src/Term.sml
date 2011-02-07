@@ -1255,6 +1255,16 @@ local
             else if isBinder tm then raise Error "Term.pp.destGenApp: binder"
             else destApp tm
 
+        val stripGenApp =
+            let
+              fun strip acc tm =
+                  case total destGenApp tm of
+                    NONE => (tm,acc)
+                  | SOME (f,x) => strip (x :: acc) f
+            in
+              strip []
+            end
+
         fun ppBasicTerm tm =
             case total (destNumeral show) tm of
               SOME i => ppNumeral i
@@ -1266,13 +1276,15 @@ local
               | TypeTerm.Abs' _ => ppBracketTerm tm
 
         and ppApplicationTerm tm =
-            case total destGenApp tm of
-              NONE => ppBasicTerm tm
-            | SOME (f,x) =>
-              Print.blockProgram Print.Inconsistent 2
-                [ppApplicationTerm f,
-                 Print.addBreak 1,
-                 ppBasicTerm x]
+            let
+              val (tm,xs) = stripGenApp tm
+            in
+              if null xs then ppBasicTerm tm
+              else
+                Print.blockProgram Print.Inconsistent 2
+                  (ppBasicTerm tm ::
+                   List.map (Print.sequence (Print.addBreak 1) o ppBasicTerm) xs)
+            end
 
         and ppBindTerm tm =
             let
