@@ -1269,7 +1269,7 @@ local
             case total destGenApp tm of
               NONE => ppBasicTerm tm
             | SOME (f,x) =>
-              Print.program
+              Print.blockProgram Print.Inconsistent 2
                 [ppApplicationTerm f,
                  Print.addBreak 1,
                  ppBasicTerm x]
@@ -1282,7 +1282,8 @@ local
                 [ppBinderName c,
                  ppBasicTerm v,
                  Print.program
-                   (List.map (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs),
+                   (List.map
+                      (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs),
                  Print.ppString ".",
                  Print.addBreak 1,
                  if isBinder body then ppBindTerm body
@@ -1314,12 +1315,13 @@ local
             | SOME (c,a,b) =>
               if r then ppBracketTerm tm
               else
-                Print.program
-                  [Print.ppString "if ",
-                   ppHangingTerm (c,true),
-                   Print.addBreak 1,
-                   Print.ppString "then ",
-                   ppHangingTerm (a,true),
+                Print.blockProgram Print.Inconsistent 0
+                  [Print.blockProgram Print.Inconsistent 0
+                     [Print.ppString "if ",
+                      ppHangingTerm (c,true),
+                      Print.addBreak 1,
+                      Print.ppString "then ",
+                      ppHangingTerm (a,true)],
                    Print.addBreak 1,
                    Print.ppString "else ",
                    ppHangingTerm (b,false)]

@@ -13,15 +13,15 @@ show: "Number.Numeral"
 show: "Parser"
 
 def {
-  package: char-def-1.0
+  package: char-utf8-def-1.0
 }
 
-utf8 {
+thm {
   import: def
-  package: char-utf8-1.0
+  package: char-utf8-thm-1.0
 }
 
 main {
   import: def
-  import: utf8
+  import: thm
 }

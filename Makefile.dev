@@ -218,6 +218,7 @@ EXAMPLE_THEORIES = \
   parser-stream \
   parser-basic \
   parser \
+  char-utf8 \
   char \
   examples \
   base-examples
