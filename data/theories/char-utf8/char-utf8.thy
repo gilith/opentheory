@@ -1,4 +1,4 @@
-name: char
+name: char-utf8
 version: 1.0
 description: Theory of Unicode characters
 author: Joe Hurd <joe@gilith.com>
