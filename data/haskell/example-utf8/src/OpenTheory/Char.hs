@@ -162,18 +162,10 @@ printer (Unicode (pl,pos)) =
     let (p0,p1) = OpenTheory.Word.word16ToWord8 (unPosition pos) in
     if p == 0
     then
-      if p0 == 0
+      if p0 == 0 && not (Data.Bits.testBit p1 7)
       then
-        if Data.Bits.testBit p1 7
-        then
-          let b00 = Data.Bits.shiftR ((Data.Bits..&.) p1 192) 6 in
-          let b0 = (Data.Bits..|.) 192 b00 in
-          let b10 = (Data.Bits..&.) p1 63 in
-          let b1 = (Data.Bits..|.) 128 b10 in
-          [b0,b1]
-        else
-          let b0 = p1 in
-          [b0]
+        let b0 = p1 in
+        [b0]
       else
         if (Data.Bits..&.) 248 p0 == 0
         then
