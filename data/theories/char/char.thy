@@ -16,12 +16,19 @@ def {
   package: char-def-1.0
 }
 
+thm {
+  import: def
+  package: char-thm-1.0
+}
+
 utf8 {
   import: def
+  import: thm
   package: char-utf8-1.0
 }
 
 main {
   import: def
+  import: thm
   import: utf8
 }

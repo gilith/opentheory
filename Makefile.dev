@@ -212,6 +212,7 @@ STANDARD_THEORIES = \
 EXAMPLE_THEORIES = \
   modular-equiv \
   modular \
+  word-bits \
   word \
   byte \
   word16 \
