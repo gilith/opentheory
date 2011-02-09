@@ -215,6 +215,7 @@ EXAMPLE_THEORIES = \
   word-bits \
   word \
   byte \
+  word16-bytes \
   word16 \
   parser-stream \
   parser-basic \
