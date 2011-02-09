@@ -56,7 +56,7 @@ class PackageNameVersion {
   function package_link($text) {
     is_string($text) or trigger_error('bad text');
 
-    $path = array('packages');
+    $path = array();
 
     $args = array('pkg' => $this->to_string());
 
