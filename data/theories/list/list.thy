@@ -113,6 +113,25 @@ concat {
   package: list-concat-1.0
 }
 
+take-drop {
+  import: def
+  import: thm
+  import: case
+  import: dest
+  import: append
+  import: map
+  import: quant
+  import: filter
+  import: last
+  import: reverse
+  import: length
+  import: nth
+  import: replicate
+  import: member
+  import: concat
+  package: list-take-drop-1.0
+}
+
 interval {
   import: length
   package: list-interval-1.0
@@ -141,6 +160,7 @@ main {
   import: replicate
   import: member
   import: concat
+  import: take-drop
   import: interval
   import: zipwith
 }

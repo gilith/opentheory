@@ -25,6 +25,7 @@ word {
   interpret: const "Data.Word.bit" as "Data.Word16.bit"
   interpret: const "Data.Word.fromList" as "Data.Word16.fromList"
   interpret: const "Data.Word.fromNatural" as "Data.Word16.fromNatural"
+  interpret: const "Data.Word.isList" as "Data.Word16.isList"
   interpret: const "Data.Word.not" as "Data.Word16.not"
   interpret: const "Data.Word.or" as "Data.Word16.or"
   interpret: const "Data.Word.shiftLeft" as "Data.Word16.shiftLeft"

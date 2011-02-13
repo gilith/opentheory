@@ -204,6 +204,7 @@ STANDARD_THEORIES = \
   list-replicate \
   list-member \
   list-concat \
+  list-take-drop \
   list-interval \
   list-zipwith \
   list \

@@ -28,6 +28,7 @@ thm {
 }
 
 main {
+  import: mod
   import: def
   import: thm
 }
