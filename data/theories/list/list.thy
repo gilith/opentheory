@@ -114,21 +114,10 @@ concat {
 }
 
 take-drop {
-  import: def
   import: thm
-  import: case
   import: dest
   import: append
-  import: map
-  import: quant
-  import: filter
-  import: last
-  import: reverse
   import: length
-  import: nth
-  import: replicate
-  import: member
-  import: concat
   package: list-take-drop-1.0
 }
 
