@@ -90,6 +90,7 @@ nth {
 
 replicate {
   import: length
+  import: nth
   package: list-replicate-1.0
 }
 
@@ -118,11 +119,13 @@ take-drop {
   import: dest
   import: append
   import: length
+  import: nth
   package: list-take-drop-1.0
 }
 
 interval {
   import: length
+  import: nth
   package: list-interval-1.0
 }
 
