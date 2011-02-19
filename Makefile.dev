@@ -247,7 +247,7 @@ standard-theories:
 .PHONY: example-theories
 example-theories: $(OPENTHEORY)
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
-	$(IMPORT_THEORIES)
+	$(MAKE) import-hol-light-theories
 	$(INSTALL_THEORIES)
 	mkdir -p $(HOL_LIGHT_THEORY_DIR)
 	cd ../hol-light && opentheory/scripts/capture

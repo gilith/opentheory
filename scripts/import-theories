@@ -9,7 +9,7 @@ if ! test -d $source ; then echo "$source not a directory" ; exit 1 ; fi
 theories=data/theories
 if ! test -d $theories ; then echo "$theories not a directory" ; exit 1 ; fi
 
-for thy in $source/articles/*.thy
+for thy in $source/*.thy
 do
     base=$(basename $thy .thy)
     tdir=$theories/$base
