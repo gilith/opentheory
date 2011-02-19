@@ -3,23 +3,26 @@
 prog=bin/mlton/opentheory
 if ! test -x $prog ; then echo "$prog not an executable" ; exit 1 ; fi
 
+bumpver=scripts/bump-theory-version
+if ! test -x $bumpver ; then echo "$bumpver not an executable" ; exit 1 ; fi
+
 source=../hol-light/opentheory/articles
 if ! test -d $source ; then echo "$source not a directory" ; exit 1 ; fi
 
-theories=data/theories
-if ! test -d $theories ; then echo "$theories not a directory" ; exit 1 ; fi
+target=data/theories
+if ! test -d $target ; then echo "$target not a directory" ; exit 1 ; fi
 
 for thy in $source/*.thy
 do
     base=$(basename $thy .thy)
-    tdir=$theories/$base
+    tdir=$target/$base
     tthy=$tdir/$base.thy
+    tthynew=$tdir/$base.thy.bumping
     tart=$tdir/$base.art
     tartnew=$tdir/$base.art.importing
 
     if ! test -d $tdir
     then
-        echo "making new" $base "theory directory"
         mkdir $tdir
 
         echo "name: $base" > $tthy
@@ -36,22 +39,31 @@ do
         echo "}" >> $tthy
     fi
 
-    echo "importing" $base
-
     $prog info --preserve-theory --article -o $tartnew $thy || exit 1
 
-    if grep 'Unwanted' $tartnew ; then exit 1 ; fi
+    if grep 'Unwanted' $tartnew
+    then
+        echo "Unwanted symbols found in" $base
+        exit 1
+    fi
 
     if test -e $tart
     then
-        if diff $tart $tartnew
+        if ! diff $tart $tartnew >/dev/null
         then
+            $bumpver $tthy > $tthynew || exit 1
+
+            mv $tthynew $tthy
             mv $tartnew $tart
+
+            echo "re-imported" $base
         else
             rm $tartnew
         fi
     else
         mv $tartnew $tart
+
+        echo "imported" $base
     fi
 done
 

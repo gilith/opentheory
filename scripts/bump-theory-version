@@ -1,0 +1,107 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Hurd, All Rights Reserved
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h);
+
+getopts('h');
+
+if ($opt_h or scalar @ARGV != 1)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $thy = $ARGV[0];
+
+open THEORY, $thy or
+  die "bump-theory-version: couldn't read $thy file: $!\n";
+
+my $bumped = 0;
+
+while (my $line = <THEORY>) {
+    chomp $line;
+
+    if ($line =~ /^version: ((?:[[:digit:]]+[.])*)([[:digit:]]+)$/) {
+        my $b = $1;
+
+        my $v = int($2);
+        $v++;
+
+        print STDOUT "version: $b$v\n";
+
+        if ($bumped) {
+            die "bump-theory-version: found two version: tags";
+        }
+        else {
+            $bumped = 1;
+        }
+    }
+    elsif ($line =~ /^source: *(.*) extracted on /) {
+        my $s = $1;
+
+        my $d = `date "+%Y-%m-%d"`;
+        chomp $d;
+
+        print STDOUT "source: $s extracted on $d\n";
+    }
+    else {
+        print STDOUT "$line\n";
+    }
+}
+
+close THEORY;
+
+if (!$bumped) {
+    die "bump-theory-version: found no version tag";
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+bump-theory-version - bump the version of a theory
+
+=head1 SYNOPSIS
+
+bump-theory-version [-h] NAME.thy
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+Bump the version string of an OpenTheory theory file.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut
