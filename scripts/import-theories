@@ -1,0 +1,58 @@
+#!/bin/bash
+
+prog=bin/mlton/opentheory
+if ! test -x $prog ; then echo "$prog not an executable" ; exit 1 ; fi
+
+source=../hol-light/opentheory/articles
+if ! test -d $source ; then echo "$source not a directory" ; exit 1 ; fi
+
+theories=data/theories
+if ! test -d $theories ; then echo "$theories not a directory" ; exit 1 ; fi
+
+for thy in $source/articles/*.thy
+do
+    base=$(basename $thy .thy)
+    tdir=$theories/$base
+    tthy=$tdir/$base.thy
+    tart=$tdir/$base.art
+    tartnew=$tdir/$base.art.importing
+
+    if ! test -d $tdir
+    then
+        echo "making new" $base "theory directory"
+        mkdir $tdir
+
+        echo "name: $base" > $tthy
+        echo "version: 1.0" >> $tthy
+        echo "description: $base" >> $tthy
+        echo "author: Joe Hurd <joe@gilith.com>" >> $tthy
+        echo "license: HOLLight" >> $tthy
+        echo -n "source: HOL Light theory segment extracted on " >> $tthy
+        date "+%Y-%m-%d" >> $tthy
+        echo "show: \"Data.Bool\"" >> $tthy
+        echo >> $tthy
+        echo "main {" >> $tthy
+        echo "  article: \"$base.art\"" >> $tthy
+        echo "}" >> $tthy
+    fi
+
+    echo "importing" $base
+
+    $prog info --preserve-theory --article -o $tartnew $thy || exit 1
+
+    if grep 'Unwanted' $tartnew ; then exit 1 ; fi
+
+    if test -e $tart
+    then
+        if diff $tart $tartnew
+        then
+            mv $tartnew $tart
+        else
+            rm $tartnew
+        fi
+    else
+        mv $tartnew $tart
+    fi
+done
+
+echo

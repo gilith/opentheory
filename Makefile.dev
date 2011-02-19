@@ -151,15 +151,19 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 REPO_SESSION = 8cb585f5b6b2e42f917d3448de5221aa
 
+HOL_LIGHT_DIR = ../hol-light
+
 THEORY_DIR = data/theories
 
-HOL_LIGHT_THEORY_DIR = $(THEORY_DIR)/hol-light
+IMPORT_THEORIES = scripts/import-theories
+
+INSTALL_THEORIES = scripts/install-theories $(THEORY_DIR)
 
 OPENTHEORY_INFO = $(OPENTHEORY) info
 
 OPENTHEORY_INIT = $(OPENTHEORY) init
 
-OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual --reinstall
+OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual
 
 OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
 
@@ -231,36 +235,32 @@ reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
-.PHONY: reset-hol-light-theories
-reset-hol-light-theories:
-	rm -rf $(HOL_LIGHT_THEORY_DIR)
-	mkdir $(HOL_LIGHT_THEORY_DIR)
+.PHONY: import-hol-light-theories
+import-hol-light-theories: $(OPENTHEORY)
+	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles $(THEORY_DIR)
 
 .PHONY: standard-theories
-standard-theories: $(OPENTHEORY)
-	mkdir -p $(HOL_LIGHT_THEORY_DIR)
-	cd ../hol-light && OPENTHEORY_STDLIB=1 opentheory/scripts/capture
-	for thy in $(STANDARD_THEORIES) ; do if ! $(OPENTHEORY_INFO) $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
+standard-theories:
+	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
+	$(MAKE) import-hol-light-theories
 
 .PHONY: example-theories
 example-theories: $(OPENTHEORY)
+	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
+	$(IMPORT_THEORIES)
+	$(INSTALL_THEORIES)
 	mkdir -p $(HOL_LIGHT_THEORY_DIR)
 	cd ../hol-light && opentheory/scripts/capture
 	for thy in $(EXAMPLE_THEORIES) ; do if ! $(OPENTHEORY_INFO) $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
-
-.PHONY: reset-repo
-reset-repo:
-	curl --user-agent opentheory "http://opentheory.gilith.com/admin/reset/?session=$(REPO_SESSION)&d=1&x=1"
-
-.PHONY: reset-theories
-reset-theories:
-	$(MAKE) reset-directory
-	$(MAKE) reset-hol-light-theories
 
 .PHONY: theories
 theories:
 	$(MAKE) standard-theories
 	$(MAKE) example-theories
+
+.PHONY: reset-repo
+reset-repo:
+	curl --user-agent opentheory "http://opentheory.gilith.com/admin/reset/?session=$(REPO_SESSION)&d=1&x=1"
 
 .PHONY: upload-theories
 upload-theories: $(OPENTHEORY)
@@ -271,9 +271,11 @@ upload-theories: $(OPENTHEORY)
 # Create the test OpenTheory directory.
 ###############################################################################
 
-TEST_PACKAGE_DIR = test/directory
+TEST_THEORY_DIR = test/theories
 
-TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_PACKAGE_DIR)
+TEST_DIRECTORY_DIR = test/directory
+
+TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_DIRECTORY_DIR)
 
 TEST_OPENTHEORY_INIT = $(TEST_OPENTHEORY) init
 
@@ -282,12 +284,12 @@ TEST_OPENTHEORY_INSTALL = $(TEST_OPENTHEORY) install --manual
 .PHONY: test-directory
 test-directory:
 	$(MAKE) $(OPENTHEORY)
-	rm -rf $(TEST_PACKAGE_DIR)
+	rm -rf $(TEST_DIRECTORY_DIR)
 	$(TEST_OPENTHEORY_INIT)
-	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/empty/empty.thy
-	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true-def/bool-true-def.thy
-	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true-thm/bool-true-thm.thy
-	$(TEST_OPENTHEORY_INSTALL) $(THEORY_DIR)/bool-true/bool-true.thy
+	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/empty/empty.thy
+	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true-def/bool-true-def.thy
+	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true-thm/bool-true-thm.thy
+	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true/bool-true.thy
 
 ###############################################################################
 # Initialization following a repo clone.
