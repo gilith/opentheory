@@ -157,78 +157,15 @@ THEORY_DIR = data/theories
 
 IMPORT_THEORIES = scripts/import-theories
 
-INSTALL_THEORIES = scripts/install-theories $(THEORY_DIR)
-
-OPENTHEORY_INFO = $(OPENTHEORY) info
+INSTALL_THEORIES = scripts/install-theories
 
 OPENTHEORY_INIT = $(OPENTHEORY) init
 
 OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual
 
-OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --name
+OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --format "NAME-VERSION"
 
 OPENTHEORY_UPLOAD = $(OPENTHEORY) upload
-
-STANDARD_THEORIES = \
-  empty \
-  axiom \
-  bool-def \
-  bool-int \
-  bool-choice-cond \
-  bool-choice \
-  bool \
-  unit \
-  function-def \
-  function \
-  pair \
-  natural-numeral \
-  natural-order \
-  natural-add \
-  natural-mult \
-  natural-exp \
-  natural-even-odd \
-  natural-sub \
-  natural-factorial \
-  natural-div-mod \
-  natural \
-  relation-well-founded \
-  relation-measure \
-  relation \
-  sum \
-  option \
-  list-dest \
-  list-append \
-  list-map \
-  list-quant \
-  list-filter \
-  list-last \
-  list-reverse \
-  list-length \
-  list-nth \
-  list-replicate \
-  list-member \
-  list-concat \
-  list-take-drop \
-  list-interval \
-  list-zipwith \
-  list \
-  base
-
-EXAMPLE_THEORIES = \
-  modular-equiv \
-  modular \
-  word-bits \
-  word \
-  byte \
-  word16-bytes \
-  word16 \
-  parser-stream \
-  parser-basic \
-  parser \
-  char-utf8 \
-  char \
-  examples \
-  base-examples
 
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
@@ -248,20 +185,17 @@ import-example-theories:
 .PHONY: standard-theories
 standard-theories:
 	$(MAKE) import-standard-theories
-	$(UPGRADE_THEORIES)
 	$(INSTALL_THEORIES)
 
 .PHONY: example-theories
 example-theories:
 	$(MAKE) import-example-theories
-	$(UPGRADE_THEORIES)
 	$(INSTALL_THEORIES)
 
 .PHONY: theories
 theories:
 	$(MAKE) import-standard-theories
 	$(MAKE) import-example-theories
-	$(UPGRADE_THEORIES)
 	$(INSTALL_THEORIES)
 
 .PHONY: reset-repo

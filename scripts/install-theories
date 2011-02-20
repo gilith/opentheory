@@ -1,0 +1,94 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Hurd, All Rights Reserved
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h $opt_a $opt_l $opt_p);
+
+getopts('ha:l:p:');
+
+if ($opt_h or scalar @ARGV != 1)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $orderthys = "scripts/order-theories";
+[ -x $orderthys ] or die "install-theories: $orderthys not an executable";
+
+my $opentheory = "bin/mlton/opentheory";
+[ -x $opentheory ] or die "install-theories: $opentheory not an executable";
+
+my $bumpver = "scripts/bump-theory-version";
+[ -x $bumpver ] or die "install-theories: $bumpver not an executable";
+
+my $source = "data/theories";
+[ -d $source ] or die "order-theories: $source not a directory";
+
+my $cmd = "$orderthys";
+
+# print STDOUT "cmd = $cmd\n";
+
+open THEORIES, "$cmd |" or
+  die "install-theories: couldn't execute $cmd: $!\n";
+
+while (my $thy = <THEORIES>) {
+    chomp $thy;
+
+    my $thyfile = $source . '/' . $thy . '/' . $thy . '.thy';
+
+    $cmd = "$opentheory install --manual $thyfile";
+    (system ($cmd) == 0) or
+        die "install-theories: couldn't execute $cmd: $!\n";
+}
+
+close THEORIES;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+install-theories - install theories in the local directory
+
+=head1 SYNOPSIS
+
+install-theories [-h]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+Install theories in the local directory.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut
