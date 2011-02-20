@@ -1,70 +1,179 @@
-#!/bin/bash
+#!/usr/bin/perl
 
-prog=bin/mlton/opentheory
-if ! test -x $prog ; then echo "$prog not an executable" ; exit 1 ; fi
+# Copyright (c) 2011 Joe Hurd, All Rights Reserved
 
-bumpver=scripts/bump-theory-version
-if ! test -x $bumpver ; then echo "$bumpver not an executable" ; exit 1 ; fi
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
 
-source=../hol-light/opentheory/articles
-if ! test -d $source ; then echo "$source not a directory" ; exit 1 ; fi
+use vars qw($opt_h $opt_a $opt_l $opt_p);
 
-target=data/theories
-if ! test -d $target ; then echo "$target not a directory" ; exit 1 ; fi
+getopts('ha:l:p:');
 
-for thy in $source/*.thy
-do
-    base=$(basename $thy .thy)
-    tdir=$target/$base
-    tthy=$tdir/$base.thy
-    tthynew=$tdir/$base.thy.bumping
-    tart=$tdir/$base.art
-    tartnew=$tdir/$base.art.importing
+if ($opt_h or scalar @ARGV != 1)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
 
-    if ! test -d $tdir
-    then
-        mkdir $tdir
+# Autoflush STDIN
+$|++;
 
-        echo "name: $base" > $tthy
-        echo "version: 1.0" >> $tthy
-        echo "description: $base" >> $tthy
-        echo "author: Joe Hurd <joe@gilith.com>" >> $tthy
-        echo "license: HOLLight" >> $tthy
-        echo -n "source: HOL Light theory segment extracted on " >> $tthy
-        date "+%Y-%m-%d" >> $tthy
-        echo "show: \"Data.Bool\"" >> $tthy
-        echo >> $tthy
-        echo "main {" >> $tthy
-        echo "  article: \"$base.art\"" >> $tthy
-        echo "}" >> $tthy
-    fi
+my $author = 'Joe Hurd <joe@gilith.com>';
+if ($opt_a) { $author = $opt_a; }
 
-    $prog info --preserve-theory --article -o $tartnew $thy || exit 1
+my $license = 'MIT';
+if ($opt_l) { $license = $opt_l; }
 
-    if grep 'Unwanted' $tartnew
-    then
-        echo "Unwanted symbols found in" $base
-        exit 1
-    fi
+my $provenance = 'Theory';
+if ($opt_p) { $provenance = $opt_p; }
 
-    if test -e $tart
-    then
-        if ! diff $tart $tartnew >/dev/null
-        then
-            $bumpver $tthy > $tthynew || exit 1
+my $opentheory = "bin/mlton/opentheory";
+[ -x $opentheory ] or die "import-theories: $opentheory not an executable";
 
-            mv $tthynew $tthy
-            mv $tartnew $tart
+my $bumpver = "scripts/bump-theory-version";
+[ -x $bumpver ] or die "import-theories: $bumpver not an executable";
 
-            echo "re-imported" $base
-        else
-            rm $tartnew
-        fi
-    else
-        mv $tartnew $tart
+my $source = $ARGV[0];
+[ -d $source ] or die "import-theories: $source not a directory";
 
-        echo "imported" $base
-    fi
-done
+my $target = "data/theories";
+[ -d $target ] or die "import-theories: $target not a directory";
 
-echo
+my $cmd = "ls $source";
+
+# print STDOUT "cmd = $cmd\n";
+
+open THEORIES, "$cmd |" or
+  die "import-theories: couldn't read $source directory: $!\n";
+
+while (my $thy = <THEORIES>) {
+    chomp $thy;
+
+    # print STDOUT "file = $file\n";
+
+    if ($thy =~ m{^(?:(?:.*)/)*([[:alnum:]-]+)[.]thy$}) {
+        my $base = $1;
+        my $tdir = "$target/$base";
+        my $tthy = "$tdir/$base.thy";
+        my $tthynew = "$tdir/$base.thy.bumping";
+        my $tart = "$tdir/$base.art";
+        my $tartnew = "$tdir/$base.art.importing";
+
+        if ! [ -d $tdir ] {
+            mkdir $tdir or
+                die "import-theories: couldn't make directory $tdir: $!\n";
+        }
+
+        my $today = `date "+%Y-%m-%d"`;
+        chomp $today;
+
+        open THEORY, "> $tthy" or
+            die "import-theories: couldn't open $tthy for writing: $!\n";
+
+        print THEORY "name: $base\n";
+        print THEORY "version: 1.0\n";
+        print THEORY "description: $base\n";
+        print THEORY "author: $author\n";
+        print THEORY "license: $license\n";
+        print THEORY "provenance: $provenance extracted on $today\n";
+        print THEORY "show: \"Data.Bool\"\n";
+        print THEORY "\n";
+        print THEORY "main {\n";
+        print THEORY "  article: \"$base.art\"\n";
+        print THEORY "}\n";
+
+        close THEORY;
+
+        $cmd = "$opentheory info --preserve-theory --article -o $tartnew $thy";
+        (system ($cmd) == 0) or
+            die "import-theories: couldn't execute $cmd: $!\n";
+
+        $cmd = "grep 'Unwanted' $tartnew";
+        (system ($cmd) != 0) or
+            die "import-theories: Unwanted symbols found in $base\n";
+
+        if [ -e $tart ] {
+            $cmd = "diff $tart $tartnew >/dev/null";
+            if (system ($cmd) == 0) {
+                unlink $tartnew or
+                    die "import-theories: couldn't remove $tartnew: $!\n";
+            }
+            else {
+                $cmd = "$bumpver $tthy > $tthynew";
+                (system ($cmd) == 0) or
+                    die "import-theories: couldn't execute $cmd: $!\n";
+
+                rename($tthynew,$tthy) or
+                    die "import-theories: couldn't rename $tthynew to $tthy: $!\n";
+                rename($tartnew,$tart) or
+                    die "import-theories: couldn't rename $tartnew to $tart: $!\n";
+
+                print STDOUT "re-imported $base\n";
+            }
+        }
+        else {
+            rename($tartnew,$tart) or
+                die "import-theories: couldn't rename $tartnew to $tart: $!\n";
+
+            print STDOUT "imported $base\n";
+        }
+    }
+}
+
+close THEORIES;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+import-theories - import theories extracted from a theorem prover
+
+=head1 SYNOPSIS
+
+import-theories [-h] [-l LICENSE] <theory-dir>
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=item B<-a AUTHOR>
+
+Set the default author.
+
+=item B<-l LICENSE>
+
+Set the default license.
+
+=item B<-p PROVENANCE>
+
+Set the default provenance.
+
+=back
+
+=head1 DESCRIPTION
+
+Import raw theories in OpenTheory format extracted from a theorem prover.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

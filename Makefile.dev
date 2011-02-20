@@ -235,28 +235,34 @@ reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
-.PHONY: import-hol-light-theories
-import-hol-light-theories: $(OPENTHEORY)
-	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles $(THEORY_DIR)
+.PHONY: import-standard-theories
+import-standard-theories:
+	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
+	$(IMPORT_THEORIES) -l HOLLight -p "HOL Light theory" $(HOL_LIGHT_DIR)/opentheory/articles
+
+.PHONY: import-example-theories
+import-example-theories:
+	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory example-theories
+	$(IMPORT_THEORIES) -p "HOL Light theory" $(HOL_LIGHT_DIR)/opentheory/articles
 
 .PHONY: standard-theories
 standard-theories:
-	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
-	$(MAKE) import-hol-light-theories
+	$(MAKE) import-standard-theories
+	$(UPGRADE_THEORIES)
+	$(INSTALL_THEORIES)
 
 .PHONY: example-theories
-example-theories: $(OPENTHEORY)
-	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
-	$(MAKE) import-hol-light-theories
+example-theories:
+	$(MAKE) import-example-theories
+	$(UPGRADE_THEORIES)
 	$(INSTALL_THEORIES)
-	mkdir -p $(HOL_LIGHT_THEORY_DIR)
-	cd ../hol-light && opentheory/scripts/capture
-	for thy in $(EXAMPLE_THEORIES) ; do if ! $(OPENTHEORY_INFO) $$thy-1.0 &> /dev/null ; then $(OPENTHEORY_INSTALL) $(THEORY_DIR)/$$thy/$$thy.thy ; fi ; done
 
 .PHONY: theories
 theories:
-	$(MAKE) standard-theories
-	$(MAKE) example-theories
+	$(MAKE) import-standard-theories
+	$(MAKE) import-example-theories
+	$(UPGRADE_THEORIES)
+	$(INSTALL_THEORIES)
 
 .PHONY: reset-repo
 reset-repo:
