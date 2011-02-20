@@ -1,0 +1,123 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Hurd, All Rights Reserved
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h);
+
+getopts('h');
+
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $source = "data/theories";
+[ -d $source ] or die "order-theories: $source not a directory";
+
+my $cmd = "ls $source";
+
+# print STDOUT "cmd = $cmd\n";
+
+my %dependencies = ();
+my %outputted = ();
+
+sub output_theory {
+    (scalar @_ == 1) or die;
+    my $thy = shift @_;
+
+    if (!(exists $outputted{$thy})) {
+        $outputted{$thy} = 1;
+
+        for my $thydep (@{$dependencies{$thy}}) {
+            output_theory($thydep);
+        }
+
+        print STDOUT "$thy\n";
+    }
+}
+
+open THEORIES, "$cmd |" or
+  die "order-theories: couldn't read $source directory: $!\n";
+
+while (my $thy = <THEORIES>) {
+    chomp $thy;
+
+    if ($thy =~ m{^[[:alnum:]-]+$}) {
+        my $thyfile = $source . '/' . $thy . '/' . $thy . '.thy';
+
+        my $thydeps = [];
+
+        open THEORY, $thyfile or
+            die "order-theories: couldn't read theory file $thyfile: $!\n";
+
+        while (my $line = <THEORY>) {
+            chomp $line;
+
+            if ($line =~ m{^ *package: *([[:alnum:]-]+)-[[:digit:].]+ *$}) {
+                push (@{$thydeps}, $1);
+            }
+
+        }
+
+        close THEORY;
+
+        $dependencies{$thy} = $thydeps;
+    }
+}
+
+close THEORIES;
+
+for my $thy (sort (keys %dependencies)) {
+    output_theory $thy;
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+order-theories - list theories in dependency order
+
+=head1 SYNOPSIS
+
+order-theories [-h]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+List theories in dependency order.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

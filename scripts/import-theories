@@ -52,9 +52,7 @@ open THEORIES, "$cmd |" or
 while (my $thy = <THEORIES>) {
     chomp $thy;
 
-    # print STDOUT "file = $file\n";
-
-    if ($thy =~ m{^(?:(?:.*)/)*([[:alnum:]-]+)[.]thy$}) {
+    if ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {
         my $base = $1;
         my $tdir = "$target/$base";
         my $tthy = "$tdir/$base.thy";
