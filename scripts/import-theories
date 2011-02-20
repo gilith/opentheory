@@ -36,6 +36,7 @@ my $bumpver = "scripts/bump-theory-version";
 [ -x $bumpver ] or die "import-theories: $bumpver not an executable";
 
 my $source = $ARGV[0];
+if ($source ne '/' && $source =~ m{^(.*)/$}) { $source = $1; }
 [ -d $source ] or die "import-theories: $source not a directory";
 
 my $target = "data/theories";
@@ -61,7 +62,7 @@ while (my $thy = <THEORIES>) {
         my $tart = "$tdir/$base.art";
         my $tartnew = "$tdir/$base.art.importing";
 
-        if ! [ -d $tdir ] {
+        if (! [ -d $tdir ]) {
             mkdir $tdir or
                 die "import-theories: couldn't make directory $tdir: $!\n";
         }
@@ -86,7 +87,7 @@ while (my $thy = <THEORIES>) {
 
         close THEORY;
 
-        $cmd = "$opentheory info --preserve-theory --article -o $tartnew $thy";
+        $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
         (system ($cmd) == 0) or
             die "import-theories: couldn't execute $cmd: $!\n";
 
@@ -94,7 +95,7 @@ while (my $thy = <THEORIES>) {
         (system ($cmd) != 0) or
             die "import-theories: Unwanted symbols found in $base\n";
 
-        if [ -e $tart ] {
+        if ([ -e $tart ]) {
             $cmd = "diff $tart $tartnew >/dev/null";
             if (system ($cmd) == 0) {
                 unlink $tartnew or
