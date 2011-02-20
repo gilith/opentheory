@@ -65,27 +65,27 @@ while (my $thy = <THEORIES>) {
         if (! [ -d $tdir ]) {
             mkdir $tdir or
                 die "import-theories: couldn't make directory $tdir: $!\n";
+
+            my $today = `date "+%Y-%m-%d"`;
+            chomp $today;
+
+            open THEORY, "> $tthy" or
+                die "import-theories: couldn't open $tthy for writing: $!\n";
+
+            print THEORY "name: $base\n";
+            print THEORY "version: 1.0\n";
+            print THEORY "description: $base\n";
+            print THEORY "author: $author\n";
+            print THEORY "license: $license\n";
+            print THEORY "provenance: $provenance extracted on $today\n";
+            print THEORY "show: \"Data.Bool\"\n";
+            print THEORY "\n";
+            print THEORY "main {\n";
+            print THEORY "  article: \"$base.art\"\n";
+            print THEORY "}\n";
+
+            close THEORY;
         }
-
-        my $today = `date "+%Y-%m-%d"`;
-        chomp $today;
-
-        open THEORY, "> $tthy" or
-            die "import-theories: couldn't open $tthy for writing: $!\n";
-
-        print THEORY "name: $base\n";
-        print THEORY "version: 1.0\n";
-        print THEORY "description: $base\n";
-        print THEORY "author: $author\n";
-        print THEORY "license: $license\n";
-        print THEORY "provenance: $provenance extracted on $today\n";
-        print THEORY "show: \"Data.Bool\"\n";
-        print THEORY "\n";
-        print THEORY "main {\n";
-        print THEORY "  article: \"$base.art\"\n";
-        print THEORY "}\n";
-
-        close THEORY;
 
         $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
         (system ($cmd) == 0) or
