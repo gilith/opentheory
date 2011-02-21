@@ -39,14 +39,25 @@ my $cmd = "$orderthys";
 open THEORIES, "$cmd |" or
   die "install-theories: couldn't execute $cmd: $!\n";
 
-while (my $thy = <THEORIES>) {
-    chomp $thy;
+while (my $name = <THEORIES>) {
+    chomp $name;
 
-    my $thyfile = $source . '/' . $thy . '/' . $thy . '.thy';
+    my $thy = $source . '/' . $name . '/' . $name . '.thy';
 
-    $cmd = "$opentheory install --manual $thyfile";
-    (system ($cmd) == 0) or
-        die "install-theories: couldn't execute $cmd: $!\n";
+    $cmd = "$opentheory info --format VERSION $thy";
+    my $version = `$cmd`;
+
+    $cmd = "$opentheory info --format CHECKSUM $name-$version > /dev/null";
+    if (system ($cmd) == 0) {
+        # Already installed: auto-upgrade?
+    }
+    else {
+        $cmd = "$opentheory install --manual $thy";
+        (system ($cmd) == 0) or
+            die "install-theories: couldn't execute $cmd: $!\n";
+
+        print STDOUT "installed theory $name-$version\n";
+    }
 }
 
 close THEORIES;
