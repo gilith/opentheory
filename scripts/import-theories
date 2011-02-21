@@ -93,7 +93,7 @@ while (my $thy = <THEORIES>) {
         (system ($cmd) != 0) or
             die "import-theories: Unwanted symbols found in $base\n";
 
-        if ([ -e $tart ]) {
+        if (defined( -e $tart )) {
             $cmd = "diff $tart $tartnew >/dev/null";
             if (system ($cmd) == 0) {
                 unlink $tartnew or
