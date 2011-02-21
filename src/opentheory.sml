@@ -53,6 +53,75 @@ fun annotateOptions s =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Output format for basic package information.                              *)
+(* ------------------------------------------------------------------------- *)
+
+datatype infoItem =
+    ChecksumItem
+  | DescriptionItem
+  | NameItem
+  | SeparatorItem of string
+  | VersionItem;
+
+datatype infoFormat = InfoFormat of infoItem list;
+
+local
+  fun getSep acc l =
+      case l of
+        SeparatorItem s :: l => getSep (s :: acc) l
+      | _ => (String.concat (rev acc), l);
+
+  fun compress l =
+      let
+        val (sl,l) = getSep [] l
+
+        val l = compress' l
+      in
+        if sl = "" then l else SeparatorItem sl :: l
+      end
+
+  and compress' l =
+      case l of
+        [] => []
+      | s :: l => s :: compress l;
+in
+  fun compressInfoFormat (InfoFormat l) = InfoFormat (compress l);
+end;
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+
+  val checksumKeywordParser = exactString "CHECKSUM"
+  and descriptionKeywordParser = exactString "DESCRIPTION"
+  and nameKeywordParser = exactString "NAME"
+  and versionKeywordParser = exactString "VERSION";
+
+  val itemParser =
+      (checksumKeywordParser >> K ChecksumItem) ||
+      (descriptionKeywordParser >> K DescriptionItem) ||
+      (nameKeywordParser >> K NameItem) ||
+      (versionKeywordParser >> K VersionItem) ||
+      any >> (fn c => SeparatorItem (str c));
+
+  val itemListParser = many itemParser;
+in
+  val parserInfoFormat = itemListParser >> (compressInfoFormat o InfoFormat);
+end;
+
+fun fromStringInfoFormat fmt =
+    Parse.fromString parserInfoFormat fmt
+    handle Parse.NoParse => raise Error ("bad output format: " ^ fmt);
+
+val describeInfoFormat =
+    "where FORMAT is a string containing " ^
+    "NAME, VERSION, DESCRIPTION and CHECKSUM";
+
+(* ------------------------------------------------------------------------- *)
 (* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -303,8 +372,8 @@ datatype info =
   | ChildrenInfo
   | DescendentsInfo
   | FilesInfo
+  | FormatInfo of infoFormat
   | InferenceInfo
-  | NameInfo
   | ParentsInfo
   | SummaryInfo
   | TagsInfo
@@ -378,11 +447,14 @@ local
   open Useful Options;
 in
   val infoOpts : opt list =
-      [{switches = ["--name"], arguments = [],
-        description = "display the package name",
-        processor = beginOpt endOpt (fn _ => addInfoOutput NameInfo)},
+      [{switches = ["--format"], arguments = ["FORMAT"],
+        description = "format package information",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+              addInfoOutput (FormatInfo (fromStringInfoFormat s)))},
        {switches = ["--information"], arguments = [],
-        description = "display the package information",
+        description = "display all package information",
         processor = beginOpt endOpt (fn _ => addInfoOutput TagsInfo)},
        {switches = ["--files"], arguments = [],
         description = "list the package files",
@@ -427,7 +499,7 @@ in
         processor = beginOpt endOpt (fn _ => infoPreserveTheory := true)}];
 end;
 
-val infoFooter = "";
+val infoFooter = describeInfoFormat ^ ".\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for listing installed packages.                                   *)
@@ -437,13 +509,6 @@ datatype orderList =
     AlphabeticalList
   | DependencyList
   | ReverseList of orderList;
-
-datatype showList =
-    ChecksumList
-  | DescriptionList
-  | NameList
-  | SeparatorList of string
-  | VersionList;
 
 local
   val refOrderList = ref AlphabeticalList;
@@ -456,82 +521,19 @@ in
 end;
 
 local
-  val refShowList : showList list option ref = ref NONE;
+  val refFormatList : infoFormat option ref = ref NONE;
 
-  fun getShowList alt = Option.getOpt (!refShowList,alt);
-
-  val defaultShowList = [NameList, SeparatorList "-", VersionList];
+  val defaultFormatList = InfoFormat [NameItem, SeparatorItem "-", VersionItem];
 in
-  fun setShowList l =
+  fun getFormatList () = Option.getOpt (!refFormatList, defaultFormatList);
+
+  fun setFormatList fmt =
       let
-        val () = refShowList := SOME l
+        val () = refFormatList := SOME fmt
       in
         ()
       end;
-
-  fun addShowList s =
-      let
-        val l = getShowList []
-
-        val () = setShowList (l @ [s])
-      in
-        ()
-      end;
-
-  fun showList () = getShowList defaultShowList;
 end;
-
-local
-  fun getSep acc l =
-      case l of
-        SeparatorList s :: l => getSep (s :: acc) l
-      | _ => (String.concat (rev acc), l);
-
-  fun compress l =
-      let
-        val (sl,l) = getSep [] l
-
-        val l = compress' l
-      in
-        if sl = "" then l else SeparatorList sl :: l
-      end
-
-  and compress' l =
-      case l of
-        [] => []
-      | s :: l => s :: compress l;
-in
-  val compressShowList = compress;
-end;
-
-local
-  infixr 9 >>++
-  infixr 8 ++
-  infixr 7 >>
-  infixr 6 ||
-
-  open Parse;
-
-  val checksumKeywordParser = exactString "CHECKSUM"
-  and descriptionKeywordParser = exactString "DESCRIPTION"
-  and nameKeywordParser = exactString "NAME"
-  and versionKeywordParser = exactString "VERSION";
-
-  val showParser =
-      (checksumKeywordParser >> K ChecksumList) ||
-      (descriptionKeywordParser >> K DescriptionList) ||
-      (nameKeywordParser >> K NameList) ||
-      (versionKeywordParser >> K VersionList) ||
-      any >> (fn c => SeparatorList (str c));
-
-  val showListParser = many showParser;
-in
-  val parserShowList = showListParser >> compressShowList;
-end;
-
-fun fromStringShowList fmt =
-    Parse.fromString parserShowList fmt
-    handle Parse.NoParse => raise Error "bad output format";
 
 val outputList = ref "-";
 
@@ -549,17 +551,10 @@ in
         description = "set the output format",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => setShowList (fromStringShowList s))},
-       {switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write the package list to FILE",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => outputList := s)}];
+            (fn _ => fn s => setFormatList (fromStringInfoFormat s))}];
 end;
 
-val listFooter =
-    "where FORMAT is a string containing " ^
-    "NAME, VERSION, DESCRIPTION and CHECKSUM.\n";
+val listFooter = describeInfoFormat ^ ".\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for updating package lists.                                       *)
@@ -1309,6 +1304,24 @@ local
   end;
 
   local
+    val cache : Checksum.checksum option option ref = ref NONE;
+
+    fun compute () =
+        case getInfo () of
+          NONE => NONE
+        | SOME info =>
+          let
+            val dir = directory ()
+
+            val namever = PackageInfo.nameVersion info
+          in
+            Directory.checksum dir namever
+          end;
+  in
+    val getChecksum = getCached cache compute;
+  end;
+
+  local
     val cache : Package.package option option ref = ref NONE;
 
     fun compute () =
@@ -1512,6 +1525,55 @@ local
     val getInference = getCached cache compute;
   end;
 
+  fun processFormat (InfoFormat items) =
+      let
+        fun mkItem item =
+            case item of
+              ChecksumItem =>
+              let
+                val chk =
+                    case getChecksum () of
+                      SOME c => c
+                    | NONE => raise Error "no checksum information available"
+              in
+                Checksum.toString chk
+              end
+            | DescriptionItem =>
+              let
+                val pkg =
+                    case getPackage () of
+                      SOME p => p
+                    | NONE => raise Error "no package information available"
+              in
+                Package.description pkg
+              end
+            | NameItem =>
+              let
+                val namever =
+                    case getNameVersion () of
+                      SOME nv => nv
+                    | NONE => raise Error "no name information available"
+
+                val name = PackageNameVersion.name namever
+              in
+                PackageName.toString name
+              end
+            | SeparatorItem s => s
+            | VersionItem =>
+              let
+                val namever =
+                    case getNameVersion () of
+                      SOME nv => nv
+                    | NONE => raise Error "no name information available"
+
+                val version = PackageNameVersion.version namever
+              in
+                PackageVersion.toString version
+              end
+      in
+        List.map mkItem items
+      end;
+
   fun outputPackageNameVersionSet namevers file =
       let
         fun mk nv = PackageNameVersion.toString nv ^ "\n"
@@ -1590,6 +1652,14 @@ local
         in
           Stream.toTextFile file strm
         end
+      | FormatInfo fmt =>
+        let
+          val sl = processFormat fmt @ ["\n"]
+
+          val strm = Stream.fromList sl
+        in
+          Stream.toTextFile file strm
+        end
       | InferenceInfo =>
         let
           val inf =
@@ -1598,17 +1668,6 @@ local
               | NONE => raise Error "no inference information available"
 
           val strm = Print.toStream Inference.pp inf
-        in
-          Stream.toTextFile file strm
-        end
-      | NameInfo =>
-        let
-          val namever =
-              case getNameVersion () of
-                SOME nv => nv
-              | NONE => raise Error "no name information available"
-
-          val strm = Print.toStream PackageNameVersion.pp namever
         in
           Stream.toTextFile file strm
         end
@@ -1790,13 +1849,13 @@ fun list () =
 
       val pkgs = sortList dir pkgs (orderList ());
 
-      val show = showList ()
+      val InfoFormat items = getFormatList ()
 
       fun mk namever =
           let
-            fun mkShow s =
-                case s of
-                  ChecksumList =>
+            fun mkItem item =
+                case item of
+                  ChecksumItem =>
                   let
                     val chk =
                         case Directory.checksum dir namever of
@@ -1805,7 +1864,7 @@ fun list () =
                   in
                     Checksum.toString chk
                   end
-                | DescriptionList =>
+                | DescriptionItem =>
                   let
                     val info =
                         case Directory.peek dir namever of
@@ -1814,21 +1873,21 @@ fun list () =
                   in
                     Package.description (PackageInfo.package info)
                   end
-                | NameList =>
+                | NameItem =>
                   let
                     val name = PackageNameVersion.name namever
                   in
                     PackageName.toString name
                   end
-                | SeparatorList s => s
-                | VersionList =>
+                | SeparatorItem s => s
+                | VersionItem =>
                   let
                     val version = PackageNameVersion.version namever
                   in
                     PackageVersion.toString version
                   end
           in
-            String.concat (List.map mkShow show @ ["\n"])
+            String.concat (List.map mkItem items @ ["\n"])
           end
           handle Error err =>
             raise Error ("package " ^ PackageNameVersion.toString namever ^
