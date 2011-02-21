@@ -7,11 +7,11 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h $opt_a $opt_l $opt_p);
+use vars qw($opt_h);
 
-getopts('ha:l:p:');
+getopts('h');
 
-if ($opt_h or scalar @ARGV != 1)
+if ($opt_h or scalar @ARGV != 0)
 {
     pod2usage({-exitval => 2,
 	       -verbose => 2});
@@ -46,8 +46,10 @@ while (my $name = <THEORIES>) {
 
     $cmd = "$opentheory info --format VERSION $thy";
     my $version = `$cmd`;
+    chomp $version;
 
-    $cmd = "$opentheory info --format CHECKSUM $name-$version > /dev/null";
+    $cmd = "$opentheory info --format CHECKSUM $name-$version &> /dev/null";
+    # print STDOUT "cmd = $cmd\n";
     if (system ($cmd) == 0) {
         # Already installed: auto-upgrade?
     }
@@ -55,8 +57,6 @@ while (my $name = <THEORIES>) {
         $cmd = "$opentheory install --manual $thy";
         (system ($cmd) == 0) or
             die "install-theories: couldn't execute $cmd: $!\n";
-
-        print STDOUT "installed theory $name-$version\n";
     }
 }
 
