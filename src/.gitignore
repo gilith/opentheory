@@ -84,3 +84,5 @@ Stream.sig
 Stream.sml
 Useful.sig
 Useful.sml
+VertexGraph.sig
+VertexGraph.sml

@@ -53,6 +53,7 @@ SRC = \
   src/KeyMap.sig src/KeyMap.sml \
   src/Set.sig src/Set.sml \
   src/ElementSet.sig src/ElementSet.sml \
+  src/VertexGraph.sig src/VertexGraph.sml \
   src/Sharing.sig src/Sharing.sml \
   src/Stream.sig src/Stream.sml \
   src/Heap.sig src/Heap.sml \
@@ -130,6 +131,7 @@ SRC = \
   src/PackageTarball.sig src/PackageTarball.sml \
   src/PackageDocument.sig src/PackageDocument.sml \
   src/PackageInfo.sig src/PackageInfo.sml \
+  src/PackageDependency.sig src/PackageDependency.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \
   src/NameTheory.sig src/NameTheory.sml \

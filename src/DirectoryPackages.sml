@@ -9,90 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of package dependency graphs.                                      *)
-(* ------------------------------------------------------------------------- *)
-
-datatype packageDeps =
-    PackageDeps of
-      {parents : PackageNameVersionSet.set PackageNameVersionMap.map,
-       children : PackageNameVersionSet.set PackageNameVersionMap.map};
-
-val emptyPackageDeps =
-    let
-      val parents = PackageNameVersionMap.new ()
-      and children = PackageNameVersionMap.new ()
-    in
-      PackageDeps
-        {parents = parents,
-         children = children}
-    end;
-
-fun parentsPackageDeps (PackageDeps {parents,...}) namever =
-    case PackageNameVersionMap.peek parents namever of
-      SOME ps => ps
-    | NONE => PackageNameVersionSet.empty;
-
-fun childrenPackageDeps (PackageDeps {children,...}) namever =
-    case PackageNameVersionMap.peek children namever of
-      SOME cs => cs
-    | NONE => PackageNameVersionSet.empty;
-
-fun ancestorsSetPackageDeps deps =
-    PackageNameVersionSet.close (parentsPackageDeps deps);
-
-fun ancestorsPackageDeps deps namever =
-    ancestorsSetPackageDeps deps (parentsPackageDeps deps namever);
-
-fun descendentsSetPackageDeps deps =
-    PackageNameVersionSet.close (childrenPackageDeps deps);
-
-fun descendentsPackageDeps deps namever =
-    descendentsSetPackageDeps deps (childrenPackageDeps deps namever);
-
-fun addPackageDeps deps (p,c) =
-    let
-      val ps = parentsPackageDeps deps c
-      and cs = childrenPackageDeps deps p
-
-      val PackageDeps {parents,children} = deps
-
-      val parents =
-          if PackageNameVersionSet.member p ps then parents
-          else
-            let
-              val ps = PackageNameVersionSet.add ps p
-            in
-              PackageNameVersionMap.insert parents (c,ps)
-            end
-
-      val children =
-          if PackageNameVersionSet.member c cs then children
-          else
-            let
-              val cs = PackageNameVersionSet.add cs c
-            in
-              PackageNameVersionMap.insert children (p,cs)
-            end
-    in
-      PackageDeps
-        {parents = parents,
-         children = children}
-    end;
-
-fun addInfoPackageDeps deps info =
-    let
-      val namever = PackageInfo.nameVersion info
-      and pars = PackageInfo.packages info
-
-      fun add (p,d) = addPackageDeps d (p,namever)
-    in
-      PackageNameVersionSet.foldl add deps pars
-    end;
-
-fun installOrderPackageDeps deps =
-    PackageNameVersionSet.postOrder (parentsPackageDeps deps);
-
-(* ------------------------------------------------------------------------- *)
 (* A pure type of installed packages.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -153,11 +69,11 @@ fun removePure (PurePackages pkgs) namever =
       PurePackages pkgs
     end;
 
-val packageDepsPure =
+val dependencyPure =
     let
-      fun add (info,deps) = addInfoPackageDeps deps info
+      fun add (info,dep) = PackageDependency.addInfo dep info
     in
-      foldlPure add emptyPackageDeps
+      foldlPure add PackageDependency.empty
     end;
 
 fun fromDirectoryPure sys =
@@ -187,7 +103,7 @@ datatype packages =
       {system : DirectorySystem.system,
        directory : string,
        packages : purePackages option ref,
-       dependencies : packageDeps option ref,
+       dependency : PackageDependency.dependency option ref,
        checksums : DirectoryChecksums.checksums};
 
 (* ------------------------------------------------------------------------- *)
@@ -201,7 +117,7 @@ fun mk {system = sys, rootDirectory = rootDir} =
 
       val packages = ref NONE
 
-      val dependencies = ref NONE
+      val dependency = ref NONE
 
       val checksums =
           let
@@ -218,7 +134,7 @@ fun mk {system = sys, rootDirectory = rootDir} =
         {system = sys,
          directory = directory,
          packages = packages,
-         dependencies = dependencies,
+         dependency = dependency,
          checksums = checksums}
     end;
 
@@ -242,9 +158,9 @@ fun packages pkgs =
         end
     end;
 
-fun dependencies pkgs =
+fun dependency pkgs =
     let
-      val Packages {dependencies = rox, ...} = pkgs
+      val Packages {dependency = rox, ...} = pkgs
 
       val ref ox = rox
     in
@@ -252,7 +168,7 @@ fun dependencies pkgs =
         SOME x => x
       | NONE =>
         let
-          val x = packageDepsPure (packages pkgs)
+          val x = dependencyPure (packages pkgs)
 
           val () = rox := SOME x
         in
@@ -291,10 +207,10 @@ fun list pkgs = toNameSetPure (packages pkgs);
 
 fun parents' pkgs =
     let
-      val Packages {dependencies = ref odeps, ...} = pkgs
+      val Packages {dependency = ref odep, ...} = pkgs
     in
-      case odeps of
-        SOME deps => parentsPackageDeps deps
+      case odep of
+        SOME dep => PackageDependency.parents dep
       | NONE => fn namever => PackageInfo.packages (get pkgs namever)
     end;
 
@@ -308,7 +224,7 @@ fun parents pkgs namever =
       parents' pkgs namever
     end;
 
-fun children' pkgs = childrenPackageDeps (dependencies pkgs);
+fun children' pkgs = PackageDependency.children (dependency pkgs);
 
 fun children pkgs namever =
     let
@@ -360,7 +276,7 @@ fun add pkgs info chk =
             {system = _,
              directory = _,
              packages = rop,
-             dependencies = rod,
+             dependency = rod,
              checksums = chks} = pkgs
 
       val () =
@@ -371,7 +287,7 @@ fun add pkgs info chk =
       val () =
           case !rod of
             NONE => ()
-          | SOME d => rod := SOME (addInfoPackageDeps d info)
+          | SOME d => rod := SOME (PackageDependency.addInfo d info)
 
       val () =
           let
@@ -393,7 +309,7 @@ fun delete pkgs namever =
             {system = _,
              directory = _,
              packages = rop,
-             dependencies = rod,
+             dependency = rod,
              checksums = chks} = pkgs
 
       val () =

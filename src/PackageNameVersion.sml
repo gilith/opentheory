@@ -152,19 +152,6 @@ struct
     open S;
   end;
 
-  fun close f =
-      let
-        fun adds acc set = foldl check acc set
-
-        and check (namever,acc) =
-            if member namever acc then acc
-            else expand (add acc namever) namever
-
-        and expand acc namever = adds acc (f namever)
-      in
-        adds empty
-      end;
-
   fun preOrder children set =
       let
         fun dfsCheck (namever,(seen,acc)) =
@@ -198,3 +185,8 @@ struct
 
 end
 
+structure PackageNameVersionGraph =
+VertexGraph (
+  structure KM = PackageNameVersionMap
+  and ES = PackageNameVersionSet
+);

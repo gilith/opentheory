@@ -140,6 +140,8 @@ src/Stream.sig: ../basic/src/Stream.sig $(COPY) ; @$(COPY) $< $@
 src/Stream.sml: ../basic/src/Stream.sml $(COPY) ; @$(COPY) $< $@
 src/Useful.sig: ../basic/src/Useful.sig $(COPY) ; @$(COPY) $< $@
 src/Useful.sml: ../basic/src/Useful.sml $(COPY) ; @$(COPY) $< $@
+src/VertexGraph.sig: ../basic/src/VertexGraph.sig $(COPY) ; @$(COPY) $< $@
+src/VertexGraph.sml: ../basic/src/VertexGraph.sml $(COPY) ; @$(COPY) $< $@
 
 src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
 
