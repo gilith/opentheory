@@ -25,12 +25,8 @@ fun peekPure (PurePackages pkgs) namever =
 fun memberPure namever (PurePackages pkgs) =
     PackageNameVersionMap.inDomain namever pkgs;
 
-local
-  fun add (namever,_,acc) = PackageNameVersionSet.add acc namever;
-in
-  fun toNameSetPure (PurePackages pkgs) =
-      PackageNameVersionMap.foldl add PackageNameVersionSet.empty pkgs;
-end;
+fun toNameVersionSetPure (PurePackages pkgs) =
+    PackageNameVersionSet.domain pkgs;
 
 fun appPure f =
     let
@@ -199,7 +195,25 @@ fun checksum pkgs namever = DirectoryChecksums.peek (checksums pkgs) namever;
 (* All installed packages.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun list pkgs = toNameSetPure (packages pkgs);
+fun list pkgs = toNameVersionSetPure (packages pkgs);
+
+(* ------------------------------------------------------------------------- *)
+(* Looking up the latest version of packages.                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun latestVersion pkgs nv =
+    let
+      val n = PackageNameVersion.name nv
+
+      val nvs =
+          PackageNameVersionSet.filter
+            (PackageNameVersion.equalName n)
+            (list pkgs)
+    in
+      case PackageNameVersionSet.findr (K true) nvs of
+        SOME nv => PackageNameVersionSet.singleton nv
+      | NONE => PackageNameVersionSet.empty
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the installed packages.                                   *)

@@ -75,6 +75,18 @@ val package : theory -> PackageNameVersion.nameVersion option
 
 val packages : theory list -> PackageNameVersion.nameVersion list
 
+val updatePackageNode :
+    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    node -> node option
+
+val updatePackage :
+    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    theory -> theory option
+
+val updatePackages :
+    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    theory list -> theory list option
+
 (* ------------------------------------------------------------------------- *)
 (* Union dependencies.                                                       *)
 (* ------------------------------------------------------------------------- *)

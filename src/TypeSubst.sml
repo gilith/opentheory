@@ -95,7 +95,9 @@ fun substMap subMap =
           | ty :: tys =>
             let
               val (ty',seen) = subst ty seen
+
               val (tys',seen) = substList tys seen
+
               val result =
                   case tys' of
                     SOME tys => SOME (Option.getOpt (ty',ty) :: tys)

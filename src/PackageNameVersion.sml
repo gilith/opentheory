@@ -29,26 +29,28 @@ type nameVersion = nameVersion';
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk n' : nameVersion = n';
+fun mk nv' : nameVersion = nv';
 
-fun dest n : nameVersion' = n;
+fun dest nv : nameVersion' = nv;
 
 fun name' (NameVersion' {name = x, ...}) = x;
 
 fun version' (NameVersion' {version = x, ...}) = x;
 
-fun name n = name' (dest n);
+fun name nv = name' (dest nv);
 
-fun version n = version' (dest n);
+fun version nv = version' (dest nv);
+
+fun equalName n nv = PackageName.equal n (name nv);
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (i1,i2) =
+fun compare (nv1,nv2) =
     let
-      val NameVersion' {name = b1, version = v1} = dest i1
-      and NameVersion' {name = b2, version = v2} = dest i2
+      val NameVersion' {name = b1, version = v1} = dest nv1
+      and NameVersion' {name = b2, version = v2} = dest nv2
     in
       case PackageName.compare (b1,b2) of
         LESS => LESS
@@ -56,10 +58,10 @@ fun compare (i1,i2) =
       | GREATER => GREATER
     end;
 
-fun equal i1 i2 =
+fun equal nv1 nv2 =
     let
-      val NameVersion' {name = b1, version = v1} = dest i1
-      and NameVersion' {name = b2, version = v2} = dest i2
+      val NameVersion' {name = b1, version = v1} = dest nv1
+      and NameVersion' {name = b2, version = v2} = dest nv2
     in
       PackageName.equal b1 b2 andalso
       PackageVersion.equal v1 v2
@@ -71,12 +73,12 @@ fun equal i1 i2 =
 
 val ppSeparator = Print.ppString separatorString;
 
-fun pp' n =
+fun pp' nv =
     let
-      val NameVersion' {name = b, version = v} = n
+      val NameVersion' {name = n, version = v} = nv
     in
       Print.program
-        [PackageName.pp b,
+        [PackageName.pp n,
          ppSeparator,
          PackageVersion.pp v]
     end;
@@ -103,7 +105,7 @@ local
       PackageName.parser ++
       separatorParser ++
       PackageVersion.parser >>
-      (fn (b,((),v)) => NameVersion' {name = b, version = v});
+      (fn (n,((),v)) => NameVersion' {name = n, version = v});
 in
   val parser = parser' >> mk;
 end;
@@ -111,7 +113,7 @@ end;
 fun fromString s =
     Parse.fromString parser s
     handle Parse.NoParse =>
-      raise Error ("bad package name/version format: " ^ s);
+      raise Error ("bad package NAME-VERSION format: " ^ s);
 
 end
 

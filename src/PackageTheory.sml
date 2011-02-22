@@ -101,6 +101,44 @@ fun package thy = packageNode (node thy);
 
 fun packages thys = List.mapPartial package thys;
 
+fun updatePackageNode f node =
+    case node of
+      Package {interpretation = i, package = p} =>
+      (case f p of
+         SOME p => SOME (Package {interpretation = i, package = p})
+       | NONE => NONE)
+    | _ => NONE;
+
+fun updatePackage f thy =
+    let
+      val Theory {name,imports,node} = thy
+    in
+      case updatePackageNode f node of
+        SOME node => SOME (Theory {name = name, imports = imports, node = node})
+      | NONE => NONE
+    end;
+
+fun updatePackages f =
+    let
+      fun update thys =
+          case thys of
+            [] => NONE
+          | thy :: thys =>
+            let
+              val thy' = updatePackage f thy
+              and thys' = update thys
+            in
+              case thys' of
+                SOME thys => SOME (Option.getOpt (thy',thy) :: thys)
+              | NONE =>
+                case thy' of
+                  NONE => NONE
+                | SOME thy => SOME (thy :: thys)
+            end
+    in
+      update
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Union dependencies.                                                       *)
 (* ------------------------------------------------------------------------- *)

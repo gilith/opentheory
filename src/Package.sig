@@ -79,6 +79,10 @@ val articles : package -> {filename : string} list
 
 val packages : package -> PackageNameVersion.nameVersion list
 
+val updatePackages :
+    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    package -> package option
+
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)

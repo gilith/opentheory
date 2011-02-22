@@ -116,6 +116,20 @@ fun articles pkg = PackageTheory.articles (theories pkg);
 
 fun packages pkg = PackageTheory.packages (theories pkg);
 
+fun updatePackages f pkg =
+    let
+      val Package' {tags,theories} = dest pkg
+    in
+      case PackageTheory.updatePackages f theories of
+        SOME theories =>
+        let
+          val pkg' = Package' {tags = tags, theories = theories}
+        in
+          SOME (mk pkg')
+        end
+      | NONE => NONE
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)
