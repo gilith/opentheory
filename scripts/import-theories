@@ -100,7 +100,7 @@ while (my $thy = <THEORIES>) {
                     die "import-theories: couldn't remove $tartnew: $!\n";
             }
             else {
-                $cmd = "$bumpver $tthy > $tthynew";
+                $cmd = "$bumpver -p $tthy > $tthynew";
                 (system ($cmd) == 0) or
                     die "import-theories: couldn't execute $cmd: $!\n";
 

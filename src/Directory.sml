@@ -442,6 +442,50 @@ fun installOrder dir namevers =
 fun list dir = DirectoryPackages.list (packages dir);
 
 (* ------------------------------------------------------------------------- *)
+(* Upgrading theory packages.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun upgradeTheory dir pkg =
+    let
+      val pkgs = packages dir
+
+      fun latest nv =
+          let
+            val () =
+                if DirectoryPackages.member nv pkgs then ()
+                else
+                  let
+                    val err =
+                        "package " ^ PackageNameVersion.toString nv ^
+                        " is not installed"
+                  in
+                    raise Error err
+                  end
+
+            val nvs = DirectoryPackages.latestVersion pkgs nv
+
+            val () =
+                if PackageNameVersionSet.size nvs <= 1 then ()
+                else
+                  let
+                    val err =
+                        "multiple upgrade paths for package " ^
+                        PackageNameVersion.toString nv
+                  in
+                    raise Error err
+                  end
+          in
+            case PackageNameVersionSet.findl (K true) nvs of
+              SOME nv' =>
+              if PackageNameVersion.equal nv' nv then NONE else SOME nv'
+            | NONE =>
+              raise Bug "Directory.upgradeTheory.latest"
+          end
+    in
+      Package.updatePackages latest pkg
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A package finder.                                                         *)
 (* ------------------------------------------------------------------------- *)
 

@@ -7,9 +7,9 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h);
+use vars qw($opt_h $opt_p);
 
-getopts('h');
+getopts('hp');
 
 if ($opt_h or scalar @ARGV != 1)
 {
@@ -45,7 +45,7 @@ while (my $line = <THEORY>) {
             $bumped = 1;
         }
     }
-    elsif ($line =~ /^provenance: *(.*) extracted on /) {
+    elsif ($opt_p && $line =~ /^provenance: *(.*) extracted on /) {
         my $p = $1;
 
         my $d = `date "+%Y-%m-%d"`;
@@ -74,7 +74,7 @@ bump-theory-version - bump the version of a theory
 
 =head1 SYNOPSIS
 
-bump-theory-version [-h] NAME.thy
+bump-theory-version [-hp] NAME.thy
 
 =head1 ARGUMENTS
 
@@ -85,6 +85,10 @@ The recognized flags are described below:
 =item B<-h>
 
 Produce this documentation.
+
+=item B<-p>
+
+Set today's date in the provenance information.
 
 =back
 

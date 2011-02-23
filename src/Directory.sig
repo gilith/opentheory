@@ -106,6 +106,12 @@ val installOrder :
 val list : directory -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
+(* Upgrading theory packages.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val upgradeTheory : directory -> Package.package -> Package.package option
+
+(* ------------------------------------------------------------------------- *)
 (* Staging packages for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 

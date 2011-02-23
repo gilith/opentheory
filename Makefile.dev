@@ -159,7 +159,7 @@ THEORY_DIR = data/theories
 
 IMPORT_THEORIES = scripts/import-theories
 
-INSTALL_THEORIES = scripts/install-theories
+INSTALL_THEORIES = scripts/install-theories -u
 
 OPENTHEORY_INIT = $(OPENTHEORY) init
 

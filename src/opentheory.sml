@@ -574,6 +574,21 @@ end;
 val updateFooter = "";
 
 (* ------------------------------------------------------------------------- *)
+(* Options for upgrading packages.                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val outputUpgrade = ref "-";
+
+local
+  open Useful Options;
+in
+  val upgradeOpts : opt list =
+      [];
+end;
+
+val upgradeFooter = "";
+
+(* ------------------------------------------------------------------------- *)
 (* Options for uploading packages.                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -602,9 +617,19 @@ datatype command =
   | List
   | Uninstall
   | Update
+  | Upgrade
   | Upload;
 
-val allCommands = [Help,Info,Init,Install,List,Uninstall,Update,Upload];
+val allCommands =
+    [Help,
+     Info,
+     Init,
+     Install,
+     List,
+     Uninstall,
+     Update,
+     Upgrade,
+     Upload];
 
 fun commandString cmd =
     case cmd of
@@ -615,6 +640,7 @@ fun commandString cmd =
     | List => "list"
     | Uninstall => "uninstall"
     | Update => "update"
+    | Upgrade => "upgrade"
     | Upload => "upload";
 
 fun commandArgs cmd =
@@ -626,6 +652,7 @@ fun commandArgs cmd =
     | List => ""
     | Uninstall => " <package-name>"
     | Update => ""
+    | Upgrade => " input.thy"
     | Upload => " <package-name>";
 
 fun commandDescription cmd =
@@ -637,6 +664,7 @@ fun commandDescription cmd =
     | List => "list installed theory packages"
     | Uninstall => "uninstall a theory package"
     | Update => "update repo package lists"
+    | Upgrade => "upgrade a theory file"
     | Upload => "upload a theory package to a repo";
 
 fun commandFooter cmd =
@@ -648,6 +676,7 @@ fun commandFooter cmd =
     | List => listFooter
     | Uninstall => uninstallFooter
     | Update => updateFooter
+    | Upgrade => upgradeFooter
     | Upload => uploadFooter;
 
 fun commandOpts cmd =
@@ -659,6 +688,7 @@ fun commandOpts cmd =
     | List => listOpts
     | Uninstall => uninstallOpts
     | Update => updateOpts
+    | Upgrade => upgradeOpts
     | Upload => uploadOpts;
 
 val allCommandStrings = List.map commandString allCommands;
@@ -1924,6 +1954,28 @@ fun update () =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Upgrading theory files.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun upgradeTheory filename =
+    let
+      val dir = directory ()
+
+      val pkg = Package.fromTextFile filename
+
+      val pkg =
+          case Directory.upgradeTheory dir pkg of
+            SOME p => p
+          | NONE => raise Error "no upgrade possible"
+
+      val ref f = outputUpgrade
+    in
+      Package.toTextFile {package = pkg, filename = f}
+    end
+    handle Error err =>
+      raise Error (err ^ "\ntheory file upgrade failed");
+
+(* ------------------------------------------------------------------------- *)
 (* Upload a theory package to a repo.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -2027,6 +2079,16 @@ let
       | (List,[]) => list ()
       | (Uninstall,[pkg]) => uninstall pkg
       | (Update,[]) => update ()
+      | (Upgrade,[inp]) =>
+        let
+          val inp = fromStringInput cmd inp
+        in
+          case inp of
+            ArticleInput _ => commandUsage cmd "cannot upgrade an article"
+          | PackageInput _ => commandUsage cmd "cannot upgrade a package"
+          | TarballInput _ => commandUsage cmd "cannot upgrade a tarball"
+          | TheoryInput file => upgradeTheory file
+        end
       | (Upload,[pkg]) => upload pkg
       | _ =>
         let

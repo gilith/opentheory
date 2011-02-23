@@ -7,9 +7,9 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h);
+use vars qw($opt_h $opt_u);
 
-getopts('h');
+getopts('hu');
 
 if ($opt_h or scalar @ARGV != 0)
 {
@@ -50,10 +50,36 @@ while (my $name = <THEORIES>) {
 
     $cmd = "$opentheory info --format CHECKSUM $name-$version &> /dev/null";
     # print STDOUT "cmd = $cmd\n";
-    if (system ($cmd) == 0) {
-        # Already installed: auto-upgrade?
+    my $installed = (system ($cmd) == 0);
+
+    if ($opt_u) {
+        my $thynew = $thy . '.upgrading';
+
+        $cmd = "$opentheory upgrade $thy >$thynew 2>/dev/null";
+        # print STDOUT "cmd = $cmd\n";
+        if (system ($cmd) == 0) {
+            if ($installed) {
+                $cmd = "$bumpver $thynew > $thy";
+                (system ($cmd) == 0) or
+                    die "install-theories: couldn't execute $cmd: $!\n";
+
+                unlink $thynew or
+                    die "install-theories: couldn't remove $thynew: $!\n";
+
+                $installed = 0;
+            }
+            else {
+                rename($thynew,$thy) or
+                    die "install-theories: couldn't rename $thynew to $thy: $!\n";
+            }
+        }
+        else {
+            unlink $thynew or
+                die "install-theories: couldn't remove $thynew: $!\n";
+        }
     }
-    else {
+
+    if (!$installed) {
         $cmd = "$opentheory install --manual $thy";
         (system ($cmd) == 0) or
             die "install-theories: couldn't execute $cmd: $!\n";
@@ -83,6 +109,10 @@ The recognized flags are described below:
 =item B<-h>
 
 Produce this documentation.
+
+=item B<-u>
+
+Upgrade the theories before installing them.
 
 =back
 
