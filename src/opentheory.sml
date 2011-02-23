@@ -1626,7 +1626,26 @@ local
                 SOME p => p
               | NONE => raise Error "no package information available"
 
-          val namevers = PackageNameVersionSet.fromList (Package.packages pkg)
+          val namevers = Package.packages pkg
+
+          val () =
+              let
+                fun check nv =
+                    if Directory.member nv dir then ()
+                    else
+                      let
+                        val err =
+                            "dependent package " ^
+                            PackageNameVersion.toString nv ^
+                            " is not installed"
+                      in
+                        raise Error err
+                      end
+              in
+                List.app check namevers
+              end
+
+          val namevers = PackageNameVersionSet.fromList namevers
 
           val namevers = Directory.ancestorsSet dir namevers
         in
@@ -1648,9 +1667,9 @@ local
           val dir = directory ()
 
           val namever =
-              case getNameVersion () of
-                SOME nv => nv
-              | NONE => raise Error "no name information available"
+              case getInfo () of
+                SOME info => PackageInfo.nameVersion info
+              | NONE => raise Error "package must be installed to have uses"
 
           val namevers = Directory.children dir namever
         in
@@ -1661,9 +1680,9 @@ local
           val dir = directory ()
 
           val namever =
-              case getNameVersion () of
-                SOME nv => nv
-              | NONE => raise Error "no name information available"
+              case getInfo () of
+                SOME info => PackageInfo.nameVersion info
+              | NONE => raise Error "package must be installed to have uses"
 
           val namevers = Directory.descendents dir namever
         in
@@ -1962,6 +1981,18 @@ fun upgradeTheory filename =
       val dir = directory ()
 
       val pkg = Package.fromTextFile filename
+
+      val errs = Directory.checkUpgradeTheory dir pkg
+
+      val () =
+          if List.null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else chat ("theory file upgrade warnings:\n" ^ s)
+            end
 
       val pkg =
           case Directory.upgradeTheory dir pkg of

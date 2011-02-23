@@ -422,6 +422,8 @@ fun ancestors dir namever =
 fun descendents dir namever =
     DirectoryPackages.descendents (packages dir) namever;
 
+(* Set versions *)
+
 fun ancestorsSet dir namevers =
     DirectoryPackages.ancestorsSet (packages dir) namevers;
 
@@ -445,23 +447,27 @@ fun list dir = DirectoryPackages.list (packages dir);
 (* Upgrading theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
+fun checkUpgradeTheory dir pkg =
+    let
+      fun notInstalled p = not (member p dir)
+
+      val missing = List.filter notInstalled (Package.packages pkg)
+    in
+      List.map DirectoryError.NotInstalled missing
+    end;
+
 fun upgradeTheory dir pkg =
     let
+(*OpenTheoryDebug
+      val errs = checkUpgradeTheory dir pkg
+
+      val _ = not (DirectoryError.existsFatal errs) orelse
+              raise Bug "Directory.upgradeTheory: fatal error"
+*)
       val pkgs = packages dir
 
       fun latest nv =
           let
-            val () =
-                if DirectoryPackages.member nv pkgs then ()
-                else
-                  let
-                    val err =
-                        "package " ^ PackageNameVersion.toString nv ^
-                        " is not installed"
-                  in
-                    raise Error err
-                  end
-
             val nvs = DirectoryPackages.latestVersion pkgs nv
 
             val () =

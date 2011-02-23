@@ -83,7 +83,7 @@ val ancestors :
 val descendents :
     directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
-(* Sets *)
+(* Set versions *)
 
 val ancestorsSet :
     directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
@@ -108,6 +108,9 @@ val list : directory -> PackageNameVersionSet.set
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
+
+val checkUpgradeTheory :
+    directory -> Package.package -> DirectoryError.error list
 
 val upgradeTheory : directory -> Package.package -> Package.package option
 
