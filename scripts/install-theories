@@ -30,7 +30,7 @@ my $bumpver = "scripts/bump-theory-version";
 [ -x $bumpver ] or die "install-theories: $bumpver not an executable";
 
 my $source = "data/theories";
-[ -d $source ] or die "order-theories: $source not a directory";
+[ -d $source ] or die "install-theories: $source not a directory";
 
 my $cmd = "$orderthys";
 
@@ -98,7 +98,7 @@ install-theories - install theories in the local directory
 
 =head1 SYNOPSIS
 
-install-theories [-h]
+install-theories [-hu]
 
 =head1 ARGUMENTS
 
