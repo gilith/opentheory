@@ -35,6 +35,7 @@ require_once 'php/tag.php';  // Package tags
 require_once 'php/opentheory.php';  // Opentheory tool interface
 require_once 'php/package.php';  // Package table
 require_once 'php/dependency.php';  // Package dependency table
+require_once 'php/upload.php';  // Package upload table
 require_once 'php/repo.php';  // Repo operations
 
 ///////////////////////////////////////////////////////////////////////////////
