@@ -45,6 +45,8 @@ function repo_register($name_version) {
   $pkg = $package_table->create_package($name_version,$description,$author,
                                         $license);
 
+  $package_table->mark_installed($pkg);
+
   // Record the children in the dependency table
 
   $dependency_table = dependency_table();

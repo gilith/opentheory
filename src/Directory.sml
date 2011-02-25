@@ -1358,65 +1358,83 @@ fun uninstall dir namever =
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkUpload dir repo namever =
-    case peek dir namever of
-      NONE => [DirectoryError.NotInstalled namever]
-    | SOME info =>
-      let
-        fun checkAnc (anc,errs) =
-            let
-              val chk =
-                  case checksum dir anc of
-                    SOME c => c
-                  | NONE =>
-                    let
-                      val err =
-                          "depends on package " ^
-                          PackageNameVersion.toString namever ^
-                          " which seems to be badly installed"
-                    in
-                      raise Error err
-                    end
-            in
-              case DirectoryRepo.peek repo anc of
-                NONE =>
-                let
-                  val r = DirectoryRepo.name repo
-                in
-                  DirectoryError.AncestorNotOnRepo (anc,r) :: errs
-                end
-              | SOME chk' =>
-                if Checksum.equal chk chk' then errs
-                else
+fun checkUpload dir repo namevers =
+    let
+      fun checkAnc (anc,errs) =
+          let
+            val chk =
+                case checksum dir anc of
+                  SOME c => c
+                | NONE =>
                   let
-                    val r = DirectoryRepo.name repo
+                    val err =
+                        "depends on package " ^
+                        PackageNameVersion.toString anc ^
+                        " which seems to be badly installed"
                   in
-                    DirectoryError.AncestorWrongChecksumOnRepo (anc,r) :: errs
+                    raise Error err
                   end
-            end
-
-        val errs = []
-
-        val errs =
-            if not (DirectoryRepo.member namever repo) then errs
-            else
+          in
+            case DirectoryRepo.peek repo anc of
+              NONE =>
               let
                 val r = DirectoryRepo.name repo
               in
-                DirectoryError.AlreadyOnRepo (namever,r) :: errs
+                DirectoryError.AncestorNotOnRepo (anc,r) :: errs
               end
+            | SOME chk' =>
+              if Checksum.equal chk chk' then errs
+              else
+                let
+                  val r = DirectoryRepo.name repo
+                in
+                  DirectoryError.AncestorWrongChecksumOnRepo (anc,r) :: errs
+                end
+          end
 
-        val ancs = ancestors dir namever
+      val (namevers,unknown) =
+          let
+            fun isKnown nv = member nv dir
+          in
+            PackageNameVersionSet.partition isKnown namevers
+          end
 
-        val errs = PackageNameVersionSet.foldl checkAnc errs ancs
-      in
-        rev errs
-      end;
+      val errs = []
 
-fun upload dir repo namever =
+      val errs =
+          let
+            fun add (nv,acc) = DirectoryError.NotInstalled nv :: acc
+          in
+            PackageNameVersionSet.foldl add errs unknown
+          end
+
+      val errs =
+          let
+            val r = DirectoryRepo.name repo
+
+            fun check (nv,acc) =
+                if not (DirectoryRepo.member nv repo) then acc
+                else DirectoryError.AlreadyOnRepo (nv,r) :: acc
+          in
+            PackageNameVersionSet.foldl check errs namevers
+          end
+
+      val errs =
+          let
+            val ancs = ancestorsSet dir namevers
+
+            val ancs = PackageNameVersionSet.difference ancs namevers
+          in
+            PackageNameVersionSet.foldl checkAnc errs ancs
+          end
+    in
+      rev errs
+    end;
+
+fun upload dir repo namevers =
     let
 (*OpenTheoryDebug
-      val errs = checkUpload dir repo namever
+      val errs = checkUpload dir repo namevers
 
       val _ = not (DirectoryError.existsFatal errs) orelse
               raise Bug "Directory.upload: fatal error"

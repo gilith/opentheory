@@ -374,11 +374,11 @@ fun unpackTarball info contents {minimal} =
       ()
     end;
 
-fun uploadTarball info chk {url} =
+fun uploadTarball info chk {url,token} =
     let
       val sys = system info
 
-      val {filename = f} = joinDirectory info (tarball info)
+      val {filename = file} = joinDirectory info (tarball info)
 
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -386,7 +386,8 @@ fun uploadTarball info chk {url} =
 
       val cmd =
           cmd ^ " " ^ url ^
-          " --form \"t=@" ^ f ^ "\"" ^
+          " --form \"u=" ^ token ^ "\"" ^
+          " --form \"t=@" ^ file ^ "\"" ^
           " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
           " --form \"s=upload package\"" ^
           " --output " ^ tmpFile

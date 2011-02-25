@@ -592,6 +592,8 @@ val upgradeFooter = "";
 (* Options for uploading packages.                                           *)
 (* ------------------------------------------------------------------------- *)
 
+val autoUpload = ref true;
+
 local
   open Useful Options;
 in
@@ -600,7 +602,10 @@ in
         description = "specify the target repo",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := !repoOption @ [s])}];
+            (fn _ => fn s => repoOption := !repoOption @ [s])},
+       {switches = ["--manual"], arguments = [],
+        description = "do not also upload dependent packages",
+        processor = beginOpt endOpt (fn _ => autoUpload := false)}];
 end;
 
 val uploadFooter = "";
@@ -2020,7 +2025,20 @@ fun upload namever =
 
       val () = DirectoryRepo.update repo
 
-      val errs = Directory.checkUpload dir repo namever
+      val namevers =
+          if not (!autoUpload) then PackageNameVersionSet.empty
+          else
+            let
+              fun notInRepo nv = not (DirectoryRepo.member nv repo)
+
+              val nvs = Directory.ancestors dir namever
+            in
+              PackageNameVersionSet.filter notInRepo nvs
+            end
+
+      val namevers = PackageNameVersionSet.add namevers namever
+
+      val errs = Directory.checkUpload dir repo namevers
 
       val () =
           if List.null errs then ()
@@ -2032,7 +2050,7 @@ fun upload namever =
               else chat ("package upload warnings:\n" ^ s)
             end
 
-      val {response} = Directory.upload dir repo namever
+      val {response} = Directory.upload dir repo namevers
 
       val () = chat response
     in

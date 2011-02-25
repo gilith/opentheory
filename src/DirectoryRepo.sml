@@ -155,6 +155,24 @@ fun download repo info =
 (* Uploading packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+datatype tokenUpload =
+    TokenUpload of
+      {repo : repo,
+       token : string};
+
+fun startUpload repo =
+    let
+      (* Upload the tarball *)
+
+      val response = PackageInfo.uploadTarball info chk (uploadUrl repo)
+
+      (* Update the package list *)
+
+      val () = update repo
+    in
+      response
+    end;
+
 fun upload repo info chk =
     let
       (* Upload the tarball *)

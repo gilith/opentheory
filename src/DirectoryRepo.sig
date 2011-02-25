@@ -61,8 +61,15 @@ val download : repo -> PackageInfo.info -> unit
 (* Uploading packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val upload :
-    repo -> PackageInfo.info -> Checksum.checksum -> {response : string}
+type tokenUpload
+
+val startUpload : repo -> tokenUpload
+
+val packageUpload :
+    tokenUpload -> PackageInfo.info -> Checksum.checksum ->
+    {response : string}
+
+val finishUpload : tokenUpload -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

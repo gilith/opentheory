@@ -17,7 +17,7 @@ require_once 'name_version.php';
 require_once 'author.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// A class to store package information.
+// A class to store *uploaded* package information.
 ///////////////////////////////////////////////////////////////////////////////
 
 class Package {
@@ -27,7 +27,9 @@ class Package {
   var $_author;
   var $_license;
   var $_uploaded;
+  var $_installed;
   var $_auxiliary;
+  var $_obsolete;
 
   function id() { return $this->_id; }
 
@@ -41,7 +43,11 @@ class Package {
 
   function uploaded() { return $this->_uploaded; }
 
+  function installed() { return $this->_installed; }
+
   function auxiliary() { return $this->_auxiliary; }
+
+  function obsolete() { return $this->_obsolete; }
 
   function name() {
     $namever = $this->name_version();
@@ -123,8 +129,8 @@ class Package {
     return $namever->theory_file_link($text);
   }
 
-  function Package($id,$name_version,$description,$author,
-                   $license,$uploaded,$auxiliary)
+  function Package($id,$name_version,$description,$author,$license,
+                   $uploaded,$installed,$auxiliary,$obsolete)
   {
     is_int($id) or trigger_error('bad id');
     isset($name_version) or trigger_error('bad name_version');
@@ -132,7 +138,9 @@ class Package {
     isset($author) or trigger_error('bad author');
     is_string($license) or trigger_error('bad license');
     isset($uploaded) or trigger_error('bad uploaded');
+    is_bool($installed) or trigger_error('bad installed');
     is_bool($auxiliary) or trigger_error('bad auxiliary');
+    is_bool($obsolete) or trigger_error('bad obsolete');
 
     $this->_id = $id;
     $this->_name_version = $name_version;
@@ -140,7 +148,9 @@ class Package {
     $this->_author = $author;
     $this->_license = $license;
     $this->_uploaded = $uploaded;
+    $this->_installed = $installed;
     $this->_auxiliary = $auxiliary;
+    $this->_obsolete = $obsolete;
   }
 }
 
@@ -155,7 +165,9 @@ function from_row_package($row) {
   $author_email = $row['author_email'];
   $license = $row['license'];
   $uploaded_datetime = $row['uploaded'];
+  $installed_database = $row['installed'];
   $auxiliary_database = $row['auxiliary'];
+  $obsolete_database = $row['obsolete'];
 
   $name_version = new PackageNameVersion($name,$version);
 
@@ -164,10 +176,14 @@ function from_row_package($row) {
   $uploaded = new TimePoint();
   $uploaded->from_database_datetime($uploaded_datetime);
 
+  $installed = bool_from_database_bool($installed_database);
+
   $auxiliary = bool_from_database_bool($auxiliary_database);
 
-  return new Package($id,$name_version,$description,
-                     $author,$license,$uploaded,$auxiliary);
+  $obsolete = bool_from_database_bool($obsolete_database);
+
+  return new Package($id,$name_version,$description,$author,$license,
+                     $uploaded,$installed,$auxiliary,$obsolete);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -236,7 +252,10 @@ class PackageTable extends DatabaseTable {
   }
 
   function list_active_packages() {
-    $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
+    $where =
+      'installed <=> ' . database_value(DATABASE_TRUE) .
+      ' AND auxiliary <=> ' . database_value(DATABASE_FALSE) .
+      ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
 
     $order_by = 'name';
 
@@ -246,7 +265,10 @@ class PackageTable extends DatabaseTable {
   }
 
   function count_active_packages() {
-    $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
+    $where =
+      'installed <=> ' . database_value(DATABASE_TRUE) .
+      ' AND auxiliary <=> ' . database_value(DATABASE_FALSE) .
+      ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
 
     return $this->count_rows($where);
   }
@@ -254,7 +276,9 @@ class PackageTable extends DatabaseTable {
   function list_recent_packages($limit) {
     is_int($limit) or trigger_error('bad limit');
 
-    $where = 'auxiliary <=> ' . database_value(DATABASE_FALSE);
+    $where =
+      'installed <=> ' . database_value(DATABASE_TRUE) .
+      ' AND auxiliary <=> ' . database_value(DATABASE_FALSE);
 
     $order_by = 'uploaded DESC';
 
@@ -279,8 +303,14 @@ class PackageTable extends DatabaseTable {
     $uploaded = $package->uploaded();
     $uploaded_datetime = $uploaded->to_database_datetime();
 
+    $installed = $package->installed();
+    $installed_database = bool_to_database_bool($installed);
+
     $auxiliary = $package->auxiliary();
     $auxiliary_database = bool_to_database_bool($auxiliary);
+
+    $obsolete = $package->obsolete();
+    $obsolete_database = bool_to_database_bool($obsolete);
 
     database_query('
       INSERT INTO ' . $this->table() . '
@@ -292,7 +322,20 @@ class PackageTable extends DatabaseTable {
           author_email = ' . database_value($author_email) . ',
           license = ' . database_value($license) . ',
           uploaded = ' . database_value($uploaded_datetime) . ',
-          auxiliary = ' . database_value($auxiliary_database) . ';');
+          installed = ' . database_value($installed_database) . ',
+          auxiliary = ' . database_value($auxiliary_database) . ',
+          obsolete = ' . database_value($obsolete_database) . ';');
+  }
+
+  function mark_installed($pkg) {
+    isset($pkg) or trigger_error('bad pkg');
+
+    $id = $pkg->id();
+
+    database_query('
+      UPDATE ' . $this->table() . '
+      SET installed = ' . database_value(DATABASE_TRUE) . '
+      WHERE id = ' . database_value($id) . ';');
   }
 
   function mark_auxiliary($pkg) {
@@ -306,6 +349,17 @@ class PackageTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
+  function mark_obsolete($pkg) {
+    isset($pkg) or trigger_error('bad pkg');
+
+    $id = $pkg->id();
+
+    database_query('
+      UPDATE ' . $this->table() . '
+      SET obsolete = ' . database_value(DATABASE_TRUE) . '
+      WHERE id = ' . database_value($id) . ';');
+  }
+
   function create_package($name_version,$description,$author,$license) {
     isset($name_version) or trigger_error('bad name_version');
     is_string($description) or trigger_error('bad description');
@@ -316,10 +370,14 @@ class PackageTable extends DatabaseTable {
 
     $uploaded = server_datetime();
 
+    $installed = false;
+
     $auxiliary = false;
 
-    $package = new Package($id,$name_version,$description,
-                           $author,$license,$uploaded,$auxiliary);
+    $obsolete = false;
+
+    $package = new Package($id,$name_version,$description,$author,$license,
+                           $uploaded,$installed,$auxiliary,$obsolete);
 
     $this->insert_package($package);
 
@@ -336,12 +394,15 @@ class PackageTable extends DatabaseTable {
             'author_email' => 'varchar(' . PACKAGE_AUTHOR_EMAIL_CHARS . ') NOT NULL',
             'license' => 'varchar(' . PACKAGE_LICENSE_CHARS . ') NOT NULL',
             'uploaded' => 'datetime NOT NULL',
-            'auxiliary' => database_bool_type() . ' NOT NULL');
+            'installed' => database_bool_type() . ' NOT NULL',
+            'auxiliary' => database_bool_type() . ' NOT NULL',
+            'obsolete' => database_bool_type() . ' NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (id)',
             'INDEX (name,version)',
-            'INDEX (uploaded)');
+            'INDEX (installed,auxiliary,obsolete,name)',
+            'INDEX (installed,auxiliary,uploaded)');
 
     parent::DatabaseTable($table,$fields,$indexes);
   }
