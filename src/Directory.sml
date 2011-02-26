@@ -130,7 +130,7 @@ in
                 val filename =
                     {filename = OS.Path.joinDirFile {dir = dir, file = file}}
               in
-                case DirectoryConfig.findRepo cfgs {name = name} of
+                case DirectoryConfig.findRepo cfgs name of
                   NONE => readAll ((name,filename) :: dels) utds
                 | SOME cfg =>
                   let
@@ -272,7 +272,7 @@ fun mk {rootDirectory = rootDir} =
 
             fun mkRepo cfg =
                 let
-                  val {name} = DirectoryConfig.nameRepo cfg
+                  val name = DirectoryConfig.nameRepo cfg
                   and {url} = DirectoryConfig.urlRepo cfg
                 in
                   DirectoryRepo.mk
@@ -280,7 +280,7 @@ fun mk {rootDirectory = rootDir} =
                      name = name,
                      rootUrl = url,
                      rootDirectory = rootDir,
-                     upToDate = List.exists (equal name) utds}
+                     upToDate = List.exists (PackageName.equal name) utds}
                 end
           in
             List.map mkRepo cfgs
@@ -308,12 +308,17 @@ fun packages (Directory {packages = x, ...}) = x;
 fun repos (Directory {repos = x, ...}) = x;
 
 fun peekRepo dir n =
-    List.find (equal n o DirectoryRepo.name) (repos dir);
+    List.find (PackageName.equal n o DirectoryRepo.name) (repos dir);
 
 fun getRepo dir n =
     case peekRepo dir n of
       SOME r => r
-    | NONE => raise Error ("no repo named " ^ n ^ " in config file");
+    | NONE =>
+      let
+        val err = "no repo named " ^ PackageName.toString n ^ " in config file"
+      in
+        raise Error err
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up acceptable licenses in the package directory.                  *)
@@ -788,19 +793,10 @@ fun checkStagePackage dir repo namever chk =
         val errs =
             case DirectoryRepo.peek repo namever of
               NONE =>
-              let
-                val r = DirectoryRepo.name repo
-              in
-                DirectoryError.NotOnRepo (namever,r) :: errs
-              end
+              DirectoryError.NotOnRepo (namever,repo) :: errs
             | SOME chk' =>
               if Checksum.equal chk' chk then errs
-              else
-                let
-                  val r = DirectoryRepo.name repo
-                in
-                  DirectoryError.WrongChecksumOnRepo (namever,r) :: errs
-                end
+              else DirectoryError.WrongChecksumOnRepo (namever,repo) :: errs
       in
         rev errs
       end;
@@ -1376,20 +1372,10 @@ fun checkUpload dir repo namevers =
                   end
           in
             case DirectoryRepo.peek repo anc of
-              NONE =>
-              let
-                val r = DirectoryRepo.name repo
-              in
-                DirectoryError.AncestorNotOnRepo (anc,r) :: errs
-              end
+              NONE => DirectoryError.AncestorNotOnRepo (anc,repo) :: errs
             | SOME chk' =>
               if Checksum.equal chk chk' then errs
-              else
-                let
-                  val r = DirectoryRepo.name repo
-                in
-                  DirectoryError.AncestorWrongChecksumOnRepo (anc,r) :: errs
-                end
+              else DirectoryError.AncestorWrongChecksumOnRepo (anc,repo) :: errs
           end
 
       val (namevers,unknown) =
@@ -1410,11 +1396,9 @@ fun checkUpload dir repo namevers =
 
       val errs =
           let
-            val r = DirectoryRepo.name repo
-
             fun check (nv,acc) =
                 if not (DirectoryRepo.member nv repo) then acc
-                else DirectoryError.AlreadyOnRepo (nv,r) :: acc
+                else DirectoryError.AlreadyOnRepo (nv,repo) :: acc
           in
             PackageNameVersionSet.foldl check errs namevers
           end
@@ -1431,6 +1415,7 @@ fun checkUpload dir repo namevers =
       rev errs
     end;
 
+(***
 fun upload dir repo namevers =
     let
 (*OpenTheoryDebug
@@ -1457,6 +1442,7 @@ fun upload dir repo namevers =
     in
       response
     end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

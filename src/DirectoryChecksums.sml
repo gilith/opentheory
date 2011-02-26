@@ -18,11 +18,11 @@ val fileExtension = "pkg";
 (* Checksums filenames.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkFilename base =
+fun mkFilename name =
     let
       val filename =
           OS.Path.joinBaseExt
-            {base = base,
+            {base = PackageName.toString name,
              ext = SOME fileExtension}
     in
       {filename = filename}
@@ -34,7 +34,9 @@ fun destFilename {filename} =
     in
       case ext of
         NONE => NONE
-      | SOME x => if x = fileExtension then SOME base else NONE
+      | SOME x =>
+        if x <> fileExtension then NONE
+        else total PackageName.fromString base
     end;
 
 fun isFilename file = Option.isSome (destFilename file);

@@ -56,12 +56,17 @@ val mkReposDirectory :
     {rootDirectory : string} -> {directory : string}
 
 val mkRepoFilename :
-    {rootDirectory : string} -> string -> {filename : string}
+    {rootDirectory : string} -> PackageName.name -> {filename : string}
 
 (* ------------------------------------------------------------------------- *)
 (* The repo upload script.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val mkUploadUrl : {rootUrl : string} -> {url : string}
+
+val mkStartUploadUrl : {rootUrl : string} -> {url : string}
+
+val mkStatusUploadUrl :
+    {rootUrl : string} -> Checksum.checksum -> {url : string}
 
 end

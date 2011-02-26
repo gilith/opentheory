@@ -16,6 +16,8 @@ val authorString = "author"
 and avoidString = "a"
 and descriptionString = "description"
 and extraSuffixString = "file"
+and gilithString = "gilith"
+and installedString = "installed"
 and licenseString = "license"
 and mainString = "main"
 and nameString = "name"
@@ -148,6 +150,18 @@ val extraSuffixTag = extraSuffixString;
 (* Shows *)
 
 val showTag = showString;
+
+(* ------------------------------------------------------------------------- *)
+(* Directory checksums names.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val installedChecksums = installedString;
+
+(* ------------------------------------------------------------------------- *)
+(* Repo names.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+val gilithRepo = gilithString;
 
 end
 

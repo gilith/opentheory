@@ -228,6 +228,8 @@ function create_new_upload() {
   $upload = new Upload($id,$initiated,$status,$author);
 
   $upload_table->insert_upload($upload);
+
+  return $upload;
 }
 
 ?>

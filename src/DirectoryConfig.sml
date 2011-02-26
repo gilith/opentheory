@@ -33,7 +33,7 @@ and urlRepoKey = "url";
 
 val defaultRepoRefresh = Time.fromSeconds 604800;  (* 1 week *)
 
-val gilithRepoName = "gilith"
+val gilithRepoName = PackageName.gilithRepo
 and gilithRepoRefresh = defaultRepoRefresh
 and gilithRepoUrl = "http://opentheory.gilith.com/";
 
@@ -80,24 +80,19 @@ fun fromStringInterval s =
 
 datatype repo =
     Repo of
-      {name : string,
+      {name : DirectoryRepo.name,
        url : string,
        refresh : Time.time};
 
-fun nameRepo (Repo {name = x, ...}) = {name = x};
+fun nameRepo (Repo {name = x, ...}) = x;
 
 fun urlRepo (Repo {url = x, ...}) = {url = x};
 
 fun refreshRepo (Repo {refresh = x, ...}) = x;
 
-fun findRepo repos {name = n} =
+fun findRepo repos name =
     let
-      fun pred repo =
-          let
-            val {name = n'} = nameRepo repo
-          in
-            n' = n
-          end
+      fun pred repo = PackageName.equal name (nameRepo repo)
     in
       case List.filter pred repos of
         [] => NONE
@@ -114,7 +109,7 @@ fun toSectionRepo repo =
          keyValues =
            [Config.KeyValue
               {key = nameRepoKey,
-               value = name},
+               value = PackageName.toString name},
             Config.KeyValue
               {key = urlRepoKey,
                value = url},
@@ -227,7 +222,7 @@ local
 
         val name =
             case name of
-              SOME x => x
+              SOME x => PackageName.fromString x
             | NONE =>
               let
                 val err =

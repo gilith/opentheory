@@ -10,9 +10,9 @@ sig
 (* Checksums filenames.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val mkFilename : string -> {filename : string}
+val mkFilename : PackageName.name -> {filename : string}
 
-val destFilename : {filename : string} -> string option
+val destFilename : {filename : string} -> PackageName.name option
 
 val isFilename : {filename : string} -> bool
 

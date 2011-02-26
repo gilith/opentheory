@@ -185,14 +185,15 @@ val uninstall : directory -> PackageNameVersion.nameVersion -> unit
 (* ------------------------------------------------------------------------- *)
 
 val checkUpload :
-    directory ->
-    DirectoryRepo.repo -> PackageNameVersionSet.set ->
+    directory -> DirectoryRepo.repo -> PackageNameVersionSet.set ->
     DirectoryError.error list
 
+(***
 val upload :
     directory ->
     DirectoryRepo.repo -> PackageNameVersionSet.set ->
     {response : string}
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder.                                                         *)

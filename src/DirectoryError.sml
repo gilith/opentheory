@@ -14,13 +14,13 @@ open Useful;
 
 datatype error =
     AncestorNotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | AncestorWrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | AlreadyInstalled of
       PackageNameVersion.nameVersion
   | AlreadyOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | AlreadyStaged of
       PackageNameVersion.nameVersion
   | FilenameClash of
@@ -31,13 +31,13 @@ datatype error =
   | NotInstalled of
       PackageNameVersion.nameVersion
   | NotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | TagError of
       PackageTag.name * string
   | UninstalledParent of
       PackageNameVersion.nameVersion
   | WrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name;
+      PackageNameVersion.nameVersion * DirectoryRepo.repo;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -143,16 +143,16 @@ fun toString err =
     (case err of
        AncestorNotOnRepo (namever,repo) =>
        "depends on package " ^ PackageNameVersion.toString namever ^
-       " missing on " ^ repo ^ " repo"
+       " missing on " ^ DirectoryRepo.toString repo
      | AncestorWrongChecksumOnRepo (namever,repo) =>
        "depends on package " ^ PackageNameVersion.toString namever ^
-       " which has different checksum on " ^ repo ^ " repo"
+       " which has different checksum on " ^ DirectoryRepo.toString repo
      | AlreadyInstalled namever =>
        "package " ^ PackageNameVersion.toString namever ^
        " is already installed"
      | AlreadyOnRepo (namever,repo) =>
        "package " ^ PackageNameVersion.toString namever ^
-       " already exists on " ^ repo ^ " repo"
+       " already exists on " ^ DirectoryRepo.toString repo
      | AlreadyStaged namever =>
        "package " ^ PackageNameVersion.toString namever ^
        " is already staged for installation"
@@ -175,14 +175,14 @@ fun toString err =
        " is not installed"
      | NotOnRepo (namever,repo) =>
        "package " ^ PackageNameVersion.toString namever ^
-       " is not on " ^ repo ^ " repo"
+       " is not on " ^ DirectoryRepo.toString repo
      | TagError (tag,msg) =>
        "package " ^ PackageName.toString tag ^ " information " ^ msg
      | UninstalledParent namever =>
        "depends on uninstalled package: " ^ PackageNameVersion.toString namever
      | WrongChecksumOnRepo (namever,repo) =>
        "package " ^ PackageNameVersion.toString namever ^
-       " has different checksum on " ^ repo ^ " repo");
+       " has different checksum on " ^ DirectoryRepo.toString repo);
 
 fun toStringList errs = join "\n" (List.map toString errs);
 

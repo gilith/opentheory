@@ -15,6 +15,7 @@ require_once 'author.php';
 require_once 'package.php';
 require_once 'tag.php';
 require_once 'dependency.php';
+require_once 'upload.php';
 require_once 'opentheory.php';
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -88,6 +89,9 @@ function repo_reset() {
 
   $dependency_table = dependency_table();
   $dependency_table->reset();
+
+  $upload_table = upload_table();
+  $upload_table->reset();
 
   repo_register_all();
 }

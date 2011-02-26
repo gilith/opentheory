@@ -12,13 +12,13 @@ sig
 
 type repo
 
-val nameRepo : repo -> {name : string}
+val nameRepo : repo -> DirectoryRepo.name
 
 val urlRepo : repo -> {url : string}
 
 val refreshRepo : repo -> Time.time
 
-val findRepo : repo list -> {name : string} -> repo option
+val findRepo : repo list -> DirectoryRepo.name -> repo option
 
 (* ------------------------------------------------------------------------- *)
 (* A type of license configuration data.                                     *)

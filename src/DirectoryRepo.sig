@@ -10,7 +10,7 @@ sig
 (* A type of repos.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type name = string
+type name = PackageName.name
 
 type repo
 
@@ -61,15 +61,18 @@ val download : repo -> PackageInfo.info -> unit
 (* Uploading packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type tokenUpload
+type upload
 
-val startUpload : repo -> tokenUpload
+val startUpload : repo -> upload
 
+(***
 val packageUpload :
-    tokenUpload -> PackageInfo.info -> Checksum.checksum ->
-    {response : string}
+    upload -> PackageInfo.info -> Checksum.checksum -> {response : string}
 
-val finishUpload : tokenUpload -> unit
+val finishUpload : upload -> unit
+***)
+
+val uploadUrl : upload -> {url : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

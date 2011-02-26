@@ -233,39 +233,50 @@ fun system () = DirectoryConfig.system (config ());
 (* Package repo.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val repoOption : string list ref = ref [];
+local
+  val repoOption : DirectoryRepo.name list ref = ref [];
+in
+  fun addRepository s =
+      let
+        val n = PackageName.fromString s
 
-fun repository () =
-    let
-      val dir = directory ()
+        val () = repoOption := !repoOption @ [n]
+      in
+        ()
+      end;
 
-      val repos = Directory.repos dir
+  fun repository () =
+      let
+        val dir = directory ()
 
-      val () =
-          if not (List.null repos) then ()
-          else raise Error "no repos listed in config file"
-    in
-      case !repoOption of
-        [] => hd repos
-      | [n] => Directory.getRepo dir n
-      | _ :: _ :: _ => raise Error "too many repos given on command line"
-    end;
+        val repos = Directory.repos dir
 
-fun repositories () =
-    let
-      val dir = directory ()
+        val () =
+            if not (List.null repos) then ()
+            else raise Error "no repos listed in config file"
+      in
+        case !repoOption of
+          [] => hd repos
+        | [n] => Directory.getRepo dir n
+        | _ :: _ :: _ => raise Error "too many repos given on command line"
+      end;
 
-      val repos = Directory.repos dir
+  fun repositories () =
+      let
+        val dir = directory ()
 
-      val () =
-          if not (List.null repos) then ()
-          else raise Error "no repos listed in config file"
+        val repos = Directory.repos dir
 
-      val ns = !repoOption
-    in
-      if List.null ns then repos
-      else List.map (Directory.getRepo dir) ns
-    end;
+        val () =
+            if not (List.null repos) then ()
+            else raise Error "no repos listed in config file"
+
+        val ns = !repoOption
+      in
+        if List.null ns then repos
+        else List.map (Directory.getRepo dir) ns
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
@@ -336,7 +347,7 @@ in
         description = "specify the repos to install from",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := !repoOption @ [s])},
+            (fn _ => fn s => addRepository s)},
        {switches = ["--name"], arguments = ["NAME"],
         description = "specify the package name",
         processor =
@@ -568,7 +579,7 @@ in
         description = "specify the repos to update",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := !repoOption @ [s])}];
+            (fn _ => fn s => addRepository s)}];
 end;
 
 val updateFooter = "";
@@ -602,7 +613,7 @@ in
         description = "specify the target repo",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => repoOption := !repoOption @ [s])},
+            (fn _ => fn s => addRepository s)},
        {switches = ["--manual"], arguments = [],
         description = "do not also upload dependent packages",
         processor = beginOpt endOpt (fn _ => autoUpload := false)}];
@@ -945,7 +956,7 @@ fun installAuto master namever =
         let
           val err =
               "package " ^ PackageNameVersion.toString namever ^
-              " not found on " ^ DirectoryRepo.toString master ^ " repo"
+              " not found on " ^ DirectoryRepo.toString master
         in
           raise Error err
         end
@@ -1963,7 +1974,7 @@ fun updateRepo repo =
       val () = DirectoryRepo.update repo
 
       val () = chat ("updated package list for " ^
-                     DirectoryRepo.toString repo ^ " repo")
+                     DirectoryRepo.toString repo)
     in
       ()
     end
@@ -2050,9 +2061,16 @@ fun upload namever =
               else chat ("package upload warnings:\n" ^ s)
             end
 
-      val {response} = Directory.upload dir repo namevers
+      val upl = DirectoryRepo.startUpload repo
 
-      val () = chat response
+      val () =
+          let
+            val {url} = DirectoryRepo.uploadUrl upl
+
+            val mesg = "starting upload " ^ url
+          in
+            chat mesg
+          end
     in
       ()
     end

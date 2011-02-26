@@ -9,12 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-val uploadSuccessString = "successfully uploaded";
-
-(* ------------------------------------------------------------------------- *)
 (* A type of theory package meta-data.                                       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -403,18 +397,11 @@ fun uploadTarball info chk {url,token} =
       val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
 
       val () = OS.FileSys.remove tmpFile
+
+      val response = chomp (String.concat lines)
     in
-      case lines of
-        [] => raise Error "no response from repo"
-      | line :: _ =>
-        let
-          val response = chomp (String.concat lines)
-        in
-          if String.isSubstring uploadSuccessString line then
-            {response = response}
-          else
-            raise Error ("error response from repo:\n" ^ response)
-        end
+      if size response = 0 then raise Error "no response from repo"
+      else {response = response}
     end;
 
 (* ------------------------------------------------------------------------- *)

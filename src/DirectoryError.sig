@@ -12,13 +12,13 @@ sig
 
 datatype error =
     AncestorNotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | AncestorWrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | AlreadyInstalled of
       PackageNameVersion.nameVersion
   | AlreadyOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | AlreadyStaged of
       PackageNameVersion.nameVersion
   | FilenameClash of
@@ -29,13 +29,13 @@ datatype error =
   | NotInstalled of
       PackageNameVersion.nameVersion
   | NotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
   | TagError of
       PackageTag.name * string
   | UninstalledParent of
       PackageNameVersion.nameVersion
   | WrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.name
+      PackageNameVersion.nameVersion * DirectoryRepo.repo
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)

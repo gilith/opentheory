@@ -9,15 +9,21 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val uploadSuccessString = "successfully uploaded";
+
+(* ------------------------------------------------------------------------- *)
 (* A type of repos.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type name = string;
+type name = PackageName.name;
 
 datatype repo =
     Repo of
       {system : DirectorySystem.system,
-       name : string,
+       name : name,
        rootUrl : string,
        checksums : DirectoryChecksums.checksums};
 
@@ -58,6 +64,17 @@ fun rootUrl (Repo {rootUrl = x, ...}) = {rootUrl = x};
 fun checksums (Repo {checksums = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun pp repo =
+    Print.sequence
+      (PackageName.pp (name repo))
+      (Print.ppString " repo");
+
+val toString = Print.toString pp;
+
+(* ------------------------------------------------------------------------- *)
 (* Paths.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
@@ -67,8 +84,11 @@ fun installedUrl repo =
 fun tarballUrl repo n =
     DirectoryPath.mkTarballUrl (rootUrl repo) n;
 
-fun uploadUrl repo =
-    DirectoryPath.mkUploadUrl (rootUrl repo);
+fun startUploadUrl repo =
+    DirectoryPath.mkStartUploadUrl (rootUrl repo);
+
+fun statusUploadUrl repo token =
+    DirectoryPath.mkStatusUploadUrl (rootUrl repo) token;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
@@ -120,7 +140,7 @@ fun download repo info =
             let
               val err =
                   "package " ^ PackageNameVersion.toString nv ^
-                  " does not exist on " ^ name repo ^ " repo"
+                  " does not exist on " ^ toString repo
             in
               raise Error err
             end
@@ -141,7 +161,7 @@ fun download repo info =
                 val err =
                     "tarball for package " ^
                     PackageNameVersion.toString nv ^
-                    " downloaded from " ^ name repo ^
+                    " downloaded from " ^ toString repo ^
                     " has the wrong checksum"
               in
                 raise Error err
@@ -155,24 +175,74 @@ fun download repo info =
 (* Uploading packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-datatype tokenUpload =
-    TokenUpload of
+datatype upload =
+    Upload of
       {repo : repo,
-       token : string};
+       token : Checksum.checksum};
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+
+  val repoNameParser =
+      (PackageName.parser ++
+       exactString " repo: ") >> fst;
+
+  val newUploadParser =
+      (exactString "new upload = " ++
+       Checksum.parser) >> snd;
+in
+  val parserStartUpload =
+      (repoNameParser ++
+       newUploadParser);
+end;
+
+fun fromStringStartUpload s =
+    Parse.fromString parserStartUpload s
+    handle Parse.NoParse => raise Error "fromStringStartUpload";
 
 fun startUpload repo =
     let
-      (* Upload the tarball *)
+      val sys = system repo
 
-      val response = PackageInfo.uploadTarball info chk (uploadUrl repo)
+      val {url} = startUploadUrl repo
 
-      (* Update the package list *)
+      val tmpFile = OS.FileSys.tmpName ()
 
-      val () = update repo
+      val {curl = cmd} = DirectorySystem.curl sys
+
+      val cmd =
+          cmd ^ " " ^ url ^
+          " --output " ^ tmpFile
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "starting the upload failed"
+
+      val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
+
+      val () = OS.FileSys.remove tmpFile
     in
-      response
+      if null lines then raise Error "no response from repo"
+      else
+        let
+          val response = chomp (String.concat lines)
+        in
+          case total fromStringStartUpload response of
+            SOME (_,token) => Upload {repo = repo, token = token}
+          | NONE => raise Error ("error response from repo:\n" ^ response)
+        end
     end;
 
+(***
 fun upload repo info chk =
     let
       (* Upload the tarball *)
@@ -185,13 +255,13 @@ fun upload repo info chk =
     in
       response
     end;
+***)
 
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printing.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val pp = Print.ppMap name Print.ppString;
-
-val toString = Print.toString pp;
+fun uploadUrl upl =
+    let
+      val Upload {repo,token} = upl
+    in
+      statusUploadUrl repo token
+    end;
 
 end

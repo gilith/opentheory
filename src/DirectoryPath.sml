@@ -13,12 +13,15 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val configFile = "config"
-and installedName = "installed"
 and directoryDirectory = "opentheory"
 and packagesDirectory = "packages"
-and stagingDirectory = "staging"
+and repoArgumentValueSeparator = "="
+and repoQuery = "?"
 and repoSeparator = "/"
 and reposDirectory = "repos"
+and stagingDirectory = "staging"
+and startDirectory = "start"
+and statusUploadArgument = "upload"
 and uploadDirectory = "upload";
 
 (* ------------------------------------------------------------------------- *)
@@ -51,7 +54,7 @@ fun mkConfigFilename {rootDirectory = dir} =
 
 local
   val {filename = installedFilename} =
-      DirectoryChecksums.mkFilename installedName;
+      DirectoryChecksums.mkFilename PackageName.installedChecksums;
 in
   fun mkInstalledFilename {rootDirectory = rootDir} =
       let
@@ -154,11 +157,11 @@ fun mkReposDirectory {rootDirectory = dir} =
       {directory = directory}
     end;
 
-fun mkRepoFilename root namever =
+fun mkRepoFilename root name =
     let
       val {directory = dir} = mkReposDirectory root
 
-      val {filename = file} = DirectoryChecksums.mkFilename namever
+      val {filename = file} = DirectoryChecksums.mkFilename name
 
       val filename = OS.Path.joinDirFile {dir = dir, file = file}
     in
@@ -174,6 +177,26 @@ fun mkUploadUrl root =
       val {rootUrl = url} = root
 
       val url = url ^ uploadDirectory ^ repoSeparator
+    in
+      {url = url}
+    end;
+
+fun mkStartUploadUrl root =
+    let
+      val {url} = mkUploadUrl root
+
+      val url = url ^ startDirectory ^ repoSeparator
+    in
+      {url = url}
+    end;
+
+fun mkStatusUploadUrl root token =
+    let
+      val {rootUrl = url} = root
+
+      val url =
+          url ^ repoQuery ^ statusUploadArgument ^
+          repoArgumentValueSeparator ^ Checksum.toString token
     in
       {url = url}
     end;
