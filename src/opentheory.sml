@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20110223)"^"\n";
+val versionString = program^" "^version^" (release 20110227)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -2119,17 +2119,24 @@ fun upload namever =
       val () = DirectoryRepo.update repo
 
       val namevers =
-          if not (!autoUpload) then PackageNameVersionSet.empty
+          if not (Directory.member namever dir) then [namever]
           else
             let
-              fun notInRepo nv = not (DirectoryRepo.member nv repo)
+              val nvs =
+                  if not (!autoUpload) then PackageNameVersionSet.empty
+                  else
+                    let
+                      fun notInRepo anc = not (DirectoryRepo.member anc repo)
 
-              val nvs = Directory.ancestors dir namever
+                      val ancs = Directory.ancestors dir namever
+                    in
+                      PackageNameVersionSet.filter notInRepo ancs
+                    end
+
+              val nvs = PackageNameVersionSet.add nvs namever
             in
-              PackageNameVersionSet.filter notInRepo nvs
+              Directory.installOrder dir nvs
             end
-
-      val namevers = PackageNameVersionSet.add namevers namever
 
       val errs = Directory.checkUpload dir repo namevers
 
@@ -2144,17 +2151,33 @@ fun upload namever =
             end
 
       val upl = DirectoryRepo.startUpload repo
-
-      val () =
-          let
-            val {url} = DirectoryRepo.uploadUrl upl
-
-            val mesg = "starting upload " ^ url
-          in
-            chat mesg
-          end
     in
-      ()
+      let
+        fun uploadPackage namever =
+            let
+            in
+              ()
+            end
+
+        val () =
+            let
+              val {url} = DirectoryRepo.urlUpload upl
+
+              val mesg =
+                  "starting upload to " ^ DirectoryRepo.toString repo ^
+                  ":\n  " ^ url
+            in
+              chat mesg
+            end
+
+        val () = List.app uploadPackage namevers
+      in
+        ()
+      end
+(***Delete upload on the server if an error occurs
+      handle Error err =>
+        let val () = DirectoryRepo.
+***)
     end
     handle Error err =>
       raise Error (err ^ "\npackage upload failed");

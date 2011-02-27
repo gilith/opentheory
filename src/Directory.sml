@@ -1401,42 +1401,19 @@ fun uninstall dir namever =
 
 fun checkUpload dir repo namevers =
     let
-      fun checkAnc (anc,errs) =
-          let
-            val chk =
-                case checksum dir anc of
-                  SOME c => c
-                | NONE =>
-                  let
-                    val err =
-                        "depends on package " ^
-                        PackageNameVersion.toString anc ^
-                        " which seems to be badly installed"
-                  in
-                    raise Error err
-                  end
-          in
-            case DirectoryRepo.peek repo anc of
-              NONE => DirectoryError.AncestorNotOnRepo (anc,repo) :: errs
-            | SOME chk' =>
-              if Checksum.equal chk chk' then errs
-              else DirectoryError.AncestorWrongChecksumOnRepo (anc,repo) :: errs
-          end
-
-      val (namevers,unknown) =
-          let
-            fun isKnown nv = member nv dir
-          in
-            PackageNameVersionSet.partition isKnown namevers
-          end
-
       val errs = []
 
-      val errs =
+      val (namevers,errs) =
           let
+            fun isKnown nv = member nv dir
+
             fun add (nv,acc) = DirectoryError.NotInstalled nv :: acc
+
+            val (namevers,unknown) = List.partition isKnown namevers
+
+            val errs = List.foldl add errs unknown
           in
-            PackageNameVersionSet.foldl add errs unknown
+            (namevers,errs)
           end
 
       val errs =
@@ -1445,30 +1422,57 @@ fun checkUpload dir repo namevers =
                 if not (DirectoryRepo.member nv repo) then acc
                 else DirectoryError.AlreadyOnRepo (nv,repo) :: acc
           in
-            PackageNameVersionSet.foldl check errs namevers
+            List.foldl check errs namevers
           end
 
       val errs =
           let
-            val ancs = ancestorsSet dir namevers
+            fun addMissing anc errs =
+                DirectoryError.AncestorNotOnRepo (anc,repo) :: errs
 
-            val ancs = PackageNameVersionSet.difference ancs namevers
+            fun addDifferent anc errs =
+                DirectoryError.AncestorWrongChecksumOnRepo (anc,repo) :: errs
+
+            fun checkAnc (anc,errs) =
+                let
+                  val chk =
+                      case checksum dir anc of
+                        SOME c => c
+                      | NONE =>
+                        let
+                          val err =
+                              "depends on package " ^
+                              PackageNameVersion.toString anc ^
+                              " which seems to be badly installed"
+                        in
+                          raise Error err
+                        end
+                in
+                  case DirectoryRepo.peek repo anc of
+                    NONE => addMissing anc errs
+                  | SOME chk' =>
+                    if Checksum.equal chk chk' then errs
+                    else addDifferent anc errs
+                end
+
+            val nvs = PackageNameVersionSet.fromList namevers
+
+            val ancs = ancestorsSet dir nvs
+
+            val ancs = PackageNameVersionSet.difference ancs nvs
           in
             PackageNameVersionSet.foldl checkAnc errs ancs
           end
+
+(*** Check install order ***)
+(*** Check same author ***)
+(*** Check at most one obsolete author ***)
     in
       rev errs
     end;
 
-(***
-fun upload dir repo namevers =
+fun packageUpload dir upl namever =
     let
-(*OpenTheoryDebug
-      val errs = checkUpload dir repo namevers
-
-      val _ = not (DirectoryError.existsFatal errs) orelse
-              raise Bug "Directory.upload: fatal error"
-*)
       val info = get dir namever
 
       val chk =
@@ -1483,11 +1487,10 @@ fun upload dir repo namevers =
               raise Error err
             end
 
-      val response = DirectoryRepo.upload repo info chk
+      val () = DirectoryRepo.packageUpload upl info chk
     in
-      response
+      ()
     end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

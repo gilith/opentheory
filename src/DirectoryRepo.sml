@@ -84,6 +84,9 @@ fun installedUrl repo =
 fun tarballUrl repo n =
     DirectoryPath.mkTarballUrl (rootUrl repo) n;
 
+fun uploadUrl repo =
+    DirectoryPath.mkUploadUrl (rootUrl repo);
+
 fun startUploadUrl repo =
     DirectoryPath.mkStartUploadUrl (rootUrl repo);
 
@@ -234,6 +237,8 @@ fun startUpload repo =
       if null lines then raise Error "no response from repo"
       else
         let
+          (* Check the repo response *)
+
           val response = chomp (String.concat lines)
         in
           case total fromStringStartUpload response of
@@ -242,22 +247,25 @@ fun startUpload repo =
         end
     end;
 
-(***
-fun upload repo info chk =
+fun packageUpload upl info chk =
     let
+      val Upload {repo,token} = upl
+
+      val {url} = uploadUrl repo
+
+      val token = Checksum.toString token
+
       (* Upload the tarball *)
 
-      val response = PackageInfo.uploadTarball info chk (uploadUrl repo)
+      val {response} =
+          PackageInfo.uploadTarball info chk {url = url, token = token}
 
-      (* Update the package list *)
-
-      val () = update repo
+      (* Check the repo response *)
     in
-      response
+      ()
     end;
-***)
 
-fun uploadUrl upl =
+fun urlUpload upl =
     let
       val Upload {repo,token} = upl
     in

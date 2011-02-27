@@ -65,14 +65,13 @@ type upload
 
 val startUpload : repo -> upload
 
-(***
-val packageUpload :
-    upload -> PackageInfo.info -> Checksum.checksum -> {response : string}
+val packageUpload : upload -> PackageInfo.info -> Checksum.checksum -> unit
 
-val finishUpload : upload -> unit
+(***
+val finishUpload : upload -> {response : string}
 ***)
 
-val uploadUrl : upload -> {url : string}
+val urlUpload : upload -> {url : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
