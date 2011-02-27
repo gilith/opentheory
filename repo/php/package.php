@@ -59,6 +59,11 @@ class Package {
     return $namever->version();
   }
 
+  function author_id() {
+    $author = $this->author();
+    return $author->id();
+  }
+
   function author_name() {
     $author = $this->author();
     return $author->name();
@@ -161,8 +166,7 @@ function from_row_package($row) {
   $name = $row['name'];
   $version = $row['version'];
   $description = $row['description'];
-  $author_name = $row['author_name'];
-  $author_email = $row['author_email'];
+  $author_id = (integer)$row['author'];
   $license = $row['license'];
   $uploaded_datetime = $row['uploaded'];
   $installed_database = $row['installed'];
@@ -171,7 +175,7 @@ function from_row_package($row) {
 
   $name_version = new PackageNameVersion($name,$version);
 
-  $author = new PackageAuthor($author_name,$author_email);
+  $author = get_package_author($author_id);
 
   $uploaded = new TimePoint();
   $uploaded->from_database_datetime($uploaded_datetime);
@@ -194,8 +198,6 @@ define('PACKAGE_ID_DIGITS',7);
 define('PACKAGE_NAME_CHARS',100);
 define('PACKAGE_VERSION_CHARS',50);
 define('PACKAGE_DESCRIPTION_CHARS',200);
-define('PACKAGE_AUTHOR_NAME_CHARS',100);
-define('PACKAGE_AUTHOR_EMAIL_CHARS',100);
 define('PACKAGE_LICENSE_CHARS',50);
 
 class PackageTable extends DatabaseTable {
@@ -210,7 +212,7 @@ class PackageTable extends DatabaseTable {
   }
 
   function find_package($id) {
-    is_int($id) or trigger_error('bad package');
+    is_int($id) or trigger_error('bad id');
 
     return $this->find_package_where('id = ' . database_value($id));
   }
@@ -294,9 +296,7 @@ class PackageTable extends DatabaseTable {
 
     $description = $package->description();
 
-    $author_name = $package->author_name();
-
-    $author_email = $package->author_email();
+    $author_id = $package->author_id();
 
     $license = $package->license();
 
@@ -318,8 +318,7 @@ class PackageTable extends DatabaseTable {
           name = ' . database_value($name) . ',
           version = ' . database_value($version) . ',
           description = ' . database_value($description) . ',
-          author_name = ' . database_value($author_name) . ',
-          author_email = ' . database_value($author_email) . ',
+          author = ' . database_value($author_id) . ',
           license = ' . database_value($license) . ',
           uploaded = ' . database_value($uploaded_datetime) . ',
           installed = ' . database_value($installed_database) . ',
@@ -390,8 +389,7 @@ class PackageTable extends DatabaseTable {
             'name' => 'varchar(' . PACKAGE_NAME_CHARS . ') NOT NULL',
             'version' => 'varchar(' . PACKAGE_VERSION_CHARS . ') NOT NULL',
             'description' => 'varchar(' . PACKAGE_DESCRIPTION_CHARS . ') NOT NULL',
-            'author_name' => 'varchar(' . PACKAGE_AUTHOR_NAME_CHARS . ') NOT NULL',
-            'author_email' => 'varchar(' . PACKAGE_AUTHOR_EMAIL_CHARS . ') NOT NULL',
+            'author' => 'int (' . PACKAGE_AUTHOR_ID_DIGITS . ') NOT NULL',
             'license' => 'varchar(' . PACKAGE_LICENSE_CHARS . ') NOT NULL',
             'uploaded' => 'datetime NOT NULL',
             'installed' => database_bool_type() . ' NOT NULL',

@@ -32,6 +32,8 @@ datatype error =
       PackageNameVersion.nameVersion
   | NotOnRepo of
       PackageNameVersion.nameVersion * DirectoryRepo.repo
+  | NotStaged of
+      PackageNameVersion.nameVersion
   | TagError of
       PackageTag.name * string
   | UninstalledParent of
@@ -128,6 +130,7 @@ fun isFatal err =
     | InstalledDescendent _ => true
     | NotInstalled _ => true
     | NotOnRepo _ => true
+    | NotStaged _ => true
     | TagError _ => true
     | UninstalledParent _ => true
     | WrongChecksumOnRepo _ => true
@@ -176,6 +179,9 @@ fun toString err =
      | NotOnRepo (namever,repo) =>
        "package " ^ PackageNameVersion.toString namever ^
        " is not on " ^ DirectoryRepo.toString repo
+     | NotStaged namever =>
+       "package " ^ PackageNameVersion.toString namever ^
+       " is not staged for installation"
      | TagError (tag,msg) =>
        "package " ^ PackageName.toString tag ^ " information " ^ msg
      | UninstalledParent namever =>

@@ -84,6 +84,9 @@ function repo_register_all() {
 ///////////////////////////////////////////////////////////////////////////////
 
 function repo_reset() {
+  $package_author_table = package_author_table();
+  $package_author_table->reset();
+
   $package_table = package_table();
   $package_table->reset();
 
@@ -92,6 +95,9 @@ function repo_reset() {
 
   $upload_table = upload_table();
   $upload_table->reset();
+
+  $upload_package_table = upload_package_table();
+  $upload_package_table->reset();
 
   repo_register_all();
 }

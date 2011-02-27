@@ -13,7 +13,7 @@ define('SHORT_RECENT_PACKAGE_LIMIT',3);
 ///////////////////////////////////////////////////////////////////////////////
 
 $pkg = from_string(input('pkg'));
-if (isset($pkg)) { $pkg = from_string_package_name_version(input('pkg')); }
+if (isset($pkg)) { $pkg = from_string_package_name_version($pkg); }
 if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
 
 if (isset($pkg)) {
@@ -83,6 +83,41 @@ $pkg->theory_file_link($pkg->theory_file_name()) .
   $title = 'Package ' . $pkg->to_string();
 
   $image = site_image('sunset-tree.jpg','Sunset Tree');
+
+  output(array('title' => $title), $main, $image);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Upload page.
+///////////////////////////////////////////////////////////////////////////////
+
+$upl = from_string(input('upload'));
+if (isset($upl)) { $upl = find_upload($upl); }
+
+if (isset($upl)) {
+  set_bread_crumbs_extension(array());
+
+  $initiated = $upl->initiated();
+
+  $since_initiated = $upl->since_initiated();
+
+  $status = $upl->status();
+
+  $initiated_info = $since_initiated->to_string() . ' ago';
+
+  $status_info = $status;
+
+  $main =
+'<h2>Package Upload</h2>' .
+'<h3>Information</h3>' .
+'<table class="package">' .
+'<tr><td>initiated</td><td>' . string_to_html($initiated_info) . '</td></tr>' .
+'<tr><td>status</td><td>' . string_to_html($status_info) . '</td></tr>' .
+'</table>';
+
+  $title = 'Package Upload';
+
+  $image = site_image('elephant-and-castle.jpg','Elephant and Castle');
 
   output(array('title' => $title), $main, $image);
 }

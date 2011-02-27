@@ -48,6 +48,7 @@ class Upload {
   var $_initiated;
   var $_status;
   var $_author;
+  var $_obsolete;
 
   function id() { return $this->_id; }
 
@@ -56,6 +57,26 @@ class Upload {
   function status() { return $this->_status; }
 
   function author() { return $this->_author; }
+
+  function obsolete() { return $this->_obsolete; }
+
+  function since_initiated() {
+    $now = server_datetime();
+    $initiated = $this->initiated();
+
+    return $now->subtract($initiated);
+  }
+
+  function author_id() {
+    $author = $this->author();
+
+    if (isset($author)) {
+      return $author->id();
+    }
+    else {
+      return null;
+    }
+  }
 
   function author_name() {
     $author = $this->author();
@@ -79,9 +100,54 @@ class Upload {
     }
   }
 
+  function obsolete_id() {
+    $obsolete = $this->obsolete();
+
+    if (isset($obsolete)) {
+      return $obsolete->id();
+    }
+    else {
+      return null;
+    }
+  }
+
+  function obsolete_name() {
+    $obsolete = $this->obsolete();
+
+    if (isset($obsolete)) {
+      return $obsolete->name();
+    }
+    else {
+      return null;
+    }
+  }
+
+  function obsolete_email() {
+    $obsolete = $this->obsolete();
+
+    if (isset($obsolete)) {
+      return $obsolete->email();
+    }
+    else {
+      return null;
+    }
+  }
+
   function to_string() { return $this->id(); }
 
-  function Upload($id,$initiated,$status,$author) {
+  function link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = array();
+
+    $args = array('upload' => $this->to_string());
+
+    $atts = array('class' => 'upload');
+
+    return site_link($path,$text,$args,$atts);
+  }
+
+  function Upload($id,$initiated,$status,$author,$obsolete) {
     is_string($id) or trigger_error('bad id');
     isset($initiated) or trigger_error('bad initiated');
     is_string($status) or trigger_error('bad status');
@@ -90,7 +156,33 @@ class Upload {
     $this->_initiated = $initiated;
     $this->_status = $status;
     $this->_author = $author;
+    $this->_obsolete = $obsolete;
   }
+}
+
+function from_row_upload($row) {
+  is_array($row) or trigger_error('bad row');
+
+  $id = $row['id'];
+  $initiated_datetime = $row['initiated'];
+  $status = $row['status'];
+  $author = $row['author'];
+  $obsolete = $row['obsolete'];
+
+  $initiated = new TimePoint();
+  $initiated->from_database_datetime($initiated_datetime);
+
+  if (isset($author)) {
+    $author = (integer)$author;
+    $author = get_package_author($author);
+  }
+
+  if (isset($obsolete)) {
+    $obsolete = (integer)$obsolete;
+    $obsolete = get_package_author($obsolete);
+  }
+
+  return new Upload($id,$initiated,$status,$author,$obsolete);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,23 +199,7 @@ class UploadTable extends DatabaseTable {
 
     if (!isset($row)) { return null; }
 
-    $upload = $row['id'];
-    $initiated_datetime = $row['initiated'];
-    $status = $row['status'];
-    $author_name = $row['author_name'];
-    $author_email = $row['author_email'];
-
-    $initiated = new TimePoint();
-    $initiated->from_database_datetime($initiated_datetime);
-
-    if (isset($author_name) && isset($author_email)) {
-      $author = new PackageAuthor($author_name,$author_email);
-    }
-    else {
-      $author = null;
-    }
-
-    return new Upload($upload,$initiated,$status,$author);
+    return from_row_upload($row);
   }
 
   function find_upload($upload) {
@@ -131,21 +207,53 @@ class UploadTable extends DatabaseTable {
     return $this->find_upload_where('id = ' . database_value($upload));
   }
 
+  function list_uploads($where,$order_by,$limit) {
+    !isset($where) or is_string($where) or trigger_error('bad where');
+    is_string($order_by) or trigger_error('bad order_by');
+    !isset($limit) or is_int($limit) or is_string($limit) or
+      trigger_error('bad limit');
+
+    $result = database_query('
+      SELECT *
+      FROM ' . $this->table() . (isset($where) ? ('
+      WHERE ' . $where) : '') . '
+      ORDER BY ' . $order_by . (isset($limit) ? ('
+      LIMIT ' . $limit) : '') . ';');
+
+    $upls = array();
+
+    while ($row = mysql_fetch_array($result)) {
+      $upls[] = from_row_upload($row);
+    }
+
+    return $upls;
+  }
+
+  function list_recent_uploads($limit) {
+    is_int($limit) or trigger_error('bad limit');
+
+    $where = null;
+
+    $order_by = 'initiated DESC';
+
+    return $this->list_uploads($where,$order_by,$limit);
+  }
+
   function insert_upload($upload) {
     $id = $upload->id();
     $initiated = $upload->initiated();
     $initiated_datetime = $initiated->to_database_datetime();
     $status = $upload->status();
-    $author_name = $upload->author_name();
-    $author_email = $upload->author_email();
+    $author_id = $upload->author_id();
+    $obsolete_id = $upload->obsolete_id();
 
     database_query('
       INSERT INTO ' . $this->table() . '
       SET id = ' . database_value($id) . ',
           initiated = ' . database_value($initiated_datetime) . ',
           status = ' . database_value($status) . ',
-          author_name = ' . database_value($author_name) . ',
-          author_email = ' . database_value($author_email) . ';');
+          author = ' . database_value($author_id) . ',
+          obsolete = ' . database_value($obsolete_id) . ';');
   }
 
   function update_upload($upload) {
@@ -155,15 +263,15 @@ class UploadTable extends DatabaseTable {
     $initiated = $upload->initiated();
     $initiated_datetime = $initiated->to_database_datetime();
     $status = $upload->status();
-    $author_name = $upload->author_name();
-    $author_email = $upload->author_email();
+    $author_id = $upload->author_id();
+    $obsolete_id = $upload->obsolete_id();
 
     database_query('
       UPDATE ' . $this->table() . '
       SET initiated = ' . database_value($initiated_datetime) . ',
           status = ' . database_value($status) . ',
-          author_name = ' . database_value($author_name) . ',
-          author_email = ' . database_value($author_email) . '
+          author = ' . database_value($author_id) . ',
+          obsolete = ' . database_value($obsolete_id) . '
       WHERE id = ' . database_value($id) . ';');
   }
 
@@ -183,8 +291,8 @@ class UploadTable extends DatabaseTable {
             'initiated' => 'datetime NOT NULL',
             'status' =>
               array_to_database_enum($all_upload_status) . ' NOT NULL',
-            'author_name' => 'varchar(' . PACKAGE_AUTHOR_NAME_CHARS . ')',
-            'author_email' => 'varchar(' . PACKAGE_AUTHOR_EMAIL_CHARS . ')');
+            'author' => 'int(' . PACKAGE_AUTHOR_ID_DIGITS . ')',
+            'obsolete' => 'int(' . PACKAGE_AUTHOR_ID_DIGITS . ')');
 
     $indexes =
       array('PRIMARY KEY (id)',
@@ -207,6 +315,18 @@ function upload_table() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Look up an upload.
+///////////////////////////////////////////////////////////////////////////////
+
+function find_upload($upload_id) {
+  is_string($upload_id) or trigger_error('bad upload_id');
+
+  $upload_table = upload_table();
+
+  return $upload_table->find_upload($upload_id);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Creating new upload tokens.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -225,7 +345,9 @@ function create_new_upload() {
 
   $author = null;
 
-  $upload = new Upload($id,$initiated,$status,$author);
+  $obsolete = null;
+
+  $upload = new Upload($id,$initiated,$status,$author,$obsolete);
 
   $upload_table->insert_upload($upload);
 

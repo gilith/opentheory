@@ -30,6 +30,8 @@ datatype error =
       PackageNameVersion.nameVersion
   | NotOnRepo of
       PackageNameVersion.nameVersion * DirectoryRepo.repo
+  | NotStaged of
+      PackageNameVersion.nameVersion
   | TagError of
       PackageTag.name * string
   | UninstalledParent of

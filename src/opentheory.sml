@@ -206,16 +206,18 @@ val directory =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* A simple package finder.                                                  *)
+(* The directory package finder and importer.                                *)
 (* ------------------------------------------------------------------------- *)
 
 fun directoryFinder () = Directory.finder (directory ());
 
+fun directoryImporter () = Directory.importer (directory ());
+
 (* ------------------------------------------------------------------------- *)
-(* A simple package importer.                                                *)
+(* The directory staged package finder.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun directoryImporter () = Directory.importer (directory ());
+fun directoryStagedFinder () = Directory.stagedFinder (directory ());
 
 (* ------------------------------------------------------------------------- *)
 (* Config file.                                                              *)
@@ -289,89 +291,6 @@ in
 end;
 
 val helpFooter = "";
-
-(* ------------------------------------------------------------------------- *)
-(* Options for displaying command help.                                      *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  open Useful Options;
-in
-  val initOpts : opt list = [];
-end;
-
-val initFooter = "";
-
-(* ------------------------------------------------------------------------- *)
-(* Options for uninstalling theory packages.                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val autoUninstall = ref false;
-
-local
-  open Useful Options;
-in
-  val uninstallOpts : opt list =
-      [{switches = ["--auto"], arguments = [],
-        description = "also uninstall dependent packages",
-        processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
-end;
-
-val uninstallFooter = "";
-
-(* ------------------------------------------------------------------------- *)
-(* Options for installing theory packages.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-val autoInstall = ref false;
-
-val nameInstall : PackageNameVersion.nameVersion option ref = ref NONE;
-
-val checksumInstall : Checksum.checksum option ref = ref NONE;
-
-val minimalInstall = ref false;
-
-val reinstall = ref false;
-
-local
-  open Useful Options;
-
-  fun addSuffix s {switches,arguments,description,processor} =
-      {switches = List.map (fn x => x ^ s) switches,
-       arguments = arguments,
-       description = description,
-       processor = processor};
-in
-  val installOpts : opt list =
-      [{switches = ["--repo"], arguments = ["REPO"],
-        description = "specify the repos to install from",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => addRepository s)},
-       {switches = ["--name"], arguments = ["NAME"],
-        description = "specify the package name",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s =>
-                nameInstall := SOME (PackageNameVersion.fromString s))},
-       {switches = ["--checksum"], arguments = ["CHECKSUM"],
-        description = "specify the package checksum",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
-       {switches = ["--minimal"], arguments = [],
-        description = "do not install the package extra files",
-        processor = beginOpt endOpt (fn _ => minimalInstall := true)},
-       {switches = ["--reinstall"], arguments = [],
-        description = "uninstall the package if it exists",
-        processor = beginOpt endOpt (fn _ => reinstall := true)},
-       {switches = ["--manual"], arguments = [],
-        description = "do not also install required packages",
-        processor = beginOpt endOpt (fn _ => autoInstall := false)}] @
-      List.map (addSuffix "-uninstall") uninstallOpts;
-end;
-
-val installFooter = "";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying package information.                               *)
@@ -502,15 +421,100 @@ in
        {switches = ["--show-axioms"], arguments = [],
         description = "show the assumptions/axioms for each theorem",
         processor = beginOpt endOpt (fn _ => infoShowAxioms := true)},
-       {switches = ["--auto-install"], arguments = [],
-        description = "automatically install required packages",
-        processor = beginOpt endOpt (fn _ => autoInstall := true)},
        {switches = ["--preserve-theory"], arguments = [],
         description = "do not optimize theory files",
         processor = beginOpt endOpt (fn _ => infoPreserveTheory := true)}];
 end;
 
 val infoFooter = describeInfoFormat ^ ".\n";
+
+(* ------------------------------------------------------------------------- *)
+(* Options for displaying command help.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val initOpts : opt list = [];
+end;
+
+val initFooter = "";
+
+(* ------------------------------------------------------------------------- *)
+(* Options for uninstalling theory packages.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val autoUninstall = ref false;
+
+local
+  open Useful Options;
+in
+  val uninstallOpts : opt list =
+      [{switches = ["--auto"], arguments = [],
+        description = "also uninstall dependent packages",
+        processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
+end;
+
+val uninstallFooter = "";
+
+(* ------------------------------------------------------------------------- *)
+(* Options for installing theory packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val autoInstall = ref true;
+
+val nameInstall : PackageNameVersion.nameVersion option ref = ref NONE;
+
+val checksumInstall : Checksum.checksum option ref = ref NONE;
+
+val minimalInstall = ref false;
+
+val reinstall = ref false;
+
+val stageInstall = ref false;
+
+local
+  open Useful Options;
+
+  fun addSuffix s {switches,arguments,description,processor} =
+      {switches = List.map (fn x => x ^ s) switches,
+       arguments = arguments,
+       description = description,
+       processor = processor};
+in
+  val installOpts : opt list =
+      [{switches = ["--repo"], arguments = ["REPO"],
+        description = "specify the repos to install from",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => addRepository s)},
+       {switches = ["--name"], arguments = ["NAME"],
+        description = "specify the package name",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s =>
+                nameInstall := SOME (PackageNameVersion.fromString s))},
+       {switches = ["--checksum"], arguments = ["CHECKSUM"],
+        description = "specify the package checksum",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
+       {switches = ["--minimal"], arguments = [],
+        description = "do not install the package extra files",
+        processor = beginOpt endOpt (fn _ => minimalInstall := true)},
+       {switches = ["--reinstall"], arguments = [],
+        description = "uninstall the package if it exists",
+        processor = beginOpt endOpt (fn _ => reinstall := true)},
+       {switches = ["--manual"], arguments = [],
+        description = "do not also install required packages",
+        processor = beginOpt endOpt (fn _ => autoInstall := false)},
+       {switches = ["--stage"], arguments = [],
+        description = "stage the package for installation",
+        processor = beginOpt endOpt (fn _ => stageInstall := true)}] @
+      List.map (addSuffix "-uninstall") uninstallOpts;
+end;
+
+val installFooter = "";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for listing installed packages.                                   *)
@@ -770,7 +774,7 @@ local
         join "\n" table ^ "\n"
       end;
 
-  val globalFooter = "";
+  val globalFooter = describeInfoFormat ^ ".\n";
 in
   val globalOptions =
       mkProgramOptions
@@ -874,453 +878,6 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 fun help () = usage "displaying command help";
-
-(* ------------------------------------------------------------------------- *)
-(* Initializing a package directory.                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun init () =
-    let
-      val {directory = d, autoInit = _} = rootDirectory ()
-
-      val () = Directory.create {rootDirectory = d}
-
-      val () = chat ("initialized package directory " ^ d)
-    in
-      ()
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Uninstalling theory packages.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun uninstallPackage auto dir namever =
-    let
-      val errs = Directory.checkUninstall dir namever
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package uninstall warnings:\n" ^ s)
-            end
-
-      val () = Directory.uninstall dir namever
-
-      val () =
-          chat ((if auto then "auto-" else "") ^
-                "uninstalled package " ^ PackageNameVersion.toString namever)
-    in
-      ()
-    end;
-
-fun uninstallAuto dir namever =
-    let
-      val () =
-          if not (!autoUninstall) then ()
-          else
-            let
-              val desc = Directory.descendents dir namever
-
-              val desc = rev (Directory.installOrder dir desc)
-            in
-              List.app (uninstallPackage true dir) desc
-            end
-
-      val () = uninstallPackage false dir namever
-    in
-      ()
-    end;
-
-fun uninstall namever =
-    let
-      val dir = directory ()
-
-      val namever = PackageNameVersion.fromString namever
-    in
-      uninstallAuto dir namever
-    end
-    handle Error err =>
-      raise Error (err ^ "\ntheory package uninstall failed");
-
-(* ------------------------------------------------------------------------- *)
-(* Installing theory packages.                                               *)
-(* ------------------------------------------------------------------------- *)
-
-fun installAuto master namever =
-    case DirectoryRepo.peek master namever of
-      NONE =>
-        let
-          val err =
-              "package " ^ PackageNameVersion.toString namever ^
-              " not found on " ^ DirectoryRepo.toString master
-        in
-          raise Error err
-        end
-    | SOME chk =>
-      let
-        val () = installAutoFind master namever chk
-      in
-        ()
-      end
-
-and installAutoFind master namever chk =
-    let
-      val dir = directory ()
-    in
-      case Directory.checksum dir namever of
-        SOME chk' =>
-        if Checksum.equal chk' chk then ()
-        else
-          let
-            val err =
-                "a package called " ^ PackageNameVersion.toString namever ^
-                " with a different checksum is already installed"
-          in
-            raise Error err
-          end
-      | NONE =>
-        let
-          val repos = repositories ()
-        in
-          case DirectoryRepo.find repos (namever,chk) of
-            NONE =>
-            let
-              val err =
-                  "package " ^ PackageNameVersion.toString namever ^
-                  " with specific checksum not found on any repo"
-            in
-              raise Error err
-            end
-          | SOME repo => installAutoRepo master repo namever chk
-        end
-    end
-
-and installAutoRepo master repo namever chk =
-    let
-      val dir = directory ()
-
-      val errs = Directory.checkStagePackage dir repo namever chk
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package auto-install warnings:\n" ^ s)
-            end
-
-      val finder = installAutoFinder master
-
-      val minimal = {minimal = !minimalInstall}
-
-      val () = Directory.stagePackage dir finder repo namever chk minimal
-
-      val () = Directory.installStaged dir namever chk
-
-      val () = chat ("auto-installed package " ^
-                     PackageNameVersion.toString namever)
-    in
-      ()
-    end
-
-and installAutoFinder master =
-    let
-      val dir = directory ()
-
-      fun finder namever =
-          let
-            val () = installAuto master namever
-          in
-            Directory.peek dir namever
-          end
-    in
-      PackageFinder.mk finder
-    end;
-
-fun installAutoFree namever =
-    let
-      val dir = directory ()
-    in
-      if Directory.member namever dir then ()
-      else
-        let
-          val repos = repositories ()
-        in
-          case DirectoryRepo.first repos namever of
-            SOME (repo,chk) => installAutoRepo repo repo namever chk
-          | NONE =>
-            let
-              val err =
-                  "can't find package " ^ PackageNameVersion.toString namever ^
-                  " in any repo"
-            in
-              raise Error err
-            end
-        end
-    end;
-
-fun installAutoFinderFree () =
-    let
-      val dir = directory ()
-
-      fun finder namever =
-          let
-            val () = installAutoFree namever
-          in
-            Directory.peek dir namever
-          end
-    in
-      PackageFinder.mk finder
-    end;
-
-fun installFinder master =
-    if not (!autoInstall) then directoryFinder ()
-    else installAutoFinder master;
-
-fun installFinderFree () =
-    if not (!autoInstall) then directoryFinder ()
-    else installAutoFinderFree ();
-
-fun installImporterFree () =
-    Graph.fromFinderImporter (installFinderFree ());
-
-fun installPackage namever =
-    let
-      val () =
-          if not (Option.isSome (!nameInstall)) then ()
-          else raise Error "can't specify name for a package install"
-
-      val dir = directory ()
-
-      val repos = repositories ()
-
-      val (repo,chk) =
-          case !checksumInstall of
-            SOME chk =>
-            (case DirectoryRepo.find repos (namever,chk) of
-               SOME repo => (repo,chk)
-             | NONE =>
-               let
-                 val err =
-                     "can't find package " ^
-                     PackageNameVersion.toString namever ^
-                     " with specified checksum in any repo"
-               in
-                 raise Error err
-               end)
-          | NONE =>
-            (case DirectoryRepo.first repos namever of
-               NONE =>
-               let
-                 val err =
-                     "can't find package " ^
-                     PackageNameVersion.toString namever ^
-                     " in any repo package list"
-               in
-                 raise Error err
-               end
-             | SOME repo_chk => repo_chk)
-
-      val errs = Directory.checkStagePackage dir repo namever chk
-
-      val errs =
-          if not (!reinstall) then errs
-          else
-            let
-              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
-
-              val () =
-                  if staged then Directory.cleanupStaged dir namever else ()
-            in
-              errs
-            end
-
-      val (replace,errs) =
-          if not (!reinstall) then (false,errs)
-          else DirectoryError.removeAlreadyInstalled errs
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package install warnings:\n" ^ s)
-            end
-
-      val () = if replace then uninstallAuto dir namever else ()
-
-      val finder = installFinder repo
-
-      val minimal = {minimal = !minimalInstall}
-
-      val () = Directory.stagePackage dir finder repo namever chk minimal
-
-      val () = Directory.installStaged dir namever chk
-
-      val () =
-          chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageNameVersion.toString namever)
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\npackage install failed");
-
-fun installTarball tarFile =
-    let
-      val dir = directory ()
-
-      val sys = Directory.system dir
-
-      val chk = PackageTarball.checksum sys tarFile
-
-      val () =
-          case !checksumInstall of
-            NONE => ()
-          | SOME chk' =>
-            if Checksum.equal chk' chk then ()
-            else raise Error "tarball checksum does not match"
-
-      val contents = PackageTarball.contents sys tarFile
-
-      val PackageTarball.Contents {nameVersion = namever, ...} = contents
-
-      val () =
-          case !nameInstall of
-            NONE => ()
-          | SOME namever' =>
-            if PackageNameVersion.equal namever' namever then ()
-            else raise Error "tarball name does not match"
-
-      val errs = Directory.checkStageTarball dir contents
-
-      val errs =
-          if not (!reinstall) then errs
-          else
-            let
-              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
-
-              val () =
-                  if staged then Directory.cleanupStaged dir namever else ()
-            in
-              errs
-            end
-
-      val (replace,errs) =
-          if not (!reinstall) then (false,errs)
-          else DirectoryError.removeAlreadyInstalled errs
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package install warnings:\n" ^ s)
-            end
-
-      val () = if replace then uninstallAuto dir namever else ()
-
-      val finder = installFinderFree ()
-
-      val minimal = {minimal = !minimalInstall}
-
-      val () = Directory.stageTarball dir finder tarFile contents minimal
-
-      val () = Directory.installStaged dir namever chk
-
-      val () =
-          chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageNameVersion.toString namever ^ " from tarball")
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\npackage install from tarball failed");
-
-fun installTheory filename =
-    let
-      val () =
-          if not (Option.isSome (!checksumInstall)) then ()
-          else raise Error "can't specify checksum for a theory file install"
-
-      val dir = directory ()
-
-      val pkg = Package.fromTextFile filename
-
-      val namever = Package.nameVersion pkg
-
-      val () =
-          case !nameInstall of
-            NONE => ()
-          | SOME namever' =>
-            if PackageNameVersion.equal namever' namever then ()
-            else raise Error "theory name does not match"
-
-      val srcDir =
-          let
-            val {filename = thyFile} = filename
-          in
-            {directory = OS.Path.dir thyFile}
-          end
-
-      val errs = Directory.checkStageTheory dir namever pkg
-
-      val errs =
-          if not (!reinstall) then errs
-          else
-            let
-              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
-
-              val () =
-                  if staged then Directory.cleanupStaged dir namever else ()
-            in
-              errs
-            end
-
-      val (replace,errs) =
-          if not (!reinstall) then (false,errs)
-          else DirectoryError.removeAlreadyInstalled errs
-
-      val (pars,errs) =
-          if not (!autoInstall) then ([],errs)
-          else DirectoryError.removeUninstalledParent errs
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package install warnings:\n" ^ s)
-            end
-
-      val () = if replace then uninstallAuto dir namever else ()
-
-      val () = List.app installAutoFree pars
-
-      val chk = Directory.stageTheory dir namever pkg srcDir
-
-      val () = Directory.installStaged dir namever chk
-
-      val () =
-          chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageNameVersion.toString namever ^ " from theory file")
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\npackage install from theory file failed");
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying package information.                                           *)
@@ -1428,7 +985,7 @@ local
               NONE => NONE
             | SOME pkg =>
               let
-                val importer = installImporterFree ()
+                val importer = directoryImporter ()
 
                 val theories = Package.theories pkg
 
@@ -1499,7 +1056,7 @@ local
               NONE => NONE
             | SOME sav =>
               let
-                val importer = installImporterFree ()
+                val importer = directoryImporter ()
 
                 val graph = Graph.empty {savable = sav}
 
@@ -1897,6 +1454,531 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Initializing a package directory.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun init () =
+    let
+      val {directory = d, autoInit = _} = rootDirectory ()
+
+      val () = Directory.create {rootDirectory = d}
+
+      val () = chat ("initialized package directory " ^ d)
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Uninstalling theory packages.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun uninstallPackage auto dir namever =
+      let
+        val errs = Directory.checkUninstall dir namever
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package uninstall warnings:\n" ^ s)
+              end
+
+        val () = Directory.uninstall dir namever
+
+        val () =
+            chat ((if auto then "auto-" else "") ^
+                  "uninstalled package " ^ PackageNameVersion.toString namever)
+      in
+        ()
+      end;
+in
+  fun uninstallAuto dir namever =
+      let
+        val () =
+            if not (!autoUninstall) then ()
+            else
+              let
+                val desc = Directory.descendents dir namever
+
+                val desc = rev (Directory.installOrder dir desc)
+              in
+                List.app (uninstallPackage true dir) desc
+              end
+
+        val () = uninstallPackage false dir namever
+      in
+        ()
+      end;
+
+  fun uninstall namever =
+      let
+        val dir = directory ()
+
+        val namever = PackageNameVersion.fromString namever
+      in
+        uninstallAuto dir namever
+      end
+      handle Error err =>
+        raise Error (err ^ "\ntheory package uninstall failed");
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Installing theory packages.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun installAuto master namever =
+      case DirectoryRepo.peek master namever of
+        NONE =>
+        let
+          val err =
+              "package " ^ PackageNameVersion.toString namever ^
+              " not found on " ^ DirectoryRepo.toString master
+        in
+          raise Error err
+        end
+      | SOME chk =>
+        let
+          val () = installAutoFind master namever chk
+        in
+          ()
+        end
+
+  and installAutoFind master namever chk =
+      let
+        val dir = directory ()
+      in
+        case Directory.checksum dir namever of
+          SOME chk' =>
+          if Checksum.equal chk' chk then ()
+          else
+            let
+              val err =
+                  "a package called " ^ PackageNameVersion.toString namever ^
+                  " with a different checksum is already installed"
+            in
+              raise Error err
+            end
+        | NONE =>
+          let
+            val repos = repositories ()
+          in
+            case DirectoryRepo.find repos (namever,chk) of
+              NONE =>
+              let
+                val err =
+                    "package " ^ PackageNameVersion.toString namever ^
+                    " with specific checksum not found on any repo"
+              in
+                raise Error err
+              end
+            | SOME repo => installAutoRepo master repo namever chk
+          end
+      end
+
+  and installAutoRepo master repo namever chk =
+      let
+        val dir = directory ()
+
+        val errs = Directory.checkStagePackage dir repo namever chk
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package auto-install warnings:\n" ^ s)
+              end
+
+        val finder = installAutoFinder master
+
+        val minimal = {minimal = !minimalInstall}
+
+        val () = Directory.stagePackage dir finder repo namever chk minimal
+
+        val () = Directory.installStaged dir namever chk
+
+        val () = chat ("auto-installed package " ^
+                       PackageNameVersion.toString namever)
+      in
+        ()
+      end
+
+  and installAutoFinder master =
+      let
+        val dir = directory ()
+
+        fun finder namever =
+            let
+              val () = installAuto master namever
+            in
+              Directory.peek dir namever
+            end
+      in
+        PackageFinder.mk finder
+      end;
+in
+  fun installAutoFree namever =
+      let
+        val dir = directory ()
+      in
+        if Directory.member namever dir then ()
+        else
+          let
+            val repos = repositories ()
+          in
+            case DirectoryRepo.first repos namever of
+              SOME (repo,chk) => installAutoRepo repo repo namever chk
+            | NONE =>
+              let
+                val err =
+                    "can't find package " ^ PackageNameVersion.toString namever ^
+                    " in any repo"
+              in
+                raise Error err
+              end
+          end
+      end;
+
+  fun installAutoFinderFree () =
+      let
+        val dir = directory ()
+
+        fun finder namever =
+            let
+              val () = installAutoFree namever
+            in
+              Directory.peek dir namever
+            end
+      in
+        PackageFinder.mk finder
+      end;
+
+  fun installFinder master =
+      if not (!autoInstall) then directoryFinder ()
+      else installAutoFinder master;
+
+  fun installFinderFree () =
+      if not (!autoInstall) then directoryFinder ()
+      else installAutoFinderFree ();
+
+  fun installStagedFinderFree () =
+      if not (!stageInstall) then installFinderFree ()
+      else
+        let
+          val stageFinder = directoryStagedFinder ()
+
+          val finder = installFinderFree ()
+        in
+          PackageFinder.orelsef stageFinder finder
+        end;
+end;
+
+local
+  fun installStagedPackage dir namever info =
+      let
+        val chk = PackageInfo.checksumTarball info
+
+        val () =
+            case !checksumInstall of
+              NONE => ()
+            | SOME chk' =>
+              if Checksum.equal chk' chk then ()
+              else raise Error "tarball checksum does not match"
+
+        val errs = Directory.checkInstallStaged dir namever chk
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package install warnings:\n" ^ s)
+              end
+
+        val () = Directory.installStaged dir namever chk
+
+        val () =
+            chat ("installed staged package " ^
+                  PackageNameVersion.toString namever)
+      in
+        ()
+      end;
+
+  fun installUnstagedPackage dir namever =
+      let
+        val repos = repositories ()
+
+        val (repo,chk) =
+            case !checksumInstall of
+              SOME chk =>
+              (case DirectoryRepo.find repos (namever,chk) of
+                 SOME repo => (repo,chk)
+               | NONE =>
+                 let
+                   val err =
+                       "can't find package " ^
+                       PackageNameVersion.toString namever ^
+                       " with specified checksum in any repo"
+                 in
+                   raise Error err
+                 end)
+            | NONE =>
+              (case DirectoryRepo.first repos namever of
+                 NONE =>
+                 let
+                   val err =
+                       "can't find package " ^
+                       PackageNameVersion.toString namever ^
+                       " in any repo package list"
+                 in
+                   raise Error err
+                 end
+               | SOME repo_chk => repo_chk)
+
+        val errs = Directory.checkStagePackage dir repo namever chk
+
+        val errs =
+            if not (!reinstall) then errs
+            else
+              let
+                val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+                val () =
+                    if staged then Directory.cleanupStaged dir namever else ()
+              in
+                errs
+              end
+
+        val (replace,errs) =
+            if not (!reinstall) then (false,errs)
+            else DirectoryError.removeAlreadyInstalled errs
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package install warnings:\n" ^ s)
+              end
+
+        val () = if replace then uninstallAuto dir namever else ()
+
+        val finder = installFinder repo
+
+        val minimal = {minimal = !minimalInstall}
+
+        val () = Directory.stagePackage dir finder repo namever chk minimal
+
+        val () = Directory.installStaged dir namever chk
+
+        val () =
+            chat ((if replace then "re" else "") ^ "installed package " ^
+                  PackageNameVersion.toString namever)
+      in
+        ()
+      end;
+in
+  fun installPackage namever =
+      let
+        val () =
+            if not (Option.isSome (!nameInstall)) then ()
+            else raise Error "can't specify name for a package install"
+
+        val () =
+            if not (!stageInstall) then ()
+            else raise Error "can't stage a package install"
+
+        val dir = directory ()
+
+        val stagedInfo =
+            if !reinstall then NONE
+            else PackageFinder.find (directoryStagedFinder ()) namever
+      in
+        case stagedInfo of
+          SOME info => installStagedPackage dir namever info
+        | NONE => installUnstagedPackage dir namever
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage install failed");
+end;
+
+fun installTarball tarFile =
+    let
+      val dir = directory ()
+
+      val sys = Directory.system dir
+
+      val chk = PackageTarball.checksum sys tarFile
+
+      val () =
+          case !checksumInstall of
+            NONE => ()
+          | SOME chk' =>
+            if Checksum.equal chk' chk then ()
+            else raise Error "tarball checksum does not match"
+
+      val contents = PackageTarball.contents sys tarFile
+
+      val PackageTarball.Contents {nameVersion = namever, ...} = contents
+
+      val () =
+          case !nameInstall of
+            NONE => ()
+          | SOME namever' =>
+            if PackageNameVersion.equal namever' namever then ()
+            else raise Error "tarball name does not match"
+
+      val errs = Directory.checkStageTarball dir contents
+
+      val errs =
+          if not (!reinstall) then errs
+          else
+            let
+              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+              val () =
+                  if staged then Directory.cleanupStaged dir namever else ()
+            in
+              errs
+            end
+
+      val (replace,errs) =
+          if not (!reinstall) then (false,errs)
+          else DirectoryError.removeAlreadyInstalled errs
+
+      val () =
+          if List.null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else chat ("package install warnings:\n" ^ s)
+            end
+
+      val () = if replace then uninstallAuto dir namever else ()
+
+      val finder = installStagedFinderFree ()
+
+      val minimal = {minimal = !minimalInstall}
+
+      val () = Directory.stageTarball dir finder tarFile contents minimal
+
+      val () =
+          if !stageInstall then ()
+          else Directory.installStaged dir namever chk
+
+      val () =
+          let
+            val verb =
+                if !stageInstall then
+                  (if replace then "uninstalled and staged" else "staged")
+                else
+                  (if replace then "reinstalled" else "installed")
+
+            val mesg =
+                verb ^ " package " ^ PackageNameVersion.toString namever ^
+                " from tarball"
+          in
+            chat mesg
+          end
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\npackage install from tarball failed");
+
+fun installTheory filename =
+    let
+      val () =
+          if not (Option.isSome (!checksumInstall)) then ()
+          else raise Error "can't specify checksum for a theory file install"
+
+      val () =
+          if not (!stageInstall) then ()
+          else raise Error "can't stage a package install from theory file"
+
+      val dir = directory ()
+
+      val pkg = Package.fromTextFile filename
+
+      val namever = Package.nameVersion pkg
+
+      val () =
+          case !nameInstall of
+            NONE => ()
+          | SOME namever' =>
+            if PackageNameVersion.equal namever' namever then ()
+            else raise Error "theory name does not match"
+
+      val srcDir =
+          let
+            val {filename = thyFile} = filename
+          in
+            {directory = OS.Path.dir thyFile}
+          end
+
+      val errs = Directory.checkStageTheory dir namever pkg
+
+      val errs =
+          if not (!reinstall) then errs
+          else
+            let
+              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+              val () =
+                  if staged then Directory.cleanupStaged dir namever else ()
+            in
+              errs
+            end
+
+      val (replace,errs) =
+          if not (!reinstall) then (false,errs)
+          else DirectoryError.removeAlreadyInstalled errs
+
+      val (pars,errs) =
+          if not (!autoInstall) then ([],errs)
+          else DirectoryError.removeUninstalledParent errs
+
+      val () =
+          if List.null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else chat ("package install warnings:\n" ^ s)
+            end
+
+      val () = if replace then uninstallAuto dir namever else ()
+
+      val () = List.app installAutoFree pars
+
+      val chk = Directory.stageTheory dir namever pkg srcDir
+
+      val () = Directory.installStaged dir namever chk
+
+      val () =
+          chat ((if replace then "re" else "") ^ "installed package " ^
+                PackageNameVersion.toString namever ^ " from theory file")
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\npackage install from theory file failed");
+
+(* ------------------------------------------------------------------------- *)
 (* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -2098,18 +2180,6 @@ let
         case commandFromString s of
           SOME cmd => (cmd,work)
         | NONE => usage ("bad command specified: \"" ^ s ^ "\"")
-
-  (* Set command option defaults *)
-
-  val () =
-      case cmd of
-        Install =>
-        let
-          val () = autoInstall := true
-        in
-          ()
-        end
-      | _ => ()
 
   (* Process command options *)
 

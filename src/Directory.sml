@@ -497,16 +497,29 @@ fun upgradeTheory dir pkg =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* A package finder.                                                         *)
+(* A package finder and importer.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 fun finder dir = PackageFinder.mk (peek dir);
 
+fun importer dir = Graph.fromFinderImporter (finder dir);
+
 (* ------------------------------------------------------------------------- *)
-(* A package importer.                                                       *)
+(* A package finder for *staged* packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun importer dir = Graph.fromFinderImporter (finder dir);
+fun stagedFinder dir =
+    let
+      fun stagedPeek namever =
+          let
+            val info = stagingPackageInfo dir namever
+          in
+            if PackageInfo.existsDirectory info then SOME info
+            else NONE
+          end
+    in
+      PackageFinder.mk stagedPeek
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Checking package tags.                                                    *)
@@ -1251,6 +1264,38 @@ end;
 (* ------------------------------------------------------------------------- *)
 (* Installing staged packages into the package directory.                    *)
 (* ------------------------------------------------------------------------- *)
+
+fun checkInstallStaged dir namever chk =
+    let
+      val stageInfo = stagingPackageInfo dir namever
+
+      val pkgInfo = packageInfo dir namever
+
+      val errs = []
+
+      val errs =
+          if PackageInfo.existsDirectory stageInfo then errs
+          else DirectoryError.NotStaged namever :: errs
+
+      val errs =
+          if not (PackageInfo.existsDirectory pkgInfo) then errs
+          else DirectoryError.AlreadyInstalled namever :: errs
+
+      val errs =
+          if not (null errs) then errs
+          else
+            let
+              fun add (dep,acc) =
+                  if member dep dir then acc
+                  else DirectoryError.UninstalledParent dep :: acc
+
+              val pkg = PackageInfo.package stageInfo
+            in
+              List.foldl add errs (Package.packages pkg)
+            end
+    in
+      rev errs
+    end;
 
 fun installStaged dir namever chk =
     let

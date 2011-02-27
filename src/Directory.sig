@@ -161,6 +161,10 @@ val stageTheory :
 (* Installing staged packages into the package directory.                    *)
 (* ------------------------------------------------------------------------- *)
 
+val checkInstallStaged :
+    directory -> PackageNameVersion.nameVersion -> Checksum.checksum ->
+    DirectoryError.error list
+
 val installStaged :
     directory -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
 
@@ -196,16 +200,18 @@ val upload :
 ***)
 
 (* ------------------------------------------------------------------------- *)
-(* A package finder.                                                         *)
+(* A package finder and importer.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 val finder : directory -> PackageFinder.finder
 
+val importer : directory -> Graph.importer
+
 (* ------------------------------------------------------------------------- *)
-(* A package importer.                                                       *)
+(* A package finder for *staged* packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val importer : directory -> Graph.importer
+val stagedFinder : directory -> PackageFinder.finder
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

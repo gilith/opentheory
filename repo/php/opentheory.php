@@ -86,21 +86,35 @@ function opentheory_init() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Install a package from a tarball.
+// Stage a package (in tarball form) for installation.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_install($tarball,$name_version,$checksum) {
+function opentheory_stage($tarball,$name_version,$checksum) {
   is_string($tarball) or trigger_error('bad tarball');
   isset($name_version) or trigger_error('bad name_version');
   !isset($checksum) or is_string($checksum) or trigger_error('bad checksum');
 
-  $args = ' --minimal';
+  $args = ' --stage --minimal';
 
   $args .= ' --name ' . $name_version->to_string();
 
   if (isset($checksum)) { $args .= ' --checksum ' . $checksum; }
 
   $args .= ' tarball:' . $tarball;
+
+  $output = opentheory_action('install',$args);
+
+  return $output;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Install a staged package.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_install($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $args = $name_version->to_string();
 
   $output = opentheory_action('install',$args);
 

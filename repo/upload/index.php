@@ -7,12 +7,14 @@ require_once '../opentheory.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 class SelectUploadData extends SelectValue {
+  var $_select_upload;
   var $_select_tarball;
   var $_select_checksum;
   var $_select_submit;
 
   function error() {
     $e = $this->_error;
+    if (!isset($e)) { $e = $this->_select_upload->handled_error(); }
     if (!isset($e)) { $e = $this->_select_tarball->handled_error(); }
     if (!isset($e)) { $e = $this->_select_checksum->handled_error(); }
     return $e;
@@ -20,6 +22,8 @@ class SelectUploadData extends SelectValue {
 
   function validate() {
     parent::validate();
+
+    $this->_select_upload->validate();
 
     $this->_select_tarball->validate();
 
@@ -33,23 +37,41 @@ class SelectUploadData extends SelectValue {
 
       $name_version = from_tarball_package_name_version($tarball_name);
 
-      if (isset($name_version)) {
-        $tarball = $file['server'];
+      if (!isset($name_version)) {
+        $this->set_error('tarball filename is not a valid package name');
+      }
 
-        $value =
-          array('tarball' => $tarball,
-                'name_version' => $name_version);
+      if (!$this->is_error()) {
+        $upload = $this->_select_upload->value();
 
-        $checksum = $this->_select_checksum->value();
+        if (isset($upload)) {
+          $upload = find_upload($upload);
 
-        if (isset($checksum)) {
-          $value['checksum'] = $checksum;
+          if (!isset($upload)) {
+            $this->set_error('upload key is not known');
+          }
         }
 
-        parent::set_value($value);
-      }
-      else {
-        $this->set_error('tarball filename is not a valid package name');
+        if (!$this->is_error()) {
+          $value = array();
+
+          if (isset($upload)) {
+            $value['upload'] = $upload;
+          }
+
+          $tarball = $file['server'];
+
+          $value['tarball'] = $tarball;
+          $value['name_version'] = $name_version;
+
+          $checksum = $this->_select_checksum->value();
+
+          if (isset($checksum)) {
+            $value['checksum'] = $checksum;
+          }
+
+          parent::set_value($value);
+        }
       }
     }
   }
@@ -58,6 +80,7 @@ class SelectUploadData extends SelectValue {
     return
 '<p>' .
 $this->form_error() .
+$this->_select_upload->form_error() .
 $this->_select_tarball->form_error() .
 $this->_select_submit->form_error() .
 field_text('Tarball') . required_mark() .
@@ -80,6 +103,7 @@ $this->_select_submit->select() .
   function SelectUploadData($field) {
     parent::SelectValue($field);
 
+    $this->_select_upload = new SelectChecksum($this->field() . 'u', false);
     $this->_select_tarball = new SelectFile($this->field() . 't', true);
     $this->_select_checksum = new SelectChecksum($this->field() . 'c', false);
     $this->_select_submit =
@@ -90,11 +114,11 @@ $this->_select_submit->select() .
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Main page.
+// Thank you page.
 ///////////////////////////////////////////////////////////////////////////////
 
 $pkg = from_string(input('pkg'));
-if (isset($pkg)) { $pkg = from_string_package_name_version(input('pkg')); }
+if (isset($pkg)) { $pkg = from_string_package_name_version($pkg); }
 if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
 
 if (isset($pkg)) {
@@ -108,12 +132,23 @@ if (isset($pkg)) {
   output(array('title' => $title), $main, $image);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Main page.
+///////////////////////////////////////////////////////////////////////////////
+
 $select = new SelectUploadData('');
 
 $main = null;
 
 if ($select->is_value()) {
   $value = $select->value();
+
+  if (array_key_exists('upload',$value)) {
+    $upload = $value['upload'];
+  }
+  else {
+    $upload = null;
+  }
 
   $tarball = $value['tarball'];
 
@@ -126,7 +161,7 @@ if ($select->is_value()) {
     $checksum = null;
   }
 
-  $output = opentheory_install($tarball,$name_version,$checksum);
+  $output = opentheory_stage($tarball,$name_version,$checksum);
 
   if (isset($output)) {
     if (is_script()) {
