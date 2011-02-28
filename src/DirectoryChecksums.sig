@@ -49,6 +49,14 @@ val peek :
 val member : PackageNameVersion.nameVersion -> checksums -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Looking up the previous version of a package.                             *)
+(* ------------------------------------------------------------------------- *)
+
+val previousVersion :
+    checksums -> PackageNameVersion.nameVersion ->
+    (PackageNameVersion.nameVersion * Checksum.checksum) option
+
+(* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

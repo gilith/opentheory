@@ -26,16 +26,26 @@ datatype error =
        dest : {filename : string}}
   | InstalledDescendent of
       PackageNameVersion.nameVersion
+  | MultipleAuthors of
+      (PackageNameVersion.nameVersion * {author : string}) list
   | NotInstalled of
       PackageNameVersion.nameVersion
   | NotOnRepo of
       PackageNameVersion.nameVersion * DirectoryRepo.repo
   | NotStaged of
       PackageNameVersion.nameVersion
+  | ObsoleteAuthors of
+      (PackageNameVersion.nameVersion * {author : string}) list
   | TagError of
       PackageTag.name * string
+  | UninstalledObsolete of
+      {upload : PackageNameVersion.nameVersion,
+       obsolete : PackageNameVersion.nameVersion}
   | UninstalledParent of
       PackageNameVersion.nameVersion
+  | WrongChecksumObsolete of
+      {upload : PackageNameVersion.nameVersion,
+       obsolete : PackageNameVersion.nameVersion}
   | WrongChecksumOnRepo of
       PackageNameVersion.nameVersion * DirectoryRepo.repo
 

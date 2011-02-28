@@ -74,11 +74,15 @@ val descendentsSet :
     packages -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Generate a valid installation order.                                      *)
+(* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 val installOrder :
-    packages -> PackageNameVersionSet.set -> PackageNameVersion.nameVersion list
+    packages -> PackageNameVersionSet.set ->
+    PackageNameVersion.nameVersion list
+
+val installOrdered :
+    packages -> PackageNameVersion.nameVersion list -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

@@ -46,6 +46,14 @@ val find :
     repo option
 
 (* ------------------------------------------------------------------------- *)
+(* Looking up the previous version of a package.                             *)
+(* ------------------------------------------------------------------------- *)
+
+val previousVersion :
+    repo -> PackageNameVersion.nameVersion ->
+    (PackageNameVersion.nameVersion * Checksum.checksum) option
+
+(* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 

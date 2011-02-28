@@ -132,6 +132,27 @@ struct
     open S;
   end;
 
+  fun previousVersion m nv =
+      let
+        val n = PackageNameVersion.name nv
+        and v = PackageNameVersion.version nv
+
+        fun sameName (nv',_) = PackageNameVersion.equalName n nv'
+
+        fun earlier (nv',_) =
+            let
+              val v' = PackageNameVersion.version nv'
+            in
+              case PackageVersion.compare (v',v) of
+                LESS => true
+              | _ => false
+            end
+
+        val m = filter sameName m
+      in
+        findr earlier m
+      end;
+
   local
     fun toStrm oiter =
         case oiter of
@@ -179,6 +200,34 @@ struct
       end;
 
   fun postOrder children set = rev (preOrder children set);
+
+  fun latestVersion set n =
+      let
+        val nvs = filter (PackageNameVersion.equalName n) set
+      in
+        findr (Useful.K true) nvs
+      end;
+
+  fun previousVersion set nv =
+      let
+        val n = PackageNameVersion.name nv
+        and v = PackageNameVersion.version nv
+
+        fun sameName nv' = PackageNameVersion.equalName n nv'
+
+        fun earlier nv' =
+            let
+              val v' = PackageNameVersion.version nv'
+            in
+              case PackageVersion.compare (v',v) of
+                LESS => true
+              | _ => false
+            end
+
+        val set = filter sameName set
+      in
+        findr earlier set
+      end;
 
   val pp =
       Print.ppMap

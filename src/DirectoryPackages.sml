@@ -204,13 +204,8 @@ fun list pkgs = toNameVersionSetPure (packages pkgs);
 fun latestVersion pkgs nv =
     let
       val n = PackageNameVersion.name nv
-
-      val nvs =
-          PackageNameVersionSet.filter
-            (PackageNameVersion.equalName n)
-            (list pkgs)
     in
-      case PackageNameVersionSet.findr (K true) nvs of
+      case PackageNameVersionSet.latestVersion (list pkgs) n of
         SOME nv => PackageNameVersionSet.singleton nv
       | NONE => PackageNameVersionSet.empty
     end;
@@ -275,10 +270,30 @@ fun descendents pkgs namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Generate a valid installation order.                                      *)
+(* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 fun installOrder pkgs = PackageNameVersionSet.postOrder (parents' pkgs);
+
+fun installOrdered pkgs nameverl =
+    let
+      val namevers = PackageNameVersionSet.fromList nameverl
+
+      fun check acc nvl =
+          case nvl of
+            [] => true
+          | nv :: nvl =>
+            let
+              val ps = parents' pkgs nv
+
+              val ps = PackageNameVersionSet.intersect ps namevers
+            in
+              PackageNameVersionSet.subset ps acc andalso
+              check (PackageNameVersionSet.add acc nv) nvl
+            end
+    in
+      check PackageNameVersionSet.empty nameverl
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
