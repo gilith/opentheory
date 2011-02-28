@@ -275,25 +275,7 @@ fun descendents pkgs namever =
 
 fun installOrder pkgs = PackageNameVersionSet.postOrder (parents' pkgs);
 
-fun installOrdered pkgs nameverl =
-    let
-      val namevers = PackageNameVersionSet.fromList nameverl
-
-      fun check acc nvl =
-          case nvl of
-            [] => true
-          | nv :: nvl =>
-            let
-              val ps = ancestors pkgs nv
-
-              val ps = PackageNameVersionSet.intersect ps namevers
-            in
-              PackageNameVersionSet.subset ps acc andalso
-              check (PackageNameVersionSet.add acc nv) nvl
-            end
-    in
-      check PackageNameVersionSet.empty nameverl
-    end;
+fun installOrdered pkgs = PackageNameVersionSet.postOrdered (parents' pkgs);
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

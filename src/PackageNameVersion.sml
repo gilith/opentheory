@@ -201,6 +201,18 @@ struct
 
   fun postOrder children set = rev (preOrder children set);
 
+  fun postOrdered children =
+      let
+        fun check acc nvl =
+            case nvl of
+              [] => true
+            | nv :: nvl =>
+              not (member nv acc) andalso
+              check (closedAdd children acc (singleton nv)) nvl
+      in
+        check empty
+      end;
+
   fun latestVersion set n =
       let
         val nvs = filter (PackageNameVersion.equalName n) set
