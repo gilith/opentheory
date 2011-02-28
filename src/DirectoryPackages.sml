@@ -284,7 +284,7 @@ fun installOrdered pkgs nameverl =
             [] => true
           | nv :: nvl =>
             let
-              val ps = parents' pkgs nv
+              val ps = ancestors pkgs nv
 
               val ps = PackageNameVersionSet.intersect ps namevers
             in
