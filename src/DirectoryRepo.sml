@@ -188,7 +188,8 @@ fun download repo info =
 datatype upload =
     Upload of
       {repo : repo,
-       token : Checksum.checksum};
+       token : Checksum.checksum,
+       repoName : PackageName.name};
 
 local
   infixr 9 >>++
@@ -205,15 +206,27 @@ local
   val newUploadParser =
       (exactString "new upload = " ++
        Checksum.parser) >> snd;
+
+  val packageUploadParser =
+      (exactString "successfully uploaded package " ++
+       PackageNameVersion.parser) >> snd;
 in
   val parserStartUpload =
       (repoNameParser ++
        newUploadParser);
+
+  val parserPackageUpload =
+      (repoNameParser ++
+       packageUploadParser);
 end;
 
 fun fromStringStartUpload s =
     Parse.fromString parserStartUpload s
     handle Parse.NoParse => raise Error "fromStringStartUpload";
+
+fun fromStringPackageUpload s =
+    Parse.fromString parserPackageUpload s
+    handle Parse.NoParse => raise Error "fromStringPackageUpload";
 
 fun startUpload repo =
     let
@@ -249,14 +262,15 @@ fun startUpload repo =
           val response = chomp (String.concat lines)
         in
           case total fromStringStartUpload response of
-            SOME (_,token) => Upload {repo = repo, token = token}
+            SOME (repoName,token) =>
+            Upload {repo = repo, token = token, repoName = repoName}
           | NONE => raise Error ("error response from repo:\n" ^ response)
         end
     end;
 
 fun packageUpload upl info chk =
     let
-      val Upload {repo,token} = upl
+      val Upload {repo,token,repoName} = upl
 
       val {url} = uploadUrl repo
 
@@ -268,13 +282,35 @@ fun packageUpload upl info chk =
           PackageInfo.uploadTarball info chk {url = url, token = token}
 
       (* Check the repo response *)
+
+      val namever = PackageInfo.nameVersion info
     in
-      ()
+      case total fromStringPackageUpload response of
+        NONE => raise Error ("error response from repo:\n" ^ response)
+      | SOME (repoName',namever') =>
+        if not (PackageName.equal repoName' repoName) then
+          let
+            val err =
+                "repo name " ^ PackageName.toString repoName ^
+                " changed since start of upload:\n" ^ response
+          in
+            raise Error err
+          end
+        else if not (PackageNameVersion.equal namever' namever) then
+          let
+            val err =
+                "uploaded package " ^ PackageNameVersion.toString namever ^
+                " has a different name:\n" ^ response
+          in
+            raise Error err
+          end
+        else
+          ()
     end;
 
 fun urlUpload upl =
     let
-      val Upload {repo,token} = upl
+      val Upload {repo,token,...} = upl
     in
       statusUploadUrl repo token
     end;

@@ -2155,8 +2155,13 @@ fun upload namever =
       let
         fun uploadPackage namever =
             let
+              val () = Directory.packageUpload dir upl namever
+
+              val mesg =
+                  "uploaded package " ^ PackageNameVersion.toString namever ^
+                  " to " ^ DirectoryRepo.toString repo
             in
-              ()
+              chat mesg
             end
 
         val () =
