@@ -1561,7 +1561,7 @@ in
 
         val (namevers,errs) = checkInstalled dir namevers errs
       in
-        if List.null namevers then errs
+        if List.null namevers then rev errs
         else
           let
             (* Check upload packages are in install order *)
