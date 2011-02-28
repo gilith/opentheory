@@ -1402,174 +1402,198 @@ fun uninstall dir namever =
 (* Uploading packages from the package directory to a repo.                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkUpload dir repo namevers =
-    let
-      val errs = []
+local
+  fun collectAuthors dir =
+      let
+        fun add (nv,acc) =
+            let
+              val info = get dir nv
 
-      (* Check there exist upload packages *)
+              val pkg = PackageInfo.package info
 
-      val () =
-          if not (List.null namevers) then ()
-          else raise Bug "Directory.checkUpload: no upload packages"
+              val auth = Package.author pkg
+            in
+              StringMap.insert acc (auth,nv)
+            end
 
-      (* Check upload packages are installed *)
+        fun mk (auth,nv) = (nv, {author = auth})
+      in
+        fn nvs =>
+           let
+             val auths = List.foldl add (StringMap.new ()) nvs
+           in
+             List.map mk (StringMap.toList auths)
+           end
+      end;
 
-      val (namevers,errs) =
-          let
-            fun isKnown nv = member nv dir
+  fun checkInstalled dir =
+      let
+        fun isKnown nv = member nv dir
 
-            fun add (nv,acc) = DirectoryError.NotInstalled nv :: acc
+        fun add (nv,acc) = DirectoryError.NotInstalled nv :: acc
+      in
+        fn namevers => fn errs =>
+           let
+             val (namevers,unknown) = List.partition isKnown namevers
 
-            val (namevers,unknown) = List.partition isKnown namevers
+             val errs = List.foldl add errs unknown
+           in
+             (namevers,errs)
+           end
+      end;
 
-            val errs = List.foldl add errs unknown
-          in
-            (namevers,errs)
-          end
+  fun checkNotOnRepo repo =
+      let
+        fun check (nv,errs) =
+            if not (DirectoryRepo.member nv repo) then errs
+            else DirectoryError.AlreadyOnRepo (nv,repo) :: errs
+      in
+        fn namevers => fn errs => List.foldl check errs namevers
+      end;
 
-      (* Check upload packages are in install order *)
+  fun checkAncestorsOnRepo dir repo =
+      let
+        fun addMissing anc errs =
+            DirectoryError.AncestorNotOnRepo (anc,repo) :: errs
 
-      val () =
-          if installOrdered dir namevers then ()
-          else raise Bug "Directory.checkUpload: not in install order"
+        fun addDifferent anc errs =
+            DirectoryError.AncestorWrongChecksumOnRepo (anc,repo) :: errs
 
-      (* Check upload packages are not installed on the repo *)
-
-      val errs =
-          let
-            fun check (nv,acc) =
-                if not (DirectoryRepo.member nv repo) then acc
-                else DirectoryError.AlreadyOnRepo (nv,repo) :: acc
-          in
-            List.foldl check errs namevers
-          end
-
-      (* Check upload ancestor packages are installed on the repo *)
-
-      val errs =
-          let
-            fun addMissing anc errs =
-                DirectoryError.AncestorNotOnRepo (anc,repo) :: errs
-
-            fun addDifferent anc errs =
-                DirectoryError.AncestorWrongChecksumOnRepo (anc,repo) :: errs
-
-            fun checkAnc (anc,errs) =
-                let
-                  val chk =
-                      case checksum dir anc of
-                        SOME c => c
-                      | NONE =>
-                        let
-                          val err =
-                              "depends on package " ^
-                              PackageNameVersion.toString anc ^
-                              " which seems to be badly installed"
-                        in
-                          raise Error err
-                        end
-                in
-                  case DirectoryRepo.peek repo anc of
-                    NONE => addMissing anc errs
-                  | SOME chk' =>
-                    if Checksum.equal chk chk' then errs
-                    else addDifferent anc errs
-                end
-
-            val nvs = PackageNameVersionSet.fromList namevers
-
-            val ancs = ancestorsSet dir nvs
-
-            val ancs = PackageNameVersionSet.difference ancs nvs
-          in
-            PackageNameVersionSet.foldl checkAnc errs ancs
-          end
-
-      (* Check upload packages have the same author *)
-
-      val collectAuthors =
-          let
-            fun add (nv,acc) =
-                let
-                  val info = get dir nv
-
-                  val pkg = PackageInfo.package info
-
-                  val auth = Package.author pkg
-                in
-                  StringMap.insert acc (auth,nv)
-                end
-
-            fun mk (auth,nv) = (nv, {author = auth})
-          in
-            fn nvs =>
-               let
-                 val auths = List.foldl add (StringMap.new ()) nvs
-               in
-                 List.map mk (StringMap.toList auths)
-               end
-          end
-
-      val (author,errs) =
-          let
-            val auths = collectAuthors (rev namevers)
-          in
-            case auths of
-              [] => raise Bug "Directory.checkUpload: null auths"
-            | [(_,auth)] => (auth,errs)
-            | (_,auth) :: _ :: _ =>
-              (auth, DirectoryError.MultipleAuthors auths :: errs)
-          end
-
-      (* Warn if obsolete packages are not installed *)
-
-      val (obsolete,errs) =
-          let
-            fun check (nv,(obs,acc)) =
-                case DirectoryRepo.previousVersion repo nv of
-                  NONE => (obs,acc)
-                | SOME (nv',chk') =>
-                  case checksum dir nv' of
-                    NONE =>
+        fun checkAnc (anc,errs) =
+            let
+              val chk =
+                  case checksum dir anc of
+                    SOME c => c
+                  | NONE =>
                     let
                       val err =
-                          DirectoryError.UninstalledObsolete
-                            {upload = nv,
-                             obsolete = nv'}
+                          "depends on package " ^
+                          PackageNameVersion.toString anc ^
+                          " which seems to be badly installed"
                     in
-                      (obs, err :: acc)
+                      raise Error err
                     end
-                  | SOME chk =>
-                    if Checksum.equal chk chk' then (nv' :: obs, acc)
-                    else
-                      let
-                        val err =
-                            DirectoryError.WrongChecksumObsolete
-                              {upload = nv,
-                               obsolete = nv'}
-                      in
-                        (obs, err :: acc)
-                      end
-          in
-            List.foldl check ([],errs) namevers
-          end
+            in
+              case DirectoryRepo.peek repo anc of
+                NONE => addMissing anc errs
+              | SOME chk' =>
+                if Checksum.equal chk chk' then errs
+                else addDifferent anc errs
+            end
+      in
+        fn namevers => fn errs =>
+           let
+             val nvs = PackageNameVersionSet.fromList namevers
 
-      (* Warn about obsoleting packages by other authors *)
+             val ancs = ancestorsSet dir nvs
 
-      val errs =
+             val ancs = PackageNameVersionSet.difference ancs nvs
+           in
+             PackageNameVersionSet.foldl checkAnc errs ancs
+           end
+      end;
+
+  fun checkSameAuthor dir namevers errs =
+      let
+        val auths = collectAuthors dir (rev namevers)
+      in
+        case auths of
+          [] => raise Bug "Directory.checkUpload.checkSameAuthor"
+        | [(_,auth)] => (auth,errs)
+        | (_,auth) :: _ :: _ =>
+          (auth, DirectoryError.MultipleAuthors auths :: errs)
+      end;
+
+  fun checkObsoleteInstalled dir repo =
+      let
+        fun check (nv,(obs,errs)) =
+            case DirectoryRepo.previousVersion repo nv of
+              NONE => (obs,errs)
+            | SOME (nv',chk') =>
+              case checksum dir nv' of
+                NONE =>
+                let
+                  val err =
+                      DirectoryError.UninstalledObsolete
+                        {upload = nv,
+                         obsolete = nv'}
+                in
+                  (obs, err :: errs)
+                end
+              | SOME chk =>
+                if Checksum.equal chk chk' then (nv' :: obs, errs)
+                else
+                  let
+                    val err =
+                        DirectoryError.WrongChecksumObsolete
+                          {upload = nv,
+                           obsolete = nv'}
+                  in
+                    (obs, err :: errs)
+                  end
+      in
+        fn namevers => fn errs => List.foldl check ([],errs) namevers
+      end;
+
+  fun checkObsoleteAuthors dir author obsolete errs =
+      let
+        fun notAuthor (_,auth) = auth <> author
+
+        val auths = collectAuthors dir obsolete
+
+        val auths = List.filter notAuthor auths
+      in
+        if null auths then errs
+        else DirectoryError.ObsoleteAuthors auths :: errs
+      end;
+in
+  fun checkUpload dir repo namevers =
+      let
+        val errs = []
+
+        (* Check there exist upload packages *)
+
+        val () =
+            if not (List.null namevers) then ()
+            else raise Bug "Directory.checkUpload: no upload packages"
+
+        (* Check upload packages are installed *)
+
+        val (namevers,errs) = checkInstalled dir namevers errs
+      in
+        if List.null namevers then errs
+        else
           let
-            fun notAuthor (_,auth) = auth <> author
+            (* Check upload packages are in install order *)
 
-            val auths = collectAuthors obsolete
+            val () =
+                if installOrdered dir namevers then ()
+                else raise Bug "Directory.checkUpload: not in install order"
 
-            val auths = List.filter notAuthor auths
+            (* Check upload packages are not installed on the repo *)
+
+            val errs = checkNotOnRepo repo namevers errs
+
+            (* Check upload ancestor packages are installed on the repo *)
+
+            val errs = checkAncestorsOnRepo dir repo namevers errs
+
+            (* Check upload packages have the same author *)
+
+            val (author,errs) = checkSameAuthor dir namevers errs
+
+            (* Warn if obsolete packages are not installed *)
+
+            val (obsolete,errs) = checkObsoleteInstalled dir repo namevers errs
+
+            (* Warn about obsoleting packages by other authors *)
+
+            val errs = checkObsoleteAuthors dir author obsolete errs
           in
-            if null auths then errs
-            else DirectoryError.ObsoleteAuthors auths :: errs
+            rev errs
           end
-    in
-      rev errs
-    end;
+      end;
+end;
 
 fun packageUpload dir upl namever =
     let
