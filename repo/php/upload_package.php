@@ -75,7 +75,7 @@ class UploadPackageTable extends DatabaseTable {
     isset($upload) or trigger_error('bad upload');
 
     $upload_id = $upload->id();
-    is_int($upload_id) or trigger_error('bad upload_id');
+    is_string($upload_id) or trigger_error('bad upload_id');
 
     $result = database_query('
       SELECT package

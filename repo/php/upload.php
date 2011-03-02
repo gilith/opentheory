@@ -24,20 +24,12 @@ define('INITIAL_UPLOAD_STATUS','initial');
 define('ADD_PACKAGE_UPLOAD_STATUS','package');
 define('CONFIRM_AUTHOR_UPLOAD_STATUS','author');
 define('CONFIRM_OBSOLETE_UPLOAD_STATUS','obsolete');
-define('TIMED_OUT_UPLOAD_STATUS','timeout');
-define('WITHDRAWN_UPLOAD_STATUS','withdrawn');
-define('REJECTED_UPLOAD_STATUS','rejected');
-define('ACCEPTED_UPLOAD_STATUS','accepted');
 
 $all_upload_status =
   array(INITIAL_UPLOAD_STATUS,
         ADD_PACKAGE_UPLOAD_STATUS,
         CONFIRM_AUTHOR_UPLOAD_STATUS,
-        CONFIRM_OBSOLETE_UPLOAD_STATUS,
-        TIMED_OUT_UPLOAD_STATUS,
-        WITHDRAWN_UPLOAD_STATUS,
-        REJECTED_UPLOAD_STATUS,
-        ACCEPTED_UPLOAD_STATUS);
+        CONFIRM_OBSOLETE_UPLOAD_STATUS);
 
 function is_upload_status($status) {
   global $all_upload_status;
@@ -57,6 +49,26 @@ function add_packagable_upload_status($status) {
 
   return (equal_upload_status($status,INITIAL_UPLOAD_STATUS) ||
           equal_upload_status($status,ADD_PACKAGE_UPLOAD_STATUS));
+}
+
+function pretty_upload_status($status) {
+  is_upload_status($status) or trigger_error('bad status');
+
+  if (equal_upload_status($status,INITIAL_UPLOAD_STATUS)) {
+    return 'Waiting for packages to be added';
+  }
+  elseif (equal_upload_status($status,ADD_PACKAGE_UPLOAD_STATUS)) {
+    return 'Waiting for more packages to be added or to finish';
+  }
+  elseif (equal_upload_status($status,CONFIRM_AUTHOR_UPLOAD_STATUS)) {
+    return 'Waiting for the package author to confirm their email address';
+  }
+  elseif (equal_upload_status($status,CONFIRM_OBSOLETE_UPLOAD_STATUS)) {
+    return 'Waiting for the author of the obsoleted packages to sign off';
+  }
+  else {
+    trigger_error('default case');
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

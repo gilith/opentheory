@@ -91,29 +91,49 @@ $pkg->theory_file_link($pkg->theory_file_name()) .
 // Upload page.
 ///////////////////////////////////////////////////////////////////////////////
 
-$upl = from_string(input('upload'));
-if (isset($upl)) { $upl = find_upload($upl); }
+$upload = from_string(input('upload'));
+if (isset($upload)) { $upload = find_upload($upload); }
 
-if (isset($upl)) {
+if (isset($upload)) {
   set_bread_crumbs_extension(array());
 
-  $initiated = $upl->initiated();
+  $initiated = $upload->initiated();
 
-  $since_initiated = $upl->since_initiated();
+  $since_initiated = $upload->since_initiated();
 
-  $status = $upl->status();
+  $status = $upload->status();
+
+  $pkgs = packages_upload($upload);
 
   $initiated_info = $since_initiated->to_string() . ' ago';
 
-  $status_info = $status;
+  $status_info = pretty_upload_status($status);
 
   $main =
 '<h2>Package Upload</h2>' .
 '<h3>Information</h3>' .
 '<table class="package">' .
-'<tr><td>initiated</td><td>' . string_to_html($initiated_info) . '</td></tr>' .
 '<tr><td>status</td><td>' . string_to_html($status_info) . '</td></tr>' .
+'<tr><td>initiated</td><td>' . string_to_html($initiated_info) . '</td></tr>' .
 '</table>';
+
+  if (count($pkgs) > 0) {
+    $main .=
+'<h3>Packages</h3>' .
+'<ul>';
+
+    foreach ($pkgs as $pkg) {
+      $main .=
+'<li>' .
+$pkg->link($pkg->to_string()) .
+' &mdash; ' .
+string_to_html($pkg->description()) .
+'</li>';
+    }
+
+    $main .=
+'</ul>';
+  }
 
   $title = 'Package Upload';
 
