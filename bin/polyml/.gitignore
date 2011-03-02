@@ -1,4 +1,5 @@
-*.sml
+*.log
 *.o
+*.sml
 opentheory
 selftest
