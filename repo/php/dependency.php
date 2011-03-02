@@ -118,7 +118,7 @@ function dependency_table() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Package children.
+// Look up package children.
 ///////////////////////////////////////////////////////////////////////////////
 
 function package_children($pkg) {
@@ -138,6 +138,19 @@ function package_children($pkg) {
   }
 
   return $children;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Add package children.
+///////////////////////////////////////////////////////////////////////////////
+
+function add_package_child($pkg,$child) {
+  isset($pkg) or trigger_error('bad pkg');
+  isset($child) or trigger_error('bad child');
+
+  $dependency_table = dependency_table();
+
+  $dependency_table->insert_dependency($pkg,$child);
 }
 
 ?>

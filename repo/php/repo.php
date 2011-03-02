@@ -62,7 +62,7 @@ function repo_register_staged($upload,$name_version) {
       trigger_error('child not installed or part of this upload set');
     }
 
-    insert_package_dependency($pkg,$child);
+    add_package_child($pkg,$child);
   }
 
   return $pkg;

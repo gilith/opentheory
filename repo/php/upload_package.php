@@ -51,7 +51,7 @@ class UploadPackageTable extends DatabaseTable {
     $upload_id = $upload->id();
     $pkg_id = $pkg->id();
 
-    $where =
+    $where_condition =
       'upload = ' . database_value($upload_id) . ' AND ' .
       'package = ' . database_value($pkg_id);
 
@@ -148,7 +148,7 @@ function member_package_upload($pkg,$upload) {
 
   $upload_package_table = upload_package_table();
 
-  $seq = $upload_package_table->sequence_package_upload();
+  $seq = $upload_package_table->sequence_package_upload($upload,$pkg);
 
   return (isset($seq));
 }

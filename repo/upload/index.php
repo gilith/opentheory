@@ -114,25 +114,6 @@ $this->_select_submit->select() .
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Thank you page.
-///////////////////////////////////////////////////////////////////////////////
-
-$pkg = from_string(input('pkg'));
-if (isset($pkg)) { $pkg = from_string_package_name_version($pkg); }
-if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
-
-if (isset($pkg)) {
-  $title = 'Upload Package';
-
-  $main =
-'<p>Thank you for uploading ' . $pkg->to_string() . '</p>';
-
-  $image = site_image('katoomba.jpg','Katoomba Scenic Railway');
-
-  output(array('title' => $title), $main, $image);
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // Main page.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -161,6 +142,10 @@ if ($select->is_value()) {
     $checksum = null;
   }
 
+  if (isset($upload) && !$upload->add_packagable()) {
+    trigger_error('this upload set is closed');
+  }
+
   $output = opentheory_stage($tarball,$name_version,$checksum);
 
   if (isset($output)) {
@@ -183,12 +168,14 @@ if ($select->is_value()) {
 
     $pkg = repo_register_staged($upload,$name_version);
 
+    set_upload_status($upload,ADD_PACKAGE_UPLOAD_STATUS);
+
     if (is_script()) {
       $report = 'successfully uploaded package ' . $name_version->to_string();
       output_script($report);
     }
     else {
-      jump_path(bread_crumbs(), array('pkg' => $name_version->to_string()));
+      $upload->jump();
     }
   }
 }

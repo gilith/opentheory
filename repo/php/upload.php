@@ -39,6 +39,26 @@ $all_upload_status =
         REJECTED_UPLOAD_STATUS,
         ACCEPTED_UPLOAD_STATUS);
 
+function is_upload_status($status) {
+  global $all_upload_status;
+
+  return is_string($status) && in_array($status,$all_upload_status);
+}
+
+function equal_upload_status($status1,$status2) {
+  is_upload_status($status1) or trigger_error('bad status1');
+  is_upload_status($status2) or trigger_error('bad status2');
+
+  return (strcmp($status1,$status2) == 0);
+}
+
+function add_packagable_upload_status($status) {
+  is_upload_status($status) or trigger_error('bad status');
+
+  return (equal_upload_status($status,INITIAL_UPLOAD_STATUS) ||
+          equal_upload_status($status,ADD_PACKAGE_UPLOAD_STATUS));
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // A class to store package upload information.
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,6 +85,12 @@ class Upload {
     $initiated = $this->initiated();
 
     return $now->subtract($initiated);
+  }
+
+  function add_packagable() {
+    $status = $this->status();
+
+    return add_packagable_upload_status($status);
   }
 
   function author_id() {
@@ -145,6 +171,22 @@ class Upload {
     $atts = array('class' => 'upload');
 
     return site_link($path,$text,$args,$atts);
+  }
+
+  function jump() {
+    $path = array();
+
+    $args = array('upload' => $this->to_string());
+
+    jump_path($path,$args);
+
+    trigger_error('post-jump');
+  }
+
+  function set_status($status) {
+    is_upload_status($status) or trigger_error('bad status');
+
+    $this->_status = $status;
   }
 
   function Upload($id,$initiated,$status,$author,$obsolete) {
@@ -283,6 +325,22 @@ class UploadTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
+  function set_status($upload,$status) {
+    isset($upload) or trigger_error('bad upload');
+    is_upload_status($status) or trigger_error('bad status');
+
+    if (!equal_upload_status($upload->status(),$status)) {
+      $upload->set_status($status);
+
+      $id = $upload->id();
+
+      database_query('
+        UPDATE ' . $this->table() . '
+        SET status = ' . database_value($status) . '
+        WHERE id = ' . database_value($id) . ';');
+    }
+  }
+
   function UploadTable($table) {
     global $all_upload_status;
 
@@ -352,6 +410,19 @@ function create_new_upload() {
   $upload_table->insert_upload($upload);
 
   return $upload;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Set an upload status.
+///////////////////////////////////////////////////////////////////////////////
+
+function set_upload_status($upload,$status) {
+  isset($upload) or trigger_error('bad upload');
+  is_upload_status($status) or trigger_error('bad status');
+
+  $upload_table = upload_table();
+
+  $upload_table->set_status($upload,$status);
 }
 
 ?>
