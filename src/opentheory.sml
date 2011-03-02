@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20110227)"^"\n";
+val versionString = program^" "^version^" (release 20110301)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -942,31 +942,26 @@ end;
 (* Cleaning up staged packages.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun cleanup namever =
+fun cleanup nameverl =
     let
       val dir = directory ()
 
-      val namever = PackageNameVersion.fromString namever
+      val nameverl =
+          if not (List.null nameverl) then
+            List.map PackageNameVersion.fromString nameverl
+          else
+            let
+              val namevers = Directory.listStaged dir {maxAge = NONE}
+            in
+              PackageNameVersionSet.toList namevers
+            end
 
-      val () = cleanupStagedPackage dir namever
+      val () = List.app (cleanupStagedPackage dir) nameverl
     in
       ()
     end
     handle Error err =>
       raise Error (err ^ "\ncleaning up staged package failed");
-
-fun cleanupAll () =
-    let
-      val dir = directory ()
-
-      val nvs = Directory.listStaged dir {maxAge = NONE}
-
-      val () = PackageNameVersionSet.app (cleanupStagedPackage dir) nvs
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\ncleaning up all staged packages failed");
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying command help.                                                  *)
@@ -1786,11 +1781,11 @@ in
       if not (!stageInstall) then installFinderFree ()
       else
         let
-          val stageFinder = directoryStagedFinder ()
+          val stagedFinder = directoryStagedFinder ()
 
           val finder = installFinderFree ()
         in
-          PackageFinder.orelsef stageFinder finder
+          PackageFinder.orelsef stagedFinder finder
         end;
 end;
 
@@ -2229,35 +2224,39 @@ fun upgradeTheory filename =
 (* Upload a theory package to a repo.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun upload namever =
+fun upload namevers =
     let
       val dir = directory ()
 
       val repo = repository ()
 
-      val namever = PackageNameVersion.fromString namever
+      val namevers = List.map PackageNameVersion.fromString namevers
 
       val () = DirectoryRepo.update repo
 
       val namevers =
-          if not (Directory.member namever dir) then [namever]
-          else
-            let
-              val nvs =
-                  if not (!autoUpload) then PackageNameVersionSet.empty
-                  else
-                    let
-                      fun notInRepo anc = not (DirectoryRepo.member anc repo)
+          let
+            fun notInDir nv = not (Directory.member nv dir)
 
-                      val ancs = Directory.ancestors dir namever
-                    in
-                      PackageNameVersionSet.filter notInRepo ancs
-                    end
+            fun notInRepo nv = not (DirectoryRepo.member nv repo)
 
-              val nvs = PackageNameVersionSet.add nvs namever
-            in
-              Directory.installOrder dir nvs
-            end
+            val (unknown,namevers) = List.partition notInDir namevers
+
+            val namevers = PackageNameVersionSet.fromList namevers
+
+            val namevers =
+                if not (!autoUpload) then namevers
+                else
+                  let
+                    val ancs = Directory.ancestorsSet dir namevers
+
+                    val ancs = PackageNameVersionSet.filter notInRepo ancs
+                  in
+                    PackageNameVersionSet.union ancs namevers
+                  end
+          in
+            unknown @ Directory.installOrder dir namevers
+          end
 
       val errs = Directory.checkUpload dir repo namevers
 
@@ -2338,8 +2337,7 @@ let
 
   val () =
       case (cmd,work) of
-        (Cleanup,[]) => cleanupAll ()
-      | (Cleanup,[pkg]) => cleanup pkg
+        (Cleanup,pkgs) => cleanup pkgs
       | (Help,[]) => help ()
       | (Info,[inp]) =>
         let
@@ -2381,7 +2379,7 @@ let
           | TarballInput _ => commandUsage cmd "cannot upgrade a tarball"
           | TheoryInput file => upgradeTheory file
         end
-      | (Upload,[pkg]) => upload pkg
+      | (Upload, pkgs as _ :: _) => upload pkgs
       | _ =>
         let
           val err = "bad arguments for " ^ commandString cmd ^ " command"

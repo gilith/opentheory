@@ -419,11 +419,23 @@ function package_table() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Create a package.
+///////////////////////////////////////////////////////////////////////////////
+
+function create_package($name_version,$description,$author,$license) {
+  $package_table = package_table();
+
+  return $package_table->create_package($name_version,$description,
+                                        $author,$license);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Count packages.
 ///////////////////////////////////////////////////////////////////////////////
 
 function count_active_packages() {
   $package_table = package_table();
+
   return $package_table->count_active_packages();
 }
 

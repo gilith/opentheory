@@ -55,6 +55,10 @@ class PackageNameVersion {
 
   function to_string() { return ($this->name() . '-' . $this->version()); }
 
+  function staged_to_string() {
+    return ('staged:' . $this->name() . '-' . $this->version());
+  }
+
   function package_link($text) {
     is_string($text) or trigger_error('bad text');
 

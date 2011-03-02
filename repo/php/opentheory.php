@@ -94,9 +94,7 @@ function opentheory_stage($tarball,$name_version,$checksum) {
   isset($name_version) or trigger_error('bad name_version');
   !isset($checksum) or is_string($checksum) or trigger_error('bad checksum');
 
-  $args = ' --stage --minimal';
-
-  $args .= ' --name ' . $name_version->to_string();
+  $args = ' --stage --name ' . $name_version->to_string();
 
   if (isset($checksum)) { $args .= ' --checksum ' . $checksum; }
 
@@ -114,7 +112,7 @@ function opentheory_stage($tarball,$name_version,$checksum) {
 function opentheory_install($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $args = $name_version->to_string();
+  $args = $name_version->staged_to_string();
 
   $output = opentheory_action('install',$args);
 
@@ -125,10 +123,10 @@ function opentheory_install($name_version) {
 // Query package information.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_tags($name_version) {
-  isset($name_version) or trigger_error('bad name_version');
+function opentheory_parse_tags($target) {
+  is_string($target) or trigger_error('bad target');
 
-  $args = ' --information ' . $name_version->to_string();
+  $args = ' --information ' . $target;
 
   $output = opentheory_query('info',$args);
 
@@ -149,14 +147,30 @@ function opentheory_tags($name_version) {
   return $tags;
 }
 
+function opentheory_tags($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $target = $name_version->to_string();
+
+  return opentheory_parse_tags($target);
+}
+
+function opentheory_staged_tags($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $target = $name_version->staged_to_string();
+
+  return opentheory_parse_tags($target);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Query package children.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_children($name_version) {
-  isset($name_version) or trigger_error('bad name_version');
+function opentheory_parse_children($target) {
+  is_string($target) or trigger_error('bad target');
 
-  $args = ' --dependencies ' . $name_version->to_string();
+  $args = ' --dependencies ' . $target;
 
   $output = opentheory_query('info',$args);
 
@@ -175,6 +189,22 @@ function opentheory_children($name_version) {
   }
 
   return $children;
+}
+
+function opentheory_children($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $target = $name_version->to_string();
+
+  return opentheory_parse_children($target);
+}
+
+function opentheory_staged_children($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $target = $name_version->staged_to_string();
+
+  return opentheory_parse_children($target);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

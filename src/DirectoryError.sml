@@ -131,7 +131,7 @@ val removeUninstalledParent =
 
 fun isFatal err =
     case err of
-      AncestorNotOnRepo _ => true
+      AncestorNotOnRepo _ => false
     | AncestorWrongChecksumOnRepo _ => true
     | AlreadyInstalled _ => true
     | AlreadyOnRepo _ => true

@@ -21,6 +21,8 @@ require_once 'upload.php';
 // The uploaded packages database table.
 ///////////////////////////////////////////////////////////////////////////////
 
+define('UPLOAD_PACKAGE_ID_DIGITS',4);
+
 class UploadPackageTable extends DatabaseTable {
   function insert_upload_package($upload,$pkg) {
     isset($upload) or trigger_error('bad upload');
@@ -29,10 +31,35 @@ class UploadPackageTable extends DatabaseTable {
     $upload_id = $upload->id();
     $pkg_id = $pkg->id();
 
+    $where =
+      'upload = ' . database_value($upload_id) . ' AND ' .
+      'package = ' . database_value($pkg_id);
+
+    $sequence = $this->max_rows('sequence',$where) + 1;
+
     database_query('
       INSERT INTO ' . $this->table() . '
       SET upload = ' . database_value($upload_id) . ',
-          package = ' . database_value($pkg_id) . ';');
+          package = ' . database_value($pkg_id) . ',
+          sequence = ' . database_value($sequence) . ';');
+  }
+
+  function sequence_package_upload($upload,$pkg) {
+    isset($upload) or trigger_error('bad upload');
+    isset($pkg) or trigger_error('bad pkg');
+
+    $upload_id = $upload->id();
+    $pkg_id = $pkg->id();
+
+    $where =
+      'upload = ' . database_value($upload_id) . ' AND ' .
+      'package = ' . database_value($pkg_id);
+
+    $row = $this->find_row($where_condition);
+
+    if (!isset($row)) { return null; }
+
+    return (integer)$row['sequence'];
   }
 
   function package_count($upload) {
@@ -54,7 +81,7 @@ class UploadPackageTable extends DatabaseTable {
       SELECT package
       FROM ' . $this->table() . '
       WHERE upload = ' . database_value($upload_id) . '
-      ORDER BY package;');
+      ORDER BY sequence;');
 
     $pkg_ids = array();
 
@@ -68,7 +95,8 @@ class UploadPackageTable extends DatabaseTable {
   function UploadPackageTable($table) {
     $fields =
       array('upload' => 'char(' . UPLOAD_ID_CHARS . ') NOT NULL',
-            'package' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL');
+            'package' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',
+            'sequence' => 'int(' . UPLOAD_PACKAGE_ID_DIGITS . ') NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (upload,package)');
@@ -90,6 +118,19 @@ function upload_package_table() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Add a package to an upload set.
+///////////////////////////////////////////////////////////////////////////////
+
+function add_package_upload($upload,$pkg) {
+  isset($upload) or trigger_error('bad upload');
+  isset($pkg) or trigger_error('bad pkg');
+
+  $upload_package_table = upload_package_table();
+
+  $upload_package_table->insert_upload_package($upload,$pkg);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Look up the uploaded packages.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -99,6 +140,17 @@ function package_count_upload($upload) {
   $upload_package_table = upload_package_table();
 
   return $upload_package_table->package_count($upload);
+}
+
+function member_package_upload($pkg,$upload) {
+  isset($pkg) or trigger_error('bad pkg');
+  isset($upload) or trigger_error('bad upload');
+
+  $upload_package_table = upload_package_table();
+
+  $seq = $upload_package_table->sequence_package_upload();
+
+  return (isset($seq));
 }
 
 function packages_upload($upload) {

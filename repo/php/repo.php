@@ -12,30 +12,30 @@ require_once 'global.php';
 require_once 'error.php';
 require_once 'name_version.php';
 require_once 'author.php';
+require_once 'opentheory.php';
 require_once 'package.php';
 require_once 'tag.php';
 require_once 'dependency.php';
 require_once 'upload.php';
-require_once 'opentheory.php';
+require_once 'upload_package.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // Register a staged package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 
-function repo_register_staged($name_version) {
+function repo_register_staged($upload,$name_version) {
+  isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
 
   // Check whether we are already registered
 
-  $package_table = package_table();
+  $pkg = find_package_by_name_version($name_version);
 
-  $pkg = $package_table->find_package_by_name_version($name_version);
-
-  if (isset($pkg)) { return $pkg; }
+  if (isset($pkg)) { trigger_error('already registered'); }
 
   // Create a new entry in the package table
 
-  $tags = opentheory_tags($name_version);
+  $tags = opentheory_staged_tags($name_version);
 
   $description = description_from_tags($tags);
 
@@ -43,25 +43,26 @@ function repo_register_staged($name_version) {
 
   $license = license_from_tags($tags);
 
-  $pkg = $package_table->create_package($name_version,$description,$author,
-                                        $license);
+  $pkg = create_package($name_version,$description,$author,$license);
 
-  $package_table->mark_installed($pkg);
+  // Add the package to the upload set
+
+  add_package_upload($upload,$pkg);
 
   // Record the children in the dependency table
 
-  $dependency_table = dependency_table();
-
-  $children = opentheory_children($name_version);
+  $children = opentheory_staged_children($name_version);
 
   foreach ($children as $child_name_version) {
-    $child = repo_register($child_name_version);
+    $child = find_package_by_name_version($child_name_version);
 
-    $dependency_table->insert_dependency($pkg,$child);
+    if (!isset($child)) { trigger_error('no child package entry'); }
 
-    if (!$child->auxiliary() && $pkg->is_auxiliary_child($child)) {
-      $package_table->mark_auxiliary($child);
+    if (!($child->installed() || member_package_upload($child,$upload))) {
+      trigger_error('child not installed or part of this upload set');
     }
+
+    insert_package_dependency($pkg,$child);
   }
 
   return $pkg;

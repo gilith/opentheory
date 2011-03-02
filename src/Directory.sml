@@ -435,10 +435,21 @@ fun stagedFinder dir =
     let
       fun stagedPeek namever =
           let
+(*OpenTheoryTrace3
+            val () = Print.trace PackageNameVersion.pp
+                       "Directory.stagedFinder: namever" namever
+*)
             val info = stagingPackageInfo dir namever
+
+            val result =
+                if PackageInfo.existsDirectory info then SOME info else NONE
+
+(*OpenTheoryTrace3
+            val () = Print.trace Print.ppBool
+                       "Directory.stagedFinder: found" (Option.isSome result)
+*)
           in
-            if PackageInfo.existsDirectory info then SOME info
-            else NONE
+            result
           end
     in
       PackageFinder.mk stagedPeek
@@ -615,11 +626,9 @@ end;
 (* Summarizing packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun summary dir info =
+fun summary impt info =
     let
       val graph = Graph.empty {savable = false}
-
-      val impt = importer dir
 
       val imps = TheorySet.empty
 
@@ -638,7 +647,7 @@ fun summary dir info =
 (* Post-stage functions.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun postStagePackage dir stageInfo warnSummary =
+fun postStagePackage dir fndr stageInfo warnSummary =
     let
       (* Check the package tags *)
 
@@ -658,7 +667,12 @@ fun postStagePackage dir stageInfo warnSummary =
 
       (* Check the package summary *)
 
-      val sum = summary dir stageInfo
+      val sum =
+          let
+            val impt = Graph.fromFinderImporter fndr
+          in
+            summary impt stageInfo
+          end;
 
       val () =
           if not warnSummary then ()
@@ -710,7 +724,7 @@ fun postStageTarball dir fndr stageInfo contents =
 
       (* Common post-stage operations *)
 
-      val () = postStagePackage dir stageInfo false
+      val () = postStagePackage dir fndr stageInfo false
     in
       ()
     end;
@@ -1178,7 +1192,9 @@ in
 
           (* Common post-stage operations *)
 
-          val () = postStagePackage dir stageInfo true
+          val fndr = finder dir
+
+          val () = postStagePackage dir fndr stageInfo true
         in
           PackageInfo.checksumTarball stageInfo
         end

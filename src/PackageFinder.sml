@@ -27,13 +27,13 @@ val mk = Finder;
 
 fun find (Finder f) n = f n;
 
-fun get f n =
-    case find f n of
+fun get f nv =
+    case find f nv of
       SOME p => p
     | NONE => raise Error "PackageFinder.get";
 
-fun check f n =
-    case find f n of
+fun check f nv =
+    case find f nv of
       SOME _ => ()
     | NONE => raise Error "PackageFinder.check";
 
@@ -45,9 +45,9 @@ val useless = mk (K NONE);
 
 fun orelsef f1 f2 =
     let
-      fun f n =
-          case find f1 n of
-            NONE => find f2 n
+      fun f nv =
+          case find f1 nv of
+            NONE => find f2 nv
           | r as SOME _ => r
     in
       mk f

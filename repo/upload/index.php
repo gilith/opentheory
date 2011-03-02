@@ -177,7 +177,11 @@ if ($select->is_value()) {
 '<pre>' . $output . '</pre>';
   }
   else {
-    $pkg = repo_register($name_version);
+    if (!isset($upload)) {
+      $upload = create_new_upload();
+    }
+
+    $pkg = repo_register_staged($upload,$name_version);
 
     if (is_script()) {
       $report = 'successfully uploaded package ' . $name_version->to_string();
