@@ -12,13 +12,15 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val chmodSystemKey = "chmod"
-and cleanupInstallKey = "cleanup"
+val autoCleanupKey = "auto"
+and chmodSystemKey = "chmod"
+and cleanupSection = "cleanup"
 and cpSystemKey = "cp"
 and curlSystemKey = "curl"
 and echoSystemKey = "echo"
 and installSection = "install"
 and licenseSection = "license"
+and minimalInstallKey = "minimal"
 and nameLicenseKey = "name"
 and nameRepoKey = "name"
 and refreshRepoKey = "refresh"
@@ -47,9 +49,13 @@ val holLightLicenseName = "HOLLight"
 and holLightLicenseUrl =
     "http://www.gilith.com/research/opentheory/licenses/HOLLight.txt";
 
+(* Cleanup constants *)
+
+val defaultCleanupAuto = SOME (Time.fromSeconds 3600);  (* 1 hour *)
+
 (* Install constants *)
 
-val defaultInstallCleanup = Time.fromSeconds 3600;  (* 1 hour *)
+val defaultInstallMinimal = false;
 
 (* System constants *)
 
@@ -64,6 +70,13 @@ and defaultSystemTar = "tar";
 (* Time interval functions.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+fun toStringBool b = if b then "true" else "false";
+
+fun fromStringBool s =
+    if s = "true" then true
+    else if s = "false" then false
+    else raise Error ("bad boolean format: " ^ s);
+
 fun toStringInterval t = Int.toString (Real.round (Time.toReal t));
 
 fun fromStringInterval s =
@@ -73,6 +86,15 @@ fun fromStringInterval s =
        if i >= 0 then Time.fromReal (Real.fromInt i)
        else raise Error "negative number")
     handle Error err => raise Error ("bad time interval format: " ^ err);
+
+fun toStringOptionalInterval ot =
+    case ot of
+      SOME t => toStringInterval t
+    | NONE => "never";
+
+fun fromStringOptionalInterval s =
+    if s = "never" then NONE
+    else SOME (fromStringInterval s);
 
 (* ------------------------------------------------------------------------- *)
 (* A type of repo configuration data.                                        *)
@@ -147,7 +169,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = nameRepoKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -170,7 +192,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = urlRepoKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -193,7 +215,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = refreshRepoKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -349,7 +371,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = nameLicenseKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -371,7 +393,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = urlLicenseKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -459,82 +481,184 @@ val defaultLicenses =
      holLightLicense];
 
 (* ------------------------------------------------------------------------- *)
-(* A type of system configuration data.                                      *)
+(* A type of cleanup configuration data.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+datatype cleanup =
+    Cleanup of
+      {auto : Time.time option};
+
+fun autoCleanup (Cleanup {auto = x, ...}) = x;
+
+fun toSectionCleanup ins =
+    let
+      val Cleanup {auto} = ins
+    in
+      Config.Section
+        {name = cleanupSection,
+         keyValues =
+           [Config.KeyValue
+              {key = autoCleanupKey,
+               value = toStringOptionalInterval auto}]}
+    end;
+
+local
+  datatype cleanupSectionState =
+      CleanupSectionState of
+        {auto : string option};
+
+  val initialCleanupSectionState =
+      let
+        val auto = NONE
+      in
+        CleanupSectionState
+          {auto = auto}
+      end;
+
+  fun addAutoCleanupSectionState x state =
+      let
+        val CleanupSectionState {auto} = state
+
+        val auto =
+            case auto of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "multiple " ^
+                    Config.toStringKey {key = autoCleanupKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        CleanupSectionState
+          {auto = auto}
+      end;
+
+  fun processCleanupSectionState (kv,state) =
+      let
+        val Config.KeyValue {key,value} = kv
+      in
+        if key = autoCleanupKey then
+          addAutoCleanupSectionState value state
+        else
+          raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+      end;
+
+  fun finalCleanupSectionState ins state =
+      let
+        val CleanupSectionState {auto} = state
+
+        val auto =
+            case auto of
+              SOME x => fromStringOptionalInterval x
+            | NONE => autoCleanup ins
+      in
+        Cleanup
+          {auto = auto}
+      end;
+in
+  fun fromSectionCleanup sys kvs =
+      let
+        val state = initialCleanupSectionState
+
+        val state = List.foldl processCleanupSectionState state kvs
+      in
+        finalCleanupSectionState sys state
+      end
+      handle Error err =>
+        let
+          val err =
+              "in section " ^
+              Config.toStringSectionName {name = cleanupSection} ^
+              " of config file:\n" ^ err
+        in
+          raise Error err
+        end;
+end;
+
+val defaultCleanup =
+    Cleanup
+      {auto = defaultCleanupAuto};
+
+(* ------------------------------------------------------------------------- *)
+(* A type of install configuration data.                                     *)
 (* ------------------------------------------------------------------------- *)
 
 datatype install =
     Install of
-      {cleanup : Time.time};
+      {minimal : bool};
 
-fun cleanupInstall (Install {cleanup = x, ...}) = x;
+fun minimalInstall (Install {minimal = x, ...}) = x;
 
 fun toSectionInstall ins =
     let
-      val Install {cleanup} = ins
+      val Install {minimal} = ins
     in
       Config.Section
         {name = installSection,
          keyValues =
            [Config.KeyValue
-              {key = cleanupInstallKey,
-               value = toStringInterval cleanup}]}
+              {key = minimalInstallKey,
+               value = toStringBool minimal}]}
     end;
 
 local
   datatype installSectionState =
       InstallSectionState of
-        {cleanup : string option};
+        {minimal : string option};
 
   val initialInstallSectionState =
       let
-        val cleanup = NONE
+        val minimal = NONE
       in
         InstallSectionState
-          {cleanup = cleanup}
+          {minimal = minimal}
       end;
 
-  fun addCleanupInstallSectionState x state =
+  fun addMinimalInstallSectionState x state =
       let
-        val InstallSectionState {cleanup} = state
+        val InstallSectionState {minimal} = state
 
-        val cleanup =
-            case cleanup of
+        val minimal =
+            case minimal of
               NONE => SOME x
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
-                    Config.toStringKey {key = cleanupInstallKey} ^
+                    "multiple " ^
+                    Config.toStringKey {key = minimalInstallKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
                 raise Error err
               end
       in
         InstallSectionState
-          {cleanup = cleanup}
+          {minimal = minimal}
       end;
 
   fun processInstallSectionState (kv,state) =
       let
         val Config.KeyValue {key,value} = kv
       in
-        if key = cleanupInstallKey then
-          addCleanupInstallSectionState value state
+        if key = minimalInstallKey then
+          addMinimalInstallSectionState value state
         else
           raise Error ("unknown key: " ^ Config.toStringKey {key = key})
       end;
 
   fun finalInstallSectionState ins state =
       let
-        val InstallSectionState {cleanup} = state
+        val InstallSectionState {minimal} = state
 
-        val cleanup =
-            case cleanup of
-              SOME x => fromStringInterval x
-            | NONE => cleanupInstall ins
+        val minimal =
+            case minimal of
+              SOME x => fromStringBool x
+            | NONE => minimalInstall ins
       in
         Install
-          {cleanup = cleanup}
+          {minimal = minimal}
       end;
 in
   fun fromSectionInstall sys kvs =
@@ -558,7 +682,7 @@ end;
 
 val defaultInstall =
     Install
-      {cleanup = defaultInstallCleanup};
+      {minimal = defaultInstallMinimal};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system configuration data.                                      *)
@@ -629,7 +753,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = chmodSystemKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -655,7 +779,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = cpSystemKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -681,7 +805,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = curlSystemKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -707,7 +831,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = echoSystemKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -733,7 +857,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = shaSystemKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -759,7 +883,7 @@ local
             | SOME x' =>
               let
                 val err =
-                    "duplicate " ^
+                    "multiple " ^
                     Config.toStringKey {key = tarSystemKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
@@ -867,6 +991,7 @@ datatype config =
     Config of
       {repos : repo list,
        licenses : license list,
+       cleanup : cleanup,
        install : install,
        system : DirectorySystem.system};
 
@@ -878,12 +1003,14 @@ val empty =
     let
       val repos = []
       and licenses = []
+      and cleanup = defaultCleanup
       and install = defaultInstall
       and system = defaultSystem
     in
       Config
         {repos = repos,
          licenses = licenses,
+         cleanup = cleanup,
          install = install,
          system = system}
     end;
@@ -891,6 +1018,8 @@ val empty =
 fun repos (Config {repos = x, ...}) = x;
 
 fun licenses (Config {licenses = x, ...}) = x;
+
+fun cleanup (Config {cleanup = x, ...}) = x;
 
 fun install (Config {install = x, ...}) = x;
 
@@ -905,6 +1034,7 @@ fun addRepo cfg repo =
       val Config
             {repos,
              licenses,
+             cleanup,
              install,
              system} = cfg
 
@@ -913,6 +1043,7 @@ fun addRepo cfg repo =
       Config
         {repos = repos,
          licenses = licenses,
+         cleanup = cleanup,
          install = install,
          system = system}
     end;
@@ -922,6 +1053,7 @@ fun addLicense cfg license =
       val Config
             {repos,
              licenses,
+             cleanup,
              install,
              system} = cfg
 
@@ -930,6 +1062,24 @@ fun addLicense cfg license =
       Config
         {repos = repos,
          licenses = licenses,
+         cleanup = cleanup,
+         install = install,
+         system = system}
+    end;
+
+fun replaceCleanup cfg cleanup =
+    let
+      val Config
+            {repos,
+             licenses,
+             cleanup = _,
+             install,
+             system} = cfg
+    in
+      Config
+        {repos = repos,
+         licenses = licenses,
+         cleanup = cleanup,
          install = install,
          system = system}
     end;
@@ -939,12 +1089,14 @@ fun replaceInstall cfg install =
       val Config
             {repos,
              licenses,
+             cleanup,
              install = _,
              system} = cfg
     in
       Config
         {repos = repos,
          licenses = licenses,
+         cleanup = cleanup,
          install = install,
          system = system}
     end;
@@ -954,12 +1106,14 @@ fun replaceSystem cfg system =
       val Config
             {repos,
              licenses,
+             cleanup,
              install,
              system = _} = cfg
     in
       Config
         {repos = repos,
          licenses = licenses,
+         cleanup = cleanup,
          install = install,
          system = system}
     end;
@@ -973,12 +1127,14 @@ fun toSections cfg =
       val Config
             {repos,
              licenses,
+             cleanup,
              install,
              system} = cfg
 
       val sections =
           List.map toSectionRepo repos @
           List.map toSectionLicense licenses @
+          [toSectionCleanup cleanup] @
           [toSectionInstall install] @
           [toSectionSystem system]
     in
@@ -1007,6 +1163,14 @@ local
             val license = fromSectionLicense keyValues
           in
             addLicense cfg license
+          end
+        else if name = cleanupSection then
+          let
+            val cln = cleanup cfg
+
+            val cln = fromSectionCleanup cln keyValues
+          in
+            replaceCleanup cfg cln
           end
         else if name = installSection then
           let
@@ -1069,12 +1233,14 @@ val default =
     let
       val repos = defaultRepos
       and licenses = defaultLicenses
+      and cleanup = defaultCleanup
       and install = defaultInstall
       and system = defaultSystem
     in
       Config
         {repos = repos,
          licenses = licenses,
+         cleanup = cleanup,
          install = install,
          system = system}
     end;

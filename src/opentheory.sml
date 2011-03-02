@@ -122,6 +122,22 @@ val describeInfoFormat =
     "NAME, VERSION, DESCRIPTION and CHECKSUM";
 
 (* ------------------------------------------------------------------------- *)
+(* Clean up a staged package.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun cleanupStagedPackage dir nv =
+    let
+      val () = Directory.cleanupStaged dir nv
+
+      val mesg =
+          "cleaned up staged package " ^ PackageNameVersion.toString nv
+
+      val () = chat mesg
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -186,7 +202,33 @@ val directory =
                    val {directory = r, autoInit} = rootDirectory ()
                  in
                    if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
-                     Directory.mk {rootDirectory = r}
+                     let
+                       val dir = Directory.mk {rootDirectory = r}
+
+                       val () =
+                           let
+                             val cfg = Directory.config dir
+
+                             val cfg = DirectoryConfig.cleanup cfg
+                           in
+                             case DirectoryConfig.autoCleanup cfg of
+                               NONE => ()
+                             | SOME t =>
+                               let
+                                 val maxAge = {maxAge = SOME t}
+
+                                 val nvs = Directory.listStaged dir maxAge
+
+                                 val () =
+                                     PackageNameVersionSet.app
+                                       (cleanupStagedPackage dir) nvs
+                               in
+                                 ()
+                               end
+                           end
+                     in
+                       dir
+                     end
                    else if autoInit then
                      let
                        val () = Directory.create {rootDirectory = r}
@@ -279,6 +321,19 @@ in
         else List.map (Directory.getRepo dir) ns
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Options for cleaning up staged packages.                                  *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val cleanupOpts : opt list = [];
+end;
+
+val cleanupFooter =
+    "Leave out the <package-name> argument to clean up all staged packages.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
@@ -411,7 +466,7 @@ in
         description = "display the package theory graph",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
        {switches = ["--article"], arguments = [],
-        description = "compile the package to an article",
+        description = "output the theory package in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write previous package information to FILE",
@@ -461,15 +516,13 @@ val uninstallFooter = "";
 (* Options for installing theory packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
+val reinstall = ref false;
+
 val autoInstall = ref true;
 
 val nameInstall : PackageNameVersion.nameVersion option ref = ref NONE;
 
 val checksumInstall : Checksum.checksum option ref = ref NONE;
-
-val minimalInstall = ref false;
-
-val reinstall = ref false;
 
 val stageInstall = ref false;
 
@@ -488,30 +541,27 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => addRepository s)},
+       {switches = ["--reinstall"], arguments = [],
+        description = "uninstall the package if it exists",
+        processor = beginOpt endOpt (fn _ => reinstall := true)}] @
+      List.map (addSuffix "-uninstall") uninstallOpts @
+      [{switches = ["--manual"], arguments = [],
+        description = "do not also install required packages",
+        processor = beginOpt endOpt (fn _ => autoInstall := false)},
        {switches = ["--name"], arguments = ["NAME"],
-        description = "specify the package name",
+        description = "confirm the package name",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s =>
                 nameInstall := SOME (PackageNameVersion.fromString s))},
        {switches = ["--checksum"], arguments = ["CHECKSUM"],
-        description = "specify the package checksum",
+        description = "confirm the package checksum",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
-       {switches = ["--minimal"], arguments = [],
-        description = "do not install the package extra files",
-        processor = beginOpt endOpt (fn _ => minimalInstall := true)},
-       {switches = ["--reinstall"], arguments = [],
-        description = "uninstall the package if it exists",
-        processor = beginOpt endOpt (fn _ => reinstall := true)},
-       {switches = ["--manual"], arguments = [],
-        description = "do not also install required packages",
-        processor = beginOpt endOpt (fn _ => autoInstall := false)},
        {switches = ["--stage"], arguments = [],
         description = "stage the package for installation",
-        processor = beginOpt endOpt (fn _ => stageInstall := true)}] @
-      List.map (addSuffix "-uninstall") uninstallOpts;
+        processor = beginOpt endOpt (fn _ => stageInstall := true)}];
 end;
 
 val installFooter = "";
@@ -630,7 +680,8 @@ val uploadFooter = "";
 (* ------------------------------------------------------------------------- *)
 
 datatype command =
-    Help
+    Cleanup
+  | Help
   | Info
   | Init
   | Install
@@ -641,7 +692,8 @@ datatype command =
   | Upload;
 
 val allCommands =
-    [Help,
+    [Cleanup,
+     Help,
      Info,
      Init,
      Install,
@@ -653,7 +705,8 @@ val allCommands =
 
 fun commandString cmd =
     case cmd of
-      Help => "help"
+      Cleanup => "cleanup"
+    | Help => "help"
     | Info => "info"
     | Init => "init"
     | Install => "install"
@@ -665,7 +718,8 @@ fun commandString cmd =
 
 fun commandArgs cmd =
     case cmd of
-      Help => ""
+      Cleanup => " <package-name>"
+    | Help => ""
     | Info => " <package-name>|input.thy|input.art"
     | Init => ""
     | Install => " <package-name>|input.thy"
@@ -677,7 +731,8 @@ fun commandArgs cmd =
 
 fun commandDescription cmd =
     case cmd of
-      Help => "display command help"
+      Cleanup => "clean up staged packages"
+    | Help => "display command help"
     | Info => "display package information"
     | Init => "initialize package directory"
     | Install => "install a theory package"
@@ -689,7 +744,8 @@ fun commandDescription cmd =
 
 fun commandFooter cmd =
     case cmd of
-      Help => helpFooter
+      Cleanup => cleanupFooter
+    | Help => helpFooter
     | Info => infoFooter
     | Init => initFooter
     | Install => installFooter
@@ -701,7 +757,8 @@ fun commandFooter cmd =
 
 fun commandOpts cmd =
     case cmd of
-      Help => helpOpts
+      Cleanup => cleanupOpts
+    | Help => helpOpts
     | Info => infoOpts
     | Init => initOpts
     | Install => installOpts
@@ -826,6 +883,7 @@ fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
 datatype input =
     ArticleInput of {filename : string}
   | PackageInput of PackageNameVersion.nameVersion
+  | StagedPackageInput of PackageNameVersion.nameVersion
   | TarballInput of {filename : string}
   | TheoryInput of {filename : string};
 
@@ -839,22 +897,29 @@ fun fromStringInput cmd inp =
         case total (destPrefix "theory:") inp of
           SOME f => TheoryInput {filename = f}
         | NONE =>
-          case total PackageNameVersion.fromString inp of
-            SOME namever => PackageInput namever
+          case total (destPrefix "staged:") inp of
+            SOME nv =>
+            (case total PackageNameVersion.fromString nv of
+               SOME namever => StagedPackageInput namever
+             | NONE => commandUsage cmd ("bad staged package name: " ^ inp))
           | NONE =>
-            let
-              val f = {filename = inp}
-            in
-              if Article.isFilename f then ArticleInput f
-              else if PackageTarball.isFilename f then TarballInput f
-              else if Package.isFilename f then TheoryInput f
-              else commandUsage cmd ("unknown type of input: " ^ inp)
-            end;
+            case total PackageNameVersion.fromString inp of
+              SOME namever => PackageInput namever
+            | NONE =>
+              let
+                val f = {filename = inp}
+              in
+                if Article.isFilename f then ArticleInput f
+                else if PackageTarball.isFilename f then TarballInput f
+                else if Package.isFilename f then TheoryInput f
+                else commandUsage cmd ("unknown type of input: " ^ inp)
+              end;
 
 fun defaultInfoOutputList inp =
     case inp of
       ArticleInput _ => [mkInfoOutput SummaryInfo]
     | PackageInput _ => [mkInfoOutput TagsInfo]
+    | StagedPackageInput _ => [mkInfoOutput TagsInfo]
     | TarballInput _ => [mkInfoOutput FilesInfo]
     | TheoryInput _ => [mkInfoOutput SummaryInfo];
 
@@ -872,6 +937,36 @@ local
 in
   fun readInfoOutputList inp = List.map defaultize (readList inp);
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Cleaning up staged packages.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun cleanup namever =
+    let
+      val dir = directory ()
+
+      val namever = PackageNameVersion.fromString namever
+
+      val () = cleanupStagedPackage dir namever
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\ncleaning up staged package failed");
+
+fun cleanupAll () =
+    let
+      val dir = directory ()
+
+      val nvs = Directory.listStaged dir {maxAge = NONE}
+
+      val () = PackageNameVersionSet.app (cleanupStagedPackage dir) nvs
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\ncleaning up all staged packages failed");
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying command help.                                                  *)
@@ -1397,13 +1492,34 @@ in
 
   fun infoPackage namever infs =
       let
-        val dir = directory ()
+        val finder = directoryFinder ()
       in
-        case Directory.peek dir namever of
+        case PackageFinder.find finder namever of
           NONE =>
           let
             val err =
                 "can't find package " ^ PackageNameVersion.toString namever
+          in
+            raise Error err
+          end
+        | SOME info =>
+          let
+            val () = setInfo info
+          in
+            processInfoOutputList infs
+          end
+      end;
+
+  fun infoStagedPackage namever infs =
+      let
+        val finder = directoryStagedFinder ()
+      in
+        case PackageFinder.find finder namever of
+          NONE =>
+          let
+            val err =
+                "can't find staged package " ^
+                PackageNameVersion.toString namever
           in
             raise Error err
           end
@@ -1598,9 +1714,7 @@ local
 
         val finder = installAutoFinder master
 
-        val minimal = {minimal = !minimalInstall}
-
-        val () = Directory.stagePackage dir finder repo namever chk minimal
+        val () = Directory.stagePackage dir finder repo namever chk
 
         val () = Directory.installStaged dir namever chk
 
@@ -1680,138 +1794,147 @@ in
         end;
 end;
 
-local
-  fun installStagedPackage dir namever info =
-      let
-        val chk = PackageInfo.checksumTarball info
+fun installStagedPackage namever =
+    let
+      val () =
+          if not (Option.isSome (!nameInstall)) then ()
+          else raise Error "can't specify name for a staged package install"
 
-        val () =
-            case !checksumInstall of
-              NONE => ()
-            | SOME chk' =>
-              if Checksum.equal chk' chk then ()
-              else raise Error "tarball checksum does not match"
+      val () =
+          if not (!stageInstall) then ()
+          else raise Error "can't stage a staged package install"
 
-        val errs = Directory.checkInstallStaged dir namever chk
+      val dir = directory ()
 
-        val () =
-            if List.null errs then ()
-            else
-              let
-                val s = DirectoryError.toStringList errs
-              in
-                if DirectoryError.existsFatal errs then raise Error s
-                else chat ("package install warnings:\n" ^ s)
-              end
+      val info =
+          case PackageFinder.find (directoryStagedFinder ()) namever of
+            SOME info => info
+          | NONE =>
+            let
+              val err =
+                  "can't find staged package " ^
+                  PackageNameVersion.toString namever
+            in
+              raise Error err
+            end
 
-        val () = Directory.installStaged dir namever chk
+      val chk = PackageInfo.checksumTarball info
 
-        val () =
-            chat ("installed staged package " ^
-                  PackageNameVersion.toString namever)
-      in
-        ()
-      end;
+      val () =
+          case !checksumInstall of
+            NONE => ()
+          | SOME chk' =>
+            if Checksum.equal chk' chk then ()
+            else raise Error "package checksum does not match"
 
-  fun installUnstagedPackage dir namever =
-      let
-        val repos = repositories ()
+      val errs = Directory.checkInstallStaged dir namever chk
 
-        val (repo,chk) =
-            case !checksumInstall of
-              SOME chk =>
-              (case DirectoryRepo.find repos (namever,chk) of
-                 SOME repo => (repo,chk)
-               | NONE =>
-                 let
-                   val err =
-                       "can't find package " ^
-                       PackageNameVersion.toString namever ^
-                       " with specified checksum in any repo"
-                 in
-                   raise Error err
-                 end)
-            | NONE =>
-              (case DirectoryRepo.first repos namever of
-                 NONE =>
-                 let
-                   val err =
-                       "can't find package " ^
-                       PackageNameVersion.toString namever ^
-                       " in any repo package list"
-                 in
-                   raise Error err
-                 end
-               | SOME repo_chk => repo_chk)
+      val () =
+          if List.null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else chat ("package install warnings:\n" ^ s)
+            end
 
-        val errs = Directory.checkStagePackage dir repo namever chk
+      val () = Directory.installStaged dir namever chk
 
-        val errs =
-            if not (!reinstall) then errs
-            else
-              let
-                val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+      val () =
+          chat ("installed staged package " ^
+                PackageNameVersion.toString namever)
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\nstaged package install failed");
 
-                val () =
-                    if staged then Directory.cleanupStaged dir namever else ()
-              in
-                errs
-              end
+fun installPackage namever =
+    let
+      val () =
+          if not (Option.isSome (!nameInstall)) then ()
+          else raise Error "can't specify name for a package install"
 
-        val (replace,errs) =
-            if not (!reinstall) then (false,errs)
-            else DirectoryError.removeAlreadyInstalled errs
+      val () =
+          if not (!stageInstall) then ()
+          else raise Error "can't stage a package install"
 
-        val () =
-            if List.null errs then ()
-            else
-              let
-                val s = DirectoryError.toStringList errs
-              in
-                if DirectoryError.existsFatal errs then raise Error s
-                else chat ("package install warnings:\n" ^ s)
-              end
+      val dir = directory ()
 
-        val () = if replace then uninstallAuto dir namever else ()
+      val repos = repositories ()
 
-        val finder = installFinder repo
+      val (repo,chk) =
+          case !checksumInstall of
+            SOME chk =>
+            (case DirectoryRepo.find repos (namever,chk) of
+               SOME repo => (repo,chk)
+             | NONE =>
+               let
+                 val err =
+                     "can't find package " ^
+                     PackageNameVersion.toString namever ^
+                     " with specified checksum in any repo"
+               in
+                 raise Error err
+               end)
+          | NONE =>
+            (case DirectoryRepo.first repos namever of
+               NONE =>
+               let
+                 val err =
+                     "can't find package " ^
+                     PackageNameVersion.toString namever ^
+                     " in any repo package list"
+               in
+                 raise Error err
+               end
+             | SOME repo_chk => repo_chk)
 
-        val minimal = {minimal = !minimalInstall}
+      val errs = Directory.checkStagePackage dir repo namever chk
 
-        val () = Directory.stagePackage dir finder repo namever chk minimal
+      val errs =
+          if not (!reinstall) then errs
+          else
+            let
+              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
 
-        val () = Directory.installStaged dir namever chk
+              val () =
+                  if staged then Directory.cleanupStaged dir namever else ()
+            in
+              errs
+            end
 
-        val () =
-            chat ((if replace then "re" else "") ^ "installed package " ^
-                  PackageNameVersion.toString namever)
-      in
-        ()
-      end;
-in
-  fun installPackage namever =
-      let
-        val () =
-            if not (Option.isSome (!nameInstall)) then ()
-            else raise Error "can't specify name for a package install"
+      val (replace,errs) =
+          if not (!reinstall) then (false,errs)
+          else DirectoryError.removeAlreadyInstalled errs
 
-        val () =
-            if not (!stageInstall) then ()
-            else raise Error "can't stage a package install"
+      val () =
+          if List.null errs then ()
+          else
+            let
+              val s = DirectoryError.toStringList errs
+            in
+              if DirectoryError.existsFatal errs then raise Error s
+              else chat ("package install warnings:\n" ^ s)
+            end
 
-        val dir = directory ()
+      val () = if replace then uninstallAuto dir namever else ()
 
-        val stagedInfo =
-            if !reinstall then NONE
-            else PackageFinder.find (directoryStagedFinder ()) namever
-      in
-        case stagedInfo of
-          SOME info => installStagedPackage dir namever info
-        | NONE => installUnstagedPackage dir namever
-      end
-      handle Error err =>
-        raise Error (err ^ "\npackage install failed");
-end;
+      val finder = installFinder repo
+
+      val () = Directory.stagePackage dir finder repo namever chk
+
+      val () = Directory.installStaged dir namever chk
+
+      val () =
+          chat ((if replace then "re" else "") ^ "installed package " ^
+                PackageNameVersion.toString namever)
+    in
+      ()
+    end
+    handle Error err =>
+      raise Error (err ^ "\npackage install failed");
 
 fun installTarball tarFile =
     let
@@ -1871,9 +1994,7 @@ fun installTarball tarFile =
 
       val finder = installStagedFinderFree ()
 
-      val minimal = {minimal = !minimalInstall}
-
-      val () = Directory.stageTarball dir finder tarFile contents minimal
+      val () = Directory.stageTarball dir finder tarFile contents
 
       val () =
           if !stageInstall then ()
@@ -2217,7 +2338,9 @@ let
 
   val () =
       case (cmd,work) of
-        (Help,[]) => help ()
+        (Cleanup,[]) => cleanupAll ()
+      | (Cleanup,[pkg]) => cleanup pkg
+      | (Help,[]) => help ()
       | (Info,[inp]) =>
         let
           val inp = fromStringInput cmd inp
@@ -2227,6 +2350,7 @@ let
           case inp of
             ArticleInput file => infoArticle file infs
           | PackageInput namever => infoPackage namever infs
+          | StagedPackageInput namever => infoStagedPackage namever infs
           | TarballInput file => infoTarball file infs
           | TheoryInput file => infoTheory file infs
         end
@@ -2238,6 +2362,7 @@ let
           case inp of
             ArticleInput _ => commandUsage cmd "cannot install an article"
           | PackageInput namever => installPackage namever
+          | StagedPackageInput namever => installStagedPackage namever
           | TarballInput file => installTarball file
           | TheoryInput file => installTheory file
         end
@@ -2251,6 +2376,8 @@ let
           case inp of
             ArticleInput _ => commandUsage cmd "cannot upgrade an article"
           | PackageInput _ => commandUsage cmd "cannot upgrade a package"
+          | StagedPackageInput _ =>
+            commandUsage cmd "cannot upgrade a staged package"
           | TarballInput _ => commandUsage cmd "cannot upgrade a tarball"
           | TheoryInput file => upgradeTheory file
         end

@@ -22,6 +22,8 @@ define('REPO_LOG_PATH', SITE_PATH . '/' . REPO_LOG);
 
 define('REPO_PACKAGES_DIR','packages');
 
+define('REPO_STAGING_DIR','staging');
+
 ///////////////////////////////////////////////////////////////////////////////
 // Package name/version regular expressions.
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,6 +77,12 @@ class PackageNameVersion {
     return array(REPO_DIR,REPO_PACKAGES_DIR,$dir);
   }
 
+  function staged_directory_path() {
+    $dir = $this->directory_name();
+
+    return array(REPO_DIR,REPO_STAGING_DIR,$dir);
+  }
+
   function summary_file_name() {
     return ($this->to_string() . '.html');
   }
@@ -125,6 +133,14 @@ class PackageNameVersion {
     $file = $this->theory_file_name();
 
     return array(REPO_DIR,REPO_PACKAGES_DIR,$dir,$file);
+  }
+
+  function staged_theory_file_path() {
+    $dir = $this->directory_name();
+
+    $file = $this->theory_file_name();
+
+    return array(REPO_DIR,REPO_STAGING_DIR,$dir,$file);
   }
 
   function theory_file_link($text) {

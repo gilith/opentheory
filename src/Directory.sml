@@ -28,75 +28,6 @@ fun ageFilename {filename} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Clean up the package staging area.                                        *)
-(* ------------------------------------------------------------------------- *)
-
-fun nukeStaged info =
-    let
-      val () = PackageInfo.nukeDirectory info
-
-(*OpenTheoryTrace1
-      val () =
-          let
-            val mesg =
-                "nuked old package " ^
-                PackageNameVersion.toString (PackageInfo.nameVersion info) ^
-                " in staging area\n"
-          in
-            trace mesg
-          end
-*)
-    in
-      ()
-    end;
-
-fun checkStagingPackagesDirectory cfg {directory = dir} =
-    let
-      val dirStrm = OS.FileSys.openDir dir
-
-      fun readAll dels =
-          case OS.FileSys.readDir dirStrm of
-            NONE => dels
-          | SOME file =>
-            let
-              val namever = PackageNameVersion.fromString file
-
-              val directory = OS.Path.joinDirFile {dir = dir, file = file}
-
-              val age = ageFilename {filename = directory}
-
-              val threshold =
-                  DirectoryConfig.cleanupInstall
-                    (DirectoryConfig.install cfg)
-
-              val dels =
-                  if Time.<= (age,threshold) then dels
-                  else
-                    let
-                      val sys = DirectoryConfig.system cfg
-
-                      val info =
-                          PackageInfo.mk
-                            {system = sys,
-                             nameVersion = namever,
-                             directory = directory}
-                    in
-                      info :: dels
-                    end
-            in
-              readAll dels
-            end
-
-      val dels = readAll []
-
-      val () = OS.FileSys.closeDir dirStrm
-
-      val () = List.app nukeStaged dels
-    in
-      ()
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Clean up the repo package lists.                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -246,17 +177,6 @@ fun mk {rootDirectory = rootDir} =
             DirectoryPackages.mk
               {system = sys,
                rootDirectory = rootDir}
-          end
-
-      val () =
-          let
-            val dir =
-                DirectoryPath.mkStagingPackagesDirectory
-                  {rootDirectory = rootDir}
-
-            val () = checkStagingPackagesDirectory config dir
-          in
-            ()
           end
 
       val repos =
@@ -769,8 +689,15 @@ fun postStagePackage dir stageInfo warnSummary =
       ()
     end;
 
-fun postStageTarball dir fndr stageInfo contents minimal =
+fun postStageTarball dir fndr stageInfo contents =
     let
+      val minimal =
+          let
+            val cfg = DirectoryConfig.install (config dir)
+          in
+            {minimal = DirectoryConfig.minimalInstall cfg}
+          end
+
       (* Unpack the tarball *)
 
       val () = PackageInfo.unpackTarball stageInfo contents minimal
@@ -817,7 +744,7 @@ fun checkStagePackage dir repo namever chk =
         rev errs
       end;
 
-fun stagePackage dir fndr repo namever chk minimal =
+fun stagePackage dir fndr repo namever chk =
     let
 (*OpenTheoryDebug
       val errs = checkStagePackage dir repo namever chk
@@ -844,7 +771,7 @@ fun stagePackage dir fndr repo namever chk minimal =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir fndr stageInfo contents minimal
+        val () = postStageTarball dir fndr stageInfo contents
       in
         ()
       end
@@ -881,7 +808,7 @@ fun checkStageTarball dir contents =
         end
     end;
 
-fun stageTarball dir fndr tarFile contents minimal =
+fun stageTarball dir fndr tarFile contents =
     let
 (*OpenTheoryDebug
       val errs = checkStageTarball dir contents
@@ -906,7 +833,7 @@ fun stageTarball dir fndr tarFile contents minimal =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir fndr stageInfo contents minimal
+        val () = postStageTarball dir fndr stageInfo contents
       in
         ()
       end
@@ -1343,11 +1270,53 @@ fun installStaged dir namever chk =
 (* Cleaning up staged packages.                                              *)
 (* ------------------------------------------------------------------------- *)
 
+fun listStaged dir {maxAge} =
+    let
+      val {directory = stagingDir} = stagingPackagesDirectory dir
+
+      val dirStrm = OS.FileSys.openDir stagingDir
+
+      fun readAll dels =
+          case OS.FileSys.readDir dirStrm of
+            NONE => dels
+          | SOME file =>
+            let
+              val namever = PackageNameVersion.fromString file
+
+              val young =
+                  case maxAge of
+                    NONE => false
+                  | SOME threshold =>
+                    let
+                      val directory =
+                          OS.Path.joinDirFile {dir = stagingDir, file = file}
+
+                      val age = ageFilename {filename = directory}
+                    in
+                      Time.<= (age,threshold)
+                    end
+
+              val dels =
+                  if young then dels
+                  else PackageNameVersionSet.add dels namever
+            in
+              readAll dels
+            end
+
+      val dels = readAll PackageNameVersionSet.empty
+
+      val () = OS.FileSys.closeDir dirStrm
+    in
+      dels
+    end;
+
 fun cleanupStaged dir namever =
     let
       val stageInfo = stagingPackageInfo dir namever
+
+      val () = PackageInfo.nukeDirectory stageInfo
     in
-      nukeStaged stageInfo
+      ()
     end;
 
 (* ------------------------------------------------------------------------- *)

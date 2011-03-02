@@ -128,7 +128,6 @@ val checkStagePackage :
 val stagePackage :
     directory -> PackageFinder.finder ->
     DirectoryRepo.repo -> PackageNameVersion.nameVersion -> Checksum.checksum ->
-    {minimal : bool} ->
     unit
 
 (* ------------------------------------------------------------------------- *)
@@ -142,7 +141,7 @@ val checkStageTarball :
 
 val stageTarball :
     directory -> PackageFinder.finder ->
-    {filename : string} -> PackageTarball.contents -> {minimal : bool} ->
+    {filename : string} -> PackageTarball.contents ->
     unit
 
 (* ------------------------------------------------------------------------- *)
@@ -173,6 +172,9 @@ val installStaged :
 (* ------------------------------------------------------------------------- *)
 (* Cleaning up staged packages.                                              *)
 (* ------------------------------------------------------------------------- *)
+
+val listStaged :
+    directory -> {maxAge : Time.time option} -> PackageNameVersionSet.set
 
 val cleanupStaged : directory -> PackageNameVersion.nameVersion -> unit
 

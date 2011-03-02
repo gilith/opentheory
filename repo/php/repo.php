@@ -19,6 +19,55 @@ require_once 'upload.php';
 require_once 'opentheory.php';
 
 ///////////////////////////////////////////////////////////////////////////////
+// Register a staged package with the repo.
+///////////////////////////////////////////////////////////////////////////////
+
+function repo_register_staged($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  // Check whether we are already registered
+
+  $package_table = package_table();
+
+  $pkg = $package_table->find_package_by_name_version($name_version);
+
+  if (isset($pkg)) { return $pkg; }
+
+  // Create a new entry in the package table
+
+  $tags = opentheory_tags($name_version);
+
+  $description = description_from_tags($tags);
+
+  $author = author_from_tags($tags);
+
+  $license = license_from_tags($tags);
+
+  $pkg = $package_table->create_package($name_version,$description,$author,
+                                        $license);
+
+  $package_table->mark_installed($pkg);
+
+  // Record the children in the dependency table
+
+  $dependency_table = dependency_table();
+
+  $children = opentheory_children($name_version);
+
+  foreach ($children as $child_name_version) {
+    $child = repo_register($child_name_version);
+
+    $dependency_table->insert_dependency($pkg,$child);
+
+    if (!$child->auxiliary() && $pkg->is_auxiliary_child($child)) {
+      $package_table->mark_auxiliary($child);
+    }
+  }
+
+  return $pkg;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Register an installed package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 

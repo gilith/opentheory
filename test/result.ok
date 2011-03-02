@@ -149,8 +149,11 @@ url = http://www.gilith.com/research/opentheory/licenses/MIT.txt
 name = HOLLight
 url = http://www.gilith.com/research/opentheory/licenses/HOLLight.txt
 
+[cleanup]
+auto = 3600
+
 [install]
-cleanup = 3600
+minimal = false
 
 [system]
 chmod = chmod

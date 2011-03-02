@@ -33,12 +33,20 @@ val urlLicense : license -> {url : string}
 val findLicense : license list -> {name : string} -> license option
 
 (* ------------------------------------------------------------------------- *)
+(* A type of cleanup configuration data.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+type cleanup
+
+val autoCleanup : cleanup -> Time.time option
+
+(* ------------------------------------------------------------------------- *)
 (* A type of install configuration data.                                     *)
 (* ------------------------------------------------------------------------- *)
 
 type install
 
-val cleanupInstall : install -> Time.time
+val minimalInstall : install -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
@@ -49,6 +57,8 @@ type config
 val repos : config -> repo list
 
 val licenses : config -> license list
+
+val cleanup : config -> cleanup
 
 val install : config -> install
 
