@@ -226,11 +226,15 @@ end;
 
 fun checkShow seqs =
     let
-      fun add (c,acc) = NameSet.add acc (Const.name c)
+      fun addTypeOp (ot,acc) = NameSet.add acc (TypeOp.name ot)
 
-      val cs = SequentSet.consts seqs
+      fun addConst (c,acc) = NameSet.add acc (Const.name c)
 
-      val ns = ConstSet.foldl add NameSet.empty cs
+      val ns = NameSet.empty
+
+      val ns = TypeOpSet.foldl addTypeOp ns (SequentSet.typeOps seqs)
+
+      val ns = ConstSet.foldl addConst ns (SequentSet.consts seqs)
 
       fun changed sh n =
           let
