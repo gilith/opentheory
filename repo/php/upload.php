@@ -55,10 +55,10 @@ function pretty_upload_status($status) {
   is_upload_status($status) or trigger_error('bad status');
 
   if (equal_upload_status($status,INITIAL_UPLOAD_STATUS)) {
-    return 'Waiting for packages to be added';
+    return 'Waiting for a package to be added';
   }
   elseif (equal_upload_status($status,ADD_PACKAGE_UPLOAD_STATUS)) {
-    return 'Waiting for more packages to be added or to finish';
+    return 'Waiting for more packages to be added';
   }
   elseif (equal_upload_status($status,CONFIRM_AUTHOR_UPLOAD_STATUS)) {
     return 'Waiting for the package author to confirm their email address';

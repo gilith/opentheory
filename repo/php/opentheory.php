@@ -120,17 +120,17 @@ function opentheory_install($name_version) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Cleanup a staged package.
+// Clean up a staged package.
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_cleanup($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $args = $name_version->to_string();
+  $args = ' ' . $name_version->to_string();
 
-  $output = opentheory_action('cleanup',$args);
+  $error = opentheory_action('cleanup',$args);
 
-  return $output;
+  if (isset($error)) { trigger_error('cleanup failed: ' . $error); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
