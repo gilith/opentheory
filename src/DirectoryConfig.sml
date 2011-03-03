@@ -122,6 +122,8 @@ fun findRepo repos name =
       | _ :: _ :: _ => raise Bug "multiple repos with the same name"
     end;
 
+fun memberRepo repos name = Option.isSome (findRepo repos name);
+
 fun toSectionRepo repo =
     let
       val Repo {name,url,refresh} = repo
@@ -235,7 +237,18 @@ local
         if key = nameRepoKey then addNameRepoSectionState value state
         else if key = urlRepoKey then addUrlRepoSectionState value state
         else if key = refreshRepoKey then addRefreshRepoSectionState value state
-        else raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+        else
+          let
+            val mesg =
+                "unknown key " ^ Config.toStringKey {key = key} ^
+                " in section " ^
+                Config.toStringSectionName {name = repoSection} ^
+                " of config file"
+
+            val () = warn mesg
+          in
+            state
+          end
       end;
 
   fun finalRepoSectionState state =
@@ -330,6 +343,8 @@ fun findLicense licenses {name = n} =
       | _ :: _ :: _ => raise Bug "multiple licenses with the same name"
     end;
 
+fun memberLicense licenses name = Option.isSome (findLicense licenses name);
+
 fun toSectionLicense license =
     let
       val License {name,url} = license
@@ -411,7 +426,18 @@ local
       in
         if key = nameLicenseKey then addNameLicenseSectionState value state
         else if key = urlLicenseKey then addUrlLicenseSectionState value state
-        else raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+        else
+          let
+            val mesg =
+                "unknown key " ^ Config.toStringKey {key = key} ^
+                " in section " ^
+                Config.toStringSectionName {name = licenseSection} ^
+                " of config file"
+
+            val () = warn mesg
+          in
+            state
+          end
       end;
 
   fun finalLicenseSectionState state =
@@ -543,7 +569,17 @@ local
         if key = autoCleanupKey then
           addAutoCleanupSectionState value state
         else
-          raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+          let
+            val mesg =
+                "unknown key " ^ Config.toStringKey {key = key} ^
+                " in section " ^
+                Config.toStringSectionName {name = cleanupSection} ^
+                " of config file"
+
+            val () = warn mesg
+          in
+            state
+          end
       end;
 
   fun finalCleanupSectionState ins state =
@@ -645,7 +681,17 @@ local
         if key = minimalInstallKey then
           addMinimalInstallSectionState value state
         else
-          raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+          let
+            val mesg =
+                "unknown key " ^ Config.toStringKey {key = key} ^
+                " in section " ^
+                Config.toStringSectionName {name = installSection} ^
+                " of config file"
+
+            val () = warn mesg
+          in
+            state
+          end
       end;
 
   fun finalInstallSectionState ins state =
@@ -909,7 +955,18 @@ local
         else if key = echoSystemKey then addEchoSystemSectionState value state
         else if key = shaSystemKey then addShaSystemSectionState value state
         else if key = tarSystemKey then addTarSystemSectionState value state
-        else raise Error ("unknown key: " ^ Config.toStringKey {key = key})
+        else
+          let
+            val mesg =
+                "unknown key " ^ Config.toStringKey {key = key} ^
+                " in section " ^
+                Config.toStringSectionName {name = systemSection} ^
+                " of config file"
+
+            val () = warn mesg
+          in
+            state
+          end
       end;
 
   fun finalSystemSectionState sys state =
@@ -1038,6 +1095,21 @@ fun addRepo cfg repo =
              install,
              system} = cfg
 
+      val () =
+          let
+            val name = nameRepo repo
+          in
+            if not (memberRepo repos name) then ()
+            else
+              let
+                val err =
+                    "multiple repos named " ^ PackageName.toString name ^
+                    " in the config file"
+              in
+                raise Error err
+              end
+          end
+
       val repos = repos @ [repo]
     in
       Config
@@ -1056,6 +1128,21 @@ fun addLicense cfg license =
              cleanup,
              install,
              system} = cfg
+
+      val () =
+          let
+            val name as {name = n} = nameLicense license
+          in
+            if not (memberLicense licenses name) then ()
+            else
+              let
+                val err =
+                    "multiple licenses named " ^ n ^
+                    " in the config file"
+              in
+                raise Error err
+              end
+          end
 
       val licenses = licenses @ [license]
     in
@@ -1190,11 +1277,13 @@ local
           end
         else
           let
-            val err =
+            val mesg =
                 "unknown config section: " ^
                 Config.toStringSectionName {name = name}
+
+            val () = warn mesg
           in
-            raise Error err
+            cfg
           end
       end;
 
