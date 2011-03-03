@@ -31,17 +31,15 @@ class UploadPackageTable extends DatabaseTable {
     $upload_id = $upload->id();
     $pkg_id = $pkg->id();
 
-    $where =
-      'upload = ' . database_value($upload_id) . ' AND ' .
-      'package = ' . database_value($pkg_id);
+    $where_condition = 'upload = ' . database_value($upload_id);
 
-    $sequence = $this->max_rows('sequence',$where) + 1;
+    $sequence = $this->max_rows('sequence',$where_condition) + 1;
 
     database_query('
       INSERT INTO ' . $this->table() . '
       SET upload = ' . database_value($upload_id) . ',
-          package = ' . database_value($pkg_id) . ',
-          sequence = ' . database_value($sequence) . ';');
+          sequence = ' . database_value($sequence) . ',
+          package = ' . database_value($pkg_id) . ';');
   }
 
   function sequence_package_upload($upload,$pkg) {
@@ -95,11 +93,11 @@ class UploadPackageTable extends DatabaseTable {
   function UploadPackageTable($table) {
     $fields =
       array('upload' => 'char(' . UPLOAD_ID_CHARS . ') NOT NULL',
-            'package' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',
-            'sequence' => 'int(' . UPLOAD_PACKAGE_ID_DIGITS . ') NOT NULL');
+            'sequence' => 'int(' . UPLOAD_PACKAGE_ID_DIGITS . ') NOT NULL',
+            'package' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL');
 
     $indexes =
-      array('PRIMARY KEY (upload,package)');
+      array('PRIMARY KEY (upload,sequence)');
 
     parent::DatabaseTable($table,$fields,$indexes);
   }

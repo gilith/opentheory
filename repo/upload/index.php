@@ -143,30 +143,39 @@ if ($select->is_value()) {
   }
 
   if (isset($upload) && !$upload->add_packagable()) {
-    trigger_error('this upload set is closed');
+    $error = 'this upload set is closed';
+  }
+  else {
+    $error = opentheory_stage($tarball,$name_version,$checksum);
   }
 
-  $output = opentheory_stage($tarball,$name_version,$checksum);
+  if (!isset($error)) {
+    if (!isset($upload)) { $upload = create_new_upload(); }
 
-  if (isset($output)) {
+    $tags = opentheory_staged_tags($name_version);
+
+    $children = opentheory_staged_children($name_version);
+
+    $error = repo_check_staged($upload,$name_version,$tags,$children);
+
+    if (isset($error)) { opentheory_cleanup($name_version); }
+  }
+
+  if (isset($error)) {
     if (is_script()) {
       $report =
         'failed to upload package ' . $name_version->to_string() . ':' . "\n" .
-        $output;
+        $error;
 
       output_script($report);
     }
 
     $main =
 '<p>Failed to upload package ' . $name_version->to_string() . ':</p>' .
-'<pre>' . $output . '</pre>';
+'<pre>' . $error . '</pre>';
   }
   else {
-    if (!isset($upload)) {
-      $upload = create_new_upload();
-    }
-
-    $pkg = repo_register_staged($upload,$name_version);
+    $pkg = repo_register_staged($upload,$name_version,$tags,$children);
 
     set_upload_status($upload,ADD_PACKAGE_UPLOAD_STATUS);
 

@@ -20,22 +20,51 @@ require_once 'upload.php';
 require_once 'upload_package.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Register a staged package with the repo.
+// Check a staged package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 
-function repo_register_staged($upload,$name_version) {
+function repo_check_staged($upload,$name_version,$tags,$children) {
   isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
+  is_array($tags) or trigger_error('bad tags');
+  is_array($children) or trigger_error('bad children');
 
   // Check whether we are already registered
 
   $pkg = find_package_by_name_version($name_version);
 
-  if (isset($pkg)) { trigger_error('already registered'); }
+  if (isset($pkg)) { trigger_error('package already registered'); }
+
+  // Check child packages are part of this upload
+
+  foreach ($children as $child_name_version) {
+    $child = find_package_by_name_version($child_name_version);
+
+    if (!isset($child)) { trigger_error('no child package entry'); }
+
+    if (!($child->installed() || member_package_upload($child,$upload))) {
+      $error =
+        'dependent package ' . $child->to_string() .
+        ' is not part of this upload set';
+
+      return $error;
+    }
+  }
+
+  return null;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Register a staged package with the repo.
+///////////////////////////////////////////////////////////////////////////////
+
+function repo_register_staged($upload,$name_version,$tags,$children) {
+  isset($upload) or trigger_error('bad upload');
+  isset($name_version) or trigger_error('bad name_version');
+  is_array($tags) or trigger_error('bad tags');
+  is_array($children) or trigger_error('bad children');
 
   // Create a new entry in the package table
-
-  $tags = opentheory_staged_tags($name_version);
 
   $description = description_from_tags($tags);
 
@@ -50,8 +79,6 @@ function repo_register_staged($upload,$name_version) {
   add_package_upload($upload,$pkg);
 
   // Record the children in the dependency table
-
-  $children = opentheory_staged_children($name_version);
 
   foreach ($children as $child_name_version) {
     $child = find_package_by_name_version($child_name_version);
