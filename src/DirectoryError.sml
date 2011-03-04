@@ -225,9 +225,8 @@ in
          PackageNameVersion.toString namever ^
          " which is not installed"
        | UninstalledUpgrade namever =>
-         "depends on package " ^
-         PackageNameVersion.toString namever ^
-         " which is not installed"
+         "package " ^ PackageNameVersion.toString namever ^
+         " is not installed"
        | WrongChecksumObsolete {upload,obsolete} =>
          "upload package " ^ PackageNameVersion.toString upload ^
          " obsoletes package " ^ PackageNameVersion.toString obsolete ^
