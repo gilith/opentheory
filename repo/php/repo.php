@@ -29,20 +29,21 @@ function repo_check_staged($upload,$name_version,$tags,$children) {
   is_array($tags) or trigger_error('bad tags');
   is_array($children) or trigger_error('bad children');
 
-  // Check whether we are already registered
+  // Check that we are not already registered
 
-  $pkg = find_package_by_name_version($name_version);
+  if (exists_package_called_name_version($name_version)) {
+    trigger_error('package already registered');
+  }
 
-  if (isset($pkg)) { trigger_error('package already registered'); }
-
-  // Check child packages are part of this upload
+  // Check uploaded child packages are part of this upload
 
   foreach ($children as $child_name_version) {
     $child = find_package_by_name_version($child_name_version);
 
-    if (!isset($child)) { trigger_error('no child package entry'); }
-
-    if (!($child->installed() || member_package_upload($child,$upload))) {
+    if (isset($child) &&
+        !($child->installed()) &&
+        !member_package_upload($child,$upload))
+    {
       $error =
         'dependent package ' . $child->to_string() .
         ' is not part of this upload set';

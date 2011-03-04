@@ -41,7 +41,7 @@ if (isset($pkg)) {
 
   $main .=
 '<h3>Information</h3>' .
-'<table class="package">' .
+'<table class="information">' .
 '<tr><td>version</td><td>' . string_to_html($version_info) . '</td></tr>' .
 '<tr><td>author</td><td>' . string_to_html($author_info) . '</td></tr>' .
 '<tr><td>license</td><td>' . string_to_html($license_info) . '</td></tr>' .
@@ -103,6 +103,8 @@ if (isset($upload)) {
 
   $status = $upload->status();
 
+  $author = $upload->author();
+
   $pkgs = packages_upload($upload);
 
   $initiated_info = $since_initiated->to_string() . ' ago';
@@ -112,9 +114,18 @@ if (isset($upload)) {
   $main =
 '<h2>Package Upload</h2>' .
 '<h3>Information</h3>' .
-'<table class="package">' .
+'<table class="information">' .
 '<tr><td>status</td><td>' . string_to_html($status_info) . '</td></tr>' .
-'<tr><td>initiated</td><td>' . string_to_html($initiated_info) . '</td></tr>' .
+'<tr><td>initiated</td><td>' . string_to_html($initiated_info) . '</td></tr>';
+
+  if (isset($author)) {
+    $author_info = $author->to_string();
+
+    $main .=
+'<tr><td>author</td><td>' . string_to_html($author_info) . '</td></tr>';
+  }
+
+  $main .=
 '</table>';
 
   if (count($pkgs) > 0) {

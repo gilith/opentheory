@@ -109,7 +109,13 @@ class Package {
   function summary_file_link($text) {
     is_string($text) or trigger_error('bad text');
     $namever = $this->name_version();
-    return $namever->summary_file_link($text);
+
+    if ($this->installed()) {
+      return $namever->summary_file_link($text);
+    }
+    else {
+      return $namever->staged_summary_file_link($text);
+    }
   }
 
   function tarball_name() {
@@ -120,7 +126,13 @@ class Package {
   function tarball_link($text) {
     is_string($text) or trigger_error('bad text');
     $namever = $this->name_version();
-    return $namever->tarball_link($text);
+
+    if ($this->installed()) {
+      return $namever->tarball_link($text);
+    }
+    else {
+      return $namever->staged_tarball_link($text);
+    }
   }
 
   function theory_file_name() {
@@ -131,7 +143,13 @@ class Package {
   function theory_file_link($text) {
     is_string($text) or trigger_error('bad text');
     $namever = $this->name_version();
-    return $namever->theory_file_link($text);
+
+    if ($this->installed()) {
+      return $namever->theory_file_link($text);
+    }
+    else {
+      return $namever->staged_theory_file_link($text);
+    }
   }
 
   function Package($id,$name_version,$description,$author,$license,
@@ -457,6 +475,14 @@ function find_package_by_name_version($name_version) {
   $package_table = package_table();
 
   return $package_table->find_package_by_name_version($name_version);
+}
+
+function exists_package_called_name_version($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $pkg = find_package_by_name_version($name_version);
+
+  return isset($pkg);
 }
 
 ?>

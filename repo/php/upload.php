@@ -201,6 +201,12 @@ class Upload {
     $this->_status = $status;
   }
 
+  function set_author($author) {
+    isset($author) or trigger_error('bad author');
+
+    $this->_author = $author;
+  }
+
   function Upload($id,$initiated,$status,$author,$obsolete) {
     is_string($id) or trigger_error('bad id');
     isset($initiated) or trigger_error('bad initiated');
@@ -337,20 +343,21 @@ class UploadTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function set_status($upload,$status) {
+  function set_add_package_status($upload,$author) {
     isset($upload) or trigger_error('bad upload');
-    is_upload_status($status) or trigger_error('bad status');
+    isset($author) or trigger_error('bad author');
 
-    if (!equal_upload_status($upload->status(),$status)) {
-      $upload->set_status($status);
+    $upload->set_status(ADD_PACKAGE_UPLOAD_STATUS);
+    $upload->set_author($author);
 
-      $id = $upload->id();
+    $id = $upload->id();
+    $author_id = $author->id();
 
-      database_query('
-        UPDATE ' . $this->table() . '
-        SET status = ' . database_value($status) . '
-        WHERE id = ' . database_value($id) . ';');
-    }
+    database_query('
+      UPDATE ' . $this->table() . '
+      SET status = ' . database_value(ADD_PACKAGE_UPLOAD_STATUS) . ',
+          author = ' . database_value($author_id) . '
+      WHERE id = ' . database_value($id) . ';');
   }
 
   function UploadTable($table) {
@@ -425,16 +432,16 @@ function create_new_upload() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Set an upload status.
+// Advance the upload status.
 ///////////////////////////////////////////////////////////////////////////////
 
-function set_upload_status($upload,$status) {
+function set_add_package_upload_status($upload,$author) {
   isset($upload) or trigger_error('bad upload');
-  is_upload_status($status) or trigger_error('bad status');
+  isset($author) or trigger_error('bad author');
 
   $upload_table = upload_table();
 
-  $upload_table->set_status($upload,$status);
+  $upload_table->set_add_package_status($upload,$author);
 }
 
 ?>

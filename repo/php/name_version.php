@@ -99,10 +99,26 @@ class PackageNameVersion {
     return array(REPO_DIR,REPO_PACKAGES_DIR,$dir,$file);
   }
 
+  function staged_summary_file_path() {
+    $dir = $this->directory_name();
+
+    $file = $this->summary_file_name();
+
+    return array(REPO_DIR,REPO_STAGING_DIR,$dir,$file);
+  }
+
   function summary_file_link($text) {
     is_string($text) or trigger_error('bad text');
 
     $path = $this->summary_file_path();
+
+    return site_link($path,$text);
+  }
+
+  function staged_summary_file_link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = $this->staged_summary_file_path();
 
     return site_link($path,$text);
   }
@@ -119,10 +135,26 @@ class PackageNameVersion {
     return array(REPO_DIR,REPO_PACKAGES_DIR,$dir,$file);
   }
 
+  function staged_tarball_path() {
+    $dir = $this->directory_name();
+
+    $file = $this->tarball_name();
+
+    return array(REPO_DIR,REPO_STAGING_DIR,$dir,$file);
+  }
+
   function tarball_link($text) {
     is_string($text) or trigger_error('bad text');
 
     $path = $this->tarball_path();
+
+    return site_link($path,$text);
+  }
+
+  function staged_tarball_link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = $this->staged_tarball_path();
 
     return site_link($path,$text);
   }
@@ -151,6 +183,14 @@ class PackageNameVersion {
     is_string($text) or trigger_error('bad text');
 
     $path = $this->theory_file_path();
+
+    return site_link($path,$text);
+  }
+
+  function staged_theory_file_link($text) {
+    is_string($text) or trigger_error('bad text');
+
+    $path = $this->staged_theory_file_path();
 
     return site_link($path,$text);
   }

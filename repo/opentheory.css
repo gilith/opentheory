@@ -282,10 +282,10 @@ div#twitter ul li {
 }
 
 /******************************************************************************
-* Package pages.
+* Information tables.
 ******************************************************************************/
 
-table.package td {
+table.information td {
   background-color: #e0e8ff;
   margin: 0;
   border: 1px dotted white;

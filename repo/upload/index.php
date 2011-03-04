@@ -177,7 +177,13 @@ if ($select->is_value()) {
   else {
     $pkg = repo_register_staged($upload,$name_version,$tags,$children);
 
-    set_upload_status($upload,ADD_PACKAGE_UPLOAD_STATUS);
+    $status = $upload->status();
+
+    if (equal_upload_status($status,INITIAL_UPLOAD_STATUS)) {
+      $author = $pkg->author();
+
+      set_add_package_upload_status($upload,$author);
+    }
 
     if (is_script()) {
       $report = 'successfully uploaded package ' . $name_version->to_string();
