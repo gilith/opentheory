@@ -43,6 +43,8 @@ datatype error =
        obsolete : PackageNameVersion.nameVersion}
   | UninstalledParent of
       PackageNameVersion.nameVersion
+  | UninstalledUpgrade of
+      PackageNameVersion.nameVersion
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}

@@ -45,6 +45,8 @@ datatype error =
        obsolete : PackageNameVersion.nameVersion}
   | UninstalledParent of
       PackageNameVersion.nameVersion
+  | UninstalledUpgrade of
+      PackageNameVersion.nameVersion
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}
@@ -146,6 +148,7 @@ fun isFatal err =
     | TagError _ => true
     | UninstalledObsolete _ => false
     | UninstalledParent _ => true
+    | UninstalledUpgrade _ => false
     | WrongChecksumObsolete _ => false
     | WrongChecksumOnRepo _ => true;
 
@@ -216,10 +219,15 @@ in
        | UninstalledObsolete {upload,obsolete} =>
          "upload package " ^ PackageNameVersion.toString upload ^
          " obsoletes package " ^ PackageNameVersion.toString obsolete ^
-         ",\n  which is uninstalled"
+         ",\n  which is not installed"
        | UninstalledParent namever =>
-         "depends on uninstalled package: " ^
-         PackageNameVersion.toString namever
+         "depends on package " ^
+         PackageNameVersion.toString namever ^
+         " which is not installed"
+       | UninstalledUpgrade namever =>
+         "depends on package " ^
+         PackageNameVersion.toString namever ^
+         " which is not installed"
        | WrongChecksumObsolete {upload,obsolete} =>
          "upload package " ^ PackageNameVersion.toString upload ^
          " obsoletes package " ^ PackageNameVersion.toString obsolete ^

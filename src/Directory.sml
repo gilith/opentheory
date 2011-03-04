@@ -381,7 +381,7 @@ fun checkUpgradeTheory dir pkg =
 
       val missing = List.filter notInstalled (Package.packages pkg)
     in
-      List.map DirectoryError.NotInstalled missing
+      List.map DirectoryError.UninstalledUpgrade missing
     end;
 
 fun upgradeTheory dir pkg =
@@ -408,12 +408,21 @@ fun upgradeTheory dir pkg =
                   in
                     raise Error err
                   end
+
+            val nv' =
+                case PackageNameVersionSet.findl (K true) nvs of
+                  SOME nv' => nv'
+                | NONE =>
+                  let
+                    val err =
+                        "no versions of package " ^
+                        PackageName.toString (PackageNameVersion.name nv) ^
+                        " are installed"
+                  in
+                    raise Error err
+                  end
           in
-            case PackageNameVersionSet.findl (K true) nvs of
-              SOME nv' =>
-              if PackageNameVersion.equal nv' nv then NONE else SOME nv'
-            | NONE =>
-              raise Bug "Directory.upgradeTheory.latest"
+            if PackageNameVersion.equal nv' nv then NONE else SOME nv'
           end
     in
       Package.updatePackages latest pkg
