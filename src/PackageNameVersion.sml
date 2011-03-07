@@ -68,6 +68,16 @@ fun equal nv1 nv2 =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Prefix names.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun isPrefixName nv1 nv2 =
+    PackageName.isPrefix (name nv1) (name nv2);
+
+fun isStrictPrefixName nv1 nv2 =
+    PackageName.isStrictPrefix (name nv1) (name nv2);
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -208,7 +218,11 @@ struct
               [] => true
             | nv :: nvl =>
               not (member nv acc) andalso
-              check (closedAdd children acc (singleton nv)) nvl
+              let
+                val acc = closedAdd children acc (singleton nv)
+              in
+                check acc nvl
+              end
       in
         check empty
       end;

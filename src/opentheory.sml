@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20110303)"^"\n";
+val versionString = program^" "^version^" (release 20110306)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -333,7 +333,7 @@ in
 end;
 
 val cleanupFooter =
-    "Leave out the <package-name> argument to clean up all staged packages.\n";
+    "With no <package-name> arguments will clean up all staged packages.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
@@ -669,7 +669,7 @@ in
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => addRepository s)},
        {switches = ["--manual"], arguments = [],
-        description = "do not also upload dependent packages",
+        description = "do not also upload auxiliary packages",
         processor = beginOpt endOpt (fn _ => autoUpload := false)}];
 end;
 
@@ -718,7 +718,7 @@ fun commandString cmd =
 
 fun commandArgs cmd =
     case cmd of
-      Cleanup => " <package-name>"
+      Cleanup => " <package-name> ..."
     | Help => ""
     | Info => " <package-name>|input.thy|input.art"
     | Init => ""
@@ -727,11 +727,11 @@ fun commandArgs cmd =
     | Uninstall => " <package-name>"
     | Update => ""
     | Upgrade => " input.thy"
-    | Upload => " <package-name>";
+    | Upload => " <package-name> ...";
 
 fun commandDescription cmd =
     case cmd of
-      Cleanup => "clean up staged packages"
+      Cleanup => "clean up staged theory packages"
     | Help => "display command help"
     | Info => "display package information"
     | Init => "initialize package directory"
@@ -740,7 +740,7 @@ fun commandDescription cmd =
     | Uninstall => "uninstall a theory package"
     | Update => "update repo package lists"
     | Upgrade => "upgrade a theory file"
-    | Upload => "upload a theory package to a repo";
+    | Upload => "upload theory packages to a repo";
 
 fun commandFooter cmd =
     case cmd of
@@ -2234,7 +2234,7 @@ fun upload namevers =
 
       val () = DirectoryRepo.update repo
 
-      val namevers =
+      val (support,namevers) =
           let
             fun notInDir nv = not (Directory.member nv dir)
 
@@ -2248,17 +2248,30 @@ fun upload namevers =
                 if not (!autoUpload) then namevers
                 else
                   let
-                    val ancs = Directory.ancestorsSet dir namevers
+                    val ancs = Directory.auxiliaryAncestorsSet dir namevers
 
                     val ancs = PackageNameVersionSet.filter notInRepo ancs
                   in
                     PackageNameVersionSet.union ancs namevers
                   end
+
+            val support =
+                let
+                  val ancs = Directory.ancestorsSet dir namevers
+
+                  val ancs = PackageNameVersionSet.filter notInRepo ancs
+
+                  val ancs = PackageNameVersionSet.difference ancs namevers
+                in
+                  Directory.installOrder dir ancs
+                end
+
+            val namevers = unknown @ Directory.installOrder dir namevers
           in
-            unknown @ Directory.installOrder dir namevers
+            (support,namevers)
           end
 
-      val errs = Directory.checkUpload dir repo namevers
+      val errs = Directory.checkUpload dir repo support namevers
 
       val () =
           if List.null errs then ()

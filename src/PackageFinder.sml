@@ -30,12 +30,20 @@ fun find (Finder f) n = f n;
 fun get f nv =
     case find f nv of
       SOME p => p
-    | NONE => raise Error "PackageFinder.get";
+    | NONE =>
+      let
+        val err =
+            "package " ^ PackageNameVersion.toString nv ^ " is not installed"
+      in
+        raise Error err
+      end;
 
 fun check f nv =
-    case find f nv of
-      SOME _ => ()
-    | NONE => raise Error "PackageFinder.check";
+    let
+      val _ = get f nv
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Finder combinators.                                                       *)

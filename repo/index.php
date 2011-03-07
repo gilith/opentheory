@@ -23,7 +23,7 @@ if (isset($pkg)) {
 
   $uploaded = $pkg->uploaded();
 
-  $children = package_children($pkg);
+  $parents = package_parents($pkg);
 
   $version_info = $pkg->version();
 
@@ -48,17 +48,17 @@ if (isset($pkg)) {
 '<tr><td>uploaded</td><td>' . string_to_html($uploaded_info) . '</td></tr>' .
 '</table>';
 
-  if (count($children) > 0) {
+  if (count($parents) > 0) {
     $main .=
 '<h3>Dependencies</h3>' .
 '<ul>';
 
-    foreach ($children as $child) {
+    foreach ($parents as $parent) {
       $main .=
 '<li>' .
-$child->link($child->to_string()) .
+$parent->link($parent->to_string()) .
 ' &mdash; ' .
-string_to_html($child->description()) .
+string_to_html($parent->description()) .
 '</li>';
     }
 

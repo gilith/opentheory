@@ -81,11 +81,11 @@ class Package {
     return $now->subtract($uploaded);
   }
 
-  function is_auxiliary_child($child) {
-    isset($child) or trigger_error('bad child');
+  function is_auxiliary_parent($parent) {
+    isset($parent) or trigger_error('bad parent');
 
     $name1 = $this->name();
-    $name2 = $child->name();
+    $name2 = $parent->name();
 
     return is_prefix_package_name($name1,$name2);
   }

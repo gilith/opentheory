@@ -94,7 +94,7 @@ function opentheory_stage($tarball,$name_version,$checksum) {
   isset($name_version) or trigger_error('bad name_version');
   !isset($checksum) or is_string($checksum) or trigger_error('bad checksum');
 
-  $args = ' --stage --name ' . $name_version->to_string();
+  $args = ' --stage --manual --name ' . $name_version->to_string();
 
   if (isset($checksum)) { $args .= ' --checksum ' . $checksum; }
 
@@ -178,13 +178,57 @@ function opentheory_staged_tags($name_version) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Query package children.
+// Query package parents.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_parse_children($target) {
+function opentheory_parse_parents($target) {
   is_string($target) or trigger_error('bad target');
 
   $args = ' --dependencies ' . $target;
+
+  $output = opentheory_query('info',$args);
+
+  $parents = array();
+
+  if (strcmp($output,'') != 0) {
+    $lines = explode("\n", $output);
+
+    foreach ($lines as $line) {
+      $parent = from_string_package_name_version($line);
+
+      if (!isset($parent)) { trigger_error('bad parent'); }
+
+      $parents[] = $parent;
+    }
+  }
+
+  return $parents;
+}
+
+function opentheory_parents($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $target = $name_version->to_string();
+
+  return opentheory_parse_parents($target);
+}
+
+function opentheory_staged_parents($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $target = $name_version->staged_to_string();
+
+  return opentheory_parse_parents($target);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Query package children.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_children($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $args = ' --uses ' . $name_version->to_string();
 
   $output = opentheory_query('info',$args);
 
@@ -203,22 +247,6 @@ function opentheory_parse_children($target) {
   }
 
   return $children;
-}
-
-function opentheory_children($name_version) {
-  isset($name_version) or trigger_error('bad name_version');
-
-  $target = $name_version->to_string();
-
-  return opentheory_parse_children($target);
-}
-
-function opentheory_staged_children($name_version) {
-  isset($name_version) or trigger_error('bad name_version');
-
-  $target = $name_version->staged_to_string();
-
-  return opentheory_parse_children($target);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

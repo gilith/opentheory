@@ -21,9 +21,11 @@ and installedString = "installed"
 and licenseString = "license"
 and mainString = "main"
 and nameString = "name"
-and separatorString = "-"
+and separatorChar = #"-"
 and showString = "show"
 and versionString = "version";
+
+val separatorString = str separatorChar;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package names.                                           *)
@@ -35,11 +37,11 @@ type name = string;
 (* Concatenation.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun append b1 b2 = b1 ^ separatorString ^ b2;
+fun append n1 n2 = n1 ^ separatorString ^ n2;
 
-fun concat bs =
-    if List.null bs then raise Error "PackageName.concat"
-    else String.concatWith separatorString bs;
+fun concat ns =
+    if List.null ns then raise Error "PackageName.concat"
+    else String.concatWith separatorString ns;
 
 fun destSuffix suff =
     let
@@ -58,7 +60,7 @@ fun destSuffix suff =
 
 val compare = String.compare;
 
-fun equal (b1 : name) b2 = b1 = b2;
+fun equal (n1 : name) n2 = n1 = n2;
 
 (* ------------------------------------------------------------------------- *)
 (* Generating fresh names.                                                   *)
@@ -79,12 +81,28 @@ fun variantName {avoid} n : name =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Prefix names.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun isStrictPrefix n1 n2 =
+    let
+      val i1 = size n1
+      and i2 = size n2
+    in
+      i1 < i2 andalso
+      String.isPrefix n1 n2 andalso
+      String.sub (n2,i1) = separatorChar
+    end;
+
+fun isPrefix n1 n2 = equal n1 n2 orelse isStrictPrefix n1 n2;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val pp = Print.ppString;
 
-fun toString (b : name) = b;
+fun toString (n : name) = n;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)

@@ -23,11 +23,11 @@ require_once 'upload_package.php';
 // Check a staged package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 
-function repo_check_staged($upload,$name_version,$tags,$children) {
+function repo_check_staged($upload,$name_version,$tags,$parents) {
   isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
   is_array($tags) or trigger_error('bad tags');
-  is_array($children) or trigger_error('bad children');
+  is_array($parents) or trigger_error('bad parents');
 
   // Check that we are not already registered
 
@@ -35,17 +35,17 @@ function repo_check_staged($upload,$name_version,$tags,$children) {
     trigger_error('package already registered');
   }
 
-  // Check uploaded child packages are part of this upload
+  // Check uploaded parent packages are part of this upload
 
-  foreach ($children as $child_name_version) {
-    $child = find_package_by_name_version($child_name_version);
+  foreach ($parents as $parent_name_version) {
+    $parent = find_package_by_name_version($parent_name_version);
 
-    if (isset($child) &&
-        !($child->installed()) &&
-        !member_package_upload($child,$upload))
+    if (isset($parent) &&
+        !($parent->installed()) &&
+        !member_package_upload($parent,$upload))
     {
       $error =
-        'dependent package ' . $child->to_string() .
+        'dependent package ' . $parent->to_string() .
         ' is not part of this upload set';
 
       return $error;
@@ -59,11 +59,11 @@ function repo_check_staged($upload,$name_version,$tags,$children) {
 // Register a staged package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 
-function repo_register_staged($upload,$name_version,$tags,$children) {
+function repo_register_staged($upload,$name_version,$tags,$parents) {
   isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
   is_array($tags) or trigger_error('bad tags');
-  is_array($children) or trigger_error('bad children');
+  is_array($parents) or trigger_error('bad parents');
 
   // Create a new entry in the package table
 
@@ -79,18 +79,18 @@ function repo_register_staged($upload,$name_version,$tags,$children) {
 
   add_package_upload($upload,$pkg);
 
-  // Record the children in the dependency table
+  // Record the parents in the dependency table
 
-  foreach ($children as $child_name_version) {
-    $child = find_package_by_name_version($child_name_version);
+  foreach ($parents as $parent_name_version) {
+    $parent = find_package_by_name_version($parent_name_version);
 
-    if (!isset($child)) { trigger_error('no child package entry'); }
+    if (!isset($parent)) { trigger_error('no parent package entry'); }
 
-    if (!($child->installed() || member_package_upload($child,$upload))) {
-      trigger_error('child not installed or part of this upload set');
+    if (!($parent->installed() || member_package_upload($parent,$upload))) {
+      trigger_error('parent not installed or part of this upload set');
     }
 
-    add_package_child($pkg,$child);
+    add_package_parent($pkg,$parent);
   }
 
   return $pkg;
@@ -126,19 +126,19 @@ function repo_register($name_version) {
 
   $package_table->mark_installed($pkg);
 
-  // Record the children in the dependency table
+  // Record the parents in the dependency table
 
   $dependency_table = dependency_table();
 
-  $children = opentheory_children($name_version);
+  $parents = opentheory_parents($name_version);
 
-  foreach ($children as $child_name_version) {
-    $child = repo_register($child_name_version);
+  foreach ($parents as $parent_name_version) {
+    $parent = repo_register($parent_name_version);
 
-    $dependency_table->insert_dependency($pkg,$child);
+    $dependency_table->insert_dependency($parent,$pkg);
 
-    if (!$child->auxiliary() && $pkg->is_auxiliary_child($child)) {
-      $package_table->mark_auxiliary($child);
+    if (!$parent->auxiliary() && $pkg->is_auxiliary_parent($parent)) {
+      $package_table->mark_auxiliary($parent);
     }
   }
 

@@ -40,6 +40,14 @@ val compare : nameVersion * nameVersion -> order
 val equal : nameVersion -> nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Prefix names.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val isPrefixName : nameVersion -> nameVersion -> bool
+
+val isStrictPrefixName : nameVersion -> nameVersion -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

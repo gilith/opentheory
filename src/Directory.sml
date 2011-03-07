@@ -355,6 +355,26 @@ fun ancestorsSet dir namevers =
 fun descendentsSet dir namevers =
     DirectoryPackages.descendentsSet (packages dir) namevers;
 
+(* Auxiliary packages *)
+
+fun auxiliaryParents dir namever =
+    DirectoryPackages.auxiliaryParents (packages dir) namever;
+
+fun auxiliaryChildren dir namever =
+    DirectoryPackages.auxiliaryChildren (packages dir) namever;
+
+fun auxiliaryAncestors dir namever =
+    DirectoryPackages.auxiliaryAncestors (packages dir) namever;
+
+fun auxiliaryDescendents dir namever =
+    DirectoryPackages.auxiliaryDescendents (packages dir) namever;
+
+fun auxiliaryAncestorsSet dir namevers =
+    DirectoryPackages.auxiliaryAncestorsSet (packages dir) namevers;
+
+fun auxiliaryDescendentsSet dir namevers =
+    DirectoryPackages.auxiliaryDescendentsSet (packages dir) namevers;
+
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)
@@ -1420,6 +1440,8 @@ local
            end
       end;
 
+  fun allInstalled dir nvs = List.all (fn nv => member nv dir) nvs;
+
   fun checkInstalled dir =
       let
         fun isKnown nv = member nv dir
@@ -1541,7 +1563,7 @@ local
         else DirectoryError.ObsoleteAuthors auths :: errs
       end;
 in
-  fun checkUpload dir repo namevers =
+  fun checkUpload dir repo support namevers =
       let
         val errs = []
 
@@ -1553,6 +1575,10 @@ in
 
         (* Check upload packages are installed *)
 
+        val () =
+            if allInstalled dir support then ()
+            else raise Bug "Directory.checkUpload: support not installed"
+
         val (namevers,errs) = checkInstalled dir namevers errs
       in
         if List.null namevers then rev errs
@@ -1561,16 +1587,16 @@ in
             (* Check upload packages are in install order *)
 
             val () =
-                if installOrdered dir namevers then ()
+                if installOrdered dir (support @ namevers) then ()
                 else raise Bug "Directory.checkUpload: not in install order"
 
             (* Check upload packages are not installed on the repo *)
 
-            val errs = checkNotOnRepo repo namevers errs
+            val errs = checkNotOnRepo repo (support @ namevers) errs
 
             (* Check upload ancestor packages are installed on the repo *)
 
-            val errs = checkAncestorsOnRepo dir repo namevers errs
+            val errs = checkAncestorsOnRepo dir repo (support @ namevers) errs
 
             (* Check upload packages have the same author *)
 

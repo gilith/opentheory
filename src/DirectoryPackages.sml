@@ -214,26 +214,18 @@ fun latestVersion pkgs nv =
 (* Dependencies in the installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun parents' pkgs =
-    let
-      val Packages {dependency = ref odep, ...} = pkgs
-    in
-      case odep of
-        SOME dep => PackageDependency.parents dep
-      | NONE => fn namever => PackageInfo.packages (get pkgs namever)
-    end;
-
 fun parents pkgs namever =
     let
 (*OpenTheoryDebug
       val _ = member namever pkgs orelse
               raise Bug "DirectoryPackages.parents: unknown package"
 *)
+      val Packages {dependency = ref odep, ...} = pkgs
     in
-      parents' pkgs namever
+      case odep of
+        SOME dep => PackageDependency.parents dep namever
+      | NONE => PackageInfo.packages (get pkgs namever)
     end;
-
-fun children' pkgs = PackageDependency.children (dependency pkgs);
 
 fun children pkgs namever =
     let
@@ -242,40 +234,62 @@ fun children pkgs namever =
               raise Bug "DirectoryPackages.children: unknown package"
 *)
     in
-      children' pkgs namever
+      PackageDependency.children (dependency pkgs) namever
     end;
 
-fun ancestorsSet pkgs = PackageNameVersionSet.close (parents' pkgs);
+fun ancestorsSet pkgs =
+    PackageNameVersionSet.close (parents pkgs);
 
 fun ancestors pkgs namever =
-    let
-(*OpenTheoryDebug
-      val _ = member namever pkgs orelse
-              raise Bug "DirectoryPackages.ancestors: unknown package"
-*)
-    in
-      ancestorsSet pkgs (parents' pkgs namever)
-    end;
+    ancestorsSet pkgs (parents pkgs namever);
 
-fun descendentsSet pkgs = PackageNameVersionSet.close (children' pkgs);
+fun descendentsSet pkgs =
+    PackageNameVersionSet.close (children pkgs);
 
 fun descendents pkgs namever =
+    descendentsSet pkgs (children pkgs namever);
+
+(* Auxiliary packages *)
+
+fun auxiliaryParents pkgs namever =
     let
-(*OpenTheoryDebug
-      val _ = member namever pkgs orelse
-              raise Bug "DirectoryPackages.descendents: unknown package"
-*)
+      fun isAuxiliary par =
+          PackageNameVersion.isStrictPrefixName namever par
+
+      val pars = parents pkgs namever
     in
-      descendentsSet pkgs (children' pkgs namever)
+      PackageNameVersionSet.filter isAuxiliary pars
     end;
+
+fun auxiliaryChildren pkgs namever =
+    let
+      fun isAuxiliary chil =
+          PackageNameVersion.isStrictPrefixName chil namever
+
+      val chils = children pkgs namever
+    in
+      PackageNameVersionSet.filter isAuxiliary chils
+    end;
+
+fun auxiliaryAncestorsSet pkgs =
+    PackageNameVersionSet.close (auxiliaryParents pkgs);
+
+fun auxiliaryAncestors pkgs namever =
+    auxiliaryAncestorsSet pkgs (auxiliaryParents pkgs namever);
+
+fun auxiliaryDescendentsSet pkgs =
+    PackageNameVersionSet.close (auxiliaryChildren pkgs);
+
+fun auxiliaryDescendents pkgs namever =
+    auxiliaryDescendentsSet pkgs (auxiliaryChildren pkgs namever);
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun installOrder pkgs = PackageNameVersionSet.postOrder (parents' pkgs);
+fun installOrder pkgs = PackageNameVersionSet.postOrder (parents pkgs);
 
-fun installOrdered pkgs = PackageNameVersionSet.postOrdered (parents' pkgs);
+fun installOrdered pkgs = PackageNameVersionSet.postOrdered (parents pkgs);
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

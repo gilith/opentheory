@@ -73,6 +73,26 @@ val ancestorsSet :
 val descendentsSet :
     packages -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
+(* Auxiliary packages *)
+
+val auxiliaryParents :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryChildren :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryAncestors :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryDescendents :
+    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryAncestorsSet :
+    packages -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+
+val auxiliaryDescendentsSet :
+    packages -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)

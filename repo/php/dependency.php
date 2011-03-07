@@ -118,6 +118,29 @@ function dependency_table() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Look up package parents.
+///////////////////////////////////////////////////////////////////////////////
+
+function package_parents($pkg) {
+  isset($pkg) or trigger_error('bad pkg');
+
+  $dependency_table = dependency_table();
+
+  $parent_ids = $dependency_table->parent_ids($pkg);
+
+  $parents = array();
+
+  foreach ($parent_ids as $parent_id) {
+    $parent = find_package($parent_id);
+    isset($parent) or trigger_error('bad parent');
+
+    $parents[] = $parent;
+  }
+
+  return $parents;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Look up package children.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -141,16 +164,16 @@ function package_children($pkg) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Add package children.
+// Add package dependency.
 ///////////////////////////////////////////////////////////////////////////////
 
-function add_package_child($pkg,$child) {
-  isset($pkg) or trigger_error('bad pkg');
+function add_package_dependency($parent,$child) {
+  isset($parent) or trigger_error('bad parent');
   isset($child) or trigger_error('bad child');
 
   $dependency_table = dependency_table();
 
-  $dependency_table->insert_dependency($pkg,$child);
+  $dependency_table->insert_dependency($parent,$child);
 }
 
 ?>

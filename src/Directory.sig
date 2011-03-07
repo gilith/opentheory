@@ -91,6 +91,26 @@ val ancestorsSet :
 val descendentsSet :
     directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
+(* Auxiliary packages *)
+
+val auxiliaryParents :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryChildren :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryAncestors :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryDescendents :
+    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+
+val auxiliaryAncestorsSet :
+    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+
+val auxiliaryDescendentsSet :
+    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)
@@ -193,7 +213,9 @@ val uninstall : directory -> PackageNameVersion.nameVersion -> unit
 (* ------------------------------------------------------------------------- *)
 
 val checkUpload :
-    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion list ->
+    directory -> DirectoryRepo.repo ->
+    PackageNameVersion.nameVersion list ->
+    PackageNameVersion.nameVersion list ->
     DirectoryError.error list
 
 val packageUpload :
