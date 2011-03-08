@@ -9,26 +9,32 @@ require_once '../../opentheory.php';
 if (!effective_privilege_is_admin()) { jump_path(array()); }
 
 ///////////////////////////////////////////////////////////////////////////////
-// A class to collect reset data on a form.
+// A class to collect config data on a form.
 ///////////////////////////////////////////////////////////////////////////////
 
-class SelectResetData extends SelectValue {
-  var $_select_delete;
+define('CONFIG_FILE', SITE_PATH . '/' . REPO_DIR . '/config');
+
+define('CONFIG_COLUMNS',80);
+
+define('CONFIG_ROWS',20);
+
+class SelectConfigData extends SelectValue {
+  var $_select_config;
   var $_select_submit;
 
   function error() {
     $e = $this->_error;
-    if (!isset($e)) { $e = $this->_select_delete->handled_error(); }
+    if (!isset($e)) { $e = $this->_select_config->handled_error(); }
     return $e;
   }
 
   function validate() {
     parent::validate();
 
-    $this->_select_delete->validate();
+    $this->_select_config->validate();
 
     if (!$this->is_error()) {
-      $value = $this->_select_delete->value();
+      $value = $this->_select_config->value();
 
       parent::set_value($value);
     }
@@ -38,11 +44,9 @@ class SelectResetData extends SelectValue {
     return
 '<p>' .
 $this->form_error() .
-$this->_select_delete->form_error() .
+$this->_select_config->form_error() .
 $this->_select_submit->form_error() .
-field_text('Delete all repo packages') .
-' &nbsp; ' .
-$this->_select_delete->select() .
+$this->_select_config->select() .
 '</p>' .
 '<p>' .
 $this->_select_submit->select() .
@@ -54,17 +58,18 @@ $this->_select_submit->select() .
   }
 
   function set_value($value) {
-    $this->_select_delete->set_value($value);
+    $this->_select_config->set_value($value);
   }
 
-  function SelectResetData($field) {
+  function SelectConfigData($field) {
     parent::SelectValue($field);
 
-    $this->_select_delete =
-      new SelectCheckbox($this->field() . 'd');
+    $this->_select_config =
+      new SelectTextArea($this->field() . 'c', true,
+                         CONFIG_COLUMNS, CONFIG_ROWS);
 
     $this->_select_submit =
-      new SelectSubmit($this->field() . 'x', 'reset repo');
+      new SelectSubmit($this->field() . 'x', 'update configuration');
 
     if ($this->submitted()) { $this->validate(); }
   }
@@ -74,34 +79,32 @@ $this->_select_submit->select() .
 // Main page.
 ///////////////////////////////////////////////////////////////////////////////
 
-$select = new SelectResetData('');
+$select = new SelectConfigData('');
 
 if ($select->is_value()) {
-  $delete = $select->value();
+  $config = $select->value();
 
-  if ($delete) {
-    opentheory_reset();
-  }
+  $value = file_put_contents(CONFIG_FILE,$config);
 
-  repo_reset();
+  jump_path(bread_crumbs());
+}
+else {
+  $config = file_get_contents(CONFIG_FILE);
 
-  if (is_script()) {
-    output_script('successfully reset the package directory');
-  }
-  else {
-    jump_path(array('admin'));
-  }
+  if (!is_string($config)) { trigger_error("couldn't open config file"); }
+
+  $select->set_value($config);
 }
 
-$title = 'Admin Reset';
+$title = 'Admin Config';
 
 $main =
-'<h2>Reset the ' . ucfirst(REPO_NAME) . ' OpenTheory Repo</h2>' .
+'<h2>Update the ' . ucfirst(REPO_NAME) . ' Repo Configuration</h2>' .
 
 site_form(bread_crumbs(),
           $select->select());
 
-$image = site_image('flooded-fenland.jpg','Flooded Fenland');
+$image = site_image('cedar-point.jpg','Cedar Point');
 
 output(array('title' => $title), $main, $image);
 

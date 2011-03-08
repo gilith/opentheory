@@ -101,6 +101,18 @@ min($size,MAX_TEXT_INPUT_CHARS) .
 '" value="' . (isset($value) ? $value : '') . '" />';
 }
 
+function textarea_input($name, $value, $cols, $rows) {
+  is_string($name) or trigger_error('bad name');
+  !isset($value) or is_string($value) or trigger_error('bad value');
+  is_int($cols) or trigger_error('bad cols');
+  is_int($rows) or trigger_error('bad rows');
+
+  return
+'<textarea name="' . $name . '" cols="' . $cols .
+'" rows="' . $rows . '">' . (isset($value) ? $value : '') .
+'</textarea>';
+}
+
 function password_input($name, $value, $size = null) {
   is_string($name) or trigger_error('bad name');
   if (!isset($size)) { $size = MAX_PASSWORD_INPUT_CHARS; }
@@ -240,6 +252,15 @@ class SelectData {
   function file_input($name) {
     is_string($name) or trigger_error('bad name');
     return file_input($this->field() . $name);
+  }
+
+  function textarea_input($name, $value, $cols, $rows) {
+    is_string($name) or trigger_error('bad name');
+    !isset($value) or is_string($value) or trigger_error('bad value');
+    is_int($cols) or trigger_error('bad cols');
+    is_int($rows) or trigger_error('bad rows');
+
+    return textarea_input($this->field() . $name, $value, $cols, $rows);
   }
 
   function SelectData($field) {
@@ -398,6 +419,48 @@ class SelectRadio extends SelectValue {
     parent::SelectValue($field);
 
     $this->_options = $options;
+    $this->set_value(from_string($this->input('')));
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Selecting text.
+///////////////////////////////////////////////////////////////////////////////
+
+class SelectTextArea extends SelectValue {
+  var $_required;
+  var $_cols;
+  var $_rows;
+
+  function required() { return $this->_required; }
+
+  function focus() { return $this->is_value() ? null : $this->field(); }
+
+  function error_message_missing() { return 'Please enter some text'; }
+
+  function validate() {
+    parent::validate();
+
+    if (!$this->is_error() && $this->_required && !$this->is_value()) {
+      $this->set_error($this->error_message_missing());
+    }
+  }
+
+  function select() {
+    return $this->textarea_input('',$this->value(),$this->_cols,$this->_rows);
+  }
+
+  function SelectTextArea($field,$required,$cols,$rows) {
+    is_string($field) or trigger_error('bad field');
+    is_bool($required) or trigger_error('bad required');
+    is_int($cols) or trigger_error('bad cols');
+    is_int($rows) or trigger_error('bad rows');
+
+    parent::SelectValue($field);
+
+    $this->_required = $required;
+    $this->_cols = $cols;
+    $this->_rows = $rows;
     $this->set_value(from_string($this->input('')));
   }
 }
