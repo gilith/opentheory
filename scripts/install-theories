@@ -80,7 +80,7 @@ while (my $name = <THEORIES>) {
     }
 
     if (!$installed) {
-        $cmd = "$opentheory install --manual $thy";
+        $cmd = "$opentheory install --manual --reinstall --auto-uninstall $thy";
         (system ($cmd) == 0) or
             die "install-theories: couldn't execute $cmd: $!\n";
     }
