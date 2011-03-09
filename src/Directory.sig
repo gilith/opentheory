@@ -10,7 +10,7 @@ sig
 (* Creating a new theory package directory.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val create : {rootDirectory : string} -> unit
+val create : {rootDirectory : string, config : DirectoryConfig.config} -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)

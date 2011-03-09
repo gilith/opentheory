@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20110306)"^"\n";
+val versionString = program^" "^version^" (release 20110308)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -177,11 +177,15 @@ val rootDirectory =
 (* Initializing a package directory.                                         *)
 (* ------------------------------------------------------------------------- *)
 
+val repoInit = ref DirectoryConfig.default;
+
 fun initDirectory {rootDirectory = r} =
     let
-      val () = Directory.create {rootDirectory = r}
+      val c = !repoInit
+
+      val () = Directory.create {rootDirectory = r, config = c}
     in
-      Directory.mk {rootDirectory = r}
+      ()
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -231,7 +235,7 @@ val directory =
                      end
                    else if autoInit then
                      let
-                       val () = Directory.create {rootDirectory = r}
+                       val () = initDirectory {rootDirectory = r}
 
                        val () = chat ("auto-initialized package directory " ^ r)
                      in
@@ -490,7 +494,12 @@ val infoFooter = describeInfoFormat ^ ".\n";
 local
   open Useful Options;
 in
-  val initOpts : opt list = [];
+  val initOpts : opt list =
+      [{switches = ["--repo"], arguments = [],
+        description = "configure the package directory as a repo",
+        processor =
+          beginOpt endOpt
+            (fn _ => repoInit := DirectoryConfig.repoDefault)}];
 end;
 
 val initFooter = "";
@@ -1572,7 +1581,7 @@ fun init () =
     let
       val {directory = d, autoInit = _} = rootDirectory ()
 
-      val () = Directory.create {rootDirectory = d}
+      val () = initDirectory {rootDirectory = d}
 
       val () = chat ("initialized package directory " ^ d)
     in

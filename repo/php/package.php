@@ -17,6 +17,58 @@ require_once 'name_version.php';
 require_once 'author.php';
 
 ///////////////////////////////////////////////////////////////////////////////
+// Package status.
+///////////////////////////////////////////////////////////////////////////////
+
+define('INSTALLED_PACKAGE_STATUS','installed');
+define('STAGED_PACKAGE_STATUS','staged');
+define('UPLOADED_PACKAGE_STATUS','uploaded');
+
+$all_package_status =
+  array(INSTALLED_PACKAGE_STATUS,
+        STAGED_PACKAGE_STATUS,
+        UPLOADED_PACKAGE_STATUS);
+
+function is_package_status($status) {
+  global $all_package_status;
+
+  return is_string($status) && in_array($status,$all_package_status);
+}
+
+function equal_package_status($status1,$status2) {
+  is_package_status($status1) or trigger_error('bad status1');
+  is_package_status($status2) or trigger_error('bad status2');
+
+  return (strcmp($status1,$status2) == 0);
+}
+
+function staged_package_status($status) {
+  is_package_status($status) or trigger_error('bad status');
+
+  return equal_package_status($status,STAGED_PACKAGE_STATUS);
+}
+
+function pretty_package_status($status) {
+  is_package_status($status) or trigger_error('bad status');
+
+  if (equal_package_status($status,INSTALLED_PACKAGE_STATUS)) {
+    return 'Waiting for a package to be added';
+  }
+  elseif (equal_package_status($status,ADD_PACKAGE_PACKAGE_STATUS)) {
+    return 'Waiting for more packages to be added';
+  }
+  elseif (equal_package_status($status,CONFIRM_AUTHOR_PACKAGE_STATUS)) {
+    return 'Waiting for the package author to confirm their email address';
+  }
+  elseif (equal_package_status($status,CONFIRM_OBSOLETE_PACKAGE_STATUS)) {
+    return 'Waiting for the author of the obsoleted packages to sign off';
+  }
+  else {
+    trigger_error('default case');
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // A class to store *uploaded* package information.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,8 +78,8 @@ class Package {
   var $_description;
   var $_author;
   var $_license;
-  var $_uploaded;
-  var $_installed;
+  var $_registered;
+  var $_status;
   var $_auxiliary;
   var $_obsolete;
 
@@ -41,9 +93,9 @@ class Package {
 
   function license() { return $this->_license; }
 
-  function uploaded() { return $this->_uploaded; }
+  function registered() { return $this->_registered; }
 
-  function installed() { return $this->_installed; }
+  function status() { return $this->_status; }
 
   function auxiliary() { return $this->_auxiliary; }
 
@@ -51,34 +103,46 @@ class Package {
 
   function name() {
     $namever = $this->name_version();
+
     return $namever->name();
   }
 
   function version() {
     $namever = $this->name_version();
+
     return $namever->version();
   }
 
   function author_id() {
     $author = $this->author();
+
     return $author->id();
   }
 
   function author_name() {
     $author = $this->author();
+
     return $author->name();
   }
 
   function author_email() {
     $author = $this->author();
+
     return $author->email();
   }
 
-  function since_uploaded() {
+  function since_registered() {
     $now = server_datetime();
-    $uploaded = $this->uploaded();
 
-    return $now->subtract($uploaded);
+    $registered = $this->registered();
+
+    return $now->subtract($registered);
+  }
+
+  function staged_status() {
+    $status = $this->status();
+
+    return staged_package_status($status);
   }
 
   function is_auxiliary_parent($parent) {
@@ -92,76 +156,91 @@ class Package {
 
   function to_string() {
     $namever = $this->name_version();
+
     return $namever->to_string();
   }
 
   function link($text) {
     is_string($text) or trigger_error('bad text');
+
     $namever = $this->name_version();
+
     return $namever->package_link($text);
   }
 
   function summary_file_name() {
     $namever = $this->name_version();
+
     return $namever->summary_file_name();
   }
 
   function summary_file_link($text) {
     is_string($text) or trigger_error('bad text');
+
     $namever = $this->name_version();
 
-    if ($this->installed()) {
-      return $namever->summary_file_link($text);
+    if ($this->staged_status()) {
+      return $namever->staged_summary_file_link($text);
     }
     else {
-      return $namever->staged_summary_file_link($text);
+      return $namever->summary_file_link($text);
     }
   }
 
   function tarball_name() {
     $namever = $this->name_version();
+
     return $namever->tarball_name();
   }
 
   function tarball_link($text) {
     is_string($text) or trigger_error('bad text');
+
     $namever = $this->name_version();
 
-    if ($this->installed()) {
-      return $namever->tarball_link($text);
+    if ($this->staged_status()) {
+      return $namever->staged_tarball_link($text);
     }
     else {
-      return $namever->staged_tarball_link($text);
+      return $namever->tarball_link($text);
     }
   }
 
   function theory_file_name() {
     $namever = $this->name_version();
+
     return $namever->theory_file_name();
   }
 
   function theory_file_link($text) {
     is_string($text) or trigger_error('bad text');
+
     $namever = $this->name_version();
 
-    if ($this->installed()) {
-      return $namever->theory_file_link($text);
+    if ($this->staged_status()) {
+      return $namever->staged_theory_file_link($text);
     }
     else {
-      return $namever->staged_theory_file_link($text);
+      return $namever->theory_file_link($text);
     }
   }
 
+  function mark_uploaded() { $this->_status = UPLOADED_PACKAGE_STATUS; }
+
+  function mark_auxiliary() { $this->_auxiliary = true; }
+
+  function mark_obsolete() { $this->_obsolete = true; }
+
   function Package($id,$name_version,$description,$author,$license,
-                   $uploaded,$installed,$auxiliary,$obsolete)
+                   $registered,$status,$auxiliary,$obsolete)
   {
     is_int($id) or trigger_error('bad id');
     isset($name_version) or trigger_error('bad name_version');
     is_string($description) or trigger_error('bad description');
     isset($author) or trigger_error('bad author');
     is_string($license) or trigger_error('bad license');
-    isset($uploaded) or trigger_error('bad uploaded');
-    is_bool($installed) or trigger_error('bad installed');
+    isset($registered) or trigger_error('bad registered');
+    is_package_status($status) or trigger_error('bad status');
     is_bool($auxiliary) or trigger_error('bad auxiliary');
     is_bool($obsolete) or trigger_error('bad obsolete');
 
@@ -170,8 +249,8 @@ class Package {
     $this->_description = $description;
     $this->_author = $author;
     $this->_license = $license;
-    $this->_uploaded = $uploaded;
-    $this->_installed = $installed;
+    $this->_registered = $registered;
+    $this->_status = $status;
     $this->_auxiliary = $auxiliary;
     $this->_obsolete = $obsolete;
   }
@@ -186,8 +265,8 @@ function from_row_package($row) {
   $description = $row['description'];
   $author_id = (integer)$row['author'];
   $license = $row['license'];
-  $uploaded_datetime = $row['uploaded'];
-  $installed_database = $row['installed'];
+  $registered_datetime = $row['registered'];
+  $status = $row['staged'];
   $auxiliary_database = $row['auxiliary'];
   $obsolete_database = $row['obsolete'];
 
@@ -195,17 +274,15 @@ function from_row_package($row) {
 
   $author = get_package_author($author_id);
 
-  $uploaded = new TimePoint();
-  $uploaded->from_database_datetime($uploaded_datetime);
-
-  $installed = bool_from_database_bool($installed_database);
+  $registered = new TimePoint();
+  $registered->from_database_datetime($registered_datetime);
 
   $auxiliary = bool_from_database_bool($auxiliary_database);
 
   $obsolete = bool_from_database_bool($obsolete_database);
 
   return new Package($id,$name_version,$description,$author,$license,
-                     $uploaded,$installed,$auxiliary,$obsolete);
+                     $registered,$status,$auxiliary,$obsolete);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -273,7 +350,7 @@ class PackageTable extends DatabaseTable {
 
   function list_active_packages() {
     $where =
-      'installed <=> ' . database_value(DATABASE_TRUE) .
+      'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
       ' AND auxiliary <=> ' . database_value(DATABASE_FALSE) .
       ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
 
@@ -286,7 +363,7 @@ class PackageTable extends DatabaseTable {
 
   function count_active_packages() {
     $where =
-      'installed <=> ' . database_value(DATABASE_TRUE) .
+      'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
       ' AND auxiliary <=> ' . database_value(DATABASE_FALSE) .
       ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
 
@@ -297,10 +374,10 @@ class PackageTable extends DatabaseTable {
     is_int($limit) or trigger_error('bad limit');
 
     $where =
-      'installed <=> ' . database_value(DATABASE_TRUE) .
+      'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
       ' AND auxiliary <=> ' . database_value(DATABASE_FALSE);
 
-    $order_by = 'uploaded DESC';
+    $order_by = 'registered DESC';
 
     return $this->list_packages($where,$order_by,$limit);
   }
@@ -318,11 +395,10 @@ class PackageTable extends DatabaseTable {
 
     $license = $package->license();
 
-    $uploaded = $package->uploaded();
-    $uploaded_datetime = $uploaded->to_database_datetime();
+    $registered = $package->registered();
+    $registered_datetime = $registered->to_database_datetime();
 
-    $installed = $package->installed();
-    $installed_database = bool_to_database_bool($installed);
+    $status = $package->status();
 
     $auxiliary = $package->auxiliary();
     $auxiliary_database = bool_to_database_bool($auxiliary);
@@ -338,25 +414,29 @@ class PackageTable extends DatabaseTable {
           description = ' . database_value($description) . ',
           author = ' . database_value($author_id) . ',
           license = ' . database_value($license) . ',
-          uploaded = ' . database_value($uploaded_datetime) . ',
-          installed = ' . database_value($installed_database) . ',
+          registered = ' . database_value($registered_datetime) . ',
+          status = ' . database_value($status) . ',
           auxiliary = ' . database_value($auxiliary_database) . ',
           obsolete = ' . database_value($obsolete_database) . ';');
   }
 
-  function mark_installed($pkg) {
+  function mark_uploaded($pkg) {
     isset($pkg) or trigger_error('bad pkg');
+
+    $pkg->mark_uploaded();
 
     $id = $pkg->id();
 
     database_query('
       UPDATE ' . $this->table() . '
-      SET installed = ' . database_value(DATABASE_TRUE) . '
+      SET status = ' . database_value(UPLOADED_PACKAGE_STATUS) . '
       WHERE id = ' . database_value($id) . ';');
   }
 
   function mark_auxiliary($pkg) {
     isset($pkg) or trigger_error('bad pkg');
+
+    $pkg->mark_auxiliary();
 
     $id = $pkg->id();
 
@@ -369,6 +449,8 @@ class PackageTable extends DatabaseTable {
   function mark_obsolete($pkg) {
     isset($pkg) or trigger_error('bad pkg');
 
+    $pkg->mark_obsolete();
+
     $id = $pkg->id();
 
     database_query('
@@ -377,31 +459,32 @@ class PackageTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function create_package($name_version,$description,$author,$license) {
+  function create_package($name_version,$description,$author,$license,$status) {
     isset($name_version) or trigger_error('bad name_version');
     is_string($description) or trigger_error('bad description');
     isset($author) or trigger_error('bad author');
     is_string($license) or trigger_error('bad license');
+    is_package_status($status) or trigger_error('bad status');
 
     $id = $this->max_rows('id') + 1;
 
-    $uploaded = server_datetime();
-
-    $installed = false;
+    $registered = server_datetime();
 
     $auxiliary = false;
 
     $obsolete = false;
 
-    $package = new Package($id,$name_version,$description,$author,$license,
-                           $uploaded,$installed,$auxiliary,$obsolete);
+    $pkg = new Package($id,$name_version,$description,$author,$license,
+                       $registered,$status,$auxiliary,$obsolete);
 
-    $this->insert_package($package);
+    $this->insert_package($pkg);
 
-    return $package;
+    return $pkg;
   }
 
   function PackageTable($table) {
+    global $all_package_status;
+
     $fields =
       array('id' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',
             'name' => 'varchar(' . PACKAGE_NAME_CHARS . ') NOT NULL',
@@ -409,16 +492,17 @@ class PackageTable extends DatabaseTable {
             'description' => 'varchar(' . PACKAGE_DESCRIPTION_CHARS . ') NOT NULL',
             'author' => 'int (' . PACKAGE_AUTHOR_ID_DIGITS . ') NOT NULL',
             'license' => 'varchar(' . PACKAGE_LICENSE_CHARS . ') NOT NULL',
-            'uploaded' => 'datetime NOT NULL',
-            'installed' => database_bool_type() . ' NOT NULL',
+            'registered' => 'datetime NOT NULL',
+            'status' =>
+              array_to_database_enum($all_package_status) . ' NOT NULL',
             'auxiliary' => database_bool_type() . ' NOT NULL',
             'obsolete' => database_bool_type() . ' NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (id)',
             'INDEX (name,version)',
-            'INDEX (installed,auxiliary,obsolete,name)',
-            'INDEX (installed,auxiliary,uploaded)');
+            'INDEX (status,auxiliary,obsolete,name)',
+            'INDEX (status,auxiliary,registered)');
 
     parent::DatabaseTable($table,$fields,$indexes);
   }

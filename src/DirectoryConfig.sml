@@ -33,29 +33,34 @@ and urlRepoKey = "url";
 
 (* Repo constants *)
 
+val gilithRepoName = PackageName.gilithRepo
+and gilithRepoUrl = "http://opentheory.gilith.com/";
+
 val defaultRepoRefresh = Time.fromSeconds 604800;  (* 1 week *)
 
-val gilithRepoName = PackageName.gilithRepo
-and gilithRepoRefresh = defaultRepoRefresh
-and gilithRepoUrl = "http://opentheory.gilith.com/";
+val repoDefaultRepoRefresh = Time.fromSeconds 43200;  (* 12 hours *)
 
 (* License constants *)
 
+val licenseUrlDirectory = "http://www.gilith.com/research/opentheory/licenses";
+
 val mitLicenseName = "MIT"
-and mitLicenseUrl =
-    "http://www.gilith.com/research/opentheory/licenses/MIT.txt";
+and mitLicenseUrl = licenseUrlDirectory ^ "/" ^ "MIT.txt";
 
 val holLightLicenseName = "HOLLight"
-and holLightLicenseUrl =
-    "http://www.gilith.com/research/opentheory/licenses/HOLLight.txt";
+and holLightLicenseUrl = licenseUrlDirectory ^ "/" ^ "HOLLight.txt";
 
 (* Cleanup constants *)
 
 val defaultCleanupAuto = SOME (Time.fromSeconds 3600);  (* 1 hour *)
 
+val repoDefaultCleanupAuto = (NONE : Time.time option);
+
 (* Install constants *)
 
 val defaultInstallMinimal = false;
+
+val repoDefaultInstallMinimal = true;
 
 (* System constants *)
 
@@ -65,6 +70,13 @@ and defaultSystemCurl = "curl --silent --show-error --user-agent opentheory"
 and defaultSystemEcho = "echo"
 and defaultSystemSha = "sha1sum --binary"
 and defaultSystemTar = "tar";
+
+val repoDefaultSystemChmod = defaultSystemChmod
+and repoDefaultSystemCp = defaultSystemCp
+and repoDefaultSystemCurl = defaultSystemCurl
+and repoDefaultSystemEcho = defaultSystemEcho
+and repoDefaultSystemSha = defaultSystemSha
+and repoDefaultSystemTar = defaultSystemTar;
 
 (* ------------------------------------------------------------------------- *)
 (* Time interval functions.                                                  *)
@@ -311,9 +323,17 @@ val defaultRepo =
     Repo
       {name = gilithRepoName,
        url = gilithRepoUrl,
-       refresh = gilithRepoRefresh};
+       refresh = defaultRepoRefresh};
+
+val repoDefaultRepo =
+    Repo
+      {name = gilithRepoName,
+       url = gilithRepoUrl,
+       refresh = repoDefaultRepoRefresh};
 
 val defaultRepos = [defaultRepo];
+
+val repoDefaultRepos = [repoDefaultRepo];
 
 (* ------------------------------------------------------------------------- *)
 (* A type of license configuration data.                                     *)
@@ -492,7 +512,7 @@ in
         end;
 end;
 
-val defaultLicense =
+val mitLicense =
     License
       {name = mitLicenseName,
        url = mitLicenseUrl};
@@ -503,8 +523,10 @@ val holLightLicense =
        url = holLightLicenseUrl};
 
 val defaultLicenses =
-    [defaultLicense,
+    [mitLicense,
      holLightLicense];
+
+val repoDefaultLicenses = defaultLicenses;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of cleanup configuration data.                                     *)
@@ -618,6 +640,10 @@ val defaultCleanup =
     Cleanup
       {auto = defaultCleanupAuto};
 
+val repoDefaultCleanup =
+    Cleanup
+      {auto = repoDefaultCleanupAuto};
+
 (* ------------------------------------------------------------------------- *)
 (* A type of install configuration data.                                     *)
 (* ------------------------------------------------------------------------- *)
@@ -729,6 +755,10 @@ end;
 val defaultInstall =
     Install
       {minimal = defaultInstallMinimal};
+
+val repoDefaultInstall =
+    Install
+      {minimal = repoDefaultInstallMinimal};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system configuration data.                                      *)
@@ -1040,6 +1070,15 @@ val defaultSystem =
        sha = defaultSystemSha,
        tar = defaultSystemTar};
 
+val repoDefaultSystem =
+    DirectorySystem.mk
+      {chmod = repoDefaultSystemChmod,
+       cp = repoDefaultSystemCp,
+       curl = repoDefaultSystemCurl,
+       echo = repoDefaultSystemEcho,
+       sha = repoDefaultSystemSha,
+       tar = repoDefaultSystemTar};
+
 (* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
 (* ------------------------------------------------------------------------- *)
@@ -1315,7 +1354,7 @@ fun toTextFile {config,filename} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* The default configuration.                                                *)
+(* Default configurations.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val default =
@@ -1325,6 +1364,22 @@ val default =
       and cleanup = defaultCleanup
       and install = defaultInstall
       and system = defaultSystem
+    in
+      Config
+        {repos = repos,
+         licenses = licenses,
+         cleanup = cleanup,
+         install = install,
+         system = system}
+    end;
+
+val repoDefault =
+    let
+      val repos = repoDefaultRepos
+      and licenses = repoDefaultLicenses
+      and cleanup = repoDefaultCleanup
+      and install = repoDefaultInstall
+      and system = repoDefaultSystem
     in
       Config
         {repos = repos,

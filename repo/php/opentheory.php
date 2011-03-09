@@ -76,7 +76,7 @@ $action . $args .
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_init() {
-  $args = '';
+  $args = ' --repo';
 
   $output = opentheory_action('init',$args);
 
@@ -106,10 +106,10 @@ function opentheory_stage($tarball,$name_version,$checksum) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Install a staged package.
+// Complete the installation of a staged package.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_install($name_version) {
+function opentheory_complete($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
   $args = $name_version->staged_to_string();
@@ -131,6 +131,23 @@ function opentheory_cleanup($name_version) {
   $error = opentheory_action('cleanup',$args);
 
   if (isset($error)) { trigger_error('cleanup failed: ' . $error); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Stage a package (in tarball form) for installation.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_install($name_version,$checksum) {
+  isset($name_version) or trigger_error('bad name_version');
+  is_string($checksum) or trigger_error('bad checksum');
+
+  $args = ' --manual --checksum ' . $checksum;
+
+  $args .= ' ' . $name_version->to_string();
+
+  $output = opentheory_action('install',$args);
+
+  return $output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

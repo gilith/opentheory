@@ -9,11 +9,9 @@ require_once '../../opentheory.php';
 if (!is_script()) { jump_path(array('upload')); }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Create a new package upload.
+// Install a specified package.
 ///////////////////////////////////////////////////////////////////////////////
 
-$upload = create_new_upload();
-
-output_script('new upload = ' . $upload->id());
+trigger_error('not implemented');
 
 ?>

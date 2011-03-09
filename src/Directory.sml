@@ -91,7 +91,7 @@ end;
 (* Creating a new theory package directory.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun create {rootDirectory = rootDir} =
+fun create {rootDirectory = rootDir, config = cfg} =
     let
       val () = createDirectory {directory = rootDir}
 
@@ -124,8 +124,6 @@ fun create {rootDirectory = rootDir} =
 
       val () =
           let
-            val cfg = DirectoryConfig.default
-
             val {filename = file} =
                 DirectoryPath.mkConfigFilename
                   {rootDirectory = rootDir}

@@ -79,9 +79,11 @@ val fromTextFile : {filename : string} -> config
 val toTextFile : {config : config, filename : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* The default configuration.                                                *)
+(* Default configurations.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val default : config
+
+val repoDefault : config
 
 end
