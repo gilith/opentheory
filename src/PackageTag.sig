@@ -55,11 +55,11 @@ val findName : tag list -> PackageName.name
 
 val findVersion : tag list -> PackageVersion.version
 
-val findDescription : tag list -> string
+val findDescription : tag list -> {description : string}
 
-val findAuthor : tag list -> string
+val findAuthor : tag list -> {author : string}
 
-val findLicense : tag list -> string
+val findLicense : tag list -> {license : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)

@@ -104,10 +104,11 @@ fun toHtml doc =
 
       val nameBlock =
           let
-            val text =
-                "Package " ^
-                PackageName.toString (PackageNameVersion.name namever) ^ ": " ^
-                Package.description package
+            val name = PackageName.toString (PackageNameVersion.name namever)
+
+            val {description} = Package.description package
+
+            val text = "Package " ^ name ^ ": " ^ description
           in
             Html.H1 [Html.Text text]
           end

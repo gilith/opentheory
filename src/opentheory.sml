@@ -666,7 +666,9 @@ val upgradeFooter = "";
 (* Options for uploading packages.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val autoUpload = ref true;
+val auxiliaryUpload = ref true;
+
+val confirmUpload = ref true;
 
 local
   open Useful Options;
@@ -679,7 +681,10 @@ in
             (fn _ => fn s => addRepository s)},
        {switches = ["--manual"], arguments = [],
         description = "do not also upload auxiliary packages",
-        processor = beginOpt endOpt (fn _ => autoUpload := false)}];
+        processor = beginOpt endOpt (fn _ => auxiliaryUpload := false)},
+       {switches = ["--yes"], arguments = [],
+        description = "do not ask for confirmation",
+        processor = beginOpt endOpt (fn _ => confirmUpload := false)}];
 end;
 
 val uploadFooter = "";
@@ -1246,8 +1251,10 @@ local
                     case getPackage () of
                       SOME p => p
                     | NONE => raise Error "no package information available"
+
+                val {description} = Package.description pkg
               in
-                Package.description pkg
+                description
               end
             | NameItem =>
               let
@@ -2142,8 +2149,12 @@ fun list () =
                         case Directory.peek dir namever of
                           SOME i => i
                         | NONE => raise Error "corrupt installation"
+
+                    val pkg = PackageInfo.package info
+
+                    val {description} = Package.description pkg
                   in
-                    Package.description (PackageInfo.package info)
+                    description
                   end
                 | NameItem =>
                   let
@@ -2233,101 +2244,148 @@ fun upgradeTheory filename =
 (* Upload a theory package to a repo.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun upload namevers =
-    let
-      val dir = directory ()
-
-      val repo = repository ()
-
-      val namevers = List.map PackageNameVersion.fromString namevers
-
-      val () = DirectoryRepo.update repo
-
-      val (support,namevers) =
-          let
-            fun notInDir nv = not (Directory.member nv dir)
-
-            fun notInRepo nv = not (DirectoryRepo.member nv repo)
-
-            val (unknown,namevers) = List.partition notInDir namevers
-
-            val namevers = PackageNameVersionSet.fromList namevers
-
-            val namevers =
-                if not (!autoUpload) then namevers
-                else
-                  let
-                    val ancs = Directory.auxiliaryAncestorsSet dir namevers
-
-                    val ancs = PackageNameVersionSet.filter notInRepo ancs
-                  in
-                    PackageNameVersionSet.union ancs namevers
-                  end
-
-            val support =
-                let
-                  val ancs = Directory.ancestorsSet dir namevers
-
-                  val ancs = PackageNameVersionSet.filter notInRepo ancs
-
-                  val ancs = PackageNameVersionSet.difference ancs namevers
-                in
-                  Directory.installOrder dir ancs
-                end
-
-            val namevers = unknown @ Directory.installOrder dir namevers
-          in
-            (support,namevers)
-          end
-
-      val errs = Directory.checkUpload dir repo support namevers
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package upload warnings:\n" ^ s)
-            end
-
-      val upl = DirectoryRepo.startUpload repo
-    in
+local
+  fun computeSupport dir repo namevers =
       let
-        fun uploadPackage namever =
-            let
-              val () = Directory.packageUpload dir upl namever
+        fun notInDir nv = not (Directory.member nv dir)
 
-              val mesg =
-                  "uploaded package " ^ PackageNameVersion.toString namever ^
-                  " to " ^ DirectoryRepo.toString repo
+        fun notInRepo nv = not (DirectoryRepo.member nv repo)
+
+        val (unknown,namevers) = List.partition notInDir namevers
+
+        val namevers = PackageNameVersionSet.fromList namevers
+
+        val namevers =
+            if not (!auxiliaryUpload) then namevers
+            else
+              let
+                val ancs = Directory.auxiliaryAncestorsSet dir namevers
+
+                val ancs = PackageNameVersionSet.filter notInRepo ancs
+              in
+                PackageNameVersionSet.union ancs namevers
+              end
+
+        val support =
+            let
+              val ancs = Directory.ancestorsSet dir namevers
+
+              val ancs = PackageNameVersionSet.filter notInRepo ancs
+
+              val ancs = PackageNameVersionSet.difference ancs namevers
             in
-              chat mesg
+              Directory.installOrder dir ancs
             end
+
+        val namevers = unknown @ Directory.installOrder dir namevers
+      in
+        (support,namevers)
+      end;
+in
+  fun upload namevers =
+      let
+        val dir = directory ()
+
+        val repo = repository ()
+
+        val namevers = List.map PackageNameVersion.fromString namevers
+
+        val () = DirectoryRepo.update repo
+
+        val (support,namevers) = computeSupport dir repo namevers
+
+        val errs =
+            Directory.checkUpload dir
+              {repo = repo,
+               support = support,
+               packages = namevers}
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package upload warnings:\n" ^ s)
+              end
 
         val () =
             let
-              val {url} = DirectoryRepo.urlUpload upl
-
               val mesg =
-                  "starting upload to " ^ DirectoryRepo.toString repo ^
-                  ":\n  " ^ url
+                  Print.toString (Directory.ppUpload dir)
+                    {repo = repo,
+                     support = support,
+                     packages = namevers}
             in
               chat mesg
             end
 
-        val () = List.app uploadPackage namevers
+        val proceed =
+            not (!confirmUpload) orelse
+            let
+              fun confirm () =
+                  let
+                    val () = TextIO.output (TextIO.stdOut, "Continue? [yN] ")
+
+                    val () = TextIO.flushOut TextIO.stdOut
+
+                    val s =
+                        case TextIO.inputLine TextIO.stdIn of
+                          SOME s => String.map Char.toLower s
+                        | NONE => raise Error "standard input terminated"
+                  in
+                    if s = "y\n" then true
+                    else if s = "n\n" orelse s = "\n" then false
+                    else confirm ()
+                  end
+            in
+              confirm ()
+            end
       in
-        ()
-      end
+        if not proceed then ()
+        else
+          let
+            val upl = DirectoryRepo.startUpload repo
+
+            val () =
+                let
+                  val {url} = DirectoryRepo.urlUpload upl
+
+                  val mesg =
+                      "starting upload to " ^
+                      DirectoryRepo.toString repo ^
+                      ":\n  " ^ url
+                in
+                  chat mesg
+                end
+          in
+            let
+              fun uploadPackage namever =
+                  let
+                    val () = Directory.packageUpload dir upl namever
+
+                    val mesg =
+                        "uploaded package " ^
+                        PackageNameVersion.toString namever ^
+                        " to " ^ DirectoryRepo.toString repo
+                  in
+                    chat mesg
+                  end
+
+              val () = List.app uploadPackage namevers
+            in
+              ()
+            end
 (***Delete upload on the server if an error occurs
-      handle Error err =>
-        let val () = DirectoryRepo.
+            handle Error err =>
+              let val () = DirectoryRepo.
 ***)
-    end
-    handle Error err =>
-      raise Error (err ^ "\npackage upload failed");
+          end
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage upload failed");
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)

@@ -53,19 +53,19 @@ val nameVersion : package -> PackageNameVersion.nameVersion
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val description : package -> string
+val description : package -> {description : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val author : package -> string
+val author : package -> {author : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package license.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val license : package -> string
+val license : package -> {license : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)

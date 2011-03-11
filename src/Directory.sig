@@ -213,14 +213,21 @@ val uninstall : directory -> PackageNameVersion.nameVersion -> unit
 (* ------------------------------------------------------------------------- *)
 
 val checkUpload :
-    directory -> DirectoryRepo.repo ->
-    PackageNameVersion.nameVersion list ->
-    PackageNameVersion.nameVersion list ->
+    directory ->
+    {repo : DirectoryRepo.repo,
+     support : PackageNameVersion.nameVersion list,
+     packages : PackageNameVersion.nameVersion list} ->
     DirectoryError.error list
 
 val packageUpload :
     directory -> DirectoryRepo.upload -> PackageNameVersion.nameVersion ->
     unit
+
+val ppUpload :
+    directory ->
+    {repo : DirectoryRepo.repo,
+     support : PackageNameVersion.nameVersion list,
+     packages : PackageNameVersion.nameVersion list} Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder and importer.                                            *)

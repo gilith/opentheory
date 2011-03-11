@@ -113,13 +113,13 @@ fun findVersion tags =
     PackageVersion.fromString (getName PackageName.versionTag tags);
 
 fun findDescription tags =
-    getName PackageName.descriptionTag tags;
+    {description = getName PackageName.descriptionTag tags};
 
 fun findAuthor tags =
-    getName PackageName.authorTag tags;
+    {author = getName PackageName.authorTag tags};
 
 fun findLicense tags =
-    getName PackageName.licenseTag tags;
+    {license = getName PackageName.licenseTag tags};
 
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
