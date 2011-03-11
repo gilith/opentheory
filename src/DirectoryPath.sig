@@ -66,6 +66,12 @@ val mkUploadUrl : {rootUrl : string} -> {url : string}
 
 val mkStartUploadUrl : {rootUrl : string} -> {url : string}
 
+val mkInstallUploadUrl : {rootUrl : string} -> {url : string}
+
+val mkFinishUploadUrl : {rootUrl : string} -> {url : string}
+
+val mkDeleteUploadUrl : {rootUrl : string} -> {url : string}
+
 val mkStatusUploadUrl :
     {rootUrl : string} -> Checksum.checksum -> {url : string}
 

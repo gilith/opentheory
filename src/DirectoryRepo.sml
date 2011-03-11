@@ -84,6 +84,15 @@ fun uploadUrl repo =
 fun startUploadUrl repo =
     DirectoryPath.mkStartUploadUrl (rootUrl repo);
 
+fun installUploadUrl repo =
+    DirectoryPath.mkInstallUploadUrl (rootUrl repo);
+
+fun finishUploadUrl repo =
+    DirectoryPath.mkFinishUploadUrl (rootUrl repo);
+
+fun deleteUploadUrl repo =
+    DirectoryPath.mkDeleteUploadUrl (rootUrl repo);
+
 fun statusUploadUrl repo token =
     DirectoryPath.mkStatusUploadUrl (rootUrl repo) token;
 
@@ -208,6 +217,12 @@ local
   val packageUploadParser =
       (exactString "successfully uploaded package " ++
        PackageNameVersion.parser) >> snd;
+
+  val finishUploadParser =
+      exactString "successfully finished package upload";
+
+  val deleteUploadParser =
+      exactString "successfully deleted package upload";
 in
   val parserStartUpload =
       (repoNameParser ++
@@ -220,6 +235,14 @@ in
   val parserPackageUpload =
       (repoNameParser ++
        packageUploadParser);
+
+  val parserFinishUpload =
+      (repoNameParser ++
+       finishUploadParser) >> fst;
+
+  val parserDeleteUpload =
+      (repoNameParser ++
+       deleteUploadParser) >> fst;
 end;
 
 fun fromStringStartUpload s =
@@ -233,6 +256,14 @@ fun fromStringSupportUpload s =
 fun fromStringPackageUpload s =
     Parse.fromString parserPackageUpload s
     handle Parse.NoParse => raise Error "fromStringPackageUpload";
+
+fun fromStringFinishUpload s =
+    Parse.fromString parserFinishUpload s
+    handle Parse.NoParse => raise Error "fromStringFinishUpload";
+
+fun fromStringDeleteUpload s =
+    Parse.fromString parserDeleteUpload s
+    handle Parse.NoParse => raise Error "fromStringDeleteUpload";
 
 fun startUpload repo =
     let
@@ -282,7 +313,7 @@ fun supportUpload upl namever chk =
 
       (* Send the install request *)
 
-      val {url} = uploadUrl repo
+      val {url} = installUploadUrl repo
 
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -377,6 +408,114 @@ fun packageUpload upl info chk =
           end
         else
           ()
+    end;
+
+fun finishUpload upl =
+    let
+      val Upload {repo,token,repoName} = upl
+
+      val sys = system repo
+
+      (* Send the finish request *)
+
+      val {url} = finishUploadUrl repo
+
+      val tmpFile = OS.FileSys.tmpName ()
+
+      val {curl = cmd} = DirectorySystem.curl sys
+
+      val cmd =
+          cmd ^ " " ^ url ^
+          " --form \"u=" ^ Checksum.toString token ^ "\"" ^
+          " --output " ^ tmpFile
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "upload finish request failed"
+
+      val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
+
+      val () = OS.FileSys.remove tmpFile
+    in
+      if null lines then raise Error "no response from repo"
+      else
+        let
+          (* Check the repo response *)
+
+          val response = chomp (String.concat lines)
+        in
+          case total fromStringFinishUpload response of
+            NONE => raise Error ("error response from repo:\n" ^ response)
+          | SOME repoName' =>
+            if not (PackageName.equal repoName' repoName) then
+              let
+                val err =
+                    "repo name " ^ PackageName.toString repoName ^
+                    " changed since start of upload:\n" ^ response
+              in
+                raise Error err
+              end
+            else
+              ()
+        end
+    end;
+
+fun deleteUpload upl =
+    let
+      val Upload {repo,token,repoName} = upl
+
+      val sys = system repo
+
+      (* Send the delete request *)
+
+      val {url} = deleteUploadUrl repo
+
+      val tmpFile = OS.FileSys.tmpName ()
+
+      val {curl = cmd} = DirectorySystem.curl sys
+
+      val cmd =
+          cmd ^ " " ^ url ^
+          " --form \"u=" ^ Checksum.toString token ^ "\"" ^
+          " --output " ^ tmpFile
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "upload delete request failed"
+
+      val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
+
+      val () = OS.FileSys.remove tmpFile
+    in
+      if null lines then raise Error "no response from repo"
+      else
+        let
+          (* Check the repo response *)
+
+          val response = chomp (String.concat lines)
+        in
+          case total fromStringDeleteUpload response of
+            NONE => raise Error ("error response from repo:\n" ^ response)
+          | SOME repoName' =>
+            if not (PackageName.equal repoName' repoName) then
+              let
+                val err =
+                    "repo name " ^ PackageName.toString repoName ^
+                    " changed since start of upload:\n" ^ response
+              in
+                raise Error err
+              end
+            else
+              ()
+        end
     end;
 
 fun urlUpload upl =

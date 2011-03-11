@@ -78,9 +78,9 @@ val supportUpload :
 
 val packageUpload : upload -> PackageInfo.info -> Checksum.checksum -> unit
 
-(***
-val finishUpload : upload -> {response : string}
-***)
+val finishUpload : upload -> unit
+
+val deleteUpload : upload -> unit
 
 val urlUpload : upload -> {url : string}
 

@@ -2362,6 +2362,32 @@ local
       in
         ()
       end;
+
+  fun finishUpload repo upl =
+      let
+        val () = DirectoryRepo.finishUpload upl
+
+        val mesg = "finished upload to " ^ DirectoryRepo.toString repo
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        ()
+      end;
+
+  fun deleteUpload repo upl =
+      let
+        val () = DirectoryRepo.deleteUpload upl
+
+        val mesg = "deleted upload to " ^ DirectoryRepo.toString repo
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        ()
+      end;
 in
   fun upload namevers =
       let
@@ -2405,13 +2431,17 @@ in
                   val () = List.app (supportUpload dir repo upl) support
 
                   val () = List.app (packageUpload dir repo upl) namevers
+
+                  val () = finishUpload repo upl
                 in
                   ()
                 end
-(***Delete upload on the server if an error occurs
                 handle Error err =>
-                  let val () = DirectoryRepo.
-***)
+                  let
+                    val () = deleteUpload repo upl
+                  in
+                    raise Error err
+                  end
           in
             ()
           end

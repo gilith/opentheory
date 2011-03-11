@@ -13,7 +13,10 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val configFile = "config"
+and deleteDirectory = "delete"
 and directoryDirectory = "opentheory"
+and finishDirectory = "finish"
+and installDirectory = "install"
 and packagesDirectory = "packages"
 and repoArgumentValueSeparator = "="
 and repoQuery = "?"
@@ -186,6 +189,33 @@ fun mkStartUploadUrl root =
       val {url} = mkUploadUrl root
 
       val url = url ^ startDirectory ^ repoSeparator
+    in
+      {url = url}
+    end;
+
+fun mkInstallUploadUrl root =
+    let
+      val {url} = mkUploadUrl root
+
+      val url = url ^ installDirectory ^ repoSeparator
+    in
+      {url = url}
+    end;
+
+fun mkFinishUploadUrl root =
+    let
+      val {url} = mkUploadUrl root
+
+      val url = url ^ finishDirectory ^ repoSeparator
+    in
+      {url = url}
+    end;
+
+fun mkDeleteUploadUrl root =
+    let
+      val {url} = mkUploadUrl root
+
+      val url = url ^ deleteDirectory ^ repoSeparator
     in
       {url = url}
     end;

@@ -1695,7 +1695,7 @@ fun ppUpload dir {repo,support,packages} =
                      Print.addNewline ::
                      ppNameVers nv nvs)
             in
-              (step,pp)
+              (step, Print.sequence Print.addNewline pp)
             end
 
       val (author,step,ppPackages) =
@@ -1759,7 +1759,6 @@ fun ppUpload dir {repo,support,packages} =
     in
       Print.blockProgram Print.Inconsistent 0
         [ppRepo,
-         Print.addNewline,
          ppSupport,
          Print.addNewline,
          ppPackages,
