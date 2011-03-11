@@ -40,10 +40,7 @@ function repo_check_staged($upload,$name_version,$tags,$parents) {
   foreach ($parents as $parent_name_version) {
     $parent = find_package_by_name_version($parent_name_version);
 
-    if (isset($parent) &&
-        !($parent->installed()) &&
-        !member_package_upload($parent,$upload))
-    {
+    if ($parent->is_staged() && !member_package_upload($parent,$upload)) {
       $error =
         'dependent package ' . $parent->to_string() .
         ' is not part of this upload set';
@@ -73,7 +70,7 @@ function repo_register_staged($upload,$name_version,$tags,$parents) {
 
   $license = license_from_tags($tags);
 
-  $pkg = create_package($name_version,$description,$author,$license);
+  $pkg = create_staged_package($name_version,$description,$author,$license);
 
   // Add the package to the upload set
 
@@ -86,11 +83,11 @@ function repo_register_staged($upload,$name_version,$tags,$parents) {
 
     if (!isset($parent)) { trigger_error('no parent package entry'); }
 
-    if (!($parent->installed() || member_package_upload($parent,$upload))) {
+    if ($parent->is_staged() && !member_package_upload($parent,$upload)) {
       trigger_error('parent not installed or part of this upload set');
     }
 
-    add_package_parent($pkg,$parent);
+    add_package_dependency($parent,$pkg);
   }
 
   return $pkg;

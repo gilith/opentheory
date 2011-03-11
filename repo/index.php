@@ -21,7 +21,7 @@ if (isset($pkg)) {
 
   $author = $pkg->author();
 
-  $uploaded = $pkg->uploaded();
+  $registered = $pkg->registered();
 
   $parents = package_parents($pkg);
 
@@ -31,9 +31,9 @@ if (isset($pkg)) {
 
   $license_info = $pkg->license();
 
-  $uploaded_info =
-    $uploaded->to_string_time() . ' on ' .
-    $uploaded->to_verbose_string_date();
+  $registered_info =
+    $registered->to_string_time() . ' on ' .
+    $registered->to_verbose_string_date();
 
   $main =
 '<h2>Package ' . $pkg->name() . '</h2>' .
@@ -45,7 +45,7 @@ if (isset($pkg)) {
 '<tr><td>version</td><td>' . string_to_html($version_info) . '</td></tr>' .
 '<tr><td>author</td><td>' . string_to_html($author_info) . '</td></tr>' .
 '<tr><td>license</td><td>' . string_to_html($license_info) . '</td></tr>' .
-'<tr><td>uploaded</td><td>' . string_to_html($uploaded_info) . '</td></tr>' .
+'<tr><td>registered</td><td>' . string_to_html($registered_info) . '</td></tr>' .
 '</table>';
 
   if (count($parents) > 0) {

@@ -139,7 +139,7 @@ class Package {
     return $now->subtract($registered);
   }
 
-  function staged_status() {
+  function is_staged() {
     $status = $this->status();
 
     return staged_package_status($status);
@@ -179,7 +179,7 @@ class Package {
 
     $namever = $this->name_version();
 
-    if ($this->staged_status()) {
+    if ($this->is_staged()) {
       return $namever->staged_summary_file_link($text);
     }
     else {
@@ -198,7 +198,7 @@ class Package {
 
     $namever = $this->name_version();
 
-    if ($this->staged_status()) {
+    if ($this->is_staged()) {
       return $namever->staged_tarball_link($text);
     }
     else {
@@ -217,7 +217,7 @@ class Package {
 
     $namever = $this->name_version();
 
-    if ($this->staged_status()) {
+    if ($this->is_staged()) {
       return $namever->staged_theory_file_link($text);
     }
     else {
@@ -266,7 +266,7 @@ function from_row_package($row) {
   $author_id = (integer)$row['author'];
   $license = $row['license'];
   $registered_datetime = $row['registered'];
-  $status = $row['staged'];
+  $status = $row['status'];
   $auxiliary_database = $row['auxiliary'];
   $obsolete_database = $row['obsolete'];
 
@@ -527,8 +527,19 @@ function package_table() {
 function create_package($name_version,$description,$author,$license) {
   $package_table = package_table();
 
+  $status = INSTALLED_PACKAGE_STATUS;
+
   return $package_table->create_package($name_version,$description,
                                         $author,$license);
+}
+
+function create_staged_package($name_version,$description,$author,$license) {
+  $package_table = package_table();
+
+  $status = STAGED_PACKAGE_STATUS;
+
+  return $package_table->create_package($name_version,$description,
+                                        $author,$license,$status);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

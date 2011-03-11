@@ -2299,7 +2299,7 @@ local
 
   fun askToConfirmUpload () =
       let
-        val () = TextIO.output (TextIO.stdOut, "Continue? [yN] ")
+        val () = TextIO.output (TextIO.stdOut, "Continue [y/N]? ")
 
         val () = TextIO.flushOut TextIO.stdOut
 
@@ -2438,7 +2438,9 @@ in
                 end
                 handle Error err =>
                   let
-                    val () = deleteUpload repo upl
+                    val () =
+                        deleteUpload repo upl
+                        handle Error err' => raise Error (err ^ "\n" ^ err')
                   in
                     raise Error err
                   end
