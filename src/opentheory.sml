@@ -2281,6 +2281,87 @@ local
       in
         (support,namevers)
       end;
+
+  fun summarizeUpload dir repo support packages =
+      let
+        val mesg =
+            Print.toString (Directory.ppUpload dir)
+              {repo = repo,
+               support = support,
+               packages = packages}
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        ()
+      end;
+
+  fun askToConfirmUpload () =
+      let
+        val () = TextIO.output (TextIO.stdOut, "Continue? [yN] ")
+
+        val () = TextIO.flushOut TextIO.stdOut
+
+        val s =
+            case TextIO.inputLine TextIO.stdIn of
+              SOME s => String.map Char.toLower s
+            | NONE => raise Error "standard input terminated"
+      in
+        if s = "y\n" then true
+        else if s = "n\n" orelse s = "\n" then false
+        else askToConfirmUpload ()
+      end;
+
+  fun startUpload repo =
+      let
+        val upl = DirectoryRepo.startUpload repo
+
+        val {url} = DirectoryRepo.urlUpload upl
+
+        val mesg =
+            "starting upload to " ^
+            DirectoryRepo.toString repo ^
+            ":\n  " ^ url
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        upl
+      end;
+
+  fun supportUpload dir repo upl namever =
+      let
+        val () = Directory.supportUpload dir upl namever
+
+        val mesg =
+            "installed support package " ^
+            PackageNameVersion.toString namever ^
+            " on " ^ DirectoryRepo.toString repo
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        ()
+      end;
+
+  fun packageUpload dir repo upl namever =
+      let
+        val () = Directory.packageUpload dir upl namever
+
+        val mesg =
+            "uploaded package " ^
+            PackageNameVersion.toString namever ^
+            " to " ^ DirectoryRepo.toString repo
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        ()
+      end;
 in
   fun upload namevers =
       let
@@ -2310,77 +2391,29 @@ in
                 else chat ("package upload warnings:\n" ^ s)
               end
 
-        val () =
-            let
-              val mesg =
-                  Print.toString (Directory.ppUpload dir)
-                    {repo = repo,
-                     support = support,
-                     packages = namevers}
-            in
-              chat mesg
-            end
+        val () = summarizeUpload dir repo support namevers
 
-        val proceed =
-            not (!confirmUpload) orelse
-            let
-              fun confirm () =
-                  let
-                    val () = TextIO.output (TextIO.stdOut, "Continue? [yN] ")
-
-                    val () = TextIO.flushOut TextIO.stdOut
-
-                    val s =
-                        case TextIO.inputLine TextIO.stdIn of
-                          SOME s => String.map Char.toLower s
-                        | NONE => raise Error "standard input terminated"
-                  in
-                    if s = "y\n" then true
-                    else if s = "n\n" orelse s = "\n" then false
-                    else confirm ()
-                  end
-            in
-              confirm ()
-            end
+        val proceed = not (!confirmUpload) orelse askToConfirmUpload ()
       in
         if not proceed then ()
         else
           let
-            val upl = DirectoryRepo.startUpload repo
+            val upl = startUpload repo
 
             val () =
                 let
-                  val {url} = DirectoryRepo.urlUpload upl
+                  val () = List.app (supportUpload dir repo upl) support
 
-                  val mesg =
-                      "starting upload to " ^
-                      DirectoryRepo.toString repo ^
-                      ":\n  " ^ url
+                  val () = List.app (packageUpload dir repo upl) namevers
                 in
-                  chat mesg
+                  ()
                 end
-          in
-            let
-              fun uploadPackage namever =
-                  let
-                    val () = Directory.packageUpload dir upl namever
-
-                    val mesg =
-                        "uploaded package " ^
-                        PackageNameVersion.toString namever ^
-                        " to " ^ DirectoryRepo.toString repo
-                  in
-                    chat mesg
-                  end
-
-              val () = List.app uploadPackage namevers
-            in
-              ()
-            end
 (***Delete upload on the server if an error occurs
-            handle Error err =>
-              let val () = DirectoryRepo.
+                handle Error err =>
+                  let val () = DirectoryRepo.
 ***)
+          in
+            ()
           end
       end
       handle Error err =>

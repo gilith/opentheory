@@ -73,6 +73,9 @@ type upload
 
 val startUpload : repo -> upload
 
+val supportUpload :
+    upload -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
+
 val packageUpload : upload -> PackageInfo.info -> Checksum.checksum -> unit
 
 (***

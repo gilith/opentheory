@@ -9,12 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-val uploadSuccessString = "successfully uploaded";
-
-(* ------------------------------------------------------------------------- *)
 (* A type of repos.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -207,6 +201,10 @@ local
       (exactString "new upload = " ++
        Checksum.parser) >> snd;
 
+  val supportUploadParser =
+      (exactString "successfully installed package " ++
+       PackageNameVersion.parser) >> snd;
+
   val packageUploadParser =
       (exactString "successfully uploaded package " ++
        PackageNameVersion.parser) >> snd;
@@ -214,6 +212,10 @@ in
   val parserStartUpload =
       (repoNameParser ++
        newUploadParser);
+
+  val parserSupportUpload =
+      (repoNameParser ++
+       supportUploadParser);
 
   val parserPackageUpload =
       (repoNameParser ++
@@ -223,6 +225,10 @@ end;
 fun fromStringStartUpload s =
     Parse.fromString parserStartUpload s
     handle Parse.NoParse => raise Error "fromStringStartUpload";
+
+fun fromStringSupportUpload s =
+    Parse.fromString parserSupportUpload s
+    handle Parse.NoParse => raise Error "fromStringSupportUpload";
 
 fun fromStringPackageUpload s =
     Parse.fromString parserPackageUpload s
@@ -262,9 +268,74 @@ fun startUpload repo =
           val response = chomp (String.concat lines)
         in
           case total fromStringStartUpload response of
-            SOME (repoName,token) =>
+            NONE => raise Error ("error response from repo:\n" ^ response)
+          | SOME (repoName,token) =>
             Upload {repo = repo, token = token, repoName = repoName}
-          | NONE => raise Error ("error response from repo:\n" ^ response)
+        end
+    end;
+
+fun supportUpload upl namever chk =
+    let
+      val Upload {repo,token,repoName} = upl
+
+      val sys = system repo
+
+      (* Send the install request *)
+
+      val {url} = uploadUrl repo
+
+      val tmpFile = OS.FileSys.tmpName ()
+
+      val {curl = cmd} = DirectorySystem.curl sys
+
+      val cmd =
+          cmd ^ " " ^ url ^
+          " --form \"u=" ^ Checksum.toString token ^ "\"" ^
+          " --form \"p=" ^ PackageNameVersion.toString namever ^ "\"" ^
+          " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
+          " --form \"s=install support package\"" ^
+          " --output " ^ tmpFile
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "upload install request failed"
+
+      val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
+
+      val () = OS.FileSys.remove tmpFile
+    in
+      if null lines then raise Error "no response from repo"
+      else
+        let
+          (* Check the repo response *)
+
+          val response = chomp (String.concat lines)
+        in
+          case total fromStringSupportUpload response of
+            NONE => raise Error ("error response from repo:\n" ^ response)
+          | SOME (repoName',namever') =>
+            if not (PackageName.equal repoName' repoName) then
+              let
+                val err =
+                    "repo name " ^ PackageName.toString repoName ^
+                    " changed since start of upload:\n" ^ response
+              in
+                raise Error err
+              end
+            else if not (PackageNameVersion.equal namever' namever) then
+              let
+                val err =
+                    "uploaded package " ^ PackageNameVersion.toString namever ^
+                    " has a different name:\n" ^ response
+              in
+                raise Error err
+              end
+            else
+              ()
         end
     end;
 

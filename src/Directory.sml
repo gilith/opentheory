@@ -1613,6 +1613,25 @@ in
       end;
 end;
 
+fun supportUpload dir upl namever =
+    let
+      val chk =
+          case checksum dir namever of
+            SOME c => c
+          | NONE =>
+            let
+              val err =
+                  "package " ^ PackageNameVersion.toString namever ^
+                  " seems to be badly installed"
+            in
+              raise Error err
+            end
+
+      val () = DirectoryRepo.supportUpload upl namever chk
+    in
+      ()
+    end;
+
 fun packageUpload dir upl namever =
     let
       val info = get dir namever
@@ -1636,6 +1655,12 @@ fun packageUpload dir upl namever =
 
 fun ppUpload dir {repo,support,packages} =
     let
+      fun ppStep step pps =
+          Print.blockProgram Print.Inconsistent 3
+            (Print.ppInt step ::
+             Print.ppString ". " ::
+             pps)
+
       val ppNameVer = PackageNameVersion.pp
 
       fun ppNameVers nv nvs =
@@ -1644,60 +1669,93 @@ fun ppUpload dir {repo,support,packages} =
 
       fun ppAuthor {author} = Print.ppString author
 
-      val author =
+      val step = 0
+
+      val (step,ppSupport) =
+          case support of
+            [] => (step,Print.skip)
+          | nv :: nvs =>
+            let
+              val step = step + 1
+
+              val num = length nvs + 1
+
+              val mesg = "Request installation of "
+
+              val ppNum =
+                  if num = 1 then Print.ppString "a support package:"
+                  else
+                    Print.sequence (Print.ppInt num)
+                      (Print.ppString " support packages:")
+
+              val pp =
+                  ppStep step
+                    (Print.ppString mesg ::
+                     ppNum ::
+                     Print.addNewline ::
+                     ppNameVers nv nvs)
+            in
+              (step,pp)
+            end
+
+      val (author,step,ppPackages) =
           case packages of
             [] => raise Bug "Directory.ppUpload: no packages"
-          | nv :: _ =>
+          | nv :: nvs =>
             let
-              val info = get dir nv
+              val author =
+                  let
+                    val info = get dir nv
 
-              val pkg = PackageInfo.package info
+                    val pkg = PackageInfo.package info
+                  in
+                    Package.author pkg
+                  end
+
+              val step = step + 1
+
+              val num = length nvs + 1
+
+              val mesg = "Upload "
+
+              val ppNum =
+                  if num = 1 then Print.ppString "the package:"
+                  else
+                    Print.sequence (Print.ppInt num)
+                      (Print.ppString " packages:")
+
+              val pp =
+                  ppStep step
+                    (Print.ppString mesg ::
+                     ppNum ::
+                     Print.addNewline ::
+                     ppNameVers nv nvs)
             in
-              Package.author pkg
+              (author,step,pp)
             end
+
+      val (step,ppAuthorConfirm) =
+          let
+            val step = step + 1
+
+            val mesg = "Send a confirmation email to the package author:"
+
+            val pp =
+                ppStep step
+                  [Print.ppString mesg,
+                   Print.addNewline,
+                   ppAuthor author]
+          in
+            (step,pp)
+          end
 
       val ppRepo =
           Print.blockProgram Print.Inconsistent 2
-            [Print.ppString "About to upload packages to ",
-             DirectoryRepo.pp repo]
-
-      val ppSupport =
-          case support of
-            [] => Print.skip
-          | nv :: nvs =>
-            let
-              val mesg =
-                  "Will first request installation of " ^
-                  "the following support packages:"
-            in
-              Print.blockProgram Print.Inconsistent 2
-                (Print.ppString mesg ::
-                 Print.addNewline ::
-                 ppNameVers nv nvs)
-            end
-
-      val ppPackages =
-          case packages of
-            [] => Print.skip
-          | nv :: nvs =>
-            let
-              val mesg = "Will upload the following packages:"
-            in
-              Print.blockProgram Print.Inconsistent 2
-                (Print.ppString mesg ::
-                 Print.addNewline ::
-                 ppNameVers nv nvs)
-            end
-
-      val ppAuthor =
-          let
-            val mesg = "Will send a confirmation email to the author:"
-          in
-            Print.blockProgram Print.Inconsistent 2
-              [Print.ppString mesg,
-               Print.addNewline,
-               ppAuthor author]
-          end
+            [Print.ppString "About to upload to ",
+             DirectoryRepo.pp repo,
+             Print.ppString " in ",
+             Print.ppInt step,
+             Print.ppString " steps"]
     in
       Print.blockProgram Print.Inconsistent 0
         [ppRepo,
@@ -1706,7 +1764,7 @@ fun ppUpload dir {repo,support,packages} =
          Print.addNewline,
          ppPackages,
          Print.addNewline,
-         ppAuthor]
+         ppAuthorConfirm]
     end;
 
 (* ------------------------------------------------------------------------- *)

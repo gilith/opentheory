@@ -219,6 +219,10 @@ val checkUpload :
      packages : PackageNameVersion.nameVersion list} ->
     DirectoryError.error list
 
+val supportUpload :
+    directory -> DirectoryRepo.upload -> PackageNameVersion.nameVersion ->
+    unit
+
 val packageUpload :
     directory -> DirectoryRepo.upload -> PackageNameVersion.nameVersion ->
     unit
