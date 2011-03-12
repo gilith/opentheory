@@ -274,9 +274,10 @@ class UploadTable extends DatabaseTable {
     return from_row_upload($row);
   }
 
-  function find_upload($upload) {
-    is_string($upload) or trigger_error('bad upload');
-    return $this->find_upload_where('id = ' . database_value($upload));
+  function find_upload($id) {
+    is_string($id) or trigger_error('bad id');
+
+    return $this->find_upload_where('id = ' . database_value($id));
   }
 
   function list_uploads($where,$order_by,$limit) {

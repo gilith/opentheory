@@ -122,6 +122,22 @@ function from_row_confirm_upload($row) {
 define('CONFIRM_UPLOAD_ID_CHARS',HASH_CHARS);
 
 class ConfirmUploadTable extends DatabaseTable {
+  function find_confirm_upload_where($where_condition) {
+    is_string($where_condition) or trigger_error('bad where_condition');
+
+    $row = $this->find_row($where_condition);
+
+    if (!isset($row)) { return null; }
+
+    return from_row_confirm_upload($row);
+  }
+
+  function find_confirm_upload($id) {
+    is_string($id) or trigger_error('bad id');
+
+    return $this->find_confirm_upload_where('id = ' . database_value($id));
+  }
+
   function insert_confirm_upload($confirm) {
     isset($confirm) or trigger_error('bad confirm');
 
@@ -190,7 +206,7 @@ function find_confirm_upload($confirm_id) {
 
   $confirm_upload_table = confirm_upload_table();
 
-  return $confirm_upload_table->find_upload($confirm_id);
+  return $confirm_upload_table->find_confirm_upload($confirm_id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

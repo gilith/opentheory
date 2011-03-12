@@ -9,15 +9,11 @@ require_once 'opentheory.php';
 define('SHORT_RECENT_PACKAGE_LIMIT',3);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Package page.
+// Pretty package information.
 ///////////////////////////////////////////////////////////////////////////////
 
-$pkg = from_string(input('pkg'));
-if (isset($pkg)) { $pkg = from_string_package_name_version($pkg); }
-if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
-
-if (isset($pkg)) {
-  set_bread_crumbs_extension(array());
+function pretty_package_information($pkg) {
+  isset($pkg) or trigger_error('bad pkg');
 
   $author = $pkg->author();
 
@@ -83,22 +79,15 @@ $pkg->theory_file_link($pkg->theory_file_name()) .
 ' (included in the package tarball)</li>' .
 '</ul>';
 
-  $title = 'Package ' . $pkg->to_string();
-
-  $image = site_image('sunset-tree.jpg','Sunset Tree');
-
-  output(array('title' => $title), $main, $image);
+  return $main;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Upload page.
+// Pretty upload information.
 ///////////////////////////////////////////////////////////////////////////////
 
-$upload = from_string(input('upload'));
-if (isset($upload)) { $upload = find_upload($upload); }
-
-if (isset($upload)) {
-  set_bread_crumbs_extension(array());
+function pretty_upload_information($upload) {
+  isset($upload) or trigger_error('bad upload');
 
   $initiated = $upload->initiated();
 
@@ -115,7 +104,6 @@ if (isset($upload)) {
   $status_info = pretty_upload_status($status);
 
   $main =
-'<h2>Package Upload</h2>' .
 '<h3>Information</h3>' .
 '<table class="information">' .
 '<tr><td>status</td><td>' . string_to_html($status_info) . '</td></tr>' .
@@ -149,7 +137,42 @@ string_to_html($pkg->description()) .
 '</ul>';
   }
 
-  $main .=
+  return $main;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Package page.
+///////////////////////////////////////////////////////////////////////////////
+
+$pkg = from_string(input('pkg'));
+if (isset($pkg)) { $pkg = from_string_package_name_version($pkg); }
+if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
+
+if (isset($pkg)) {
+  set_bread_crumbs_extension(array());
+
+  $title = 'Package ' . $pkg->to_string();
+
+  $main = pretty_package_information($pkg);
+
+  $image = site_image('sunset-tree.jpg','Sunset Tree');
+
+  output(array('title' => $title), $main, $image);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Upload page.
+///////////////////////////////////////////////////////////////////////////////
+
+$upload = from_string(input('upload'));
+if (isset($upload)) { $upload = find_upload($upload); }
+
+if (isset($upload)) {
+  set_bread_crumbs_extension(array());
+
+  $main =
+'<h2>Package Upload</h2>' .
+pretty_upload_information($upload) .
 '<h3>Actions</h3>' .
 '<ul>';
 
@@ -180,6 +203,58 @@ site_link(array('upload','delete'),
 '</ul>';
 
   $title = 'Package Upload';
+
+  $image = site_image('elephant-and-castle.jpg','Elephant and Castle');
+
+  output(array('title' => $title), $main, $image);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Upload confirmation page.
+///////////////////////////////////////////////////////////////////////////////
+
+$confirm = from_string(input('confirm'));
+if (isset($confirm)) { $confirm = find_confirm_upload($confirm); }
+
+if (isset($confirm)) {
+  set_bread_crumbs_extension(array());
+
+  $upload = $confirm->upload();
+
+  $main =
+'<h2>Package Upload Confirmation</h2>';
+
+  if (isset($upload)) {
+    $main .=
+pretty_upload_information($upload) .
+'<h3>Actions</h3>' .
+'<ul>' .
+'<li>' .
+site_link(array(),
+          'Confirm that I am the package author.',
+          array('confirm' => $confirm->to_string(),
+                'x' => 'confirm')) .
+'</li>' .
+'<li>' .
+site_link(array(),
+          'Report to the repo maintainer that I am not the package author.',
+          array('confirm' => $confirm->to_string(),
+                'x' => 'report')) .
+'</li>' .
+'</ul>';
+  }
+  else {
+    $since_sent = $confirm->since_sent();
+
+    $main .=
+'<p>I\'m sorry, but since the confirmation email was sent out to you ' .
+$since_sent->to_string() .
+' ago, the package upload has been withdrawn.</p>';
+
+    delete_confirm_upload($confirm);
+  }
+
+  $title = 'Package Upload Confirmation';
 
   $image = site_image('elephant-and-castle.jpg','Elephant and Castle');
 
