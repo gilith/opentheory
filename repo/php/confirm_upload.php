@@ -41,6 +41,18 @@ function equal_confirm_upload_type($type1,$type2) {
   return (strcmp($type1,$type2) == 0);
 }
 
+function is_author_confirm_upload_type($type) {
+  is_confirm_upload_type($type) or trigger_error('bad type');
+
+  return equal_confirm_upload_type($type,AUTHOR_CONFIRM_UPLOAD_TYPE);
+}
+
+function is_obsolete_confirm_upload_type($type) {
+  is_confirm_upload_type($type) or trigger_error('bad type');
+
+  return equal_confirm_upload_type($type,OBSOLETE_CONFIRM_UPLOAD_TYPE);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // A class to store upload confirmation information.
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,6 +70,18 @@ class ConfirmUpload {
   function sent() { return $this->_sent; }
 
   function upload() { return $this->_upload; }
+
+  function is_author() {
+    $type = $this->type();
+
+    return is_author_confirm_upload_type($type);
+  }
+
+  function is_obsolete() {
+    $type = $this->type();
+
+    return is_obsolete_confirm_upload_type($type);
+  }
 
   function since_sent() {
     $now = server_datetime();

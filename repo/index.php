@@ -34,7 +34,6 @@ function pretty_package_information($pkg) {
     $registered->to_verbose_string_date();
 
   $main =
-'<h2>Package ' . $pkg->name() . '</h2>' .
 '<p>' . string_to_html($pkg->description()) . '</p>';
 
   $main .=
@@ -145,15 +144,30 @@ string_to_html($pkg->description()) .
 ///////////////////////////////////////////////////////////////////////////////
 
 $pkg = from_string(input('pkg'));
-if (isset($pkg)) { $pkg = from_string_package_name_version($pkg); }
-if (isset($pkg)) { $pkg = find_package_by_name_version($pkg); }
-
 if (isset($pkg)) {
   set_bread_crumbs_extension(array());
 
-  $title = 'Package ' . $pkg->to_string();
+  $namever = from_string_package_name_version($pkg);
+  if (!isset($namever)) { trigger_error('bad namever'); }
 
-  $main = pretty_package_information($pkg);
+  $pkg = find_package_by_name_version($namever);
+
+  $main =
+'<h2>Package ' . $namever->name() . '</h2>';
+
+  if (isset($pkg)) {
+    $main .= pretty_package_information($pkg);
+  }
+  else {
+    $main .=
+'<p>Sorry for the inconvenience, but the package ' .
+$namever->to_string() .
+' is not on the ' .
+repo_name() .
+'.</p>';
+  }
+
+  $title = 'Package ' . $namever->to_string();
 
   $image = site_image('sunset-tree.jpg','Sunset Tree');
 
@@ -165,42 +179,51 @@ if (isset($pkg)) {
 ///////////////////////////////////////////////////////////////////////////////
 
 $upload = from_string(input('upload'));
-if (isset($upload)) { $upload = find_upload($upload); }
-
 if (isset($upload)) {
   set_bread_crumbs_extension(array());
 
+  $upload = find_upload($upload);
+
   $main =
-'<h2>Package Upload</h2>' .
+'<h2>Package Upload</h2>';
+
+  if (isset($upload)) {
+    $main .=
 pretty_upload_information($upload) .
 '<h3>Actions</h3>' .
 '<ul>';
 
-  if ($upload->add_packagable()) {
-    $main .=
+    if ($upload->add_packagable()) {
+      $main .=
 '<li>' .
 site_link(array('upload'),
           'Add a package to this upload.',
           array('u' => $upload->to_string())) .
 '</li>';
-  }
+    }
 
-  if ($upload->finishable()) {
-    $main .=
+    if ($upload->finishable()) {
+      $main .=
 '<li>' .
 site_link(array('upload','finish'),
           'Finish adding packages and confirm package author.',
           array('u' => $upload->to_string())) .
 '</li>';
-  }
+    }
 
-  $main .=
+    $main .=
 '<li>' .
 site_link(array('upload','delete'),
           'Withdraw this package upload.',
           array('u' => $upload->to_string())) .
 '</li>' .
 '</ul>';
+  }
+  else {
+    $main .=
+'<p>Sorry for the inconvenience, but this package upload has ' .
+'been withdrawn.</p>';
+  }
 
   $title = 'Package Upload';
 
@@ -214,44 +237,145 @@ site_link(array('upload','delete'),
 ///////////////////////////////////////////////////////////////////////////////
 
 $confirm = from_string(input('confirm'));
-if (isset($confirm)) { $confirm = find_confirm_upload($confirm); }
-
 if (isset($confirm)) {
   set_bread_crumbs_extension(array());
 
-  $upload = $confirm->upload();
+  $confirm = find_confirm_upload($confirm);
 
-  $main =
+  if (isset($confirm)) {
+    $upload = $confirm->upload();
+
+    $main =
 '<h2>Package Upload Confirmation</h2>';
 
-  if (isset($upload)) {
-    $main .=
+    if (isset($upload)) {
+      $action = from_string(input('x'));
+
+      if (isset($action) && strcmp($action,'confirm') == 0) {
+        if ($confirm->is_author()) {
+          $main .=
+'<p>Thank you for reporting to the repo maintainer that ' .
+'you are not the author of this package upload, and sorry ' .
+'for any inconvenience caused.</p>';
+        }
+        elseif ($confirm->is_obsolete()) {
+          $main .=
+'<p>Thank you for reporting to the repo maintainer that ' .
+'you did not consent to this package upload obsoleting ' .
+'your package, and sorry for any inconvenience caused.</p>';
+        }
+        else {
+          trigger_error('default case');
+        }
+      }
+      elseif (isset($action) && strcmp($action,'report') == 0) {
+        if ($confirm->is_author()) {
+          $main .=
+'<p>Thank you for reporting to the repo maintainer that ' .
+'you are not the author of this package upload, and sorry ' .
+'for any inconvenience caused.</p>';
+
+          $since_sent = $confirm->since_sent();
+
+          $author = $upload->author();
+
+          $subject = 'Package upload denied by author';
+
+          $body =
+$since_sent->to_string() .
+' ago someone finished a theory package upload with author
+
+' . $author->to_string() . '
+
+but the owner of this email address reported this to be incorrect.';
+
+          site_email(ADMIN_EMAIL,$subject,$body);
+        }
+        elseif ($confirm->is_obsolete()) {
+          $main .=
+'<p>Thank you for reporting to the repo maintainer that ' .
+'you did not consent to this package upload obsoleting ' .
+'your package, and sorry for any inconvenience caused.</p>';
+
+          $author = $upload->author();
+
+          $obsolete = $upload->obsolete();
+          if (!isset($obsolete)) { trigger_error('bad obsolete'); }
+
+          $address = $author->to_string();
+
+          $subject = 'Package upload denied by obsoleted author';
+
+          $body =
+'Hi ' . $author->name() . ',
+
+This is another automatic email from the maintainer of the
+' . repo_name() . '.
+
+Your recent package upload obsoleted one or more packages that were
+authored by
+
+' . $obsolete->to_string() . '
+
+In this situation the repo policy is that they have to agree to you
+taking over as maintainer of these packages, and so an email was sent
+asking whether they do. In this instance the author of the obsoleted
+packages did not agree, and so your package upload has been deleted.
+
+To prevent this happening in the future, I recommend getting the
+permission of package authors to take over as maintainer before
+uploading obsoleting packages.
+
+Sorry for the inconvenience,
+
+' . ADMIN_NAME;
+
+          site_email($address,$subject,$body);
+          site_email(ADMIN_EMAIL,$subject,$body);
+        }
+        else {
+          trigger_error('default case');
+        }
+
+        delete_confirm_upload($confirm);
+        delete_upload($upload);
+      }
+      else {
+        $main .=
 pretty_upload_information($upload) .
 '<h3>Actions</h3>' .
 '<ul>' .
 '<li>' .
 site_link(array(),
-          'Confirm that I am the package author.',
+          'Confirm that I am the author of this package upload.',
           array('confirm' => $confirm->to_string(),
                 'x' => 'confirm')) .
 '</li>' .
 '<li>' .
 site_link(array(),
-          'Report to the repo maintainer that I am not the package author.',
+          'Report to the repo maintainer that I am not the author.',
           array('confirm' => $confirm->to_string(),
                 'x' => 'report')) .
 '</li>' .
 '</ul>';
+      }
+    }
+    else {
+      $since_sent = $confirm->since_sent();
+
+      $main .=
+'<p>Sorry for the inconvenience, but since the confirmation ' .
+'email was sent out to you ' .
+$since_sent->to_string() .
+' ago, this package upload has been withdrawn.</p>';
+
+      delete_confirm_upload($confirm);
+    }
   }
   else {
-    $since_sent = $confirm->since_sent();
-
     $main .=
-'<p>I\'m sorry, but since the confirmation email was sent out to you ' .
-$since_sent->to_string() .
-' ago, the package upload has been withdrawn.</p>';
-
-    delete_confirm_upload($confirm);
+'<p>Sorry for the inconvenience, but this package upload confirmation ' .
+'has expired.</p>';
   }
 
   $title = 'Package Upload Confirmation';
