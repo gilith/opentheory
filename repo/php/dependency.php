@@ -92,6 +92,16 @@ class DependencyTable extends DatabaseTable {
     return $parent_ids;
   }
 
+  function delete_package($pkg) {
+    isset($pkg) or trigger_error('bad pkg');
+
+    $pkg_id = $pkg->id();
+
+    database_query('
+      DELETE FROM ' . $this->table() . '
+      WHERE child = ' . database_value($pkg_id) . ';');
+  }
+
   function DependencyTable($table) {
     $fields =
       array('parent' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',

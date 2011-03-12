@@ -81,6 +81,7 @@ class SelectUploadData extends SelectValue {
 '<p>' .
 $this->form_error() .
 $this->_select_upload->form_error() .
+$this->_select_upload->hidden_select() .
 $this->_select_tarball->form_error() .
 $this->_select_submit->form_error() .
 field_text('Tarball') . required_mark() .

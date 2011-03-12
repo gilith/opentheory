@@ -6,7 +6,7 @@ require_once '../../opentheory.php';
 // Check that the opentheory script is perfoming this operation.
 ///////////////////////////////////////////////////////////////////////////////
 
-if (!is_script()) { jump_path(array('upload')); }
+if (!is_script()) { trigger_error('not the opentheory script'); }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Create a new package upload.

@@ -31,6 +31,8 @@ if (isset($pkg)) {
 
   $license_info = $pkg->license();
 
+  $registered_key = ($pkg->is_installed() ? 'installed' : 'uploaded');
+
   $registered_info =
     $registered->to_string_time() . ' on ' .
     $registered->to_verbose_string_date();
@@ -45,7 +47,8 @@ if (isset($pkg)) {
 '<tr><td>version</td><td>' . string_to_html($version_info) . '</td></tr>' .
 '<tr><td>author</td><td>' . string_to_html($author_info) . '</td></tr>' .
 '<tr><td>license</td><td>' . string_to_html($license_info) . '</td></tr>' .
-'<tr><td>registered</td><td>' . string_to_html($registered_info) . '</td></tr>' .
+'<tr><td>' . string_to_html($registered_key) . '</td><td>' .
+string_to_html($registered_info) . '</td></tr>' .
 '</table>';
 
   if (count($parents) > 0) {
@@ -145,6 +148,27 @@ string_to_html($pkg->description()) .
     $main .=
 '</ul>';
   }
+
+  $main .=
+'<h3>Actions</h3>' .
+'<ul>';
+
+  if ($upload->add_packagable()) {
+    $main .=
+'<li>' .
+site_link(array('upload'),
+          'Add a package to this upload.',
+          array('u' => $upload->to_string())) .
+'</li>';
+  }
+
+  $main .=
+'<li>' .
+site_link(array('upload','delete'),
+          'Withdraw this package upload.',
+          array('u' => $upload->to_string())) .
+'</li>' .
+'</ul>';
 
   $title = 'Package Upload';
 

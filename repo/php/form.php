@@ -517,6 +517,10 @@ class SelectText extends SelectValue {
     return $this->text_input('',$this->value(),$max);
   }
 
+  function hidden_select() {
+    return $this->hidden_input('',$this->value());
+  }
+
   function SelectText($field,$required,$min,$max) {
     parent::SelectValue($field);
 

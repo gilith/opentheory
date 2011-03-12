@@ -3,15 +3,20 @@
 require_once '../../opentheory.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Check that the opentheory script is perfoming this operation.
-///////////////////////////////////////////////////////////////////////////////
-
-if (!is_script()) { jump_path(array('upload')); }
-
-///////////////////////////////////////////////////////////////////////////////
 // Delete the package upload.
 ///////////////////////////////////////////////////////////////////////////////
 
-trigger_error('not implemented');
+$upload = from_string(input('u'));
+if (isset($upload)) { $upload = find_upload($upload); }
+if (!isset($upload)) { trigger_error('bad upload'); }
+
+delete_upload($upload);
+
+if (is_script()) {
+  output_script('successfully deleted package upload');
+}
+else {
+  jump_path(array());
+}
 
 ?>

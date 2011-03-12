@@ -42,6 +42,12 @@ function equal_package_status($status1,$status2) {
   return (strcmp($status1,$status2) == 0);
 }
 
+function installed_package_status($status) {
+  is_package_status($status) or trigger_error('bad status');
+
+  return equal_package_status($status,INSTALLED_PACKAGE_STATUS);
+}
+
 function staged_package_status($status) {
   is_package_status($status) or trigger_error('bad status');
 
@@ -137,6 +143,12 @@ class Package {
     $registered = $this->registered();
 
     return $now->subtract($registered);
+  }
+
+  function is_installed() {
+    $status = $this->status();
+
+    return installed_package_status($status);
   }
 
   function is_staged() {
@@ -480,6 +492,16 @@ class PackageTable extends DatabaseTable {
     $this->insert_package($pkg);
 
     return $pkg;
+  }
+
+  function delete_package($pkg) {
+    isset($pkg) or trigger_error('bad pkg');
+
+    $id = $pkg->id();
+
+    database_query('
+      DELETE FROM ' . $this->table() . '
+      WHERE id = ' . database_value($id) . ';');
   }
 
   function PackageTable($table) {

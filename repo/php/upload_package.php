@@ -90,6 +90,16 @@ class UploadPackageTable extends DatabaseTable {
     return $pkg_ids;
   }
 
+  function delete_package($pkg) {
+    isset($pkg) or trigger_error('bad pkg');
+
+    $pkg_id = $pkg->id();
+
+    database_query('
+      DELETE FROM ' . $this->table() . '
+      WHERE package = ' . database_value($pkg_id) . ';');
+  }
+
   function UploadPackageTable($table) {
     $fields =
       array('upload' => 'char(' . UPLOAD_ID_CHARS . ') NOT NULL',
@@ -168,6 +178,43 @@ function packages_upload($upload) {
   }
 
   return $pkgs;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Delete a staged package.
+///////////////////////////////////////////////////////////////////////////////
+
+function delete_staged_package($pkg) {
+  isset($pkg) or trigger_error('bad pkg');
+  $pkg->is_staged() or trigger_error('not staged');
+
+  opentheory_cleanup($pkg->name_version());
+
+  $upload_package_table = upload_package_table();
+  $upload_package_table->delete_package($pkg);
+
+  $dependency_table = dependency_table();
+  $dependency_table->delete_package($pkg);
+
+  $package_table = package_table();
+  $package_table->delete_package($pkg);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Delete a package upload.
+///////////////////////////////////////////////////////////////////////////////
+
+function delete_upload($upload) {
+  isset($upload) or trigger_error('bad upload');
+
+  $pkgs = array_reverse(packages_upload($upload));
+
+  foreach ($pkgs as $pkg) {
+    delete_staged_package($pkg);
+  }
+
+  $upload_table = upload_table();
+  $upload_table->delete_upload($upload);
 }
 
 ?>
