@@ -54,24 +54,10 @@ function staged_package_status($status) {
   return equal_package_status($status,STAGED_PACKAGE_STATUS);
 }
 
-function pretty_package_status($status) {
+function uploaded_package_status($status) {
   is_package_status($status) or trigger_error('bad status');
 
-  if (equal_package_status($status,INSTALLED_PACKAGE_STATUS)) {
-    return 'Waiting for a package to be added';
-  }
-  elseif (equal_package_status($status,ADD_PACKAGE_PACKAGE_STATUS)) {
-    return 'Waiting for more packages to be added';
-  }
-  elseif (equal_package_status($status,CONFIRM_AUTHOR_PACKAGE_STATUS)) {
-    return 'Waiting for the package author to confirm their email address';
-  }
-  elseif (equal_package_status($status,CONFIRM_OBSOLETE_PACKAGE_STATUS)) {
-    return 'Waiting for the author of the obsoleted packages to sign off';
-  }
-  else {
-    trigger_error('default case');
-  }
+  return equal_package_status($status,UPLOADED_PACKAGE_STATUS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,6 +141,12 @@ class Package {
     $status = $this->status();
 
     return staged_package_status($status);
+  }
+
+  function is_uploaded() {
+    $status = $this->status();
+
+    return uploaded_package_status($status);
   }
 
   function is_auxiliary_parent($parent) {

@@ -162,6 +162,15 @@ site_link(array('upload'),
 '</li>';
   }
 
+  if ($upload->finishable()) {
+    $main .=
+'<li>' .
+site_link(array('upload','finish'),
+          'Finish adding packages and confirm package author.',
+          array('u' => $upload->to_string())) .
+'</li>';
+  }
+
   $main .=
 '<li>' .
 site_link(array('upload','delete'),

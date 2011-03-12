@@ -51,6 +51,12 @@ function add_packagable_upload_status($status) {
           equal_upload_status($status,ADD_PACKAGE_UPLOAD_STATUS));
 }
 
+function finishable_upload_status($status) {
+  is_upload_status($status) or trigger_error('bad status');
+
+  return equal_upload_status($status,ADD_PACKAGE_UPLOAD_STATUS);
+}
+
 function pretty_upload_status($status) {
   is_upload_status($status) or trigger_error('bad status');
 
@@ -103,6 +109,12 @@ class Upload {
     $status = $this->status();
 
     return add_packagable_upload_status($status);
+  }
+
+  function finishable() {
+    $status = $this->status();
+
+    return finishable_upload_status($status);
   }
 
   function author_id() {
@@ -360,6 +372,19 @@ class UploadTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
+  function set_confirm_author_status($upload) {
+    isset($upload) or trigger_error('bad upload');
+
+    $upload->set_status(CONFIRM_AUTHOR_UPLOAD_STATUS);
+
+    $id = $upload->id();
+
+    database_query('
+      UPDATE ' . $this->table() . '
+      SET status = ' . database_value(CONFIRM_AUTHOR_UPLOAD_STATUS) . '
+      WHERE id = ' . database_value($id) . ';');
+  }
+
   function UploadTable($table) {
     global $all_upload_status;
 
@@ -442,6 +467,14 @@ function set_add_package_upload_status($upload,$author) {
   $upload_table = upload_table();
 
   $upload_table->set_add_package_status($upload,$author);
+}
+
+function set_confirm_author_upload_status($upload) {
+  isset($upload) or trigger_error('bad upload');
+
+  $upload_table = upload_table();
+
+  $upload_table->set_confirm_author_status($upload);
 }
 
 ?>

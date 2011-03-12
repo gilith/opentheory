@@ -77,6 +77,60 @@ function set_bread_crumbs_extension($e) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// URL arguments.
+///////////////////////////////////////////////////////////////////////////////
+
+function url_arguments($args) {
+  is_array($args) or trigger_error('bad args');
+
+  $l = array();
+
+  $j = null;
+
+  foreach ($args as $arg => $val) {
+    is_string($arg) or trigger_error('bad arg');
+
+    if (isset($val)) {
+      if (strcmp($arg,'') == 0) {
+        $j = $val;
+      }
+      elseif (is_array($val)) {
+        foreach ($val as $v) {
+          $l[] = string_to_url($arg . '[]') . '=' . string_to_url($v);
+        }
+      }
+      else {
+        $l[] = string_to_url($arg) . '=' . string_to_url($val);
+      }
+    }
+  }
+
+  return
+    ((count($l) == 0) ? '' : ('?' . implode('&',$l))) .
+    (isset($j) ? ('#' . string_to_url($j)) : '');
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Site URLs.
+///////////////////////////////////////////////////////////////////////////////
+
+function external_site_url($path, $args = null) {
+  is_array($path) or trigger_error('bad path');
+  if (!isset($args)) { $args = array(); }
+  is_array($args) or trigger_error('bad args');
+
+  $url = SITE_URL;
+
+  foreach ($path as $dir) {
+    $url .= $dir . '/';
+  }
+
+  $url .= url_arguments($args);
+
+  return $url;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Site paths.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -130,31 +184,7 @@ function site_url($path, $args = null) {
 
   $path_text = site_path($path);
 
-  $l = array();
-
-  $j = null;
-
-  foreach ($args as $arg => $val) {
-    is_string($arg) or trigger_error('bad arg');
-
-    if (isset($val)) {
-      if (strcmp($arg,'') == 0) {
-        $j = $val;
-      }
-      elseif (is_array($val)) {
-        foreach ($val as $v) {
-          $l[] = string_to_url($arg . '[]') . '=' . string_to_url($v);
-        }
-      }
-      else {
-        $l[] = string_to_url($arg) . '=' . string_to_url($val);
-      }
-    }
-  }
-
-  $args_text =
-    ((count($l) == 0) ? '' : ('?' . implode('&',$l))) .
-    (isset($j) ? ('#' . string_to_url($j)) : '');
+  $args_text = url_arguments($args);
 
   if (strcmp($path_text,'.') == 0) {
     if (strcmp($args_text,'') == 0) {

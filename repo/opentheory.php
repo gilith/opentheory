@@ -37,6 +37,7 @@ require_once 'php/package.php';  // Package table
 require_once 'php/dependency.php';  // Package dependency table
 require_once 'php/upload.php';  // Package upload table
 require_once 'php/upload_package.php';  // Uploaded packages table
+require_once 'php/confirm_upload.php';  // Upload confirmations table
 require_once 'php/repo.php';  // Repo operations
 
 ///////////////////////////////////////////////////////////////////////////////

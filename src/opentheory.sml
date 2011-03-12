@@ -2367,7 +2367,9 @@ local
       let
         val () = DirectoryRepo.finishUpload upl
 
-        val mesg = "finished upload to " ^ DirectoryRepo.toString repo
+        val mesg =
+            "finished upload to " ^ DirectoryRepo.toString repo ^
+            ", sent author confirmation email"
 
         val () = chat mesg
 

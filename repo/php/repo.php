@@ -174,6 +174,9 @@ function repo_reset() {
   $upload_package_table = upload_package_table();
   $upload_package_table->reset();
 
+  $confirm_upload_table = confirm_upload_table();
+  $confirm_upload_table->reset();
+
   repo_register_all();
 }
 
