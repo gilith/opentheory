@@ -39,6 +39,12 @@ class PackageAuthor {
 
   function email() { return $this->_email; }
 
+  function equal($author) {
+    isset($author) or trigger_error('bad author');
+
+    return $this->id() == $author->id();
+  }
+
   function to_string() {
     return ($this->name() . ' <' . $this->email() . '>');
   }

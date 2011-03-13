@@ -290,6 +290,20 @@ function from_row_package($row) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// A total comparison function on package names.
+///////////////////////////////////////////////////////////////////////////////
+
+function compare_package($pkg1,$pkg2) {
+  isset($pkg1) or trigger_error('bad pkg1');
+  isset($pkg2) or trigger_error('bad pkg2');
+
+  $namever1 = $pkg1->name_version();
+  $namever2 = $pkg2->name_version();
+
+  return compare_name_version($namever1,$namever2);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // The package database table.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -324,23 +338,25 @@ class PackageTable extends DatabaseTable {
     $version = $name_version->version();
 
     $where =
-      'name = ' . database_value($name) . ' AND ' .
-      'version = ' . database_value($version);
+      'name <=> ' . database_value($name) .
+      ' AND version <=> ' . database_value($version);
 
     return $this->find_package_where($where);
   }
 
   function list_packages($where,$order_by,$limit) {
-    !isset($where) or is_string($where) or trigger_error('bad where');
-    is_string($order_by) or trigger_error('bad order_by');
+    !isset($where) or is_string($where) or
+      trigger_error('bad where');
+    !isset($order_by) or is_string($order_by) or
+      trigger_error('bad order_by');
     !isset($limit) or is_int($limit) or is_string($limit) or
       trigger_error('bad limit');
 
     $result = database_query('
       SELECT *
       FROM ' . $this->table() . (isset($where) ? ('
-      WHERE ' . $where) : '') . '
-      ORDER BY ' . $order_by . (isset($limit) ? ('
+      WHERE ' . $where) : '') . (isset($order_by) ? ('
+      ORDER BY ' . $order_by) : '') . (isset($limit) ? ('
       LIMIT ' . $limit) : '') . ';');
 
     $pkgs = array();
@@ -384,6 +400,24 @@ class PackageTable extends DatabaseTable {
     $order_by = 'registered DESC';
 
     return $this->list_packages($where,$order_by,$limit);
+  }
+
+  function list_package_versions($name) {
+    is_string($name) or trigger_error('bad name');
+
+    $where =
+      'name <=> ' . database_value($name) .
+      ' AND status <=> ' . database_value(UPLOADED_PACKAGE_STATUS);
+
+    $order_by = null;
+
+    $limit = null;
+
+    $pkgs = $this->list_packages($where,$order_by,$limit);
+
+    usort($pkgs,"compare_package") or trigger_error('usort failed');
+
+    return $pkgs;
   }
 
   function insert_package($package) {
@@ -592,6 +626,76 @@ function exists_package_called_name_version($name_version) {
   $pkg = find_package_by_name_version($name_version);
 
   return isset($pkg);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Find all versions of a package.
+///////////////////////////////////////////////////////////////////////////////
+
+function list_package_versions($name) {
+  is_string($name) or trigger_error('bad name');
+
+  $package_table = package_table();
+
+  return $package_table->list_package_versions($name);
+}
+
+function previous_package_version($namever) {
+  isset($namever) or trigger_error('bad namever');
+
+  $pkgs = list_package_versions($namever->name());
+
+  $prev = null;
+
+  foreach ($pkgs as $pkg) {
+    $nv = $pkg->name_version();
+
+    if (compare_name_version($nv,$namever) < 0) {
+      $prev = $pkg;
+    }
+    else {
+      return $prev;
+    }
+  }
+
+  return $prev;
+}
+
+function pretty_list_package_versions($namever) {
+  isset($namever) or trigger_error('bad namever');
+
+  $pkgs = list_package_versions($namever->name());
+
+  $thisver = '&nbsp;<b>' . $namever->version() . '</b>&nbsp;';
+
+  $versions = array();
+
+  $found = false;
+
+  foreach ($pkgs as $pkg) {
+    $nv = $pkg->name_version();
+
+    $cmp = compare_name_version($nv,$namever);
+
+    if ($cmp == 0) {
+      $versions[] = $thisver;
+      $found = true;
+    }
+    else {
+      if (!$found && $cmp > 0) {
+        $versions[] = $thisver;
+        $found = true;
+      }
+
+      $versions[] = $nv->package_link($nv->version());
+    }
+  }
+
+  if (!$found) {
+    $versions[] = $thisver;
+  }
+
+  return implode(' ', $versions);
 }
 
 ?>

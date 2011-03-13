@@ -108,7 +108,7 @@ $this->_select_submit->select() .
     $this->_select_tarball = new SelectFile($this->field() . 't', true);
     $this->_select_checksum = new SelectChecksum($this->field() . 'c', false);
     $this->_select_submit =
-      new SelectSubmit($this->field() . 's', 'upload package');
+      new SelectSubmit($this->field() . 'x', 'upload package');
 
     if ($this->submitted()) { $this->validate(); }
   }

@@ -200,7 +200,7 @@ function pretty_recent_packages($limit) {
     foreach ($pkgs as $pkg) {
       $description = $pkg->description();
 
-      $since_uploaded = $pkg->since_uploaded();
+      $since_registered = $pkg->since_registered();
 
       $author_name = $pkg->author_name();
 
@@ -210,7 +210,7 @@ $pkg->link($pkg->to_string()) .
 ' &mdash; ' .
 string_to_html($description) .
 '<br /><small>' .
-'Uploaded ' . $since_uploaded->to_string() . ' ago by ' . $author_name .
+'Uploaded ' . $since_registered->to_string() . ' ago by ' . $author_name .
 '</small></p>';
     }
   }

@@ -2320,7 +2320,7 @@ local
         val {url} = DirectoryRepo.urlUpload upl
 
         val mesg =
-            "starting upload to " ^
+            "started upload to " ^
             DirectoryRepo.toString repo ^
             ":\n  " ^ url
 
@@ -2382,7 +2382,9 @@ local
       let
         val () = DirectoryRepo.deleteUpload upl
 
-        val mesg = "deleted upload to " ^ DirectoryRepo.toString repo
+        val mesg =
+            "encountered error, so deleted upload to " ^
+            DirectoryRepo.toString repo
 
         val () = chat mesg
 

@@ -324,7 +324,7 @@ fun supportUpload upl namever chk =
           " --form \"u=" ^ Checksum.toString token ^ "\"" ^
           " --form \"p=" ^ PackageNameVersion.toString namever ^ "\"" ^
           " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
-          " --form \"s=install support package\"" ^
+          " --form \"x=install support package\"" ^
           " --output " ^ tmpFile
 
 (*OpenTheoryTrace1

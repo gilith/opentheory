@@ -112,11 +112,11 @@ function opentheory_stage($tarball,$name_version,$checksum) {
 function opentheory_complete($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $args = $name_version->staged_to_string();
+  $args = ' ' . $name_version->staged_to_string();
 
-  $output = opentheory_action('install',$args);
+  $error = opentheory_action('install',$args);
 
-  return $output;
+  if (isset($error)) { trigger_error('complete failed: ' . $error); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

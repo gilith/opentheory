@@ -21,7 +21,7 @@ function pretty_package_information($pkg) {
 
   $parents = package_parents($pkg);
 
-  $version_info = $pkg->version();
+  $version_info = pretty_list_package_versions($pkg->name_version());
 
   $author_info = $author->to_string();
 
@@ -39,7 +39,7 @@ function pretty_package_information($pkg) {
   $main .=
 '<h3>Information</h3>' .
 '<table class="information">' .
-'<tr><td>version</td><td>' . string_to_html($version_info) . '</td></tr>' .
+'<tr><td>version</td><td>' . $version_info . '</td></tr>' .
 '<tr><td>author</td><td>' . string_to_html($author_info) . '</td></tr>' .
 '<tr><td>license</td><td>' . string_to_html($license_info) . '</td></tr>' .
 '<tr><td>' . string_to_html($registered_key) . '</td><td>' .
@@ -98,6 +98,8 @@ function pretty_upload_information($upload) {
 
   $pkgs = packages_upload($upload);
 
+  $obsolete_pkgs = obsolete_packages_upload($upload);
+
   $initiated_info = $since_initiated->to_string() . ' ago';
 
   $status_info = pretty_upload_status($status);
@@ -129,6 +131,34 @@ function pretty_upload_information($upload) {
 $pkg->link($pkg->to_string()) .
 ' &mdash; ' .
 string_to_html($pkg->description()) .
+'</li>';
+    }
+
+    $main .=
+'</ul>';
+  }
+
+  if (count($obsolete_pkgs) > 0) {
+    $main .=
+'<h3>Obsoleted Packages</h3>' .
+'<ul>';
+
+    foreach ($obsolete_pkgs as $pkg) {
+      $pkg_author = $pkg->author();
+
+      $main .=
+'<li>' .
+$pkg->link($pkg->to_string()) .
+' &mdash; by ';
+
+      if (isset($author) && $author->equal($pkg_author)) {
+        $main .= 'the same author';
+      }
+      else {
+        $main .= string_to_html($pkg_author->name());
+      }
+
+      $main .=
 '</li>';
     }
 
@@ -242,27 +272,106 @@ if (isset($confirm)) {
 
   $confirm = find_confirm_upload($confirm);
 
+  $main =
+'<h2>Package Upload Confirmation</h2>';
+
   if (isset($confirm)) {
     $upload = $confirm->upload();
-
-    $main =
-'<h2>Package Upload Confirmation</h2>';
 
     if (isset($upload)) {
       $action = from_string(input('x'));
 
       if (isset($action) && strcmp($action,'confirm') == 0) {
         if ($confirm->is_author()) {
-          $main .=
-'<p>Thank you for reporting to the repo maintainer that ' .
-'you are not the author of this package upload, and sorry ' .
-'for any inconvenience caused.</p>';
+          $obsolete_author = $upload->obsolete();
+
+          if (isset($obsolete_author)) {
+            delete_confirm_upload($confirm);
+
+            set_confirm_obsolete_upload_status($upload);
+
+            $confirm =
+              create_new_confirm_upload(OBSOLETE_CONFIRM_UPLOAD_TYPE,$upload);
+
+            $author = $upload->author();
+
+            $address = $obsolete_author->to_string();
+
+            $subject = 'Sign off on upload that obsoletes your package';
+
+            $body =
+'Hi ' . $obsolete_author->name() . ',
+
+This is an automatic email sent on behalf of the maintainer of the
+' . repo_name() . '.
+
+The reason for this email is that I just took delivery of a theory
+package upload that obsoletes one or more of your packages, made by
+
+' . $author->to_string() . '
+
+Hopefully they\'ve followed the recommended practice and contacted you
+to discuss taking over the maintenance of some of your packages, and
+if so this notification won\'t be a surprise to you.
+
+Please visit
+
+' . $confirm->url() . '
+
+to view the details of the package upload, particularly the section
+called "Obsoleted Packages" to see which of your packages are
+affected. After examining the upload, please click one of the links in
+the "Actions" section at the bottom to either sign off on the upload
+or send a report to me that this was not previously agreed.
+
+Thank you for your contributions to the repo,
+
+' . ADMIN_NAME;
+
+            site_email($address,$subject,$body);
+
+            $upload->jump();
+          }
+          else {
+            delete_confirm_upload($confirm);
+
+            complete_upload($upload);
+
+            jump_path(array('recent'));
+          }
         }
         elseif ($confirm->is_obsolete()) {
+          delete_confirm_upload($confirm);
+
+          $obsolete_author = $upload->obsolete();
+
+          $author = $upload->author();
+
+          $address = $author->to_string();
+
+          $subject = 'Package upload complete';
+
+          $body =
+'Hi ' . $author->name() . ',
+
+This is another automatic email from the maintainer of the
+' . repo_name() . '.
+
+I am happy to let you know that your recent upload is now complete and
+the packages are now available. The last step was getting a sign-off
+from the author of the packages that your upload obsoleted, and this
+was just performed by ' . $obsolete_author->name() . '.
+
+Thank you for your contribution,
+
+' . ADMIN_NAME;
+
+          site_email($address,$subject,$body);
+
+          complete_upload($upload);
+
           $main .=
-'<p>Thank you for reporting to the repo maintainer that ' .
-'you did not consent to this package upload obsoleting ' .
-'your package, and sorry for any inconvenience caused.</p>';
+'<p>Thank you for signing off on the package upload!</p>';
         }
         else {
           trigger_error('default case');
@@ -294,7 +403,7 @@ but the owner of this email address reported this to be incorrect.';
         elseif ($confirm->is_obsolete()) {
           $main .=
 '<p>Thank you for reporting to the repo maintainer that ' .
-'you did not consent to this package upload obsoleting ' .
+'you do not agree with this package upload obsoleting ' .
 'your package, and sorry for any inconvenience caused.</p>';
 
           $author = $upload->author();
@@ -319,8 +428,9 @@ authored by
 
 In this situation the repo policy is that they have to agree to you
 taking over as maintainer of these packages, and so an email was sent
-asking whether they do. In this instance the author of the obsoleted
-packages did not agree, and so your package upload has been deleted.
+asking them to sign off on the upload. In this instance the author of
+the obsoleted packages did not agree, and so your package upload was
+deleted.
 
 To prevent this happening in the future, I recommend getting the
 permission of package authors to take over as maintainer before
@@ -344,7 +454,10 @@ Sorry for the inconvenience,
         $main .=
 pretty_upload_information($upload) .
 '<h3>Actions</h3>' .
-'<ul>' .
+'<ul>';
+
+        if ($confirm->is_author()) {
+          $main .=
 '<li>' .
 site_link(array(),
           'Confirm that I am the author of this package upload.',
@@ -356,7 +469,28 @@ site_link(array(),
           'Report to the repo maintainer that I am not the author.',
           array('confirm' => $confirm->to_string(),
                 'x' => 'report')) .
+'</li>';
+        }
+        elseif ($confirm->is_obsolete()) {
+          $main .=
+'<li>' .
+site_link(array(),
+          'Sign off on this package upload.',
+          array('confirm' => $confirm->to_string(),
+                'x' => 'confirm')) .
 '</li>' .
+'<li>' .
+site_link(array(),
+          'Report to the repo maintainer that I do not agree with this upload.',
+          array('confirm' => $confirm->to_string(),
+                'x' => 'report')) .
+'</li>';
+        }
+        else {
+          trigger_error('default case');
+        }
+
+        $main .=
 '</ul>';
       }
     }

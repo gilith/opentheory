@@ -383,7 +383,7 @@ fun uploadTarball info chk {url,token} =
           " --form \"u=" ^ token ^ "\"" ^
           " --form \"t=@" ^ file ^ "\"" ^
           " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
-          " --form \"s=upload package\"" ^
+          " --form \"x=upload package\"" ^
           " --output " ^ tmpFile
 
 (*OpenTheoryTrace1

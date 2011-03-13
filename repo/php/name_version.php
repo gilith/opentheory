@@ -249,4 +249,45 @@ function from_tarball_package_name_version($tarball) {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// A total comparison function.
+///////////////////////////////////////////////////////////////////////////////
+
+function compare_version($ver1,$ver2) {
+  is_string($ver1) or trigger_error('bad ver1');
+  is_string($ver2) or trigger_error('bad ver2');
+
+  $cs1 = explode('.',$ver1);
+  $cs2 = explode('.',$ver2);
+
+  $n1 = count($cs1);
+  $n2 = count($cs2);
+
+  $n = ($n1 < $n2 ? $n1 : $n2);
+
+  for ($i = 0; $i < $n; ++$i) {
+    $c1 = (integer)$cs1[$i];
+    $c2 = (integer)$cs2[$i];
+
+    $cmp = int_cmp($c1,$c2);
+
+    if ($cmp != 0) { return $cmp; }
+  }
+
+  return int_cmp($n1,$n2);
+}
+
+function compare_name_version($namever1,$namever2) {
+  isset($namever1) or trigger_error('bad namever1');
+  isset($namever2) or trigger_error('bad namever2');
+
+  $cmp = strcmp($namever1->name(), $namever2->name());
+
+  if ($cmp != 0) { return $cmp; }
+
+  $cmp = compare_version($namever1->version(), $namever2->version());
+
+  return $cmp;
+}
+
 ?>

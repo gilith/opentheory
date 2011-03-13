@@ -201,6 +201,112 @@ function delete_staged_package($pkg) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Compute the set of packages that are obsoleted by an upload.
+///////////////////////////////////////////////////////////////////////////////
+
+function obsolete_packages_upload($upload) {
+  isset($upload) or trigger_error('bad upload');
+
+  $pkgs = packages_upload($upload);
+
+  $obs_map = array();
+
+  foreach ($pkgs as $pkg) {
+    $namever = $pkg->name_version();
+
+    $obs_pkg = previous_package_version($namever);
+
+    if (isset($obs_pkg)) {
+      $obs_namever = $obs_pkg->name_version();
+
+      $obs_map[$obs_namever->to_string()] = $obs_pkg;
+    }
+  }
+
+  $obs_pkgs = array();
+
+  foreach ($obs_map as $pkg) {
+    $obs_pkgs[] = $pkg;
+  }
+
+  return $obs_pkgs;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Compute whether a package author is obsoleted by an upload.
+///////////////////////////////////////////////////////////////////////////////
+
+function obsolete_author_upload($upload) {
+  isset($upload) or trigger_error('bad upload');
+
+  $author = $upload->author();
+  isset($author) or trigger_error('bad author');
+
+  $obsolete = null;
+
+  $pkgs = obsolete_packages_upload($upload);
+
+  foreach ($pkgs as $pkg) {
+    $pkg_author = $pkg->author();
+
+    if (!$pkg_author->equal($author)) {
+      if (isset($obsolete)) {
+        if (!$obsolete->equal($pkg_author)) {
+          trigger_error('upload obsoletes packages by multiple authors');
+        }
+      }
+      else {
+        $obsolete = $pkg_author;
+      }
+    }
+  }
+
+  return $obsolete;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Complete a package upload.
+///////////////////////////////////////////////////////////////////////////////
+
+function complete_upload($upload) {
+  isset($upload) or trigger_error('bad upload');
+
+  $pkgs = packages_upload($upload);
+
+  $obsolete_pkgs = obsolete_packages_upload($upload);
+
+  $package_table = package_table();
+
+  foreach ($pkgs as $pkg) {
+    $namever = $pkg->name_version();
+
+    opentheory_complete($namever);
+
+    $package_table->mark_uploaded($pkg);
+
+    $parents = package_parents($pkg);
+
+    foreach ($parents as $parent) {
+      if (!$parent->auxiliary() && $pkg->is_auxiliary_parent($parent)) {
+        $package_table->mark_auxiliary($parent);
+      }
+    }
+  }
+
+  foreach ($obsolete_pkgs as $pkg) {
+    if (!$pkg->obsolete()) {
+      $package_table->mark_obsolete($pkg);
+    }
+  }
+
+  $upload_package_table = upload_table();
+  $upload_package_table->delete_upload($upload);
+
+  $upload_table = upload_table();
+  $upload_table->delete_upload($upload);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Delete a package upload.
 ///////////////////////////////////////////////////////////////////////////////
 

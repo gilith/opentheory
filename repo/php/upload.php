@@ -219,6 +219,12 @@ class Upload {
     $this->_author = $author;
   }
 
+  function set_obsolete($obsolete) {
+    isset($obsolete) or trigger_error('bad obsolete');
+
+    $this->_obsolete = $obsolete;
+  }
+
   function Upload($id,$initiated,$status,$author,$obsolete) {
     is_string($id) or trigger_error('bad id');
     isset($initiated) or trigger_error('bad initiated');
@@ -373,16 +379,42 @@ class UploadTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function set_confirm_author_status($upload) {
+  function set_confirm_author_status($upload,$obsolete) {
     isset($upload) or trigger_error('bad upload');
 
     $upload->set_status(CONFIRM_AUTHOR_UPLOAD_STATUS);
 
     $id = $upload->id();
 
+    if (isset($obsolete)) {
+      $upload->set_obsolete($obsolete);
+
+      $obsolete_id = $obsolete->id();
+
+      database_query('
+        UPDATE ' . $this->table() . '
+        SET status = ' . database_value(CONFIRM_AUTHOR_UPLOAD_STATUS) . ',
+            obsolete = ' . database_value($obsolete_id) . '
+        WHERE id = ' . database_value($id) . ';');
+    }
+    else {
+      database_query('
+        UPDATE ' . $this->table() . '
+        SET status = ' . database_value(CONFIRM_AUTHOR_UPLOAD_STATUS) . '
+        WHERE id = ' . database_value($id) . ';');
+    }
+  }
+
+  function set_confirm_obsolete_status($upload) {
+    isset($upload) or trigger_error('bad upload');
+
+    $upload->set_status(CONFIRM_OBSOLETE_UPLOAD_STATUS);
+
+    $id = $upload->id();
+
     database_query('
       UPDATE ' . $this->table() . '
-      SET status = ' . database_value(CONFIRM_AUTHOR_UPLOAD_STATUS) . '
+      SET status = ' . database_value(CONFIRM_OBSOLETE_UPLOAD_STATUS) . '
       WHERE id = ' . database_value($id) . ';');
   }
 
@@ -470,12 +502,20 @@ function set_add_package_upload_status($upload,$author) {
   $upload_table->set_add_package_status($upload,$author);
 }
 
-function set_confirm_author_upload_status($upload) {
+function set_confirm_author_upload_status($upload,$obsolete) {
   isset($upload) or trigger_error('bad upload');
 
   $upload_table = upload_table();
 
-  $upload_table->set_confirm_author_status($upload);
+  $upload_table->set_confirm_author_status($upload,$obsolete);
+}
+
+function set_confirm_obsolete_upload_status($upload) {
+  isset($upload) or trigger_error('bad upload');
+
+  $upload_table = upload_table();
+
+  $upload_table->set_confirm_obsolete_status($upload);
 }
 
 ?>

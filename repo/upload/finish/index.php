@@ -11,9 +11,11 @@ if (isset($upload)) { $upload = find_upload($upload); }
 if (!isset($upload)) { trigger_error('bad upload'); }
 if (!$upload->finishable()) { trigger_error('cannot finish'); }
 
-$confirm = create_new_confirm_upload(AUTHOR_CONFIRM_UPLOAD_TYPE,$upload);
+$obsolete = obsolete_author_upload($upload);
 
 $author = $upload->author();
+
+$confirm = create_new_confirm_upload(AUTHOR_CONFIRM_UPLOAD_TYPE,$upload);
 
 $address = $author->to_string();
 
@@ -39,7 +41,7 @@ Thank you for your time,
 
 site_email($address,$subject,$body);
 
-set_confirm_author_upload_status($upload);
+set_confirm_author_upload_status($upload,$obsolete);
 
 if (is_script()) {
   output_script('successfully finished package upload');
