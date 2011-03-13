@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.0";
 
-val versionString = program^" "^version^" (release 20110312)"^"\n";
+val versionString = program^" "^version^" (release 20110313)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -666,7 +666,12 @@ val upgradeFooter = "";
 (* Options for uploading packages.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val auxiliaryUpload = ref true;
+datatype setUpload =
+    ManualUpload
+  | AuxiliaryUpload
+  | AutoUpload;
+
+val setUpload = ref AuxiliaryUpload;
 
 val confirmUpload = ref true;
 
@@ -679,9 +684,12 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => addRepository s)},
+       {switches = ["--auto"], arguments = [],
+        description = "also upload dependent packages",
+        processor = beginOpt endOpt (fn _ => setUpload := AutoUpload)},
        {switches = ["--manual"], arguments = [],
-        description = "do not also upload auxiliary packages",
-        processor = beginOpt endOpt (fn _ => auxiliaryUpload := false)},
+        description = "do not also upload dependent packages",
+        processor = beginOpt endOpt (fn _ => setUpload := ManualUpload)},
        {switches = ["--yes"], arguments = [],
         description = "do not ask for confirmation",
         processor = beginOpt endOpt (fn _ => confirmUpload := false)}];
@@ -2256,15 +2264,20 @@ local
         val namevers = PackageNameVersionSet.fromList namevers
 
         val namevers =
-            if not (!auxiliaryUpload) then namevers
-            else
-              let
-                val ancs = Directory.auxiliaryAncestorsSet dir namevers
+            let
+              val ancs =
+                  case !setUpload of
+                    ManualUpload =>
+                    PackageNameVersionSet.empty
+                  | AuxiliaryUpload =>
+                    Directory.auxiliaryAncestorsSet dir namevers
+                  | AutoUpload =>
+                    Directory.ancestorsSet dir namevers
 
-                val ancs = PackageNameVersionSet.filter notInRepo ancs
-              in
-                PackageNameVersionSet.union ancs namevers
-              end
+              val ancs = PackageNameVersionSet.filter notInRepo ancs
+            in
+              PackageNameVersionSet.union ancs namevers
+            end
 
         val support =
             let

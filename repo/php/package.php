@@ -666,7 +666,7 @@ function pretty_list_package_versions($namever) {
 
   $pkgs = list_package_versions($namever->name());
 
-  $thisver = '&nbsp;<b>' . $namever->version() . '</b>&nbsp;';
+  $thisver = '<b>' . $namever->version() . '</b>';
 
   $versions = array();
 

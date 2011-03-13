@@ -23,15 +23,17 @@ function pretty_package_information($pkg) {
 
   $version_info = pretty_list_package_versions($pkg->name_version());
 
-  $author_info = $author->to_string();
+  $author_info = string_to_html($author->to_string());
 
-  $license_info = $pkg->license();
+  $license_info = string_to_html($pkg->license());
 
   $registered_key = ($pkg->is_installed() ? 'installed' : 'uploaded');
 
   $registered_info =
     $registered->to_string_time() . ' on ' .
     $registered->to_verbose_string_date();
+
+  $registered_info = string_to_html($registered_info);
 
   $main =
 '<p>' . string_to_html($pkg->description()) . '</p>';
@@ -40,10 +42,10 @@ function pretty_package_information($pkg) {
 '<h3>Information</h3>' .
 '<table class="information">' .
 '<tr><td>version</td><td>' . $version_info . '</td></tr>' .
-'<tr><td>author</td><td>' . string_to_html($author_info) . '</td></tr>' .
-'<tr><td>license</td><td>' . string_to_html($license_info) . '</td></tr>' .
+'<tr><td>author</td><td>' . $author_info . '</td></tr>' .
+'<tr><td>license</td><td>' . $license_info . '</td></tr>' .
 '<tr><td>' . string_to_html($registered_key) . '</td><td>' .
-string_to_html($registered_info) . '</td></tr>' .
+$registered_info . '</td></tr>' .
 '</table>';
 
   if (count($parents) > 0) {

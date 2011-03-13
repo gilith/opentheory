@@ -151,23 +151,15 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 # Install and upload theories.
 ###############################################################################
 
-REPO_SESSION = 8cb585f5b6b2e42f917d3448de5221aa
-
 HOL_LIGHT_DIR = ../hol-light
 
 THEORY_DIR = data/theories
 
+OPENTHEORY_INIT = $(OPENTHEORY) init
+
 IMPORT_THEORIES = scripts/import-theories
 
 INSTALL_THEORIES = scripts/install-theories -u
-
-OPENTHEORY_INIT = $(OPENTHEORY) init
-
-OPENTHEORY_INSTALL = $(OPENTHEORY) install --manual
-
-OPENTHEORY_LIST = $(OPENTHEORY) list --dependency-order --format "NAME-VERSION"
-
-OPENTHEORY_UPLOAD = $(OPENTHEORY) upload
 
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
@@ -199,15 +191,6 @@ theories: $(OPENTHEORY)
 	$(MAKE) import-standard-theories
 	$(MAKE) import-example-theories
 	$(INSTALL_THEORIES)
-
-.PHONY: reset-repo
-reset-repo:
-	curl --user-agent opentheory "http://opentheory.gilith.com/admin/reset/?session=$(REPO_SESSION)&d=1&x=1"
-
-.PHONY: upload-theories
-upload-theories: $(OPENTHEORY)
-	$(MAKE) reset-repo
-	for pkg in $$($(OPENTHEORY_LIST)) ; do if ! $(OPENTHEORY_UPLOAD) $$pkg ; then exit 1 ; fi ; done
 
 ###############################################################################
 # Create the test OpenTheory directory.
