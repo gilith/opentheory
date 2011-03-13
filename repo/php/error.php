@@ -18,7 +18,7 @@ define('ERROR_OUTPUT_EMAIL',0);
 define('ERROR_OUTPUT_SCRIPT',1);
 define('ERROR_OUTPUT_DEBUG',2);
 
-$error_output = ERROR_OUTPUT_DEBUG;
+$error_output = ERROR_OUTPUT_LEVEL;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Define a custom error handler.

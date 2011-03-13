@@ -18,7 +18,7 @@ require_once 'database.php';
 // Encrypting passwords.
 ///////////////////////////////////////////////////////////////////////////////
 
-define('PASSWORD_SALT',SITE_NAME);
+define('PASSWORD_SALT', SITE_NAME . '.' . REPO_NAME . '.password');
 
 function encrypt_password($user,$password) {
   is_int($user) or trigger_error('bad user');

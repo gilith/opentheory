@@ -7,9 +7,9 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h $opt_m $opt_c $opt_d $opt_n);
+use vars qw($opt_h $opt_m $opt_s $opt_l $opt_n);
 
-getopts('hmcdn');
+getopts('hmsln');
 
 if ($opt_h) {
     pod2usage({-exitval => 2,
@@ -34,8 +34,8 @@ sub upload_dir {
 
     my $cmd = "rsync -azv -e ssh";
     $cmd .= " --delete" unless $opt_m;
-    $cmd .= " --checksum" if $opt_c;
-    $cmd .= " --size-only" unless $opt_d;
+    $cmd .= " --checksum" unless $opt_s;
+    $cmd .= " --size-only";
 
     for my $exclusion (@EXCLUSIONS) {
         $cmd .= " --exclude=$exclusion";
@@ -59,9 +59,23 @@ sub upload_dir {
 
 my @repo_exclusions =
    ('log',
-    'opentheory');
+    'opentheory',
+    'php/global.php');
 
-my $repo_remote_dir = "public_opentheory";
+if ($opt_l) {
+    my $cmd = "ssh $user" . '@' . "$host";
+    $cmd .= " cp bin/opentheory bin/opentheory-stable";
+
+    if ($opt_n) {
+        print "$cmd\n";
+    }
+    else {
+        (system ($cmd) == 0) or
+            die "upload: couldn't execute command:\n$cmd\n$!\n";
+    }
+}
+
+my $repo_remote_dir = ($opt_l ? "public_opentheory" : "private_opentheory");
 upload_dir "repo", $repo_remote_dir, \@repo_exclusions;
 
 __END__
@@ -74,7 +88,7 @@ upload - Upload the Gilith OpenTheory repo scripts.
 
 =head1 SYNOPSIS
 
-upload [-h] [-m] [-c] [-d] [-n]
+upload [-h] [-m] [-s] [-l] [-n]
 
 =head1 ARGUMENTS
 
@@ -88,15 +102,15 @@ Produce this documentation.
 
 =item B<-m>
 
-Don't delete any files from the live site.
+Don't delete any files from the repo.
 
-=item B<-c>
+=item B<-s>
 
-Checksum to ensure the server has the most recent files (slow).
+Use size only to ensure the server has the most recent files (fast and loose).
 
-=item B<-d>
+=item B<-l>
 
-Compare file dates as well as sizes.
+Upload to the live repo, not the test repo.
 
 =item B<-n>
 
@@ -106,8 +120,8 @@ Do nothing, just echo the command that would be used.
 
 =head1 DESCRIPTION
 
-Uploads the OpenTheory repo scripts to the live Gilith OpenTheory repo,
-ignoring auxiliary files such as .gitignore files.
+Uploads the OpenTheory repo scripts to the OpenTheory repo, ignoring
+auxiliary files such as .gitignore files.
 
 =head1 BUGS
 
