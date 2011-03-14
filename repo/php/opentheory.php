@@ -308,4 +308,27 @@ function opentheory_reset() {
   opentheory_init();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Tweet about opentheory stuff.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_tweet($status) {
+  is_string($status) or trigger_error('bad status');
+
+  $cmd = TWITTER_BIN;
+
+  if (isset($cmd)) {
+    $cmd .=
+' -silent' .
+' -status="' . $status . '"' .
+' 2>&1';
+
+    $error = shell_exec($cmd);
+
+    if (isset($error)) { trigger_error('tweeting error: ' . $error); }
+
+    opentheory_log('tweeted: "' . $status . '"');
+  }
+}
+
 ?>

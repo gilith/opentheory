@@ -164,6 +164,12 @@ class Package {
     return $namever->to_string();
   }
 
+  function external_url() {
+    $namever = $this->name_version();
+
+    return $namever->external_url();
+  }
+
   function link($text) {
     is_string($text) or trigger_error('bad text');
 

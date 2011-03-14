@@ -271,9 +271,10 @@ function obsolete_author_upload($upload) {
 function complete_upload($upload) {
   isset($upload) or trigger_error('bad upload');
 
-  $pkgs = packages_upload($upload);
+  $author = $upload->author();
+  isset($author) or trigger_error('bad author');
 
-  $obsolete_pkgs = obsolete_packages_upload($upload);
+  $pkgs = packages_upload($upload);
 
   $package_table = package_table();
 
@@ -294,6 +295,10 @@ function complete_upload($upload) {
   }
 
   // Obsoleted packages
+
+  $pkgs = packages_upload($upload);  // Refreshing
+
+  $obsolete_pkgs = obsolete_packages_upload($upload);
 
   foreach ($obsolete_pkgs as $pkg) {
     if (!$pkg->obsolete()) {
@@ -318,6 +323,20 @@ function complete_upload($upload) {
 
   $upload_table = upload_table();
   $upload_table->delete_upload($upload);
+
+  // Tweet about the non-auxiliary packages
+
+  foreach ($pkgs as $pkg) {
+    $namever = $pkg->name_version();
+
+    if (!$pkg->auxiliary()) {
+      $status =
+        $namever->to_string() . ' uploaded by ' .
+        $author->name() . ' ' . $pkg->external_url();
+
+      opentheory_tweet($status);
+    }
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -59,6 +59,14 @@ class PackageNameVersion {
     return ('staged:' . $this->name() . '-' . $this->version());
   }
 
+  function external_url() {
+    $path = array();
+
+    $args = array('pkg' => $this->to_string());
+
+    return external_site_url($path,$args);
+  }
+
   function package_link($text) {
     is_string($text) or trigger_error('bad text');
 
