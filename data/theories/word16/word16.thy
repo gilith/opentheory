@@ -1,5 +1,5 @@
 name: word16
-version: 1.0
+version: 1.1
 description: Basic theory of 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ def {
 word {
   import: def
   interpret: type "Data.Word.word" as "Data.Word16.word16"
-  interpret: const "Data.Word.+" as "Data.Word16.+"
   interpret: const "Data.Word.*" as "Data.Word16.*"
-  interpret: const "Data.Word.~" as "Data.Word16.~"
+  interpret: const "Data.Word.+" as "Data.Word16.+"
   interpret: const "Data.Word.-" as "Data.Word16.-"
-  interpret: const "Data.Word.<=" as "Data.Word16.<="
   interpret: const "Data.Word.<" as "Data.Word16.<"
+  interpret: const "Data.Word.<=" as "Data.Word16.<="
+  interpret: const "Data.Word.~" as "Data.Word16.~"
   interpret: const "Data.Word.and" as "Data.Word16.and"
   interpret: const "Data.Word.bit" as "Data.Word16.bit"
   interpret: const "Data.Word.fromList" as "Data.Word16.fromList"
@@ -34,16 +34,24 @@ word {
   interpret: const "Data.Word.toList" as "Data.Word16.toList"
   interpret: const "Data.Word.toNatural" as "Data.Word16.toNatural"
   interpret: const "Data.Word.width" as "Data.Word16.width"
-  package: word-1.0
+  package: word-1.1
+}
+
+bits {
+  import: def
+  import: word
+  package: word16-bits-1.0
 }
 
 bytes {
   import: word
-  package: word16-bytes-1.0
+  import: bits
+  package: word16-bytes-1.1
 }
 
 main {
   import: def
   import: word
+  import: bits
   import: bytes
 }

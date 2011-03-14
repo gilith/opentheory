@@ -60,7 +60,7 @@ while (my $thy = <THEORIES>) {
         my $tart = "$tdir/$base.art";
         my $tartnew = "$tdir/$base.art.importing";
 
-        if (! [ -d $tdir ]) {
+        if (!(-d $tdir)) {
             mkdir $tdir or
                 die "import-theories: couldn't make directory $tdir: $!\n";
 
