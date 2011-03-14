@@ -204,6 +204,13 @@ function percentage_from_string($s) {
   else { return $s / 100.0; }
 }
 
+function checksum_from_string($s) {
+  $s = from_string($s);
+  if (!isset($s)) { return null; }
+  elseif (!ereg('([0-9][a-f])+',$s)) { return null; }
+  else { return $s; }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // HTML functions.
 ///////////////////////////////////////////////////////////////////////////////

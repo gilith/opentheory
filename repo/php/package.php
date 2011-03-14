@@ -578,7 +578,7 @@ function create_package($name_version,$description,$author,$license) {
   $status = INSTALLED_PACKAGE_STATUS;
 
   return $package_table->create_package($name_version,$description,
-                                        $author,$license);
+                                        $author,$license,$status);
 }
 
 function create_staged_package($name_version,$description,$author,$license) {
@@ -659,6 +659,35 @@ function previous_package_version($namever) {
   }
 
   return $prev;
+}
+
+function next_package_version($namever) {
+  isset($namever) or trigger_error('bad namever');
+
+  $pkgs = array_reverse(list_package_versions($namever->name()));
+
+  $next = null;
+
+  foreach ($pkgs as $pkg) {
+    $nv = $pkg->name_version();
+
+    if (compare_name_version($nv,$namever) > 0) {
+      $next = $pkg;
+    }
+    else {
+      return $next;
+    }
+  }
+
+  return $next;
+}
+
+function is_latest_package_version($namever) {
+  isset($namever) or trigger_error('bad namever');
+
+  $next = next_package_version($namever);
+
+  return !isset($next);
 }
 
 function pretty_list_package_versions($namever) {

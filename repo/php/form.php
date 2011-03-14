@@ -812,8 +812,15 @@ class SelectChecksum extends SelectText {
     if (!$this->is_error()) {
       $v = parent::value();
 
-      if (isset($v) && !ereg('([0-9][a-f])+',$v)) {
-        $this->set_error($this->error_message_not_checksum());
+      if (isset($v)) {
+        $v = checksum_from_string($v);
+
+        if (isset($v)) {
+          $this->set_value($v);
+        }
+        else {
+          $this->set_error($this->error_message_not_checksum());
+        }
       }
     }
   }

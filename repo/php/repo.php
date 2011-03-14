@@ -100,14 +100,6 @@ function repo_register_staged($upload,$name_version,$tags,$parents) {
 function repo_register($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  // Check whether we are already registered
-
-  $package_table = package_table();
-
-  $pkg = $package_table->find_package_by_name_version($name_version);
-
-  if (isset($pkg)) { return $pkg; }
-
   // Create a new entry in the package table
 
   $tags = opentheory_tags($name_version);
@@ -118,28 +110,21 @@ function repo_register($name_version) {
 
   $license = license_from_tags($tags);
 
-  $pkg = $package_table->create_package($name_version,$description,$author,
-                                        $license);
-
-  $package_table->mark_installed($pkg);
+  $pkg = create_package($name_version,$description,$author,$license);
 
   // Record the parents in the dependency table
 
-  $dependency_table = dependency_table();
+  $package_table = package_table();
 
   $parents = opentheory_parents($name_version);
 
   foreach ($parents as $parent_name_version) {
-    $parent = repo_register($parent_name_version);
+    $parent = find_package_by_name_version($parent_name_version);
 
-    $dependency_table->insert_dependency($parent,$pkg);
+    if (!isset($parent)) { trigger_error('no parent package entry'); }
 
-    if (!$parent->auxiliary() && $pkg->is_auxiliary_parent($parent)) {
-      $package_table->mark_auxiliary($parent);
-    }
+    add_package_dependency($parent,$pkg);
   }
-
-  return $pkg;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -254,7 +254,7 @@ site_link(array('upload','delete'),
   else {
     $main .=
 '<p>Sorry for the inconvenience, but this package upload has ' .
-'been withdrawn.</p>';
+'either completed or been withdrawn.</p>';
   }
 
   $title = 'Package Upload';

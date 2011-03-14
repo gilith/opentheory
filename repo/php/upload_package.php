@@ -293,11 +293,25 @@ function complete_upload($upload) {
     }
   }
 
+  // Obsoleted packages
+
   foreach ($obsolete_pkgs as $pkg) {
     if (!$pkg->obsolete()) {
       $package_table->mark_obsolete($pkg);
     }
   }
+
+  foreach ($pkgs as $pkg) {
+    if (!$pkg->obsolete()) {
+      $namever = $pkg->name_version();
+
+      if (!is_latest_package_version($namever)) {
+        $package_table->mark_obsolete($pkg);
+      }
+    }
+  }
+
+  // Delete the upload
 
   $upload_package_table = upload_table();
   $upload_package_table->delete_upload($upload);
