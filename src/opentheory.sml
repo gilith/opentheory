@@ -33,9 +33,9 @@ and rootHomeDir = ".opentheory";
 
 val program = "opentheory";
 
-val version = "1.0";
+val version = "1.1";
 
-val versionString = program^" "^version^" (release 20110313)"^"\n";
+val versionString = program^" "^version^" (release 20110314)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
