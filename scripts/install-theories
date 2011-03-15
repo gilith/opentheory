@@ -55,7 +55,7 @@ while (my $name = <THEORIES>) {
     if ($opt_u) {
         my $thynew = $thy . '.upgrading';
 
-        $cmd = "$opentheory upgrade $thy >$thynew 2>/dev/null";
+        $cmd = "$opentheory info --theory --upgrade-theory --preserve-theory $thy >$thynew 2>/dev/null";
         # print STDOUT "cmd = $cmd\n";
         if (system ($cmd) == 0) {
             if ($installed) {
