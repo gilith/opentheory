@@ -368,11 +368,13 @@ datatype info =
   | TagsInfo
   | TheoryInfo;
 
-val infoOutputList : (info * {filename : string} option) list ref = ref [];
+val outputListInfo : (info * {filename : string} option) list ref = ref [];
 
-val infoPreserveTheory = ref false;
+val upgradeTheoryInfo = ref false;
 
-val infoShowAxioms = ref false;
+val preserveTheoryInfo = ref false;
+
+val showAxiomsInfo = ref false;
 
 fun savableInfo info =
     case info of
@@ -389,7 +391,7 @@ fun infoSummaryGrammar () =
              ppConst,
              showAxioms = _} = Summary.defaultGrammar
 
-      val showAxioms = !infoShowAxioms
+      val showAxioms = !showAxiomsInfo
     in
       Summary.Grammar
         {assumptionGrammar = assumptionGrammar,
@@ -404,16 +406,16 @@ fun mkInfoOutput info = (info,NONE);
 
 fun addInfoOutput info =
     let
-      val ref l = infoOutputList
+      val ref l = outputListInfo
 
-      val () = infoOutputList := mkInfoOutput info :: l
+      val () = outputListInfo := mkInfoOutput info :: l
     in
       ()
     end;
 
 fun setInfoOutputFilename flag filename =
     let
-      val ref l = infoOutputList
+      val ref l = outputListInfo
 
       val l =
           case l of
@@ -427,7 +429,7 @@ fun setInfoOutputFilename flag filename =
                            "  " ^ f ^ " and\n  " ^ filename)
             | NONE => (i, SOME {filename = filename}) :: l
 
-      val () = infoOutputList := l
+      val () = outputListInfo := l
     in
       ()
     end;
@@ -467,7 +469,7 @@ in
         description = "display the number of primitive inferences",
         processor = beginOpt endOpt (fn _ => addInfoOutput InferenceInfo)},
        {switches = ["--theory"], arguments = [],
-        description = "display the package theory graph",
+        description = "display the package theory file",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
        {switches = ["--article"], arguments = [],
         description = "output the theory package in article format",
@@ -479,10 +481,13 @@ in
             (fn f => fn s => setInfoOutputFilename f s)},
        {switches = ["--show-axioms"], arguments = [],
         description = "show the assumptions/axioms for each theorem",
-        processor = beginOpt endOpt (fn _ => infoShowAxioms := true)},
+        processor = beginOpt endOpt (fn _ => showAxiomsInfo := true)},
+       {switches = ["--upgrade-theory"], arguments = [],
+        description = "upgrade the theory file",
+        processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
        {switches = ["--preserve-theory"], arguments = [],
-        description = "do not optimize theory files",
-        processor = beginOpt endOpt (fn _ => infoPreserveTheory := true)}];
+        description = "do not optimize the theory file",
+        processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)}];
 end;
 
 val infoFooter = describeInfoFormat ^ ".\n";
@@ -648,21 +653,6 @@ end;
 val updateFooter = "";
 
 (* ------------------------------------------------------------------------- *)
-(* Options for upgrading packages.                                           *)
-(* ------------------------------------------------------------------------- *)
-
-val outputUpgrade = ref "-";
-
-local
-  open Useful Options;
-in
-  val upgradeOpts : opt list =
-      [];
-end;
-
-val upgradeFooter = "";
-
-(* ------------------------------------------------------------------------- *)
 (* Options for uploading packages.                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -710,7 +700,6 @@ datatype command =
   | List
   | Uninstall
   | Update
-  | Upgrade
   | Upload;
 
 val allCommands =
@@ -722,7 +711,6 @@ val allCommands =
      List,
      Uninstall,
      Update,
-     Upgrade,
      Upload];
 
 fun commandString cmd =
@@ -735,7 +723,6 @@ fun commandString cmd =
     | List => "list"
     | Uninstall => "uninstall"
     | Update => "update"
-    | Upgrade => "upgrade"
     | Upload => "upload";
 
 fun commandArgs cmd =
@@ -748,7 +735,6 @@ fun commandArgs cmd =
     | List => ""
     | Uninstall => " <package-name>"
     | Update => ""
-    | Upgrade => " input.thy"
     | Upload => " <package-name> ...";
 
 fun commandDescription cmd =
@@ -761,7 +747,6 @@ fun commandDescription cmd =
     | List => "list installed theory packages"
     | Uninstall => "uninstall a theory package"
     | Update => "update repo package lists"
-    | Upgrade => "upgrade a theory file"
     | Upload => "upload theory packages to a repo";
 
 fun commandFooter cmd =
@@ -774,7 +759,6 @@ fun commandFooter cmd =
     | List => listFooter
     | Uninstall => uninstallFooter
     | Update => updateFooter
-    | Upgrade => upgradeFooter
     | Upload => uploadFooter;
 
 fun commandOpts cmd =
@@ -787,7 +771,6 @@ fun commandOpts cmd =
     | List => listOpts
     | Uninstall => uninstallOpts
     | Update => updateOpts
-    | Upgrade => upgradeOpts
     | Upload => uploadOpts;
 
 val allCommandStrings = List.map commandString allCommands;
@@ -948,7 +931,7 @@ fun defaultInfoOutputList inp =
 local
   fun readList inp =
       let
-        val l = rev (!infoOutputList)
+        val l = rev (!outputListInfo)
       in
         if List.null l then defaultInfoOutputList inp else l
       end;
@@ -1066,6 +1049,17 @@ local
   end;
 
   local
+    val cache : PackageTag.tag list option option ref = ref NONE;
+
+    fun compute () =
+        case getPackage () of
+          SOME pkg => SOME (Package.tags pkg)
+        | NONE => NONE;
+  in
+    val getTags = getCached cache compute;
+  end;
+
+  local
     val cache : {directory : string} option option ref = ref NONE;
 
     fun compute () =
@@ -1081,43 +1075,58 @@ local
   local
     val cache : PackageTheory.theory list option option ref = ref NONE;
 
+    fun upgradeTheories pkg =
+        let
+          val dir = directory ()
+
+          val pkg =
+              case Directory.upgrade dir pkg of
+                SOME p => p
+              | NONE => raise Error "no theory file upgrade possible"
+        in
+          Package.theories pkg
+        end;
+
+    fun unwindTheories theories =
+        if !preserveTheoryInfo then SOME theories
+        else
+          case getDirectory () of
+            NONE => NONE
+          | SOME {directory = dir} =>
+            let
+              val importer = directoryImporter ()
+
+              val thys =
+                  Dagify.mk
+                    {importer = importer,
+                     directory = dir,
+                     theories = theories}
+
+              val thys = Dagify.unwind thys
+            in
+              SOME (Dagify.theories thys)
+            end;
+
     fun compute () =
         case getInfo () of
           SOME info =>
           let
             val pkg = PackageInfo.package info
           in
-            SOME (Package.theories pkg)
+            if not (!upgradeTheoryInfo) then SOME (Package.theories pkg)
+            else unwindTheories (upgradeTheories pkg)
           end
         | NONE =>
-          case getDirectory () of
+          case getPackage () of
             NONE => NONE
-          | SOME {directory = dir} =>
-            case getPackage () of
-              NONE => NONE
-            | SOME pkg =>
-              let
-                val importer = directoryImporter ()
-
-                val theories = Package.theories pkg
-
-                val theories =
-                    if !infoPreserveTheory then theories
-                    else
-                      let
-                        val thys =
-                            Dagify.mk
-                              {importer = importer,
-                               directory = dir,
-                               theories = theories}
-
-                        val thys = Dagify.unwind thys
-                      in
-                        Dagify.theories thys
-                      end
-              in
-                SOME theories
-              end;
+          | SOME pkg =>
+            let
+              val theories =
+                  if not (!upgradeTheoryInfo) then Package.theories pkg
+                  else upgradeTheories pkg
+            in
+              unwindTheories theories
+            end;
   in
     fun setTheories thys = cache := SOME (SOME thys);
 
@@ -1441,12 +1450,10 @@ local
         end
       | TagsInfo =>
         let
-          val pkg =
-              case getPackage () of
-                SOME p => p
+          val tags =
+              case getTags () of
+                SOME t => t
               | NONE => raise Error "no package information available"
-
-          val tags = Package.tags pkg
 
           val strm = Print.toStream PackageTag.ppList tags
         in
@@ -1454,12 +1461,15 @@ local
         end
       | TheoryInfo =>
         let
+          val tags =
+              case getTags () of
+                SOME t => t
+              | NONE => raise Error "no package information available"
+
           val theories =
               case getTheories () of
                 SOME t => t
               | NONE => raise Error "no theory information available"
-
-          val tags = []
 
           val package =
               Package.mk
@@ -2215,40 +2225,6 @@ fun update () =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Upgrading theory files.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun upgradeTheory filename =
-    let
-      val dir = directory ()
-
-      val pkg = Package.fromTextFile filename
-
-      val errs = Directory.checkUpgradeTheory dir pkg
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("theory file upgrade warnings:\n" ^ s)
-            end
-
-      val pkg =
-          case Directory.upgradeTheory dir pkg of
-            SOME p => p
-          | NONE => raise Error "no upgrade possible"
-
-      val ref f = outputUpgrade
-    in
-      Package.toTextFile {package = pkg, filename = f}
-    end
-    handle Error err =>
-      raise Error (err ^ "\ntheory file upgrade failed");
-
-(* ------------------------------------------------------------------------- *)
 (* Upload a theory package to a repo.                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -2529,18 +2505,6 @@ let
       | (List,[]) => list ()
       | (Uninstall,[pkg]) => uninstall pkg
       | (Update,[]) => update ()
-      | (Upgrade,[inp]) =>
-        let
-          val inp = fromStringInput cmd inp
-        in
-          case inp of
-            ArticleInput _ => commandUsage cmd "cannot upgrade an article"
-          | PackageInput _ => commandUsage cmd "cannot upgrade a package"
-          | StagedPackageInput _ =>
-            commandUsage cmd "cannot upgrade a staged package"
-          | TarballInput _ => commandUsage cmd "cannot upgrade a tarball"
-          | TheoryInput file => upgradeTheory file
-        end
       | (Upload, pkgs as _ :: _) => upload pkgs
       | _ =>
         let

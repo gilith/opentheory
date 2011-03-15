@@ -131,10 +131,7 @@ val list : directory -> PackageNameVersionSet.set
 (* Upgrading theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val checkUpgradeTheory :
-    directory -> Package.package -> DirectoryError.error list
-
-val upgradeTheory : directory -> Package.package -> Package.package option
+val upgrade : directory -> Package.package -> Package.package option
 
 (* ------------------------------------------------------------------------- *)
 (* Staging packages for installation.                                        *)

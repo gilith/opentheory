@@ -393,27 +393,23 @@ fun list dir = DirectoryPackages.list (packages dir);
 (* Upgrading theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkUpgradeTheory dir pkg =
+fun upgrade dir pkg =
     let
-      fun notInstalled p = not (member p dir)
-
-      val missing = List.filter notInstalled (Package.packages pkg)
-    in
-      List.map DirectoryError.UninstalledUpgrade missing
-    end;
-
-fun upgradeTheory dir pkg =
-    let
-(*OpenTheoryDebug
-      val errs = checkUpgradeTheory dir pkg
-
-      val _ = not (DirectoryError.existsFatal errs) orelse
-              raise Bug "Directory.upgradeTheory: fatal error"
-*)
       val pkgs = packages dir
 
       fun latest nv =
           let
+            val () =
+                if DirectoryPackages.member nv pkgs then ()
+                else
+                  let
+                    val mesg =
+                        "package " ^ PackageNameVersion.toString nv ^
+                        " is not installed"
+                  in
+                    warn mesg
+                  end
+
             val nvs = DirectoryPackages.latestVersion pkgs nv
 
             val () =
