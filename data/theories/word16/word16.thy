@@ -26,11 +26,11 @@ word {
   interpret: const "Data.Word.fromList" as "Data.Word16.fromList"
   interpret: const "Data.Word.fromNatural" as "Data.Word16.fromNatural"
   interpret: const "Data.Word.isList" as "Data.Word16.isList"
+  interpret: const "Data.Word.modulus" as "Data.Word16.modulus"
   interpret: const "Data.Word.not" as "Data.Word16.not"
   interpret: const "Data.Word.or" as "Data.Word16.or"
   interpret: const "Data.Word.shiftLeft" as "Data.Word16.shiftLeft"
   interpret: const "Data.Word.shiftRight" as "Data.Word16.shiftRight"
-  interpret: const "Data.Word.size" as "Data.Word16.size"
   interpret: const "Data.Word.toList" as "Data.Word16.toList"
   interpret: const "Data.Word.toNatural" as "Data.Word16.toNatural"
   interpret: const "Data.Word.width" as "Data.Word16.width"
@@ -44,6 +44,7 @@ bits {
 }
 
 bytes {
+  import: def
   import: word
   import: bits
   package: word16-bytes-1.0

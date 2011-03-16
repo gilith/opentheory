@@ -23,6 +23,7 @@ def {
 }
 
 thm {
+  import: mod
   import: def
   package: modular-thm-1.0
 }
