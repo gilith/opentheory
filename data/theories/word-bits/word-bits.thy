@@ -14,7 +14,7 @@ def {
 
 thm {
   import: def
-  package: word-bits-thm-1.5
+  package: word-bits-thm-1.6
 }
 
 main {

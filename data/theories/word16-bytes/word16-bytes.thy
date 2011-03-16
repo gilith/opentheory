@@ -14,7 +14,7 @@ def {
 
 thm {
   import: def
-  package: word16-bytes-thm-1.3
+  package: word16-bytes-thm-1.4
 }
 
 main {

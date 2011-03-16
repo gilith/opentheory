@@ -81,8 +81,10 @@ length {
 
 nth {
   import: def
+  import: thm
   import: dest
   import: append
+  import: map
   import: last
   import: length
   package: list-nth-1.1
@@ -114,6 +116,7 @@ concat {
 }
 
 take-drop {
+  import: def
   import: thm
   import: dest
   import: append

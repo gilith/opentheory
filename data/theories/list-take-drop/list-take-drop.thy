@@ -9,12 +9,12 @@ show: "Number.Natural"
 show: "Number.Numeral"
 
 def {
-  package: list-take-drop-def-1.0
+  package: list-take-drop-def-1.1
 }
 
 thm {
   import: def
-  package: list-take-drop-thm-1.1
+  package: list-take-drop-thm-1.2
 }
 
 main {
