@@ -1,5 +1,5 @@
 name: word-bits
-version: 1.1
+version: 1.5
 description: Parametric theory of word bit lists
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,12 +9,12 @@ show: "Data.Word"
 show: "Number.Numeral"
 
 def {
-  package: word-bits-def-1.0
+  package: word-bits-def-1.1
 }
 
 thm {
   import: def
-  package: word-bits-thm-1.1
+  package: word-bits-thm-1.5
 }
 
 main {

@@ -1,5 +1,5 @@
 name: parser-basic
-version: 1.1
+version: 1.3
 description: Basic theory of parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,12 +10,12 @@ show: "Data.Pair"
 show: "Parser"
 
 def {
-  package: parser-basic-def-1.1
+  package: parser-basic-def-1.3
 }
 
 thm {
   import: def
-  package: parser-basic-thm-1.1
+  package: parser-basic-thm-1.3
 }
 
 main {
