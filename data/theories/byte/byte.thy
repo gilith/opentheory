@@ -23,17 +23,18 @@ word {
   interpret: const "Data.Word.~" as "Data.Byte.~"
   interpret: const "Data.Word.and" as "Data.Byte.and"
   interpret: const "Data.Word.bit" as "Data.Byte.bit"
-  interpret: const "Data.Word.fromList" as "Data.Byte.fromList"
   interpret: const "Data.Word.fromNatural" as "Data.Byte.fromNatural"
-  interpret: const "Data.Word.isList" as "Data.Byte.isList"
   interpret: const "Data.Word.modulus" as "Data.Byte.modulus"
   interpret: const "Data.Word.not" as "Data.Byte.not"
   interpret: const "Data.Word.or" as "Data.Byte.or"
   interpret: const "Data.Word.shiftLeft" as "Data.Byte.shiftLeft"
   interpret: const "Data.Word.shiftRight" as "Data.Byte.shiftRight"
-  interpret: const "Data.Word.toList" as "Data.Byte.toList"
   interpret: const "Data.Word.toNatural" as "Data.Byte.toNatural"
   interpret: const "Data.Word.width" as "Data.Byte.width"
+  interpret: const "Data.Word.Bits.compare" as "Data.Byte.Bits.compare"
+  interpret: const "Data.Word.Bits.fromWord" as "Data.Byte.Bits.fromWord"
+  interpret: const "Data.Word.Bits.normal" as "Data.Byte.Bits.normal"
+  interpret: const "Data.Word.Bits.toWord" as "Data.Byte.Bits.toWord"
   package: word-1.0
 }
 
