@@ -1,5 +1,5 @@
 name: byte-bits
-version: 1.2
+version: 1.0
 description: byte-bits
 author: Joe Hurd <joe@gilith.com>
 license: MIT

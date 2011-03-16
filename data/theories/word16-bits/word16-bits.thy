@@ -1,5 +1,5 @@
 name: word16-bits
-version: 1.2
+version: 1.0
 description: word16-bits
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: byte
-version: 1.5
+version: 1.0
 description: Basic theory of bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -34,13 +34,13 @@ word {
   interpret: const "Data.Word.toList" as "Data.Byte.toList"
   interpret: const "Data.Word.toNatural" as "Data.Byte.toNatural"
   interpret: const "Data.Word.width" as "Data.Byte.width"
-  package: word-1.5
+  package: word-1.0
 }
 
 bits {
   import: def
   import: word
-  package: byte-bits-1.2
+  package: byte-bits-1.0
 }
 
 main {

@@ -1,5 +1,5 @@
 name: char-utf8-thm
-version: 1.3
+version: 1.0
 description: char-utf8-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT

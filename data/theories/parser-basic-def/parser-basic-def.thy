@@ -1,5 +1,5 @@
 name: parser-basic-def
-version: 1.3
+version: 1.0
 description: parser-basic-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT

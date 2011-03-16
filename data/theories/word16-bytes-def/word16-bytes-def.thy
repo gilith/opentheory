@@ -1,5 +1,5 @@
 name: word16-bytes-def
-version: 1.3
+version: 1.0
 description: word16-bytes-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -112,7 +112,7 @@ Produce this documentation.
 
 =item B<-u>
 
-Upgrade the theories before installing them.
+Auto-upgrade the theories before installing them.
 
 =back
 

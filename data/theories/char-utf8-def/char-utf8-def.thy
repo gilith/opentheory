@@ -1,5 +1,5 @@
 name: char-utf8-def
-version: 1.3
+version: 1.0
 description: char-utf8-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT

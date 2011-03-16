@@ -1,5 +1,5 @@
 name: list
-version: 1.1
+version: 1.0
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -33,35 +33,35 @@ append {
   import: def
   import: thm
   import: dest
-  package: list-append-1.1
+  package: list-append-1.0
 }
 
 map {
   import: def
   import: thm
   import: append
-  package: list-map-1.1
+  package: list-map-1.0
 }
 
 quant {
   import: def
   import: append
   import: map
-  package: list-quant-1.1
+  package: list-quant-1.0
 }
 
 filter {
   import: def
   import: append
   import: map
-  package: list-filter-1.1
+  package: list-filter-1.0
 }
 
 last {
   import: def
   import: thm
   import: append
-  package: list-last-1.1
+  package: list-last-1.0
 }
 
 reverse {
@@ -76,7 +76,7 @@ length {
   import: dest
   import: append
   import: map
-  package: list-length-1.1
+  package: list-length-1.0
 }
 
 nth {
@@ -87,13 +87,13 @@ nth {
   import: map
   import: last
   import: length
-  package: list-nth-1.1
+  package: list-nth-1.0
 }
 
 replicate {
   import: length
   import: nth
-  package: list-replicate-1.1
+  package: list-replicate-1.0
 }
 
 member {
@@ -104,7 +104,7 @@ member {
   import: filter
   import: length
   import: nth
-  package: list-member-1.1
+  package: list-member-1.0
 }
 
 concat {
@@ -122,13 +122,13 @@ take-drop {
   import: append
   import: length
   import: nth
-  package: list-take-drop-1.1
+  package: list-take-drop-1.0
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.1
+  package: list-interval-1.0
 }
 
 zipwith {

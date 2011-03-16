@@ -7,9 +7,9 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h $opt_a $opt_l $opt_p);
+use vars qw($opt_h $opt_a $opt_l $opt_p $opt_u);
 
-getopts('ha:l:p:');
+getopts('ha:l:p:u');
 
 if ($opt_h or scalar @ARGV != 1)
 {
@@ -93,7 +93,7 @@ while (my $thy = <THEORIES>) {
         (system ($cmd) != 0) or
             die "import-theories: Unwanted symbols found in $base\n";
 
-        if (defined( -e $tart )) {
+        if ($opt_u && defined( -e $tart )) {
             $cmd = "diff $tart $tartnew >/dev/null";
             if (system ($cmd) == 0) {
                 unlink $tartnew or
@@ -133,7 +133,7 @@ import-theories - import theories extracted from a theorem prover
 
 =head1 SYNOPSIS
 
-import-theories [-h] [-l LICENSE] <theory-dir>
+import-theories [-h] [-l LICENSE] [-p PROVENANCE] [-u] <theory-dir>
 
 =head1 ARGUMENTS
 
@@ -156,6 +156,10 @@ Set the default license.
 =item B<-p PROVENANCE>
 
 Set the default provenance.
+
+=item B<-u>
+
+Auto-upgrade the theories during import.
 
 =back
 

@@ -157,9 +157,9 @@ THEORY_DIR = data/theories
 
 OPENTHEORY_INIT = $(OPENTHEORY) init
 
-IMPORT_THEORIES = scripts/import-theories
+IMPORT_THEORIES = scripts/import-theories -p "HOL Light theory"
 
-INSTALL_THEORIES = scripts/install-theories -u
+INSTALL_THEORIES = scripts/install-theories
 
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
@@ -169,12 +169,12 @@ reset-directory: $(OPENTHEORY)
 .PHONY: import-standard-theories
 import-standard-theories: $(OPENTHEORY)
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
-	$(IMPORT_THEORIES) -l HOLLight -p "HOL Light theory" $(HOL_LIGHT_DIR)/opentheory/articles
+	$(IMPORT_THEORIES) -l HOLLight $(HOL_LIGHT_DIR)/opentheory/articles
 
 .PHONY: import-example-theories
 import-example-theories: $(OPENTHEORY)
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory example-theories
-	$(IMPORT_THEORIES) -p "HOL Light theory" $(HOL_LIGHT_DIR)/opentheory/articles
+	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
 
 .PHONY: standard-theories
 standard-theories: $(OPENTHEORY)

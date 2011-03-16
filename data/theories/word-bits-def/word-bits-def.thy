@@ -1,5 +1,5 @@
 name: word-bits-def
-version: 1.1
+version: 1.0
 description: word-bits-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT
