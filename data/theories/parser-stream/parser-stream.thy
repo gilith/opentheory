@@ -1,5 +1,5 @@
 name: parser-stream
-version: 1.0
+version: 1.1
 description: Basic theory of parse streams
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -11,12 +11,12 @@ show: "Parser.Stream"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.0
+  package: parser-stream-def-1.1
 }
 
 thm {
   import: def
-  package: parser-stream-thm-1.0
+  package: parser-stream-thm-1.1
 }
 
 main {
