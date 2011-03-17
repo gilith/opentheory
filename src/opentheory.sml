@@ -35,7 +35,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val versionString = program^" "^version^" (release 20110314)"^"\n";
+val versionString = program^" "^version^" (release 20110316)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
