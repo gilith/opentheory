@@ -157,9 +157,9 @@ THEORY_DIR = data/theories
 
 OPENTHEORY_INIT = $(OPENTHEORY) init
 
-IMPORT_THEORIES = scripts/import-theories -p "HOL Light theory"
+IMPORT_THEORIES = scripts/import-theories -p "HOL Light theory" -u
 
-INSTALL_THEORIES = scripts/install-theories
+INSTALL_THEORIES = scripts/install-theories -u
 
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
