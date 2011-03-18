@@ -1,11 +1,12 @@
 name: char-utf8
-version: 1.2
-description: Theory of Unicode characters
+version: 1.4
+description: Theory of UTF-8 encoders and decoders
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 show: "Data.Byte" as "Byte"
-show: "Data.Char"
+show: "Data.Char" as "Char"
+show: "Data.Char.UTF8"
 show: "Data.List"
 show: "Data.Option" as "Option"
 show: "Data.Pair"
@@ -15,12 +16,12 @@ show: "Number.Numeral"
 show: "Parser"
 
 def {
-  package: char-utf8-def-1.2
+  package: char-utf8-def-1.4
 }
 
 thm {
   import: def
-  package: char-utf8-thm-1.2
+  package: char-utf8-thm-1.3
 }
 
 main {

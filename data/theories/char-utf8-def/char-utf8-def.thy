@@ -1,5 +1,5 @@
 name: char-utf8-def
-version: 1.3
+version: 1.4
 description: Definitions of UTF-8 encoders and decoders
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,6 +12,7 @@ show: "Data.List"
 show: "Data.Option" as "Option"
 show: "Data.Pair"
 show: "Data.Word16" as "Word16"
+show: "Number.Natural" as "Natural"
 show: "Number.Numeral"
 show: "Parser"
 

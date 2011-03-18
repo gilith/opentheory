@@ -163,15 +163,17 @@ have extension <kbd>.art</kbd>.</p>
 
 <a href="http://src.gilith.com/hol-light.html">Proof Logging in HOL Light Development Snapshot</a>.</li>
 
-<li>Add the following line to the top of the HOL Light theory file <tt>NAME.ml</tt>:
+<li>Add the following lines to the top of the HOL Light theory file <tt>NAME.ml</tt>:
 <blockquote>
-<p><tt>logfile "THEORY";;</tt></p>
+<p><tt>start_logging ();;</tt><br />
+<tt>logfile "THEORY";;</tt></p>
 </blockquote></li>
 
-<li>Add the following line to the bottom of the <tt>NAME.ml</tt>
+<li>Add the following lines to the bottom of the <tt>NAME.ml</tt>
 theory file:
 <blockquote>
-<p><tt>logfile_end ();;</tt></p>
+<p><tt>logfile_end ();;</tt><br />
+<tt>stop_logging ();;</tt></p>
 </blockquote></li>
 
 <li>Run the <tt>NAME.ml</tt> file through HOL Light in the usual
@@ -197,9 +199,9 @@ file <tt>THEORY.art</tt>.</li>
 
 </ol>
 
-<p><b>Note:</b> You can rename the type operators and constants that
-you define in <tt>NAME.ml</tt> by adding lines to
-the <tt>opentheory/hol-light.int</tt> file.</p>
+<p><b>Note:</b> You can change the HOL Light name of the type
+operators and constants that you define in <tt>NAME.ml</tt> by adding
+lines to the <tt>opentheory/hol-light.int</tt> file.</p>
 
 <hr />
 
