@@ -1,5 +1,5 @@
 name: char-utf8
-version: 1.1
+version: 1.2
 description: Theory of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,12 +13,12 @@ show: "Number.Numeral"
 show: "Parser"
 
 def {
-  package: char-utf8-def-1.1
+  package: char-utf8-def-1.2
 }
 
 thm {
   import: def
-  package: char-utf8-thm-1.1
+  package: char-utf8-thm-1.2
 }
 
 main {
