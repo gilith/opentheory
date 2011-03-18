@@ -995,6 +995,7 @@ local
   and bit1Name = mkName "bit1"
   and condName = mkName "cond"
   and forallName = mkName "!"
+  and letName = mkName "let"
   and selectName = mkName "select"
   and zeroName = mkName "zero";
 
@@ -1105,6 +1106,24 @@ local
               in
                 (pat,body)
               end
+
+        fun destLet show tm =
+            let
+              val (tm,t) = destApp tm
+
+              val (tm,vb) = destApp tm
+
+              val n = showConst show (destConst tm)
+
+              val () = if Name.equal n letName then ()
+                       else raise Error "Term.pp.destLet: not a let"
+
+              val (v,b) = destGenAbs show vb
+            in
+              (v,t,b)
+            end
+
+        fun isLet show = can (destLet show)
 
         fun destNumeral show tm =
             case dest tm of
@@ -1250,6 +1269,7 @@ local
         fun destGenApp tm =
             if isNumeral show tm then raise Error "Term.pp.destGenApp: numeral"
             else if isCond show tm then raise Error "Term.pp.destGenApp: cond"
+            else if isLet show tm then raise Error "Term.pp.destGenApp: let"
             else if isInfix tm then raise Error "Term.pp.destGenApp: infix"
             else if isNegation tm then raise Error "Term.pp.destGenApp: negation"
             else if isBinder tm then raise Error "Term.pp.destGenApp: binder"
@@ -1319,26 +1339,63 @@ local
                     else ppBinderTerm (tm,r)])
             end
 
-        and ppInfixTerm tm_r = ppInfix ppNegationTerm tm_r
+        and ppCondTerm (f,c,a,b,r) =
+            Print.blockProgram Print.Inconsistent 0
+              [Print.blockProgram Print.Consistent 0
+                 [Print.blockProgram Print.Inconsistent (if f then 3 else 8)
+                    [Print.ppString (if f then "if " else "else if "),
+                     ppInfixTerm (c,true)],
+                  Print.addBreak 1,
+                  Print.ppString "then"],
+               Print.blockProgram Print.Inconsistent 2
+                 [Print.ppString "",
+                  Print.addBreak 1,
+                  ppLetCondTerm (a,true)]] ::
+            Print.addBreak 1 ::
+            (case total (destCond show) b of
+               SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
+             | NONE =>
+                 [Print.blockProgram Print.Inconsistent 2
+                    [Print.ppString "else",
+                     Print.addBreak 1,
+                     ppLetCondTerm (b,r)]])
 
-        and ppHangingTerm (tm,r) =
-            case total (destCond show) tm of
-              NONE => ppInfixTerm (tm,r)
-            | SOME (c,a,b) =>
-              if r then ppBracketTerm tm
-              else
-                Print.blockProgram Print.Inconsistent 0
-                  [Print.blockProgram Print.Inconsistent 0
-                     [Print.ppString "if ",
-                      ppHangingTerm (c,true),
-                      Print.addBreak 1,
-                      Print.ppString "then ",
-                      ppHangingTerm (a,true)],
-                   Print.addBreak 1,
-                   Print.ppString "else ",
-                   ppHangingTerm (b,false)]
+        and ppLetTerm (v,t,b,r) =
+            Print.blockProgram Print.Inconsistent 4
+              [Print.ppString "let ",
+               ppBasicTerm v,
+               Print.ppString " =",
+               Print.addBreak 1,
+               ppLetCondTerm (t,true),
+               Print.ppString " in"] ::
+            Print.addBreak 1 ::
+            (case total (destLet show) b of
+               NONE => [ppLetCondTerm (b,r)]
+             | SOME (v,t,b) => ppLetTerm (v,t,b,r))
 
-        and ppNormalTerm tm = ppHangingTerm (tm,false)
+        and ppLetCondTerm (tm,r) =
+            case total (destLet show) tm of
+              SOME (v,t,b) =>
+                Print.blockProgram Print.Consistent 0
+                  (ppLetTerm (v,t,b,r))
+            | NONE =>
+              case total (destCond show) tm of
+                SOME (c,a,b) =>
+                Print.blockProgram Print.Consistent 0
+                  (ppCondTerm (true,c,a,b,r))
+              | NONE => ppInfixTerm (tm,r)
+
+        and ppLetConditionalTerm (tm,r) =
+            if not (isLet show tm orelse isCond show tm) then
+              ppNegationTerm (tm,r)
+            else if r then
+              ppBracketTerm tm
+            else
+              ppLetCondTerm (tm,false)
+
+        and ppInfixTerm tm_r = ppInfix ppLetConditionalTerm tm_r
+
+        and ppNormalTerm tm = ppInfixTerm (tm,false)
 
         and ppBracketTerm tm = Print.ppBracket "(" ")" ppNormalTerm tm
       in
