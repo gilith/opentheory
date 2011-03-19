@@ -1,5 +1,5 @@
 name: char
-version: 1.4
+version: 1.6
 description: Theory of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,8 +7,10 @@ show: "Data.Bool"
 show: "Data.Byte" as "Byte"
 show: "Data.Char"
 show: "Data.List"
+show: "Data.Option" as "Option"
 show: "Data.Pair"
 show: "Data.Word16" as "Word16"
+show: "Number.Natural" as "Natural"
 show: "Number.Numeral"
 show: "Parser"
 
@@ -24,7 +26,7 @@ thm {
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.4
+  package: char-utf8-1.5
 }
 
 main {
