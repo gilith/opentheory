@@ -8,6 +8,8 @@ require_once 'opentheory.php';
 
 define('SHORT_RECENT_PACKAGE_LIMIT',3);
 
+define('CHILD_PACKAGE_LIMIT',5);
+
 ///////////////////////////////////////////////////////////////////////////////
 // Pretty package information.
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,6 +22,8 @@ function pretty_package_information($pkg) {
   $registered = $pkg->registered();
 
   $parents = package_parents($pkg);
+
+  $num_children = count_package_children($pkg);
 
   $version_info = pretty_list_package_versions($pkg->name_version());
 
@@ -41,12 +45,26 @@ function pretty_package_information($pkg) {
   $main .=
 '<h3>Information</h3>' .
 '<table class="information">' .
-'<tr><td>version</td><td>' . $version_info . '</td></tr>' .
+'<tr><td>versions</td><td>' . $version_info . '</td></tr>' .
 '<tr><td>author</td><td>' . $author_info . '</td></tr>' .
 '<tr><td>license</td><td>' . $license_info . '</td></tr>' .
 '<tr><td>' . string_to_html($registered_key) . '</td><td>' .
 $registered_info . '</td></tr>' .
 '</table>';
+
+  $main .=
+'<h3>Files</h3>' .
+'<ul>' .
+'<li>Package summary ' .
+$pkg->summary_file_link($pkg->summary_file_name()) .
+'</li>' .
+'<li>Package tarball ' .
+$pkg->tarball_link($pkg->tarball_name()) .
+'</li>' .
+'<li>Theory file ' .
+$pkg->theory_file_link($pkg->theory_file_name()) .
+' (included in the package tarball)</li>' .
+'</ul>';
 
   if (count($parents) > 0) {
     $main .=
@@ -66,19 +84,32 @@ string_to_html($parent->description()) .
 '</ul>';
   }
 
-  $main .=
-'<h3>Files</h3>' .
-'<ul>' .
-'<li>Package summary ' .
-$pkg->summary_file_link($pkg->summary_file_name()) .
-'</li>' .
-'<li>Package tarball ' .
-$pkg->tarball_link($pkg->tarball_name()) .
-'</li>' .
-'<li>Theory file ' .
-$pkg->theory_file_link($pkg->theory_file_name()) .
-' (included in the package tarball)</li>' .
+  if ($num_children > 0) {
+    $main .=
+'<h3>Uses</h3>';
+
+    if ($num_children <= CHILD_PACKAGE_LIMIT) {
+      $children = package_children($pkg);
+
+      $main .=
+'<ul>';
+
+      foreach ($children as $child) {
+        $main .=
+'<li>' .
+$child->link($child->to_string()) .
+' &mdash; ' .
+string_to_html($child->description()) .
+'</li>';
+      }
+
+      $main .=
 '</ul>';
+    }
+    else {
+      $main .= 'Used by ' . $num_children . ' packages';
+    }
+  }
 
   return $main;
 }
@@ -185,7 +216,7 @@ if (isset($pkg)) {
   $pkg = find_package_by_name_version($namever);
 
   $main =
-'<h2>Package ' . $namever->name() . '</h2>';
+'<h2>Package ' . $namever->to_string() . '</h2>';
 
   if (isset($pkg)) {
     $main .= pretty_package_information($pkg);

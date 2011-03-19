@@ -295,6 +295,10 @@ table.information td {
   padding-right: 10px;
 }
 
+table.information td a {
+  text-decoration: none;
+}
+
 /******************************************************************************
 * Recently uploaded packages.
 ******************************************************************************/

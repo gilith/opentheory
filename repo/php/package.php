@@ -701,7 +701,7 @@ function pretty_list_package_versions($namever) {
 
   $pkgs = list_package_versions($namever->name());
 
-  $thisver = '<b>' . $namever->version() . '</b>';
+  $thisver = $namever->version();
 
   $versions = array();
 
@@ -730,7 +730,7 @@ function pretty_list_package_versions($namever) {
     $versions[] = $thisver;
   }
 
-  return implode(' ', $versions);
+  return implode(', ', $versions);
 }
 
 ?>

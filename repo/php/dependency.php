@@ -131,6 +131,14 @@ function dependency_table() {
 // Look up package parents.
 ///////////////////////////////////////////////////////////////////////////////
 
+function count_package_parents($pkg) {
+  isset($pkg) or trigger_error('bad pkg');
+
+  $dependency_table = dependency_table();
+
+  return $dependency_table->parent_count($pkg);
+}
+
 function package_parents($pkg) {
   isset($pkg) or trigger_error('bad pkg');
 
@@ -153,6 +161,14 @@ function package_parents($pkg) {
 ///////////////////////////////////////////////////////////////////////////////
 // Look up package children.
 ///////////////////////////////////////////////////////////////////////////////
+
+function count_package_children($pkg) {
+  isset($pkg) or trigger_error('bad pkg');
+
+  $dependency_table = dependency_table();
+
+  return $dependency_table->child_count($pkg);
+}
 
 function package_children($pkg) {
   isset($pkg) or trigger_error('bad pkg');
