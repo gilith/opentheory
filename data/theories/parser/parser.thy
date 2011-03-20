@@ -14,19 +14,19 @@ stream {
   package: parser-stream-1.2
 }
 
-basic {
+comb {
   import: stream
-  package: parser-basic-1.2
+  package: parser-comb-1.0
 }
 
-rec {
+all {
   import: stream
-  import: basic
-  package: parser-rec-1.2
+  import: comb
+  package: parser-all-1.0
 }
 
 main {
   import: stream
-  import: basic
-  import: rec
+  import: comb
+  import: all
 }
