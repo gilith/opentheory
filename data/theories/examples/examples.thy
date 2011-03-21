@@ -1,5 +1,5 @@
 name: examples
-version: 1.6
+version: 1.9
 description: All the example theories
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,14 +15,14 @@ word16 {
 }
 
 parser {
-  package: parser-1.2
+  package: parser-1.5
 }
 
 char {
   import: byte
   import: word16
   import: parser
-  package: char-1.6
+  package: char-1.9
 }
 
 main {

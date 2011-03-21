@@ -1,11 +1,11 @@
-name: char-def
-version: 1.5
-description: char-def
+name: option-dest-thm
+version: 1.0
+description: option-dest-thm
 author: Joe Hurd <joe@gilith.com>
-license: MIT
+license: HOLLight
 provenance: HOL Light theory extracted on 2011-03-20
 show: "Data.Bool"
 
 main {
-  article: "char-def.art"
+  article: "option-dest-thm.art"
 }

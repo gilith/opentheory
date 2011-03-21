@@ -1,5 +1,5 @@
 name: list
-version: 1.0
+version: 1.1
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -18,15 +18,10 @@ thm {
   package: list-thm-1.0
 }
 
-case {
-  import: def
-  package: list-case-1.0
-}
-
 dest {
   import: def
   import: thm
-  package: list-dest-1.0
+  package: list-dest-1.1
 }
 
 append {
@@ -141,7 +136,6 @@ zipwith {
 main {
   import: def
   import: thm
-  import: case
   import: dest
   import: append
   import: map

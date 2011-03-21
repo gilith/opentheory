@@ -1,5 +1,5 @@
 name: option
-version: 1.0
+version: 1.2
 description: Basic theory of option types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -17,13 +17,14 @@ thm {
   package: option-thm-1.0
 }
 
-case {
+dest {
   import: def
-  package: option-case-1.0
+  import: thm
+  package: option-dest-1.0
 }
 
 main {
   import: def
   import: thm
-  import: case
+  import: dest
 }
