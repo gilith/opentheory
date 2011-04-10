@@ -1,9 +1,9 @@
 name: parser-all-thm
-version: 1.2
+version: 1.4
 description: Theorems about the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-03-20
+provenance: HOL Light theory extracted on 2011-04-08
 show: "Data.Bool"
 
 main {

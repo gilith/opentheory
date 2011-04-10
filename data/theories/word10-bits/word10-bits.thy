@@ -1,11 +1,11 @@
-name: word16-bits
-version: 1.2
-description: word16-bits
+name: word10-bits
+version: 1.0
+description: word10-bits
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-04-08
 show: "Data.Bool"
 
 main {
-  article: "word16-bits.art"
+  article: "word10-bits.art"
 }

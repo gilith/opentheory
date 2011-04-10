@@ -1,5 +1,5 @@
 name: word16
-version: 1.2
+version: 1.3
 description: Basic theory of 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -41,7 +41,7 @@ word {
 bits {
   import: def
   import: word
-  package: word16-bits-1.1
+  package: word16-bits-1.2
 }
 
 bytes {
