@@ -1,5 +1,5 @@
 name: word10
-version: 1.1
+version: 1.2
 description: Basic theory of 10-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -35,13 +35,13 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word10.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word10.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word10.Bits.toWord"
-  package: word-1.2
+  package: word-1.3
 }
 
 bits {
   import: def
   import: word
-  package: word10-bits-1.1
+  package: word10-bits-1.2
 }
 
 main {

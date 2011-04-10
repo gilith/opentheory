@@ -1,5 +1,5 @@
 name: list
-version: 1.2
+version: 1.3
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -71,7 +71,8 @@ length {
   import: dest
   import: append
   import: map
-  package: list-length-1.0
+  import: reverse
+  package: list-length-1.1
 }
 
 nth {
@@ -97,9 +98,10 @@ member {
   import: map
   import: quant
   import: filter
+  import: reverse
   import: length
   import: nth
-  package: list-member-1.0
+  package: list-member-1.1
 }
 
 concat {
@@ -135,9 +137,10 @@ zipwith {
 
 nub {
   import: def
+  import: reverse
   import: length
   import: member
-  package: list-nub-1.0
+  package: list-nub-1.1
 }
 
 main {

@@ -1,5 +1,5 @@
 name: option-dest
-version: 1.1
+version: 1.2
 description: Theory of the option destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,7 +7,7 @@ show: "Data.Bool"
 show: "Data.Option"
 
 def {
-  package: option-dest-def-1.1
+  package: option-dest-def-1.2
 }
 
 thm {

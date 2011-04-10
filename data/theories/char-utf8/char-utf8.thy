@@ -1,5 +1,5 @@
 name: char-utf8
-version: 1.9
+version: 1.10
 description: Theory of UTF-8 encoders and decoders
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ show: "Number.Numeral"
 show: "Parser"
 
 def {
-  package: char-utf8-def-1.8
+  package: char-utf8-def-1.9
 }
 
 thm {
   import: def
-  package: char-utf8-thm-1.8
+  package: char-utf8-thm-1.9
 }
 
 main {

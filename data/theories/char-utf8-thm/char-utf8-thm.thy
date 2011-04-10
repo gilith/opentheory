@@ -1,9 +1,9 @@
 name: char-utf8-thm
-version: 1.8
+version: 1.9
 description: Theorems about UTF-8 encoders and decoders
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-04-09
+provenance: HOL Light theory extracted on 2011-04-10
 show: "Data.Bool"
 show: "Data.Byte" as "Byte"
 show: "Data.Char" as "Char"
