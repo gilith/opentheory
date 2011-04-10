@@ -1,9 +1,9 @@
 name: list-dest-def
-version: 1.1
+version: 1.2
 description: Definition of the list destructors
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-03-20
+provenance: HOL Light theory extracted on 2011-04-09
 show: "Data.Bool"
 
 main {

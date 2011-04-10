@@ -9,7 +9,7 @@ show: "Data.List"
 show: "Number.Numeral"
 
 def {
-  package: word10-def-1.0
+  package: word10-def-1.1
 }
 
 word {
@@ -35,7 +35,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word10.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word10.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word10.Bits.toWord"
-  package: word-1.1
+  package: word-1.2
 }
 
 bits {

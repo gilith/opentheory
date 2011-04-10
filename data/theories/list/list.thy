@@ -1,5 +1,5 @@
 name: list
-version: 1.1
+version: 1.2
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ thm {
 dest {
   import: def
   import: thm
-  package: list-dest-1.1
+  package: list-dest-1.2
 }
 
 append {
@@ -107,7 +107,7 @@ concat {
   import: dest
   import: append
   import: quant
-  package: list-concat-1.0
+  package: list-concat-1.1
 }
 
 take-drop {
@@ -117,20 +117,27 @@ take-drop {
   import: append
   import: length
   import: nth
-  package: list-take-drop-1.0
+  package: list-take-drop-1.1
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.0
+  package: list-interval-1.1
 }
 
 zipwith {
   import: def
   import: dest
   import: length
-  package: list-zipwith-1.0
+  package: list-zipwith-1.1
+}
+
+nub {
+  import: def
+  import: length
+  import: member
+  package: list-nub-1.0
 }
 
 main {
@@ -151,4 +158,5 @@ main {
   import: take-drop
   import: interval
   import: zipwith
+  import: nub
 }

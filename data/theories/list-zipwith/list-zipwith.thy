@@ -1,5 +1,5 @@
 name: list-zipwith
-version: 1.0
+version: 1.1
 description: Definitions and theorems about the list zipWith function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,7 +7,7 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-zipwith-def-1.0
+  package: list-zipwith-def-1.1
 }
 
 thm {
