@@ -1,9 +1,9 @@
 name: relation-measure-def
-version: 1.0
+version: 1.2
 description: relation-measure-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-02-19
+provenance: HOL Light theory extracted on 2011-05-23
 show: "Data.Bool"
 
 main {

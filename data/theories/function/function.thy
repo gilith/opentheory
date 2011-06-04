@@ -1,21 +1,21 @@
 name: function
-version: 1.0
+version: 1.1
 description: Basic theory of functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 show: "Function"
 
-function-def {
-  package: function-def-1.0
+def {
+  package: function-def-1.1
 }
 
-function-comb {
-  import: function-def
-  package: function-comb-1.0
+thm {
+  import: def
+  package: function-thm-1.1
 }
 
 main {
-  import: function-def
-  import: function-comb
+  import: def
+  import: thm
 }

@@ -290,7 +290,7 @@ documentation:
 
 .PHONY: tarball
 tarball: clean doc/DONT-RELEASE Makefile.dev
-	cd .. ; tar cvzhf opentheory/release/opentheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
+	cd .. ; COPYFILE_DISABLE=true tar cvzhf opentheory/release/opentheory.tar.gz --exclude-from opentheory/doc/DONT-RELEASE opentheory
 
 .PHONY: release
 release: release-stamp mosml mlton polyml documentation

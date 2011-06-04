@@ -1,5 +1,5 @@
 name: relation
-version: 1.0
+version: 1.2
 description: Basic theory of relations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,16 +9,16 @@ show: "Number.Natural"
 show: "Relation"
 
 transitive {
-  package: relation-transitive-1.0
+  package: relation-transitive-1.2
 }
 
 well-founded {
-  package: relation-well-founded-1.0
+  package: relation-well-founded-1.2
 }
 
 measure {
   import: well-founded
-  package: relation-measure-1.0
+  package: relation-measure-1.2
 }
 
 main {

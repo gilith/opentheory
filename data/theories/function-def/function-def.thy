@@ -1,5 +1,5 @@
 name: function-def
-version: 1.0
+version: 1.1
 description: Definition of function constants
 author: Joe Hurd <joe@gilith.com>
 license: MIT

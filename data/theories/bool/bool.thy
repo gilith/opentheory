@@ -1,50 +1,50 @@
 name: bool
-version: 1.0
+version: 1.2
 description: Basic boolean theory
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 
-bool-def {
-  package: bool-def-1.0
+def {
+  package: bool-def-1.1
 }
 
-bool-int {
-  import: bool-def
-  package: bool-int-1.0
+int {
+  import: def
+  package: bool-int-1.2
 }
 
 axiom-extensionality {
-  import: bool-def
+  import: def
   package: axiom-extensionality-1.0
 }
 
-bool-extensionality {
-  import: bool-def
-  import: bool-int
+ext {
+  import: def
+  import: int
   import: axiom-extensionality
-  package: bool-extensionality-1.0
+  package: bool-ext-1.0
 }
 
 axiom-choice {
-  import: bool-def
+  import: def
   package: axiom-choice-1.0
 }
 
-bool-choice {
-  import: bool-def
-  import: bool-int
+class {
+  import: def
+  import: int
   import: axiom-extensionality
-  import: bool-extensionality
+  import: ext
   import: axiom-choice
-  package: bool-choice-1.0
+  package: bool-class-1.0
 }
 
 main {
-  import: bool-def
-  import: bool-int
+  import: def
+  import: int
   import: axiom-extensionality
-  import: bool-extensionality
+  import: ext
   import: axiom-choice
-  import: bool-choice
+  import: class
 }

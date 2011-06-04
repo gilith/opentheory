@@ -1,6 +1,6 @@
 name: natural
-version: 1.0
-description: Basic theory of natural numbers
+version: 1.2
+description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
@@ -14,7 +14,7 @@ axiom-infinity {
 
 def {
   import: axiom-infinity
-  package: natural-def-1.0
+  package: natural-def-1.1
 }
 
 recursion {
@@ -25,24 +25,24 @@ recursion {
 cases {
   import: def
   import: recursion
-  package: natural-cases-1.0
+  package: natural-cases-1.1
 }
 
 numeral {
   import: cases
-  package: natural-numeral-1.0
+  package: natural-numeral-1.1
 }
 
 pre {
   import: cases
-  package: natural-pre-1.0
+  package: natural-pre-1.1
 }
 
 order {
   import: def
   import: cases
   import: numeral
-  package: natural-order-1.0
+  package: natural-order-1.2
 }
 
 add {
@@ -50,7 +50,7 @@ add {
   import: cases
   import: numeral
   import: order
-  package: natural-add-1.0
+  package: natural-add-1.1
 }
 
 mult {
@@ -58,7 +58,7 @@ mult {
   import: cases
   import: order
   import: add
-  package: natural-mult-1.0
+  package: natural-mult-1.1
 }
 
 exp {
@@ -68,13 +68,13 @@ exp {
   import: order
   import: add
   import: mult
-  package: natural-exp-1.0
+  package: natural-exp-1.1
 }
 
 set {
   import: def
   import: order
-  package: natural-set-1.0
+  package: natural-set-1.1
 }
 
 even-odd {
@@ -86,19 +86,18 @@ even-odd {
   import: mult
   import: exp
   import: set
-  package: natural-even-odd-1.0
+  package: natural-even-odd-1.1
 }
 
 sub {
   import: def
   import: cases
-  import: numeral
   import: pre
   import: order
   import: add
   import: mult
   import: even-odd
-  package: natural-sub-1.0
+  package: natural-sub-1.1
 }
 
 factorial {
@@ -108,7 +107,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.0
+  package: natural-factorial-1.1
 }
 
 div-mod {
@@ -120,12 +119,12 @@ div-mod {
   import: exp
   import: set
   import: even-odd
-  package: natural-div-mod-1.0
+  package: natural-div-mod-1.1
 }
 
 min-max {
   import: set
-  package: natural-min-max-1.0
+  package: natural-min-max-1.1
 }
 
 main {

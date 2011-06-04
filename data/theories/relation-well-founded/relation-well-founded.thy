@@ -1,6 +1,6 @@
 name: relation-well-founded
-version: 1.0
-description: Definitions and theorems about well-founded relations
+version: 1.2
+description: Well-founded relations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
@@ -9,27 +9,15 @@ show: "Number.Natural"
 show: "Relation"
 
 def {
-  package: relation-well-founded-def-1.0
+  package: relation-well-founded-def-1.2
 }
 
 thm {
   import: def
-  package: relation-well-founded-thm-1.0
-}
-
-trivial {
-  import: def
-  package: relation-well-founded-trivial-1.0
-}
-
-tail {
-  import: thm
-  package: relation-well-founded-tail-1.0
+  package: relation-well-founded-thm-1.2
 }
 
 main {
   import: def
   import: thm
-  import: trivial
-  import: tail
 }

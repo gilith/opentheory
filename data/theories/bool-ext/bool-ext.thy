@@ -1,11 +1,11 @@
-name: bool-extensionality
+name: bool-ext
 version: 1.0
-description: bool-extensionality
+description: Boolean extensionality theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2011-02-19
 show: "Data.Bool"
 
 main {
-  article: "bool-extensionality.art"
+  article: "bool-ext.art"
 }

@@ -1,5 +1,5 @@
 name: list-reverse
-version: 1.0
+version: 1.2
 description: Definitions and theorems about the list reverse function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,7 +7,7 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-reverse-def-1.0
+  package: list-reverse-def-1.2
 }
 
 thm {
