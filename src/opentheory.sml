@@ -585,28 +585,45 @@ val installFooter = "";
 (* ------------------------------------------------------------------------- *)
 
 datatype constraintList =
-    LatestVersionList;
+    LatestVersionList
+  | TopLevelList;
 
 datatype orderList =
     AlphabeticalList
   | DependencyList
   | ReverseList of orderList;
 
-fun isLatestVersionList f =
-    case f of
-      LatestVersionList => true
-  (*| _ => false*);
-
-fun notLatestVersionList f = not (isLatestVersionList f);
-
 local
-  val refConstraintList = ref [LatestVersionList];
+  fun isLatestVersionList f =
+      case f of
+        LatestVersionList => true
+      | _ => false;
+
+  fun notLatestVersionList f = not (isLatestVersionList f);
+
+  fun isTopLevelList f =
+      case f of
+        TopLevelList => true
+      | _ => false;
+
+  fun notTopLevelList f = not (isTopLevelList f);
+
+  val refConstraintList = ref [TopLevelList,LatestVersionList];
 in
   fun allVersionsConstraintList () =
       let
         val rcl = !refConstraintList
 
         val rcl = List.filter notLatestVersionList rcl
+      in
+        refConstraintList := rcl
+      end;
+
+  fun auxiliaryConstraintList () =
+      let
+        val rcl = !refConstraintList
+
+        val rcl = List.filter notTopLevelList rcl
       in
         refConstraintList := rcl
       end;
@@ -648,6 +665,9 @@ in
       [{switches = ["--all-versions"], arguments = [],
         description = "list all versions of packages",
         processor = beginOpt endOpt (fn _ => allVersionsConstraintList ())},
+       {switches = ["--auxiliary"], arguments = [],
+        description = "list auxiliary packages",
+        processor = beginOpt endOpt (fn _ => auxiliaryConstraintList ())},
        {switches = ["--dependency-order"], arguments = [],
         description = "list packages in dependency order",
         processor = beginOpt endOpt (fn _ => setOrderList DependencyList)},
@@ -2160,13 +2180,24 @@ fun installTheory filename =
 (* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun filterList dir pkgs filt =
+fun filterList dir =
     let
-      val pkgs =
-          if List.all notLatestVersionList filt then pkgs
-          else PackageNameVersionSet.filter (Directory.isLatestVersion dir) pkgs
+      fun filt (con,pkgs) =
+          case con of
+            LatestVersionList =>
+            let
+              val pred = Directory.isLatestVersion dir
+            in
+              PackageNameVersionSet.filter pred pkgs
+            end
+          | TopLevelList =>
+            let
+              fun pred pkg = not (Directory.isAuxiliary dir pkg)
+            in
+              PackageNameVersionSet.filter pred pkgs
+            end
     in
-      pkgs
+      List.foldl filt
     end;
 
 fun sortList dir pkgs ord =

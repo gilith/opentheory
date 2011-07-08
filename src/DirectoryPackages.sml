@@ -290,6 +290,9 @@ fun auxiliaryDescendentsSet pkgs =
 fun auxiliaryDescendents pkgs namever =
     auxiliaryDescendentsSet pkgs (auxiliaryChildren pkgs namever);
 
+fun isAuxiliary pkgs namever =
+    not (PackageNameVersionSet.null (auxiliaryChildren pkgs namever));
+
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)

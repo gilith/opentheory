@@ -383,6 +383,9 @@ fun auxiliaryAncestorsSet dir namevers =
 fun auxiliaryDescendentsSet dir namevers =
     DirectoryPackages.auxiliaryDescendentsSet (packages dir) namevers;
 
+fun isAuxiliary dir namever =
+    DirectoryPackages.isAuxiliary (packages dir) namever;
+
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)

@@ -96,6 +96,8 @@ val auxiliaryAncestorsSet :
 val auxiliaryDescendentsSet :
     packages -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
+val isAuxiliary : packages -> PackageNameVersion.nameVersion -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
 (* ------------------------------------------------------------------------- *)
