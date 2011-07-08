@@ -584,10 +584,35 @@ val installFooter = "";
 (* Options for listing installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
+datatype constraintList =
+    LatestVersionList;
+
 datatype orderList =
     AlphabeticalList
   | DependencyList
   | ReverseList of orderList;
+
+fun isLatestVersionList f =
+    case f of
+      LatestVersionList => true
+  (*| _ => false*);
+
+fun notLatestVersionList f = not (isLatestVersionList f);
+
+local
+  val refConstraintList = ref [LatestVersionList];
+in
+  fun allVersionsConstraintList () =
+      let
+        val rcl = !refConstraintList
+
+        val rcl = List.filter notLatestVersionList rcl
+      in
+        refConstraintList := rcl
+      end;
+
+  fun constraintList () = !refConstraintList;
+end;
 
 local
   val refOrderList = ref AlphabeticalList;
@@ -620,7 +645,10 @@ local
   open Useful Options;
 in
   val listOpts : opt list =
-      [{switches = ["--dependency-order"], arguments = [],
+      [{switches = ["--all-versions"], arguments = [],
+        description = "list all versions of packages",
+        processor = beginOpt endOpt (fn _ => allVersionsConstraintList ())},
+       {switches = ["--dependency-order"], arguments = [],
         description = "list packages in dependency order",
         processor = beginOpt endOpt (fn _ => setOrderList DependencyList)},
        {switches = ["--reverse-order"], arguments = [],
@@ -2132,6 +2160,15 @@ fun installTheory filename =
 (* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+fun filterList dir pkgs filt =
+    let
+      val pkgs =
+          if List.all notLatestVersionList filt then pkgs
+          else PackageNameVersionSet.filter (Directory.isLatestVersion dir) pkgs
+    in
+      pkgs
+    end;
+
 fun sortList dir pkgs ord =
     case ord of
       AlphabeticalList => PackageNameVersionSet.toList pkgs
@@ -2143,6 +2180,8 @@ fun list () =
       val dir = directory ()
 
       val pkgs = Directory.list dir
+
+      val pkgs = filterList dir pkgs (constraintList ());
 
       val pkgs = sortList dir pkgs (orderList ());
 

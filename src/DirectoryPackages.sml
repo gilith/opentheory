@@ -210,6 +210,13 @@ fun latestVersion pkgs nv =
       | NONE => PackageNameVersionSet.empty
     end;
 
+fun isLatestVersion pkgs nv =
+    let
+      val nvs = latestVersion pkgs nv
+    in
+      PackageNameVersionSet.member nv nvs
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)

@@ -330,6 +330,16 @@ fun member namever dir = Option.isSome (peek dir namever);
 fun checksum dir namever = DirectoryPackages.checksum (packages dir) namever;
 
 (* ------------------------------------------------------------------------- *)
+(* Looking up the latest version of packages.                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun latestVersion dir namever =
+    DirectoryPackages.latestVersion (packages dir) namever;
+
+fun isLatestVersion dir namever =
+    DirectoryPackages.isLatestVersion (packages dir) namever;
+
+(* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
 

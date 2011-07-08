@@ -49,6 +49,9 @@ val list : packages -> PackageNameVersionSet.set
 val latestVersion :
     packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
 
+val isLatestVersion :
+    packages -> PackageNameVersion.nameVersion -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
