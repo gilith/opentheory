@@ -13,6 +13,7 @@ transitive {
 }
 
 well-founded {
+  import: transitive
   package: relation-well-founded-1.4
 }
 
