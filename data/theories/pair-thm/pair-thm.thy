@@ -1,5 +1,5 @@
 name: pair-thm
-version: 1.0
+version: 1.1
 description: pair-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

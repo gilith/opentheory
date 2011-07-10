@@ -1,5 +1,5 @@
 name: natural
-version: 1.2
+version: 1.6
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -42,7 +42,7 @@ order {
   import: def
   import: cases
   import: numeral
-  package: natural-order-1.2
+  package: natural-order-1.5
 }
 
 add {
@@ -50,7 +50,7 @@ add {
   import: cases
   import: numeral
   import: order
-  package: natural-add-1.1
+  package: natural-add-1.6
 }
 
 mult {
@@ -58,7 +58,7 @@ mult {
   import: cases
   import: order
   import: add
-  package: natural-mult-1.1
+  package: natural-mult-1.5
 }
 
 exp {
@@ -68,13 +68,7 @@ exp {
   import: order
   import: add
   import: mult
-  package: natural-exp-1.1
-}
-
-set {
-  import: def
-  import: order
-  package: natural-set-1.1
+  package: natural-exp-1.2
 }
 
 even-odd {
@@ -85,7 +79,6 @@ even-odd {
   import: add
   import: mult
   import: exp
-  import: set
   package: natural-even-odd-1.1
 }
 
@@ -97,7 +90,7 @@ sub {
   import: add
   import: mult
   import: even-odd
-  package: natural-sub-1.1
+  package: natural-sub-1.2
 }
 
 factorial {
@@ -107,7 +100,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.1
+  package: natural-factorial-1.2
 }
 
 div-mod {
@@ -117,14 +110,13 @@ div-mod {
   import: add
   import: mult
   import: exp
-  import: set
   import: even-odd
-  package: natural-div-mod-1.1
+  package: natural-div-mod-1.2
 }
 
 min-max {
-  import: set
-  package: natural-min-max-1.1
+  import: order
+  package: natural-min-max-1.4
 }
 
 main {
@@ -137,7 +129,6 @@ main {
   import: add
   import: mult
   import: exp
-  import: set
   import: even-odd
   import: sub
   import: factorial

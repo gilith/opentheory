@@ -1,5 +1,5 @@
 name: function
-version: 1.1
+version: 1.4
 description: Basic theory of functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: function-thm-1.1
+  package: function-thm-1.4
 }
 
 main {

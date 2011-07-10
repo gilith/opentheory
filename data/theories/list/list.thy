@@ -1,5 +1,5 @@
 name: list
-version: 1.5
+version: 1.9
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,32 +10,32 @@ show: "Number.Natural"
 show: "Number.Numeral"
 
 def {
-  package: list-def-1.2
+  package: list-def-1.5
 }
 
 thm {
   import: def
-  package: list-thm-1.2
+  package: list-thm-1.6
 }
 
 dest {
   import: def
   import: thm
-  package: list-dest-1.4
+  package: list-dest-1.7
 }
 
 length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.3
+  package: list-length-1.6
 }
 
 set {
   import: def
   import: thm
   import: length
-  package: list-set-1.0
+  package: list-set-1.5
 }
 
 append {
@@ -44,7 +44,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.2
+  package: list-append-1.6
 }
 
 map {
@@ -53,16 +53,14 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.2
+  package: list-map-1.6
 }
 
 quant {
   import: def
-  import: length
-  import: set
   import: append
   import: map
-  package: list-quant-1.2
+  package: list-quant-1.5
 }
 
 filter {
@@ -71,16 +69,15 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.2
+  package: list-filter-1.6
 }
 
 last {
   import: def
   import: thm
-  import: length
-  import: set
   import: append
-  package: list-last-1.2
+  import: set
+  package: list-last-1.6
 }
 
 reverse {
@@ -88,7 +85,7 @@ reverse {
   import: length
   import: set
   import: append
-  package: list-reverse-1.2
+  package: list-reverse-1.6
 }
 
 nth {
@@ -101,14 +98,14 @@ nth {
   import: map
   import: last
   import: length
-  package: list-nth-1.2
+  package: list-nth-1.6
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.2
+  package: list-replicate-1.6
 }
 
 member {
@@ -121,42 +118,38 @@ member {
   import: reverse
   import: length
   import: nth
-  package: list-member-1.3
+  package: list-member-1.8
 }
 
 concat {
   import: def
   import: dest
-  import: set
   import: append
   import: quant
-  package: list-concat-1.3
+  package: list-concat-1.7
 }
 
 take-drop {
   import: def
   import: thm
   import: dest
-  import: set
   import: append
   import: length
   import: nth
-  package: list-take-drop-1.3
+  package: list-take-drop-1.7
 }
 
 interval {
   import: length
-  import: set
   import: nth
-  package: list-interval-1.3
+  package: list-interval-1.7
 }
 
 zipwith {
   import: def
   import: dest
   import: length
-  import: set
-  package: list-zipwith-1.3
+  package: list-zipwith-1.7
 }
 
 nub {
@@ -165,7 +158,7 @@ nub {
   import: length
   import: set
   import: member
-  package: list-nub-1.3
+  package: list-nub-1.7
 }
 
 main {

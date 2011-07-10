@@ -1,5 +1,5 @@
 name: natural-order
-version: 1.2
+version: 1.5
 description: Definitions and theorems about natural number orderings
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ def {
 
 thm {
   import: def
-  package: natural-order-thm-1.2
+  package: natural-order-thm-1.5
 }
 
 main {

@@ -1,27 +1,21 @@
 name: pair
-version: 1.0
+version: 1.1
 description: Basic theory of product types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 show: "Data.Pair"
 
-pair-def {
+def {
   package: pair-def-1.0
 }
 
-pair-induct {
-  import: pair-def
-  package: pair-induct-1.0
-}
-
-pair-abs {
-  import: pair-induct
-  package: pair-abs-1.0
+thm {
+  import: def
+  package: pair-thm-1.1
 }
 
 main {
-  import: pair-def
-  import: pair-induct
-  import: pair-abs
+  import: def
+  import: thm
 }

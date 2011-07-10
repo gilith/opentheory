@@ -161,6 +161,8 @@ IMPORT_THEORIES = scripts/import-theories -p "HOL Light theory" -u
 
 INSTALL_THEORIES = scripts/install-theories -u
 
+CHECK_THEORIES = scripts/check-theories
+
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
@@ -180,17 +182,20 @@ import-example-theories: $(OPENTHEORY)
 standard-theories: $(OPENTHEORY)
 	$(MAKE) import-standard-theories
 	$(INSTALL_THEORIES)
+	$(CHECK_THEORIES)
 
 .PHONY: example-theories
 example-theories: $(OPENTHEORY)
 	$(MAKE) import-example-theories
 	$(INSTALL_THEORIES)
+	$(CHECK_THEORIES)
 
 .PHONY: theories
 theories: $(OPENTHEORY)
 	$(MAKE) import-standard-theories
 	$(MAKE) import-example-theories
 	$(INSTALL_THEORIES)
+	$(CHECK_THEORIES)
 
 ###############################################################################
 # Create the test OpenTheory directory.

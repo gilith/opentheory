@@ -1,5 +1,5 @@
 name: natural-sub
-version: 1.1
+version: 1.2
 description: Definitions and theorems about natural number subtraction
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ def {
 
 thm {
   import: def
-  package: natural-sub-thm-1.1
+  package: natural-sub-thm-1.2
 }
 
 main {

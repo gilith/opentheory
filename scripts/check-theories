@@ -1,0 +1,207 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Hurd, All Rights Reserved
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h);
+
+getopts('h');
+
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $opentheory = "bin/mlton/opentheory";
+[ -x $opentheory ] or die "check-theories: $opentheory not an executable";
+
+my $source = "data/theories";
+[ -d $source ] or die "check-theories: $source not a directory";
+
+my %toplevel = ();
+my %installed = ();
+my %version = ();
+
+sub is_name {
+    (scalar @_ == 1) or die;
+    my $n = shift @_;
+
+    if ($n =~ m{^(?:(?:[[:alpha:]][[:alnum:]]*-)*[[:alpha:]][[:alnum:]]*)$}) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+sub is_version {
+    (scalar @_ == 1) or die;
+    my $v = shift @_;
+
+    if ($v =~ m{^(?:[[:digit:]]+[.])*[[:digit:]]+$}) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+sub is_name_version {
+    (scalar @_ == 1) or die;
+    my $nv = shift @_;
+
+    if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+        return is_name($1) && is_version($2);
+    }
+    else {
+        return 0;
+    }
+}
+
+sub add_installed {
+    (scalar @_ == 2) or die;
+    my $par = shift @_;
+    my $thy = shift @_;
+
+    $installed{$thy} = $par;
+
+    ($thy =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) or
+        die "check-theories: bad theory name: $thy";
+
+    my $n = $1;
+    my $v = $2;
+
+    if (exists $version{$n}) {
+        if ($version{$n} ne $v) {
+            die "check-theories: multiple versions of theory $n";
+        }
+    }
+    else {
+        $version{$n} = $v;
+    }
+}
+
+sub add_toplevel {
+    (scalar @_ == 1) or die;
+    my $thy = shift @_;
+
+    if (exists $toplevel{$thy}) {
+        die "check-theories: duplicate top-level theory: $thy";
+    }
+
+    $toplevel{$thy} = 1;
+
+    add_installed('',$thy);
+}
+
+sub add_dependent {
+    (scalar @_ == 2) or die;
+    my $thy = shift @_;
+    my $subthy = shift @_;
+
+    if (!(exists $installed{$subthy})) {
+        add_installed($thy,$subthy);
+    }
+}
+
+my $cmd = "$opentheory list";
+
+# print STDOUT "cmd = $cmd\n";
+
+open THEORIES, "$cmd |" or
+  die "check-theories: couldn't list installed theories: $!\n";
+
+while (my $thy = <THEORIES>) {
+    chomp $thy;
+
+    is_name_version($thy) or
+        die "check-theories: bad theory name: $thy";
+
+    add_toplevel($thy);
+
+    $cmd = "$opentheory info --dependencies+ $thy";
+
+    open SUBTHEORIES, "$cmd |" or
+        die "check-theories: couldn't list dependent theories of $thy: $!\n";
+
+    while (my $subthy = <SUBTHEORIES>) {
+        chomp $subthy;
+
+        is_name_version($subthy) or
+            die "check-theories: bad dependent theory of $thy: $subthy";
+
+        add_dependent($thy,$subthy);
+    }
+
+    close SUBTHEORIES;
+}
+
+close THEORIES;
+
+$cmd = "ls $source";
+
+open THEORIES, "$cmd |" or
+  die "check-theories: couldn't read $source directory: $!\n";
+
+while (my $thy = <THEORIES>) {
+    chomp $thy;
+
+    is_name($thy) or
+        die "check-theories: bad theory name: $thy";
+
+    if (!(exists $version{$thy})) {
+        print STDOUT "check-theories: $thy not in the latest theory set\n";
+    }
+}
+
+close THEORIES;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+check-theories - check theories against installed versions
+
+=head1 SYNOPSIS
+
+check-theories [-h]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+List theories in dependency order.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

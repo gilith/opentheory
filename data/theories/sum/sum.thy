@@ -1,5 +1,5 @@
 name: sum
-version: 1.2
+version: 1.4
 description: Basic theory of sum types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,7 +9,7 @@ show: "Number.Natural"
 show: "Number.Numeral"
 
 def {
-  package: sum-def-1.2
+  package: sum-def-1.5
 }
 
 main {

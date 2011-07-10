@@ -1,5 +1,5 @@
 name: list-member
-version: 1.3
+version: 1.8
 description: Definitions and theorems about the list member function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,12 +9,12 @@ show: "Number.Natural"
 show: "Number.Numeral"
 
 def {
-  package: list-member-def-1.2
+  package: list-member-def-1.7
 }
 
 thm {
   import: def
-  package: list-member-thm-1.3
+  package: list-member-thm-1.9
 }
 
 main {

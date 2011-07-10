@@ -1,5 +1,5 @@
 name: natural-exp
-version: 1.1
+version: 1.2
 description: Definitions and theorems about natural number exponentiation
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ thm {
 order {
   import: def
   import: thm
-  package: natural-exp-order-1.1
+  package: natural-exp-order-1.2
 }
 
 main {

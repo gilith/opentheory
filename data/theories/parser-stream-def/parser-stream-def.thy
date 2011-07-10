@@ -1,9 +1,9 @@
 name: parser-stream-def
-version: 1.7
+version: 1.12
 description: parser-stream-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-04-10
+provenance: HOL Light theory extracted on 2011-07-10
 show: "Data.Bool"
 
 main {
