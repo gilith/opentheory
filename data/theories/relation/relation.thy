@@ -1,5 +1,5 @@
 name: relation
-version: 1.4
+version: 1.5
 description: Basic theory of relations
 author: Joe Hurd <joe@gilith.com>
 license: MIT

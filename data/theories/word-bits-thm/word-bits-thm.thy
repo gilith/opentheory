@@ -1,5 +1,5 @@
 name: word-bits-thm
-version: 1.8
+version: 1.9
 description: word-bits-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT

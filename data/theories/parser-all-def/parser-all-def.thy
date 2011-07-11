@@ -1,5 +1,5 @@
 name: parser-all-def
-version: 1.7
+version: 1.8
 description: Definition of the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT

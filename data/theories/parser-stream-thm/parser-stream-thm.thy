@@ -1,5 +1,5 @@
 name: parser-stream-thm
-version: 1.14
+version: 1.15
 description: parser-stream-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT

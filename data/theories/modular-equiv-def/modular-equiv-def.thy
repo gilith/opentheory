@@ -1,5 +1,5 @@
 name: modular-equiv-def
-version: 1.7
+version: 1.8
 description: modular-equiv-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT

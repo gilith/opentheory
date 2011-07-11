@@ -1,5 +1,5 @@
 name: word12-bits
-version: 1.7
+version: 1.8
 description: word12-bits
 author: Joe Hurd <joe@gilith.com>
 license: MIT

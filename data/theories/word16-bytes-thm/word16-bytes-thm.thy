@@ -1,5 +1,5 @@
 name: word16-bytes-thm
-version: 1.9
+version: 1.10
 description: word16-bytes-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT

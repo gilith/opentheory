@@ -1,5 +1,5 @@
 name: parser-all-thm
-version: 1.11
+version: 1.12
 description: Theorems about the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT

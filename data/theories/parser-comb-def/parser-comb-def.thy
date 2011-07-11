@@ -1,5 +1,5 @@
 name: parser-comb-def
-version: 1.7
+version: 1.8
 description: Definition of the basic parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
