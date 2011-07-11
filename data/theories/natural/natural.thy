@@ -1,5 +1,5 @@
 name: natural
-version: 1.7
+version: 1.8
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
