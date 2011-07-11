@@ -1,5 +1,5 @@
 name: natural
-version: 1.6
+version: 1.7
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -119,6 +119,15 @@ min-max {
   package: natural-min-max-1.4
 }
 
+distance {
+  import: def
+  import: order
+  import: add
+  import: mult
+  import: sub
+  package: natural-distance-1.1
+}
+
 main {
   import: def
   import: recursion
@@ -134,4 +143,5 @@ main {
   import: factorial
   import: div-mod
   import: min-max
+  import: distance
 }
