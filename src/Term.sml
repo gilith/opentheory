@@ -753,6 +753,7 @@ datatype grammar =
        ppNegation : Show.show -> (Const.const * Type.ty) Print.pp,
        ppInfix : Show.show -> (Const.const * Type.ty) Print.pp,
        ppBinder : Show.show -> (Const.const * Type.ty) option Print.pp,
+       ppNumeral : Show.show -> (int * Type.ty) Print.pp,
        maximumSize : int};
 
 local
@@ -885,6 +886,8 @@ local
         Print.ppMap toName (ppBinderBuffer ppBind)
       end;
 
+  fun ppNumeral _ (i,_) = Print.ppInt i;
+
   fun ppVarHtml show =
       let
         val toHtml = Var.toHtml show
@@ -962,6 +965,26 @@ local
                end
           end;
     end;
+
+    fun toHtmlNumeral show =
+        let
+          val ppTy = Type.ppHtml show
+        in
+          fn (i,ty) =>
+             let
+               val s = Print.toLine Print.ppInt i
+
+               val class = "numeral"
+
+               val title = s ^ " : " ^ Print.toLine ppTy ty
+
+               val attrs = Html.fromListAttrs [("class",class),("title",title)]
+
+               val inlines = [Html.Text s]
+             in
+               [Html.Span (attrs,inlines)]
+             end
+        end;
   in
     fun ppConstHtml show = Print.ppMap (toHtmlConst show) Html.ppFixed;
 
@@ -987,6 +1010,8 @@ local
         in
           Print.ppMap toName (ppBinderBuffer ppBind)
         end;
+
+    fun ppNumeralHtml show = Print.ppMap (toHtmlNumeral show) Html.ppFixed;
   end;
 
   val maximumSize = 1000;
@@ -1002,6 +1027,7 @@ in
          ppNegation = ppNegation,
          ppInfix = ppInfix,
          ppBinder = ppBinder,
+         ppNumeral = ppNumeral,
          maximumSize = maximumSize};
 
   val htmlGrammar =
@@ -1015,6 +1041,7 @@ in
          ppNegation = ppNegationHtml,
          ppInfix = ppInfixHtml,
          ppBinder = ppBinderHtml,
+         ppNumeral = ppNumeralHtml,
          maximumSize = maximumSize};
 end;
 
@@ -1025,6 +1052,7 @@ local
   and bit1Name = mkName "bit1"
   and condName = mkName "cond"
   and forallName = mkName "!"
+  and fromNaturalName = mkName "fromNatural"
   and letName = mkName "let"
   and selectName = mkName "select"
   and zeroName = mkName "zero";
@@ -1050,7 +1078,7 @@ local
 
   fun ppTerm negationNames infixNames binderNames specialNames showConst
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
-             ppVar show =
+             ppNumeral ppVar show =
       let
         fun destCond show tm =
             let
@@ -1155,39 +1183,57 @@ local
 
         fun isLet show = can (destLet show)
 
-        fun destNumeral show tm =
-            case dest tm of
-              TypeTerm.Const' c =>
-              let
-                val n = showConst show c
-              in
-                if Name.equal n zeroName then 0
-                else raise Error "Term.pp.destNumeral: bad const"
-              end
-            | TypeTerm.App' (f,x) =>
-              let
-                val n = showConst show (destConst f)
-              in
-                if Name.equal n bit0Name then
-                  let
-                    val i = destNumeral show x
-                  in
-                    if i > 0 then 2 * i
-                    else raise Error "Term.pp.destNumeral: bit0 zero"
-                  end
-                else if Name.equal n bit1Name then
-                  let
-                    val i = destNumeral show x
-                  in
-                    2 * i + 1
-                  end
-                else raise Error "Term.pp.destNumeral: bad app"
-              end
-            | _ => raise Error "Term.pp.destNumeral: bad term"
+        fun destNumeral show =
+            let
+              fun destFromNat tm =
+                  case dest tm of
+                    TypeTerm.App' (f,x) =>
+                    let
+                      val n = showConst show (destConst f)
+                    in
+                      if Name.equal n fromNaturalName then x else tm
+                    end
+                  | _ => tm
+
+              fun destNum tm =
+                  case dest tm of
+                    TypeTerm.Const' c =>
+                    let
+                      val n = showConst show c
+                    in
+                      if Name.equal n zeroName then 0
+                      else raise Error "Term.pp.destNumeral: bad const"
+                    end
+                  | TypeTerm.App' (f,x) =>
+                    let
+                      val n = showConst show (destConst f)
+                    in
+                      if Name.equal n bit0Name then
+                        let
+                          val i = destNum x
+                        in
+                          if i > 0 then 2 * i
+                          else raise Error "Term.pp.destNumeral: bit0 zero"
+                        end
+                      else if Name.equal n bit1Name then
+                        let
+                          val i = destNum x
+                        in
+                          2 * i + 1
+                        end
+                      else raise Error "Term.pp.destNumeral: bad app"
+                    end
+                  | _ => raise Error "Term.pp.destNumeral: bad term"
+            in
+              fn tm =>
+                 let
+                   val i = destNum (destFromNat tm)
+                 in
+                   (i, typeOf tm)
+                 end
+            end
 
         fun isNumeral show = can (destNumeral show);
-
-        val ppNumeral = Print.ppInt
 
         fun ppConst c_ty =
             let
@@ -1317,7 +1363,7 @@ local
 
         fun ppBasicTerm tm =
             case total (destNumeral show) tm of
-              SOME i => ppNumeral i
+              SOME i_ty => ppNumeral i_ty
             | NONE =>
               case dest tm of
                 TypeTerm.Var' v => ppVar v
@@ -1437,7 +1483,7 @@ in
         val Grammar
               {negations,infixes,binders,
                showConst,
-               ppVar,ppConst,ppNegation,ppInfix,ppBinder,
+               ppVar,ppConst,ppNegation,ppInfix,ppBinder,ppNumeral,
                maximumSize} = gram
 
         val ppInfixes = Print.ppInfixes infixes
@@ -1456,6 +1502,7 @@ in
              and ppNegation = ppNegation show
              and ppInfix = ppInfix show
              and ppBinder = ppBinder show
+             and ppNumeral = ppNumeral show
              and ppVar = ppVar show
            in
              fn tm =>
@@ -1467,7 +1514,7 @@ in
                       negationNames infixNames binderNames specialNames
                       showConst
                       ppInfixes ppConst ppNegation ppInfix ppBinder
-                      ppVar show tm
+                      ppNumeral ppVar show tm
                   else
                     Print.ppBracket "term{" "}" Print.ppInt n
                 end

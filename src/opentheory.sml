@@ -1666,19 +1666,21 @@ fun init () =
 (* ------------------------------------------------------------------------- *)
 
 local
+  fun complain errs =
+      if List.null errs then ()
+      else
+        let
+          val s = DirectoryError.toStringList errs
+        in
+          if DirectoryError.existsFatal errs then raise Error s
+          else chat ("package uninstall warnings:\n" ^ s)
+        end;
+
   fun uninstallPackage auto dir namever =
       let
         val errs = Directory.checkUninstall dir namever
 
-        val () =
-            if List.null errs then ()
-            else
-              let
-                val s = DirectoryError.toStringList errs
-              in
-                if DirectoryError.existsFatal errs then raise Error s
-                else chat ("package uninstall warnings:\n" ^ s)
-              end
+        val () = complain errs
 
         val () = Directory.uninstall dir namever
 
@@ -1691,6 +1693,19 @@ local
 in
   fun uninstallAuto dir namever =
       let
+        val errs = Directory.checkUninstall dir namever
+
+        val errs =
+            if not (!autoUninstall) then errs
+            else
+              let
+                val (_,errs) = DirectoryError.removeInstalledDescendent errs
+              in
+                errs
+              end
+
+        val () = complain errs
+
         val () =
             if not (!autoUninstall) then ()
             else
