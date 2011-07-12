@@ -132,7 +132,7 @@ local
   fun toHtmlComponent c =
       case c of
         "\\" => [Html.Entity "lambda"]
-      | "~" => [Html.Entity "not"]
+      | "\\lnot" => [Html.Entity "not"]
       | "<=" => [Html.Entity "le"]
       | "<" => [Html.Entity "lt"]
       | ">=" => [Html.Entity "ge"]
@@ -145,6 +145,12 @@ local
       | "?" => [Html.Entity "exist"]
       | "?!" => [Html.Entity "exist", Html.Text "!"]
       | "->" => [Html.Entity "rarr"]
+      | "{}" => [Html.Entity "empty"]
+      | "intersect" => [Html.Entity "cap"]
+      | "in" => [Html.Entity "isin"]
+      | "properSubset" => [Html.Entity "sub"]
+      | "subset" => [Html.Entity "sube"]
+      | "union" => [Html.Entity "cup"]
       | _ => [Html.Text c];
 
   val globalHtml = [Html.Text globalString];

@@ -756,13 +756,20 @@ datatype grammar =
        maximumSize : int};
 
 local
-  val abs = "\\";
+  val mkName = Name.mkGlobal;
 
-  val negations = ["~"];
+  val stringAbs = "\\";
+
+  val stringNeg = "~"
+  and stringBoolNeg = "\\lnot";
+
+  val negations = [stringNeg];
+
+  val stringPair = ",";
 
   val infixes =
       Print.Infixes
-        [(* ML style *)
+        [(* ML *)
          {token = "/", precedence = 7, assoc = Print.LeftAssoc},
          {token = "div", precedence = 7, assoc = Print.LeftAssoc},
          {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
@@ -772,19 +779,25 @@ local
          {token = "^", precedence = 6, assoc = Print.LeftAssoc},
          {token = "@", precedence = 5, assoc = Print.RightAssoc},
          {token = "::", precedence = 5, assoc = Print.RightAssoc},
-         {token = "=", precedence = 4, assoc = Print.NonAssoc},
+         {token = stringEq, precedence = 4, assoc = Print.NonAssoc},
          {token = "<>", precedence = 4, assoc = Print.NonAssoc},
          {token = "<=", precedence = 4, assoc = Print.NonAssoc},
          {token = "<", precedence = 4, assoc = Print.NonAssoc},
          {token = ">=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">", precedence = 4, assoc = Print.NonAssoc},
          {token = "o", precedence = 3, assoc = Print.LeftAssoc},
-         (* HOL style *)
+         (* Set theory *)
+         {token = "intersect", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "union", precedence = 6, assoc = Print.LeftAssoc},
+         {token = "subset", precedence = 4, assoc = Print.NonAssoc},
+         {token = "properSubset", precedence = 4, assoc = Print.NonAssoc},
+         {token = "in", precedence = 4, assoc = Print.NonAssoc},
+         (* HOL *)
          {token = "/\\", precedence = ~1, assoc = Print.RightAssoc},
          {token = "\\/", precedence = ~2, assoc = Print.RightAssoc},
          {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
-         {token = "<=>", precedence = ~4, assoc = Print.RightAssoc},
-         {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
+         {token = stringBoolEq, precedence = ~4, assoc = Print.RightAssoc},
+         {token = stringPair, precedence = ~1000, assoc = Print.RightAssoc}];
 
   val binders = ["!","?","?!","select","minimal"];
 
@@ -795,7 +808,7 @@ local
         Show.showName show (Const.name c);
 
   local
-    val pairName = Name.mkGlobal ",";
+    val pairName = mkName stringPair;
   in
     fun ppInfixBuffer ppInf c_n =
         let
@@ -866,7 +879,7 @@ local
 
         fun ppBind c =
             case c of
-              NONE => Print.ppString abs
+             NONE => Print.ppString stringAbs
             | SOME (_,n) => Name.pp n
       in
         Print.ppMap toName (ppBinderBuffer ppBind)
@@ -899,17 +912,28 @@ local
              end
         end;
 
-    fun toHtmlNegation show =
-        let
-          val toHtml = Const.toHtml show
-        in
-          fn (c,ty) =>
-             let
-               val n = showConst show (c,ty)
+    local
+      val nameNeg = mkName stringNeg
+      and nameBoolNeg = mkName "\\lnot"
+      and tyBoolNeg = Type.mkFun (Type.bool,Type.bool);
+
+      fun isBoolNeg n ty =
+          Name.equal n nameNeg andalso Type.equal ty tyBoolNeg;
+    in
+      fun toHtmlNegation show =
+          let
+            val toHtml = Const.toHtml show
+          in
+            fn (c,ty) =>
+               let
+                 val n = showConst show (c,ty)
+
+                 val n = if isBoolNeg n ty then nameBoolNeg else n
              in
                mkSpan "negation" (toHtml ((c, SOME ty), n))
              end
-        end;
+          end;
+    end;
 
     fun toHtmlInfix show =
         let
@@ -918,20 +942,26 @@ local
           fn ((c,ty),n) => mkSpan "infix" (toHtml ((c, SOME ty), n))
         end;
 
-    fun toHtmlBinder show =
-        let
-          val toHtml = Const.toHtml show
-        in
-          fn ctyno =>
-             let
-               val h =
-                   case ctyno of
-                     SOME ((c,ty),n) => toHtml ((c, SOME ty), n)
-                   | NONE => Name.toHtml (Name.mkGlobal abs)
-             in
-               mkSpan "binder" h
-             end
-        end;
+    local
+      val nameAbs = mkName stringAbs;
+
+      val htmlAbs = Name.toHtml nameAbs;
+    in
+      fun toHtmlBinder show =
+          let
+            val toHtml = Const.toHtml show
+          in
+            fn ctyno =>
+               let
+                 val h =
+                     case ctyno of
+                       SOME ((c,ty),n) => toHtml ((c, SOME ty), n)
+                     | NONE => htmlAbs
+               in
+                 mkSpan "binder" h
+               end
+          end;
+    end;
   in
     fun ppConstHtml show = Print.ppMap (toHtmlConst show) Html.ppFixed;
 
