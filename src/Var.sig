@@ -36,6 +36,8 @@ val compare : var * var -> order
 
 val equal : var -> var -> bool
 
+val listEqual : var list -> var list -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)

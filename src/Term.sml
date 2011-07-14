@@ -1051,8 +1051,11 @@ local
   val bit0Name = mkName "bit0"
   and bit1Name = mkName "bit1"
   and condName = mkName "cond"
+  and conjName = mkName "/\\"
+  and existsName = mkName "?"
   and forallName = mkName "!"
   and fromNaturalName = mkName "fromNatural"
+  and fromPredicateName = mkName "fromPredicate"
   and letName = mkName "let"
   and selectName = mkName "select"
   and zeroName = mkName "zero";
@@ -1080,6 +1083,32 @@ local
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
              ppNumeral ppVar show =
       let
+        fun destConj show tm =
+            let
+              val (tm,b) = destApp tm
+
+              val (tm,a) = destApp tm
+
+              val n = showConst show (destConst tm)
+
+              val () = if Name.equal n conjName then ()
+                       else raise Error "Term.pp.destConj"
+            in
+              (a,b)
+            end
+
+        fun destFromPredicate show tm =
+            let
+              val (tm,a) = destApp tm
+
+              val n = showConst show (destConst tm)
+
+              val () = if Name.equal n fromPredicateName then ()
+                       else raise Error "Term.pp.destFromPredicate"
+            in
+              a
+            end
+
         fun destCond show tm =
             let
               val (tm,b) = destApp tm
@@ -1091,7 +1120,7 @@ local
               val n = showConst show (destConst tm)
 
               val () = if Name.equal n condName then ()
-                       else raise Error "Term.pp.destCond: not a cond"
+                       else raise Error "Term.pp.destCond"
             in
               (c,a,b)
             end
@@ -1105,7 +1134,7 @@ local
               val n = showConst show (destConst c)
 
               val () = if Name.equal n forallName then ()
-                       else raise Error "Term.pp.destForall: not a forall"
+                       else raise Error "Term.pp.destForall"
             in
               destAbs t
             end
@@ -1120,6 +1149,28 @@ local
               dst []
             end
 
+        fun destExists show tm =
+            let
+              val (c,t) = destApp tm
+
+              val n = showConst show (destConst c)
+
+              val () = if Name.equal n existsName then ()
+                       else raise Error "Term.pp.destExists"
+            in
+              destAbs t
+            end
+
+        fun stripExists show =
+            let
+              fun dst acc tm =
+                  case total (destExists show) tm of
+                    NONE => (rev acc, tm)
+                  | SOME (v,tm) => dst (v :: acc) tm
+            in
+              dst []
+            end
+
         fun destSelect show tm =
             let
               val (c,t) = destApp tm
@@ -1127,7 +1178,7 @@ local
               val n = showConst show (destConst c)
 
               val () = if Name.equal n selectName then ()
-                       else raise Error "Term.pp.destSelect: not a select"
+                       else raise Error "Term.pp.destSelect"
             in
               destAbs t
             end
@@ -1164,6 +1215,55 @@ local
               in
                 (pat,body)
               end
+
+        fun destComprehension show tm =
+            let
+              val tm = destFromPredicate show tm
+
+              val (v,tm) = destAbs tm
+
+              val (vl,tm) = stripExists show tm
+
+              val vs = VarSet.fromList vl
+
+              val () =
+                  if length vl = VarSet.size vs then ()
+                  else raise Error "Term.pp.destComprehension: duplicate vars"
+
+              val () =
+                  if not (VarSet.member v vs) then ()
+                  else raise Error "Term.pp.destComprehension: var capture"
+
+              val (tm,pred) = destConj show tm
+
+              val (v',pat) = destEq tm
+
+              val () =
+                  if equalVar v v' then ()
+                  else raise Error "Term.pp.destComprehension: missing var"
+
+              val fvs = freeVars pat
+
+              val () =
+                  if not (VarSet.member v fvs) then ()
+                  else raise Error "Term.pp.destComprehension: var in pat"
+
+              val () =
+                  if not (VarSet.member v (freeVars pred)) then ()
+                  else raise Error "Term.pp.destComprehension: var in pred"
+
+              val () =
+                  if VarSet.subset vs fvs then ()
+                  else raise Error "Term.pp.destComprehension: unused pat var"
+
+              val bvs =
+                  if Var.listEqual vl (VarSet.toList fvs) then NONE
+                  else SOME (List.map mkVar vl)
+            in
+              (bvs,pat,pred)
+            end
+
+        fun isComprehension show = can (destComprehension show);
 
         fun destLet show tm =
             let
@@ -1343,12 +1443,20 @@ local
             end
 
         fun destGenApp tm =
-            if isNumeral show tm then raise Error "Term.pp.destGenApp: numeral"
-            else if isCond show tm then raise Error "Term.pp.destGenApp: cond"
-            else if isLet show tm then raise Error "Term.pp.destGenApp: let"
-            else if isInfix tm then raise Error "Term.pp.destGenApp: infix"
-            else if isNegation tm then raise Error "Term.pp.destGenApp: negation"
-            else if isBinder tm then raise Error "Term.pp.destGenApp: binder"
+            if isNumeral show tm then
+              raise Error "Term.pp.destGenApp: numeral"
+            else if isCond show tm then
+              raise Error "Term.pp.destGenApp: cond"
+            else if isLet show tm then
+              raise Error "Term.pp.destGenApp: let"
+            else if isComprehension show tm then
+              raise Error "Term.pp.destGenApp: comprehension"
+            else if isInfix tm then
+              raise Error "Term.pp.destGenApp: infix"
+            else if isNegation tm then
+              raise Error "Term.pp.destGenApp: negation"
+            else if isBinder tm then
+              raise Error "Term.pp.destGenApp: binder"
             else destApp tm
 
         val stripGenApp =
@@ -1365,11 +1473,14 @@ local
             case total (destNumeral show) tm of
               SOME i_ty => ppNumeral i_ty
             | NONE =>
-              case dest tm of
-                TypeTerm.Var' v => ppVar v
-              | TypeTerm.Const' c_ty => ppConst c_ty
-              | TypeTerm.App' _ => ppBracketTerm tm
-              | TypeTerm.Abs' _ => ppBracketTerm tm
+              case total (destComprehension show) tm of
+                SOME bvs_pat_pred => ppComprehension bvs_pat_pred
+              | NONE =>
+                case dest tm of
+                  TypeTerm.Var' v => ppVar v
+                | TypeTerm.Const' c_ty => ppConst c_ty
+                | TypeTerm.App' _ => ppBracketTerm tm
+                | TypeTerm.Abs' _ => ppBracketTerm tm
 
         and ppApplicationTerm tm =
             let
@@ -1382,17 +1493,38 @@ local
                    List.map (Print.sequence (Print.addBreak 1) o ppBasicTerm) xs)
             end
 
+        and ppBoundVars vs =
+            Print.sequence
+              (case vs of
+                 [] => Print.skip
+               | v :: vs =>
+                 Print.sequence
+                   (ppBasicTerm v)
+                   (Print.program
+                     (List.map
+                       (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs)))
+              (Print.ppString ".")
+
+        and ppComprehension (bvs,pat,pred) =
+            Print.blockProgram Print.Inconsistent 2
+              [Print.ppString "{ ",
+               (case bvs of
+                  NONE => Print.skip
+                | SOME vs =>
+                  Print.sequence (ppBoundVars vs) (Print.addBreak 1)),
+               ppInfixTerm (pat,true),
+               Print.ppString " |",
+               Print.addBreak 1,
+               ppNormalTerm pred,
+               Print.ppString " }"]
+
         and ppBindTerm tm =
             let
               val (c,v,vs,body) = stripBinder tm
             in
               Print.blockProgram Print.Inconsistent 2
                 [ppBinderName c,
-                 ppBasicTerm v,
-                 Print.program
-                   (List.map
-                      (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs),
-                 Print.ppString ".",
+                 ppBoundVars (v :: vs),
                  Print.addBreak 1,
                  if isBinder body then ppBindTerm body
                  else ppNormalTerm body]
