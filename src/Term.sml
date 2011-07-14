@@ -1192,26 +1192,25 @@ local
 
                 val (vl,tm) = stripForall show tm
 
-                val vs = VarSet.fromList vl
-
-                val () = if length vl = VarSet.size vs then ()
-                         else raise Error "Term.pp.destGenAbs: duplicate vars"
-
-                val () = if not (VarSet.member f vs) then ()
-                         else raise Error "Term.pp.destGenAbs: function is var"
+                val () =
+                    if not (List.exists (Var.equal f) vl) then ()
+                    else raise Error "Term.pp.destGenAbs: function is var"
 
                 val (pat,body) = destEq tm
 
                 val (ft,pat) = destApp pat
 
-                val () = if equalVar f ft then ()
-                         else raise Error "Term.pp.destGenAbs: no function"
+                val () =
+                    if equalVar f ft then ()
+                    else raise Error "Term.pp.destGenAbs: no function"
 
-                val () = if VarSet.equal (freeVars pat) vs then ()
-                         else raise Error "Term.pp.destGenAbs: weird pat vars"
+                val () =
+                    if Var.listEqual (VarSet.toList (freeVars pat)) vl then ()
+                    else raise Error "Term.pp.destGenAbs: weird pat vars"
 
-                val () = if not (VarSet.member f (freeVars body)) then ()
-                         else raise Error "Term.pp.destGenAbs: function in body"
+                val () =
+                    if not (VarSet.member f (freeVars body)) then ()
+                    else raise Error "Term.pp.destGenAbs: function in body"
               in
                 (pat,body)
               end
