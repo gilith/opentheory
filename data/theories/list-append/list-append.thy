@@ -1,5 +1,5 @@
 name: list-append
-version: 1.6
+version: 1.8
 description: Definitions and theorems about the list append function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,7 +7,7 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-append-def-1.6
+  package: list-append-def-1.8
 }
 
 thm {

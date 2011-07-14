@@ -1,5 +1,5 @@
 name: natural-add
-version: 1.6
+version: 1.8
 description: Definitions and theorems about natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -29,7 +29,7 @@ suc {
 
 order {
   import: thm
-  package: natural-add-order-1.6
+  package: natural-add-order-1.8
 }
 
 main {

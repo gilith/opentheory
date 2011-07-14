@@ -1,5 +1,5 @@
 name: list-nub
-version: 1.7
+version: 1.9
 description: Definitions and theorems about the list nub function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,12 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-nub-def-1.9
+  package: list-nub-def-1.11
 }
 
 thm {
   import: def
-  package: list-nub-thm-1.9
+  package: list-nub-thm-1.11
 }
 
 main {

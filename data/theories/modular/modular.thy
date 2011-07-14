@@ -1,5 +1,5 @@
 name: modular
-version: 1.7
+version: 1.9
 description: Parametric theory of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,13 +13,13 @@ mod {
 
 equiv {
   import: mod
-  package: modular-equiv-1.6
+  package: modular-equiv-1.8
 }
 
 def {
   import: mod
   import: equiv
-  package: modular-def-1.8
+  package: modular-def-1.10
 }
 
 thm {

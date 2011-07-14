@@ -1,5 +1,5 @@
 name: natural-mult
-version: 1.5
+version: 1.7
 description: Definitions and theorems about natural number multiplication
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -18,7 +18,7 @@ thm {
 
 order {
   import: thm
-  package: natural-mult-order-1.4
+  package: natural-mult-order-1.6
 }
 
 main {

@@ -1,5 +1,5 @@
 name: parser-all
-version: 1.10
+version: 1.12
 description: Theory of the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,12 +10,12 @@ show: "Data.Pair"
 show: "Parser"
 
 def {
-  package: parser-all-def-1.8
+  package: parser-all-def-1.10
 }
 
 thm {
   import: def
-  package: parser-all-thm-1.12
+  package: parser-all-thm-1.14
 }
 
 main {

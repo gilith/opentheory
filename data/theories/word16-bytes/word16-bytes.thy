@@ -1,5 +1,5 @@
 name: word16-bytes
-version: 1.8
+version: 1.10
 description: Basic theory of 16-bit words as pairs of bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,12 +9,12 @@ show: "Data.List"
 show: "Number.Numeral"
 
 def {
-  package: word16-bytes-def-1.9
+  package: word16-bytes-def-1.11
 }
 
 thm {
   import: def
-  package: word16-bytes-thm-1.10
+  package: word16-bytes-thm-1.12
 }
 
 main {

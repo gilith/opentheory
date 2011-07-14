@@ -1,5 +1,5 @@
 name: natural
-version: 1.8
+version: 1.10
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -50,7 +50,7 @@ add {
   import: cases
   import: numeral
   import: order
-  package: natural-add-1.6
+  package: natural-add-1.8
 }
 
 mult {
@@ -58,7 +58,7 @@ mult {
   import: cases
   import: order
   import: add
-  package: natural-mult-1.5
+  package: natural-mult-1.7
 }
 
 exp {
@@ -125,7 +125,7 @@ distance {
   import: add
   import: mult
   import: sub
-  package: natural-distance-1.1
+  package: natural-distance-1.3
 }
 
 main {
