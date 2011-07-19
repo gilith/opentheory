@@ -300,6 +300,7 @@ val nameBool = Name.mkGlobal stringBool;
 val typeOpBool =
     let
       val name = nameBool
+
       val prov = TypeTerm.UndefProvOpTy
     in
       TypeTerm.OpTy
@@ -340,6 +341,30 @@ local
 in
   val stripFun = strip [];
 end;
+
+(* Individuals *)
+
+val stringInd = "ind";
+
+val nameInd = Name.mkGlobal stringInd;
+
+val typeOpInd =
+    let
+      val name = nameInd
+
+      val prov = TypeTerm.UndefProvOpTy
+    in
+      TypeTerm.OpTy
+        {name = name,
+         prov = prov}
+    end;
+
+val ind = mkOp (typeOpInd,[]);
+
+fun isInd ty =
+    case dest ty of
+      TypeTerm.OpTy' (ot,[]) => TypeOp.equal typeOpInd ot
+    | _ => false;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

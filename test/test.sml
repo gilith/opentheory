@@ -145,6 +145,12 @@ val _ = printval Term.pp t1;
 
 val _ = printval Term.pp t2;
 
+val _ = printval Term.pp Term.axiomOfExtensionality;
+
+val _ = printval Term.pp Term.axiomOfChoice;
+
+val _ = printval Term.pp Term.axiomOfInfinity;
+
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Substitution";
 (* ------------------------------------------------------------------------- *)

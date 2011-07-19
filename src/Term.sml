@@ -667,9 +667,12 @@ fun mkEqTy a = Type.mkFun (a, Type.mkFun (a, Type.bool));
 fun destEqTy ty =
     let
       val (x,yb) = Type.destFun ty
+
       val (y,b) = Type.destFun yb
+
       val _ = Type.equal b Type.bool orelse
               raise Error "Term.destEqTy: not a relation"
+
       val _ = Type.equal x y orelse
               raise Error "Term.destEqTy: different argument types"
     in
@@ -689,6 +692,7 @@ and nameBoolEq = Name.mkGlobal stringBoolEq;
 val constEq =
     let
       val name = nameEq
+
       val prov = TypeTerm.UndefProvConst
     in
       TypeTerm.Const
@@ -737,6 +741,286 @@ fun destRefl tm =
     end;
 
 val isRefl = can destRefl;
+
+(* Hilbert's choice operator *)
+
+fun mkSelectTy a = Type.mkFun (Type.mkFun (a, Type.bool), a);
+
+fun destSelectTy ty =
+    let
+      val (xb,y) = Type.destFun ty
+
+      val (x,b) = Type.destFun xb
+
+      val _ = Type.equal b Type.bool orelse
+              raise Error "Term.destSelectTy: not a predicate"
+
+      val _ = Type.equal x y orelse
+              raise Error "Term.destSelectTy: different result type"
+    in
+      x
+    end;
+
+val isSelectTy = can destSelectTy;
+
+val stringSelect = "select";
+
+val nameSelect = Name.mkGlobal stringSelect;
+
+val constSelect =
+    let
+      val name = nameSelect
+
+      val prov = TypeTerm.UndefProvConst
+    in
+      TypeTerm.Const
+        {name = name,
+         prov = prov}
+    end;
+
+fun mkSelect a = mkConst (constSelect, mkSelectTy a);
+
+fun destSelect tm =
+    let
+      val (c,ty) = destConst tm
+    in
+      if Const.equal c constSelect then destSelectTy ty
+      else raise Error "Term.destSelect"
+    end;
+
+val isSelect = can destSelect;
+
+(* ------------------------------------------------------------------------- *)
+(* Axioms.                                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val axiomOfExtensionality =
+    let
+      val ty0 = Type.mkVar (Name.mkGlobal "A")
+      val ty1 = Type.mkVar (Name.mkGlobal "B")
+      val ty2 = Type.mkFun (ty0,ty1)
+      val ty3 = Type.bool
+      val ty4 = Type.mkFun (ty2,ty3)
+      val v0 = Var.mk (Name.mkGlobal "a", ty4)
+      val v1 = Var.mk (Name.mkGlobal "b", ty2)
+      val v2 = Var.mk (Name.mkGlobal "c", ty3)
+      val v3 = Var.mk (Name.mkGlobal "d", ty2)
+      val v4 = Var.mk (Name.mkGlobal "e", ty0)
+      val tm0 = mkVar v0
+      val tm1 = mkVar v2
+      val tm2 = mkAbs (v2,tm1)
+      val tm3 = mkEq (tm2,tm2)
+      val tm4 = mkAbs (v1,tm3)
+      val tm5 = mkEq (tm0,tm4)
+      val tm6 = mkAbs (v0,tm5)
+      val tm7 = mkVar v3
+      val tm8 = mkVar v4
+      val tm9 = mkApp (tm7,tm8)
+      val tm10 = mkAbs (v4,tm9)
+      val tm11 = mkEq (tm10,tm7)
+      val tm12 = mkAbs (v3,tm11)
+      val tm13 = mkApp (tm6,tm12)
+    in
+      tm13
+    end;
+
+val axiomOfChoice =
+    let
+      val ty0 = Type.mkVar (Name.mkGlobal "A")
+      val ty1 = Type.bool
+      val ty2 = Type.mkFun (ty0,ty1)
+      val ty3 = Type.mkFun (ty2,ty1)
+      val ty4 = Type.mkFun (ty1,ty1)
+      val ty5 = Type.mkFun (ty1,ty4)
+      val v0 = Var.mk (Name.mkGlobal "a", ty3)
+      val v1 = Var.mk (Name.mkGlobal "b", ty2)
+      val v2 = Var.mk (Name.mkGlobal "c", ty1)
+      val v3 = Var.mk (Name.mkGlobal "d", ty2)
+      val v4 = Var.mk (Name.mkGlobal "e", ty2)
+      val v5 = Var.mk (Name.mkGlobal "f", ty0)
+      val v6 = Var.mk (Name.mkGlobal "g", ty0)
+      val v7 = Var.mk (Name.mkGlobal "h", ty1)
+      val v8 = Var.mk (Name.mkGlobal "i", ty1)
+      val v9 = Var.mk (Name.mkGlobal "j", ty1)
+      val v10 = Var.mk (Name.mkGlobal "k", ty1)
+      val v11 = Var.mk (Name.mkGlobal "l", ty5)
+      val v12 = Var.mk (Name.mkGlobal "m", ty5)
+      val tm0 = mkVar v0
+      val tm1 = mkVar v2
+      val tm2 = mkAbs (v2,tm1)
+      val tm3 = mkEq (tm2,tm2)
+      val tm4 = mkAbs (v1,tm3)
+      val tm5 = mkEq (tm0,tm4)
+      val tm6 = mkAbs (v0,tm5)
+      val tm7 = mkVar v4
+      val tm8 = mkAbs (v5,tm3)
+      val tm9 = mkEq (tm7,tm8)
+      val tm10 = mkAbs (v4,tm9)
+      val tm11 = mkVar v11
+      val tm12 = mkVar v9
+      val tm13 = mkApp (tm11,tm12)
+      val tm14 = mkVar v10
+      val tm15 = mkApp (tm13,tm14)
+      val tm16 = mkAbs (v11,tm15)
+      val tm17 = mkVar v12
+      val tm18 = mkApp (tm17,tm3)
+      val tm19 = mkApp (tm18,tm3)
+      val tm20 = mkAbs (v12,tm19)
+      val tm21 = mkEq (tm16,tm20)
+      val tm22 = mkAbs (v10,tm21)
+      val tm23 = mkAbs (v9,tm22)
+      val tm24 = mkVar v7
+      val tm25 = mkApp (tm23,tm24)
+      val tm26 = mkVar v8
+      val tm27 = mkApp (tm25,tm26)
+      val tm28 = mkEq (tm27,tm24)
+      val tm29 = mkAbs (v8,tm28)
+      val tm30 = mkAbs (v7,tm29)
+      val tm31 = mkVar v3
+      val tm32 = mkVar v6
+      val tm33 = mkApp (tm31,tm32)
+      val tm34 = mkApp (tm30,tm33)
+      val tm35 = mkSelect ty0
+      val tm36 = mkApp (tm35,tm31)
+      val tm37 = mkApp (tm31,tm36)
+      val tm38 = mkApp (tm34,tm37)
+      val tm39 = mkAbs (v6,tm38)
+      val tm40 = mkApp (tm10,tm39)
+      val tm41 = mkAbs (v3,tm40)
+      val tm42 = mkApp (tm6,tm41)
+    in
+      tm42
+    end;
+
+val axiomOfInfinity =
+    let
+      val ty0 = Type.ind
+      val ty1 = Type.mkFun (ty0,ty0)
+      val ty2 = Type.bool
+      val ty3 = Type.mkFun (ty1,ty2)
+      val ty4 = Type.mkFun (ty2,ty2)
+      val ty5 = Type.mkFun (ty2,ty4)
+      val ty6 = Type.mkFun (ty0,ty2)
+      val v0 = Var.mk (Name.mkGlobal "a", ty3)
+      val v1 = Var.mk (Name.mkGlobal "b", ty4)
+      val v2 = Var.mk (Name.mkGlobal "c", ty2)
+      val v3 = Var.mk (Name.mkGlobal "d", ty2)
+      val v4 = Var.mk (Name.mkGlobal "e", ty2)
+      val v5 = Var.mk (Name.mkGlobal "f", ty2)
+      val v6 = Var.mk (Name.mkGlobal "g", ty2)
+      val v7 = Var.mk (Name.mkGlobal "h", ty2)
+      val v8 = Var.mk (Name.mkGlobal "i", ty2)
+      val v9 = Var.mk (Name.mkGlobal "j", ty5)
+      val v10 = Var.mk (Name.mkGlobal "k", ty5)
+      val v11 = Var.mk (Name.mkGlobal "l", ty3)
+      val v12 = Var.mk (Name.mkGlobal "m", ty1)
+      val v13 = Var.mk (Name.mkGlobal "n", ty1)
+      val v14 = Var.mk (Name.mkGlobal "o", ty1)
+      val v15 = Var.mk (Name.mkGlobal "p", ty6)
+      val v16 = Var.mk (Name.mkGlobal "q", ty0)
+      val v17 = Var.mk (Name.mkGlobal "r", ty0)
+      val v18 = Var.mk (Name.mkGlobal "s", ty0)
+      val v19 = Var.mk (Name.mkGlobal "t", ty2)
+      val v20 = Var.mk (Name.mkGlobal "u", ty0)
+      val v21 = Var.mk (Name.mkGlobal "v", ty6)
+      val v22 = Var.mk (Name.mkGlobal "w", ty2)
+      val v23 = Var.mk (Name.mkGlobal "x", ty0)
+      val v24 = Var.mk (Name.mkGlobal "y", ty0)
+      val tm0 = mkVar v1
+      val tm1 = mkVar v3
+      val tm2 = mkAbs (v3,tm1)
+      val tm3 = mkEq (tm2,tm2)
+      val tm4 = mkAbs (v2,tm3)
+      val tm5 = mkEq (tm0,tm4)
+      val tm6 = mkAbs (v1,tm5)
+      val tm7 = mkVar v9
+      val tm8 = mkVar v7
+      val tm9 = mkApp (tm7,tm8)
+      val tm10 = mkVar v8
+      val tm11 = mkApp (tm9,tm10)
+      val tm12 = mkAbs (v9,tm11)
+      val tm13 = mkVar v10
+      val tm14 = mkApp (tm13,tm3)
+      val tm15 = mkApp (tm14,tm3)
+      val tm16 = mkAbs (v10,tm15)
+      val tm17 = mkEq (tm12,tm16)
+      val tm18 = mkAbs (v8,tm17)
+      val tm19 = mkAbs (v7,tm18)
+      val tm20 = mkVar v5
+      val tm21 = mkApp (tm19,tm20)
+      val tm22 = mkVar v6
+      val tm23 = mkApp (tm21,tm22)
+      val tm24 = mkEq (tm23,tm20)
+      val tm25 = mkAbs (v6,tm24)
+      val tm26 = mkAbs (v5,tm25)
+      val tm27 = mkVar v11
+      val tm28 = mkAbs (v12,tm3)
+      val tm29 = mkEq (tm27,tm28)
+      val tm30 = mkAbs (v11,tm29)
+      val tm31 = mkVar v0
+      val tm32 = mkVar v13
+      val tm33 = mkApp (tm31,tm32)
+      val tm34 = mkApp (tm26,tm33)
+      val tm35 = mkVar v4
+      val tm36 = mkApp (tm34,tm35)
+      val tm37 = mkAbs (v13,tm36)
+      val tm38 = mkApp (tm30,tm37)
+      val tm39 = mkApp (tm26,tm38)
+      val tm40 = mkApp (tm39,tm35)
+      val tm41 = mkAbs (v4,tm40)
+      val tm42 = mkApp (tm6,tm41)
+      val tm43 = mkAbs (v0,tm42)
+      val tm44 = mkVar v15
+      val tm45 = mkAbs (v16,tm3)
+      val tm46 = mkEq (tm44,tm45)
+      val tm47 = mkAbs (v15,tm46)
+      val tm48 = mkVar v14
+      val tm49 = mkVar v17
+      val tm50 = mkApp (tm48,tm49)
+      val tm51 = mkVar v18
+      val tm52 = mkApp (tm48,tm51)
+      val tm53 = mkEq (tm50,tm52)
+      val tm54 = mkApp (tm26,tm53)
+      val tm55 = mkEq (tm49,tm51)
+      val tm56 = mkApp (tm54,tm55)
+      val tm57 = mkAbs (v18,tm56)
+      val tm58 = mkApp (tm47,tm57)
+      val tm59 = mkAbs (v17,tm58)
+      val tm60 = mkApp (tm47,tm59)
+      val tm61 = mkApp (tm19,tm60)
+      val tm62 = mkVar v19
+      val tm63 = mkApp (tm26,tm62)
+      val tm64 = mkApp (tm6,tm2)
+      val tm65 = mkApp (tm63,tm64)
+      val tm66 = mkAbs (v19,tm65)
+      val tm67 = mkVar v21
+      val tm68 = mkVar v23
+      val tm69 = mkApp (tm67,tm68)
+      val tm70 = mkApp (tm26,tm69)
+      val tm71 = mkVar v22
+      val tm72 = mkApp (tm70,tm71)
+      val tm73 = mkAbs (v23,tm72)
+      val tm74 = mkApp (tm47,tm73)
+      val tm75 = mkApp (tm26,tm74)
+      val tm76 = mkApp (tm75,tm71)
+      val tm77 = mkAbs (v22,tm76)
+      val tm78 = mkApp (tm6,tm77)
+      val tm79 = mkAbs (v21,tm78)
+      val tm80 = mkVar v20
+      val tm81 = mkVar v24
+      val tm82 = mkApp (tm48,tm81)
+      val tm83 = mkEq (tm80,tm82)
+      val tm84 = mkAbs (v24,tm83)
+      val tm85 = mkApp (tm79,tm84)
+      val tm86 = mkAbs (v20,tm85)
+      val tm87 = mkApp (tm47,tm86)
+      val tm88 = mkApp (tm66,tm87)
+      val tm89 = mkApp (tm61,tm88)
+      val tm90 = mkAbs (v14,tm89)
+      val tm91 = mkApp (tm43,tm90)
+    in
+      tm91
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -800,7 +1084,7 @@ local
          {token = stringBoolEq, precedence = ~4, assoc = Print.RightAssoc},
          {token = stringPair, precedence = ~1000, assoc = Print.RightAssoc}];
 
-  val binders = ["!","?","?!","select","minimal"];
+  val binders = ["!","?","?!",stringSelect,"minimal"];
 
   fun showConst show (c,ty) =
       if Const.equal c constEq then
@@ -1057,7 +1341,6 @@ local
   and fromNaturalName = mkName "fromNatural"
   and fromPredicateName = mkName "fromPredicate"
   and letName = mkName "let"
-  and selectName = mkName "select"
   and zeroName = mkName "zero";
 
   val mkMap =
@@ -1171,14 +1454,12 @@ local
               dst []
             end
 
-        fun destSelect show tm =
+        fun destSelectAbs tm =
             let
               val (c,t) = destApp tm
 
-              val n = showConst show (destConst c)
-
-              val () = if Name.equal n selectName then ()
-                       else raise Error "Term.pp.destSelect"
+              val () = if isSelect c then ()
+                       else raise Error "Term.pp.destSelectAbs"
             in
               destAbs t
             end
@@ -1188,7 +1469,7 @@ local
               SOME (v,t) => (mkVar v, t)
             | NONE =>
               let
-                val (f,tm) = destSelect show tm
+                val (f,tm) = destSelectAbs tm
 
                 val (vl,tm) = stripForall show tm
 
@@ -1254,12 +1535,10 @@ local
               val () =
                   if VarSet.subset vs fvs then ()
                   else raise Error "Term.pp.destComprehension: unused pat var"
-
-              val bvs =
-                  if Var.listEqual vl (VarSet.toList fvs) then NONE
-                  else SOME (List.map mkVar vl)
             in
-              (bvs,pat,pred)
+              case vl of
+                [] => raise Error "Term.pp.destComprehension: no pat vars"
+              | v :: vl => (v,vl,pat,pred)
             end
 
         fun isComprehension show = can (destComprehension show);
@@ -1492,25 +1771,20 @@ local
                    List.map (Print.sequence (Print.addBreak 1) o ppBasicTerm) xs)
             end
 
-        and ppBoundVars vs =
+        and ppBoundVars (v,vs) =
             Print.sequence
-              (case vs of
-                 [] => Print.skip
-               | v :: vs =>
-                 Print.sequence
-                   (ppBasicTerm v)
-                   (Print.program
-                     (List.map
-                       (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs)))
+              (Print.sequence
+                 (ppBasicTerm v)
+                 (Print.program
+                   (List.map
+                     (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs)))
               (Print.ppString ".")
 
-        and ppComprehension (bvs,pat,pred) =
+        and ppComprehension (v,vs,pat,pred) =
             Print.blockProgram Print.Inconsistent 2
               [Print.ppString "{ ",
-               (case bvs of
-                  NONE => Print.skip
-                | SOME vs =>
-                  Print.sequence (ppBoundVars vs) (Print.addBreak 1)),
+               ppBoundVars (mkVar v, List.map mkVar vs),
+               Print.addBreak 1,
                ppInfixTerm (pat,true),
                Print.ppString " |",
                Print.addBreak 1,
@@ -1523,7 +1797,7 @@ local
             in
               Print.blockProgram Print.Inconsistent 2
                 [ppBinderName c,
-                 ppBoundVars (v :: vs),
+                 ppBoundVars (v,vs),
                  Print.addBreak 1,
                  if isBinder body then ppBindTerm body
                  else ppNormalTerm body]

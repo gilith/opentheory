@@ -153,6 +153,16 @@ val listMkFun : ty list * ty -> ty
 
 val stripFun : ty -> ty list * ty
 
+(* Individuals *)
+
+val nameInd : Name.name
+
+val typeOpInd : TypeOp.typeOp
+
+val ind : ty
+
+val isInd : ty -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

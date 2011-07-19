@@ -221,6 +221,34 @@ val destRefl : term -> term
 
 val isRefl : term -> bool
 
+(* Hilbert's choice operator *)
+
+val mkSelectTy : Type.ty -> Type.ty
+
+val destSelectTy : Type.ty -> Type.ty
+
+val isSelectTy : Type.ty -> bool
+
+val nameSelect : Name.name
+
+val constSelect : Const.const
+
+val mkSelect : Type.ty -> term
+
+val destSelect : term -> Type.ty
+
+val isSelect : term -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Axioms.                                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val axiomOfExtensionality : term
+
+val axiomOfChoice : term
+
+val axiomOfInfinity : term
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
