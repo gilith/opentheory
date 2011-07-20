@@ -23,9 +23,9 @@ $subject = 'Confirm package upload';
 
 $body = 'Hi, I\'m the maintainer of the ' . repo_name() . '.
 
-Someone just made a theory package upload with your email address
-as the package author, and this is an automatic email to make sure
-that you are indeed the package author.
+Someone just made a theory package upload that listed your email
+address as the package author, and this is an automatic email to
+make sure that you are indeed the package author.
 
 Please visit
 
