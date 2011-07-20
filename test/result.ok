@@ -142,60 +142,49 @@ WARNING: 22 objects left in the dictionary by articles/hol-light/bool-true-thm.a
 Summarizing articles
 
 Summarizing compressed article "empty"
-assumptions:
-axioms:
-theorems:
+
 
 Summarizing compressed article "example1"
-input type operators: bool
-input constants: T
-assumptions:
+1 input type operator: bool
+1 input constant: T
+1 assumption:
   |- T
-axioms:
-theorems:
+1 theorem:
   |- T
 
 Summarizing compressed article "example2"
-input type operators: bool
-input constants: T
-assumptions:
+1 input type operator: bool
+1 input constant: T
+1 assumption:
   |- let x = T in x
-axioms:
-theorems:
+1 theorem:
   |- let y = T in y
 
 Summarizing compressed article "example3"
-input type operators: -> bool
-input constants: =
-assumptions:
-axioms:
-theorems:
+2 input type operators: -> bool
+1 input constant: =
+1 theorem:
   |- x = x
 
 Summarizing compressed article "example4"
-input type operators: -> bool
-input constants: =
-assumptions:
-axioms:
-theorems:
+2 input type operators: -> bool
+1 input constant: =
+1 theorem:
   |- x = x
 
 Summarizing compressed article "bool-true-def"
-input type operators: -> bool
-input constants: =
-assumptions:
-defined constants: T
-axioms:
-theorems:
+2 input type operators: -> bool
+1 input constant: =
+1 defined constant: T
+1 theorem:
   |- T <=> (\p. p) = \p. p
 
 Summarizing compressed article "bool-true-thm"
-input type operators: -> bool
-input constants: = T
-assumptions:
+2 input type operators: -> bool
+2 input constants: = T
+1 assumption:
   |- T <=> (\p. p) = \p. p
-axioms:
-theorems:
+1 theorem:
   |- T
 
 --------------------------------------------------------------------------
@@ -237,35 +226,46 @@ tar = tar
 Importing theory packages
 
 Importing theory package "empty-1.0"
-assumptions:
-axioms:
-theorems:
+
 
 Importing theory package "bool-true-def-1.0"
-input type operators: -> bool
-input constants: =
-assumptions:
-defined constants: T
-axioms:
-theorems:
+2 input type operators: -> bool
+1 input constant: =
+1 defined constant: T
+1 theorem:
   |- T <=> (\p. p) = \p. p
 
 Importing theory package "bool-true-thm-1.0"
-input type operators: -> bool
-input constants: = T
-assumptions:
+2 input type operators: -> bool
+2 input constants: = T
+1 assumption:
   |- T <=> (\p. p) = \p. p
-axioms:
-theorems:
+1 theorem:
   |- T
 
 Importing theory package "bool-true-1.0"
-input type operators: -> bool
-input constants: =
-assumptions:
-defined constants: T
-axioms:
-theorems:
+2 input type operators: -> bool
+1 input constant: =
+1 defined constant: T
+2 theorems:
   |- T
+  |- T <=> (\p. p) = \p. p
+
+Importing theory package "bool-true-assert-1.0"
+2 input type operators: -> bool
+2 input constants: = T
+1 assumption:
+  |- T <=> (\a. T) = \b. b
+1 theorem:
+  |- T <=> (\a. T) = \b. b
+
+Importing theory package "bool-true-axiom-1.0"
+2 input type operators: -> bool
+1 input constant: =
+1 defined constant: T
+1 axiom:
+  |- T <=> (\a. T) = \b. b
+2 theorems:
+  |- T <=> (\a. T) = \b. b
   |- T <=> (\p. p) = \p. p
 

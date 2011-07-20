@@ -220,6 +220,8 @@ test-directory:
 	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true-def/bool-true-def.thy
 	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true-thm/bool-true-thm.thy
 	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true/bool-true.thy
+	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true-assert/bool-true-assert.thy
+	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true-axiom/bool-true-axiom.thy
 
 ###############################################################################
 # Initialization following a repo clone.

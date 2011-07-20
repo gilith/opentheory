@@ -361,6 +361,17 @@ val defaultGrammar =
     end;
 
 local
+  fun intersperse x =
+      let
+        fun f h t =
+            case t of
+              [] => [h]
+            | h' :: t => h :: x :: f h' t
+      in
+        fn [] => []
+         | h :: t => f h t
+      end;
+
   val ppId = Print.ppBracket "(" ")" Print.ppInt;
 
   val ppIdSet =
@@ -376,21 +387,35 @@ local
       end;
 
   fun ppList ppX prefix name xs =
-      if List.null xs then Print.skip
-      else
-        Print.sequence
-          (Print.blockProgram Print.Inconsistent 2
-             (Print.ppString prefix ::
+      let
+        val n = List.length xs
+      in
+        if n = 0 then []
+        else
+          [Print.blockProgram Print.Inconsistent 2
+             (Print.ppPrettyInt n ::
+              Print.ppString " " ::
+              Print.ppString prefix ::
               Print.ppString name ::
+              (if n = 1 then Print.skip else Print.ppString "s") ::
               Print.ppString ":" ::
-              List.map (Print.sequence (Print.addBreak 1) o ppX) xs))
-          Print.addNewline;
+              List.map (Print.sequence (Print.addBreak 1) o ppX) xs)]
+      end;
 
   fun ppSequentList ppSeq (name,seqs) =
-      Print.blockProgram Print.Consistent 2
-        (Print.ppString name ::
-         Print.ppString ":" ::
-         List.map (Print.sequence Print.addNewline o ppSeq) seqs);
+      let
+        val n = List.length seqs
+      in
+        if n = 0 then []
+        else
+          [Print.blockProgram Print.Consistent 2
+             (Print.ppPrettyInt n ::
+              Print.ppString " " ::
+              Print.ppString name ::
+              (if n = 1 then Print.skip else Print.ppString "s") ::
+              Print.ppString ":" ::
+              List.map (Print.sequence Print.addNewline o ppSeq) seqs)]
+      end;
 in
   fun ppInfoWithShow ppTypeOpWS ppConstWS ppAssumptionWS ppAxiomWS ppTheoremWS
                      show =
@@ -406,9 +431,8 @@ in
               val ots = TypeOpSet.toList (Symbol.typeOps sym)
               and cs = ConstSet.toList (Symbol.consts sym)
             in
-              Print.sequence
-                (ppList ppTypeOp prefix " type operators" ots)
-                (ppList ppConst prefix " constants" cs)
+              ppList ppTypeOp prefix " type operator" ots @
+              ppList ppConst prefix " constant" cs
             end
       in
         fn axs => fn info =>
@@ -457,15 +481,18 @@ in
                         Print.addNewline,
                         ppSeq seq]
                  end
+
+             val blocks =
+                 ppSymbol ("input",input) @
+                 ppSequentList (ppAx ppAssumption) ("assumption",assumed) @
+                 ppSymbol ("defined",defined) @
+                 ppSequentList (ppAx ppAxiom) ("axiom",axioms) @
+                 ppSequentList (ppTh ppTheorem) ("theorem",thms)
            in
-             Print.blockProgram Print.Consistent 0
-               [ppSymbol ("input",input),
-                ppSequentList (ppAx ppAssumption) ("assumptions",assumed),
-                Print.addNewline,
-                ppSymbol ("defined",defined),
-                ppSequentList (ppAx ppAxiom) ("axioms",axioms),
-                Print.addNewline,
-                ppSequentList (ppTh ppTheorem) ("theorems",thms)]
+             if List.null blocks then Print.skip
+             else
+               Print.blockProgram Print.Consistent 0
+                 (intersperse Print.addNewline blocks)
            end
       end;
 end;

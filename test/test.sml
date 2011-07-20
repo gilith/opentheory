@@ -439,14 +439,22 @@ fun import namever =
 
 val () = import "empty-1.0";
 
-(* HOL Light definition of the constant T *)
+(* Definition of the constant T *)
 
 val () = import "bool-true-def-1.0";
 
-(* HOL Light theorem about T *)
+(* Theorem about T *)
 
 val () = import "bool-true-thm-1.0";
 
 (* Compilation of the definition and theorem *)
 
 val () = import "bool-true-1.0";
+
+(* Assertion about T *)
+
+val () = import "bool-true-assert-1.0";
+
+(* Compilation of the definition and assertion *)
+
+val () = import "bool-true-axiom-1.0";
