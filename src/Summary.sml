@@ -776,7 +776,7 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
             toHtmlConsts name cs
           end
 
-      fun toHtmlSequentSet toHtmlSeq name verb seqs =
+      fun toHtmlSequentSet toHtmlSeq name verb classes seqs =
           if SequentSet.null seqs then []
           else
             let
@@ -788,7 +788,10 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
                   Print.toString Print.ppPrettyInt n ^ " " ^
                   String.map Char.toLower name ^ " " ^ verb
 
-              val attrs = Html.singletonAttrs ("title",title)
+              val attrs =
+                  Html.fromListAttrs
+                    (("title",title) ::
+                     List.map (fn c => ("class",c)) classes)
 
               val header = Html.Span (attrs, [Html.Text name])
 
@@ -803,10 +806,10 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
            val Info {input,assumed,defined,axioms,thms} = info
          in
            toHtmlSymbol "Defined" defined @
-           toHtmlSequentSet toHtmlAxiom "Axiom" "asserted" axioms @
-           toHtmlSequentSet toHtmlTheorem "Theorem" "proved" thms @
+           toHtmlSequentSet toHtmlAxiom "Axiom" "asserted" ["warning"] axioms @
+           toHtmlSequentSet toHtmlTheorem "Theorem" "proved" [] thms @
            toHtmlSymbol "Input" input @
-           toHtmlSequentSet toHtmlAssumption "Assumption" "made" assumed
+           toHtmlSequentSet toHtmlAssumption "Assumption" "made" [] assumed
          end
     end;
 
