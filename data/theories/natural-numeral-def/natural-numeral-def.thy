@@ -1,9 +1,9 @@
 name: natural-numeral-def
-version: 1.1
+version: 1.3
 description: natural-numeral-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-05-11
+provenance: HOL Light theory extracted on 2011-07-20
 show: "Data.Bool"
 
 main {

@@ -1,9 +1,9 @@
 name: natural-factorial-def
-version: 1.2
+version: 1.4
 description: natural-factorial-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-07-06
+provenance: HOL Light theory extracted on 2011-07-20
 show: "Data.Bool"
 
 main {

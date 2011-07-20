@@ -1340,7 +1340,6 @@ local
   and forallName = mkName "!"
   and fromNaturalName = mkName "fromNatural"
   and fromPredicateName = mkName "fromPredicate"
-  and letName = mkName "let"
   and zeroName = mkName "zero";
 
   val mkMap =
@@ -1496,6 +1495,24 @@ local
                 (pat,body)
               end
 
+        fun destLet show tm =
+            let
+              fun transfer v t =
+                  case total (destGenAbs show) t of
+                    NONE => (v,t)
+                  | SOME (w,t) => transfer (mkApp (v,w)) t
+
+              val (vb,t) = destApp tm
+
+              val (v,b) = destGenAbs show vb
+
+              val (v,t) = transfer v t
+            in
+              (v,t,b)
+            end
+
+        fun isLet show = can (destLet show)
+
         fun destComprehension show tm =
             let
               val tm = destFromPredicate show tm
@@ -1542,24 +1559,6 @@ local
             end
 
         fun isComprehension show = can (destComprehension show);
-
-        fun destLet show tm =
-            let
-              val (tm,t) = destApp tm
-
-              val (tm,vb) = destApp tm
-
-              val n = showConst show (destConst tm)
-
-              val () = if Name.equal n letName then ()
-                       else raise Error "Term.pp.destLet: not a let"
-
-              val (v,b) = destGenAbs show vb
-            in
-              (v,t,b)
-            end
-
-        fun isLet show = can (destLet show)
 
         fun destNumeral show =
             let
@@ -1752,7 +1751,7 @@ local
               SOME i_ty => ppNumeral i_ty
             | NONE =>
               case total (destComprehension show) tm of
-                SOME bvs_pat_pred => ppComprehension bvs_pat_pred
+                SOME v_vs_pat_pred => ppComprehension v_vs_pat_pred
               | NONE =>
                 case dest tm of
                   TypeTerm.Var' v => ppVar v
@@ -1762,13 +1761,16 @@ local
 
         and ppApplicationTerm tm =
             let
+              fun ppArg x = Print.sequence (Print.addBreak 1) (ppBasicTerm x)
+
               val (tm,xs) = stripGenApp tm
             in
               if null xs then ppBasicTerm tm
               else
-                Print.blockProgram Print.Inconsistent 2
-                  (ppBasicTerm tm ::
-                   List.map (Print.sequence (Print.addBreak 1) o ppBasicTerm) xs)
+                Print.blockProgram Print.Inconsistent 0
+                  [ppBasicTerm tm,
+                   Print.blockProgram Print.Inconsistent 2
+                     (Print.ppString "" :: List.map ppArg xs)]
             end
 
         and ppBoundVars (v,vs) =
@@ -1844,7 +1846,7 @@ local
         and ppLetTerm (v,t,b,r) =
             Print.blockProgram Print.Inconsistent 4
               [Print.ppString "let ",
-               ppBasicTerm v,
+               ppApplicationTerm v,
                Print.ppString " =",
                Print.addBreak 1,
                ppLetCondTerm (t,true),

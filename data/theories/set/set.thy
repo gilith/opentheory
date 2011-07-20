@@ -1,5 +1,5 @@
 name: set
-version: 1.8
+version: 1.10
 description: Set theory
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -11,25 +11,25 @@ show: "Number.Numeral"
 show: "Set"
 
 def {
-  package: set-def-1.10
+  package: set-def-1.12
 }
 
 thm {
   import: def
-  package: set-thm-1.9
+  package: set-thm-1.11
 }
 
 finite {
   import: def
   import: thm
-  package: set-finite-1.6
+  package: set-finite-1.8
 }
 
 fold {
   import: def
   import: thm
   import: finite
-  package: set-fold-1.4
+  package: set-fold-1.6
 }
 
 size {
@@ -37,7 +37,7 @@ size {
   import: thm
   import: finite
   import: fold
-  package: set-size-1.6
+  package: set-size-1.8
 }
 
 main {

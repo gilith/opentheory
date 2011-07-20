@@ -1,5 +1,5 @@
 name: natural-mult
-version: 1.7
+version: 1.9
 description: Definitions and theorems about natural number multiplication
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,17 +8,17 @@ show: "Number.Natural"
 show: "Number.Numeral"
 
 def {
-  package: natural-mult-def-1.1
+  package: natural-mult-def-1.3
 }
 
 thm {
   import: def
-  package: natural-mult-thm-1.1
+  package: natural-mult-thm-1.2
 }
 
 order {
   import: thm
-  package: natural-mult-order-1.6
+  package: natural-mult-order-1.7
 }
 
 main {

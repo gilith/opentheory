@@ -8,13 +8,83 @@ Terms
 
 [\p. p, \q. q, \q. p]
 
-[(\p. p) F <=> F, (\q. p) q <=> p, (\q. q) T <=> T]
+[(let p = F in p) <=> F, (let q = q in p) <=> p, (let q = T in q) <=> T]
 
-[(\p. p) F <=> F, (\q. q) T <=> T, (\q. p) q <=> p]
+[(let p = F in p) <=> F, (let q = T in q) <=> T, (let q = q in p) <=> p]
 
 \(\y. g (x /\ y)). g x
 
 !(\y. g (x /\ y)). g x
+
+let a d = (\e. d e) = d in a = \b. (\c. c) = \c. c
+
+let a d =
+    let e g =
+        (let h = d g in
+         \i.
+           (let j = h in
+            \k. (\l. l j k) = \m. m ((\c. c) = \c. c) ((\c. c) = \c. c))
+             i <=> h) (d ((select) d)) in
+    e = (\f. (\c. c) = \c. c) in
+a = \b. (\c. c) = \c. c
+
+let a o =
+    (let h =
+         let p r =
+             let p s =
+                 (let f = o r = o s in
+                  \g.
+                    (let h = f in
+                     \i.
+                       (\j. j h i) =
+                       \k. k ((\d. d) = \d. d) ((\d. d) = \d. d)) g <=> f)
+                   (r = s) in
+             p = (\q. (\d. d) = \d. d) in
+         p = (\q. (\d. d) = \d. d) in
+     \i. (\j. j h i) = \k. k ((\d. d) = \d. d) ((\d. d) = \d. d))
+      (let t =
+           let p u =
+               let v y = u = o y in
+               let b w =
+                   (let f =
+                        let p x =
+                            (let f = v x in
+                             \g.
+                               (let h = f in
+                                \i.
+                                  (\j. j h i) =
+                                  \k.
+                                    k ((\d. d) = \d. d) ((\d. d) = \d. d))
+                                 g <=> f) w in
+                        p = (\q. (\d. d) = \d. d) in
+                    \g.
+                      (let h = f in
+                       \i.
+                         (\j. j h i) =
+                         \k. k ((\d. d) = \d. d) ((\d. d) = \d. d)) g <=>
+                      f) w in
+               b = (\c. (\d. d) = \d. d) in
+           p = (\q. (\d. d) = \d. d) in
+       (let f = t in
+        \g.
+          (let h = f in
+           \i. (\j. j h i) = \k. k ((\d. d) = \d. d) ((\d. d) = \d. d))
+            g <=> f) (let b d = d in b = \c. (\d. d) = \d. d)) in
+let b e =
+    (let f =
+         let l n =
+             (let f = a n in
+              \g.
+                (let h = f in
+                 \i.
+                   (\j. j h i) = \k. k ((\d. d) = \d. d) ((\d. d) = \d. d))
+                  g <=> f) e in
+         l = (\m. (\d. d) = \d. d) in
+     \g.
+       (let h = f in
+        \i. (\j. j h i) = \k. k ((\d. d) = \d. d) ((\d. d) = \d. d)) g <=>
+       f) e in
+b = \c. (\d. d) = \d. d
 
 --------------------------------------------------------------------------
 Substitution
@@ -89,10 +159,10 @@ Summarizing compressed article "example2"
 input type operators: bool
 input constants: T
 assumptions:
-  |- (\x. x) T
+  |- let x = T in x
 axioms:
 theorems:
-  |- (\y. y) T
+  |- let y = T in y
 
 Summarizing compressed article "example3"
 input type operators: -> bool

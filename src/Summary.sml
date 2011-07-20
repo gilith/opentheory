@@ -290,13 +290,37 @@ fun checkInfo show info =
     let
       val Info {assumed,axioms,thms,...} = info
 
+      val () =
+          let
+            val n = SequentSet.size axioms
+          in
+            if n = 0 then ()
+            else
+              let
+                fun ppAx ax =
+                    Print.sequence Print.addNewline (Sequent.ppWithShow show ax)
+
+                val class = "axiom" ^ (if n = 1 then "" else "s")
+
+                fun ppAxs () =
+                    Print.blockProgram Print.Consistent 2
+                      (Print.ppPrettyInt n ::
+                       Print.ppString " " ::
+                       Print.ppString class ::
+                       Print.ppString ":" ::
+                       List.map ppAx (SequentSet.toList axioms))
+
+                val () = warn (Print.toString ppAxs ())
+              in
+                ()
+              end
+          end
+
       val seqs = SequentSet.unionList [assumed,axioms,thms]
 
       val () = checkShow seqs show
 
       val () = SequentSet.app (checkSequent show "assumption") assumed
-
-      val () = SequentSet.app (checkSequent show "axiom") axioms
 
       val () = SequentSet.app (checkSequent show "theorem") thms
     in

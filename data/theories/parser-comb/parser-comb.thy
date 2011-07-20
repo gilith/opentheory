@@ -1,5 +1,5 @@
 name: parser-comb
-version: 1.9
+version: 1.11
 description: Theory of the basic parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,12 +10,12 @@ show: "Data.Pair"
 show: "Parser"
 
 def {
-  package: parser-comb-def-1.11
+  package: parser-comb-def-1.13
 }
 
 thm {
   import: def
-  package: parser-comb-thm-1.11
+  package: parser-comb-thm-1.13
 }
 
 main {
