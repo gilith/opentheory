@@ -195,6 +195,12 @@ val typeOpsList : term list -> TypeOpSet.set
 
 (* Equality *)
 
+val mkEqConst : Type.ty -> term
+
+val destEqConst : term -> Type.ty
+
+val isEqConst : term -> bool
+
 val mkEq : term * term -> term
 
 val destEq : term -> term * term
@@ -213,9 +219,15 @@ val isRefl : term -> bool
 
 (* Hilbert's choice operator *)
 
-val mkSelect : Type.ty -> term
+val mkSelectConst : Type.ty -> term
 
-val destSelect : term -> Type.ty
+val destSelectConst : term -> Type.ty
+
+val isSelectConst : term -> bool
+
+val mkSelect : Var.var * term -> term
+
+val destSelect : term -> Var.var * term
 
 val isSelect : term -> bool
 

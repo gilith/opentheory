@@ -662,11 +662,27 @@ fun typeOps tm = typeOpsList [tm];
 
 (* Equality *)
 
+fun mkEqConst a =
+    let
+      val c = Const.eq
+      and ty = Type.mkEq a
+    in
+      mkConst (c,ty)
+    end;
+
+fun destEqConst tm =
+    let
+      val (c,ty) = destConst tm
+    in
+      if Const.isEq c then Type.destEq ty
+      else raise Error "Term.destEqConst"
+    end;
+
+val isEqConst = can destEqConst;
+
 fun mkEq (l,r) =
     let
-      val ty = Type.mkEq (typeOf l)
-
-      val c = mkConst (Const.eq,ty)
+      val c = mkEqConst (typeOf l)
 
       val t = mkApp (c,l)
     in
@@ -678,10 +694,8 @@ fun destEq tm =
       val (el,r) = destApp tm
 
       val (e,l) = destApp el
-
-      val (c,_) = destConst e
     in
-      if Const.isEq c then (l,r)
+      if isEqConst e then (l,r)
       else raise Error "Term.destEq"
     end;
 
@@ -706,13 +720,32 @@ val isRefl = can destRefl;
 
 (* Hilbert's choice operator *)
 
-fun mkSelect a = mkConst (Const.select, Type.mkSelect a);
+fun mkSelectConst a = mkConst (Const.select, Type.mkSelect a);
 
-fun destSelect tm =
+fun destSelectConst tm =
     let
       val (c,ty) = destConst tm
     in
       if Const.isSelect c then Type.destSelect ty
+      else raise Error "Term.destSelectConst"
+    end;
+
+val isSelectConst = can destSelectConst;
+
+fun mkSelect (v_b as (v,_)) =
+    let
+      val vb = mkAbs v_b
+
+      val c = mkSelectConst (Var.typeOf v)
+    in
+      mkApp (c,vb)
+    end;
+
+fun destSelect tm =
+    let
+      val (c,vb) = destApp tm
+    in
+      if isSelectConst c then destAbs vb
       else raise Error "Term.destSelect"
     end;
 
@@ -808,7 +841,7 @@ val axiomOfChoice =
       val tm32 = mkVar v6
       val tm33 = mkApp (tm31,tm32)
       val tm34 = mkApp (tm30,tm33)
-      val tm35 = mkSelect ty0
+      val tm35 = mkSelectConst ty0
       val tm36 = mkApp (tm35,tm31)
       val tm37 = mkApp (tm31,tm36)
       val tm38 = mkApp (tm34,tm37)
@@ -1391,8 +1424,9 @@ local
             let
               val (c,t) = destApp tm
 
-              val () = if isSelect c then ()
-                       else raise Error "Term.pp.destSelectAbs"
+              val () =
+                  if isSelectConst c then ()
+                  else raise Error "Term.pp.destSelectAbs"
             in
               destAbs t
             end
