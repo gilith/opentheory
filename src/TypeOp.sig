@@ -49,6 +49,28 @@ val varsDef : typeOp -> Name.name list option
 val arityDef : typeOp -> int option
 
 (* ------------------------------------------------------------------------- *)
+(* Primitive type operators.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+(* Booleans *)
+
+val bool : typeOp
+
+val isBool : typeOp -> bool
+
+(* Function spaces *)
+
+val func : typeOp
+
+val isFun : typeOp -> bool
+
+(* Individuals *)
+
+val ind : typeOp
+
+val isInd : typeOp -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

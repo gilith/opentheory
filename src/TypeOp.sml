@@ -72,6 +72,28 @@ fun arityDef ot =
     | NONE => NONE;
 
 (* ------------------------------------------------------------------------- *)
+(* Primitive type operators.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+(* Booleans *)
+
+val bool = mkUndef Name.boolTypeOp;
+
+val isBool = equal bool;
+
+(* Function spaces *)
+
+val func = TypeTerm.opTyFunTy;
+
+val isFun = equal func;
+
+(* Individuals *)
+
+val ind = mkUndef Name.indTypeOp;
+
+val isInd = equal ind;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

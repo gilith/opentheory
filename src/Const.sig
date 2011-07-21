@@ -47,6 +47,22 @@ val equal : const -> const -> bool
 val typeOf : const -> Type.ty option
 
 (* ------------------------------------------------------------------------- *)
+(* Primitive constants.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+(* Equality *)
+
+val eq : const
+
+val isEq : const -> bool
+
+(* Hilbert's choice operator *)
+
+val select : const
+
+val isSelect : const -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

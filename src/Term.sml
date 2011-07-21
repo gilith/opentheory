@@ -662,49 +662,11 @@ fun typeOps tm = typeOpsList [tm];
 
 (* Equality *)
 
-fun mkEqTy a = Type.mkFun (a, Type.mkFun (a, Type.bool));
-
-fun destEqTy ty =
-    let
-      val (x,yb) = Type.destFun ty
-
-      val (y,b) = Type.destFun yb
-
-      val _ = Type.equal b Type.bool orelse
-              raise Error "Term.destEqTy: not a relation"
-
-      val _ = Type.equal x y orelse
-              raise Error "Term.destEqTy: different argument types"
-    in
-      x
-    end;
-
-val isEqTy = can destEqTy;
-
-val boolEqTy = mkEqTy Type.bool;
-
-val stringEq = "="
-and stringBoolEq = "<=>";
-
-val nameEq = Name.mkGlobal stringEq
-and nameBoolEq = Name.mkGlobal stringBoolEq;
-
-val constEq =
-    let
-      val name = nameEq
-
-      val prov = TypeTerm.UndefProvConst
-    in
-      TypeTerm.Const
-        {name = name,
-         prov = prov}
-    end;
-
 fun mkEq (l,r) =
     let
-      val ty = mkEqTy (typeOf l)
+      val ty = Type.mkEq (typeOf l)
 
-      val c = mkConst (constEq,ty)
+      val c = mkConst (Const.eq,ty)
 
       val t = mkApp (c,l)
     in
@@ -719,7 +681,7 @@ fun destEq tm =
 
       val (c,_) = destConst e
     in
-      if Const.equal c constEq then (l,r)
+      if Const.isEq c then (l,r)
       else raise Error "Term.destEq"
     end;
 
@@ -744,47 +706,13 @@ val isRefl = can destRefl;
 
 (* Hilbert's choice operator *)
 
-fun mkSelectTy a = Type.mkFun (Type.mkFun (a, Type.bool), a);
-
-fun destSelectTy ty =
-    let
-      val (xb,y) = Type.destFun ty
-
-      val (x,b) = Type.destFun xb
-
-      val _ = Type.equal b Type.bool orelse
-              raise Error "Term.destSelectTy: not a predicate"
-
-      val _ = Type.equal x y orelse
-              raise Error "Term.destSelectTy: different result type"
-    in
-      x
-    end;
-
-val isSelectTy = can destSelectTy;
-
-val stringSelect = "select";
-
-val nameSelect = Name.mkGlobal stringSelect;
-
-val constSelect =
-    let
-      val name = nameSelect
-
-      val prov = TypeTerm.UndefProvConst
-    in
-      TypeTerm.Const
-        {name = name,
-         prov = prov}
-    end;
-
-fun mkSelect a = mkConst (constSelect, mkSelectTy a);
+fun mkSelect a = mkConst (Const.select, Type.mkSelect a);
 
 fun destSelect tm =
     let
       val (c,ty) = destConst tm
     in
-      if Const.equal c constSelect then destSelectTy ty
+      if Const.isSelect c then Type.destSelect ty
       else raise Error "Term.destSelect"
     end;
 
@@ -1041,16 +969,18 @@ datatype grammar =
        maximumSize : int};
 
 local
-  val mkName = Name.mkGlobal;
+  fun mkName s = Name.mkGlobal s
+  and destName n = snd (Name.dest n);
 
-  val stringAbs = "\\";
-
-  val stringNeg = "~"
-  and stringBoolNeg = "\\lnot";
+  val stringAbs = "\\"
+  and stringBoolEq = "<=>"
+  and stringBoolNeg = "\\lnot"
+  and stringEq = destName Name.eqConst
+  and stringNeg = "~"
+  and stringPair = ","
+  and stringSelect = destName Name.selectConst;
 
   val negations = [stringNeg];
-
-  val stringPair = ",";
 
   val infixes =
       Print.Infixes
@@ -1086,11 +1016,15 @@ local
 
   val binders = ["!","?","?!",stringSelect,"minimal"];
 
-  fun showConst show (c,ty) =
-      if Const.equal c constEq then
-        if Type.equal ty boolEqTy then nameBoolEq else nameEq
-      else
-        Show.showName show (Const.name c);
+  local
+    val nameBoolEq = mkName stringBoolEq;
+  in
+    fun showConst show (c,ty) =
+        if Const.isEq c then
+          if Type.isBoolEq ty then nameBoolEq else Name.eqConst
+        else
+          Show.showName show (Const.name c);
+  end
 
   local
     val pairName = mkName stringPair;

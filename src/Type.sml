@@ -293,33 +293,14 @@ fun typeOps ty = typeOpsList [ty];
 
 (* Booleans *)
 
-val stringBool = "bool";
-
-val nameBool = Name.mkGlobal stringBool;
-
-val typeOpBool =
-    let
-      val name = nameBool
-
-      val prov = TypeTerm.UndefProvOpTy
-    in
-      TypeTerm.OpTy
-        {name = name,
-         prov = prov}
-    end;
-
-val bool = mkOp (typeOpBool,[]);
+val bool = mkOp (TypeOp.bool,[]);
 
 fun isBool ty =
     case dest ty of
-      TypeTerm.OpTy' (ot,[]) => TypeOp.equal typeOpBool ot
+      TypeTerm.OpTy' (ot,[]) => TypeOp.isBool ot
     | _ => false;
 
 (* Function spaces *)
-
-val nameFun = TypeTerm.nameFunTy;
-
-val typeOpFun = TypeTerm.opTyFunTy;
 
 val mkFun = TypeTerm.mkFunTy;
 
@@ -344,27 +325,62 @@ end;
 
 (* Individuals *)
 
-val stringInd = "ind";
-
-val nameInd = Name.mkGlobal stringInd;
-
-val typeOpInd =
-    let
-      val name = nameInd
-
-      val prov = TypeTerm.UndefProvOpTy
-    in
-      TypeTerm.OpTy
-        {name = name,
-         prov = prov}
-    end;
-
-val ind = mkOp (typeOpInd,[]);
+val ind = mkOp (TypeOp.ind,[]);
 
 fun isInd ty =
     case dest ty of
-      TypeTerm.OpTy' (ot,[]) => TypeOp.equal typeOpInd ot
+      TypeTerm.OpTy' (ot,[]) => TypeOp.isInd ot
     | _ => false;
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive constants.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+(* Equality *)
+
+fun mkEq a = mkFun (a, mkFun (a,bool));
+
+fun destEq ty =
+    let
+      val (x,yb) = destFun ty
+
+      val (y,b) = destFun yb
+
+      val _ = equal b bool orelse
+              raise Error "Type.destEq: not a relation"
+
+      val _ = equal x y orelse
+              raise Error "Type.destEq: different argument types"
+    in
+      x
+    end;
+
+val isEq = can destEq;
+
+val boolEq = mkEq bool;
+
+val isBoolEq = equal boolEq;
+
+(* Hilbert's choice operator *)
+
+fun mkSelect a = mkFun (mkFun (a,bool), a);
+
+fun destSelect ty =
+    let
+      val (xb,y) = destFun ty
+
+      val (x,b) = destFun xb
+
+      val _ = isBool b orelse
+              raise Error "Type.destSelect: not a predicate"
+
+      val _ = equal x y orelse
+              raise Error "Type.destSelect: different result type"
+    in
+      x
+    end;
+
+val isSelect = can destSelect;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

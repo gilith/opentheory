@@ -195,16 +195,6 @@ val typeOpsList : term list -> TypeOpSet.set
 
 (* Equality *)
 
-val mkEqTy : Type.ty -> Type.ty
-
-val destEqTy : Type.ty -> Type.ty
-
-val isEqTy : Type.ty -> bool
-
-val nameEq : Name.name
-
-val constEq : Const.const
-
 val mkEq : term * term -> term
 
 val destEq : term -> term * term
@@ -223,16 +213,6 @@ val isRefl : term -> bool
 
 (* Hilbert's choice operator *)
 
-val mkSelectTy : Type.ty -> Type.ty
-
-val destSelectTy : Type.ty -> Type.ty
-
-val isSelectTy : Type.ty -> bool
-
-val nameSelect : Name.name
-
-val constSelect : Const.const
-
 val mkSelect : Type.ty -> term
 
 val destSelect : term -> Type.ty
@@ -248,6 +228,12 @@ val axiomOfExtensionality : term
 val axiomOfChoice : term
 
 val axiomOfInfinity : term
+
+(* ------------------------------------------------------------------------- *)
+(* Boolean syntax.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

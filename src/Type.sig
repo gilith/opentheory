@@ -120,24 +120,16 @@ val typeOps : ty -> TypeOpSet.set
 val typeOpsList : ty list -> TypeOpSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive types.                                                          *)
+(* Primitive type operators.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 (* Booleans *)
-
-val nameBool : Name.name
-
-val typeOpBool : TypeOp.typeOp
 
 val bool : ty
 
 val isBool : ty -> bool
 
 (* Function spaces *)
-
-val nameFun : Name.name
-
-val typeOpFun : TypeOp.typeOp
 
 val mkFun : ty * ty -> ty
 
@@ -155,13 +147,33 @@ val stripFun : ty -> ty list * ty
 
 (* Individuals *)
 
-val nameInd : Name.name
-
-val typeOpInd : TypeOp.typeOp
-
 val ind : ty
 
 val isInd : ty -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive constants.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+(* Equality *)
+
+val mkEq : ty -> ty
+
+val destEq : ty -> ty
+
+val isEq : ty -> bool
+
+val boolEq : ty
+
+val isBoolEq : ty -> bool
+
+(* Hilbert's choice operator *)
+
+val mkSelect : ty -> ty
+
+val destSelect : ty -> ty
+
+val isSelect : ty -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

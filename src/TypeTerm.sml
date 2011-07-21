@@ -351,13 +351,10 @@ fun mkTy ty =
 (* Function spaces.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val stringFunTy = "->";
-
-val nameFunTy = Name.mkGlobal stringFunTy;
-
 val opTyFunTy =
     let
-      val name = nameFunTy
+      val name = Name.funTypeOp
+
       val prov = UndefProvOpTy
     in
       OpTy

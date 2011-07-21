@@ -156,8 +156,6 @@ val equalTy' : ty' -> ty' -> bool
 (* Function spaces.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val nameFunTy : Name.name
-
 val opTyFunTy : opTy
 
 val mkFunTy : ty * ty -> ty
