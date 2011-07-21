@@ -245,7 +245,17 @@ val axiomOfInfinity : term
 (* Boolean syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
+(* Truth *)
 
+val isTrue : term -> bool
+
+(* Conjunction *)
+
+val isConjConst : term -> bool
+
+val destConj : term -> term * term
+
+val isConj : term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

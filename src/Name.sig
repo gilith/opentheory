@@ -82,6 +82,12 @@ val eqConst : name
 
 val selectConst : name
 
+(* Boolean *)
+
+val conjConst : name
+
+val trueConst : name
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)

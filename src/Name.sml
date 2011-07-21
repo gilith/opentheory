@@ -144,6 +144,12 @@ val eqConst = mkGlobal "=";
 
 val selectConst = mkGlobal "select";
 
+(* Boolean *)
+
+val conjConst = mk (Namespace.bool,"/\\");
+
+val trueConst = mk (Namespace.bool,"T");
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)

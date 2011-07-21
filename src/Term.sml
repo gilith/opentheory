@@ -984,6 +984,46 @@ val axiomOfInfinity =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Boolean syntax.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+(* Truth *)
+
+fun destTrue tm =
+    let
+      val (c,_) = destConst tm
+    in
+      if Const.isTrue c then ()
+      else raise Error "Term.destTrue"
+    end;
+
+val isTrue = can destTrue;
+
+(* Conjunction *)
+
+fun destConjConst tm =
+    let
+      val (c,_) = destConst tm
+    in
+      if Const.isConj c then ()
+      else raise Error "Term.destConjConst"
+    end;
+
+val isConjConst = can destConjConst;
+
+fun destConj tm =
+    let
+      val (cl,r) = destApp tm
+
+      val (c,l) = destApp cl
+    in
+      if isConjConst c then (l,r)
+      else raise Error "Term.destConj"
+    end;
+
+val isConj = can destConj;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1008,6 +1048,7 @@ local
   val stringAbs = "\\"
   and stringBoolEq = "<=>"
   and stringBoolNeg = "\\lnot"
+  and stringConj = destName Name.conjConst
   and stringEq = destName Name.eqConst
   and stringNeg = "~"
   and stringPair = ","
@@ -1041,7 +1082,7 @@ local
          {token = "properSubset", precedence = 4, assoc = Print.NonAssoc},
          {token = "in", precedence = 4, assoc = Print.NonAssoc},
          (* HOL *)
-         {token = "/\\", precedence = ~1, assoc = Print.RightAssoc},
+         {token = stringConj, precedence = ~1, assoc = Print.RightAssoc},
          {token = "\\/", precedence = ~2, assoc = Print.RightAssoc},
          {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
          {token = stringBoolEq, precedence = ~4, assoc = Print.RightAssoc},
