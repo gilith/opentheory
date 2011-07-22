@@ -140,15 +140,15 @@ val indTypeOp = mkGlobal "ind";
 
 (* Primitives *)
 
-val eqConst = mkGlobal "=";
-
-val selectConst = mkGlobal "select";
+val eqConst = mkGlobal "="
+and selectConst = mkGlobal "select";
 
 (* Boolean *)
 
-val conjConst = mk (Namespace.bool,"/\\");
-
-val trueConst = mk (Namespace.bool,"T");
+val conjConst = mk (Namespace.bool,"/\\")
+and disjConst = mk (Namespace.bool,"\\/")
+and falseConst = mk (Namespace.bool,"F")
+and trueConst = mk (Namespace.bool,"T");
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)

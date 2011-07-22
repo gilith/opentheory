@@ -86,6 +86,10 @@ val selectConst : name
 
 val conjConst : name
 
+val disjConst : name
+
+val falseConst : name
+
 val trueConst : name
 
 (* ------------------------------------------------------------------------- *)

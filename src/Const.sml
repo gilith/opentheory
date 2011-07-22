@@ -120,6 +120,10 @@ val isSelect = equal select;
 
 fun isConj c = Name.equal Name.conjConst (name c);
 
+fun isDisj c = Name.equal Name.disjConst (name c);
+
+fun isFalse c = Name.equal Name.falseConst (name c);
+
 fun isTrue c = Name.equal Name.trueConst (name c);
 
 (* ------------------------------------------------------------------------- *)

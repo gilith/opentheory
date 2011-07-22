@@ -68,6 +68,10 @@ val isSelect : const -> bool
 
 val isConj : const -> bool
 
+val isDisj : const -> bool
+
+val isFalse : const -> bool
+
 val isTrue : const -> bool
 
 (* ------------------------------------------------------------------------- *)

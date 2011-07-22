@@ -984,44 +984,117 @@ val axiomOfInfinity =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* General syntax operations.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+(* Nullary operators *)
+
+fun destNullaryOp p tm =
+    let
+      val (c,_) = destConst tm
+    in
+      if p c then ()
+      else raise Error "Term.destNullaryOp"
+    end;
+
+fun isNullaryOp p = can (destNullaryOp p);
+
+(* Unary operators *)
+
+fun destUnaryOp p tm =
+    let
+      val (c,a) = destApp tm
+
+      val () = destNullaryOp p c
+    in
+      a
+    end;
+
+(* Binary operators *)
+
+fun destBinaryOp p tm =
+    let
+      val (ca,b) = destApp tm
+
+      val a = destUnaryOp p ca
+    in
+      (a,b)
+    end;
+
+fun stripBinaryOp p =
+    let
+      fun strip tms tm =
+          case total (destBinaryOp p) tm of
+            NONE => (tms, tm)
+          | SOME (a,tm) => strip (a :: tms) tm
+    in
+      strip []
+    end;
+
+(* Quantifiers *)
+
+fun destQuant p tm =
+    let
+      val f = destUnaryOp p tm
+    in
+      destAbs f
+    end;
+
+fun stripQuant p =
+    let
+      fun strip vs tm =
+          case total (destQuant p) tm of
+            NONE => (vs,tm)
+          | SOME (v,b) => strip (v :: vs) b
+    in
+      strip []
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Boolean syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 (* Truth *)
 
-fun destTrue tm =
-    let
-      val (c,_) = destConst tm
-    in
-      if Const.isTrue c then ()
-      else raise Error "Term.destTrue"
-    end;
+val isTrue = isNullaryOp Const.isTrue;
 
-val isTrue = can destTrue;
+(* Falsity *)
+
+val isFalse = isNullaryOp Const.isFalse;
 
 (* Conjunction *)
 
-fun destConjConst tm =
-    let
-      val (c,_) = destConst tm
-    in
-      if Const.isConj c then ()
-      else raise Error "Term.destConjConst"
-    end;
+val isConjConst = isNullaryOp Const.isConj;
 
-val isConjConst = can destConjConst;
-
-fun destConj tm =
-    let
-      val (cl,r) = destApp tm
-
-      val (c,l) = destApp cl
-    in
-      if isConjConst c then (l,r)
-      else raise Error "Term.destConj"
-    end;
+val destConj = destBinaryOp Const.isConj;
 
 val isConj = can destConj;
+
+fun stripConj tm =
+    if isTrue tm then []
+    else
+      let
+        val (tms,tm) = stripBinaryOp Const.isConj tm
+      in
+        List.revAppend (tms,[tm])
+      end;
+
+(* Disjunction *)
+
+val isDisjConst = isNullaryOp Const.isDisj;
+
+val destDisj = destBinaryOp Const.isDisj;
+
+val isDisj = can destDisj;
+
+fun stripDisj tm =
+    if isFalse tm then []
+    else
+      let
+        val (tms,tm) = stripBinaryOp Const.isDisj tm
+      in
+        List.revAppend (tms,[tm])
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

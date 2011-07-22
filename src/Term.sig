@@ -242,12 +242,40 @@ val axiomOfChoice : term
 val axiomOfInfinity : term
 
 (* ------------------------------------------------------------------------- *)
+(* General syntax operations.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+(* Nullary operators *)
+
+val isNullaryOp : (Const.const -> bool) -> term -> bool
+
+(* Unary operators *)
+
+val destUnaryOp : (Const.const -> bool) -> term -> term
+
+(* Binary operators *)
+
+val destBinaryOp : (Const.const -> bool) -> term -> term * term
+
+val stripBinaryOp : (Const.const -> bool) -> term -> term list * term
+
+(* Quantifiers *)
+
+val destQuant : (Const.const -> bool) -> term -> Var.var * term
+
+val stripQuant : (Const.const -> bool) -> term -> Var.var list * term
+
+(* ------------------------------------------------------------------------- *)
 (* Boolean syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 (* Truth *)
 
 val isTrue : term -> bool
+
+(* Falsity *)
+
+val isFalse : term -> bool
 
 (* Conjunction *)
 
@@ -256,6 +284,18 @@ val isConjConst : term -> bool
 val destConj : term -> term * term
 
 val isConj : term -> bool
+
+val stripConj : term -> term list
+
+(* Disjunction *)
+
+val isDisjConst : term -> bool
+
+val destDisj : term -> term * term
+
+val isDisj : term -> bool
+
+val stripDisj : term -> term list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
