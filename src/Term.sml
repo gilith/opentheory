@@ -1122,6 +1122,7 @@ local
   and stringBoolEq = "<=>"
   and stringBoolNeg = "\\lnot"
   and stringConj = destName Name.conjConst
+  and stringDisj = destName Name.disjConst
   and stringEq = destName Name.eqConst
   and stringNeg = "~"
   and stringPair = ","
@@ -1156,7 +1157,7 @@ local
          {token = "in", precedence = 4, assoc = Print.NonAssoc},
          (* HOL *)
          {token = stringConj, precedence = ~1, assoc = Print.RightAssoc},
-         {token = "\\/", precedence = ~2, assoc = Print.RightAssoc},
+         {token = stringDisj, precedence = ~2, assoc = Print.RightAssoc},
          {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
          {token = stringBoolEq, precedence = ~4, assoc = Print.RightAssoc},
          {token = stringPair, precedence = ~1000, assoc = Print.RightAssoc}];
