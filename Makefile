@@ -146,6 +146,7 @@ SRC = \
   src/DirectoryConfig.sig src/DirectoryConfig.sml \
   src/Directory.sig src/Directory.sml \
   src/Syntax.sig src/Syntax.sml \
+  src/Haskell.sig src/Haskell.sml \
   src/Options.sig src/Options.sml
 
 EXTRA_SRC =
