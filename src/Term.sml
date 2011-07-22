@@ -1189,11 +1189,9 @@ fun destGenAbs tm =
             if equalVar f ft then ()
             else raise Error "Term.destGenAbs: no function"
 
-(***
         val () =
             if Var.listEqual (VarSet.toList (freeVars pat)) vl then ()
             else raise Error "Term.destGenAbs: bad pattern var list"
-***)
 
         val () =
             if not (VarSet.member f (freeVars body)) then ()
