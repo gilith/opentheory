@@ -147,7 +147,12 @@ and selectConst = mkGlobal "select";
 
 val conjConst = mk (Namespace.bool,"/\\")
 and disjConst = mk (Namespace.bool,"\\/")
+and existsConst = mk (Namespace.bool,"?")
+and existsUniqueConst = mk (Namespace.bool,"?!")
 and falseConst = mk (Namespace.bool,"F")
+and forallConst = mk (Namespace.bool,"!")
+and impConst = mk (Namespace.bool,"==>")
+and negConst = mk (Namespace.bool,"~")
 and trueConst = mk (Namespace.bool,"T");
 
 (* ------------------------------------------------------------------------- *)

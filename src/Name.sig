@@ -88,7 +88,17 @@ val conjConst : name
 
 val disjConst : name
 
+val existsConst : name
+
+val existsUniqueConst : name
+
 val falseConst : name
+
+val forallConst : name
+
+val impConst : name
+
+val negConst : name
 
 val trueConst : name
 

@@ -122,7 +122,17 @@ fun isConj c = Name.equal Name.conjConst (name c);
 
 fun isDisj c = Name.equal Name.disjConst (name c);
 
+fun isExists c = Name.equal Name.existsConst (name c);
+
+fun isExistsUnique c = Name.equal Name.existsUniqueConst (name c);
+
 fun isFalse c = Name.equal Name.falseConst (name c);
+
+fun isForall c = Name.equal Name.forallConst (name c);
+
+fun isImp c = Name.equal Name.impConst (name c);
+
+fun isNeg c = Name.equal Name.negConst (name c);
 
 fun isTrue c = Name.equal Name.trueConst (name c);
 

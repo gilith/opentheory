@@ -277,6 +277,14 @@ val isTrue : term -> bool
 
 val isFalse : term -> bool
 
+(* Negation *)
+
+val isNegConst : term -> bool
+
+val destNeg : term -> term
+
+val isNeg : term -> bool
+
 (* Conjunction *)
 
 val isConjConst : term -> bool
@@ -296,6 +304,52 @@ val destDisj : term -> term * term
 val isDisj : term -> bool
 
 val stripDisj : term -> term list
+
+(* Implication *)
+
+val isImpConst : term -> bool
+
+val destImp : term -> term * term
+
+val isImp : term -> bool
+
+val stripImp : term -> term list * term
+
+(* Universal *)
+
+val isForallConst : term -> bool
+
+val destForall : term -> Var.var * term
+
+val isForall : term -> bool
+
+val stripForall : term -> Var.var list * term
+
+(* Existence *)
+
+val isExistsConst : term -> bool
+
+val destExists : term -> Var.var * term
+
+val isExists : term -> bool
+
+val stripExists : term -> Var.var list * term
+
+(* Unique existence *)
+
+val isExistsUniqueConst : term -> bool
+
+val destExistsUnique : term -> Var.var * term
+
+val isExistsUnique : term -> bool
+
+val stripExistsUnique : term -> Var.var list * term
+
+(* ------------------------------------------------------------------------- *)
+(* Generalized abstractions.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val destGenAbs : term -> term * term
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

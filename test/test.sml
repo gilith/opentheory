@@ -50,17 +50,43 @@ val () = SAY "Symbol tables";
 (* ------------------------------------------------------------------------- *)
 
 local
+  val b = Type.bool;
+
+  val bb = Type.mkFun (b,b);
+
+  val bbb = Type.mkFun (b,bb);
+
   val sym = Symbol.empty;
+
+  fun mkQuant c (v,t) =
+      let
+        val ty = Type.mkFun (Type.mkFun (Var.typeOf v, b), b)
+      in
+        Term.mkApp (Term.mkConst (c,ty), Term.mkAbs (v,t))
+      end;
 in
-  val constForall = Syntax.constForall sym
-  and mkConj = Syntax.mkConj sym
-  and mkDisj = Syntax.mkDisj sym
-  and mkForall = Syntax.mkForall sym
-  and mkImp = Syntax.mkImp sym
-  and mkNeg = Syntax.mkNeg sym
-  and mkSelect = Syntax.mkSelect sym
-  and termFalse = Syntax.termFalse sym
-  and termTrue = Syntax.termTrue sym;
+  val constConj = Const.mkUndef Name.conjConst
+  and constDisj = Const.mkUndef Name.disjConst
+  and constFalse = Const.mkUndef Name.falseConst
+  and constForall = Const.mkUndef Name.forallConst
+  and constImp = Const.mkUndef Name.impConst
+  and constNeg = Const.mkUndef Name.negConst
+  and constTrue = Const.mkUndef Name.trueConst;
+
+  val termConj = Term.mkConst (constConj,bbb)
+  and termDisj = Term.mkConst (constDisj,bbb)
+  and termFalse = Term.mkConst (constFalse,b)
+  and termImp = Term.mkConst (constImp,bbb)
+  and termNeg = Term.mkConst (constNeg,bb)
+  and termTrue = Term.mkConst (constTrue,b);
+
+  fun mkConj (a,b) = Term.listMkApp (termConj,[a,b])
+  and mkDisj (a,b) = Term.listMkApp (termDisj,[a,b])
+  and mkImp (a,b) = Term.listMkApp (termImp,[a,b])
+  and mkNeg a = Term.mkApp (termNeg,a);
+
+  val mkForall = mkQuant constForall
+  and mkSelect = Term.mkSelect;
 end;
 
 (* ------------------------------------------------------------------------- *)

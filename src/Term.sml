@@ -1062,6 +1062,14 @@ val isTrue = isNullaryOp Const.isTrue;
 
 val isFalse = isNullaryOp Const.isFalse;
 
+(* Negation *)
+
+val isNegConst = isNullaryOp Const.isNeg;
+
+val destNeg = destUnaryOp Const.isNeg;
+
+val isNeg = can destNeg;
+
 (* Conjunction *)
 
 val isConjConst = isNullaryOp Const.isConj;
@@ -1096,6 +1104,104 @@ fun stripDisj tm =
         List.revAppend (tms,[tm])
       end;
 
+(* Implication *)
+
+val isImpConst = isNullaryOp Const.isImp;
+
+val destImp = destBinaryOp Const.isImp;
+
+val isImp = can destImp;
+
+fun stripImp tm =
+    let
+      val (tms,tm) = stripBinaryOp Const.isImp tm
+    in
+      (List.rev tms, tm)
+    end;
+
+(* Universal *)
+
+val isForallConst = isNullaryOp Const.isForall;
+
+val destForall = destQuant Const.isForall;
+
+val isForall = can destForall;
+
+fun stripForall tm =
+    let
+      val (vs,tm) = stripQuant Const.isForall tm
+    in
+      (List.rev vs, tm)
+    end;
+
+(* Existence *)
+
+val isExistsConst = isNullaryOp Const.isExists;
+
+val destExists = destQuant Const.isExists;
+
+val isExists = can destExists;
+
+fun stripExists tm =
+    let
+      val (vs,tm) = stripQuant Const.isExists tm
+    in
+      (List.rev vs, tm)
+    end;
+
+(* Unique existence *)
+
+val isExistsUniqueConst = isNullaryOp Const.isExistsUnique;
+
+val destExistsUnique = destQuant Const.isExistsUnique;
+
+val isExistsUnique = can destExistsUnique;
+
+fun stripExistsUnique tm =
+    let
+      val (vs,tm) = stripQuant Const.isExistsUnique tm
+    in
+      (List.rev vs, tm)
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Generalized abstractions.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun destGenAbs tm =
+    case total destAbs tm of
+      SOME (v,t) => (mkVar v, t)
+    | NONE =>
+      let
+        val (f,tm) = destSelect tm
+
+        val (vl,tm) = stripForall tm
+
+        val () =
+            if not (List.exists (Var.equal f) vl) then ()
+            else raise Error "Term.destGenAbs: function is var"
+
+        val (pat,body) = destEq tm
+
+        val (ft,pat) = destApp pat
+
+        val () =
+            if equalVar f ft then ()
+            else raise Error "Term.destGenAbs: no function"
+
+(***
+        val () =
+            if Var.listEqual (VarSet.toList (freeVars pat)) vl then ()
+            else raise Error "Term.destGenAbs: bad pattern var list"
+***)
+
+        val () =
+            if not (VarSet.member f (freeVars body)) then ()
+            else raise Error "Term.destGenAbs: function in body"
+      in
+        (pat,body)
+      end;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -1124,7 +1230,11 @@ local
   and stringConj = destName Name.conjConst
   and stringDisj = destName Name.disjConst
   and stringEq = destName Name.eqConst
-  and stringNeg = "~"
+  and stringExists = destName Name.existsConst
+  and stringExistsUnique = destName Name.existsUniqueConst
+  and stringForall = destName Name.forallConst
+  and stringImp = destName Name.impConst
+  and stringNeg = destName Name.negConst
   and stringPair = ","
   and stringSelect = destName Name.selectConst;
 
@@ -1158,11 +1268,12 @@ local
          (* HOL *)
          {token = stringConj, precedence = ~1, assoc = Print.RightAssoc},
          {token = stringDisj, precedence = ~2, assoc = Print.RightAssoc},
-         {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
+         {token = stringImp, precedence = ~3, assoc = Print.RightAssoc},
          {token = stringBoolEq, precedence = ~4, assoc = Print.RightAssoc},
          {token = stringPair, precedence = ~1000, assoc = Print.RightAssoc}];
 
-  val binders = ["!","?","?!",stringSelect,"minimal"];
+  val binders =
+      [stringForall,stringExists,stringExistsUnique,stringSelect,"minimal"];
 
   local
     val nameBoolEq = mkName stringBoolEq;
@@ -1535,59 +1646,16 @@ local
               dst []
             end
 
-        fun destSelectAbs tm =
-            let
-              val (c,t) = destApp tm
-
-              val () =
-                  if isSelectConst c then ()
-                  else raise Error "Term.pp.destSelectAbs"
-            in
-              destAbs t
-            end
-
-        fun destGenAbs show tm =
-            case total destAbs tm of
-              SOME (v,t) => (mkVar v, t)
-            | NONE =>
-              let
-                val (f,tm) = destSelectAbs tm
-
-                val (vl,tm) = stripForall show tm
-
-                val () =
-                    if not (List.exists (Var.equal f) vl) then ()
-                    else raise Error "Term.pp.destGenAbs: function is var"
-
-                val (pat,body) = destEq tm
-
-                val (ft,pat) = destApp pat
-
-                val () =
-                    if equalVar f ft then ()
-                    else raise Error "Term.pp.destGenAbs: no function"
-
-                val () =
-                    if Var.listEqual (VarSet.toList (freeVars pat)) vl then ()
-                    else raise Error "Term.pp.destGenAbs: weird pat vars"
-
-                val () =
-                    if not (VarSet.member f (freeVars body)) then ()
-                    else raise Error "Term.pp.destGenAbs: function in body"
-              in
-                (pat,body)
-              end
-
         fun destLet show tm =
             let
               fun transfer v t =
-                  case total (destGenAbs show) t of
+                  case total destGenAbs t of
                     NONE => (v,t)
                   | SOME (w,t) => transfer (mkApp (v,w)) t
 
               val (vb,t) = destApp tm
 
-              val (v,b) = destGenAbs show vb
+              val (v,b) = destGenAbs vb
 
               val (v,t) = transfer v t
             in
@@ -1763,13 +1831,13 @@ local
         val ppInfix = ppInfixes (total destInfix) ppInfixToken
 
         fun destBinder tm =
-            case total (destGenAbs show) tm of
+            case total destGenAbs tm of
               SOME (v,t) => (NONE,v,t)
             | NONE =>
               let
                 val (t,a) = destApp tm
 
-                val (v,b) = destGenAbs show a
+                val (v,b) = destGenAbs a
 
                 val c = destConst t
 

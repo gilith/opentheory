@@ -70,7 +70,17 @@ val isConj : const -> bool
 
 val isDisj : const -> bool
 
+val isExists : const -> bool
+
+val isExistsUnique : const -> bool
+
 val isFalse : const -> bool
+
+val isForall : const -> bool
+
+val isImp : const -> bool
+
+val isNeg : const -> bool
 
 val isTrue : const -> bool
 
