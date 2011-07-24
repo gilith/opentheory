@@ -17,12 +17,14 @@ and avoidString = "a"
 and descriptionString = "description"
 and extraSuffixString = "file"
 and gilithString = "gilith"
+and haskellString = "haskell"
 and installedString = "installed"
 and licenseString = "license"
 and mainString = "main"
 and nameString = "name"
 and separatorChar = #"-"
 and showString = "show"
+and srcString = "src"
 and versionString = "version";
 
 val separatorString = str separatorChar;
@@ -180,6 +182,14 @@ val installedChecksums = installedString;
 (* ------------------------------------------------------------------------- *)
 
 val gilithRepo = gilithString;
+
+(* ------------------------------------------------------------------------- *)
+(* Haskell export names.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val haskellExport = haskellString;
+
+val srcHaskellExport = srcString;
 
 end
 

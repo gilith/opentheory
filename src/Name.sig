@@ -64,7 +64,7 @@ val lastChar : name -> char option
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(* Primitives *)
+(* Primitive *)
 
 val boolTypeOp : name
 
@@ -76,13 +76,15 @@ val indTypeOp : name
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-(* Primitives *)
+(* Primitive *)
 
 val eqConst : name
 
 val selectConst : name
 
 (* Boolean *)
+
+val condConst : name
 
 val conjConst : name
 
@@ -101,6 +103,20 @@ val impConst : name
 val negConst : name
 
 val trueConst : name
+
+(* Natural numbers *)
+
+val bit0Const : name
+
+val bit1Const : name
+
+val isFromNaturalConst : name -> bool
+
+val zeroConst : name
+
+(* Sets *)
+
+val fromPredicateConst : name
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)

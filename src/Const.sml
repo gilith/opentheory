@@ -115,8 +115,12 @@ val select = mkUndef Name.selectConst;
 val isSelect = equal select;
 
 (* ------------------------------------------------------------------------- *)
-(* Boolean syntax.                                                           *)
+(* Special syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+(* Boolean *)
+
+fun isCond c = Name.equal Name.condConst (name c);
 
 fun isConj c = Name.equal Name.conjConst (name c);
 
@@ -135,6 +139,20 @@ fun isImp c = Name.equal Name.impConst (name c);
 fun isNeg c = Name.equal Name.negConst (name c);
 
 fun isTrue c = Name.equal Name.trueConst (name c);
+
+(* Natural numbers *)
+
+fun isBit0 c = Name.equal Name.bit0Const (name c);
+
+fun isBit1 c = Name.equal Name.bit1Const (name c);
+
+fun isFromNatural c = Name.isFromNaturalConst (name c);
+
+fun isZero c = Name.equal Name.zeroConst (name c);
+
+(* Sets *)
+
+fun isFromPredicate c = Name.equal Name.fromPredicateConst (name c);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

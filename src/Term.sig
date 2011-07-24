@@ -259,6 +259,10 @@ val destBinaryOp : (Const.const -> bool) -> term -> term * term
 
 val stripBinaryOp : (Const.const -> bool) -> term -> term list * term
 
+(* Ternary operators *)
+
+val destTernaryOp : (Const.const -> bool) -> term -> term * term * term
+
 (* Quantifiers *)
 
 val destQuant : (Const.const -> bool) -> term -> Var.var * term
@@ -266,7 +270,7 @@ val destQuant : (Const.const -> bool) -> term -> Var.var * term
 val stripQuant : (Const.const -> bool) -> term -> Var.var list * term
 
 (* ------------------------------------------------------------------------- *)
-(* Boolean syntax.                                                           *)
+(* Special syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
 (* Truth *)
@@ -345,11 +349,37 @@ val isExistsUnique : term -> bool
 
 val stripExistsUnique : term -> Var.var list * term
 
-(* ------------------------------------------------------------------------- *)
-(* Generalized abstractions.                                                 *)
-(* ------------------------------------------------------------------------- *)
+(* Conditional *)
+
+val isCondConst : term -> bool
+
+val destCond : term -> term * term * term
+
+val isCond : term -> bool
+
+(* Generalized abstractions *)
 
 val destGenAbs : term -> term * term
+
+val isGenAbs : term -> bool
+
+(* Let bindings *)
+
+val destLet : term -> term * term * term
+
+val isLet : term -> bool
+
+(* Numerals *)
+
+val destNumeral : term -> int
+
+val isNumeral : term -> bool
+
+(* Set comprehensions *)
+
+val destComprehension : term -> Var.var * Var.var list * term * term
+
+val isComprehension : term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

@@ -62,6 +62,9 @@ val isPackage : theory -> bool
 
 val existsArticleTheory : (PackageTheory.name * theory) list -> bool
 
+val peekTheory :
+    PackageTheory.name -> (PackageTheory.name * theory) list -> theory option
+
 val mainTheory : (PackageTheory.name * theory) list -> theory
 
 (* ------------------------------------------------------------------------- *)

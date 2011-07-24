@@ -1031,6 +1031,17 @@ fun stripBinaryOp p =
       strip []
     end;
 
+(* Ternary operators *)
+
+fun destTernaryOp p tm =
+    let
+      val (cab,c) = destApp tm
+
+      val (a,b) = destBinaryOp p cab
+    in
+      (a,b,c)
+    end;
+
 (* Quantifiers *)
 
 fun destQuant p tm =
@@ -1164,9 +1175,15 @@ fun stripExistsUnique tm =
       (List.rev vs, tm)
     end;
 
-(* ------------------------------------------------------------------------- *)
-(* Generalized abstractions.                                                 *)
-(* ------------------------------------------------------------------------- *)
+(* Conditional *)
+
+val isCondConst = isNullaryOp Const.isCond;
+
+val destCond = destTernaryOp Const.isCond;
+
+val isCond = can destCond;
+
+(* Generalized abstractions *)
 
 fun destGenAbs tm =
     case total destAbs tm of
@@ -1199,6 +1216,134 @@ fun destGenAbs tm =
       in
         (pat,body)
       end;
+
+val isGenAbs = can destGenAbs;
+
+(* Let bindings *)
+
+local
+  fun transfer v t =
+      case total destGenAbs t of
+        NONE => (v,t)
+      | SOME (w,t) => transfer (mkApp (v,w)) t;
+in
+  fun destLet tm =
+      let
+        val (vb,t) = destApp tm
+
+        val (v,b) = destGenAbs vb
+
+        val (v,t) = transfer v t
+      in
+        (v,t,b)
+      end;
+end;
+
+val isLet = can destLet;
+
+(* Numerals *)
+
+fun destFromNatural tm =
+    let
+      val (f,t) = destApp tm
+
+      val (c,_) = destConst f
+    in
+      if Const.isFromNatural c then t
+      else raise Error "Term.destFromNatural"
+    end;
+
+local
+  fun destNum tm =
+      case dest tm of
+        TypeTerm.Const' (c,_) =>
+        if Const.isZero c then 0
+        else raise Error "Term.destNumeral: bad const"
+      | TypeTerm.App' (f,x) =>
+        let
+          val (c,_) = destConst f
+        in
+          if Const.isBit0 c then
+            let
+              val i = destNum x
+            in
+              if i > 0 then 2 * i
+              else raise Error "Term.destNumeral: bit0 zero"
+            end
+          else if Const.isBit0 c then
+            let
+              val i = destNum x
+            in
+              2 * i + 1
+            end
+          else
+            raise Error "Term.destNumeral: bad app"
+        end
+      | _ => raise Error "Term.destNumeral: bad term";
+in
+  fun destNumeral tm =
+      let
+        val tm =
+            case total destFromNatural tm of
+              SOME t => t
+            | NONE => tm
+      in
+        destNum tm
+      end;
+end
+
+val isNumeral = can destNumeral;
+
+(* Set comprehensions *)
+
+val destFromPredicate = destUnaryOp Const.isFromPredicate;
+
+fun destComprehension tm =
+    let
+      val tm = destFromPredicate tm
+
+      val (v,tm) = destAbs tm
+
+      val (vl,tm) = stripExists tm
+
+      val vs = VarSet.fromList vl
+
+      val () =
+          if length vl = VarSet.size vs then ()
+          else raise Error "Term.destComprehension: duplicate vars"
+
+      val () =
+          if not (VarSet.member v vs) then ()
+          else raise Error "Term.destComprehension: var capture"
+
+      val (tm,pred) = destConj tm
+
+      val (v',pat) = destEq tm
+
+      val () =
+          if equalVar v v' then ()
+          else raise Error "Term.destComprehension: missing var"
+
+      val fvs = freeVars pat
+
+      val () =
+          if not (VarSet.member v fvs) then ()
+          else raise Error "Term.destComprehension: var in pat"
+
+      val () =
+          if not (VarSet.member v (freeVars pred)) then ()
+          else raise Error "Term.destComprehension: var in pred"
+
+      val () =
+          if VarSet.subset vs fvs then ()
+          else raise Error "Term.destComprehension: unused pat var"
+    in
+      case vl of
+        [] => raise Error "Term.destComprehension: no pat vars"
+      | v :: vl => (v,vl,pat,pred)
+    end;
+
+val isComprehension = can destComprehension;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -1392,7 +1537,7 @@ local
 
     local
       val nameNeg = mkName stringNeg
-      and nameBoolNeg = mkName "\\lnot"
+      and nameBoolNeg = mkName stringBoolNeg
       and tyBoolNeg = Type.mkFun (Type.bool,Type.bool);
 
       fun isBoolNeg n ty =
@@ -1523,6 +1668,7 @@ end;
 local
   val mkName = Name.mkGlobal;
 
+(***
   val bit0Name = mkName "bit0"
   and bit1Name = mkName "bit1"
   and condName = mkName "cond"
@@ -1532,6 +1678,7 @@ local
   and fromNaturalName = mkName "fromNatural"
   and fromPredicateName = mkName "fromPredicate"
   and zeroName = mkName "zero";
+***)
 
   val mkMap =
       let
@@ -1556,211 +1703,6 @@ local
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
              ppNumeral ppVar show =
       let
-        fun destConj show tm =
-            let
-              val (tm,b) = destApp tm
-
-              val (tm,a) = destApp tm
-
-              val n = showConst show (destConst tm)
-
-              val () = if Name.equal n conjName then ()
-                       else raise Error "Term.pp.destConj"
-            in
-              (a,b)
-            end
-
-        fun destFromPredicate show tm =
-            let
-              val (tm,a) = destApp tm
-
-              val n = showConst show (destConst tm)
-
-              val () = if Name.equal n fromPredicateName then ()
-                       else raise Error "Term.pp.destFromPredicate"
-            in
-              a
-            end
-
-        fun destCond show tm =
-            let
-              val (tm,b) = destApp tm
-
-              val (tm,a) = destApp tm
-
-              val (tm,c) = destApp tm
-
-              val n = showConst show (destConst tm)
-
-              val () = if Name.equal n condName then ()
-                       else raise Error "Term.pp.destCond"
-            in
-              (c,a,b)
-            end
-
-        fun isCond show = can (destCond show)
-
-        fun destForall show tm =
-            let
-              val (c,t) = destApp tm
-
-              val n = showConst show (destConst c)
-
-              val () = if Name.equal n forallName then ()
-                       else raise Error "Term.pp.destForall"
-            in
-              destAbs t
-            end
-
-        fun stripForall show =
-            let
-              fun dst acc tm =
-                  case total (destForall show) tm of
-                    NONE => (rev acc, tm)
-                  | SOME (v,tm) => dst (v :: acc) tm
-            in
-              dst []
-            end
-
-        fun destExists show tm =
-            let
-              val (c,t) = destApp tm
-
-              val n = showConst show (destConst c)
-
-              val () = if Name.equal n existsName then ()
-                       else raise Error "Term.pp.destExists"
-            in
-              destAbs t
-            end
-
-        fun stripExists show =
-            let
-              fun dst acc tm =
-                  case total (destExists show) tm of
-                    NONE => (rev acc, tm)
-                  | SOME (v,tm) => dst (v :: acc) tm
-            in
-              dst []
-            end
-
-        fun destLet show tm =
-            let
-              fun transfer v t =
-                  case total destGenAbs t of
-                    NONE => (v,t)
-                  | SOME (w,t) => transfer (mkApp (v,w)) t
-
-              val (vb,t) = destApp tm
-
-              val (v,b) = destGenAbs vb
-
-              val (v,t) = transfer v t
-            in
-              (v,t,b)
-            end
-
-        fun isLet show = can (destLet show)
-
-        fun destComprehension show tm =
-            let
-              val tm = destFromPredicate show tm
-
-              val (v,tm) = destAbs tm
-
-              val (vl,tm) = stripExists show tm
-
-              val vs = VarSet.fromList vl
-
-              val () =
-                  if length vl = VarSet.size vs then ()
-                  else raise Error "Term.pp.destComprehension: duplicate vars"
-
-              val () =
-                  if not (VarSet.member v vs) then ()
-                  else raise Error "Term.pp.destComprehension: var capture"
-
-              val (tm,pred) = destConj show tm
-
-              val (v',pat) = destEq tm
-
-              val () =
-                  if equalVar v v' then ()
-                  else raise Error "Term.pp.destComprehension: missing var"
-
-              val fvs = freeVars pat
-
-              val () =
-                  if not (VarSet.member v fvs) then ()
-                  else raise Error "Term.pp.destComprehension: var in pat"
-
-              val () =
-                  if not (VarSet.member v (freeVars pred)) then ()
-                  else raise Error "Term.pp.destComprehension: var in pred"
-
-              val () =
-                  if VarSet.subset vs fvs then ()
-                  else raise Error "Term.pp.destComprehension: unused pat var"
-            in
-              case vl of
-                [] => raise Error "Term.pp.destComprehension: no pat vars"
-              | v :: vl => (v,vl,pat,pred)
-            end
-
-        fun isComprehension show = can (destComprehension show);
-
-        fun destNumeral show =
-            let
-              fun destFromNat tm =
-                  case dest tm of
-                    TypeTerm.App' (f,x) =>
-                    let
-                      val n = showConst show (destConst f)
-                    in
-                      if Name.equal n fromNaturalName then x else tm
-                    end
-                  | _ => tm
-
-              fun destNum tm =
-                  case dest tm of
-                    TypeTerm.Const' c =>
-                    let
-                      val n = showConst show c
-                    in
-                      if Name.equal n zeroName then 0
-                      else raise Error "Term.pp.destNumeral: bad const"
-                    end
-                  | TypeTerm.App' (f,x) =>
-                    let
-                      val n = showConst show (destConst f)
-                    in
-                      if Name.equal n bit0Name then
-                        let
-                          val i = destNum x
-                        in
-                          if i > 0 then 2 * i
-                          else raise Error "Term.pp.destNumeral: bit0 zero"
-                        end
-                      else if Name.equal n bit1Name then
-                        let
-                          val i = destNum x
-                        in
-                          2 * i + 1
-                        end
-                      else raise Error "Term.pp.destNumeral: bad app"
-                    end
-                  | _ => raise Error "Term.pp.destNumeral: bad term"
-            in
-              fn tm =>
-                 let
-                   val i = destNum (destFromNat tm)
-                 in
-                   (i, typeOf tm)
-                 end
-            end
-
-        fun isNumeral show = can (destNumeral show);
-
         fun ppConst c_ty =
             let
               val n = showConst show c_ty
@@ -1869,13 +1811,13 @@ local
             end
 
         fun destGenApp tm =
-            if isNumeral show tm then
+            if isNumeral tm then
               raise Error "Term.pp.destGenApp: numeral"
-            else if isCond show tm then
+            else if isCond tm then
               raise Error "Term.pp.destGenApp: cond"
-            else if isLet show tm then
+            else if isLet tm then
               raise Error "Term.pp.destGenApp: let"
-            else if isComprehension show tm then
+            else if isComprehension tm then
               raise Error "Term.pp.destGenApp: comprehension"
             else if isInfix tm then
               raise Error "Term.pp.destGenApp: infix"
@@ -1896,10 +1838,10 @@ local
             end
 
         fun ppBasicTerm tm =
-            case total (destNumeral show) tm of
-              SOME i_ty => ppNumeral i_ty
+            case total destNumeral tm of
+              SOME i => ppNumeral (i, typeOf tm)
             | NONE =>
-              case total (destComprehension show) tm of
+              case total destComprehension tm of
                 SOME v_vs_pat_pred => ppComprehension v_vs_pat_pred
               | NONE =>
                 case dest tm of
@@ -1967,7 +1909,7 @@ local
               else
                 Print.blockProgram Print.Inconsistent 2
                   (List.map ppNegationName cs @
-                   [if isInfix tm orelse isCond show tm then ppBracketTerm tm
+                   [if isInfix tm orelse isCond tm then ppBracketTerm tm
                     else ppBinderTerm (tm,r)])
             end
 
@@ -1984,7 +1926,7 @@ local
                   Print.addBreak 1,
                   ppLetCondTerm (a,true)]] ::
             Print.addBreak 1 ::
-            (case total (destCond show) b of
+            (case total destCond b of
                SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
              | NONE =>
                  [Print.blockProgram Print.Inconsistent 2
@@ -2001,24 +1943,24 @@ local
                ppLetCondTerm (t,true),
                Print.ppString " in"] ::
             Print.addBreak 1 ::
-            (case total (destLet show) b of
+            (case total destLet b of
                NONE => [ppLetCondTerm (b,r)]
              | SOME (v,t,b) => ppLetTerm (v,t,b,r))
 
         and ppLetCondTerm (tm,r) =
-            case total (destLet show) tm of
+            case total destLet tm of
               SOME (v,t,b) =>
                 Print.blockProgram Print.Consistent 0
                   (ppLetTerm (v,t,b,r))
             | NONE =>
-              case total (destCond show) tm of
+              case total destCond tm of
                 SOME (c,a,b) =>
                 Print.blockProgram Print.Consistent 0
                   (ppCondTerm (true,c,a,b,r))
               | NONE => ppInfixTerm (tm,r)
 
         and ppLetConditionalTerm (tm,r) =
-            if not (isLet show tm orelse isCond show tm) then
+            if not (isLet tm orelse isCond tm) then
               ppNegationTerm (tm,r)
             else if r then
               ppBracketTerm tm

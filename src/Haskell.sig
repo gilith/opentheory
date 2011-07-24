@@ -6,5 +6,8 @@
 signature Haskell =
 sig
 
+val prefix : PackageName.name
+
+val export : Directory.directory -> PackageNameVersion.nameVersion -> unit
 
 end

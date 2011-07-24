@@ -126,26 +126,25 @@ fun lastChar n =
 (* Type operators.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(* Primitives *)
+(* Primitive *)
 
-val boolTypeOp = mkGlobal "bool";
-
-val funTypeOp = mkGlobal "->";
-
-val indTypeOp = mkGlobal "ind";
+val boolTypeOp = mkGlobal "bool"
+and funTypeOp = mkGlobal "->"
+and indTypeOp = mkGlobal "ind";
 
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-(* Primitives *)
+(* Primitive *)
 
 val eqConst = mkGlobal "="
 and selectConst = mkGlobal "select";
 
 (* Boolean *)
 
-val conjConst = mk (Namespace.bool,"/\\")
+val condConst = mk (Namespace.bool,"cond")
+and conjConst = mk (Namespace.bool,"/\\")
 and disjConst = mk (Namespace.bool,"\\/")
 and existsConst = mk (Namespace.bool,"?")
 and existsUniqueConst = mk (Namespace.bool,"?!")
@@ -154,6 +153,18 @@ and forallConst = mk (Namespace.bool,"!")
 and impConst = mk (Namespace.bool,"==>")
 and negConst = mk (Namespace.bool,"~")
 and trueConst = mk (Namespace.bool,"T");
+
+(* Natural numbers *)
+
+val bit0Const = mk (Namespace.natural,"bit0")
+and bit1Const = mk (Namespace.natural,"bit1")
+and zeroConst = mk (Namespace.natural,"zero");
+
+fun isFromNaturalConst (Name (_,s)) = s = "fromNatural";
+
+(* Sets *)
+
+val fromPredicateConst = mk (Namespace.set,"fromPredicate");
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)

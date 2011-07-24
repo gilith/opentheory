@@ -60,6 +60,10 @@ val rewrite : namespace * namespace -> namespace -> namespace
 
 val bool : namespace
 
+val natural : namespace
+
+val set : namespace
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)

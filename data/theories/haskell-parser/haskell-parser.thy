@@ -1,14 +1,14 @@
 name: haskell-parser
-version: 1.0
+version: 1.2
 description: Parser ready to be synthesized as Haskell
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 
-thm {
+def {
   interpret: type "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
+  interpret: const "Parser.Stream.case" as "Haskell.Parser.Stream.Stream.case"
   interpret: const "Parser.Stream.append" as "Haskell.Parser.Stream.append"
-  interpret: const "Parser.Stream.case" as "Haskell.Parser.Stream.case"
   interpret: const "Parser.Stream.eof" as "Haskell.Parser.Stream.Eof"
   interpret: const "Parser.Stream.error" as "Haskell.Parser.Stream.Error"
   interpret: const "Parser.Stream.fromList" as "Haskell.Parser.Stream.fromList"
@@ -21,8 +21,8 @@ thm {
 }
 
 src {
-  import: thm
-  package: haskell-parser-src-1.0
+  import: def
+  package: haskell-parser-src-1.2
 }
 
 main {

@@ -103,6 +103,10 @@ end;
 
 val bool = fromList ["Data","Bool"];
 
+val natural = fromList ["Number","Natural"];
+
+val set = fromList ["Set"];
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)

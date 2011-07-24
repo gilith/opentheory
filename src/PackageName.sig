@@ -102,4 +102,12 @@ val installedChecksums : name
 
 val gilithRepo : name
 
+(* ------------------------------------------------------------------------- *)
+(* Haskell export names.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val haskellExport : name
+
+val srcHaskellExport : name
+
 end

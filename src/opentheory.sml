@@ -340,6 +340,18 @@ val cleanupFooter =
     "With no <package-name> arguments will clean up all staged packages.\n";
 
 (* ------------------------------------------------------------------------- *)
+(* Options for cleaning up staged packages.                                  *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val exportOpts : opt list = [];
+end;
+
+val exportFooter = "";
+
+(* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
 (* ------------------------------------------------------------------------- *)
 
@@ -741,6 +753,7 @@ val uploadFooter = "";
 
 datatype command =
     Cleanup
+  | Export
   | Help
   | Info
   | Init
@@ -752,6 +765,7 @@ datatype command =
 
 val allCommands =
     [Cleanup,
+     Export,
      Help,
      Info,
      Init,
@@ -764,6 +778,7 @@ val allCommands =
 fun commandString cmd =
     case cmd of
       Cleanup => "cleanup"
+    | Export => "export"
     | Help => "help"
     | Info => "info"
     | Init => "init"
@@ -776,6 +791,7 @@ fun commandString cmd =
 fun commandArgs cmd =
     case cmd of
       Cleanup => " <package-name> ..."
+    | Export => " <package-name>"
     | Help => ""
     | Info => " <package-name>|input.thy|input.art"
     | Init => ""
@@ -788,6 +804,7 @@ fun commandArgs cmd =
 fun commandDescription cmd =
     case cmd of
       Cleanup => "clean up staged theory packages"
+    | Export => "export an installed theory package"
     | Help => "display command help"
     | Info => "display package information"
     | Init => "initialize package directory"
@@ -800,6 +817,7 @@ fun commandDescription cmd =
 fun commandFooter cmd =
     case cmd of
       Cleanup => cleanupFooter
+    | Export => exportFooter
     | Help => helpFooter
     | Info => infoFooter
     | Init => initFooter
@@ -812,6 +830,7 @@ fun commandFooter cmd =
 fun commandOpts cmd =
     case cmd of
       Cleanup => cleanupOpts
+    | Export => exportOpts
     | Help => helpOpts
     | Info => infoOpts
     | Init => initOpts
@@ -1015,6 +1034,28 @@ fun cleanup nameverl =
     end
     handle Error err =>
       raise Error (err ^ "\ncleaning up staged package failed");
+
+(* ------------------------------------------------------------------------- *)
+(* Uninstalling theory packages.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  val isHaskell = PackageName.isStrictPrefix Haskell.prefix;
+in
+  fun export namever =
+      let
+        val dir = directory ()
+
+        val namever = PackageNameVersion.fromString namever
+
+        val name = PackageNameVersion.name namever
+      in
+        if isHaskell name then Haskell.export dir namever
+        else raise Error ("unknown export type: " ^ PackageName.toString name)
+      end
+      handle Error err =>
+        raise Error (err ^ "\ntheory package export failed");
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying command help.                                                  *)
@@ -2561,6 +2602,7 @@ let
   val () =
       case (cmd,work) of
         (Cleanup,pkgs) => cleanup pkgs
+      | (Export,[pkg]) => export pkg
       | (Help,[]) => help ()
       | (Info,[inp]) =>
         let

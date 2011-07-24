@@ -63,8 +63,12 @@ val select : const
 val isSelect : const -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Boolean syntax.                                                           *)
+(* Special syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+(* Boolean *)
+
+val isCond : const -> bool
 
 val isConj : const -> bool
 
@@ -83,6 +87,20 @@ val isImp : const -> bool
 val isNeg : const -> bool
 
 val isTrue : const -> bool
+
+(* Natural numbers *)
+
+val isBit0 : const -> bool
+
+val isBit1 : const -> bool
+
+val isFromNatural : const -> bool
+
+val isZero : const -> bool
+
+(* Sets *)
+
+val isFromPredicate : const -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

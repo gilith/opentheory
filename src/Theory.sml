@@ -136,6 +136,19 @@ fun isArticleTheory (_ : PackageTheory.name, thy) = isArticle thy;
 
 fun existsArticleTheory theories = List.exists isArticleTheory theories;
 
+fun peekTheory name theories =
+    case List.filter (PackageName.equal name o fst) theories of
+      [] => NONE
+    | [(_,thy)] => SOME thy
+    | _ :: _ :: _ =>
+      let
+        val err =
+            "Theory.peekTheory: multiple " ^
+            PackageName.toString name ^ " theories"
+      in
+        raise Error err
+      end;
+
 fun isMainTheory (name, _ : theory) = PackageTheory.isMainName name;
 
 fun mainTheory theories =
