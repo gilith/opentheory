@@ -81,8 +81,9 @@ val singleHyp = TermAlphaSet.singleton;
 
 fun axiom sequent =
     let
-      val _ = Sequent.boolean sequent orelse
-              raise Error "Thm.axiom: sequent is not boolean"
+      val () =
+          if Sequent.boolean sequent then ()
+          else raise Error "Thm.axiom: sequent is not boolean"
 
       val axioms = singleAxiom sequent
     in
@@ -104,8 +105,9 @@ fun abs v th =
             TermAlphaSet.foldl add VarSet.empty hyp
           end
 
-      val _ = not (VarSet.member v fv) orelse
-              raise Error "Thm.abs: free in hypothesis"
+      val () =
+          if not (VarSet.member v fv) then ()
+          else raise Error "Thm.abs: free in hypothesis"
 
       val concl = Term.mkEq (Term.mkAbs (v,a), Term.mkAbs (v,b))
 
@@ -136,8 +138,9 @@ fun app th1 th2 =
 
 fun assume t =
     let
-      val _ = Type.equal (Term.typeOf t) Type.bool orelse
-              raise Error "Thm.assume: not a proposition"
+      val () =
+          if Type.isBool (Term.typeOf t) then ()
+          else raise Error "Thm.assume: not a proposition"
 
       val axioms = emptyAxioms
       and hyp = singleHyp t
@@ -213,8 +216,9 @@ fun eqMp th1 th2 =
 
       val (c2',concl) = Term.destEq c1
 
-      val _ = Term.alphaEqual c2 c2' orelse
-              raise Error "Thm.eqMp: not alpha equivalent"
+      val () =
+          if Term.alphaEqual c2 c2' then ()
+          else raise Error "Thm.eqMp: not alpha equivalent"
 
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
@@ -249,11 +253,13 @@ fun defineConst name t =
     let
       val ty = Term.typeOf t
 
-      val _ = VarSet.null (Term.freeVars t) orelse
-              raise Error "Thm.defineConst: term not closed"
+      val () =
+          if VarSet.null (Term.freeVars t) then ()
+          else raise Error "Thm.defineConst: term not closed"
 
-      val _ = NameSet.subset (Term.typeVars t) (Type.typeVars ty) orelse
-              raise Error "Thm.defineConst: extra type variables in term"
+      val () =
+          if NameSet.subset (Term.typeVars t) (Type.typeVars ty) then ()
+          else raise Error "Thm.defineConst: extra type variables in term"
 
       val c =
           TypeTerm.Const
@@ -275,19 +281,25 @@ fun defineTypeOp name {abs} {rep} tyVars existenceTh =
 
       val Sequent.Sequent {hyp,concl} = sequent
 
-      val _ = TermAlphaSet.null hyp orelse
-              raise Error "Thm.defineTypeOp: existence theorem must not have hypotheses"
+      val () =
+          if TermAlphaSet.null hyp then ()
+          else raise Error "Thm.defineTypeOp: hypotheses in existence theorem"
 
       val (pTm,tTm) = Term.destApp concl
 
-      val _ = VarSet.null (Term.freeVars pTm) orelse
-              raise Error "Thm.defineTypeOp: predicate is not closed"
+      val () =
+          if VarSet.null (Term.freeVars pTm) then ()
+          else raise Error "Thm.defineTypeOp: predicate is not closed"
 
-      val _ = NameSet.equal (NameSet.fromList tyVars) (Term.typeVars pTm) orelse
-              raise Error "Thm.defineTypeOp: supplied type vars are not the type vars in p"
+      val tyVarSet = NameSet.fromList tyVars
 
-      val _ = NameSet.size (NameSet.fromList tyVars) = length tyVars orelse
-              raise Error "Thm.defineTypeOp: supplied type variables contain duplicates"
+      val () =
+          if NameSet.size tyVarSet = length tyVars then ()
+          else raise Error "Thm.defineTypeOp: duplicates in supplied type vars"
+
+      val () =
+          if NameSet.equal tyVarSet (Term.typeVars pTm) then ()
+          else raise Error "Thm.defineTypeOp: supplied type vars differ from p"
 
       val prov =
           TypeTerm.DefOpTy
