@@ -6,7 +6,6 @@ license: MIT
 show: "Data.Bool"
 show: "Data.List"
 show: "Number.Natural"
-show: "Number.Numeral"
 
 def {
   package: list-interval-def-1.13

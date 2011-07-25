@@ -20,8 +20,8 @@ val prefix = PackageName.haskellExport;
 
 datatype data =
     Data of
-      {name : Name.name,
-       constructors : (Name.name * Term.term list) list};
+      {name : TypeOp.typeOp,
+       constructors : (Const.const * Type.ty list) list};
 
 datatype source =
     DataSource of data;
@@ -64,23 +64,57 @@ local
       let
         val (p,t0) = Term.destForall tm
 
+        fun destP t =
+            let
+              val (p',x) = Term.destApp t
+
+              val () =
+                  if Term.equalVar p p' then ()
+                  else raise Error "bad p"
+            in
+              x
+            end
+
         val (t1,t2) = Term.destImp t0
 
         val ty =
             let
               val (x,px) = Term.destForall t2
 
-              val (p',x') = Term.destApp px
-
-              val () =
-                  if Term.equalVar p p' then ()
-                  else raise Error "bad p"
+              val x' = destP px
 
               val () =
                   if Term.equalVar x x' then ()
                   else raise Error "bad x"
             in
               Var.typeOf x
+            end
+
+        fun destCon t =
+            let
+              val (vs,t0) = Term.stripForall t
+
+              val t1 =
+                  case total Term.destImp t0 of
+                    NONE => t0
+                  | SOME (t2,t3) =>
+                    let
+                      val vs = VarSet.fromList vs
+
+                      fun check t =
+                          if VarSet.member (Term.destVar (destP t)) vs then ()
+                          else raise Error "bad step assumption"
+
+                      val () = List.app check (Term.stripConj t2)
+                    in
+                      t3
+                    end
+
+              val (t2,ts) = Term.stripApp t1
+
+              val (c,_) = Term.destConst t2
+            in
+              (c, List.map Term.typeOf ts)
             end
 
         val name =
@@ -98,7 +132,9 @@ local
 
         val ts = Term.stripConj t1
       in
-        raise Error "not implemented"
+        Data
+          {name = name,
+           constructors = List.map destCon ts}
       end
       handle Error err =>
         raise Error ("bad induction conjunct: " ^ err);
@@ -193,14 +229,16 @@ fun destSource th =
       | (Right _, Right _, Left x) => raise Error "not implemented"
       | (Right e1, Right e2, Right e3) =>
         let
-          val err = "bad source theorem:\n  " ^ e1 ^ "\n  " ^ e2 ^ "\n  " ^ e3
+          val err =
+              "bad source theorem:\n  " ^ e1 ^ "\n  " ^ e2 ^ "\n  " ^ e3 ^
+              "\n" ^ Print.toString Thm.pp th
         in
           raise Error err
         end
       | _ => raise Bug "Haskell.destSource: ambiguous"
     end;
 
-fun destSrc src =
+fun destSourceTheory src =
     let
       val art = Theory.article src
 
@@ -213,7 +251,7 @@ fun convert namever thy =
     let
       val {src} = splitTheories thy
 
-      val source = destSrc src
+      val source = destSourceTheory src
     in
       Haskell
         {nameVersion = namever,

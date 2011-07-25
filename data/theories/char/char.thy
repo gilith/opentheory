@@ -11,7 +11,6 @@ show: "Data.Option" as "Option"
 show: "Data.Pair"
 show: "Data.Word16" as "Word16"
 show: "Number.Natural" as "Natural"
-show: "Number.Numeral"
 show: "Parser"
 
 def {

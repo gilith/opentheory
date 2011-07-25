@@ -6,7 +6,7 @@ license: MIT
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Word"
-show: "Number.Numeral"
+show: "Number.Natural" as "Natural"
 
 def {
   package: word-bits-def-1.12

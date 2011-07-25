@@ -6,7 +6,6 @@ license: MIT
 show: "Data.Bool"
 show: "Function"
 show: "Number.Natural"
-show: "Number.Numeral"
 
 axiom-infinity {
   package: axiom-infinity-1.1

@@ -6,7 +6,7 @@ license: MIT
 show: "Data.Bool"
 show: "Data.Word16"
 show: "Data.List"
-show: "Number.Numeral"
+show: "Number.Natural" as "Natural"
 
 def {
   package: word16-def-1.0

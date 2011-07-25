@@ -1668,18 +1668,6 @@ end;
 local
   val mkName = Name.mkGlobal;
 
-(***
-  val bit0Name = mkName "bit0"
-  and bit1Name = mkName "bit1"
-  and condName = mkName "cond"
-  and conjName = mkName "/\\"
-  and existsName = mkName "?"
-  and forallName = mkName "!"
-  and fromNaturalName = mkName "fromNatural"
-  and fromPredicateName = mkName "fromPredicate"
-  and zeroName = mkName "zero";
-***)
-
   val mkMap =
       let
         fun add (s,m) =

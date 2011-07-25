@@ -5,7 +5,7 @@ author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 show: "Number.Modular"
-show: "Number.Numeral"
+show: "Number.Natural" as "Natural"
 
 mod {
   package: modular-mod-1.2

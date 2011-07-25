@@ -12,7 +12,6 @@ show: "Data.Word10"
 show: "Data.Word12"
 show: "Function"
 show: "Number.Natural"
-show: "Number.Numeral"
 show: "Set"
 show: "System.H"
 

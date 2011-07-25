@@ -6,7 +6,6 @@ license: MIT
 show: "Data.Bool"
 show: "Data.Option"
 show: "Number.Natural"
-show: "Number.Numeral"
 
 def {
   package: option-def-1.9

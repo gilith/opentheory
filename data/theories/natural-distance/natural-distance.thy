@@ -5,7 +5,6 @@ author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 show: "Number.Natural"
-show: "Number.Numeral"
 
 def {
   package: natural-distance-def-1.8

@@ -6,7 +6,7 @@ license: MIT
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.List"
-show: "Number.Numeral"
+show: "Number.Natural" as "Natural"
 
 def {
   package: byte-def-1.0

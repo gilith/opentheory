@@ -7,7 +7,6 @@ show: "Data.Bool"
 show: "Data.Pair"
 show: "Function"
 show: "Number.Natural"
-show: "Number.Numeral"
 show: "Set"
 
 def {

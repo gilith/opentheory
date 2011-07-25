@@ -7,7 +7,6 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Function"
 show: "Number.Natural"
-show: "Number.Numeral"
 
 def {
   package: list-def-1.9

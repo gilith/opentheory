@@ -6,7 +6,6 @@ license: HOLLight
 provenance: HOL Light theory extracted on 2011-07-20
 show: "Data.Bool"
 show: "Number.Natural" as "Natural"
-show: "Number.Numeral"
 show: "Number.Real"
 show: "Set"
 

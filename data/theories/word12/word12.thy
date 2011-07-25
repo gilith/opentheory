@@ -6,7 +6,7 @@ license: MIT
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Word12"
-show: "Number.Numeral"
+show: "Number.Natural" as "Natural"
 
 def {
   package: word12-def-1.1

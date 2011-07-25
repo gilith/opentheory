@@ -6,7 +6,6 @@ license: MIT
 show: "Data.Bool"
 show: "Data.Sum"
 show: "Number.Natural"
-show: "Number.Numeral"
 
 def {
   package: sum-def-1.9
