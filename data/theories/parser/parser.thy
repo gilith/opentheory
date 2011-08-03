@@ -1,5 +1,5 @@
 name: parser
-version: 1.18
+version: 1.19
 description: Basic theory of parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,11 +7,12 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
+show: "Number.Natural"
 show: "Parser"
 show: "Relation"
 
 stream {
-  package: parser-stream-1.17
+  package: parser-stream-1.18
 }
 
 comb {
@@ -22,7 +23,7 @@ comb {
 all {
   import: stream
   import: comb
-  package: parser-all-1.14
+  package: parser-all-1.15
 }
 
 main {

@@ -1,5 +1,5 @@
 name: list
-version: 1.13
+version: 1.14
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,12 +9,12 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: list-def-1.9
+  package: list-def-1.10
 }
 
 thm {
   import: def
-  package: list-thm-1.9
+  package: list-thm-1.10
 }
 
 dest {
@@ -27,14 +27,14 @@ length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.10
+  package: list-length-1.11
 }
 
 set {
   import: def
   import: thm
   import: length
-  package: list-set-1.9
+  package: list-set-1.10
 }
 
 append {
@@ -43,7 +43,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.10
+  package: list-append-1.11
 }
 
 map {
@@ -52,7 +52,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.10
+  package: list-map-1.11
 }
 
 quant {
@@ -68,7 +68,7 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.10
+  package: list-filter-1.11
 }
 
 last {
@@ -84,7 +84,7 @@ reverse {
   import: length
   import: set
   import: append
-  package: list-reverse-1.10
+  package: list-reverse-1.11
 }
 
 nth {
@@ -97,14 +97,14 @@ nth {
   import: map
   import: last
   import: length
-  package: list-nth-1.10
+  package: list-nth-1.11
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.10
+  package: list-replicate-1.11
 }
 
 member {
@@ -117,7 +117,7 @@ member {
   import: reverse
   import: length
   import: nth
-  package: list-member-1.12
+  package: list-member-1.13
 }
 
 concat {
@@ -135,20 +135,20 @@ take-drop {
   import: append
   import: length
   import: nth
-  package: list-take-drop-1.11
+  package: list-take-drop-1.12
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.11
+  package: list-interval-1.12
 }
 
 zipwith {
   import: def
   import: dest
   import: length
-  package: list-zipwith-1.11
+  package: list-zipwith-1.12
 }
 
 nub {
@@ -156,7 +156,7 @@ nub {
   import: reverse
   import: length
   import: member
-  package: list-nub-1.11
+  package: list-nub-1.12
 }
 
 main {

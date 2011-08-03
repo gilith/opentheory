@@ -1,5 +1,5 @@
 name: set-finite
-version: 1.8
+version: 1.9
 description: Finite set theory
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: set-finite-thm-1.12
+  package: set-finite-thm-1.13
 }
 
 main {

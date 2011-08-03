@@ -1,5 +1,5 @@
 name: natural-numeral
-version: 1.3
+version: 1.4
 description: Definitions and theorems about natural number numerals
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-numeral-def-1.3
+  package: natural-numeral-def-1.4
 }
 
 thm {
   import: def
-  package: natural-numeral-thm-1.1
+  package: natural-numeral-thm-1.2
 }
 
 main {

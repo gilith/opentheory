@@ -1,5 +1,5 @@
 name: list-zipwith
-version: 1.11
+version: 1.12
 description: Definitions and theorems about the list zipWith function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: list-zipwith-thm-1.8
+  package: list-zipwith-thm-1.9
 }
 
 main {
