@@ -25,14 +25,31 @@ datatype rewrite =
   | ConstRewrite of Name.name * Name.name;
 
 local
+  fun compareName2 ((x1,y1),(x2,y2)) =
+      case Name.compare (y1,y2) of
+        LESS => LESS
+      | EQUAL => Name.compare (x1,x2)
+      | GREATER => GREATER;
+in
+  fun compareRewrite rw1_rw2 =
+      case rw1_rw2 of
+        (TypeOpRewrite xy1, TypeOpRewrite xy2) => compareName2 (xy1,xy2)
+      | (TypeOpRewrite _, ConstRewrite _) => LESS
+      | (ConstRewrite _, TypeOpRewrite _) => GREATER
+      | (ConstRewrite xy1, ConstRewrite xy2) => compareName2 (xy1,xy2);
+end;
+
+fun equalRewrite rw1 rw2 = compareRewrite (rw1,rw2) = EQUAL;
+
+local
   fun ppName2 prefix (x,y) =
       Print.blockProgram Print.Inconsistent 2
         [Print.ppString prefix,
-         Print.addBreak 1,
+         Print.ppString " ",
          Name.ppQuoted x,
          Print.ppString " ",
          Print.ppString rewriteString,
-         Print.addBreak 1,
+         Print.ppString " ",
          Name.ppQuoted y];
 in
   fun ppRewrite r =
@@ -219,7 +236,7 @@ in
 
       val rws = NameMap.foldr addTypeOp rws typeOps
     in
-      rws
+      sort compareRewrite rws
     end;
 end;
 

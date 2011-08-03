@@ -114,8 +114,8 @@ Substitution
 --------------------------------------------------------------------------
 Reading interpretations
 
-type "HOLLight.bool" as "bool"
 type "HOLLight.fun" as "->"
+type "HOLLight.bool" as "bool"
 const "HOLLight.=" as "="
 const "HOLLight.T" as "Data.Bool.T"
 

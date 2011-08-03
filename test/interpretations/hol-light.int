@@ -4,8 +4,8 @@
 
 # Global
 
-type "HOLLight.bool" as "bool"
 type "HOLLight.fun" as "->"
+type "HOLLight.bool" as "bool"
 const "HOLLight.=" as "="
 
 # Data

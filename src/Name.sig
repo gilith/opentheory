@@ -16,6 +16,8 @@ val mk : Namespace.namespace * string -> name
 
 val dest : name -> Namespace.namespace * string
 
+val namespace : name -> Namespace.namespace
+
 (* ------------------------------------------------------------------------- *)
 (* The top level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -50,9 +52,7 @@ val variantNum : {avoid : name -> bool} -> name -> name
 (* Rewriting names.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val rewrite : Namespace.namespace * Namespace.namespace -> name -> name
-
-val replace : name * name -> name -> name
+val rewrite : Namespace.namespace * Namespace.namespace -> name -> name option
 
 (* ------------------------------------------------------------------------- *)
 (* Characters.                                                               *)

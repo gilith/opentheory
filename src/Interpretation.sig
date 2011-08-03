@@ -14,6 +14,10 @@ datatype rewrite =
     TypeOpRewrite of Name.name * Name.name
   | ConstRewrite of Name.name * Name.name
 
+val compareRewrite : rewrite * rewrite -> order
+
+val equalRewrite : rewrite -> rewrite -> bool
+
 val ppRewrite : rewrite Print.pp
 
 val ppRewriteList : rewrite list Print.pp

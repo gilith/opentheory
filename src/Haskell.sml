@@ -23,41 +23,38 @@ datatype data =
       {name : TypeOp.typeOp,
        constructors : (Const.const * Type.ty list) list};
 
+datatype newtype =
+    Newtype of
+      {name : TypeOp.typeOp,
+       predicate : Term.term,
+       abs : Const.const,
+       rep : Const.const};
+
+datatype value =
+    Value of
+      {name : Const.const,
+       ty : Type.ty,
+       equations : (Term.term list * Term.term) list};
+
 datatype source =
-    DataSource of data;
+    DataSource of data
+  | NewtypeSource of newtype
+  | ValueSource of value;
+
+datatype module =
+    Module of
+      {namespace : Namespace.namespace,
+       source : source list,
+       submodules : module list};
 
 datatype haskell =
      Haskell of
-       {nameVersion : PackageNameVersion.nameVersion,
-        source : source list};
+       {package : Package.package,
+        source : module};
 
 (* ------------------------------------------------------------------------- *)
-(* Converting a theory to a Haskell package.                                 *)
+(* Converting theorems into Haskell declarations.                            *)
 (* ------------------------------------------------------------------------- *)
-
-local
-  fun getTheory name thys =
-      case Theory.peekTheory name thys of
-        SOME thy => thy
-      | NONE =>
-        let
-          val err = "missing " ^ PackageName.toString name ^ " block in theory"
-        in
-          raise Error err
-        end;
-in
-  fun splitTheories thy =
-      let
-        val thys =
-            case Theory.node thy of
-              Theory.Package {theories,...} => theories
-            | _ => raise Bug "Haskell.theories: not a package theory"
-
-        val src = getTheory PackageName.srcHaskellExport thys
-      in
-        {src = src}
-      end;
-end;
 
 local
   fun destIndData tm =
@@ -92,12 +89,12 @@ local
 
         fun destCon t =
             let
-              val (vs,t0) = Term.stripForall t
+              val (vs,t3) = Term.stripForall t
 
-              val t1 =
-                  case total Term.destImp t0 of
-                    NONE => t0
-                  | SOME (t2,t3) =>
+              val t4 =
+                  case total Term.destImp t3 of
+                    NONE => t3
+                  | SOME (t5,t6) =>
                     let
                       val vs = VarSet.fromList vs
 
@@ -105,14 +102,16 @@ local
                           if VarSet.member (Term.destVar (destP t)) vs then ()
                           else raise Error "bad step assumption"
 
-                      val () = List.app check (Term.stripConj t2)
+                      val () = List.app check (Term.stripConj t5)
                     in
-                      t3
+                      t6
                     end
 
-              val (t2,ts) = Term.stripApp t1
+              val t5 = destP t4
 
-              val (c,_) = Term.destConst t2
+              val (t6,ts) = Term.stripApp t5
+
+              val (c,_) = Term.destConst t6
             in
               (c, List.map Term.typeOf ts)
             end
@@ -168,10 +167,12 @@ in
         val (recData,caseData) = Term.destConj recCaseData
 
         val indData = destIndData indData
+(***
         and recData = destRecData recData
         and caseData = destCaseData caseData
+***)
       in
-        raise Error "not implemented"
+        indData
       end
       handle Error err =>
         raise Error ("bad data theorem: " ^ err);
@@ -186,14 +187,102 @@ in
         val () =
             if TermAlphaSet.null hyp then ()
             else raise Error "hypotheses"
+
+        val (absRep,repAbs) = Term.destConj concl
+
+        val (ty,abs,rep) =
+            let
+              val (a,t0) = Term.destForall absRep
+
+              val ty = Var.typeOf a
+
+              val (t1,t2) = Term.destEq t0
+
+              val () =
+                  if Term.equalVar a t2 then ()
+                  else raise Error "bad rhs of absRep"
+
+              val (abs,t3) = Term.destApp t1
+
+              val (rep,t4) = Term.destApp t3
+
+              val () =
+                  if Term.equalVar a t4 then ()
+                  else raise Error "bad var inside absRep"
+            in
+              (ty,abs,rep)
+            end
+
+        val (ty',pred,abs',rep') =
+            let
+              val (r,t0) = Term.destForall repAbs
+
+              val (pred,t1) = Term.destEq t0
+
+              val () =
+                  let
+                    val vs = Term.freeVars pred
+                  in
+                    if VarSet.subset vs (VarSet.singleton r) then ()
+                    else raise Error "extra free vars in predicate"
+                  end
+
+              val (t2,t3) = Term.destEq t1
+
+              val () =
+                  if Term.equalVar r t3 then ()
+                  else raise Error "bad rhs of repAbs"
+
+              val (rep,t4) = Term.destApp t2
+
+              val ty = Term.typeOf t4
+
+              val (abs,t5) = Term.destApp t4
+
+              val () =
+                  if Term.equalVar r t5 then ()
+                  else raise Error "bad var inside repAbs"
+            in
+              (ty,pred,abs,rep)
+            end
+
+        val () =
+            if Type.equal ty ty' then ()
+            else raise Error "different types in absRep and repAbs"
+
+        val () =
+            if Term.equal abs abs' then ()
+            else raise Error "different abstractions in absRep and repAbs"
+
+        val () =
+            if Term.equal rep rep' then ()
+            else raise Error "different representations in absRep and repAbs"
+
+        val (name,_) = Type.destOp ty
+        and (abs,_) = Term.destConst abs
+        and (rep,_) = Term.destConst rep
       in
-        raise Error "not implemented"
+        Newtype
+          {name = name,
+           predicate = pred,
+           abs = abs,
+           rep = rep}
       end
       handle Error err =>
         raise Error ("bad newtype theorem: " ^ err);
 end;
 
 local
+  fun destEqn tm =
+      let
+        val (_,tm) = Term.stripForall tm
+
+        val (l,r) = Term.destEq tm
+
+        val (f,a) = Term.stripApp l
+      in
+        ((f, length a), (a,r))
+      end;
 in
   fun destValue th =
       let
@@ -202,8 +291,27 @@ in
         val () =
             if TermAlphaSet.null hyp then ()
             else raise Error "hypotheses"
+
+        val (fns,eqns) = unzip (List.map destEqn (Term.stripConj concl))
+
+        val (name,ty) =
+            case fns of
+              [] => raise Error "no equations"
+            | (f,n) :: fns =>
+              let
+                fun eq (f',n') = Term.equal f f' andalso n = n'
+
+                val () =
+                    if List.all eq fns then ()
+                    else raise Error "different const/arity"
+              in
+                Term.destConst f
+              end
       in
-        raise Error "not implemented"
+        Value
+          {name = name,
+           ty = ty,
+           equations = eqns}
       end
       handle Error err =>
         raise Error ("bad value theorem: " ^ err);
@@ -225,8 +333,8 @@ fun destSource th =
     in
       case (dataResult,newtypeResult,valueResult) of
         (Left x, Right _, Right _) => DataSource x
-      | (Right _, Left x, Right _) => raise Error "not implemented"
-      | (Right _, Right _, Left x) => raise Error "not implemented"
+      | (Right _, Left x, Right _) => NewtypeSource x
+      | (Right _, Right _, Left x) => ValueSource x
       | (Right e1, Right e2, Right e3) =>
         let
           val err =
@@ -238,6 +346,115 @@ fun destSource th =
       | _ => raise Bug "Haskell.destSource: ambiguous"
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Sorting Haskell declarations into a module hierarchy.                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun nameData (Data {name,...}) = TypeOp.name name;
+
+fun nameNewtype (Newtype {name,...}) = TypeOp.name name;
+
+fun nameValue (Value {name,...}) = Const.name name;
+
+fun nameSource s =
+    case s of
+      DataSource x => nameData x
+    | NewtypeSource x => nameNewtype x
+    | ValueSource x => nameValue x;
+
+fun namespaceSource s = Name.namespace (nameSource s);
+
+local
+  fun init src = (Namespace.toList (namespaceSource src), src);
+
+  fun split ((ns,src),(acc,nsubs)) =
+      case ns of
+        [] => (src :: acc, nsubs)
+      | n :: ns => (acc, (n,(ns,src)) :: nsubs);
+
+  fun group nsubs =
+      case nsubs of
+        [] => []
+      | (n,sub) :: nsubs =>
+        let
+          val (ns,nsubs) = List.partition (equal n o fst) nsubs
+        in
+          (n, sub :: List.map snd ns) :: group nsubs
+        end;
+
+  fun mkTree namespace nsource =
+      let
+        val (source,nsubs) = List.foldl split ([],[]) (rev nsource)
+
+        val nsubs = group nsubs
+      in
+        Module
+          {namespace = namespace,
+           source = source,
+           submodules = List.map (addTree namespace) nsubs}
+      end
+
+  and addTree namespace (n,nsource) =
+      let
+        val namespace = Namespace.append namespace (Namespace.fromString n)
+      in
+        mkTree namespace nsource
+      end;
+in
+  fun mkModule source =
+      let
+        val namespace = Namespace.global
+        and source = List.map init source
+      in
+        mkTree namespace source
+      end;
+end;
+
+local
+  fun exposed (module,acc) =
+      let
+        val Module {namespace,source,submodules} = module
+
+        val acc =
+            if List.null source then acc
+            else NamespaceSet.add acc namespace
+      in
+        List.foldl exposed acc submodules
+      end;
+in
+  fun exposedModule source = exposed (source,NamespaceSet.empty);
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Converting a theory to a Haskell package.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun getTheory name thys =
+      case Theory.peekTheory name thys of
+        SOME thy => thy
+      | NONE =>
+        let
+          val err = "missing " ^ PackageName.toString name ^ " block in theory"
+        in
+          raise Error err
+        end;
+in
+  fun splitTheories thy =
+      let
+        val thys =
+            case Theory.node thy of
+              Theory.Package {theories,...} => theories
+            | _ => raise Bug "Haskell.theories: not a package theory"
+
+        val src = getTheory PackageName.srcHaskellExport thys
+        and thm = getTheory PackageName.thmHaskellExport thys
+      in
+        {src = src,
+         thm = thm}
+      end;
+end;
+
 fun destSourceTheory src =
     let
       val art = Theory.article src
@@ -247,14 +464,14 @@ fun destSourceTheory src =
       List.map destSource ths
     end;
 
-fun convert namever thy =
+fun convert pkg thy =
     let
-      val {src} = splitTheories thy
+      val {src,thm} = splitTheories thy
 
-      val source = destSourceTheory src
+      val source = mkModule (destSourceTheory src)
     in
       Haskell
-        {nameVersion = namever,
+        {package = pkg,
          source = source}
     end;
 
@@ -262,7 +479,305 @@ fun convert namever thy =
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun toPackage h = ();
+local
+  val haskellNamespace = Namespace.fromList ["Haskell"]
+  and opentheoryNamespace = Namespace.fromList ["OpenTheory"];
+
+  fun convertNamespace ns =
+      case Namespace.rewrite (haskellNamespace,opentheoryNamespace) ns of
+        SOME ns => ns
+      | NONE => raise Error ("non-Haskell namespace: " ^ Namespace.toString ns);
+
+  fun relativizeNamespace ns ns' = Namespace.rewrite (ns,Namespace.global) ns';
+in
+  fun ppRelativeNamespace ns =
+      let
+        val ns = convertNamespace ns
+      in
+        fn ns' =>
+           let
+             val ns' = convertNamespace ns'
+
+             val ns' = Option.getOpt (relativizeNamespace ns ns', ns')
+           in
+             Namespace.pp ns'
+           end
+      end;
+
+  fun ppNamespace ns = Namespace.pp (convertNamespace ns);
+end;
+
+fun ppData data =
+    let
+      val Data {name, constructors = cons} = data
+
+      val parms =
+          case TypeOp.varsDef name of
+            SOME vs => vs
+          | NONE => raise Error "undefined data type operator"
+    in
+      Print.blockProgram Print.Inconsistent 2
+        [Print.ppString "data "]
+    end;
+
+fun ppNewtype x = Print.ppString "newtype";
+
+fun ppValue x = Print.ppString "value";
+
+fun ppSource s =
+    case s of
+      DataSource x => ppData x
+    | NewtypeSource x => ppNewtype x
+    | ValueSource x => ppValue x;
+
+local
+  fun ppSpaceSource s =
+      Print.sequence
+        (Print.sequence Print.addNewline Print.addNewline)
+        (ppSource s);
+in
+  fun ppSourceList sl =
+      case sl of
+        [] => Print.skip
+      | s :: sl => Print.program (ppSource s :: List.map ppSpaceSource sl);
+end;
+
+fun ppTag (s,pp) =
+    Print.blockProgram Print.Inconsistent 2
+      [Print.ppString s,
+       Print.ppString ": ",
+       pp];
+
+fun ppTags spps =
+    case spps of
+      [] => Print.skip
+    | spp :: spps =>
+      Print.blockProgram Print.Inconsistent 0
+        (ppTag spp ::
+         List.map (Print.sequence Print.addNewline o ppTag) spps);
+
+local
+  val ppVersion = PackageVersion.pp;
+(***
+  fun ppVersion version =
+      let
+        val today = Date.fromTimeLocal (Time.now ())
+
+        val y = Date.year today
+        and m = Date.month today
+        and d = Date.day today
+
+        val m =
+            case m of
+              Date.Jan => 1
+            | Date.Feb => 2
+            | Date.Mar => 3
+            | Date.Apr => 4
+            | Date.May => 5
+            | Date.Jun => 6
+            | Date.Jul => 7
+            | Date.Aug => 8
+            | Date.Sep => 9
+            | Date.Oct => 10
+            | Date.Nov => 11
+            | Date.Dec => 12
+      in
+        Print.program
+          [PackageVersion.pp version,
+           Print.ppString ".",
+           Print.ppInt y,
+           Print.ppString ".",
+           Print.ppInt m,
+           Print.ppString ".",
+           Print.ppInt d]
+      end;
+***)
+
+  fun ppSection s pps =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.ppString s,
+         Print.addNewline,
+         Print.program pps];
+
+  val ppBuildDepends =
+      [Print.ppString "base >= 4.0 && < 5.0",
+       Print.ppString ",",
+       Print.addNewline,
+       Print.ppString "opentheory >= 1.0 && < 2.0"];
+
+  fun ppExposedModules mods =
+      case NamespaceSet.toList mods of
+        [] => []
+      | ns :: nss =>
+        ppNamespace ns ::
+        List.map (Print.sequence Print.addNewline o ppNamespace) nss;
+in
+  fun ppCabal (pkg,source) =
+      let
+        val name = Package.name pkg
+        and version = Package.version pkg
+        and {description} = Package.description pkg
+        and {license} = Package.license pkg
+        and {author} = Package.author pkg
+        and mods = exposedModule source
+      in
+        Print.blockProgram Print.Inconsistent 0
+          [ppTags
+             [("Name", PackageName.pp name),
+              ("Version", ppVersion version),
+              ("Description", Print.ppString description),
+              ("License", Print.ppString license),
+              ("License-file", Print.ppString "LICENSE"),
+              ("Cabal-version", Print.ppString ">= 1.8.0.6"),
+              ("Build-type", Print.ppString "Simple"),
+              ("Author", Print.ppString author),
+              ("Maintainer", Print.ppString author)],
+           Print.addNewline,
+           Print.addNewline,
+           ppSection "Library"
+             [ppSection "Build-depends:" ppBuildDepends,
+              Print.addNewline,
+              Print.addNewline,
+              ppTag ("hs-source-dirs", Print.ppString "src"),
+              Print.addNewline,
+              Print.addNewline,
+              ppTag ("ghc-options", Print.ppString "-Wall -Werror"),
+              Print.addNewline,
+              Print.addNewline,
+              ppSection "Exposed-modules:" (ppExposedModules mods)]]
+      end;
+end;
+
+local
+  fun ppModuleDeclaration namespace =
+      Print.blockProgram Print.Inconsistent 0
+        [Print.ppString "module ",
+         ppNamespace namespace,
+         Print.addNewline,
+         Print.ppString "where"];
+in
+  fun ppModule (pkg,namespace,source) =
+      let
+        val {description} = Package.description pkg
+        and {license} = Package.license pkg
+        and {author} = Package.author pkg
+      in
+        Print.blockProgram Print.Inconsistent 0
+          [Print.ppString "{- |",
+           Print.addNewline,
+           ppTags
+             [("Module", Print.ppString "$Header$"),
+              ("Description", Print.ppString description),
+              ("License", Print.ppString license)],
+           Print.addNewline,
+           Print.addNewline,
+           ppTags
+             [("Maintainer", Print.ppString author),
+              ("Stability", Print.ppString "provisional"),
+              ("Portability", Print.ppString "portable")],
+           Print.addNewline,
+           Print.addNewline,
+           Print.ppString description,
+           Print.addNewline,
+           Print.ppString "-}",
+           Print.addNewline,
+           ppModuleDeclaration namespace,
+           Print.addNewline,
+           Print.addNewline,
+           ppSourceList source]
+      end;
+end;
+
+fun outputCabal {directory = dir} pkg source =
+    let
+      val ss = Print.toStream ppCabal (pkg,source)
+
+      val file =
+          let
+            val base = PackageName.toString (Package.name pkg)
+
+            val f = OS.Path.joinBaseExt {base = base, ext = SOME "cabal"}
+          in
+            OS.Path.joinDirFile {dir = dir, file = f}
+          end
+
+      val () = Stream.toTextFile {filename = file} ss
+    in
+      ()
+    end;
+
+local
+  fun outputSrc pkg {directory = dir} sub namespace source =
+      let
+        val ss = Print.toStream ppModule (pkg,namespace,source)
+
+        val file =
+            let
+              val f = OS.Path.joinBaseExt {base = sub, ext = SOME "hs"}
+            in
+              OS.Path.joinDirFile {dir = dir, file = f}
+            end
+
+        val () = Stream.toTextFile {filename = file} ss
+      in
+        ()
+      end;
+
+  fun outputSub {directory = dir} sub =
+      let
+        val dir = OS.Path.concat (dir,sub)
+
+        val () = OS.FileSys.mkDir dir
+      in
+        {directory = dir}
+      end;
+
+  fun outputMod pkg dir (sub,module) =
+      let
+        val Module {namespace,source,submodules} = module
+
+        val () =
+            if List.null source then ()
+            else outputSrc pkg dir sub namespace source
+
+        val () =
+            if List.null submodules then ()
+            else
+              let
+                val dir = outputSub dir sub
+              in
+                List.app (outputMod pkg dir) submodules
+              end
+      in
+        ()
+      end;
+in
+  fun outputSource dir pkg source = outputMod pkg dir ("src",source);
+end;
+
+fun toPackage haskell =
+    let
+      val Haskell {package,source} = haskell
+
+      val dir =
+          let
+            val name = Package.name package
+
+            val dir = OS.FileSys.getDir ()
+
+            val dir = OS.Path.concat (dir, PackageName.toString name)
+
+            val () = OS.FileSys.mkDir dir
+          in
+            {directory = dir}
+          end
+
+      val () = outputCabal dir package source
+
+      val () = outputSource dir package source
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Export a theory to a Haskell package.                                     *)
@@ -282,6 +797,8 @@ fun export dir namever =
               raise Error err
             end
 
+      val pkg = PackageInfo.package info
+
       val importer = Directory.importer dir
 
       val graph = Graph.empty {savable = false}
@@ -296,7 +813,7 @@ fun export dir namever =
              interpretation = int,
              info = info}
 
-      val haskell = convert namever thy
+      val haskell = convert pkg thy
 
       val () = toPackage haskell
     in

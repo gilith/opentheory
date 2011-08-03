@@ -22,7 +22,7 @@ type haskell
 (* Converting a theory to a Haskell package.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val convert : PackageNameVersion.nameVersion -> Theory.theory -> haskell
+val convert : Package.package -> Theory.theory -> haskell
 
 (* ------------------------------------------------------------------------- *)
 (* Writing a Haskell package to disk.                                        *)

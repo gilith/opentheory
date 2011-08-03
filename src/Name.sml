@@ -18,6 +18,8 @@ val mk = Name;
 
 fun dest (Name n) = n;
 
+fun namespace n = fst (dest n);
+
 (* ------------------------------------------------------------------------- *)
 (* The top level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -101,13 +103,9 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 fun rewrite x_y (name as Name (ns,n)) =
-    let
-      val ns' = Namespace.rewrite x_y ns
-    in
-      if Portable.pointerEqual (ns',ns) then name else Name (ns',n)
-    end;
-
-fun replace (x,y) n : name = if equal n x then y else n;
+    case Namespace.rewrite x_y ns of
+      NONE => NONE
+    | SOME ns => SOME (Name (ns,n));
 
 (* ------------------------------------------------------------------------- *)
 (* Characters.                                                               *)

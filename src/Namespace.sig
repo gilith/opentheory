@@ -52,13 +52,15 @@ val equal : namespace -> namespace -> bool
 (* Rewriting namespaces.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val rewrite : namespace * namespace -> namespace -> namespace
+val rewrite : namespace * namespace -> namespace -> namespace option
 
 (* ------------------------------------------------------------------------- *)
 (* The standard namespace.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val bool : namespace
+
+val list : namespace
 
 val natural : namespace
 

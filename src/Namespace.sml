@@ -93,8 +93,8 @@ local
 in
   fun rewrite (Namespace xs, Namespace ys) (n as Namespace ns) =
       case stripPrefix xs ns of
-        NONE => n
-      | SOME ns => Namespace (ys @ ns);
+        NONE => NONE
+      | SOME ns => SOME (Namespace (ys @ ns));
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -102,6 +102,8 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 val bool = fromList ["Data","Bool"];
+
+val list = fromList ["Data","List"];
 
 val natural = fromList ["Number","Natural"];
 
@@ -206,5 +208,25 @@ in
   val quotedParser =
       (quoteParser ++ parser ++ quoteParser) >> (fn (_,(x,_)) => x);
 end;
+
+end
+
+structure NamespaceOrdered =
+struct type t = Namespace.namespace val compare = Namespace.compare end
+
+structure NamespaceMap = KeyMap (NamespaceOrdered)
+
+structure NamespaceSet =
+struct
+
+local
+  structure S = ElementSet (NamespaceMap);
+in
+  open S;
+end;
+
+val pp =
+    Print.ppMap toList
+      (Print.ppBracket "{" "}" (Print.ppOpList "," Namespace.pp));
 
 end

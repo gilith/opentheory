@@ -2,9 +2,17 @@
 # INTERPRETING OPENTHEORY NAMES INTO THE HASKELL OPENTHEORY NAMESPACE
 ###############################################################################
 
-# Parser
+# Haskell
 
-# Parser.Stream
+# Haskell.Parser
+
+type "Parser.parser" as "Haskell.Parser.Parser"
+
+const "Parser.mkParser" as "Haskell.Parser.Parser"
+const "Parser.parse" as "Haskell.Parser.parse"
+const "Parser.destParser" as "Haskell.Parser.unParser"
+
+# Haskell.Parser.Stream
 
 type "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
 
@@ -13,8 +21,6 @@ const "Parser.Stream.append" as "Haskell.Parser.Stream.append"
 const "Parser.Stream.eof" as "Haskell.Parser.Stream.Eof"
 const "Parser.Stream.error" as "Haskell.Parser.Stream.Error"
 const "Parser.Stream.fromList" as "Haskell.Parser.Stream.fromList"
-const "Parser.Stream.isProperSuffix" as "Haskell.Parser.Stream.isProperSuffix"
-const "Parser.Stream.isSuffix" as "Haskell.Parser.Stream.isSuffix"
 const "Parser.Stream.length" as "Haskell.Parser.Stream.length"
 const "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
 const "Parser.Stream.toList" as "Haskell.Parser.Stream.toList"

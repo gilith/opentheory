@@ -25,6 +25,7 @@ and nameString = "name"
 and separatorChar = #"-"
 and showString = "show"
 and srcString = "src"
+and thmString = "thm"
 and versionString = "version";
 
 val separatorString = str separatorChar;
@@ -190,6 +191,8 @@ val gilithRepo = gilithString;
 val haskellExport = haskellString;
 
 val srcHaskellExport = srcString;
+
+val thmHaskellExport = thmString;
 
 end
 

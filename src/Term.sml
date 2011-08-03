@@ -37,7 +37,11 @@ val isConst' = can destConst';
 
 fun mkConst c_ty = mk (mkConst' c_ty);
 
-fun destConst tm = destConst' (dest tm);
+fun destConst tm =
+    destConst' (dest tm)
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destConst: " ^ err);
+*)
 
 val isConst = can destConst;
 
@@ -59,7 +63,11 @@ fun equalVar' var tm' =
 
 fun mkVar v = mk (mkVar' v);
 
-fun destVar tm = destVar' (dest tm);
+fun destVar tm =
+    destVar' (dest tm)
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destVar: " ^ err);
+*)
 
 val isVar = can destVar;
 
@@ -78,7 +86,11 @@ val isApp' = can destApp';
 
 fun mkApp f_a = mk (mkApp' f_a);
 
-fun destApp tm = destApp' (dest tm);
+fun destApp tm =
+    destApp' (dest tm)
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destApp: " ^ err);
+*)
 
 val isApp = can destApp;
 
@@ -116,7 +128,11 @@ val isAbs' = can destAbs';
 
 fun mkAbs v_b = mk (mkAbs' v_b);
 
-fun destAbs tm = destAbs' (dest tm);
+fun destAbs tm =
+    destAbs' (dest tm)
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destAbs: " ^ err);
+*)
 
 val isAbs = can destAbs;
 
@@ -675,8 +691,11 @@ fun destEqConst tm =
       val (c,ty) = destConst tm
     in
       if Const.isEq c then Type.destEq ty
-      else raise Error "Term.destEqConst"
-    end;
+      else raise Error "wrong constant"
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destEqConst: " ^ err);
+*)
 
 val isEqConst = can destEqConst;
 
@@ -696,8 +715,11 @@ fun destEq tm =
       val (e,l) = destApp el
     in
       if isEqConst e then (l,r)
-      else raise Error "Term.destEq"
-    end;
+      else raise Error "not equality constant"
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destEq: " ^ err);
+*)
 
 val isEq = can destEq;
 
@@ -711,10 +733,13 @@ fun destRefl tm =
     let
       val (l,r) = destEq tm;
 
-      val () = if equal l r then () else raise Error "Term.destRefl"
+      val () = if equal l r then () else raise Error "lhs <> rhs"
     in
       l
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destRefl: " ^ err);
+*)
 
 val isRefl = can destRefl;
 
@@ -727,8 +752,11 @@ fun destSelectConst tm =
       val (c,ty) = destConst tm
     in
       if Const.isSelect c then Type.destSelect ty
-      else raise Error "Term.destSelectConst"
-    end;
+      else raise Error "wrong constant"
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destSelectConst: " ^ err);
+*)
 
 val isSelectConst = can destSelectConst;
 
@@ -746,8 +774,11 @@ fun destSelect tm =
       val (c,vb) = destApp tm
     in
       if isSelectConst c then destAbs vb
-      else raise Error "Term.destSelect"
-    end;
+      else raise Error "not select constant"
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destSelect: " ^ err);
+*)
 
 val isSelect = can destSelect;
 
@@ -994,8 +1025,11 @@ fun destNullaryOp p tm =
       val (c,_) = destConst tm
     in
       if p c then ()
-      else raise Error "Term.destNullaryOp"
-    end;
+      else raise Error "wrong constant"
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destNullaryOp: " ^ err);
+*)
 
 fun isNullaryOp p = can (destNullaryOp p);
 
@@ -1008,7 +1042,10 @@ fun destUnaryOp p tm =
       val () = destNullaryOp p c
     in
       a
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destUnaryOp: " ^ err);
+*)
 
 (* Binary operators *)
 
@@ -1019,7 +1056,10 @@ fun destBinaryOp p tm =
       val a = destUnaryOp p ca
     in
       (a,b)
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destBinaryOp: " ^ err);
+*)
 
 fun stripBinaryOp p =
     let
@@ -1040,7 +1080,10 @@ fun destTernaryOp p tm =
       val (a,b) = destBinaryOp p cab
     in
       (a,b,c)
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destTernaryOp: " ^ err);
+*)
 
 (* Quantifiers *)
 
@@ -1049,7 +1092,10 @@ fun destQuant p tm =
       val f = destUnaryOp p tm
     in
       destAbs f
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destQuant: " ^ err);
+*)
 
 fun stripQuant p =
     let
@@ -1077,7 +1123,11 @@ val isFalse = isNullaryOp Const.isFalse;
 
 val isNegConst = isNullaryOp Const.isNeg;
 
-val destNeg = destUnaryOp Const.isNeg;
+fun destNeg tm =
+    destUnaryOp Const.isNeg tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destNeg: " ^ err);
+*)
 
 val isNeg = can destNeg;
 
@@ -1085,7 +1135,11 @@ val isNeg = can destNeg;
 
 val isConjConst = isNullaryOp Const.isConj;
 
-val destConj = destBinaryOp Const.isConj;
+fun destConj tm =
+    destBinaryOp Const.isConj tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destConj: " ^ err);
+*)
 
 val isConj = can destConj;
 
@@ -1102,7 +1156,11 @@ fun stripConj tm =
 
 val isDisjConst = isNullaryOp Const.isDisj;
 
-val destDisj = destBinaryOp Const.isDisj;
+fun destDisj tm =
+    destBinaryOp Const.isDisj tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destDisj: " ^ err);
+*)
 
 val isDisj = can destDisj;
 
@@ -1119,7 +1177,11 @@ fun stripDisj tm =
 
 val isImpConst = isNullaryOp Const.isImp;
 
-val destImp = destBinaryOp Const.isImp;
+fun destImp tm =
+    destBinaryOp Const.isImp tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destImp: " ^ err);
+*)
 
 val isImp = can destImp;
 
@@ -1134,7 +1196,11 @@ fun stripImp tm =
 
 val isForallConst = isNullaryOp Const.isForall;
 
-val destForall = destQuant Const.isForall;
+fun destForall tm =
+    destQuant Const.isForall tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destForall: " ^ err);
+*)
 
 val isForall = can destForall;
 
@@ -1149,7 +1215,11 @@ fun stripForall tm =
 
 val isExistsConst = isNullaryOp Const.isExists;
 
-val destExists = destQuant Const.isExists;
+fun destExists tm =
+    destQuant Const.isExists tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destExists: " ^ err);
+*)
 
 val isExists = can destExists;
 
@@ -1164,7 +1234,11 @@ fun stripExists tm =
 
 val isExistsUniqueConst = isNullaryOp Const.isExistsUnique;
 
-val destExistsUnique = destQuant Const.isExistsUnique;
+fun destExistsUnique tm =
+    destQuant Const.isExistsUnique tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destExistsUnique: " ^ err);
+*)
 
 val isExistsUnique = can destExistsUnique;
 
@@ -1179,7 +1253,11 @@ fun stripExistsUnique tm =
 
 val isCondConst = isNullaryOp Const.isCond;
 
-val destCond = destTernaryOp Const.isCond;
+fun destCond tm =
+    destTernaryOp Const.isCond tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destCond: " ^ err);
+*)
 
 val isCond = can destCond;
 
@@ -1196,7 +1274,7 @@ fun destGenAbs tm =
 
         val () =
             if not (List.exists (Var.equal f) vl) then ()
-            else raise Error "Term.destGenAbs: function is var"
+            else raise Error "function is var"
 
         val (pat,body) = destEq tm
 
@@ -1204,18 +1282,21 @@ fun destGenAbs tm =
 
         val () =
             if equalVar f ft then ()
-            else raise Error "Term.destGenAbs: no function"
+            else raise Error "no function"
 
         val () =
             if Var.listEqual (VarSet.toList (freeVars pat)) vl then ()
-            else raise Error "Term.destGenAbs: bad pattern var list"
+            else raise Error "bad pattern var list"
 
         val () =
             if not (VarSet.member f (freeVars body)) then ()
-            else raise Error "Term.destGenAbs: function in body"
+            else raise Error "function in body"
       in
         (pat,body)
-      end;
+      end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destGenAbs: " ^ err);
+*)
 
 val isGenAbs = can destGenAbs;
 
@@ -1236,7 +1317,10 @@ in
         val (v,t) = transfer v t
       in
         (v,t,b)
-      end;
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Term.destLet: " ^ err);
+*)
 end;
 
 val isLet = can destLet;
@@ -1251,7 +1335,10 @@ fun destFromNatural tm =
     in
       if Const.isFromNatural c then t
       else raise Error "Term.destFromNatural"
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destFromNatural: " ^ err);
+*)
 
 local
   fun destNum tm =
@@ -1270,7 +1357,7 @@ local
               if i > 0 then 2 * i
               else raise Error "Term.destNumeral: bit0 zero"
             end
-          else if Const.isBit0 c then
+          else if Const.isBit1 c then
             let
               val i = destNum x
             in
@@ -1289,14 +1376,21 @@ in
             | NONE => tm
       in
         destNum tm
-      end;
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Term.destNumeral: " ^ err);
+*)
 end
 
 val isNumeral = can destNumeral;
 
 (* Set comprehensions *)
 
-val destFromPredicate = destUnaryOp Const.isFromPredicate;
+fun destFromPredicate tm =
+    destUnaryOp Const.isFromPredicate tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destFromPredicate: " ^ err);
+*)
 
 fun destComprehension tm =
     let
@@ -1310,11 +1404,11 @@ fun destComprehension tm =
 
       val () =
           if length vl = VarSet.size vs then ()
-          else raise Error "Term.destComprehension: duplicate vars"
+          else raise Error "duplicate vars"
 
       val () =
           if not (VarSet.member v vs) then ()
-          else raise Error "Term.destComprehension: var capture"
+          else raise Error "var capture"
 
       val (tm,pred) = destConj tm
 
@@ -1322,26 +1416,29 @@ fun destComprehension tm =
 
       val () =
           if equalVar v v' then ()
-          else raise Error "Term.destComprehension: missing var"
+          else raise Error "missing var"
 
       val fvs = freeVars pat
 
       val () =
           if not (VarSet.member v fvs) then ()
-          else raise Error "Term.destComprehension: var in pat"
+          else raise Error "var in pat"
 
       val () =
           if not (VarSet.member v (freeVars pred)) then ()
-          else raise Error "Term.destComprehension: var in pred"
+          else raise Error "var in pred"
 
       val () =
           if VarSet.subset vs fvs then ()
-          else raise Error "Term.destComprehension: unused pat var"
+          else raise Error "unused pat var"
     in
       case vl of
-        [] => raise Error "Term.destComprehension: no pat vars"
+        [] => raise Error "no pat vars"
       | v :: vl => (v,vl,pat,pred)
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Term.destComprehension: " ^ err);
+*)
 
 val isComprehension = can destComprehension;
 

@@ -110,4 +110,6 @@ val haskellExport : name
 
 val srcHaskellExport : name
 
+val thmHaskellExport : name
+
 end
