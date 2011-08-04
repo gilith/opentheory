@@ -22,6 +22,7 @@ and installedString = "installed"
 and licenseString = "license"
 and mainString = "main"
 and nameString = "name"
+and opentheoryString = "opentheory"
 and separatorChar = #"-"
 and showString = "show"
 and srcString = "src"
@@ -34,34 +35,32 @@ val separatorString = str separatorChar;
 (* A type of theory package names.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type name = string;
+datatype name = Name of string list;
 
 (* ------------------------------------------------------------------------- *)
 (* Concatenation.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun append n1 n2 = n1 ^ separatorString ^ n2;
+fun append (Name n1) (Name n2) = Name (n1 @ n2);
 
-fun concat ns =
-    if List.null ns then raise Error "PackageName.concat"
-    else String.concatWith separatorString ns;
-
-fun destSuffix suff =
-    let
-      val sepSuff = separatorString ^ suff
-
-      val sepSuffSize = size sepSuff
-    in
-      fn n =>
-         if not (String.isSuffix sepSuff n) then NONE
-         else SOME (String.substring (n, 0, size n - sepSuffSize))
-    end;
+local
+  fun add (Name n, l) = n @ l;
+in
+  fun concat ns =
+      if List.null ns then raise Error "PackageName.concat"
+      else
+        let
+          val n = List.foldl add [] (rev ns)
+        in
+          Name n
+        end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val compare = String.compare;
+fun compare (Name n1, Name n2) = lexCompare String.compare (n1,n2);
 
 fun equal (n1 : name) n2 = n1 = n2;
 
@@ -69,13 +68,13 @@ fun equal (n1 : name) n2 = n1 = n2;
 (* Generating fresh names.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkAvoid i = avoidString ^ Int.toString i;
+fun avoidName i = Name [avoidString ^ Int.toString i];
 
-fun variantName {avoid} n : name =
+fun variantName {avoid} n =
     let
       fun mkNum i =
           let
-            val ni = append n (mkAvoid i)
+            val ni = append n (avoidName i)
           in
             if avoid ni then mkNum (i + 1) else ni
           end
@@ -84,28 +83,44 @@ fun variantName {avoid} n : name =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Prefix names.                                                             *)
+(* Prefix and suffix names.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun isStrictPrefix n1 n2 =
-    let
-      val i1 = size n1
-      and i2 = size n2
-    in
-      i1 < i2 andalso
-      String.isPrefix n1 n2 andalso
-      String.sub (n2,i1) = separatorChar
-    end;
+local
+  fun stripStrictPrefix xs ys =
+      case ys of
+        [] => NONE
+      | y :: ys' =>
+        case xs of
+          [] => SOME ys
+        | x :: xs' => if x = y then stripStrictPrefix xs' ys' else NONE;
+in
+  fun destStrictPrefix (Name xs) (Name ys) =
+      case stripStrictPrefix xs ys of
+        NONE => NONE
+      | SOME ys => SOME (Name ys);
+
+  fun destStrictSuffix (Name xs) (Name ys) =
+      case stripStrictPrefix (rev xs) (rev ys) of
+        NONE => NONE
+      | SOME ys => SOME (Name (rev ys));
+end;
+
+fun isStrictPrefix n1 n2 = Option.isSome (destStrictPrefix n1 n2);
+
+fun isStrictSuffix n1 n2 = Option.isSome (destStrictSuffix n1 n2);
 
 fun isPrefix n1 n2 = equal n1 n2 orelse isStrictPrefix n1 n2;
+
+fun isSuffix n1 n2 = equal n1 n2 orelse isStrictSuffix n1 n2;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Print.ppString;
+fun toString (Name n) = String.concatWith separatorString n;
 
-fun toString (n : name) = n;
+val pp = Print.ppMap toString Print.ppString;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
@@ -134,7 +149,7 @@ in
   val parser =
       componentParser ++
       many (separatorParser ++ componentParser >> snd) >>
-      (fn (b,l) => concat (b :: l));
+      (fn (b,l) => Name (b :: l));
 end;
 
 fun fromString s =
@@ -146,7 +161,7 @@ fun fromString s =
 (* Theory block names.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val mainTheory = mainString;
+val mainTheory = Name [mainString];
 
 (* ------------------------------------------------------------------------- *)
 (* Tag names.                                                                *)
@@ -154,45 +169,47 @@ val mainTheory = mainString;
 
 (* Package basics *)
 
-val authorTag = authorString;
+val authorTag = Name [authorString];
 
-val descriptionTag = descriptionString;
+val descriptionTag = Name [descriptionString];
 
-val licenseTag = licenseString;
+val licenseTag = Name [licenseString];
 
-val nameTag = nameString;
+val nameTag = Name [nameString];
 
-val versionTag = versionString;
+val versionTag = Name [versionString];
 
 (* Extra package files *)
 
-val extraSuffixTag = extraSuffixString;
+val extraSuffixTag = Name [extraSuffixString];
 
 (* Shows *)
 
-val showTag = showString;
+val showTag = Name [showString];
 
 (* ------------------------------------------------------------------------- *)
 (* Directory checksums names.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val installedChecksums = installedString;
+val installedChecksums = Name [installedString];
 
 (* ------------------------------------------------------------------------- *)
 (* Repo names.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-val gilithRepo = gilithString;
+val gilithRepo = Name [gilithString];
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell export names.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val haskellExport = haskellString;
+val haskellExport = Name [haskellString];
 
-val srcHaskellExport = srcString;
+val newHaskellExport = Name [opentheoryString];
 
-val thmHaskellExport = thmString;
+val srcHaskellExport = Name [srcString];
+
+val thmHaskellExport = Name [thmString];
 
 end
 

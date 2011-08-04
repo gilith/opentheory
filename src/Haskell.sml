@@ -21,6 +21,7 @@ val prefix = PackageName.haskellExport;
 datatype data =
     Data of
       {name : TypeOp.typeOp,
+       parameters : Name.name list,
        constructors : (Const.const * Type.ty list) list};
 
 datatype newtype =
@@ -116,7 +117,7 @@ local
               (c, List.map Term.typeOf ts)
             end
 
-        val name =
+        val (name,parms) =
             let
               val (name,parms) = Type.destOp ty
 
@@ -126,13 +127,14 @@ local
                   if NameSet.size (NameSet.fromList vs) = length vs then ()
                   else raise Error "duplicate type vars"
             in
-              name
+              (name,vs)
             end
 
         val ts = Term.stripConj t1
       in
         Data
           {name = name,
+           parameters = parms,
            constructors = List.map destCon ts}
       end
       handle Error err =>
@@ -476,70 +478,164 @@ fun convert pkg thy =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Writing a Haskell package to disk.                                        *)
+(* Exporting various OpenTheory names to Haskell.                            *)
 (* ------------------------------------------------------------------------- *)
+
+fun exportPackageName name =
+    let
+      val old = PackageName.haskellExport
+      and new = PackageName.newHaskellExport
+    in
+      if PackageName.equal name old then new
+      else
+        case PackageName.destStrictPrefix old name of
+          SOME n => PackageName.append new n
+        | NONE =>
+          let
+            val err =
+                "non-Haskell package name: " ^ PackageName.toString name
+          in
+            raise Error err
+          end
+    end;
 
 local
   val haskellNamespace = Namespace.fromList ["Haskell"]
   and opentheoryNamespace = Namespace.fromList ["OpenTheory"];
-
-  fun convertNamespace ns =
+in
+  fun exportNamespace ns =
       case Namespace.rewrite (haskellNamespace,opentheoryNamespace) ns of
         SOME ns => ns
       | NONE => raise Error ("non-Haskell namespace: " ^ Namespace.toString ns);
-
-  fun relativizeNamespace ns ns' = Namespace.rewrite (ns,Namespace.global) ns';
-in
-  fun ppRelativeNamespace ns =
-      let
-        val ns = convertNamespace ns
-      in
-        fn ns' =>
-           let
-             val ns' = convertNamespace ns'
-
-             val ns' = Option.getOpt (relativizeNamespace ns ns', ns')
-           in
-             Namespace.pp ns'
-           end
-      end;
-
-  fun ppNamespace ns = Namespace.pp (convertNamespace ns);
 end;
 
-fun ppData data =
-    let
-      val Data {name, constructors = cons} = data
+local
+  val typeOpMapping =
+      NameMap.fromList
+        [(Name.boolTypeOp, Name.mkGlobal "bool")];
 
-      val parms =
-          case TypeOp.varsDef name of
-            SOME vs => vs
-          | NONE => raise Error "undefined data type operator"
-    in
-      Print.blockProgram Print.Inconsistent 2
-        [Print.ppString "data "]
-    end;
+  val constMapping =
+      NameMap.fromList
+        [(Name.conjConst, Name.mkGlobal "&&")];
 
-fun ppNewtype x = Print.ppString "newtype";
+  fun exportName n =
+      let
+        val (ns,n) = Name.dest n
 
-fun ppValue x = Print.ppString "value";
+        val ns = exportNamespace ns
+      in
+        Name.mk (ns,n)
+      end;
+in
+  fun exportTypeOpName n =
+      case NameMap.peek typeOpMapping n of
+        SOME n => n
+      | NONE =>
+        exportName n
+        handle Error err =>
+          let
+            val err = "bad type operator name: " ^ Name.toString n ^ "\n" ^ err
+          in
+            raise Error err
+          end;
 
-fun ppSource s =
-    case s of
-      DataSource x => ppData x
-    | NewtypeSource x => ppNewtype x
-    | ValueSource x => ppValue x;
+  fun exportConstName n =
+      case NameMap.peek constMapping n of
+        SOME n => n
+      | NONE =>
+        exportName n
+        handle Error err =>
+          let
+            val err = "bad constant name: " ^ Name.toString n ^ "\n" ^ err
+          in
+            raise Error err
+          end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Writing a Haskell package to disk.                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun ppPackageName name = PackageName.pp (exportPackageName name);
 
 local
-  fun ppSpaceSource s =
+  fun relativeNamespace namespace ns =
+      case Namespace.rewrite (namespace,Namespace.global) ns of
+        SOME ns => ns
+      | NONE => ns;
+
+  fun relativeName namespace n =
+      let
+        val (ns,n) = Name.dest n
+
+        val ns = relativeNamespace namespace ns
+      in
+        Name.mk (ns,n)
+      end;
+
+  fun exportRelativeNamespace namespace =
+      let
+        val namespace = exportNamespace namespace
+      in
+        fn ns => relativeNamespace namespace (exportNamespace ns)
+      end;
+
+  fun exportRelativeTypeOpName namespace =
+      let
+        val namespace = exportNamespace namespace
+      in
+        fn n => relativeName namespace (exportTypeOpName n)
+      end;
+
+  fun exportRelativeConstName namespace =
+      let
+        val namespace = exportNamespace namespace
+      in
+        fn n => relativeName namespace (exportConstName n)
+      end;
+in
+  fun ppNamespace ns = Namespace.pp (exportNamespace ns);
+
+  fun ppRelativeNamespace namespace ns =
+      Namespace.pp (exportRelativeNamespace namespace ns);
+
+  fun ppRelativeTypeOpName namespace n =
+      Name.pp (exportRelativeTypeOpName namespace n);
+
+  fun ppRelativeConstName namespace n =
+      Name.pp (exportRelativeConstName namespace n);
+end;
+
+fun ppData ns data =
+    let
+      val Data {name, parameters = parms, constructors = cons} = data
+    in
+      Print.blockProgram Print.Inconsistent 2
+        [Print.ppString "data ",
+         ppRelativeTypeOpName ns (TypeOp.name name)]
+    end;
+
+fun ppNewtype ns x = Print.ppString "newtype";
+
+fun ppValue ns x = Print.ppString "value";
+
+fun ppSource ns s =
+    case s of
+      DataSource x => ppData ns x
+    | NewtypeSource x => ppNewtype ns x
+    | ValueSource x => ppValue ns x;
+
+local
+  fun ppSpaceSource ns s =
       Print.sequence
         (Print.sequence Print.addNewline Print.addNewline)
-        (ppSource s);
+        (ppSource ns s);
 in
-  fun ppSourceList sl =
+  fun ppSourceList ns sl =
       case sl of
         [] => Print.skip
-      | s :: sl => Print.program (ppSource s :: List.map ppSpaceSource sl);
+      | s :: sl =>
+        Print.program (ppSource ns s :: List.map (ppSpaceSource ns) sl);
 end;
 
 fun ppTag (s,pp) =
@@ -623,7 +719,7 @@ in
       in
         Print.blockProgram Print.Inconsistent 0
           [ppTags
-             [("Name", PackageName.pp name),
+             [("Name", ppPackageName name),
               ("Version", ppVersion version),
               ("Description", Print.ppString description),
               ("License", Print.ppString license),
@@ -684,9 +780,18 @@ in
            ppModuleDeclaration namespace,
            Print.addNewline,
            Print.addNewline,
-           ppSourceList source]
+           ppSourceList namespace source]
       end;
 end;
+
+fun mkSubDirectory {directory = dir} sub =
+    let
+      val dir = OS.Path.concat (dir,sub)
+
+      val () = OS.FileSys.mkDir dir
+    in
+      {directory = dir}
+    end;
 
 fun outputCabal {directory = dir} pkg source =
     let
@@ -694,7 +799,7 @@ fun outputCabal {directory = dir} pkg source =
 
       val file =
           let
-            val base = PackageName.toString (Package.name pkg)
+            val base = Print.toLine ppPackageName (Package.name pkg)
 
             val f = OS.Path.joinBaseExt {base = base, ext = SOME "cabal"}
           in
@@ -723,18 +828,11 @@ local
         ()
       end;
 
-  fun outputSub {directory = dir} sub =
-      let
-        val dir = OS.Path.concat (dir,sub)
-
-        val () = OS.FileSys.mkDir dir
-      in
-        {directory = dir}
-      end;
-
-  fun outputMod pkg dir (sub,module) =
+  fun outputMod pkg dir ns module =
       let
         val Module {namespace,source,submodules} = module
+
+        val sub = Print.toLine (ppRelativeNamespace ns) namespace
 
         val () =
             if List.null source then ()
@@ -744,15 +842,30 @@ local
             if List.null submodules then ()
             else
               let
-                val dir = outputSub dir sub
+                val dir = mkSubDirectory dir sub
               in
-                List.app (outputMod pkg dir) submodules
+                List.app (outputMod pkg dir namespace) submodules
               end
       in
         ()
       end;
 in
-  fun outputSource dir pkg source = outputMod pkg dir ("src",source);
+  fun outputSource dir pkg module =
+      let
+        val Module {namespace,source,submodules} = module
+
+        val () =
+            if Namespace.isGlobal namespace then ()
+            else raise Bug "Haskell.outputSource: not global namespace"
+
+        val () =
+            if List.null source then ()
+            else raise Error "cannot export global definitions"
+
+        val dir = mkSubDirectory dir "src"
+      in
+        List.app (outputMod pkg dir namespace) submodules
+      end;
 end;
 
 fun toPackage haskell =
@@ -761,15 +874,11 @@ fun toPackage haskell =
 
       val dir =
           let
-            val name = Package.name package
+            val name = Print.toLine ppPackageName (Package.name package)
 
-            val dir = OS.FileSys.getDir ()
-
-            val dir = OS.Path.concat (dir, PackageName.toString name)
-
-            val () = OS.FileSys.mkDir dir
+            val dir = {directory = OS.FileSys.getDir ()}
           in
-            {directory = dir}
+            mkSubDirectory dir name
           end
 
       val () = outputCabal dir package source

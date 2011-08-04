@@ -85,13 +85,15 @@ fun compare (Namespace n1, Namespace n2) =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun stripPrefix [] ys = SOME ys
-    | stripPrefix (x :: xs) ys =
-      case ys of
-        [] => NONE
-      | y :: ys => if x = y then stripPrefix xs ys else NONE;
+  fun stripPrefix xs ys =
+      case xs of
+        [] => SOME ys
+      | x :: xs =>
+        case ys of
+          [] => NONE
+        | y :: ys => if x = y then stripPrefix xs ys else NONE;
 in
-  fun rewrite (Namespace xs, Namespace ys) (n as Namespace ns) =
+  fun rewrite (Namespace xs, Namespace ys) (Namespace ns) =
       case stripPrefix xs ns of
         NONE => NONE
       | SOME ns => SOME (Namespace (ys @ ns));

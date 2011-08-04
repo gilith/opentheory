@@ -20,8 +20,6 @@ val append : name -> name -> name
 
 val concat : name list -> name
 
-val destSuffix : name -> name -> name option
-
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
@@ -37,12 +35,20 @@ val equal : name -> name -> bool
 val variantName : {avoid : name -> bool} -> name -> name
 
 (* ------------------------------------------------------------------------- *)
-(* Prefix names.                                                             *)
+(* Prefix and suffix names.                                                  *)
 (* ------------------------------------------------------------------------- *)
+
+val destStrictPrefix : name -> name -> name option
+
+val isStrictPrefix : name -> name -> bool
 
 val isPrefix : name -> name -> bool
 
-val isStrictPrefix : name -> name -> bool
+val destStrictSuffix : name -> name -> name option
+
+val isStrictSuffix : name -> name -> bool
+
+val isSuffix : name -> name -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -107,6 +113,8 @@ val gilithRepo : name
 (* ------------------------------------------------------------------------- *)
 
 val haskellExport : name
+
+val newHaskellExport : name
 
 val srcHaskellExport : name
 

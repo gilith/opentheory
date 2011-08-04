@@ -127,7 +127,7 @@ fun findLicense tags =
 
 fun mkExtraName n = PackageName.append n PackageName.extraSuffixTag;
 
-val destExtraName = PackageName.destSuffix PackageName.extraSuffixTag;
+val destExtraName = PackageName.destStrictSuffix PackageName.extraSuffixTag;
 
 fun toExtra tag =
     let
