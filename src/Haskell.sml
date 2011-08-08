@@ -354,6 +354,73 @@ fun destSource th =
 
 fun nameData (Data {name,...}) = TypeOp.name name;
 
+local
+  fun addConstructor ((c,tys),sym) =
+      let
+        val sym = Symbol.addConst sym c
+
+        val sym = Symbol.addTypeList sym tys;
+      in
+        sym
+      end;
+in
+  fun symbolData d =
+      let
+        val Data {name, parameters = _, constructors = cons} = d
+
+        val sym = Symbol.empty
+
+        val sym = Symbol.addTypeOp sym name
+
+        val sym = List.foldl addConstructor sym cons
+      in
+        sym
+      end;
+end;
+
+fun symbolNewtype n =
+    let
+      val Newtype {name, predicate = pred, abs, rep} = n
+
+      val sym = Symbol.empty
+
+      val sym = Symbol.addTypeOp sym name
+
+      val sym = Symbol.addTerm sym pred
+
+      val sym = Symbol.addConst sym abs
+
+      val sym = Symbol.addConst sym rep
+    in
+      sym
+    end;
+
+local
+  fun addEquation ((args,tm),sym) =
+      let
+        val sym = Symbol.addTermList sym args
+
+        val sym = Symbol.addTerm sym tm
+      in
+        sym
+      end;
+in
+  fun symbolValue v =
+      let
+        val Value {name, ty, equations = eqns} = v
+
+        val sym = Symbol.empty
+
+        val sym = Symbol.addConst sym name
+
+        val sym = Symbol.addType sym ty
+
+        val sym = List.foldl addEquation sym eqns
+      in
+        sym
+      end;
+end;
+
 fun nameNewtype (Newtype {name,...}) = TypeOp.name name;
 
 fun nameValue (Value {name,...}) = Const.name name;
@@ -365,6 +432,25 @@ fun nameSource s =
     | ValueSource x => nameValue x;
 
 fun namespaceSource s = Name.namespace (nameSource s);
+
+fun symbolSource s =
+    case s of
+      DataSource x => symbolData x
+    | NewtypeSource x => symbolNewtype x
+    | ValueSource x => symbolValue x;
+
+(***
+local
+  fun addSym s = (s, symbolSource s);
+in
+  fun sortSource sl =
+      let
+        val sl = List.map addSym sl
+      in
+        
+      end;
+end;
+***)
 
 local
   fun init src = (Namespace.toList (namespaceSource src), src);
@@ -450,10 +536,10 @@ in
             | _ => raise Bug "Haskell.theories: not a package theory"
 
         val src = getTheory PackageName.srcHaskellExport thys
-        and thm = getTheory PackageName.thmHaskellExport thys
+        and test = getTheory PackageName.testHaskellExport thys
       in
         {src = src,
-         thm = thm}
+         test = test}
       end;
 end;
 
@@ -468,7 +554,7 @@ fun destSourceTheory src =
 
 fun convert pkg thy =
     let
-      val {src,thm} = splitTheories thy
+      val {src, test = _} = splitTheories thy
 
       val source = mkModule (destSourceTheory src)
     in
@@ -832,7 +918,14 @@ local
       let
         val Module {namespace,source,submodules} = module
 
-        val sub = Print.toLine (ppRelativeNamespace ns) namespace
+        val sub =
+            let
+              val pp =
+                  if Namespace.isGlobal ns then ppNamespace
+                  else ppRelativeNamespace ns
+            in
+              Print.toLine pp namespace
+            end
 
         val () =
             if List.null source then ()
@@ -910,14 +1003,14 @@ fun export dir namever =
 
       val importer = Directory.importer dir
 
-      val graph = Graph.empty {savable = false}
+      val graph = TheoryGraph.empty {savable = false}
 
       val imps = TheorySet.empty
 
       val int = Interpretation.natural
 
       val (_,thy) =
-          Graph.importPackageInfo importer graph
+          TheoryGraph.importPackageInfo importer graph
             {imports = imps,
              interpretation = int,
              info = info}

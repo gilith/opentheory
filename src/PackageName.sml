@@ -26,7 +26,7 @@ and opentheoryString = "opentheory"
 and separatorChar = #"-"
 and showString = "show"
 and srcString = "src"
-and thmString = "thm"
+and testString = "test"
 and versionString = "version";
 
 val separatorString = str separatorChar;
@@ -209,7 +209,7 @@ val newHaskellExport = Name [opentheoryString];
 
 val srcHaskellExport = Name [srcString];
 
-val thmHaskellExport = Name [thmString];
+val testHaskellExport = Name [testString];
 
 end
 

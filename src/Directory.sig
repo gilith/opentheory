@@ -248,7 +248,7 @@ val ppUpload :
 
 val finder : directory -> PackageFinder.finder
 
-val importer : directory -> Graph.importer
+val importer : directory -> TheoryGraph.importer
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder for *staged* packages.                                   *)

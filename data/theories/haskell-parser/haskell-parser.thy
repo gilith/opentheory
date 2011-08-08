@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.7
+version: 1.8
 description: Parser ready to be synthesized as Haskell
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,7 +10,7 @@ show: "Data.Pair"
 show: "Haskell.Parser"
 show: "Number.Natural"
 
-def {
+thm {
   interpret: type "Parser.parser" as "Haskell.Parser.Parser"
   interpret: type "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
   interpret: const "Parser.mkParser" as "Haskell.Parser.Parser"
@@ -30,16 +30,16 @@ def {
 }
 
 src {
-  import: def
+  import: thm
   package: haskell-parser-src-1.6
 }
 
-thm {
-  import: def
-  package: haskell-parser-thm-1.2
+test {
+  import: thm
+  package: haskell-parser-test-1.0
 }
 
 main {
   import: src
-  import: thm
+  import: test
 }

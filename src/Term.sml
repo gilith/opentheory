@@ -1941,7 +1941,7 @@ local
 
               val (tm,xs) = stripGenApp tm
             in
-              if null xs then ppBasicTerm tm
+              if List.null xs then ppBasicTerm tm
               else
                 Print.blockProgram Print.Inconsistent 0
                   [ppBasicTerm tm,

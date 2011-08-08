@@ -291,7 +291,7 @@ fun startUpload repo =
 
       val () = OS.FileSys.remove tmpFile
     in
-      if null lines then raise Error "no response from repo"
+      if List.null lines then raise Error "no response from repo"
       else
         let
           (* Check the repo response *)
@@ -339,7 +339,7 @@ fun supportUpload upl namever chk =
 
       val () = OS.FileSys.remove tmpFile
     in
-      if null lines then raise Error "no response from repo"
+      if List.null lines then raise Error "no response from repo"
       else
         let
           (* Check the repo response *)
@@ -441,7 +441,7 @@ fun finishUpload upl =
 
       val () = OS.FileSys.remove tmpFile
     in
-      if null lines then raise Error "no response from repo"
+      if List.null lines then raise Error "no response from repo"
       else
         let
           (* Check the repo response *)
@@ -495,7 +495,7 @@ fun deleteUpload upl =
 
       val () = OS.FileSys.remove tmpFile
     in
-      if null lines then raise Error "no response from repo"
+      if List.null lines then raise Error "no response from repo"
       else
         let
           (* Check the repo response *)

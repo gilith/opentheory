@@ -3,93 +3,43 @@
 (* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure NameTheory :> NameTheory =
-struct
-
-open Useful;
+signature TheoryName =
+sig
 
 (* ------------------------------------------------------------------------- *)
 (* A type of named theories.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-datatype nameTheory = NameTheory of PackageTheory.name * Theory.theory;
+type nameTheory
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk = NameTheory;
+val mk : PackageTheory.name * Theory.theory -> nameTheory
 
-fun name (NameTheory (n,_)) = n;
+val name : nameTheory -> PackageTheory.name
 
-fun theory (NameTheory (_,thy)) = thy;
+val theory : nameTheory -> Theory.theory
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (nt1,nt2) =
-    let
-      val NameTheory (n1,t1) = nt1
-      and NameTheory (n2,t2) = nt2
-    in
-      case PackageName.compare (n1,n2) of
-        LESS => LESS
-      | EQUAL => Theory.compare (t1,t2)
-      | GREATER => GREATER
-    end;
+val compare : nameTheory * nameTheory -> order
 
-fun equal nt1 nt2 = compare (nt1,nt2) = EQUAL;
+val equal : nameTheory -> nameTheory -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Union theories.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun isUnion nt = Theory.isUnion (theory nt);
+val isUnion : nameTheory -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun pp (NameTheory (name,thy)) =
-    Print.blockProgram Print.Consistent 0
-      [PackageName.pp name,
-       Theory.ppId (Theory.id thy)];
-
-end
-
-structure NameTheoryOrdered =
-struct type t = NameTheory.nameTheory val compare = NameTheory.compare end
-
-structure NameTheoryMap =
-struct
-
-  local
-    structure S = KeyMap (NameTheoryOrdered);
-  in
-    open S;
-  end;
-
-  fun pp ppX =
-      let
-        val ppNTX = Print.ppOp2 " =>" NameTheory.pp ppX
-      in
-        fn m =>
-          Print.blockProgram Print.Consistent 2
-            [Print.ppString "NameTheoryMap",
-             Print.addBreak 1,
-             Print.ppList ppNTX (toList m)]
-      end;
-
-end
-
-structure NameTheorySet =
-struct
-
-  local
-    structure S = ElementSet (NameTheoryMap);
-  in
-    open S;
-  end;
+val pp : nameTheory Print.pp
 
 end

@@ -37,7 +37,8 @@ local
         val () = OS.FileSys.remove filename
 
 (*OpenTheoryTrace1
-        val () = trace ("removed package list for old " ^ name ^ " repo\n")
+        val () = trace ("removed package list for old " ^
+                        PackageName.toString name ^ " repo\n")
 *)
       in
         ()
@@ -461,7 +462,7 @@ fun upgrade dir pkg =
 
 fun finder dir = PackageFinder.mk (peek dir);
 
-fun importer dir = Graph.fromFinderImporter (finder dir);
+fun importer dir = TheoryGraph.fromFinderImporter (finder dir);
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder for *staged* packages.                                   *)
@@ -664,19 +665,19 @@ end;
 
 fun summary impt info =
     let
-      val graph = Graph.empty {savable = false}
+      val graph = TheoryGraph.empty {savable = false}
 
       val imps = TheorySet.empty
 
       val int = Interpretation.natural
 
       val (_,thy) =
-          Graph.importPackageInfo impt graph
+          TheoryGraph.importPackageInfo impt graph
             {imports = imps,
              interpretation = int,
              info = info}
     in
-      Graph.summary thy
+      TheoryGraph.summary thy
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -705,7 +706,7 @@ fun postStagePackage dir fndr stageInfo warnSummary =
 
       val sum =
           let
-            val impt = Graph.fromFinderImporter fndr
+            val impt = TheoryGraph.fromFinderImporter fndr
           in
             summary impt stageInfo
           end;
@@ -1162,14 +1163,14 @@ local
         and {directory = pdir} = PackageInfo.directory info
 
         val thys =
-            Dagify.mk
+            PackageDag.mk
               {importer = impt,
                directory = pdir,
                theories = theories}
 
-        val thys = Dagify.unwind thys
+        val thys = PackageDag.unwind thys
 
-        val theories = Dagify.theories thys
+        val theories = PackageDag.theories thys
       in
         Package.mk (Package.Package' {tags = tags, theories = theories})
       end;
@@ -1264,7 +1265,7 @@ fun checkInstallStaged dir namever chk =
           else DirectoryError.AlreadyInstalled namever :: errs
 
       val errs =
-          if not (null errs) then errs
+          if not (List.null errs) then errs
           else
             let
               fun add (dep,acc) =
@@ -1566,7 +1567,7 @@ local
 
         val auths = List.filter notAuthor auths
       in
-        if null auths then errs
+        if List.null auths then errs
         else DirectoryError.ObsoleteAuthors auths :: errs
       end;
 in

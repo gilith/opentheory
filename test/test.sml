@@ -410,15 +410,15 @@ fun import namever =
 
       val finder = Directory.finder directory
 
-      val graph = Graph.empty {savable = false}
+      val graph = TheoryGraph.empty {savable = false}
 
       val spec =
-          Graph.Specification
+          TheoryGraph.Specification
             {imports = TheorySet.empty,
              interpretation = Interpretation.natural,
              nameVersion = PackageNameVersion.fromString namever}
 
-      val (_,thy) = Graph.importPackageName finder graph spec
+      val (_,thy) = TheoryGraph.importPackageName finder graph spec
 
       val art = Theory.article thy
 

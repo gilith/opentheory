@@ -48,9 +48,23 @@ val addConstSet : symbol -> ConstSet.set -> symbol
 
 val addType : symbol -> Type.ty -> symbol
 
+val addTypeList : symbol -> Type.ty list -> symbol
+
+val addTypeSet : symbol -> TypeSet.set -> symbol
+
 val addVar : symbol -> Var.var -> symbol
 
+val addVarList : symbol -> Var.var list -> symbol
+
+val addVarSet : symbol -> VarSet.set -> symbol
+
 val addTerm : symbol -> Term.term -> symbol
+
+val addTermList : symbol -> Term.term list -> symbol
+
+val addTermSet : symbol -> TermSet.set -> symbol
+
+val addTermAlphaSet : symbol -> TermAlphaSet.set -> symbol
 
 val addSequent : symbol -> Sequent.sequent -> symbol
 

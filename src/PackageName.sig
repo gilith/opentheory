@@ -118,6 +118,6 @@ val newHaskellExport : name
 
 val srcHaskellExport : name
 
-val thmHaskellExport : name
+val testHaskellExport : name
 
 end

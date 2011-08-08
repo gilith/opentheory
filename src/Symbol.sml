@@ -159,17 +159,71 @@ fun addType sym ty =
     handle Error err => raise Error ("Symbol.addType: " ^ err);
 *)
 
+local
+  fun add (ty,sym) = addType sym ty;
+in
+  fun addTypeList sym tyl =
+      List.foldl add sym tyl
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Symbol.addTypeList: " ^ err);
+*)
+
+  fun addTypeSet sym tys =
+      TypeSet.foldl add sym tys
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Symbol.addTypeSet: " ^ err);
+*)
+end;
+
 fun addVar sym v =
     addX Term.addTypeSharingTypeOps addNothing sym (Var.typeOf v)
 (*OpenTheoryDebug
     handle Error err => raise Error ("Symbol.addVar: " ^ err);
 *)
 
+local
+  fun add (v,sym) = addVar sym v;
+in
+  fun addVarList sym vl =
+      List.foldl add sym vl
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Symbol.addVarList: " ^ err);
+*)
+
+  fun addVarSet sym vs =
+      VarSet.foldl add sym vs
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Symbol.addVarSet: " ^ err);
+*)
+end;
+
 fun addTerm sym tm =
     addX Term.addSharingTypeOps Term.addSharingConsts sym tm
 (*OpenTheoryDebug
     handle Error err => raise Error ("Symbol.addTerm: " ^ err);
 *)
+
+local
+  fun add (tm,sym) = addTerm sym tm;
+in
+  fun addTermList sym tml =
+      List.foldl add sym tml
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Symbol.addTermList: " ^ err);
+*)
+
+  fun addTermSet sym tms =
+      TermSet.foldl add sym tms
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Symbol.addTermSet: " ^ err);
+*)
+
+  fun addTermAlphaSet sym tms =
+      TermAlphaSet.foldl add sym tms
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Symbol.addTermAlphaSet: " ^ err);
+*)
+end;
 
 fun addSequent sym seq =
     addX Sequent.addSharingTypeOps Sequent.addSharingConsts sym seq

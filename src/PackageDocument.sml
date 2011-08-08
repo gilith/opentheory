@@ -143,7 +143,7 @@ fun toHtml doc =
             val ts = List.map tagBlock tags
 
             val ts =
-                if null show then ts
+                if List.null show then ts
                 else
                   let
                     val show = PackageTag.toShow show

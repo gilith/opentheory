@@ -135,9 +135,9 @@ SRC = \
   src/PackageDependency.sig src/PackageDependency.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \
-  src/NameTheory.sig src/NameTheory.sml \
-  src/Graph.sig src/Graph.sml \
-  src/Dagify.sig src/Dagify.sml \
+  src/TheoryName.sig src/TheoryName.sml \
+  src/TheoryGraph.sig src/TheoryGraph.sml \
+  src/PackageDag.sig src/PackageDag.sml \
   src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
   src/DirectoryPath.sig src/DirectoryPath.sml \
   src/DirectoryPackages.sig src/DirectoryPackages.sml \

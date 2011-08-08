@@ -1053,8 +1053,10 @@ in
         if isHaskell name then Haskell.export dir namever
         else raise Error ("unknown export type: " ^ PackageName.toString name)
       end
+(***
       handle Error err =>
         raise Error (err ^ "\ntheory package export failed");
+***)
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1186,14 +1188,14 @@ local
               val importer = directoryImporter ()
 
               val thys =
-                  Dagify.mk
+                  PackageDag.mk
                     {importer = importer,
                      directory = dir,
                      theories = theories}
 
-              val thys = Dagify.unwind thys
+              val thys = PackageDag.unwind thys
             in
-              SOME (Dagify.theories thys)
+              SOME (PackageDag.theories thys)
             end;
 
     fun compute () =
@@ -1253,7 +1255,7 @@ local
   end;
 
   local
-    val cache : (Graph.graph * Theory.theory) option option ref = ref NONE;
+    val cache : (TheoryGraph.graph * Theory.theory) option option ref = ref NONE;
 
     fun compute () =
         case getDirectory () of
@@ -1268,20 +1270,20 @@ local
               let
                 val importer = directoryImporter ()
 
-                val graph = Graph.empty {savable = sav}
+                val graph = TheoryGraph.empty {savable = sav}
 
                 val imps = TheorySet.empty
 
                 val int = Interpretation.natural
 
                 val (graph,env) =
-                    Graph.importTheories importer graph
+                    TheoryGraph.importTheories importer graph
                       {directory = dir,
                        imports = imps,
                        interpretation = int,
                        theories = theories}
 
-                val thy = Graph.mainEnvironment env
+                val thy = TheoryGraph.mainEnvironment env
               in
                 SOME (graph,thy)
               end;
@@ -1329,7 +1331,8 @@ local
 
     fun compute () =
         case getTheory () of
-          SOME (graph,_) => SOME (TheorySet.inference (Graph.theories graph))
+          SOME (graph,_) =>
+          SOME (TheorySet.inference (TheoryGraph.theories graph))
         | NONE =>
           case getArticle () of
             SOME art => SOME (Article.inference art)
@@ -2642,5 +2645,7 @@ let
 in
   succeed ()
 end
+(***
 handle Error s => die (program^" failed:\n" ^ s)
      | Bug s => die ("BUG found in "^program^" program:\n" ^ s);
+***)
