@@ -14,19 +14,19 @@ open Useful;
 
 (* Truth *)
 
-fun constTrue sym = Symbol.mkConst sym Name.trueConst;
+fun constTrue sym = SymbolTable.mkConst sym Name.trueConst;
 
 fun termTrue sym = Term.mkConst (constTrue sym, Type.bool);
 
 (* Falsity *)
 
-fun constFalse sym = Symbol.mkConst sym Name.falseConst;
+fun constFalse sym = SymbolTable.mkConst sym Name.falseConst;
 
 fun termFalse sym = Term.mkConst (constFalse sym, Type.bool);
 
 (* Negation *)
 
-fun constNeg sym = Symbol.mkConst sym Name.negConst;
+fun constNeg sym = SymbolTable.mkConst sym Name.negConst;
 
 val typeNeg = Type.mkFun (Type.bool,Type.bool);
 
@@ -41,7 +41,7 @@ fun mkNeg sym =
 
 (* Conjunction *)
 
-fun constConj sym = Symbol.mkConst sym Name.conjConst;
+fun constConj sym = SymbolTable.mkConst sym Name.conjConst;
 
 val typeConj = Type.mkFun (Type.bool,typeNeg);
 
@@ -61,7 +61,7 @@ fun listMkConj sym tms =
 
 (* Disjunction *)
 
-fun constDisj sym = Symbol.mkConst sym Name.disjConst;
+fun constDisj sym = SymbolTable.mkConst sym Name.disjConst;
 
 val typeDisj = typeConj;
 
@@ -81,7 +81,7 @@ fun listMkDisj sym tms =
 
 (* Implication *)
 
-fun constImp sym = Symbol.mkConst sym Name.impConst;
+fun constImp sym = SymbolTable.mkConst sym Name.impConst;
 
 val typeImp = typeConj;
 
@@ -98,7 +98,7 @@ fun listMkImp sym (tms,tm) = List.foldl (mkImp sym) tm (List.rev tms);
 
 (* Universal *)
 
-fun constForall sym = Symbol.mkConst sym Name.forallConst;
+fun constForall sym = SymbolTable.mkConst sym Name.forallConst;
 
 fun mkTypeForall a = Type.mkFun (Type.mkFun (a,Type.bool), Type.bool);
 
@@ -121,7 +121,7 @@ fun listMkForall sym (vs,b) =
 
 (* Existence *)
 
-fun constExists sym = Symbol.mkConst sym Name.existsConst;
+fun constExists sym = SymbolTable.mkConst sym Name.existsConst;
 
 val mkTypeExists = mkTypeForall;
 
@@ -144,7 +144,7 @@ fun listMkExists sym (vs,b) =
 
 (* Unique existence *)
 
-fun constExistsUnique sym = Symbol.mkConst sym Name.existsUniqueConst;
+fun constExistsUnique sym = SymbolTable.mkConst sym Name.existsUniqueConst;
 
 val mkTypeExistsUnique = mkTypeForall;
 

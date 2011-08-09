@@ -12,96 +12,97 @@ sig
 
 (* Truth *)
 
-val constTrue : Symbol.table -> Const.const
+val constTrue : SymbolTable.table -> Const.const
 
-val termTrue : Symbol.table -> Term.term
+val termTrue : SymbolTable.table -> Term.term
 
 (* Falsity *)
 
-val constFalse : Symbol.table -> Const.const
+val constFalse : SymbolTable.table -> Const.const
 
-val termFalse : Symbol.table -> Term.term
+val termFalse : SymbolTable.table -> Term.term
 
 (* Negation *)
 
-val constNeg : Symbol.table -> Const.const
+val constNeg : SymbolTable.table -> Const.const
 
 val typeNeg : Type.ty
 
-val termNeg : Symbol.table -> Term.term
+val termNeg : SymbolTable.table -> Term.term
 
-val mkNeg : Symbol.table -> Term.term -> Term.term
+val mkNeg : SymbolTable.table -> Term.term -> Term.term
 
 (* Conjunction *)
 
-val constConj : Symbol.table -> Const.const
+val constConj : SymbolTable.table -> Const.const
 
 val typeConj : Type.ty
 
-val termConj : Symbol.table -> Term.term
+val termConj : SymbolTable.table -> Term.term
 
-val mkConj : Symbol.table -> Term.term * Term.term -> Term.term
+val mkConj : SymbolTable.table -> Term.term * Term.term -> Term.term
 
-val listMkConj : Symbol.table -> Term.term list -> Term.term
+val listMkConj : SymbolTable.table -> Term.term list -> Term.term
 
 (* Disjunction *)
 
-val constDisj : Symbol.table -> Const.const
+val constDisj : SymbolTable.table -> Const.const
 
 val typeDisj : Type.ty
 
-val termDisj : Symbol.table -> Term.term
+val termDisj : SymbolTable.table -> Term.term
 
-val mkDisj : Symbol.table -> Term.term * Term.term -> Term.term
+val mkDisj : SymbolTable.table -> Term.term * Term.term -> Term.term
 
-val listMkDisj : Symbol.table -> Term.term list -> Term.term
+val listMkDisj : SymbolTable.table -> Term.term list -> Term.term
 
 (* Implication *)
 
-val constImp : Symbol.table -> Const.const
+val constImp : SymbolTable.table -> Const.const
 
 val typeImp : Type.ty
 
-val termImp : Symbol.table -> Term.term
+val termImp : SymbolTable.table -> Term.term
 
-val mkImp : Symbol.table -> Term.term * Term.term -> Term.term
+val mkImp : SymbolTable.table -> Term.term * Term.term -> Term.term
 
-val listMkImp : Symbol.table -> Term.term list * Term.term -> Term.term
+val listMkImp : SymbolTable.table -> Term.term list * Term.term -> Term.term
 
 (* Universal *)
 
-val constForall : Symbol.table -> Const.const
+val constForall : SymbolTable.table -> Const.const
 
 val mkTypeForall : Type.ty -> Type.ty
 
-val mkTermForall : Symbol.table -> Type.ty -> Term.term
+val mkTermForall : SymbolTable.table -> Type.ty -> Term.term
 
-val mkForall : Symbol.table -> Var.var * Term.term -> Term.term
+val mkForall : SymbolTable.table -> Var.var * Term.term -> Term.term
 
-val listMkForall : Symbol.table -> Var.var list * Term.term -> Term.term
+val listMkForall : SymbolTable.table -> Var.var list * Term.term -> Term.term
 
 (* Existence *)
 
-val constExists : Symbol.table -> Const.const
+val constExists : SymbolTable.table -> Const.const
 
 val mkTypeExists : Type.ty -> Type.ty
 
-val mkTermExists : Symbol.table -> Type.ty -> Term.term
+val mkTermExists : SymbolTable.table -> Type.ty -> Term.term
 
-val mkExists : Symbol.table -> Var.var * Term.term -> Term.term
+val mkExists : SymbolTable.table -> Var.var * Term.term -> Term.term
 
-val listMkExists : Symbol.table -> Var.var list * Term.term -> Term.term
+val listMkExists : SymbolTable.table -> Var.var list * Term.term -> Term.term
 
 (* Unique existence *)
 
-val constExistsUnique : Symbol.table -> Const.const
+val constExistsUnique : SymbolTable.table -> Const.const
 
 val mkTypeExistsUnique : Type.ty -> Type.ty
 
-val mkTermExistsUnique : Symbol.table -> Type.ty -> Term.term
+val mkTermExistsUnique : SymbolTable.table -> Type.ty -> Term.term
 
-val mkExistsUnique : Symbol.table -> Var.var * Term.term -> Term.term
+val mkExistsUnique : SymbolTable.table -> Var.var * Term.term -> Term.term
 
-val listMkExistsUnique : Symbol.table -> Var.var list * Term.term -> Term.term
+val listMkExistsUnique :
+    SymbolTable.table -> Var.var list * Term.term -> Term.term
 
 end

@@ -18,7 +18,7 @@ val size : thms -> int
 
 val thms : thms -> ThmSet.set
 
-val symbol : thms -> Symbol.table
+val symbol : thms -> SymbolTable.table
 
 (* ------------------------------------------------------------------------- *)
 (* Adding theorems.                                                          *)

@@ -223,11 +223,11 @@ val thms : object -> Thm.thm list
 (* Extracting the symbols in an object.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val symbol : object -> Symbol.table
+val symbol : object -> SymbolTable.table
 
-val symbolAdd : Symbol.table -> object -> Symbol.table
+val symbolAdd : SymbolTable.table -> object -> SymbolTable.table
 
-val symbolAddList : Symbol.table -> object list -> Symbol.table
+val symbolAddList : SymbolTable.table -> object list -> SymbolTable.table
 
 (* ------------------------------------------------------------------------- *)
 (* Breaking down objects into commands.                                      *)

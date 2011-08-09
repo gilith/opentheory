@@ -365,24 +365,24 @@ fun symbolAddList sym obs =
       case ob of
         Num _ => symbolAddList sym obs
       | Name _ => symbolAddList sym obs
-      | TypeOp ot => Symbol.addTypeOp sym ot
+      | TypeOp ot => SymbolTable.addTypeOp sym ot
       | Type ty =>
         let
-          val sym = Symbol.addType sym ty
+          val sym = SymbolTable.addType sym ty
         in
           symbolAddList sym obs
         end
-      | Const c => Symbol.addConst sym c
-      | Var v => Symbol.addVar sym v
+      | Const c => SymbolTable.addConst sym c
+      | Var v => SymbolTable.addVar sym v
       | Term tm =>
         let
-          val sym = Symbol.addTerm sym tm
+          val sym = SymbolTable.addTerm sym tm
         in
           symbolAddList sym obs
         end
       | Thm th =>
         let
-          val sym = Symbol.addSequent sym (Thm.sequent th)
+          val sym = SymbolTable.addSequent sym (Thm.sequent th)
         in
           symbolAddList sym obs
         end
@@ -395,7 +395,7 @@ fun symbolAddList sym obs =
 
 fun symbolAdd sym ob = symbolAddList sym [ob];
 
-val symbol = symbolAdd Symbol.empty;
+val symbol = symbolAdd SymbolTable.empty;
 
 (* ------------------------------------------------------------------------- *)
 (* Breaking down objects into commands.                                      *)

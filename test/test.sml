@@ -50,7 +50,7 @@ val () = SAY "Symbol tables";
 (* ------------------------------------------------------------------------- *)
 
 local
-  val sym = Symbol.empty;
+  val sym = SymbolTable.empty;
 in
   val mkConj = Syntax.mkConj sym
   and mkDisj = Syntax.mkDisj sym

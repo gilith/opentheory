@@ -142,8 +142,8 @@ in
 
         val sym = Thms.symbol ths
 
-        val ots = Symbol.typeOps sym
-        and cons = Symbol.consts sym
+        val ots = SymbolTable.typeOps sym
+        and cons = SymbolTable.consts sym
 
         fun adds seen otO_conO objs =
             case objs of

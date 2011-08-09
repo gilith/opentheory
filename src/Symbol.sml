@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* HIGHER ORDER LOGIC SYMBOL TABLES                                          *)
-(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* HIGHER ORDER LOGIC SYMBOLS                                                *)
+(* Copyright (c) 2011 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
 structure Symbol :> Symbol =
@@ -9,383 +9,82 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of symbol tables.                                                  *)
+(* A type of symbols.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-datatype table =
-    Table of
-      {opS : Term.sharingTypeOps,
-       opM : TypeOp.typeOp NameMap.map,
-       conS : Term.sharingConsts,
-       conM : Const.const NameMap.map};
-
-val empty =
-    let
-      val opS = Term.emptySharingTypeOps
-
-      val opM = NameMap.new ()
-
-      val conS = Term.emptySharingConsts
-
-      val conM = NameMap.new ()
-    in
-      Table
-        {opS = opS,
-         opM = opM,
-         conS = conS,
-         conM = conM}
-    end;
-
-fun typeOps (Table {opS,...}) = Term.toSetSharingTypeOps opS;
-
-fun consts (Table {conS,...}) = Term.toSetSharingConsts conS;
+datatype symbol =
+    TypeOp of TypeOp.typeOp
+  | Const of Const.const;
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up entries.                                                       *)
+(* Destructors.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun peekTypeOp (Table {opM,...}) n = NameMap.peek opM n;
-
-fun peekConst (Table {conM,...}) n = NameMap.peek conM n;
-
-fun knownTypeOp (Table {opM,...}) n = NameMap.inDomain n opM;
-
-fun knownConst (Table {conM,...}) n = NameMap.inDomain n conM;
-
-fun mkTypeOp sym n =
-    case peekTypeOp sym n of
-      SOME ot => ot
-    | NONE => TypeOp.mkUndef n;
-
-fun mkConst sym n =
-    case peekConst sym n of
-      SOME c => c
-    | NONE => Const.mkUndef n;
+fun name sym =
+    case sym of
+      TypeOp ot => TypeOp.name ot
+    | Const c => Const.name c;
 
 (* ------------------------------------------------------------------------- *)
-(* Adding entries.                                                           *)
+(* A total order on symbols.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun addOp (ot,m) =
-      let
-        val n = TypeOp.name ot
-      in
-        case NameMap.peek m n of
-          NONE => NameMap.insert m (n,ot)
-        | SOME ot' =>
-          if TypeOp.equal ot ot' then m
-          else raise Error ("duplicate type operator name " ^
-                            Name.quotedToString n)
-      end;
+fun compare (sym1,sym2) =
+    case (sym1,sym2) of
+      (TypeOp ot1, TypeOp ot2) => TypeOp.compare (ot1,ot2)
+    | (TypeOp _, Const _) => LESS
+    | (Const _, TypeOp _) => GREATER
+    | (Const c1, Const c2) => Const.compare (c1,c2);
 
-  fun addCon (c,m) =
-      let
-        val n = Const.name c
-      in
-        case NameMap.peek m n of
-          NONE => NameMap.insert m (n,c)
-        | SOME c' =>
-          if Const.equal c c' then m
-          else raise Error ("duplicate constant name " ^
-                            Name.quotedToString n)
-      end;
-in
-  fun addX addXOp addXCon sym x =
-      let
-        val Table {opS,opM,conS,conM} = sym
-
-        (* Add type operators in X *)
-
-        val ots' = Term.toSetSharingTypeOps opS
-
-        val opS = addXOp x opS
-
-        val ots = Term.toSetSharingTypeOps opS
-
-        val opM =
-            if TypeOpSet.size ots = TypeOpSet.size ots' then opM
-            else TypeOpSet.foldl addOp opM (TypeOpSet.difference ots ots')
-
-        (* Add constants in X *)
-
-        val cs' = Term.toSetSharingConsts conS
-
-        val conS = addXCon x conS
-
-        val cs = Term.toSetSharingConsts conS
-
-        val conM =
-            if ConstSet.size cs = ConstSet.size cs' then conM
-            else ConstSet.foldl addCon conM (ConstSet.difference cs cs')
-      in
-        Table
-          {opS = opS,
-           opM = opM,
-           conS = conS,
-           conM = conM}
-      end;
-end;
-
-fun addNothing _ share = share;
-
-fun addTypeOp sym ot =
-    addX Term.addTypeOpSharingTypeOps addNothing sym ot
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addTypeOp: " ^ err);
-*)
-
-fun addTypeOpSet sym ots =
-    addX Term.addTypeOpSetSharingTypeOps addNothing sym ots
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addTypeOpSet: " ^ err);
-*)
-
-fun addConst sym c =
-    addX addNothing Term.addConstSharingConsts sym c
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addConst: " ^ err);
-*)
-
-fun addConstSet sym cs =
-    addX addNothing Term.addConstSetSharingConsts sym cs
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addConstSet: " ^ err);
-*)
-
-fun addType sym ty =
-    addX Term.addTypeSharingTypeOps addNothing sym ty
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addType: " ^ err);
-*)
-
-local
-  fun add (ty,sym) = addType sym ty;
-in
-  fun addTypeList sym tyl =
-      List.foldl add sym tyl
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTypeList: " ^ err);
-*)
-
-  fun addTypeSet sym tys =
-      TypeSet.foldl add sym tys
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTypeSet: " ^ err);
-*)
-end;
-
-fun addVar sym v =
-    addX Term.addTypeSharingTypeOps addNothing sym (Var.typeOf v)
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addVar: " ^ err);
-*)
-
-local
-  fun add (v,sym) = addVar sym v;
-in
-  fun addVarList sym vl =
-      List.foldl add sym vl
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addVarList: " ^ err);
-*)
-
-  fun addVarSet sym vs =
-      VarSet.foldl add sym vs
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addVarSet: " ^ err);
-*)
-end;
-
-fun addTerm sym tm =
-    addX Term.addSharingTypeOps Term.addSharingConsts sym tm
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addTerm: " ^ err);
-*)
-
-local
-  fun add (tm,sym) = addTerm sym tm;
-in
-  fun addTermList sym tml =
-      List.foldl add sym tml
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTermList: " ^ err);
-*)
-
-  fun addTermSet sym tms =
-      TermSet.foldl add sym tms
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTermSet: " ^ err);
-*)
-
-  fun addTermAlphaSet sym tms =
-      TermAlphaSet.foldl add sym tms
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTermAlphaSet: " ^ err);
-*)
-end;
-
-fun addSequent sym seq =
-    addX Sequent.addSharingTypeOps Sequent.addSharingConsts sym seq
-(*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addSequent: " ^ err);
-*)
-
-local
-  fun add (seq,sym) = addSequent sym seq;
-in
-  fun addSequentList sym seql =
-      List.foldl add sym seql
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addSequentList: " ^ err);
-*)
-
-  fun addSequentSet sym seqs =
-      SequentSet.foldl add sym seqs
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addSequentSet: " ^ err);
-*)
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Merging symbol tables.                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  fun mergeTypeOps ((n,ot1),(_,ot2)) =
-      if TypeOp.equal ot1 ot2 then SOME ot2
-      else raise Error ("duplicate type operator name " ^
-                        Name.quotedToString n);
-
-  fun mergeConsts ((n,c1),(_,c2)) =
-      if Const.equal c1 c2 then SOME c2
-      else raise Error ("duplicate constant name " ^
-                        Name.quotedToString n);
-in
-  fun union sym1 sym2 =
-      let
-        val Table {opS = opS1, opM = opM1, conS = conS1, conM = conM1} = sym1
-        and Table {opS = opS2, opM = opM2, conS = conS2, conM = conM2} = sym2
-
-        val opM = NameMap.union mergeTypeOps opM1 opM2
-
-        val conM = NameMap.union mergeConsts conM1 conM2
-
-        val opS = Term.unionSharingTypeOps opS1 opS2
-
-        val conS = Term.unionSharingConsts conS1 conS2
-      in
-        Table
-          {opS = opS,
-           opM = opM,
-           conS = conS,
-           conM = conM}
-      end
-(*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.union: " ^ err);
-*)
-
-end;
-
-local
-  fun uncurriedUnion (s1,s2) = union s1 s2;
-in
-  fun unionList syms =
-      case syms of
-        [] => empty
-      | sym :: syms => List.foldl uncurriedUnion sym syms;
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Partition symbol table entries into undefined and defined.                *)
-(* ------------------------------------------------------------------------- *)
-
-fun partitionUndef sym =
-    let
-      val usym = empty
-      and dsym = empty
-
-      val (uopS,dopS) = TypeOpSet.partition TypeOp.isUndef (typeOps sym)
-
-      val usym = addTypeOpSet usym uopS
-      and dsym = addTypeOpSet dsym dopS
-
-      val (uconS,dconS) = ConstSet.partition Const.isUndef (consts sym)
-
-      val usym = addConstSet usym uconS
-      and dsym = addConstSet dsym dconS
-    in
-      {undefined = usym, defined = dsym}
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Instantiating undefined type operators and constants with definitions.    *)
-(* ------------------------------------------------------------------------- *)
-
-fun instType sym ty' =
-    case ty' of
-      TypeTerm.VarTy' _ => NONE
-    | TypeTerm.OpTy' (ot,tys) =>
-      if not (TypeOp.isUndef ot) then NONE
-      else
-        let
-          val n = TypeOp.name ot
-        in
-          case peekTypeOp sym n of
-            NONE => NONE
-          | SOME ot => SOME (Type.mkOp (ot,tys))
-        end;
-
-fun instTerm sym tm' =
-    case tm' of
-      TypeTerm.Const' (c,ty) =>
-      if not (Const.isUndef c) then NONE
-      else
-        let
-          val n = Const.name c
-        in
-          case peekConst sym n of
-            NONE => NONE
-          | SOME c => SOME (Term.mkConst (c,ty))
-        end
-    | _ => NONE;
-
-fun inst sym =
-    let
-      val tyRewr = TypeRewrite.new (instType sym)
-    in
-      TermRewrite.new tyRewr (instTerm sym)
-    end;
+fun equal sym1 sym2 = compare (sym1,sym2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun ppNameMap (name,nm) =
-      let
-        val ns = List.map fst (NameMap.toList nm)
-      in
-        if List.null ns then Print.skip
-        else
-          Print.sequence
-            (Print.blockProgram Print.Inconsistent 2
-               (Print.ppString name ::
-                Print.ppString ":" ::
-                List.map (Print.sequence (Print.addBreak 1) o Name.pp) ns))
-            Print.addNewline
-      end;
-in
-  fun pp sym =
-      let
-        val Table {opM,conM,...} = sym
-      in
-        Print.blockProgram Print.Consistent 0
-          [ppNameMap ("types",opM),
-           ppNameMap ("consts",conM)]
-      end;
-end;
+val pp = Print.ppMap name Name.pp;
 
 val toString = Print.toString pp;
 
 end
+
+structure SymbolOrdered =
+struct
+  type t = Symbol.symbol;
+
+  val compare = Symbol.compare;
+end
+
+structure SymbolMap =
+struct
+
+  local
+    structure S = KeyMap (SymbolOrdered);
+  in
+    open S;
+  end;
+
+end
+
+structure SymbolSet =
+struct
+
+  local
+    structure S = ElementSet (SymbolMap);
+  in
+    open S;
+  end;
+
+  local
+    val ppSymList = Print.ppBracket "{" "}" (Print.ppOpList "," Symbol.pp);
+  in
+    val pp = Print.ppMap toList ppSymList;
+  end;
+
+end
+
+structure SymbolGraph =
+VertexGraph (
+  structure KM = SymbolMap
+  and ES = SymbolSet
+);

@@ -15,12 +15,12 @@ open Useful;
 datatype thms =
     Thms of
       {ths : ThmSet.set,
-       symbol : Symbol.table};
+       symbol : SymbolTable.table};
 
 val empty =
     let
       val ths = ThmSet.empty
-      and symbol = Symbol.empty
+      and symbol = SymbolTable.empty
     in
       Thms
         {ths = ths,
@@ -43,7 +43,7 @@ fun add thms th =
 
       val ths = ThmSet.add ths th
 
-      val sym = Symbol.addSequent sym (Thm.sequent th)
+      val sym = SymbolTable.addSequent sym (Thm.sequent th)
     in
       Thms
         {ths = ths,
@@ -75,7 +75,7 @@ fun union thms1 thms2 =
 
       val ths = ThmSet.union ths1 ths2
 
-      val sym = Symbol.union sym1 sym2
+      val sym = SymbolTable.union sym1 sym2
     in
       Thms
         {ths = ths,

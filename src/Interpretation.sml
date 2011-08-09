@@ -310,9 +310,9 @@ end;
 
 fun restrict sym =
     let
-      fun knownTypeOp (t,_) = Symbol.knownTypeOp sym t
+      fun knownTypeOp (t,_) = SymbolTable.knownTypeOp sym t
 
-      fun knownConst (c,_) = Symbol.knownConst sym c
+      fun knownConst (c,_) = SymbolTable.knownConst sym c
     in
       fn Interpretation {typeOps,consts} =>
          let
@@ -343,8 +343,8 @@ in
 
         fun sameConst c = sameName c1 c2 (Const.name c)
       in
-        TypeOpSet.all sameTypeOp (Symbol.typeOps sym) andalso
-        ConstSet.all sameConst (Symbol.consts sym)
+        TypeOpSet.all sameTypeOp (SymbolTable.typeOps sym) andalso
+        ConstSet.all sameConst (SymbolTable.consts sym)
       end;
 end;
 

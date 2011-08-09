@@ -164,17 +164,17 @@ fun rewrite rewr sum =
 
 datatype info =
     Info of
-      {input : Symbol.table,
+      {input : SymbolTable.table,
        assumed : SequentSet.set,
-       defined : Symbol.table,
+       defined : SymbolTable.table,
        axioms : SequentSet.set,
        thms : SequentSet.set};
 
 local
   fun allSymbolsIn sym =
       let
-        val ots = Symbol.typeOps sym
-        and cs = Symbol.consts sym
+        val ots = SymbolTable.typeOps sym
+        and cs = SymbolTable.consts sym
       in
         fn seq =>
            TypeOpSet.subset (Sequent.typeOps seq) ots andalso
@@ -193,9 +193,9 @@ in
               val req = Sequents.symbol requires
               and prov = Sequents.symbol provides
 
-              val sym = Symbol.union req prov
+              val sym = SymbolTable.union req prov
             in
-              Symbol.partitionUndef sym
+              SymbolTable.partitionUndef sym
             end
 
         val (ass,ax) =
@@ -428,8 +428,8 @@ in
 
         fun ppSymbol (prefix,sym) =
             let
-              val ots = TypeOpSet.toList (Symbol.typeOps sym)
-              and cs = ConstSet.toList (Symbol.consts sym)
+              val ots = TypeOpSet.toList (SymbolTable.typeOps sym)
+              and cs = ConstSet.toList (SymbolTable.consts sym)
             in
               ppList ppTypeOp prefix " type operator" ots @
               ppList ppConst prefix " constant" cs
@@ -769,8 +769,8 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
 
       fun toHtmlSymbol name sym =
           let
-            val ots = TypeOpSet.toList (Symbol.typeOps sym)
-            and cs = ConstSet.toList (Symbol.consts sym)
+            val ots = TypeOpSet.toList (SymbolTable.typeOps sym)
+            and cs = ConstSet.toList (SymbolTable.consts sym)
           in
             toHtmlTypeOps name ots @
             toHtmlConsts name cs

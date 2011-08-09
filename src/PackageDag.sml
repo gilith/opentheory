@@ -72,20 +72,20 @@ fun fromListVanilla importer dir theories =
 (* Fixed point calculation of theory block definitions.                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype definitions = Definitions of Symbol.table PackageNameMap.map;
+datatype definitions = Definitions of SymbolTable.table PackageNameMap.map;
 
 val emptyDefinitions = Definitions (PackageNameMap.new ());
 
 fun getDefinitions (Definitions dmap) name =
     case PackageNameMap.peek dmap name of
       SOME defs => defs
-    | NONE => Symbol.empty;
+    | NONE => SymbolTable.empty;
 
 fun getListDefinitions definitions names =
     let
       val defsl = List.map (getDefinitions definitions) names
     in
-      Symbol.unionList defsl
+      SymbolTable.unionList defsl
     end;
 
 fun addDefinitions vanilla (theory,(changed,definitions)) =
@@ -107,40 +107,40 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
               val (_,_,sum) = getVanilla vanilla name
 
               fun addTypeOp (ot,sym) =
-                  case Symbol.peekTypeOp idefs (TypeOp.name ot) of
+                  case SymbolTable.peekTypeOp idefs (TypeOp.name ot) of
                     NONE => sym
-                  | SOME ot => Symbol.addTypeOp sym ot
+                  | SOME ot => SymbolTable.addTypeOp sym ot
 
               fun addConst (c,sym) =
-                  case Symbol.peekConst idefs (Const.name c) of
+                  case SymbolTable.peekConst idefs (Const.name c) of
                     NONE => sym
-                  | SOME c => Symbol.addConst sym c
+                  | SOME c => SymbolTable.addConst sym c
 
               val provides = Summary.provides sum
 
               val {undefined = pinp, defined = pdef} =
-                  Symbol.partitionUndef (Sequents.symbol provides)
+                  SymbolTable.partitionUndef (Sequents.symbol provides)
 
-              val pdef = TypeOpSet.foldl addTypeOp pdef (Symbol.typeOps pinp)
+              val pdef = TypeOpSet.foldl addTypeOp pdef (SymbolTable.typeOps pinp)
 
-              val pdef = ConstSet.foldl addConst pdef (Symbol.consts pinp)
+              val pdef = ConstSet.foldl addConst pdef (SymbolTable.consts pinp)
             in
               pdef
             end
 
 (*OpenTheoryDebug
-      val _ = TypeOpSet.subset (Symbol.typeOps defs) (Symbol.typeOps defs')
+      val _ = TypeOpSet.subset (SymbolTable.typeOps defs) (SymbolTable.typeOps defs')
               orelse raise Bug "PackageDag.addDefinitions: shrinking type op defs"
 
-      val _ = ConstSet.subset (Symbol.consts defs) (Symbol.consts defs')
+      val _ = ConstSet.subset (SymbolTable.consts defs) (SymbolTable.consts defs')
               orelse raise Bug "PackageDag.addDefinitions: shrinking const defs"
 *)
 
       val same =
-          (TypeOpSet.size (Symbol.typeOps defs) =
-           TypeOpSet.size (Symbol.typeOps defs')) andalso
-          (ConstSet.size (Symbol.consts defs) =
-           ConstSet.size (Symbol.consts defs'))
+          (TypeOpSet.size (SymbolTable.typeOps defs) =
+           TypeOpSet.size (SymbolTable.typeOps defs')) andalso
+          (ConstSet.size (SymbolTable.consts defs) =
+           ConstSet.size (SymbolTable.consts defs'))
     in
       if same then (changed,definitions)
       else
@@ -150,7 +150,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
           val dmap = PackageNameMap.insert dmap (name,defs')
 
 (*OpenTheoryTrace2
-          val () = Print.trace Symbol.pp "PackageDag.addDefinitions.defs'" defs'
+          val () = Print.trace SymbolTable.pp "PackageDag.addDefinitions.defs'" defs'
 *)
         in
           (true, Definitions dmap)
@@ -218,10 +218,10 @@ fun addSummary vanilla definitions (theory,summary) =
               val idefs = getListDefinitions definitions imports
 
 (*OpenTheoryTrace2
-              val () = Print.trace Symbol.pp "PackageDag.addSummary.idefs" idefs
+              val () = Print.trace SymbolTable.pp "PackageDag.addSummary.idefs" idefs
 *)
 
-              val rewr = Symbol.inst idefs
+              val rewr = SymbolTable.inst idefs
             in
               Option.getOpt (Summary.rewrite rewr sum, sum)
             end
@@ -254,9 +254,9 @@ fun removeSequent req seqs =
 
 fun removeSymbol (ots,cs) sym =
     let
-      fun undefT t = not (Symbol.knownTypeOp sym (TypeOp.name t))
+      fun undefT t = not (SymbolTable.knownTypeOp sym (TypeOp.name t))
 
-      fun undefC c = not (Symbol.knownConst sym (Const.name c))
+      fun undefC c = not (SymbolTable.knownConst sym (Const.name c))
 
       val ots' = TypeOpSet.filter undefT ots
       and cs' = ConstSet.filter undefC cs
@@ -328,9 +328,9 @@ fun removeDeadImportsTheory outputWarning vanilla definitions summary theory =
 
             val psym = Sequents.symbol (Summary.provides sum)
 
-            val {undefined = pinp, defined = _} = Symbol.partitionUndef psym
+            val {undefined = pinp, defined = _} = SymbolTable.partitionUndef psym
           in
-            (Symbol.typeOps pinp, Symbol.consts pinp)
+            (SymbolTable.typeOps pinp, SymbolTable.consts pinp)
           end
 
       val alive = PackageNameSet.empty
@@ -459,7 +459,7 @@ datatype visible =
     Visible of
       {name : TheoryName.nameTheory,
        prov : SequentSet.set,
-       defs : Symbol.table} list PackageNameMap.map;
+       defs : SymbolTable.table} list PackageNameMap.map;
 
 val emptyVisible = Visible (PackageNameMap.new ());
 
@@ -501,7 +501,7 @@ fun addVisible vanilla definitions (theory,visible) =
                     val prov = Option.getOpt (prov',prov)
 
                     val {undefined = _, defined = defs} =
-                        Symbol.partitionUndef (Sequents.symbol prov)
+                        SymbolTable.partitionUndef (Sequents.symbol prov)
 
                     val prov = Sequents.sequents prov
 
@@ -517,7 +517,7 @@ fun addVisible vanilla definitions (theory,visible) =
 
               val idefs = getListDefinitions definitions imports
 
-              val rewr = Symbol.inst idefs
+              val rewr = SymbolTable.inst idefs
 
               val (vs,_) = maps mkVs (TheoryGraph.visiblePrimitives thy) rewr
             in
@@ -841,9 +841,9 @@ fun addTheoryDependency vanilla definitions visible generate
                               val prov = Sequents.symbol (Summary.provides sum)
 
                               val {undefined = inp, defined = _} =
-                                  Symbol.partitionUndef prov
+                                  SymbolTable.partitionUndef prov
                             in
-                              (Symbol.typeOps inp, Symbol.consts inp)
+                              (SymbolTable.typeOps inp, SymbolTable.consts inp)
                             end
 
                         val (req,inp) =
@@ -901,7 +901,7 @@ fun addTheoryDependency vanilla definitions visible generate
           val () = Print.trace TheoryGraph.pp "PackageDag.addDependency.graph" graph
 *)
 
-          val rewr = Symbol.inst (getListDefinitions definitions imports)
+          val rewr = SymbolTable.inst (getListDefinitions definitions imports)
 
           val thys = TheoryGraph.theories graph
 

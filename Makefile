@@ -103,6 +103,7 @@ SRC = \
   src/Sequent.sig src/Sequent.sml \
   src/Thm.sig src/Thm.sml \
   src/Symbol.sig src/Symbol.sml \
+  src/SymbolTable.sig src/SymbolTable.sml \
   src/Rule.sig src/Rule.sml \
   src/Thms.sig src/Thms.sml \
   src/Sequents.sig src/Sequents.sml \

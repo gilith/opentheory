@@ -70,9 +70,10 @@ val compose : interpretation -> interpretation -> interpretation
 (* Restricting interpretations.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val restrict : Symbol.table -> interpretation -> interpretation
+val restrict : SymbolTable.table -> interpretation -> interpretation
 
-val restrictEqual : Symbol.table -> interpretation -> interpretation -> bool
+val restrictEqual :
+    SymbolTable.table -> interpretation -> interpretation -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

@@ -15,12 +15,12 @@ open Useful;
 datatype sequents =
     Sequents of
       {sequents : SequentSet.set,
-       symbol : Symbol.table};
+       symbol : SymbolTable.table};
 
 val empty =
     let
       val seqs = SequentSet.empty
-      and sym = Symbol.empty
+      and sym = SymbolTable.empty
     in
       Sequents
         {sequents = seqs,
@@ -43,7 +43,7 @@ fun add sequents seq =
 
       val seqs = SequentSet.add seqs seq
 
-      val sym = Symbol.addSequent sym seq
+      val sym = SymbolTable.addSequent sym seq
     in
       Sequents
         {sequents = seqs,
@@ -64,7 +64,7 @@ fun addThms sequents thms =
 
       val seqs = SequentSet.union seqs (ThmSet.sequents (Thms.thms thms))
 
-      val sym = Symbol.union sym (Thms.symbol thms)
+      val sym = SymbolTable.union sym (Thms.symbol thms)
     in
       Sequents
         {sequents = seqs,
@@ -90,7 +90,7 @@ fun union sequents1 sequents2 =
 
       val seqs = SequentSet.union seqs1 seqs2
 
-      val sym = Symbol.union sym1 sym2
+      val sym = SymbolTable.union sym1 sym2
     in
       Sequents
         {sequents = seqs,

@@ -357,9 +357,9 @@ fun nameData (Data {name,...}) = TypeOp.name name;
 local
   fun addConstructor ((c,tys),sym) =
       let
-        val sym = Symbol.addConst sym c
+        val sym = SymbolTable.addConst sym c
 
-        val sym = Symbol.addTypeList sym tys;
+        val sym = SymbolTable.addTypeList sym tys;
       in
         sym
       end;
@@ -368,9 +368,9 @@ in
       let
         val Data {name, parameters = _, constructors = cons} = d
 
-        val sym = Symbol.empty
+        val sym = SymbolTable.empty
 
-        val sym = Symbol.addTypeOp sym name
+        val sym = SymbolTable.addTypeOp sym name
 
         val sym = List.foldl addConstructor sym cons
       in
@@ -382,15 +382,15 @@ fun symbolNewtype n =
     let
       val Newtype {name, predicate = pred, abs, rep} = n
 
-      val sym = Symbol.empty
+      val sym = SymbolTable.empty
 
-      val sym = Symbol.addTypeOp sym name
+      val sym = SymbolTable.addTypeOp sym name
 
-      val sym = Symbol.addTerm sym pred
+      val sym = SymbolTable.addTerm sym pred
 
-      val sym = Symbol.addConst sym abs
+      val sym = SymbolTable.addConst sym abs
 
-      val sym = Symbol.addConst sym rep
+      val sym = SymbolTable.addConst sym rep
     in
       sym
     end;
@@ -398,9 +398,9 @@ fun symbolNewtype n =
 local
   fun addEquation ((args,tm),sym) =
       let
-        val sym = Symbol.addTermList sym args
+        val sym = SymbolTable.addTermList sym args
 
-        val sym = Symbol.addTerm sym tm
+        val sym = SymbolTable.addTerm sym tm
       in
         sym
       end;
@@ -409,11 +409,11 @@ in
       let
         val Value {name, ty, equations = eqns} = v
 
-        val sym = Symbol.empty
+        val sym = SymbolTable.empty
 
-        val sym = Symbol.addConst sym name
+        val sym = SymbolTable.addConst sym name
 
-        val sym = Symbol.addType sym ty
+        val sym = SymbolTable.addType sym ty
 
         val sym = List.foldl addEquation sym eqns
       in
