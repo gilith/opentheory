@@ -38,7 +38,7 @@ fun addInfo dep info =
         let
           val namever = PackageInfo.nameVersion info
 
-          fun add (p,graph) = PackageNameVersionGraph.add graph (p,namever)
+          fun add (p,graph) = PackageNameVersionGraph.addEdge graph (p,namever)
 
           val Dependency graph = dep
 
