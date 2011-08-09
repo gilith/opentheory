@@ -164,9 +164,9 @@ fun rewrite rewr sum =
 
 datatype info =
     Info of
-      {input : Symbol.symbol,
+      {input : Symbol.table,
        assumed : SequentSet.set,
-       defined : Symbol.symbol,
+       defined : Symbol.table,
        axioms : SequentSet.set,
        thms : SequentSet.set};
 

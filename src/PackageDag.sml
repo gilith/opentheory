@@ -72,7 +72,7 @@ fun fromListVanilla importer dir theories =
 (* Fixed point calculation of theory block definitions.                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype definitions = Definitions of Symbol.symbol PackageNameMap.map;
+datatype definitions = Definitions of Symbol.table PackageNameMap.map;
 
 val emptyDefinitions = Definitions (PackageNameMap.new ());
 
@@ -459,7 +459,7 @@ datatype visible =
     Visible of
       {name : TheoryName.nameTheory,
        prov : SequentSet.set,
-       defs : Symbol.symbol} list PackageNameMap.map;
+       defs : Symbol.table} list PackageNameMap.map;
 
 val emptyVisible = Visible (PackageNameMap.new ());
 

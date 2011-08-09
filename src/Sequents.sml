@@ -15,7 +15,7 @@ open Useful;
 datatype sequents =
     Sequents of
       {sequents : SequentSet.set,
-       symbol : Symbol.symbol};
+       symbol : Symbol.table};
 
 val empty =
     let

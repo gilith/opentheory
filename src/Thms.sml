@@ -15,7 +15,7 @@ open Useful;
 datatype thms =
     Thms of
       {ths : ThmSet.set,
-       symbol : Symbol.symbol};
+       symbol : Symbol.table};
 
 val empty =
     let

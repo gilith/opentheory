@@ -12,8 +12,8 @@ open Useful;
 (* A type of symbol tables.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-datatype symbol =
-    Symbol of
+datatype table =
+    Table of
       {opS : Term.sharingTypeOps,
        opM : TypeOp.typeOp NameMap.map,
        conS : Term.sharingConsts,
@@ -29,28 +29,28 @@ val empty =
 
       val conM = NameMap.new ()
     in
-      Symbol
+      Table
         {opS = opS,
          opM = opM,
          conS = conS,
          conM = conM}
     end;
 
-fun typeOps (Symbol {opS,...}) = Term.toSetSharingTypeOps opS;
+fun typeOps (Table {opS,...}) = Term.toSetSharingTypeOps opS;
 
-fun consts (Symbol {conS,...}) = Term.toSetSharingConsts conS;
+fun consts (Table {conS,...}) = Term.toSetSharingConsts conS;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up entries.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun peekTypeOp (Symbol {opM,...}) n = NameMap.peek opM n;
+fun peekTypeOp (Table {opM,...}) n = NameMap.peek opM n;
 
-fun peekConst (Symbol {conM,...}) n = NameMap.peek conM n;
+fun peekConst (Table {conM,...}) n = NameMap.peek conM n;
 
-fun knownTypeOp (Symbol {opM,...}) n = NameMap.inDomain n opM;
+fun knownTypeOp (Table {opM,...}) n = NameMap.inDomain n opM;
 
-fun knownConst (Symbol {conM,...}) n = NameMap.inDomain n conM;
+fun knownConst (Table {conM,...}) n = NameMap.inDomain n conM;
 
 fun mkTypeOp sym n =
     case peekTypeOp sym n of
@@ -93,7 +93,7 @@ local
 in
   fun addX addXOp addXCon sym x =
       let
-        val Symbol {opS,opM,conS,conM} = sym
+        val Table {opS,opM,conS,conM} = sym
 
         (* Add type operators in X *)
 
@@ -119,7 +119,7 @@ in
             if ConstSet.size cs = ConstSet.size cs' then conM
             else ConstSet.foldl addCon conM (ConstSet.difference cs cs')
       in
-        Symbol
+        Table
           {opS = opS,
            opM = opM,
            conS = conS,
@@ -264,8 +264,8 @@ local
 in
   fun union sym1 sym2 =
       let
-        val Symbol {opS = opS1, opM = opM1, conS = conS1, conM = conM1} = sym1
-        and Symbol {opS = opS2, opM = opM2, conS = conS2, conM = conM2} = sym2
+        val Table {opS = opS1, opM = opM1, conS = conS1, conM = conM1} = sym1
+        and Table {opS = opS2, opM = opM2, conS = conS2, conM = conM2} = sym2
 
         val opM = NameMap.union mergeTypeOps opM1 opM2
 
@@ -275,7 +275,7 @@ in
 
         val conS = Term.unionSharingConsts conS1 conS2
       in
-        Symbol
+        Table
           {opS = opS,
            opM = opM,
            conS = conS,
@@ -378,7 +378,7 @@ local
 in
   fun pp sym =
       let
-        val Symbol {opM,conM,...} = sym
+        val Table {opM,conM,...} = sym
       in
         Print.blockProgram Print.Consistent 0
           [ppNameMap ("types",opM),

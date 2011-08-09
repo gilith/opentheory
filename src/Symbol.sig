@@ -10,98 +10,98 @@ sig
 (* A type of symbol tables.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-type symbol
+type table
 
-val empty : symbol
+val empty : table
 
-val typeOps : symbol -> TypeOpSet.set
+val typeOps : table -> TypeOpSet.set
 
-val consts : symbol -> ConstSet.set
+val consts : table -> ConstSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up entries.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val peekTypeOp : symbol -> Name.name -> TypeOp.typeOp option
+val peekTypeOp : table -> Name.name -> TypeOp.typeOp option
 
-val peekConst : symbol -> Name.name -> Const.const option
+val peekConst : table -> Name.name -> Const.const option
 
-val knownTypeOp : symbol -> Name.name -> bool
+val knownTypeOp : table -> Name.name -> bool
 
-val knownConst : symbol -> Name.name -> bool
+val knownConst : table -> Name.name -> bool
 
-val mkTypeOp : symbol -> Name.name -> TypeOp.typeOp
+val mkTypeOp : table -> Name.name -> TypeOp.typeOp
 
-val mkConst : symbol -> Name.name -> Const.const
+val mkConst : table -> Name.name -> Const.const
 
 (* ------------------------------------------------------------------------- *)
 (* Adding entries.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val addTypeOp : symbol -> TypeOp.typeOp -> symbol
+val addTypeOp : table -> TypeOp.typeOp -> table
 
-val addTypeOpSet : symbol -> TypeOpSet.set -> symbol
+val addTypeOpSet : table -> TypeOpSet.set -> table
 
-val addConst : symbol -> Const.const -> symbol
+val addConst : table -> Const.const -> table
 
-val addConstSet : symbol -> ConstSet.set -> symbol
+val addConstSet : table -> ConstSet.set -> table
 
-val addType : symbol -> Type.ty -> symbol
+val addType : table -> Type.ty -> table
 
-val addTypeList : symbol -> Type.ty list -> symbol
+val addTypeList : table -> Type.ty list -> table
 
-val addTypeSet : symbol -> TypeSet.set -> symbol
+val addTypeSet : table -> TypeSet.set -> table
 
-val addVar : symbol -> Var.var -> symbol
+val addVar : table -> Var.var -> table
 
-val addVarList : symbol -> Var.var list -> symbol
+val addVarList : table -> Var.var list -> table
 
-val addVarSet : symbol -> VarSet.set -> symbol
+val addVarSet : table -> VarSet.set -> table
 
-val addTerm : symbol -> Term.term -> symbol
+val addTerm : table -> Term.term -> table
 
-val addTermList : symbol -> Term.term list -> symbol
+val addTermList : table -> Term.term list -> table
 
-val addTermSet : symbol -> TermSet.set -> symbol
+val addTermSet : table -> TermSet.set -> table
 
-val addTermAlphaSet : symbol -> TermAlphaSet.set -> symbol
+val addTermAlphaSet : table -> TermAlphaSet.set -> table
 
-val addSequent : symbol -> Sequent.sequent -> symbol
+val addSequent : table -> Sequent.sequent -> table
 
-val addSequentList : symbol -> Sequent.sequent list -> symbol
+val addSequentList : table -> Sequent.sequent list -> table
 
-val addSequentSet : symbol -> SequentSet.set -> symbol
+val addSequentSet : table -> SequentSet.set -> table
 
 (* ------------------------------------------------------------------------- *)
 (* Merging symbol tables.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val union : symbol -> symbol -> symbol
+val union : table -> table -> table
 
-val unionList : symbol list -> symbol
+val unionList : table list -> table
 
 (* ------------------------------------------------------------------------- *)
 (* Partition symbol table entries into undefined and defined.                *)
 (* ------------------------------------------------------------------------- *)
 
-val partitionUndef : symbol -> {undefined : symbol, defined : symbol}
+val partitionUndef : table -> {undefined : table, defined : table}
 
 (* ------------------------------------------------------------------------- *)
 (* Instantiating undefined type operators and constants with definitions.    *)
 (* ------------------------------------------------------------------------- *)
 
-val instType : symbol -> Type.ty' -> Type.ty option
+val instType : table -> Type.ty' -> Type.ty option
 
-val instTerm : symbol -> Term.term' -> Term.term option
+val instTerm : table -> Term.term' -> Term.term option
 
-val inst : symbol -> TermRewrite.rewrite
+val inst : table -> TermRewrite.rewrite
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : symbol Print.pp
+val pp : table Print.pp
 
-val toString : symbol -> string
+val toString : table -> string
 
 end

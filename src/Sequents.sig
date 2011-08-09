@@ -18,7 +18,7 @@ val size : sequents -> int
 
 val sequents : sequents -> SequentSet.set
 
-val symbol : sequents -> Symbol.symbol
+val symbol : sequents -> Symbol.table
 
 (* ------------------------------------------------------------------------- *)
 (* Adding sequents.                                                          *)
