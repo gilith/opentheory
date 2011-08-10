@@ -14,12 +14,14 @@ type table
 
 val empty : table
 
+val symbols : table -> SymbolSet.set
+
 val typeOps : table -> TypeOpSet.set
 
 val consts : table -> ConstSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up entries.                                                       *)
+(* Looking up entries by name.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 val peekTypeOp : table -> Name.name -> TypeOp.typeOp option

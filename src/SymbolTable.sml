@@ -14,34 +14,36 @@ open Useful;
 
 datatype table =
     Table of
-      {opS : Term.sharingTypeOps,
+      {symS : SymbolSet.set,
+       opS : Term.sharingTypeOps,
        opM : TypeOp.typeOp NameMap.map,
        conS : Term.sharingConsts,
        conM : Const.const NameMap.map};
 
 val empty =
     let
-      val opS = Term.emptySharingTypeOps
-
-      val opM = NameMap.new ()
-
-      val conS = Term.emptySharingConsts
-
-      val conM = NameMap.new ()
+      val symS = SymbolSet.empty
+      and opS = Term.emptySharingTypeOps
+      and opM = NameMap.new ()
+      and conS = Term.emptySharingConsts
+      and conM = NameMap.new ()
     in
       Table
-        {opS = opS,
+        {symS = symS,
+         opS = opS,
          opM = opM,
          conS = conS,
          conM = conM}
     end;
+
+fun symbols (Table {symS,...}) = symS;
 
 fun typeOps (Table {opS,...}) = Term.toSetSharingTypeOps opS;
 
 fun consts (Table {conS,...}) = Term.toSetSharingConsts conS;
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up entries.                                                       *)
+(* Looking up entries by name.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 fun peekTypeOp (Table {opM,...}) n = NameMap.peek opM n;
@@ -67,33 +69,53 @@ fun mkConst sym n =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun addOp (ot,m) =
+  fun addOp (ot,(s,m)) =
       let
         val n = TypeOp.name ot
+
+        val m =
+            case NameMap.peek m n of
+              NONE => NameMap.insert m (n,ot)
+            | SOME ot' =>
+              if TypeOp.equal ot ot' then m
+              else
+                let
+                  val err =
+                      "duplicate type operator name " ^ Name.quotedToString n
+                in
+                  raise Error err
+                end
+
+        val s = SymbolSet.add s (Symbol.TypeOp ot)
       in
-        case NameMap.peek m n of
-          NONE => NameMap.insert m (n,ot)
-        | SOME ot' =>
-          if TypeOp.equal ot ot' then m
-          else raise Error ("duplicate type operator name " ^
-                            Name.quotedToString n)
+        (s,m)
       end;
 
-  fun addCon (c,m) =
+  fun addCon (c,(s,m)) =
       let
         val n = Const.name c
+
+        val m =
+            case NameMap.peek m n of
+              NONE => NameMap.insert m (n,c)
+            | SOME c' =>
+              if Const.equal c c' then m
+              else
+                let
+                  val err =
+                      "duplicate constant name " ^ Name.quotedToString n
+                in
+                  raise Error err
+                end
+
+        val s = SymbolSet.add s (Symbol.Const c)
       in
-        case NameMap.peek m n of
-          NONE => NameMap.insert m (n,c)
-        | SOME c' =>
-          if Const.equal c c' then m
-          else raise Error ("duplicate constant name " ^
-                            Name.quotedToString n)
+        (s,m)
       end;
 in
   fun addX addXOp addXCon sym x =
       let
-        val Table {opS,opM,conS,conM} = sym
+        val Table {symS,opS,opM,conS,conM} = sym
 
         (* Add type operators in X *)
 
@@ -103,9 +125,14 @@ in
 
         val ots = Term.toSetSharingTypeOps opS
 
-        val opM =
-            if TypeOpSet.size ots = TypeOpSet.size ots' then opM
-            else TypeOpSet.foldl addOp opM (TypeOpSet.difference ots ots')
+        val (symS,opM) =
+            if TypeOpSet.size ots = TypeOpSet.size ots' then (symS,opM)
+            else
+              let
+                val ots' = TypeOpSet.difference ots ots'
+              in
+                TypeOpSet.foldl addOp (symS,opM) ots'
+              end
 
         (* Add constants in X *)
 
@@ -115,12 +142,18 @@ in
 
         val cs = Term.toSetSharingConsts conS
 
-        val conM =
-            if ConstSet.size cs = ConstSet.size cs' then conM
-            else ConstSet.foldl addCon conM (ConstSet.difference cs cs')
+        val (symS,conM) =
+            if ConstSet.size cs = ConstSet.size cs' then (symS,conM)
+            else
+              let
+                val cs' = ConstSet.difference cs cs'
+              in
+                ConstSet.foldl addCon (symS,conM) cs'
+              end
       in
         Table
-          {opS = opS,
+          {symS = symS,
+           opS = opS,
            opM = opM,
            conS = conS,
            conM = conM}
@@ -132,31 +165,31 @@ fun addNothing _ share = share;
 fun addTypeOp sym ot =
     addX Term.addTypeOpSharingTypeOps addNothing sym ot
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addTypeOp: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addTypeOp: " ^ err);
 *)
 
 fun addTypeOpSet sym ots =
     addX Term.addTypeOpSetSharingTypeOps addNothing sym ots
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addTypeOpSet: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addTypeOpSet: " ^ err);
 *)
 
 fun addConst sym c =
     addX addNothing Term.addConstSharingConsts sym c
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addConst: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addConst: " ^ err);
 *)
 
 fun addConstSet sym cs =
     addX addNothing Term.addConstSetSharingConsts sym cs
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addConstSet: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addConstSet: " ^ err);
 *)
 
 fun addType sym ty =
     addX Term.addTypeSharingTypeOps addNothing sym ty
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addType: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addType: " ^ err);
 *)
 
 local
@@ -165,20 +198,20 @@ in
   fun addTypeList sym tyl =
       List.foldl add sym tyl
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTypeList: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addTypeList: " ^ err);
 *)
 
   fun addTypeSet sym tys =
       TypeSet.foldl add sym tys
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTypeSet: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addTypeSet: " ^ err);
 *)
 end;
 
 fun addVar sym v =
     addX Term.addTypeSharingTypeOps addNothing sym (Var.typeOf v)
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addVar: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addVar: " ^ err);
 *)
 
 local
@@ -187,20 +220,20 @@ in
   fun addVarList sym vl =
       List.foldl add sym vl
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addVarList: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addVarList: " ^ err);
 *)
 
   fun addVarSet sym vs =
       VarSet.foldl add sym vs
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addVarSet: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addVarSet: " ^ err);
 *)
 end;
 
 fun addTerm sym tm =
     addX Term.addSharingTypeOps Term.addSharingConsts sym tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addTerm: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addTerm: " ^ err);
 *)
 
 local
@@ -209,26 +242,26 @@ in
   fun addTermList sym tml =
       List.foldl add sym tml
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTermList: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addTermList: " ^ err);
 *)
 
   fun addTermSet sym tms =
       TermSet.foldl add sym tms
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTermSet: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addTermSet: " ^ err);
 *)
 
   fun addTermAlphaSet sym tms =
       TermAlphaSet.foldl add sym tms
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addTermAlphaSet: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addTermAlphaSet: " ^ err);
 *)
 end;
 
 fun addSequent sym seq =
     addX Sequent.addSharingTypeOps Sequent.addSharingConsts sym seq
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Symbol.addSequent: " ^ err);
+    handle Error err => raise Error ("SymbolTable.addSequent: " ^ err);
 *)
 
 local
@@ -237,13 +270,13 @@ in
   fun addSequentList sym seql =
       List.foldl add sym seql
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addSequentList: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addSequentList: " ^ err);
 *)
 
   fun addSequentSet sym seqs =
       SequentSet.foldl add sym seqs
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.addSequentSet: " ^ err);
+      handle Error err => raise Error ("SymbolTable.addSequentSet: " ^ err);
 *)
 end;
 
@@ -254,37 +287,53 @@ end;
 local
   fun mergeTypeOps ((n,ot1),(_,ot2)) =
       if TypeOp.equal ot1 ot2 then SOME ot2
-      else raise Error ("duplicate type operator name " ^
-                        Name.quotedToString n);
+      else
+        let
+          val err = "duplicate type operator name " ^ Name.quotedToString n
+        in
+          raise Error err
+        end;
 
   fun mergeConsts ((n,c1),(_,c2)) =
       if Const.equal c1 c2 then SOME c2
-      else raise Error ("duplicate constant name " ^
-                        Name.quotedToString n);
+      else
+        let
+          val err = "duplicate constant name " ^ Name.quotedToString n
+        in
+          raise Error err
+        end;
 in
   fun union sym1 sym2 =
       let
-        val Table {opS = opS1, opM = opM1, conS = conS1, conM = conM1} = sym1
-        and Table {opS = opS2, opM = opM2, conS = conS2, conM = conM2} = sym2
+        val Table
+              {symS = symS1,
+               opS = opS1,
+               opM = opM1,
+               conS = conS1,
+               conM = conM1} = sym1
+        and Table
+              {symS = symS2,
+               opS = opS2,
+               opM = opM2,
+               conS = conS2,
+               conM = conM2} = sym2
 
-        val opM = NameMap.union mergeTypeOps opM1 opM2
-
-        val conM = NameMap.union mergeConsts conM1 conM2
-
-        val opS = Term.unionSharingTypeOps opS1 opS2
-
-        val conS = Term.unionSharingConsts conS1 conS2
+        val symS = SymbolSet.union symS1 symS2
+        and opM = NameMap.union mergeTypeOps opM1 opM2
+        and conM = NameMap.union mergeConsts conM1 conM2
+        and opS = Term.unionSharingTypeOps opS1 opS2
+        and conS = Term.unionSharingConsts conS1 conS2
       in
         Table
-          {opS = opS,
+          {symS = symS,
+           opS = opS,
            opM = opM,
            conS = conS,
            conM = conM}
       end
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Symbol.union: " ^ err);
+      handle Error err => raise Error ("SymbolTable.union: " ^ err);
 *)
-
 end;
 
 local
