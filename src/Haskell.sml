@@ -352,7 +352,7 @@ fun destSource th =
 (* Sorting Haskell declarations into a module hierarchy.                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun nameData (Data {name,...}) = TypeOp.name name;
+fun symbolData (Data {name,...}) = Symbol.TypeOp name;
 
 local
   fun addConstructor ((c,tys),sym) =
@@ -364,7 +364,7 @@ local
         sym
       end;
 in
-  fun symbolData d =
+  fun symbolTableData d =
       let
         val Data {name, parameters = _, constructors = cons} = d
 
@@ -378,7 +378,9 @@ in
       end;
 end;
 
-fun symbolNewtype n =
+fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
+
+fun symbolTableNewtype n =
     let
       val Newtype {name, predicate = pred, abs, rep} = n
 
@@ -395,6 +397,8 @@ fun symbolNewtype n =
       sym
     end;
 
+fun symbolValue (Value {name,...}) = Symbol.Const name;
+
 local
   fun addEquation ((args,tm),sym) =
       let
@@ -405,7 +409,7 @@ local
         sym
       end;
 in
-  fun symbolValue v =
+  fun symbolTableValue v =
       let
         val Value {name, ty, equations = eqns} = v
 
@@ -421,23 +425,21 @@ in
       end;
 end;
 
-fun nameNewtype (Newtype {name,...}) = TypeOp.name name;
-
-fun nameValue (Value {name,...}) = Const.name name;
-
-fun nameSource s =
-    case s of
-      DataSource x => nameData x
-    | NewtypeSource x => nameNewtype x
-    | ValueSource x => nameValue x;
-
-fun namespaceSource s = Name.namespace (nameSource s);
-
 fun symbolSource s =
     case s of
       DataSource x => symbolData x
     | NewtypeSource x => symbolNewtype x
     | ValueSource x => symbolValue x;
+
+fun nameSource s = Symbol.name (symbolSource s);
+
+fun namespaceSource s = Name.namespace (nameSource s);
+
+fun symbolTableSource s =
+    case s of
+      DataSource x => symbolTableData x
+    | NewtypeSource x => symbolTableNewtype x
+    | ValueSource x => symbolTableValue x;
 
 (***
 local
@@ -447,7 +449,7 @@ in
       let
         val sl = List.map addSym sl
       in
-        
+
       end;
 end;
 ***)
