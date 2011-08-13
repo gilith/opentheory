@@ -103,13 +103,12 @@ end;
 (* The standard namespace.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val bool = fromList ["Data","Bool"];
-
-val list = fromList ["Data","List"];
-
-val natural = fromList ["Number","Natural"];
-
-val set = fromList ["Set"];
+val bool = fromList ["Data","Bool"]
+and list = fromList ["Data","List"]
+and option = fromList ["Data","Option"]
+and pair = fromList ["Data","Pair"]
+and natural = fromList ["Number","Natural"]
+and set = fromList ["Set"];
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)

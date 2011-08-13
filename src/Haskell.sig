@@ -28,7 +28,7 @@ val convert : Package.package -> Theory.theory -> haskell
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val toPackage : haskell -> unit
+val toPackage : Directory.directory -> haskell -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Export a theory to a Haskell package.                                     *)

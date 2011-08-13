@@ -15,6 +15,149 @@ open Useful;
 val prefix = PackageName.haskellExport;
 
 (* ------------------------------------------------------------------------- *)
+(* Exporting various OpenTheory names to Haskell.                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun exportPackageName name =
+    let
+      val old = PackageName.haskellExport
+      and new = PackageName.newHaskellExport
+    in
+      if PackageName.equal name old then new
+      else
+        case PackageName.destStrictPrefix old name of
+          SOME n => PackageName.append new n
+        | NONE =>
+          let
+            val err =
+                "non-Haskell package name: " ^ PackageName.toString name
+          in
+            raise Error err
+          end
+    end;
+
+val opentheoryNamespace = Namespace.fromList ["OpenTheory"];
+
+local
+  val haskellNamespace = Namespace.fromList ["Haskell"];
+in
+  fun exportNamespace ns =
+      case Namespace.rewrite (haskellNamespace,opentheoryNamespace) ns of
+        SOME ns => ns
+      | NONE => raise Error ("non-Haskell namespace: " ^ Namespace.toString ns);
+end;
+
+local
+  val mkOpentheoryNamespace = Namespace.append opentheoryNamespace;
+
+  fun mkOpentheoryName ns s =
+      Name.mk (mkOpentheoryNamespace ns, s);
+
+  val mkNaturalName = mkOpentheoryName Namespace.natural;
+
+  val typeOpMapping =
+      NameMap.fromList
+        [(Name.boolTypeOp, Name.mkGlobal "Bool"),
+         (Name.funTypeOp, Name.mkGlobal "->"),
+         (Name.listTypeOp, Name.mkGlobal "List"),
+         (Name.naturalTypeOp, mkNaturalName "Natural"),
+         (Name.optionTypeOp, Name.mkGlobal "Maybe"),
+         (Name.pairTypeOp, Name.mkGlobal "Pair")];
+
+  val constMapping =
+      NameMap.fromList
+        [(Name.conjConst, Name.mkGlobal "&&"),
+         (Name.consConst, Name.mkGlobal ":"),
+         (Name.nilConst, Name.mkGlobal "[]"),
+         (Name.noneConst, Name.mkGlobal "Nothing"),
+         (Name.someConst, Name.mkGlobal "Just"),
+         (Name.sucConst, mkNaturalName "suc")];
+
+  fun exportName n =
+      let
+        val (ns,n) = Name.dest n
+
+        val ns = exportNamespace ns
+      in
+        Name.mk (ns,n)
+      end;
+in
+  fun exportTypeOpName n =
+      case NameMap.peek typeOpMapping n of
+        SOME n => n
+      | NONE =>
+        exportName n
+        handle Error err =>
+          let
+            val err = "bad type operator name: " ^ Name.toString n ^ "\n" ^ err
+          in
+            raise Error err
+          end;
+
+  fun exportConstName n =
+      case NameMap.peek constMapping n of
+        SOME n => n
+      | NONE =>
+        exportName n
+        handle Error err =>
+          let
+            val err = "bad constant name: " ^ Name.toString n ^ "\n" ^ err
+          in
+            raise Error err
+          end;
+end;
+
+(***
+local
+  fun exportTypeVarName v =
+      let
+        val (ns,s) = Name.dest v
+
+        val () =
+            if Namespace.isGlobal ns then ()
+            else raise Error "non-global type variable"
+
+        val cs = String.explode s
+
+        val cs = dropWhile (not o Char.isAlpha) cs
+
+        val () =
+            if List.all Char.isAlphaNum cs then ()
+            else raise Error "non-alphanumerical chars in type variable"
+
+        val cs =
+            case cs of
+              [] => raise Error "empty type variable"
+            | c :: ct =>
+              if Char.isLower c then cs else Char.toLower c :: ct
+
+        val s' = String.implode cs
+      in
+        if s = s' then NONE else SOME (Name.mkGlobal s')
+      end;
+in
+  fun exportTypeVarNames vs =
+      let
+        fun add (v,acc) =
+            case exportTypeVarName v of
+              NONE => acc
+            | SOME v' =>
+              let
+                val () =
+                    if not (NameSet.member v' vs) then ()
+                    else raise Error "type variable name clash"
+              in
+                (v, Type.mkVar v') :: acc
+              end
+
+        val tymap = NameSet.foldr add [] vs
+      in
+        TypeSubst.mk (TypeSubst.fromListMap tymap)
+      end;
+end;
+***)
+
+(* ------------------------------------------------------------------------- *)
 (* A type of Haskell packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -441,18 +584,53 @@ fun symbolTableSource s =
     | NewtypeSource x => symbolTableNewtype x
     | ValueSource x => symbolTableValue x;
 
-(***
 local
-  fun addSym s = (s, symbolSource s);
-in
-  fun sortSource sl =
+  val mkSymSrc =
       let
-        val sl = List.map addSym sl
+        fun mk src = (symbolSource src, src)
       in
+        fn srcl => SymbolMap.fromList (List.map mk srcl)
+      end;
 
+  fun mkGraph syms =
+      let
+        fun add (sym,src,graph) =
+            let
+              val ss = SymbolTable.symbols (symbolTableSource src)
+
+              val ss = SymbolSet.intersect syms ss
+            in
+              SymbolGraph.addChildren graph (sym,ss)
+            end
+      in
+        SymbolMap.foldl add SymbolGraph.empty
+      end;
+
+  fun linearize symSrc =
+      let
+        fun addSym (sym,acc) =
+            case SymbolMap.peek symSrc sym of
+              SOME src => src :: acc
+            | NONE => raise Bug "Haskell.sortSource.linearize.addSym"
+
+        fun addScc (scc,acc) = SymbolSet.foldr addSym acc scc
+      in
+        List.foldl addScc []
+      end;
+in
+  fun sortSource srcl =
+      let
+        val symSrc = mkSymSrc srcl
+
+        val syms = SymbolSet.domain symSrc
+
+        val graph = mkGraph syms symSrc
+
+        val sccl = SymbolGraph.preOrderSCC graph (SymbolGraph.vertexList graph)
+      in
+        linearize symSrc sccl
       end;
 end;
-***)
 
 local
   fun init src = (Namespace.toList (namespaceSource src), src);
@@ -551,7 +729,7 @@ fun destSourceTheory src =
 
       val ths = ThmSet.toList (Thms.thms (Article.thms art))
     in
-      List.map destSource ths
+      sortSource (List.map destSource ths)
     end;
 
 fun convert pkg thy =
@@ -566,83 +744,10 @@ fun convert pkg thy =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Exporting various OpenTheory names to Haskell.                            *)
+(* Printing Haskell source code.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun exportPackageName name =
-    let
-      val old = PackageName.haskellExport
-      and new = PackageName.newHaskellExport
-    in
-      if PackageName.equal name old then new
-      else
-        case PackageName.destStrictPrefix old name of
-          SOME n => PackageName.append new n
-        | NONE =>
-          let
-            val err =
-                "non-Haskell package name: " ^ PackageName.toString name
-          in
-            raise Error err
-          end
-    end;
-
-local
-  val haskellNamespace = Namespace.fromList ["Haskell"]
-  and opentheoryNamespace = Namespace.fromList ["OpenTheory"];
-in
-  fun exportNamespace ns =
-      case Namespace.rewrite (haskellNamespace,opentheoryNamespace) ns of
-        SOME ns => ns
-      | NONE => raise Error ("non-Haskell namespace: " ^ Namespace.toString ns);
-end;
-
-local
-  val typeOpMapping =
-      NameMap.fromList
-        [(Name.boolTypeOp, Name.mkGlobal "bool")];
-
-  val constMapping =
-      NameMap.fromList
-        [(Name.conjConst, Name.mkGlobal "&&")];
-
-  fun exportName n =
-      let
-        val (ns,n) = Name.dest n
-
-        val ns = exportNamespace ns
-      in
-        Name.mk (ns,n)
-      end;
-in
-  fun exportTypeOpName n =
-      case NameMap.peek typeOpMapping n of
-        SOME n => n
-      | NONE =>
-        exportName n
-        handle Error err =>
-          let
-            val err = "bad type operator name: " ^ Name.toString n ^ "\n" ^ err
-          in
-            raise Error err
-          end;
-
-  fun exportConstName n =
-      case NameMap.peek constMapping n of
-        SOME n => n
-      | NONE =>
-        exportName n
-        handle Error err =>
-          let
-            val err = "bad constant name: " ^ Name.toString n ^ "\n" ^ err
-          in
-            raise Error err
-          end;
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Writing a Haskell package to disk.                                        *)
-(* ------------------------------------------------------------------------- *)
+(* Names *)
 
 fun ppPackageName name = PackageName.pp (exportPackageName name);
 
@@ -682,30 +787,338 @@ local
         fn n => relativeName namespace (exportConstName n)
       end;
 in
-  fun ppNamespace ns = Namespace.pp (exportNamespace ns);
+  fun ppFullNamespace ns = Namespace.pp (exportNamespace ns);
 
-  fun ppRelativeNamespace namespace ns =
+  fun ppNamespace namespace ns =
       Namespace.pp (exportRelativeNamespace namespace ns);
 
-  fun ppRelativeTypeOpName namespace n =
+  fun ppTypeOpName namespace n =
       Name.pp (exportRelativeTypeOpName namespace n);
 
-  fun ppRelativeConstName namespace n =
+  fun ppConstName namespace n =
       Name.pp (exportRelativeConstName namespace n);
 end;
 
-fun ppData ns data =
+fun ppVarName n =
+    if Name.isGlobal n then Name.pp n
+    else raise Error "non-global variable name";
+
+(* Types *)
+
+fun ppTypeOp ns ot = ppTypeOpName ns (TypeOp.name ot);
+
+val ppTypeVar = Name.pp;
+
+val ppTypeVarList =
     let
-      val Data {name, parameters = parms, constructors = cons} = data
+      val ppSpace = Print.ppString " "
+
+      fun ppSpaceTypeVar v = Print.sequence ppSpace (ppTypeVar v)
     in
-      Print.blockProgram Print.Inconsistent 2
-        [Print.ppString "data ",
-         ppRelativeTypeOpName ns (TypeOp.name name)]
+      fn vl => Print.program (List.map ppSpaceTypeVar vl)
     end;
 
-fun ppNewtype ns x = Print.ppString "newtype";
+local
+  fun ppBasic ns ty =
+      case Type.dest ty of
+        TypeTerm.VarTy' n => ppTypeVar n
+      | TypeTerm.OpTy' (ot,tys) =>
+        if List.null tys then ppTypeOp ns ot
+        else Print.ppBracket "(" ")" (ppGen ns) ty
 
-fun ppValue ns x = Print.ppString "value";
+  and ppSpaceBasic ns ty =
+      Print.sequence (Print.addBreak 1) (ppBasic ns ty)
+
+  and ppSpaceBasics ns tys =
+      Print.program (List.map (ppSpaceBasic ns) tys)
+
+  and ppGen ns ty =
+      case Type.dest ty of
+        TypeTerm.VarTy' _ => ppBasic ns ty
+      | TypeTerm.OpTy' (ot,tys) =>
+        if List.null tys then ppBasic ns ty
+        else
+          Print.blockProgram Print.Inconsistent 2
+            [ppTypeOp ns ot,
+             ppSpaceBasics ns tys];
+in
+  val ppType = ppGen;
+
+  val ppTypeList = ppSpaceBasics;
+end;
+
+(* Terms *)
+
+fun ppConst ns c = ppConstName ns (Const.name c);
+
+fun ppVar v = ppVarName (Var.name v);
+
+local
+  val infixes =
+      Print.Infixes
+        [(* ML *)
+         {token = "/", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "div", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "*", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "+", precedence = 6, assoc = Print.LeftAssoc},
+         {token = "-", precedence = 6, assoc = Print.LeftAssoc},
+         {token = "^", precedence = 6, assoc = Print.LeftAssoc},
+         {token = "@", precedence = 5, assoc = Print.RightAssoc},
+         {token = ":", precedence = 5, assoc = Print.RightAssoc},
+         {token = "==", precedence = 4, assoc = Print.NonAssoc},
+         {token = "<>", precedence = 4, assoc = Print.NonAssoc},
+         {token = "<=", precedence = 4, assoc = Print.NonAssoc},
+         {token = "<", precedence = 4, assoc = Print.NonAssoc},
+         {token = ">=", precedence = 4, assoc = Print.NonAssoc},
+         {token = ">", precedence = 4, assoc = Print.NonAssoc},
+         {token = ".", precedence = 3, assoc = Print.LeftAssoc},
+         {token = "&&", precedence = ~1, assoc = Print.RightAssoc},
+         {token = "||", precedence = ~2, assoc = Print.RightAssoc},
+         {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
+
+  val infixNames =
+      NameMap.fromList
+        [(Name.eqConst,"==")];
+
+  fun destInfixTerm tm =
+      let
+        val (t,b) = Term.destApp tm
+
+        val (t,a) = Term.destApp t
+
+        val (c,_) = Term.destConst t
+
+        val n = Const.name c
+      in
+        (n,a,b)
+      end;
+
+  fun destInfix tm =
+      let
+        val (c,a,b) = destInfixTerm tm
+      in
+        case NameMap.peek infixNames c of
+          SOME s => (s,a,b)
+        | NONE => raise Error "Haskell.ppTerm.destInfix"
+      end;
+
+  val isInfix = can destInfix;
+
+  fun ppInfixToken (_,s) = Print.ppString s;
+
+  val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken;
+
+  fun destGenApp tm =
+      if Term.isNumeral tm then
+        raise Error "Haskell.ppTerm.destGenApp: numeral"
+      else if Term.isCond tm then
+        raise Error "Haskell.ppTerm.destGenApp: cond"
+      else if Term.isLet tm then
+        raise Error "Haskell.ppTerm.destGenApp: let"
+      else if isInfix tm then
+        raise Error "Haskell.ppTerm.destGenApp: infix"
+      else if Term.isGenAbs tm then
+        raise Error "Haskell.ppTerm.destGenApp: abstraction"
+      else Term.destApp tm;
+
+  val stripGenApp =
+      let
+        fun strip acc tm =
+            case total destGenApp tm of
+              NONE => (tm,acc)
+            | SOME (f,x) => strip (x :: acc) f
+      in
+        strip []
+      end;
+in
+  fun ppTerm namespace =
+      let
+        fun ppBasicTerm tm =
+            case total Term.destNumeral tm of
+              SOME i => Print.ppInt i
+            | NONE =>
+              case Term.dest tm of
+                TypeTerm.Var' v => ppVar v
+              | TypeTerm.Const' (c,_) => ppConst namespace c
+              | TypeTerm.App' _ => ppBracketTerm tm
+              | TypeTerm.Abs' _ => ppBracketTerm tm
+
+        and ppApplicationTerm tm =
+            let
+              fun ppArg x = Print.sequence (Print.addBreak 1) (ppBasicTerm x)
+
+              val (tm,xs) = stripGenApp tm
+            in
+              if List.null xs then ppBasicTerm tm
+              else
+                Print.blockProgram Print.Inconsistent 0
+                  [ppBasicTerm tm,
+                   Print.blockProgram Print.Inconsistent 2
+                     (Print.ppString "" :: List.map ppArg xs)]
+            end
+
+        and ppBoundVars (v,vs) =
+            Print.sequence
+              (Print.sequence
+                 (ppBasicTerm v)
+                 (Print.program
+                   (List.map
+                     (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs)))
+              (Print.ppString " ->")
+
+        and ppBindTerm (v,vs,body) =
+            Print.blockProgram Print.Inconsistent 2
+              [Print.ppString "\\",
+               ppBoundVars (v,vs),
+               Print.addBreak 1,
+               ppNormalTerm body]
+
+        and ppBinderTerm (tm,r) =
+            let
+              val (vs,body) = Term.stripGenAbs tm
+            in
+              case vs of
+                [] => ppApplicationTerm tm
+              | v :: vs =>
+                if r then Print.ppBracket "(" ")" ppBindTerm (v,vs,body)
+                else ppBindTerm (v,vs,body)
+            end
+
+        and ppCondTerm (f,c,a,b,r) =
+            Print.blockProgram Print.Inconsistent 0
+              [Print.blockProgram Print.Consistent 0
+                 [Print.blockProgram Print.Inconsistent (if f then 3 else 8)
+                    [Print.ppString (if f then "if " else "else if "),
+                     ppInfixTerm (c,true)],
+                  Print.addBreak 1,
+                  Print.ppString "then"],
+               Print.blockProgram Print.Inconsistent 2
+                 [Print.ppString "",
+                  Print.addBreak 1,
+                  ppLetCondTerm (a,true)]] ::
+            Print.addBreak 1 ::
+            (case total Term.destCond b of
+               SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
+             | NONE =>
+                 [Print.blockProgram Print.Inconsistent 2
+                    [Print.ppString "else",
+                     Print.addBreak 1,
+                     ppLetCondTerm (b,r)]])
+
+        and ppLetTerm (v,t,b,r) =
+            Print.blockProgram Print.Inconsistent 4
+              [Print.ppString "let ",
+               ppApplicationTerm v,
+               Print.ppString " =",
+               Print.addBreak 1,
+               ppLetCondTerm (t,true),
+               Print.ppString " in"] ::
+            Print.addBreak 1 ::
+            (case total Term.destLet b of
+               NONE => [ppLetCondTerm (b,r)]
+             | SOME (v,t,b) => ppLetTerm (v,t,b,r))
+
+        and ppLetCondTerm (tm,r) =
+            case total Term.destLet tm of
+              SOME (v,t,b) =>
+                Print.blockProgram Print.Consistent 0
+                  (ppLetTerm (v,t,b,r))
+            | NONE =>
+              case total Term.destCond tm of
+                SOME (c,a,b) =>
+                Print.blockProgram Print.Consistent 0
+                  (ppCondTerm (true,c,a,b,r))
+              | NONE => ppInfixTerm (tm,r)
+
+        and ppLetConditionalTerm (tm,r) =
+            if not (Term.isLet tm orelse Term.isCond tm) then
+              ppBinderTerm (tm,r)
+            else if r then
+              ppBracketTerm tm
+            else
+              ppLetCondTerm (tm,false)
+
+        and ppInfixTerm tm_r = ppInfix ppLetConditionalTerm tm_r
+
+        and ppNormalTerm tm = ppInfixTerm (tm,false)
+
+        and ppBracketTerm tm = Print.ppBracket "(" ")" ppNormalTerm tm
+      in
+        ppNormalTerm
+      end;
+end;
+
+(* Haskell *)
+
+local
+  fun ppDecl ns (name,parms) =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.ppString "data ",
+         ppTypeOp ns name,
+         ppTypeVarList parms,
+         Print.ppString " ="];
+
+  fun ppCon ns prefix (c,tys) =
+      Print.program
+        [Print.addNewline,
+         Print.ppString prefix,
+         Print.blockProgram Print.Inconsistent 4
+           [ppConst ns c,
+            ppTypeList ns tys]];
+
+  fun ppCons ns cs =
+      case cs of
+        [] => raise Error "datatype has no constructors"
+      | c :: cs =>
+        Print.program (ppCon ns "  " c :: List.map (ppCon ns "| ") cs);
+in
+  fun ppData ns data =
+      let
+        val Data {name, parameters = parms, constructors = cons} = data
+      in
+        Print.blockProgram Print.Inconsistent 2
+          [ppDecl ns (name,parms),
+           ppCons ns cons]
+    end;
+end;
+
+fun ppNewtype ns newtype =
+    let
+      val Newtype {name, predicate = pred, abs, rep} = newtype
+    in
+      Print.blockProgram Print.Inconsistent 2
+        []
+    end;
+
+local
+  fun ppDecl ns (name,ty) =
+      Print.blockProgram Print.Inconsistent 2
+        [ppConst ns name,
+         Print.ppString " ::",
+         Print.addBreak 1,
+         ppType ns ty];
+
+  fun ppEqn ns name ty (args,rtm) =
+      let
+        val ltm = Term.listMkApp (Term.mkConst (name,ty), args)
+      in
+        Print.blockProgram Print.Inconsistent 2
+          [ppTerm ns ltm,
+           Print.ppString " =",
+           Print.addBreak 1,
+           ppTerm ns rtm]
+      end;
+in
+  fun ppValue ns value =
+      let
+        val Value {name, ty, equations = eqns} = value
+      in
+        Print.blockProgram Print.Inconsistent 0
+          (ppDecl ns (name,ty) ::
+           List.map (Print.sequence Print.addNewline o ppEqn ns name ty) eqns)
+    end;
+end;
 
 fun ppSource ns s =
     case s of
@@ -739,6 +1152,48 @@ fun ppTags spps =
       Print.blockProgram Print.Inconsistent 0
         (ppTag spp ::
          List.map (Print.sequence Print.addNewline o ppTag) spps);
+
+local
+  fun ppModuleDeclaration namespace =
+      Print.blockProgram Print.Inconsistent 0
+        [Print.ppString "module ",
+         ppFullNamespace namespace,
+         Print.addNewline,
+         Print.ppString "where"];
+in
+  fun ppModule (pkg,namespace,source) =
+      let
+        val {description} = Package.description pkg
+        and {license} = Package.license pkg
+        and {author} = Package.author pkg
+      in
+        Print.blockProgram Print.Inconsistent 0
+          [Print.ppString "{- |",
+           Print.addNewline,
+           ppTags
+             [("Module", Print.ppString "$Header$"),
+              ("Description", Print.ppString description),
+              ("License", Print.ppString license)],
+           Print.addNewline,
+           Print.addNewline,
+           ppTags
+             [("Maintainer", Print.ppString author),
+              ("Stability", Print.ppString "provisional"),
+              ("Portability", Print.ppString "portable")],
+           Print.addNewline,
+           Print.addNewline,
+           Print.ppString description,
+           Print.addNewline,
+           Print.ppString "-}",
+           Print.addNewline,
+           ppModuleDeclaration namespace,
+           Print.addNewline,
+           Print.addNewline,
+           ppSourceList namespace source]
+      end;
+end;
+
+(* Cabal *)
 
 local
   val ppVersion = PackageVersion.pp;
@@ -793,8 +1248,8 @@ local
       case NamespaceSet.toList mods of
         [] => []
       | ns :: nss =>
-        ppNamespace ns ::
-        List.map (Print.sequence Print.addNewline o ppNamespace) nss;
+        ppFullNamespace ns ::
+        List.map (Print.sequence Print.addNewline o ppFullNamespace) nss;
 in
   fun ppCabal (pkg,source) =
       let
@@ -832,45 +1287,9 @@ in
       end;
 end;
 
-local
-  fun ppModuleDeclaration namespace =
-      Print.blockProgram Print.Inconsistent 0
-        [Print.ppString "module ",
-         ppNamespace namespace,
-         Print.addNewline,
-         Print.ppString "where"];
-in
-  fun ppModule (pkg,namespace,source) =
-      let
-        val {description} = Package.description pkg
-        and {license} = Package.license pkg
-        and {author} = Package.author pkg
-      in
-        Print.blockProgram Print.Inconsistent 0
-          [Print.ppString "{- |",
-           Print.addNewline,
-           ppTags
-             [("Module", Print.ppString "$Header$"),
-              ("Description", Print.ppString description),
-              ("License", Print.ppString license)],
-           Print.addNewline,
-           Print.addNewline,
-           ppTags
-             [("Maintainer", Print.ppString author),
-              ("Stability", Print.ppString "provisional"),
-              ("Portability", Print.ppString "portable")],
-           Print.addNewline,
-           Print.addNewline,
-           Print.ppString description,
-           Print.addNewline,
-           Print.ppString "-}",
-           Print.addNewline,
-           ppModuleDeclaration namespace,
-           Print.addNewline,
-           Print.addNewline,
-           ppSourceList namespace source]
-      end;
-end;
+(* ------------------------------------------------------------------------- *)
+(* Writing a Haskell package to disk.                                        *)
+(* ------------------------------------------------------------------------- *)
 
 fun mkSubDirectory {directory = dir} sub =
     let
@@ -899,6 +1318,28 @@ fun outputCabal {directory = dir} pkg source =
       ()
     end;
 
+fun outputLicense dir {directory} pkg =
+    let
+      val {license} = Package.license pkg
+
+      val license = Directory.getLicense dir {name = license}
+
+      val {url} = DirectoryConfig.urlLicense license
+
+      val file = OS.Path.joinDirFile {dir = directory, file = "LICENSE"}
+
+      val {curl = cmd} = DirectorySystem.curl (Directory.system dir)
+
+      val cmd = cmd ^ " " ^ url ^ " --output " ^ file
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+    in
+      if OS.Process.isSuccess (OS.Process.system cmd) then ()
+      else raise Error "downloading the license file failed"
+    end;
+
 local
   fun outputSrc pkg {directory = dir} sub namespace source =
       let
@@ -923,8 +1364,8 @@ local
         val sub =
             let
               val pp =
-                  if Namespace.isGlobal ns then ppNamespace
-                  else ppRelativeNamespace ns
+                  if Namespace.isGlobal ns then ppFullNamespace
+                  else ppNamespace ns
             in
               Print.toLine pp namespace
             end
@@ -963,22 +1404,24 @@ in
       end;
 end;
 
-fun toPackage haskell =
+fun toPackage dir haskell =
     let
       val Haskell {package,source} = haskell
 
-      val dir =
+      val directory =
           let
             val name = Print.toLine ppPackageName (Package.name package)
 
-            val dir = {directory = OS.FileSys.getDir ()}
+            val directory = {directory = OS.FileSys.getDir ()}
           in
-            mkSubDirectory dir name
+            mkSubDirectory directory name
           end
 
-      val () = outputCabal dir package source
+      val () = outputCabal directory package source
 
-      val () = outputSource dir package source
+      val () = outputLicense dir directory package
+
+      val () = outputSource directory package source
     in
       ()
     end;
@@ -1019,7 +1462,7 @@ fun export dir namever =
 
       val haskell = convert pkg thy
 
-      val () = toPackage haskell
+      val () = toPackage dir haskell
     in
       ()
     end;

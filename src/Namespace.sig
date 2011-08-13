@@ -64,6 +64,10 @@ val list : namespace
 
 val natural : namespace
 
+val option : namespace
+
+val pair : namespace
+
 val set : namespace
 
 (* ------------------------------------------------------------------------- *)

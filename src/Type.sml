@@ -595,7 +595,11 @@ in
                       infixNames specialNames
                       ppInfixes ppTypeOp ppInfix ppVar show ty
                   else
-                    Print.ppBracket "type{" "}" Print.ppInt n
+                    let
+                      val () = warn "type too large to print"
+                    in
+                      Print.ppBracket "type{" "}" Print.ppInt n
+                    end
                 end
            end
       end;

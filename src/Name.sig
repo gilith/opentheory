@@ -72,6 +72,22 @@ val funTypeOp : name
 
 val indTypeOp : name
 
+(* Lists *)
+
+val listTypeOp : name
+
+(* Options *)
+
+val optionTypeOp : name
+
+(* Pairs *)
+
+val pairTypeOp : name
+
+(* Natural numbers *)
+
+val naturalTypeOp : name
+
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -104,6 +120,18 @@ val negConst : name
 
 val trueConst : name
 
+(* Lists *)
+
+val consConst : name
+
+val nilConst : name
+
+(* Options *)
+
+val noneConst : name
+
+val someConst : name
+
 (* Natural numbers *)
 
 val bit0Const : name
@@ -111,6 +139,8 @@ val bit0Const : name
 val bit1Const : name
 
 val isFromNaturalConst : name -> bool
+
+val sucConst : name
 
 val zeroConst : name
 

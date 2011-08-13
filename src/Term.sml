@@ -1300,6 +1300,15 @@ fun destGenAbs tm =
 
 val isGenAbs = can destGenAbs;
 
+local
+  fun strip acc tm =
+      case total destGenAbs tm of
+        NONE => (rev acc, tm)
+      | SOME (v,tm) => strip (v :: acc) tm;
+in
+  val stripGenAbs = strip [];
+end;
+
 (* Let bindings *)
 
 local
@@ -2099,7 +2108,11 @@ in
                       ppInfixes ppConst ppNegation ppInfix ppBinder
                       ppNumeral ppVar show tm
                   else
-                    Print.ppBracket "term{" "}" Print.ppInt n
+                    let
+                      val () = warn "term too large to print"
+                    in
+                      Print.ppBracket "term{" "}" Print.ppInt n
+                    end
                 end
            end
       end;

@@ -130,6 +130,22 @@ val boolTypeOp = mkGlobal "bool"
 and funTypeOp = mkGlobal "->"
 and indTypeOp = mkGlobal "ind";
 
+(* Lists *)
+
+val listTypeOp = mk (Namespace.list,"list");
+
+(* Options *)
+
+val optionTypeOp = mk (Namespace.option,"option");
+
+(* Pairs *)
+
+val pairTypeOp = mk (Namespace.pair,"*");
+
+(* Natural numbers *)
+
+val naturalTypeOp = mk (Namespace.natural,"natural");
+
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -152,10 +168,21 @@ and impConst = mk (Namespace.bool,"==>")
 and negConst = mk (Namespace.bool,"~")
 and trueConst = mk (Namespace.bool,"T");
 
+(* Lists *)
+
+val consConst = mk (Namespace.list,"::")
+and nilConst = mk (Namespace.list,"[]");
+
+(* Options *)
+
+val noneConst = mk (Namespace.option,"none")
+and someConst = mk (Namespace.option,"some");
+
 (* Natural numbers *)
 
 val bit0Const = mk (Namespace.natural,"bit0")
 and bit1Const = mk (Namespace.natural,"bit1")
+and sucConst = mk (Namespace.natural,"suc")
 and zeroConst = mk (Namespace.natural,"zero");
 
 fun isFromNaturalConst (Name (_,s)) = s = "fromNatural";

@@ -363,6 +363,8 @@ val destGenAbs : term -> term * term
 
 val isGenAbs : term -> bool
 
+val stripGenAbs : term -> term list * term
+
 (* Let bindings *)
 
 val destLet : term -> term * term * term
