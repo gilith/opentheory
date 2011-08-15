@@ -148,6 +148,12 @@ val zeroConst : name
 
 val fromPredicateConst : name
 
+(* Case expressions *)
+
+val destCase : name -> name list
+
+val isCase : name -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)

@@ -383,6 +383,12 @@ val destComprehension : term -> Var.var * Var.var list * term * term
 
 val isComprehension : term -> bool
 
+(* Case expressions *)
+
+val destCase : term -> term * (Name.name * term list * term) list
+
+val isCase : term -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

@@ -191,6 +191,30 @@ fun isFromNaturalConst (Name (_,s)) = s = "fromNatural";
 
 val fromPredicateConst = mk (Namespace.set,"fromPredicate");
 
+(* Case expressions *)
+
+local
+  fun strip acc l =
+      case l of
+        [] => raise Error "Name.destCase"
+      | s :: l => if s = "case" then (List.rev acc, l) else strip (s :: acc) l;
+
+  fun add ns (s,acc) = mk (ns,s) :: acc;
+in
+  fun destCase n =
+      let
+        val (ns,c) = dest n
+
+        val (ns,cs) = strip [] (Namespace.toList ns)
+
+        val ns = Namespace.fromList ns
+      in
+        List.foldl (add ns) [] (c :: List.rev cs)
+      end;
+end;
+
+val isCase = can destCase;
+
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)

@@ -1451,6 +1451,64 @@ fun destComprehension tm =
 
 val isComprehension = can destComprehension;
 
+(* Case expressions *)
+
+local
+  fun mkBranch ty n =
+      let
+        fun strip vs tm =
+            if Type.equal (typeOf tm) ty then (n, List.rev vs, tm)
+            else
+              let
+                val (v,tm) = destGenAbs tm
+              in
+                strip (v :: vs) tm
+              end
+      in
+        strip []
+      end;
+
+  fun mkBranches ty =
+      let
+        fun zipf bs ns args =
+            case args of
+              [] => raise Bug "Term.destCase.mkBranches: args too short"
+            | arg :: args =>
+              case ns of
+                [] =>
+                if List.null args then (arg, List.rev bs)
+                else raise Bug "Term.destCase.mkBranches: args too long"
+              | n :: ns =>
+                let
+                  val b = mkBranch ty n arg
+                in
+                  zipf (b :: bs) ns args
+                end
+      in
+        zipf []
+      end;
+in
+  fun destCase tm =
+      let
+        val (c,args) = stripApp tm
+
+        val (c,_) = destConst c
+
+        val ns = Name.destCase (Const.name c)
+
+        val () =
+            if length args = length ns + 1 then ()
+            else raise Error "Term.destCase: wrong number of args"
+      in
+        mkBranches (typeOf tm) ns args
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Term.destCase: " ^ err);
+*)
+end;
+
+val isCase = can destCase;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
