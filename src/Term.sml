@@ -1977,6 +1977,8 @@ local
               raise Error "Term.pp.destGenApp: negation"
             else if isBinder tm then
               raise Error "Term.pp.destGenApp: binder"
+            else if isCase tm then
+              raise Error "Term.pp.destGenApp: case"
             else destApp tm
 
         val stripGenApp =
@@ -2065,6 +2067,19 @@ local
                     else ppBinderTerm (tm,r)])
             end
 
+        and ppLetTerm (v,t,b,r) =
+            Print.blockProgram Print.Inconsistent 4
+              [Print.ppString "let ",
+               ppApplicationTerm v,
+               Print.ppString " =",
+               Print.addBreak 1,
+               ppLetCondTerm (t,true),
+               Print.ppString " in"] ::
+            Print.addBreak 1 ::
+            (case total destLet b of
+               NONE => [ppLetCondTerm (b,r)]
+             | SOME (v,t,b) => ppLetTerm (v,t,b,r))
+
         and ppCondTerm (f,c,a,b,r) =
             Print.blockProgram Print.Inconsistent 0
               [Print.blockProgram Print.Consistent 0
@@ -2086,18 +2101,48 @@ local
                      Print.addBreak 1,
                      ppLetCondTerm (b,r)]])
 
-        and ppLetTerm (v,t,b,r) =
-            Print.blockProgram Print.Inconsistent 4
-              [Print.ppString "let ",
-               ppApplicationTerm v,
-               Print.ppString " =",
-               Print.addBreak 1,
-               ppLetCondTerm (t,true),
-               Print.ppString " in"] ::
-            Print.addBreak 1 ::
-            (case total destLet b of
-               NONE => [ppLetCondTerm (b,r)]
-             | SOME (v,t,b) => ppLetTerm (v,t,b,r))
+        and ppCaseTerm (a,bs,r) =
+            let
+              val ppDecl =
+                  Print.blockProgram Print.Consistent 5
+                    [Print.ppString "case ",
+                     ppInfixTerm (a,true),
+                     Print.ppString " of"]
+
+              fun ppBranch (f,pat,t_r) =
+                  Print.program
+                    [Print.addBreak 1,
+                     Print.blockProgram Print.Inconsistent 2
+                       [Print.ppString (if f then "  " else "| "),
+                        ppApplicationTerm pat,
+                        Print.ppString " ->",
+                        Print.addBreak 1,
+                        ppLetCondTerm t_r]]
+
+              val brs =
+                  let
+                    val ty = typeOf a
+
+                    fun mkBranch (n,xs,t) =
+                        let
+                          val c = Const.mkUndef n
+
+                          val pat = listMkApp (mkConst (c,ty), xs)
+                        in
+                          (false,pat,(t,true))
+                        end
+                  in
+                    case List.rev (List.map mkBranch bs) of
+                      [] => []
+                    | (f,pat,(t,_)) :: rest =>
+                      case List.rev ((f,pat,(t,r)) :: rest) of
+                        [] => raise Bug "Term.pp.ppCaseTerm"
+                      | (_,pat,t_r) :: rest => (true,pat,t_r) :: rest
+                  end
+            in
+              Print.blockProgram Print.Consistent 0
+                (ppDecl :: List.map ppBranch brs)
+            end
 
         and ppLetCondTerm (tm,r) =
             case total destLet tm of
@@ -2109,10 +2154,13 @@ local
                 SOME (c,a,b) =>
                 Print.blockProgram Print.Consistent 0
                   (ppCondTerm (true,c,a,b,r))
-              | NONE => ppInfixTerm (tm,r)
+              | NONE =>
+                case total destCase tm of
+                  SOME (a,bs) => ppCaseTerm (a,bs,r)
+                | NONE => ppInfixTerm (tm,r)
 
         and ppLetConditionalTerm (tm,r) =
-            if not (isLet tm orelse isCond tm) then
+            if not (isLet tm orelse isCond tm orelse isCase tm) then
               ppNegationTerm (tm,r)
             else if r then
               ppBracketTerm tm
