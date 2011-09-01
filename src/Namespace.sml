@@ -157,6 +157,7 @@ local
       | "!" => [Html.Entity "forall"]
       | "?" => [Html.Entity "exist"]
       | "?!" => [Html.Entity "exist", Html.Text "!"]
+      | "<-" => [Html.Entity "larr"]
       | "->" => [Html.Entity "rarr"]
       | "{}" => [Html.Entity "empty"]
       | "intersect" => [Html.Entity "cap"]
