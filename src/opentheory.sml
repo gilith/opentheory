@@ -69,7 +69,7 @@ local
   fun getSep acc l =
       case l of
         SeparatorItem s :: l => getSep (s :: acc) l
-      | _ => (String.concat (rev acc), l);
+      | _ => (String.concat (List.rev acc), l);
 
   fun compress l =
       let
@@ -998,7 +998,7 @@ fun defaultInfoOutputList inp =
 local
   fun readList inp =
       let
-        val l = rev (!outputListInfo)
+        val l = List.rev (!outputListInfo)
       in
         if List.null l then defaultInfoOutputList inp else l
       end;
@@ -1756,7 +1756,7 @@ in
               let
                 val desc = Directory.descendents dir namever
 
-                val desc = rev (Directory.installOrder dir desc)
+                val desc = List.rev (Directory.installOrder dir desc)
               in
                 List.app (uninstallPackage true dir) desc
               end
@@ -2232,8 +2232,10 @@ fun installTheory filename =
     in
       ()
     end
+(***
     handle Error err =>
       raise Error (err ^ "\npackage install from theory file failed");
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Listing installed packages.                                               *)
@@ -2263,7 +2265,7 @@ fun sortList dir pkgs ord =
     case ord of
       AlphabeticalList => PackageNameVersionSet.toList pkgs
     | DependencyList => Directory.installOrder dir pkgs
-    | ReverseList ord => rev (sortList dir pkgs ord);
+    | ReverseList ord => List.rev (sortList dir pkgs ord);
 
 fun list () =
     let

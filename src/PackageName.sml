@@ -50,7 +50,7 @@ in
       if List.null ns then raise Error "PackageName.concat"
       else
         let
-          val n = List.foldl add [] (rev ns)
+          val n = List.foldl add [] (List.rev ns)
         in
           Name n
         end;
@@ -101,9 +101,9 @@ in
       | SOME ys => SOME (Name ys);
 
   fun destStrictSuffix (Name xs) (Name ys) =
-      case stripStrictPrefix (rev xs) (rev ys) of
+      case stripStrictPrefix (List.rev xs) (List.rev ys) of
         NONE => NONE
-      | SOME ys => SOME (Name (rev ys));
+      | SOME ys => SOME (Name (List.rev ys));
 end;
 
 fun isStrictPrefix n1 n2 = Option.isSome (destStrictPrefix n1 n2);

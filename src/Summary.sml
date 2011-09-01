@@ -275,11 +275,11 @@ fun checkSequent show class seq =
       | SOME err =>
         let
           fun ppErr () =
-              Print.blockProgram Print.Consistent 2
+              Print.consistentBlock 2
                 [Print.ppString err,
                  Print.ppString " in ",
                  Print.ppString class,
-                 Print.addNewline,
+                 Print.newline,
                  Sequent.ppWithShow show seq]
         in
           warn (Print.toString ppErr ())
@@ -298,12 +298,12 @@ fun checkInfo show info =
             else
               let
                 fun ppAx ax =
-                    Print.sequence Print.addNewline (Sequent.ppWithShow show ax)
+                    Print.sequence Print.newline (Sequent.ppWithShow show ax)
 
                 val class = "axiom" ^ (if n = 1 then "" else "s")
 
                 fun ppAxs () =
-                    Print.blockProgram Print.Consistent 2
+                    Print.consistentBlock 2
                       (Print.ppPrettyInt n ::
                        Print.ppString " " ::
                        Print.ppString class ::
@@ -376,7 +376,7 @@ local
 
   val ppIdSet =
       let
-        fun spaceId i = Print.sequence (Print.addBreak 1) (ppId i)
+        fun spaceId i = Print.sequence Print.break (ppId i)
 
         fun ppList l =
             case l of
@@ -392,14 +392,14 @@ local
       in
         if n = 0 then []
         else
-          [Print.blockProgram Print.Inconsistent 2
+          [Print.inconsistentBlock 2
              (Print.ppPrettyInt n ::
               Print.ppString " " ::
               Print.ppString prefix ::
               Print.ppString name ::
               (if n = 1 then Print.skip else Print.ppString "s") ::
               Print.ppString ":" ::
-              List.map (Print.sequence (Print.addBreak 1) o ppX) xs)]
+              List.map (Print.sequence Print.break o ppX) xs)]
       end;
 
   fun ppSequentList ppSeq (name,seqs) =
@@ -408,13 +408,13 @@ local
       in
         if n = 0 then []
         else
-          [Print.blockProgram Print.Consistent 2
+          [Print.consistentBlock 2
              (Print.ppPrettyInt n ::
               Print.ppString " " ::
               Print.ppString name ::
               (if n = 1 then Print.skip else Print.ppString "s") ::
               Print.ppString ":" ::
-              List.map (Print.sequence Print.addNewline o ppSeq) seqs)]
+              List.map (Print.sequence Print.newline o ppSeq) seqs)]
       end;
 in
   fun ppInfoWithShow ppTypeOpWS ppConstWS ppAssumptionWS ppAxiomWS ppTheoremWS
@@ -458,9 +458,9 @@ in
                  case SequentMap.peek axMap seq of
                    NONE => ppSeq seq
                  | SOME n =>
-                   Print.blockProgram Print.Consistent 2
+                   Print.consistentBlock 2
                      [ppId n,
-                      Print.addBreak 1,
+                      Print.break,
                       ppSeq seq]
 
              fun ppTh ppSeq seq =
@@ -476,9 +476,9 @@ in
                  in
                    if IntSet.null ids then ppSeq seq
                    else
-                     Print.blockProgram Print.Consistent 2
+                     Print.consistentBlock 2
                        [ppIdSet ids,
-                        Print.addNewline,
+                        Print.newline,
                         ppSeq seq]
                  end
 
@@ -491,8 +491,8 @@ in
            in
              if List.null blocks then Print.skip
              else
-               Print.blockProgram Print.Consistent 0
-                 (intersperse Print.addNewline blocks)
+               Print.consistentBlock 0
+                 (intersperse Print.newline blocks)
            end
       end;
 end;

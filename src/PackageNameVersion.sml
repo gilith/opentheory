@@ -209,7 +209,7 @@ struct
         acc
       end;
 
-  fun postOrder children set = rev (preOrder children set);
+  fun postOrder children set = List.rev (preOrder children set);
 
   fun postOrdered children =
       let

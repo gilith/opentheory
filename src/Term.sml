@@ -136,12 +136,12 @@ fun destAbs tm =
 
 val isAbs = can destAbs;
 
-fun listMkAbs (vs,tm) = List.foldl mkAbs tm (rev vs);
+fun listMkAbs (vs,tm) = List.foldl mkAbs tm (List.rev vs);
 
 local
   fun strip acc tm =
       case total destAbs tm of
-        NONE => (rev acc, tm)
+        NONE => (List.rev acc, tm)
       | SOME (v,tm) => strip (v :: acc) tm;
 in
   val stripAbs = strip [];
@@ -1303,7 +1303,7 @@ val isGenAbs = can destGenAbs;
 local
   fun strip acc tm =
       case total destGenAbs tm of
-        NONE => (rev acc, tm)
+        NONE => (List.rev acc, tm)
       | SOME (v,tm) => strip (v :: acc) tm;
 in
   val stripGenAbs = strip [];
@@ -1599,7 +1599,7 @@ local
         let
           val (_,n) = c_n
 
-          val pps = [ppInf c_n, Print.addBreak 1]
+          val pps = [ppInf c_n, Print.break]
 
           val pps =
               if Name.equal n pairName then pps
@@ -1622,7 +1622,7 @@ local
         let
           val pps = []
 
-          val pps = if isAlpha c_n then Print.addBreak 1 :: pps else pps
+          val pps = if isAlpha c_n then Print.break :: pps else pps
 
           val pps = ppBind c_n :: pps
         in
@@ -1959,7 +1959,7 @@ local
 
               val (vs,b) = dest [] b
             in
-              (c, v, rev vs, b)
+              (c, v, List.rev vs, b)
             end
 
         fun destGenApp tm =
@@ -2006,15 +2006,15 @@ local
 
         and ppApplicationTerm tm =
             let
-              fun ppArg x = Print.sequence (Print.addBreak 1) (ppBasicTerm x)
+              fun ppArg x = Print.sequence Print.break (ppBasicTerm x)
 
               val (tm,xs) = stripGenApp tm
             in
               if List.null xs then ppBasicTerm tm
               else
-                Print.blockProgram Print.Inconsistent 0
+                Print.inconsistentBlock 0
                   [ppBasicTerm tm,
-                   Print.blockProgram Print.Inconsistent 2
+                   Print.inconsistentBlock 2
                      (Print.ppString "" :: List.map ppArg xs)]
             end
 
@@ -2024,17 +2024,17 @@ local
                  (ppBasicTerm v)
                  (Print.program
                    (List.map
-                     (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs)))
+                     (Print.sequence Print.break o ppBasicTerm) vs)))
               (Print.ppString ".")
 
         and ppComprehension (v,vs,pat,pred) =
-            Print.blockProgram Print.Inconsistent 2
+            Print.inconsistentBlock 2
               [Print.ppString "{ ",
                ppBoundVars (mkVar v, List.map mkVar vs),
-               Print.addBreak 1,
+               Print.break,
                ppInfixTerm (pat,true),
                Print.ppString " |",
-               Print.addBreak 1,
+               Print.break,
                ppNormalTerm pred,
                Print.ppString " }"]
 
@@ -2042,10 +2042,10 @@ local
             let
               val (c,v,vs,body) = stripBinder tm
             in
-              Print.blockProgram Print.Inconsistent 2
+              Print.inconsistentBlock 2
                 [ppBinderName c,
                  ppBoundVars (v,vs),
-                 Print.addBreak 1,
+                 Print.break,
                  if isBinder body then ppBindTerm body
                  else ppNormalTerm body]
             end
@@ -2061,65 +2061,72 @@ local
             in
               if List.null cs then ppBinderTerm (tm,r)
               else
-                Print.blockProgram Print.Inconsistent 2
+                Print.inconsistentBlock 2
                   (List.map ppNegationName cs @
                    [if isInfix tm orelse isCond tm then ppBracketTerm tm
                     else ppBinderTerm (tm,r)])
             end
 
         and ppLetTerm (v,t,b,r) =
-            Print.blockProgram Print.Inconsistent 4
+            Print.inconsistentBlock 4
               [Print.ppString "let ",
                ppApplicationTerm v,
-               Print.ppString " =",
-               Print.addBreak 1,
+               Print.ppString " <-",
+               Print.break,
                ppLetCondTerm (t,true),
                Print.ppString " in"] ::
-            Print.addBreak 1 ::
+            Print.break ::
             (case total destLet b of
                NONE => [ppLetCondTerm (b,r)]
              | SOME (v,t,b) => ppLetTerm (v,t,b,r))
 
         and ppCondTerm (f,c,a,b,r) =
-            Print.blockProgram Print.Inconsistent 0
-              [Print.blockProgram Print.Consistent 0
-                 [Print.blockProgram Print.Inconsistent (if f then 3 else 8)
+            Print.inconsistentBlock 0
+              [Print.consistentBlock 0
+                 [Print.inconsistentBlock (if f then 3 else 8)
                     [Print.ppString (if f then "if " else "else if "),
                      ppInfixTerm (c,true)],
-                  Print.addBreak 1,
+                  Print.break,
                   Print.ppString "then"],
-               Print.blockProgram Print.Inconsistent 2
+               Print.inconsistentBlock 2
                  [Print.ppString "",
-                  Print.addBreak 1,
+                  Print.break,
                   ppLetCondTerm (a,true)]] ::
-            Print.addBreak 1 ::
+            Print.break ::
             (case total destCond b of
                SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
              | NONE =>
-                 [Print.blockProgram Print.Inconsistent 2
+                 [Print.inconsistentBlock 2
                     [Print.ppString "else",
-                     Print.addBreak 1,
+                     Print.break,
                      ppLetCondTerm (b,r)]])
 
         and ppCaseTerm (a,bs,r) =
             let
-              val ppDecl =
-                  Print.blockProgram Print.Consistent 5
-                    [Print.ppString "case ",
-                     ppInfixTerm (a,true),
-                     Print.ppString " of"]
-
-              fun ppBranch (f,pat,t_r) =
+              fun ppBranch (pat,t_r) =
                   Print.program
-                    [Print.addBreak 1,
-                     Print.blockProgram Print.Inconsistent 2
-                       [Print.ppString (if f then "  " else "| "),
-                        ppApplicationTerm pat,
-                        Print.ppString " ->",
-                        Print.addBreak 1,
-                        ppLetCondTerm t_r]]
+                    [ppApplicationTerm pat,
+                     Print.ppString " ->",
+                     Print.break,
+                     ppLetCondTerm t_r]
 
-              val brs =
+              fun ppDecl br =
+                  Print.inconsistentBlock 2
+                    [Print.consistentBlock 3
+                       [Print.ppString "case ",
+                        ppInfixTerm (a,true),
+                        Print.ppString " of"],
+                     Print.break,
+                     ppBranch br]
+
+              fun ppAlternative br =
+                  Print.sequence
+                    Print.break
+                    (Print.inconsistentBlock 2
+                       [Print.ppString "| ",
+                        ppBranch br])
+
+              val (br,brs) =
                   let
                     val ty = typeOf a
 
@@ -2127,33 +2134,33 @@ local
                         let
                           val c = Const.mkUndef n
 
+                          val ty = Type.listMkFun (List.map typeOf xs, ty)
+
                           val pat = listMkApp (mkConst (c,ty), xs)
                         in
-                          (false,pat,(t,true))
+                          (pat,(t,true))
                         end
                   in
                     case List.rev (List.map mkBranch bs) of
-                      [] => []
-                    | (f,pat,(t,_)) :: rest =>
-                      case List.rev ((f,pat,(t,r)) :: rest) of
-                        [] => raise Bug "Term.pp.ppCaseTerm"
-                      | (_,pat,t_r) :: rest => (true,pat,t_r) :: rest
+                      [] => raise Bug "Term.pp.ppCaseTerm: no branches"
+                    | (pat,(t,_)) :: rest =>
+                      case List.rev ((pat,(t,r)) :: rest) of
+                        [] => raise Bug "Term.pp.ppCaseTerm: no branches II"
+                      | br :: brs => (br,brs)
                   end
             in
-              Print.blockProgram Print.Consistent 0
-                (ppDecl :: List.map ppBranch brs)
+              Print.consistentBlock 0
+                (ppDecl br :: List.map ppAlternative brs)
             end
 
         and ppLetCondTerm (tm,r) =
             case total destLet tm of
               SOME (v,t,b) =>
-                Print.blockProgram Print.Consistent 0
-                  (ppLetTerm (v,t,b,r))
+                Print.consistentBlock 0 (ppLetTerm (v,t,b,r))
             | NONE =>
               case total destCond tm of
                 SOME (c,a,b) =>
-                Print.blockProgram Print.Consistent 0
-                  (ppCondTerm (true,c,a,b,r))
+                Print.consistentBlock 0 (ppCondTerm (true,c,a,b,r))
               | NONE =>
                 case total destCase tm of
                   SOME (a,bs) => ppCaseTerm (a,bs,r)

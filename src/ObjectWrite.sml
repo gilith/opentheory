@@ -332,17 +332,17 @@ local
           let
             val (ob,gen) = hdTl gen
 
-            val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
+            val (cmds,dict) = List.foldl addGen ([],dict) (List.rev gen)
 
             val (cmds,dict) = addKey cmds dict ob
 
-            val cmds = rev cmds
+            val cmds = List.rev cmds
           in
             (cmds,dict,work)
           end
         else
           let
-            val (cmds,dict) = List.foldl addGen ([],dict) (rev gen)
+            val (cmds,dict) = List.foldl addGen ([],dict) (List.rev gen)
 
             val (cmds',dict) =
                 case useKey dict (List.nth (gen,res)) of

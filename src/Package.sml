@@ -149,8 +149,8 @@ fun show pkg = PackageTag.toShow (tags pkg);
 local
   fun ppThy thy =
       Print.program
-        [Print.addNewline,
-         Print.addNewline,
+        [Print.newline,
+         Print.newline,
          PackageTheory.pp thy];
 in
   fun pp' pkg =
@@ -161,11 +161,11 @@ in
         case theories of
           [] => Print.skip
         | thy :: theories =>
-          Print.blockProgram Print.Consistent 0
+          Print.consistentBlock 0
             (PackageTheory.pp thy ::
              List.map ppThy theories)
       else
-        Print.blockProgram Print.Consistent 0
+        Print.consistentBlock 0
           (PackageTag.ppList tags ::
            List.map ppThy theories)
     end;

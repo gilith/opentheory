@@ -312,12 +312,12 @@ fun domainFun ty = fst (destFun ty);
 
 fun rangeFun ty = snd (destFun ty);
 
-fun listMkFun (xs,ty) = List.foldl mkFun ty (rev xs);
+fun listMkFun (xs,ty) = List.foldl mkFun ty (List.rev xs);
 
 local
   fun strip acc ty =
       case total destFun ty of
-        NONE => (rev acc, ty)
+        NONE => (List.rev acc, ty)
       | SOME (x,ty) => strip (x :: acc) ty;
 in
   val stripFun = strip [];
@@ -408,7 +408,7 @@ local
         let
           val (_,n) = ot_n
 
-          val pps = [ppInf ot_n, Print.addBreak 1]
+          val pps = [ppInf ot_n, Print.break]
 
           val pps =
               if Name.equal n pairName then pps
@@ -548,15 +548,15 @@ local
               let
                 val (ot,xs) = destOp ty
               in
-                Print.blockProgram Print.Inconsistent 0
+                Print.inconsistentBlock 0
                   [(case xs of
                       [] => Print.skip
-                    | [x] => Print.sequence (ppBasicType x) (Print.addBreak 1)
+                    | [x] => Print.sequence (ppBasicType x) Print.break
                     | _ =>
                       Print.sequence
                         (Print.ppBracket "(" ")"
                            (Print.ppOpList "," ppNormalType) xs)
-                        (Print.addBreak 1)),
+                        Print.break),
                    ppTypeOp (ot, length xs)]
               end
 

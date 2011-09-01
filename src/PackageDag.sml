@@ -1275,7 +1275,7 @@ in
                   exportablePlan vanilla generate dependency
                     expanded exported theories
             in
-              if List.null exp then rev plan
+              if List.null exp then List.rev plan
               else
                 let
                   val exp = List.map (score expanded) exp
@@ -1342,7 +1342,7 @@ local
 
         val (ns,_) = maps mkNameSeg stack t
 
-        val ns = List.filter (not o PackageTheory.isMainName) (rev ns)
+        val ns = List.filter (not o PackageTheory.isMainName) (List.rev ns)
 
         val n = TheoryName.name nt
 
@@ -1368,7 +1368,7 @@ local
 
         fun isImp n = PackageNameSet.member n imps
       in
-        rev (List.filter isImp namel)
+        List.rev (List.filter isImp namel)
       end;
 
   fun mkNode nt =

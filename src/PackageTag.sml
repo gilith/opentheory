@@ -193,7 +193,7 @@ fun pp tag =
     let
       val Tag' {name,value} = tag
     in
-      Print.blockProgram Print.Consistent 0
+      Print.consistentBlock 0
         [PackageName.pp name,
          ppSeparator,
          Print.ppString " ",
@@ -204,8 +204,8 @@ fun ppList tags =
     case tags of
       [] => Print.skip
     | tag :: tags =>
-      Print.blockProgram Print.Consistent 0
-        (pp tag :: List.map (Print.sequence Print.addNewline o pp) tags);
+      Print.consistentBlock 0
+        (pp tag :: List.map (Print.sequence Print.newline o pp) tags);
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)

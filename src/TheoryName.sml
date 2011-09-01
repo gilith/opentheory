@@ -52,7 +52,7 @@ fun isUnion nt = Theory.isUnion (theory nt);
 (* ------------------------------------------------------------------------- *)
 
 fun pp (TheoryName (name,thy)) =
-    Print.blockProgram Print.Consistent 0
+    Print.consistentBlock 0
       [PackageName.pp name,
        Theory.ppId (Theory.id thy)];
 
@@ -75,9 +75,9 @@ struct
         val ppNTX = Print.ppOp2 " =>" TheoryName.pp ppX
       in
         fn m =>
-          Print.blockProgram Print.Consistent 2
+          Print.consistentBlock 2
             [Print.ppString "TheoryNameMap",
-             Print.addBreak 1,
+             Print.break,
              Print.ppList ppNTX (toList m)]
       end;
 

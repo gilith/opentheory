@@ -85,9 +85,9 @@ in
 
           val rows = alignTable alignment table
         in
-          Print.blockProgram Print.Consistent 0
+          Print.consistentBlock 0
             (Print.ppString "Primitive inferences:" ::
-             List.map (Print.sequence Print.addNewline o Print.ppString) rows)
+             List.map (Print.sequence Print.newline o Print.ppString) rows)
         end;
 end;
 

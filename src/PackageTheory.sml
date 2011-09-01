@@ -219,7 +219,7 @@ fun sortIndex {parents} idx =
           case work of
             [] =>
             (case stack of
-               [] => rev dealt
+               [] => List.rev dealt
              | (thy,work,stackset) :: stack =>
                let
                  val dealt = thy :: dealt
@@ -400,12 +400,12 @@ and ppQuote = Print.ppChar quoteChar
 and ppSeparator = Print.ppChar separatorChar;
 
 fun ppBlock ppX x =
-    Print.blockProgram Print.Consistent 0
-      [Print.blockProgram Print.Consistent 2
+    Print.consistentBlock 0
+      [Print.consistentBlock 2
          [ppOpenBlock,
-          Print.addBreak 1,
+          Print.break,
           ppX x],
-       Print.addBreak 1,
+       Print.break,
        ppCloseBlock];
 
 fun ppFilename {filename} =
@@ -438,15 +438,15 @@ fun ppConstraintList cs =
     case cs of
       [] => Print.skip
     | c :: cs =>
-      Print.blockProgram Print.Consistent 0
+      Print.consistentBlock 0
         (ppConstraint c ::
-         List.map (Print.sequence Print.addNewline o ppConstraint) cs);
+         List.map (Print.sequence Print.newline o ppConstraint) cs);
 
 fun pp thy =
     let
       val (n,cs) = destTheory thy
     in
-      Print.blockProgram Print.Consistent 0
+      Print.consistentBlock 0
         (PackageName.pp n ::
          Print.ppString " " ::
          (if List.null cs then
@@ -454,11 +454,11 @@ fun pp thy =
              Print.ppString " ",
              ppCloseBlock]
           else
-            [Print.blockProgram Print.Consistent 2
+            [Print.consistentBlock 2
                [ppOpenBlock,
-                Print.addNewline,
+                Print.newline,
                 ppConstraintList cs],
-             Print.addNewline,
+             Print.newline,
              ppCloseBlock]))
     end;
 
@@ -467,9 +467,9 @@ fun ppList thys =
       [] => Print.skip
     | thy :: thys =>
       let
-        fun ppThy t = Print.program [Print.addNewline, Print.addNewline, pp t]
+        fun ppThy t = Print.program [Print.newline, Print.newline, pp t]
       in
-        Print.blockProgram Print.Consistent 0
+        Print.consistentBlock 0
           (pp thy :: List.map ppThy thys)
       end;
 

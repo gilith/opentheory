@@ -55,7 +55,7 @@ fun mkConj sym =
     end;
 
 fun listMkConj sym tms =
-    case rev tms of
+    case List.rev tms of
       [] => termTrue sym
     | tm :: tms => List.foldl (mkConj sym) tm tms;
 
@@ -75,7 +75,7 @@ fun mkDisj sym =
     end;
 
 fun listMkDisj sym tms =
-    case rev tms of
+    case List.rev tms of
       [] => termFalse sym
     | tm :: tms => List.foldl (mkDisj sym) tm tms;
 

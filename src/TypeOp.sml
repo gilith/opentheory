@@ -109,17 +109,17 @@ val toString = Print.toString pp;
 
 local
   fun ppVars (ot,vso) =
-      Print.blockProgram Print.Inconsistent 0
+      Print.inconsistentBlock 0
         [(case vso of
             NONE => Print.skip
           | SOME vs =>
             case vs of
               [] => Print.skip
-            | [v] => Print.sequence (Name.pp v) (Print.addBreak 1)
+            | [v] => Print.sequence (Name.pp v) Print.break
             | _ =>
               Print.sequence
                 (Print.ppBracket "(" ")" (Print.ppOpList "," Name.pp) vs)
-                (Print.addBreak 1)),
+                Print.break),
          Name.pp (name ot)];
 in
   fun toHtml show (ot,vso) =

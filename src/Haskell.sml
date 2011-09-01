@@ -652,7 +652,7 @@ local
 
   fun mkTree namespace nsource =
       let
-        val (source,nsubs) = List.foldl split ([],[]) (rev nsource)
+        val (source,nsubs) = List.foldl split ([],[]) (List.rev nsource)
 
         val nsubs = group nsubs
       in
@@ -827,7 +827,7 @@ local
         else Print.ppBracket "(" ")" (ppGen ns) ty
 
   and ppSpaceBasic ns ty =
-      Print.sequence (Print.addBreak 1) (ppBasic ns ty)
+      Print.sequence Print.break (ppBasic ns ty)
 
   and ppSpaceBasics ns tys =
       Print.program (List.map (ppSpaceBasic ns) tys)
@@ -838,7 +838,7 @@ local
       | TypeTerm.OpTy' (ot,tys) =>
         if List.null tys then ppBasic ns ty
         else
-          Print.blockProgram Print.Inconsistent 2
+          Print.inconsistentBlock 2
             [ppTypeOp ns ot,
              ppSpaceBasics ns tys];
 in
@@ -946,15 +946,15 @@ in
 
         and ppApplicationTerm tm =
             let
-              fun ppArg x = Print.sequence (Print.addBreak 1) (ppBasicTerm x)
+              fun ppArg x = Print.sequence Print.break (ppBasicTerm x)
 
               val (tm,xs) = stripGenApp tm
             in
               if List.null xs then ppBasicTerm tm
               else
-                Print.blockProgram Print.Inconsistent 0
+                Print.inconsistentBlock 0
                   [ppBasicTerm tm,
-                   Print.blockProgram Print.Inconsistent 2
+                   Print.inconsistentBlock 2
                      (Print.ppString "" :: List.map ppArg xs)]
             end
 
@@ -964,14 +964,14 @@ in
                  (ppBasicTerm v)
                  (Print.program
                    (List.map
-                     (Print.sequence (Print.addBreak 1) o ppBasicTerm) vs)))
+                     (Print.sequence Print.break o ppBasicTerm) vs)))
               (Print.ppString " ->")
 
         and ppBindTerm (v,vs,body) =
-            Print.blockProgram Print.Inconsistent 2
+            Print.inconsistentBlock 2
               [Print.ppString "\\",
                ppBoundVars (v,vs),
-               Print.addBreak 1,
+               Print.break,
                ppNormalTerm body]
 
         and ppBinderTerm (tm,r) =
@@ -986,35 +986,35 @@ in
             end
 
         and ppCondTerm (f,c,a,b,r) =
-            Print.blockProgram Print.Inconsistent 0
-              [Print.blockProgram Print.Consistent 0
-                 [Print.blockProgram Print.Inconsistent (if f then 3 else 8)
+            Print.inconsistentBlock 0
+              [Print.consistentBlock 0
+                 [Print.inconsistentBlock (if f then 3 else 8)
                     [Print.ppString (if f then "if " else "else if "),
                      ppInfixTerm (c,true)],
-                  Print.addBreak 1,
+                  Print.break,
                   Print.ppString "then"],
-               Print.blockProgram Print.Inconsistent 2
+               Print.inconsistentBlock 2
                  [Print.ppString "",
-                  Print.addBreak 1,
+                  Print.break,
                   ppLetCondTerm (a,true)]] ::
-            Print.addBreak 1 ::
+            Print.break ::
             (case total Term.destCond b of
                SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
              | NONE =>
-                 [Print.blockProgram Print.Inconsistent 2
+                 [Print.inconsistentBlock 2
                     [Print.ppString "else",
-                     Print.addBreak 1,
+                     Print.break,
                      ppLetCondTerm (b,r)]])
 
         and ppLetTerm (v,t,b,r) =
-            Print.blockProgram Print.Inconsistent 4
+            Print.inconsistentBlock 4
               [Print.ppString "let ",
                ppApplicationTerm v,
                Print.ppString " =",
-               Print.addBreak 1,
+               Print.break,
                ppLetCondTerm (t,true),
                Print.ppString " in"] ::
-            Print.addBreak 1 ::
+            Print.break ::
             (case total Term.destLet b of
                NONE => [ppLetCondTerm (b,r)]
              | SOME (v,t,b) => ppLetTerm (v,t,b,r))
@@ -1022,12 +1022,12 @@ in
         and ppLetCondTerm (tm,r) =
             case total Term.destLet tm of
               SOME (v,t,b) =>
-                Print.blockProgram Print.Consistent 0
+                Print.consistentBlock 0
                   (ppLetTerm (v,t,b,r))
             | NONE =>
               case total Term.destCond tm of
                 SOME (c,a,b) =>
-                Print.blockProgram Print.Consistent 0
+                Print.consistentBlock 0
                   (ppCondTerm (true,c,a,b,r))
               | NONE => ppInfixTerm (tm,r)
 
@@ -1053,7 +1053,7 @@ end;
 
 local
   fun ppDecl ns (name,parms) =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString "data ",
          ppTypeOp ns name,
          ppTypeVarList parms,
@@ -1061,9 +1061,9 @@ local
 
   fun ppCon ns prefix (c,tys) =
       Print.program
-        [Print.addNewline,
+        [Print.newline,
          Print.ppString prefix,
-         Print.blockProgram Print.Inconsistent 4
+         Print.inconsistentBlock 4
            [ppConst ns c,
             ppTypeList ns tys]];
 
@@ -1077,7 +1077,7 @@ in
       let
         val Data {name, parameters = parms, constructors = cons} = data
       in
-        Print.blockProgram Print.Inconsistent 2
+        Print.inconsistentBlock 2
           [ppDecl ns (name,parms),
            ppCons ns cons]
     end;
@@ -1087,26 +1087,26 @@ fun ppNewtype ns newtype =
     let
       val Newtype {name, predicate = pred, abs, rep} = newtype
     in
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         []
     end;
 
 local
   fun ppDecl ns (name,ty) =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [ppConst ns name,
          Print.ppString " ::",
-         Print.addBreak 1,
+         Print.break,
          ppType ns ty];
 
   fun ppEqn ns name ty (args,rtm) =
       let
         val ltm = Term.listMkApp (Term.mkConst (name,ty), args)
       in
-        Print.blockProgram Print.Inconsistent 2
+        Print.inconsistentBlock 2
           [ppTerm ns ltm,
            Print.ppString " =",
-           Print.addBreak 1,
+           Print.break,
            ppTerm ns rtm]
       end;
 in
@@ -1114,9 +1114,9 @@ in
       let
         val Value {name, ty, equations = eqns} = value
       in
-        Print.blockProgram Print.Inconsistent 0
+        Print.inconsistentBlock 0
           (ppDecl ns (name,ty) ::
-           List.map (Print.sequence Print.addNewline o ppEqn ns name ty) eqns)
+           List.map (Print.sequence Print.newline o ppEqn ns name ty) eqns)
     end;
 end;
 
@@ -1129,7 +1129,7 @@ fun ppSource ns s =
 local
   fun ppSpaceSource ns s =
       Print.sequence
-        (Print.sequence Print.addNewline Print.addNewline)
+        (Print.sequence Print.newline Print.newline)
         (ppSource ns s);
 in
   fun ppSourceList ns sl =
@@ -1140,7 +1140,7 @@ in
 end;
 
 fun ppTag (s,pp) =
-    Print.blockProgram Print.Inconsistent 2
+    Print.inconsistentBlock 2
       [Print.ppString s,
        Print.ppString ": ",
        pp];
@@ -1149,16 +1149,16 @@ fun ppTags spps =
     case spps of
       [] => Print.skip
     | spp :: spps =>
-      Print.blockProgram Print.Inconsistent 0
+      Print.inconsistentBlock 0
         (ppTag spp ::
-         List.map (Print.sequence Print.addNewline o ppTag) spps);
+         List.map (Print.sequence Print.newline o ppTag) spps);
 
 local
   fun ppModuleDeclaration namespace =
-      Print.blockProgram Print.Inconsistent 0
+      Print.inconsistentBlock 0
         [Print.ppString "module ",
          ppFullNamespace namespace,
-         Print.addNewline,
+         Print.newline,
          Print.ppString "where"];
 in
   fun ppModule (pkg,namespace,source) =
@@ -1167,25 +1167,25 @@ in
         and {license} = Package.license pkg
         and {author} = Package.author pkg
       in
-        Print.blockProgram Print.Inconsistent 0
+        Print.inconsistentBlock 0
           [Print.ppString "{- |",
-           Print.addNewline,
+           Print.newline,
            ppTags
              [("Module", Print.ppString "$Header$"),
               ("Description", Print.ppString description),
               ("License", Print.ppString license)],
-           Print.addNewline,
-           Print.addNewline,
+           Print.newline,
+           Print.newline,
            ppTags
              [("Maintainer", Print.ppString author),
               ("Stability", Print.ppString "provisional"),
               ("Portability", Print.ppString "portable")],
-           Print.addNewline,
+           Print.newline,
            Print.ppString "-}",
-           Print.addNewline,
+           Print.newline,
            ppModuleDeclaration namespace,
-           Print.addNewline,
-           Print.addNewline,
+           Print.newline,
+           Print.newline,
            ppSourceList namespace source]
       end;
 end;
@@ -1230,15 +1230,15 @@ local
 ***)
 
   fun ppSection s pps =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString s,
-         Print.addNewline,
+         Print.newline,
          Print.program pps];
 
   val ppBuildDepends =
       [Print.ppString "base >= 4.0 && < 5.0",
        Print.ppString ",",
-       Print.addNewline,
+       Print.newline,
        Print.ppString "opentheory >= 1.0 && < 2.0"];
 
   fun ppExposedModules mods =
@@ -1246,7 +1246,7 @@ local
         [] => []
       | ns :: nss =>
         ppFullNamespace ns ::
-        List.map (Print.sequence Print.addNewline o ppFullNamespace) nss;
+        List.map (Print.sequence Print.newline o ppFullNamespace) nss;
 in
   fun ppCabal (pkg,source) =
       let
@@ -1257,7 +1257,7 @@ in
         and {author} = Package.author pkg
         and mods = exposedModule source
       in
-        Print.blockProgram Print.Inconsistent 0
+        Print.inconsistentBlock 0
           [ppTags
              [("Name", ppPackageName name),
               ("Version", ppVersion version),
@@ -1268,18 +1268,18 @@ in
               ("Build-type", Print.ppString "Simple"),
               ("Author", Print.ppString author),
               ("Maintainer", Print.ppString author)],
-           Print.addNewline,
-           Print.addNewline,
+           Print.newline,
+           Print.newline,
            ppSection "Library"
              [ppSection "Build-depends:" ppBuildDepends,
-              Print.addNewline,
-              Print.addNewline,
+              Print.newline,
+              Print.newline,
               ppTag ("hs-source-dirs", Print.ppString "src"),
-              Print.addNewline,
-              Print.addNewline,
+              Print.newline,
+              Print.newline,
               ppTag ("ghc-options", Print.ppString "-Wall -Werror"),
-              Print.addNewline,
-              Print.addNewline,
+              Print.newline,
+              Print.newline,
               ppSection "Exposed-modules:" (ppExposedModules mods)]]
       end;
 end;

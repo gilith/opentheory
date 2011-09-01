@@ -217,7 +217,7 @@ fun summary thy =
 val ppId = Print.ppBracket "<" ">" Print.ppInt;
 
 fun pp thy =
-    Print.blockProgram Print.Consistent 0
+    Print.consistentBlock 0
       [Print.ppString "Theory",
        ppId (id thy)];
 
@@ -240,7 +240,7 @@ struct
         val ppTX = Print.ppOp2 " =>" Theory.pp ppX
       in
         fn m =>
-          Print.blockProgram Print.Consistent 0
+          Print.consistentBlock 0
             [Print.ppString "TheoryMap",
              Print.ppList ppTX (toList m)]
       end;

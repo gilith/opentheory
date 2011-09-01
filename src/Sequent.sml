@@ -228,16 +228,16 @@ in
                   val Sequent {hyp,concl} = seq
 
                   val ppConnectiveConcl =
-                      Print.blockProgram Print.Inconsistent indent
+                      Print.inconsistentBlock indent
                         [ppConnective (seq,connective),
                          Print.ppString " ",
                          ppConcl concl]
                 in
                   if TermAlphaSet.null hyp then ppConnectiveConcl
                   else
-                    Print.blockProgram Print.Inconsistent 0
+                    Print.inconsistentBlock 0
                       [ppHypSet hyp,
-                       Print.addBreak 1,
+                       Print.break,
                        ppConnectiveConcl]
                 end
            end

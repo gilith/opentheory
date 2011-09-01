@@ -45,9 +45,9 @@ fun isGlobal (Namespace n) = List.null n;
 fun mkNested (Namespace ns, n) = Namespace (ns @ [n]);
 
 fun destNested (Namespace ns) =
-    case rev ns of
+    case List.rev ns of
       [] => raise Error "Namespace.destNested"
-    | n :: ns => (Namespace (rev ns), n);
+    | n :: ns => (Namespace (List.rev ns), n);
 
 val isNested = can destNested;
 
@@ -180,7 +180,7 @@ local
       end;
 in
   fun toHtml (Namespace ns) =
-      case rev ns of
+      case List.rev ns of
         [] => globalHtml
       | c :: cs => List.foldl add (toHtmlComponent c) cs;
 end;

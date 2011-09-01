@@ -418,18 +418,18 @@ local
         if List.null ns then Print.skip
         else
           Print.sequence
-            (Print.blockProgram Print.Inconsistent 2
+            (Print.inconsistentBlock 2
                (Print.ppString name ::
                 Print.ppString ":" ::
-                List.map (Print.sequence (Print.addBreak 1) o Name.pp) ns))
-            Print.addNewline
+                List.map (Print.sequence Print.break o Name.pp) ns))
+            Print.newline
       end;
 in
   fun pp sym =
       let
         val Table {opM,conM,...} = sym
       in
-        Print.blockProgram Print.Consistent 0
+        Print.consistentBlock 0
           [ppNameMap ("types",opM),
            ppNameMap ("consts",conM)]
       end;

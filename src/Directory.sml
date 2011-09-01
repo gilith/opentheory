@@ -792,7 +792,7 @@ fun checkStagePackage dir repo namever chk =
               if Checksum.equal chk' chk then errs
               else DirectoryError.WrongChecksumOnRepo (namever,repo) :: errs
       in
-        rev errs
+        List.rev errs
       end;
 
 fun stagePackage dir fndr repo namever chk =
@@ -977,18 +977,18 @@ local
                 | SOME sf => [Print.ppString " ", Print.ppString sf]))
 
         fun ppCopy (dest,srcs) =
-            Print.blockProgram Print.Consistent 2
+            Print.consistentBlock 2
               (Print.ppString dest ::
                Print.ppString ":" ::
-               List.map (Print.sequence Print.addNewline o ppSrc) srcs)
+               List.map (Print.sequence Print.newline o ppSrc) srcs)
       in
         fn plan =>
            case StringMap.toList plan of
              [] => Print.skip
            | cp :: cps =>
-             Print.blockProgram Print.Consistent 0
+             Print.consistentBlock 0
                (ppCopy cp ::
-                List.map (Print.sequence Print.addNewline o ppCopy) cps)
+                List.map (Print.sequence Print.newline o ppCopy) cps)
       end;
 *)
 
@@ -1037,7 +1037,7 @@ in
 
         val errs = checkFileCopyPlan errs plan
       in
-        rev errs
+        List.rev errs
       end;
 end;
 
@@ -1277,7 +1277,7 @@ fun checkInstallStaged dir namever chk =
               List.foldl add errs (Package.packages pkg)
             end
     in
-      rev errs
+      List.rev errs
     end;
 
 fun installStaged dir namever chk =
@@ -1393,7 +1393,7 @@ fun checkUninstall dir namever =
                 PackageNameVersionSet.foldl add errs desc
               end
       in
-        rev errs
+        List.rev errs
       end;
 
 fun uninstall dir namever =
@@ -1519,7 +1519,7 @@ local
 
   fun checkSameAuthor dir namevers errs =
       let
-        val auths = collectAuthors dir (rev namevers)
+        val auths = collectAuthors dir (List.rev namevers)
       in
         case auths of
           [] => raise Bug "Directory.checkUpload.checkSameAuthor"
@@ -1589,7 +1589,7 @@ in
 
         val (namevers,errs) = checkInstalled dir namevers errs
       in
-        if List.null namevers then rev errs
+        if List.null namevers then List.rev errs
         else
           let
             (* Check upload packages are in install order *)
@@ -1618,7 +1618,7 @@ in
 
             val errs = checkObsoleteAuthors dir author obsolete errs
           in
-            rev errs
+            List.rev errs
           end
       end;
 end;
@@ -1666,7 +1666,7 @@ fun packageUpload dir upl namever =
 fun ppUpload dir {repo,support,packages} =
     let
       fun ppStep step pps =
-          Print.blockProgram Print.Inconsistent 3
+          Print.inconsistentBlock 3
             (Print.ppInt step ::
              Print.ppString ". " ::
              pps)
@@ -1675,7 +1675,7 @@ fun ppUpload dir {repo,support,packages} =
 
       fun ppNameVers nv nvs =
           ppNameVer nv ::
-          List.map (Print.sequence (Print.addBreak 1) o ppNameVer) nvs
+          List.map (Print.sequence Print.break o ppNameVer) nvs
 
       fun ppAuthor {author} = Print.ppString author
 
@@ -1702,10 +1702,10 @@ fun ppUpload dir {repo,support,packages} =
                   ppStep step
                     (Print.ppString mesg ::
                      ppNum ::
-                     Print.addNewline ::
+                     Print.newline ::
                      ppNameVers nv nvs)
             in
-              (step, Print.sequence Print.addNewline pp)
+              (step, Print.sequence Print.newline pp)
             end
 
       val (author,step,ppPackages) =
@@ -1738,7 +1738,7 @@ fun ppUpload dir {repo,support,packages} =
                   ppStep step
                     (Print.ppString mesg ::
                      ppNum ::
-                     Print.addNewline ::
+                     Print.newline ::
                      ppNameVers nv nvs)
             in
               (author,step,pp)
@@ -1753,26 +1753,26 @@ fun ppUpload dir {repo,support,packages} =
             val pp =
                 ppStep step
                   [Print.ppString mesg,
-                   Print.addNewline,
+                   Print.newline,
                    ppAuthor author]
           in
             (step,pp)
           end
 
       val ppRepo =
-          Print.blockProgram Print.Inconsistent 2
+          Print.inconsistentBlock 2
             [Print.ppString "About to upload to ",
              DirectoryRepo.pp repo,
              Print.ppString " in ",
              Print.ppInt step,
              Print.ppString " steps"]
     in
-      Print.blockProgram Print.Inconsistent 0
+      Print.inconsistentBlock 0
         [ppRepo,
          ppSupport,
-         Print.addNewline,
+         Print.newline,
          ppPackages,
-         Print.addNewline,
+         Print.newline,
          ppAuthorConfirm]
     end;
 

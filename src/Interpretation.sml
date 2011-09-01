@@ -43,7 +43,7 @@ fun equalRewrite rw1 rw2 = compareRewrite (rw1,rw2) = EQUAL;
 
 local
   fun ppName2 prefix (x,y) =
-      Print.blockProgram Print.Inconsistent 2
+      Print.inconsistentBlock 2
         [Print.ppString prefix,
          Print.ppString " ",
          Name.ppQuoted x,
@@ -62,9 +62,9 @@ fun ppRewriteList rs =
     case rs of
       [] => Print.skip
     | r :: rs =>
-      Print.blockProgram Print.Consistent 0
+      Print.consistentBlock 0
         (ppRewrite r ::
-         List.map (Print.sequence Print.addNewline o ppRewrite) rs);
+         List.map (Print.sequence Print.newline o ppRewrite) rs);
 
 val toStringRewrite = Print.toString ppRewrite;
 

@@ -97,7 +97,7 @@ in
 
         val (_,acc) = primsThy (thy,(TheorySet.empty,[]))
       in
-        rev acc
+        List.rev acc
       end;
 end;
 
@@ -136,7 +136,7 @@ fun getListRequires req thys =
       let
         val seqsl = List.map (getRequires req) thys
       in
-        SequentMap.unionListDomain (rev seqsl)
+        SequentMap.unionListDomain (List.rev seqsl)
       end;
 
 fun addRequires sums (thy,req) =
@@ -219,7 +219,7 @@ fun mkProvides sums thy =
 
       val prims = visiblePrimitives thy
 
-      val acc = List.foldl (addProvides sums) acc (rev prims)
+      val acc = List.foldl (addProvides sums) acc (List.rev prims)
     in
       SequentMap.mapPartial (Theory.destPackage o snd) acc
     end;
@@ -281,7 +281,7 @@ fun insertEnvironment env (name,thy) =
          imported = imported}
     end;
 
-fun theoriesEnvironment (Environment {imported,...}) = rev imported;
+fun theoriesEnvironment (Environment {imported,...}) = List.rev imported;
 
 fun mainEnvironment (Environment {named,...}) =
     case PackageNameMap.peek named PackageTheory.mainName of
@@ -655,7 +655,7 @@ and fromFinderImporter finder = Importer (importPackageName finder);
 (* ------------------------------------------------------------------------- *)
 
 fun pp graph =
-    Print.blockProgram Print.Consistent 0
+    Print.consistentBlock 0
       [Print.ppString "Graph{",
        Print.ppInt (TheorySet.size (theories graph)),
        Print.ppString "}"];

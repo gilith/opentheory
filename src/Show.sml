@@ -191,7 +191,8 @@ local
   fun dumpRewrite acc ns rewrite =
       case rewrite of
         NONE => acc
-      | SOME rw => NamespaceMapping (Namespace.fromList (rev ns), rw) :: acc;
+      | SOME rw =>
+        NamespaceMapping (Namespace.fromList (List.rev ns), rw) :: acc;
 
   fun dumpShow acc ns show =
       let
@@ -226,7 +227,7 @@ local
   fun addHtml (m,l) = toHtmlMapping m @ Html.Break :: l;
 in
   fun toHtml show =
-      case rev (toList show) of
+      case List.rev (toList show) of
         [] => []
       | m :: ms => List.foldl addHtml (toHtmlMapping m) ms;
 end;
