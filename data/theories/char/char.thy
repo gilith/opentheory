@@ -1,5 +1,5 @@
 name: char
-version: 1.21
+version: 1.22
 description: Theory of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -25,7 +25,7 @@ thm {
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.20
+  package: char-utf8-1.21
 }
 
 main {

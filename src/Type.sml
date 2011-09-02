@@ -456,7 +456,7 @@ local
         Print.ppMap toName (ppInfixBuffer ppInf)
       end;
 
-  val maximumSize = 1000;
+  val maximumSize = 10000;
 in
   val defaultGrammar =
       Grammar

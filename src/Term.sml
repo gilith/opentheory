@@ -1806,7 +1806,7 @@ local
     fun ppNumeralHtml show = Print.ppMap (toHtmlNumeral show) Html.ppFixed;
   end;
 
-  val maximumSize = 1000;
+  val maximumSize = 10000;
 in
   val defaultGrammar =
       Grammar

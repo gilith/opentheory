@@ -1,9 +1,9 @@
 name: haskell-parser-src
-version: 1.7
+version: 1.8
 description: haskell-parser-src
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-08-12
+provenance: HOL Light theory extracted on 2011-08-15
 show: "Data.Bool"
 
 main {

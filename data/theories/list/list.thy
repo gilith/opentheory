@@ -1,5 +1,5 @@
 name: list
-version: 1.14
+version: 1.15
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ thm {
 dest {
   import: def
   import: thm
-  package: list-dest-1.11
+  package: list-dest-1.12
 }
 
 length {
