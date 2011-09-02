@@ -68,6 +68,7 @@ local
       NameMap.fromList
         [(Name.conjConst, Name.mkGlobal "&&"),
          (Name.consConst, Name.mkGlobal ":"),
+         (Name.eqConst, Name.mkGlobal "=="),
          (Name.nilConst, Name.mkGlobal "[]"),
          (Name.noneConst, Name.mkGlobal "Nothing"),
          (Name.someConst, Name.mkGlobal "Just"),
@@ -819,6 +820,17 @@ val ppTypeVarList =
     end;
 
 local
+  fun destApp ty =
+      if Type.isFun ty then raise Error "Haskell.destApp: fun"
+      else if Type.isList ty then raise Error "Haskell.destApp: list"
+      else if Type.isPair ty then raise Error "Haskell.destApp: pair"
+      else
+        case Type.dest ty of
+          TypeTerm.VarTy' _ => raise Error "Haskell.destApp: variable"
+        | TypeTerm.OpTy' (ot,tys) =>
+          if List.null tys then raise Error "Haskell.destApp: nullary"
+          else (ot,tys);
+
   fun ppBasic ns ty =
       case Type.dest ty of
         TypeTerm.VarTy' n => ppTypeVar n
@@ -826,25 +838,73 @@ local
         if List.null tys then ppTypeOp ns ot
         else Print.ppBracket "(" ")" (ppGen ns) ty
 
-  and ppSpaceBasic ns ty =
-      Print.sequence Print.break (ppBasic ns ty)
+  and ppList ns ty =
+      if not (Type.isList ty) then ppBasic ns ty
+      else
+        let
+          val a = Type.destList ty
+        in
+          Print.inconsistentBlock 1
+            [Print.ppString "[",
+             ppGen ns a,
+             Print.ppString "]"]
+        end
 
-  and ppSpaceBasics ns tys =
-      Print.program (List.map (ppSpaceBasic ns) tys)
+  and ppPair ns ty =
+      if not (Type.isPair ty) then ppList ns ty
+      else
+        let
+          val (a,b) = Type.destPair ty
+        in
+          Print.inconsistentBlock 1
+            [Print.ppString "(",
+             ppApp ns a,
+             Print.ppString ",",
+             Print.break,
+             ppFun ns b,
+             Print.ppString ")"]
+        end
 
-  and ppGen ns ty =
-      case Type.dest ty of
-        TypeTerm.VarTy' _ => ppBasic ns ty
-      | TypeTerm.OpTy' (ot,tys) =>
-        if List.null tys then ppBasic ns ty
-        else
-          Print.inconsistentBlock 2
-            [ppTypeOp ns ot,
-             ppSpaceBasics ns tys];
+  and ppArguments ns tys =
+      let
+        val brk = Print.ppBreak (Print.Break {size = 1, extraIndent = 2})
+
+        fun ppArg ty = Print.sequence brk (ppPair ns ty)
+      in
+        Print.program (List.map ppArg tys)
+      end
+
+  and ppApp ns ty =
+      case total destApp ty of
+        NONE => ppPair ns ty
+      | SOME (ot,tys) =>
+        Print.inconsistentBlock 0
+          [ppTypeOp ns ot,
+           ppArguments ns tys]
+
+  and ppFun ns ty =
+      if not (Type.isFun ty) then ppApp ns ty
+      else
+        let
+          fun ppDom d =
+              Print.program
+                [ppApp ns d,
+                 Print.space,
+                 Print.ppString "->",
+                 Print.ppBreak (Print.Break {size = 1, extraIndent = 2})]
+
+          val (ds,r) = Type.stripFun ty
+        in
+          Print.inconsistentBlock 0
+            [Print.program (List.map ppDom ds),
+             ppApp ns r]
+        end
+
+  and ppGen ns ty = ppFun ns ty;
 in
   val ppType = ppGen;
 
-  val ppTypeList = ppSpaceBasics;
+  val ppTypeList = ppArguments;
 end;
 
 (* Terms *)
@@ -877,9 +937,7 @@ local
          {token = "||", precedence = ~2, assoc = Print.RightAssoc},
          {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
 
-  val infixNames =
-      NameMap.fromList
-        [(Name.eqConst,"==")];
+  val infixTokens = Print.tokensInfixes infixes;
 
   fun destInfixTerm tm =
       let
@@ -889,18 +947,19 @@ local
 
         val (c,_) = Term.destConst t
 
-        val n = Const.name c
+        val n = exportConstName (Const.name c)
       in
         (n,a,b)
       end;
 
   fun destInfix tm =
       let
-        val (c,a,b) = destInfixTerm tm
+        val (n,a,b) = destInfixTerm tm
+
+        val (_,s) = Name.dest n
       in
-        case NameMap.peek infixNames c of
-          SOME s => (s,a,b)
-        | NONE => raise Error "Haskell.ppTerm.destInfix"
+        if StringSet.member s infixTokens then (s,a,b)
+        else raise Error "Haskell.ppTerm.destInfix"
       end;
 
   val isInfix = can destInfix;
@@ -920,6 +979,8 @@ local
         raise Error "Haskell.ppTerm.destGenApp: infix"
       else if Term.isGenAbs tm then
         raise Error "Haskell.ppTerm.destGenApp: abstraction"
+      else if Term.isCase tm then
+        raise Error "Haskell.ppTerm.destGenApp: case"
       else Term.destApp tm;
 
   val stripGenApp =
@@ -931,6 +992,11 @@ local
       in
         strip []
       end;
+
+  fun isLetCondCase tm =
+      Term.isLet tm orelse Term.isCond tm orelse Term.isCase tm;
+
+  val ppSyntax = Print.ppString;
 in
   fun ppTerm namespace =
       let
@@ -946,30 +1012,28 @@ in
 
         and ppApplicationTerm tm =
             let
-              fun ppArg x = Print.sequence Print.break (ppBasicTerm x)
+              val b = Print.Break {size = 1, extraIndent = 2}
+
+              fun ppArg x = Print.sequence (Print.ppBreak b) (ppBasicTerm x)
 
               val (tm,xs) = stripGenApp tm
             in
               if List.null xs then ppBasicTerm tm
               else
                 Print.inconsistentBlock 0
-                  [ppBasicTerm tm,
-                   Print.inconsistentBlock 2
-                     (Print.ppString "" :: List.map ppArg xs)]
+                  (ppBasicTerm tm :: List.map ppArg xs)
             end
 
         and ppBoundVars (v,vs) =
-            Print.sequence
-              (Print.sequence
-                 (ppBasicTerm v)
-                 (Print.program
-                   (List.map
-                     (Print.sequence Print.break o ppBasicTerm) vs)))
-              (Print.ppString " ->")
+            Print.program
+              (ppBasicTerm v ::
+               List.map (Print.sequence Print.break o ppBasicTerm) vs @
+               [Print.space,
+                ppSyntax "->"])
 
         and ppBindTerm (v,vs,body) =
             Print.inconsistentBlock 2
-              [Print.ppString "\\",
+              [ppSyntax "\\",
                ppBoundVars (v,vs),
                Print.break,
                ppNormalTerm body]
@@ -985,61 +1049,152 @@ in
                 else ppBindTerm (v,vs,body)
             end
 
-        and ppCondTerm (f,c,a,b,r) =
-            Print.inconsistentBlock 0
-              [Print.consistentBlock 0
-                 [Print.inconsistentBlock (if f then 3 else 8)
-                    [Print.ppString (if f then "if " else "else if "),
-                     ppInfixTerm (c,true)],
-                  Print.break,
-                  Print.ppString "then"],
-               Print.inconsistentBlock 2
-                 [Print.ppString "",
-                  Print.break,
-                  ppLetCondTerm (a,true)]] ::
-            Print.break ::
-            (case total Term.destCond b of
-               SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
-             | NONE =>
-                 [Print.inconsistentBlock 2
-                    [Print.ppString "else",
-                     Print.break,
-                     ppLetCondTerm (b,r)]])
-
         and ppLetTerm (v,t,b,r) =
-            Print.inconsistentBlock 4
-              [Print.ppString "let ",
-               ppApplicationTerm v,
-               Print.ppString " =",
-               Print.break,
-               ppLetCondTerm (t,true),
-               Print.ppString " in"] ::
-            Print.break ::
-            (case total Term.destLet b of
-               NONE => [ppLetCondTerm (b,r)]
-             | SOME (v,t,b) => ppLetTerm (v,t,b,r))
+            let
+              val ppLetBind =
+                  Print.inconsistentBlock 4
+                    [ppSyntax "let",
+                     Print.space,
+                     ppApplicationTerm v,
+                     Print.space,
+                     ppSyntax "<-",
+                     Print.break,
+                     ppLetCondCaseNestedTerm (t,true),
+                     Print.space,
+                     ppSyntax "in"]
 
-        and ppLetCondTerm (tm,r) =
+              val ppLetBody =
+                  case total Term.destLet b of
+                    NONE => [ppLetCondCaseNestedTerm (b,r)]
+                  | SOME (v,t,b) => ppLetTerm (v,t,b,r)
+            in
+              ppLetBind ::
+              Print.break ::
+              ppLetBody
+            end
+
+        and ppCondTerm (f,c,a,b,r) =
+            let
+              val ppCond = ppInfixTerm (c,true)
+
+              val ppIfCond =
+                  if f then
+                    Print.inconsistentBlock 3
+                      [ppSyntax "if",
+                       Print.space,
+                       ppCond]
+                  else
+                    Print.inconsistentBlock 8
+                      [ppSyntax "else",
+                       Print.space,
+                       ppSyntax "if",
+                       Print.space,
+                       ppCond]
+
+              val ppIfCondThen =
+                  Print.consistentBlock 0
+                    [ppIfCond,
+                     Print.break,
+                     ppSyntax "then"]
+
+              val ppIfCondThenBranch =
+                  Print.inconsistentBlock 0
+                    [ppIfCondThen,
+                     Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+                     ppLetCondCaseNestedTerm (a,true)]
+
+              val ppElseBranch =
+                  case total Term.destCond b of
+                    SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
+                  | NONE =>
+                    [Print.inconsistentBlock 2
+                       [ppSyntax "else",
+                        Print.break,
+                        ppLetCondCaseNestedTerm (b,r)]]
+            in
+              ppIfCondThenBranch ::
+              Print.break ::
+              ppElseBranch
+            end
+
+        and ppCaseTerm (a,bs,r) =
+            let
+              fun ppBranch (pat,t_r) =
+                  Print.consistentBlock 2
+                    [ppApplicationTerm pat,
+                     Print.space,
+                     ppSyntax "->",
+                     Print.break,
+                     ppLetCondCaseNestedTerm t_r]
+
+              val ppDecl =
+                  Print.consistentBlock 5
+                    [ppSyntax "case",
+                     Print.space,
+                     ppInfixTerm (a,true),
+                     Print.space,
+                     ppSyntax "of"]
+
+              fun ppDeclAlternative br =
+                  Print.program
+                    [ppDecl,
+                     Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+                     ppBranch br]
+
+              fun ppAlternative br =
+                  Print.sequence
+                    Print.break
+                    (Print.inconsistentBlock 2
+                       [ppSyntax "|",
+                        Print.space,
+                        ppBranch br])
+
+              val (br,brs) =
+                  let
+                    val ty = Term.typeOf a
+
+                    fun mkBranch (n,xs,t) =
+                        let
+                          val c = Const.mkUndef n
+
+                          val ty = Type.listMkFun (List.map Term.typeOf xs, ty)
+
+                          val pat = Term.listMkApp (Term.mkConst (c,ty), xs)
+                        in
+                          (pat,(t,true))
+                        end
+                  in
+                    case List.rev (List.map mkBranch bs) of
+                      [] => raise Bug "Term.pp.ppCaseTerm: no branches"
+                    | (pat,(t,_)) :: rest =>
+                      case List.rev ((pat,(t,r)) :: rest) of
+                        [] => raise Bug "Term.pp.ppCaseTerm: no branches II"
+                      | br :: brs => (br,brs)
+                  end
+            in
+              Print.consistentBlock 0
+                (ppDeclAlternative br :: List.map ppAlternative brs)
+            end
+
+        and ppLetCondCaseNestedTerm (tm,r) =
             case total Term.destLet tm of
               SOME (v,t,b) =>
-                Print.consistentBlock 0
-                  (ppLetTerm (v,t,b,r))
+                Print.consistentBlock 0 (ppLetTerm (v,t,b,r))
             | NONE =>
               case total Term.destCond tm of
                 SOME (c,a,b) =>
-                Print.consistentBlock 0
-                  (ppCondTerm (true,c,a,b,r))
-              | NONE => ppInfixTerm (tm,r)
+                Print.consistentBlock 0 (ppCondTerm (true,c,a,b,r))
+              | NONE =>
+                case total Term.destCase tm of
+                  SOME (a,bs) => ppCaseTerm (a,bs,r)
+                | NONE => ppInfixTerm (tm,r)
 
-        and ppLetConditionalTerm (tm,r) =
-            if not (Term.isLet tm orelse Term.isCond tm) then
-              ppBinderTerm (tm,r)
-            else if r then
-              ppBracketTerm tm
-            else
-              ppLetCondTerm (tm,false)
+        and ppLetCondCaseTerm (tm,r) =
+            if not (isLetCondCase tm) then ppBinderTerm (tm,r)
+            else if r then ppBracketTerm tm
+            else ppLetCondCaseNestedTerm (tm,false)
 
-        and ppInfixTerm tm_r = ppInfix ppLetConditionalTerm tm_r
+        and ppInfixTerm tm_r = ppInfix ppLetCondCaseTerm tm_r
 
         and ppNormalTerm tm = ppInfixTerm (tm,false)
 

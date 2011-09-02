@@ -346,11 +346,11 @@ fun destEq ty =
 
       val (y,b) = destFun yb
 
-      val _ = equal b bool orelse
-              raise Error "Type.destEq: not a relation"
+      val () = if equal b bool then ()
+               else raise Error "Type.destEq: not a relation"
 
-      val _ = equal x y orelse
-              raise Error "Type.destEq: different argument types"
+      val () = if equal x y then ()
+               else raise Error "Type.destEq: different argument types"
     in
       x
     end;
@@ -371,16 +371,104 @@ fun destSelect ty =
 
       val (x,b) = destFun xb
 
-      val _ = isBool b orelse
-              raise Error "Type.destSelect: not a predicate"
+      val () = if isBool b then ()
+               else raise Error "Type.destSelect: not a predicate"
 
-      val _ = equal x y orelse
-              raise Error "Type.destSelect: different result type"
+      val () = if equal x y then ()
+               else raise Error "Type.destSelect: different result type"
     in
       x
     end;
 
 val isSelect = can destSelect;
+
+(* ------------------------------------------------------------------------- *)
+(* General syntax operations.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+(* Nullary operators *)
+
+fun destNullaryOp p ty =
+    case dest ty of
+      TypeTerm.VarTy' _ => raise Error "Type.destNullaryOp: variable"
+    | TypeTerm.OpTy' (ot,tys) =>
+      case tys of
+        [] =>
+        if p ot then ()
+        else raise Error "Type.destNullaryOp: wrong type operator"
+      | _ => raise Error "Type.destNullaryOp: wrong arity";
+
+fun isNullaryOp p = can (destNullaryOp p);
+
+(* Unary operators *)
+
+fun destUnaryOp p ty =
+    case dest ty of
+      TypeTerm.VarTy' _ => raise Error "Type.destUnaryOp: variable"
+    | TypeTerm.OpTy' (ot,tys) =>
+      case tys of
+        [a] =>
+        if p ot then a
+        else raise Error "Type.destUnaryOp: wrong type operator"
+      | _ => raise Error "Type.destUnaryOp: wrong arity";
+
+(* Binary operators *)
+
+fun destBinaryOp p ty =
+    case dest ty of
+      TypeTerm.VarTy' _ => raise Error "Type.destBinaryOp: variable"
+    | TypeTerm.OpTy' (ot,tys) =>
+      case tys of
+        [a,b] =>
+        if p ot then (a,b)
+        else raise Error "Type.destBinaryOp: wrong type operator"
+      | _ => raise Error "Type.destBinaryOp: wrong arity";
+
+fun stripBinaryOp p =
+    let
+      fun strip tys ty =
+          case total (destBinaryOp p) ty of
+            NONE => (tys,ty)
+          | SOME (a,ty) => strip (a :: tys) ty
+    in
+      strip []
+    end;
+
+(* Ternary operators *)
+
+fun destTernaryOp p ty =
+    case dest ty of
+      TypeTerm.VarTy' _ => raise Error "Type.destBinaryOp: variable"
+    | TypeTerm.OpTy' (ot,tys) =>
+      case tys of
+        [a,b,c] =>
+        if p ot then (a,b,c)
+        else raise Error "Type.destBinaryOp: wrong type operator"
+      | _ => raise Error "Type.destBinaryOp: wrong arity";
+
+(* ------------------------------------------------------------------------- *)
+(* Special syntax.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+(* Lists *)
+
+fun destList ty =
+    destUnaryOp TypeOp.isList ty
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Type.destList: " ^ err);
+*)
+
+val isList = can destList;
+
+(* Pairs *)
+
+fun destPair ty =
+    destBinaryOp TypeOp.isPair ty
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Type.destPair: " ^ err);
+*)
+
+val isPair = can destPair;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

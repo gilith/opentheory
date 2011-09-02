@@ -176,6 +176,44 @@ val destSelect : ty -> ty
 val isSelect : ty -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* General syntax operations.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+(* Nullary operators *)
+
+val isNullaryOp : (TypeOp.typeOp -> bool) -> ty -> bool
+
+(* Unary operators *)
+
+val destUnaryOp : (TypeOp.typeOp -> bool) -> ty -> ty
+
+(* Binary operators *)
+
+val destBinaryOp : (TypeOp.typeOp -> bool) -> ty -> ty * ty
+
+val stripBinaryOp : (TypeOp.typeOp -> bool) -> ty -> ty list * ty
+
+(* Ternary operators *)
+
+val destTernaryOp : (TypeOp.typeOp -> bool) -> ty -> ty * ty * ty
+
+(* ------------------------------------------------------------------------- *)
+(* Special syntax.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+(* Lists *)
+
+val destList : ty -> ty
+
+val isList : ty -> bool
+
+(* Pairs *)
+
+val destPair : ty -> ty * ty
+
+val isPair : ty -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

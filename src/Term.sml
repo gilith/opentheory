@@ -1850,8 +1850,14 @@ local
             in
               case NameMap.peek m n of
                 NONE => NameMap.insert m (n,s)
-              | SOME s' => raise Error ("Term.pp.mkMap: name clash: \"" ^
-                                        s ^ "\" and \"" ^ s' ^ "\"")
+              | SOME s' =>
+                let
+                  val err =
+                      "Term.pp.mkMap: name clash: \"" ^
+                      s ^ "\" and \"" ^ s' ^ "\""
+                in
+                  raise Error err
+                end
             end
 
         val emptyMap : Print.token NameMap.map = NameMap.new ();
@@ -1861,18 +1867,24 @@ local
 
   fun mkSet s = NameSet.domain (mkMap (StringSet.fromList s));
 
+  fun isLetCondCase tm = isLet tm orelse isCond tm orelse isCase tm;
+
   fun ppTerm negationNames infixNames binderNames specialNames showConst
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
              ppNumeral ppVar ppSyntax show =
       let
+        fun ppBracket ppA a =
+            Print.inconsistentBlock 1
+              [ppSyntax "(",
+               ppA a,
+               ppSyntax ")"]
+
         fun ppConst c_ty =
             let
               val n = showConst show c_ty
             in
-              if NameSet.member n specialNames then
-                Print.ppBracket "(" ")" ppConstName c_ty
-              else
-                ppConstName c_ty
+              if NameSet.member n specialNames then ppBracket ppConstName c_ty
+              else ppConstName c_ty
             end
 
         fun destNegation tm =
@@ -2029,13 +2041,10 @@ local
             end
 
         and ppBoundVars (v,vs) =
-            Print.sequence
-              (Print.sequence
-                 (ppBasicTerm v)
-                 (Print.program
-                   (List.map
-                     (Print.sequence Print.break o ppBasicTerm) vs)))
-              (ppSyntax ".")
+            Print.program
+              (ppBasicTerm v ::
+               List.map (Print.sequence Print.break o ppBasicTerm) vs @
+               [ppSyntax "."])
 
         and ppComprehension (v,vs,pat,pred) =
             Print.inconsistentBlock 2
@@ -2065,7 +2074,7 @@ local
 
         and ppBinderTerm (tm,r) =
             if not (isBinder tm) then ppApplicationTerm tm
-            else if r then Print.ppBracket "(" ")" ppBindTerm tm
+            else if r then ppBracket ppBindTerm tm
             else ppBindTerm tm
 
         and ppNegationTerm (tm,r) =
@@ -2081,20 +2090,28 @@ local
             end
 
         and ppLetTerm (v,t,b,r) =
-            Print.inconsistentBlock 4
-              [ppSyntax "let",
-               Print.space,
-               ppApplicationTerm v,
-               Print.space,
-               ppSyntax "<-",
-               Print.break,
-               ppLetCondTerm (t,true),
-               Print.space,
-               ppSyntax "in"] ::
-            Print.break ::
-            (case total destLet b of
-               NONE => [ppLetCondTerm (b,r)]
-             | SOME (v,t,b) => ppLetTerm (v,t,b,r))
+            let
+              val ppLetBind =
+                  Print.inconsistentBlock 4
+                    [ppSyntax "let",
+                     Print.space,
+                     ppApplicationTerm v,
+                     Print.space,
+                     ppSyntax "<-",
+                     Print.break,
+                     ppLetCondCaseNestedTerm (t,true),
+                     Print.space,
+                     ppSyntax "in"]
+
+              val ppLetBody =
+                  case total destLet b of
+                    NONE => [ppLetCondCaseNestedTerm (b,r)]
+                  | SOME (v,t,b) => ppLetTerm (v,t,b,r)
+            in
+              ppLetBind ::
+              Print.break ::
+              ppLetBody
+            end
 
         and ppCondTerm (f,c,a,b,r) =
             let
@@ -2124,7 +2141,7 @@ local
                   Print.inconsistentBlock 0
                     [ppIfCondThen,
                      Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
-                     ppLetCondTerm (a,true)]
+                     ppLetCondCaseNestedTerm (a,true)]
 
               val ppElseBranch =
                   case total destCond b of
@@ -2133,7 +2150,7 @@ local
                     [Print.inconsistentBlock 2
                        [ppSyntax "else",
                         Print.break,
-                        ppLetCondTerm (b,r)]]
+                        ppLetCondCaseNestedTerm (b,r)]]
             in
               ppIfCondThenBranch ::
               Print.break ::
@@ -2148,7 +2165,7 @@ local
                      Print.space,
                      ppSyntax "->",
                      Print.break,
-                     ppLetCondTerm t_r]
+                     ppLetCondCaseNestedTerm t_r]
 
               val ppDecl =
                   Print.consistentBlock 5
@@ -2199,7 +2216,7 @@ local
                 (ppDeclAlternative br :: List.map ppAlternative brs)
             end
 
-        and ppLetCondTerm (tm,r) =
+        and ppLetCondCaseNestedTerm (tm,r) =
             case total destLet tm of
               SOME (v,t,b) =>
                 Print.consistentBlock 0 (ppLetTerm (v,t,b,r))
@@ -2212,19 +2229,16 @@ local
                   SOME (a,bs) => ppCaseTerm (a,bs,r)
                 | NONE => ppInfixTerm (tm,r)
 
-        and ppLetConditionalTerm (tm,r) =
-            if not (isLet tm orelse isCond tm orelse isCase tm) then
-              ppNegationTerm (tm,r)
-            else if r then
-              ppBracketTerm tm
-            else
-              ppLetCondTerm (tm,false)
+        and ppLetCondCaseTerm (tm,r) =
+            if not (isLetCondCase tm) then ppNegationTerm (tm,r)
+            else if r then ppBracketTerm tm
+            else ppLetCondCaseNestedTerm (tm,false)
 
-        and ppInfixTerm tm_r = ppInfix ppLetConditionalTerm tm_r
+        and ppInfixTerm tm_r = ppInfix ppLetCondCaseTerm tm_r
 
         and ppNormalTerm tm = ppInfixTerm (tm,false)
 
-        and ppBracketTerm tm = Print.ppBracket "(" ")" ppNormalTerm tm
+        and ppBracketTerm tm = ppBracket ppNormalTerm tm
       in
         ppNormalTerm
       end;
@@ -2270,7 +2284,10 @@ in
                     let
                       val () = warn "term too large to print"
                     in
-                      Print.ppBracket "term{" "}" Print.ppInt n
+                      Print.inconsistentBlock 0
+                        [ppSyntax "term{",
+                         Print.ppInt n,
+                         ppSyntax "}"]
                     end
                 end
            end
