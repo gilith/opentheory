@@ -31,4 +31,6 @@ toList :: Stream a -> Maybe [a]
 toList Error = Nothing
 toList Eof = Just []
 toList (Stream a s) =
-  case toList s of Nothing -> Nothing | Just l -> Just (a:l)
+  case toList s of
+    Nothing -> Nothing
+    Just l -> Just (a:l)

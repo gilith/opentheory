@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.10
+version: 1.11
 description: Basic parsers in Haskell
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -18,7 +18,7 @@ thm {
   interpret: const "Parser.mkParser" as "Haskell.Parser.Parser"
   interpret: const "Parser.Stream.append" as "Haskell.Parser.Stream.append"
   interpret: const "Parser.Stream.fromList" as "Haskell.Parser.Stream.fromList"
-  interpret: const "Parser.Stream.length" as "Haskell.Parser.Stream.length"
+  interpret: const "Parser.Stream.length" as "Haskell.Parser.Stream.size"
   interpret: const "Parser.Stream.toList" as "Haskell.Parser.Stream.toList"
   interpret: const "Parser.Stream.eof" as "Haskell.Parser.Stream.Eof"
   interpret: const "Parser.Stream.error" as "Haskell.Parser.Stream.Error"

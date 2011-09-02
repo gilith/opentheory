@@ -1135,21 +1135,12 @@ in
                      Print.space,
                      ppSyntax "of"]
 
-              fun ppDeclAlternative br =
+              fun ppAlternative br =
                   Print.program
-                    [ppDecl,
-                     Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+                    [Print.newline,
                      ppBranch br]
 
-              fun ppAlternative br =
-                  Print.sequence
-                    Print.break
-                    (Print.inconsistentBlock 2
-                       [ppSyntax "|",
-                        Print.space,
-                        ppBranch br])
-
-              val (br,brs) =
+              val brs =
                   let
                     val ty = Term.typeOf a
 
@@ -1165,15 +1156,12 @@ in
                         end
                   in
                     case List.rev (List.map mkBranch bs) of
-                      [] => raise Bug "Term.pp.ppCaseTerm: no branches"
-                    | (pat,(t,_)) :: rest =>
-                      case List.rev ((pat,(t,r)) :: rest) of
-                        [] => raise Bug "Term.pp.ppCaseTerm: no branches II"
-                      | br :: brs => (br,brs)
+                      [] => raise Bug "Haskell.ppTerm.ppCaseTerm: no branches"
+                    | (pat,(t,_)) :: rest => List.rev ((pat,(t,r)) :: rest)
                   end
             in
-              Print.consistentBlock 0
-                (ppDeclAlternative br :: List.map ppAlternative brs)
+              Print.consistentBlock 2
+                (ppDecl :: List.map ppAlternative brs)
             end
 
         and ppLetCondCaseNestedTerm (tm,r) =
