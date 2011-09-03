@@ -22,10 +22,10 @@ append (h:t) s = Stream h (append t s)
 fromList :: [a] -> Stream a
 fromList l = append l Eof
 
-length :: Stream a -> OpenTheory.Number.Natural.Natural
-length Error = 0
-length Eof = 0
-length (Stream a s) = OpenTheory.Number.Natural.suc (length s)
+size :: Stream a -> OpenTheory.Number.Natural.Natural
+size Error = 0
+size Eof = 0
+size (Stream a s) = OpenTheory.Number.Natural.suc (size s)
 
 toList :: Stream a -> Maybe [a]
 toList Error = Nothing

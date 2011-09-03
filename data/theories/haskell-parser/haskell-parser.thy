@@ -29,12 +29,12 @@ thm {
 
 src {
   import: thm
-  package: haskell-parser-src-1.8
+  package: haskell-parser-src-1.9
 }
 
 test {
   import: thm
-  package: haskell-parser-test-1.2
+  package: haskell-parser-test-1.3
 }
 
 main {

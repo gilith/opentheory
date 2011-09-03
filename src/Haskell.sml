@@ -585,6 +585,9 @@ fun symbolTableSource s =
     | NewtypeSource x => symbolTableNewtype x
     | ValueSource x => symbolTableValue x;
 
+fun symbolTableSourceList sl =
+    SymbolTable.unionList (List.map symbolTableSource sl);
+
 local
   val mkSymSrc =
       let
@@ -694,6 +697,60 @@ in
   fun exposedModule source = exposed (source,NamespaceSet.empty);
 end;
 
+local
+  fun addName (n,nss) =
+      let
+        val (ns,_) = Name.dest n
+      in
+        NamespaceSet.add nss ns
+      end;
+
+  fun addTypeOp (ot,nss) = addName (TypeOp.name ot, nss);
+
+  fun addConst (c,nss) =
+      let
+        val n = Const.name c
+
+        val ns =
+            case total Name.destCase n of
+              SOME ns => ns
+            | NONE => [n]
+      in
+        List.foldl addName nss ns
+      end;
+
+  fun addValue (s,nss) =
+      case s of
+        ValueSource (Value {name,...}) =>
+        let
+          val ns_n = Name.dest (Const.name name)
+        in
+          NamespaceSet.add nss (Namespace.mkNested ns_n)
+        end
+      | _ => nss;
+in
+  fun importModule module =
+      let
+        val Module {namespace,source,submodules} = module
+
+        val table = symbolTableSourceList source
+
+        val white = NamespaceSet.empty
+
+        val white =
+            TypeOpSet.foldl addTypeOp white (SymbolTable.typeOps table)
+
+        val white =
+            ConstSet.foldl addConst white (SymbolTable.consts table)
+
+        val black = NamespaceSet.singleton namespace
+
+        val black = List.foldl addValue black source
+      in
+        NamespaceSet.difference white black
+      end;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Converting a theory to a Haskell package.                                 *)
 (* ------------------------------------------------------------------------- *)
@@ -789,6 +846,26 @@ local
       end;
 in
   fun ppFullNamespace ns = Namespace.pp (exportNamespace ns);
+
+  fun ppImportNamespace namespace ns =
+      let
+        val ns' = exportRelativeNamespace namespace ns
+
+        val ns = exportNamespace ns
+      in
+        Print.inconsistentBlock 2
+          ([Print.ppString "import",
+            Print.space,
+            Print.ppString "qualified",
+            Print.space,
+            Namespace.pp ns] @
+           (if Namespace.equal ns' ns then []
+            else
+              [Print.break,
+               Print.ppString "as",
+               Print.space,
+               Namespace.pp ns']))
+      end;
 
   fun ppNamespace namespace ns =
       Namespace.pp (exportRelativeNamespace namespace ns);
@@ -916,26 +993,38 @@ fun ppVar v = ppVarName (Var.name v);
 local
   val infixes =
       Print.Infixes
-        [(* ML *)
+        [(* http://zvon.org/other/haskell/Outputprelude/index.html *)
+         {token = ".", precedence = 9, assoc = Print.RightAssoc},
+         (*{token = "!!", precedence = 9, assoc = Print.LeftAssoc},*)
+         {token = "^", precedence = 8, assoc = Print.RightAssoc},
+         {token = "^^", precedence = 8, assoc = Print.RightAssoc},
+         {token = "**", precedence = 8, assoc = Print.RightAssoc},
          {token = "/", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "*", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "quot", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "rem", precedence = 7, assoc = Print.LeftAssoc},
          {token = "div", precedence = 7, assoc = Print.LeftAssoc},
          {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "*", precedence = 7, assoc = Print.LeftAssoc},
          {token = "+", precedence = 6, assoc = Print.LeftAssoc},
          {token = "-", precedence = 6, assoc = Print.LeftAssoc},
-         {token = "^", precedence = 6, assoc = Print.LeftAssoc},
-         {token = "@", precedence = 5, assoc = Print.RightAssoc},
          {token = ":", precedence = 5, assoc = Print.RightAssoc},
+         {token = "++", precedence = 5, assoc = Print.RightAssoc},
          {token = "==", precedence = 4, assoc = Print.NonAssoc},
-         {token = "<>", precedence = 4, assoc = Print.NonAssoc},
-         {token = "<=", precedence = 4, assoc = Print.NonAssoc},
+         {token = "/=", precedence = 4, assoc = Print.NonAssoc},
          {token = "<", precedence = 4, assoc = Print.NonAssoc},
+         {token = "<=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">", precedence = 4, assoc = Print.NonAssoc},
-         {token = ".", precedence = 3, assoc = Print.LeftAssoc},
-         {token = "&&", precedence = ~1, assoc = Print.RightAssoc},
-         {token = "||", precedence = ~2, assoc = Print.RightAssoc},
-         {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
+         {token = "elem", precedence = 4, assoc = Print.NonAssoc},
+         {token = "notElem", precedence = 4, assoc = Print.NonAssoc},
+         {token = "&&", precedence = 3, assoc = Print.RightAssoc},
+         {token = "||", precedence = 2, assoc = Print.RightAssoc},
+         {token = ">>", precedence = 1, assoc = Print.LeftAssoc},
+         {token = ">>=", precedence = 1, assoc = Print.LeftAssoc},
+         (*{token = "=<<", precedence = 1, assoc = Print.RightAssoc},*)
+         {token = "$", precedence = 0, assoc = Print.RightAssoc},
+         {token = "$!", precedence = 0, assoc = Print.RightAssoc},
+         {token = "seq", precedence = 0, assoc = Print.RightAssoc}];
 
   val infixTokens = Print.tokensInfixes infixes;
 
@@ -1303,8 +1392,22 @@ local
          ppFullNamespace namespace,
          Print.newline,
          Print.ppString "where"];
+
+  fun ppModuleImport namespace =
+      let
+        fun ppImport ns =
+            Print.sequence (ppImportNamespace namespace ns) Print.newline
+      in
+        fn import =>
+           let
+             val import = NamespaceSet.toList import
+           in
+             if List.null import then Print.skip
+             else Print.inconsistentBlock 0 (List.map ppImport import)
+           end
+      end;
 in
-  fun ppModule (pkg,namespace,source) =
+  fun ppModule (pkg,namespace,import,source) =
       let
         val {description} = Package.description pkg
         and {license} = Package.license pkg
@@ -1317,8 +1420,7 @@ in
              [("Module", Print.ppString "$Header$"),
               ("Description", Print.ppString description),
               ("License", Print.ppString license)],
-           Print.newline,
-           Print.newline,
+           Print.newlines 2,
            ppTags
              [("Maintainer", Print.ppString author),
               ("Stability", Print.ppString "provisional"),
@@ -1327,7 +1429,8 @@ in
            Print.ppString "-}",
            Print.newline,
            ppModuleDeclaration namespace,
-           Print.newline,
+           Print.newlines 2,
+           ppModuleImport namespace import,
            Print.newline,
            ppSourceList namespace source]
       end;
@@ -1481,9 +1584,9 @@ fun outputLicense dir {directory} pkg =
     end;
 
 local
-  fun outputSrc pkg {directory = dir} sub namespace source =
+  fun outputSrc pkg {directory = dir} sub namespace import source =
       let
-        val ss = Print.toStream ppModule (pkg,namespace,source)
+        val ss = Print.toStream ppModule (pkg,namespace,import,source)
 
         val file =
             let
@@ -1512,7 +1615,12 @@ local
 
         val () =
             if List.null source then ()
-            else outputSrc pkg dir sub namespace source
+            else
+              let
+                val import = importModule module
+              in
+                outputSrc pkg dir sub namespace import source
+              end
 
         val () =
             if List.null submodules then ()
