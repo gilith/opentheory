@@ -169,6 +169,12 @@ have extension <kbd>.art</kbd>.</p>
 <tt>logfile "THEORY";;</tt></p>
 </blockquote></li>
 
+<li>For every theorem <tt>THM</tt> you'd like to include in the article, add an <tt>export_thm</tt> command like so:
+<blockquote>
+<p><tt>let THM = </tt><i>...HOL Light proof of the theorem...</i><tt> ;;</tt><br />
+<tt>export_thm THM;;</tt></p>
+</blockquote></li>
+
 <li>Add the following lines to the bottom of the <tt>NAME.ml</tt>
 theory file:
 <blockquote>
