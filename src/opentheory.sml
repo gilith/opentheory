@@ -194,6 +194,10 @@ fun initDirectory {rootDirectory = r} =
 
 val directory =
     let
+      fun existsDirectory d =
+          OS.FileSys.isDir d
+          handle OS.SysErr _ => false
+
       val rdir : Directory.directory option ref = ref NONE
     in
       fn () =>
@@ -205,7 +209,7 @@ val directory =
                  let
                    val {directory = r, autoInit} = rootDirectory ()
                  in
-                   if (OS.FileSys.isDir r handle OS.SysErr _ => false) then
+                   if existsDirectory r then
                      let
                        val dir = Directory.mk {rootDirectory = r}
 
@@ -2232,10 +2236,8 @@ fun installTheory filename =
     in
       ()
     end
-(***
     handle Error err =>
       raise Error (err ^ "\npackage install from theory file failed");
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Listing installed packages.                                               *)
@@ -2647,7 +2649,7 @@ let
 in
   succeed ()
 end
-(***
+(***)
 handle Error s => die (program^" failed:\n" ^ s)
      | Bug s => die ("BUG found in "^program^" program:\n" ^ s);
-***)
+(***)

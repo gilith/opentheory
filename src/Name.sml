@@ -266,6 +266,12 @@ in
   open S;
 end;
 
+local
+  fun addName (n,s) = NamespaceSet.add s (Name.namespace n);
+in
+  fun namespace s = foldl addName NamespaceSet.empty s;
+end;
+
 val pp =
     Print.ppMap toList
       (Print.ppBracket "{" "}" (Print.ppOpList "," Name.pp));

@@ -96,16 +96,27 @@ in
           end;
 
   fun exportConstName n =
-      case NameMap.peek constMapping n of
-        SOME n => n
-      | NONE =>
-        exportName n
-        handle Error err =>
-          let
-            val err = "bad constant name: " ^ Name.toString n ^ "\n" ^ err
-          in
-            raise Error err
-          end;
+      let
+        val () =
+            if not (Name.isCase n) then ()
+            else
+              let
+                val err = "case constant name: " ^ Name.toString n
+              in
+                raise Error err
+              end
+      in
+        case NameMap.peek constMapping n of
+          SOME n => n
+        | NONE =>
+          exportName n
+          handle Error err =>
+            let
+              val err = "bad constant name: " ^ Name.toString n ^ "\n" ^ err
+            in
+              raise Error err
+            end
+      end;
 end;
 
 (***
@@ -157,6 +168,47 @@ in
       end;
 end;
 ***)
+
+local
+  fun addName (n,ns) = NameSet.add ns n;
+
+  fun addTypeOp (ot,ns) =
+      let
+        val n = TypeOp.name ot
+
+        val n = exportTypeOpName n
+      in
+        addName (n,ns)
+      end;
+
+  fun addConst (c,ns) =
+      let
+        val n = Const.name c
+
+        val nl =
+            case total Name.destCase n of
+              SOME nl => nl
+            | NONE => [n]
+
+        val nl = List.map exportConstName nl
+      in
+        List.foldl addName ns nl
+      end;
+in
+  fun exportSymbolTableNames table =
+      let
+        val ns = NameSet.empty
+
+        val ns = TypeOpSet.foldl addTypeOp ns (SymbolTable.typeOps table)
+
+        val ns = ConstSet.foldl addConst ns (SymbolTable.consts table)
+      in
+        ns
+      end;
+end;
+
+fun exportSymbolTableNamespaces table =
+    NameSet.namespace (exportSymbolTableNames table);
 
 (* ------------------------------------------------------------------------- *)
 (* A type of Haskell packages.                                               *)
@@ -522,6 +574,28 @@ in
       end;
 end;
 
+local
+  fun addConstructor ((c,tys),sym) =
+      let
+        val sym = SymbolTable.addConst sym c
+      in
+        sym
+      end;
+in
+  fun definedSymbolTableData d =
+      let
+        val Data {name, parameters = _, constructors = cons} = d
+
+        val sym = SymbolTable.empty
+
+        val sym = SymbolTable.addTypeOp sym name
+
+        val sym = List.foldl addConstructor sym cons
+      in
+        sym
+      end;
+end;
+
 fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
 
 fun symbolTableNewtype n =
@@ -533,6 +607,21 @@ fun symbolTableNewtype n =
       val sym = SymbolTable.addTypeOp sym name
 
       val sym = SymbolTable.addTerm sym pred
+
+      val sym = SymbolTable.addConst sym abs
+
+      val sym = SymbolTable.addConst sym rep
+    in
+      sym
+    end;
+
+fun definedSymbolTableNewtype n =
+    let
+      val Newtype {name, predicate = _, abs, rep} = n
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addTypeOp sym name
 
       val sym = SymbolTable.addConst sym abs
 
@@ -569,6 +658,17 @@ in
       end;
 end;
 
+fun definedSymbolTableValue v =
+    let
+      val Value {name,...} = v
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addConst sym name
+    in
+      sym
+    end;
+
 fun symbolSource s =
     case s of
       DataSource x => symbolData x
@@ -579,14 +679,26 @@ fun nameSource s = Symbol.name (symbolSource s);
 
 fun namespaceSource s = Name.namespace (nameSource s);
 
+fun namespaceSourceList sl =
+    NamespaceSet.fromList (List.map namespaceSource sl);
+
 fun symbolTableSource s =
     case s of
       DataSource x => symbolTableData x
     | NewtypeSource x => symbolTableNewtype x
     | ValueSource x => symbolTableValue x;
 
+fun definedSymbolTableSource s =
+    case s of
+      DataSource x => definedSymbolTableData x
+    | NewtypeSource x => definedSymbolTableNewtype x
+    | ValueSource x => definedSymbolTableValue x;
+
 fun symbolTableSourceList sl =
     SymbolTable.unionList (List.map symbolTableSource sl);
+
+fun definedSymbolTableSourceList sl =
+    SymbolTable.unionList (List.map definedSymbolTableSource sl);
 
 local
   val mkSymSrc =
@@ -697,6 +809,7 @@ in
   fun exposedModule source = exposed (source,NamespaceSet.empty);
 end;
 
+(***
 local
   fun addName (n,nss) =
       let
@@ -743,13 +856,14 @@ in
         val white =
             ConstSet.foldl addConst white (SymbolTable.consts table)
 
-        val black = NamespaceSet.singleton namespace
+        val black = NamespaceSet.fromList [Namespace.global,namespace]
 
         val black = List.foldl addValue black source
       in
         NamespaceSet.difference white black
       end;
 end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Converting a theory to a Haskell package.                                 *)
@@ -844,27 +958,62 @@ local
       in
         fn n => relativeName namespace (exportConstName n)
       end;
-in
-  fun ppFullNamespace ns = Namespace.pp (exportNamespace ns);
+
+  fun exportImportNamespaces source =
+      let
+        val white =
+            let
+              val table = symbolTableSourceList source
+            in
+              exportSymbolTableNamespaces table
+            end
+
+        val black =
+            let
+              val table = definedSymbolTableSourceList source
+            in
+              exportSymbolTableNamespaces table
+            end
+
+        val black = NamespaceSet.add black Namespace.global
+      in
+        NamespaceSet.difference white black
+      end;
 
   fun ppImportNamespace namespace ns =
       let
-        val ns' = exportRelativeNamespace namespace ns
+        val ns' = relativeNamespace namespace ns
 
-        val ns = exportNamespace ns
-      in
-        Print.inconsistentBlock 2
-          ([Print.ppString "import",
-            Print.space,
-            Print.ppString "qualified",
-            Print.space,
-            Namespace.pp ns] @
-           (if Namespace.equal ns' ns then []
+        val ppImport =
+            [Print.ppString "import",
+             Print.space,
+             Print.ppString "qualified",
+             Print.space,
+             Namespace.pp ns]
+
+        val ppAs =
+            if Namespace.equal ns' ns then []
             else
               [Print.break,
                Print.ppString "as",
                Print.space,
-               Namespace.pp ns']))
+               Namespace.pp ns']
+
+        val ppImportAs = Print.inconsistentBlock 2 (ppImport @ ppAs)
+      in
+        Print.sequence ppImportAs Print.newline
+      end;
+in
+  fun ppFullNamespace ns = Namespace.pp (exportNamespace ns);
+
+  fun ppModuleImport namespace source =
+      let
+        val import = exportImportNamespaces source
+
+        val import = NamespaceSet.toList import
+      in
+        Print.inconsistentBlock 0
+          (List.map (ppImportNamespace namespace) import)
       end;
 
   fun ppNamespace namespace ns =
@@ -1392,22 +1541,8 @@ local
          ppFullNamespace namespace,
          Print.newline,
          Print.ppString "where"];
-
-  fun ppModuleImport namespace =
-      let
-        fun ppImport ns =
-            Print.sequence (ppImportNamespace namespace ns) Print.newline
-      in
-        fn import =>
-           let
-             val import = NamespaceSet.toList import
-           in
-             if List.null import then Print.skip
-             else Print.inconsistentBlock 0 (List.map ppImport import)
-           end
-      end;
 in
-  fun ppModule (pkg,namespace,import,source) =
+  fun ppModule (pkg,namespace,source) =
       let
         val {description} = Package.description pkg
         and {license} = Package.license pkg
@@ -1430,7 +1565,7 @@ in
            Print.newline,
            ppModuleDeclaration namespace,
            Print.newlines 2,
-           ppModuleImport namespace import,
+           ppModuleImport namespace source,
            Print.newline,
            ppSourceList namespace source]
       end;
@@ -1584,9 +1719,9 @@ fun outputLicense dir {directory} pkg =
     end;
 
 local
-  fun outputSrc pkg {directory = dir} sub namespace import source =
+  fun outputSrc pkg {directory = dir} sub namespace source =
       let
-        val ss = Print.toStream ppModule (pkg,namespace,import,source)
+        val ss = Print.toStream ppModule (pkg,namespace,source)
 
         val file =
             let
@@ -1615,12 +1750,7 @@ local
 
         val () =
             if List.null source then ()
-            else
-              let
-                val import = importModule module
-              in
-                outputSrc pkg dir sub namespace import source
-              end
+            else outputSrc pkg dir sub namespace source
 
         val () =
             if List.null submodules then ()
