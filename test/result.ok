@@ -132,6 +132,8 @@ Compressing article "example3"
 
 Compressing article "example4"
 
+Compressing article "example5"
+
 Compressing article "bool-true-def"
 WARNING: 15 objects left in the dictionary by articles/hol-light/bool-true-def.art
 
@@ -171,6 +173,15 @@ Summarizing compressed article "example4"
 1 input constant: =
 1 theorem:
   |- x = x
+
+Summarizing compressed article "example5"
+2 input type operators: -> bool
+3 input constants: = a b
+2 assumptions:
+  |- a
+  |- a <=> b
+1 theorem:
+  |- b
 
 Summarizing compressed article "bool-true-def"
 2 input type operators: -> bool
