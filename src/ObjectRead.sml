@@ -67,6 +67,16 @@ fun execute cmd state =
 
       val {import,interpretation,savable} = parameters
 
+(*OpenTheoryTrace2
+      val ppStack =
+          Print.ppMap
+            (List.map ObjectProv.object o ObjectStack.objects)
+            (Print.ppList Object.pp)
+
+      val () = Print.trace Command.pp "ObjectRead.execute: cmd" cmd
+
+      val () = Print.trace ppStack "ObjectRead.execute: stack" stack
+*)
       val inference = Inference.add inference cmd
     in
       case cmd of
