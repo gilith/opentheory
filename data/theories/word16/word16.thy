@@ -1,5 +1,5 @@
 name: word16
-version: 1.14
+version: 1.15
 description: Basic theory of 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -35,7 +35,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word16.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word16.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word16.Bits.toWord"
-  package: word-1.12
+  package: word-1.13
 }
 
 bits {

@@ -1,5 +1,5 @@
 name: list
-version: 1.15
+version: 1.16
 description: Basic theory of list types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -156,7 +156,7 @@ nub {
   import: reverse
   import: length
   import: member
-  package: list-nub-1.12
+  package: list-nub-1.13
 }
 
 main {
