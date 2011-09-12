@@ -762,7 +762,17 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
           if List.null cs then []
           else
             let
-              fun dest c = (Const.name c, c)
+              fun dest c =
+                  let
+                    val n = Const.name c
+
+                    val n =
+                        case total Name.destCase n of
+                          NONE => n
+                        | SOME (n,_) => n
+                  in
+                    (n,c)
+                  end
             in
               toHtmlNames ppConst (name ^ " Constant") (List.map dest cs)
             end

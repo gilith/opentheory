@@ -150,7 +150,7 @@ val fromPredicateConst : name
 
 (* Case expressions *)
 
-val destCase : name -> name list
+val destCase : name -> name * name list
 
 val isCase : name -> bool
 

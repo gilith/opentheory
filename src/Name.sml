@@ -194,10 +194,19 @@ val fromPredicateConst = mk (Namespace.set,"fromPredicate");
 (* Case expressions *)
 
 local
-  fun strip acc l =
+  val caseString = "case";
+
+  fun strip l =
       case l of
         [] => raise Error "Name.destCase"
-      | s :: l => if s = "case" then (List.rev acc, l) else strip (s :: acc) l;
+      | s :: l =>
+        if s = caseString then ([],l)
+        else
+          let
+            val (sl,l) = strip l
+          in
+            (s :: sl, l)
+          end;
 
   fun add ns (s,acc) = mk (ns,s) :: acc;
 in
@@ -205,11 +214,15 @@ in
       let
         val (ns,c) = dest n
 
-        val (ns,cs) = strip [] (Namespace.toList ns)
+        val (ns,cs) = strip (Namespace.toList ns)
 
         val ns = Namespace.fromList ns
+
+        val n = mk (ns,caseString)
+
+        val bs = List.foldl (add ns) [] (c :: List.rev cs)
       in
-        List.foldl (add ns) [] (c :: List.rev cs)
+        (n,bs)
       end;
 end;
 

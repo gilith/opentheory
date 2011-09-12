@@ -187,7 +187,7 @@ local
 
         val nl =
             case total Name.destCase n of
-              SOME nl => nl
+              SOME (_,nl) => nl
             | NONE => [n]
 
         val nl = List.map exportConstName nl

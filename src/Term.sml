@@ -1494,7 +1494,7 @@ in
 
         val (c,_) = destConst c
 
-        val ns = Name.destCase (Const.name c)
+        val (_,ns) = Name.destCase (Const.name c)
 
         val () =
             if length args = length ns + 1 then ()
