@@ -211,19 +211,31 @@ local
       | (_, TypeTerm.App' _) => GREATER
       | (TypeTerm.Abs' (v1,b1), TypeTerm.Abs' (v2,b2)) =>
         let
-          val bvEq = bvEq andalso Var.equal v1 v2
-          val bv1 = VarMap.insert bv1 (v1,n)
-          val bv2 = if bvEq then bv1 else VarMap.insert bv2 (v2,n)
-          val n = n + 1
+          val (n1,ty1) = Var.dest v1
+          and (n2,ty2) = Var.dest v2
         in
-          acmp n bv1 bv2 bvEq (b1,b2)
+          case Type.compare (ty1,ty2) of
+            LESS => LESS
+          | EQUAL =>
+            let
+              val bvEq = bvEq andalso Name.equal n1 n2
+
+              val bv1 = VarMap.insert bv1 (v1,n)
+
+              val bv2 = if bvEq then bv1 else VarMap.insert bv2 (v2,n)
+
+              val n = n + 1
+            in
+              acmp n bv1 bv2 bvEq (b1,b2)
+            end
+          | GREATER => GREATER
         end;
 in
   val alphaCompare =
       let
         val n = 0
-        val bv = VarMap.new ()
-        val bvEq = true
+        and bv = VarMap.new ()
+        and bvEq = true
       in
         acmp n bv bv bvEq
       end;
@@ -2305,6 +2317,250 @@ val toString = Print.toString pp;
 (* ------------------------------------------------------------------------- *)
 
 val ppHtml = ppWithGrammar htmlGrammar;
+
+(* ------------------------------------------------------------------------- *)
+(* Debugging.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun ppPath path = Print.program (List.map Print.ppInt (List.rev path));
+
+  fun ppTerms ppIntro (tm1,tm2) =
+      Print.consistentBlock 0
+        [ppIntro,
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         pp tm1,
+         Print.break,
+         Print.ppString "vs",
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         pp tm2];
+
+  fun ppComplaint (err,path,tm1,tm2) =
+      if List.null path then
+        Print.consistentBlock 0
+          [Print.ppString err,
+           Print.ppString " at term root"]
+      else
+        let
+          val ppIntro =
+              Print.consistentBlock 0
+                [Print.ppString err,
+                 Print.ppString " at path ",
+                 ppPath path,
+                 Print.ppString " subterms:"]
+        in
+          ppTerms ppIntro (tm1,tm2)
+        end;
+
+  fun complain err path tm1 tm2 =
+      Print.toString ppComplaint (err,path,tm1,tm2);
+
+  fun checkRoot tm1 tm2 =
+      check [] tm1 tm2
+      handle Error err =>
+        let
+          val ppTms = ppTerms (Print.ppString "different terms:")
+        in
+          raise Error (Print.toString ppTms (tm1,tm2) ^ ":\n" ^ err)
+        end
+
+  and check path tm1 tm2 =
+      case (dest tm1, dest tm2) of
+        (TypeTerm.Const' (c1,ty1), TypeTerm.Const' (c2,ty2)) =>
+        let
+          val () =
+              Const.checkEqual checkRoot c1 c2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different constants" path tm1 tm2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+
+          val () =
+              Type.checkEqual checkRoot ty1 ty2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different constant types" path tm1 tm2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+        in
+          ()
+        end
+      | (TypeTerm.Const' _, _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (_, TypeTerm.Const' _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (TypeTerm.Var' v1, TypeTerm.Var' v2) =>
+        let
+          val () =
+              Var.checkEqual checkRoot v1 v2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different variables" path tm1 tm2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+        in
+          ()
+        end
+      | (TypeTerm.Var' _, _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (_, TypeTerm.Var' _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (TypeTerm.App' (f1,a1), TypeTerm.App' (f2,a2)) =>
+        let
+          val () = check (0 :: path) f1 f2
+
+          val () = check (1 :: path) a1 a2
+        in
+          ()
+        end
+      | (TypeTerm.App' _, _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (_, TypeTerm.App' _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (TypeTerm.Abs' (v1,b1), TypeTerm.Abs' (v2,b2)) =>
+        let
+          val () =
+              Var.checkEqual checkRoot v1 v2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different bound variables" path tm1 tm2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+
+          val path = 0 :: path
+        in
+          check path b1 b2
+        end;
+
+  fun checkAlpha path bv bv1 bv2 tm1 tm2 =
+      case (dest tm1, dest tm2) of
+        (TypeTerm.Const' (c1,ty1), TypeTerm.Const' (c2,ty2)) =>
+        let
+          val () =
+              Const.checkEqual checkRoot c1 c2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different constants" path tm1 tm2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+
+          val () =
+              Type.checkEqual checkRoot ty1 ty2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different constant types" path tm1 tm2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+        in
+          ()
+        end
+      | (TypeTerm.Const' _, _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (_, TypeTerm.Const' _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (TypeTerm.Var' v1, TypeTerm.Var' v2) =>
+        (case (VarMap.peek bv1 v1, VarMap.peek bv2 v2) of
+           (NONE,NONE) =>
+           let
+             val () =
+                 Var.checkEqual checkRoot v1 v2
+                 handle Error err =>
+                   let
+                     val err =
+                         complain "different variables" path tm1 tm2 ^
+                         "\n" ^ err
+                   in
+                     raise Error err
+                   end
+           in
+             ()
+           end
+         | (SOME _, NONE) =>
+           raise Error (complain "bound vs free variable" path tm1 tm2)
+         | (NONE, SOME _) =>
+           raise Error (complain "free vs bound variable" path tm1 tm2)
+         | (SOME i1, SOME i2) =>
+           if i1 = i2 then ()
+           else raise Error (complain "different lambda binding" path tm1 tm2))
+      | (TypeTerm.Var' _, _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (_, TypeTerm.Var' _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (TypeTerm.App' (f1,a1), TypeTerm.App' (f2,a2)) =>
+        let
+          val () = checkAlpha (0 :: path) bv bv1 bv2 f1 f2
+
+          val () = checkAlpha (1 :: path) bv bv1 bv2 a1 a2
+        in
+          ()
+        end
+      | (TypeTerm.App' _, _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (_, TypeTerm.App' _) =>
+        raise Error (complain "different term structure" path tm1 tm2)
+      | (TypeTerm.Abs' (v1,b1), TypeTerm.Abs' (v2,b2)) =>
+        let
+          val ty1 = Var.typeOf v1
+          and ty2 = Var.typeOf v2
+
+          val () =
+              Type.checkEqual checkRoot ty1 ty2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different bound variable types" path tm1 tm2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+
+          val bv1 = VarMap.insert bv1 (v1,bv)
+
+          val bv2 = VarMap.insert bv2 (v2,bv)
+
+          val bv = bv + 1
+
+          val path = 0 :: path
+        in
+          checkAlpha path bv bv1 bv2 b1 b2
+        end;
+in
+  val checkEqual = checkRoot;
+
+  fun checkAlphaEqual tm1 tm2 =
+      let
+        val path = []
+        and n = 0
+        and bv = VarMap.new ()
+      in
+        checkAlpha path n bv bv tm1 tm2
+      end
+      handle Error err =>
+        let
+          val ppTms = ppTerms (Print.ppString "terms not alpha-equivalent:")
+        in
+          raise Error (Print.toString ppTms (tm1,tm2) ^ ":\n" ^ err)
+        end;
+end;
 
 end
 

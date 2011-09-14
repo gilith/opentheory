@@ -96,9 +96,13 @@ val compare : term * term -> order
 
 val equal : term -> term -> bool
 
+val checkEqual : term -> term -> unit
+
 val alphaCompare : term * term -> order
 
 val alphaEqual : term -> term -> bool
+
+val checkAlphaEqual : term -> term -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* The type of a term.                                                       *)

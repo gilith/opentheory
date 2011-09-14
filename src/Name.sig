@@ -36,6 +36,8 @@ val compare : name * name -> order
 
 val equal : name -> name -> bool
 
+val equalList : name list -> name list -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Fresh names.                                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -160,7 +162,11 @@ val isCase : name -> bool
 
 val pp : name Print.pp
 
+val ppList : name list Print.pp
+
 val toString : name -> string
+
+val toStringList : name list -> string
 
 val toHtml : name -> Html.inline list
 

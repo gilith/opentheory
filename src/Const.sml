@@ -191,6 +191,73 @@ fun toHtml show =
          end
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Debugging.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkEqualDef chkTm d1 d2 =
+    let
+      val TypeTerm.DefConst tm1 = d1
+      and TypeTerm.DefConst tm2 = d2
+    in
+      chkTm tm1 tm2
+    end
+    handle Error err =>
+      raise Error ("different definitions:\n" ^ err);
+
+fun checkEqualTypeDef s chkTm o1 o2 =
+    TypeOp.checkEqual chkTm o1 o2
+    handle Error err =>
+      raise Error ("different " ^ s ^ " definitions:\n" ^ err);
+
+fun checkEqualProv chkTm p1 p2 =
+    (case (p1,p2) of
+       (TypeTerm.UndefProvConst,TypeTerm.UndefProvConst) =>
+       ()
+     | (TypeTerm.UndefProvConst,_) =>
+       raise Error "undefined vs defined"
+     | (_,TypeTerm.UndefProvConst) =>
+       raise Error "defined vs undefined"
+     | (TypeTerm.DefProvConst d1, TypeTerm.DefProvConst d2) =>
+       checkEqualDef chkTm d1 d2
+     | (TypeTerm.DefProvConst _, _) =>
+       raise Error "definition vs abs/rep definition"
+     | (_, TypeTerm.DefProvConst _) =>
+       raise Error "abs/rep definition vs definition"
+     | (TypeTerm.AbsProvConst o1, TypeTerm.AbsProvConst o2) =>
+       checkEqualTypeDef "abs" chkTm o1 o2
+     | (TypeTerm.AbsProvConst _, _) =>
+       raise Error "abs vs rep definition"
+     | (_, TypeTerm.AbsProvConst _) =>
+       raise Error "rep vs abs definition"
+     | (TypeTerm.RepProvConst o1, TypeTerm.RepProvConst o2) =>
+       checkEqualTypeDef "rep" chkTm o1 o2)
+    handle Error err =>
+      raise Error ("different constant provenances: " ^ err);
+
+fun checkEqual chkTm c1 c2 =
+    let
+      val TypeTerm.Const {name = n1, prov = p1} = c1
+      and TypeTerm.Const {name = n2, prov = p2} = c2
+
+      val () =
+          if Name.equal n1 n2 then ()
+          else raise Error "different constant names"
+
+      val () = checkEqualProv chkTm p1 p2
+    in
+      ()
+    end
+    handle Error err =>
+      let
+        val err =
+            "different constants: " ^
+            toString c1 ^ " vs " ^ toString c2 ^
+            ":\n" ^ err
+      in
+        raise Error err
+      end;
+
 end
 
 structure ConstOrdered =

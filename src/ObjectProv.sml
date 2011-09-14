@@ -666,6 +666,10 @@ fun mkVar {savable} objN objT =
           let
             val n = Object.destName obN
             and ty = Object.destType obT
+
+            val () =
+                if Name.isGlobal n then ()
+                else raise Error ("non-global name: " ^ Name.toString n)
           in
             Object.Var (Var.mk (n,ty))
           end
@@ -716,6 +720,10 @@ fun mkVarType objN =
       val ob =
           let
             val n = Object.destName obN
+
+            val () =
+                if Name.isGlobal n then ()
+                else raise Error ("non-global name: " ^ Name.toString n)
           in
             Object.mkVarType n
           end

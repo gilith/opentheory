@@ -42,6 +42,8 @@ fun compare (Name n1, Name n2) =
 fun equal (Name (ns1,n1)) (Name (ns2,n2)) =
     n1 = n2 andalso Namespace.equal ns1 ns2;
 
+val equalList = listEqual equal;
+
 (* ------------------------------------------------------------------------- *)
 (* Fresh names.                                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -257,7 +259,11 @@ in
   fun toHtml n = Namespace.toHtml (toNamespace n);
 end;
 
+val ppList = Print.ppList pp;
+
 val toString = Print.toString pp;
+
+val toStringList = Print.toString ppList;
 
 val quotedToString = Print.toString ppQuoted;
 

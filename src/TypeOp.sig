@@ -40,6 +40,9 @@ val compare : typeOp * typeOp -> order
 
 val equal : typeOp -> typeOp -> bool
 
+val checkEqual :
+    (TypeTerm.term -> TypeTerm.term -> unit) -> typeOp -> typeOp -> unit
+
 (* ------------------------------------------------------------------------- *)
 (* Reconstructing the arity from the provenance.                             *)
 (* ------------------------------------------------------------------------- *)

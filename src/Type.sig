@@ -74,6 +74,8 @@ val equal : ty -> ty -> bool
 
 val equalList : ty list -> ty list -> bool
 
+val checkEqual : (TypeTerm.term -> TypeTerm.term -> unit) -> ty -> ty -> unit
+
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)

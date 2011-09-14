@@ -150,6 +150,36 @@ fun toHtml show =
          end
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Debugging.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkEqual chkTm v1 v2 =
+    let
+      val TypeTerm.Var (n1,ty1) = v1
+      and TypeTerm.Var (n2,ty2) = v2
+
+      val () =
+          if Name.equal n1 n2 then ()
+          else raise Error "different variable names"
+
+      val () =
+          Type.checkEqual chkTm ty1 ty2
+          handle Error err =>
+            raise Error ("different variable types:\n" ^ err)
+    in
+      ()
+    end
+    handle Error err =>
+      let
+        val err =
+            "different variables: " ^
+            toString v1 ^ " vs " ^ toString v2 ^
+            ":\n" ^ err
+      in
+        raise Error err
+      end;
+
 end
 
 structure VarOrdered =

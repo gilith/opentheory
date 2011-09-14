@@ -218,7 +218,14 @@ fun eqMp th1 th2 =
 
       val () =
           if Term.alphaEqual c2 c2' then ()
-          else raise Error "Thm.eqMp: not alpha equivalent"
+          else
+            let
+(*OpenTheoryDebug
+              val () = Term.checkAlphaEqual c2 c2'
+*)
+            in
+              raise Error "Thm.eqMp: not alpha equivalent"
+            end
 
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in

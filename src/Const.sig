@@ -40,6 +40,9 @@ val compare : const * const -> order
 
 val equal : const -> const -> bool
 
+val checkEqual :
+    (TypeTerm.term -> TypeTerm.term -> unit) -> const -> const -> unit
+
 (* ------------------------------------------------------------------------- *)
 (* Reconstructing the type from the provenance.                              *)
 (* ------------------------------------------------------------------------- *)

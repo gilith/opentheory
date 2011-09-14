@@ -705,6 +705,104 @@ val toString = Print.toString pp;
 
 val ppHtml = ppWithGrammar htmlGrammar;
 
+(* ------------------------------------------------------------------------- *)
+(* Debugging.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun ppPath path = Print.program (List.map Print.ppInt (List.rev path));
+
+  fun ppTypes ppIntro (ty1,ty2) =
+      Print.consistentBlock 0
+        [ppIntro,
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         pp ty1,
+         Print.break,
+         Print.ppString "vs",
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         pp ty2];
+
+  fun ppComplaint (err,path,ty1,ty2) =
+      if List.null path then
+        Print.consistentBlock 0
+          [Print.ppString err,
+           Print.ppString " at type root"]
+      else
+        let
+          val ppIntro =
+              Print.consistentBlock 0
+                [Print.ppString err,
+                 Print.ppString " at path ",
+                 ppPath path,
+                 Print.ppString " subterms:"]
+        in
+          ppTypes ppIntro (ty1,ty2)
+        end;
+
+  fun complain err path ty1 ty2 =
+      Print.toString ppComplaint (err,path,ty1,ty2);
+
+  fun check chkTm path ty1 ty2 =
+      case (dest ty1, dest ty2) of
+        (TypeTerm.VarTy' n1, TypeTerm.VarTy' n2) =>
+        if Name.equal n1 n2 then ()
+        else
+          let
+            val err = complain "different type variables" path ty1 ty2
+          in
+            raise Error err
+          end
+      | (TypeTerm.VarTy' _, TypeTerm.OpTy' _) =>
+        raise Error (complain "different type structure" path ty1 ty2)
+      | (TypeTerm.OpTy' _, TypeTerm.VarTy' _) =>
+        raise Error (complain "different type structure" path ty1 ty2)
+      | (TypeTerm.OpTy' (o1,tys1), TypeTerm.OpTy' (o2,tys2)) =>
+        let
+          val () =
+              TypeOp.checkEqual chkTm o1 o2
+              handle Error err =>
+                let
+                  val err =
+                      complain "different type operators" path ty1 ty2 ^
+                      "\n" ^ err
+                in
+                  raise Error err
+                end
+
+          val () =
+              if List.length tys1 = List.length tys2 then ()
+              else
+                let
+                  val err =
+                      complain "different type operator arities" path ty1 ty2
+                in
+                  raise Error err
+                end
+
+          val tys = enumerate (zip tys1 tys2)
+
+          val () = List.app (checkList chkTm path) tys
+        in
+          ()
+        end
+
+  and checkList chkTm path (n,(ty1,ty2)) =
+      let
+        val path = n :: path
+      in
+        check chkTm path ty1 ty2
+      end;
+in
+  fun checkEqual chkTm ty1 ty2 =
+      check chkTm [] ty1 ty2
+      handle Error err =>
+        let
+          val ppTys = ppTypes (Print.ppString "different types:")
+        in
+          raise Error (Print.toString ppTys (ty1,ty2) ^ ":\n" ^ err)
+        end;
+end;
+
 end
 
 structure TypeOrdered =

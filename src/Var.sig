@@ -38,6 +38,8 @@ val equal : var -> var -> bool
 
 val listEqual : var list -> var list -> bool
 
+val checkEqual : (TypeTerm.term -> TypeTerm.term -> unit) -> var -> var -> unit
+
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
