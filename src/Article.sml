@@ -148,7 +148,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
          inference = inference}
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Article.fromTextFile: " ^ err);
+    handle Error err => raise Error ("in Article.fromTextFile:\n" ^ err);
 *)
 
 fun toTextFile {article,filename} =
@@ -162,7 +162,7 @@ fun toTextFile {article,filename} =
       ObjectWrite.toTextFile {export = exp, filename = filename}
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Article.toTextFile: " ^ err);
+    handle Error err => raise Error ("in Article.toTextFile:\n" ^ err);
 *)
 
 end

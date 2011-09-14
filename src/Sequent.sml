@@ -25,9 +25,12 @@ fun concl (Sequent {concl = x, ...}) = x;
 (* Checking the hypotheses and conclusion are of type bool.                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun boolean (Sequent {hyp,concl}) =
-    Type.equal (Term.typeOf concl) Type.bool andalso
-    TermAlphaSet.all (fn h => Type.equal (Term.typeOf h) Type.bool) hyp;
+fun isBool (Sequent {hyp,concl}) =
+    Term.isBool concl andalso TermAlphaSet.isBool hyp;
+
+fun checkBool seq =
+    if isBool seq then ()
+    else raise Error "sequent is not boolean";
 
 (* ------------------------------------------------------------------------- *)
 (* A total order on sequents modulo alpha equivalence.                       *)

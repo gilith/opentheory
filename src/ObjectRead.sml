@@ -670,16 +670,21 @@ fun execute cmd state =
     handle Error err =>
       let
 (*OpenTheoryDebug
-        val State {stack,...} = state
-
         val ppStack =
             Print.ppMap
               (List.map ObjectProv.object o ObjectStack.objects)
               (Print.ppList Object.pp)
 
-        val () = Print.trace ppStack "ObjectRead.execute: stack" stack
+        fun ppState (State {stack,...}) =
+            Print.consistentBlock 4
+              [Print.ppString "  stack =",
+               Print.break,
+               ppStack stack]
+
+        val err = Print.toString ppState state ^ "\n" ^ err
 *)
-        val err = "while executing " ^ Command.toString cmd ^ " command: " ^ err
+        val err =
+            "while executing " ^ Command.toString cmd ^ " command:\n" ^ err
       in
         raise Error err
       end;

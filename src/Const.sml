@@ -52,6 +52,10 @@ val compare = TypeTerm.compareConst;
 
 val equal = TypeTerm.equalConst;
 
+fun checkEqual (_ : TypeTerm.term -> TypeTerm.term -> unit) c1 c2 =
+    if equal c1 c2 then ()
+    else raise Error "constants not equal";
+
 (* ------------------------------------------------------------------------- *)
 (* Reconstructing the type from the provenance.                              *)
 (* ------------------------------------------------------------------------- *)
@@ -195,68 +199,93 @@ fun toHtml show =
 (* Debugging.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkEqualDef chkTm d1 d2 =
-    let
-      val TypeTerm.DefConst tm1 = d1
-      and TypeTerm.DefConst tm2 = d2
-    in
-      chkTm tm1 tm2
-    end
-    handle Error err =>
-      raise Error ("different definitions:\n" ^ err);
+(*OpenTheoryDebug
+local
+  fun ppConsts (c1,c2) =
+      Print.consistentBlock 2
+        [Print.ppString "different constants:",
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 3}),
+         pp c1,
+         Print.break,
+         Print.consistentBlock 3
+           [Print.ppString "vs",
+            Print.space,
+            pp c2]];
 
-fun checkEqualTypeDef s chkTm o1 o2 =
-    TypeOp.checkEqual chkTm o1 o2
-    handle Error err =>
-      raise Error ("different " ^ s ^ " definitions:\n" ^ err);
-
-fun checkEqualProv chkTm p1 p2 =
-    (case (p1,p2) of
-       (TypeTerm.UndefProvConst,TypeTerm.UndefProvConst) =>
-       ()
-     | (TypeTerm.UndefProvConst,_) =>
-       raise Error "undefined vs defined"
-     | (_,TypeTerm.UndefProvConst) =>
-       raise Error "defined vs undefined"
-     | (TypeTerm.DefProvConst d1, TypeTerm.DefProvConst d2) =>
-       checkEqualDef chkTm d1 d2
-     | (TypeTerm.DefProvConst _, _) =>
-       raise Error "definition vs abs/rep definition"
-     | (_, TypeTerm.DefProvConst _) =>
-       raise Error "abs/rep definition vs definition"
-     | (TypeTerm.AbsProvConst o1, TypeTerm.AbsProvConst o2) =>
-       checkEqualTypeDef "abs" chkTm o1 o2
-     | (TypeTerm.AbsProvConst _, _) =>
-       raise Error "abs vs rep definition"
-     | (_, TypeTerm.AbsProvConst _) =>
-       raise Error "rep vs abs definition"
-     | (TypeTerm.RepProvConst o1, TypeTerm.RepProvConst o2) =>
-       checkEqualTypeDef "rep" chkTm o1 o2)
-    handle Error err =>
-      raise Error ("different constant provenances: " ^ err);
-
-fun checkEqual chkTm c1 c2 =
-    let
-      val TypeTerm.Const {name = n1, prov = p1} = c1
-      and TypeTerm.Const {name = n2, prov = p2} = c2
-
-      val () =
-          if Name.equal n1 n2 then ()
-          else raise Error "different constant names"
-
-      val () = checkEqualProv chkTm p1 p2
-    in
-      ()
-    end
-    handle Error err =>
+  fun checkEqualDef chkTm d1 d2 =
       let
-        val err =
-            "different constants: " ^
-            toString c1 ^ " vs " ^ toString c2 ^
-            ":\n" ^ err
+        val TypeTerm.DefConst tm1 = d1
+        and TypeTerm.DefConst tm2 = d2
       in
-        raise Error err
+        chkTm tm1 tm2
+      end
+      handle Error err =>
+        raise Error ("different definitions:\n" ^ err);
+
+  fun checkEqualTypeDef s chkTm o1 o2 =
+      TypeOp.checkEqual chkTm o1 o2
+      handle Error err =>
+        raise Error ("different " ^ s ^ " definitions:\n" ^ err);
+
+  fun checkEqualProv chkTm p1 p2 =
+      (case (p1,p2) of
+         (TypeTerm.UndefProvConst,TypeTerm.UndefProvConst) =>
+         ()
+       | (TypeTerm.UndefProvConst,_) =>
+         raise Error " undefined vs defined"
+       | (_,TypeTerm.UndefProvConst) =>
+         raise Error " defined vs undefined"
+       | (TypeTerm.DefProvConst d1, TypeTerm.DefProvConst d2) =>
+         (checkEqualDef chkTm d1 d2
+          handle Error err => raise Error ("\n" ^ err))
+       | (TypeTerm.DefProvConst _, _) =>
+         raise Error " definition vs abs/rep definition"
+       | (_, TypeTerm.DefProvConst _) =>
+         raise Error " abs/rep definition vs definition"
+       | (TypeTerm.AbsProvConst o1, TypeTerm.AbsProvConst o2) =>
+         (checkEqualTypeDef "abs" chkTm o1 o2
+          handle Error err => raise Error ("\n" ^ err))
+       | (TypeTerm.AbsProvConst _, _) =>
+         raise Error " abs vs rep definition"
+       | (_, TypeTerm.AbsProvConst _) =>
+         raise Error " rep vs abs definition"
+       | (TypeTerm.RepProvConst o1, TypeTerm.RepProvConst o2) =>
+         (checkEqualTypeDef "rep" chkTm o1 o2
+          handle Error err => raise Error ("\n" ^ err)))
+      handle Error err =>
+        raise Error ("different constant provenances:" ^ err);
+
+  fun checkEqualConst chkTm c1 c2 =
+      let
+        val TypeTerm.Const {name = n1, prov = p1} = c1
+        and TypeTerm.Const {name = n2, prov = p2} = c2
+
+        val () =
+            if Name.equal n1 n2 then ()
+            else raise Error "different constant names"
+
+        val () = checkEqualProv chkTm p1 p2
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (Print.toString ppConsts (c1,c2) ^ "\n" ^ err);
+in
+  val checkEqual = fn chkTm => fn c1 => fn c2 =>
+      let
+        val () =
+            checkEqual chkTm c1 c2
+            handle Error _ =>
+              let
+                val () = checkEqualConst chkTm c1 c2
+              in
+                raise Bug "Const.checkEqual failed but debug version succeeded"
+              end
+      in
+        ()
       end;
+end;
+*)
 
 end
 

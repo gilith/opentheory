@@ -52,6 +52,10 @@ val compare = TypeTerm.compareOpTy;
 
 val equal = TypeTerm.equalOpTy;
 
+fun checkEqual (_ : TypeTerm.term -> TypeTerm.term -> unit) o1 o2 =
+    if equal o1 o2 then ()
+    else raise Error "type operators not equal";
+
 (* ------------------------------------------------------------------------- *)
 (* Reconstructing the arity from the provenance.                             *)
 (* ------------------------------------------------------------------------- *)
@@ -150,74 +154,97 @@ end;
 (* Debugging.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
+(*OpenTheoryDebug
 local
   fun ppVars (n1,n2) =
-      Print.consistentBlock 0
+      Print.consistentBlock 2
         [Print.ppString "different type definition variables:",
-         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 3}),
          Name.ppList n1,
          Print.break,
-         Print.ppString "vs",
-         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
-         Name.ppList n2];
-in
+         Print.consistentBlock 3
+           [Print.ppString "vs",
+            Print.space,
+            Name.ppList n2]];
+
+  fun ppTypeOps (o1,o2) =
+      Print.consistentBlock 2
+        [Print.ppString "different type operators:",
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 3}),
+         pp o1,
+         Print.break,
+         Print.consistentBlock 3
+           [Print.ppString "vs",
+            Print.space,
+            pp o2]];
+
   fun checkEqualVars n1 n2 =
       if Name.equalList n1 n2 then ()
       else raise Error (Print.toString ppVars (n1,n2));
-end;
 
-fun checkEqualDef chkTm d1 d2 =
-    let
-      val TypeTerm.DefOpTy {pred = p1, vars = v1} = d1
-      and TypeTerm.DefOpTy {pred = p2, vars = v2} = d2
-
-      val () =
-          chkTm p1 p2
-          handle Error err =>
-            raise Error ("different type definition predicates:\n" ^ err)
-
-      val () = checkEqualVars v1 v2
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error ("different type definitions:\n" ^ err);
-
-fun checkEqualProv chkTm p1 p2 =
-    (case (p1,p2) of
-       (TypeTerm.UndefProvOpTy,TypeTerm.UndefProvOpTy) =>
-       ()
-     | (TypeTerm.UndefProvOpTy, TypeTerm.DefProvOpTy _) =>
-       raise Error "undefined vs defined"
-     | (TypeTerm.DefProvOpTy _, TypeTerm.UndefProvOpTy) =>
-       raise Error "defined vs undefined"
-     | (TypeTerm.DefProvOpTy d1, TypeTerm.DefProvOpTy d2) =>
-       checkEqualDef chkTm d1 d2)
-    handle Error err =>
-      raise Error ("different type operator provenances: " ^ err);
-
-fun checkEqual chkTm o1 o2 =
-    let
-      val TypeTerm.OpTy {name = n1, prov = p1} = o1
-      and TypeTerm.OpTy {name = n2, prov = p2} = o2
-
-      val () =
-          if Name.equal n1 n2 then ()
-          else raise Error "different type operator names"
-
-      val () = checkEqualProv chkTm p1 p2
-    in
-      ()
-    end
-    handle Error err =>
+  fun checkEqualDef chkTm d1 d2 =
       let
-        val err =
-            "different type operators: " ^
-            toString o1 ^ " and " ^ toString o2 ^
-            ":\n" ^ err
+        val TypeTerm.DefOpTy {pred = p1, vars = v1} = d1
+        and TypeTerm.DefOpTy {pred = p2, vars = v2} = d2
+
+        val () =
+            chkTm p1 p2
+            handle Error err =>
+              raise Error ("different type definition predicates:\n" ^ err)
+
+        val () = checkEqualVars v1 v2
       in
-        raise Error err
+        ()
+      end
+      handle Error err =>
+        raise Error ("different type definitions:\n" ^ err);
+
+  fun checkEqualProv chkTm p1 p2 =
+      (case (p1,p2) of
+         (TypeTerm.UndefProvOpTy,TypeTerm.UndefProvOpTy) =>
+         ()
+       | (TypeTerm.UndefProvOpTy, TypeTerm.DefProvOpTy _) =>
+         raise Error " undefined vs defined"
+       | (TypeTerm.DefProvOpTy _, TypeTerm.UndefProvOpTy) =>
+         raise Error " defined vs undefined"
+       | (TypeTerm.DefProvOpTy d1, TypeTerm.DefProvOpTy d2) =>
+         (checkEqualDef chkTm d1 d2
+          handle Error err => raise Error ("\n" ^ err)))
+      handle Error err =>
+        raise Error ("different type operator provenances:" ^ err);
+
+  fun checkEqualTypeOp chkTm o1 o2 =
+      let
+        val TypeTerm.OpTy {name = n1, prov = p1} = o1
+        and TypeTerm.OpTy {name = n2, prov = p2} = o2
+
+        val () =
+            if Name.equal n1 n2 then ()
+            else raise Error "different type operator names"
+
+        val () = checkEqualProv chkTm p1 p2
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (Print.toString ppTypeOps (o1,o2) ^ "\n" ^ err);
+in
+  val checkEqual = fn chkTm => fn o1 => fn o2 =>
+      let
+        val () =
+            checkEqual chkTm o1 o2
+            handle Error _ =>
+              let
+                val () = checkEqualTypeOp chkTm o1 o2
+              in
+                raise Bug
+                  "TypeOp.checkEqual failed but debug version succeeded"
+              end
+      in
+        ()
       end;
+end;
+*)
 
 end
 

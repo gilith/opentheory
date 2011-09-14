@@ -173,6 +173,10 @@ val compare = TypeTerm.compare;
 
 val equal = TypeTerm.equal;
 
+fun checkEqual tm1 tm2 =
+    if equal tm1 tm2 then ()
+    else raise Error "terms not equal";
+
 local
   fun acmp n bv1 bv2 bvEq (tm1,tm2) =
       let
@@ -243,11 +247,24 @@ end;
 
 fun alphaEqual tm1 tm2 = alphaCompare (tm1,tm2) = EQUAL;
 
+fun checkAlphaEqual tm1 tm2 =
+    if alphaEqual tm1 tm2 then ()
+    else raise Error "terms not alpha-equivalent";
+
 (* ------------------------------------------------------------------------- *)
 (* The type of a term.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 val typeOf = TypeTerm.typeOf;
+
+(* ------------------------------------------------------------------------- *)
+(* Checking that a term has type bool.                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun isBool tm = Type.isBool (typeOf tm);
+
+fun checkBool tm =
+    if isBool tm then () else raise Error "term is not boolean";
 
 (* ------------------------------------------------------------------------- *)
 (* Free variables.                                                           *)
@@ -2322,18 +2339,20 @@ val ppHtml = ppWithGrammar htmlGrammar;
 (* Debugging.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
+(*OpenTheoryDebug
 local
   fun ppPath path = Print.program (List.map Print.ppInt (List.rev path));
 
   fun ppTerms ppIntro (tm1,tm2) =
-      Print.consistentBlock 0
+      Print.consistentBlock 2
         [ppIntro,
-         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 3}),
          pp tm1,
          Print.break,
-         Print.ppString "vs",
-         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
-         pp tm2];
+         Print.consistentBlock 3
+           [Print.ppString "vs",
+            Print.space,
+            pp tm2]];
 
   fun ppComplaint (err,path,tm1,tm2) =
       if List.null path then
@@ -2356,12 +2375,16 @@ local
       Print.toString ppComplaint (err,path,tm1,tm2);
 
   fun checkRoot tm1 tm2 =
-      check [] tm1 tm2
+      let
+        val path = []
+      in
+        check path tm1 tm2
+      end
       handle Error err =>
         let
           val ppTms = ppTerms (Print.ppString "different terms:")
         in
-          raise Error (Print.toString ppTms (tm1,tm2) ^ ":\n" ^ err)
+          raise Error (Print.toString ppTms (tm1,tm2) ^ "\n" ^ err)
         end
 
   and check path tm1 tm2 =
@@ -2543,10 +2566,8 @@ local
         in
           checkAlpha path bv bv1 bv2 b1 b2
         end;
-in
-  val checkEqual = checkRoot;
 
-  fun checkAlphaEqual tm1 tm2 =
+  fun checkAlphaRoot tm1 tm2 =
       let
         val path = []
         and n = 0
@@ -2558,9 +2579,39 @@ in
         let
           val ppTms = ppTerms (Print.ppString "terms not alpha-equivalent:")
         in
-          raise Error (Print.toString ppTms (tm1,tm2) ^ ":\n" ^ err)
+          raise Error (Print.toString ppTms (tm1,tm2) ^ "\n" ^ err)
         end;
+in
+  val checkEqual = fn tm1 => fn tm2 =>
+      let
+        val () =
+            checkEqual tm1 tm2
+            handle Error _ =>
+              let
+                val () = checkRoot tm1 tm2
+              in
+                raise Bug "Term.checkEqual failed but debug version succeeded"
+              end
+      in
+        ()
+      end;
+
+  val checkAlphaEqual = fn tm1 => fn tm2 =>
+      let
+        val () =
+            checkAlphaEqual tm1 tm2
+            handle Error _ =>
+              let
+                val () = checkAlphaRoot tm1 tm2
+              in
+                raise Bug
+                  "Term.checkAlphaEqual failed but debug version succeeded"
+              end
+      in
+        ()
+      end;
 end;
+*)
 
 end
 
@@ -2584,6 +2635,8 @@ struct
   in
     open S;
   end;
+
+  val isBool = all Term.isBool;
 
   local
     fun addTm (tm,share) = Term.addSharingTypeOps tm share;

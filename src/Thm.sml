@@ -81,14 +81,15 @@ val singleHyp = TermAlphaSet.singleton;
 
 fun axiom sequent =
     let
-      val () =
-          if Sequent.boolean sequent then ()
-          else raise Error "Thm.axiom: sequent is not boolean"
+      val () = Sequent.checkBool sequent
 
       val axioms = singleAxiom sequent
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.axiom:\n" ^ err);
+*)
 
 fun abs v th =
     let
@@ -107,14 +108,17 @@ fun abs v th =
 
       val () =
           if not (VarSet.member v fv) then ()
-          else raise Error "Thm.abs: free in hypothesis"
+          else raise Error "Thm.abs: given variable is free in hypothesis"
 
       val concl = Term.mkEq (Term.mkAbs (v,a), Term.mkAbs (v,b))
 
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.abs:\n" ^ err);
+*)
 
 fun app th1 th2 =
     let
@@ -134,13 +138,14 @@ fun app th1 th2 =
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.app:\n" ^ err);
+*)
 
 fun assume t =
     let
-      val () =
-          if Type.isBool (Term.typeOf t) then ()
-          else raise Error "Thm.assume: not a proposition"
+      val () = Term.checkBool t
 
       val axioms = emptyAxioms
       and hyp = singleHyp t
@@ -149,7 +154,10 @@ fun assume t =
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.assume:\n" ^ err);
+*)
 
 fun betaConv t =
     let
@@ -181,7 +189,10 @@ fun betaConv t =
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.betaConv:\n" ^ err);
+*)
 
 fun deductAntisym th1 th2 =
     let
@@ -201,7 +212,10 @@ fun deductAntisym th1 th2 =
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.deductAntisym:\n" ^ err);
+*)
 
 fun eqMp th1 th2 =
     let
@@ -216,21 +230,15 @@ fun eqMp th1 th2 =
 
       val (c2',concl) = Term.destEq c1
 
-      val () =
-          if Term.alphaEqual c2 c2' then ()
-          else
-            let
-(*OpenTheoryDebug
-              val () = Term.checkAlphaEqual c2 c2'
-*)
-            in
-              raise Error "Thm.eqMp: not alpha equivalent"
-            end
+      val () = Term.checkAlphaEqual c2 c2'
 
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.eqMp:\n" ^ err);
+*)
 
 fun refl t =
     let
@@ -241,7 +249,10 @@ fun refl t =
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.refl:\n" ^ err);
+*)
 
 fun subst sub th =
     let
@@ -250,7 +261,10 @@ fun subst sub th =
       val sequent = Option.getOpt (Sequent.subst sub sequent, sequent)
     in
       Thm {axioms = axioms, sequent = sequent}
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.subst:\n" ^ err);
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Definitions.                                                              *)
@@ -280,7 +294,10 @@ fun defineConst name t =
       val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
     in
       (c, Thm {axioms = axioms, sequent = sequent})
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.defineConst:\n" ^ err);
+*)
 
 fun defineTypeOp name {abs} {rep} tyVars existenceTh =
     let
@@ -368,7 +385,10 @@ fun defineTypeOp name {abs} {rep} tyVars existenceTh =
           end
     in
       (ot, {abs = absC}, {rep = repC}, absRepTh,repAbsTh)
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Thm.defineTypeOp:\n" ^ err);
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

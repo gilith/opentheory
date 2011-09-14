@@ -202,7 +202,7 @@ fun mkAbsTerm {savable} objV objB =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAbsTerm: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkAbsTerm:\n" ^ err);
 *)
 
 fun mkAbsThm {savable} objV objT =
@@ -233,7 +233,7 @@ fun mkAbsThm {savable} objV objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAbsThm: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkAbsThm:\n" ^ err);
 *)
 
 fun mkAppTerm {savable} objF objA =
@@ -260,7 +260,7 @@ fun mkAppTerm {savable} objF objA =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAppTerm: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkAppTerm:\n" ^ err);
 *)
 
 fun mkAppThm {savable} objF objA =
@@ -291,7 +291,7 @@ fun mkAppThm {savable} objF objA =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAppThm: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkAppThm:\n" ^ err);
 *)
 
 fun mkAssume {savable} objT =
@@ -320,7 +320,7 @@ fun mkAssume {savable} objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAssume: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkAssume:\n" ^ err);
 *)
 
 fun mkAxiom {savable} objH objC seq =
@@ -342,7 +342,7 @@ fun mkAxiom {savable} objH objC seq =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkAppTerm: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkAppTerm:\n" ^ err);
 *)
 
 fun mkBetaConv {savable} objT =
@@ -371,7 +371,7 @@ fun mkBetaConv {savable} objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkBetaConv: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkBetaConv:\n" ^ err);
 *)
 
 fun mkCons {savable} objH objT =
@@ -397,7 +397,7 @@ fun mkCons {savable} objH objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkCons: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkCons:\n" ^ err);
 *)
 
 fun mkConst c = mkDefault (Object.Const c);
@@ -426,7 +426,7 @@ fun mkConstTerm {savable} objC objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkConstTerm: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkConstTerm:\n" ^ err);
 *)
 
 fun mkDeductAntisym {savable} objA objB =
@@ -457,7 +457,7 @@ fun mkDeductAntisym {savable} objA objB =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkDeductAntisym: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkDeductAntisym:\n" ^ err);
 *)
 
 fun mkDefineConst {savable} n objT =
@@ -488,7 +488,7 @@ fun mkDefineConst {savable} n objT =
       (mkProv ob0 prov0, mkProv ob1 prov1)
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkDefineConst: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkDefineConst:\n" ^ err);
 *)
 
 fun mkDefineTypeOp {savable} n a r objV objT =
@@ -532,7 +532,7 @@ fun mkDefineTypeOp {savable} n a r objV objT =
        mkProv ob4 prov4)
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkDefineTypeOp: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkDefineTypeOp:\n" ^ err);
 *)
 
 fun mkEqMp {savable} objA objB =
@@ -563,7 +563,7 @@ fun mkEqMp {savable} objA objB =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkEqMp: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkEqMp:\n" ^ err);
 *)
 
 val mkNil = mkDefault (Object.List []);
@@ -592,7 +592,7 @@ fun mkOpType {savable} objO objL =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkOpType: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkOpType:\n" ^ err);
 *)
 
 fun mkRefl {savable} objT =
@@ -621,7 +621,7 @@ fun mkRefl {savable} objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkRefl: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkRefl:\n" ^ err);
 *)
 
 fun mkSubst {savable} objS objT =
@@ -652,7 +652,7 @@ fun mkSubst {savable} objS objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkSubst: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkSubst:\n" ^ err);
 *)
 
 fun mkTypeOp ot = mkDefault (Object.TypeOp ot);
@@ -685,7 +685,7 @@ fun mkVar {savable} objN objT =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkVar: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkVar:\n" ^ err);
 *)
 
 fun mkVarTerm {savable} objV =
@@ -710,7 +710,7 @@ fun mkVarTerm {savable} objV =
       mkProv ob prov
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkVarTerm: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkVarTerm:\n" ^ err);
 *)
 
 fun mkVarType objN =
@@ -731,7 +731,7 @@ fun mkVarType objN =
       mkDefault ob
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("ObjectProv.mkVarType: " ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkVarType:\n" ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)

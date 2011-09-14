@@ -23,7 +23,9 @@ val concl : sequent -> Term.term
 (* Checking the hypotheses and conclusion are of type bool.                  *)
 (* ------------------------------------------------------------------------- *)
 
-val boolean : sequent -> bool
+val isBool : sequent -> bool
+
+val checkBool : sequent -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* A total order on sequents modulo alpha equivalence.                       *)
