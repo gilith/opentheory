@@ -110,6 +110,21 @@ val ts'' = printval (Print.ppList Term.pp) (sort Term.alphaCompare ts);
 
 val (t1,t2) =
     let
+      val b = Var.mk (Name.mkGlobal "b", Type.bool)
+      and i = Var.mk (Name.mkGlobal "i", Type.ind)
+
+      val t1 = Term.mkAbs (b, termTrue)
+      and t2 = Term.mkAbs (i, termTrue)
+    in
+      (t1,t2)
+    end;
+
+val _ = printval Print.ppOrder (Term.compare (t1,t2));
+
+val _ = printval Print.ppOrder (Term.alphaCompare (t1,t2));
+
+val (t1,t2) =
+    let
       val b = Type.bool
 
       val bb = Type.mkFun (b,b)

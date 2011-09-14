@@ -12,6 +12,10 @@ Terms
 
 [(let p <- F in p) <=> F, (let q <- T in q) <=> T, (let q <- q in p) <=> p]
 
+Less
+
+Less
+
 \(\y. g (x /\ y)). g x
 
 !(\y. g (x /\ y)). g x

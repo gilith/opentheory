@@ -2440,7 +2440,7 @@ local
                   raise Error err
                 end
 
-          val path = 0 :: path
+          val path = 1 :: path
         in
           check path b1 b2
         end;
@@ -2539,7 +2539,7 @@ local
 
           val bv = bv + 1
 
-          val path = 0 :: path
+          val path = 1 :: path
         in
           checkAlpha path bv bv1 bv2 b1 b2
         end;
