@@ -105,6 +105,10 @@ val equal = TypeTerm.equalTy;
 
 val equalList = TypeTerm.equalListTy;
 
+fun checkEqual (_ : TypeTerm.term -> TypeTerm.term -> unit) ty1 ty2 =
+    if equal ty1 ty2 then ()
+    else raise Error "types not equal";
+
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
@@ -709,18 +713,20 @@ val ppHtml = ppWithGrammar htmlGrammar;
 (* Debugging.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
+(*OpenTheoryDebug
 local
   fun ppPath path = Print.program (List.map Print.ppInt (List.rev path));
 
   fun ppTypes ppIntro (ty1,ty2) =
-      Print.consistentBlock 0
+      Print.consistentBlock 2
         [ppIntro,
-         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 3}),
          pp ty1,
          Print.break,
-         Print.ppString "vs",
-         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
-         pp ty2];
+         Print.consistentBlock 3
+           [Print.ppString "vs",
+            Print.space,
+            pp ty2]];
 
   fun ppComplaint (err,path,ty1,ty2) =
       if List.null path then
@@ -734,7 +740,7 @@ local
                 [Print.ppString err,
                  Print.ppString " at path ",
                  ppPath path,
-                 Print.ppString " subterms:"]
+                 Print.ppString " subtypes:"]
         in
           ppTypes ppIntro (ty1,ty2)
         end;
@@ -781,27 +787,42 @@ local
 
           val tys = enumerate (zip tys1 tys2)
 
-          val () = List.app (checkList chkTm path) tys
+          val () = List.app (checkArg chkTm path) tys
         in
           ()
         end
 
-  and checkList chkTm path (n,(ty1,ty2)) =
+  and checkArg chkTm path (n,(ty1,ty2)) =
       let
         val path = n :: path
       in
         check chkTm path ty1 ty2
       end;
-in
-  fun checkEqual chkTm ty1 ty2 =
+
+  fun checkRoot chkTm ty1 ty2 =
       check chkTm [] ty1 ty2
       handle Error err =>
         let
           val ppTys = ppTypes (Print.ppString "different types:")
         in
-          raise Error (Print.toString ppTys (ty1,ty2) ^ ":\n" ^ err)
+          raise Error (Print.toString ppTys (ty1,ty2) ^ "\n" ^ err)
         end;
+in
+  val checkEqual = fn chkTm => fn ty1 => fn ty2 =>
+      let
+        val () =
+            checkEqual chkTm ty1 ty2
+            handle Error _ =>
+              let
+                val () = checkRoot chkTm ty1 ty2
+              in
+                raise Bug "Type.checkEqual failed but debug version succeeded"
+              end
+      in
+        ()
+      end;
 end;
+*)
 
 end
 
