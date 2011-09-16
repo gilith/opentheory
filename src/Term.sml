@@ -1598,10 +1598,11 @@ local
          {token = "o", precedence = 3, assoc = Print.LeftAssoc},
          (* Set theory *)
          {token = "intersect", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "difference", precedence = 6, assoc = Print.LeftAssoc},
          {token = "union", precedence = 6, assoc = Print.LeftAssoc},
          {token = "subset", precedence = 4, assoc = Print.NonAssoc},
          {token = "properSubset", precedence = 4, assoc = Print.NonAssoc},
-         {token = "in", precedence = 4, assoc = Print.NonAssoc},
+         {token = "member", precedence = 4, assoc = Print.NonAssoc},
          (* HOL *)
          {token = stringConj, precedence = ~1, assoc = Print.RightAssoc},
          {token = stringDisj, precedence = ~2, assoc = Print.RightAssoc},

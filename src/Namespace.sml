@@ -160,6 +160,7 @@ local
       | "<-" => [Html.Entity "larr"]
       | "->" => [Html.Entity "rarr"]
       | "{}" => [Html.Entity "empty"]
+      | "difference" => [Html.Text "\\"]
       | "intersect" => [Html.Entity "cap"]
       | "member" => [Html.Entity "isin"]
       | "properSubset" => [Html.Entity "sub"]
