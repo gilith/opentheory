@@ -161,7 +161,7 @@ local
       | "->" => [Html.Entity "rarr"]
       | "{}" => [Html.Entity "empty"]
       | "intersect" => [Html.Entity "cap"]
-      | "in" => [Html.Entity "isin"]
+      | "member" => [Html.Entity "isin"]
       | "properSubset" => [Html.Entity "sub"]
       | "subset" => [Html.Entity "sube"]
       | "union" => [Html.Entity "cup"]

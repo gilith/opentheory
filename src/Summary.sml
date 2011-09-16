@@ -613,7 +613,14 @@ local
         fn c =>
            let
              val ty = Const.typeOf c
-             and n = Show.showName show (Const.name c)
+             and n = Const.name c
+
+             val n =
+                 case total Name.destCase n of
+                   NONE => n
+                 | SOME (n,_) => n
+
+             val n = Show.showName show n
            in
              Html.ppFixed (toHtml ((c,ty),n))
            end
