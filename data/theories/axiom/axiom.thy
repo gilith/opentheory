@@ -1,6 +1,6 @@
 name: axiom
 version: 1.3
-description: Basic axioms
+description: Standard axioms
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
