@@ -92,57 +92,71 @@ end;
 (* Creating a new theory package directory.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun create {rootDirectory = rootDir, config = cfg} =
-    let
-      val () = createDirectory {directory = rootDir}
+local
+  fun createNewDir rootDir cfg =
+      let
+        val () = createDirectory {directory = rootDir}
 
-      val () =
-          let
-            val dir =
-                DirectoryPath.mkPackagesDirectory
-                  {rootDirectory = rootDir}
-          in
-            createDirectory dir
-          end
+        val () =
+            let
+              val dir =
+                  DirectoryPath.mkPackagesDirectory
+                    {rootDirectory = rootDir}
+            in
+              createDirectory dir
+            end
 
-      val () =
-          let
-            val dir =
-                DirectoryPath.mkStagingPackagesDirectory
-                  {rootDirectory = rootDir}
-          in
-            createDirectory dir
-          end
+        val () =
+            let
+              val dir =
+                  DirectoryPath.mkStagingPackagesDirectory
+                    {rootDirectory = rootDir}
+            in
+              createDirectory dir
+            end
 
-      val () =
-          let
-            val dir =
-                DirectoryPath.mkReposDirectory
-                  {rootDirectory = rootDir}
-          in
-            createDirectory dir
-          end
+        val () =
+            let
+              val dir =
+                  DirectoryPath.mkReposDirectory
+                    {rootDirectory = rootDir}
+            in
+              createDirectory dir
+            end
 
-      val () =
-          let
-            val {filename = file} =
-                DirectoryPath.mkConfigFilename
-                  {rootDirectory = rootDir}
-          in
-            DirectoryConfig.toTextFile {config = cfg, filename = file}
-          end
+        val () =
+            let
+              val {filename = file} =
+                  DirectoryPath.mkConfigFilename
+                    {rootDirectory = rootDir}
+            in
+              DirectoryConfig.toTextFile {config = cfg, filename = file}
+            end
 
-      val () =
-          let
-            val file =
-                DirectoryPath.mkInstalledFilename
-                  {rootDirectory = rootDir}
-          in
-            DirectoryChecksums.create file
-          end
-    in
-      ()
-    end;
+        val () =
+            let
+              val file =
+                  DirectoryPath.mkInstalledFilename
+                    {rootDirectory = rootDir}
+            in
+              DirectoryChecksums.create file
+            end
+      in
+        ()
+      end
+      handle OS.SysErr (s,_) => raise Error ("system error: " ^ s);
+in
+  fun create {rootDirectory = rootDir, config = cfg} =
+      createNewDir rootDir cfg
+      handle Error err =>
+        let
+          val err =
+              "couldn't create a new theory directory " ^
+              rootDir ^ "\n" ^ err
+        in
+          raise Error err
+        end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of theory package directories.                                     *)
