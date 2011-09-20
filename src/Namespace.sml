@@ -17,18 +17,176 @@ and quoteChar = #"\""
 and separatorChar = #".";
 
 (* ------------------------------------------------------------------------- *)
+(* Namespace components.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+type component = string;
+
+(* A total ordering *)
+
+fun compareComponent (s1,s2) =
+    case (String.size s1 = 0, String.size s2 = 0) of
+      (true,true) => EQUAL
+    | (true,false) => LESS
+    | (false,true) => GREATER
+    | (false,false) =>
+      let
+        val c1 = String.sub (s1,0)
+        and c2 = String.sub (s2,0)
+      in
+        case (Char.isAlphaNum c1, Char.isAlphaNum c2) of
+          (true,false) => GREATER
+        | (false,true) => LESS
+        | (false,false) => String.compare (s1,s2)
+        | (true,true) =>
+          case (Char.isUpper c1, Char.isUpper c2) of
+            (true,true) => String.compare (s1,s2)
+          | (true,false) => GREATER
+          | (false,true) => LESS
+          | (false,false) => String.compare (s1,s2)
+      end;
+
+(* Standard syntax *)
+
+val iffSyntaxComponent = "<=>"
+and lambdaSyntaxComponent = "\\";
+
+(* Standard latex symbols *)
+
+val backslashLatexComponent = "\\backslash"
+and capLatexComponent = "\\cap"
+and circLatexComponent = "\\circ"
+and crossLatexComponent = "\\cross"
+and cupLatexComponent = "\\cup"
+and emptysetLatexComponent = "\\emptyset"
+and inLatexComponent = "\\in"
+and lambdaLatexComponent = "\\lambda"
+and lnotLatexComponent = "\\lnot"
+and subsetLatexComponent = "\\subset"
+and subseteqLatexComponent = "\\subseteq";
+
+(* Standard namespaces *)
+
+val boolNamespaceComponent = "Bool"
+and dataNamespaceComponent = "Data"
+and functionNamespaceComponent = "Function"
+and listNamespaceComponent = "List"
+and naturalNamespaceComponent = "Natural"
+and numberNamespaceComponent = "Number"
+and optionNamespaceComponent = "Option"
+and pairNamespaceComponent = "Pair"
+and setNamespaceComponent = "Set";
+
+(* Standard type operators *)
+
+val boolTypeOpComponent = "bool"
+and funTypeOpComponent = "->"
+and indTypeOpComponent = "ind"
+and listTypeOpComponent = "list"
+and naturalTypeOpComponent = "natural"
+and optionTypeOpComponent = "option"
+and pairTypeOpComponent = "*"
+and sumTypeOpComponent = "+";
+
+(* Standard constants *)
+
+val bit0ConstComponent = "bit0"
+and bit1ConstComponent = "bit1"
+and composeConstComponent = "o"
+and caseConstComponent = "case"
+and condConstComponent = "cond"
+and conjConstComponent = "/\\"
+and consConstComponent = "::"
+and differenceConstComponent = "difference"
+and disjConstComponent = "\\/"
+and emptyConstComponent = "{}"
+and eqConstComponent = "="
+and existsConstComponent = "?"
+and existsUniqueConstComponent = "?!"
+and falseConstComponent = "F"
+and forallConstComponent = "!"
+and fromNaturalConstComponent = "fromNatural"
+and fromPredicateConstComponent = "fromPredicate"
+and geConstComponent = ">="
+and gtConstComponent = ">"
+and impConstComponent = "==>"
+and intersectConstComponent = "intersect"
+and leConstComponent = "<="
+and ltConstComponent = "<"
+and memberConstComponent = "member"
+and minimalConstComponent = "minimal"
+and negConstComponent = "~"
+and nilConstComponent = "[]"
+and noneConstComponent = "none"
+and pairConstComponent = ","
+and properSubsetConstComponent = "properSubset"
+and selectConstComponent = "select"
+and someConstComponent = "some"
+and subsetConstComponent = "subset"
+and sucConstComponent = "suc"
+and trueConstComponent = "T"
+and unionConstComponent = "union"
+and zeroConstComponent = "zero";
+
+(* Parsing and pretty printing *)
+
+local
+  val escapeChars = [quoteChar,separatorChar];
+in
+  val ppComponent = Print.ppEscapeString {escape = escapeChars};
+
+  val parserComponent = Parse.escapeString {escape = escapeChars};
+end;
+
+local
+  val componentMap =
+      StringMap.fromList
+        [(* Text symbols *)
+         ("<=", [Html.Entity "le"]),
+         ("<", [Html.Entity "lt"]),
+         (">=", [Html.Entity "ge"]),
+         (">", [Html.Entity "gt"]),
+         ("<-", [Html.Entity "larr"]),
+         ("->", [Html.Entity "rarr"]),
+         ("<==", [Html.Entity "lArr"]),
+         ("==>", [Html.Entity "rArr"]),
+         ("<=>", [Html.Entity "hArr"]),
+         ("/\\", [Html.Entity "and"]),
+         ("\\/", [Html.Entity "or"]),
+         (* Latex symbols *)
+         (backslashLatexComponent, [Html.Text "\\"]),
+         (capLatexComponent, [Html.Entity "cap"]),
+         (circLatexComponent, [Html.Entity "#8728"]),
+         (crossLatexComponent, [Html.Entity "times"]),
+         (cupLatexComponent, [Html.Entity "cup"]),
+         (emptysetLatexComponent, [Html.Entity "empty"]),
+         (inLatexComponent, [Html.Entity "isin"]),
+         (lambdaLatexComponent, [Html.Entity "lambda"]),
+         (lnotLatexComponent, [Html.Entity "not"]),
+         (subsetLatexComponent, [Html.Entity "sub"]),
+         (subseteqLatexComponent, [Html.Entity "sube"]),
+         (* Quantifier symbols *)
+         (existsConstComponent, [Html.Entity "exist"]),
+         (existsUniqueConstComponent, [Html.Entity "exist", Html.Text "!"]),
+         (forallConstComponent, [Html.Entity "forall"])];
+in
+  fun toHtmlComponent c =
+      case StringMap.peek componentMap c of
+        SOME h => h
+      | NONE => [Html.Text c];
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of namespaces.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-datatype namespace = Namespace of string list;
+datatype namespace = Namespace of component list;
 
 fun append (Namespace n1) (Namespace n2) = Namespace (n1 @ n2);
 
 fun toList (Namespace n) = n;
 
 fun fromList n = Namespace n;
-
-fun fromString s = fromList [s];
 
 (* ------------------------------------------------------------------------- *)
 (* The top-level namespace.                                                  *)
@@ -54,28 +212,6 @@ val isNested = can destNested;
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)
-
-fun compareComponent (s1,s2) =
-    case (String.size s1 = 0, String.size s2 = 0) of
-      (true,true) => EQUAL
-    | (true,false) => LESS
-    | (false,true) => GREATER
-    | (false,false) =>
-      let
-        val c1 = String.sub (s1,0)
-        and c2 = String.sub (s2,0)
-      in
-        case (Char.isAlphaNum c1, Char.isAlphaNum c2) of
-          (true,false) => GREATER
-        | (false,true) => LESS
-        | (false,false) => String.compare (s1,s2)
-        | (true,true) =>
-          case (Char.isUpper c1, Char.isUpper c2) of
-            (true,true) => String.compare (s1,s2)
-          | (true,false) => GREATER
-          | (false,true) => LESS
-          | (false,false) => String.compare (s1,s2)
-      end;
 
 fun compare (Namespace n1, Namespace n2) =
     lexCompare compareComponent (n1,n2);
@@ -103,18 +239,39 @@ end;
 (* The standard namespace.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val bool = fromList ["Data","Bool"]
-and list = fromList ["Data","List"]
-and option = fromList ["Data","Option"]
-and pair = fromList ["Data","Pair"]
-and natural = fromList ["Number","Natural"]
-and set = fromList ["Set"];
+(* Global *)
+
+local
+  fun mkGlobal c = mkNested (global,c);
+in
+  val data = mkGlobal dataNamespaceComponent
+  and function = mkGlobal functionNamespaceComponent
+  and number = mkGlobal numberNamespaceComponent
+  and set = mkGlobal setNamespaceComponent;
+end;
+
+(* Data *)
+
+local
+  fun mkData c = mkNested (data,c);
+in
+  val bool = mkData boolNamespaceComponent
+  and list = mkData listNamespaceComponent
+  and option = mkData optionNamespaceComponent
+  and pair = mkData pairNamespaceComponent;
+end;
+
+(* Number *)
+
+local
+  fun mkNumber c = mkNested (number,c);
+in
+  val natural = mkNumber naturalNamespaceComponent;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
-
-val escapeChars = [quoteChar,separatorChar];
 
 local
   val ppQuote = Print.ppChar quoteChar;
@@ -126,8 +283,6 @@ local
         [] => Print.skip
       | c :: cs =>
         Print.program (ppC c :: List.map (Print.sequence ppSeparator o ppC) cs);
-
-  val ppComponent = Print.ppEscapeString {escape = escapeChars};
 in
   fun pp (n as Namespace ns) =
       if isGlobal n then Print.ppString globalString
@@ -142,32 +297,6 @@ val toString = Print.toString pp;
 val quotedToString = Print.toString ppQuoted;
 
 local
-  fun toHtmlComponent c =
-      case c of
-        "\\" => [Html.Entity "lambda"]
-      | "\\lnot" => [Html.Entity "not"]
-      | "<=" => [Html.Entity "le"]
-      | "<" => [Html.Entity "lt"]
-      | ">=" => [Html.Entity "ge"]
-      | ">" => [Html.Entity "gt"]
-      | "/\\" => [Html.Entity "and"]
-      | "\\/" => [Html.Entity "or"]
-      | "==>" => [Html.Entity "rArr"]
-      | "<=>" => [Html.Entity "hArr"]
-      | "!" => [Html.Entity "forall"]
-      | "?" => [Html.Entity "exist"]
-      | "?!" => [Html.Entity "exist", Html.Text "!"]
-      | "<-" => [Html.Entity "larr"]
-      | "->" => [Html.Entity "rarr"]
-      | "{}" => [Html.Entity "empty"]
-      | "difference" => [Html.Text "\\"]
-      | "intersect" => [Html.Entity "cap"]
-      | "member" => [Html.Entity "isin"]
-      | "properSubset" => [Html.Entity "sub"]
-      | "subset" => [Html.Entity "sube"]
-      | "union" => [Html.Entity "cup"]
-      | _ => [Html.Text c];
-
   val globalHtml = [Html.Text globalString];
 
   val separatorHtml = [Html.Text (str separatorChar)];
@@ -199,12 +328,10 @@ local
 
   val separatorParser = exactChar separatorChar;
 
-  val componentParser = escapeString {escape = escapeChars};
-
-  val separatorComponentParser = (separatorParser ++ componentParser) >> snd;
+  val separatorComponentParser = (separatorParser ++ parserComponent) >> snd;
 
   val parser =
-      (componentParser ++ many separatorComponentParser) >>
+      (parserComponent ++ many separatorComponentParser) >>
       (fn ("",[]) => global
         | (n,ns) => Namespace (n :: ns));
 in

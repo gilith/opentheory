@@ -85,6 +85,8 @@ val isPair : typeOp -> bool
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val showName : Show.show -> typeOp * int option -> Name.name
+
 val ppWithShow : Show.show -> typeOp Print.pp
 
 val pp : typeOp Print.pp
@@ -94,6 +96,8 @@ val toString : typeOp -> string
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
+
+val showNameHtml : Show.show -> typeOp * int option -> Name.name
 
 val toHtml : Show.show -> typeOp * Name.name list option -> Html.inline list
 

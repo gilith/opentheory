@@ -1,5 +1,5 @@
 name: examples
-version: 1.27
+version: 1.28
 description: All the example theories
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -37,7 +37,7 @@ h {
   import: byte
   import: word10
   import: word12
-  package: h-1.16
+  package: h-1.17
 }
 
 main {

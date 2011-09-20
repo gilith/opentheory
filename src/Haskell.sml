@@ -780,7 +780,7 @@ local
 
   and addTree namespace (n,nsource) =
       let
-        val namespace = Namespace.append namespace (Namespace.fromString n)
+        val namespace = Namespace.mkNested (namespace,n)
       in
         mkTree namespace nsource
       end;

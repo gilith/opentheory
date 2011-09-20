@@ -1,5 +1,5 @@
 name: relation
-version: 1.11
+version: 1.12
 description: Basic theory of relations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,7 +14,7 @@ transitive {
 
 well-founded {
   import: transitive
-  package: relation-well-founded-1.10
+  package: relation-well-founded-1.11
 }
 
 measure {

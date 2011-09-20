@@ -183,7 +183,7 @@ fun typeVarsList tys =
 
 fun typeVars ty = typeVarsList [ty];
 
-val alpha = mkVar (Name.mkGlobal "'a");
+val alpha = mkVar (Name.mkGlobal "A");
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)
@@ -459,7 +459,7 @@ fun destTernaryOp p ty =
 fun destList ty =
     destUnaryOp TypeOp.isList ty
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Type.destList: " ^ err);
+    handle Error err => raise Error ("Type.destList:\n" ^ err);
 *)
 
 val isList = can destList;
@@ -469,7 +469,7 @@ val isList = can destList;
 fun destPair ty =
     destBinaryOp TypeOp.isPair ty
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Type.destPair: " ^ err);
+    handle Error err => raise Error ("Type.destPair:\n" ^ err);
 *)
 
 val isPair = can destPair;
@@ -481,67 +481,66 @@ val isPair = can destPair;
 datatype grammar =
     Grammar of
       {infixes : Print.infixes,
+       showTypeOp : Show.show -> TypeOp.typeOp * int -> Name.name,
        ppVar : Name.name Print.pp,
        ppTypeOp : Show.show -> (TypeOp.typeOp * int) Print.pp,
        ppInfix : Show.show -> TypeOp.typeOp Print.pp,
        maximumSize : int};
 
 local
+  val crossString = Namespace.crossLatexComponent
+  and funString = Namespace.funTypeOpComponent
+  and pairString = Namespace.pairTypeOpComponent
+  and sumString = Namespace.sumTypeOpComponent;
+
   val infixes =
       Print.Infixes
-        [{token = "*", precedence = 3, assoc = Print.RightAssoc},
-         {token = "+", precedence = 2, assoc = Print.RightAssoc},
-         {token = "->", precedence = 1, assoc = Print.RightAssoc}];
+        [{token = pairString, precedence = 3, assoc = Print.RightAssoc},
+         {token = crossString, precedence = 3, assoc = Print.RightAssoc},
+         {token = sumString, precedence = 2, assoc = Print.RightAssoc},
+         {token = funString, precedence = 1, assoc = Print.RightAssoc}];
 
-  local
-    val pairName = Name.mkGlobal ",";
-  in
-    fun ppInfixBuffer ppInf ot_n =
-        let
-          val (_,n) = ot_n
+  fun ppInfixBuffer ppInf ot_n =
+      Print.program [Print.space, ppInf ot_n, Print.break];
 
-          val pps = [ppInf ot_n, Print.break]
+  (* Plain text *)
 
-          val pps =
-              if Name.equal n pairName then pps
-              else Print.ppString " " :: pps
-        in
-          Print.program pps
-        end;
-  end;
+  fun showTypeOp show (ot,i) = TypeOp.showName show (ot, SOME i);
 
   val ppVar = Name.pp;
 
   fun ppTypeOp show =
       let
-        fun toName (ot,_) = Show.showName show (TypeOp.name ot)
+        fun toName oti = showTypeOp show oti
       in
         Print.ppMap toName Name.pp
       end;
 
   fun ppInfix show =
       let
-        fun toName ot = (ot, Show.showName show (TypeOp.name ot))
+        fun toName ot = (ot, showTypeOp show (ot,2))
 
         fun ppInf (_,n) = Name.pp n
       in
         Print.ppMap toName (ppInfixBuffer ppInf)
       end;
 
+  (* HTML *)
+
+  fun showTypeOpHtml show (ot,i) = TypeOp.showNameHtml show (ot, SOME i);
+
   val ppVarHtml = Print.ppMap Name.toHtml Html.ppFixed;
 
   fun ppTypeOpHtml show =
       let
-        fun toName (ot,_) = Show.showName show (TypeOp.name ot)
+        fun toName oti = showTypeOpHtml show oti
       in
         Print.ppMap toName (Print.ppMap Name.toHtml Html.ppFixed)
       end;
 
-  val ppInfixHtml = ppInfixBuffer (Print.ppMap snd Name.pp);
-
   fun ppInfixHtml show =
       let
-        fun toName ot = (ot, Show.showName show (TypeOp.name ot))
+        fun toName ot = (ot, showTypeOpHtml show (ot,2))
 
         fun ppInf (_,n) = Html.ppFixed (Name.toHtml n)
       in
@@ -553,6 +552,7 @@ in
   val defaultGrammar =
       Grammar
         {infixes = infixes,
+         showTypeOp = showTypeOp,
          ppVar = ppVar,
          ppTypeOp = ppTypeOp,
          ppInfix = ppInfix,
@@ -561,6 +561,7 @@ in
   val htmlGrammar =
       Grammar
         {infixes = infixes,
+         showTypeOp = showTypeOpHtml,
          ppVar = ppVarHtml,
          ppTypeOp = ppTypeOpHtml,
          ppInfix = ppInfixHtml,
@@ -578,8 +579,14 @@ local
             in
               case NameMap.peek m n of
                 NONE => NameMap.insert m (n,s)
-              | SOME s' => raise Error ("Type.pp.mkMap: name clash: \"" ^
-                                        s ^ "\" and \"" ^ s' ^ "\"")
+              | SOME s' =>
+                let
+                  val bug =
+                      "Type.pp.mkMap: name clash: \"" ^
+                      s ^ "\" and \"" ^ s' ^ "\""
+                in
+                  raise Bug bug
+                end
             end
 
         val emptyMap : Print.token NameMap.map = NameMap.new ();
@@ -587,29 +594,25 @@ local
         StringSet.foldl add emptyMap
       end;
 
-  fun showTypeOp show ot = Show.showName show (TypeOp.name ot);
-
-  fun ppType infixNames specialNames
+  fun ppType infixNames specialNames showTypeOp
              ppInfixes ppTypeOpName ppInfixName ppVar show =
       let
-        fun ppTypeOp (ot,a) =
+        fun ppTypeOp oti =
             let
-              val n = showTypeOp show ot
+              val n = showTypeOp oti
             in
               if NameSet.member n specialNames then
-                Print.ppBracket "(" ")" ppTypeOpName (ot,a)
+                Print.ppBracket "(" ")" ppTypeOpName oti
               else
-                ppTypeOpName (ot,a)
+                ppTypeOpName oti
             end
 
         fun destInfixType ty =
             let
               val (ot,xs) = destOp ty
-
-              val n = showTypeOp show ot
             in
               case xs of
-                [a,b] => ((ot,n),a,b)
+                [a,b] => ((ot, showTypeOp (ot,2)), a, b)
               | _ => raise Error "Type.pp.destInfixType"
             end;
 
@@ -640,16 +643,19 @@ local
               let
                 val (ot,xs) = destOp ty
               in
-                Print.inconsistentBlock 0
-                  [(case xs of
-                      [] => Print.skip
-                    | [x] => Print.sequence (ppBasicType x) Print.break
-                    | _ =>
-                      Print.sequence
-                        (Print.ppBracket "(" ")"
-                           (Print.ppOpList "," ppNormalType) xs)
-                        Print.break),
-                   ppTypeOp (ot, length xs)]
+                case xs of
+                  [] => ppTypeOp (ot,0)
+                | [x] =>
+                  Print.inconsistentBlock 0
+                    [ppBasicType x,
+                     Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+                     ppTypeOp (ot,1)]
+                | _ =>
+                  Print.inconsistentBlock 0
+                    [Print.ppBracket "(" ")"
+                       (Print.ppOpList "," ppNormalType) xs,
+                     Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+                     ppTypeOp (ot, length xs)]
               end
 
         and ppBasicHangingType (ty,_) = ppBasicType ty
@@ -665,7 +671,10 @@ local
 in
   fun ppWithGrammar gram =
       let
-        val Grammar {infixes,ppVar,ppTypeOp,ppInfix,maximumSize} = gram
+        val Grammar
+              {infixes,showTypeOp,
+               ppVar,ppTypeOp,ppInfix,
+               maximumSize} = gram
 
         val ppInfixes = Print.ppInfixes infixes
 
@@ -675,7 +684,8 @@ in
       in
         fn show =>
            let
-             val ppTypeOp = ppTypeOp show
+             val showTypeOp = showTypeOp show
+             and ppTypeOp = ppTypeOp show
              and ppInfix = ppInfix show
            in
              fn ty =>
@@ -684,7 +694,7 @@ in
                 in
                   if n <= maximumSize then
                     ppType
-                      infixNames specialNames
+                      infixNames specialNames showTypeOp
                       ppInfixes ppTypeOp ppInfix ppVar show ty
                   else
                     let

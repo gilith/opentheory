@@ -157,6 +157,7 @@ val checkStagePackage :
 val stagePackage :
     directory -> PackageFinder.finder ->
     DirectoryRepo.repo -> PackageNameVersion.nameVersion -> Checksum.checksum ->
+    {tool : Html.inline list} ->
     unit
 
 (* ------------------------------------------------------------------------- *)
@@ -171,6 +172,7 @@ val checkStageTarball :
 val stageTarball :
     directory -> PackageFinder.finder ->
     {filename : string} -> PackageTarball.contents ->
+    {tool : Html.inline list} ->
     unit
 
 (* ------------------------------------------------------------------------- *)
@@ -185,6 +187,7 @@ val checkStageTheory :
 val stageTheory :
     directory ->
     PackageNameVersion.nameVersion -> Package.package -> {directory : string} ->
+    {tool : Html.inline list} ->
     Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)

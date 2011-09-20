@@ -109,7 +109,14 @@ fun isPair ot = Name.equal Name.pairTypeOp (name ot);
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun ppWithShow show = Print.ppMap (Show.showName show o name) Name.pp;
+fun showName show (ot, _ : int option) = Show.showName show (name ot);
+
+fun ppWithShow show ot =
+    let
+      val n = showName show (ot,NONE)
+    in
+      Name.pp n
+    end;
 
 val pp = ppWithShow Show.default;
 
@@ -120,31 +127,62 @@ val toString = Print.toString pp;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun ppVars (ot,vso) =
-      Print.inconsistentBlock 0
-        [(case vso of
-            NONE => Print.skip
-          | SOME vs =>
-            case vs of
-              [] => Print.skip
-            | [v] => Print.sequence (Name.pp v) Print.break
-            | _ =>
-              Print.sequence
-                (Print.ppBracket "(" ")" (Print.ppOpList "," Name.pp) vs)
-                Print.break),
-         Name.pp (name ot)];
+  fun rename n s = Name.mk (Name.namespace n, s);
+
+  fun renaming n s = (n, rename n s);
+
+  val htmlRenaming =
+      NameMap.fromList
+        [renaming Name.pairTypeOp Namespace.crossLatexComponent];
+
+  fun htmlName (ot, _ : int option) =
+      let
+        val n = name ot
+      in
+        Option.getOpt (NameMap.peek htmlRenaming n, n)
+      end;
+in
+  fun showNameHtml show oti = Show.showName show (htmlName oti);
+end;
+
+local
+  val ppVar = Name.pp;
+
+  fun ppVars vs =
+      case vs of
+        [v] => ppVar v
+      | _ => Print.ppBracket "(" ")" (Print.ppOpList "," ppVar) vs;
+
+  fun mkTitle vso ot =
+      let
+        val title = Html.encode (Name.toString (name ot))
+      in
+        case vso of
+          NONE => title
+        | SOME vs =>
+          if List.null vs then title
+          else Print.toLine ppVars vs ^ " " ^ title
+      end;
+
+  fun mkName show vso ot =
+      let
+        val io =
+            case vso of
+              SOME vs => SOME (List.length vs)
+            | NONE => NONE
+      in
+        showNameHtml show (ot,io)
+      end;
 in
   fun toHtml show (ot,vso) =
       let
-        val n = Show.showName show (name ot)
-
         val class = "type-operator"
 
-        val title = Print.toString ppVars (ot,vso)
+        val title = mkTitle vso ot
 
         val attrs = Html.fromListAttrs [("class",class),("title",title)]
 
-        val inlines = Name.toHtml n
+        val inlines = Name.toHtml (mkName show vso ot)
       in
         [Html.Span (attrs,inlines)]
       end;

@@ -162,7 +162,59 @@ fun isFromPredicate c = Name.equal Name.fromPredicateConst (name c);
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun ppWithShow show = Print.ppMap (Show.showName show o name) Name.pp;
+local
+  fun rename n s = Name.mk (Name.namespace n, s);
+
+  fun renaming n s = (n, rename n s);
+
+  val iffName = rename Name.eqConst Namespace.iffSyntaxComponent;
+
+  val htmlRenaming =
+      NameMap.fromList
+        [renaming Name.composeConst Namespace.circLatexComponent,
+         renaming Name.differenceConst Namespace.backslashLatexComponent,
+         renaming Name.emptyConst Namespace.emptysetLatexComponent,
+         renaming Name.intersectConst Namespace.capLatexComponent,
+         renaming Name.memberConst Namespace.inLatexComponent,
+         renaming Name.negConst Namespace.lnotLatexComponent,
+         renaming Name.properSubsetConst Namespace.subsetLatexComponent,
+         renaming Name.subsetConst Namespace.subseteqLatexComponent,
+         renaming Name.unionConst Namespace.cupLatexComponent];
+
+  fun eqName ty =
+      let
+        val b =
+            case ty of
+              SOME t => Type.isBoolEq t
+            | NONE => false
+      in
+        if b then iffName else Name.eqConst
+      end;
+
+  fun textName (c,ty) = if isEq c then eqName ty else name c;
+
+  fun htmlName (c,ty) =
+      if isEq c then eqName ty
+      else
+        let
+          val n = name c
+        in
+          case total Name.destCase n of
+            SOME (n,_) => n
+          | NONE => Option.getOpt (NameMap.peek htmlRenaming n, n)
+        end;
+in
+  fun showName show cty = Show.showName show (textName cty);
+
+  fun showNameHtml show cty = Show.showName show (htmlName cty);
+end;
+
+fun ppWithShow show c =
+    let
+      val n = showName show (c,NONE)
+    in
+      Name.pp n
+    end;
 
 val pp = ppWithShow Show.default;
 
@@ -172,28 +224,40 @@ val toString = Print.toString pp;
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun toHtml show =
-    let
-      val ppTy = Type.ppHtml show
-    in
-      fn ((c,ty),n) =>
-         let
-           val class = "const"
+local
+  fun titleHtml show =
+      let
+        val ppTy = Type.ppHtml show
+      in
+        fn (c,ty) =>
+           let
+             val title = Html.encode (Name.toString (name c))
+           in
+             case ty of
+               NONE => title
+             | SOME t => title ^ " : " ^ Print.toLine ppTy t
+           end
+      end;
+in
+  fun toHtml show =
+      let
+        val mkTitle = titleHtml show
+        and mkName = showNameHtml show
+      in
+        fn c_ty =>
+           let
+             val class = "const"
 
-           val title = Html.encode (Name.toString (name c))
+             val title = mkTitle c_ty
 
-           val title =
-               case ty of
-                 NONE => title
-               | SOME t => title ^ " : " ^ Print.toLine ppTy t
+             val attrs = Html.fromListAttrs [("class",class),("title",title)]
 
-           val attrs = Html.fromListAttrs [("class",class),("title",title)]
-
-           val inlines = Name.toHtml (Show.showName show n)
-         in
-           [Html.Span (attrs,inlines)]
-         end
-    end;
+             val inlines = Name.toHtml (mkName c_ty)
+           in
+             [Html.Span (attrs,inlines)]
+           end
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Debugging.                                                                *)

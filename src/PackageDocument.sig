@@ -30,7 +30,8 @@ datatype document' =
     Document' of
       {package : Package.package,
        summary : PackageSummary.summary,
-       files : {theory : string, tarball : string}}
+       files : {theory : string, tarball : string},
+       tool : Html.inline list}
 
 val mk : document' -> document
 

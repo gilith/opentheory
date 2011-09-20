@@ -222,6 +222,7 @@ val isPair : ty -> bool
 datatype grammar =
     Grammar of
       {infixes : Print.infixes,
+       showTypeOp : Show.show -> TypeOp.typeOp * int -> Name.name,
        ppVar : Name.name Print.pp,
        ppTypeOp : Show.show -> (TypeOp.typeOp * int) Print.pp,
        ppInfix : Show.show -> TypeOp.typeOp Print.pp,

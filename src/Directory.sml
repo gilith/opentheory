@@ -684,7 +684,7 @@ fun summary impt info =
 (* Post-stage functions.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun postStagePackage dir fndr stageInfo warnSummary =
+fun postStagePackage dir fndr stageInfo warnSummary {tool} =
     let
       (* Check the package tags *)
 
@@ -732,7 +732,8 @@ fun postStagePackage dir fndr stageInfo warnSummary =
                   (PackageDocument.Document'
                      {package = pkg,
                       summary = sum,
-                      files = files})
+                      files = files,
+                      tool = tool})
           in
             PackageInfo.writeDocument stageInfo doc
           end
@@ -740,7 +741,7 @@ fun postStagePackage dir fndr stageInfo warnSummary =
       ()
     end;
 
-fun postStageTarball dir fndr stageInfo contents =
+fun postStageTarball dir fndr stageInfo contents tool =
     let
       val minimal =
           let
@@ -761,7 +762,7 @@ fun postStageTarball dir fndr stageInfo contents =
 
       (* Common post-stage operations *)
 
-      val () = postStagePackage dir fndr stageInfo false
+      val () = postStagePackage dir fndr stageInfo false tool
     in
       ()
     end;
@@ -795,7 +796,7 @@ fun checkStagePackage dir repo namever chk =
         List.rev errs
       end;
 
-fun stagePackage dir fndr repo namever chk =
+fun stagePackage dir fndr repo namever chk tool =
     let
 (*OpenTheoryDebug
       val errs = checkStagePackage dir repo namever chk
@@ -822,7 +823,7 @@ fun stagePackage dir fndr repo namever chk =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir fndr stageInfo contents
+        val () = postStageTarball dir fndr stageInfo contents tool
       in
         ()
       end
@@ -859,7 +860,7 @@ fun checkStageTarball dir contents =
         end
     end;
 
-fun stageTarball dir fndr tarFile contents =
+fun stageTarball dir fndr tarFile contents tool =
     let
 (*OpenTheoryDebug
       val errs = checkStageTarball dir contents
@@ -884,7 +885,7 @@ fun stageTarball dir fndr tarFile contents =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir fndr stageInfo contents
+        val () = postStageTarball dir fndr stageInfo contents tool
       in
         ()
       end
@@ -1188,7 +1189,7 @@ local
         Package.toTextFile {package = pkg, filename = filename}
       end;
 in
-  fun stageTheory dir namever pkg {directory = srcDir} =
+  fun stageTheory dir namever pkg {directory = srcDir} tool =
       let
 (*OpenTheoryDebug
         val errs = checkStageTheory dir namever pkg
@@ -1231,7 +1232,7 @@ in
 
           val fndr = finder dir
 
-          val () = postStagePackage dir fndr stageInfo true
+          val () = postStagePackage dir fndr stageInfo true tool
         in
           PackageInfo.checksumTarball stageInfo
         end

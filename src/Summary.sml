@@ -613,16 +613,8 @@ local
         fn c =>
            let
              val ty = Const.typeOf c
-             and n = Const.name c
-
-             val n =
-                 case total Name.destCase n of
-                   NONE => n
-                 | SOME (n,_) => n
-
-             val n = Show.showName show n
            in
-             Html.ppFixed (toHtml ((c,ty),n))
+             Html.ppFixed (toHtml (c,ty))
            end
       end;
 in
@@ -760,7 +752,12 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
           if List.null ots then []
           else
             let
-              fun dest ot = (TypeOp.name ot, ot)
+              fun dest ot =
+                  let
+                    val n = TypeOp.showNameHtml Show.natural (ot,NONE)
+                  in
+                    (n,ot)
+                  end
             in
               toHtmlNames ppTypeOp (name ^ " Type Operator") (List.map dest ots)
             end
@@ -771,12 +768,7 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
             let
               fun dest c =
                   let
-                    val n = Const.name c
-
-                    val n =
-                        case total Name.destCase n of
-                          NONE => n
-                        | SOME (n,_) => n
+                    val n = Const.showNameHtml Show.natural (c,NONE)
                   in
                     (n,c)
                   end

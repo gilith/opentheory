@@ -7,6 +7,106 @@ signature Namespace =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* Namespace components.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+type component = string
+
+(* A total ordering *)
+
+val compareComponent : component * component -> order
+
+(* Standard syntax *)
+
+val iffSyntaxComponent : component
+val lambdaSyntaxComponent : component
+
+(* Standard latex syntax *)
+
+val backslashLatexComponent : component
+val capLatexComponent : component
+val circLatexComponent : component
+val crossLatexComponent : component
+val cupLatexComponent : component
+val emptysetLatexComponent : component
+val inLatexComponent : component
+val lambdaLatexComponent : component
+val lnotLatexComponent : component
+val subsetLatexComponent : component
+val subseteqLatexComponent : component
+
+(* Standard namespaces *)
+
+val boolNamespaceComponent : component
+val dataNamespaceComponent : component
+val functionNamespaceComponent : component
+val listNamespaceComponent : component
+val naturalNamespaceComponent : component
+val numberNamespaceComponent : component
+val optionNamespaceComponent : component
+val pairNamespaceComponent : component
+val setNamespaceComponent : component
+
+(* Standard type operators *)
+
+val boolTypeOpComponent : component
+val funTypeOpComponent : component
+val indTypeOpComponent : component
+val listTypeOpComponent : component
+val naturalTypeOpComponent : component
+val optionTypeOpComponent : component
+val pairTypeOpComponent : component
+val sumTypeOpComponent : component
+
+(* Standard constants *)
+
+val bit0ConstComponent : component
+val bit1ConstComponent : component
+val caseConstComponent : component
+val composeConstComponent : component
+val condConstComponent : component
+val conjConstComponent : component
+val consConstComponent : component
+val differenceConstComponent : component
+val disjConstComponent : component
+val emptyConstComponent : component
+val eqConstComponent : component
+val existsConstComponent : component
+val existsUniqueConstComponent : component
+val falseConstComponent : component
+val forallConstComponent : component
+val fromNaturalConstComponent : component
+val fromPredicateConstComponent : component
+val geConstComponent : component
+val gtConstComponent : component
+val impConstComponent : component
+val intersectConstComponent : component
+val leConstComponent : component
+val ltConstComponent : component
+val memberConstComponent : component
+val minimalConstComponent : component
+val negConstComponent : component
+val nilConstComponent : component
+val noneConstComponent : component
+val pairConstComponent : component
+val properSubsetConstComponent : component
+val selectConstComponent : component
+val someConstComponent : component
+val subsetConstComponent : component
+val sucConstComponent : component
+val trueConstComponent : component
+val unionConstComponent : component
+val zeroConstComponent : component
+
+(* Parsing and pretty printing *)
+
+val ppComponent : component Print.pp
+
+val parserComponent : (char,component) Parse.parser
+
+val toHtmlComponent : component -> Html.inline list
+
+(* ------------------------------------------------------------------------- *)
 (* A type of namespaces.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -14,11 +114,9 @@ type namespace
 
 val append : namespace -> namespace -> namespace
 
-val toList : namespace -> string list
+val toList : namespace -> component list
 
-val fromList : string list -> namespace
-
-val fromString : string -> namespace
+val fromList : component list -> namespace
 
 (* ------------------------------------------------------------------------- *)
 (* The top-level namespace.                                                  *)
@@ -32,17 +130,15 @@ val isGlobal : namespace -> bool
 (* Nested namespaces (i.e., everything except the top-level).                *)
 (* ------------------------------------------------------------------------- *)
 
-val mkNested : namespace * string -> namespace
+val mkNested : namespace * component -> namespace
 
-val destNested : namespace -> namespace * string
+val destNested : namespace -> namespace * component
 
 val isNested : namespace -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)
-
-val compareComponent : string * string -> order
 
 val compare : namespace * namespace -> order
 
@@ -59,6 +155,8 @@ val rewrite : namespace * namespace -> namespace -> namespace option
 (* ------------------------------------------------------------------------- *)
 
 val bool : namespace
+
+val function : namespace
 
 val list : namespace
 

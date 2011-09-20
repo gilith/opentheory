@@ -1,5 +1,5 @@
 name: real
-version: 1.8
+version: 1.9
 description: The real numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,12 +9,12 @@ show: "Number.Real"
 show: "Set"
 
 def {
-  package: real-def-1.12
+  package: real-def-1.13
 }
 
 thm {
   import: def
-  package: real-thm-1.5
+  package: real-thm-1.6
 }
 
 main {

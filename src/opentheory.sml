@@ -35,7 +35,23 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val versionString = program^" "^version^" (release 20110914)"^"\n";
+val release = " (release 20110914)";
+
+val homepage = "http://www.gilith.com/software/opentheory"
+
+val versionString = program^" "^version^release^"\n";
+
+val versionHtml =
+    let
+      val programLink =
+          let
+            val attrs = Html.singletonAttrs ("href",homepage)
+          in
+            Html.Anchor (attrs, [Html.Text program])
+          end
+    in
+      [programLink, Html.Text (" " ^ version ^ release)]
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
@@ -1854,7 +1870,9 @@ local
 
         val finder = installAutoFinder master
 
-        val () = Directory.stagePackage dir finder repo namever chk
+        val tool = {tool = versionHtml}
+
+        val () = Directory.stagePackage dir finder repo namever chk tool
 
         val () = Directory.installStaged dir namever chk
 
@@ -2063,7 +2081,9 @@ fun installPackage namever =
 
       val finder = installFinder repo
 
-      val () = Directory.stagePackage dir finder repo namever chk
+      val tool = {tool = versionHtml}
+
+      val () = Directory.stagePackage dir finder repo namever chk tool
 
       val () = Directory.installStaged dir namever chk
 
@@ -2134,7 +2154,9 @@ fun installTarball tarFile =
 
       val finder = installStagedFinderFree ()
 
-      val () = Directory.stageTarball dir finder tarFile contents
+      val tool = {tool = versionHtml}
+
+      val () = Directory.stageTarball dir finder tarFile contents tool
 
       val () =
           if !stageInstall then ()
@@ -2226,7 +2248,9 @@ fun installTheory filename =
 
       val () = List.app installAutoFree pars
 
-      val chk = Directory.stageTheory dir namever pkg srcDir
+      val tool = {tool = versionHtml}
+
+      val chk = Directory.stageTheory dir namever pkg srcDir tool
 
       val () = Directory.installStaged dir namever chk
 

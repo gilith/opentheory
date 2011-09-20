@@ -69,9 +69,7 @@ val lastChar : name -> char option
 (* Primitive *)
 
 val boolTypeOp : name
-
 val funTypeOp : name
-
 val indTypeOp : name
 
 (* Lists *)
@@ -97,58 +95,54 @@ val naturalTypeOp : name
 (* Primitive *)
 
 val eqConst : name
-
 val selectConst : name
 
 (* Boolean *)
 
 val condConst : name
-
 val conjConst : name
-
 val disjConst : name
-
 val existsConst : name
-
 val existsUniqueConst : name
-
 val falseConst : name
-
 val forallConst : name
-
 val impConst : name
-
 val negConst : name
-
 val trueConst : name
+
+(* Functions *)
+
+val composeConst : name
 
 (* Lists *)
 
 val consConst : name
-
 val nilConst : name
 
 (* Options *)
 
 val noneConst : name
-
 val someConst : name
 
 (* Natural numbers *)
 
 val bit0Const : name
-
 val bit1Const : name
-
 val isFromNaturalConst : name -> bool
-
+val minimalConst : name
 val sucConst : name
-
 val zeroConst : name
 
 (* Sets *)
 
+val emptyConst : name
+val differenceConst : name
 val fromPredicateConst : name
+val intersectConst : name
+val memberConst : name
+val properSubsetConst : name
+val subsetConst : name
+val unionConst : name
 
 (* Case expressions *)
 

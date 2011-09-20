@@ -128,25 +128,41 @@ fun lastChar n =
 
 (* Primitive *)
 
-val boolTypeOp = mkGlobal "bool"
-and funTypeOp = mkGlobal "->"
-and indTypeOp = mkGlobal "ind";
+val boolTypeOp = mkGlobal Namespace.boolTypeOpComponent
+and funTypeOp = mkGlobal Namespace.funTypeOpComponent
+and indTypeOp = mkGlobal Namespace.indTypeOpComponent;
 
 (* Lists *)
 
-val listTypeOp = mk (Namespace.list,"list");
+local
+  fun mkList c = mk (Namespace.list,c);
+in
+  val listTypeOp = mkList Namespace.listTypeOpComponent;
+end;
 
 (* Options *)
 
-val optionTypeOp = mk (Namespace.option,"option");
+local
+  fun mkOption c = mk (Namespace.option,c);
+in
+  val optionTypeOp = mkOption Namespace.optionTypeOpComponent;
+end;
 
 (* Pairs *)
 
-val pairTypeOp = mk (Namespace.pair,"*");
+local
+  fun mkPair c = mk (Namespace.pair,c);
+in
+  val pairTypeOp = mkPair Namespace.pairTypeOpComponent;
+end;
 
 (* Natural numbers *)
 
-val naturalTypeOp = mk (Namespace.natural,"natural");
+local
+  fun mkNatural c = mk (Namespace.natural,c);
+in
+  val naturalTypeOp = mkNatural Namespace.naturalTypeOpComponent;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
@@ -154,55 +170,90 @@ val naturalTypeOp = mk (Namespace.natural,"natural");
 
 (* Primitive *)
 
-val eqConst = mkGlobal "="
-and selectConst = mkGlobal "select";
+val eqConst = mkGlobal Namespace.eqConstComponent
+and selectConst = mkGlobal Namespace.selectConstComponent;
 
 (* Boolean *)
 
-val condConst = mk (Namespace.bool,"cond")
-and conjConst = mk (Namespace.bool,"/\\")
-and disjConst = mk (Namespace.bool,"\\/")
-and existsConst = mk (Namespace.bool,"?")
-and existsUniqueConst = mk (Namespace.bool,"?!")
-and falseConst = mk (Namespace.bool,"F")
-and forallConst = mk (Namespace.bool,"!")
-and impConst = mk (Namespace.bool,"==>")
-and negConst = mk (Namespace.bool,"~")
-and trueConst = mk (Namespace.bool,"T");
+local
+  fun mkBool c = mk (Namespace.bool,c);
+in
+  val condConst = mkBool Namespace.condConstComponent
+  and conjConst = mkBool Namespace.conjConstComponent
+  and disjConst = mkBool Namespace.disjConstComponent
+  and existsConst = mkBool Namespace.existsConstComponent
+  and existsUniqueConst = mkBool Namespace.existsUniqueConstComponent
+  and falseConst = mkBool Namespace.falseConstComponent
+  and forallConst = mkBool Namespace.forallConstComponent
+  and impConst = mkBool Namespace.impConstComponent
+  and negConst = mkBool Namespace.negConstComponent
+  and trueConst = mkBool Namespace.trueConstComponent;
+end;
+
+(* Functions *)
+
+local
+  fun mkFunction c = mk (Namespace.function,c);
+in
+  val composeConst = mkFunction Namespace.composeConstComponent;
+end;
 
 (* Lists *)
 
-val consConst = mk (Namespace.list,"::")
-and nilConst = mk (Namespace.list,"[]");
+local
+  fun mkList c = mk (Namespace.list,c);
+in
+  val consConst = mkList Namespace.consConstComponent
+  and nilConst = mkList Namespace.nilConstComponent;
+end;
 
 (* Options *)
 
-val noneConst = mk (Namespace.option,"none")
-and someConst = mk (Namespace.option,"some");
+local
+  fun mkOption c = mk (Namespace.option,c);
+in
+  val noneConst = mkOption Namespace.noneConstComponent
+  and someConst = mkOption Namespace.someConstComponent;
+end;
 
 (* Natural numbers *)
 
-val bit0Const = mk (Namespace.natural,"bit0")
-and bit1Const = mk (Namespace.natural,"bit1")
-and sucConst = mk (Namespace.natural,"suc")
-and zeroConst = mk (Namespace.natural,"zero");
+local
+  fun mkNatural c = mk (Namespace.natural,c);
+in
+  val bit0Const = mkNatural Namespace.bit0ConstComponent
+  and bit1Const = mkNatural Namespace.bit1ConstComponent
+  and minimalConst = mkNatural Namespace.minimalConstComponent
+  and sucConst = mkNatural Namespace.sucConstComponent
+  and zeroConst = mkNatural Namespace.zeroConstComponent;
+end;
 
-fun isFromNaturalConst (Name (_,s)) = s = "fromNatural";
+fun isFromNaturalConst (Name (_,s)) =
+    s = Namespace.fromNaturalConstComponent;
 
 (* Sets *)
 
-val fromPredicateConst = mk (Namespace.set,"fromPredicate");
+local
+  fun mkSet c = mk (Namespace.set,c);
+in
+  val differenceConst = mkSet Namespace.differenceConstComponent
+  and emptyConst = mkSet Namespace.emptyConstComponent
+  and fromPredicateConst = mkSet Namespace.fromPredicateConstComponent
+  and intersectConst = mkSet Namespace.intersectConstComponent
+  and memberConst = mkSet Namespace.memberConstComponent
+  and properSubsetConst = mkSet Namespace.properSubsetConstComponent
+  and subsetConst = mkSet Namespace.subsetConstComponent
+  and unionConst = mkSet Namespace.unionConstComponent;
+end;
 
 (* Case expressions *)
 
 local
-  val caseString = "case";
-
   fun strip l =
       case l of
         [] => raise Error "Name.destCase"
       | s :: l =>
-        if s = caseString then ([],l)
+        if s = Namespace.caseConstComponent then ([],l)
         else
           let
             val (sl,l) = strip l
@@ -220,7 +271,7 @@ in
 
         val ns = Namespace.fromList ns
 
-        val n = mk (ns,caseString)
+        val n = mk (ns,Namespace.caseConstComponent)
 
         val bs = List.foldl (add ns) [] (c :: List.rev cs)
       in

@@ -109,6 +109,8 @@ val isFromPredicate : const -> bool
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val showName : Show.show -> const * Type.ty option -> Name.name
+
 val ppWithShow : Show.show -> const Print.pp
 
 val pp : const Print.pp
@@ -119,7 +121,8 @@ val toString : const -> string
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val toHtml :
-    Show.show -> (const * Type.ty option) * Name.name -> Html.inline list
+val showNameHtml : Show.show -> const * Type.ty option -> Name.name
+
+val toHtml : Show.show -> const * Type.ty option -> Html.inline list
 
 end

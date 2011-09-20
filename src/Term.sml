@@ -1558,24 +1558,35 @@ datatype grammar =
        maximumSize : int};
 
 local
-  fun mkName s = Name.mkGlobal s
-  and destName n = snd (Name.dest n);
+  fun mkName s = Name.mkGlobal s;
 
-  val stringAbs = "\\"
-  and stringBoolEq = "<=>"
-  and stringBoolNeg = "\\lnot"
-  and stringConj = destName Name.conjConst
-  and stringDisj = destName Name.disjConst
-  and stringEq = destName Name.eqConst
-  and stringExists = destName Name.existsConst
-  and stringExistsUnique = destName Name.existsUniqueConst
-  and stringForall = destName Name.forallConst
-  and stringImp = destName Name.impConst
-  and stringNeg = destName Name.negConst
-  and stringPair = ","
-  and stringSelect = destName Name.selectConst;
+  val backslashLatex = Namespace.backslashLatexComponent
+  and capLatex = Namespace.capLatexComponent
+  and circLatex = Namespace.circLatexComponent
+  and composeString = Namespace.composeConstComponent
+  and conjString = Namespace.conjConstComponent
+  and cupLatex = Namespace.cupLatexComponent
+  and disjString = Namespace.disjConstComponent
+  and eqString = Namespace.eqConstComponent
+  and existsString = Namespace.existsConstComponent
+  and existsUniqueString = Namespace.existsUniqueConstComponent
+  and forallString = Namespace.forallConstComponent
+  and iffString = Namespace.iffSyntaxComponent
+  and impString = Namespace.impConstComponent
+  and inLatex = Namespace.inLatexComponent
+  and lambdaString = Namespace.lambdaSyntaxComponent
+  and lambdaLatex = Namespace.lambdaLatexComponent
+  and lnotLatex = Namespace.lnotLatexComponent
+  and minimalString = Namespace.minimalConstComponent
+  and negString = Namespace.negConstComponent
+  and pairString = Namespace.pairConstComponent
+  and selectString = Namespace.selectConstComponent
+  and subsetLatex = Namespace.subsetLatexComponent
+  and subseteqLatex = Namespace.subseteqLatexComponent;
 
-  val negations = [stringNeg];
+  val negations =
+      [negString,
+       lnotLatex];
 
   val infixes =
       Print.Infixes
@@ -1586,45 +1597,44 @@ local
          {token = "*", precedence = 7, assoc = Print.LeftAssoc},
          {token = "+", precedence = 6, assoc = Print.LeftAssoc},
          {token = "-", precedence = 6, assoc = Print.LeftAssoc},
-         {token = "^", precedence = 6, assoc = Print.LeftAssoc},
          {token = "@", precedence = 5, assoc = Print.RightAssoc},
          {token = "::", precedence = 5, assoc = Print.RightAssoc},
-         {token = stringEq, precedence = 4, assoc = Print.NonAssoc},
-         {token = "<>", precedence = 4, assoc = Print.NonAssoc},
+         {token = eqString, precedence = 4, assoc = Print.NonAssoc},
          {token = "<=", precedence = 4, assoc = Print.NonAssoc},
          {token = "<", precedence = 4, assoc = Print.NonAssoc},
          {token = ">=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">", precedence = 4, assoc = Print.NonAssoc},
-         {token = "o", precedence = 3, assoc = Print.LeftAssoc},
+         {token = composeString, precedence = 3, assoc = Print.LeftAssoc},
+         {token = circLatex, precedence = 3, assoc = Print.LeftAssoc},
+         (* Arithmetic *)
+         {token = "^", precedence = 8, assoc = Print.RightAssoc},
          (* Set theory *)
-         {token = "intersect", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "difference", precedence = 6, assoc = Print.LeftAssoc},
-         {token = "union", precedence = 6, assoc = Print.LeftAssoc},
-         {token = "subset", precedence = 4, assoc = Print.NonAssoc},
-         {token = "properSubset", precedence = 4, assoc = Print.NonAssoc},
-         {token = "member", precedence = 4, assoc = Print.NonAssoc},
+         {token = capLatex, precedence = 7, assoc = Print.LeftAssoc},
+         {token = backslashLatex, precedence = 6, assoc = Print.LeftAssoc},
+         {token = cupLatex, precedence = 6, assoc = Print.LeftAssoc},
+         {token = inLatex, precedence = 4, assoc = Print.NonAssoc},
+         {token = subsetLatex, precedence = 4, assoc = Print.NonAssoc},
+         {token = subseteqLatex, precedence = 4, assoc = Print.NonAssoc},
          (* HOL *)
-         {token = stringConj, precedence = ~1, assoc = Print.RightAssoc},
-         {token = stringDisj, precedence = ~2, assoc = Print.RightAssoc},
-         {token = stringImp, precedence = ~3, assoc = Print.RightAssoc},
-         {token = stringBoolEq, precedence = ~4, assoc = Print.RightAssoc},
-         {token = stringPair, precedence = ~1000, assoc = Print.RightAssoc}];
+         {token = conjString, precedence = ~1, assoc = Print.RightAssoc},
+         {token = disjString, precedence = ~2, assoc = Print.RightAssoc},
+         {token = impString, precedence = ~3, assoc = Print.RightAssoc},
+         {token = iffString, precedence = ~4, assoc = Print.RightAssoc},
+         {token = pairString, precedence = ~1000, assoc = Print.RightAssoc}];
 
   val binders =
-      [stringForall,stringExists,stringExistsUnique,stringSelect,"minimal"];
+      [forallString,
+       existsString,
+       existsUniqueString,
+       selectString,
+       minimalString];
+
+  (* Plain text *)
+
+  fun showConst show (c,ty) = Const.showName show (c, SOME ty);
 
   local
-    val nameBoolEq = mkName stringBoolEq;
-  in
-    fun showConst show (c,ty) =
-        if Const.isEq c then
-          if Type.isBoolEq ty then nameBoolEq else Name.eqConst
-        else
-          Show.showName show (Const.name c);
-  end
-
-  local
-    val pairName = mkName stringPair;
+    val pairName = mkName pairString;
   in
     fun ppInfixBuffer ppInf c_n =
         let
@@ -1695,13 +1705,17 @@ local
 
         fun ppBind c =
             case c of
-             NONE => Print.ppString stringAbs
+              NONE => ppSyntax lambdaString
             | SOME (_,n) => Name.pp n
       in
         Print.ppMap toName (ppBinderBuffer ppBind)
       end;
 
   fun ppNumeral _ (i,_) = Print.ppInt i;
+
+  (* HTML *)
+
+  fun showConstHtml show (c,ty) = Const.showNameHtml show (c, SOME ty);
 
   val ppSyntaxHtml =
       let
@@ -1725,67 +1739,39 @@ local
           [Html.Span (attrs,inlines)]
         end;
 
-    fun toHtmlConst show =
+    fun toHtmlConst show (c,ty) = Const.toHtml show (c, SOME ty);
+
+    fun toHtmlNegation show =
         let
-          val toHtml = Const.toHtml show
+          val toHtml = toHtmlConst show
         in
-          fn (c,ty) =>
-             let
-               val n = showConst show (c,ty)
-             in
-               toHtml ((c, SOME ty), n)
-             end
+          fn cty => mkSpan "negation" (toHtml cty)
         end;
-
-    local
-      val nameNeg = mkName stringNeg
-      and nameBoolNeg = mkName stringBoolNeg
-      and tyBoolNeg = Type.mkFun (Type.bool,Type.bool);
-
-      fun isBoolNeg n ty =
-          Name.equal n nameNeg andalso Type.equal ty tyBoolNeg;
-    in
-      fun toHtmlNegation show =
-          let
-            val toHtml = Const.toHtml show
-          in
-            fn (c,ty) =>
-               let
-                 val n = showConst show (c,ty)
-
-                 val n = if isBoolNeg n ty then nameBoolNeg else n
-             in
-               mkSpan "negation" (toHtml ((c, SOME ty), n))
-             end
-          end;
-    end;
 
     fun toHtmlInfix show =
         let
-          val toHtml = Const.toHtml show
+          val toHtml = toHtmlConst show
         in
-          fn ((c,ty),n) => mkSpan "infix" (toHtml ((c, SOME ty), n))
+          fn (cty,_) => mkSpan "infix" (toHtml cty)
         end;
 
     local
-      val nameAbs = mkName stringAbs;
-
-      val htmlAbs = Name.toHtml nameAbs;
+      val htmlLambda = Name.toHtml (mkName lambdaLatex);
     in
       fun toHtmlBinder show =
           let
-            val toHtml = Const.toHtml show
+            val toHtml = toHtmlConst show
           in
             fn ctyno =>
                let
                  val h =
                      case ctyno of
-                       SOME ((c,ty),n) => toHtml ((c, SOME ty), n)
-                     | NONE => htmlAbs
+                       SOME (cty,_) => toHtml cty
+                     | NONE => htmlLambda
                in
                  mkSpan "binder" h
                end
-          end;
+          end
     end;
 
     fun toHtmlNumeral show =
@@ -1814,7 +1800,7 @@ local
 
     fun ppInfixHtml show =
         let
-          fun toName cty = (cty, showConst show cty)
+          fun toName cty = (cty, showConstHtml show cty)
 
           val ppInf = Print.ppMap (toHtmlInfix show) Html.ppFixed
         in
@@ -1826,7 +1812,7 @@ local
           fun toName cty =
               case cty of
                 NONE => NONE
-              | SOME cty => SOME (cty, showConst show cty)
+              | SOME cty => SOME (cty, showConstHtml show cty)
 
           val ppBind = Print.ppMap (toHtmlBinder show) Html.ppFixed
         in
@@ -1858,7 +1844,7 @@ in
         {negations = negations,
          infixes = infixes,
          binders = binders,
-         showConst = showConst,
+         showConst = showConstHtml,
          ppSyntax = ppSyntaxHtml,
          ppVar = ppVarHtml,
          ppConst = ppConstHtml,
@@ -1882,11 +1868,11 @@ local
                 NONE => NameMap.insert m (n,s)
               | SOME s' =>
                 let
-                  val err =
+                  val bug =
                       "Term.pp.mkMap: name clash: \"" ^
                       s ^ "\" and \"" ^ s' ^ "\""
                 in
-                  raise Error err
+                  raise Bug bug
                 end
             end
 
@@ -1897,35 +1883,43 @@ local
 
   fun mkSet s = NameSet.domain (mkMap (StringSet.fromList s));
 
+  fun equalBinder (cty1 : (Const.const * Type.ty) option) cty2 =
+      case (cty1,cty2) of
+        (NONE,NONE) => true
+      | (SOME (c1,_), SOME (c2,_)) => Const.equal c1 c2
+      | _ => false;
+
   fun isLetCondCase tm = isLet tm orelse isCond tm orelse isCase tm;
 
   fun ppTerm negationNames infixNames binderNames specialNames showConst
              ppInfixes ppConstName ppNegationName ppInfixName ppBinderName
              ppNumeral ppVar ppSyntax show =
       let
+        fun isNegationName n = NameSet.member n negationNames
+
+        fun destInfixName n = NameMap.peek infixNames n
+
+        fun isBinderName n = NameSet.member n binderNames
+
+        fun isSpecialName n = NameSet.member n specialNames
+
         fun ppBracket ppA a =
             Print.inconsistentBlock 1
               [ppSyntax "(",
                ppA a,
                ppSyntax ")"]
 
-        fun ppConst c_ty =
-            let
-              val n = showConst show c_ty
-            in
-              if NameSet.member n specialNames then ppBracket ppConstName c_ty
-              else ppConstName c_ty
-            end
+        fun ppConst cty =
+            if isSpecialName (showConst cty) then ppBracket ppConstName cty
+            else ppConstName cty
 
         fun destNegation tm =
             let
               val (t,a) = destApp tm
 
-              val c = destConst t
-
-              val n = showConst show c
+              val cty = destConst t
             in
-              if NameSet.member n negationNames then (c,a)
+              if isNegationName (showConst cty) then (cty,a)
               else raise Error "Term.pp.destNegation"
             end
 
@@ -1947,18 +1941,18 @@ local
 
               val (t,a) = destApp t
 
-              val c = destConst t
+              val cty = destConst t
 
-              val n = showConst show c
+              val n = showConst cty
             in
-              ((c,n),a,b)
+              ((cty,n),a,b)
             end
 
         fun destInfix tm =
             let
               val ((_,n),a,b) = destInfixTerm tm
             in
-              case NameMap.peek infixNames n of
+              case destInfixName n of
                 SOME s => (s,a,b)
               | NONE => raise Error "Term.pp.destInfix"
             end
@@ -1983,21 +1977,13 @@ local
 
                 val (v,b) = destGenAbs a
 
-                val c = destConst t
-
-                val n = showConst show c
+                val cty = destConst t
               in
-                if NameSet.member n binderNames then (SOME c, v, b)
+                if isBinderName (showConst cty) then (SOME cty, v, b)
                 else raise Error "Term.pp.destBinder"
               end
 
         val isBinder = can destBinder
-
-        fun equalBinder ct1 ct2 =
-            case (ct1,ct2) of
-              (NONE,NONE) => true
-            | (SOME (c1,_), SOME (c2,_)) => Const.equal c1 c2
-            | _ => false
 
         fun stripBinder tm =
             let
@@ -2293,7 +2279,8 @@ in
       in
         fn show =>
            let
-             val ppConst = ppConst show
+             val showConst = showConst show
+             and ppConst = ppConst show
              and ppNegation = ppNegation show
              and ppInfix = ppInfix show
              and ppBinder = ppBinder show

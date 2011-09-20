@@ -1,5 +1,5 @@
 name: bool
-version: 1.5
+version: 1.6
 description: Basic boolean theory
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ int {
 
 axiom-extensionality {
   import: def
-  package: axiom-extensionality-1.3
+  package: axiom-extensionality-1.4
 }
 
 ext {
@@ -28,7 +28,7 @@ ext {
 
 axiom-choice {
   import: def
-  package: axiom-choice-1.3
+  package: axiom-choice-1.4
 }
 
 class {
