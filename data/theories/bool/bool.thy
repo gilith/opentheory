@@ -1,6 +1,6 @@
 name: bool
-version: 1.7
-description: Basic boolean theory
+version: 1.8
+description: Standard boolean theory
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

@@ -1,8 +1,8 @@
 name: bool-def
-version: 1.4
-description: Basic boolean definitions
+version: 1.5
+description: Boolean definitions
 author: Joe Hurd <joe@gilith.com>
-license: MIT
+license: HOLLight
 provenance: HOL Light theory extracted on 2011-07-20
 show: "Data.Bool"
 

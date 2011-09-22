@@ -1,6 +1,6 @@
 name: word16
-version: 1.16
-description: Basic theory of 16-bit words
+version: 1.17
+description: Theory of 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

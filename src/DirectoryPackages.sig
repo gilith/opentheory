@@ -43,7 +43,7 @@ val checksum :
 val list : packages -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up the latest version of packages.                                *)
+(* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 val latestVersion :
@@ -51,6 +51,12 @@ val latestVersion :
 
 val isLatestVersion :
     packages -> PackageNameVersion.nameVersion -> bool
+
+val nameVersions :
+    packages -> PackageName.name -> PackageVersionSet.set
+
+val latestNameVersion :
+    packages -> PackageName.name -> PackageNameVersion.nameVersion option
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the installed packages.                                   *)

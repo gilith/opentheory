@@ -72,6 +72,15 @@ val dependencyPure =
       foldlPure add PackageDependency.empty
     end;
 
+fun nameVersionsPure (PurePackages pkgs) name =
+    let
+      fun filt (nv,_,acc) =
+          if not (PackageNameVersion.equalName name nv) then acc
+          else PackageVersionSet.add acc (PackageNameVersion.version nv)
+    in
+      PackageNameVersionMap.foldl filt PackageVersionSet.empty pkgs
+    end;
+
 fun fromDirectoryPure sys =
     let
       fun add ({filename},pkgs) =
@@ -198,7 +207,7 @@ fun checksum pkgs namever = DirectoryChecksums.peek (checksums pkgs) namever;
 fun list pkgs = toNameVersionSetPure (packages pkgs);
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up the latest version of packages.                                *)
+(* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun latestVersion pkgs nv =
@@ -215,6 +224,27 @@ fun isLatestVersion pkgs nv =
       val nvs = latestVersion pkgs nv
     in
       PackageNameVersionSet.member nv nvs
+    end;
+
+fun nameVersions pkgs name = nameVersionsPure (packages pkgs) name;
+
+fun latestNameVersion pkgs name =
+    let
+      val versions = nameVersions pkgs name
+    in
+      case PackageVersionSet.findr (K true) versions of
+        NONE => NONE
+      | SOME version =>
+        let
+          val namever' =
+              PackageNameVersion.NameVersion'
+                {name = name,
+                 version = version}
+
+          val namever = PackageNameVersion.mk namever'
+        in
+          if isLatestVersion pkgs namever then SOME namever else NONE
+        end
     end;
 
 (* ------------------------------------------------------------------------- *)

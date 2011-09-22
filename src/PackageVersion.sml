@@ -101,3 +101,10 @@ fun fromString s =
       raise Error ("bad package version format: " ^ s);
 
 end
+
+structure PackageVersionOrdered =
+struct type t = PackageVersion.version val compare = PackageVersion.compare end
+
+structure PackageVersionMap = KeyMap (PackageVersionOrdered)
+
+structure PackageVersionSet = ElementSet (PackageVersionMap)

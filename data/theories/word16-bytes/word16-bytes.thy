@@ -1,6 +1,6 @@
 name: word16-bytes
-version: 1.13
-description: Basic theory of 16-bit words as pairs of bytes
+version: 1.14
+description: Theory of 16-bit words as pairs of bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

@@ -280,6 +280,26 @@ fun directoryFinder () = Directory.finder (directory ());
 fun directoryImporter () = Directory.importer (directory ());
 
 (* ------------------------------------------------------------------------- *)
+(* Getting the latest version of packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun directoryLatestVersion name =
+    let
+      val dir = directory ()
+    in
+      case Directory.latestNameVersion dir name of
+        SOME namever => namever
+      | NONE =>
+        let
+          val err =
+              "can't find latest version of package " ^
+              PackageName.toString name
+        in
+          raise Error err
+        end
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* The directory staged package finder.                                      *)
 (* ------------------------------------------------------------------------- *)
 
@@ -360,7 +380,7 @@ val cleanupFooter =
     "With no <package-name> arguments will clean up all staged packages.\n";
 
 (* ------------------------------------------------------------------------- *)
-(* Options for cleaning up staged packages.                                  *)
+(* Options for exporting installed theory packages.                          *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -888,7 +908,7 @@ local
 in
   val globalOpts : opt list =
       [{switches = ["-d","--root-dir"], arguments = ["DIR"],
-        description = "the theory package directory",
+        description = "use this theory package directory",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => rootDirectoryOption := SOME s)}];
@@ -975,6 +995,7 @@ fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
 datatype input =
     ArticleInput of {filename : string}
   | PackageInput of PackageNameVersion.nameVersion
+  | PackageNameInput of PackageName.name
   | StagedPackageInput of PackageNameVersion.nameVersion
   | TarballInput of {filename : string}
   | TheoryInput of {filename : string};
@@ -998,19 +1019,23 @@ fun fromStringInput cmd inp =
             case total PackageNameVersion.fromString inp of
               SOME namever => PackageInput namever
             | NONE =>
-              let
-                val f = {filename = inp}
-              in
-                if Article.isFilename f then ArticleInput f
-                else if PackageTarball.isFilename f then TarballInput f
-                else if Package.isFilename f then TheoryInput f
-                else commandUsage cmd ("unknown type of input: " ^ inp)
-              end;
+              case total PackageName.fromString inp of
+                SOME name => PackageNameInput name
+              | NONE =>
+                let
+                  val f = {filename = inp}
+                in
+                  if Article.isFilename f then ArticleInput f
+                  else if PackageTarball.isFilename f then TarballInput f
+                  else if Package.isFilename f then TheoryInput f
+                  else commandUsage cmd ("unknown type of input: " ^ inp)
+                end;
 
 fun defaultInfoOutputList inp =
     case inp of
       ArticleInput _ => [mkInfoOutput SummaryInfo]
     | PackageInput _ => [mkInfoOutput TagsInfo]
+    | PackageNameInput _ => [mkInfoOutput TagsInfo]
     | StagedPackageInput _ => [mkInfoOutput TagsInfo]
     | TarballInput _ => [mkInfoOutput FilesInfo]
     | TheoryInput _ => [mkInfoOutput SummaryInfo];
@@ -1034,39 +1059,58 @@ end;
 (* Cleaning up staged packages.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun cleanup nameverl =
-    let
-      val dir = directory ()
-
-      val nameverl =
-          if not (List.null nameverl) then
-            List.map PackageNameVersion.fromString nameverl
-          else
-            let
-              val namevers = Directory.listStaged dir {maxAge = NONE}
-            in
-              PackageNameVersionSet.toList namevers
-            end
-
-      val () = List.app (cleanupStagedPackage dir) nameverl
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\ncleaning up staged package failed");
-
-(* ------------------------------------------------------------------------- *)
-(* Uninstalling theory packages.                                             *)
-(* ------------------------------------------------------------------------- *)
-
 local
-  val isHaskell = PackageName.isStrictPrefix Haskell.prefix;
+  fun cleanupInput inp =
+      case inp of
+        ArticleInput _ => raise Error "cannot clean up an article"
+      | PackageInput _ => raise Error "cannot clean up an installed package"
+      | PackageNameInput _ => raise Error "cannot clean up a package name"
+      | StagedPackageInput namever => namever
+      | TarballInput _ => raise Error "cannot clean up a tarball"
+      | TheoryInput _ => raise Error "cannot clean up a theory file";
 in
-  fun export namever =
+  fun cleanup nameverl =
       let
         val dir = directory ()
 
-        val namever = PackageNameVersion.fromString namever
+        val nameverl =
+            if not (List.null nameverl) then List.map cleanupInput nameverl
+            else
+              let
+                val namevers = Directory.listStaged dir {maxAge = NONE}
+              in
+                PackageNameVersionSet.toList namevers
+              end
+
+        val () = List.app (cleanupStagedPackage dir) nameverl
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (err ^ "\ncleaning up failed");
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Exporting installed theory packages.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun exportInput inp =
+      case inp of
+        ArticleInput _ => raise Error "cannot export an article"
+      | PackageInput namever => namever
+      | PackageNameInput name => directoryLatestVersion name
+      | StagedPackageInput _ => raise Error "cannot export a staged package"
+      | TarballInput _ => raise Error "cannot export a tarball"
+      | TheoryInput _ => raise Error "cannot export a theory file";
+
+  val isHaskell = PackageName.isStrictPrefix Haskell.prefix;
+in
+  fun export inp =
+      let
+        val dir = directory ()
+
+        val namever = exportInput inp
 
         val name = PackageNameVersion.name namever
       in
@@ -1606,7 +1650,7 @@ local
       in
         ()
       end;
-in
+
   fun infoArticle {filename} infs =
       let
         val dir = OS.Path.dir filename
@@ -1649,6 +1693,13 @@ in
           in
             processInfoOutputList infs
           end
+      end;
+
+  fun infoPackageName name infs =
+      let
+        val namever = directoryLatestVersion name
+      in
+        infoPackage namever infs
       end;
 
   fun infoStagedPackage namever infs =
@@ -1708,6 +1759,19 @@ in
       in
         processInfoOutputList infs
       end;
+in
+  fun info inp =
+      let
+        val infs = readInfoOutputList inp
+      in
+        case inp of
+          ArticleInput file => infoArticle file infs
+        | PackageInput namever => infoPackage namever infs
+        | PackageNameInput name => infoPackageName name infs
+        | StagedPackageInput namever => infoStagedPackage namever infs
+        | TarballInput file => infoTarball file infs
+        | TheoryInput file => infoTheory file infs
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1730,6 +1794,20 @@ fun init () =
 (* ------------------------------------------------------------------------- *)
 
 local
+  fun uninstallInput inp =
+      case inp of
+        ArticleInput _ => raise Error "cannot uninstall an article"
+      | PackageInput namever => namever
+      | PackageNameInput _ => raise Error "cannot uninstall a package name"
+      | StagedPackageInput _ =>
+        let
+          val err = "cannot uninstall a staged package (use cleanup instead)"
+        in
+          raise Error err
+        end
+      | TarballInput _ => raise Error "cannot uninstall a tarball"
+      | TheoryInput _ => raise Error "cannot uninstall a theory file";
+
   fun complain errs =
       if List.null errs then ()
       else
@@ -1786,11 +1864,11 @@ in
         ()
       end;
 
-  fun uninstall namever =
+  fun uninstall inp =
       let
         val dir = directory ()
 
-        val namever = PackageNameVersion.fromString namever
+        val namever = uninstallInput inp
       in
         uninstallAuto dir namever
       end
@@ -1952,316 +2030,327 @@ in
         end;
 end;
 
-fun installStagedPackage namever =
-    let
-      val () =
-          if not (Option.isSome (!nameInstall)) then ()
-          else raise Error "can't specify name for a staged package install"
+local
+  fun installStagedPackage namever =
+      let
+        val () =
+            if not (Option.isSome (!nameInstall)) then ()
+            else raise Error "can't specify name for a staged package install"
 
-      val () =
-          if not (!stageInstall) then ()
-          else raise Error "can't stage a staged package install"
+        val () =
+            if not (!stageInstall) then ()
+            else raise Error "can't stage a staged package install"
 
-      val dir = directory ()
+        val dir = directory ()
 
-      val info =
-          case PackageFinder.find (directoryStagedFinder ()) namever of
-            SOME info => info
-          | NONE =>
+        val info =
+            case PackageFinder.find (directoryStagedFinder ()) namever of
+              SOME info => info
+            | NONE =>
+              let
+                val err =
+                    "can't find staged package " ^
+                    PackageNameVersion.toString namever
+              in
+                raise Error err
+              end
+
+        val chk = PackageInfo.checksumTarball info
+
+        val () =
+            case !checksumInstall of
+              NONE => ()
+            | SOME chk' =>
+              if Checksum.equal chk' chk then ()
+              else raise Error "package checksum does not match"
+
+        val errs = Directory.checkInstallStaged dir namever chk
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package install warnings:\n" ^ s)
+              end
+
+        val () = Directory.installStaged dir namever chk
+
+        val () =
+            chat ("installed staged package " ^
+                  PackageNameVersion.toString namever)
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (err ^ "\nstaged package install failed");
+
+  fun installPackage namever =
+      let
+        val () =
+            if not (Option.isSome (!nameInstall)) then ()
+            else raise Error "can't specify name for a package install"
+
+        val () =
+            if not (!stageInstall) then ()
+            else raise Error "can't stage a package install"
+
+        val dir = directory ()
+
+        val repos = repositories ()
+
+        val (repo,chk) =
+            case !checksumInstall of
+              SOME chk =>
+              (case DirectoryRepo.find repos (namever,chk) of
+                 SOME repo => (repo,chk)
+               | NONE =>
+                 let
+                   val err =
+                       "can't find package " ^
+                       PackageNameVersion.toString namever ^
+                       " with specified checksum in any repo"
+                 in
+                   raise Error err
+                 end)
+            | NONE =>
+              (case DirectoryRepo.first repos namever of
+                 NONE =>
+                 let
+                   val err =
+                       "can't find package " ^
+                       PackageNameVersion.toString namever ^
+                       " in any repo package list"
+                 in
+                   raise Error err
+                 end
+               | SOME repo_chk => repo_chk)
+
+        val errs = Directory.checkStagePackage dir repo namever chk
+
+        val errs =
+            if not (!reinstall) then errs
+            else
+              let
+                val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+                val () =
+                    if staged then Directory.cleanupStaged dir namever else ()
+              in
+                errs
+              end
+
+        val (replace,errs) =
+            if not (!reinstall) then (false,errs)
+            else DirectoryError.removeAlreadyInstalled errs
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package install warnings:\n" ^ s)
+              end
+
+        val () = if replace then uninstallAuto dir namever else ()
+
+        val finder = installFinder repo
+
+        val tool = {tool = versionHtml}
+
+        val () = Directory.stagePackage dir finder repo namever chk tool
+
+        val () = Directory.installStaged dir namever chk
+
+        val () =
+            chat ((if replace then "re" else "") ^ "installed package " ^
+                  PackageNameVersion.toString namever)
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage install failed");
+
+  fun installTarball tarFile =
+      let
+        val dir = directory ()
+
+        val sys = Directory.system dir
+
+        val chk = PackageTarball.checksum sys tarFile
+
+        val () =
+            case !checksumInstall of
+              NONE => ()
+            | SOME chk' =>
+              if Checksum.equal chk' chk then ()
+              else raise Error "tarball checksum does not match"
+
+        val contents = PackageTarball.contents sys tarFile
+
+        val PackageTarball.Contents {nameVersion = namever, ...} = contents
+
+        val () =
+            case !nameInstall of
+              NONE => ()
+            | SOME namever' =>
+              if PackageNameVersion.equal namever' namever then ()
+              else raise Error "tarball name does not match"
+
+        val errs = Directory.checkStageTarball dir contents
+
+        val errs =
+            if not (!reinstall) then errs
+            else
+              let
+                val (staged,errs) = DirectoryError.removeAlreadyStaged errs
+
+                val () =
+                    if staged then Directory.cleanupStaged dir namever else ()
+              in
+                errs
+              end
+
+        val (replace,errs) =
+            if not (!reinstall) then (false,errs)
+            else DirectoryError.removeAlreadyInstalled errs
+
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package install warnings:\n" ^ s)
+              end
+
+        val () = if replace then uninstallAuto dir namever else ()
+
+        val finder = installStagedFinderFree ()
+
+        val tool = {tool = versionHtml}
+
+        val () = Directory.stageTarball dir finder tarFile contents tool
+
+        val () =
+            if !stageInstall then ()
+            else Directory.installStaged dir namever chk
+
+        val () =
             let
-              val err =
-                  "can't find staged package " ^
-                  PackageNameVersion.toString namever
+              val verb =
+                  if !stageInstall then
+                    (if replace then "uninstalled and staged" else "staged")
+                  else
+                    (if replace then "reinstalled" else "installed")
+
+              val mesg =
+                  verb ^ " package " ^ PackageNameVersion.toString namever ^
+                  " from tarball"
             in
-              raise Error err
+              chat mesg
+            end
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage install from tarball failed");
+
+  fun installTheory filename =
+      let
+        val () =
+            if not (Option.isSome (!checksumInstall)) then ()
+            else raise Error "can't specify checksum for a theory file install"
+
+        val () =
+            if not (!stageInstall) then ()
+            else raise Error "can't stage a package install from theory file"
+
+        val dir = directory ()
+
+        val pkg = Package.fromTextFile filename
+
+        val namever = Package.nameVersion pkg
+
+        val () =
+            case !nameInstall of
+              NONE => ()
+            | SOME namever' =>
+              if PackageNameVersion.equal namever' namever then ()
+              else raise Error "theory name does not match"
+
+        val srcDir =
+            let
+              val {filename = thyFile} = filename
+            in
+              {directory = OS.Path.dir thyFile}
             end
 
-      val chk = PackageInfo.checksumTarball info
+        val errs = Directory.checkStageTheory dir namever pkg
 
-      val () =
-          case !checksumInstall of
-            NONE => ()
-          | SOME chk' =>
-            if Checksum.equal chk' chk then ()
-            else raise Error "package checksum does not match"
+        val errs =
+            if not (!reinstall) then errs
+            else
+              let
+                val (staged,errs) = DirectoryError.removeAlreadyStaged errs
 
-      val errs = Directory.checkInstallStaged dir namever chk
+                val () =
+                    if staged then Directory.cleanupStaged dir namever else ()
+              in
+                errs
+              end
 
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package install warnings:\n" ^ s)
-            end
+        val (replace,errs) =
+            if not (!reinstall) then (false,errs)
+            else DirectoryError.removeAlreadyInstalled errs
 
-      val () = Directory.installStaged dir namever chk
+        val (pars,errs) =
+            if not (!autoInstall) then ([],errs)
+            else DirectoryError.removeUninstalledParent errs
 
-      val () =
-          chat ("installed staged package " ^
-                PackageNameVersion.toString namever)
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\nstaged package install failed");
+        val () =
+            if List.null errs then ()
+            else
+              let
+                val s = DirectoryError.toStringList errs
+              in
+                if DirectoryError.existsFatal errs then raise Error s
+                else chat ("package install warnings:\n" ^ s)
+              end
 
-fun installPackage namever =
-    let
-      val () =
-          if not (Option.isSome (!nameInstall)) then ()
-          else raise Error "can't specify name for a package install"
+        val () = if replace then uninstallAuto dir namever else ()
 
-      val () =
-          if not (!stageInstall) then ()
-          else raise Error "can't stage a package install"
+        val () = List.app installAutoFree pars
 
-      val dir = directory ()
+        val tool = {tool = versionHtml}
 
-      val repos = repositories ()
+        val chk = Directory.stageTheory dir namever pkg srcDir tool
 
-      val (repo,chk) =
-          case !checksumInstall of
-            SOME chk =>
-            (case DirectoryRepo.find repos (namever,chk) of
-               SOME repo => (repo,chk)
-             | NONE =>
-               let
-                 val err =
-                     "can't find package " ^
-                     PackageNameVersion.toString namever ^
-                     " with specified checksum in any repo"
-               in
-                 raise Error err
-               end)
-          | NONE =>
-            (case DirectoryRepo.first repos namever of
-               NONE =>
-               let
-                 val err =
-                     "can't find package " ^
-                     PackageNameVersion.toString namever ^
-                     " in any repo package list"
-               in
-                 raise Error err
-               end
-             | SOME repo_chk => repo_chk)
+        val () = Directory.installStaged dir namever chk
 
-      val errs = Directory.checkStagePackage dir repo namever chk
-
-      val errs =
-          if not (!reinstall) then errs
-          else
-            let
-              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
-
-              val () =
-                  if staged then Directory.cleanupStaged dir namever else ()
-            in
-              errs
-            end
-
-      val (replace,errs) =
-          if not (!reinstall) then (false,errs)
-          else DirectoryError.removeAlreadyInstalled errs
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package install warnings:\n" ^ s)
-            end
-
-      val () = if replace then uninstallAuto dir namever else ()
-
-      val finder = installFinder repo
-
-      val tool = {tool = versionHtml}
-
-      val () = Directory.stagePackage dir finder repo namever chk tool
-
-      val () = Directory.installStaged dir namever chk
-
-      val () =
-          chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageNameVersion.toString namever)
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\npackage install failed");
-
-fun installTarball tarFile =
-    let
-      val dir = directory ()
-
-      val sys = Directory.system dir
-
-      val chk = PackageTarball.checksum sys tarFile
-
-      val () =
-          case !checksumInstall of
-            NONE => ()
-          | SOME chk' =>
-            if Checksum.equal chk' chk then ()
-            else raise Error "tarball checksum does not match"
-
-      val contents = PackageTarball.contents sys tarFile
-
-      val PackageTarball.Contents {nameVersion = namever, ...} = contents
-
-      val () =
-          case !nameInstall of
-            NONE => ()
-          | SOME namever' =>
-            if PackageNameVersion.equal namever' namever then ()
-            else raise Error "tarball name does not match"
-
-      val errs = Directory.checkStageTarball dir contents
-
-      val errs =
-          if not (!reinstall) then errs
-          else
-            let
-              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
-
-              val () =
-                  if staged then Directory.cleanupStaged dir namever else ()
-            in
-              errs
-            end
-
-      val (replace,errs) =
-          if not (!reinstall) then (false,errs)
-          else DirectoryError.removeAlreadyInstalled errs
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package install warnings:\n" ^ s)
-            end
-
-      val () = if replace then uninstallAuto dir namever else ()
-
-      val finder = installStagedFinderFree ()
-
-      val tool = {tool = versionHtml}
-
-      val () = Directory.stageTarball dir finder tarFile contents tool
-
-      val () =
-          if !stageInstall then ()
-          else Directory.installStaged dir namever chk
-
-      val () =
-          let
-            val verb =
-                if !stageInstall then
-                  (if replace then "uninstalled and staged" else "staged")
-                else
-                  (if replace then "reinstalled" else "installed")
-
-            val mesg =
-                verb ^ " package " ^ PackageNameVersion.toString namever ^
-                " from tarball"
-          in
-            chat mesg
-          end
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\npackage install from tarball failed");
-
-fun installTheory filename =
-    let
-      val () =
-          if not (Option.isSome (!checksumInstall)) then ()
-          else raise Error "can't specify checksum for a theory file install"
-
-      val () =
-          if not (!stageInstall) then ()
-          else raise Error "can't stage a package install from theory file"
-
-      val dir = directory ()
-
-      val pkg = Package.fromTextFile filename
-
-      val namever = Package.nameVersion pkg
-
-      val () =
-          case !nameInstall of
-            NONE => ()
-          | SOME namever' =>
-            if PackageNameVersion.equal namever' namever then ()
-            else raise Error "theory name does not match"
-
-      val srcDir =
-          let
-            val {filename = thyFile} = filename
-          in
-            {directory = OS.Path.dir thyFile}
-          end
-
-      val errs = Directory.checkStageTheory dir namever pkg
-
-      val errs =
-          if not (!reinstall) then errs
-          else
-            let
-              val (staged,errs) = DirectoryError.removeAlreadyStaged errs
-
-              val () =
-                  if staged then Directory.cleanupStaged dir namever else ()
-            in
-              errs
-            end
-
-      val (replace,errs) =
-          if not (!reinstall) then (false,errs)
-          else DirectoryError.removeAlreadyInstalled errs
-
-      val (pars,errs) =
-          if not (!autoInstall) then ([],errs)
-          else DirectoryError.removeUninstalledParent errs
-
-      val () =
-          if List.null errs then ()
-          else
-            let
-              val s = DirectoryError.toStringList errs
-            in
-              if DirectoryError.existsFatal errs then raise Error s
-              else chat ("package install warnings:\n" ^ s)
-            end
-
-      val () = if replace then uninstallAuto dir namever else ()
-
-      val () = List.app installAutoFree pars
-
-      val tool = {tool = versionHtml}
-
-      val chk = Directory.stageTheory dir namever pkg srcDir tool
-
-      val () = Directory.installStaged dir namever chk
-
-      val () =
-          chat ((if replace then "re" else "") ^ "installed package " ^
-                PackageNameVersion.toString namever ^ " from theory file")
-    in
-      ()
-    end
-    handle Error err =>
-      raise Error (err ^ "\npackage install from theory file failed");
+        val () =
+            chat ((if replace then "re" else "") ^ "installed package " ^
+                  PackageNameVersion.toString namever ^ " from theory file")
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage install from theory file failed");
+in
+  fun install inp =
+      case inp of
+        ArticleInput _ => raise Error "cannot install an article"
+      | PackageInput namever => installPackage namever
+      | PackageNameInput _ => raise Error "cannot install a package name"
+      | StagedPackageInput namever => installStagedPackage namever
+      | TarballInput file => installTarball file
+      | TheoryInput file => installTheory file;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Listing installed packages.                                               *)
@@ -2386,6 +2475,15 @@ fun update () =
 (* ------------------------------------------------------------------------- *)
 
 local
+  fun uploadInput inp =
+      case inp of
+        ArticleInput _ => raise Error "cannot upload an article"
+      | PackageInput namever => namever
+      | PackageNameInput name => directoryLatestVersion name
+      | StagedPackageInput _ => raise Error "cannot upload a staged package"
+      | TarballInput _ => raise Error "cannot upload a tarball"
+      | TheoryInput _ => raise Error "cannot upload a theory file";
+
   fun computeSupport dir repo namevers =
       let
         fun notInDir nv = not (Directory.member nv dir)
@@ -2539,13 +2637,13 @@ local
         ()
       end;
 in
-  fun upload namevers =
+  fun upload inps =
       let
         val dir = directory ()
 
         val repo = repository ()
 
-        val namevers = List.map PackageNameVersion.fromString namevers
+        val namevers = List.map uploadInput inps
 
         val () = DirectoryRepo.update repo
 
@@ -2628,6 +2726,8 @@ let
 
   val (_,work) = Options.processOptions (commandOptions cmd) work
 
+  val work = List.map (fromStringInput cmd) work
+
   (* Process command options *)
 
   val () =
@@ -2635,31 +2735,9 @@ let
         (Cleanup,pkgs) => cleanup pkgs
       | (Export,[pkg]) => export pkg
       | (Help,[]) => help ()
-      | (Info,[inp]) =>
-        let
-          val inp = fromStringInput cmd inp
-
-          val infs = readInfoOutputList inp
-        in
-          case inp of
-            ArticleInput file => infoArticle file infs
-          | PackageInput namever => infoPackage namever infs
-          | StagedPackageInput namever => infoStagedPackage namever infs
-          | TarballInput file => infoTarball file infs
-          | TheoryInput file => infoTheory file infs
-        end
+      | (Info,[inp]) => info inp
       | (Init,[]) => init ()
-      | (Install,[inp]) =>
-        let
-          val inp = fromStringInput cmd inp
-        in
-          case inp of
-            ArticleInput _ => commandUsage cmd "cannot install an article"
-          | PackageInput namever => installPackage namever
-          | StagedPackageInput namever => installStagedPackage namever
-          | TarballInput file => installTarball file
-          | TheoryInput file => installTheory file
-        end
+      | (Install,[inp]) => install inp
       | (List,[]) => list ()
       | (Uninstall,[pkg]) => uninstall pkg
       | (Update,[]) => update ()
@@ -2673,7 +2751,5 @@ let
 in
   succeed ()
 end
-(***)
 handle Error s => die (program^" failed:\n" ^ s)
      | Bug s => die ("BUG found in "^program^" program:\n" ^ s);
-(***)
