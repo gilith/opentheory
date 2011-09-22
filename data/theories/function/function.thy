@@ -1,5 +1,5 @@
 name: function
-version: 1.8
+version: 1.9
 description: Basic theory of functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,12 @@ show: "Data.Bool"
 show: "Function"
 
 def {
-  package: function-def-1.2
+  package: function-def-1.3
 }
 
 thm {
   import: def
-  package: function-thm-1.8
+  package: function-thm-1.9
 }
 
 main {

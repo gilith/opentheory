@@ -1,9 +1,9 @@
 name: h-thm
-version: 1.20
+version: 1.21
 description: h-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-09-15
+provenance: HOL Light theory extracted on 2011-09-21
 show: "Data.Bool"
 
 main {

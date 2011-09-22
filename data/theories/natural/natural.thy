@@ -1,5 +1,5 @@
 name: natural
-version: 1.15
+version: 1.16
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,23 +13,23 @@ axiom-infinity {
 
 def {
   import: axiom-infinity
-  package: natural-def-1.4
+  package: natural-def-1.5
 }
 
 recursion {
   import: def
-  package: natural-recursion-1.2
+  package: natural-recursion-1.3
 }
 
 cases {
   import: def
   import: recursion
-  package: natural-cases-1.3
+  package: natural-cases-1.4
 }
 
 numeral {
   import: cases
-  package: natural-numeral-1.4
+  package: natural-numeral-1.5
 }
 
 pre {
@@ -41,7 +41,7 @@ order {
   import: def
   import: cases
   import: numeral
-  package: natural-order-1.8
+  package: natural-order-1.9
 }
 
 add {
@@ -49,7 +49,7 @@ add {
   import: cases
   import: numeral
   import: order
-  package: natural-add-1.11
+  package: natural-add-1.12
 }
 
 mult {
@@ -57,7 +57,7 @@ mult {
   import: cases
   import: order
   import: add
-  package: natural-mult-1.10
+  package: natural-mult-1.11
 }
 
 exp {
@@ -67,7 +67,7 @@ exp {
   import: order
   import: add
   import: mult
-  package: natural-exp-1.5
+  package: natural-exp-1.6
 }
 
 even-odd {
@@ -78,7 +78,7 @@ even-odd {
   import: add
   import: mult
   import: exp
-  package: natural-even-odd-1.4
+  package: natural-even-odd-1.5
 }
 
 sub {
@@ -89,7 +89,7 @@ sub {
   import: add
   import: mult
   import: even-odd
-  package: natural-sub-1.5
+  package: natural-sub-1.6
 }
 
 factorial {
@@ -99,7 +99,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.5
+  package: natural-factorial-1.6
 }
 
 div-mod {
@@ -110,12 +110,12 @@ div-mod {
   import: mult
   import: exp
   import: even-odd
-  package: natural-div-mod-1.5
+  package: natural-div-mod-1.6
 }
 
 min-max {
   import: order
-  package: natural-min-max-1.7
+  package: natural-min-max-1.8
 }
 
 distance {
@@ -124,7 +124,7 @@ distance {
   import: add
   import: mult
   import: sub
-  package: natural-distance-1.5
+  package: natural-distance-1.6
 }
 
 main {

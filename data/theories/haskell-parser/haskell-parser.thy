@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.11
+version: 1.12
 description: Basic parsers in Haskell
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -24,7 +24,7 @@ thm {
   interpret: const "Parser.Stream.error" as "Haskell.Parser.Stream.Error"
   interpret: const "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
   interpret: const "Parser.Stream.case" as "Haskell.Parser.Stream.Stream.case"
-  package: parser-1.20
+  package: parser-1.21
 }
 
 src {

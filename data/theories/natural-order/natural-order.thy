@@ -1,5 +1,5 @@
 name: natural-order
-version: 1.8
+version: 1.9
 description: Definitions and theorems about natural number orderings
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-order-def-1.4
+  package: natural-order-def-1.5
 }
 
 thm {
   import: def
-  package: natural-order-thm-1.7
+  package: natural-order-thm-1.8
 }
 
 main {
