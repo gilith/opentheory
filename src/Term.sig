@@ -40,6 +40,8 @@ val isVar : term -> bool
 
 val equalVar : Var.var -> term -> bool
 
+val equalVarList : Var.var list -> term list -> bool
+
 (* Function applications *)
 
 val mkApp : term * term -> term
@@ -400,6 +402,14 @@ val isComprehension : term -> bool
 val destCase : term -> term * (Name.name * term list * term) list
 
 val isCase : term -> bool
+
+val destCaseDef :
+    term ->
+    {dataType : Type.ty,
+     constructors : (Const.const * Type.ty list) list,
+     caseConst : Const.const}
+
+val isCaseDef : term -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

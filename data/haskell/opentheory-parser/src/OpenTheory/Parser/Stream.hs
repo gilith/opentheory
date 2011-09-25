@@ -1,6 +1,6 @@
 {- |
 Module: $Header$
-Description: Basic parsers in Haskell
+Description: Simple stream parsers
 License: MIT
 
 Maintainer: Joe Hurd <joe@gilith.com>
@@ -9,6 +9,8 @@ Portability: portable
 -}
 module OpenTheory.Parser.Stream
 where
+
+import qualified OpenTheory.Number.Natural
 
 data Stream a =
     Error

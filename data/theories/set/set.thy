@@ -1,6 +1,6 @@
 name: set
 version: 1.13
-description: Set theory
+description: Standard set theory
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

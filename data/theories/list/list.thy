@@ -1,6 +1,6 @@
 name: list
-version: 1.19
-description: Basic theory of list types
+version: 1.20
+description: Standard theory of lists
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

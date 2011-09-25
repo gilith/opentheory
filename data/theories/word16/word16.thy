@@ -1,5 +1,5 @@
 name: word16
-version: 1.17
+version: 1.18
 description: Theory of 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,7 +9,7 @@ show: "Data.List"
 show: "Number.Natural" as "Natural"
 
 def {
-  package: word16-def-1.1
+  package: word16-def-1.2
 }
 
 word {
@@ -41,14 +41,14 @@ word {
 bits {
   import: def
   import: word
-  package: word16-bits-1.15
+  package: word16-bits-1.16
 }
 
 bytes {
   import: def
   import: word
   import: bits
-  package: word16-bytes-1.13
+  package: word16-bytes-1.15
 }
 
 main {

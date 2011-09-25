@@ -72,7 +72,10 @@ local
          (Name.nilConst, Name.mkGlobal "[]"),
          (Name.noneConst, Name.mkGlobal "Nothing"),
          (Name.someConst, Name.mkGlobal "Just"),
-         (Name.sucConst, mkNaturalName "suc")];
+         (Name.bit0Const, mkNaturalName "bit0"),
+         (Name.bit1Const, mkNaturalName "bit1"),
+         (Name.sucConst, mkNaturalName "suc"),
+         (Name.zeroConst, mkNaturalName "zero")];
 
   fun exportName n =
       let
@@ -218,12 +221,15 @@ datatype data =
     Data of
       {name : TypeOp.typeOp,
        parameters : Name.name list,
-       constructors : (Const.const * Type.ty list) list};
+       constructors : (Const.const * Type.ty list) list,
+       caseConst : Const.const};
 
 datatype newtype =
     Newtype of
       {name : TypeOp.typeOp,
-       predicate : Term.term,
+       parameters : Name.name list,
+       repType : Type.ty,
+       predicate : Term.term option,
        abs : Const.const,
        rep : Const.const};
 
@@ -253,169 +259,71 @@ datatype haskell =
 (* Converting theorems into Haskell declarations.                            *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun destIndData tm =
-      let
-        val (p,t0) = Term.destForall tm
+fun destData th =
+    let
+      val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
-        fun destP t =
+      val () =
+          if TermAlphaSet.null hyp then ()
+          else raise Error "hypotheses"
+
+      val {dataType,constructors,caseConst} = Term.destCaseDef concl
+
+      val (name,parms) = Type.destOp dataType
+
+      val parms = List.map Type.destVar parms
+    in
+      Data
+        {name = name,
+         parameters = parms,
+         constructors = constructors,
+         caseConst = caseConst}
+    end
+    handle Error err =>
+      raise Error ("bad data theorem: " ^ err);
+
+fun destNewtype th =
+    let
+      val Sequent.Sequent {hyp,concl} = Thm.sequent th
+
+      val () =
+          if TermAlphaSet.null hyp then ()
+          else raise Error "hypotheses"
+
+      val (absRep,repAbs) =
+          case total Term.destConj concl of
+            SOME (ar,ra) => (ar, SOME ra)
+          | NONE => (concl,NONE)
+
+      val (abs,rep) =
+          let
+            val (a,t0) = Term.destForall absRep
+
+            val (t1,t2) = Term.destEq t0
+
+            val () =
+                if Term.equalVar a t2 then ()
+                else raise Error "bad rhs of absRep"
+
+            val (abs,t3) = Term.destApp t1
+
+            val (rep,t4) = Term.destApp t3
+
+            val () =
+                if Term.equalVar a t4 then ()
+                else raise Error "bad var inside absRep"
+          in
+            (abs,rep)
+          end
+
+      val pred =
+          case repAbs of
+            NONE => NONE
+          | SOME tm =>
             let
-              val (p',x) = Term.destApp t
+              val (r,t0) = Term.destForall tm
 
-              val () =
-                  if Term.equalVar p p' then ()
-                  else raise Error "bad p"
-            in
-              x
-            end
-
-        val (t1,t2) = Term.destImp t0
-
-        val ty =
-            let
-              val (x,px) = Term.destForall t2
-
-              val x' = destP px
-
-              val () =
-                  if Term.equalVar x x' then ()
-                  else raise Error "bad x"
-            in
-              Var.typeOf x
-            end
-
-        fun destCon t =
-            let
-              val (vs,t3) = Term.stripForall t
-
-              val t4 =
-                  case total Term.destImp t3 of
-                    NONE => t3
-                  | SOME (t5,t6) =>
-                    let
-                      val vs = VarSet.fromList vs
-
-                      fun check t =
-                          if VarSet.member (Term.destVar (destP t)) vs then ()
-                          else raise Error "bad step assumption"
-
-                      val () = List.app check (Term.stripConj t5)
-                    in
-                      t6
-                    end
-
-              val t5 = destP t4
-
-              val (t6,ts) = Term.stripApp t5
-
-              val (c,_) = Term.destConst t6
-            in
-              (c, List.map Term.typeOf ts)
-            end
-
-        val (name,parms) =
-            let
-              val (name,parms) = Type.destOp ty
-
-              val vs = List.map Type.destVar parms
-
-              val () =
-                  if NameSet.size (NameSet.fromList vs) = length vs then ()
-                  else raise Error "duplicate type vars"
-            in
-              (name,vs)
-            end
-
-        val ts = Term.stripConj t1
-      in
-        Data
-          {name = name,
-           parameters = parms,
-           constructors = List.map destCon ts}
-      end
-      handle Error err =>
-        raise Error ("bad induction conjunct: " ^ err);
-
-  fun destRecData tm =
-      let
-      in
-        raise Error "not implemented"
-      end
-      handle Error err =>
-        raise Error ("bad recursion conjunct: " ^ err);
-
-  fun destCaseData tm =
-      let
-      in
-        raise Error "not implemented"
-      end
-      handle Error err =>
-        raise Error ("bad case conjunct: " ^ err);
-in
-  fun destData th =
-      let
-        val Sequent.Sequent {hyp,concl} = Thm.sequent th
-
-        val () =
-            if TermAlphaSet.null hyp then ()
-            else raise Error "hypotheses"
-
-        val (indData,recCaseData) = Term.destConj concl
-
-        val (recData,caseData) = Term.destConj recCaseData
-
-        val indData = destIndData indData
-(***
-        and recData = destRecData recData
-        and caseData = destCaseData caseData
-***)
-      in
-        indData
-      end
-      handle Error err =>
-        raise Error ("bad data theorem: " ^ err);
-end;
-
-local
-in
-  fun destNewtype th =
-      let
-        val Sequent.Sequent {hyp,concl} = Thm.sequent th
-
-        val () =
-            if TermAlphaSet.null hyp then ()
-            else raise Error "hypotheses"
-
-        val (absRep,repAbs) = Term.destConj concl
-
-        val (ty,abs,rep) =
-            let
-              val (a,t0) = Term.destForall absRep
-
-              val ty = Var.typeOf a
-
-              val (t1,t2) = Term.destEq t0
-
-              val () =
-                  if Term.equalVar a t2 then ()
-                  else raise Error "bad rhs of absRep"
-
-              val (abs,t3) = Term.destApp t1
-
-              val (rep,t4) = Term.destApp t3
-
-              val () =
-                  if Term.equalVar a t4 then ()
-                  else raise Error "bad var inside absRep"
-            in
-              (ty,abs,rep)
-            end
-
-        val (ty',pred,abs',rep') =
-            let
-              val (r,t0) = Term.destForall repAbs
-
-              val (pred,t1) = Term.destEq t0
+              val (pred,t1) = Term.destImp t0
 
               val () =
                   let
@@ -431,44 +339,44 @@ in
                   if Term.equalVar r t3 then ()
                   else raise Error "bad rhs of repAbs"
 
-              val (rep,t4) = Term.destApp t2
+              val (rep',t4) = Term.destApp t2
 
-              val ty = Term.typeOf t4
+              val () =
+                  if Term.equal rep' rep' then ()
+                  else raise Error "different reps in absRep and repAbs"
 
-              val (abs,t5) = Term.destApp t4
+              val (abs',t5) = Term.destApp t4
+
+              val () =
+                  if Term.equal abs' abs then ()
+                  else raise Error "different abs in absRep and repAbs"
 
               val () =
                   if Term.equalVar r t5 then ()
                   else raise Error "bad var inside repAbs"
             in
-              (ty,pred,abs,rep)
+              SOME (Term.mkAbs (r,pred))
             end
 
-        val () =
-            if Type.equal ty ty' then ()
-            else raise Error "different types in absRep and repAbs"
+      val (abs,repAbsTy) = Term.destConst abs
+      and (rep,_) = Term.destConst rep
 
-        val () =
-            if Term.equal abs abs' then ()
-            else raise Error "different abstractions in absRep and repAbs"
+      val (repTy,absTy) = Type.destFun repAbsTy
 
-        val () =
-            if Term.equal rep rep' then ()
-            else raise Error "different representations in absRep and repAbs"
+      val (name,parms) = Type.destOp absTy
 
-        val (name,_) = Type.destOp ty
-        and (abs,_) = Term.destConst abs
-        and (rep,_) = Term.destConst rep
-      in
-        Newtype
-          {name = name,
-           predicate = pred,
-           abs = abs,
-           rep = rep}
-      end
-      handle Error err =>
-        raise Error ("bad newtype theorem: " ^ err);
-end;
+      val parms = List.map Type.destVar parms
+    in
+      Newtype
+        {name = name,
+         parameters = parms,
+         repType = repTy,
+         predicate = pred,
+         abs = abs,
+         rep = rep}
+    end
+    handle Error err =>
+      raise Error ("bad newtype theorem: " ^ err);
 
 local
   fun destEqn tm =
@@ -505,6 +413,17 @@ in
               in
                 Term.destConst f
               end
+
+        val () =
+            if not (Name.isCase (Const.name name)) then ()
+            else raise Error "case constant"
+
+        val () =
+            case total (Type.destOp o Type.rangeFun) ty of
+              NONE => ()
+            | SOME (ot,_) =>
+              if not (Name.equal (Const.name name) (TypeOp.name ot)) then ()
+              else raise Error "newtype constructor constant"
       in
         Value
           {name = name,
@@ -541,7 +460,30 @@ fun destSource th =
         in
           raise Error err
         end
-      | _ => raise Bug "Haskell.destSource: ambiguous"
+      | (x1,x2,x3) =>
+        let
+          val bug =
+              "ambiguous source theorem:\n"
+
+          val bug =
+              case x1 of
+                Left _ => bug
+              | Right e => bug ^ "  " ^ e ^ "\n"
+
+          val bug =
+              case x2 of
+                Left _ => bug
+              | Right e => bug ^ "  " ^ e ^ "\n"
+
+          val bug =
+              case x3 of
+                Left _ => bug
+              | Right e => bug ^ "  " ^ e ^ "\n"
+
+          val bug = bug ^ Print.toString Thm.pp th
+        in
+          raise Bug bug
+        end
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -560,15 +502,21 @@ local
         sym
       end;
 in
-  fun symbolTableData d =
+  fun symbolTableData data =
       let
-        val Data {name, parameters = _, constructors = cons} = d
+        val Data
+              {name,
+               parameters = _,
+               constructors = cons,
+               caseConst} = data
 
         val sym = SymbolTable.empty
 
         val sym = SymbolTable.addTypeOp sym name
 
         val sym = List.foldl addConstructor sym cons
+
+        val sym = SymbolTable.addConst sym caseConst
       in
         sym
       end;
@@ -582,15 +530,21 @@ local
         sym
       end;
 in
-  fun definedSymbolTableData d =
+  fun definedSymbolTableData data =
       let
-        val Data {name, parameters = _, constructors = cons} = d
+        val Data
+              {name,
+               parameters = _,
+               constructors = cons,
+               caseConst} = data
 
         val sym = SymbolTable.empty
 
         val sym = SymbolTable.addTypeOp sym name
 
         val sym = List.foldl addConstructor sym cons
+
+        val sym = SymbolTable.addConst sym caseConst
       in
         sym
       end;
@@ -598,15 +552,26 @@ end;
 
 fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
 
-fun symbolTableNewtype n =
+fun symbolTableNewtype newtype =
     let
-      val Newtype {name, predicate = pred, abs, rep} = n
+      val Newtype
+            {name,
+             parameters = _,
+             predicate = pred,
+             repType,
+             abs,
+             rep} = newtype
 
       val sym = SymbolTable.empty
 
       val sym = SymbolTable.addTypeOp sym name
 
-      val sym = SymbolTable.addTerm sym pred
+      val sym =
+          case pred of
+            SOME tm => SymbolTable.addTerm sym tm
+          | NONE => sym
+
+      val sym = SymbolTable.addType sym repType
 
       val sym = SymbolTable.addConst sym abs
 
@@ -615,9 +580,15 @@ fun symbolTableNewtype n =
       sym
     end;
 
-fun definedSymbolTableNewtype n =
+fun definedSymbolTableNewtype newtype =
     let
-      val Newtype {name, predicate = _, abs, rep} = n
+      val Newtype
+            {name,
+             parameters = _,
+             predicate = _,
+             repType = _,
+             abs,
+             rep} = newtype
 
       val sym = SymbolTable.empty
 
@@ -642,9 +613,9 @@ local
         sym
       end;
 in
-  fun symbolTableValue v =
+  fun symbolTableValue value =
       let
-        val Value {name, ty, equations = eqns} = v
+        val Value {name, ty, equations = eqns} = value
 
         val sym = SymbolTable.empty
 
@@ -658,9 +629,9 @@ in
       end;
 end;
 
-fun definedSymbolTableValue v =
+fun definedSymbolTableValue value =
     let
-      val Value {name,...} = v
+      val Value {name,...} = value
 
       val sym = SymbolTable.empty
 
@@ -1456,7 +1427,11 @@ local
 in
   fun ppData ns data =
       let
-        val Data {name, parameters = parms, constructors = cons} = data
+        val Data
+              {name,
+               parameters = parms,
+               constructors = cons,
+               caseConst = _} = data
       in
         Print.inconsistentBlock 2
           [ppDecl ns (name,parms),
@@ -1464,13 +1439,48 @@ in
     end;
 end;
 
-fun ppNewtype ns newtype =
-    let
-      val Newtype {name, predicate = pred, abs, rep} = newtype
-    in
+local
+  fun ppDecl ns (name,parms) =
       Print.inconsistentBlock 2
-        []
-    end;
+        [Print.ppString "newtype ",
+         ppTypeOp ns name,
+         ppTypeVarList parms,
+         Print.ppString " ="];
+
+  fun ppRep ns (rep,repType) =
+      Print.inconsistentBlock 2
+        [ppConst ns rep,
+         Print.space,
+         Print.ppString "::",
+         Print.break,
+         ppType ns repType];
+
+  fun ppIso ns (abs,rep) =
+      Print.consistentBlock 0
+        [ppConst ns abs,
+         Print.space,
+         Print.ppString "{",
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         ppRep ns rep,
+         Print.break,
+         Print.ppString "}"];
+in
+  fun ppNewtype ns newtype =
+      let
+        val Newtype
+              {name,
+               parameters = parms,
+               predicate = pred,
+               repType,
+               abs,
+               rep} = newtype
+      in
+        Print.inconsistentBlock 2
+          [ppDecl ns (name,parms),
+           Print.break,
+           ppIso ns (abs,(rep,repType))]
+      end;
+end;
 
 local
   fun ppDecl ns (name,ty) =

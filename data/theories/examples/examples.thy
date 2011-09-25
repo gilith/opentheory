@@ -1,5 +1,5 @@
 name: examples
-version: 1.29
+version: 1.31
 description: All the example theories
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ word12 {
 
 word16 {
   import: byte
-  package: word16-1.16
+  package: word16-1.18
 }
 
 parser {
@@ -37,7 +37,7 @@ h {
   import: byte
   import: word10
   import: word12
-  package: h-1.18
+  package: h-1.19
 }
 
 main {

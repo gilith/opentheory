@@ -36,7 +36,7 @@ val compare : var * var -> order
 
 val equal : var -> var -> bool
 
-val listEqual : var list -> var list -> bool
+val equalList : var list -> var list -> bool
 
 val checkEqual : (TypeTerm.term -> TypeTerm.term -> unit) -> var -> var -> unit
 

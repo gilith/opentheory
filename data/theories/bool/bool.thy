@@ -6,7 +6,7 @@ license: MIT
 show: "Data.Bool"
 
 def {
-  package: bool-def-1.4
+  package: bool-def-1.5
 }
 
 int {

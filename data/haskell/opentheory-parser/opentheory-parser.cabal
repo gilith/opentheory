@@ -1,6 +1,6 @@
 Name: opentheory-parser
-Version: 1.11
-Description: Basic parsers in Haskell
+Version: 1.14
+Description: Simple stream parsers
 License: MIT
 License-file: LICENSE
 Cabal-version: >= 1.8.0.6

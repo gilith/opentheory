@@ -1,6 +1,6 @@
 name: haskell-parser
-version: 1.12
-description: Basic parsers in Haskell
+version: 1.14
+description: Simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
@@ -23,18 +23,18 @@ thm {
   interpret: const "Parser.Stream.eof" as "Haskell.Parser.Stream.Eof"
   interpret: const "Parser.Stream.error" as "Haskell.Parser.Stream.Error"
   interpret: const "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
-  interpret: const "Parser.Stream.case" as "Haskell.Parser.Stream.Stream.case"
+  interpret: const "Parser.Stream.case.error.eof.stream" as "Haskell.Parser.Stream.case.Error.Eof.Stream"
   package: parser-1.21
 }
 
 src {
   import: thm
-  package: haskell-parser-src-1.9
+  package: haskell-parser-src-1.11
 }
 
 test {
   import: thm
-  package: haskell-parser-test-1.3
+  package: haskell-parser-test-1.4
 }
 
 main {

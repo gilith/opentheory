@@ -73,6 +73,14 @@ val isVar = can destVar;
 
 fun equalVar v tm = equalVar' v (dest tm);
 
+local
+  fun uncurriedEqualVar (v,tm) = equalVar v tm;
+in
+  fun equalVarList vs tms =
+      List.length vs = List.length tms andalso
+      List.all uncurriedEqualVar (zip vs tms);
+end;
+
 (* Function applications *)
 
 fun mkApp' f_a = TypeTerm.App' f_a;
@@ -1314,7 +1322,7 @@ fun destGenAbs tm =
             else raise Error "no function"
 
         val () =
-            if Var.listEqual (VarSet.toList (freeVars pat)) vl then ()
+            if Var.equalList (VarSet.toList (freeVars pat)) vl then ()
             else raise Error "bad pattern var list"
 
         val () =
@@ -1532,7 +1540,7 @@ in
         mkBranches (typeOf tm) ns args
       end
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Term.destCase: " ^ err);
+      handle Error err => raise Error ("Term.destCase:\n" ^ err);
 *)
 end;
 
@@ -2600,6 +2608,143 @@ in
       end;
 end;
 *)
+
+(* ------------------------------------------------------------------------- *)
+(* Case declarations.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun destCon n (i,tm) =
+      let
+        val (vs,tm) = stripForall tm
+
+        val () =
+            if not (List.length vs < n) then ()
+            else raise Error "not enough variables"
+
+        val (vs,ws) = divide vs n
+
+        val (tm,res) = destEq tm
+
+        val (c,args) = stripApp tm
+
+        val (c,_) = destConst c
+
+        val () =
+            if List.length args = n + 1 then ()
+            else raise Error "wrong number of case arguments"
+
+        val () =
+            if equalVarList vs (List.take (args,n)) then ()
+            else raise Error "bad variable case arguments"
+
+        val tm = List.last args
+
+        val ty = typeOf tm
+
+        val (con,ws') = stripApp tm
+
+        val (con,_) = destConst con
+
+        val () =
+            if equalVarList ws ws' then ()
+            else
+              let
+                val err = "bad constructor arguments"
+
+(*OpenTheoryDebug
+                val vsToS = Print.toString (Print.ppList Var.pp)
+                and tmsToS = Print.toString (Print.ppList pp)
+
+                val err =
+                    err ^ ": should have been " ^ vsToS ws ^
+                    ", was " ^ tmsToS ws'
+*)
+              in
+                raise Error err
+              end
+
+        val (v,ws') = stripApp res
+
+        val () =
+            if equalVar (List.nth (vs,i)) v then ()
+            else raise Error "bad result variable"
+
+        val () =
+            if equalVarList ws ws' then ()
+            else raise Error "bad result arguments"
+
+        val n = Const.name con
+
+        val ws = List.map Var.typeOf ws
+      in
+        ((c,vs,ty),(n,(con,ws)))
+      end
+(*OpenTheoryDebug
+      handle Error err =>
+        let
+          val err =
+              "Term.destCaseDef.destCon: error in equation " ^
+              Int.toString i ^ "/" ^ Int.toString n ^ ":\n" ^ err
+        in
+          raise Error err
+        end;
+*)
+
+  fun sameCase c (c',_,_) = Const.equal c' c;
+
+  fun sameVars vs (_,vs',_) = Var.equalList vs' vs;
+
+  fun sameType ty (_,_,ty') = Type.equal ty' ty;
+in
+  fun destCaseDef tm =
+      let
+        val cons = stripConj tm
+
+        val n = List.length cons
+
+        val cvtncs = List.map (destCon n) (enumerate cons)
+
+        val (cvts,ncs) = unzip cvtncs
+
+        val (caseConst,dataType) =
+            case cvts of
+              [] => raise Error "no constructors"
+            | (c,vs,ty) :: cvts =>
+              let
+                val () =
+                    if List.all (sameCase c) cvts then ()
+                    else raise Error "different case term"
+
+                val () =
+                    if List.all (sameVars vs) cvts then ()
+                    else raise Error "different constructor variables"
+
+                val () =
+                    if List.all (sameType ty) cvts then ()
+                    else raise Error "different data type"
+              in
+                (c,ty)
+              end
+
+        val (ns,constructors) = unzip ncs
+
+        val (_,ns') = Name.destCase (Const.name caseConst)
+
+        val () =
+            if Name.equalList ns' ns then ()
+            else raise Error "bad case constant name"
+      in
+        {dataType = dataType,
+         constructors = constructors,
+         caseConst = caseConst}
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("Term.destCaseDef:\n" ^ err);
+*)
+end;
+
+val isCaseDef = can destCaseDef;
 
 end
 

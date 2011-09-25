@@ -38,7 +38,7 @@ val compare = TypeTerm.compareVar;
 
 val equal = TypeTerm.equalVar;
 
-val listEqual = Useful.listEqual equal;
+val equalList = Useful.listEqual equal;
 
 (* ------------------------------------------------------------------------- *)
 (* Type variables.                                                           *)

@@ -16,7 +16,7 @@ const "Parser.destParser" as "Haskell.Parser.unParser"
 
 type "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
 
-const "Parser.Stream.case" as "Haskell.Parser.Stream.Stream.case"
+const "Parser.Stream.case.error.eof.stream" as "Haskell.Parser.Stream.case.Error.Eof.Stream"
 const "Parser.Stream.append" as "Haskell.Parser.Stream.append"
 const "Parser.Stream.eof" as "Haskell.Parser.Stream.Eof"
 const "Parser.Stream.error" as "Haskell.Parser.Stream.Error"
