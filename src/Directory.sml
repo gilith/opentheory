@@ -173,58 +173,72 @@ datatype directory =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk {rootDirectory = rootDir} =
-    let
-      val config =
-          let
-            val filename =
-                DirectoryPath.mkConfigFilename {rootDirectory = rootDir}
-          in
-            DirectoryConfig.fromTextFile filename
-          end
+local
+  fun mkDir rootDir =
+      let
+        val config =
+            let
+              val filename =
+                  DirectoryPath.mkConfigFilename {rootDirectory = rootDir}
+            in
+              DirectoryConfig.fromTextFile filename
+            end
 
-      val packages =
-          let
-            val sys = DirectoryConfig.system config
-          in
-            DirectoryPackages.mk
-              {system = sys,
-               rootDirectory = rootDir}
-          end
+        val packages =
+            let
+              val sys = DirectoryConfig.system config
+            in
+              DirectoryPackages.mk
+                {system = sys,
+                 rootDirectory = rootDir}
+            end
 
-      val repos =
-          let
-            val sys = DirectoryConfig.system config
-            and cfgs = DirectoryConfig.repos config
+        val repos =
+            let
+              val sys = DirectoryConfig.system config
+              and cfgs = DirectoryConfig.repos config
 
-            val dir =
-                DirectoryPath.mkReposDirectory
-                  {rootDirectory = rootDir}
+              val dir =
+                  DirectoryPath.mkReposDirectory
+                    {rootDirectory = rootDir}
 
-            val utds = checkReposDirectory cfgs dir
+              val utds = checkReposDirectory cfgs dir
 
-            fun mkRepo cfg =
-                let
-                  val name = DirectoryConfig.nameRepo cfg
-                  and {url} = DirectoryConfig.urlRepo cfg
-                in
-                  DirectoryRepo.mk
-                    {system = sys,
-                     name = name,
-                     rootUrl = url,
-                     rootDirectory = rootDir,
-                     upToDate = List.exists (PackageName.equal name) utds}
-                end
-          in
-            List.map mkRepo cfgs
-          end
-    in
-      Directory
-        {rootDirectory = rootDir,
-         config = config,
-         packages = packages,
-         repos = repos}
-    end;
+              fun mkRepo cfg =
+                  let
+                    val name = DirectoryConfig.nameRepo cfg
+                    and {url} = DirectoryConfig.urlRepo cfg
+                  in
+                    DirectoryRepo.mk
+                      {system = sys,
+                       name = name,
+                       rootUrl = url,
+                       rootDirectory = rootDir,
+                       upToDate = List.exists (PackageName.equal name) utds}
+                  end
+            in
+              List.map mkRepo cfgs
+            end
+      in
+        Directory
+          {rootDirectory = rootDir,
+           config = config,
+           packages = packages,
+           repos = repos}
+      end
+      handle OS.SysErr (s,_) => raise Error ("system error: " ^ s);
+in
+  fun mk {rootDirectory = rootDir} =
+      mkDir rootDir
+      handle Error err =>
+        let
+          val err =
+              "couldn't open the theory directory " ^
+              rootDir ^ "\n" ^ err
+        in
+          raise Error err
+        end;
+end;
 
 fun rootDirectory (Directory {rootDirectory = x, ...}) = {rootDirectory = x};
 
