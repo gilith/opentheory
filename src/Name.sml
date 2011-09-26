@@ -113,6 +113,19 @@ fun rewrite x_y (name as Name (ns,n)) =
 (* Characters.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
+fun firstChar n =
+    let
+      val (ns,s) = dest n
+
+      val () =
+          if Namespace.isGlobal ns then ()
+          else raise Bug "Name.firstChar"
+
+      val i = String.size s
+    in
+      if i = 0 then NONE else SOME (String.sub (s,0))
+    end;
+
 fun lastChar n =
     let
       val (_,s) = dest n

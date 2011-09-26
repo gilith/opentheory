@@ -15,6 +15,35 @@ open Useful;
 val prefix = PackageName.haskellExport;
 
 (* ------------------------------------------------------------------------- *)
+(* Anonymizing unused variables.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  val anonymous = Name.mkGlobal "_";
+in
+  fun anonymize tms =
+      let
+        val fvs = Term.freeVarsList tms
+
+        fun anonVar v =
+            if VarSet.member v fvs then NONE
+            else SOME (v, Term.mkVar (Var.mk (anonymous, Var.typeOf v)))
+      in
+        fn pat =>
+           let
+             val vl = VarSet.toList (Term.freeVars pat)
+
+             val tySub = TypeSubst.emptyMap
+             and tmSub = TermSubst.fromListTermMap (List.mapPartial anonVar vl)
+
+             val sub = TermSubst.mk (tySub,tmSub)
+           in
+             Option.getOpt (TermSubst.subst sub pat, pat)
+           end
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Exporting various OpenTheory names to Haskell.                            *)
 (* ------------------------------------------------------------------------- *)
 
@@ -953,6 +982,8 @@ local
 
   fun ppImportNamespace namespace ns =
       let
+        val namespace = exportNamespace namespace
+
         val ns' = relativeNamespace namespace ns
 
         val ppImport =
@@ -1108,7 +1139,21 @@ end;
 
 fun ppConst ns c = ppConstName ns (Const.name c);
 
-fun ppVar v = ppVarName (Var.name v);
+local
+  val unused = #"_";
+in
+  fun ppVar v =
+      let
+        val n = Var.name v
+
+        val u =
+            case Name.firstChar n of
+              NONE => raise Error "variable name cannot be empty string"
+            | SOME c => c = unused
+      in
+        if u then Print.ppChar unused else ppVarName n
+      end;
+end;
 
 local
   val infixes =
@@ -1241,11 +1286,18 @@ in
                 ppSyntax "->"])
 
         and ppBindTerm (v,vs,body) =
-            Print.inconsistentBlock 2
-              [ppSyntax "\\",
-               ppBoundVars (v,vs),
-               Print.break,
-               ppNormalTerm body]
+            let
+              val anon = anonymize [body]
+
+              val v = anon v
+              and vs = List.map anon vs
+            in
+              Print.inconsistentBlock 2
+                [ppSyntax "\\",
+                 ppBoundVars (v,vs),
+                 Print.break,
+                 ppNormalTerm body]
+            end
 
         and ppBinderTerm (tm,r) =
             let
@@ -1260,6 +1312,8 @@ in
 
         and ppLetTerm (v,t,b,r) =
             let
+              val v = anonymize [b] v
+
               val ppLetBind =
                   Print.inconsistentBlock 4
                     [ppSyntax "let",
@@ -1328,13 +1382,17 @@ in
 
         and ppCaseTerm (a,bs,r) =
             let
-              fun ppBranch (pat,t_r) =
-                  Print.consistentBlock 2
-                    [ppApplicationTerm pat,
-                     Print.space,
-                     ppSyntax "->",
-                     Print.break,
-                     ppLetCondCaseNestedTerm t_r]
+              fun ppBranch (pat,(t,r)) =
+                  let
+                    val pat = anonymize [t] pat
+                  in
+                    Print.consistentBlock 2
+                      [ppApplicationTerm pat,
+                       Print.space,
+                       ppSyntax "->",
+                       Print.break,
+                       ppLetCondCaseNestedTerm (t,r)]
+                  end
 
               val ppDecl =
                   Print.consistentBlock 5
@@ -1493,6 +1551,8 @@ local
   fun ppEqn ns name ty (args,rtm) =
       let
         val ltm = Term.listMkApp (Term.mkConst (name,ty), args)
+
+        val ltm = anonymize [rtm] ltm
       in
         Print.inconsistentBlock 2
           [ppTerm ns ltm,

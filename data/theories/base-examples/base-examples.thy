@@ -1,5 +1,5 @@
 name: base-examples
-version: 1.38
+version: 1.39
 description: All the example theories built on top of the standard library
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -11,7 +11,7 @@ base {
 
 examples {
   import: base
-  package: examples-1.31
+  package: examples-1.32
 }
 
 main {

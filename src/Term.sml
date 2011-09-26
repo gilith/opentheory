@@ -40,7 +40,7 @@ fun mkConst c_ty = mk (mkConst' c_ty);
 fun destConst tm =
     destConst' (dest tm)
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destConst: " ^ err);
+    handle Error err => raise Error ("Term.destConst:\n" ^ err);
 *)
 
 val isConst = can destConst;
@@ -66,7 +66,7 @@ fun mkVar v = mk (mkVar' v);
 fun destVar tm =
     destVar' (dest tm)
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destVar: " ^ err);
+    handle Error err => raise Error ("Term.destVar:\n" ^ err);
 *)
 
 val isVar = can destVar;
@@ -97,7 +97,7 @@ fun mkApp f_a = mk (mkApp' f_a);
 fun destApp tm =
     destApp' (dest tm)
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destApp: " ^ err);
+    handle Error err => raise Error ("Term.destApp:\n" ^ err);
 *)
 
 val isApp = can destApp;
@@ -139,7 +139,7 @@ fun mkAbs v_b = mk (mkAbs' v_b);
 fun destAbs tm =
     destAbs' (dest tm)
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destAbs: " ^ err);
+    handle Error err => raise Error ("Term.destAbs:\n" ^ err);
 *)
 
 val isAbs = can destAbs;
@@ -731,7 +731,7 @@ fun destEqConst tm =
       else raise Error "wrong constant"
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destEqConst: " ^ err);
+    handle Error err => raise Error ("Term.destEqConst:\n" ^ err);
 *)
 
 val isEqConst = can destEqConst;
@@ -755,7 +755,7 @@ fun destEq tm =
       else raise Error "not equality constant"
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destEq: " ^ err);
+    handle Error err => raise Error ("Term.destEq:\n" ^ err);
 *)
 
 val isEq = can destEq;
@@ -775,7 +775,7 @@ fun destRefl tm =
       l
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destRefl: " ^ err);
+    handle Error err => raise Error ("Term.destRefl:\n" ^ err);
 *)
 
 val isRefl = can destRefl;
@@ -792,7 +792,7 @@ fun destSelectConst tm =
       else raise Error "wrong constant"
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destSelectConst: " ^ err);
+    handle Error err => raise Error ("Term.destSelectConst:\n" ^ err);
 *)
 
 val isSelectConst = can destSelectConst;
@@ -814,7 +814,7 @@ fun destSelect tm =
       else raise Error "not select constant"
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destSelect: " ^ err);
+    handle Error err => raise Error ("Term.destSelect:\n" ^ err);
 *)
 
 val isSelect = can destSelect;
@@ -1065,7 +1065,7 @@ fun destNullaryOp p tm =
       else raise Error "wrong constant"
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destNullaryOp: " ^ err);
+    handle Error err => raise Error ("Term.destNullaryOp:\n" ^ err);
 *)
 
 fun isNullaryOp p = can (destNullaryOp p);
@@ -1081,7 +1081,7 @@ fun destUnaryOp p tm =
       a
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destUnaryOp: " ^ err);
+    handle Error err => raise Error ("Term.destUnaryOp:\n" ^ err);
 *)
 
 (* Binary operators *)
@@ -1095,7 +1095,7 @@ fun destBinaryOp p tm =
       (a,b)
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destBinaryOp: " ^ err);
+    handle Error err => raise Error ("Term.destBinaryOp:\n" ^ err);
 *)
 
 fun stripBinaryOp p =
@@ -1119,7 +1119,7 @@ fun destTernaryOp p tm =
       (a,b,c)
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destTernaryOp: " ^ err);
+    handle Error err => raise Error ("Term.destTernaryOp:\n" ^ err);
 *)
 
 (* Quantifiers *)
@@ -1131,7 +1131,7 @@ fun destQuant p tm =
       destAbs f
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destQuant: " ^ err);
+    handle Error err => raise Error ("Term.destQuant:\n" ^ err);
 *)
 
 fun stripQuant p =
@@ -1163,7 +1163,7 @@ val isNegConst = isNullaryOp Const.isNeg;
 fun destNeg tm =
     destUnaryOp Const.isNeg tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destNeg: " ^ err);
+    handle Error err => raise Error ("Term.destNeg:\n" ^ err);
 *)
 
 val isNeg = can destNeg;
@@ -1175,7 +1175,7 @@ val isConjConst = isNullaryOp Const.isConj;
 fun destConj tm =
     destBinaryOp Const.isConj tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destConj: " ^ err);
+    handle Error err => raise Error ("Term.destConj:\n" ^ err);
 *)
 
 val isConj = can destConj;
@@ -1196,7 +1196,7 @@ val isDisjConst = isNullaryOp Const.isDisj;
 fun destDisj tm =
     destBinaryOp Const.isDisj tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destDisj: " ^ err);
+    handle Error err => raise Error ("Term.destDisj:\n" ^ err);
 *)
 
 val isDisj = can destDisj;
@@ -1217,7 +1217,7 @@ val isImpConst = isNullaryOp Const.isImp;
 fun destImp tm =
     destBinaryOp Const.isImp tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destImp: " ^ err);
+    handle Error err => raise Error ("Term.destImp:\n" ^ err);
 *)
 
 val isImp = can destImp;
@@ -1236,7 +1236,7 @@ val isForallConst = isNullaryOp Const.isForall;
 fun destForall tm =
     destQuant Const.isForall tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destForall: " ^ err);
+    handle Error err => raise Error ("Term.destForall:\n" ^ err);
 *)
 
 val isForall = can destForall;
@@ -1255,7 +1255,7 @@ val isExistsConst = isNullaryOp Const.isExists;
 fun destExists tm =
     destQuant Const.isExists tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destExists: " ^ err);
+    handle Error err => raise Error ("Term.destExists:\n" ^ err);
 *)
 
 val isExists = can destExists;
@@ -1274,7 +1274,7 @@ val isExistsUniqueConst = isNullaryOp Const.isExistsUnique;
 fun destExistsUnique tm =
     destQuant Const.isExistsUnique tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destExistsUnique: " ^ err);
+    handle Error err => raise Error ("Term.destExistsUnique:\n" ^ err);
 *)
 
 val isExistsUnique = can destExistsUnique;
@@ -1293,7 +1293,7 @@ val isCondConst = isNullaryOp Const.isCond;
 fun destCond tm =
     destTernaryOp Const.isCond tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destCond: " ^ err);
+    handle Error err => raise Error ("Term.destCond:\n" ^ err);
 *)
 
 val isCond = can destCond;
@@ -1332,7 +1332,7 @@ fun destGenAbs tm =
         (pat,body)
       end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destGenAbs: " ^ err);
+      handle Error err => raise Error ("Term.destGenAbs:\n" ^ err);
 *)
 
 val isGenAbs = can destGenAbs;
@@ -1365,7 +1365,7 @@ in
         (v,t,b)
       end
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Term.destLet: " ^ err);
+      handle Error err => raise Error ("Term.destLet:\n" ^ err);
 *)
 end;
 
@@ -1383,7 +1383,7 @@ fun destFromNatural tm =
       else raise Error "Term.destFromNatural"
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destFromNatural: " ^ err);
+    handle Error err => raise Error ("Term.destFromNatural:\n" ^ err);
 *)
 
 local
@@ -1424,7 +1424,7 @@ in
         destNum tm
       end
 (*OpenTheoryDebug
-      handle Error err => raise Error ("Term.destNumeral: " ^ err);
+      handle Error err => raise Error ("Term.destNumeral:\n" ^ err);
 *)
 end
 
@@ -1435,7 +1435,7 @@ val isNumeral = can destNumeral;
 fun destFromPredicate tm =
     destUnaryOp Const.isFromPredicate tm
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destFromPredicate: " ^ err);
+    handle Error err => raise Error ("Term.destFromPredicate:\n" ^ err);
 *)
 
 fun destComprehension tm =
@@ -1483,7 +1483,7 @@ fun destComprehension tm =
       | v :: vl => (v,vl,pat,pred)
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("Term.destComprehension: " ^ err);
+    handle Error err => raise Error ("Term.destComprehension:\n" ^ err);
 *)
 
 val isComprehension = can destComprehension;

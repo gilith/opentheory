@@ -60,6 +60,8 @@ val rewrite : Namespace.namespace * Namespace.namespace -> name -> name option
 (* Characters.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
+val firstChar : name -> char option
+
 val lastChar : name -> char option
 
 (* ------------------------------------------------------------------------- *)
