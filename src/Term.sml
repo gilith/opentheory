@@ -1725,13 +1725,6 @@ local
 
   fun showConstHtml show (c,ty) = Const.showNameHtml show (c, SOME ty);
 
-  val ppSyntaxHtml =
-      let
-        fun toHtml s = Name.toHtml (mkName s)
-      in
-        Print.ppMap toHtml Html.ppFixed
-      end;
-
   fun ppVarHtml show =
       let
         val toHtml = Var.toHtml show
@@ -1746,6 +1739,8 @@ local
         in
           [Html.Span (attrs,inlines)]
         end;
+
+    fun toHtmlSyntax s = mkSpan "syntax" (Name.toHtml (mkName s));
 
     fun toHtmlConst show (c,ty) = Const.toHtml show (c, SOME ty);
 
@@ -1802,6 +1797,8 @@ local
              end
         end;
   in
+    val ppSyntaxHtml = Print.ppMap toHtmlSyntax Html.ppFixed;
+
     fun ppConstHtml show = Print.ppMap (toHtmlConst show) Html.ppFixed;
 
     fun ppNegationHtml show = Print.ppMap (toHtmlNegation show) Html.ppFixed;

@@ -57,6 +57,13 @@ fun memberPure nv (PureChecksums m) = PackageNameVersionMap.inDomain nv m;
 fun previousVersionPure (PureChecksums m) nv =
     PackageNameVersionMap.previousVersion m nv;
 
+fun latestNameVersionPure (PureChecksums m) n =
+    let
+      fun pred (nv,_) = PackageName.equal (PackageNameVersion.name nv) n
+    in
+      PackageNameVersionMap.findr pred m
+    end;
+
 fun insertPure pc (nv,c) =
     if memberPure nv pc then
       let
@@ -253,11 +260,14 @@ fun peek chks n = peekPure (checksums chks) n;
 fun member n chks = memberPure n (checksums chks);
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up the previous version of a package.                             *)
+(* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun previousVersion chks nv =
     previousVersionPure (checksums chks) nv;
+
+fun latestNameVersion chks n =
+    latestNameVersionPure (checksums chks) n;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

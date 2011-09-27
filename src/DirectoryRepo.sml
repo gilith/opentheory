@@ -125,11 +125,14 @@ fun find repos (n,c) =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up the previous version of a package.                             *)
+(* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun previousVersion repo nv =
     DirectoryChecksums.previousVersion (checksums repo) nv;
+
+fun latestNameVersion repo n =
+    DirectoryChecksums.latestNameVersion (checksums repo) n;
 
 (* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)

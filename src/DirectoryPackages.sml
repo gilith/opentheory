@@ -232,7 +232,7 @@ fun latestNameVersion pkgs name =
     let
       val versions = nameVersions pkgs name
     in
-      case PackageVersionSet.findr (K true) versions of
+      case PackageVersionSet.latestVersion versions of
         NONE => NONE
       | SOME version =>
         let

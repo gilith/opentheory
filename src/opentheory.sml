@@ -283,21 +283,24 @@ fun directoryImporter () = Directory.importer (directory ());
 (* Getting the latest version of packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun directoryLatestVersion name =
+fun latestVersionDirectory name =
     let
       val dir = directory ()
     in
-      case Directory.latestNameVersion dir name of
-        SOME namever => namever
-      | NONE =>
-        let
-          val err =
-              "can't find latest version of package " ^
-              PackageName.toString name
-        in
-          raise Error err
-        end
+      Directory.latestNameVersion dir name
     end;
+
+fun getLatestVersionDirectory name =
+    case latestVersionDirectory name of
+      SOME namever => namever
+    | NONE =>
+      let
+        val err =
+            "can't find latest version of package " ^
+            PackageName.toString name
+      in
+        raise Error err
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* The directory staged package finder.                                      *)
@@ -365,6 +368,43 @@ in
         else List.map (Directory.getRepo dir) ns
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Getting the latest version of packages on repos.                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun latestVersionRepositories name chk' =
+    let
+      fun matches chk =
+          case chk' of
+            NONE => true
+          | SOME c => Checksum.equal c chk
+
+      fun later nv acc =
+          case acc of
+            NONE => true
+          | SOME (_,nv',_) =>
+            let
+              val v = PackageNameVersion.version nv
+              and v' = PackageNameVersion.version nv'
+            in
+              case PackageVersion.compare (v',v) of
+                LESS => true
+              | EQUAL => false
+              | GREATER => false
+            end
+
+      fun latest (repo,acc) =
+          case DirectoryRepo.latestNameVersion repo name of
+            NONE => acc
+          | SOME (nv,chk) =>
+            if not (matches chk andalso later nv acc) then acc
+            else SOME (repo,nv,chk')
+
+      val repos = repositories ()
+    in
+      List.foldl latest NONE repos
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Options for cleaning up staged packages.                                  *)
@@ -1099,7 +1139,7 @@ local
       case inp of
         ArticleInput _ => raise Error "cannot export an article"
       | PackageInput namever => namever
-      | PackageNameInput name => directoryLatestVersion name
+      | PackageNameInput name => getLatestVersionDirectory name
       | StagedPackageInput _ => raise Error "cannot export a staged package"
       | TarballInput _ => raise Error "cannot export a tarball"
       | TheoryInput _ => raise Error "cannot export a theory file";
@@ -1697,7 +1737,7 @@ local
 
   fun infoPackageName name infs =
       let
-        val namever = directoryLatestVersion name
+        val namever = getLatestVersionDirectory name
       in
         infoPackage namever infs
       end;
@@ -2175,6 +2215,62 @@ local
       handle Error err =>
         raise Error (err ^ "\npackage install failed");
 
+  fun installPackageName name =
+      let
+        val () =
+            if not (Option.isSome (!nameInstall)) then ()
+            else raise Error "can't specify name for a package name install"
+
+        val () =
+            if not (!stageInstall) then ()
+            else raise Error "can't stage a package name install"
+      in
+        case latestVersionRepositories name (!checksumInstall) of
+          NONE =>
+          let
+            val err =
+                "can't find a version of package " ^
+                PackageName.toString name
+
+            val err =
+                if not (Option.isSome (!checksumInstall)) then err
+                else err ^ " with specified checksum"
+
+            val err = err ^ " in any repo"
+          in
+            raise Error err
+          end
+        | SOME (_,namever,_) =>
+          let
+            val () =
+                case latestVersionDirectory name of
+                  NONE => ()
+                | SOME namever' =>
+                  let
+                    val v = PackageNameVersion.version namever
+                    and v' = PackageNameVersion.version namever'
+                  in
+                    case PackageVersion.compare (v,v') of
+                      LESS =>
+                      let
+                        val err =
+                            "latest version available is " ^
+                            PackageNameVersion.toString namever ^ "\n" ^
+                            "latest version installed is " ^
+                            PackageNameVersion.toString namever'
+                      in
+                        raise Error err
+                      end
+                    | EQUAL => ()
+                    | GREATER => ()
+                  end
+          in
+            installPackage namever
+          end
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage name install failed");
+
   fun installTarball tarFile =
       let
         val dir = directory ()
@@ -2346,7 +2442,7 @@ in
       case inp of
         ArticleInput _ => raise Error "cannot install an article"
       | PackageInput namever => installPackage namever
-      | PackageNameInput _ => raise Error "cannot install a package name"
+      | PackageNameInput name => installPackageName name
       | StagedPackageInput namever => installStagedPackage namever
       | TarballInput file => installTarball file
       | TheoryInput file => installTheory file;
@@ -2479,7 +2575,7 @@ local
       case inp of
         ArticleInput _ => raise Error "cannot upload an article"
       | PackageInput namever => namever
-      | PackageNameInput name => directoryLatestVersion name
+      | PackageNameInput name => getLatestVersionDirectory name
       | StagedPackageInput _ => raise Error "cannot upload a staged package"
       | TarballInput _ => raise Error "cannot upload a tarball"
       | TheoryInput _ => raise Error "cannot upload a theory file";

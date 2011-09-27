@@ -107,4 +107,20 @@ struct type t = PackageVersion.version val compare = PackageVersion.compare end
 
 structure PackageVersionMap = KeyMap (PackageVersionOrdered)
 
-structure PackageVersionSet = ElementSet (PackageVersionMap)
+structure PackageVersionSet =
+struct
+
+  local
+    structure S = ElementSet (PackageVersionMap);
+  in
+    open S;
+  end;
+
+  fun latestVersion set = findr (Useful.K true) set;
+
+  val pp =
+      Print.ppMap
+        toList
+        (Print.ppBracket "{" "}" (Print.ppOpList "," PackageVersion.pp));
+
+end
