@@ -75,11 +75,12 @@ local
        "div#main ul { padding-left: 1.25em; }",
        "div#main p.sequent { font-family: courier, monospace; }",
        "div#main span.warning { color: #ff0000; }",
+       "div#main span.syntax { color: #606080; }",
        "div#main span.namespace { font-style: italic; }",
-       "div#main span.var { color: #007f00; }",
-       "div#main span.negation { color: #00003f; }",
-       "div#main span.infix { color: #00007f; }",
-       "div#main span.binder { color: #7f0000; }",
+       "div#main span.var { color: #008000; }",
+       "div#main span.negation { color: #800080; }",
+       "div#main span.infix { color: #000080; }",
+       "div#main span.binder { color: #800000; }",
        "div#footer { margin: 2px }",
        "div#footer p { margin: 0; font-style: italic }"];
 

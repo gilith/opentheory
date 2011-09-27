@@ -1,6 +1,6 @@
 name: parser
-version: 1.21
-description: Basic theory of parsers
+version: 1.22
+description: Theory of simple parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
