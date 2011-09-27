@@ -1,5 +1,5 @@
 name: examples
-version: 1.32
+version: 1.33
 description: All the example theories
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -23,7 +23,7 @@ word16 {
 }
 
 parser {
-  package: parser-1.21
+  package: parser-1.22
 }
 
 char {
