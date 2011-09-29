@@ -12,23 +12,50 @@ open Useful;
 (* A type of names.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-datatype name = Name of Namespace.namespace * string;
+datatype name =
+    Name of
+      {namespace : Namespace.namespace,
+       component : Namespace.component,
+       toNamespace : Namespace.namespace};
 
-val mk = Name;
+fun mk (ns,c) =
+    Name
+      {namespace = ns,
+       component = c,
+       toNamespace = Namespace.mkNested (ns,c)};
 
-fun dest (Name n) = n;
+fun dest (Name {namespace = ns, component = c, ...}) = (ns,c);
 
-fun namespace n = fst (dest n);
+fun namespace (Name {namespace = x, ...}) = x;
+
+fun component (Name {component = x, ...}) = x;
+
+fun toNamespace (Name {toNamespace = x, ...}) = x;
+
+fun fromNamespace tns =
+    let
+      val (ns,c) = Namespace.destNested tns
+    in
+      Name
+        {namespace = ns,
+         component = c,
+         toNamespace = tns}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* The top level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkGlobal s = Name (Namespace.global,s);
+fun mkGlobal c = mk (Namespace.global,c);
 
-fun destGlobal (Name (n,s)) =
-    if Namespace.isGlobal n then s
-    else raise Error "Name.destGlobal";
+fun destGlobal n =
+    let
+      val () =
+          if Namespace.isGlobal (namespace n) then ()
+          else raise Error "Name.destGlobal"
+    in
+      component n
+    end;
 
 val isGlobal = can destGlobal;
 
@@ -36,11 +63,21 @@ val isGlobal = can destGlobal;
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (Name n1, Name n2) =
-    prodCompare Namespace.compare Namespace.compareComponent (n1,n2);
+fun compare (n1,n2) =
+    let
+      val Name {toNamespace = t1, ...} = n1
+      and Name {toNamespace = t2, ...} = n2
+    in
+      Namespace.compare (t1,t2)
+    end;
 
-fun equal (Name (ns1,n1)) (Name (ns2,n2)) =
-    n1 = n2 andalso Namespace.equal ns1 ns2;
+fun equal n1 n2 =
+    let
+      val Name {namespace = ns1, component = c1, ...} = n1
+      and Name {namespace = ns2, component = c2, ...} = n2
+    in
+      c1 = c2 andalso Namespace.equal ns1 ns2
+    end;
 
 val equalList = listEqual equal;
 
@@ -51,7 +88,7 @@ val equalList = listEqual equal;
 local
   val new = Namespace.mkNested (Namespace.global,"new");
 
-  fun numName i = Name (new, Int.toString i);
+  fun numName i = mk (new, Int.toString i);
 in
   fun newName () = numName (newInt ());
 
@@ -64,11 +101,11 @@ fun variantPrime {avoid} =
           if not (avoid n) then n
           else
             let
-              val Name (ns,s) = n
+              val (ns,s) = dest n
 
               val s = s ^ "'"
 
-              val n = Name (ns,s)
+              val n = mk (ns,s)
             in
               variant n
             end
@@ -83,7 +120,7 @@ in
       if not (avoid n) then n
       else
         let
-          val Name (ns,s) = n
+          val (ns,s) = dest n
 
           val s = stripSuffix isDigitOrPrime s
 
@@ -91,7 +128,7 @@ in
               let
                 val s_i = s ^ Int.toString i
 
-                val n = Name (ns,s_i)
+                val n = mk (ns,s_i)
               in
                 if avoid n then variant (i + 1) else n
               end
@@ -104,10 +141,10 @@ end;
 (* Rewriting names.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun rewrite x_y (name as Name (ns,n)) =
-    case Namespace.rewrite x_y ns of
+fun rewrite x_y n =
+    case Namespace.rewrite x_y (namespace n) of
       NONE => NONE
-    | SOME ns => SOME (Name (ns,n));
+    | SOME ns => SOME (mk (ns, component n));
 
 (* ------------------------------------------------------------------------- *)
 (* Characters.                                                               *)
@@ -241,8 +278,8 @@ in
   and zeroConst = mkNatural Namespace.zeroConstComponent;
 end;
 
-fun isFromNaturalConst (Name (_,s)) =
-    s = Namespace.fromNaturalConstComponent;
+fun isFromNaturalConst n =
+    component n = Namespace.fromNaturalConstComponent;
 
 (* Sets *)
 
@@ -306,22 +343,19 @@ local
 
   open Parse;
 
-  fun fromNamespace ns =
-      if Namespace.isGlobal ns then raise NoParse
-      else Name (Namespace.destNested ns);
+  fun process ns =
+      case total fromNamespace ns of
+        SOME n => n
+      | NONE => raise NoParse;
 in
-  val quotedParser = Namespace.quotedParser >> fromNamespace;
+  val quotedParser = Namespace.quotedParser >> process;
 end;
 
-local
-  fun toNamespace (Name ns_n) = Namespace.mkNested ns_n;
-in
-  val pp = Print.ppMap toNamespace Namespace.pp;
+val pp = Print.ppMap toNamespace Namespace.pp;
 
-  val ppQuoted = Print.ppMap toNamespace Namespace.ppQuoted;
+val ppQuoted = Print.ppMap toNamespace Namespace.ppQuoted;
 
-  fun toHtml n = Namespace.toHtml (toNamespace n);
-end;
+fun toHtml n = Namespace.toHtml (toNamespace n);
 
 val ppList = Print.ppList pp;
 

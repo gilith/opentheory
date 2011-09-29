@@ -157,6 +157,19 @@ val toExtraList = List.mapPartial toExtra;
 val fromExtraList = List.map fromExtra;
 
 (* ------------------------------------------------------------------------- *)
+(* Package requirements.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun destRequires tag =
+      case destName PackageName.requiresTag tag of
+        SOME v => SOME (PackageName.fromString v)
+      | NONE => NONE;
+in
+  val requires = List.mapPartial destRequires
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Shows.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 

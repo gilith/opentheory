@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.15
+version: 1.17
 description: Simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,8 +14,20 @@ thm {
   interpret: type "Parser.parser" as "Haskell.Parser.Parser"
   interpret: type "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
   interpret: const "Parser.parse" as "Haskell.Parser.parse"
+  interpret: const "Parser.parseAll" as "Haskell.Parser.parseAll"
+  interpret: const "Parser.map" as "Haskell.Parser.parseMap"
+  interpret: const "Parser.parseOption" as "Haskell.Parser.parseMaybe"
+  interpret: const "Parser.parseNone" as "Haskell.Parser.parseNone"
+  interpret: const "Parser.parsePair" as "Haskell.Parser.parsePair"
+  interpret: const "Parser.partialMap" as "Haskell.Parser.parsePartialMap"
+  interpret: const "Parser.parseSome" as "Haskell.Parser.parseSome"
+  interpret: const "Parser.parseStream" as "Haskell.Parser.parseStream"
   interpret: const "Parser.destParser" as "Haskell.Parser.unParser"
   interpret: const "Parser.mkParser" as "Haskell.Parser.Parser"
+  interpret: const "Parser.parseAll.pa" as "Haskell.Parser.parseAll.pa"
+  interpret: const "Parser.parseNone.pn" as "Haskell.Parser.parseNone.pn"
+  interpret: const "Parser.parsePair.pbc" as "Haskell.Parser.parsePair.pbc"
+  interpret: const "Parser.partialMap.pf" as "Haskell.Parser.parsePartialMap.pf"
   interpret: const "Parser.Stream.append" as "Haskell.Parser.Stream.append"
   interpret: const "Parser.Stream.fromList" as "Haskell.Parser.Stream.fromList"
   interpret: const "Parser.Stream.length" as "Haskell.Parser.Stream.size"
@@ -29,7 +41,7 @@ thm {
 
 src {
   import: thm
-  package: haskell-parser-src-1.11
+  package: haskell-parser-src-1.13
 }
 
 test {

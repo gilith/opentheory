@@ -92,6 +92,10 @@ val versionTag : name
 
 val extraSuffixTag : name
 
+(* Package requirements *)
+
+val requiresTag : name
+
 (* Shows *)
 
 val showTag : name

@@ -12,19 +12,25 @@ sig
 
 type name
 
-val mk : Namespace.namespace * string -> name
+val mk : Namespace.namespace * Namespace.component -> name
 
-val dest : name -> Namespace.namespace * string
+val dest : name -> Namespace.namespace * Namespace.component
 
 val namespace : name -> Namespace.namespace
+
+val component : name -> Namespace.component
+
+val toNamespace : name -> Namespace.namespace
+
+val fromNamespace : Namespace.namespace -> name
 
 (* ------------------------------------------------------------------------- *)
 (* The top level namespace.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val mkGlobal : string -> name
+val mkGlobal : Namespace.component -> name
 
-val destGlobal : name -> string
+val destGlobal : name -> Namespace.component
 
 val isGlobal : name -> bool
 

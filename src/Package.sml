@@ -105,6 +105,12 @@ fun author pkg = PackageTag.findAuthor (tags pkg);
 fun license pkg = PackageTag.findLicense (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
+(* Package requirements.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun requires pkg = PackageTag.requires (tags pkg);
+
+(* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

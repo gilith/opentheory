@@ -23,6 +23,7 @@ and licenseString = "license"
 and mainString = "main"
 and nameString = "name"
 and opentheoryString = "opentheory"
+and requiresString = "requires"
 and separatorChar = #"-"
 and showString = "show"
 and srcString = "src"
@@ -182,6 +183,10 @@ val versionTag = Name [versionString];
 (* Extra package files *)
 
 val extraSuffixTag = Name [extraSuffixString];
+
+(* Package requirements *)
+
+val requiresTag = Name [requiresString];
 
 (* Shows *)
 

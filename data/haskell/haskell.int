@@ -10,6 +10,18 @@ type "Parser.parser" as "Haskell.Parser.Parser"
 
 const "Parser.mkParser" as "Haskell.Parser.Parser"
 const "Parser.parse" as "Haskell.Parser.parse"
+const "Parser.parseAll" as "Haskell.Parser.parseAll"
+const "Parser.parseAll.pa" as "Haskell.Parser.parseAll.pa"
+const "Parser.parseNone" as "Haskell.Parser.parseNone"
+const "Parser.parseNone.pn" as "Haskell.Parser.parseNone.pn"
+const "Parser.map" as "Haskell.Parser.parseMap"
+const "Parser.parseOption" as "Haskell.Parser.parseMaybe"
+const "Parser.parsePair" as "Haskell.Parser.parsePair"
+const "Parser.parsePair.pbc" as "Haskell.Parser.parsePair.pbc"
+const "Parser.partialMap" as "Haskell.Parser.parsePartialMap"
+const "Parser.partialMap.pf" as "Haskell.Parser.parsePartialMap.pf"
+const "Parser.parseSome" as "Haskell.Parser.parseSome"
+const "Parser.parseStream" as "Haskell.Parser.parseStream"
 const "Parser.destParser" as "Haskell.Parser.unParser"
 
 # Haskell.Parser.Stream
