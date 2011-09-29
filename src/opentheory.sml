@@ -399,7 +399,7 @@ fun latestVersionRepositories name chk' =
             NONE => acc
           | SOME (nv,chk) =>
             if not (matches chk andalso later nv acc) then acc
-            else SOME (repo,nv,chk')
+            else SOME (repo,nv,chk)
 
       val repos = repositories ()
     in
@@ -2240,33 +2240,48 @@ local
           in
             raise Error err
           end
-        | SOME (_,namever,_) =>
-          let
-            val () =
-                case latestVersionDirectory name of
-                  NONE => ()
-                | SOME namever' =>
-                  let
-                    val v = PackageNameVersion.version namever
-                    and v' = PackageNameVersion.version namever'
-                  in
-                    case PackageVersion.compare (v,v') of
-                      LESS =>
-                      let
-                        val err =
-                            "latest version available is " ^
-                            PackageNameVersion.toString namever ^ "\n" ^
-                            "latest version installed is " ^
-                            PackageNameVersion.toString namever'
-                      in
-                        raise Error err
-                      end
-                    | EQUAL => ()
-                    | GREATER => ()
-                  end
-          in
-            installPackage namever
-          end
+        | SOME (_,namever,chk) =>
+          case latestVersionDirectory name of
+            NONE => installPackage namever
+          | SOME namever' =>
+            let
+              val v = PackageNameVersion.version namever
+              and v' = PackageNameVersion.version namever'
+            in
+              case PackageVersion.compare (v,v') of
+                LESS =>
+                let
+                  val msg =
+                      "package " ^ PackageNameVersion.toString namever' ^
+                      " is newer than any available"
+
+                  val () = chat msg
+                in
+                  ()
+                end
+              | EQUAL =>
+                let
+                  val dir = directory ()
+
+                  val chk' =
+                      case Directory.checksum dir namever' of
+                        SOME c => c
+                      | NONE => raise Bug "installPackageName"
+                in
+                  if not (Checksum.equal chk' chk) then installPackage namever
+                  else
+                    let
+                      val msg =
+                          "package " ^ PackageNameVersion.toString namever' ^
+                          " is up to date"
+
+                      val () = chat msg
+                    in
+                      ()
+                    end
+                end
+              | GREATER => installPackage namever
+            end
       end
       handle Error err =>
         raise Error (err ^ "\npackage name install failed");
