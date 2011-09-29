@@ -2247,40 +2247,35 @@ local
             let
               val v = PackageNameVersion.version namever
               and v' = PackageNameVersion.version namever'
+
+              val proceed =
+                  case PackageVersion.compare (v,v') of
+                    LESS => false
+                  | EQUAL =>
+                    let
+                      val dir = directory ()
+
+                      val chk' =
+                          case Directory.checksum dir namever' of
+                            SOME c => c
+                          | NONE => raise Bug "installPackageName"
+                    in
+                      not (Checksum.equal chk' chk)
+                    end
+                  | GREATER => true
             in
-              case PackageVersion.compare (v,v') of
-                LESS =>
+              if proceed then installPackage namever
+              else
                 let
                   val msg =
-                      "package " ^ PackageNameVersion.toString namever' ^
-                      " is newer than any available"
+                      "installed package " ^
+                      PackageNameVersion.toString namever' ^
+                      " is up to date"
 
                   val () = chat msg
                 in
                   ()
                 end
-              | EQUAL =>
-                let
-                  val dir = directory ()
-
-                  val chk' =
-                      case Directory.checksum dir namever' of
-                        SOME c => c
-                      | NONE => raise Bug "installPackageName"
-                in
-                  if not (Checksum.equal chk' chk) then installPackage namever
-                  else
-                    let
-                      val msg =
-                          "package " ^ PackageNameVersion.toString namever' ^
-                          " is up to date"
-
-                      val () = chat msg
-                    in
-                      ()
-                    end
-                end
-              | GREATER => installPackage namever
             end
       end
       handle Error err =>
