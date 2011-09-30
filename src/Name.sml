@@ -266,6 +266,14 @@ in
   and someConst = mkOption Namespace.someConstComponent;
 end;
 
+(* Pairs *)
+
+local
+  fun mkPair c = mk (Namespace.pair,c);
+in
+  val pairConst = mkPair Namespace.pairConstComponent;
+end;
+
 (* Natural numbers *)
 
 local

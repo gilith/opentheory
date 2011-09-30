@@ -132,6 +132,10 @@ val nilConst : name
 val noneConst : name
 val someConst : name
 
+(* Pairs *)
+
+val pairConst : name
+
 (* Natural numbers *)
 
 val bit0Const : name

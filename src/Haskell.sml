@@ -95,14 +95,18 @@ local
 
   val constMapping =
       NameMap.fromList
-        [(Name.conjConst, Name.mkGlobal "&&"),
+        [(Name.bit0Const, Name.mkGlobal "--bit0--"),
+         (Name.bit1Const, Name.mkGlobal "--bit1--"),
+         (Name.condConst, Name.mkGlobal "--cond--"),
+         (Name.conjConst, Name.mkGlobal "&&"),
          (Name.consConst, Name.mkGlobal ":"),
          (Name.eqConst, Name.mkGlobal "=="),
+         (Name.forallConst, Name.mkGlobal "--forall--"),
          (Name.nilConst, Name.mkGlobal "[]"),
          (Name.noneConst, Name.mkGlobal "Nothing"),
+         (Name.pairConst, Name.mkGlobal ","),
+         (Name.selectConst, Name.mkGlobal "--select--"),
          (Name.someConst, Name.mkGlobal "Just"),
-         (Name.bit0Const, mkNaturalName "bit0"),
-         (Name.bit1Const, mkNaturalName "bit1"),
          (Name.sucConst, mkNaturalName "suc"),
          (Name.zeroConst, mkNaturalName "zero")];
 
@@ -1189,7 +1193,8 @@ local
          (*{token = "=<<", precedence = 1, assoc = Print.RightAssoc},*)
          {token = "$", precedence = 0, assoc = Print.RightAssoc},
          {token = "$!", precedence = 0, assoc = Print.RightAssoc},
-         {token = "seq", precedence = 0, assoc = Print.RightAssoc}];
+         {token = "seq", precedence = 0, assoc = Print.RightAssoc},
+         {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
 
   val infixTokens = Print.tokensInfixes infixes;
 
