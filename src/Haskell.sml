@@ -270,7 +270,7 @@ datatype value =
     Value of
       {name : Const.const,
        ty : Type.ty,
-       equations : (Term.term list * Term.term) list};
+       equations : (Term.term list * Term.term * value list) list};
 
 datatype source =
     DataSource of data
@@ -420,7 +420,7 @@ local
 
         val (f,a) = Term.stripApp l
       in
-        ((f, length a), (a,r))
+        ((f, length a), (a,r,[]))
       end;
 in
   fun destValue th =
@@ -637,20 +637,9 @@ fun definedSymbolTableNewtype newtype =
 fun symbolValue (Value {name,...}) = Symbol.Const name;
 
 local
-  fun addEquation ((args,tm),sym) =
-      let
-        val sym = SymbolTable.addTermList sym args
-
-        val sym = SymbolTable.addTerm sym tm
-      in
-        sym
-      end;
-in
-  fun symbolTableValue value =
+  fun addValue (value,sym) =
       let
         val Value {name, ty, equations = eqns} = value
-
-        val sym = SymbolTable.empty
 
         val sym = SymbolTable.addConst sym name
 
@@ -659,8 +648,23 @@ in
         val sym = List.foldl addEquation sym eqns
       in
         sym
+      end
+
+  and addEquation ((args,tm,values),sym) =
+      let
+        val sym = SymbolTable.addTermList sym args
+
+        val sym = SymbolTable.addTerm sym tm
+
+        val sym = List.foldl addValue sym values
+      in
+        sym
       end;
+in
+  fun addSymbolTableValue sym value = addValue (value,sym);
 end;
+
+val symbolTableValue = addSymbolTableValue SymbolTable.empty;
 
 fun definedSymbolTableValue value =
     let
@@ -703,6 +707,180 @@ fun symbolTableSourceList sl =
 
 fun definedSymbolTableSourceList sl =
     SymbolTable.unionList (List.map definedSymbolTableSource sl);
+
+local
+  fun mkEqn eqn =
+      let
+        val (_,tm,_) = eqn
+
+        val sym = SymbolTable.addTerm SymbolTable.empty tm
+      in
+        (sym,eqn)
+      end;
+
+  fun destEqn (_,eqn) = eqn;
+
+  fun inEqn name (sym,_) = SymbolTable.knownConst sym name;
+
+  fun notinEqn name eqn = not (inEqn name eqn);
+
+  fun addEqn value (sym,(args,tm,subs)) =
+        let
+          val sym = addSymbolTableValue sym value
+          and subs = subs @ [value]
+        in
+          (sym,(args,tm,subs))
+        end;
+
+  fun pullValues (src,(values,others)) =
+      case src of
+        ValueSource value =>
+        let
+          val Value {name,...} = value
+
+          val name = Const.name name
+
+          val values = NameMap.insert values (name,(value,[]))
+        in
+          (values,others)
+        end
+      | _ =>
+        let
+          val others = src :: others
+        in
+          (values,others)
+        end;
+
+  fun checkValue eqns value =
+      let
+        val Value {name, ty = _, equations = _} = value
+
+        val name = Const.name name
+      in
+        case List.filter (inEqn name) eqns of
+          [] => raise Bug "Haskell.groupSource.checkValue"
+        | [_] => ()
+        | _ :: _ :: _ =>
+          let
+            val err = "ambiguous nested value " ^ Name.toString name
+          in
+            raise Error err
+          end
+      end;
+
+  fun addValue value =
+      let
+        val Value {name, ty = _, equations = _} = value
+
+        val name = Const.name name
+
+        fun findEqn revEqns eqns =
+            case eqns of
+              [] => NONE
+            | eqn :: eqns =>
+              if notinEqn name eqn then findEqn (eqn :: revEqns) eqns
+              else
+                let
+                  val eqn = addEqn value eqn
+                in
+                  SOME (List.revAppend (revEqns, eqn :: eqns))
+                end
+      in
+        findEqn []
+      end;
+
+  val addValues =
+      let
+        fun add revValues values eqns =
+            case values of
+              [] => (List.rev revValues, eqns)
+            | value :: values =>
+              case addValue value eqns of
+                NONE => add (value :: revValues) values eqns
+              | SOME eqns => add revValues values eqns
+
+        fun repeat values eqns =
+            let
+              val (values',eqns) = add [] values eqns
+            in
+              case values' of
+                [] => eqns
+              | value :: _ =>
+                if List.length values' < List.length values then
+                  repeat values' eqns
+                else
+                  let
+                    val Value {name, ty = _, equations = _} = value
+
+                    val name = Const.name name
+
+                    val err = "unused nested value " ^ Name.toString name
+                  in
+                    raise Error err
+                  end
+            end
+
+        fun repeatCheck values eqns =
+            let
+              val eqns = List.map mkEqn eqns
+
+              val eqns = repeat values eqns
+
+              val () = List.app (checkValue eqns) values
+            in
+              List.map destEqn eqns
+            end
+      in
+        repeatCheck
+      end;
+
+  fun mergeSubvalues values name =
+      let
+        val (value,subvalues) = NameMap.get values name
+
+        val Value {name, ty, equations = eqns} = value
+
+        val eqns = addValues subvalues eqns
+
+        val value = Value {name = name, ty = ty, equations = eqns}
+      in
+        value
+      end;
+
+  fun groupValues (name,_,(values,acc)) =
+      let
+        val value = mergeSubvalues values name
+
+        val name' = Name.fromNamespace (Name.namespace name)
+      in
+        case NameMap.peek values name' of
+          NONE =>
+          let
+            val acc = value :: acc
+          in
+            (values,acc)
+          end
+        | SOME (value',subvalues') =>
+          let
+            val subvalues' = value :: subvalues'
+
+            val values = NameMap.insert values (name',(value',subvalues'))
+          in
+            (values,acc)
+          end
+      end;
+in
+  fun groupSource src =
+      let
+        val values = NameMap.new ()
+
+        val (values,src) = List.foldl pullValues (values,[]) (List.rev src)
+
+        val (_,values) = NameMap.foldr groupValues (values,[]) values
+      in
+        src @ List.map ValueSource values
+      end;
+end;
 
 local
   val mkSymSrc =
@@ -904,8 +1082,14 @@ fun destSourceTheory src =
       val art = Theory.article src
 
       val ths = ThmSet.toList (Thms.thms (Article.thms art))
+
+      val src = List.map destSource ths
+
+      val src = groupSource src
+
+      val src = sortSource src
     in
-      sortSource (List.map destSource ths)
+      src
     end;
 
 fun convert pkg thy =
@@ -1553,7 +1737,7 @@ local
          Print.break,
          ppType ns ty];
 
-  fun ppEqn ns name ty (args,rtm) =
+  fun ppEqn ns name ty (args,rtm,subvals) =
       let
         val ltm = Term.listMkApp (Term.mkConst (name,ty), args)
 
@@ -1564,7 +1748,17 @@ local
            Print.ppString " =",
            Print.break,
            ppTerm ns rtm]
+      end
+
+  and ppVal ns value =
+      let
+        val Value {name, ty, equations = eqns} = value
+      in
+        Print.inconsistentBlock 0
+          (ppDecl ns (name,ty) ::
+           List.map (Print.sequence Print.newline o ppEqn ns name ty) eqns)
       end;
+
 in
   fun ppValue ns value =
       let
