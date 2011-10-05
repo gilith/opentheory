@@ -145,7 +145,7 @@ fun sharingRewrite seq rewr =
 
       val (hyp',rewr) = TermRewrite.sharingRewriteAlphaSet hyp rewr
 
-      val (concl',rewr) = TermRewrite.sharingRewrite concl rewr
+      val (concl',rewr) = TermRewrite.sharingRewriteTerm concl rewr
 
       val seq' =
           case (hyp',concl') of

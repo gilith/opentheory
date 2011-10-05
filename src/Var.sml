@@ -100,7 +100,7 @@ fun subst sub (TypeTerm.Var (n,ty)) =
 
 fun sharingRewrite (TypeTerm.Var (n,ty)) rewr =
     let
-      val (ty',rewr) = TypeRewrite.sharingRewrite ty rewr
+      val (ty',rewr) = TypeRewrite.sharingRewriteType ty rewr
 
       val v' =
           case ty' of
@@ -111,7 +111,7 @@ fun sharingRewrite (TypeTerm.Var (n,ty)) rewr =
     end;
 
 fun rewrite rewr (TypeTerm.Var (n,ty)) =
-    case TypeRewrite.rewrite rewr ty of
+    case TypeRewrite.rewriteType rewr ty of
       SOME ty => SOME (TypeTerm.Var (n,ty))
     | NONE => NONE;
 

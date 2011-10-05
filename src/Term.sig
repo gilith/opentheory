@@ -30,6 +30,8 @@ val destConst : term -> Const.const * Type.ty
 
 val isConst : term -> bool
 
+val equalConst : Const.const -> term -> bool
+
 (* Variables *)
 
 val mkVar : Var.var -> term

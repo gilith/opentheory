@@ -26,6 +26,8 @@ fun new apply =
          seen = seen}
     end;
 
+val id = new (K NONE);
+
 (* ------------------------------------------------------------------------- *)
 (* The bottom-up traversal.                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -91,7 +93,9 @@ and rewriteTyList apply tys seen =
 (* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun sharingRewrite ty rewr =
+(* Types *)
+
+fun sharingRewriteType ty rewr =
     let
       val Rewrite {apply,seen} = rewr
 
@@ -102,13 +106,35 @@ fun sharingRewrite ty rewr =
       (ty',rewr)
     end;
 
-fun rewrite rewr ty =
+fun rewriteType rewr ty =
     let
       val Rewrite {apply,seen} = rewr
 
       val (ty',_) = rewriteTy apply ty seen
     in
       ty'
+    end;
+
+(* Type lists *)
+
+fun sharingRewriteTypeList tys rewr =
+    let
+      val Rewrite {apply,seen} = rewr
+
+      val (tys',seen) = rewriteTyList apply tys seen
+
+      val rewr = Rewrite {apply = apply, seen = seen}
+    in
+      (tys',rewr)
+    end;
+
+fun rewriteTypeList rewr tys =
+    let
+      val Rewrite {apply,seen} = rewr
+
+      val (tys',_) = rewriteTyList apply tys seen
+    in
+      tys'
     end;
 
 end

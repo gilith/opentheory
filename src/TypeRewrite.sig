@@ -14,12 +14,23 @@ type rewrite
 
 val new : (Type.ty' -> Type.ty option) -> rewrite
 
+val id : rewrite
+
 (* ------------------------------------------------------------------------- *)
 (* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val sharingRewrite : Type.ty -> rewrite -> Type.ty option * rewrite
+(* Types *)
 
-val rewrite : rewrite -> Type.ty -> Type.ty option
+val sharingRewriteType : Type.ty -> rewrite -> Type.ty option * rewrite
+
+val rewriteType : rewrite -> Type.ty -> Type.ty option
+
+(* Type lists *)
+
+val sharingRewriteTypeList :
+    Type.ty list -> rewrite -> Type.ty list option * rewrite
+
+val rewriteTypeList : rewrite -> Type.ty list -> Type.ty list option
 
 end

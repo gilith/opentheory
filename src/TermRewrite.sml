@@ -28,11 +28,13 @@ fun new tyRewr apply =
          seen = seen}
     end;
 
+val id = new TypeRewrite.id (K NONE);
+
 (* ------------------------------------------------------------------------- *)
 (* The bottom-up traversal.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun rewriteTerm apply tm tyRewr seen =
+fun rewriteTm apply tm tyRewr seen =
     let
       val i = Term.id tm
     in
@@ -40,7 +42,7 @@ fun rewriteTerm apply tm tyRewr seen =
         SOME tm' => (tm',tyRewr,seen)
       | NONE =>
         let
-          val (tm',tyRewr,seen) = rewriteTerm' apply (Term.dest tm) tyRewr seen
+          val (tm',tyRewr,seen) = rewriteTm' apply (Term.dest tm) tyRewr seen
 
           val seen = IntMap.insert seen (i,tm')
         in
@@ -48,11 +50,11 @@ fun rewriteTerm apply tm tyRewr seen =
         end
     end
 
-and rewriteTerm' apply tm' tyRewr seen =
+and rewriteTm' apply tm' tyRewr seen =
     case tm' of
       TypeTerm.Const' (c,ty) =>
       let
-        val (ty',tyRewr) = TypeRewrite.sharingRewrite ty tyRewr
+        val (ty',tyRewr) = TypeRewrite.sharingRewriteType ty tyRewr
 
         val (unchanged,tm') =
             case ty' of
@@ -86,9 +88,9 @@ and rewriteTerm' apply tm' tyRewr seen =
       end
     | TypeTerm.App' (f,a) =>
       let
-        val (f',tyRewr,seen) = rewriteTerm apply f tyRewr seen
+        val (f',tyRewr,seen) = rewriteTm apply f tyRewr seen
 
-        val (a',tyRewr,seen) = rewriteTerm apply a tyRewr seen
+        val (a',tyRewr,seen) = rewriteTm apply a tyRewr seen
 
         val (unchanged,tm') =
             case (f',a') of
@@ -109,7 +111,7 @@ and rewriteTerm' apply tm' tyRewr seen =
       let
         val (v',tyRewr) = Var.sharingRewrite v tyRewr
 
-        val (b',tyRewr,seen) = rewriteTerm apply b tyRewr seen
+        val (b',tyRewr,seen) = rewriteTm apply b tyRewr seen
 
         val (unchanged,tm') =
             case (v',b') of
@@ -131,13 +133,42 @@ and rewriteTerm' apply tm' tyRewr seen =
 (* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
+(* Lists *)
+
+fun sharingRewriteList srX xs rewr =
+    case xs of
+      [] => (NONE,rewr)
+    | x :: xs =>
+      let
+        val (x',rewr) = srX x rewr
+
+        val (xs',rewr) = sharingRewriteList srX xs rewr
+
+        val result =
+            case x' of
+              SOME x => SOME (x :: Option.getOpt (xs',xs))
+            | NONE =>
+              case xs' of
+                SOME xs => SOME (x :: xs)
+              | NONE => NONE
+      in
+        (result,rewr)
+      end;
+
+fun rewriteList srX rewr xs =
+    let
+      val (xs',_) = sharingRewriteList srX xs rewr
+    in
+      xs'
+    end;
+
 (* Types *)
 
 fun sharingRewriteType ty rewr =
     let
       val Rewrite {tyRewr,apply,seen} = rewr
 
-      val (ty',tyRewr) = TypeRewrite.sharingRewrite ty tyRewr
+      val (ty',tyRewr) = TypeRewrite.sharingRewriteType ty tyRewr
 
       val rewr = Rewrite {tyRewr = tyRewr, apply = apply, seen = seen}
     in
@@ -148,7 +179,7 @@ fun rewriteType rewr ty =
     let
       val Rewrite {tyRewr,...} = rewr
     in
-      TypeRewrite.rewrite tyRewr ty
+      TypeRewrite.rewriteType tyRewr ty
     end;
 
 (* Variables *)
@@ -173,32 +204,38 @@ fun rewriteVar rewr v =
 
 (* Terms *)
 
-fun sharingRewrite tm rewr =
+fun sharingRewriteTerm tm rewr =
     let
       val Rewrite {tyRewr,apply,seen} = rewr
 
-      val (tm',tyRewr,seen) = rewriteTerm apply tm tyRewr seen
+      val (tm',tyRewr,seen) = rewriteTm apply tm tyRewr seen
 
       val rewr = Rewrite {tyRewr = tyRewr, apply = apply, seen = seen}
     in
       (tm',rewr)
     end;
 
-fun rewrite rewr tm =
+fun rewriteTerm rewr tm =
     let
       val Rewrite {tyRewr,apply,seen} = rewr
 
-      val (tm',_,_) = rewriteTerm apply tm tyRewr seen
+      val (tm',_,_) = rewriteTm apply tm tyRewr seen
     in
       tm'
     end;
+
+(* Term lists *)
+
+val sharingRewriteTermList = sharingRewriteList sharingRewriteTerm;
+
+val rewriteTermList = rewriteList sharingRewriteTerm;
 
 (* Term sets *)
 
 local
   fun add (tm,(tms,unchanged,rewr)) =
       let
-        val (tm',rewr) = sharingRewrite tm rewr
+        val (tm',rewr) = sharingRewriteTerm tm rewr
 
         val (tms,unchanged) =
             case tm' of

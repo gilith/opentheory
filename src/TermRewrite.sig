@@ -14,9 +14,21 @@ type rewrite
 
 val new : TypeRewrite.rewrite -> (Term.term' -> Term.term option) -> rewrite
 
+val id : rewrite
+
 (* ------------------------------------------------------------------------- *)
 (* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)
+
+(* Lists *)
+
+val sharingRewriteList :
+    ('a -> rewrite -> 'a option * rewrite) ->
+    'a list -> rewrite -> 'a list option * rewrite
+
+val rewriteList :
+    ('a -> rewrite -> 'a option * rewrite) ->
+    rewrite -> 'a list -> 'a list option
 
 (* Types *)
 
@@ -32,9 +44,16 @@ val rewriteVar : rewrite -> Var.var -> Var.var option
 
 (* Terms *)
 
-val sharingRewrite : Term.term -> rewrite -> Term.term option * rewrite
+val sharingRewriteTerm : Term.term -> rewrite -> Term.term option * rewrite
 
-val rewrite : rewrite -> Term.term -> Term.term option
+val rewriteTerm : rewrite -> Term.term -> Term.term option
+
+(* Term lists *)
+
+val sharingRewriteTermList :
+    Term.term list -> rewrite -> Term.term list option * rewrite
+
+val rewriteTermList : rewrite -> Term.term list -> Term.term list option
 
 (* Term sets *)
 

@@ -35,6 +35,11 @@ fun destConst' tm' =
 
 val isConst' = can destConst';
 
+fun equalConst' const tm' =
+    case tm' of
+      TypeTerm.Const' (c,_) => Const.equal c const
+    | _ => false;
+
 fun mkConst c_ty = mk (mkConst' c_ty);
 
 fun destConst tm =
@@ -44,6 +49,8 @@ fun destConst tm =
 *)
 
 val isConst = can destConst;
+
+fun equalConst const tm = equalConst' const (dest tm);
 
 (* Variables *)
 

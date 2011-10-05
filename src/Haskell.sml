@@ -266,11 +266,22 @@ datatype newtype =
        abs : Const.const,
        rep : Const.const};
 
+datatype whereValue =
+    WhereValue of
+      {name : Var.var,
+       equations : equation list}
+
+and equation =
+    Equation of
+      {arguments : Term.term list,
+       body : Term.term,
+       whereValues : whereValue list}
+
 datatype value =
     Value of
       {name : Const.const,
        ty : Type.ty,
-       equations : (Term.term list * Term.term * value list) list};
+       equations : equation list};
 
 datatype source =
     DataSource of data
@@ -287,6 +298,282 @@ datatype haskell =
      Haskell of
        {package : Package.package,
         source : module};
+
+(* ------------------------------------------------------------------------- *)
+(* Symbols in Haskell declarations.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun symbolData (Data {name,...}) = Symbol.TypeOp name;
+
+local
+  fun addConstructor ((c,tys),sym) =
+      let
+        val sym = SymbolTable.addConst sym c
+
+        val sym = SymbolTable.addTypeList sym tys;
+      in
+        sym
+      end;
+in
+  fun symbolTableData data =
+      let
+        val Data
+              {name,
+               parameters = _,
+               constructors = cons,
+               caseConst} = data
+
+        val sym = SymbolTable.empty
+
+        val sym = SymbolTable.addTypeOp sym name
+
+        val sym = List.foldl addConstructor sym cons
+
+        val sym = SymbolTable.addConst sym caseConst
+      in
+        sym
+      end;
+end;
+
+local
+  fun addConstructor ((c,tys),sym) =
+      let
+        val sym = SymbolTable.addConst sym c
+      in
+        sym
+      end;
+in
+  fun definedSymbolTableData data =
+      let
+        val Data
+              {name,
+               parameters = _,
+               constructors = cons,
+               caseConst} = data
+
+        val sym = SymbolTable.empty
+
+        val sym = SymbolTable.addTypeOp sym name
+
+        val sym = List.foldl addConstructor sym cons
+
+        val sym = SymbolTable.addConst sym caseConst
+      in
+        sym
+      end;
+end;
+
+fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
+
+fun symbolTableNewtype newtype =
+    let
+      val Newtype
+            {name,
+             parameters = _,
+             predicate = pred,
+             repType,
+             abs,
+             rep} = newtype
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addTypeOp sym name
+
+      val sym =
+          case pred of
+            SOME tm => SymbolTable.addTerm sym tm
+          | NONE => sym
+
+      val sym = SymbolTable.addType sym repType
+
+      val sym = SymbolTable.addConst sym abs
+
+      val sym = SymbolTable.addConst sym rep
+    in
+      sym
+    end;
+
+fun definedSymbolTableNewtype newtype =
+    let
+      val Newtype
+            {name,
+             parameters = _,
+             predicate = _,
+             repType = _,
+             abs,
+             rep} = newtype
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addTypeOp sym name
+
+      val sym = SymbolTable.addConst sym abs
+
+      val sym = SymbolTable.addConst sym rep
+    in
+      sym
+    end;
+
+fun symbolValue (Value {name,...}) = Symbol.Const name;
+
+local
+  fun addValue (value,sym) =
+      let
+        val WhereValue {name, equations = eqns} = value
+
+        val sym = SymbolTable.addVar sym name
+
+        val sym = List.foldl addEquation sym eqns
+      in
+        sym
+      end
+
+  and addEquation (eqn,sym) =
+      let
+        val Equation {arguments = args, body = tm, whereValues = values} = eqn
+
+        val sym = SymbolTable.addTermList sym args
+
+        val sym = SymbolTable.addTerm sym tm
+
+        val sym = List.foldl addValue sym values
+      in
+        sym
+      end;
+in
+  fun addSymbolTableWhereValue sym value = addValue (value,sym);
+
+  fun addSymbolTableWhereValues sym values = List.foldl addValue sym values;
+
+  fun addSymbolTableEquation sym eqn = addEquation (eqn,sym);
+
+  fun addSymbolTableValue sym value =
+      let
+        val Value {name, ty, equations = eqns} = value
+
+        val sym = SymbolTable.addConst sym name
+
+        val sym = SymbolTable.addType sym ty
+
+        val sym = List.foldl addEquation sym eqns
+      in
+        sym
+      end;
+end;
+
+val symbolTableEquation = addSymbolTableEquation SymbolTable.empty;
+
+val symbolTableValue = addSymbolTableValue SymbolTable.empty;
+
+fun definedSymbolTableValue value =
+    let
+      val Value {name,...} = value
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addConst sym name
+    in
+      sym
+    end;
+
+fun symbolSource s =
+    case s of
+      DataSource x => symbolData x
+    | NewtypeSource x => symbolNewtype x
+    | ValueSource x => symbolValue x;
+
+fun nameSource s = Symbol.name (symbolSource s);
+
+fun namespaceSource s = Name.namespace (nameSource s);
+
+fun namespaceSourceList sl =
+    NamespaceSet.fromList (List.map namespaceSource sl);
+
+fun symbolTableSource s =
+    case s of
+      DataSource x => symbolTableData x
+    | NewtypeSource x => symbolTableNewtype x
+    | ValueSource x => symbolTableValue x;
+
+fun definedSymbolTableSource s =
+    case s of
+      DataSource x => definedSymbolTableData x
+    | NewtypeSource x => definedSymbolTableNewtype x
+    | ValueSource x => definedSymbolTableValue x;
+
+fun symbolTableSourceList sl =
+    SymbolTable.unionList (List.map symbolTableSource sl);
+
+fun definedSymbolTableSourceList sl =
+    SymbolTable.unionList (List.map definedSymbolTableSource sl);
+
+(* ------------------------------------------------------------------------- *)
+(* Rewriting Haskell declarations.                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingRewriteEquation eqn rewr =
+    let
+      val Equation {arguments = args, body, whereValues = values} = eqn
+
+      val (args',rewr) = TermRewrite.sharingRewriteTermList args rewr
+
+      val (body',rewr) = TermRewrite.sharingRewriteTerm body rewr
+
+      val (values',rewr) = sharingRewriteWhereValueList values rewr
+
+      val eqn' =
+          case (args',body',values') of
+            (NONE,NONE,NONE) => NONE
+          | _ =>
+            let
+              val args = Option.getOpt (args',args)
+              and body = Option.getOpt (body',body)
+              and values = Option.getOpt (values',values)
+
+              val eqn =
+                  Equation
+                    {arguments = args,
+                     body = body,
+                     whereValues = values}
+            in
+              SOME eqn
+            end
+    in
+      (eqn',rewr)
+    end
+
+and sharingRewriteEquationList eqns rewr =
+    TermRewrite.sharingRewriteList sharingRewriteEquation eqns rewr
+
+and sharingRewriteWhereValue value rewr =
+    let
+      val WhereValue {name, equations = eqns} = value
+
+      val (name',rewr) = TermRewrite.sharingRewriteVar name rewr
+
+      val (eqns',rewr) = sharingRewriteEquationList eqns rewr
+
+      val value' =
+          case (name',eqns') of
+            (NONE,NONE) => NONE
+          | _ =>
+            let
+              val name = Option.getOpt (name',name)
+              and eqns = Option.getOpt (eqns',eqns)
+
+              val value =
+                  WhereValue
+                    {name = name,
+                     equations = eqns}
+            in
+              SOME value
+            end
+    in
+      (value',rewr)
+    end
+
+and sharingRewriteWhereValueList values rewr =
+    TermRewrite.sharingRewriteList sharingRewriteWhereValue values rewr;
 
 (* ------------------------------------------------------------------------- *)
 (* Converting theorems into Haskell declarations.                            *)
@@ -419,8 +706,16 @@ local
         val (l,r) = Term.destEq tm
 
         val (f,a) = Term.stripApp l
+
+        val arity = length a
+
+        val eqn =
+            Equation
+              {arguments = a,
+               body = r,
+               whereValues = []}
       in
-        ((f, length a), (a,r,[]))
+        ((f,arity),eqn)
       end;
 in
   fun destValue th =
@@ -523,214 +818,113 @@ fun destSource th =
 (* Sorting Haskell declarations into a module hierarchy.                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun symbolData (Data {name,...}) = Symbol.TypeOp name;
-
 local
-  fun addConstructor ((c,tys),sym) =
+  val rightToLeftVars =
       let
-        val sym = SymbolTable.addConst sym c
-
-        val sym = SymbolTable.addTypeList sym tys;
+        fun extract acc tms =
+            case tms of
+              [] => acc
+            | tm :: tms =>
+              case Term.dest tm of
+                TypeTerm.Const' _ => extract acc tms
+              | TypeTerm.Var' v => extract (v :: acc) tms
+              | TypeTerm.App' (f,x) => extract acc (f :: x :: tms)
+              | TypeTerm.Abs' _ =>
+                raise Error "lambda abstraction in equation pattern"
       in
-        sym
+        extract []
       end;
-in
-  fun symbolTableData data =
-      let
-        val Data
-              {name,
-               parameters = _,
-               constructors = cons,
-               caseConst} = data
 
-        val sym = SymbolTable.empty
-
-        val sym = SymbolTable.addTypeOp sym name
-
-        val sym = List.foldl addConstructor sym cons
-
-        val sym = SymbolTable.addConst sym caseConst
-      in
-        sym
-      end;
-end;
-
-local
-  fun addConstructor ((c,tys),sym) =
-      let
-        val sym = SymbolTable.addConst sym c
-      in
-        sym
-      end;
-in
-  fun definedSymbolTableData data =
-      let
-        val Data
-              {name,
-               parameters = _,
-               constructors = cons,
-               caseConst} = data
-
-        val sym = SymbolTable.empty
-
-        val sym = SymbolTable.addTypeOp sym name
-
-        val sym = List.foldl addConstructor sym cons
-
-        val sym = SymbolTable.addConst sym caseConst
-      in
-        sym
-      end;
-end;
-
-fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
-
-fun symbolTableNewtype newtype =
-    let
-      val Newtype
-            {name,
-             parameters = _,
-             predicate = pred,
-             repType,
-             abs,
-             rep} = newtype
-
-      val sym = SymbolTable.empty
-
-      val sym = SymbolTable.addTypeOp sym name
-
-      val sym =
-          case pred of
-            SOME tm => SymbolTable.addTerm sym tm
-          | NONE => sym
-
-      val sym = SymbolTable.addType sym repType
-
-      val sym = SymbolTable.addConst sym abs
-
-      val sym = SymbolTable.addConst sym rep
-    in
-      sym
-    end;
-
-fun definedSymbolTableNewtype newtype =
-    let
-      val Newtype
-            {name,
-             parameters = _,
-             predicate = _,
-             repType = _,
-             abs,
-             rep} = newtype
-
-      val sym = SymbolTable.empty
-
-      val sym = SymbolTable.addTypeOp sym name
-
-      val sym = SymbolTable.addConst sym abs
-
-      val sym = SymbolTable.addConst sym rep
-    in
-      sym
-    end;
-
-fun symbolValue (Value {name,...}) = Symbol.Const name;
-
-local
-  fun addValue (value,sym) =
-      let
-        val Value {name, ty, equations = eqns} = value
-
-        val sym = SymbolTable.addConst sym name
-
-        val sym = SymbolTable.addType sym ty
-
-        val sym = List.foldl addEquation sym eqns
-      in
-        sym
-      end
-
-  and addEquation ((args,tm,values),sym) =
-      let
-        val sym = SymbolTable.addTermList sym args
-
-        val sym = SymbolTable.addTerm sym tm
-
-        val sym = List.foldl addValue sym values
-      in
-        sym
-      end;
-in
-  fun addSymbolTableValue sym value = addValue (value,sym);
-end;
-
-val symbolTableValue = addSymbolTableValue SymbolTable.empty;
-
-fun definedSymbolTableValue value =
-    let
-      val Value {name,...} = value
-
-      val sym = SymbolTable.empty
-
-      val sym = SymbolTable.addConst sym name
-    in
-      sym
-    end;
-
-fun symbolSource s =
-    case s of
-      DataSource x => symbolData x
-    | NewtypeSource x => symbolNewtype x
-    | ValueSource x => symbolValue x;
-
-fun nameSource s = Symbol.name (symbolSource s);
-
-fun namespaceSource s = Name.namespace (nameSource s);
-
-fun namespaceSourceList sl =
-    NamespaceSet.fromList (List.map namespaceSource sl);
-
-fun symbolTableSource s =
-    case s of
-      DataSource x => symbolTableData x
-    | NewtypeSource x => symbolTableNewtype x
-    | ValueSource x => symbolTableValue x;
-
-fun definedSymbolTableSource s =
-    case s of
-      DataSource x => definedSymbolTableData x
-    | NewtypeSource x => definedSymbolTableNewtype x
-    | ValueSource x => definedSymbolTableValue x;
-
-fun symbolTableSourceList sl =
-    SymbolTable.unionList (List.map symbolTableSource sl);
-
-fun definedSymbolTableSourceList sl =
-    SymbolTable.unionList (List.map definedSymbolTableSource sl);
-
-local
   fun mkEqn eqn =
       let
-        val (_,tm,_) = eqn
-
-        val sym = SymbolTable.addTerm SymbolTable.empty tm
+        val sym = symbolTableEquation eqn
       in
-        (sym,eqn)
+        (sym,eqn,[])
       end;
 
-  fun destEqn (_,eqn) = eqn;
+  fun destEqn (_,eqn,subs) =
+      let
+        val Equation {arguments = args, body, whereValues = values} = eqn
 
-  fun inEqn name (sym,_) = SymbolTable.knownConst sym name;
+        val revArgVars = rightToLeftVars args
+
+        fun addRewrite (value,(values,rewr)) =
+            let
+              val Value {name, ty, equations = eqns} = value
+
+              fun isValue vs tm' =
+                  case vs of
+                    [] =>
+                    (case tm' of
+                       TypeTerm.Const' (c,_) => Const.equal c name
+                     | _ => false)
+                  | v :: vs =>
+                    (case tm' of
+                       TypeTerm.App' (f,x) =>
+                       Term.equalVar v x andalso isValue vs (Term.dest f)
+                     | _ => false)
+
+              val name = Name.mkGlobal (Name.component (Const.name name))
+
+              fun mkVar t = Var.mk (name,t)
+
+              val rewr =
+                  fn tm =>
+                     if not (isValue revArgVars tm) then rewr tm
+                     else SOME (Term.mkVar (mkVar (TypeTerm.typeOf' tm)))
+
+              val name =
+                  let
+                    fun stripType vs t =
+                        case vs of
+                          [] => t
+                        | v :: vs =>
+                          let
+                            val (d,t) = Type.destFun t
+
+                            val () =
+                                if Type.equal d (Var.typeOf v) then ()
+                                else raise Error "bad type in \"where\" value"
+                          in
+                            stripType vs t
+                          end
+                  in
+                    mkVar (stripType (List.rev revArgVars) ty)
+                  end
+
+              val values = WhereValue {name = name, equations = eqns} :: values
+            in
+              (values,rewr)
+            end
+
+        val rewr = K NONE
+
+        val (values,rewr) = List.foldl addRewrite (values,rewr) (List.rev subs)
+
+        val rewr = TermRewrite.new TypeRewrite.id rewr
+
+        val eqn =
+            Equation
+              {arguments = args,
+               body = body,
+               whereValues = values}
+
+        val (eqn',_) = sharingRewriteEquation eqn rewr
+      in
+        Option.getOpt (eqn',eqn)
+      end;
+
+  fun inEqn name (sym,_,_) = SymbolTable.knownConst sym name;
 
   fun notinEqn name eqn = not (inEqn name eqn);
 
-  fun addEqn value (sym,(args,tm,subs)) =
-        let
-          val sym = addSymbolTableValue sym value
-          and subs = subs @ [value]
-        in
-          (sym,(args,tm,subs))
-        end;
+  fun addEqn value (sym,eqn,subs) =
+      let
+        val sym = addSymbolTableValue sym value
+        and subs = subs @ [value]
+      in
+        (sym,eqn,subs)
+      end;
 
   fun pullValues (src,(values,others)) =
       case src of
