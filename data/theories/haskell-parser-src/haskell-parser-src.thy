@@ -1,5 +1,5 @@
 name: haskell-parser-src
-version: 1.13
+version: 1.14
 description: Haskell source for simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

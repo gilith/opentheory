@@ -1737,17 +1737,34 @@ local
          Print.break,
          ppType ns ty];
 
-  fun ppEqn ns name ty (args,rtm,subvals) =
+  fun ppEqn ns name ty (args,rtm,values) =
       let
         val ltm = Term.listMkApp (Term.mkConst (name,ty), args)
 
         val ltm = anonymize [rtm] ltm
       in
-        Print.inconsistentBlock 2
-          [ppTerm ns ltm,
-           Print.ppString " =",
-           Print.break,
-           ppTerm ns rtm]
+        Print.consistentBlock 2
+          (ppTerm ns ltm ::
+           Print.ppString " =" ::
+           Print.break ::
+           ppTerm ns rtm ::
+           ppWherevals ns values)
+      end
+
+  and ppWherevals ns values =
+      let
+        fun ppSpaceVal value =
+            Print.sequence (Print.newlines 2) (ppVal ns value)
+      in
+        case values of
+          [] => []
+        | value :: values =>
+          [Print.newline,
+           Print.consistentBlock 2
+             (Print.ppString "where" ::
+              Print.newline ::
+              ppVal ns value ::
+              List.map ppSpaceVal values)]
       end
 
   and ppVal ns value =
