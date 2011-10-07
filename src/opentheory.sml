@@ -25,6 +25,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val homeEnvVar = "HOME"
+and opentheoryEnvVar = "OPENTHEORY"
 and rootHomeDir = ".opentheory";
 
 (* ------------------------------------------------------------------------- *)
@@ -35,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20110927)";
+val release = " (release 20111006)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -172,16 +173,19 @@ val rootDirectory =
                  case !rootDirectoryOption of
                    SOME d => {directory = d, autoInit = false}
                  | NONE =>
-                   case OS.Process.getEnv homeEnvVar of
-                     NONE => raise Error "please specify the package directory"
-                   | SOME homeDir =>
-                     let
-                       val d =
-                           OS.Path.joinDirFile
-                             {dir = homeDir, file = rootHomeDir}
-                     in
-                       {directory = d, autoInit = true}
-                     end
+                   case OS.Process.getEnv opentheoryEnvVar of
+                     SOME d => {directory = d, autoInit = false}
+                   | NONE =>
+                     case OS.Process.getEnv homeEnvVar of
+                       NONE => raise Error "please specify the package directory"
+                     | SOME homeDir =>
+                       let
+                         val d =
+                             OS.Path.joinDirFile
+                               {dir = homeDir, file = rootHomeDir}
+                       in
+                         {directory = d, autoInit = true}
+                       end
 
              val () = rdir := SOME dir
            in

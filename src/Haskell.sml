@@ -848,6 +848,8 @@ local
 
         val revArgVars = rightToLeftVars args
 
+        val argVars = List.rev revArgVars
+
         fun addRewrite (value,(values,rewr)) =
             let
               val Value {name, ty, equations = eqns} = value
@@ -889,7 +891,47 @@ local
                             stripType vs t
                           end
                   in
-                    mkVar (stripType (List.rev revArgVars) ty)
+                    mkVar (stripType argVars ty)
+                  end
+
+              val eqns =
+                  let
+                    fun stripArgs vs tms =
+                        case vs of
+                          [] => tms
+                        | v :: vs =>
+                          case tms of
+                            [] =>
+                            let
+                              val err = "missing arguments in \"where\" value"
+                            in
+                              raise Error err
+                            end
+                          | tm :: tms =>
+                            if Term.equalVar v tm then stripArgs vs tms
+                            else
+                              let
+                                val err = "bad argument in \"where\" value"
+                              in
+                                raise Error err
+                              end
+
+                    fun stripEqn eqn =
+                        let
+                          val Equation
+                                {arguments = args,
+                                 body,
+                                 whereValues = values} = eqn
+
+                          val args = stripArgs argVars args
+                        in
+                          Equation
+                            {arguments = args,
+                             body = body,
+                             whereValues = values}
+                        end
+                  in
+                    List.map stripEqn eqns
                   end
 
               val values = WhereValue {name = name, equations = eqns} :: values
@@ -1924,16 +1966,18 @@ in
 end;
 
 local
-  fun ppDecl ns (name,ty) =
+  fun ppDecl ns (tm,ty) =
       Print.inconsistentBlock 2
-        [ppConst ns name,
+        [ppTerm ns tm,
          Print.ppString " ::",
          Print.break,
          ppType ns ty];
 
-  fun ppEqn ns name ty (args,rtm,values) =
+  fun ppEquation ns tm eqn =
       let
-        val ltm = Term.listMkApp (Term.mkConst (name,ty), args)
+        val Equation {arguments = args, body = rtm, whereValues = values} = eqn
+
+        val ltm = Term.listMkApp (tm,args)
 
         val ltm = anonymize [rtm] ltm
       in
@@ -1942,13 +1986,13 @@ local
            Print.ppString " =" ::
            Print.break ::
            ppTerm ns rtm ::
-           ppWherevals ns values)
+           ppWherevalues ns values)
       end
 
-  and ppWherevals ns values =
+  and ppWherevalues ns values =
       let
         fun ppSpaceVal value =
-            Print.sequence (Print.newlines 2) (ppVal ns value)
+            Print.sequence (Print.newlines 2) (ppWhereValue ns value)
       in
         case values of
           [] => []
@@ -1957,27 +2001,31 @@ local
            Print.consistentBlock 2
              (Print.ppString "where" ::
               Print.newline ::
-              ppVal ns value ::
+              ppWhereValue ns value ::
               List.map ppSpaceVal values)]
       end
 
-  and ppVal ns value =
+  and ppWhereValue ns value =
       let
-        val Value {name, ty, equations = eqns} = value
+        val WhereValue {name, equations = eqns} = value
+
+        val tm = Term.mkVar name
+        and ty = Var.typeOf name
       in
         Print.inconsistentBlock 0
-          (ppDecl ns (name,ty) ::
-           List.map (Print.sequence Print.newline o ppEqn ns name ty) eqns)
+          (ppDecl ns (tm,ty) ::
+           List.map (Print.sequence Print.newline o ppEquation ns tm) eqns)
       end;
-
 in
   fun ppValue ns value =
       let
         val Value {name, ty, equations = eqns} = value
+
+        val tm = Term.mkConst (name,ty)
       in
         Print.inconsistentBlock 0
-          (ppDecl ns (name,ty) ::
-           List.map (Print.sequence Print.newline o ppEqn ns name ty) eqns)
+          (ppDecl ns (tm,ty) ::
+           List.map (Print.sequence Print.newline o ppEquation ns tm) eqns)
     end;
 end;
 
