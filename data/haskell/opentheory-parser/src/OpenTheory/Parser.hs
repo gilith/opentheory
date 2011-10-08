@@ -31,7 +31,7 @@ parsePartialMap :: (b -> Maybe c) -> Parser a b -> Parser a c
 parsePartialMap f p =
   Parser pf
   where
-    pf :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)
+    --pf :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)
     pf a s =
       case unParser p a s of
         Nothing -> Nothing
