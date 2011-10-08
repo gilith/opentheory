@@ -25,14 +25,14 @@ parseAll =
   Parser pa
   where
     pa :: a -> Stream.Stream a -> Maybe (a, Stream.Stream a)
-    _ a s = Just (a,s)
+    pa a s = Just (a,s)
 
 parsePartialMap :: (b -> Maybe c) -> Parser a b -> Parser a c
-parsePartialMap _ _ =
+parsePartialMap f p =
   Parser pf
   where
     pf :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)
-    _ a s =
+    pf a s =
       case unParser p a s of
         Nothing -> Nothing
         Just (b,s') ->
@@ -51,14 +51,14 @@ parseNone =
   Parser pn
   where
     pn :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)
-    _ _ _ = Nothing
+    pn _ _ = Nothing
 
 parsePair :: Parser a b -> Parser a c -> Parser a (b, c)
-parsePair _ _ =
+parsePair pb pc =
   Parser pbc
   where
     pbc :: a -> Stream.Stream a -> Maybe ((b, c), Stream.Stream a)
-    _ a s =
+    pbc a s =
       case unParser pb a s of
         Nothing -> Nothing
         Just (b,s') ->

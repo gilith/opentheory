@@ -1966,6 +1966,30 @@ in
 end;
 
 local
+  fun bodiesWhereValue value =
+      let
+        val WhereValue {name = _, equations = eqns} = value
+      in
+        bodiesEquations eqns
+      end
+
+  and bodiesWhereValues values =
+      case values of
+        [] => []
+      | value :: values => bodiesWhereValue value @ bodiesWhereValues values
+
+  and bodiesEquation eqn =
+      let
+        val Equation {arguments = _, body, whereValues = values} = eqn
+      in
+        body :: bodiesWhereValues values
+      end
+
+  and bodiesEquations eqns =
+      case eqns of
+        [] => []
+      | eqn :: eqns => bodiesEquation eqn @ bodiesEquations eqns;
+
   fun ppDecl ns (tm,ty) =
       Print.inconsistentBlock 2
         [ppTerm ns tm,
@@ -1977,9 +2001,9 @@ local
       let
         val Equation {arguments = args, body = rtm, whereValues = values} = eqn
 
-        val ltm = Term.listMkApp (tm,args)
+        val args = List.map (anonymize (bodiesEquation eqn)) args
 
-        val ltm = anonymize [rtm] ltm
+        val ltm = Term.listMkApp (tm,args)
       in
         Print.consistentBlock 2
           (ppTerm ns ltm ::
