@@ -2075,6 +2075,104 @@ in
 end;
 
 local
+  fun checkStagedRequires namever =
+      let
+        val info = PackageFinder.get (directoryStagedFinder ()) namever
+
+        val reqs = PackageInfo.requires info
+      in
+        if List.null reqs then
+          let
+            val mesg =
+                "package " ^ PackageNameVersion.toString namever ^
+                " has no \"" ^ PackageName.toString PackageName.requiresTag ^
+                "\" information"
+
+            val () = warn mesg
+          in
+            ()
+          end
+        else
+          let
+            fun requiresThy thy =
+                let
+                  val sum = Theory.summary thy
+
+                  val seqs = Summary.requires sum
+                in
+                  Sequents.sequents seqs
+                end
+
+            fun requiresAdd (thy,seqs) =
+                SequentSet.union seqs (requiresThy thy)
+
+            fun requiresSet thys =
+                TheorySet.foldl requiresAdd SequentSet.empty thys
+
+            val dir = directory ()
+            and impt = directoryImporter ()
+
+            fun add (nv,(graph,thys)) =
+                let
+                  val info = Directory.get dir nv
+
+                  val (graph,thy) =
+                      TheoryGraph.importPackageInfo impt graph
+                        {imports = thys,
+                         interpretation = Interpretation.natural,
+                         info = info}
+
+                  val thys = TheorySet.add thys thy
+                in
+                  (graph,thys)
+                end
+
+            val reqs = List.map getLatestVersionDirectory reqs
+
+            val graph = TheoryGraph.empty {savable = false}
+            and thys = TheorySet.empty
+
+            val (graph,thys) = List.foldl add (graph,thys) reqs
+
+            val (graph,thy) =
+                TheoryGraph.importPackageInfo impt graph
+                  {imports = thys,
+                   interpretation = Interpretation.natural,
+                   info = info}
+
+            val unsatisfied =
+                SequentSet.difference (requiresThy thy) (requiresSet thys)
+
+            val n = SequentSet.size unsatisfied
+          in
+            if n = 0 then ()
+            else
+              let
+                val show = PackageInfo.show info
+
+                fun ppAss ass =
+                    Print.sequence Print.newline (Sequent.ppWithShow show ass)
+
+                val class =
+                    "unsatisfied assumption" ^ (if n = 1 then "" else "s")
+
+                fun ppAsses () =
+                    Print.consistentBlock 2
+                      (Print.ppPrettyInt n ::
+                       Print.ppString " " ::
+                       Print.ppString class ::
+                       Print.ppString ":" ::
+                       List.map ppAss (SequentSet.toList unsatisfied))
+
+                val mesg = Print.toString ppAsses ()
+
+                val () = warn mesg
+              in
+                ()
+              end
+          end
+      end;
+
   fun installStagedPackage namever =
       let
         val () =
@@ -2440,6 +2538,8 @@ local
         val tool = {tool = versionHtml}
 
         val chk = Directory.stageTheory dir namever pkg srcDir tool
+
+        val () = checkStagedRequires namever
 
         val () = Directory.installStaged dir namever chk
 

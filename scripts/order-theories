@@ -65,7 +65,9 @@ while (my $thy = <THEORIES>) {
             if ($line =~ m{^ *package: *([[:alnum:]-]+)-[[:digit:].]+ *$}) {
                 push (@{$thydeps}, $1);
             }
-
+            elsif ($line =~ m{^ *requires: *([[:alnum:]-]+) *$}) {
+                push (@{$thydeps}, $1);
+            }
         }
 
         close THEORY;

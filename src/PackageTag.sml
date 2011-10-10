@@ -69,12 +69,10 @@ fun name (Tag' {name = x, ...}) = x;
 
 fun value (Tag' {value = x, ...}) = x;
 
-fun destName name' tag =
-    let
-      val Tag' {name,value} = dest tag
-    in
-      if PackageName.equal name name' then SOME value else NONE
-    end;
+fun equalName n tag = PackageName.equal n (name tag);
+
+fun destName n tag =
+    if equalName n tag then SOME (value tag) else NONE;
 
 fun filterName name = List.mapPartial (destName name);
 

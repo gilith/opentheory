@@ -310,7 +310,9 @@ fun checkInfo show info =
                        Print.ppString ":" ::
                        List.map ppAx (SequentSet.toList axioms))
 
-                val () = warn (Print.toString ppAxs ())
+                val mesg = Print.toString ppAxs ()
+
+                val () = warn mesg
               in
                 ()
               end

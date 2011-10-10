@@ -17,17 +17,11 @@ val mk :
      nameVersion : PackageNameVersion.nameVersion,
      directory : string} -> info
 
-val nameVersion : info -> PackageNameVersion.nameVersion
-
-val name : info -> PackageName.name
-
-val version : info -> PackageVersion.version
+(* ------------------------------------------------------------------------- *)
+(* Package directory.                                                        *)
+(* ------------------------------------------------------------------------- *)
 
 val directory : info -> {directory : string}
-
-(* ------------------------------------------------------------------------- *)
-(* Package directory operations.                                             *)
-(* ------------------------------------------------------------------------- *)
 
 val joinDirectory : info -> {filename : string} -> {filename : string}
 
@@ -42,6 +36,40 @@ val nukeDirectory : info -> unit
 (* ------------------------------------------------------------------------- *)
 
 val isInstalled : info -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Package name.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val name : info -> PackageName.name
+
+val version : info -> PackageVersion.version
+
+val nameVersion : info -> PackageNameVersion.nameVersion
+
+(* ------------------------------------------------------------------------- *)
+(* Package description.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val description : info -> {description : string}
+
+(* ------------------------------------------------------------------------- *)
+(* Package author.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val author : info -> {author : string}
+
+(* ------------------------------------------------------------------------- *)
+(* Package license.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val license : info -> {license : string}
+
+(* ------------------------------------------------------------------------- *)
+(* Package requirements.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val requires : info -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* The files needed by the package.                                          *)
@@ -60,6 +88,12 @@ val allFiles : info -> {filename : string} list
 (* ------------------------------------------------------------------------- *)
 
 val packages : info -> PackageNameVersionSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Show.                                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val show : info -> Show.show
 
 (* ------------------------------------------------------------------------- *)
 (* Read the package.                                                         *)

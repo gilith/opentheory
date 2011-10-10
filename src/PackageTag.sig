@@ -33,6 +33,8 @@ val name : tag -> name
 
 val value : tag -> value
 
+val equalName : name -> tag -> bool
+
 val destName : name -> tag -> value option
 
 val filterName : name -> tag list -> value list

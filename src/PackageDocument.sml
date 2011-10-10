@@ -115,12 +115,14 @@ local
 
   fun mkInfo pkg =
       let
-        fun isShowTag tag =
-            PackageName.equal (PackageTag.name tag) PackageName.showTag
+        val isRequiresTag = PackageTag.equalName PackageName.requiresTag
+        and isShowTag = PackageTag.equalName PackageName.showTag
+
+        fun tagName n = Html.Text (PackageName.toString n)
 
         fun tagEntry n v =
             let
-              val n = Html.Text (PackageName.toString n)
+              val n = tagName n
 
               val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
               and v = Html.TableEntry (Html.emptyAttrs, Html.Inline v)
@@ -141,9 +143,24 @@ local
             let
               val tags = Package.tags pkg
 
+              val (reqs,tags) = List.partition isRequiresTag tags
+
               val (show,tags) = List.partition isShowTag tags
 
               val ts = List.map tagBlock tags
+
+              val ts =
+                  case PackageTag.requires reqs of
+                    [] => ts
+                  | req :: reqs =>
+                    let
+                      fun add (r,l) = Html.Break :: tagName r :: l
+
+                      val value =
+                          tagName req :: List.foldl add [] (List.rev reqs)
+                    in
+                      ts @ [tagEntry PackageName.requiresTag value]
+                    end
 
               val ts =
                   if List.null show then ts
