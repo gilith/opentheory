@@ -697,19 +697,23 @@ end;
 (* Summarizing packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun summary impt info =
+fun theoryGraph impt info =
     let
       val graph = TheoryGraph.empty {savable = false}
 
       val imps = TheorySet.empty
 
       val int = Interpretation.natural
+    in
+      TheoryGraph.importPackageInfo impt graph
+        {imports = imps,
+         interpretation = int,
+         info = info}
+    end;
 
-      val (_,thy) =
-          TheoryGraph.importPackageInfo impt graph
-            {imports = imps,
-             interpretation = int,
-             info = info}
+fun summary impt info =
+    let
+      val (_,thy) = theoryGraph impt info
     in
       TheoryGraph.summary thy
     end;
