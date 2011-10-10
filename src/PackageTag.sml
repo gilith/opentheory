@@ -78,12 +78,17 @@ fun destName name' tag =
 
 fun filterName name = List.mapPartial (destName name);
 
-fun getName name tags =
+fun peekName name tags =
     case filterName name tags of
-      [] => raise Error ("no " ^ PackageName.toString name ^ " tag")
-    | [v] => v
+      [] => NONE
+    | [v] => SOME v
     | _ :: _ :: _ =>
       raise Error ("multiple " ^ PackageName.toString name ^ " tags");
+
+fun getName name tags =
+    case peekName name tags of
+      NONE => raise Error ("no " ^ PackageName.toString name ^ " tag")
+    | SOME v => v;
 
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
