@@ -2022,7 +2022,7 @@ local
           [] => []
         | value :: values =>
           [Print.newline,
-           Print.consistentBlock 2
+           Print.consistentBlock 0
              (Print.ppString "where" ::
               Print.newline ::
               ppWhereValue ns value ::
@@ -2036,8 +2036,8 @@ local
         val tm = Term.mkVar name
         and ty = Var.typeOf name
       in
-        Print.inconsistentBlock 0
-          (ppDecl ns (tm,ty) ::
+        Print.inconsistentBlock 2
+          (Print.ppBracket "{-" "-}" (ppDecl ns) (tm,ty) ::
            List.map (Print.sequence Print.newline o ppEquation ns tm) eqns)
       end;
 in
