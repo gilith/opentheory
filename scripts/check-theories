@@ -157,8 +157,22 @@ while (my $thy = <THEORIES>) {
     is_name($thy) or
         die "check-theories: bad theory name: $thy";
 
+    # Check this theory is useful
+
     if (!(exists $version{$thy})) {
         print STDOUT "check-theories: $thy not in the latest theory set\n";
+    }
+
+    # Check the theory files
+
+    my $thydir = "$source/$thy";
+
+    my $files1 = `$opentheory info --files $thydir/$thy.thy | sort`;
+
+    my $files2 = `find $thydir/*`;
+
+    if ($files1 ne $files2) {
+        print STDOUT "check-theories: different files in theory $thy\n";
     }
 }
 
