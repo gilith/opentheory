@@ -1,6 +1,6 @@
 name: unit
-version: 1.5
-description: Standard theory of the unit type
+version: 1.6
+description: The unit type
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool

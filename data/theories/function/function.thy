@@ -1,13 +1,14 @@
 name: function
-version: 1.10
-description: Basic theory of functions
+version: 1.11
+description: Functions and combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
 show: "Data.Bool"
 show: "Function"
 
 def {
-  package: function-def-1.4
+  package: function-def-1.5
 }
 
 thm {

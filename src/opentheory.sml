@@ -706,6 +706,9 @@ local
 
   val refConstraintList = ref [TopLevelList,LatestVersionList];
 in
+  val memberLatestVersionConstraintList = List.exists isLatestVersionList
+  and memberTopLevelConstraintList = List.exists isTopLevelList;
+
   fun allVersionsConstraintList () =
       let
         val rcl = !refConstraintList
@@ -1161,10 +1164,8 @@ in
         if isHaskell name then Haskell.export dir namever
         else raise Error ("unknown export type: " ^ PackageName.toString name)
       end
-(***
       handle Error err =>
         raise Error (err ^ "\ntheory package export failed");
-***)
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2566,25 +2567,44 @@ end;
 (* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun filterList dir =
-    let
-      fun filt (con,pkgs) =
-          case con of
-            LatestVersionList =>
-            let
-              val pred = Directory.isLatestVersion dir
-            in
-              PackageNameVersionSet.filter pred pkgs
-            end
-          | TopLevelList =>
-            let
-              fun pred pkg = not (Directory.isAuxiliary dir pkg)
-            in
-              PackageNameVersionSet.filter pred pkgs
-            end
-    in
-      List.foldl filt
-    end;
+local
+  fun filterTopLevel dir pkgs =
+      let
+        fun pred pkg = not (Directory.isAuxiliary dir pkg)
+      in
+        PackageNameVersionSet.filter pred pkgs
+      end;
+
+  fun filterLatestVersion dir pkgs =
+      let
+        val pred = Directory.isLatestVersion dir
+      in
+        PackageNameVersionSet.filter pred pkgs
+      end;
+in
+  fun filterList dir pkgs cons =
+      if memberTopLevelConstraintList cons then
+        let
+          val pkgs = filterTopLevel dir pkgs
+        in
+          if not (memberLatestVersionConstraintList cons) then pkgs
+          else filterLatestVersion dir pkgs
+        end
+      else if memberLatestVersionConstraintList cons then
+        let
+          val pkgs' = pkgs
+
+          val pkgs' = filterTopLevel dir pkgs'
+
+          val pkgs' = filterLatestVersion dir pkgs'
+
+          val pkgs' = Directory.ancestorsSet dir pkgs'
+        in
+          PackageNameVersionSet.intersect pkgs pkgs'
+        end
+      else
+        pkgs;
+end;
 
 fun sortList dir pkgs ord =
     case ord of

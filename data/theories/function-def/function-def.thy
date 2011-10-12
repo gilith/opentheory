@@ -1,8 +1,9 @@
 name: function-def
-version: 1.4
+version: 1.5
 description: Function theory definitions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
 show: "Data.Bool"
 show: "Function"
 

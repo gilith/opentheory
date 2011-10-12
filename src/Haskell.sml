@@ -1227,62 +1227,6 @@ in
   fun exposedModule source = exposed (source,NamespaceSet.empty);
 end;
 
-(***
-local
-  fun addName (n,nss) =
-      let
-        val (ns,_) = Name.dest n
-      in
-        NamespaceSet.add nss ns
-      end;
-
-  fun addTypeOp (ot,nss) = addName (TypeOp.name ot, nss);
-
-  fun addConst (c,nss) =
-      let
-        val n = Const.name c
-
-        val ns =
-            case total Name.destCase n of
-              SOME ns => ns
-            | NONE => [n]
-      in
-        List.foldl addName nss ns
-      end;
-
-  fun addValue (s,nss) =
-      case s of
-        ValueSource (Value {name,...}) =>
-        let
-          val ns_n = Name.dest (Const.name name)
-        in
-          NamespaceSet.add nss (Namespace.mkNested ns_n)
-        end
-      | _ => nss;
-in
-  fun importModule module =
-      let
-        val Module {namespace,source,submodules} = module
-
-        val table = symbolTableSourceList source
-
-        val white = NamespaceSet.empty
-
-        val white =
-            TypeOpSet.foldl addTypeOp white (SymbolTable.typeOps table)
-
-        val white =
-            ConstSet.foldl addConst white (SymbolTable.consts table)
-
-        val black = NamespaceSet.fromList [Namespace.global,namespace]
-
-        val black = List.foldl addValue black source
-      in
-        NamespaceSet.difference white black
-      end;
-end;
-***)
-
 (* ------------------------------------------------------------------------- *)
 (* Converting a theory to a Haskell package.                                 *)
 (* ------------------------------------------------------------------------- *)
