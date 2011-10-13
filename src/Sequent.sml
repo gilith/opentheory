@@ -165,6 +165,45 @@ fun rewrite rewr seq =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Axioms.                                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val axiomOfExtensionality =
+    let
+      val hyp = TermAlphaSet.empty
+      and concl = Term.axiomOfExtensionality
+    in
+      Sequent
+        {hyp = hyp,
+         concl = concl}
+    end;
+
+val axiomOfChoice =
+    let
+      val hyp = TermAlphaSet.empty
+      and concl = Term.axiomOfChoice
+    in
+      Sequent
+        {hyp = hyp,
+         concl = concl}
+    end;
+
+val axiomOfInfinity =
+    let
+      val hyp = TermAlphaSet.empty
+      and concl = Term.axiomOfInfinity
+    in
+      Sequent
+        {hyp = hyp,
+         concl = concl}
+    end;
+
+val standardAxioms =
+    [axiomOfExtensionality,
+     axiomOfChoice,
+     axiomOfInfinity];
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -405,5 +444,7 @@ fun rewrite rewr set =
     in
       set'
     end;
+
+val standardAxioms = fromList Sequent.standardAxioms;
 
 end

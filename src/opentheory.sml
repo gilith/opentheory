@@ -762,10 +762,10 @@ local
 in
   val listOpts : opt list =
       [{switches = ["--all-versions"], arguments = [],
-        description = "list all versions of packages",
+        description = "include all versions of packages",
         processor = beginOpt endOpt (fn _ => allVersionsConstraintList ())},
        {switches = ["--auxiliary"], arguments = [],
-        description = "list auxiliary packages",
+        description = "include auxiliary packages",
         processor = beginOpt endOpt (fn _ => auxiliaryConstraintList ())},
        {switches = ["--dependency-order"], arguments = [],
         description = "list packages in dependency order",
@@ -2141,10 +2141,13 @@ local
                    interpretation = Interpretation.natural,
                    info = info}
 
-            val unsatisfied =
-                SequentSet.difference (requiresThy thy) (requiresSet thys)
+            val unsat = requiresThy thy
 
-            val n = SequentSet.size unsatisfied
+            val unsat = SequentSet.difference unsat (requiresSet thys)
+
+            val unsat = SequentSet.difference unsat SequentSet.standardAxioms
+
+            val n = SequentSet.size unsat
           in
             if n = 0 then ()
             else
@@ -2163,7 +2166,7 @@ local
                        Print.ppString " " ::
                        Print.ppString class ::
                        Print.ppString ":" ::
-                       List.map ppAss (SequentSet.toList unsatisfied))
+                       List.map ppAss (SequentSet.toList unsat))
 
                 val mesg = Print.toString ppAsses ()
 

@@ -74,6 +74,18 @@ val sharingRewrite :
 val rewrite : TermRewrite.rewrite -> sequent -> sequent option
 
 (* ------------------------------------------------------------------------- *)
+(* Axioms.                                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val axiomOfExtensionality : sequent
+
+val axiomOfChoice : sequent
+
+val axiomOfInfinity : sequent
+
+val standardAxioms : sequent list
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

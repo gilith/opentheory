@@ -1,6 +1,6 @@
 name: function-def
 version: 1.5
-description: Function theory definitions
+description: Definition of function operators and combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool

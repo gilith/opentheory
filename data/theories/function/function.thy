@@ -1,6 +1,6 @@
 name: function
 version: 1.11
-description: Functions and combinators
+description: Function operators and combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool

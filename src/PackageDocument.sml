@@ -82,7 +82,8 @@ local
        "div#main span.infix { color: #000080; }",
        "div#main span.binder { color: #800000; }",
        "div#footer { margin: 2px }",
-       "div#footer p { margin: 0; font-style: italic }"];
+       "div#footer p { margin: 0; font-style: italic; font-size: smaller }",
+       "div#footer p a { text-decoration: none }"];
 
   val style =
       let
@@ -303,7 +304,7 @@ fun toHtmlFile {document = doc, filename} =
     let
       val html = toHtml doc
 
-      val strm = Print.toStream Html.pp html
+      val strm = Print.toStreamWithLineLength {lineLength = NONE} Html.pp html
     in
       Stream.toTextFile {filename = filename} strm
     end;

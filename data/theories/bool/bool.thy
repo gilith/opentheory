@@ -1,8 +1,9 @@
 name: bool
-version: 1.10
+version: 1.12
 description: Boolean operators and quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: empty
 show: "Data.Bool"
 
 def {
@@ -16,19 +17,19 @@ int {
 
 axiom-extensionality {
   import: def
-  package: axiom-extensionality-1.4
+  package: axiom-extensionality-1.5
 }
 
 ext {
   import: def
   import: int
   import: axiom-extensionality
-  package: bool-ext-1.4
+  package: bool-ext-1.5
 }
 
 axiom-choice {
   import: def
-  package: axiom-choice-1.4
+  package: axiom-choice-1.5
 }
 
 class {
