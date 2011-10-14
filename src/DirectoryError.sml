@@ -36,6 +36,8 @@ datatype error =
       PackageNameVersion.nameVersion * DirectoryRepo.repo
   | NotStaged of
       PackageNameVersion.nameVersion
+  | NoVersionInstalled of
+      PackageName.name
   | ObsoleteAuthors of
       (PackageNameVersion.nameVersion * {author : string}) list
   | TagError of
@@ -143,6 +145,7 @@ fun isFatal err =
     | NotInstalled _ => true
     | NotOnRepo _ => true
     | NotStaged _ => true
+    | NoVersionInstalled _ => true
     | TagError _ => true
     | UninstalledObsolete _ => false
     | UninstalledParent _ => true
@@ -208,6 +211,9 @@ in
        | NotStaged namever =>
          "package " ^ PackageNameVersion.toString namever ^
          " is not staged for installation"
+       | NoVersionInstalled name =>
+         "no version of package " ^ PackageName.toString name ^
+         " is installed"
        | ObsoleteAuthors auths =>
          "obsoleting packages by other authors:\n  " ^
          toStringAuthors auths

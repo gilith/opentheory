@@ -7,7 +7,7 @@ requires: empty
 show: "Data.Bool"
 
 def {
-  package: bool-def-1.5
+  package: bool-def-1.6
 }
 
 int {

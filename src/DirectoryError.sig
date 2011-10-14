@@ -34,6 +34,8 @@ datatype error =
       PackageNameVersion.nameVersion * DirectoryRepo.repo
   | NotStaged of
       PackageNameVersion.nameVersion
+  | NoVersionInstalled of
+      PackageName.name
   | ObsoleteAuthors of
       (PackageNameVersion.nameVersion * {author : string}) list
   | TagError of

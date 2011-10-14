@@ -1044,6 +1044,10 @@ local
       in
         StringMap.foldl check
       end;
+
+  fun checkRequires dir (name,errs) =
+      if Option.isSome (latestNameVersion dir name) then errs
+      else DirectoryError.NoVersionInstalled name :: errs;
 in
   fun checkStageTheory dir namever pkg =
       let
@@ -1074,7 +1078,9 @@ in
             Print.trace ppFileCopyPlan "Directory.checkStageTheory: plan" plan
 *)
 
-        val errs = checkFileCopyPlan errs plan
+        val reqs = Package.requires pkg
+
+        val errs = List.foldl (checkRequires dir) errs reqs
       in
         List.rev errs
       end;
