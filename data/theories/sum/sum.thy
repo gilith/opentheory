@@ -7,6 +7,7 @@ requires: bool
 requires: pair
 requires: natural
 show: "Data.Bool"
+show: "Data.Pair"
 show: "Data.Sum"
 show: "Number.Natural"
 

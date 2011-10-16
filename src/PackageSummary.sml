@@ -36,11 +36,15 @@ fun dest sum : summary' = sum;
 
 fun summary (Summary' {summary = x, ...}) = x;
 
+fun requires sum = Summary.requires (summary sum);
+
+fun provides sum = Summary.provides (summary sum);
+
 (* ------------------------------------------------------------------------- *)
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun check show sum = Summary.check show (summary sum);
+fun check unsat show sum = Summary.check unsat show (summary sum);
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)
@@ -95,8 +99,11 @@ fun mkTitle src text seq =
 
 fun htmlGrammar req prov =
     let
-      val Summary.Grammar {ppTypeOp,ppConst,showAxioms,...} =
-          Summary.htmlGrammar
+      val Summary.Grammar
+            {ppTypeOp,
+             ppConst,
+             unsatisfiedAssumptions,
+             showTheoremAssumptions,...} = Summary.htmlGrammar
 
       val assumptionTitle = mkTitle req "Assumption made"
       and axiomTitle = mkTitle req "Axiom asserted"
@@ -112,7 +119,8 @@ fun htmlGrammar req prov =
          theoremGrammar = theoremGrammar,
          ppTypeOp = ppTypeOp,
          ppConst = ppConst,
-         showAxioms = showAxioms}
+         unsatisfiedAssumptions = unsatisfiedAssumptions,
+         showTheoremAssumptions = showTheoremAssumptions}
     end;
 
 fun toHtml show sum =

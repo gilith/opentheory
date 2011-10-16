@@ -193,6 +193,7 @@ val checkStageTheory :
 val stageTheory :
     directory ->
     PackageNameVersion.nameVersion -> Package.package -> {directory : string} ->
+    (Summary.summary -> Sequent.sequent -> bool) option ->
     {tool : Html.inline list} ->
     Checksum.checksum
 

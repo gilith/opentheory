@@ -34,11 +34,15 @@ val dest : summary -> summary'
 
 val summary : summary -> Summary.summary
 
+val requires : summary -> Sequents.sequents
+
+val provides : summary -> Sequents.sequents
+
 (* ------------------------------------------------------------------------- *)
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val check : Show.show -> summary -> unit
+val check : (Sequent.sequent -> bool) option -> Show.show -> summary -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)

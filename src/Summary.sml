@@ -9,31 +9,31 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type tracking assumptions/axioms of theorems.                           *)
+(* A type tracking theorem assumptions.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype axioms = Axioms of Sequent.sequent -> SequentSet.set;
+datatype assumptions = Assumptions of Sequent.sequent -> SequentSet.set;
 
-val noAxioms = Axioms (K SequentSet.empty);
+val noAssumptions = Assumptions (K SequentSet.empty);
 
-fun getAxioms (Axioms f) seq = f seq;
+fun getAssumptions (Assumptions f) seq = f seq;
 
-fun addAxioms axs (seq,acc) = SequentSet.union acc (getAxioms axs seq);
+fun addAssumptions axs (seq,acc) = SequentSet.union acc (getAssumptions axs seq);
 
-fun getListAxioms axs seqs =
-    List.foldl (addAxioms axs) SequentSet.empty seqs;
+fun getListAssumptions axs seqs =
+    List.foldl (addAssumptions axs) SequentSet.empty seqs;
 
-fun getSetAxioms axs seqs =
-    SequentSet.foldl (addAxioms axs) SequentSet.empty seqs;
+fun getSetAssumptions axs seqs =
+    SequentSet.foldl (addAssumptions axs) SequentSet.empty seqs;
 
-fun fromThmsAxioms ths =
+fun fromThmsAssumptions ths =
     let
       fun get seq =
           case Thms.peek ths seq of
             SOME th => Thm.axioms th
-          | NONE => raise Bug "Summary.fromThmsAxioms.get"
+          | NONE => raise Bug "Summary.fromThmsAssumptions.get"
     in
-      Axioms get
+      Assumptions get
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -48,7 +48,7 @@ datatype summary' =
 datatype summary =
     Summary of
       {summary' : summary',
-       axioms : axioms};
+       assumptions : assumptions};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -56,16 +56,16 @@ datatype summary =
 
 fun mk sum' =
     let
-      val axioms = noAxioms
+      val assumptions = noAssumptions
     in
       Summary
         {summary' = sum',
-         axioms = axioms}
+         assumptions = assumptions}
     end;
 
 fun dest (Summary {summary' = x, ...}) = x;
 
-fun axioms (Summary {axioms = x, ...}) = x;
+fun assumptions (Summary {assumptions = x, ...}) = x;
 
 fun requires' (Summary' {requires = x, ...}) = x;
 
@@ -85,11 +85,11 @@ fun fromThms ths =
             {requires = req,
              provides = prov}
 
-      val axioms = fromThmsAxioms ths
+      val assumptions = fromThmsAssumptions ths
     in
       Summary
         {summary' = sum',
-         axioms = axioms}
+         assumptions = assumptions}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -181,7 +181,7 @@ local
            ConstSet.subset (Sequent.consts seq) cs
       end;
 in
-  fun toInfo summary =
+  fun toInfo unsatisfiedAssumptions summary =
       let
 (*OpenTheoryTrace5
         val () = trace "entering Summary.toInfo\n"
@@ -204,6 +204,11 @@ in
             in
               SequentSet.partition (allSymbolsIn inp) req
             end
+
+        val ass =
+            case unsatisfiedAssumptions of
+              SOME f => SequentSet.filter f ass
+            | NONE => ass
 
         val ths = Sequents.sequents provides
 
@@ -286,50 +291,64 @@ fun checkSequent show class seq =
         end
     end;
 
-fun checkInfo show info =
-    let
-      val Info {assumed,axioms,thms,...} = info
+local
+  fun warnSequents class show seqs =
+      let
+        fun ppSeq seq =
+            Print.sequence Print.newline (Sequent.ppWithShow show seq)
 
-      val () =
-          let
-            val n = SequentSet.size axioms
-          in
-            if n = 0 then ()
-            else
+        val n = SequentSet.size seqs
+
+        val class = class ^ (if n = 1 then "" else "s")
+
+        fun ppSeqs () =
+            Print.consistentBlock 2
+              (Print.ppPrettyInt n ::
+               Print.space ::
+               Print.ppString class ::
+               (if n = 1 then Print.skip else Print.ppString "s") ::
+               Print.ppString ":" ::
+               List.map ppSeq (SequentSet.toList seqs))
+
+        val mesg = Print.toString ppSeqs ()
+
+        val () = warn mesg
+      in
+        ()
+      end;
+
+  fun checkInfo unsat show info =
+      let
+        val Info {assumed,axioms,thms,...} = info
+
+        val () =
+            if SequentSet.null axioms then ()
+            else warnSequents "axiom" show axioms
+
+        val seqs = SequentSet.unionList [assumed,axioms,thms]
+
+        val () = checkShow seqs show
+
+        val () = SequentSet.app (checkSequent show "assumption") assumed
+
+        val () = SequentSet.app (checkSequent show "theorem") thms
+
+        val () =
+            case unsat of
+              NONE => ()
+            | SOME p =>
               let
-                fun ppAx ax =
-                    Print.sequence Print.newline (Sequent.ppWithShow show ax)
-
-                val class = "axiom" ^ (if n = 1 then "" else "s")
-
-                fun ppAxs () =
-                    Print.consistentBlock 2
-                      (Print.ppPrettyInt n ::
-                       Print.ppString " " ::
-                       Print.ppString class ::
-                       Print.ppString ":" ::
-                       List.map ppAx (SequentSet.toList axioms))
-
-                val mesg = Print.toString ppAxs ()
-
-                val () = warn mesg
+                val asses = SequentSet.filter p assumed
               in
-                ()
+                if SequentSet.null asses then ()
+                else warnSequents "unsatisfied assumption" show asses
               end
-          end
-
-      val seqs = SequentSet.unionList [assumed,axioms,thms]
-
-      val () = checkShow seqs show
-
-      val () = SequentSet.app (checkSequent show "assumption") assumed
-
-      val () = SequentSet.app (checkSequent show "theorem") thms
-    in
-      ()
-    end;
-
-fun check show sum = checkInfo show (toInfo sum);
+      in
+        ()
+      end;
+in
+  fun check unsat show sum = checkInfo unsat show (toInfo NONE sum);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
@@ -342,7 +361,8 @@ datatype grammar =
        theoremGrammar : Sequent.grammar,
        ppTypeOp : Show.show -> TypeOp.typeOp Print.pp,
        ppConst : Show.show -> Const.const Print.pp,
-       showAxioms : bool};
+       unsatisfiedAssumptions : (Sequent.sequent -> bool) option,
+       showTheoremAssumptions : bool};
 
 val defaultGrammar =
     let
@@ -351,7 +371,8 @@ val defaultGrammar =
       and theoremGrammar = Sequent.defaultGrammar
       and ppTypeOp = TypeOp.ppWithShow
       and ppConst = Const.ppWithShow
-      and showAxioms = false
+      and unsatisfiedAssumptions = NONE
+      and showTheoremAssumptions = false
     in
       Grammar
         {assumptionGrammar = assumptionGrammar,
@@ -359,7 +380,8 @@ val defaultGrammar =
          theoremGrammar = theoremGrammar,
          ppTypeOp = ppTypeOp,
          ppConst = ppConst,
-         showAxioms = showAxioms}
+         unsatisfiedAssumptions = unsatisfiedAssumptions,
+         showTheoremAssumptions = showTheoremAssumptions}
     end;
 
 local
@@ -420,7 +442,7 @@ local
       end;
 in
   fun ppInfoWithShow ppTypeOpWS ppConstWS ppAssumptionWS ppAxiomWS ppTheoremWS
-                     show =
+                     isUnsat show =
       let
         val ppTypeOp = ppTypeOpWS show
         and ppConst = ppConstWS show
@@ -437,7 +459,7 @@ in
               ppList ppConst prefix " constant" cs
             end
       in
-        fn axs => fn info =>
+        fn asses => fn info =>
            let
              val Info {input,assumed,defined,axioms,thms} = info
 
@@ -445,19 +467,19 @@ in
              and axioms = SequentSet.toList axioms
              and thms = SequentSet.toList thms
 
-             val (_,axMap) =
+             val (_,assMap) =
                  let
-                   val axSet = getListAxioms axs thms
+                   val assSet = getListAssumptions asses thms
 
                    fun add (seq,(n,m)) =
-                       if not (SequentSet.member seq axSet) then (n,m)
+                       if not (SequentSet.member seq assSet) then (n,m)
                        else (n + 1, SequentMap.insert m (seq,n))
                  in
                    List.foldl add (1, SequentMap.new ()) (assumed @ axioms)
                  end
 
-             fun ppAx ppSeq seq =
-                 case SequentMap.peek axMap seq of
+             fun ppAss ppSeq seq =
+                 case SequentMap.peek assMap seq of
                    NONE => ppSeq seq
                  | SOME n =>
                    Print.consistentBlock 2
@@ -467,14 +489,14 @@ in
 
              fun ppTh ppSeq seq =
                  let
-                   fun add (ax,ids) =
-                       case SequentMap.peek axMap ax of
+                   fun add (ass,ids) =
+                       case SequentMap.peek assMap ass of
                          SOME i => IntSet.add ids i
-                       | NONE => raise Bug "Summary.ppInfoWithShow.ppTh.add"
+                       | NONE => ids
 
-                   val axSet = getAxioms axs seq
+                   val assSet = getAssumptions asses seq
 
-                   val ids = SequentSet.foldl add IntSet.empty axSet
+                   val ids = SequentSet.foldl add IntSet.empty assSet
                  in
                    if IntSet.null ids then ppSeq seq
                    else
@@ -484,11 +506,15 @@ in
                         ppSeq seq]
                  end
 
+             val assumptionClass =
+                 if isUnsat then "unsatisfied assumption"
+                 else "assumption"
+
              val blocks =
                  ppSymbol ("input",input) @
-                 ppSequentList (ppAx ppAssumption) ("assumption",assumed) @
+                 ppSequentList (ppAss ppAssumption) (assumptionClass,assumed) @
                  ppSymbol ("defined",defined) @
-                 ppSequentList (ppAx ppAxiom) ("axiom",axioms) @
+                 ppSequentList (ppAss ppAxiom) ("axiom",axioms) @
                  ppSequentList (ppTh ppTheorem) ("theorem",thms)
            in
              if List.null blocks then Print.skip
@@ -507,7 +533,8 @@ fun ppWithGrammar grammar =
              theoremGrammar,
              ppTypeOp,
              ppConst,
-             showAxioms} = grammar
+             unsatisfiedAssumptions,
+             showTheoremAssumptions} = grammar
 
       val ppAssumptionWS = Sequent.ppWithGrammar assumptionGrammar
 
@@ -517,6 +544,7 @@ fun ppWithGrammar grammar =
 
       val ppIWS =
           ppInfoWithShow ppTypeOp ppConst ppAssumptionWS ppAxiomWS ppTheoremWS
+          (Option.isSome unsatisfiedAssumptions)
     in
       fn show =>
          let
@@ -524,11 +552,13 @@ fun ppWithGrammar grammar =
          in
            fn sum =>
               let
-                val axs = if showAxioms then axioms sum else noAxioms
+                val asses =
+                    if showTheoremAssumptions then assumptions sum
+                    else noAssumptions
 
-                val info = toInfo sum
+                val info = toInfo unsatisfiedAssumptions sum
               in
-                ppI axs info
+                ppI asses info
               end
          end
     end;
@@ -625,15 +655,17 @@ in
         val assumptionGrammar = htmlGrammarSequent "assumption" "Assumption"
         and axiomGrammar = htmlGrammarSequent "axiom" "Axiom"
         and theoremGrammar = htmlGrammarSequent "theorem" "Theorem"
-        and showAxioms = false
+        and unsatisfiedAssumptions = NONE
+        and showTheoremAssumptions = false
       in
         Grammar
-          {assumptionGrammar = assumptionGrammar,
+          {unsatisfiedAssumptions = unsatisfiedAssumptions,
+           assumptionGrammar = assumptionGrammar,
            axiomGrammar = axiomGrammar,
            theoremGrammar = theoremGrammar,
            ppTypeOp = ppTypeOp,
            ppConst = ppConst,
-           showAxioms = showAxioms}
+           showTheoremAssumptions = showTheoremAssumptions}
       end;
 end;
 
@@ -832,7 +864,8 @@ fun toHtmlInfoWithGrammar grammar =
              theoremGrammar,
              ppTypeOp,
              ppConst,
-             showAxioms = _} = grammar
+             unsatisfiedAssumptions = _,
+             showTheoremAssumptions = _} = grammar
 
       val toHtmlAssumption = Sequent.toHtmlWithGrammar assumptionGrammar
 
@@ -845,9 +878,16 @@ fun toHtmlInfoWithGrammar grammar =
 
 fun toHtmlWithGrammar grammar =
     let
+      val Grammar {unsatisfiedAssumptions, ...} = grammar
+
       val toHIWS = toHtmlInfoWithGrammar grammar
     in
-      fn show => toHIWS show o toInfo
+      fn show =>
+         let
+           val toHI = toHIWS show
+         in
+           fn sum => toHI (toInfo unsatisfiedAssumptions sum)
+         end
     end;
 
 val toHtml = toHtmlWithGrammar htmlGrammar;

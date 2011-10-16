@@ -53,7 +53,7 @@ val rewrite : TermRewrite.rewrite -> summary -> summary option
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val check : Show.show -> summary -> unit
+val check : (Sequent.sequent -> bool) option -> Show.show -> summary -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
@@ -66,7 +66,8 @@ datatype grammar =
        theoremGrammar : Sequent.grammar,
        ppTypeOp : Show.show -> TypeOp.typeOp Print.pp,
        ppConst : Show.show -> Const.const Print.pp,
-       showAxioms : bool}
+       unsatisfiedAssumptions : (Sequent.sequent -> bool) option,
+       showTheoremAssumptions : bool}
 
 val defaultGrammar : grammar
 

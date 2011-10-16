@@ -722,7 +722,7 @@ fun summary impt info =
 (* Post-stage functions.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun postStagePackage dir fndr stageInfo warnSummary {tool} =
+fun postStagePackage dir fndr stageInfo warnSummary unsat {tool} =
     let
       (* Check the package tags *)
 
@@ -751,7 +751,15 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
 
       val () =
           if not warnSummary then ()
-          else PackageSummary.check (Package.show pkg) sum
+          else
+            let
+              val unsat =
+                  case unsat of
+                    NONE => NONE
+                  | SOME u => SOME (u (PackageSummary.summary sum))
+            in
+              PackageSummary.check unsat (Package.show pkg) sum
+            end
 
       (* Create the package document *)
 
@@ -800,7 +808,7 @@ fun postStageTarball dir fndr stageInfo contents tool =
 
       (* Common post-stage operations *)
 
-      val () = postStagePackage dir fndr stageInfo false tool
+      val () = postStagePackage dir fndr stageInfo false NONE tool
     in
       ()
     end;
@@ -1233,7 +1241,7 @@ local
         Package.toTextFile {package = pkg, filename = filename}
       end;
 in
-  fun stageTheory dir namever pkg {directory = srcDir} tool =
+  fun stageTheory dir namever pkg {directory = srcDir} unsat tool =
       let
 (*OpenTheoryDebug
         val errs = checkStageTheory dir namever pkg
@@ -1276,7 +1284,7 @@ in
 
           val fndr = finder dir
 
-          val () = postStagePackage dir fndr stageInfo true tool
+          val () = postStagePackage dir fndr stageInfo true unsat tool
         in
           PackageInfo.checksumTarball stageInfo
         end

@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20111014)";
+val release = " (release 20111016)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -411,6 +411,93 @@ fun latestVersionRepositories name chk' =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Identifying unsatisfied assumptions.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun mkContext reqs =
+      let
+        val dir = directory ()
+        and impt = directoryImporter ()
+
+        fun add (nv,(graph,thys)) =
+            let
+              val info = Directory.get dir nv
+
+              val (graph,thy) =
+                  TheoryGraph.importPackageInfo impt graph
+                    {imports = thys,
+                     interpretation = Interpretation.natural,
+                     info = info}
+
+              val thys = TheorySet.add thys thy
+            in
+              (graph,thys)
+            end
+
+        val reqs = List.map getLatestVersionDirectory reqs
+
+        val graph = TheoryGraph.empty {savable = false}
+        and thys = TheorySet.empty
+
+        val (_,thys) = List.foldl add (graph,thys) reqs
+
+        val sum = TheorySet.summary thys
+      in
+        Summary.provides sum
+      end;
+in
+  fun mkUnsatisfiedAssumptions namever reqs =
+      if List.null reqs then
+        let
+          val mesg =
+              "package " ^ PackageNameVersion.toString namever ^
+              " has no \"" ^ PackageName.toString PackageName.requiresTag ^
+              "\" information"
+
+          val () = warn mesg
+        in
+          NONE
+        end
+      else
+        let
+          val context = mkContext reqs
+
+          val satisfied = Sequents.sequents context
+
+          val satisfied = SequentSet.union satisfied SequentSet.standardAxioms
+
+          fun outsideContext (seq,(acc,rewr)) =
+              let
+                val (seq',rewr) = Sequent.sharingRewrite seq rewr
+
+                val seq' = Option.getOpt (seq',seq)
+
+                val acc =
+                    if SequentSet.member seq' satisfied then acc
+                    else SequentSet.add acc seq
+              in
+                (acc,rewr)
+              end
+
+          fun isUnsat sum =
+              let
+                val asses = Sequents.sequents (Summary.requires sum)
+
+                val unsat = SequentSet.empty
+                and rewr = SymbolTable.inst (Sequents.symbol context)
+
+                val (unsat,_) =
+                    SequentSet.foldl outsideContext (unsat,rewr) asses
+              in
+                fn seq => SequentSet.member seq unsat
+              end
+        in
+          SOME isUnsat
+        end;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Options for cleaning up staged packages.                                  *)
 (* ------------------------------------------------------------------------- *)
 
@@ -470,14 +557,14 @@ val upgradeTheoryInfo = ref false;
 
 val preserveTheoryInfo = ref false;
 
-val showAxiomsInfo = ref false;
+val showAssumptionsInfo = ref false;
 
 fun savableInfo info =
     case info of
       ArticleInfo => true
     | _ => false;
 
-fun infoSummaryGrammar () =
+fun infoSummaryGrammar unsatisfiedAssumptions =
     let
       val Summary.Grammar
             {assumptionGrammar,
@@ -485,9 +572,10 @@ fun infoSummaryGrammar () =
              theoremGrammar,
              ppTypeOp,
              ppConst,
-             showAxioms = _} = Summary.defaultGrammar
+             unsatisfiedAssumptions = _,
+             showTheoremAssumptions = _} = Summary.defaultGrammar
 
-      val showAxioms = !showAxiomsInfo
+      val showTheoremAssumptions = !showAssumptionsInfo
     in
       Summary.Grammar
         {assumptionGrammar = assumptionGrammar,
@@ -495,7 +583,8 @@ fun infoSummaryGrammar () =
          theoremGrammar = theoremGrammar,
          ppTypeOp = ppTypeOp,
          ppConst = ppConst,
-         showAxioms = showAxioms}
+         unsatisfiedAssumptions = unsatisfiedAssumptions,
+         showTheoremAssumptions = showTheoremAssumptions}
     end;
 
 fun mkInfoOutput info = (info,NONE);
@@ -575,9 +664,9 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn f => fn s => setInfoOutputFilename f s)},
-       {switches = ["--show-axioms"], arguments = [],
+       {switches = ["--show-assumptions"], arguments = [],
         description = "show the assumptions/axioms for each theorem",
-        processor = beginOpt endOpt (fn _ => showAxiomsInfo := true)},
+        processor = beginOpt endOpt (fn _ => showAssumptionsInfo := true)},
        {switches = ["--upgrade-theory"], arguments = [],
         description = "upgrade the theory file",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
@@ -1202,6 +1291,16 @@ local
   end;
 
   local
+    val cache : PackageName.name list option option ref = ref NONE;
+
+    fun compute () = NONE;
+  in
+    fun setRequires reqs = cache := SOME (SOME reqs);
+
+    val getRequires = getCached cache compute;
+  end;
+
+  local
     val cache : Checksum.checksum option option ref = ref NONE;
 
     fun compute () =
@@ -1436,6 +1535,22 @@ local
   end;
 
   local
+    val cache :
+        (Summary.summary -> Sequent.sequent -> bool) option option option ref =
+        ref NONE;
+
+    fun compute () =
+        case getRequires () of
+          NONE => NONE
+        | SOME reqs =>
+          case getNameVersion () of
+            NONE => NONE
+          | SOME namever => SOME (mkUnsatisfiedAssumptions namever reqs);
+  in
+    val getUnsatisfiedAssumptions = getCached cache compute;
+  end;
+
+  local
     val cache : Inference.inference option option ref = ref NONE;
 
     fun compute () =
@@ -1630,12 +1745,20 @@ local
         end
       | SummaryInfo =>
         let
-          val grammar = infoSummaryGrammar ()
-
           val sum =
               case getSummary () of
                 SOME s => s
               | NONE => raise Error "no summary information available"
+
+          val unsat =
+              case getUnsatisfiedAssumptions () of
+                NONE => NONE
+              | SOME uo =>
+                case uo of
+                  SOME u => SOME (u sum)
+                | NONE => NONE
+
+          val grammar = infoSummaryGrammar unsat
 
           val show =
               case getPackage () of
@@ -1799,6 +1922,8 @@ local
         val () = setDirectory {directory = dir}
 
         val () = setPackage pkg
+
+        val () = setRequires (Package.requires pkg)
 
         val () = setFiles files
       in
@@ -2076,107 +2201,6 @@ in
 end;
 
 local
-  fun checkStagedRequires namever =
-      let
-        val info = PackageFinder.get (directoryStagedFinder ()) namever
-
-        val reqs = PackageInfo.requires info
-      in
-        if List.null reqs then
-          let
-            val mesg =
-                "package " ^ PackageNameVersion.toString namever ^
-                " has no \"" ^ PackageName.toString PackageName.requiresTag ^
-                "\" information"
-
-            val () = warn mesg
-          in
-            ()
-          end
-        else
-          let
-            fun requiresThy thy =
-                let
-                  val sum = Theory.summary thy
-
-                  val seqs = Summary.requires sum
-                in
-                  Sequents.sequents seqs
-                end
-
-            fun requiresAdd (thy,seqs) =
-                SequentSet.union seqs (requiresThy thy)
-
-            fun requiresSet thys =
-                TheorySet.foldl requiresAdd SequentSet.empty thys
-
-            val dir = directory ()
-            and impt = directoryImporter ()
-
-            fun add (nv,(graph,thys)) =
-                let
-                  val info = Directory.get dir nv
-
-                  val (graph,thy) =
-                      TheoryGraph.importPackageInfo impt graph
-                        {imports = thys,
-                         interpretation = Interpretation.natural,
-                         info = info}
-
-                  val thys = TheorySet.add thys thy
-                in
-                  (graph,thys)
-                end
-
-            val reqs = List.map getLatestVersionDirectory reqs
-
-            val graph = TheoryGraph.empty {savable = false}
-            and thys = TheorySet.empty
-
-            val (graph,thys) = List.foldl add (graph,thys) reqs
-
-            val (graph,thy) =
-                TheoryGraph.importPackageInfo impt graph
-                  {imports = thys,
-                   interpretation = Interpretation.natural,
-                   info = info}
-
-            val unsat = requiresThy thy
-
-            val unsat = SequentSet.difference unsat (requiresSet thys)
-
-            val unsat = SequentSet.difference unsat SequentSet.standardAxioms
-
-            val n = SequentSet.size unsat
-          in
-            if n = 0 then ()
-            else
-              let
-                val show = PackageInfo.show info
-
-                fun ppAss ass =
-                    Print.sequence Print.newline (Sequent.ppWithShow show ass)
-
-                val class =
-                    "unsatisfied assumption" ^ (if n = 1 then "" else "s")
-
-                fun ppAsses () =
-                    Print.consistentBlock 2
-                      (Print.ppPrettyInt n ::
-                       Print.ppString " " ::
-                       Print.ppString class ::
-                       Print.ppString ":" ::
-                       List.map ppAss (SequentSet.toList unsat))
-
-                val mesg = Print.toString ppAsses ()
-
-                val () = warn mesg
-              in
-                ()
-              end
-          end
-      end;
-
   fun installStagedPackage namever =
       let
         val () =
@@ -2539,11 +2563,11 @@ local
 
         val () = List.app installAutoFree pars
 
+        val unsat = mkUnsatisfiedAssumptions namever (Package.requires pkg)
+
         val tool = {tool = versionHtml}
 
-        val chk = Directory.stageTheory dir namever pkg srcDir tool
-
-        val () = checkStagedRequires namever
+        val chk = Directory.stageTheory dir namever pkg srcDir unsat tool
 
         val () = Directory.installStaged dir namever chk
 

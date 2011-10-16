@@ -229,46 +229,48 @@ struct type t = Theory.theory val compare = Theory.compare end
 structure TheoryMap =
 struct
 
-  local
-    structure S = KeyMap (TheoryOrdered);
-  in
-    open S;
-  end;
+local
+  structure S = KeyMap (TheoryOrdered);
+in
+  open S;
+end;
 
-  fun pp ppX =
-      let
-        val ppTX = Print.ppOp2 " =>" Theory.pp ppX
-      in
-        fn m =>
-          Print.consistentBlock 0
-            [Print.ppString "TheoryMap",
-             Print.ppList ppTX (toList m)]
-      end;
+fun pp ppX =
+    let
+      val ppTX = Print.ppOp2 " =>" Theory.pp ppX
+    in
+      fn m =>
+         Print.consistentBlock 0
+           [Print.ppString "TheoryMap",
+            Print.ppList ppTX (toList m)]
+    end;
 
 end
 
 structure TheorySet =
 struct
 
-  local
-    structure S = ElementSet (TheoryMap);
-  in
-    open S;
-  end;
+local
+  structure S = ElementSet (TheoryMap);
+in
+  open S;
+end;
 
-  val inference =
-      let
-        fun add (thy,acc) =
-            Inference.union acc (Article.inference (Theory.article thy))
-      in
-        foldl add Inference.empty
-      end;
+val inference =
+    let
+      fun add (thy,acc) =
+          Inference.union acc (Article.inference (Theory.article thy))
+    in
+      foldl add Inference.empty
+    end;
 
-  val article =
-      let
-        fun add (thy,acc) = Article.union acc (Theory.article thy)
-      in
-        foldl add Article.empty
-      end;
+val article =
+    let
+      fun add (thy,acc) = Article.union acc (Theory.article thy)
+    in
+      foldl add Article.empty
+    end;
+
+fun summary set = Article.summary (article set);
 
 end
