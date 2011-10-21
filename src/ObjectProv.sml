@@ -86,6 +86,7 @@ fun argumentsProvenance prov =
       Default => []
     | Special {arguments,...} => arguments;
 
+(***
 fun updateArgumentsProvenance args prov =
     case prov of
       Default => raise Error "ObjectProv.updateArgumentProvenance"
@@ -99,6 +100,7 @@ fun updateArgumentsProvenance args prov =
          arguments = args,
          generated = gen,
          result = res};
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -129,6 +131,7 @@ fun allDefault objs = List.all isDefault objs;
 
 fun parents obj = argumentsProvenance (provenance obj);
 
+(***
 fun updateProvenance f obj =
     let
       val Object' {object = ob, provenance = prov} = dest obj
@@ -140,6 +143,15 @@ fun updateProvenance f obj =
 
 fun updateArguments args obj =
     updateProvenance (updateArgumentsProvenance args) obj;
+***)
+
+fun destNum obj = Object.destNum (object obj);
+
+fun destName obj = Object.destName (object obj);
+
+fun destSequent (objH,objC) = Object.destSequent (object objH, object objC);
+
+fun destThm obj = Object.destThm (object obj);
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
@@ -400,7 +412,7 @@ fun mkCons {savable} objH objT =
     handle Error err => raise Error ("in ObjectProv.mkCons:\n" ^ err);
 *)
 
-fun mkConst c = mkDefault (Object.Const c);
+fun mkConst n = mkDefault (Object.Const (Const.mkUndef n));
 
 fun mkConstTerm {savable} objC objT =
     let
@@ -655,7 +667,7 @@ fun mkSubst {savable} objS objT =
     handle Error err => raise Error ("in ObjectProv.mkSubst:\n" ^ err);
 *)
 
-fun mkTypeOp ot = mkDefault (Object.TypeOp ot);
+fun mkTypeOp n = mkDefault (Object.TypeOp (TypeOp.mkUndef n));
 
 fun mkVar {savable} objN objT =
     let
@@ -734,8 +746,62 @@ fun mkVarType objN =
     handle Error err => raise Error ("in ObjectProv.mkVarType:\n" ^ err);
 *)
 
+(* General commands *)
+
+fun mkCommand sav cmd args =
+    (case (cmd,args) of
+       (Command.Num i, []) => [mkNum i]
+     | (Command.Name n, []) => [mkName n]
+     | (Command.AbsTerm,[objV,objB]) => [mkAbsTerm sav objV objB]
+     | (Command.AbsThm,[objV,objT]) => [mkAbsThm sav objV objT]
+     | (Command.AppTerm,[objF,objA]) => [mkAppTerm sav objF objA]
+     | (Command.AppThm,[objF,objA]) => [mkAppThm sav objF objA]
+     | (Command.Assume,[objT]) => [mkAssume sav objT]
+     | (Command.Axiom,[objH,objC]) =>
+       let
+         val seq = destSequent (objH,objC)
+       in
+         [mkAxiom sav objH objC seq]
+       end
+     | (Command.BetaConv,[objT]) => [mkBetaConv sav objT]
+     | (Command.Cons,[objH,objT]) => [mkCons sav objH objT]
+     | (Command.Const,[objN]) => [mkConst (destName objN)]
+     | (Command.ConstTerm,[objC,objT]) => [mkConstTerm sav objC objT]
+     | (Command.DeductAntisym,[objA,objB]) => [mkDeductAntisym sav objA objB]
+     | (Command.DefineConst,[objN,objT]) =>
+       let
+         val n = destName objN
+
+         val (obj0,obj1) = mkDefineConst sav n objT
+       in
+         [obj0,obj1]
+       end
+     | (Command.DefineTypeOp,[objN,objA,objR,objV,objT]) =>
+       let
+         val n = destName objN
+         and a = destName objA
+         and r = destName objR
+
+         val (obj0,obj1,obj2,obj3,obj4) = mkDefineTypeOp sav n a r objV objT
+       in
+         [obj0,obj1,obj2,obj3,obj4]
+       end
+     | (Command.EqMp,[objA,objB]) => [mkEqMp sav objA objB]
+     | (Command.Nil,[]) => [mkNil]
+     | (Command.OpType,[objO,objL]) => [mkOpType sav objO objL]
+     | (Command.Refl,[objT]) => [mkRefl sav objT]
+     | (Command.Subst,[objS,objT]) => [mkSubst sav objS objT]
+     | (Command.TypeOp,[objN]) => [mkTypeOp (destName objN)]
+     | (Command.Var,[objN,objT]) => [mkVar sav objN objT]
+     | (Command.VarTerm,[objV]) => [mkVarTerm sav objV]
+     | (Command.VarType,[objN]) => [mkVarType objN]
+     | _ => raise Bug "ObjectProv.mkCommand")
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in ObjectProv.mkCommand:\n" ^ err);
+*)
+
 (* ------------------------------------------------------------------------- *)
-(* Folding state over objects.                                               *)
+(* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 fun foldl {preDescent,postDescent} =
@@ -764,33 +830,68 @@ fun foldl {preDescent,postDescent} =
 (* Mapping with state over objects.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun maps {preDescent,postDescent} =
+fun maps {preDescent,postDescent,savable} =
     let
-      fun mapsObj obj acc =
+      fun mapsObj obj0 acc =
           let
-            val {descend,result} = preDescent obj acc
+            val {descend,result} = preDescent obj0 acc
           in
             if not descend then result
             else
               let
-                val (obj',acc) = result
+                val (obj1',acc) = result
 
-                val (obj',acc) =
-                    case provenance obj' of
-                      Default => result
-                    | Special {arguments = args, ...} =>
+                val (unchanged,obj1) =
+                    case obj1' of
+                      NONE => (true,obj0)
+                    | SOME obj => (false,obj)
+
+                val (unchanged,obj2,acc) =
+                    case provenance obj1 of
+                      Default => (unchanged,obj1,acc)
+                    | Special
+                        {command = cmd,
+                         arguments = args,
+                         generated = _,
+                         result = idx} =>
                       let
-                        val (args',acc) = Useful.maps mapsObj args acc
-
-                        val obj' =
-                            if listEqual equal args' args then obj'
-                            else updateArguments args' obj'
+                        val (args',acc) = mapsObjList args acc
                       in
-                        (obj',acc)
+                        case args' of
+                          NONE => (unchanged,obj1,acc)
+                        | SOME args =>
+                          let
+                            val objs = mkCommand {savable = savable} cmd args
+
+                            val obj = List.nth (objs,idx)
+                          in
+                            (false,obj,acc)
+                          end
                       end
+
+                val obj2' = if unchanged then NONE else SOME obj2
               in
-                postDescent obj obj' acc
+                postDescent obj0 obj2' acc
               end
+          end
+
+      and mapsObjUnchanged obj (unchanged,acc) =
+          let
+            val (obj',acc) = mapsObj obj acc
+          in
+            case obj' of
+              NONE => (obj,(unchanged,acc))
+            | SOME obj => (obj,(false,acc))
+          end
+
+      and mapsObjList objs acc =
+          let
+            val (objs,(unchanged,acc)) =
+                Useful.maps mapsObjUnchanged objs (true,acc)
+
+            val objs' = if unchanged then NONE else SOME objs
+          in
+            (objs',acc)
           end
     in
       mapsObj

@@ -79,6 +79,7 @@ val fromNaturalConstComponent : component
 val fromPredicateConstComponent : component
 val geConstComponent : component
 val gtConstComponent : component
+val idConstComponent : component
 val impConstComponent : component
 val intersectConstComponent : component
 val leConstComponent : component

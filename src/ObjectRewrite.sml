@@ -9,145 +9,87 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
+(* Bottom-up object rewrites: return NONE for unchanged.                     *)
 (* ------------------------------------------------------------------------- *)
 
-val unwantedString = "Unwanted"
-and unwantedIdString = "id";
+datatype rewrite =
+    Rewrite of
+      {apply : ObjectProv.object' -> ObjectProv.object option,
+       seen : ObjectProv.object option IntMap.map};
 
-(* ------------------------------------------------------------------------- *)
-(* Unwanted constants.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-val unwantedNamespace = Namespace.fromList [unwantedString];
-
-val unwantedIdName = Name.mk (unwantedNamespace,unwantedIdString);
-
-fun destUnwantedIdConst c =
+fun new apply =
     let
-      val n = Const.name c
-
-(*OpenTheoryTrace4
-      val () = Print.trace Name.pp "ObjectRewrite.destUnwantedIdConst.n" n
-*)
+      val seen = IntMap.new ()
     in
-      if Name.equal n unwantedIdName then ()
-      else raise Error "ObjectRewrite.destUnwantedIdConst"
+      Rewrite
+        {apply = apply,
+         seen = seen}
     end;
 
-fun destUnwantedIdTerm tm =
+val id = new (K NONE);
+
+(* ------------------------------------------------------------------------- *)
+(* Applying rewrites.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  val savable = true;
+
+  fun rewriteObj apply =
+      let
+        fun preDescent obj seen =
+            let
+              val i = ObjectProv.id obj
+            in
+              case IntMap.peek seen i of
+                NONE => {descend = true, result = (NONE,seen)}
+              | SOME obj' => {descend = false, result = (obj',seen)}
+            end
+
+        fun postDescent obj0 obj1 seen =
+            let
+              val i = ObjectProv.id obj0
+
+              val (unchanged,obj2) =
+                  case obj1 of
+                    NONE => (true,obj0)
+                  | SOME obj => (false,obj)
+
+              val (unchanged,obj3) =
+                  case apply (ObjectProv.dest obj2) of
+                    NONE => (unchanged,obj2)
+                  | SOME obj => (false,obj)
+
+              val obj3' = if unchanged then NONE else SOME obj3
+
+              val seen = IntMap.insert seen (i,obj3')
+            in
+              (obj3',seen)
+            end
+      in
+        ObjectProv.maps
+          {preDescent = preDescent,
+           postDescent = postDescent,
+           savable = savable}
+      end;
+in
+  fun sharingRewriteObject obj rewr =
+      let
+        val Rewrite {apply,seen} = rewr
+
+        val (obj',seen) = rewriteObj apply obj seen
+
+        val rewr = Rewrite {apply = apply, seen = seen}
+      in
+        (obj',rewr)
+      end;
+end;
+
+fun rewriteObject rewr obj =
     let
-      val (c,ty) = Term.destConst tm
-
-      val () = destUnwantedIdConst c
+      val (obj',_) = sharingRewriteObject obj rewr
     in
-      ty
+      obj'
     end;
-
-fun destUnwantedIdRefl th =
-    destUnwantedIdTerm (Term.destRefl (Thm.concl th));
-
-fun destUnwantedIdTermObject ob =
-    destUnwantedIdTerm (Object.destTerm ob);
-
-fun destUnwantedIdReflObject ob =
-    destUnwantedIdRefl (Object.destThm ob);
-
-fun destUnwantedIdTermObjectProv obj =
-    destUnwantedIdTermObject (ObjectProv.object obj);
-
-fun destUnwantedIdReflObjectProv obj =
-    destUnwantedIdReflObject (ObjectProv.object obj);
-
-(* ------------------------------------------------------------------------- *)
-(* A type of object rewrites.                                                *)
-(* ------------------------------------------------------------------------- *)
-
-type rewrite = ObjectProv.object -> ObjectProv.object;
-
-(* ------------------------------------------------------------------------- *)
-(* An unchanged exception.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-exception Unchanged;
-
-(* ------------------------------------------------------------------------- *)
-(* Applying rewrites to objects.                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun apply rewr obj = rewr obj handle Unchanged => obj;
-
-(* ------------------------------------------------------------------------- *)
-(* Rewrite combinators.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-val id : rewrite = fn _ => raise Unchanged;
-
-val fail : rewrite = fn _ => raise Error "ObjectRewrite.fail";
-
-fun seq r1 r2 obj = apply r2 (r1 obj) handle Unchanged => r2 obj;
-
-fun cond r1 r2 obj = r1 obj handle Error _ => r2 obj;
-
-fun try r = cond r id;
-
-(* ------------------------------------------------------------------------- *)
-(* Eliminating Unwanted.id terms.                                            *)
-(* ------------------------------------------------------------------------- *)
-
-fun unwantedId obj =
-    let
-      val ObjectProv.Object' {object = ob, provenance = prov} =
-          ObjectProv.dest obj
-
-(*OpenTheoryTrace4
-      val () = Print.trace Object.pp "ObjectRewrite.unwantedId.ob" ob
-
-      val () = Print.trace ObjectProv.ppProvenance
-                 "ObjectRewrite.unwantedId.prov" prov
-*)
-    in
-      case prov of
-        ObjectProv.Default =>
-        let
-          val (f,a) = Object.destAppTerm ob
-
-          val _ = destUnwantedIdTerm f
-
-          val obj' =
-              ObjectProv.Object'
-                {object = Object.Term a,
-                 provenance = ObjectProv.Default}
-        in
-          ObjectProv.mk obj'
-        end
-      | ObjectProv.Special
-          {command = Command.AppTerm,
-           arguments = [objF,objA],
-           generated = [_],
-           result = 0} =>
-        let
-          val _ = destUnwantedIdTermObjectProv objF
-        in
-          objA
-        end
-      | ObjectProv.Special
-          {command = Command.AppThm,
-           arguments = [objF,objA],
-           generated = [_],
-           result = 0} =>
-        let
-          val _ = destUnwantedIdReflObjectProv objF
-        in
-          objA
-        end
-      | ObjectProv.Special _ => raise Error "ObjectRewrite.unwantedId"
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Default rewrite.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val default = try unwantedId;
 
 end

@@ -121,6 +121,7 @@ val trueConst : name
 (* Functions *)
 
 val composeConst : name
+val idConst : name
 
 (* Lists *)
 

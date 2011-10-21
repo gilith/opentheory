@@ -94,32 +94,87 @@ local
 
   val initial : state = IntMap.new ();
 
-  fun preDescent refs obj (acc : state) =
-      case IntMap.peek acc (ObjectProv.id obj) of
-        SOME obj => {descend = false, result = (obj,acc)}
-      | NONE =>
-        let
-          val obj =
-              case ObjectMap.peek refs (ObjectProv.object obj) of
-                SOME obj => obj
-              | NONE => raise Bug "ObjectExport.compressRefs.preDescent"
-        in
-          {descend = true, result = (obj,acc)}
-        end;
-
-  fun postDescent obj obj' (acc : state) =
+  fun preDescent refs objI (acc : state) =
       let
-        val acc = IntMap.insert acc (ObjectProv.id obj, obj')
+        val i = ObjectProv.id objI
+
+        val objI' = IntMap.peek acc i
       in
-        (obj',acc)
+        case objI' of
+          SOME objR =>
+          let
+            val objR' = if ObjectProv.equalId i objR then NONE else objI'
+          in
+            {descend = false, result = (objR',acc)}
+          end
+        | NONE =>
+          let
+            val obI = ObjectProv.object objI
+
+            val objJ' = ObjectMap.peek refs obI
+
+            val objJ =
+                case objJ' of
+                  NONE => raise Bug "ObjectExport.compressRefs.preDescent"
+                | SOME obj => obj
+
+            val j = ObjectProv.id objJ
+          in
+            if j = i then {descend = true, result = (NONE,acc)}
+            else
+              let
+                val objR' = IntMap.peek acc j
+              in
+                case objR' of
+                  NONE =>
+                  let
+                    val acc = IntMap.insert acc (i,objJ)
+                  in
+                    {descend = true, result = (objJ',acc)}
+                  end
+                | SOME objR =>
+                  let
+                    val acc = IntMap.insert acc (i,objR)
+                  in
+                    {descend = false, result = (objR',acc)}
+                  end
+              end
+          end
+      end;
+
+  fun postDescent objI objR' (acc : state) =
+      let
+        val i = ObjectProv.id objI
+      in
+        case objR' of
+          NONE =>
+          let
+            val acc = IntMap.insert acc (i,objI)
+          in
+            (objR',acc)
+          end
+        | SOME objR =>
+          let
+            val acc =
+                case IntMap.peek acc i of
+                  NONE => acc
+                | SOME objJ => IntMap.insert acc (ObjectProv.id objJ, objR)
+
+            val acc = IntMap.insert acc (i,objR)
+          in
+            (objR',acc)
+          end
       end;
 
   fun advance refs (obj,th,(acc,exp)) =
       let
-        val (obj,acc) =
+        val (obj',acc) =
             ObjectProv.maps
               {preDescent = preDescent refs,
-               postDescent = postDescent} obj acc
+               postDescent = postDescent,
+               savable = true} obj acc
+
+        val obj = Option.getOpt (obj',obj)
 
         val exp = insert exp (obj,th)
       in

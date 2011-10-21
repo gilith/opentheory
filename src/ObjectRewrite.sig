@@ -7,41 +7,22 @@ signature ObjectRewrite =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of object rewrites.                                                *)
+(* Bottom-up object rewrites: return NONE for unchanged.                     *)
 (* ------------------------------------------------------------------------- *)
 
 type rewrite
 
-(* ------------------------------------------------------------------------- *)
-(* Rewrite combinators.                                                      *)
-(* ------------------------------------------------------------------------- *)
+val new : (ObjectProv.object' -> ObjectProv.object option) -> rewrite
 
 val id : rewrite
 
-val fail : rewrite
-
-val seq : rewrite -> rewrite -> rewrite
-
-val cond : rewrite -> rewrite -> rewrite
-
-val try : rewrite -> rewrite
-
 (* ------------------------------------------------------------------------- *)
-(* Applying rewrites to objects.                                             *)
+(* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val apply : rewrite -> ObjectProv.object -> ObjectProv.object
+val sharingRewriteObject :
+    ObjectProv.object -> rewrite -> ObjectProv.object option * rewrite
 
-(* ------------------------------------------------------------------------- *)
-(* Eliminating Unwanted.id terms.                                            *)
-(* ------------------------------------------------------------------------- *)
-
-val unwantedId : rewrite
-
-(* ------------------------------------------------------------------------- *)
-(* Default rewrite.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val default : rewrite
+val rewriteObject : rewrite -> ObjectProv.object -> ObjectProv.object option
 
 end

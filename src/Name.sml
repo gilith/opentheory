@@ -245,7 +245,8 @@ end;
 local
   fun mkFunction c = mk (Namespace.function,c);
 in
-  val composeConst = mkFunction Namespace.composeConstComponent;
+  val composeConst = mkFunction Namespace.composeConstComponent
+  and idConst = mkFunction Namespace.idConstComponent;
 end;
 
 (* Lists *)

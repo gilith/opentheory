@@ -37,7 +37,9 @@ datatype object' =
       {object : Object.object,
        provenance : provenance}
 
+(***
 val mk : object' -> object
+***)
 
 val dest : object -> object'
 
@@ -48,6 +50,14 @@ val provenance : object -> provenance
 val isDefault : object -> bool
 
 val parents : object -> object list
+
+val destNum : object -> int
+
+val destName : object -> Name.name
+
+val destSequent : object * object -> Sequent.sequent
+
+val destThm : object -> Thm.thm
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
@@ -77,7 +87,7 @@ val mkBetaConv : {savable : bool} -> object -> object
 
 val mkCons : {savable : bool} -> object -> object -> object
 
-val mkConst : Const.const -> object
+val mkConst : Name.name -> object
 
 val mkConstTerm : {savable : bool} -> object -> object -> object
 
@@ -100,7 +110,7 @@ val mkRefl : {savable : bool} -> object -> object
 
 val mkSubst : {savable : bool} -> object -> object -> object
 
-val mkTypeOp : TypeOp.typeOp -> object
+val mkTypeOp : Name.name -> object
 
 val mkVar : {savable : bool} -> object -> object -> object
 
@@ -108,8 +118,13 @@ val mkVarTerm : {savable : bool} -> object -> object
 
 val mkVarType : object -> object
 
+(* General commands *)
+
+val mkCommand :
+    {savable : bool} -> Command.command -> object list -> object list
+
 (* ------------------------------------------------------------------------- *)
-(* Folding state over objects.                                               *)
+(* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 val foldl :
@@ -118,13 +133,14 @@ val foldl :
     's -> object -> 's
 
 (* ------------------------------------------------------------------------- *)
-(* Mapping with state over objects.                                          *)
+(* Mapping with state over objects: return NONE for unchanged.               *)
 (* ------------------------------------------------------------------------- *)
 
 val maps :
-    {preDescent : object -> 's -> {descend : bool, result : object * 's},
-     postDescent : object -> object -> 's -> object * 's} ->
-    object -> 's -> object * 's
+    {preDescent : object -> 's -> {descend : bool, result : object option * 's},
+     postDescent : object -> object option -> 's -> object option * 's,
+     savable : bool} ->
+    object -> 's -> object option * 's
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

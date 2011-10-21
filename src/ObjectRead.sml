@@ -226,13 +226,7 @@ fun execute cmd state =
         let
           val (stack,objH,objC) = ObjectStack.pop2 stack
 
-          val seq =
-              let
-                val obH = ObjectProv.object objH
-                and obC = ObjectProv.object objC
-              in
-                Object.destSequent (obH,obC)
-              end
+          val seq = ObjectProv.destSequent (objH,objC)
 
           val obj =
               case ObjectThms.peekThm import seq of
@@ -291,13 +285,14 @@ fun execute cmd state =
         let
           val (stack,objN) = ObjectStack.pop stack
 
-          val n = Object.destName (ObjectProv.object objN)
+          val n = ObjectProv.destName objN
+
           val n = Interpretation.interpretConst interpretation n
 
           val obj =
               case ObjectThms.peekConst import n of
                 SOME x => x
-              | NONE => ObjectProv.mkConst (Const.mkUndef n)
+              | NONE => ObjectProv.mkConst n
 
           val stack = ObjectStack.push stack obj
         in
@@ -353,7 +348,7 @@ fun execute cmd state =
 
           val objD = ObjectStack.peek stack
 
-          val i = Object.destNum (ObjectProv.object objI)
+          val i = ObjectProv.destNum objI
 
           val dict = ObjectDict.define dict (i,objD)
         in
@@ -371,7 +366,8 @@ fun execute cmd state =
         let
           val (stack,objN,objT) = ObjectStack.pop2 stack
 
-          val n = Object.destName (ObjectProv.object objN)
+          val n = ObjectProv.destName objN
+
           val n = Interpretation.interpretConst interpretation n
 
           val (obj0,obj1) =
@@ -393,13 +389,16 @@ fun execute cmd state =
         let
           val (stack,objN,objA,objR,objV,objT) = ObjectStack.pop5 stack
 
-          val n = Object.destName (ObjectProv.object objN)
+          val n = ObjectProv.destName objN
+
           val n = Interpretation.interpretTypeOp interpretation n
 
-          val a = Object.destName (ObjectProv.object objA)
+          val a = ObjectProv.destName objA
+
           val a = Interpretation.interpretConst interpretation a
 
-          val r = Object.destName (ObjectProv.object objR)
+          val r = ObjectProv.destName objR
+
           val r = Interpretation.interpretConst interpretation r
 
           val (obj0,obj1,obj2,obj3,obj4) =
@@ -487,7 +486,7 @@ fun execute cmd state =
         let
           val (stack,objI) = ObjectStack.pop stack
 
-          val i = Object.destNum (ObjectProv.object objI)
+          val i = ObjectProv.destNum objI
 
           val obj = ObjectDict.refer dict i
 
@@ -507,7 +506,7 @@ fun execute cmd state =
         let
           val (stack,objI) = ObjectStack.pop stack
 
-          val i = Object.destNum (ObjectProv.object objI)
+          val i = ObjectProv.destNum objI
 
           val (dict,obj) = ObjectDict.remove dict i
 
@@ -569,12 +568,8 @@ fun execute cmd state =
 
           val th =
               let
-                val obT = ObjectProv.object objT
-                and obH = ObjectProv.object objH
-                and obC = ObjectProv.object objC
-
-                val t = Object.destThm obT
-                and seq = Object.destSequent (obH,obC)
+                val t = ObjectProv.destThm objT
+                and seq = ObjectProv.destSequent (objH,objC)
               in
                 Rule.alpha seq t
               end
@@ -595,13 +590,14 @@ fun execute cmd state =
         let
           val (stack,objN) = ObjectStack.pop stack
 
-          val n = Object.destName (ObjectProv.object objN)
+          val n = ObjectProv.destName objN
+
           val n = Interpretation.interpretTypeOp interpretation n
 
           val obj =
               case ObjectThms.peekTypeOp import n of
                 SOME x => x
-              | NONE => ObjectProv.mkTypeOp (TypeOp.mkUndef n)
+              | NONE => ObjectProv.mkTypeOp n
 
           val stack = ObjectStack.push stack obj
         in
