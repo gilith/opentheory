@@ -81,6 +81,8 @@ val destTypeOp : object -> TypeOp.typeOp
 
 val isTypeOp : object -> bool
 
+val equalTypeOp : TypeOp.typeOp -> object -> bool
+
 (* Type objects *)
 
 val destType : object -> Type.ty
@@ -116,6 +118,8 @@ val isOpType : object -> bool
 val destConst : object -> Const.const
 
 val isConst : object -> bool
+
+val equalConst : Const.const -> object -> bool
 
 (* Term variable objects *)
 

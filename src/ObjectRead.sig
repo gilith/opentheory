@@ -31,6 +31,8 @@ val dict : state -> ObjectDict.dict
 
 val export : state -> ObjectExport.export
 
+val definitions : state -> ObjectSymbol.symbol
+
 val inference : state -> Inference.inference
 
 (* ------------------------------------------------------------------------- *)
@@ -46,5 +48,11 @@ val executeStream : Command.command Stream.stream -> state -> state
 (* ------------------------------------------------------------------------- *)
 
 val executeTextFile : {filename : string} -> state -> state
+
+(* ------------------------------------------------------------------------- *)
+(* The exported theorems.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+val thms : state -> ObjectThms.thms
 
 end

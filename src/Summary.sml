@@ -299,8 +299,6 @@ local
 
         val n = SequentSet.size seqs
 
-        val class = class ^ (if n = 1 then "" else "s")
-
         fun ppSeqs () =
             Print.consistentBlock 2
               (Print.ppPrettyInt n ::

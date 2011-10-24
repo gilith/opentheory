@@ -28,6 +28,8 @@ fun insert (Export m) obj_th = Export (ObjectProvMap.insert m obj_th);
 
 fun foldl f a (Export m) = ObjectProvMap.foldl f a m;
 
+fun foldr f a (Export m) = ObjectProvMap.foldr f a m;
+
 fun toMap (Export m) = m;
 
 fun toList (Export m) = ObjectProvMap.toList m;

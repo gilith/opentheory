@@ -27,23 +27,23 @@ datatype state =
        stack : ObjectStack.stack,
        dict : ObjectDict.dict,
        export : ObjectExport.export,
+       definitions : ObjectSymbol.symbol,
        inference : Inference.inference};
 
 fun initial parameters =
     let
       val stack = ObjectStack.empty
-
-      val dict = ObjectDict.empty
-
-      val export = ObjectExport.empty
-
-      val inference = Inference.empty
+      and dict = ObjectDict.empty
+      and export = ObjectExport.empty
+      and definitions = ObjectSymbol.empty
+      and inference = Inference.empty
     in
       State
         {parameters = parameters,
          stack = stack,
          dict = dict,
          export = export,
+         definitions = definitions,
          inference = inference}
     end;
 
@@ -55,6 +55,8 @@ fun dict (State {dict = x, ...}) = x;
 
 fun export (State {export = x, ...}) = x;
 
+fun definitions (State {definitions = x, ...}) = x;
+
 fun inference (State {inference = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
@@ -63,7 +65,7 @@ fun inference (State {inference = x, ...}) = x;
 
 fun execute cmd state =
     let
-      val State {parameters,stack,dict,export,inference} = state
+      val State {parameters,stack,dict,export,definitions,inference} = state
 
       val {import,interpretation,savable} = parameters
 
@@ -95,6 +97,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -111,6 +114,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -131,6 +135,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -149,6 +154,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -159,8 +165,6 @@ fun execute cmd state =
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
           val obj = ObjectProv.mkAppTerm {savable = savable} objF objA
-
-          val obj = ObjectRewrite.apply ObjectRewrite.default obj
 
 (*OpenTheoryTrace2
           val () = Print.trace Object.pp "ObjectRead.execute appTerm"
@@ -174,6 +178,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -184,8 +189,6 @@ fun execute cmd state =
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
           val obj = ObjectProv.mkAppThm {savable = savable} objF objA
-
-          val obj = ObjectRewrite.apply ObjectRewrite.default obj
 
 (*OpenTheoryTrace2
           val () = Print.trace Object.pp "ObjectRead.execute appThm"
@@ -199,6 +202,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -217,6 +221,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -240,6 +245,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -258,6 +264,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -276,6 +283,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -301,6 +309,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -319,6 +328,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -337,6 +347,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -357,6 +368,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -374,12 +386,15 @@ fun execute cmd state =
               ObjectProv.mkDefineConst {savable = savable} n objT
 
           val stack = ObjectStack.push2 stack obj0 obj1
+
+          val definitions = ObjectSymbol.addConst definitions obj0
         in
           State
             {parameters = parameters,
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -405,12 +420,19 @@ fun execute cmd state =
               ObjectProv.mkDefineTypeOp {savable = savable} n a r objV objT
 
           val stack = ObjectStack.push5 stack obj0 obj1 obj2 obj3 obj4
+
+          val definitions = ObjectSymbol.addTypeOp definitions obj0
+
+          val definitions = ObjectSymbol.addConst definitions obj1
+
+          val definitions = ObjectSymbol.addConst definitions obj2
         in
           State
             {parameters = parameters,
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -429,6 +451,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -445,6 +468,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -463,6 +487,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -477,6 +502,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -497,6 +523,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -517,6 +544,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -535,6 +563,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -557,6 +586,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -581,6 +611,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -606,6 +637,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -624,6 +656,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -642,6 +675,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
 
@@ -660,6 +694,7 @@ fun execute cmd state =
              stack = stack,
              dict = dict,
              export = export,
+             definitions = definitions,
              inference = inference}
         end
     end
@@ -731,5 +766,21 @@ in
                        parseErrorLocation () ^ "\n" ^ err)
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* The exported theorems.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun thms state =
+    let
+      val State {parameters,export,definitions,...} = state
+
+      val {import,...} = parameters
+    in
+      ObjectThms.fromExport
+        {import = import,
+         export = export,
+         definitions = definitions}
+    end;
 
 end

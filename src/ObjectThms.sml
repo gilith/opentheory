@@ -45,6 +45,16 @@ fun peekTypeOp (Thms {typeOps,...}) n = NameMap.peek typeOps n;
 
 fun peekConst (Thms {consts,...}) n = NameMap.peek consts n;
 
+fun peekSpecificTypeOp ths ot =
+    case peekTypeOp ths (TypeOp.name ot) of
+      NONE => NONE
+    | SOME obj => if ObjectProv.equalTypeOp ot obj then SOME obj else NONE;
+
+fun peekSpecificConst ths c =
+    case peekConst ths (Const.name c) of
+      NONE => NONE
+    | SOME obj => if ObjectProv.equalConst c obj then SOME obj else NONE;
+
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -91,6 +101,85 @@ end;
 (* I/O.                                                                      *)
 (* ------------------------------------------------------------------------- *)
 
+local
+  fun split (obj,th,(objs,ths,seqs)) =
+      let
+        val objs = obj :: objs
+        and ths = Thms.add ths th
+        and seqs = SequentMap.insert seqs (Thm.sequent th, obj)
+      in
+        (objs,ths,seqs)
+      end;
+
+  fun mkTypeOp imp defs (ot,otO) =
+      let
+        val n = TypeOp.name ot
+
+        val obj =
+            case peekSpecificTypeOp imp ot of
+              SOME obj => obj
+            | NONE =>
+              case ObjectSymbol.peekTypeOp defs ot of
+                SOME obj => obj
+              | NONE => ObjectProv.mkTypeOp n
+
+(*OpenTheoryDebug
+        val () =
+            if ObjectProv.equalTypeOp ot obj then ()
+            else raise Bug "ObjectThms.mkTypeOp"
+*)
+      in
+        NameMap.insert otO (n,obj)
+      end;
+
+  fun mkConst imp defs (c,conO) =
+      let
+        val n = Const.name c
+
+        val obj =
+            case peekSpecificConst imp c of
+              SOME obj => obj
+            | NONE =>
+              case ObjectSymbol.peekConst defs c of
+                SOME obj => obj
+              | NONE => ObjectProv.mkConst n
+
+(*OpenTheoryDebug
+        val () =
+            if ObjectProv.equalConst c obj then ()
+            else raise Bug "ObjectThms.mkConst"
+*)
+      in
+        NameMap.insert conO (n,obj)
+      end;
+in
+  fun fromExport {import,export,definitions} =
+      let
+        val objs = []
+        and ths = Thms.empty
+        and seqs = SequentMap.new ()
+
+        val (objs,ths,seqs) = ObjectExport.foldr split (objs,ths,seqs) export
+
+        val sym = Thms.symbol ths
+
+        val ots = SymbolTable.typeOps sym
+        and cons = SymbolTable.consts sym
+
+        val otO = NameMap.new ()
+        and conO = NameMap.new ()
+
+        val otO = TypeOpSet.foldl (mkTypeOp import definitions) otO ots
+        and conO = ConstSet.foldl (mkConst import definitions) conO cons
+      in
+        Thms
+          {thms = ths,
+           typeOps = otO,
+           consts = conO,
+           seqs = seqs}
+      end
+end;
+
 fun toExport ths =
     let
       fun add (th,exp) =
@@ -104,107 +193,5 @@ fun toExport ths =
     in
       ObjectExport.compress exp
     end;
-
-local
-  fun fillTypeOp (ot,otO) =
-      let
-        val n = TypeOp.name ot
-      in
-        if NameMap.inDomain n otO then otO
-        else NameMap.insert otO (n, ObjectProv.mkTypeOp ot)
-      end;
-
-  fun fillConst (con,conO) =
-      let
-        val n = Const.name con
-      in
-        if NameMap.inDomain n conO then conO
-        else NameMap.insert conO (n, ObjectProv.mkConst con)
-      end;
-in
-  fun fromExport exp =
-      let
-        fun split (obj,th,(objs,ths,seqs)) =
-            let
-              val objs = obj :: objs
-              and ths = Thms.add ths th
-              and seqs = SequentMap.insert seqs (Thm.sequent th, obj)
-            in
-              (objs,ths,seqs)
-            end
-
-        val objs = []
-        and ths = Thms.empty
-        and seqs = SequentMap.new ()
-
-        val (objs,ths,seqs) =
-            ObjectProvMap.foldr split (objs,ths,seqs) (ObjectExport.toMap exp)
-
-        val sym = Thms.symbol ths
-
-        val ots = SymbolTable.typeOps sym
-        and cons = SymbolTable.consts sym
-
-        fun adds seen otO_conO objs =
-            case objs of
-              [] => otO_conO
-            | obj :: objs =>
-              let
-                val id = ObjectProv.id obj
-              in
-                if IntSet.member id seen then adds seen otO_conO objs
-                else
-                  let
-                    val seen = IntSet.add seen id
-
-                    val otO_conO =
-                        case ObjectProv.object obj of
-                          Object.TypeOp ot =>
-                          if not (TypeOpSet.member ot ots) then otO_conO
-                          else
-                            let
-                              val (otO,conO) = otO_conO
-
-                              val n = TypeOp.name ot
-
-                              val otO = NameMap.insert otO (n,obj)
-                            in
-                              (otO,conO)
-                            end
-                        | Object.Const con =>
-                          if not (ConstSet.member con cons) then otO_conO
-                          else
-                            let
-                              val (otO,conO) = otO_conO
-
-                              val n = Const.name con
-
-                              val conO = NameMap.insert conO (n,obj)
-                            in
-                              (otO,conO)
-                            end
-                        | _ => otO_conO
-
-                    val objs = ObjectProv.parents obj @ objs
-                  in
-                    adds seen otO_conO objs
-                  end
-              end
-
-        val otO = NameMap.new ()
-        and conO = NameMap.new ()
-
-        val (otO,conO) = adds IntSet.empty (otO,conO) objs
-
-        val otO = TypeOpSet.foldl fillTypeOp otO ots
-        and conO = ConstSet.foldl fillConst conO cons
-      in
-        Thms
-          {thms = ths,
-           typeOps = otO,
-           consts = conO,
-           seqs = seqs}
-      end
-end;
 
 end

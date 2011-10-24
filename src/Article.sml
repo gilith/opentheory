@@ -121,8 +121,6 @@ fun fromTextFile {savable,import,interpretation,filename} =
 
       val stack = ObjectRead.stack state
       and dict = ObjectRead.dict state
-      and exp = ObjectRead.export state
-      and inference = ObjectRead.inference state
 
       val () =
           let
@@ -146,7 +144,8 @@ fun fromTextFile {savable,import,interpretation,filename} =
                     " left in the dictionary by " ^ filename)
           end
 
-      val thms = ObjectThms.fromExport exp
+      val inference = ObjectRead.inference state
+      and thms = ObjectRead.thms state
     in
       Article
         {savable = savable,

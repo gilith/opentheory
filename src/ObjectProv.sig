@@ -51,11 +51,31 @@ val isDefault : object -> bool
 
 val parents : object -> object list
 
+(* Num objects *)
+
 val destNum : object -> int
+
+(* Name objects *)
 
 val destName : object -> Name.name
 
+(* Type operator objects *)
+
+val destTypeOp : object -> TypeOp.typeOp
+
+val equalTypeOp : TypeOp.typeOp -> object -> bool
+
+(* Constant objects *)
+
+val destConst : object -> Const.const
+
+val equalConst : Const.const -> object -> bool
+
+(* Sequent objects *)
+
 val destSequent : object * object -> Sequent.sequent
+
+(* Theorem objects *)
 
 val destThm : object -> Thm.thm
 

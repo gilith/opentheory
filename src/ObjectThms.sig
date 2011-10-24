@@ -42,8 +42,11 @@ val unionList : thms list -> thms
 (* I/O.                                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val toExport : thms -> ObjectExport.export
+val fromExport :
+    {import : thms,
+     export : ObjectExport.export,
+     definitions : ObjectSymbol.symbol} -> thms
 
-val fromExport : ObjectExport.export -> thms
+val toExport : thms -> ObjectExport.export
 
 end

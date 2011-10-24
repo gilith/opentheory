@@ -145,11 +145,31 @@ fun updateArguments args obj =
     updateProvenance (updateArgumentsProvenance args) obj;
 ***)
 
+(* Num objects *)
+
 fun destNum obj = Object.destNum (object obj);
+
+(* Name objects *)
 
 fun destName obj = Object.destName (object obj);
 
+(* Type operator objects *)
+
+fun destTypeOp obj = Object.destTypeOp (object obj);
+
+fun equalTypeOp ot obj = Object.equalTypeOp ot (object obj);
+
+(* Constant objects *)
+
+fun destConst obj = Object.destConst (object obj);
+
+fun equalConst c obj = Object.equalConst c (object obj);
+
+(* Sequent objects *)
+
 fun destSequent (objH,objC) = Object.destSequent (object objH, object objC);
+
+(* Theorem objects *)
 
 fun destThm obj = Object.destThm (object obj);
 

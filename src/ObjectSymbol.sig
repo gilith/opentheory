@@ -1,47 +1,37 @@
 (* ========================================================================= *)
-(* EXPORTED THEOREM OBJECTS                                                  *)
-(* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* SYMBOL OBJECTS                                                            *)
+(* Copyright (c) 2011 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature ObjectExport =
+signature ObjectSymbol =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of exported theorem objects.                                       *)
+(* A type of symbol objects.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type export
+type symbol
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val empty : export
-
-val null : export -> bool
-
-val size : export -> int
-
-val insert : export -> ObjectProv.object * Thm.thm -> export
-
-val foldl : (ObjectProv.object * Thm.thm * 's -> 's) -> 's -> export -> 's
-
-val foldr : (ObjectProv.object * Thm.thm * 's -> 's) -> 's -> export -> 's
-
-val toMap : export -> Thm.thm ObjectProvMap.map
-
-val toList : export -> (ObjectProv.object * Thm.thm) list
+val empty : symbol
 
 (* ------------------------------------------------------------------------- *)
-(* Compression.                                                              *)
+(* Looking up symbols.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val compress : export -> export
+val peekTypeOp : symbol -> TypeOp.typeOp -> ObjectProv.object option
+
+val peekConst : symbol -> Const.const -> ObjectProv.object option
 
 (* ------------------------------------------------------------------------- *)
-(* Pretty printing.                                                          *)
+(* Adding symbols.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : export Print.pp
+val addTypeOp : symbol -> ObjectProv.object -> symbol
+
+val addConst : symbol -> ObjectProv.object -> symbol
 
 end

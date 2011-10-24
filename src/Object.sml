@@ -104,6 +104,11 @@ fun destTypeOp ob =
 
 val isTypeOp = can destTypeOp;
 
+fun equalTypeOp ot ob =
+    case total destTypeOp ob of
+      SOME ot' => TypeOp.equal ot' ot
+    | NONE => false;
+
 (* Type objects *)
 
 fun destType ob =
@@ -151,6 +156,11 @@ fun destConst ob =
     | _ => raise Error "Object.destConst";
 
 val isConst = can destConst;
+
+fun equalConst c ob =
+    case total destConst ob of
+      SOME c' => Const.equal c' c
+    | NONE => false;
 
 (* Term variable objects *)
 
