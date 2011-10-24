@@ -174,9 +174,12 @@ Summarizing compressed article "example3"
 
 Summarizing compressed article "example4"
 2 input type operators: -> bool
-1 input constant: =
+4 input constants: = a b Unwanted.id
+2 assumptions:
+  |- a
+  |- a <=> Unwanted.id b
 1 theorem:
-  |- x = x
+  |- Unwanted.id b
 
 Summarizing compressed article "example5"
 2 input type operators: -> bool

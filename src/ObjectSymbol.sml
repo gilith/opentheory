@@ -57,7 +57,9 @@ fun addTypeOp sym obj =
 
       val ot = ObjectProv.destTypeOp obj
 
-      val typeOps = TypeOpMap.insert typeOps (ot,obj)
+      val typeOps =
+          if TypeOpMap.inDomain ot typeOps then typeOps
+          else TypeOpMap.insert typeOps (ot,obj)
     in
       Symbol
         {typeOps = typeOps,
@@ -70,7 +72,9 @@ fun addConst sym obj =
 
       val c = ObjectProv.destConst obj
 
-      val consts = ConstMap.insert consts (c,obj)
+      val consts =
+          if ConstMap.inDomain c consts then consts
+          else ConstMap.insert consts (c,obj)
     in
       Symbol
         {typeOps = typeOps,
