@@ -22,6 +22,7 @@ datatype object =
 and object' =
     Object' of
       {object : Object.object,
+       definitions : object list,
        provenance : provenance}
 
 and provenance =
@@ -86,27 +87,13 @@ fun argumentsProvenance prov =
       Default => []
     | Special {arguments,...} => arguments;
 
-(***
-fun updateArgumentsProvenance args prov =
-    case prov of
-      Default => raise Error "ObjectProv.updateArgumentProvenance"
-    | Special
-        {command = cmd,
-         arguments = _,
-         generated = gen,
-         result = res} =>
-      Special
-        {command = cmd,
-         arguments = args,
-         generated = gen,
-         result = res};
-***)
-
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun object' (Object' {object = x, ...}) = x;
+
+fun definitions' (Object' {definitions = x, ...}) = x;
 
 fun provenance' (Object' {provenance = x, ...}) = x;
 
@@ -123,27 +110,15 @@ fun dest (Object {id = _, object = x}) = x;
 
 fun object obj = object' (dest obj);
 
+fun definitions obj = definitions' (dest obj);
+
 fun provenance obj = provenance' (dest obj);
 
 fun isDefault obj = isDefaultProvenance (provenance obj);
 
 fun allDefault objs = List.all isDefault objs;
 
-fun parents obj = argumentsProvenance (provenance obj);
-
-(***
-fun updateProvenance f obj =
-    let
-      val Object' {object = ob, provenance = prov} = dest obj
-
-      val prov = f prov
-    in
-      mk (Object' {object = ob, provenance = prov})
-    end;
-
-fun updateArguments args obj =
-    updateProvenance (updateArgumentsProvenance args) obj;
-***)
+fun parents obj = definitions obj @ argumentsProvenance (provenance obj);
 
 (* Num objects *)
 
@@ -157,11 +132,15 @@ fun destName obj = Object.destName (object obj);
 
 fun destTypeOp obj = Object.destTypeOp (object obj);
 
+fun isTypeOp obj = Object.isTypeOp (object obj);
+
 fun equalTypeOp ot obj = Object.equalTypeOp ot (object obj);
 
 (* Constant objects *)
 
 fun destConst obj = Object.destConst (object obj);
+
+fun isConst obj = Object.isConst (object obj);
 
 fun equalConst c obj = Object.equalConst c (object obj);
 
@@ -198,7 +177,15 @@ fun mkSpecial5 cmd args (ob0,ob1,ob2,ob3,ob4) =
        mkSpecialProvenance cmd args gen 4)
     end;
 
-fun mkProv ob prov = mk (Object' {object = ob, provenance = prov});
+fun mkDefProv' ob defs prov =
+    Object'
+      {object = ob,
+       definitions = defs,
+       provenance = prov};
+
+fun mkDefProv ob defs prov = mk (mkDefProv' ob defs prov);
+
+fun mkProv ob prov = mkDefProv ob [] prov;
 
 fun mkDefault ob = mkProv ob Default;
 
@@ -516,8 +503,14 @@ fun mkDefineConst {savable} n objT =
       val (prov0,prov1) =
           if not savable then (Default,Default)
           else mkSpecial2 cmd args gen
+
+      val obj0 = mkProv ob0 prov0
+
+      val defs = [obj0]
+
+      val obj1 = mkDefProv ob1 defs prov1
     in
-      (mkProv ob0 prov0, mkProv ob1 prov1)
+      (obj0,obj1)
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkDefineConst:\n" ^ err);
@@ -556,12 +549,20 @@ fun mkDefineTypeOp {savable} n a r objV objT =
       val (prov0,prov1,prov2,prov3,prov4) =
           if not savable then (Default,Default,Default,Default,Default)
           else mkSpecial5 cmd args gen
+
+      val obj0 = mkProv ob0 prov0
+
+      val defs = [obj0]
+
+      val obj1 = mkDefProv ob1 defs prov1
+      and obj2 = mkDefProv ob2 defs prov2
+
+      val defs = obj2 :: obj1 :: defs
+
+      val obj3 = mkDefProv ob3 defs prov3
+      and obj4 = mkDefProv ob4 defs prov4
     in
-      (mkProv ob0 prov0,
-       mkProv ob1 prov1,
-       mkProv ob2 prov2,
-       mkProv ob3 prov3,
-       mkProv ob4 prov4)
+      (obj0,obj1,obj2,obj3,obj4)
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkDefineTypeOp:\n" ^ err);
@@ -820,6 +821,34 @@ fun mkCommand sav cmd args =
     handle Error err => raise Error ("in ObjectProv.mkCommand:\n" ^ err);
 *)
 
+(* Commands for making specific type operators and constants *)
+
+fun mkSpecificTypeOp {savable} ot =
+    if TypeOp.isUndef ot then mkTypeOp (TypeOp.name ot)
+    else
+      let
+        val () =
+            if not savable then ()
+            else raise Bug "ObjectProv.mkSpecificTypeOp"
+
+        val ob = Object.TypeOp ot
+      in
+        mkDefault ob
+      end;
+
+fun mkSpecificConst {savable} c =
+    if Const.isUndef c then mkConst (Const.name c)
+    else
+      let
+        val () =
+            if not savable then ()
+            else raise Bug "ObjectProv.mkSpecificConst"
+
+        val ob = Object.Const c
+      in
+        mkDefault ob
+      end;
+
 (* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
@@ -946,10 +975,12 @@ in
 end;
 
 local
-  fun ancs set [] = set
-    | ancs set (obj :: objs) =
-      if member obj set then ancs set objs
-      else ancs (add set obj) (ObjectProv.parents obj @ objs);
+  fun ancs set objs =
+      case objs of
+        [] => set
+      | obj :: objs =>
+        if member obj set then ancs set objs
+        else ancs (add set obj) (ObjectProv.parents obj @ objs);
 
   fun addAncestors (obj,set) = ancs set [obj];
 in

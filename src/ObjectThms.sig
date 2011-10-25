@@ -30,6 +30,10 @@ val peekTypeOp : thms -> Name.name -> ObjectProv.object option
 
 val peekConst : thms -> Name.name -> ObjectProv.object option
 
+val peekSpecificTypeOp : thms -> TypeOp.typeOp -> ObjectProv.object option
+
+val peekSpecificConst : thms -> Const.const -> ObjectProv.object option
+
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -42,10 +46,7 @@ val unionList : thms list -> thms
 (* I/O.                                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val fromExport :
-    {import : thms,
-     export : ObjectExport.export,
-     definitions : ObjectSymbol.symbol} -> thms
+val fromExport : {savable : bool} -> ObjectExport.export -> thms
 
 val toExport : thms -> ObjectExport.export
 

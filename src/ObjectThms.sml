@@ -111,55 +111,39 @@ local
         (objs,ths,seqs)
       end;
 
-  fun mkTypeOp imp defs (ot,otO) =
+  fun mkTypeOp sav sym (ot,otO) =
       let
         val n = TypeOp.name ot
 
         val obj =
-            case peekSpecificTypeOp imp ot of
+            case ObjectSymbol.peekTypeOp sym ot of
               SOME obj => obj
-            | NONE =>
-              case ObjectSymbol.peekTypeOp defs ot of
-                SOME obj => obj
-              | NONE => ObjectProv.mkTypeOp n
-
-(*OpenTheoryDebug
-        val () =
-            if ObjectProv.equalTypeOp ot obj then ()
-            else raise Bug "ObjectThms.mkTypeOp"
-*)
+            | NONE => ObjectProv.mkSpecificTypeOp sav ot
       in
         NameMap.insert otO (n,obj)
       end;
 
-  fun mkConst imp defs (c,conO) =
+  fun mkConst sav sym (c,conO) =
       let
         val n = Const.name c
 
         val obj =
-            case peekSpecificConst imp c of
+            case ObjectSymbol.peekConst sym c of
               SOME obj => obj
-            | NONE =>
-              case ObjectSymbol.peekConst defs c of
-                SOME obj => obj
-              | NONE => ObjectProv.mkConst n
-
-(*OpenTheoryDebug
-        val () =
-            if ObjectProv.equalConst c obj then ()
-            else raise Bug "ObjectThms.mkConst"
-*)
+            | NONE => ObjectProv.mkSpecificConst sav c
       in
         NameMap.insert conO (n,obj)
       end;
 in
-  fun fromExport {import,export,definitions} =
+  fun fromExport sav exp =
       let
+        val {savable} = sav
+
         val objs = []
         and ths = Thms.empty
         and seqs = SequentMap.new ()
 
-        val (objs,ths,seqs) = ObjectExport.foldr split (objs,ths,seqs) export
+        val (objs,ths,seqs) = ObjectExport.foldr split (objs,ths,seqs) exp
 
         val sym = Thms.symbol ths
 
@@ -169,8 +153,12 @@ in
         val otO = NameMap.new ()
         and conO = NameMap.new ()
 
-        val otO = TypeOpSet.foldl (mkTypeOp import definitions) otO ots
-        and conO = ConstSet.foldl (mkConst import definitions) conO cons
+        val expSym =
+            if savable then ObjectSymbol.fromExport exp
+            else ObjectSymbol.empty
+
+        val otO = TypeOpSet.foldl (mkTypeOp sav expSym) otO ots
+        and conO = ConstSet.foldl (mkConst sav expSym) conO cons
       in
         Thms
           {thms = ths,

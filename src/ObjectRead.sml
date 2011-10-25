@@ -773,14 +773,11 @@ end;
 
 fun thms state =
     let
-      val State {parameters,export,definitions,...} = state
+      val State {parameters,export,...} = state
 
-      val {import,...} = parameters
+      val {savable,...} = parameters
     in
-      ObjectThms.fromExport
-        {import = import,
-         export = export,
-         definitions = definitions}
+      ObjectThms.fromExport {savable = savable} export
     end;
 
 end

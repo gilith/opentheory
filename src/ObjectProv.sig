@@ -35,15 +35,14 @@ val argumentsProvenance : provenance -> object list
 datatype object' =
     Object' of
       {object : Object.object,
+       definitions : object list,
        provenance : provenance}
-
-(***
-val mk : object' -> object
-***)
 
 val dest : object -> object'
 
 val object : object -> Object.object
+
+val definitions : object -> object list
 
 val provenance : object -> provenance
 
@@ -63,11 +62,15 @@ val destName : object -> Name.name
 
 val destTypeOp : object -> TypeOp.typeOp
 
+val isTypeOp : object -> bool
+
 val equalTypeOp : TypeOp.typeOp -> object -> bool
 
 (* Constant objects *)
 
 val destConst : object -> Const.const
+
+val isConst : object -> bool
 
 val equalConst : Const.const -> object -> bool
 
@@ -142,6 +145,12 @@ val mkVarType : object -> object
 
 val mkCommand :
     {savable : bool} -> Command.command -> object list -> object list
+
+(* Commands for making specific type operators and constants *)
+
+val mkSpecificTypeOp : {savable : bool} -> TypeOp.typeOp -> object
+
+val mkSpecificConst : {savable : bool} -> Const.const -> object
 
 (* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
