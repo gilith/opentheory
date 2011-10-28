@@ -18,17 +18,19 @@ val namespace : Namespace.namespace
 
 val idName : Name.name
 
-(***
 (* ------------------------------------------------------------------------- *)
 (* Eliminating Unwanted objects.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 type eliminate
 
+val new : {savable : bool} -> eliminate
+
+(* Objects *)
+
 val sharingEliminate :
     ObjectProv.object -> eliminate -> ObjectProv.object option * eliminate
 
 val eliminate : eliminate -> ObjectProv.object -> ObjectProv.object option
-***)
 
 end

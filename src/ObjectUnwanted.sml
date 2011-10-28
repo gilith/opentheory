@@ -9,12 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* We always save proofs in this module.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-val savable = {savable = true};
-
-(* ------------------------------------------------------------------------- *)
 (* The Unwanted namespace.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -26,18 +20,22 @@ val namespace = Namespace.fromList ["Unwanted"];
 
 val idName = Name.mk (namespace,"id");
 
+val unwantedIdConst = Const.mkUndef idName;
+
 local
+  val sav = {savable = true};
+
   val xNameObj = ObjectProv.mkName (Name.mkGlobal "x");
 
   val alphaNameObj = ObjectProv.mkName (Name.mkGlobal "A");
 
   val alphaTypeObj = ObjectProv.mkVarType alphaNameObj;
 
-  val xVarObj = ObjectProv.mkVar savable xNameObj alphaTypeObj;
+  val xVarObj = ObjectProv.mkVar sav xNameObj alphaTypeObj;
 
-  val xTermObj = ObjectProv.mkVarTerm savable xVarObj;
+  val xTermObj = ObjectProv.mkVarTerm sav xVarObj;
 in
-  val idTermObject = ObjectProv.mkAbsTerm savable xVarObj xTermObj;
+  val idTermObject = ObjectProv.mkAbsTerm sav xVarObj xTermObj;
 end;
 
 val (idConstObject,idDefObject) =
@@ -133,5 +131,148 @@ fun unwantedId obj =
       | ObjectProv.Special _ => raise Error "ObjectRewrite.unwantedId"
     end;
 ***)
+
+(* ------------------------------------------------------------------------- *)
+(* Eliminating Unwanted objects.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype eliminate =
+    Eliminate of
+      {defaultMap : (bool * ObjectProv.object) ObjectMap.map,
+       specialMap : ObjectProv.object option IntMap.map,
+       savable : bool};
+
+fun new {savable} =
+    let
+      val defaultMap =
+          ObjectMap.fromList
+            [(Object.Const unwantedIdConst,(false,idConstObject))]
+
+      and specialMap = IntMap.new ()
+    in
+      Eliminate
+        {defaultMap = defaultMap,
+         specialMap = specialMap,
+         savable = savable}
+    end;
+
+local
+  fun eliminateTop obj elim = (NONE,elim);
+
+  fun eliminateOb' ob elim =
+      let
+        val Eliminate {defaultMap,specialMap,savable} = elim
+      in
+        case ObjectMap.peek defaultMap ob of
+          SOME obj' => (obj',elim)
+        | NONE =>
+          let
+            val (cmd,obs) = Object.command ob
+
+            val (objs',elim) = maps eliminateOb' obs elim
+
+            val unchanged = List.all fst objs'
+            and objs = List.map snd objs'
+
+            val obj =
+                case ObjectProv.mkCommand {savable = savable} cmd objs of
+                  [x] => x
+                | _ => raise Bug "ObjectUnwanted.eliminateOb'"
+
+            val (obj',elim) = eliminateTop obj elim
+
+            val obj' =
+                case obj' of
+                  SOME obj => (false,obj)
+                | NONE => (unchanged,obj)
+
+            val defaultMap = ObjectMap.insert defaultMap (ob,obj')
+
+            val elim =
+                Eliminate
+                  {defaultMap = defaultMap,
+                   specialMap = specialMap,
+                   savable = savable}
+          in
+            (obj',elim)
+          end
+      end;
+
+  fun eliminateOb ob elim =
+      let
+        val ((unchanged,obj),elim) = eliminateOb' ob elim
+
+        val obj' = if unchanged then NONE else SOME obj
+      in
+        (obj',elim)
+      end;
+
+  fun eliminateObj obj elim =
+      let
+        val ObjectProv.Object' {object = ob, provenance = prov} = obj
+      in
+        if ObjectProv.isDefaultProvenance prov then eliminateOb ob elim
+        else (NONE,elim)
+      end;
+
+  fun preDescent obj elim =
+      let
+        val Eliminate {specialMap,...} = elim
+
+        val i = ObjectProv.id obj
+      in
+        case IntMap.peek specialMap i of
+          NONE => {descend = true, result = (NONE,elim)}
+        | SOME obj' => {descend = false, result = (obj',elim)}
+      end;
+
+  fun postDescent obj0 obj1' elim =
+      let
+        val i = ObjectProv.id obj0
+
+        val (unchanged,obj1) =
+            case obj1' of
+              NONE => (true,obj0)
+            | SOME obj => (false,obj)
+
+        val (obj2',elim) = eliminateObj (ObjectProv.dest obj1) elim
+
+        val (unchanged,obj2) =
+            case obj2' of
+              NONE => (unchanged,obj1)
+            | SOME obj => (false,obj)
+
+        val obj2' = if unchanged then NONE else SOME obj2
+
+        val Eliminate {defaultMap,specialMap,savable} = elim
+
+        val specialMap = IntMap.insert specialMap (i,obj2')
+
+        val elim =
+            Eliminate
+              {defaultMap = defaultMap,
+               specialMap = specialMap,
+               savable = savable}
+      in
+        (obj2',elim)
+      end;
+in
+  fun sharingEliminate obj elim =
+      let
+        val Eliminate {savable,...} = elim
+      in
+        ObjectProv.maps
+          {preDescent = preDescent,
+           postDescent = postDescent,
+           savable = savable} obj elim
+      end;
+end;
+
+fun eliminate elim obj =
+    let
+      val (obj',_) = sharingEliminate obj elim
+    in
+      obj'
+    end;
 
 end

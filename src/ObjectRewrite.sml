@@ -9,33 +9,45 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* A type of parameters for rewriting objects.                               *)
+(* ------------------------------------------------------------------------- *)
+
+type parameters =
+     {apply : ObjectProv.object' -> ObjectProv.object option,
+      savable : bool};
+
+(* ------------------------------------------------------------------------- *)
 (* Bottom-up object rewrites: return NONE for unchanged.                     *)
 (* ------------------------------------------------------------------------- *)
 
 datatype rewrite =
     Rewrite of
-      {apply : ObjectProv.object' -> ObjectProv.object option,
+      {parameters : parameters,
        seen : ObjectProv.object option IntMap.map};
 
-fun new apply =
+fun new parameters =
     let
       val seen = IntMap.new ()
     in
       Rewrite
-        {apply = apply,
+        {parameters = parameters,
          seen = seen}
     end;
 
-val id = new (K NONE);
+val id =
+    let
+      val apply = K NONE
+      and savable = true
+    in
+      new {apply = apply, savable = savable}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  val savable = true;
-
-  fun rewriteObj apply =
+  fun rewriteObj apply savable =
       let
         fun preDescent obj seen =
             let
@@ -46,25 +58,25 @@ local
               | SOME obj' => {descend = false, result = (obj',seen)}
             end
 
-        fun postDescent obj0 obj1 seen =
+        fun postDescent obj0 obj1' seen =
             let
               val i = ObjectProv.id obj0
 
-              val (unchanged,obj2) =
-                  case obj1 of
+              val (unchanged,obj1) =
+                  case obj1' of
                     NONE => (true,obj0)
                   | SOME obj => (false,obj)
 
-              val (unchanged,obj3) =
-                  case apply (ObjectProv.dest obj2) of
-                    NONE => (unchanged,obj2)
+              val (unchanged,obj2) =
+                  case apply (ObjectProv.dest obj1) of
+                    NONE => (unchanged,obj1)
                   | SOME obj => (false,obj)
 
-              val obj3' = if unchanged then NONE else SOME obj3
+              val obj2' = if unchanged then NONE else SOME obj2
 
-              val seen = IntMap.insert seen (i,obj3')
+              val seen = IntMap.insert seen (i,obj2')
             in
-              (obj3',seen)
+              (obj2',seen)
             end
       in
         ObjectProv.maps
@@ -75,11 +87,13 @@ local
 in
   fun sharingRewriteObject obj rewr =
       let
-        val Rewrite {apply,seen} = rewr
+        val Rewrite {parameters,seen} = rewr
 
-        val (obj',seen) = rewriteObj apply obj seen
+        val {apply,savable} = parameters
 
-        val rewr = Rewrite {apply = apply, seen = seen}
+        val (obj',seen) = rewriteObj apply savable obj seen
+
+        val rewr = Rewrite {parameters = parameters, seen = seen}
       in
         (obj',rewr)
       end;

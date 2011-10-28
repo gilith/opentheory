@@ -298,6 +298,7 @@ local
             | ObjectProv.Special
                 {command = cmd,
                  arguments = args,
+                 definitions = _,
                  generated = gen,
                  result = res} =>
               let

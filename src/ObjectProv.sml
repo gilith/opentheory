@@ -22,7 +22,6 @@ datatype object =
 and object' =
     Object' of
       {object : Object.object,
-       definitions : object list,
        provenance : provenance}
 
 and provenance =
@@ -30,6 +29,7 @@ and provenance =
   | Special of
       {command : Command.command,
        arguments : object list,
+       definitions : object list,
        generated : Object.object list,
        result : int};
 
@@ -70,30 +70,43 @@ fun compare (Object {id = i1, ...}, Object {id = i2, ...}) =
 (* A type of provenances.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkSpecialProvenance cmd args gen res =
-    Special
-      {command = cmd,
-       arguments = args,
-       generated = gen,
-       result = res};
-
 fun isDefaultProvenance prov =
     case prov of
       Default => true
     | Special _ => false;
 
+fun specialProvenance cmd args ob =
+    let
+      val defs = []
+      and gen = [ob]
+      and res = 0
+    in
+      Special
+        {command = cmd,
+         arguments = args,
+         definitions = defs,
+         generated = gen,
+         result = res}
+    end;
+
 fun argumentsProvenance prov =
     case prov of
       Default => []
-    | Special {arguments,...} => arguments;
+    | Special {arguments = x, ...} => x;
+
+fun definitionsProvenance prov =
+    case prov of
+      Default => []
+    | Special {definitions = x, ...} => x;
+
+fun parentsProvenance prov =
+    argumentsProvenance prov @ definitionsProvenance prov;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun object' (Object' {object = x, ...}) = x;
-
-fun definitions' (Object' {definitions = x, ...}) = x;
 
 fun provenance' (Object' {provenance = x, ...}) = x;
 
@@ -110,15 +123,13 @@ fun dest (Object {id = _, object = x}) = x;
 
 fun object obj = object' (dest obj);
 
-fun definitions obj = definitions' (dest obj);
-
 fun provenance obj = provenance' (dest obj);
 
 fun isDefault obj = isDefaultProvenance (provenance obj);
 
 fun allDefault objs = List.all isDefault objs;
 
-fun parents obj = definitions obj @ argumentsProvenance (provenance obj);
+fun parents obj = parentsProvenance (provenance obj);
 
 (* Num objects *)
 
@@ -156,38 +167,27 @@ fun destThm obj = Object.destThm (object obj);
 (* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkSpecial cmd args ob = mkSpecialProvenance cmd args [ob] 0;
-
-fun mkSpecial2 cmd args (ob0,ob1) =
-    let
-      val gen = [ob0,ob1]
-    in
-      (mkSpecialProvenance cmd args gen 0,
-       mkSpecialProvenance cmd args gen 1)
-    end;
-
-fun mkSpecial5 cmd args (ob0,ob1,ob2,ob3,ob4) =
-    let
-      val gen = [ob0,ob1,ob2,ob3,ob4]
-    in
-      (mkSpecialProvenance cmd args gen 0,
-       mkSpecialProvenance cmd args gen 1,
-       mkSpecialProvenance cmd args gen 2,
-       mkSpecialProvenance cmd args gen 3,
-       mkSpecialProvenance cmd args gen 4)
-    end;
-
-fun mkDefProv' ob defs prov =
+fun mkProv' ob prov =
     Object'
       {object = ob,
-       definitions = defs,
        provenance = prov};
 
-fun mkDefProv ob defs prov = mk (mkDefProv' ob defs prov);
-
-fun mkProv ob prov = mkDefProv ob [] prov;
+fun mkProv ob prov = mk (mkProv' ob prov);
 
 fun mkDefault ob = mkProv ob Default;
+
+fun mkSpecial ob cmd args defs gen res =
+    let
+      val prov =
+          Special
+            {command = cmd,
+             arguments = args,
+             definitions = defs,
+             generated = gen,
+             result = res}
+    in
+      mkProv ob prov
+    end;
 
 (* Special commands *)
 
@@ -216,7 +216,7 @@ fun mkAbsTerm {savable} objV objB =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -247,7 +247,7 @@ fun mkAbsThm {savable} objV objT =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -274,7 +274,7 @@ fun mkAppTerm {savable} objF objA =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -305,7 +305,7 @@ fun mkAppThm {savable} objF objA =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -334,7 +334,7 @@ fun mkAssume {savable} objT =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -356,7 +356,7 @@ fun mkAxiom {savable} objH objC seq =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -385,7 +385,7 @@ fun mkBetaConv {savable} objT =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -411,7 +411,7 @@ fun mkCons {savable} objH objT =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -440,7 +440,7 @@ fun mkConstTerm {savable} objC objT =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -471,7 +471,7 @@ fun mkDeductAntisym {savable} objA objB =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -483,7 +483,7 @@ fun mkDefineConst {savable} n objT =
     let
       val obT = object objT
 
-      val obs as (ob0,ob1) =
+      val (ob0,ob1) =
           let
             val t = Object.destTerm obT
 
@@ -495,22 +495,24 @@ fun mkDefineConst {savable} n objT =
 (*OpenTheoryTrace2
       val () = Print.trace Object.pp "ObjectProv.mkDefineConst" ob1
 *)
-
-      val cmd = Command.DefineConst
-      and args = [mkName n, objT]
-      and gen = obs
-
-      val (prov0,prov1) =
-          if not savable then (Default,Default)
-          else mkSpecial2 cmd args gen
-
-      val obj0 = mkProv ob0 prov0
-
-      val defs = [obj0]
-
-      val obj1 = mkDefProv ob1 defs prov1
     in
-      (obj0,obj1)
+      if not savable then (mkDefault ob0, mkDefault ob1)
+      else
+        let
+          val cmd = Command.DefineConst
+          and args = [mkName n, objT]
+          and gen = [ob0,ob1]
+
+          val defs = []
+
+          val obj0 = mkSpecial ob0 cmd args defs gen 0
+
+          val defs = obj0 :: defs
+
+          val obj1 = mkSpecial ob1 cmd args defs gen 1
+        in
+          (obj0,obj1)
+        end
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkDefineConst:\n" ^ err);
@@ -521,7 +523,7 @@ fun mkDefineTypeOp {savable} n a r objV objT =
       val obV = object objV
       and obT = object objT
 
-      val obs as (ob0,ob1,ob2,ob3,ob4) =
+      val (ob0,ob1,ob2,ob3,ob4) =
           let
             val v = Object.destNames obV
             and t = Object.destThm obT
@@ -541,28 +543,39 @@ fun mkDefineTypeOp {savable} n a r objV objT =
 
       val () = Print.trace Object.pp "ObjectProv.mkDefineTypeOp.repAbs" ob4
 *)
-
-      val cmd = Command.DefineTypeOp
-      and args = [mkName n, mkName a, mkName r, objV, objT]
-      and gen = obs
-
-      val (prov0,prov1,prov2,prov3,prov4) =
-          if not savable then (Default,Default,Default,Default,Default)
-          else mkSpecial5 cmd args gen
-
-      val obj0 = mkProv ob0 prov0
-
-      val defs = [obj0]
-
-      val obj1 = mkDefProv ob1 defs prov1
-      and obj2 = mkDefProv ob2 defs prov2
-
-      val defs = obj2 :: obj1 :: defs
-
-      val obj3 = mkDefProv ob3 defs prov3
-      and obj4 = mkDefProv ob4 defs prov4
     in
-      (obj0,obj1,obj2,obj3,obj4)
+      if not savable then
+        let
+          val obj0 = mkDefault ob0
+          and obj1 = mkDefault ob1
+          and obj2 = mkDefault ob2
+          and obj3 = mkDefault ob3
+          and obj4 = mkDefault ob4
+        in
+          (obj0,obj1,obj2,obj3,obj4)
+        end
+      else
+        let
+          val cmd = Command.DefineTypeOp
+          and args = [mkName n, mkName a, mkName r, objV, objT]
+          and gen = [ob0,ob1,ob2,ob3,ob4]
+
+          val defs = []
+
+          val obj0 = mkSpecial ob0 cmd args defs gen 0
+
+          val defs = obj0 :: defs
+
+          val obj1 = mkSpecial ob1 cmd args defs gen 1
+          and obj2 = mkSpecial ob2 cmd args defs gen 2
+
+          val defs = obj2 :: obj1 :: defs
+
+          val obj3 = mkSpecial ob3 cmd args defs gen 3
+          and obj4 = mkSpecial ob4 cmd args defs gen 4
+        in
+          (obj0,obj1,obj2,obj3,obj4)
+        end
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkDefineTypeOp:\n" ^ err);
@@ -591,7 +604,7 @@ fun mkEqMp {savable} objA objB =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -620,7 +633,7 @@ fun mkOpType {savable} objO objL =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -649,7 +662,7 @@ fun mkRefl {savable} objT =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -680,7 +693,7 @@ fun mkSubst {savable} objS objT =
 
       val prov =
           if not savable then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -713,7 +726,7 @@ fun mkVar {savable} objN objT =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -738,7 +751,7 @@ fun mkVarTerm {savable} objV =
 
       val prov =
           if not savable orelse allDefault args then Default
-          else mkSpecial cmd args gen
+          else specialProvenance cmd args gen
     in
       mkProv ob prov
     end
@@ -901,6 +914,7 @@ fun maps {preDescent,postDescent,savable} =
                     | Special
                         {command = cmd,
                          arguments = args,
+                         definitions = _,
                          generated = _,
                          result = idx} =>
                       let
@@ -955,8 +969,11 @@ val pp = Print.ppMap object Object.pp;
 fun ppProvenance prov =
     case prov of
       Default => Print.ppString "Default"
-    | Special {command,arguments,generated,result} =>
-      Print.ppString "Special";
+    | Special {command,...} =>
+      Print.program
+        [Print.ppString "Special",
+         Print.space,
+         Command.pp command];
 
 end
 

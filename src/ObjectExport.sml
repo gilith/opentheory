@@ -12,27 +12,167 @@ open Useful;
 (* A type of exported theorem objects.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-datatype export = Export of Thm.thm ObjectProvMap.map;
+datatype thm =
+    Thm of
+      {proof : ObjectProv.object,
+       hyp : ObjectProv.object,
+       concl : ObjectProv.object};
+
+fun toThm th =
+    let
+      val Thm {proof,hyp,concl} = th
+
+      val t = ObjectProv.destThm proof
+      and seq = ObjectProv.destSequent (hyp,concl)
+    in
+      Rule.alpha seq t
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of exported theorem lists.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+datatype export =
+    Export of
+      {size : int,
+       thms : thm list,
+       savable : bool};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val empty = Export (ObjectProvMap.new ());
+fun new {savable} =
+    let
+      val size = 0
+      and thms = []
+    in
+      Export
+        {size = size,
+         thms = thms,
+         savable = savable}
+    end;
 
-fun null (Export m) = ObjectProvMap.null m;
+fun size (Export {size = x, ...}) = x;
 
-fun size (Export m) = ObjectProvMap.size m;
+fun thms (Export {thms = x, ...}) = x;
 
-fun insert (Export m) obj_th = Export (ObjectProvMap.insert m obj_th);
+fun null exp = size exp = 0;
 
-fun foldl f a (Export m) = ObjectProvMap.foldl f a m;
+fun add exp th =
+    let
+      val Export {size,thms,savable} = exp
 
-fun foldr f a (Export m) = ObjectProvMap.foldr f a m;
+      val size = size + 1
+      and thms = th :: thms
+    in
+      Export
+        {size = size,
+         thms = thms,
+         savable = savable}
+    end;
 
-fun toMap (Export m) = m;
+fun foldr f b exp = List.foldl f b (thms exp);
 
-fun toList (Export m) = ObjectProvMap.toList m;
+fun toList exp = List.rev (thms exp);
+
+fun foldl f b exp = List.foldl f b (toList exp);
+
+fun maps f =
+    let
+      fun mapsThms l acc =
+          case l of
+            [] => (NONE,acc)
+          | h :: t =>
+            let
+              val (t',acc) = mapsThms t acc
+
+              val (h',acc) = f h acc
+
+              val unchanged = true
+
+              val (unchanged,t) =
+                  case t' of
+                    NONE => (unchanged,t)
+                  | SOME x => (false,x)
+
+              val (unchanged,h) =
+                  case h' of
+                    NONE => (unchanged,h)
+                  | SOME x => (false,x)
+
+              val l' = if unchanged then NONE else SOME (h :: t)
+            in
+              (l',acc)
+            end
+    in
+      fn exp => fn acc =>
+         let
+           val Export {size,thms,savable} = exp
+
+           val (thms',acc) = mapsThms thms acc
+         in
+           case thms' of
+             NONE => (NONE,acc)
+           | SOME thms =>
+             let
+               val exp = Export {size = size, thms = thms, savable = savable}
+             in
+               (SOME exp, acc)
+             end
+         end
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Eliminate unwanted subterms.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun eliminateThm th elim =
+      let
+        val Thm {proof,hyp,concl} = th
+
+        val (proof',elim) = ObjectUnwanted.sharingEliminate proof elim
+
+        val (hyp',elim) = ObjectUnwanted.sharingEliminate hyp elim
+
+        val (concl',elim) = ObjectUnwanted.sharingEliminate concl elim
+
+        val unchanged = true
+
+        val (unchanged,proof) =
+            case proof' of
+              NONE => (unchanged,proof)
+            | SOME obj => (false,obj)
+
+        val (unchanged,hyp) =
+            case hyp' of
+              NONE => (unchanged,hyp)
+            | SOME obj => (false,obj)
+
+        val (unchanged,concl) =
+            case concl' of
+              NONE => (unchanged,concl)
+            | SOME obj => (false,obj)
+
+        val th' =
+            if unchanged then NONE
+            else SOME (Thm {proof = proof, hyp = hyp, concl = concl})
+      in
+        (th',elim)
+      end;
+in
+  fun eliminateUnwanted exp =
+      let
+        val Export {savable,...} = exp
+
+        val elim = ObjectUnwanted.new {savable = savable}
+
+        val (exp',_) = maps eliminateThm exp elim
+      in
+        exp'
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Compression.                                                              *)
@@ -78,14 +218,27 @@ local
         (seen,refs)
       end;
 
-  fun advance (obj,_,acc) =
+  val addObj =
       ObjectProv.foldl
         {preDescent = preDescent,
-         postDescent = postDescent} acc obj;
-in
-  fun toRefs (Export m) =
+         postDescent = postDescent};
+
+  fun addThm (th,acc) =
       let
-        val (_,refs) = ObjectProvMap.foldl advance initial m
+        val Thm {proof,hyp,concl} = th
+
+        val acc = addObj acc proof
+
+        val acc = addObj acc hyp
+
+        val acc = addObj acc concl
+      in
+        acc
+      end;
+in
+  fun toRefs exp =
+      let
+        val (_,refs) = foldl addThm initial exp
       in
         refs
       end;

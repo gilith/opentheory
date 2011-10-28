@@ -21,12 +21,15 @@ datatype provenance =
   | Special of
       {command : Command.command,
        arguments : object list,
+       definitions : object list,
        generated : Object.object list,
        result : int}
 
 val isDefaultProvenance : provenance -> bool
 
 val argumentsProvenance : provenance -> object list
+
+val definitionsProvenance : provenance -> object list
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -35,14 +38,11 @@ val argumentsProvenance : provenance -> object list
 datatype object' =
     Object' of
       {object : Object.object,
-       definitions : object list,
        provenance : provenance}
 
 val dest : object -> object'
 
 val object : object -> Object.object
-
-val definitions : object -> object list
 
 val provenance : object -> provenance
 

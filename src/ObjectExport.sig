@@ -10,27 +10,43 @@ sig
 (* A type of exported theorem objects.                                       *)
 (* ------------------------------------------------------------------------- *)
 
+datatype thm =
+    Thm of
+      {proof : ObjectProv.object,
+       hyp : ObjectProv.object,
+       concl : ObjectProv.object}
+
+val toThm : thm -> Thm.thm
+
+(* ------------------------------------------------------------------------- *)
+(* A type of exported theorem lists.                                         *)
+(* ------------------------------------------------------------------------- *)
+
 type export
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val empty : export
+val new : {savable : bool} -> export
 
 val null : export -> bool
 
 val size : export -> int
 
-val insert : export -> ObjectProv.object * Thm.thm -> export
+val add : export -> thm -> export
 
-val foldl : (ObjectProv.object * Thm.thm * 's -> 's) -> 's -> export -> 's
+val foldl : (thm * 's -> 's) -> 's -> export -> 's
 
-val foldr : (ObjectProv.object * Thm.thm * 's -> 's) -> 's -> export -> 's
+val foldr : (thm * 's -> 's) -> 's -> export -> 's
 
-val toMap : export -> Thm.thm ObjectProvMap.map
+val toList : export -> thm list
 
-val toList : export -> (ObjectProv.object * Thm.thm) list
+(* ------------------------------------------------------------------------- *)
+(* Eliminate unwanted subterms.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val eliminateUnwanted : export -> export
 
 (* ------------------------------------------------------------------------- *)
 (* Compression.                                                              *)

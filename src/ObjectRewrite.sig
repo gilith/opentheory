@@ -7,12 +7,20 @@ signature ObjectRewrite =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* A type of parameters for rewriting objects.                               *)
+(* ------------------------------------------------------------------------- *)
+
+type parameters =
+     {apply : ObjectProv.object' -> ObjectProv.object option,
+      savable : bool}
+
+(* ------------------------------------------------------------------------- *)
 (* Bottom-up object rewrites: return NONE for unchanged.                     *)
 (* ------------------------------------------------------------------------- *)
 
 type rewrite
 
-val new : (ObjectProv.object' -> ObjectProv.object option) -> rewrite
+val new : parameters -> rewrite
 
 val id : rewrite
 

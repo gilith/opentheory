@@ -596,15 +596,7 @@ fun execute cmd state =
         let
           val (stack,objT,objH,objC) = ObjectStack.pop3 stack
 
-          val th =
-              let
-                val t = ObjectProv.destThm objT
-                and seq = ObjectProv.destSequent (objH,objC)
-              in
-                Rule.alpha seq t
-              end
-
-          val export = ObjectExport.insert export (objT,th)
+          val export = ObjectExport.insert export (objT,objH,objC)
         in
           State
             {parameters = parameters,
