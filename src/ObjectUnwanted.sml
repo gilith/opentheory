@@ -157,7 +157,32 @@ fun new {savable} =
     end;
 
 local
-  fun eliminateTop obj elim = (NONE,elim);
+  fun eliminateId obj elim =
+      (NONE,elim);
+
+  fun eliminateSeq' (f,(unchanged,obj,elim)) =
+        let
+          val (obj',elim) = f obj elim
+
+          val (unchanged,obj) =
+              case obj' of
+                NONE => (unchanged,obj)
+              | SOME obj => (false,obj)
+        in
+          (unchanged,obj,elim)
+        end;
+
+  fun eliminateTop obj elim =
+      let
+        val unchanged = true
+
+        val (unchanged,obj,elim) =
+            List.foldl eliminateSeq' (unchanged,obj,elim) [eliminateId]
+
+        val obj' = if unchanged then NONE else SOME obj
+      in
+        (obj',elim)
+      end;
 
   fun eliminateOb' ob elim =
       let
@@ -194,8 +219,8 @@ local
 
                   val obj' =
                       case obj' of
-                        SOME obj => (false,obj)
-                      | NONE => (unchanged,obj)
+                        NONE => (unchanged,obj)
+                      | SOME obj => (false,obj)
                 in
                   (obj',elim)
                 end
@@ -234,12 +259,8 @@ local
       end;
 
   fun eliminateObj obj elim =
-      let
-        val ObjectProv.Object' {object = ob, provenance = prov} = obj
-      in
-        if ObjectProv.isDefaultProvenance prov then eliminateOb ob elim
-        else (NONE,elim)
-      end;
+      if not (ObjectProv.isDefault obj) then eliminateTop obj elim
+      else eliminateOb (ObjectProv.object obj) elim;
 
   fun preDescent obj elim =
       let
@@ -263,7 +284,7 @@ local
               NONE => (unchanged,obj0)
             | SOME obj => (false,obj)
 
-        val (obj2',elim) = eliminateObj (ObjectProv.dest obj1) elim
+        val (obj2',elim) = eliminateObj obj1 elim
 
         val (unchanged,obj2) =
             case obj2' of
