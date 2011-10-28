@@ -127,7 +127,7 @@ local
 
   fun addThm (th,seen_sym) =
       let
-        val ObjectExport.Thm {proof = _, hyp, concl} = th
+        val ObjectThm.Thm {proof = _, hyp, concl} = th
       in
         addObj seen_sym [hyp,concl]
       end;

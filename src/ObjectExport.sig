@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* EXPORTED THEOREM OBJECTS                                                  *)
+(* EXPORT SETS OF THEOREM OBJECTS                                            *)
 (* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
@@ -7,19 +7,7 @@ signature ObjectExport =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of exported theorem objects.                                       *)
-(* ------------------------------------------------------------------------- *)
-
-datatype thm =
-    Thm of
-      {proof : ObjectProv.object,
-       hyp : ObjectProv.object,
-       concl : ObjectProv.object}
-
-val toThm : thm -> Thm.thm
-
-(* ------------------------------------------------------------------------- *)
-(* A type of exported theorem lists.                                         *)
+(* A type of export sets of theorem objects.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 type export
@@ -36,13 +24,31 @@ val null : export -> bool
 
 val size : export -> int
 
-val add : export -> thm -> export
+val add : export -> ObjectThm.thm -> export
 
-val foldl : (thm * 's -> 's) -> 's -> export -> 's
+val foldl : (ObjectThm.thm * 's -> 's) -> 's -> export -> 's
 
-val foldr : (thm * 's -> 's) -> 's -> export -> 's
+val foldr : (ObjectThm.thm * 's -> 's) -> 's -> export -> 's
 
-val toList : export -> thm list
+val toSet : export -> ObjectThmSet.set
+
+val toList : export -> ObjectThm.thm list
+
+(* ------------------------------------------------------------------------- *)
+(* Merging.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val union : export -> export -> export
+
+val unionList : export list -> export
+
+(* ------------------------------------------------------------------------- *)
+(* Mapping over export sets of theorem objects                               *)
+(* ------------------------------------------------------------------------- *)
+
+val maps :
+    (ObjectThm.thm -> 's -> ObjectThm.thm option * 's) ->
+    export -> 's -> export option * 's
 
 (* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)

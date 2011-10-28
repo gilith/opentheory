@@ -22,16 +22,18 @@ datatype thms =
 
 fun thms (Thms {thms = x, ...}) = x;
 
+fun toExport (Thms {export = x, ...}) = x;
+
 (* ------------------------------------------------------------------------- *)
-(* Constructing from an export list of theorem objects.                      *)
+(* Converting between export sets of theorem objects.                        *)
 (* ------------------------------------------------------------------------- *)
 
 local
   fun split (th,(ths,seqs)) =
       let
-        val ObjectExport.Thm {proof = obj, ...} = th
+        val ObjectThm.Thm {proof = obj, ...} = th
 
-        val th = ObjectExport.toThm th
+        val th = ObjectThm.thm th
 
         val seq = Thm.sequent th
 
@@ -105,7 +107,9 @@ in
       end
 end;
 
-val empty = fromExport (ObjectExport.new {savable = true});
+fun new sav = fromExport (ObjectExport.new sav);
+
+val empty = new {savable = true};
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up symbols and theorems.                                          *)
@@ -154,7 +158,7 @@ in
         and ots = NameMap.union pickSnd ots1 ots2
         and cons = NameMap.union pickSnd cons1 cons2
         and seqs = SequentMap.union pickSnd seqs1 seqs2
-        and exp = ObjectExport.union SequentMap.union pickSnd seqs1 seqs2
+        and exp = ObjectExport.union exp1 exp2
       in
         Thms
           {thms = ths,
@@ -173,92 +177,5 @@ in
         [] => empty
       | thms :: thmsl => List.foldl uncurriedUnion thms thmsl;
 end;
-
-(* ------------------------------------------------------------------------- *)
-(* I/O.                                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  fun split (obj,th,(objs,ths,seqs)) =
-      let
-        val objs = obj :: objs
-        and ths = Thms.add ths th
-        and seqs = SequentMap.insert seqs (Thm.sequent th, obj)
-      in
-        (objs,ths,seqs)
-      end;
-
-  fun mkTypeOp sav sym (ot,otO) =
-      let
-        val n = TypeOp.name ot
-
-        val obj =
-            case ObjectSymbol.peekTypeOp sym ot of
-              SOME obj => obj
-            | NONE => ObjectProv.mkSpecificTypeOp sav ot
-      in
-        NameMap.insert otO (n,obj)
-      end;
-
-  fun mkConst sav sym (c,conO) =
-      let
-        val n = Const.name c
-
-        val obj =
-            case ObjectSymbol.peekConst sym c of
-              SOME obj => obj
-            | NONE => ObjectProv.mkSpecificConst sav c
-      in
-        NameMap.insert conO (n,obj)
-      end;
-in
-  fun fromExport exp =
-      let
-        val savable = ObjectExport.savable exp
-
-        val sav = {savable = savable}
-
-        val objs = []
-        and ths = Thms.empty
-        and seqs = SequentMap.new ()
-
-        val (objs,ths,seqs) = ObjectExport.foldr split (objs,ths,seqs) exp
-
-        val sym = Thms.symbol ths
-
-        val ots = SymbolTable.typeOps sym
-        and cons = SymbolTable.consts sym
-
-        val otO = NameMap.new ()
-        and conO = NameMap.new ()
-
-        val expSym =
-            if savable then ObjectSymbol.fromExport exp
-            else ObjectSymbol.empty
-
-        val otO = TypeOpSet.foldl (mkTypeOp sav expSym) otO ots
-        and conO = ConstSet.foldl (mkConst sav expSym) conO cons
-      in
-        Thms
-          {thms = ths,
-           typeOps = otO,
-           consts = conO,
-           seqs = seqs}
-      end
-end;
-
-fun toExport ths =
-    let
-      fun add (th,exp) =
-          case peekThm ths (Thm.sequent th) of
-            SOME obj => ObjectExport.insert exp (obj,th)
-          | NONE => raise Bug "ObjectThms.toExport.add: vanishing sequent"
-
-      val exp = ObjectExport.empty
-
-      val exp = ThmSet.foldl add exp (Thms.thms (thms ths))
-    in
-      ObjectExport.compress exp
-    end;
 
 end

@@ -115,6 +115,7 @@ SRC = \
   src/ObjectProv.sig src/ObjectProv.sml \
   src/ObjectRewrite.sig src/ObjectRewrite.sml \
   src/ObjectUnwanted.sig src/ObjectUnwanted.sml \
+  src/ObjectThm.sig src/ObjectThm.sml \
   src/ObjectExport.sig src/ObjectExport.sml \
   src/ObjectSymbol.sig src/ObjectSymbol.sml \
   src/ObjectThms.sig src/ObjectThms.sml \

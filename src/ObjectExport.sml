@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* EXPORTED THEOREM OBJECTS                                                  *)
+(* EXPORT SETS OF THEOREM OBJECTS                                            *)
 (* Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
@@ -9,67 +9,12 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of exported theorem objects.                                       *)
-(* ------------------------------------------------------------------------- *)
-
-datatype thm =
-    Thm of
-      {proof : ObjectProv.object,
-       hyp : ObjectProv.object,
-       concl : ObjectProv.object};
-
-fun mapsThm f th acc =
-    let
-      val Thm {proof,hyp,concl} = th
-
-      val (proof',acc) = f proof acc
-
-      val (hyp',acc) = f hyp acc
-
-      val (concl',acc) = f concl acc
-
-      val unchanged = true
-
-      val (unchanged,proof) =
-          case proof' of
-            NONE => (unchanged,proof)
-          | SOME obj => (false,obj)
-
-      val (unchanged,hyp) =
-          case hyp' of
-            NONE => (unchanged,hyp)
-          | SOME obj => (false,obj)
-
-      val (unchanged,concl) =
-          case concl' of
-            NONE => (unchanged,concl)
-          | SOME obj => (false,obj)
-
-      val th' =
-          if unchanged then NONE
-          else SOME (Thm {proof = proof, hyp = hyp, concl = concl})
-    in
-      (th',acc)
-    end;
-
-fun toThm th =
-    let
-      val Thm {proof,hyp,concl} = th
-
-      val t = ObjectProv.destThm proof
-      and seq = ObjectProv.destSequent (hyp,concl)
-    in
-      Rule.alpha seq t
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* A type of exported theorem lists.                                         *)
+(* A type of export sets of theorem objects.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 datatype export =
     Export of
-      {size : int,
-       thms : thm list,
+      {thms : ObjectThmSet.set,
        savable : bool};
 
 (* ------------------------------------------------------------------------- *)
@@ -79,92 +24,112 @@ datatype export =
 fun new {savable} =
     let
       val size = 0
-      and thms = []
+      and thms = ObjectThmSet.empty
     in
       Export
-        {size = size,
-         thms = thms,
+        {thms = thms,
          savable = savable}
     end;
+
+val empty = new {savable = true};
 
 fun savable (Export {savable = x, ...}) = x;
 
-fun size (Export {size = x, ...}) = x;
+fun toSet (Export {thms = x, ...}) = x;
 
-fun thms (Export {thms = x, ...}) = x;
+fun null exp = ObjectThmSet.null (toSet exp);
 
-fun null exp = size exp = 0;
+fun size exp = ObjectThmSet.size (toSet exp);
 
 fun add exp th =
     let
-      val Export {size,thms,savable} = exp
+      val Export {thms,savable} = exp
 
-      val size = size + 1
-      and thms = th :: thms
+      val thms = ObjectThmSet.add thms th
     in
       Export
-        {size = size,
-         thms = thms,
+        {thms = thms,
          savable = savable}
     end;
 
-fun foldr f b exp = List.foldl f b (thms exp);
+fun foldl f b exp = ObjectThmSet.foldl f b (toSet exp);
 
-fun toList exp = List.rev (thms exp);
+fun foldr f b exp = ObjectThmSet.foldr f b (toSet exp);
 
-fun foldl f b exp = List.foldl f b (toList exp);
+fun toList exp = ObjectThmSet.toList (toSet exp);
 
-fun maps f =
+(* ------------------------------------------------------------------------- *)
+(* Merging.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun union exp1 exp2 =
     let
-      fun mapsThms l acc =
-          case l of
-            [] => (NONE,acc)
-          | h :: t =>
-            let
-              val (t',acc) = mapsThms t acc
+      val Export {thms = ths1, savable = sav1} = exp1
+      and Export {thms = ths2, savable = sav2} = exp2
 
-              val (h',acc) = f h acc
+      val sav = sav1 andalso sav2
 
-              val unchanged = true
-
-              val (unchanged,t) =
-                  case t' of
-                    NONE => (unchanged,t)
-                  | SOME x => (false,x)
-
-              val (unchanged,h) =
-                  case h' of
-                    NONE => (unchanged,h)
-                  | SOME x => (false,x)
-
-              val l' = if unchanged then NONE else SOME (h :: t)
-            in
-              (l',acc)
-            end
+      val ths = ObjectThmSet.union ths1 ths2
     in
-      fn exp => fn acc =>
-         let
-           val Export {size,thms,savable} = exp
-
-           val (thms',acc) = mapsThms thms acc
-         in
-           case thms' of
-             NONE => (NONE,acc)
-           | SOME thms =>
-             let
-               val exp = Export {size = size, thms = thms, savable = savable}
-             in
-               (SOME exp, acc)
-             end
-         end
+      Export
+        {thms = ths,
+         savable = sav}
     end;
+
+local
+  fun uncurriedUnion (thms1,thms2) = union thms1 thms2;
+in
+  fun unionList thmsl =
+      case thmsl of
+        [] => empty
+      | thms :: thmsl => List.foldl uncurriedUnion thms thmsl;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Mapping over exported theorem objects.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun addThm f (th,(unchanged,ths,acc)) =
+      let
+        val (th',acc) = f th acc
+
+        val (unchanged,th) =
+            case th' of
+              NONE => (unchanged,th)
+            | SOME x => (false,x)
+
+        val ths = ObjectThmSet.add ths th
+      in
+        (unchanged,ths,acc)
+      end;
+in
+  fun maps f exp acc =
+      let
+        val Export {thms,savable} = exp
+
+        val unchanged = true
+        and thms' = ObjectThmSet.empty
+
+        val (unchanged,thms',acc) =
+            ObjectThmSet.foldl (addThm f) (unchanged,thms',acc) thms
+      in
+        if unchanged then (NONE,acc)
+        else
+          let
+            val exp = Export {thms = thms, savable = savable}
+          in
+            (SOME exp, acc)
+          end
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  val eliminateThm = mapsThm ObjectUnwanted.sharingEliminate;
+  val eliminateThm = ObjectThm.maps ObjectUnwanted.sharingEliminate;
 in
   fun eliminateUnwanted exp =
       let
@@ -229,7 +194,7 @@ local
 
   fun addThm (th,acc) =
       let
-        val Thm {proof,hyp,concl} = th
+        val ObjectThm.Thm {proof,hyp,concl} = th
 
         val acc = addObj acc proof
 
@@ -331,7 +296,7 @@ local
          postDescent = postDescent,
          savable = true};
 
-  fun compressThm refs = mapsThm (compressObj refs);
+  fun compressThm refs = ObjectThm.maps (compressObj refs);
 in
   fun compressRefs refs exp =
       let

@@ -16,7 +16,7 @@ type thms
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val empty : thms
+val new : {savable : bool} -> thms
 
 val thms : thms -> Thms.thms
 
@@ -43,7 +43,7 @@ val union : thms -> thms -> thms
 val unionList : thms list -> thms
 
 (* ------------------------------------------------------------------------- *)
-(* I/O.                                                                      *)
+(* Converting between export sets of theorem objects.                        *)
 (* ------------------------------------------------------------------------- *)
 
 val fromExport : ObjectExport.export -> thms

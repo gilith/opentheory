@@ -43,10 +43,9 @@ datatype article =
        thms : ObjectThms.thms,
        inference : Inference.inference};
 
-val empty =
+fun new {savable} =
     let
-      val savable = true
-      and thms = ObjectThms.empty
+      val thms = ObjectThms.new {savable = savable}
       and inference = Inference.empty
     in
       Article
@@ -54,6 +53,8 @@ val empty =
          thms = thms,
          inference = inference}
     end;
+
+val empty = new {savable = true};
 
 fun savable (Article {savable = x, ...}) = x;
 
@@ -160,9 +161,21 @@ fun toTextFile {article,filename} =
     let
       val Article {savable, thms, inference = _} = article
 
-      val _ = savable orelse raise Error "unsavable"
+      val () =
+          if savable then ()
+          else raise Error "unsavable"
 
       val exp = ObjectThms.toExport thms
+
+      val exp =
+          case ObjectExport.eliminateUnwanted exp of
+            NONE => exp
+          | SOME exp => exp
+
+      val exp =
+          case ObjectExport.compress exp of
+            NONE => exp
+          | SOME exp => exp
     in
       ObjectWrite.toTextFile {export = exp, filename = filename}
     end

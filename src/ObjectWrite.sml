@@ -108,21 +108,15 @@ local
             end
       end;
 
-  fun registerThm (obj,th,refs) =
+  fun registerThm (th,refs) =
       let
-        val (h,c) = Object.mkSequent (Thm.sequent th)
+        val ObjectThm.Thm {proof,hyp,concl} = th
 
-(*OpenTheoryTrace5
-        val () = Print.trace ObjectProv.pp
-                   "ObjectWrite.registerThm: obj" obj
-*)
-        val refs = registerSpecial (obj,refs)
+        val refs = registerSpecial (proof,refs)
 
-(*OpenTheoryTrace5
-        val () = Print.trace (Print.ppPair Object.pp Object.pp)
-                   "ObjectWrite.registerThm: (h,c)" (h,c)
-*)
-        val refs = List.foldl registerDefault refs [h,c]
+        val refs = registerSpecial (hyp,refs)
+
+        val refs = registerSpecial (concl,refs)
       in
         refs
       end;
@@ -151,7 +145,7 @@ in
 end;
 
 datatype task =
-    ExpTask of ObjectProv.object * Thm.thm
+    ExpTask of ObjectThm.thm
   | ObjTask of ObjectProv.object
   | ObTask of Object.object
   | GenTask of Object.object list * int
@@ -260,14 +254,14 @@ local
 
   fun generateTask dict task work =
       case task of
-        ExpTask (obj,th) =>
+        ExpTask th =>
         let
-          val (h,c) = Object.mkSequent (Thm.sequent th)
+          val ObjectThm.Thm {proof,hyp,concl} = th
 
           val work =
-              ObjTask obj ::
-              ObTask h ::
-              ObTask c ::
+              ObjTask proof ::
+              ObjTask hyp ::
+              ObjTask concl ::
               CmdTask Command.Thm ::
               work
         in

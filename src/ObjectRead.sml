@@ -32,9 +32,11 @@ datatype state =
 
 fun initial parameters =
     let
+      val {savable,...} = parameters
+
       val stack = ObjectStack.empty
       and dict = ObjectDict.empty
-      and export = ObjectExport.empty
+      and export = ObjectExport.new {savable = savable}
       and definitions = ObjectSymbol.empty
       and inference = Inference.empty
     in
@@ -596,7 +598,9 @@ fun execute cmd state =
         let
           val (stack,objT,objH,objC) = ObjectStack.pop3 stack
 
-          val export = ObjectExport.insert export (objT,objH,objC)
+          val th = ObjectThm.Thm {proof = objT, hyp = objH, concl = objC}
+
+          val export = ObjectExport.add export th
         in
           State
             {parameters = parameters,
@@ -763,13 +767,6 @@ end;
 (* The exported theorems.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun thms state =
-    let
-      val State {parameters,export,...} = state
-
-      val {savable,...} = parameters
-    in
-      ObjectThms.fromExport {savable = savable} export
-    end;
+fun thms state = ObjectThms.fromExport (export state);
 
 end

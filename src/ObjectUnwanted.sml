@@ -175,16 +175,28 @@ local
             and objs = List.map snd objs'
 
             val obj =
-                case ObjectProv.mkCommand {savable = savable} cmd objs of
-                  [x] => x
-                | _ => raise Bug "ObjectUnwanted.eliminateOb'"
+                let
+                  val xs = ObjectProv.mkCommand {savable = savable} cmd objs
 
-            val (obj',elim) = eliminateTop obj elim
+                  val () =
+                      case xs of
+                        [_] => ()
+                      | _ => raise Bug "ObjectUnwanted.eliminateOb'"
+                in
+                  hd xs
+                end
 
-            val obj' =
-                case obj' of
-                  SOME obj => (false,obj)
-                | NONE => (unchanged,obj)
+            val (obj',elim) =
+                let
+                  val (obj',elim) = eliminateTop obj elim
+
+                  val obj' =
+                      case obj' of
+                        SOME obj => (false,obj)
+                      | NONE => (unchanged,obj)
+                in
+                  (obj',elim)
+                end
 
             val defaultMap = ObjectMap.insert defaultMap (ob,obj')
 
@@ -203,6 +215,19 @@ local
         val ((unchanged,obj),elim) = eliminateOb' ob elim
 
         val obj' = if unchanged then NONE else SOME obj
+
+(*OpenTheoryTrace4
+*)
+        val () =
+            let
+              val ppElim =
+                  Print.ppOp2 " ->" Object.pp
+                    (Print.ppOption ObjectProv.pp)
+            in
+              Print.trace ppElim "ObjectUnwanted.eliminateOb"
+                (ob,obj')
+            end
+
       in
         (obj',elim)
       end;
@@ -230,9 +255,11 @@ local
       let
         val i = ObjectProv.id obj0
 
+        val unchanged = true
+
         val (unchanged,obj1) =
             case obj1' of
-              NONE => (true,obj0)
+              NONE => (unchanged,obj0)
             | SOME obj => (false,obj)
 
         val (obj2',elim) = eliminateObj (ObjectProv.dest obj1) elim
