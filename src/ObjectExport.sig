@@ -30,6 +30,8 @@ type export
 
 val new : {savable : bool} -> export
 
+val savable : export -> bool
+
 val null : export -> bool
 
 val size : export -> int
@@ -46,13 +48,13 @@ val toList : export -> thm list
 (* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val eliminateUnwanted : export -> export
+val eliminateUnwanted : export -> export option
 
 (* ------------------------------------------------------------------------- *)
 (* Compression.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val compress : export -> export
+val compress : export -> export option
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

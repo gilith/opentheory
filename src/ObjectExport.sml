@@ -18,6 +18,40 @@ datatype thm =
        hyp : ObjectProv.object,
        concl : ObjectProv.object};
 
+fun mapsThm f th acc =
+    let
+      val Thm {proof,hyp,concl} = th
+
+      val (proof',acc) = f proof acc
+
+      val (hyp',acc) = f hyp acc
+
+      val (concl',acc) = f concl acc
+
+      val unchanged = true
+
+      val (unchanged,proof) =
+          case proof' of
+            NONE => (unchanged,proof)
+          | SOME obj => (false,obj)
+
+      val (unchanged,hyp) =
+          case hyp' of
+            NONE => (unchanged,hyp)
+          | SOME obj => (false,obj)
+
+      val (unchanged,concl) =
+          case concl' of
+            NONE => (unchanged,concl)
+          | SOME obj => (false,obj)
+
+      val th' =
+          if unchanged then NONE
+          else SOME (Thm {proof = proof, hyp = hyp, concl = concl})
+    in
+      (th',acc)
+    end;
+
 fun toThm th =
     let
       val Thm {proof,hyp,concl} = th
@@ -52,6 +86,8 @@ fun new {savable} =
          thms = thms,
          savable = savable}
     end;
+
+fun savable (Export {savable = x, ...}) = x;
 
 fun size (Export {size = x, ...}) = x;
 
@@ -128,39 +164,7 @@ fun maps f =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun eliminateThm th elim =
-      let
-        val Thm {proof,hyp,concl} = th
-
-        val (proof',elim) = ObjectUnwanted.sharingEliminate proof elim
-
-        val (hyp',elim) = ObjectUnwanted.sharingEliminate hyp elim
-
-        val (concl',elim) = ObjectUnwanted.sharingEliminate concl elim
-
-        val unchanged = true
-
-        val (unchanged,proof) =
-            case proof' of
-              NONE => (unchanged,proof)
-            | SOME obj => (false,obj)
-
-        val (unchanged,hyp) =
-            case hyp' of
-              NONE => (unchanged,hyp)
-            | SOME obj => (false,obj)
-
-        val (unchanged,concl) =
-            case concl' of
-              NONE => (unchanged,concl)
-            | SOME obj => (false,obj)
-
-        val th' =
-            if unchanged then NONE
-            else SOME (Thm {proof = proof, hyp = hyp, concl = concl})
-      in
-        (th',elim)
-      end;
+  val eliminateThm = mapsThm ObjectUnwanted.sharingEliminate;
 in
   fun eliminateUnwanted exp =
       let
@@ -321,26 +325,19 @@ local
           end
       end;
 
-  fun advance refs (obj,th,(acc,exp)) =
-      let
-        val (obj',acc) =
-            ObjectProv.maps
-              {preDescent = preDescent refs,
-               postDescent = postDescent,
-               savable = true} obj acc
+  fun compressObj refs =
+      ObjectProv.maps
+        {preDescent = preDescent refs,
+         postDescent = postDescent,
+         savable = true};
 
-        val obj = Option.getOpt (obj',obj)
-
-        val exp = insert exp (obj,th)
-      in
-        (acc,exp)
-      end;
+  fun compressThm refs = mapsThm (compressObj refs);
 in
   fun compressRefs refs exp =
       let
-        val (_,exp) = foldl (advance refs) (initial,empty) exp
+        val (exp',_) = maps (compressThm refs) exp initial
       in
-        exp
+        exp'
       end;
 end;
 

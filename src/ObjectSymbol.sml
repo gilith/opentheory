@@ -125,13 +125,18 @@ local
             end
         end;
 
-  fun addExp (obj,_,seen_sym) = addObj seen_sym [obj];
+  fun addThm (th,seen_sym) =
+      let
+        val ObjectExport.Thm {proof = _, hyp, concl} = th
+      in
+        addObj seen_sym [hyp,concl]
+      end;
 in
   fun fromExport exp =
       let
         val seen_sym = (IntSet.empty,empty)
 
-        val (_,sym) = ObjectExport.foldl addExp seen_sym exp
+        val (_,sym) = ObjectExport.foldl addThm seen_sym exp
       in
         sym
       end;

@@ -46,7 +46,7 @@ val unionList : thms list -> thms
 (* I/O.                                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val fromExport : {savable : bool} -> ObjectExport.export -> thms
+val fromExport : ObjectExport.export -> thms
 
 val toExport : thms -> ObjectExport.export
 
