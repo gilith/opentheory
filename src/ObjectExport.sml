@@ -108,19 +108,14 @@ in
       let
         val Export {thms,savable} = exp
 
-        val unchanged = true
-        and thms' = ObjectThmSet.empty
+        val (thms',acc) = ObjectThmSet.maps f thms acc
 
-        val (unchanged,thms',acc) =
-            ObjectThmSet.foldl (addThm f) (unchanged,thms',acc) thms
+        val exp' =
+            case thms' of
+              NONE => NONE
+            | SOME thms => SOME (Export {thms = thms, savable = savable})
       in
-        if unchanged then (NONE,acc)
-        else
-          let
-            val exp = Export {thms = thms, savable = savable}
-          in
-            (SOME exp, acc)
-          end
+        (exp',acc)
       end;
 end;
 
@@ -128,20 +123,16 @@ end;
 (* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  val eliminateThm = ObjectThm.maps ObjectUnwanted.sharingEliminate;
-in
-  fun eliminateUnwanted exp =
-      let
-        val Export {savable,...} = exp
+fun eliminateUnwanted exp =
+    let
+      val Export {savable,...} = exp
 
-        val elim = ObjectUnwanted.new {savable = savable}
+      val elim = ObjectUnwanted.new {savable = savable}
 
-        val (exp',_) = maps eliminateThm exp elim
-      in
-        exp'
-      end;
-end;
+      val (exp',_) = maps ObjectThm.sharingEliminateUnwanted exp elim
+    in
+      exp'
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Compression.                                                              *)

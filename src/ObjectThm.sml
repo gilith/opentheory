@@ -19,25 +19,6 @@ datatype thm =
        concl : ObjectProv.object};
 
 (* ------------------------------------------------------------------------- *)
-(* A total order.                                                            *)
-(* ------------------------------------------------------------------------- *)
-
-fun compare (th1,th2) =
-    let
-      val Thm {proof = p1, hyp = h1, concl = c1} = th1
-      and Thm {proof = p2, hyp = h2, concl = c2} = th2
-    in
-      case ObjectProv.compare (p1,p2) of
-        LESS => LESS
-      | GREATER => GREATER
-      | EQUAL =>
-        case ObjectProv.compare (h1,h2) of
-          LESS => LESS
-        | GREATER => GREATER
-        | EQUAL => ObjectProv.compare (c1,c2)
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Converting to a real theorem.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -90,10 +71,35 @@ fun maps f th acc =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Eliminate unwanted subterms.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingEliminateUnwanted = maps ObjectUnwanted.sharingEliminate;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val pp = Print.ppMap thm Thm.pp;
+
+(* ------------------------------------------------------------------------- *)
+(* A total order.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun compare (th1,th2) =
+    let
+      val Thm {proof = p1, hyp = h1, concl = c1} = th1
+      and Thm {proof = p2, hyp = h2, concl = c2} = th2
+    in
+      case ObjectProv.compare (p1,p2) of
+        LESS => LESS
+      | GREATER => GREATER
+      | EQUAL =>
+        case ObjectProv.compare (h1,h2) of
+          LESS => LESS
+        | GREATER => GREATER
+        | EQUAL => ObjectProv.compare (c1,c2)
+    end;
 
 end
 
@@ -109,6 +115,34 @@ local
   structure S = ElementSet (ObjectThmMap);
 in
   open S;
+end;
+
+local
+  fun mapsElt f (x,(unchanged,set',acc)) =
+      let
+        val (x',acc) = f x acc
+
+        val (unchanged,x) =
+            case x' of
+              NONE => (unchanged,x)
+            | SOME x => (false,x)
+
+        val set' = add set' x
+      in
+        (unchanged,set',acc)
+      end;
+in
+  fun maps f set acc =
+      let
+        val unchanged = true
+        and set' = empty
+
+        val (unchanged,set',acc) = foldl (mapsElt f) (unchanged,set',acc) set
+
+        val set' = if unchanged then NONE else SOME set'
+      in
+        (set',acc)
+      end;
 end;
 
 val pp = Print.ppBracket "{" "}" (Print.ppMap size Print.ppInt);

@@ -17,10 +17,10 @@ datatype thm =
        concl : ObjectProv.object}
 
 (* ------------------------------------------------------------------------- *)
-(* A total order.                                                            *)
+(* Converting to a real theorem.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val compare : thm * thm -> order
+val thm : thm -> Thm.thm
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping over theorem objects.                                             *)
@@ -31,15 +31,22 @@ val maps :
     thm -> 's -> thm option * 's
 
 (* ------------------------------------------------------------------------- *)
-(* Converting to a real theorem.                                             *)
+(* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val thm : thm -> Thm.thm
+val sharingEliminateUnwanted :
+    thm -> ObjectUnwanted.eliminate -> thm option * ObjectUnwanted.eliminate
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val pp : thm Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* A total order.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val compare : thm * thm -> order
 
 end

@@ -174,9 +174,11 @@ Summarizing compressed article "example3"
 
 Summarizing compressed article "example4"
 2 input type operators: -> bool
-4 input constants: = a b Unwanted.id
-2 assumptions:
+3 input constants: = a b
+1 assumption:
   |- a
+1 defined constant: Unwanted.id
+1 axiom:
   |- a <=> Unwanted.id b
 1 theorem:
   |- Unwanted.id b

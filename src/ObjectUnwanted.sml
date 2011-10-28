@@ -178,10 +178,12 @@ local
                 let
                   val xs = ObjectProv.mkCommand {savable = savable} cmd objs
 
+(*OpenTheoryDebug
                   val () =
                       case xs of
                         [_] => ()
                       | _ => raise Bug "ObjectUnwanted.eliminateOb'"
+*)
                 in
                   hd xs
                 end
@@ -217,7 +219,6 @@ local
         val obj' = if unchanged then NONE else SOME obj
 
 (*OpenTheoryTrace4
-*)
         val () =
             let
               val ppElim =
@@ -227,7 +228,7 @@ local
               Print.trace ppElim "ObjectUnwanted.eliminateOb"
                 (ob,obj')
             end
-
+*)
       in
         (obj',elim)
       end;
