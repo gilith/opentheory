@@ -440,6 +440,57 @@ fun command ob =
        | h :: t => (Command.Cons, [h, List t]));
 
 (* ------------------------------------------------------------------------- *)
+(* Searching for subterms.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun searchList obs srch =
+      case obs of
+        [] => (NONE,srch)
+      | ob :: obs => searchCons ob obs srch
+
+  and searchCons ob obs srch =
+      case ob of
+        Num _ => searchList obs srch
+      | Name _ => searchList obs srch
+      | TypeOp _ => searchList obs srch
+      | Type _ => searchList obs srch
+      | Const _ => searchList obs srch
+      | Var _ => searchList obs srch
+      | Term tm =>
+        let
+          val subtm_srch as (subtm,srch) =
+              TermSearch.sharingSearchTerm tm srch
+        in
+          if Option.isSome subtm then subtm_srch else searchList obs srch
+        end
+      | Thm th =>
+        let
+          val subtm_srch as (subtm,srch) =
+              Sequent.sharingSearch (Thm.sequent th) srch
+        in
+          if Option.isSome subtm then subtm_srch else searchList obs srch
+        end
+      | List l =>
+        let
+          val obs =
+              if TermSearch.leftToRight srch then l @ obs
+              else List.revAppend (l,obs)
+        in
+          searchList obs srch
+        end;
+in
+  fun sharingSearch ob srch = searchList [ob] srch;
+end;
+
+fun search srch ob =
+    let
+      val (subtm,_) = sharingSearch ob srch
+    in
+      subtm
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

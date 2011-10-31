@@ -240,6 +240,15 @@ val symbolAddList : SymbolTable.table -> object list -> SymbolTable.table
 val command : object -> Command.command * object list
 
 (* ------------------------------------------------------------------------- *)
+(* Searching for subterms.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingSearch :
+    object -> TermSearch.search -> Term.term option * TermSearch.search
+
+val search : TermSearch.search -> object -> Term.term option
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

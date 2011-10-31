@@ -143,7 +143,7 @@ fun sharingRewrite seq rewr =
     let
       val Sequent {hyp,concl} = seq
 
-      val (hyp',rewr) = TermRewrite.sharingRewriteAlphaSet hyp rewr
+      val (hyp',rewr) = TermRewrite.sharingRewriteTermAlphaSet hyp rewr
 
       val (concl',rewr) = TermRewrite.sharingRewriteTerm concl rewr
 
@@ -162,6 +162,39 @@ fun rewrite rewr seq =
       val (seq',_) = sharingRewrite seq rewr
     in
       seq'
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Searching for subterms.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun sharingSearch seq srch =
+    let
+      val Sequent {hyp,concl} = seq
+    in
+      if TermSearch.leftToRight srch then
+        let
+          val subtm_srch as (subtm,srch) =
+              TermSearch.sharingSearchTermAlphaSet hyp srch
+        in
+          if Option.isSome subtm then subtm_srch
+          else TermSearch.sharingSearchTerm concl srch
+        end
+      else
+        let
+          val subtm_srch as (subtm,srch) =
+              TermSearch.sharingSearchTerm concl srch
+        in
+          if Option.isSome subtm then subtm_srch
+          else TermSearch.sharingSearchTermAlphaSet hyp srch
+        end
+    end;
+
+fun search srch seq =
+    let
+      val (subtm,_) = sharingSearch seq srch
+    in
+      subtm
     end;
 
 (* ------------------------------------------------------------------------- *)

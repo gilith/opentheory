@@ -99,6 +99,7 @@ SRC = \
   src/Const.sig src/Const.sml \
   src/Term.sig src/Term.sml \
   src/TermRewrite.sig src/TermRewrite.sml \
+  src/TermSearch.sig src/TermSearch.sml \
   src/TermSubst.sig src/TermSubst.sml \
   src/Sequent.sig src/Sequent.sml \
   src/Thm.sig src/Thm.sml \

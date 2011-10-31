@@ -57,9 +57,10 @@ val rewriteTermList : rewrite -> Term.term list -> Term.term list option
 
 (* Term sets *)
 
-val sharingRewriteAlphaSet :
+val sharingRewriteTermAlphaSet :
     TermAlphaSet.set -> rewrite -> TermAlphaSet.set option * rewrite
 
-val rewriteAlphaSet : rewrite -> TermAlphaSet.set -> TermAlphaSet.set option
+val rewriteTermAlphaSet :
+    rewrite -> TermAlphaSet.set -> TermAlphaSet.set option
 
 end

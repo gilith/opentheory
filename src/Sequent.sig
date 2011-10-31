@@ -74,6 +74,15 @@ val sharingRewrite :
 val rewrite : TermRewrite.rewrite -> sequent -> sequent option
 
 (* ------------------------------------------------------------------------- *)
+(* Searching for subterms.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val sharingSearch :
+    sequent -> TermSearch.search -> Term.term option * TermSearch.search
+
+val search : TermSearch.search -> sequent -> Term.term option
+
+(* ------------------------------------------------------------------------- *)
 (* Axioms.                                                                   *)
 (* ------------------------------------------------------------------------- *)
 

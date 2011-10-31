@@ -245,7 +245,7 @@ local
         (tms,unchanged,rewr)
       end;
 in
-  fun sharingRewriteAlphaSet set rewr =
+  fun sharingRewriteTermAlphaSet set rewr =
       let
         val (tms,unchanged,rewr) = TermAlphaSet.foldl add ([],true,rewr) set
 
@@ -255,9 +255,9 @@ in
       end;
 end;
 
-fun rewriteAlphaSet rewr set =
+fun rewriteTermAlphaSet rewr set =
     let
-      val (set',_) = sharingRewriteAlphaSet set rewr
+      val (set',_) = sharingRewriteTermAlphaSet set rewr
     in
       set'
     end;

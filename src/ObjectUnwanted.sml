@@ -41,6 +41,61 @@ end;
 val (idConstObject,idDefObject) =
     ObjectProv.mkDefineConst {savable = true} idName idTermObject;
 
+val idConst = ObjectProv.destConst idConstObject;
+
+val isIdConst = Term.equalConst idConst;
+
+fun destIdxTerm tm =
+    Term.destUnaryOp (Const.equal idConst) tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in ObjectUnwanted.destIdxTerm:\n" ^ err);
+*)
+
+val isIdxTerm = can destIdxTerm;
+
+(* ------------------------------------------------------------------------- *)
+(* Eliminating instances of `Unwanted.id x` subterms.                        *)
+(* ------------------------------------------------------------------------- *)
+
+datatype eliminateIdx =
+    EliminateIdx of
+      {idxSearch : TermSearch.search};
+
+val newIdx =
+    let
+      val idxSearch =
+          TermSearch.new
+            {predicate = isIdxTerm,
+             leftToRight = true}
+    in
+      EliminateIdx
+        {idxSearch = idxSearch}
+    end;
+
+fun isIdxData data elim =
+    let
+      val EliminateIdx {idxSearch} = elim
+
+      val (subtm,idxSearch) = Object.sharingSearch data idxSearch
+
+      val result = Option.isSome subtm
+
+      val elim =
+          EliminateIdx
+            {idxSearch = idxSearch}
+    in
+      (result,elim)
+    end;
+
+fun isIdxObject obj elim = isIdxData (ObjectProv.object obj) elim;
+
+fun eliminateIdx obj elim =
+    let
+      val obj' = NONE
+    in
+      (obj',elim)
+    end;
+
 (***
 (* ------------------------------------------------------------------------- *)
 (* Unwanted constants.                                                       *)
@@ -140,6 +195,7 @@ datatype eliminate =
     Eliminate of
       {defaultMap : (bool * ObjectProv.object) ObjectMap.map,
        specialMap : ObjectProv.object option IntMap.map,
+       elimIdx : eliminateIdx,
        savable : bool};
 
 fun new {savable} =
@@ -149,16 +205,55 @@ fun new {savable} =
             [(Object.Const unwantedIdConst,(false,idConstObject))]
 
       and specialMap = IntMap.new ()
+
+      and elimIdx = newIdx
     in
       Eliminate
         {defaultMap = defaultMap,
          specialMap = specialMap,
+         elimIdx = elimIdx,
          savable = savable}
     end;
 
 local
-  fun eliminateId obj elim =
-      (NONE,elim);
+  fun eliminateTopIdx obj elim =
+      let
+        val Eliminate
+              {defaultMap,
+               specialMap,
+               elimIdx,
+               savable} = elim
+
+        val (obj',elimIdx) = eliminateIdx obj elimIdx
+
+(*OpenTheoryDebug
+      val () =
+          let
+            val result = Option.getOpt (obj',obj)
+
+            val (present,_) = isIdxObject result elimIdx
+          in
+            if not present then ()
+            else
+              let
+                val bug =
+                    "ObjectUnwanted.eliminateTopIdx:\n" ^
+                    Print.toString ObjectProv.pp result
+              in
+                raise Bug bug
+              end
+          end
+*)
+
+        val elim =
+            Eliminate
+              {defaultMap = defaultMap,
+               specialMap = specialMap,
+               elimIdx = elimIdx,
+               savable = savable}
+      in
+        (obj',elim)
+      end;
 
   fun eliminateSeq' (f,(unchanged,obj,elim)) =
         let
@@ -172,12 +267,16 @@ local
           (unchanged,obj,elim)
         end;
 
+  val eliminateTopMethods =
+      [eliminateTopIdx];
+
   fun eliminateTop obj elim =
       let
         val unchanged = true
 
         val (unchanged,obj,elim) =
-            List.foldl eliminateSeq' (unchanged,obj,elim) [eliminateId]
+            List.foldl eliminateSeq' (unchanged,obj,elim)
+              eliminateTopMethods
 
         val obj' = if unchanged then NONE else SOME obj
       in
@@ -186,7 +285,11 @@ local
 
   fun eliminateOb' ob elim =
       let
-        val Eliminate {defaultMap,specialMap,savable} = elim
+        val Eliminate
+              {defaultMap,
+               specialMap,
+               elimIdx,
+               savable} = elim
       in
         case ObjectMap.peek defaultMap ob of
           SOME obj' => (obj',elim)
@@ -231,6 +334,7 @@ local
                 Eliminate
                   {defaultMap = defaultMap,
                    specialMap = specialMap,
+                   elimIdx = elimIdx,
                    savable = savable}
           in
             (obj',elim)
@@ -293,7 +397,11 @@ local
 
         val obj2' = if unchanged then NONE else SOME obj2
 
-        val Eliminate {defaultMap,specialMap,savable} = elim
+        val Eliminate
+              {defaultMap,
+               specialMap,
+               elimIdx,
+               savable} = elim
 
         val specialMap = IntMap.insert specialMap (i,obj2')
 
@@ -301,6 +409,7 @@ local
             Eliminate
               {defaultMap = defaultMap,
                specialMap = specialMap,
+               elimIdx = elimIdx,
                savable = savable}
       in
         (obj2',elim)
