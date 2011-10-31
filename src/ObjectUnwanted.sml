@@ -227,22 +227,22 @@ local
         val (obj',elimIdx) = eliminateIdx obj elimIdx
 
 (*OpenTheoryDebug
-      val () =
-          let
-            val result = Option.getOpt (obj',obj)
+        val () =
+            let
+              val result = Option.getOpt (obj',obj)
 
-            val (present,_) = isIdxObject result elimIdx
-          in
-            if not present then ()
-            else
-              let
-                val bug =
-                    "ObjectUnwanted.eliminateTopIdx:\n" ^
-                    Print.toString ObjectProv.pp result
-              in
-                raise Bug bug
-              end
-          end
+              val (present,_) = isIdxObject result elimIdx
+            in
+              if not present then ()
+              else
+                let
+                  val bug =
+                      "ObjectUnwanted.eliminateTopIdx:\n" ^
+                      Print.toString ObjectProv.pp result
+                in
+                  raise Bug bug
+                end
+            end
 *)
 
         val elim =
