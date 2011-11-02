@@ -164,8 +164,7 @@ fun execute cmd state =
           val obj = ObjectProv.mkAppTerm {savable = savable} objF objA
 
 (*OpenTheoryTrace2
-          val () = Print.trace Object.pp "ObjectRead.execute appTerm"
-                     (ObjectProv.object obj)
+          val () = Print.trace ObjectProv.pp "ObjectRead.execute appTerm" obj
 *)
 
           val stack = ObjectStack.push stack obj
@@ -188,8 +187,7 @@ fun execute cmd state =
           val obj = ObjectProv.mkAppThm {savable = savable} objF objA
 
 (*OpenTheoryTrace2
-          val () = Print.trace Object.pp "ObjectRead.execute appThm"
-                     (ObjectProv.object obj)
+          val () = Print.trace ObjectProv.pp "ObjectRead.execute appThm" obj
 *)
 
           val stack = ObjectStack.push stack obj
