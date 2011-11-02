@@ -43,26 +43,38 @@ local
         (ths,seqs)
       end;
 
-  fun mkTypeOp sav sym (ot,otO) =
+  fun mkTypeOp savable sym (ot,otO) =
       let
         val n = TypeOp.name ot
 
         val obj =
             case ObjectSymbol.peekTypeOp sym ot of
               SOME obj => obj
-            | NONE => ObjectProv.mkSpecificTypeOp sav ot
+            | NONE =>
+              if TypeOp.isUndef ot then
+                ObjectProv.mkTypeOp n
+              else if not savable then
+                ObjectProv.mkUnsavable (ObjectData.TypeOp ot)
+              else
+                raise Bug "ObjectThms.fromExport.mkTypeOp"
       in
         NameMap.insert otO (n,obj)
       end;
 
-  fun mkConst sav sym (c,conO) =
+  fun mkConst savable sym (c,conO) =
       let
         val n = Const.name c
 
         val obj =
             case ObjectSymbol.peekConst sym c of
               SOME obj => obj
-            | NONE => ObjectProv.mkSpecificConst sav c
+            | NONE =>
+              if Const.isUndef c then
+                ObjectProv.mkConst n
+              else if not savable then
+                ObjectProv.mkUnsavable (ObjectData.Const c)
+              else
+                raise Bug "ObjectThms.fromExport.mkConst"
       in
         NameMap.insert conO (n,obj)
       end;
@@ -82,21 +94,14 @@ in
         val otO = NameMap.new ()
         and conO = NameMap.new ()
 
-        val (sav,sym) =
-            let
-              val savable = ObjectExport.savable exp
+        val savable = ObjectExport.savable exp
 
-              val sav = {savable = savable}
+        val sym =
+            if savable then ObjectSymbol.fromExport exp
+            else ObjectSymbol.empty
 
-              val sym =
-                  if savable then ObjectSymbol.fromExport exp
-                  else ObjectSymbol.empty
-            in
-              (sav,sym)
-            end
-
-        val otO = TypeOpSet.foldl (mkTypeOp sav sym) otO ots
-        and conO = ConstSet.foldl (mkConst sav sym) conO cons
+        val otO = TypeOpSet.foldl (mkTypeOp savable sym) otO ots
+        and conO = ConstSet.foldl (mkConst savable sym) conO cons
       in
         Thms
           {thms = ths,

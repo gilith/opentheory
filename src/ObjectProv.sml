@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of objects that track their provenance.                            *)
+(* A type of OpenTheory objects that track their provenance.                 *)
 (* ------------------------------------------------------------------------- *)
 
 type id = int;
@@ -21,7 +21,7 @@ datatype object =
 
 and object' =
     Object' of
-      {object : Object.object,
+      {data : ObjectData.data,
        provenance : provenance}
 
 and provenance =
@@ -30,7 +30,7 @@ and provenance =
       {command : Command.command,
        arguments : object list,
        definitions : object list,
-       generated : Object.object list,
+       generated : ObjectData.data list,
        result : int};
 
 (* ------------------------------------------------------------------------- *)
@@ -75,20 +75,6 @@ fun isDefaultProvenance prov =
       Default => true
     | Special _ => false;
 
-fun specialProvenance cmd args ob =
-    let
-      val defs = []
-      and gen = [ob]
-      and res = 0
-    in
-      Special
-        {command = cmd,
-         arguments = args,
-         definitions = defs,
-         generated = gen,
-         result = res}
-    end;
-
 fun argumentsProvenance prov =
     case prov of
       Default => []
@@ -106,7 +92,7 @@ fun parentsProvenance prov =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun object' (Object' {object = x, ...}) = x;
+fun data' (Object' {data = x, ...}) = x;
 
 fun provenance' (Object' {provenance = x, ...}) = x;
 
@@ -121,7 +107,7 @@ fun mk obj' =
 
 fun dest (Object {id = _, object = x}) = x;
 
-fun object obj = object' (dest obj);
+fun data obj = data' (dest obj);
 
 fun provenance obj = provenance' (dest obj);
 
@@ -131,52 +117,102 @@ fun allDefault objs = List.all isDefault objs;
 
 fun parents obj = parentsProvenance (provenance obj);
 
+(* List objects *)
+
+fun destList obj = ObjectData.destList (data obj);
+
+fun isList obj = ObjectData.isList (data obj);
+
 (* Num objects *)
 
-fun destNum obj = Object.destNum (object obj);
+fun destNum obj = ObjectData.destNum (data obj);
+
+fun isNum obj = ObjectData.isNum (data obj);
 
 (* Name objects *)
 
-fun destName obj = Object.destName (object obj);
+fun destName obj = ObjectData.destName (data obj);
+
+fun isName obj = ObjectData.isName (data obj);
+
+(* Name list objects *)
+
+fun destNames obj = ObjectData.destNames (data obj);
+
+fun isNames obj = ObjectData.isNames (data obj);
 
 (* Type operator objects *)
 
-fun destTypeOp obj = Object.destTypeOp (object obj);
+fun destTypeOp obj = ObjectData.destTypeOp (data obj);
 
-fun isTypeOp obj = Object.isTypeOp (object obj);
+fun isTypeOp obj = ObjectData.isTypeOp (data obj);
 
-fun equalTypeOp ot obj = Object.equalTypeOp ot (object obj);
+fun equalTypeOp ot obj = ObjectData.equalTypeOp ot (data obj);
+
+(* Type objects *)
+
+fun destType obj = ObjectData.destType (data obj);
+
+fun isType obj = ObjectData.isType (data obj);
+
+(* Type list objects *)
+
+fun destTypes obj = ObjectData.destTypes (data obj);
+
+fun isTypes obj = ObjectData.isTypes (data obj);
 
 (* Constant objects *)
 
-fun destConst obj = Object.destConst (object obj);
+fun destConst obj = ObjectData.destConst (data obj);
 
-fun isConst obj = Object.isConst (object obj);
+fun isConst obj = ObjectData.isConst (data obj);
 
-fun equalConst c obj = Object.equalConst c (object obj);
+fun equalConst c obj = ObjectData.equalConst c (data obj);
+
+(* Term variable objects *)
+
+fun destVar obj = ObjectData.destVar (data obj);
+
+fun isVar obj = ObjectData.isVar (data obj);
+
+(* Term objects *)
+
+fun destTerm obj = ObjectData.destTerm (data obj);
+
+fun isTerm obj = ObjectData.isTerm (data obj);
 
 (* Sequent objects *)
 
-fun destSequent (objH,objC) = Object.destSequent (object objH, object objC);
+fun destSequent (objH,objC) = ObjectData.destSequent (data objH, data objC);
+
+fun isSequent (objH,objC) = ObjectData.isSequent (data objH, data objC);
 
 (* Theorem objects *)
 
-fun destThm obj = Object.destThm (object obj);
+fun destThm obj = ObjectData.destThm (data obj);
+
+fun isThm obj = ObjectData.isThm (data obj);
+
+(* Substitution objects *)
+
+fun destSubst obj = ObjectData.destSubst (data obj);
+
+fun isSubst obj = ObjectData.isSubst (data obj);
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkProv' ob prov =
+fun mkProv' d prov =
     Object'
-      {object = ob,
+      {data = d,
        provenance = prov};
 
-fun mkProv ob prov = mk (mkProv' ob prov);
+fun mkProv d prov = mk (mkProv' d prov);
 
-fun mkDefault ob = mkProv ob Default;
+fun mkDefault d = mkProv d Default;
 
-fun mkSpecial ob cmd args defs gen res =
+fun mkSpecial d cmd args defs gen res =
     let
       val prov =
           Special
@@ -186,39 +222,40 @@ fun mkSpecial ob cmd args defs gen res =
              generated = gen,
              result = res}
     in
-      mkProv ob prov
+      mkProv d prov
+    end;
+
+fun mkSimple d cmd args =
+    let
+      val defs = []
+      and gen = [d]
+      and res = 0
+    in
+      mkSpecial d cmd args defs gen res
     end;
 
 (* Special commands *)
 
-fun mkNum i = mkDefault (Object.Num i);
+fun mkNum i = mkDefault (ObjectData.Num i);
 
-fun mkName n = mkDefault (Object.Name n);
+fun mkName n = mkDefault (ObjectData.Name n);
 
 (* Regular commands *)
 
 fun mkAbsTerm {savable} objV objB =
     let
-      val obV = object objV
-      and obB = object objB
-
-      val ob =
+      val d =
           let
-            val v = Object.destVar obV
-            and b = Object.destTerm obB
+            val v = destVar objV
+            and b = destTerm objB
           in
-            Object.Term (Term.mkAbs (v,b))
+            ObjectData.Term (Term.mkAbs (v,b))
           end
 
-      val cmd = Command.AbsTerm
-      and args = [objV,objB]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objV,objB]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.AbsTerm args
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkAbsTerm:\n" ^ err);
@@ -226,30 +263,20 @@ fun mkAbsTerm {savable} objV objB =
 
 fun mkAbsThm {savable} objV objT =
     let
-      val obV = object objV
-      and obT = object objT
-
-      val ob =
+      val d =
           let
-            val v = Object.destVar obV
-            and th = Object.destThm obT
+            val v = destVar objV
+            and th = destThm objT
           in
-            Object.Thm (Thm.abs v th)
+            ObjectData.Thm (Thm.abs v th)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkAbsThm" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkAbsThm" d
 *)
-
-      val cmd = Command.AbsThm
-      and args = [objV,objT]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.AbsThm [objV,objT]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkAbsThm:\n" ^ err);
@@ -257,26 +284,18 @@ fun mkAbsThm {savable} objV objT =
 
 fun mkAppTerm {savable} objF objA =
     let
-      val obF = object objF
-      and obA = object objA
-
-      val ob =
+      val d =
           let
-            val f = Object.destTerm obF
-            and a = Object.destTerm obA
+            val f = destTerm objF
+            and a = destTerm objA
           in
-            Object.Term (Term.mkApp (f,a))
+            ObjectData.Term (Term.mkApp (f,a))
           end
 
-      val cmd = Command.AppTerm
-      and args = [objF,objA]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objF,objA]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.AppTerm args
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkAppTerm:\n" ^ err);
@@ -284,30 +303,20 @@ fun mkAppTerm {savable} objF objA =
 
 fun mkAppThm {savable} objF objA =
     let
-      val obF = object objF
-      and obA = object objA
-
-      val ob =
+      val d =
           let
-            val f = Object.destThm obF
-            and a = Object.destThm obA
+            val f = destThm objF
+            and a = destThm objA
           in
-            Object.Thm (Thm.app f a)
+            ObjectData.Thm (Thm.app f a)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkAppThm" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkAppThm" d
 *)
-
-      val cmd = Command.AppThm
-      and args = [objF,objA]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.AppThm [objF,objA]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkAppThm:\n" ^ err);
@@ -315,28 +324,19 @@ fun mkAppThm {savable} objF objA =
 
 fun mkAssume {savable} objT =
     let
-      val obT = object objT
-
-      val ob =
+      val d =
           let
-            val t = Object.destTerm obT
+            val t = destTerm objT
           in
-            Object.Thm (Thm.assume t)
+            ObjectData.Thm (Thm.assume t)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkAssume" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkAssume" d
 *)
-
-      val cmd = Command.Assume
-      and args = [objT]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.Assume [objT]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkAssume:\n" ^ err);
@@ -344,50 +344,36 @@ fun mkAssume {savable} objT =
 
 fun mkAxiom {savable} objH objC seq =
     let
-      val ob = Object.Thm (Thm.axiom seq)
+      val d = ObjectData.Thm (Thm.axiom seq)
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkAxiom" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkAxiom" d
 *)
 
-      val cmd = Command.Axiom
-      and args = [objH,objC]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objH,objC]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.Axiom args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkAppTerm:\n" ^ err);
+    handle Error err => raise Error ("in ObjectProv.mkAxiom:\n" ^ err);
 *)
 
 fun mkBetaConv {savable} objT =
     let
-      val obT = object objT
-
-      val ob =
+      val d =
           let
-            val t = Object.destTerm obT
+            val t = destTerm objT
           in
-            Object.Thm (Thm.betaConv t)
+            ObjectData.Thm (Thm.betaConv t)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkBetaConv" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkBetaConv" d
 *)
-
-      val cmd = Command.BetaConv
-      and args = [objT]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.BetaConv [objT]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkBetaConv:\n" ^ err);
@@ -395,54 +381,39 @@ fun mkBetaConv {savable} objT =
 
 fun mkCons {savable} objH objT =
     let
-      val obH = object objH
-      and obT = object objT
-
-      val ob =
+      val d =
           let
-            val l = Object.destList obT
+            val h = data objH
+            and t = destList objT
           in
-            Object.List (obH :: l)
+            ObjectData.List (h :: t)
           end
 
-      val cmd = Command.Cons
-      and args = [objH,objT]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objH,objT]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.Cons args
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkCons:\n" ^ err);
 *)
 
-fun mkConst n = mkDefault (Object.Const (Const.mkUndef n));
+fun mkConst n = mkDefault (ObjectData.Const (Const.mkUndef n));
 
 fun mkConstTerm {savable} objC objT =
     let
-      val obC = object objC
-      and obT = object objT
-
-      val ob =
+      val d =
           let
-            val c = Object.destConst obC
-            and ty = Object.destType obT
+            val c = destConst objC
+            and ty = destType objT
           in
-            Object.Term (Term.mkConst (c,ty))
+            ObjectData.Term (Term.mkConst (c,ty))
           end
 
-      val cmd = Command.ConstTerm
-      and args = [objC,objT]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objC,objT]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.ConstTerm args
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkConstTerm:\n" ^ err);
@@ -450,30 +421,20 @@ fun mkConstTerm {savable} objC objT =
 
 fun mkDeductAntisym {savable} objA objB =
     let
-      val obA = object objA
-      and obB = object objB
-
-      val ob =
+      val d =
           let
-            val a = Object.destThm obA
-            and b = Object.destThm obB
+            val a = destThm objA
+            and b = destThm objB
           in
-            Object.Thm (Thm.deductAntisym a b)
+            ObjectData.Thm (Thm.deductAntisym a b)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkDeductAntisym" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkDeductAntisym" d
 *)
-
-      val cmd = Command.DeductAntisym
-      and args = [objA,objB]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.DeductAntisym [objA,objB]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkDeductAntisym:\n" ^ err);
@@ -481,35 +442,33 @@ fun mkDeductAntisym {savable} objA objB =
 
 fun mkDefineConst {savable} n objT =
     let
-      val obT = object objT
-
-      val (ob0,ob1) =
+      val (d0,d1) =
           let
-            val t = Object.destTerm obT
+            val t = destTerm objT
 
             val (c,th) = Thm.defineConst n t
           in
-            (Object.Const c, Object.Thm th)
+            (ObjectData.Const c, ObjectData.Thm th)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkDefineConst" ob1
+      val () = Print.trace ObjectData.pp "ObjectProv.mkDefineConst.def" d1
 *)
     in
-      if not savable then (mkDefault ob0, mkDefault ob1)
+      if not savable then (mkDefault d0, mkDefault d1)
       else
         let
           val cmd = Command.DefineConst
           and args = [mkName n, objT]
-          and gen = [ob0,ob1]
+          and gen = [d0,d1]
 
           val defs = []
 
-          val obj0 = mkSpecial ob0 cmd args defs gen 0
+          val obj0 = mkSpecial d0 cmd args defs gen 0
 
           val defs = obj0 :: defs
 
-          val obj1 = mkSpecial ob1 cmd args defs gen 1
+          val obj1 = mkSpecial d1 cmd args defs gen 1
         in
           (obj0,obj1)
         end
@@ -520,37 +479,34 @@ fun mkDefineConst {savable} n objT =
 
 fun mkDefineTypeOp {savable} n a r objV objT =
     let
-      val obV = object objV
-      and obT = object objT
-
-      val (ob0,ob1,ob2,ob3,ob4) =
+      val (d0,d1,d2,d3,d4) =
           let
-            val v = Object.destNames obV
-            and t = Object.destThm obT
+            val v = destNames objV
+            and t = destThm objT
 
             val (ot,{abs},{rep},ar,ra) =
                 Thm.defineTypeOp n {abs = a} {rep = r} v t
           in
-            (Object.TypeOp ot,
-             Object.Const abs,
-             Object.Const rep,
-             Object.Thm ar,
-             Object.Thm ra)
+            (ObjectData.TypeOp ot,
+             ObjectData.Const abs,
+             ObjectData.Const rep,
+             ObjectData.Thm ar,
+             ObjectData.Thm ra)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkDefineTypeOp.absRep" ob3
+      val () = Print.trace ObjectData.pp "ObjectProv.mkDefineTypeOp.absRep" d3
 
-      val () = Print.trace Object.pp "ObjectProv.mkDefineTypeOp.repAbs" ob4
+      val () = Print.trace ObjectData.pp "ObjectProv.mkDefineTypeOp.repAbs" d4
 *)
     in
       if not savable then
         let
-          val obj0 = mkDefault ob0
-          and obj1 = mkDefault ob1
-          and obj2 = mkDefault ob2
-          and obj3 = mkDefault ob3
-          and obj4 = mkDefault ob4
+          val obj0 = mkDefault d0
+          and obj1 = mkDefault d1
+          and obj2 = mkDefault d2
+          and obj3 = mkDefault d3
+          and obj4 = mkDefault d4
         in
           (obj0,obj1,obj2,obj3,obj4)
         end
@@ -558,21 +514,21 @@ fun mkDefineTypeOp {savable} n a r objV objT =
         let
           val cmd = Command.DefineTypeOp
           and args = [mkName n, mkName a, mkName r, objV, objT]
-          and gen = [ob0,ob1,ob2,ob3,ob4]
+          and gen = [d0,d1,d2,d3,d4]
 
           val defs = []
 
-          val obj0 = mkSpecial ob0 cmd args defs gen 0
+          val obj0 = mkSpecial d0 cmd args defs gen 0
 
           val defs = obj0 :: defs
 
-          val obj1 = mkSpecial ob1 cmd args defs gen 1
-          and obj2 = mkSpecial ob2 cmd args defs gen 2
+          val obj1 = mkSpecial d1 cmd args defs gen 1
+          and obj2 = mkSpecial d2 cmd args defs gen 2
 
           val defs = obj2 :: obj1 :: defs
 
-          val obj3 = mkSpecial ob3 cmd args defs gen 3
-          and obj4 = mkSpecial ob4 cmd args defs gen 4
+          val obj3 = mkSpecial d3 cmd args defs gen 3
+          and obj4 = mkSpecial d4 cmd args defs gen 4
         in
           (obj0,obj1,obj2,obj3,obj4)
         end
@@ -583,59 +539,41 @@ fun mkDefineTypeOp {savable} n a r objV objT =
 
 fun mkEqMp {savable} objA objB =
     let
-      val obA = object objA
-      and obB = object objB
-
-      val ob =
+      val d =
           let
-            val a = Object.destThm obA
-            and b = Object.destThm obB
+            val a = destThm objA
+            and b = destThm objB
           in
-            Object.Thm (Thm.eqMp a b)
+            ObjectData.Thm (Thm.eqMp a b)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkEqMp" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkEqMp" d
 *)
-
-      val cmd = Command.EqMp
-      and args = [objA,objB]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.EqMp [objA,objB]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkEqMp:\n" ^ err);
 *)
 
-val mkNil = mkDefault (Object.List []);
+val mkNil = mkDefault (ObjectData.mkNil);
 
 fun mkOpType {savable} objO objL =
     let
-      val obO = object objO
-      and obL = object objL
-
-      val ob =
+      val d =
           let
-            val ot = Object.destTypeOp obO
-            and tys = Object.destTypes obL
+            val ot = destTypeOp objO
+            and tys = destTypes objL
           in
-            Object.mkOpType (ot,tys)
+            ObjectData.mkOpType (ot,tys)
           end
 
-      val cmd = Command.OpType
-      and args = [objO,objL]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objO,objL]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.OpType args
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkOpType:\n" ^ err);
@@ -643,28 +581,19 @@ fun mkOpType {savable} objO objL =
 
 fun mkRefl {savable} objT =
     let
-      val obT = object objT
-
-      val ob =
+      val d =
           let
-            val t = Object.destTerm obT
+            val t = destTerm objT
           in
-            Object.Thm (Thm.refl t)
+            ObjectData.Thm (Thm.refl t)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkRefl" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkRefl" d
 *)
-
-      val cmd = Command.Refl
-      and args = [objT]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.Refl [objT]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkRefl:\n" ^ err);
@@ -672,63 +601,45 @@ fun mkRefl {savable} objT =
 
 fun mkSubst {savable} objS objT =
     let
-      val obS = object objS
-      and obT = object objT
-
-      val ob =
+      val d =
           let
-            val s = Object.destSubst obS
-            and th = Object.destThm obT
+            val s = destSubst objS
+            and th = destThm objT
           in
-            Object.Thm (Thm.subst (TermSubst.mk s) th)
+            ObjectData.Thm (Thm.subst (TermSubst.mk s) th)
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Object.pp "ObjectProv.mkSubst" ob
+      val () = Print.trace ObjectData.pp "ObjectProv.mkSubst" d
 *)
-
-      val cmd = Command.Subst
-      and args = [objS,objT]
-      and gen = ob
-
-      val prov =
-          if not savable then Default
-          else specialProvenance cmd args gen
     in
-      mkProv ob prov
+      if not savable then mkDefault d
+      else mkSimple d Command.Subst [objS,objT]
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkSubst:\n" ^ err);
 *)
 
-fun mkTypeOp n = mkDefault (Object.TypeOp (TypeOp.mkUndef n));
+fun mkTypeOp n = mkDefault (ObjectData.TypeOp (TypeOp.mkUndef n));
 
 fun mkVar {savable} objN objT =
     let
-      val obN = object objN
-      and obT = object objT
-
-      val ob =
+      val d =
           let
-            val n = Object.destName obN
-            and ty = Object.destType obT
+            val n = destName objN
+            and ty = destType objT
 
             val () =
                 if Name.isGlobal n then ()
                 else raise Error ("non-global name: " ^ Name.toString n)
           in
-            Object.Var (Var.mk (n,ty))
+            ObjectData.Var (Var.mk (n,ty))
           end
 
-      val cmd = Command.Var
-      and args = [objN,objT]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objN,objT]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.Var args
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkVar:\n" ^ err);
@@ -736,24 +647,17 @@ fun mkVar {savable} objN objT =
 
 fun mkVarTerm {savable} objV =
     let
-      val obV = object objV
-
-      val ob =
+      val d =
           let
-            val v = Object.destVar obV
+            val v = destVar objV
           in
-            Object.Term (Term.mkVar v)
+            ObjectData.Term (Term.mkVar v)
           end
 
-      val cmd = Command.VarTerm
-      and args = [objV]
-      and gen = ob
-
-      val prov =
-          if not savable orelse allDefault args then Default
-          else specialProvenance cmd args gen
+      val args = [objV]
     in
-      mkProv ob prov
+      if not savable orelse allDefault args then mkDefault d
+      else mkSimple d Command.VarTerm args
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkVarTerm:\n" ^ err);
@@ -761,20 +665,18 @@ fun mkVarTerm {savable} objV =
 
 fun mkVarType objN =
     let
-      val obN = object objN
-
-      val ob =
+      val d =
           let
-            val n = Object.destName obN
+            val n = destName objN
 
             val () =
                 if Name.isGlobal n then ()
                 else raise Error ("non-global name: " ^ Name.toString n)
           in
-            Object.mkVarType n
+            ObjectData.mkVarType n
           end
     in
-      mkDefault ob
+      mkDefault d
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in ObjectProv.mkVarType:\n" ^ err);
@@ -834,33 +736,11 @@ fun mkCommand sav cmd args =
     handle Error err => raise Error ("in ObjectProv.mkCommand:\n" ^ err);
 *)
 
-(* Commands for making specific type operators and constants *)
+(* ------------------------------------------------------------------------- *)
+(* Constructing unsavable objects.                                           *)
+(* ------------------------------------------------------------------------- *)
 
-fun mkSpecificTypeOp {savable} ot =
-    if TypeOp.isUndef ot then mkTypeOp (TypeOp.name ot)
-    else
-      let
-        val () =
-            if not savable then ()
-            else raise Bug "ObjectProv.mkSpecificTypeOp"
-
-        val ob = Object.TypeOp ot
-      in
-        mkDefault ob
-      end;
-
-fun mkSpecificConst {savable} c =
-    if Const.isUndef c then mkConst (Const.name c)
-    else
-      let
-        val () =
-            if not savable then ()
-            else raise Bug "ObjectProv.mkSpecificConst"
-
-        val ob = Object.Const c
-      in
-        mkDefault ob
-      end;
+val mkUnsavable = mkDefault;
 
 (* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
@@ -964,16 +844,12 @@ fun maps {preDescent,postDescent,savable} =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Print.ppMap object Object.pp;
+val pp = Print.ppMap data ObjectData.pp;
 
 fun ppProvenance prov =
     case prov of
-      Default => Print.ppString "Default"
-    | Special {command,...} =>
-      Print.program
-        [Print.ppString "Special",
-         Print.space,
-         Command.pp command];
+      Default => Print.ppString "default"
+    | Special {command,...} => Command.pp command;
 
 end
 

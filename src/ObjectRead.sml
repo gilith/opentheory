@@ -72,14 +72,9 @@ fun execute cmd state =
       val {import,interpretation,savable} = parameters
 
 (*OpenTheoryTrace2
-      val ppStack =
-          Print.ppMap
-            (List.map ObjectProv.object o ObjectStack.objects)
-            (Print.ppList Object.pp)
-
       val () = Print.trace Command.pp "ObjectRead.execute: cmd" cmd
 
-      val () = Print.trace ppStack "ObjectRead.execute: stack" stack
+      val () = Print.trace ObjectStack.pp "ObjectRead.execute: stack" stack
 *)
       val inference = Inference.add inference cmd
     in
@@ -697,16 +692,11 @@ fun execute cmd state =
     handle Error err =>
       let
 (*OpenTheoryDebug
-        val ppStack =
-            Print.ppMap
-              (List.map ObjectProv.object o ObjectStack.objects)
-              (Print.ppList Object.pp)
-
         fun ppState (State {stack,...}) =
             Print.consistentBlock 4
               [Print.ppString "  stack =",
                Print.break,
-               ppStack stack]
+               ObjectStack.pp stack]
 
         val err = Print.toString ppState state ^ "\n" ^ err
 *)

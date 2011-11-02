@@ -1,18 +1,18 @@
 (* ========================================================================= *)
-(* OPENTHEORY OBJECTS                                                        *)
+(* OPENTHEORY OBJECT DATA                                                    *)
 (* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure Object :> Object =
+structure ObjectData :> ObjectData =
 struct
 
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of OpenTheory objects.                                             *)
+(* A type of OpenTheory object data.                                         *)
 (* ------------------------------------------------------------------------- *)
 
-datatype object =
+datatype data =
     Num of int
   | Name of Name.name
   | TypeOp of TypeOp.typeOp
@@ -21,206 +21,227 @@ datatype object =
   | Var of Var.var
   | Term of Term.term
   | Thm of Thm.thm
-  | List of object list;
+  | List of data list;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-(* List objects *)
+(* List data *)
 
-fun destList ob =
-    case ob of
-      List l => l
-    | _ => raise Error "destList";
+fun destList d =
+    case d of
+      List ds => ds
+    | _ => raise Error "ObjectData.destList";
 
 val isList = can destList;
 
-(* Num objects *)
+val mkNil = List [];
 
-fun destNum ob =
-    case ob of
+fun isNil d =
+    case d of
+      List [] => true
+    | _ => false;
+
+fun mkCons (h,t) =
+    let
+      val ds = destList t
+    in
+      List (h :: ds)
+    end;
+
+fun destCons l =
+    case destList l of
+      [] => raise Error "ObjectData.destCons: nil"
+    | h :: t => (h, List t);
+
+val isCons = can destCons;
+
+(* Num data *)
+
+fun destNum d =
+    case d of
       Num i => i
-    | _ => raise Error "destNum";
+    | _ => raise Error "ObjectData.destNum";
 
 val isNum = can destNum;
 
-(* Name objects *)
+(* Name data *)
 
-fun destName ob =
-    case ob of
+fun destName d =
+    case d of
       Name n => n
-    | _ => raise Error "destName";
+    | _ => raise Error "ObjectData.destName";
 
 val isName = can destName;
 
-(* Name list objects *)
+(* Name list data *)
 
 fun mkNames tys = List (List.map Name tys);
 
-fun destNames ob = List.map destName (destList ob);
+fun destNames d = List.map destName (destList d);
 
 val isNames = can destNames;
 
-(* Unit objects *)
+(* Unit data *)
 
 val unit = List [];
 
 fun mkUnit () = unit;
 
-fun isUnit ob =
-    case ob of
+fun isUnit d =
+    case d of
       List [] => true
     | _ => false;
 
-(* Pair objects *)
+(* Pair data *)
 
 fun mkPair (x,y) = List [x,y];
 
-fun destPair ob =
-    case ob of
+fun destPair d =
+    case d of
       List [x,y] => (x,y)
-    | _ => raise Error "Object.destPair";
+    | _ => raise Error "ObjectData.destPair";
 
 val isPair = can destPair;
 
-(* Triple objects *)
+(* Triple data *)
 
 fun mkTriple (x,y,z) = List [x,y,z];
 
-fun destTriple ob =
-    case ob of
+fun destTriple d =
+    case d of
       List [x,y,z] => (x,y,z)
-    | _ => raise Error "Object.destTriple";
+    | _ => raise Error "ObjectData.destTriple";
 
 val isTriple = can destTriple;
 
-(* Type operator objects *)
+(* Type operator data *)
 
-fun destTypeOp ob =
-    case ob of
+fun destTypeOp d =
+    case d of
       TypeOp ot => ot
-    | _ => raise Error "Object.destTypeOp";
+    | _ => raise Error "ObjectData.destTypeOp";
 
 val isTypeOp = can destTypeOp;
 
-fun equalTypeOp ot ob =
-    case total destTypeOp ob of
+fun equalTypeOp ot d =
+    case total destTypeOp d of
       SOME ot' => TypeOp.equal ot' ot
     | NONE => false;
 
-(* Type objects *)
+(* Type data *)
 
-fun destType ob =
-    case ob of
+fun destType d =
+    case d of
       Type ty => ty
-    | _ => raise Error "Object.destType";
+    | _ => raise Error "ObjectData.destType";
 
 val isType = can destType;
 
-(* Type list objects *)
+(* Type list data *)
 
 fun mkTypes tys = List (List.map Type tys);
 
-fun destTypes ob = List.map destType (destList ob);
+fun destTypes d = List.map destType (destList d);
 
 val isTypes = can destTypes;
 
-(* Type variable type objects *)
+(* Type variable type data *)
 
 fun mkVarType n = Type (Type.mkVar n);
 
-fun destVarType ob =
-    case ob of
+fun destVarType d =
+    case d of
       Type ty => Type.destVar ty
-    | _ => raise Error "Object.destVarType";
+    | _ => raise Error "ObjectData.destVarType";
 
 val isVarType = can destVarType;
 
-(* Type operator type objects *)
+(* Type operator type data *)
 
 fun mkOpType (ot,tys) = Type (Type.mkOp (ot,tys));
 
-fun destOpType ob =
-    case ob of
+fun destOpType d =
+    case d of
       Type ty => Type.destOp ty
-    | _ => raise Error "Object.destOpType";
+    | _ => raise Error "ObjectData.destOpType";
 
 val isOpType = can destOpType;
 
-(* Constant objects *)
+(* Constant data *)
 
-fun destConst ob =
-    case ob of
+fun destConst d =
+    case d of
       Const c => c
-    | _ => raise Error "Object.destConst";
+    | _ => raise Error "ObjectData.destConst";
 
 val isConst = can destConst;
 
-fun equalConst c ob =
-    case total destConst ob of
+fun equalConst c d =
+    case total destConst d of
       SOME c' => Const.equal c' c
     | NONE => false;
 
-(* Term variable objects *)
+(* Term variable data *)
 
-fun destVar ob =
-    case ob of
+fun destVar d =
+    case d of
       Var v => v
-    | _ => raise Error "Object.destVar";
+    | _ => raise Error "ObjectData.destVar";
 
 val isVar = can destVar;
 
-(* Term objects *)
+(* Term data *)
 
-fun destTerm ob =
-    case ob of
+fun destTerm d =
+    case d of
       Term tm => tm
-    | _ => raise Error "Object.destTerm";
+    | _ => raise Error "ObjectData.destTerm";
 
 val isTerm = can destTerm;
 
-(* Term list objects *)
+(* Term list data *)
 
 fun mkTerms tms = List (List.map Term tms);
 
-fun destTerms ob = List.map destTerm (destList ob);
+fun destTerms d = List.map destTerm (destList d);
 
 val isTerms = can destTerms;
 
-(* Term variable term objects *)
+(* Term variable term data *)
 
 fun mkVarTerm v = Term (Term.mkVar v);
 
-fun destVarTerm ob = Term.destVar (destTerm ob);
+fun destVarTerm d = Term.destVar (destTerm d);
 
 val isVarTerm = can destVarTerm;
 
-(* Constant term objects *)
+(* Constant term data *)
 
 fun mkConstTerm c_ty = Term (Term.mkConst c_ty);
 
-fun destConstTerm ob = Term.destConst (destTerm ob);
+fun destConstTerm d = Term.destConst (destTerm d);
 
 val isConstTerm = can destConstTerm;
 
-(* Function application term objects *)
+(* Function application term data *)
 
 fun mkAppTerm f_a = Term (Term.mkApp f_a);
 
-fun destAppTerm ob = Term.destApp (destTerm ob);
+fun destAppTerm d = Term.destApp (destTerm d);
 
 val isAppTerm = can destAppTerm;
 
-(* Lambda abstraction term objects *)
+(* Lambda abstraction term data *)
 
 fun mkAbsTerm v_b = Term (Term.mkAbs v_b);
 
-fun destAbsTerm ob = Term.destAbs (destTerm ob);
+fun destAbsTerm d = Term.destAbs (destTerm d);
 
 val isAbsTerm = can destAbsTerm;
 
-(* Sequent objects *)
+(* Sequent data *)
 
 fun mkSequent seq =
     let
@@ -238,16 +259,16 @@ fun destSequent (h,c) =
 
 val isSequent = can destSequent;
 
-(* Theorem objects *)
+(* Theorem data *)
 
-fun destThm ob =
-    case ob of
+fun destThm d =
+    case d of
       Thm th => th
-    | _ => raise Error "Object.destThm";
+    | _ => raise Error "ObjectData.destThm";
 
 val isThm = can destThm;
 
-(* Type substitution objects *)
+(* Type substitution data *)
 
 local
   fun mkMaplet (n,ty) = mkPair (Name n, Type ty);
@@ -256,16 +277,16 @@ in
 end;
 
 local
-  fun destMaplet ob =
+  fun destMaplet d =
       let
-        val (obN,obT) = destPair ob
+        val (dN,dT) = destPair d
       in
-        (destName obN, destType obT)
+        (destName dN, destType dT)
       end;
 in
-  fun destTypeSubst ob =
+  fun destTypeSubst d =
       let
-        val ms = List.map destMaplet (destList ob)
+        val ms = List.map destMaplet (destList d)
       in
         TypeSubst.fromListMap ms
       end;
@@ -273,7 +294,7 @@ end;
 
 val isTypeSubst = can destTypeSubst;
 
-(* Term substitution objects *)
+(* Term substitution data *)
 
 local
   fun mkMaplet (v,tm) = mkPair (Var v, Term tm);
@@ -282,16 +303,16 @@ in
 end;
 
 local
-  fun destMaplet ob =
+  fun destMaplet d =
       let
-        val (obV,obT) = destPair ob
+        val (dV,dT) = destPair d
       in
-        (destVar obV, destTerm obT)
+        (destVar dV, destTerm dT)
       end;
 in
-  fun destTermSubst ob =
+  fun destTermSubst d =
       let
-        val ms = List.map destMaplet (destList ob)
+        val ms = List.map destMaplet (destList d)
       in
         TermSubst.fromListTermMap ms
       end;
@@ -299,15 +320,15 @@ end;
 
 val isTermSubst = can destTermSubst;
 
-(* Substitution objects *)
+(* Substitution data *)
 
 fun mkSubst (tyS,tmS) = mkPair (mkTypeSubst tyS, mkTermSubst tmS);
 
-fun destSubst ob =
+fun destSubst d =
     let
-      val (obY,obM) = destPair ob
+      val (dY,dM) = destPair d
     in
-      (destTypeSubst obY, destTermSubst obM)
+      (destTypeSubst dY, destTermSubst dM)
     end;
 
 val isSubst = can destSubst;
@@ -316,10 +337,10 @@ val isSubst = can destSubst;
 (* A total ordering.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare ob1_ob2 =
-    if Portable.pointerEqual ob1_ob2 then EQUAL
+fun compare d1_d2 =
+    if Portable.pointerEqual d1_d2 then EQUAL
     else
-      case ob1_ob2 of
+      case d1_d2 of
         (Num n1, Num n2) => Int.compare (n1,n2)
       | (Num _, _) => LESS
       | (_, Num _) => GREATER
@@ -344,75 +365,97 @@ fun compare ob1_ob2 =
       | (Thm th1, Thm th2) => Thm.compare (th1,th2)
       | (Thm _, _) => LESS
       | (_, Thm _) => GREATER
-      | (List l1, List l2) => lexCompare compare (l1,l2);
+      | (List ds1, List ds2) => lexCompare compare (ds1,ds2);
 
 (* ------------------------------------------------------------------------- *)
-(* Extracting the theorems stored in an object.                              *)
+(* Extracting theorems from object data.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val thms =
-    let
-      fun f acc obs =
-          case obs of
-            [] => acc
-          | ob :: obs =>
-            case ob of
-              Thm th => f (th :: acc) obs
-            | List l => f acc (l @ obs)
-            | _ => f acc obs
-    in
-      fn ob => f [] [ob]
-    end;
+local
+  fun addList acc ds =
+      case ds of
+        [] => acc
+      | d :: ds => addCons acc ds d
+
+  and addCons acc ds d =
+      case d of
+        Thm th => addList (th :: acc) ds
+      | List l => addList acc (List.revAppend (l,ds))
+      | _ => addList acc ds;
+in
+  val thms = addCons [] [];
+end;
 
 (* ------------------------------------------------------------------------- *)
-(* Extracting the symbols in an object.                                      *)
+(* Extracting symbols from object data.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun symbolAddList sym obs =
-    case obs of
-      [] => sym
-    | ob :: obs =>
-      case ob of
-        Num _ => symbolAddList sym obs
-      | Name _ => symbolAddList sym obs
-      | TypeOp ot => SymbolTable.addTypeOp sym ot
+local
+  fun addList sym ds =
+      case ds of
+        [] => sym
+      | d :: ds => addCons ds sym d
+
+  and addCons ds sym d =
+      case d of
+        Num _ => addList sym ds
+      | Name _ => addList sym ds
+      | TypeOp ot =>
+        let
+          val sym = SymbolTable.addTypeOp sym ot
+        in
+          addList sym ds
+        end
       | Type ty =>
         let
           val sym = SymbolTable.addType sym ty
         in
-          symbolAddList sym obs
+          addList sym ds
         end
-      | Const c => SymbolTable.addConst sym c
-      | Var v => SymbolTable.addVar sym v
+      | Const c =>
+        let
+          val sym = SymbolTable.addConst sym c
+        in
+          addList sym ds
+        end
+      | Var v =>
+        let
+          val sym = SymbolTable.addVar sym v
+        in
+          addList sym ds
+        end
       | Term tm =>
         let
           val sym = SymbolTable.addTerm sym tm
         in
-          symbolAddList sym obs
+          addList sym ds
         end
       | Thm th =>
         let
           val sym = SymbolTable.addSequent sym (Thm.sequent th)
         in
-          symbolAddList sym obs
+          addList sym ds
         end
       | List l =>
         let
-          val obs = l @ obs
+          val ds = List.revAppend (l,ds)
         in
-          symbolAddList sym obs
+          addList sym ds
         end;
+in
+  val symbolAddList = addList;
 
-fun symbolAdd sym ob = symbolAddList sym [ob];
+  val symbolAdd = addCons [];
+end;
 
 val symbol = symbolAdd SymbolTable.empty;
 
 (* ------------------------------------------------------------------------- *)
-(* Breaking down objects into commands.                                      *)
+(* Breaking down object data into commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun command ob =
-    case ob of
+fun command d =
+    case d of
       Num i => (Command.Num i, [])
     | Name n => (Command.Name n, [])
     | TypeOp ot => (Command.TypeOp, [Name (TypeOp.name ot)])
@@ -444,48 +487,48 @@ fun command ob =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun searchList obs srch =
-      case obs of
+  fun searchList ds srch =
+      case ds of
         [] => (NONE,srch)
-      | ob :: obs => searchCons ob obs srch
+      | d :: ds => searchCons d ds srch
 
-  and searchCons ob obs srch =
-      case ob of
-        Num _ => searchList obs srch
-      | Name _ => searchList obs srch
-      | TypeOp _ => searchList obs srch
-      | Type _ => searchList obs srch
-      | Const _ => searchList obs srch
-      | Var _ => searchList obs srch
+  and searchCons d ds srch =
+      case d of
+        Num _ => searchList ds srch
+      | Name _ => searchList ds srch
+      | TypeOp _ => searchList ds srch
+      | Type _ => searchList ds srch
+      | Const _ => searchList ds srch
+      | Var _ => searchList ds srch
       | Term tm =>
         let
           val subtm_srch as (subtm,srch) =
               TermSearch.sharingSearchTerm tm srch
         in
-          if Option.isSome subtm then subtm_srch else searchList obs srch
+          if Option.isSome subtm then subtm_srch else searchList ds srch
         end
       | Thm th =>
         let
           val subtm_srch as (subtm,srch) =
               Sequent.sharingSearch (Thm.sequent th) srch
         in
-          if Option.isSome subtm then subtm_srch else searchList obs srch
+          if Option.isSome subtm then subtm_srch else searchList ds srch
         end
       | List l =>
         let
-          val obs =
-              if TermSearch.leftToRight srch then l @ obs
-              else List.revAppend (l,obs)
+          val ds =
+              if TermSearch.leftToRight srch then l @ ds
+              else List.revAppend (l,ds)
         in
-          searchList obs srch
+          searchList ds srch
         end;
 in
-  fun sharingSearch ob srch = searchList [ob] srch;
+  fun sharingSearch d srch = searchList [d] srch;
 end;
 
-fun search srch ob =
+fun search srch d =
     let
-      val (subtm,_) = sharingSearch ob srch
+      val (subtm,_) = sharingSearch d srch
     in
       subtm
     end;
@@ -494,8 +537,8 @@ fun search srch ob =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun pp ob =
-    case ob of
+fun pp d =
+    case d of
       Num n => Command.pp (Command.Num n)
     | Name s => Command.pp (Command.Name s)
     | TypeOp ot => TypeOp.pp ot
@@ -508,9 +551,9 @@ fun pp ob =
 
 end
 
-structure ObjectOrdered =
-struct type t = Object.object val compare = Object.compare end
+structure ObjectDataOrdered =
+struct type t = ObjectData.data val compare = ObjectData.compare end
 
-structure ObjectMap = KeyMap (ObjectOrdered)
+structure ObjectDataMap = KeyMap (ObjectDataOrdered)
 
-structure ObjectSet = ElementSet (ObjectMap)
+structure ObjectDataSet = ElementSet (ObjectDataMap)

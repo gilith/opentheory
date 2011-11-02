@@ -18,6 +18,18 @@ val size : stack -> int
 
 val null : stack -> bool
 
+val objects : stack -> ObjectProv.object list
+
+(* ------------------------------------------------------------------------- *)
+(* Peeking.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val peek : stack -> ObjectProv.object
+
+(* ------------------------------------------------------------------------- *)
+(* Pushing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
 val push : stack -> ObjectProv.object -> stack
 
 val push2 : stack -> ObjectProv.object -> ObjectProv.object -> stack
@@ -26,7 +38,9 @@ val push5 :
     stack -> ObjectProv.object -> ObjectProv.object -> ObjectProv.object ->
     ObjectProv.object -> ObjectProv.object -> stack
 
-val peek : stack -> ObjectProv.object
+(* ------------------------------------------------------------------------- *)
+(* Popping.                                                                  *)
+(* ------------------------------------------------------------------------- *)
 
 val pop : stack -> stack * ObjectProv.object
 
@@ -40,6 +54,10 @@ val pop5 :
     stack * ObjectProv.object * ObjectProv.object * ObjectProv.object *
     ObjectProv.object * ObjectProv.object
 
-val objects : stack -> ObjectProv.object list
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : stack Print.pp
 
 end

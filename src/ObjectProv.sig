@@ -7,7 +7,7 @@ signature ObjectProv =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of objects that track their provenance.                            *)
+(* A type of OpenTheory objects that track their provenance.                 *)
 (* ------------------------------------------------------------------------- *)
 
 type object
@@ -22,7 +22,7 @@ datatype provenance =
       {command : Command.command,
        arguments : object list,
        definitions : object list,
-       generated : Object.object list,
+       generated : ObjectData.data list,
        result : int}
 
 val isDefaultProvenance : provenance -> bool
@@ -37,12 +37,12 @@ val definitionsProvenance : provenance -> object list
 
 datatype object' =
     Object' of
-      {object : Object.object,
+      {data : ObjectData.data,
        provenance : provenance}
 
 val dest : object -> object'
 
-val object : object -> Object.object
+val data : object -> ObjectData.data
 
 val provenance : object -> provenance
 
@@ -50,13 +50,29 @@ val isDefault : object -> bool
 
 val parents : object -> object list
 
+(* List objects *)
+
+val destList : object -> ObjectData.data list
+
+val isList : object -> bool
+
 (* Num objects *)
 
 val destNum : object -> int
 
+val isNum : object -> bool
+
 (* Name objects *)
 
 val destName : object -> Name.name
+
+val isName : object -> bool
+
+(* Name list objects *)
+
+val destNames : object -> Name.name list
+
+val isNames : object -> bool
 
 (* Type operator objects *)
 
@@ -66,6 +82,18 @@ val isTypeOp : object -> bool
 
 val equalTypeOp : TypeOp.typeOp -> object -> bool
 
+(* Type objects *)
+
+val destType : object -> Type.ty
+
+val isType : object -> bool
+
+(* Type list objects *)
+
+val destTypes : object -> Type.ty list
+
+val isTypes : object -> bool
+
 (* Constant objects *)
 
 val destConst : object -> Const.const
@@ -74,13 +102,35 @@ val isConst : object -> bool
 
 val equalConst : Const.const -> object -> bool
 
+(* Term variable objects *)
+
+val destVar : object -> Var.var
+
+val isVar : object -> bool
+
+(* Term objects *)
+
+val destTerm : object -> Term.term
+
+val isTerm : object -> bool
+
 (* Sequent objects *)
 
 val destSequent : object * object -> Sequent.sequent
 
+val isSequent : object * object -> bool
+
 (* Theorem objects *)
 
 val destThm : object -> Thm.thm
+
+val isThm : object -> bool
+
+(* Substitution objects *)
+
+val destSubst : object -> TermSubst.substMap
+
+val isSubst : object -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
@@ -146,11 +196,11 @@ val mkVarType : object -> object
 val mkCommand :
     {savable : bool} -> Command.command -> object list -> object list
 
-(* Commands for making specific type operators and constants *)
+(* ------------------------------------------------------------------------- *)
+(* Constructing unsavable objects.                                           *)
+(* ------------------------------------------------------------------------- *)
 
-val mkSpecificTypeOp : {savable : bool} -> TypeOp.typeOp -> object
-
-val mkSpecificConst : {savable : bool} -> Const.const -> object
+val mkUnsavable : ObjectData.data -> object
 
 (* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)

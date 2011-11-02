@@ -32,6 +32,21 @@ fun size (Stack {size = x, ...}) = x;
 
 fun null stack = size stack = 0;
 
+fun objects (Stack {objects = x, ...}) = x;
+
+(* ------------------------------------------------------------------------- *)
+(* Peeking.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun peek stack =
+    case objects stack of
+      [] => raise Error "ObjectStack.peek: empty"
+    | obj :: _ => obj;
+
+(* ------------------------------------------------------------------------- *)
+(* Pushing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
 fun push stack obj =
     let
       val Stack {size,objects} = stack
@@ -71,14 +86,9 @@ fun push5 stack obj0 obj1 obj2 obj3 obj4 =
          objects = objects}
     end;
 
-fun peek stack =
-    let
-      val Stack {objects = objs, ...} = stack
-    in
-      case objs of
-        [] => raise Error "ObjectStack.peek: empty"
-      | obj :: _ => obj
-    end;
+(* ------------------------------------------------------------------------- *)
+(* Popping.                                                                  *)
+(* ------------------------------------------------------------------------- *)
 
 fun pop stack =
     let
@@ -163,6 +173,10 @@ fun pop5 stack =
         end
     end;
 
-fun objects (Stack {objects = x, ...}) = x;
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp = Print.ppMap objects (Print.ppList ObjectProv.pp);
 
 end

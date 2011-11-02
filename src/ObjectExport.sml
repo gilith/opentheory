@@ -138,20 +138,20 @@ fun eliminateUnwanted exp =
 (* Compression.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-type refs = ObjectProv.object ObjectMap.map;
+type refs = ObjectProv.object ObjectDataMap.map;
 
-val emptyRefs : refs = ObjectMap.new ();
+val emptyRefs : refs = ObjectDataMap.new ();
 
 fun improveRefs refs obj : refs =
     let
-      val ob = ObjectProv.object obj
+      val ob = ObjectProv.data obj
 
       val imp =
-          case ObjectMap.peek refs ob of
+          case ObjectDataMap.peek refs ob of
             NONE => true
           | SOME obj' => ObjectProv.id obj < ObjectProv.id obj'
     in
-      if imp then ObjectMap.insert refs (ob,obj) else refs
+      if imp then ObjectDataMap.insert refs (ob,obj) else refs
     end;
 
 local
@@ -224,9 +224,9 @@ local
           end
         | NONE =>
           let
-            val obI = ObjectProv.object objI
+            val obI = ObjectProv.data objI
 
-            val objJ' = ObjectMap.peek refs obI
+            val objJ' = ObjectDataMap.peek refs obI
 
             val objJ =
                 case objJ' of

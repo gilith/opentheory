@@ -14,15 +14,15 @@ open Useful;
 
 fun storableObject ob =
     case ob of
-      Object.Num _ => false
-    | Object.Name _ => false
-    | Object.TypeOp _ => true
-    | Object.Type _ => true
-    | Object.Const _ => true
-    | Object.Var _ => true
-    | Object.Term _ => true
-    | Object.Thm _ => true
-    | Object.List l => not (List.null l);
+      ObjectData.Num _ => false
+    | ObjectData.Name _ => false
+    | ObjectData.TypeOp _ => true
+    | ObjectData.Type _ => true
+    | ObjectData.Const _ => true
+    | ObjectData.Var _ => true
+    | ObjectData.Term _ => true
+    | ObjectData.Thm _ => true
+    | ObjectData.List l => not (List.null l);
 
 (* ------------------------------------------------------------------------- *)
 (* Minimal dictionaries.                                                     *)
@@ -30,45 +30,45 @@ fun storableObject ob =
 
 datatype minDict =
     MinDict of
-      {refs : int ObjectMap.map,
-       keys : int ObjectMap.map,
+      {refs : int ObjectDataMap.map,
+       keys : int ObjectDataMap.map,
        nextKey : int};
 
 local
   fun registerGenerated (ob,refs) =
       let
 (*OpenTheoryTrace5
-        val () = Print.trace Object.pp
+        val () = Print.trace ObjectData.pp
                    "ObjectWrite.registerGenerated: ob" ob
 *)
       in
-        if ObjectMap.inDomain ob refs then refs
-        else ObjectMap.insert refs (ob,0)
+        if ObjectDataMap.inDomain ob refs then refs
+        else ObjectDataMap.insert refs (ob,0)
       end;
 
   fun registerReference (ob,refs) =
       let
 (*OpenTheoryTrace5
-        val () = Print.trace Object.pp
+        val () = Print.trace ObjectData.pp
                    "ObjectWrite.registerReference: ob" ob
 *)
-        val k = Option.getOpt (ObjectMap.peek refs ob, 0)
+        val k = Option.getOpt (ObjectDataMap.peek refs ob, 0)
       in
-        ObjectMap.insert refs (ob, k + 1)
+        ObjectDataMap.insert refs (ob, k + 1)
       end;
 
   fun registerDefault (ob,refs) =
       if not (storableObject ob) then refs
-      else if ObjectMap.inDomain ob refs then registerReference (ob,refs)
+      else if ObjectDataMap.inDomain ob refs then registerReference (ob,refs)
       else registerDefault' (ob,refs)
 
   and registerDefault' (ob,refs) =
       let
 (*OpenTheoryTrace5
-        val () = Print.trace Object.pp
+        val () = Print.trace ObjectData.pp
                    "ObjectWrite.registerDefault': ob" ob
 *)
-        val (_,args) = Object.command ob
+        val (_,args) = ObjectData.command ob
 
         val refs = List.foldl registerDefault refs args
       in
@@ -81,10 +81,10 @@ local
         val () = Print.trace ObjectProv.pp
                    "ObjectWrite.registerSpecial: obj" obj
 *)
-        val ob = ObjectProv.object obj
+        val ob = ObjectProv.data obj
       in
         if not (storableObject ob) then refs
-        else if ObjectMap.inDomain ob refs then registerReference (ob,refs)
+        else if ObjectDataMap.inDomain ob refs then registerReference (ob,refs)
         else
           case ObjectProv.provenance obj of
             ObjectProv.Default => registerDefault' (ob,refs)
@@ -123,13 +123,13 @@ local
 in
   fun newMinDict exp =
       let
-        val refs = ObjectMap.new ()
+        val refs = ObjectDataMap.new ()
 
         val refs = ObjectExport.foldl registerThm refs exp
 
-        val refs = ObjectMap.filter (fn (_,n) => n >= 1) refs
+        val refs = ObjectDataMap.filter (fn (_,n) => n >= 1) refs
 
-        val keys = ObjectMap.new ()
+        val keys = ObjectDataMap.new ()
 
         val nextKey = 0
       in
@@ -147,8 +147,8 @@ end;
 datatype task =
     ExpTask of ObjectThm.thm
   | ObjTask of ObjectProv.object
-  | ObTask of Object.object
-  | GenTask of Object.object list * int
+  | ObTask of ObjectData.data
+  | GenTask of ObjectData.data list * int
   | CmdTask of Command.command;
 
 fun ppTask task =
@@ -166,15 +166,15 @@ local
 
         val pointless =
             not (storableObject ob) orelse
-            ObjectMap.inDomain ob keys orelse
-            not (ObjectMap.inDomain ob refs)
+            ObjectDataMap.inDomain ob keys orelse
+            not (ObjectDataMap.inDomain ob refs)
       in
         if pointless then (cmds,dict)
         else
           let
             val key = nextKey
 
-            val keys = ObjectMap.insert keys (ob,key)
+            val keys = ObjectDataMap.insert keys (ob,key)
 
             val nextKey = nextKey + 1
 
@@ -211,17 +211,17 @@ local
         let
           val MinDict {refs,keys,nextKey} = dict
         in
-          case ObjectMap.peek keys ob of
+          case ObjectDataMap.peek keys ob of
             NONE => NONE
           | SOME key =>
-            case ObjectMap.peek refs ob of
+            case ObjectDataMap.peek refs ob of
               NONE => raise Error "no such object"
             | SOME n =>
               if n = 1 then
                 let
-                  val refs = ObjectMap.delete refs ob
+                  val refs = ObjectDataMap.delete refs ob
 
-                  val keys = ObjectMap.delete keys ob
+                  val keys = ObjectDataMap.delete keys ob
 
                   val dict =
                       MinDict
@@ -235,7 +235,7 @@ local
                 end
               else
                 let
-                  val refs = ObjectMap.insert refs (ob, n - 1)
+                  val refs = ObjectDataMap.insert refs (ob, n - 1)
 
                   val dict =
                       MinDict
@@ -269,7 +269,7 @@ local
         end
       | ObjTask obj =>
         let
-          val ob = ObjectProv.object obj
+          val ob = ObjectProv.data obj
         in
           case useKey dict ob of
             SOME (cmds,dict) => (cmds,dict,work)
@@ -277,7 +277,7 @@ local
             case ObjectProv.provenance obj of
               ObjectProv.Default =>
               let
-                val (cmd,args) = Object.command ob
+                val (cmd,args) = ObjectData.command ob
                 and gen = [ob]
                 and res = 0
 
@@ -310,7 +310,7 @@ local
            SOME (cmds,dict) => (cmds,dict,work)
          | NONE =>
            let
-             val (cmd,args) = Object.command ob
+             val (cmd,args) = ObjectData.command ob
              and gen = [ob]
              and res = 0
 
@@ -362,10 +362,10 @@ in
 (*OpenTheoryDebug
           val MinDict {refs,keys,...} = dict
 
-          val _ = ObjectMap.null refs orelse
+          val _ = ObjectDataMap.null refs orelse
                   raise Error "nonempty refs"
 
-          val _ = ObjectMap.null keys orelse
+          val _ = ObjectDataMap.null keys orelse
                   raise Error "nonempty keys"
 *)
         in

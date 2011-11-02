@@ -76,7 +76,7 @@ fun isIdxData data elim =
     let
       val EliminateIdx {idxSearch} = elim
 
-      val (subtm,idxSearch) = Object.sharingSearch data idxSearch
+      val (subtm,idxSearch) = ObjectData.sharingSearch data idxSearch
 
       val result = Option.isSome subtm
 
@@ -87,7 +87,7 @@ fun isIdxData data elim =
       (result,elim)
     end;
 
-fun isIdxObject obj elim = isIdxData (ObjectProv.object obj) elim;
+fun isIdxObject obj elim = isIdxData (ObjectProv.data obj) elim;
 
 fun eliminateIdx obj elim =
     let
@@ -126,10 +126,10 @@ fun destUnwantedIdRefl th =
     destUnwantedIdTerm (Term.destRefl (Thm.concl th));
 
 fun destUnwantedIdTermObject ob =
-    destUnwantedIdTerm (Object.destTerm ob);
+    destUnwantedIdTerm (ObjectData.destTerm ob);
 
 fun destUnwantedIdReflObject ob =
-    destUnwantedIdRefl (Object.destThm ob);
+    destUnwantedIdRefl (ObjectData.destThm ob);
 
 fun destUnwantedIdTermObjectProv obj =
     destUnwantedIdTermObject (ObjectProv.object obj);
@@ -143,7 +143,7 @@ fun unwantedId obj =
           ObjectProv.dest obj
 
 (*OpenTheoryTrace4
-      val () = Print.trace Object.pp "ObjectRewrite.unwantedId.ob" ob
+      val () = Print.trace ObjectData.pp "ObjectRewrite.unwantedId.ob" ob
 
       val () = Print.trace ObjectProv.ppProvenance
                  "ObjectRewrite.unwantedId.prov" prov
@@ -152,13 +152,13 @@ fun unwantedId obj =
       case prov of
         ObjectProv.Default =>
         let
-          val (f,a) = Object.destAppTerm ob
+          val (f,a) = ObjectData.destAppTerm ob
 
           val _ = destUnwantedIdTerm f
 
           val obj' =
               ObjectProv.Object'
-                {object = Object.Term a,
+                {object = ObjectData.Term a,
                  provenance = ObjectProv.Default}
         in
           ObjectProv.mk obj'
@@ -193,7 +193,7 @@ fun unwantedId obj =
 
 datatype eliminate =
     Eliminate of
-      {defaultMap : (bool * ObjectProv.object) ObjectMap.map,
+      {defaultMap : (bool * ObjectProv.object) ObjectDataMap.map,
        specialMap : ObjectProv.object option IntMap.map,
        elimIdx : eliminateIdx,
        savable : bool};
@@ -201,8 +201,8 @@ datatype eliminate =
 fun new {savable} =
     let
       val defaultMap =
-          ObjectMap.fromList
-            [(Object.Const unwantedIdConst,(false,idConstObject))]
+          ObjectDataMap.fromList
+            [(ObjectData.Const unwantedIdConst, (false,idConstObject))]
 
       and specialMap = IntMap.new ()
 
@@ -291,11 +291,11 @@ local
                elimIdx,
                savable} = elim
       in
-        case ObjectMap.peek defaultMap ob of
+        case ObjectDataMap.peek defaultMap ob of
           SOME obj' => (obj',elim)
         | NONE =>
           let
-            val (cmd,obs) = Object.command ob
+            val (cmd,obs) = ObjectData.command ob
 
             val (objs',elim) = maps eliminateOb' obs elim
 
@@ -328,7 +328,7 @@ local
                   (obj',elim)
                 end
 
-            val defaultMap = ObjectMap.insert defaultMap (ob,obj')
+            val defaultMap = ObjectDataMap.insert defaultMap (ob,obj')
 
             val elim =
                 Eliminate
@@ -351,7 +351,7 @@ local
         val () =
             let
               val ppElim =
-                  Print.ppOp2 " ->" Object.pp
+                  Print.ppOp2 " ->" ObjectData.pp
                     (Print.ppOption ObjectProv.pp)
             in
               Print.trace ppElim "ObjectUnwanted.eliminateOb"
@@ -364,7 +364,7 @@ local
 
   fun eliminateObj obj elim =
       if not (ObjectProv.isDefault obj) then eliminateTop obj elim
-      else eliminateOb (ObjectProv.object obj) elim;
+      else eliminateOb (ObjectProv.data obj) elim;
 
   fun preDescent obj elim =
       let
