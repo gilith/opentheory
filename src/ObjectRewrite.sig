@@ -11,7 +11,7 @@ sig
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
-     {apply : ObjectProv.object' -> ObjectProv.object option,
+     {apply : Object.object' -> Object.object option,
       savable : bool}
 
 (* ------------------------------------------------------------------------- *)
@@ -29,8 +29,8 @@ val id : rewrite
 (* ------------------------------------------------------------------------- *)
 
 val sharingRewriteObject :
-    ObjectProv.object -> rewrite -> ObjectProv.object option * rewrite
+    Object.object -> rewrite -> Object.object option * rewrite
 
-val rewriteObject : rewrite -> ObjectProv.object -> ObjectProv.object option
+val rewriteObject : rewrite -> Object.object -> Object.object option
 
 end

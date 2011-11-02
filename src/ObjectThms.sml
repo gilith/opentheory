@@ -15,9 +15,9 @@ open Useful;
 datatype thms =
     Thms of
       {thms : Thms.thms,
-       typeOps : ObjectProv.object NameMap.map,
-       consts : ObjectProv.object NameMap.map,
-       seqs : ObjectProv.object SequentMap.map,
+       typeOps : Object.object NameMap.map,
+       consts : Object.object NameMap.map,
+       seqs : Object.object SequentMap.map,
        export : ObjectExport.export};
 
 fun thms (Thms {thms = x, ...}) = x;
@@ -52,9 +52,9 @@ local
               SOME obj => obj
             | NONE =>
               if TypeOp.isUndef ot then
-                ObjectProv.mkTypeOp n
+                Object.mkTypeOp n
               else if not savable then
-                ObjectProv.mkUnsavable (ObjectData.TypeOp ot)
+                Object.mkUnsavable (ObjectData.TypeOp ot)
               else
                 raise Bug "ObjectThms.fromExport.mkTypeOp"
       in
@@ -70,9 +70,9 @@ local
               SOME obj => obj
             | NONE =>
               if Const.isUndef c then
-                ObjectProv.mkConst n
+                Object.mkConst n
               else if not savable then
-                ObjectProv.mkUnsavable (ObjectData.Const c)
+                Object.mkUnsavable (ObjectData.Const c)
               else
                 raise Bug "ObjectThms.fromExport.mkConst"
       in
@@ -129,12 +129,12 @@ fun peekConst (Thms {consts,...}) n = NameMap.peek consts n;
 fun peekSpecificTypeOp ths ot =
     case peekTypeOp ths (TypeOp.name ot) of
       NONE => NONE
-    | SOME obj => if ObjectProv.equalTypeOp ot obj then SOME obj else NONE;
+    | SOME obj => if Object.equalTypeOp ot obj then SOME obj else NONE;
 
 fun peekSpecificConst ths c =
     case peekConst ths (Const.name c) of
       NONE => NONE
-    | SOME obj => if ObjectProv.equalConst c obj then SOME obj else NONE;
+    | SOME obj => if Object.equalConst c obj then SOME obj else NONE;
 
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)

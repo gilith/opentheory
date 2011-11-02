@@ -12,8 +12,8 @@ struct
 
 datatype symbol =
     Symbol of
-      {typeOps : ObjectProv.object TypeOpMap.map,
-       consts : ObjectProv.object ConstMap.map};
+      {typeOps : Object.object TypeOpMap.map,
+       consts : Object.object ConstMap.map};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -55,12 +55,12 @@ fun addTypeOp sym obj =
     let
       val Symbol {typeOps,consts} = sym
 
-      val ot = ObjectProv.destTypeOp obj
+      val ot = Object.destTypeOp obj
 
       val improvement =
           case TypeOpMap.peek typeOps ot of
             NONE => true
-          | SOME obj' => ObjectProv.id obj < ObjectProv.id obj'
+          | SOME obj' => Object.id obj < Object.id obj'
     in
       if not improvement then sym
       else
@@ -77,12 +77,12 @@ fun addConst sym obj =
     let
       val Symbol {typeOps,consts} = sym
 
-      val c = ObjectProv.destConst obj
+      val c = Object.destConst obj
 
       val improvement =
           case ConstMap.peek consts c of
             NONE => true
-          | SOME obj' => ObjectProv.id obj < ObjectProv.id obj'
+          | SOME obj' => Object.id obj < Object.id obj'
     in
       if not improvement then sym
       else
@@ -107,7 +107,7 @@ local
         let
           val (seen,sym) = seen_sym
 
-          val i = ObjectProv.id obj
+          val i = Object.id obj
         in
           if IntSet.member i seen then addObj seen_sym objs
           else
@@ -115,11 +115,11 @@ local
               val seen = IntSet.add seen i
 
               val sym =
-                  if ObjectProv.isTypeOp obj then addTypeOp sym obj
-                  else if ObjectProv.isConst obj then addConst sym obj
+                  if Object.isTypeOp obj then addTypeOp sym obj
+                  else if Object.isConst obj then addConst sym obj
                   else sym
 
-              val objs = ObjectProv.parents obj @ objs
+              val objs = Object.parents obj @ objs
             in
               addObj (seen,sym) objs
             end

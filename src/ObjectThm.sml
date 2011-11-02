@@ -14,9 +14,9 @@ open Useful;
 
 datatype thm =
     Thm of
-      {proof : ObjectProv.object,
-       hyp : ObjectProv.object,
-       concl : ObjectProv.object};
+      {proof : Object.object,
+       hyp : Object.object,
+       concl : Object.object};
 
 (* ------------------------------------------------------------------------- *)
 (* Converting to a real theorem.                                             *)
@@ -26,8 +26,8 @@ fun thm th =
     let
       val Thm {proof,hyp,concl} = th
 
-      val t = ObjectProv.destThm proof
-      and seq = ObjectProv.destSequent (hyp,concl)
+      val t = Object.destThm proof
+      and seq = Object.destSequent (hyp,concl)
     in
       Rule.alpha seq t
     end;
@@ -91,14 +91,14 @@ fun compare (th1,th2) =
       val Thm {proof = p1, hyp = h1, concl = c1} = th1
       and Thm {proof = p2, hyp = h2, concl = c2} = th2
     in
-      case ObjectProv.compare (p1,p2) of
+      case Object.compare (p1,p2) of
         LESS => LESS
       | GREATER => GREATER
       | EQUAL =>
-        case ObjectProv.compare (h1,h2) of
+        case Object.compare (h1,h2) of
           LESS => LESS
         | GREATER => GREATER
-        | EQUAL => ObjectProv.compare (c1,c2)
+        | EQUAL => Object.compare (c1,c2)
     end;
 
 end

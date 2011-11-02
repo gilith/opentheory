@@ -18,41 +18,41 @@ val size : stack -> int
 
 val null : stack -> bool
 
-val objects : stack -> ObjectProv.object list
+val objects : stack -> Object.object list
 
 (* ------------------------------------------------------------------------- *)
 (* Peeking.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : stack -> ObjectProv.object
+val peek : stack -> Object.object
 
 (* ------------------------------------------------------------------------- *)
 (* Pushing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val push : stack -> ObjectProv.object -> stack
+val push : stack -> Object.object -> stack
 
-val push2 : stack -> ObjectProv.object -> ObjectProv.object -> stack
+val push2 : stack -> Object.object -> Object.object -> stack
 
 val push5 :
-    stack -> ObjectProv.object -> ObjectProv.object -> ObjectProv.object ->
-    ObjectProv.object -> ObjectProv.object -> stack
+    stack -> Object.object -> Object.object -> Object.object ->
+    Object.object -> Object.object -> stack
 
 (* ------------------------------------------------------------------------- *)
 (* Popping.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val pop : stack -> stack * ObjectProv.object
+val pop : stack -> stack * Object.object
 
-val pop2 : stack -> stack * ObjectProv.object * ObjectProv.object
+val pop2 : stack -> stack * Object.object * Object.object
 
 val pop3 :
-    stack -> stack * ObjectProv.object * ObjectProv.object * ObjectProv.object
+    stack -> stack * Object.object * Object.object * Object.object
 
 val pop5 :
     stack ->
-    stack * ObjectProv.object * ObjectProv.object * ObjectProv.object *
-    ObjectProv.object * ObjectProv.object
+    stack * Object.object * Object.object * Object.object *
+    Object.object * Object.object
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

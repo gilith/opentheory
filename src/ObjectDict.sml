@@ -14,7 +14,7 @@ open Useful;
 
 type key = int;
 
-datatype dict = Dict of ObjectProv.object IntMap.map;
+datatype dict = Dict of Object.object IntMap.map;
 
 val empty = Dict (IntMap.new ());
 

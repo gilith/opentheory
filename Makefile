@@ -113,7 +113,7 @@ SRC = \
   src/Command.sig src/Command.sml \
   src/Inference.sig src/Inference.sml \
   src/ObjectData.sig src/ObjectData.sml \
-  src/ObjectProv.sig src/ObjectProv.sml \
+  src/Object.sig src/Object.sml \
   src/ObjectRewrite.sig src/ObjectRewrite.sml \
   src/ObjectUnwanted.sig src/ObjectUnwanted.sml \
   src/ObjectThm.sig src/ObjectThm.sml \

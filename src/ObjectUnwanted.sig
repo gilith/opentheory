@@ -29,8 +29,8 @@ val new : {savable : bool} -> eliminate
 (* Objects *)
 
 val sharingEliminate :
-    ObjectProv.object -> eliminate -> ObjectProv.object option * eliminate
+    Object.object -> eliminate -> Object.object option * eliminate
 
-val eliminate : eliminate -> ObjectProv.object -> ObjectProv.object option
+val eliminate : eliminate -> Object.object -> Object.object option
 
 end

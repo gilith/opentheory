@@ -3,7 +3,7 @@
 (* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-structure ObjectProv :> ObjectProv =
+structure Object :> Object =
 struct
 
 open Useful;
@@ -50,7 +50,7 @@ val newId : unit -> id =
 (*OpenTheoryTrace2
            val () =
                if count mod 1000 <> 0 then ()
-               else Print.trace Print.ppInt "ObjectProv.newId.counter" count
+               else Print.trace Print.ppInt "Object.newId.counter" count
 *)
          in
            count
@@ -258,7 +258,7 @@ fun mkAbsTerm {savable} objV objB =
       else mkSimple d Command.AbsTerm args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkAbsTerm:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkAbsTerm:\n" ^ err);
 *)
 
 fun mkAbsThm {savable} objV objT =
@@ -272,14 +272,14 @@ fun mkAbsThm {savable} objV objT =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkAbsThm" d
+      val () = Print.trace ObjectData.pp "Object.mkAbsThm" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.AbsThm [objV,objT]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkAbsThm:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkAbsThm:\n" ^ err);
 *)
 
 fun mkAppTerm {savable} objF objA =
@@ -298,7 +298,7 @@ fun mkAppTerm {savable} objF objA =
       else mkSimple d Command.AppTerm args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkAppTerm:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkAppTerm:\n" ^ err);
 *)
 
 fun mkAppThm {savable} objF objA =
@@ -312,14 +312,14 @@ fun mkAppThm {savable} objF objA =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkAppThm" d
+      val () = Print.trace ObjectData.pp "Object.mkAppThm" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.AppThm [objF,objA]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkAppThm:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkAppThm:\n" ^ err);
 *)
 
 fun mkAssume {savable} objT =
@@ -332,14 +332,14 @@ fun mkAssume {savable} objT =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkAssume" d
+      val () = Print.trace ObjectData.pp "Object.mkAssume" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.Assume [objT]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkAssume:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkAssume:\n" ^ err);
 *)
 
 fun mkAxiom {savable} objH objC seq =
@@ -347,7 +347,7 @@ fun mkAxiom {savable} objH objC seq =
       val d = ObjectData.Thm (Thm.axiom seq)
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkAxiom" d
+      val () = Print.trace ObjectData.pp "Object.mkAxiom" d
 *)
 
       val args = [objH,objC]
@@ -356,7 +356,7 @@ fun mkAxiom {savable} objH objC seq =
       else mkSimple d Command.Axiom args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkAxiom:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkAxiom:\n" ^ err);
 *)
 
 fun mkBetaConv {savable} objT =
@@ -369,14 +369,14 @@ fun mkBetaConv {savable} objT =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkBetaConv" d
+      val () = Print.trace ObjectData.pp "Object.mkBetaConv" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.BetaConv [objT]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkBetaConv:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkBetaConv:\n" ^ err);
 *)
 
 fun mkCons {savable} objH objT =
@@ -395,7 +395,7 @@ fun mkCons {savable} objH objT =
       else mkSimple d Command.Cons args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkCons:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkCons:\n" ^ err);
 *)
 
 fun mkConst n = mkDefault (ObjectData.Const (Const.mkUndef n));
@@ -416,7 +416,7 @@ fun mkConstTerm {savable} objC objT =
       else mkSimple d Command.ConstTerm args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkConstTerm:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkConstTerm:\n" ^ err);
 *)
 
 fun mkDeductAntisym {savable} objA objB =
@@ -430,14 +430,14 @@ fun mkDeductAntisym {savable} objA objB =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkDeductAntisym" d
+      val () = Print.trace ObjectData.pp "Object.mkDeductAntisym" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.DeductAntisym [objA,objB]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkDeductAntisym:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkDeductAntisym:\n" ^ err);
 *)
 
 fun mkDefineConst {savable} n objT =
@@ -452,7 +452,7 @@ fun mkDefineConst {savable} n objT =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkDefineConst.def" d1
+      val () = Print.trace ObjectData.pp "Object.mkDefineConst.def" d1
 *)
     in
       if not savable then (mkDefault d0, mkDefault d1)
@@ -474,7 +474,7 @@ fun mkDefineConst {savable} n objT =
         end
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkDefineConst:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkDefineConst:\n" ^ err);
 *)
 
 fun mkDefineTypeOp {savable} n a r objV objT =
@@ -495,9 +495,9 @@ fun mkDefineTypeOp {savable} n a r objV objT =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkDefineTypeOp.absRep" d3
+      val () = Print.trace ObjectData.pp "Object.mkDefineTypeOp.absRep" d3
 
-      val () = Print.trace ObjectData.pp "ObjectProv.mkDefineTypeOp.repAbs" d4
+      val () = Print.trace ObjectData.pp "Object.mkDefineTypeOp.repAbs" d4
 *)
     in
       if not savable then
@@ -534,7 +534,7 @@ fun mkDefineTypeOp {savable} n a r objV objT =
         end
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkDefineTypeOp:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkDefineTypeOp:\n" ^ err);
 *)
 
 fun mkEqMp {savable} objA objB =
@@ -548,14 +548,14 @@ fun mkEqMp {savable} objA objB =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkEqMp" d
+      val () = Print.trace ObjectData.pp "Object.mkEqMp" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.EqMp [objA,objB]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkEqMp:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkEqMp:\n" ^ err);
 *)
 
 val mkNil = mkDefault (ObjectData.mkNil);
@@ -576,7 +576,7 @@ fun mkOpType {savable} objO objL =
       else mkSimple d Command.OpType args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkOpType:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkOpType:\n" ^ err);
 *)
 
 fun mkRefl {savable} objT =
@@ -589,14 +589,14 @@ fun mkRefl {savable} objT =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkRefl" d
+      val () = Print.trace ObjectData.pp "Object.mkRefl" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.Refl [objT]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkRefl:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkRefl:\n" ^ err);
 *)
 
 fun mkSubst {savable} objS objT =
@@ -610,14 +610,14 @@ fun mkSubst {savable} objS objT =
           end
 
 (*OpenTheoryTrace2
-      val () = Print.trace ObjectData.pp "ObjectProv.mkSubst" d
+      val () = Print.trace ObjectData.pp "Object.mkSubst" d
 *)
     in
       if not savable then mkDefault d
       else mkSimple d Command.Subst [objS,objT]
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkSubst:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkSubst:\n" ^ err);
 *)
 
 fun mkTypeOp n = mkDefault (ObjectData.TypeOp (TypeOp.mkUndef n));
@@ -642,7 +642,7 @@ fun mkVar {savable} objN objT =
       else mkSimple d Command.Var args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkVar:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkVar:\n" ^ err);
 *)
 
 fun mkVarTerm {savable} objV =
@@ -660,7 +660,7 @@ fun mkVarTerm {savable} objV =
       else mkSimple d Command.VarTerm args
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkVarTerm:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkVarTerm:\n" ^ err);
 *)
 
 fun mkVarType objN =
@@ -679,7 +679,7 @@ fun mkVarType objN =
       mkDefault d
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkVarType:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkVarType:\n" ^ err);
 *)
 
 (* General commands *)
@@ -731,9 +731,9 @@ fun mkCommand sav cmd args =
      | (Command.Var,[objN,objT]) => [mkVar sav objN objT]
      | (Command.VarTerm,[objV]) => [mkVarTerm sav objV]
      | (Command.VarType,[objN]) => [mkVarType objN]
-     | _ => raise Bug "ObjectProv.mkCommand")
+     | _ => raise Bug "Object.mkCommand")
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in ObjectProv.mkCommand:\n" ^ err);
+    handle Error err => raise Error ("in Object.mkCommand:\n" ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -853,16 +853,16 @@ fun ppProvenance prov =
 
 end
 
-structure ObjectProvOrdered =
-struct type t = ObjectProv.object val compare = ObjectProv.compare end
+structure ObjectOrdered =
+struct type t = Object.object val compare = Object.compare end
 
-structure ObjectProvMap = KeyMap (ObjectProvOrdered)
+structure ObjectMap = KeyMap (ObjectOrdered)
 
-structure ObjectProvSet =
+structure ObjectSet =
 struct
 
 local
-  structure S = ElementSet (ObjectProvMap);
+  structure S = ElementSet (ObjectMap);
 in
   open S;
 end;
@@ -873,7 +873,7 @@ local
         [] => set
       | obj :: objs =>
         if member obj set then ancs set objs
-        else ancs (add set obj) (ObjectProv.parents obj @ objs);
+        else ancs (add set obj) (Object.parents obj @ objs);
 
   fun addAncestors (obj,set) = ancs set [obj];
 in

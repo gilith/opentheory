@@ -78,24 +78,24 @@ local
   fun registerSpecial (obj,refs) =
       let
 (*OpenTheoryTrace5
-        val () = Print.trace ObjectProv.pp
+        val () = Print.trace Object.pp
                    "ObjectWrite.registerSpecial: obj" obj
 *)
-        val ob = ObjectProv.data obj
+        val ob = Object.data obj
       in
         if not (storableObject ob) then refs
         else if ObjectDataMap.inDomain ob refs then registerReference (ob,refs)
         else
-          case ObjectProv.provenance obj of
-            ObjectProv.Default => registerDefault' (ob,refs)
-          | ObjectProv.Special
+          case Object.provenance obj of
+            Object.Default => registerDefault' (ob,refs)
+          | Object.Special
               {arguments = args,
                generated = gen,
                result = res,
                ...} =>
             let
 (*OpenTheoryTrace5
-              val () = Print.trace (Print.ppList ObjectProv.pp)
+              val () = Print.trace (Print.ppList Object.pp)
                         "ObjectWrite.registerSpecial: args" args
 *)
               val refs = List.foldl registerSpecial refs args
@@ -146,7 +146,7 @@ end;
 
 datatype task =
     ExpTask of ObjectThm.thm
-  | ObjTask of ObjectProv.object
+  | ObjTask of Object.object
   | ObTask of ObjectData.data
   | GenTask of ObjectData.data list * int
   | CmdTask of Command.command;
@@ -269,13 +269,13 @@ local
         end
       | ObjTask obj =>
         let
-          val ob = ObjectProv.data obj
+          val ob = Object.data obj
         in
           case useKey dict ob of
             SOME (cmds,dict) => (cmds,dict,work)
           | NONE =>
-            case ObjectProv.provenance obj of
-              ObjectProv.Default =>
+            case Object.provenance obj of
+              Object.Default =>
               let
                 val (cmd,args) = ObjectData.command ob
                 and gen = [ob]
@@ -289,7 +289,7 @@ local
               in
                 ([],dict,work)
               end
-            | ObjectProv.Special
+            | Object.Special
                 {command = cmd,
                  arguments = args,
                  definitions = _,

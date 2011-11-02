@@ -15,7 +15,7 @@ open Useful;
 datatype stack =
     Stack of
       {size : int,
-       objects : ObjectProv.object list};
+       objects : Object.object list};
 
 val empty =
     let
@@ -177,6 +177,6 @@ fun pop5 stack =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Print.ppMap objects (Print.ppList ObjectProv.pp);
+val pp = Print.ppMap objects (Print.ppList Object.pp);
 
 end

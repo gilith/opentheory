@@ -12,9 +12,9 @@ sig
 
 datatype thm =
     Thm of
-      {proof : ObjectProv.object,
-       hyp : ObjectProv.object,
-       concl : ObjectProv.object}
+      {proof : Object.object,
+       hyp : Object.object,
+       concl : Object.object}
 
 (* ------------------------------------------------------------------------- *)
 (* Converting to a real theorem.                                             *)
@@ -27,7 +27,7 @@ val thm : thm -> Thm.thm
 (* ------------------------------------------------------------------------- *)
 
 val maps :
-    (ObjectProv.object -> 's -> ObjectProv.object option * 's) ->
+    (Object.object -> 's -> Object.object option * 's) ->
     thm -> 's -> thm option * 's
 
 (* ------------------------------------------------------------------------- *)

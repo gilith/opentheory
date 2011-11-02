@@ -13,7 +13,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
-     {apply : ObjectProv.object' -> ObjectProv.object option,
+     {apply : Object.object' -> Object.object option,
       savable : bool};
 
 (* ------------------------------------------------------------------------- *)
@@ -23,7 +23,7 @@ type parameters =
 datatype rewrite =
     Rewrite of
       {parameters : parameters,
-       seen : ObjectProv.object option IntMap.map};
+       seen : Object.object option IntMap.map};
 
 fun new parameters =
     let
@@ -51,7 +51,7 @@ local
       let
         fun preDescent obj seen =
             let
-              val i = ObjectProv.id obj
+              val i = Object.id obj
             in
               case IntMap.peek seen i of
                 NONE => {descend = true, result = (NONE,seen)}
@@ -60,7 +60,7 @@ local
 
         fun postDescent obj0 obj1' seen =
             let
-              val i = ObjectProv.id obj0
+              val i = Object.id obj0
 
               val (unchanged,obj1) =
                   case obj1' of
@@ -68,7 +68,7 @@ local
                   | SOME obj => (false,obj)
 
               val (unchanged,obj2) =
-                  case apply (ObjectProv.dest obj1) of
+                  case apply (Object.dest obj1) of
                     NONE => (unchanged,obj1)
                   | SOME obj => (false,obj)
 
@@ -79,7 +79,7 @@ local
               (obj2',seen)
             end
       in
-        ObjectProv.maps
+        Object.maps
           {preDescent = preDescent,
            postDescent = postDescent,
            savable = savable}

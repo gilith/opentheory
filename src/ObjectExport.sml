@@ -138,18 +138,18 @@ fun eliminateUnwanted exp =
 (* Compression.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-type refs = ObjectProv.object ObjectDataMap.map;
+type refs = Object.object ObjectDataMap.map;
 
 val emptyRefs : refs = ObjectDataMap.new ();
 
 fun improveRefs refs obj : refs =
     let
-      val ob = ObjectProv.data obj
+      val ob = Object.data obj
 
       val imp =
           case ObjectDataMap.peek refs ob of
             NONE => true
-          | SOME obj' => ObjectProv.id obj < ObjectProv.id obj'
+          | SOME obj' => Object.id obj < Object.id obj'
     in
       if imp then ObjectDataMap.insert refs (ob,obj) else refs
     end;
@@ -163,7 +163,7 @@ local
       let
         val (seen,refs) = acc
 
-        val i = ObjectProv.id obj
+        val i = Object.id obj
       in
         if IntSet.member i seen then {descend = false, result = acc}
         else {descend = true, result = (IntSet.add seen i, refs)}
@@ -179,7 +179,7 @@ local
       end;
 
   val addObj =
-      ObjectProv.foldl
+      Object.foldl
         {preDescent = preDescent,
          postDescent = postDescent};
 
@@ -205,26 +205,26 @@ in
 end;
 
 local
-  type state = ObjectProv.object IntMap.map;
+  type state = Object.object IntMap.map;
 
   val initial : state = IntMap.new ();
 
   fun preDescent refs objI (acc : state) =
       let
-        val i = ObjectProv.id objI
+        val i = Object.id objI
 
         val objI' = IntMap.peek acc i
       in
         case objI' of
           SOME objR =>
           let
-            val objR' = if ObjectProv.equalId i objR then NONE else objI'
+            val objR' = if Object.equalId i objR then NONE else objI'
           in
             {descend = false, result = (objR',acc)}
           end
         | NONE =>
           let
-            val obI = ObjectProv.data objI
+            val obI = Object.data objI
 
             val objJ' = ObjectDataMap.peek refs obI
 
@@ -233,7 +233,7 @@ local
                   NONE => raise Bug "ObjectExport.compressRefs.preDescent"
                 | SOME obj => obj
 
-            val j = ObjectProv.id objJ
+            val j = Object.id objJ
           in
             if j = i then {descend = true, result = (NONE,acc)}
             else
@@ -259,7 +259,7 @@ local
 
   fun postDescent objI objR' (acc : state) =
       let
-        val i = ObjectProv.id objI
+        val i = Object.id objI
       in
         case objR' of
           NONE =>
@@ -273,7 +273,7 @@ local
             val acc =
                 case IntMap.peek acc i of
                   NONE => acc
-                | SOME objJ => IntMap.insert acc (ObjectProv.id objJ, objR)
+                | SOME objJ => IntMap.insert acc (Object.id objJ, objR)
 
             val acc = IntMap.insert acc (i,objR)
           in
@@ -282,7 +282,7 @@ local
       end;
 
   fun compressObj refs =
-      ObjectProv.maps
+      Object.maps
         {preDescent = preDescent refs,
          postDescent = postDescent,
          savable = true};

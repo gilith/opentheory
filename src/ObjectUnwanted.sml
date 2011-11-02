@@ -25,23 +25,23 @@ val unwantedIdConst = Const.mkUndef idName;
 local
   val sav = {savable = true};
 
-  val xNameObj = ObjectProv.mkName (Name.mkGlobal "x");
+  val xNameObj = Object.mkName (Name.mkGlobal "x");
 
-  val alphaNameObj = ObjectProv.mkName (Name.mkGlobal "A");
+  val alphaNameObj = Object.mkName (Name.mkGlobal "A");
 
-  val alphaTypeObj = ObjectProv.mkVarType alphaNameObj;
+  val alphaTypeObj = Object.mkVarType alphaNameObj;
 
-  val xVarObj = ObjectProv.mkVar sav xNameObj alphaTypeObj;
+  val xVarObj = Object.mkVar sav xNameObj alphaTypeObj;
 
-  val xTermObj = ObjectProv.mkVarTerm sav xVarObj;
+  val xTermObj = Object.mkVarTerm sav xVarObj;
 in
-  val idTermObject = ObjectProv.mkAbsTerm sav xVarObj xTermObj;
+  val idTermObject = Object.mkAbsTerm sav xVarObj xTermObj;
 end;
 
 val (idConstObject,idDefObject) =
-    ObjectProv.mkDefineConst {savable = true} idName idTermObject;
+    Object.mkDefineConst {savable = true} idName idTermObject;
 
-val idConst = ObjectProv.destConst idConstObject;
+val idConst = Object.destConst idConstObject;
 
 val isIdConst = Term.equalConst idConst;
 
@@ -87,7 +87,7 @@ fun isIdxData data elim =
       (result,elim)
     end;
 
-fun isIdxObject obj elim = isIdxData (ObjectProv.data obj) elim;
+fun isIdxObject obj elim = isIdxData (Object.data obj) elim;
 
 fun eliminateIdx obj elim =
     let
@@ -131,59 +131,59 @@ fun destUnwantedIdTermObject ob =
 fun destUnwantedIdReflObject ob =
     destUnwantedIdRefl (ObjectData.destThm ob);
 
-fun destUnwantedIdTermObjectProv obj =
-    destUnwantedIdTermObject (ObjectProv.object obj);
+fun destUnwantedIdTermObject obj =
+    destUnwantedIdTermObject (Object.object obj);
 
-fun destUnwantedIdReflObjectProv obj =
-    destUnwantedIdReflObject (ObjectProv.object obj);
+fun destUnwantedIdReflObject obj =
+    destUnwantedIdReflObject (Object.object obj);
 
 fun unwantedId obj =
     let
-      val ObjectProv.Object' {object = ob, provenance = prov} =
-          ObjectProv.dest obj
+      val Object.Object' {object = ob, provenance = prov} =
+          Object.dest obj
 
 (*OpenTheoryTrace4
       val () = Print.trace ObjectData.pp "ObjectRewrite.unwantedId.ob" ob
 
-      val () = Print.trace ObjectProv.ppProvenance
+      val () = Print.trace Object.ppProvenance
                  "ObjectRewrite.unwantedId.prov" prov
 *)
     in
       case prov of
-        ObjectProv.Default =>
+        Object.Default =>
         let
           val (f,a) = ObjectData.destAppTerm ob
 
           val _ = destUnwantedIdTerm f
 
           val obj' =
-              ObjectProv.Object'
+              Object.Object'
                 {object = ObjectData.Term a,
-                 provenance = ObjectProv.Default}
+                 provenance = Object.Default}
         in
-          ObjectProv.mk obj'
+          Object.mk obj'
         end
-      | ObjectProv.Special
+      | Object.Special
           {command = Command.AppTerm,
            arguments = [objF,objA],
            generated = [_],
            result = 0} =>
         let
-          val _ = destUnwantedIdTermObjectProv objF
+          val _ = destUnwantedIdTermObject objF
         in
           objA
         end
-      | ObjectProv.Special
+      | Object.Special
           {command = Command.AppThm,
            arguments = [objF,objA],
            generated = [_],
            result = 0} =>
         let
-          val _ = destUnwantedIdReflObjectProv objF
+          val _ = destUnwantedIdReflObject objF
         in
           objA
         end
-      | ObjectProv.Special _ => raise Error "ObjectRewrite.unwantedId"
+      | Object.Special _ => raise Error "ObjectRewrite.unwantedId"
     end;
 ***)
 
@@ -193,8 +193,8 @@ fun unwantedId obj =
 
 datatype eliminate =
     Eliminate of
-      {defaultMap : (bool * ObjectProv.object) ObjectDataMap.map,
-       specialMap : ObjectProv.object option IntMap.map,
+      {defaultMap : (bool * Object.object) ObjectDataMap.map,
+       specialMap : Object.object option IntMap.map,
        elimIdx : eliminateIdx,
        savable : bool};
 
@@ -238,7 +238,7 @@ local
                 let
                   val bug =
                       "ObjectUnwanted.eliminateTopIdx:\n" ^
-                      Print.toString ObjectProv.pp result
+                      Print.toString Object.pp result
                 in
                   raise Bug bug
                 end
@@ -304,7 +304,7 @@ local
 
             val obj =
                 let
-                  val xs = ObjectProv.mkCommand {savable = savable} cmd objs
+                  val xs = Object.mkCommand {savable = savable} cmd objs
 
 (*OpenTheoryDebug
                   val () =
@@ -352,7 +352,7 @@ local
             let
               val ppElim =
                   Print.ppOp2 " ->" ObjectData.pp
-                    (Print.ppOption ObjectProv.pp)
+                    (Print.ppOption Object.pp)
             in
               Print.trace ppElim "ObjectUnwanted.eliminateOb"
                 (ob,obj')
@@ -363,14 +363,14 @@ local
       end;
 
   fun eliminateObj obj elim =
-      if not (ObjectProv.isDefault obj) then eliminateTop obj elim
-      else eliminateOb (ObjectProv.data obj) elim;
+      if not (Object.isDefault obj) then eliminateTop obj elim
+      else eliminateOb (Object.data obj) elim;
 
   fun preDescent obj elim =
       let
         val Eliminate {specialMap,...} = elim
 
-        val i = ObjectProv.id obj
+        val i = Object.id obj
       in
         case IntMap.peek specialMap i of
           NONE => {descend = true, result = (NONE,elim)}
@@ -379,7 +379,7 @@ local
 
   fun postDescent obj0 obj1' elim =
       let
-        val i = ObjectProv.id obj0
+        val i = Object.id obj0
 
         val unchanged = true
 
@@ -419,7 +419,7 @@ in
       let
         val Eliminate {savable,...} = elim
       in
-        ObjectProv.maps
+        Object.maps
           {preDescent = preDescent,
            postDescent = postDescent,
            savable = savable} obj elim

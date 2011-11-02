@@ -85,7 +85,7 @@ fun execute cmd state =
 
         Command.Num i =>
         let
-          val obj = ObjectProv.mkNum i
+          val obj = Object.mkNum i
 
           val stack = ObjectStack.push stack obj
         in
@@ -102,7 +102,7 @@ fun execute cmd state =
 
       | Command.Name n =>
         let
-          val obj = ObjectProv.mkName n
+          val obj = Object.mkName n
 
           val stack = ObjectStack.push stack obj
         in
@@ -123,7 +123,7 @@ fun execute cmd state =
         let
           val (stack,objV,objB) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkAbsTerm {savable = savable} objV objB
+          val obj = Object.mkAbsTerm {savable = savable} objV objB
 
           val stack = ObjectStack.push stack obj
         in
@@ -142,7 +142,7 @@ fun execute cmd state =
         let
           val (stack,objV,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkAbsThm {savable = savable} objV objT
+          val obj = Object.mkAbsThm {savable = savable} objV objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -161,10 +161,10 @@ fun execute cmd state =
         let
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkAppTerm {savable = savable} objF objA
+          val obj = Object.mkAppTerm {savable = savable} objF objA
 
 (*OpenTheoryTrace2
-          val () = Print.trace ObjectProv.pp "ObjectRead.execute appTerm" obj
+          val () = Print.trace Object.pp "ObjectRead.execute appTerm" obj
 *)
 
           val stack = ObjectStack.push stack obj
@@ -184,10 +184,10 @@ fun execute cmd state =
         let
           val (stack,objF,objA) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkAppThm {savable = savable} objF objA
+          val obj = Object.mkAppThm {savable = savable} objF objA
 
 (*OpenTheoryTrace2
-          val () = Print.trace ObjectProv.pp "ObjectRead.execute appThm" obj
+          val () = Print.trace Object.pp "ObjectRead.execute appThm" obj
 *)
 
           val stack = ObjectStack.push stack obj
@@ -207,7 +207,7 @@ fun execute cmd state =
         let
           val (stack,objT) = ObjectStack.pop stack
 
-          val obj = ObjectProv.mkAssume {savable = savable} objT
+          val obj = Object.mkAssume {savable = savable} objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -226,12 +226,12 @@ fun execute cmd state =
         let
           val (stack,objH,objC) = ObjectStack.pop2 stack
 
-          val seq = ObjectProv.destSequent (objH,objC)
+          val seq = Object.destSequent (objH,objC)
 
           val obj =
               case ObjectThms.peekThm import seq of
                 SOME x => x
-              | NONE => ObjectProv.mkAxiom {savable = savable} objH objC seq
+              | NONE => Object.mkAxiom {savable = savable} objH objC seq
 
           val stack = ObjectStack.push stack obj
         in
@@ -250,7 +250,7 @@ fun execute cmd state =
         let
           val (stack,objT) = ObjectStack.pop stack
 
-          val obj = ObjectProv.mkBetaConv {savable = savable} objT
+          val obj = Object.mkBetaConv {savable = savable} objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -269,7 +269,7 @@ fun execute cmd state =
         let
           val (stack,objH,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkCons {savable = savable} objH objT
+          val obj = Object.mkCons {savable = savable} objH objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -288,14 +288,14 @@ fun execute cmd state =
         let
           val (stack,objN) = ObjectStack.pop stack
 
-          val n = ObjectProv.destName objN
+          val n = Object.destName objN
 
           val n = Interpretation.interpretConst interpretation n
 
           val obj =
               case ObjectThms.peekConst import n of
                 SOME x => x
-              | NONE => ObjectProv.mkConst n
+              | NONE => Object.mkConst n
 
           val stack = ObjectStack.push stack obj
         in
@@ -314,7 +314,7 @@ fun execute cmd state =
         let
           val (stack,objC,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkConstTerm {savable = savable} objC objT
+          val obj = Object.mkConstTerm {savable = savable} objC objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -333,7 +333,7 @@ fun execute cmd state =
         let
           val (stack,objA,objB) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkDeductAntisym {savable = savable} objA objB
+          val obj = Object.mkDeductAntisym {savable = savable} objA objB
 
           val stack = ObjectStack.push stack obj
         in
@@ -354,7 +354,7 @@ fun execute cmd state =
 
           val objD = ObjectStack.peek stack
 
-          val i = ObjectProv.destNum objI
+          val i = Object.destNum objI
 
           val dict = ObjectDict.define dict (i,objD)
         in
@@ -373,12 +373,12 @@ fun execute cmd state =
         let
           val (stack,objN,objT) = ObjectStack.pop2 stack
 
-          val n = ObjectProv.destName objN
+          val n = Object.destName objN
 
           val n = Interpretation.interpretConst interpretation n
 
           val (obj0,obj1) =
-              ObjectProv.mkDefineConst {savable = savable} n objT
+              Object.mkDefineConst {savable = savable} n objT
 
           val stack = ObjectStack.push2 stack obj0 obj1
 
@@ -399,20 +399,20 @@ fun execute cmd state =
         let
           val (stack,objN,objA,objR,objV,objT) = ObjectStack.pop5 stack
 
-          val n = ObjectProv.destName objN
+          val n = Object.destName objN
 
           val n = Interpretation.interpretTypeOp interpretation n
 
-          val a = ObjectProv.destName objA
+          val a = Object.destName objA
 
           val a = Interpretation.interpretConst interpretation a
 
-          val r = ObjectProv.destName objR
+          val r = Object.destName objR
 
           val r = Interpretation.interpretConst interpretation r
 
           val (obj0,obj1,obj2,obj3,obj4) =
-              ObjectProv.mkDefineTypeOp {savable = savable} n a r objV objT
+              Object.mkDefineTypeOp {savable = savable} n a r objV objT
 
           val stack = ObjectStack.push5 stack obj0 obj1 obj2 obj3 obj4
 
@@ -437,7 +437,7 @@ fun execute cmd state =
         let
           val (stack,objA,objB) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkEqMp {savable = savable} objA objB
+          val obj = Object.mkEqMp {savable = savable} objA objB
 
           val stack = ObjectStack.push stack obj
         in
@@ -454,7 +454,7 @@ fun execute cmd state =
 
       | Command.Nil =>
         let
-          val obj = ObjectProv.mkNil
+          val obj = Object.mkNil
 
           val stack = ObjectStack.push stack obj
         in
@@ -473,7 +473,7 @@ fun execute cmd state =
         let
           val (stack,objT,objL) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkOpType {savable = savable} objT objL
+          val obj = Object.mkOpType {savable = savable} objT objL
 
           val stack = ObjectStack.push stack obj
         in
@@ -507,7 +507,7 @@ fun execute cmd state =
         let
           val (stack,objI) = ObjectStack.pop stack
 
-          val i = ObjectProv.destNum objI
+          val i = Object.destNum objI
 
           val obj = ObjectDict.refer dict i
 
@@ -528,7 +528,7 @@ fun execute cmd state =
         let
           val (stack,objI) = ObjectStack.pop stack
 
-          val i = ObjectProv.destNum objI
+          val i = Object.destNum objI
 
           val (dict,obj) = ObjectDict.remove dict i
 
@@ -549,7 +549,7 @@ fun execute cmd state =
         let
           val (stack,objT) = ObjectStack.pop stack
 
-          val obj = ObjectProv.mkRefl {savable = savable} objT
+          val obj = Object.mkRefl {savable = savable} objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -568,10 +568,10 @@ fun execute cmd state =
         let
           val (stack,objS,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkSubst {savable = savable} objS objT
+          val obj = Object.mkSubst {savable = savable} objS objT
 
 (*OpenTheoryTrace4
-          val () = Print.trace ObjectProv.pp "subst objS" objS
+          val () = Print.trace Object.pp "subst objS" objS
 *)
 
           val stack = ObjectStack.push stack obj
@@ -610,14 +610,14 @@ fun execute cmd state =
         let
           val (stack,objN) = ObjectStack.pop stack
 
-          val n = ObjectProv.destName objN
+          val n = Object.destName objN
 
           val n = Interpretation.interpretTypeOp interpretation n
 
           val obj =
               case ObjectThms.peekTypeOp import n of
                 SOME x => x
-              | NONE => ObjectProv.mkTypeOp n
+              | NONE => Object.mkTypeOp n
 
           val stack = ObjectStack.push stack obj
         in
@@ -636,7 +636,7 @@ fun execute cmd state =
         let
           val (stack,objN,objT) = ObjectStack.pop2 stack
 
-          val obj = ObjectProv.mkVar {savable = savable} objN objT
+          val obj = Object.mkVar {savable = savable} objN objT
 
           val stack = ObjectStack.push stack obj
         in
@@ -655,7 +655,7 @@ fun execute cmd state =
         let
           val (stack,objV) = ObjectStack.pop stack
 
-          val obj = ObjectProv.mkVarTerm {savable = savable} objV
+          val obj = Object.mkVarTerm {savable = savable} objV
 
           val stack = ObjectStack.push stack obj
         in
@@ -674,7 +674,7 @@ fun execute cmd state =
         let
           val (stack,objN) = ObjectStack.pop stack
 
-          val obj = ObjectProv.mkVarType objN
+          val obj = Object.mkVarType objN
 
           val stack = ObjectStack.push stack obj
         in

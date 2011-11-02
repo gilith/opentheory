@@ -24,15 +24,15 @@ val thms : thms -> Thms.thms
 (* Looking up symbols and theorems.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val peekThm : thms -> Sequent.sequent -> ObjectProv.object option
+val peekThm : thms -> Sequent.sequent -> Object.object option
 
-val peekTypeOp : thms -> Name.name -> ObjectProv.object option
+val peekTypeOp : thms -> Name.name -> Object.object option
 
-val peekConst : thms -> Name.name -> ObjectProv.object option
+val peekConst : thms -> Name.name -> Object.object option
 
-val peekSpecificTypeOp : thms -> TypeOp.typeOp -> ObjectProv.object option
+val peekSpecificTypeOp : thms -> TypeOp.typeOp -> Object.object option
 
-val peekSpecificConst : thms -> Const.const -> ObjectProv.object option
+val peekSpecificConst : thms -> Const.const -> Object.object option
 
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)

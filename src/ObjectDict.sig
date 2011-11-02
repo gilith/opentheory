@@ -18,10 +18,10 @@ val empty : dict
 
 val size : dict -> int
 
-val define : dict -> key * ObjectProv.object -> dict
+val define : dict -> key * Object.object -> dict
 
-val refer : dict -> key -> ObjectProv.object
+val refer : dict -> key -> Object.object
 
-val remove : dict -> key -> dict * ObjectProv.object
+val remove : dict -> key -> dict * Object.object
 
 end

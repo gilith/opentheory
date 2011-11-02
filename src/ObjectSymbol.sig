@@ -22,17 +22,17 @@ val empty : symbol
 (* Looking up symbols.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val peekTypeOp : symbol -> TypeOp.typeOp -> ObjectProv.object option
+val peekTypeOp : symbol -> TypeOp.typeOp -> Object.object option
 
-val peekConst : symbol -> Const.const -> ObjectProv.object option
+val peekConst : symbol -> Const.const -> Object.object option
 
 (* ------------------------------------------------------------------------- *)
 (* Adding symbols.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val addTypeOp : symbol -> ObjectProv.object -> symbol
+val addTypeOp : symbol -> Object.object -> symbol
 
-val addConst : symbol -> ObjectProv.object -> symbol
+val addConst : symbol -> Object.object -> symbol
 
 (* ------------------------------------------------------------------------- *)
 (* Harvesting symbols from proofs.                                           *)
