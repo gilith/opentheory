@@ -89,12 +89,59 @@ fun isIdxData data elim =
 
 fun isIdxObject obj elim = isIdxData (Object.data obj) elim;
 
-fun eliminateIdx obj elim =
-    let
-      val obj' = NONE
-    in
-      (obj',elim)
-    end;
+local
+  fun cleanIdx obj =
+      (case Object.provenance obj of
+         Object.Default => NONE
+       | Object.Special {command,arguments,...} =>
+         case (command,arguments) of
+           (Command.AppTerm,[objF,objA]) =>
+           let
+(*OpenTheoryDebug
+             val () =
+                 if Term.equalConst idConst (Object.destTerm objF) then ()
+                 else raise Error "bad id function in appTerm"
+*)
+           in
+             SOME objA
+           end
+         | (Command.AppThm,[objF,objA]) =>
+           let
+             val tm = Thm.concl (Object.destThm objF)
+           in
+             if not (Term.isRefl tm) then NONE
+             else
+               let
+(*OpenTheoryDebug
+                 val () =
+                     if Term.equalConst idConst (Term.destRefl tm) then ()
+                     else raise Error "bad id function in appTerm"
+*)
+               in
+                 SOME objA
+               end
+           end
+         | _ => NONE)
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("in ObjectUnwanted.eliminateIdx.cleanIdx:\n" ^ err);
+*)
+in
+  fun eliminateIdx obj elim =
+      let
+        val (result,elim) = isIdxObject obj elim
+      in
+        if not result then (NONE,elim)
+        else
+          case cleanIdx obj of
+            SOME obj => (SOME obj, elim)
+          | NONE => (NONE,elim) (***complicatedEliminateIdx obj elim***)
+      end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("in ObjectUnwanted.eliminateIdx:\n" ^ err);
+*)
+end;
 
 (***
 (* ------------------------------------------------------------------------- *)

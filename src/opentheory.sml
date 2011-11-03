@@ -447,12 +447,20 @@ local
         Summary.provides sum
       end;
 in
-  fun mkUnsatisfiedAssumptions namever reqs =
+  fun mkUnsatisfiedAssumptions namevero reqs =
       if List.null reqs then
         let
+          val mesg = "package"
+
           val mesg =
-              "package " ^ PackageNameVersion.toString namever ^
-              " has no \"" ^ PackageName.toString PackageName.requiresTag ^
+              case namevero of
+                NONE => mesg
+              | SOME namever =>
+                mesg ^ " " ^ PackageNameVersion.toString namever
+
+          val mesg =
+              mesg ^ " has no \"" ^
+              PackageName.toString PackageName.requiresTag ^
               "\" information"
 
           val () = warn mesg
@@ -1281,29 +1289,29 @@ local
         end;
 
   local
-    val cache : PackageInfo.info option option ref = ref NONE;
+    val cacheInfo : PackageInfo.info option option ref = ref NONE;
 
-    fun compute () = NONE;
+    fun computeInfo () = NONE;
   in
-    fun setInfo info = cache := SOME (SOME info);
+    fun setInfo info = cacheInfo := SOME (SOME info);
 
-    val getInfo = getCached cache compute;
+    val getInfo = getCached cacheInfo computeInfo;
   end;
 
   local
-    val cache : PackageName.name list option option ref = ref NONE;
+    val cacheRequires : PackageName.name list option option ref = ref NONE;
 
-    fun compute () = NONE;
+    fun computeRequires () = NONE;
   in
-    fun setRequires reqs = cache := SOME (SOME reqs);
+    fun setRequires reqs = cacheRequires := SOME (SOME reqs);
 
-    val getRequires = getCached cache compute;
+    val getRequires = getCached cacheRequires computeRequires;
   end;
 
   local
-    val cache : Checksum.checksum option option ref = ref NONE;
+    val cacheChecksum : Checksum.checksum option option ref = ref NONE;
 
-    fun compute () =
+    fun computeChecksum () =
         case getInfo () of
           NONE => NONE
         | SOME info =>
@@ -1315,64 +1323,66 @@ local
             Directory.checksum dir namever
           end;
   in
-    val getChecksum = getCached cache compute;
+    val getChecksum = getCached cacheChecksum computeChecksum;
   end;
 
   local
-    val cache : Package.package option option ref = ref NONE;
+    val cachePackage : Package.package option option ref = ref NONE;
 
-    fun compute () =
+    fun computePackage () =
         case getInfo () of
           SOME info => SOME (PackageInfo.package info)
         | NONE => NONE;
   in
-    fun setPackage pkg = cache := SOME (SOME pkg);
+    fun setPackage pkg = cachePackage := SOME (SOME pkg);
 
-    val getPackage = getCached cache compute;
+    val getPackage = getCached cachePackage computePackage;
   end;
 
   local
-    val cache : PackageNameVersion.nameVersion option option ref = ref NONE;
+    val cacheNameVersion : PackageNameVersion.nameVersion option option ref =
+        ref NONE;
 
-    fun compute () =
+    fun computeNameVersion () =
         case getInfo () of
           SOME info => SOME (PackageInfo.nameVersion info)
         | NONE =>
           case getPackage () of
-            SOME pkg => SOME (Package.nameVersion pkg)
+            SOME pkg => total Package.nameVersion pkg
           | NONE => NONE;
   in
-    fun setNameVersion namever = cache := SOME (SOME namever);
+    fun setNameVersion namever = cacheNameVersion := SOME (SOME namever);
 
-    val getNameVersion = getCached cache compute;
+    val getNameVersion = getCached cacheNameVersion computeNameVersion;
   end;
 
   local
-    val cache : PackageTag.tag list option option ref = ref NONE;
+    val cacheTags : PackageTag.tag list option option ref = ref NONE;
 
-    fun compute () =
+    fun computeTags () =
         case getPackage () of
           SOME pkg => SOME (Package.tags pkg)
         | NONE => NONE;
   in
-    val getTags = getCached cache compute;
+    val getTags = getCached cacheTags computeTags;
   end;
 
   local
-    val cache : {directory : string} option option ref = ref NONE;
+    val cacheDirectory : {directory : string} option option ref = ref NONE;
 
-    fun compute () =
+    fun computeDirectory () =
         case getInfo () of
           SOME info => SOME (PackageInfo.directory info)
         | NONE => NONE;
   in
-    fun setDirectory dir = cache := SOME (SOME dir);
+    fun setDirectory dir = cacheDirectory := SOME (SOME dir);
 
-    val getDirectory = getCached cache compute;
+    val getDirectory = getCached cacheDirectory computeDirectory;
   end;
 
   local
-    val cache : PackageTheory.theory list option option ref = ref NONE;
+    val cacheTheories : PackageTheory.theory list option option ref =
+        ref NONE;
 
     fun upgradeTheories pkg =
         let
@@ -1406,7 +1416,7 @@ local
               SOME (PackageDag.theories thys)
             end;
 
-    fun compute () =
+    fun computeTheories () =
         case getInfo () of
           SOME info =>
           let
@@ -1427,15 +1437,15 @@ local
               unwindTheories theories
             end;
   in
-    fun setTheories thys = cache := SOME (SOME thys);
+    fun setTheories thys = cacheTheories := SOME (SOME thys);
 
-    val getTheories = getCached cache compute;
+    val getTheories = getCached cacheTheories computeTheories;
   end;
 
   local
-    val cache : {filename : string} list option option ref = ref NONE;
+    val cacheFiles : {filename : string} list option option ref = ref NONE;
 
-    fun compute () =
+    fun computeFiles () =
         case getInfo () of
           SOME info =>
           let
@@ -1447,25 +1457,26 @@ local
           end
         | NONE => NONE;
   in
-    fun setFiles files = cache := SOME (SOME files);
+    fun setFiles files = cacheFiles := SOME (SOME files);
 
-    val getFiles = getCached cache compute;
+    val getFiles = getCached cacheFiles computeFiles;
   end;
 
   local
-    val cache : bool option option ref = ref NONE;
+    val cacheSavable : bool option option ref = ref NONE;
 
-    fun compute () = NONE;
+    fun computeSavable () = NONE;
   in
-    fun setSavable sav = cache := SOME (SOME sav);
+    fun setSavable sav = cacheSavable := SOME (SOME sav);
 
-    val getSavable = getCached cache compute;
+    val getSavable = getCached cacheSavable computeSavable;
   end;
 
   local
-    val cache : (TheoryGraph.graph * Theory.theory) option option ref = ref NONE;
+    val cacheTheory : (TheoryGraph.graph * Theory.theory) option option ref =
+        ref NONE;
 
-    fun compute () =
+    fun computeTheory () =
         case getDirectory () of
           NONE => NONE
         | SOME {directory = dir} =>
@@ -1496,64 +1507,67 @@ local
                 SOME (graph,thy)
               end;
   in
-    val getTheory = getCached cache compute;
+    val getTheory = getCached cacheTheory computeTheory;
   end;
 
   local
-    val cache : Article.article option option ref = ref NONE;
+    val cacheArticle : Article.article option option ref = ref NONE;
 
-    fun compute () =
+    fun computeArticle () =
         case getTheory () of
           SOME (_,thy) => SOME (Theory.article thy)
         | NONE => NONE;
   in
-    fun setArticle art = cache := SOME (SOME art);
+    fun setArticle art = cacheArticle := SOME (SOME art);
 
-    val getArticle = getCached cache compute;
+    val getArticle = getCached cacheArticle computeArticle;
   end;
 
   local
-    val cache : Thms.thms option option ref = ref NONE;
+    val cacheThms : Thms.thms option option ref = ref NONE;
 
-    fun compute () =
+    fun computeThms () =
         case getArticle () of
           SOME art => SOME (Article.thms art)
         | NONE => NONE;
   in
-    val getThms = getCached cache compute;
+    val getThms = getCached cacheThms computeThms;
   end;
 
   local
-    val cache : Summary.summary option option ref = ref NONE;
+    val cacheSummary : Summary.summary option option ref = ref NONE;
 
-    fun compute () =
+    fun computeSummary () =
         case getThms () of
           SOME ths => SOME (Summary.fromThms ths)
         | NONE => NONE;
   in
-    val getSummary = getCached cache compute;
+    val getSummary = getCached cacheSummary computeSummary;
   end;
 
   local
-    val cache :
+    val cacheUnsatisfiedAssumptions :
         (Summary.summary -> Sequent.sequent -> bool) option option option ref =
         ref NONE;
 
-    fun compute () =
+    fun computeUnsatisfiedAssumptions () =
         case getRequires () of
           NONE => NONE
         | SOME reqs =>
-          case getNameVersion () of
-            NONE => NONE
-          | SOME namever => SOME (mkUnsatisfiedAssumptions namever reqs);
+          let
+            val namevero = getNameVersion ()
+          in
+            SOME (mkUnsatisfiedAssumptions namevero reqs)
+          end;
   in
-    val getUnsatisfiedAssumptions = getCached cache compute;
+    val getUnsatisfiedAssumptions =
+        getCached cacheUnsatisfiedAssumptions computeUnsatisfiedAssumptions;
   end;
 
   local
-    val cache : Inference.inference option option ref = ref NONE;
+    val cacheInference : Inference.inference option option ref = ref NONE;
 
-    fun compute () =
+    fun computeInference () =
         case getTheory () of
           SOME (graph,_) =>
           SOME (TheorySet.inference (TheoryGraph.theories graph))
@@ -1562,7 +1576,7 @@ local
             SOME art => SOME (Article.inference art)
           | NONE => NONE;
   in
-    val getInference = getCached cache compute;
+    val getInference = getCached cacheInference computeInference;
   end;
 
   fun processFormat (InfoFormat items) =
@@ -2563,7 +2577,8 @@ local
 
         val () = List.app installAutoFree pars
 
-        val unsat = mkUnsatisfiedAssumptions namever (Package.requires pkg)
+        val unsat =
+            mkUnsatisfiedAssumptions (SOME namever) (Package.requires pkg)
 
         val tool = {tool = versionHtml}
 

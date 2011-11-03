@@ -138,6 +138,8 @@ Compressing article "example4"
 
 Compressing article "example5"
 
+Compressing article "example6"
+
 Compressing article "bool-true-def"
 WARNING: 15 objects left in the dictionary by articles/hol-light/bool-true-def.art
 
@@ -175,13 +177,11 @@ Summarizing compressed article "example3"
 Summarizing compressed article "example4"
 2 input type operators: -> bool
 3 input constants: = a b
-1 assumption:
+2 assumptions:
   |- a
-1 defined constant: Unwanted.id
-1 axiom:
-  |- a <=> Unwanted.id b
+  |- a <=> b
 1 theorem:
-  |- Unwanted.id b
+  |- b
 
 Summarizing compressed article "example5"
 2 input type operators: -> bool
@@ -191,6 +191,14 @@ Summarizing compressed article "example5"
   |- a <=> b
 1 theorem:
   |- b
+
+Summarizing compressed article "example6"
+2 input type operators: -> bool
+3 input constants: = a b
+1 assumption:
+  |- a <=> b
+1 theorem:
+  |- a <=> b
 
 Summarizing compressed article "bool-true-def"
 2 input type operators: -> bool

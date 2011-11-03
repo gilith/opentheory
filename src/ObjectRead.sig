@@ -31,8 +31,6 @@ val dict : state -> ObjectDict.dict
 
 val export : state -> ObjectExport.export
 
-val definitions : state -> ObjectSymbol.symbol
-
 val inference : state -> Inference.inference
 
 (* ------------------------------------------------------------------------- *)

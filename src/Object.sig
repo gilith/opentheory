@@ -197,12 +197,6 @@ val mkCommand :
     {savable : bool} -> Command.command -> object list -> object list
 
 (* ------------------------------------------------------------------------- *)
-(* Constructing unsavable objects.                                           *)
-(* ------------------------------------------------------------------------- *)
-
-val mkUnsavable : ObjectData.data -> object
-
-(* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -240,5 +234,11 @@ val id : object -> id
 val equalId : id -> object -> bool
 
 val compare : object * object -> order
+
+(* ------------------------------------------------------------------------- *)
+(* Constructing unsavable objects.                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val mkUnsavable : ObjectData.data -> object
 
 end
