@@ -85,9 +85,6 @@ fun definitionsProvenance prov =
       Default => []
     | Special {definitions = x, ...} => x;
 
-fun parentsProvenance prov =
-    argumentsProvenance prov @ definitionsProvenance prov;
-
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
@@ -115,7 +112,9 @@ fun isDefault obj = isDefaultProvenance (provenance obj);
 
 fun allDefault objs = List.all isDefault objs;
 
-fun parents obj = parentsProvenance (provenance obj);
+fun arguments obj = argumentsProvenance (provenance obj);
+
+fun definitions obj = definitionsProvenance (provenance obj);
 
 (* List objects *)
 
@@ -736,6 +735,50 @@ fun mkCommand sav cmd args =
     handle Error err => raise Error ("in Object.mkCommand:\n" ^ err);
 *)
 
+(* Derived commands *)
+
+fun mkList sav objs =
+    case objs of
+      [] => mkNil
+    | obj :: objs => mkCons sav obj (mkList sav objs);
+
+(* ------------------------------------------------------------------------- *)
+(* Reconstructing the command and arguments used to make an object.          *)
+(* ------------------------------------------------------------------------- *)
+
+fun unMkCommand obj =
+    case provenance obj of
+      Default =>
+      let
+        val (cmd,args) = ObjectData.command (data obj)
+
+        val args = List.map mkDefault args
+      in
+        (cmd,args)
+      end
+    | Special {command,arguments,...} =>
+      (command,arguments);
+
+fun unMkAbsTerm obj =
+    case unMkCommand obj of
+      (Command.AbsTerm,[objV,objB]) => (objV,objB)
+    | _ => raise Error "Object.unMkAbsTerm";
+
+fun unMkAppTerm obj =
+    case unMkCommand obj of
+      (Command.AppTerm,[objF,objA]) => (objF,objA)
+    | _ => raise Error "Object.unMkAppTerm";
+
+fun unMkAxiom obj =
+    case unMkCommand obj of
+      (Command.Axiom,[objH,objC]) => (objH,objC)
+    | _ => raise Error "Object.unMkAxiom";
+
+fun unMkVar obj =
+    case unMkCommand obj of
+      (Command.Var,[objN,objT]) => (objN,objT)
+    | _ => raise Error "Object.unMkVar";
+
 (* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
@@ -873,7 +916,7 @@ local
         [] => set
       | obj :: objs =>
         if member obj set then ancs set objs
-        else ancs (add set obj) (Object.parents obj @ objs);
+        else ancs (add set obj) (Object.arguments obj @ objs);
 
   fun addAncestors (obj,set) = ancs set [obj];
 in

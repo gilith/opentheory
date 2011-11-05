@@ -47,8 +47,9 @@ fun alpha seq th =
 
       val Sequent.Sequent {hyp = h, concl = c} = seq
 
-      val th = if Term.equal c (Thm.concl th) then th
-               else Thm.eqMp (Thm.refl c) th
+      val th =
+          if Term.equal c (Thm.concl th) then th
+          else Thm.eqMp (Thm.refl c) th
 
       val th = TermAlphaSet.foldl check th h
     in

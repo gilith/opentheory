@@ -13,7 +13,8 @@ struct
 datatype symbol =
     Symbol of
       {typeOps : Object.object TypeOpMap.map,
-       consts : Object.object ConstMap.map};
+       consts : Object.object ConstMap.map,
+       seen : IntSet.set};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -23,10 +24,12 @@ val empty =
     let
       val typeOps = TypeOpMap.new ()
       and consts = ConstMap.new ()
+      and seen = IntSet.empty
     in
       Symbol
         {typeOps = typeOps,
-         consts = consts}
+         consts = consts,
+         seen = seen}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -48,13 +51,32 @@ fun peekConst sym c =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Adding symbols.                                                           *)
+(* Raw functionality.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun addTypeOp sym obj =
+fun addUnseen sym obj =
     let
-      val Symbol {typeOps,consts} = sym
+      val Symbol {typeOps,consts,seen} = sym
 
+      val i = Object.id obj
+    in
+      if IntSet.member i seen then NONE
+      else
+        let
+          val seen = IntSet.add seen i
+
+          val sym =
+              Symbol
+                {typeOps = typeOps,
+                 consts = consts,
+                 seen = seen}
+        in
+          SOME sym
+        end
+    end;
+
+fun addTypeOpMap typeOps obj =
+    let
       val ot = Object.destTypeOp obj
 
       val improvement =
@@ -62,21 +84,12 @@ fun addTypeOp sym obj =
             NONE => true
           | SOME obj' => Object.id obj < Object.id obj'
     in
-      if not improvement then sym
-      else
-        let
-          val typeOps = TypeOpMap.insert typeOps (ot,obj)
-        in
-          Symbol
-            {typeOps = typeOps,
-             consts = consts}
-        end
+      if not improvement then NONE
+      else SOME (TypeOpMap.insert typeOps (ot,obj))
     end;
 
-fun addConst sym obj =
+fun addConstMap consts obj =
     let
-      val Symbol {typeOps,consts} = sym
-
       val c = Object.destConst obj
 
       val improvement =
@@ -84,62 +97,102 @@ fun addConst sym obj =
             NONE => true
           | SOME obj' => Object.id obj < Object.id obj'
     in
-      if not improvement then sym
-      else
-        let
-          val consts = ConstMap.insert consts (c,obj)
-        in
-          Symbol
-            {typeOps = typeOps,
-             consts = consts}
-        end
+      if not improvement then NONE
+      else SOME (ConstMap.insert consts (c,obj))
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Harvesting symbols from proofs.                                           *)
+(* Adding symbols.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun addTypeOp sym obj =
+    case addUnseen sym obj of
+      NONE => sym
+    | SOME sym =>
+      let
+        val Symbol {typeOps,consts,seen} = sym
+      in
+        case addTypeOpMap typeOps obj of
+          NONE => sym
+        | SOME typeOps =>
+          Symbol
+            {typeOps = typeOps,
+             consts = consts,
+             seen = seen}
+      end;
+
+fun addConst sym obj =
+    case addUnseen sym obj of
+      NONE => sym
+    | SOME sym =>
+      let
+        val Symbol {typeOps,consts,seen} = sym
+      in
+        case addConstMap consts obj of
+          NONE => sym
+        | SOME consts =>
+          Symbol
+            {typeOps = typeOps,
+             consts = consts,
+             seen = seen}
+      end;
+
+(* ------------------------------------------------------------------------- *)
+(* Harvesting symbols from objects (and their proofs).                       *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun addObj seen_sym objs =
-      case objs of
-        [] => seen_sym
-      | obj :: objs =>
+  fun preDescent obj sym =
+      case addUnseen sym obj of
+        NONE => {descend = false, result = sym}
+      | SOME sym => {descend = true, result = sym};
+
+  fun addSymbolObj obj sym =
+      if Object.isTypeOp obj then
         let
-          val (seen,sym) = seen_sym
-
-          val i = Object.id obj
+          val Symbol {typeOps,consts,seen} = sym
         in
-          if IntSet.member i seen then addObj seen_sym objs
-          else
-            let
-              val seen = IntSet.add seen i
+          case addTypeOpMap typeOps obj of
+            NONE => sym
+          | SOME typeOps =>
+            Symbol
+              {typeOps = typeOps,
+               consts = consts,
+               seen = seen}
+        end
+      else if Object.isConst obj then
+        let
+          val Symbol {typeOps,consts,seen} = sym
+        in
+          case addConstMap consts obj of
+            NONE => sym
+          | SOME consts =>
+            Symbol
+              {typeOps = typeOps,
+               consts = consts,
+               seen = seen}
+        end
+      else
+        sym;
 
-              val sym =
-                  if Object.isTypeOp obj then addTypeOp sym obj
-                  else if Object.isConst obj then addConst sym obj
-                  else sym
+  fun addUnseenSymbolObj (obj,sym) =
+      case addUnseen sym obj of
+        NONE => sym
+      | SOME sym => addSymbolObj obj sym;
 
-              val objs = Object.parents obj @ objs
-            in
-              addObj (seen,sym) objs
-            end
-        end;
-
-  fun addThm (th,seen_sym) =
+  fun postDescent obj sym =
       let
-        val ObjectThm.Thm {proof = _, hyp, concl} = th
-      in
-        addObj seen_sym [hyp,concl]
-      end;
-in
-  fun fromExport exp =
-      let
-        val seen_sym = (IntSet.empty,empty)
+        val sym = List.foldl addUnseenSymbolObj sym (Object.definitions obj)
 
-        val (_,sym) = ObjectExport.foldl addThm seen_sym exp
+        val sym = addSymbolObj obj sym
       in
         sym
       end;
+in
+  val addObject =
+      Object.foldl
+        {preDescent = preDescent,
+         postDescent = postDescent};
 end;
 
 end

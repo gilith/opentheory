@@ -114,11 +114,11 @@ SRC = \
   src/Inference.sig src/Inference.sml \
   src/ObjectData.sig src/ObjectData.sml \
   src/Object.sig src/Object.sml \
+  src/ObjectSymbol.sig src/ObjectSymbol.sml \
   src/ObjectRewrite.sig src/ObjectRewrite.sml \
   src/ObjectUnwanted.sig src/ObjectUnwanted.sml \
   src/ObjectThm.sig src/ObjectThm.sml \
   src/ObjectExport.sig src/ObjectExport.sml \
-  src/ObjectSymbol.sig src/ObjectSymbol.sml \
   src/ObjectThms.sig src/ObjectThms.sml \
   src/ObjectDict.sig src/ObjectDict.sml \
   src/ObjectStack.sig src/ObjectStack.sml \

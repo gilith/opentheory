@@ -9,6 +9,12 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Everything is savable in this module.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val savable = {savable = true};
+
+(* ------------------------------------------------------------------------- *)
 (* The Unwanted namespace.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -23,23 +29,35 @@ val idName = Name.mk (namespace,"id");
 val unwantedIdConst = Const.mkUndef idName;
 
 local
-  val sav = {savable = true};
-
   val xNameObj = Object.mkName (Name.mkGlobal "x");
 
   val alphaNameObj = Object.mkName (Name.mkGlobal "A");
 
   val alphaTypeObj = Object.mkVarType alphaNameObj;
 
-  val xVarObj = Object.mkVar sav xNameObj alphaTypeObj;
+  val xVarObj = Object.mkVar savable xNameObj alphaTypeObj;
 
-  val xTermObj = Object.mkVarTerm sav xVarObj;
+  val xTermObj = Object.mkVarTerm savable xVarObj;
+
+  val idTermObj = Object.mkAbsTerm savable xVarObj xTermObj;
+
+  val (idConstObj,idDefObj) = Object.mkDefineConst savable idName idTermObj;
 in
-  val idTermObject = Object.mkAbsTerm sav xVarObj xTermObj;
-end;
+  val idConstObject = idConstObj;
 
-val (idConstObject,idDefObject) =
-    Object.mkDefineConst {savable = true} idName idTermObject;
+  fun mkIdDefObject objT =
+      let
+        val objM = Object.mkList savable [alphaNameObj,objT]
+
+        val objYS = Object.mkList savable [objM]
+
+        val objMS = Object.mkNil
+
+        val objS = Object.mkList savable [objYS,objMS]
+      in
+        Object.mkSubst savable objS idDefObj
+      end;
+end;
 
 val idConst = Object.destConst idConstObject;
 
@@ -59,7 +77,9 @@ val isIdxTerm = can destIdxTerm;
 
 datatype eliminateIdx =
     EliminateIdx of
-      {idxSearch : TermSearch.search};
+      {idxSearch : TermSearch.search,
+       symbol : ObjectSymbol.symbol,
+       termRewr : Object.object TermMap.map};
 
 val newIdx =
     let
@@ -67,14 +87,37 @@ val newIdx =
           TermSearch.new
             {predicate = isIdxTerm,
              leftToRight = true}
+
+      and symbol = ObjectSymbol.empty
+
+      and termRewr = TermMap.new ()
     in
       EliminateIdx
-        {idxSearch = idxSearch}
+        {idxSearch = idxSearch,
+         symbol = symbol,
+         termRewr = termRewr}
+    end;
+
+fun isIdxTerm tm elim =
+    let
+      val EliminateIdx {idxSearch,symbol,termRewr} = elim
+
+      val (subtm,idxSearch) = TermSearch.sharingSearchTerm tm idxSearch
+
+      val result = Option.isSome subtm
+
+      val elim =
+          EliminateIdx
+            {idxSearch = idxSearch,
+             symbol = symbol,
+             termRewr = termRewr}
+    in
+      (result,elim)
     end;
 
 fun isIdxData data elim =
     let
-      val EliminateIdx {idxSearch} = elim
+      val EliminateIdx {idxSearch,symbol,termRewr} = elim
 
       val (subtm,idxSearch) = ObjectData.sharingSearch data idxSearch
 
@@ -82,15 +125,45 @@ fun isIdxData data elim =
 
       val elim =
           EliminateIdx
-            {idxSearch = idxSearch}
+            {idxSearch = idxSearch,
+             symbol = symbol,
+             termRewr = termRewr}
     in
       (result,elim)
     end;
 
 fun isIdxObject obj elim = isIdxData (Object.data obj) elim;
 
+fun addIdxSymbol elim obj =
+    let
+      val EliminateIdx {idxSearch,symbol,termRewr} = elim
+
+      val symbol = ObjectSymbol.addObject symbol obj
+    in
+      EliminateIdx
+        {idxSearch = idxSearch,
+         symbol = symbol,
+         termRewr = termRewr}
+    end;
+
 local
-  fun cleanIdx obj =
+  fun replaceAxiomId obj =
+      let
+        val (_,objC) = Object.unMkAxiom obj
+
+        val (_,objI) = Object.unMkAppTerm objC
+
+        val (objV,_) = Object.unMkAbsTerm objI
+
+        val (_,objT) = Object.unMkVar objV
+
+        val obj' = mkIdDefObject objT
+      in
+        if Thm.equal (Object.destThm obj') (Object.destThm obj) then obj'
+        else raise Error "ObjectUnwanted.replaceAxiomId"
+      end;
+
+  fun cleanRemoveIdx obj =
       (case Object.provenance obj of
          Object.Default => NONE
        | Object.Special {command,arguments,...} =>
@@ -124,115 +197,85 @@ local
          | _ => NONE)
 (*OpenTheoryDebug
       handle Error err =>
-        raise Error ("in ObjectUnwanted.eliminateIdx.cleanIdx:\n" ^ err);
+        raise Error ("in ObjectUnwanted.eliminateIdx.cleanRemoveIdx:\n" ^ err);
+*)
+
+  fun rewriteTerm tm elim =
+      
+
+  have  (Gamma union { tm }) |- concl  (0)
+
+  prove |- tm = simplified(tm)  (1) using rewriteTerm tm
+
+  
+
+  prove { simplified(tm) } |- tm
+
+  prove (Gamma union ({ simplified(tm) } - { concl })) |- tm = concl  [deductAntisym 
+
+  fun rewriteHyp (tm,(obj,elim)) =
+      let
+        val (result,elim) = isIdxTerm tm elim
+      in
+        if not result then (obj,elim)
+        else
+          let
+            val obj' = rewriteTerm tm elim
+          in
+            (obj',elim)
+          end
+      end
+
+  fun rewriteConcl tm (obj,elim) =
+      let
+        val (result,elim) = isIdxTerm tm elim
+      in
+        if not result then (obj,elim)
+        else
+          let
+            val objE = rewriteTerm tm elim
+
+            val obj' = Object.mkEqMp savable objE obj
+          in
+            (obj',elim)
+          end
+      end
+
+  fun rewriteThmIdx obj elim =
+      let
+        val elim = addIdxSymbol elim obj
+
+        val Sequent.Sequent {hyp,concl} = Thm.sequent (Object.destThm obj)
+
+        val (obj,elim) = TermAlphaSet.foldl rewriteHyp (obj,elim) hyp
+
+        val (obj,elim) = rewriteConcl concl (obj,elim)
+      in
+        (SOME obj, elim)
+      end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("in ObjectUnwanted.eliminateIdx.rewriteThmIdx:\n" ^ err);
 *)
 in
   fun eliminateIdx obj elim =
-      let
-        val (result,elim) = isIdxObject obj elim
-      in
-        if not result then (NONE,elim)
-        else
-          case cleanIdx obj of
-            SOME obj => (SOME obj, elim)
-          | NONE => (NONE,elim) (***complicatedEliminateIdx obj elim***)
-      end
+      (case total replaceAxiomId obj of
+         SOME obj => (SOME obj, elim)
+       | NONE =>
+         let
+           val (result,elim) = isIdxObject obj elim
+         in
+           if not result then (NONE,elim)
+           else
+             case cleanRemoveIdx obj of
+               SOME obj => (SOME obj, elim)
+             | NONE => rewriteThmIdx obj elim
+         end)
 (*OpenTheoryDebug
       handle Error err =>
         raise Error ("in ObjectUnwanted.eliminateIdx:\n" ^ err);
 *)
 end;
-
-(***
-(* ------------------------------------------------------------------------- *)
-(* Unwanted constants.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-fun destUnwantedIdConst c =
-    let
-      val n = Const.name c
-
-(*OpenTheoryTrace4
-      val () = Print.trace Name.pp "ObjectRewrite.destUnwantedIdConst.n" n
-*)
-    in
-      if Name.equal n Name.unwantedIdConst then ()
-      else raise Error "ObjectRewrite.destUnwantedIdConst"
-    end;
-
-fun destUnwantedIdTerm tm =
-    let
-      val (c,ty) = Term.destConst tm
-
-      val () = destUnwantedIdConst c
-    in
-      ty
-    end;
-
-fun destUnwantedIdRefl th =
-    destUnwantedIdTerm (Term.destRefl (Thm.concl th));
-
-fun destUnwantedIdTermObject ob =
-    destUnwantedIdTerm (ObjectData.destTerm ob);
-
-fun destUnwantedIdReflObject ob =
-    destUnwantedIdRefl (ObjectData.destThm ob);
-
-fun destUnwantedIdTermObject obj =
-    destUnwantedIdTermObject (Object.object obj);
-
-fun destUnwantedIdReflObject obj =
-    destUnwantedIdReflObject (Object.object obj);
-
-fun unwantedId obj =
-    let
-      val Object.Object' {object = ob, provenance = prov} =
-          Object.dest obj
-
-(*OpenTheoryTrace4
-      val () = Print.trace ObjectData.pp "ObjectRewrite.unwantedId.ob" ob
-
-      val () = Print.trace Object.ppProvenance
-                 "ObjectRewrite.unwantedId.prov" prov
-*)
-    in
-      case prov of
-        Object.Default =>
-        let
-          val (f,a) = ObjectData.destAppTerm ob
-
-          val _ = destUnwantedIdTerm f
-
-          val obj' =
-              Object.Object'
-                {object = ObjectData.Term a,
-                 provenance = Object.Default}
-        in
-          Object.mk obj'
-        end
-      | Object.Special
-          {command = Command.AppTerm,
-           arguments = [objF,objA],
-           generated = [_],
-           result = 0} =>
-        let
-          val _ = destUnwantedIdTermObject objF
-        in
-          objA
-        end
-      | Object.Special
-          {command = Command.AppThm,
-           arguments = [objF,objA],
-           generated = [_],
-           result = 0} =>
-        let
-          val _ = destUnwantedIdReflObject objF
-        in
-          objA
-        end
-      | Object.Special _ => raise Error "ObjectRewrite.unwantedId"
-    end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Eliminating Unwanted objects.                                             *)
@@ -242,10 +285,9 @@ datatype eliminate =
     Eliminate of
       {defaultMap : (bool * Object.object) ObjectDataMap.map,
        specialMap : Object.object option IntMap.map,
-       elimIdx : eliminateIdx,
-       savable : bool};
+       elimIdx : eliminateIdx};
 
-fun new {savable} =
+val new =
     let
       val defaultMap =
           ObjectDataMap.fromList
@@ -258,8 +300,7 @@ fun new {savable} =
       Eliminate
         {defaultMap = defaultMap,
          specialMap = specialMap,
-         elimIdx = elimIdx,
-         savable = savable}
+         elimIdx = elimIdx}
     end;
 
 local
@@ -268,8 +309,7 @@ local
         val Eliminate
               {defaultMap,
                specialMap,
-               elimIdx,
-               savable} = elim
+               elimIdx} = elim
 
         val (obj',elimIdx) = eliminateIdx obj elimIdx
 
@@ -296,8 +336,7 @@ local
             Eliminate
               {defaultMap = defaultMap,
                specialMap = specialMap,
-               elimIdx = elimIdx,
-               savable = savable}
+               elimIdx = elimIdx}
       in
         (obj',elim)
       end;
@@ -335,8 +374,7 @@ local
         val Eliminate
               {defaultMap,
                specialMap,
-               elimIdx,
-               savable} = elim
+               elimIdx} = elim
       in
         case ObjectDataMap.peek defaultMap ob of
           SOME obj' => (obj',elim)
@@ -351,7 +389,7 @@ local
 
             val obj =
                 let
-                  val xs = Object.mkCommand {savable = savable} cmd objs
+                  val xs = Object.mkCommand savable cmd objs
 
 (*OpenTheoryDebug
                   val () =
@@ -381,8 +419,7 @@ local
                 Eliminate
                   {defaultMap = defaultMap,
                    specialMap = specialMap,
-                   elimIdx = elimIdx,
-                   savable = savable}
+                   elimIdx = elimIdx}
           in
             (obj',elim)
           end
@@ -447,8 +484,7 @@ local
         val Eliminate
               {defaultMap,
                specialMap,
-               elimIdx,
-               savable} = elim
+               elimIdx} = elim
 
         val specialMap = IntMap.insert specialMap (i,obj2')
 
@@ -456,15 +492,14 @@ local
             Eliminate
               {defaultMap = defaultMap,
                specialMap = specialMap,
-               elimIdx = elimIdx,
-               savable = savable}
+               elimIdx = elimIdx}
       in
         (obj2',elim)
       end;
 in
   fun sharingEliminate obj elim =
       let
-        val Eliminate {savable,...} = elim
+        val {savable} = savable
       in
         Object.maps
           {preDescent = preDescent,

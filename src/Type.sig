@@ -45,16 +45,6 @@ val destOpTy : TypeOp.typeOp -> ty -> ty list
 val isOpTy : TypeOp.typeOp -> ty -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Type IDs.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-type id = TypeTerm.idTy
-
-val id : ty -> id
-
-val equalId : id -> ty -> bool
-
-(* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -245,5 +235,15 @@ val toString : ty -> string
 val htmlGrammar : grammar
 
 val ppHtml : Show.show -> ty Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* Type IDs.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+type id = TypeTerm.idTy
+
+val id : ty -> id
+
+val equalId : id -> ty -> bool
 
 end

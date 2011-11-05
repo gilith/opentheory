@@ -120,6 +120,25 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Symbols.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun addThm (th,sym) =
+      let
+        val ObjectThm.Thm {proof = _, hyp, concl} = th
+
+        val sym = ObjectSymbol.addObject sym hyp
+
+        val sym = ObjectSymbol.addObject sym concl
+      in
+        sym
+      end;
+in
+  val symbol = foldl addThm ObjectSymbol.empty;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
 

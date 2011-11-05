@@ -75,16 +75,6 @@ val listMkAbs : Var.var list * term -> term
 val stripAbs : term -> Var.var list * term
 
 (* ------------------------------------------------------------------------- *)
-(* Term IDs.                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-type id = TypeTerm.id
-
-val id : term -> id
-
-val equalId : id -> term -> bool
-
-(* ------------------------------------------------------------------------- *)
 (* Number of constructors.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -449,5 +439,15 @@ val toString : term -> string
 val htmlGrammar : grammar
 
 val ppHtml : Show.show -> term Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* Term IDs.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+type id = TypeTerm.id
+
+val id : term -> id
+
+val equalId : id -> term -> bool
 
 end

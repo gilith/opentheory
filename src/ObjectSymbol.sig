@@ -35,9 +35,9 @@ val addTypeOp : symbol -> Object.object -> symbol
 val addConst : symbol -> Object.object -> symbol
 
 (* ------------------------------------------------------------------------- *)
-(* Harvesting symbols from proofs.                                           *)
+(* Harvesting symbols from objects (and their proofs).                       *)
 (* ------------------------------------------------------------------------- *)
 
-val fromExport : ObjectExport.export -> symbol
+val addObject : symbol -> Object.object -> symbol
 
 end

@@ -48,7 +48,9 @@ val provenance : object -> provenance
 
 val isDefault : object -> bool
 
-val parents : object -> object list
+val arguments : object -> object list
+
+val definitions : object -> object list
 
 (* List objects *)
 
@@ -195,6 +197,22 @@ val mkVarType : object -> object
 
 val mkCommand :
     {savable : bool} -> Command.command -> object list -> object list
+
+(* Derived commands *)
+
+val mkList : {savable : bool} -> object list -> object
+
+(* ------------------------------------------------------------------------- *)
+(* Reconstructing the command and arguments used to make an object.          *)
+(* ------------------------------------------------------------------------- *)
+
+val unMkAbsTerm : object -> object * object
+
+val unMkAppTerm : object -> object * object
+
+val unMkAxiom : object -> object * object
+
+val unMkVar : object -> object * object
 
 (* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
