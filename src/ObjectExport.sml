@@ -144,9 +144,11 @@ end;
 
 fun eliminateUnwanted exp =
     let
-      val Export {savable,...} = exp
+      val () =
+          if savable exp then ()
+          else raise Bug "ObjectExport.eliminateUnwanted: unsavable"
 
-      val elim = ObjectUnwanted.new {savable = savable}
+      val elim = ObjectUnwanted.empty
 
       val (exp',_) = maps ObjectThm.sharingEliminateUnwanted exp elim
     in

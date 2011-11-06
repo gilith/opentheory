@@ -1,35 +1,33 @@
 (* ========================================================================= *)
-(* SYMBOL OBJECTS                                                            *)
+(* OBJECT STORE                                                              *)
 (* Copyright (c) 2011 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 
-signature ObjectSymbol =
+signature ObjectStore =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of symbol objects.                                                 *)
+(* A type of object stores.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-type symbol
+type store
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val empty : symbol
+val new : {filter : ObjectData.data -> bool} -> store
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up symbols.                                                       *)
+(* Looking up objects.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val peekTypeOp : symbol -> TypeOp.typeOp -> Object.object option
-
-val peekConst : symbol -> Const.const -> Object.object option
+val peek : store -> ObjectData.data -> Object.object option
 
 (* ------------------------------------------------------------------------- *)
-(* Harvesting symbols from objects (and their provenances).                  *)
+(* Adding objects.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val addObject : symbol -> Object.object -> symbol
+val add : store -> Object.object -> store
 
 end

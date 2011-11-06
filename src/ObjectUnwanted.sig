@@ -24,7 +24,7 @@ val idName : Name.name
 
 type eliminate
 
-val new : {savable : bool} -> eliminate
+val empty : eliminate
 
 (* Objects *)
 

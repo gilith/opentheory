@@ -81,7 +81,7 @@ datatype eliminateIdx =
        symbol : ObjectSymbol.symbol,
        termRewr : Object.object TermMap.map};
 
-val newIdx =
+val emptyIdx =
     let
       val idxSearch =
           TermSearch.new
@@ -201,29 +201,41 @@ local
 *)
 
   fun rewriteTerm tm elim =
-      
-
-  have  (Gamma union { tm }) |- concl  (0)
-
-  prove |- tm = simplified(tm)  (1) using rewriteTerm tm
-
-  
-
-  prove { simplified(tm) } |- tm
-
-  prove (Gamma union ({ simplified(tm) } - { concl })) |- tm = concl  [deductAntisym 
+      raise Bug "ObjectUnwanted.eliminateIdx.rewriteTerm";
 
   fun rewriteHyp (tm,(obj,elim)) =
       let
         val (result,elim) = isIdxTerm tm elim
       in
         if not result then (obj,elim)
-        else
+        else raise Bug "ObjectUnwanted.eliminateIdx.rewriteHyp"
+(***
+  have  (Gamma union { hyp }) |- concl  (0)
+
+  prove |- hyp = simplified(hyp)  (1)
+     by rewriteTerm hyp
+
+  prove |- simplified(hyp) = hyp  (2)
+     by sym (1)
+
+  prove { simplified(hyp) } |- simplified(hyp)  (3)
+     by assume (simplified(hyp))
+
+  prove { simplified(hyp) } |- hyp  (4)
+     by eqMp (2) (3)
+
+  prove (Gamma union { simplified(hyp) }) |- hyp = concl  (5)
+     by deductAntisym (4) (0)
+
+  prove (Gamma union { simplified(hyp) }) |- concl  (6)
+     by eqMp (5) (4)
+
           let
             val obj' = rewriteTerm tm elim
           in
             (obj',elim)
           end
+***)
       end
 
   fun rewriteConcl tm (obj,elim) =
@@ -231,7 +243,17 @@ local
         val (result,elim) = isIdxTerm tm elim
       in
         if not result then (obj,elim)
-        else
+        else raise Bug "ObjectUnwanted.eliminateIdx.rewriteConcl"
+(* ------------------------------------------------------------------------- *)
+(* have  Gamma |- concl  (0)                                                 *)
+(*                                                                           *)
+(* prove |- concl = simplified(concl)  (1)                                   *)
+(*    by rewriteTerm concl                                                   *)
+(*                                                                           *)
+(* prove Gamma |- simplified(concl)  (2)                                     *)
+(*    by eqMp (1) (0)                                                        *)
+(* ------------------------------------------------------------------------- *)
+(***
           let
             val objE = rewriteTerm tm elim
 
@@ -239,6 +261,7 @@ local
           in
             (obj',elim)
           end
+***)
       end
 
   fun rewriteThmIdx obj elim =
@@ -287,7 +310,7 @@ datatype eliminate =
        specialMap : Object.object option IntMap.map,
        elimIdx : eliminateIdx};
 
-val new =
+val empty =
     let
       val defaultMap =
           ObjectDataMap.fromList
@@ -295,7 +318,7 @@ val new =
 
       and specialMap = IntMap.new ()
 
-      and elimIdx = newIdx
+      and elimIdx = emptyIdx
     in
       Eliminate
         {defaultMap = defaultMap,
