@@ -6,6 +6,8 @@
 structure ObjectStore :> ObjectStore =
 struct
 
+open Useful;
+
 (* ------------------------------------------------------------------------- *)
 (* A type of object stores.                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -29,17 +31,6 @@ fun new {filter} =
         {filter = filter,
          data = data,
          seen = seen}
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Looking up objects.                                                       *)
-(* ------------------------------------------------------------------------- *)
-
-fun peek store d =
-    let
-      val Store {data,...} = store
-    in
-      ObjectDataMap.peek data d
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -118,6 +109,49 @@ in
       Object.foldl
         {preDescent = preDescent,
          postDescent = postDescent};
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Looking up objects.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun peek store d =
+    let
+      val Store {data,...} = store
+    in
+      ObjectDataMap.peek data d
+    end;
+
+fun get store d =
+    case peek store d of
+      SOME obj => obj
+    | NONE => raise Error "ObjectStore.get";
+
+(* ------------------------------------------------------------------------- *)
+(* Using the store to construct objects.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  val savable = {savable = true};
+in
+  fun build d store =
+      case peek store d of
+        SOME obj => (obj,store)
+      | NONE =>
+        let
+          val (cmd,ds) = ObjectData.command d
+
+          val (objs,store) = maps build ds store
+
+          val obj =
+              case Object.mkCommand savable cmd objs of
+                [x] => x
+              | _ => raise Bug "ObjectStore.build: not a unique object"
+
+          val store = add store obj
+        in
+          (obj,store)
+        end
 end;
 
 end

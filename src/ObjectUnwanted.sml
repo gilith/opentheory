@@ -78,7 +78,7 @@ val isIdxTerm = can destIdxTerm;
 datatype eliminateIdx =
     EliminateIdx of
       {idxSearch : TermSearch.search,
-       symbol : ObjectSymbol.symbol,
+       store : ObjectStore.store,
        termRewr : Object.object TermMap.map};
 
 val emptyIdx =
@@ -88,19 +88,31 @@ val emptyIdx =
             {predicate = isIdxTerm,
              leftToRight = true}
 
-      and symbol = ObjectSymbol.empty
+      and store =
+          let
+            fun filter d =
+                case d of
+                  ObjectData.TypeOp _ => true
+                | ObjectData.Type _ => true
+                | ObjectData.Const _ => true
+                | ObjectData.Var _ => true
+                | ObjectData.Term _ => true
+                | _ => false
+          in
+            ObjectStore.new {filter = filter}
+          end
 
       and termRewr = TermMap.new ()
     in
       EliminateIdx
         {idxSearch = idxSearch,
-         symbol = symbol,
+         store = store,
          termRewr = termRewr}
     end;
 
-fun isIdxTerm tm elim =
+fun isTermIdx tm elim =
     let
-      val EliminateIdx {idxSearch,symbol,termRewr} = elim
+      val EliminateIdx {idxSearch,store,termRewr} = elim
 
       val (subtm,idxSearch) = TermSearch.sharingSearchTerm tm idxSearch
 
@@ -109,15 +121,15 @@ fun isIdxTerm tm elim =
       val elim =
           EliminateIdx
             {idxSearch = idxSearch,
-             symbol = symbol,
+             store = store,
              termRewr = termRewr}
     in
       (result,elim)
     end;
 
-fun isIdxData data elim =
+fun isDataIdx data elim =
     let
-      val EliminateIdx {idxSearch,symbol,termRewr} = elim
+      val EliminateIdx {idxSearch,store,termRewr} = elim
 
       val (subtm,idxSearch) = ObjectData.sharingSearch data idxSearch
 
@@ -126,23 +138,69 @@ fun isIdxData data elim =
       val elim =
           EliminateIdx
             {idxSearch = idxSearch,
-             symbol = symbol,
+             store = store,
              termRewr = termRewr}
     in
       (result,elim)
     end;
 
-fun isIdxObject obj elim = isIdxData (Object.data obj) elim;
+fun isObjectIdx obj elim = isDataIdx (Object.data obj) elim;
 
-fun addIdxSymbol elim obj =
+fun addDataIdx elim obj =
     let
-      val EliminateIdx {idxSearch,symbol,termRewr} = elim
+      val EliminateIdx {idxSearch,store,termRewr} = elim
 
-      val symbol = ObjectSymbol.addObject symbol obj
+      val store = ObjectStore.add store obj
     in
       EliminateIdx
         {idxSearch = idxSearch,
-         symbol = symbol,
+         store = store,
+         termRewr = termRewr}
+    end;
+
+fun buildDataIdx d elim =
+    let
+      val EliminateIdx {idxSearch,store,termRewr} = elim
+
+      val (obj,store) = ObjectStore.build d store
+
+(*OpenTheoryDebug
+      val () =
+          if Object.equalData d obj then ()
+          else raise Bug "ObjectUnwanted.buildDataIdx"
+*)
+
+      val elim =
+          EliminateIdx
+            {idxSearch = idxSearch,
+             store = store,
+             termRewr = termRewr}
+    in
+      (obj,elim)
+    end;
+
+fun buildTypeIdx ty elim = buildDataIdx (ObjectData.Type ty) elim;
+
+fun buildVarIdx v elim = buildDataIdx (ObjectData.Var v) elim;
+
+fun buildTermIdx tm elim = buildDataIdx (ObjectData.Term tm) elim;
+
+fun peekRewrIdx elim tm =
+    let
+      val EliminateIdx {termRewr,...} = elim
+    in
+      TermMap.peek termRewr tm
+    end;
+
+fun insertRewrIdx elim tm_obj =
+    let
+      val EliminateIdx {idxSearch,store,termRewr} = elim
+
+      val termRewr = TermMap.insert termRewr tm_obj
+    in
+      EliminateIdx
+        {idxSearch = idxSearch,
+         store = store,
          termRewr = termRewr}
     end;
 
@@ -201,72 +259,149 @@ local
 *)
 
   fun rewriteTerm tm elim =
-      raise Bug "ObjectUnwanted.eliminateIdx.rewriteTerm";
+      case peekRewrIdx elim tm of
+        SOME obj => (obj,elim)
+      | NONE =>
+        let
+          val (result,elim) = isTermIdx tm elim
+
+          val (obj,elim) =
+              if not result then
+                let
+                  val (objTm,elim) = buildTermIdx tm elim
+
+                  val objTh = Object.mkRefl savable objTm
+                in
+                  (objTh,elim)
+                end
+              else
+                case Term.dest tm of
+                  TypeTerm.Const' _ =>
+                  raise Bug "ObjectUnwanted.eliminateIdx.rewriteTerm: const"
+                | TypeTerm.Var' _ =>
+                  raise Bug "ObjectUnwanted.eliminateIdx.rewriteTerm: var"
+                | TypeTerm.Abs' (v,b) =>
+                  let
+                    val (objV,elim) = buildVarIdx v elim
+
+                    val (objB,elim) = rewriteTerm b elim
+
+                    val obj = Object.mkAbsThm savable objV objB
+                  in
+                    (obj,elim)
+                  end
+                | TypeTerm.App' (f,a) =>
+                  let
+                    val (objA,elim) = rewriteTerm a elim
+                  in
+                    if isIdConst f then
+                      let
+                        val (objT,elim) = buildTypeIdx (Term.typeOf a) elim
+
+                        val objF = mkIdDefObject objT
+
+                        val objD = Object.mkAppThm savable objF objA
+
+                        val (g,b) =
+                            Term.destApp (Thm.concl (Object.destThm objD))
+
+                        val (objG,elim) = buildTermIdx g elim
+
+                        val (objB,elim) = buildTermIdx b elim
+
+                        val objG = Object.mkRefl savable objG
+
+                        val objB = Object.mkBetaConv savable objB
+
+                        val objR = Object.mkAppThm savable objG objB
+
+                        val obj = Object.mkEqMp savable objR objD
+                      in
+                        (obj,elim)
+                      end
+                    else
+                      let
+                        val (objF,elim) = rewriteTerm f elim
+
+                        val obj = Object.mkAppThm savable objF objA
+                      in
+                        (obj,elim)
+                      end
+                  end
+
+          val elim = insertRewrIdx elim (tm,obj)
+        in
+          (obj,elim)
+        end;
 
   fun rewriteHyp (tm,(obj,elim)) =
       let
-        val (result,elim) = isIdxTerm tm elim
+        val (result,elim) = isTermIdx tm elim
       in
         if not result then (obj,elim)
-        else raise Bug "ObjectUnwanted.eliminateIdx.rewriteHyp"
-(***
-  have  (Gamma union { hyp }) |- concl  (0)
-
-  prove |- hyp = simplified(hyp)  (1)
-     by rewriteTerm hyp
-
-  prove |- simplified(hyp) = hyp  (2)
-     by sym (1)
-
-  prove { simplified(hyp) } |- simplified(hyp)  (3)
-     by assume (simplified(hyp))
-
-  prove { simplified(hyp) } |- hyp  (4)
-     by eqMp (2) (3)
-
-  prove (Gamma union { simplified(hyp) }) |- hyp = concl  (5)
-     by deductAntisym (4) (0)
-
-  prove (Gamma union { simplified(hyp) }) |- concl  (6)
-     by eqMp (5) (4)
-
+        else
+(* ------------------------------------------------------------------------- *)
+(* given  (Gamma union { hyp }) |- concl  (0)                                *)
+(*                                                                           *)
+(* prove  |- hyp = hyp'  (1)                                                 *)
+(*    by  rewriteTerm hyp                                                    *)
+(*                                                                           *)
+(* prove  |- hyp' = hyp  (2)                                                 *)
+(*    by  sym (1)                                                            *)
+(*                                                                           *)
+(* prove  { hyp' } |- hyp'  (3)                                              *)
+(*    by  assume hyp'                                                        *)
+(*                                                                           *)
+(* prove  { hyp' } |- hyp  (4)                                               *)
+(*    by  eqMp (2) (3)                                                       *)
+(*                                                                           *)
+(* prove  (Gamma union { hyp' }) |- hyp = concl  (5)                         *)
+(*    by  deductAntisym (4) (0)                                              *)
+(*                                                                           *)
+(* prove  (Gamma union { hyp' }) |- concl  (6)                               *)
+(*    by  eqMp (5) (4)                                                       *)
+(* ------------------------------------------------------------------------- *)
           let
-            val obj' = rewriteTerm tm elim
           in
-            (obj',elim)
+            raise Bug "ObjectUnwanted.eliminateIdx.rewriteHyp: not implemented"
           end
-***)
       end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("in ObjectUnwanted.eliminateIdx.rewriteHyp:\n" ^ err);
+*)
 
   fun rewriteConcl tm (obj,elim) =
       let
-        val (result,elim) = isIdxTerm tm elim
+        val (result,elim) = isTermIdx tm elim
       in
         if not result then (obj,elim)
-        else raise Bug "ObjectUnwanted.eliminateIdx.rewriteConcl"
+        else
 (* ------------------------------------------------------------------------- *)
-(* have  Gamma |- concl  (0)                                                 *)
+(* given  Gamma |- concl  (0)                                                *)
 (*                                                                           *)
-(* prove |- concl = simplified(concl)  (1)                                   *)
-(*    by rewriteTerm concl                                                   *)
+(* prove  |- concl = concl'  (1)                                             *)
+(*    by  rewriteTerm concl                                                  *)
 (*                                                                           *)
-(* prove Gamma |- simplified(concl)  (2)                                     *)
-(*    by eqMp (1) (0)                                                        *)
+(* prove  Gamma |- concl'  (2)                                               *)
+(*    by  eqMp (1) (0)                                                       *)
 (* ------------------------------------------------------------------------- *)
-(***
           let
-            val objE = rewriteTerm tm elim
+            val (objE,elim) = rewriteTerm tm elim
 
             val obj' = Object.mkEqMp savable objE obj
           in
             (obj',elim)
           end
-***)
       end
+(*OpenTheoryDebug
+      handle Error err =>
+        raise Error ("in ObjectUnwanted.eliminateIdx.rewriteConcl:\n" ^ err);
+*)
 
   fun rewriteThmIdx obj elim =
       let
-        val elim = addIdxSymbol elim obj
+        val elim = addDataIdx elim obj
 
         val Sequent.Sequent {hyp,concl} = Thm.sequent (Object.destThm obj)
 
@@ -286,7 +421,7 @@ in
          SOME obj => (SOME obj, elim)
        | NONE =>
          let
-           val (result,elim) = isIdxObject obj elim
+           val (result,elim) = isObjectIdx obj elim
          in
            if not result then (NONE,elim)
            else
@@ -341,7 +476,7 @@ local
             let
               val result = Option.getOpt (obj',obj)
 
-              val (present,_) = isIdxObject result elimIdx
+              val (present,_) = isObjectIdx result elimIdx
             in
               if not present then ()
               else

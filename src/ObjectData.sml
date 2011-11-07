@@ -367,6 +367,8 @@ fun compare d1_d2 =
       | (_, Thm _) => GREATER
       | (List ds1, List ds2) => lexCompare compare (ds1,ds2);
 
+fun equal d1 d2 = compare (d1,d2) = EQUAL;
+
 (* ------------------------------------------------------------------------- *)
 (* Extracting theorems from object data.                                     *)
 (* ------------------------------------------------------------------------- *)

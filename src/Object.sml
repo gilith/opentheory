@@ -106,6 +106,8 @@ fun dest (Object {id = _, object = x}) = x;
 
 fun data obj = data' (dest obj);
 
+fun equalData d obj = ObjectData.equal d (data obj);
+
 fun provenance obj = provenance' (dest obj);
 
 fun isDefault obj = isDefaultProvenance (provenance obj);

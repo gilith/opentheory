@@ -227,6 +227,8 @@ val isSubst : data -> bool
 
 val compare : data * data -> order
 
+val equal : data -> data -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Extracting theorems from object data.                                     *)
 (* ------------------------------------------------------------------------- *)

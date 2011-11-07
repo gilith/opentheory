@@ -19,15 +19,23 @@ type store
 val new : {filter : ObjectData.data -> bool} -> store
 
 (* ------------------------------------------------------------------------- *)
+(* Adding objects.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val add : store -> Object.object -> store
+
+(* ------------------------------------------------------------------------- *)
 (* Looking up objects.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 val peek : store -> ObjectData.data -> Object.object option
 
+val get : store -> ObjectData.data -> Object.object
+
 (* ------------------------------------------------------------------------- *)
-(* Adding objects.                                                           *)
+(* Using the store to construct objects.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val add : store -> Object.object -> store
+val build : ObjectData.data -> store -> Object.object * store
 
 end

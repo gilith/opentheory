@@ -44,6 +44,8 @@ val dest : object -> object'
 
 val data : object -> ObjectData.data
 
+val equalData : ObjectData.data -> object -> bool
+
 val provenance : object -> provenance
 
 val isDefault : object -> bool
