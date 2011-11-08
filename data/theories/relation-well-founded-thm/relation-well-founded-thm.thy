@@ -1,5 +1,5 @@
 name: relation-well-founded-thm
-version: 1.14
+version: 1.15
 description: relation-well-founded-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

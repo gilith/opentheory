@@ -1,5 +1,5 @@
 name: list-thm
-version: 1.12
+version: 1.13
 description: list-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,5 +1,5 @@
 name: natural-order-thm
-version: 1.9
+version: 1.10
 description: natural-order-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

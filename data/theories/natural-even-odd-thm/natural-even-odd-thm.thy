@@ -1,5 +1,5 @@
 name: natural-even-odd-thm
-version: 1.5
+version: 1.6
 description: natural-even-odd-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

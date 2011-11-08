@@ -1,5 +1,5 @@
 name: natural-sub-thm
-version: 1.6
+version: 1.7
 description: natural-sub-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

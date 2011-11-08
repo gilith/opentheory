@@ -1,5 +1,5 @@
 name: relation-transitive
-version: 1.8
+version: 1.9
 description: relation-transitive
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

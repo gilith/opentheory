@@ -1,5 +1,5 @@
 name: real-def
-version: 1.15
+version: 1.16
 description: Constructing the real numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

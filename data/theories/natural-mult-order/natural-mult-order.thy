@@ -1,5 +1,5 @@
 name: natural-mult-order
-version: 1.10
+version: 1.11
 description: natural-mult-order
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

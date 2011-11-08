@@ -1,5 +1,5 @@
 name: h-thm
-version: 1.24
+version: 1.25
 description: h-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT

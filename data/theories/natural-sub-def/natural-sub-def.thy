@@ -1,5 +1,5 @@
 name: natural-sub-def
-version: 1.6
+version: 1.7
 description: natural-sub-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

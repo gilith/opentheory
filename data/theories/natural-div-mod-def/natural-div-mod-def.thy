@@ -1,5 +1,5 @@
 name: natural-div-mod-def
-version: 1.7
+version: 1.8
 description: natural-div-mod-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

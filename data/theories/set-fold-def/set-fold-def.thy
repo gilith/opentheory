@@ -1,5 +1,5 @@
 name: set-fold-def
-version: 1.14
+version: 1.15
 description: set-fold-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

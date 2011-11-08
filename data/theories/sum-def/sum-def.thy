@@ -1,5 +1,5 @@
 name: sum-def
-version: 1.15
+version: 1.16
 description: Definition of sum types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,5 +1,5 @@
 name: natural-distance-thm
-version: 1.11
+version: 1.12
 description: natural-distance-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

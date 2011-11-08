@@ -1,5 +1,5 @@
 name: natural-mult-thm
-version: 1.5
+version: 1.6
 description: natural-mult-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

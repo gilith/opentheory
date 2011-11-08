@@ -1,5 +1,5 @@
 name: natural-div-mod-thm
-version: 1.6
+version: 1.7
 description: natural-div-mod-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
