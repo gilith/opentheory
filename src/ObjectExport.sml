@@ -195,8 +195,9 @@ local
 
         val () =
             case Object.provenance obj of
-              Object.Special {command = Command.Refl, ...} => ()
-            | _ => raise Error "ObjectExport.hiddenRefl: already a refl"
+              Object.Special {command = Command.Refl, ...} =>
+              raise Error "ObjectExport.hiddenRefl: already a refl"
+            | _ => ()
       in
         l
       end;
@@ -219,7 +220,12 @@ local
 (*OpenTheoryTrace4
               val () = Print.trace Object.pp
                          "ObjectExport.compressProofs: obj" obj
+
+              val () = Print.trace Object.ppProvenance
+                         "ObjectExport.compressProofs: provenance"
+                           (Object.provenance obj)
 *)
+
               val store = ObjectStore.add store obj
 
               val (objT,store) = ObjectStore.build (ObjectData.Term tm) store
