@@ -1,5 +1,5 @@
 name: list-filter
-version: 1.12
+version: 1.13
 description: Definitions and theorems about the list filter function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,12 +8,12 @@ show: "Data.List"
 show: "Function"
 
 def {
-  package: list-filter-def-1.11
+  package: list-filter-def-1.12
 }
 
 thm {
   import: def
-  package: list-filter-thm-1.12
+  package: list-filter-thm-1.13
 }
 
 main {

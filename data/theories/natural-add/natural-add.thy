@@ -1,5 +1,5 @@
 name: natural-add
-version: 1.12
+version: 1.13
 description: Definitions and theorems about natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-add-def-1.5
+  package: natural-add-def-1.6
 }
 
 thm {
   import: def
-  package: natural-add-thm-1.4
+  package: natural-add-thm-1.5
 }
 
 numeral {
@@ -28,7 +28,7 @@ suc {
 
 order {
   import: thm
-  package: natural-add-order-1.11
+  package: natural-add-order-1.12
 }
 
 main {

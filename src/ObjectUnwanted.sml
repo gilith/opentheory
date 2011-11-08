@@ -334,36 +334,85 @@ local
           (obj,elim)
         end;
 
-  fun rewriteHyp (tm,(obj,elim)) =
+  fun rewriteHyp (hyp,(obj0,elim)) =
       let
-        val (result,elim) = isTermIdx tm elim
+        val (result,elim) = isTermIdx hyp elim
       in
-        if not result then (obj,elim)
+        if not result then (obj0,elim)
         else
 (* ------------------------------------------------------------------------- *)
 (* given  (Gamma union { hyp }) |- concl  (0)                                *)
-(*                                                                           *)
-(* prove  |- hyp = hyp'  (1)                                                 *)
-(*    by  rewriteTerm hyp                                                    *)
-(*                                                                           *)
-(* prove  |- hyp' = hyp  (2)                                                 *)
-(*    by  sym (1)                                                            *)
-(*                                                                           *)
-(* prove  { hyp' } |- hyp'  (3)                                              *)
-(*    by  assume hyp'                                                        *)
-(*                                                                           *)
-(* prove  { hyp' } |- hyp  (4)                                               *)
-(*    by  eqMp (2) (3)                                                       *)
-(*                                                                           *)
-(* prove  (Gamma union { hyp' }) |- hyp = concl  (5)                         *)
-(*    by  deductAntisym (4) (0)                                              *)
-(*                                                                           *)
-(* prove  (Gamma union { hyp' }) |- concl  (6)                               *)
-(*    by  eqMp (5) (4)                                                       *)
 (* ------------------------------------------------------------------------- *)
           let
+(* ------------------------------------------------------------------------- *)
+(* prove  |- hyp <=> hyp'  (1)                                               *)
+(*    by  rewriteTerm `hyp`                                                  *)
+(* ------------------------------------------------------------------------- *)
+            val (obj1,elim) = rewriteTerm hyp elim
+
+            val (eq,hyp') = Term.destApp (Thm.concl (Object.destThm obj1))
+
+            val (eq,elim) = buildTermIdx (Term.rator eq) elim
+
+            val (hyp,elim) = buildTermIdx hyp elim
+
+            val (hyp',elim) = buildTermIdx hyp' elim
+
+(* ------------------------------------------------------------------------- *)
+(* prove  |- (<=>) = (<=>)  (2)                                              *)
+(*    by  refl `(<=>)`                                                       *)
+(* ------------------------------------------------------------------------- *)
+            val obj2 = Object.mkRefl savable eq
+
+(* ------------------------------------------------------------------------- *)
+(* prove  |- ((<=>) hyp) = ((<=>) hyp')  (3)                                 *)
+(*    by  appThm (2) (1)                                                     *)
+(* ------------------------------------------------------------------------- *)
+            val obj3 = Object.mkAppThm savable obj2 obj1
+
+(* ------------------------------------------------------------------------- *)
+(* prove  |- hyp <=> hyp  (4)                                                *)
+(*    by  refl `hyp`                                                         *)
+(* ------------------------------------------------------------------------- *)
+            val obj4 = Object.mkRefl savable hyp
+
+(* ------------------------------------------------------------------------- *)
+(* prove  |- (hyp <=> hyp) <=> (hyp' <=> hyp)  (5)                           *)
+(*    by  appThm (3) (4)                                                     *)
+(* ------------------------------------------------------------------------- *)
+            val obj5 = Object.mkAppThm savable obj3 obj4
+
+(* ------------------------------------------------------------------------- *)
+(* prove  |- hyp' <=> hyp  (6)                                               *)
+(*    by  eqMp (5) (4)                                                       *)
+(* ------------------------------------------------------------------------- *)
+            val obj6 = Object.mkEqMp savable obj5 obj4
+
+(* ------------------------------------------------------------------------- *)
+(* prove  { hyp' } |- hyp'  (7)                                              *)
+(*    by  assume `hyp'`                                                      *)
+(* ------------------------------------------------------------------------- *)
+            val obj7 = Object.mkAssume savable hyp'
+
+(* ------------------------------------------------------------------------- *)
+(* prove  { hyp' } |- hyp  (8)                                               *)
+(*    by  eqMp (6) (7)                                                       *)
+(* ------------------------------------------------------------------------- *)
+            val obj8 = Object.mkEqMp savable obj6 obj7
+
+(* ------------------------------------------------------------------------- *)
+(* prove  (Gamma union { hyp' }) |- hyp <=> concl  (9)                       *)
+(*    by  deductAntisym (8) (0)                                              *)
+(* ------------------------------------------------------------------------- *)
+            val obj9 = Object.mkDeductAntisym savable obj8 obj0
+
+(* ------------------------------------------------------------------------- *)
+(* prove  (Gamma union { hyp' }) |- concl  (10)                              *)
+(*    by  eqMp (9) (8)                                                       *)
+(* ------------------------------------------------------------------------- *)
+            val obj10 = Object.mkEqMp savable obj9 obj8
           in
-            raise Bug "ObjectUnwanted.eliminateIdx.rewriteHyp: not implemented"
+            (obj10,elim)
           end
       end
 (*OpenTheoryDebug
@@ -371,27 +420,29 @@ local
         raise Error ("in ObjectUnwanted.eliminateIdx.rewriteHyp:\n" ^ err);
 *)
 
-  fun rewriteConcl tm (obj,elim) =
+  fun rewriteConcl concl (obj0,elim) =
       let
-        val (result,elim) = isTermIdx tm elim
+        val (result,elim) = isTermIdx concl elim
       in
-        if not result then (obj,elim)
+        if not result then (obj0,elim)
         else
 (* ------------------------------------------------------------------------- *)
 (* given  Gamma |- concl  (0)                                                *)
-(*                                                                           *)
+(* ------------------------------------------------------------------------- *)
+          let
+(* ------------------------------------------------------------------------- *)
 (* prove  |- concl = concl'  (1)                                             *)
-(*    by  rewriteTerm concl                                                  *)
-(*                                                                           *)
+(*    by  rewriteTerm `concl`                                                *)
+(* ------------------------------------------------------------------------- *)
+            val (obj1,elim) = rewriteTerm concl elim
+
+(* ------------------------------------------------------------------------- *)
 (* prove  Gamma |- concl'  (2)                                               *)
 (*    by  eqMp (1) (0)                                                       *)
 (* ------------------------------------------------------------------------- *)
-          let
-            val (objE,elim) = rewriteTerm tm elim
-
-            val obj' = Object.mkEqMp savable objE obj
+            val obj2 = Object.mkEqMp savable obj1 obj0
           in
-            (obj',elim)
+            (obj2,elim)
           end
       end
 (*OpenTheoryDebug

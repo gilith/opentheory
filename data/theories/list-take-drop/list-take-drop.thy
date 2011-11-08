@@ -1,5 +1,5 @@
 name: list-take-drop
-version: 1.13
+version: 1.14
 description: Definitions and theorems about the list take and drop functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,12 +8,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: list-take-drop-def-1.15
+  package: list-take-drop-def-1.16
 }
 
 thm {
   import: def
-  package: list-take-drop-thm-1.12
+  package: list-take-drop-thm-1.13
 }
 
 main {

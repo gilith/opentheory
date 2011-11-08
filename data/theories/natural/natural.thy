@@ -1,8 +1,10 @@
 name: natural
-version: 1.18
+version: 1.19
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: function
 show: "Data.Bool"
 show: "Function"
 show: "Number.Natural"
@@ -24,24 +26,24 @@ recursion {
 cases {
   import: def
   import: recursion
-  package: natural-cases-1.4
+  package: natural-cases-1.5
 }
 
 numeral {
   import: cases
-  package: natural-numeral-1.5
+  package: natural-numeral-1.6
 }
 
 pre {
   import: cases
-  package: natural-pre-1.4
+  package: natural-pre-1.5
 }
 
 order {
   import: def
   import: cases
   import: numeral
-  package: natural-order-1.9
+  package: natural-order-1.10
 }
 
 add {
@@ -49,7 +51,7 @@ add {
   import: cases
   import: numeral
   import: order
-  package: natural-add-1.12
+  package: natural-add-1.13
 }
 
 mult {
@@ -57,7 +59,7 @@ mult {
   import: cases
   import: order
   import: add
-  package: natural-mult-1.11
+  package: natural-mult-1.12
 }
 
 exp {
@@ -67,7 +69,7 @@ exp {
   import: order
   import: add
   import: mult
-  package: natural-exp-1.6
+  package: natural-exp-1.7
 }
 
 even-odd {
@@ -78,7 +80,7 @@ even-odd {
   import: add
   import: mult
   import: exp
-  package: natural-even-odd-1.5
+  package: natural-even-odd-1.6
 }
 
 sub {
@@ -89,7 +91,7 @@ sub {
   import: add
   import: mult
   import: even-odd
-  package: natural-sub-1.6
+  package: natural-sub-1.7
 }
 
 factorial {
@@ -99,7 +101,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.6
+  package: natural-factorial-1.7
 }
 
 div-mod {
@@ -110,12 +112,12 @@ div-mod {
   import: mult
   import: exp
   import: even-odd
-  package: natural-div-mod-1.6
+  package: natural-div-mod-1.7
 }
 
 min-max {
   import: order
-  package: natural-min-max-1.8
+  package: natural-min-max-1.9
 }
 
 distance {
@@ -124,7 +126,7 @@ distance {
   import: add
   import: mult
   import: sub
-  package: natural-distance-1.6
+  package: natural-distance-1.7
 }
 
 main {

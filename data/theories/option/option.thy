@@ -1,5 +1,5 @@
 name: option
-version: 1.18
+version: 1.19
 description: Basic theory of option types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,18 +8,18 @@ show: "Data.Option"
 show: "Number.Natural"
 
 def {
-  package: option-def-1.11
+  package: option-def-1.12
 }
 
 thm {
   import: def
-  package: option-thm-1.10
+  package: option-thm-1.11
 }
 
 dest {
   import: def
   import: thm
-  package: option-dest-1.15
+  package: option-dest-1.16
 }
 
 main {

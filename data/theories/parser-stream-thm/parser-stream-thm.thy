@@ -1,9 +1,9 @@
 name: parser-stream-thm
-version: 1.21
+version: 1.22
 description: parser-stream-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-09-21
+provenance: HOL Light theory extracted on 2011-11-07
 show: "Data.Bool"
 
 main {

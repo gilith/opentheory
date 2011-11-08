@@ -1,5 +1,5 @@
 name: relation-well-founded
-version: 1.12
+version: 1.13
 description: Well-founded relations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,12 +9,12 @@ show: "Number.Natural"
 show: "Relation"
 
 def {
-  package: relation-well-founded-def-1.9
+  package: relation-well-founded-def-1.10
 }
 
 thm {
   import: def
-  package: relation-well-founded-thm-1.13
+  package: relation-well-founded-thm-1.14
 }
 
 main {

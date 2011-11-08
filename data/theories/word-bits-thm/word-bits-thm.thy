@@ -1,9 +1,9 @@
 name: word-bits-thm
-version: 1.14
+version: 1.15
 description: word-bits-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-09-21
+provenance: HOL Light theory extracted on 2011-11-07
 show: "Data.Bool"
 
 main {

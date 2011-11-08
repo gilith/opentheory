@@ -1,5 +1,5 @@
 name: set
-version: 1.13
+version: 1.14
 description: Standard set theory
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,25 +10,25 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-def-1.14
+  package: set-def-1.15
 }
 
 thm {
   import: def
-  package: set-thm-1.14
+  package: set-thm-1.15
 }
 
 finite {
   import: def
   import: thm
-  package: set-finite-1.11
+  package: set-finite-1.12
 }
 
 fold {
   import: def
   import: thm
   import: finite
-  package: set-fold-1.9
+  package: set-fold-1.10
 }
 
 size {
@@ -36,7 +36,7 @@ size {
   import: thm
   import: finite
   import: fold
-  package: set-size-1.11
+  package: set-size-1.12
 }
 
 main {

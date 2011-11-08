@@ -1,5 +1,5 @@
 name: list-dest
-version: 1.13
+version: 1.14
 description: Theory of the list destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,7 +7,7 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-dest-def-1.15
+  package: list-dest-def-1.16
 }
 
 thm {

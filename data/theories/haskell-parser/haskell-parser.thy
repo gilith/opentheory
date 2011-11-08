@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.18
+version: 1.19
 description: Simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -36,12 +36,12 @@ thm {
   interpret: const "Parser.Stream.eof" as "Haskell.Parser.Stream.Eof"
   interpret: const "Parser.Stream.error" as "Haskell.Parser.Stream.Error"
   interpret: const "Parser.Stream.stream" as "Haskell.Parser.Stream.Stream"
-  package: parser-1.22
+  package: parser-1.23
 }
 
 src {
   import: thm
-  package: haskell-parser-src-1.14
+  package: haskell-parser-src-1.16
 }
 
 test {
