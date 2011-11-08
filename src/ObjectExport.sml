@@ -159,74 +159,143 @@ fun eliminateUnwanted exp =
 (* Compression.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-type refs = Object.object ObjectDataMap.map;
-
-val emptyRefs : refs = ObjectDataMap.new ();
-
-fun improveRefs refs obj : refs =
-    let
-      val ob = Object.data obj
-
-      val imp =
-          case ObjectDataMap.peek refs ob of
-            NONE => true
-          | SOME obj' => Object.id obj < Object.id obj'
-    in
-      if imp then ObjectDataMap.insert refs (ob,obj) else refs
-    end;
-
 local
-  type state = IntSet.set * refs;
+  type state = Object.object option IntMap.map * ObjectStore.store;
 
-  val initial : state = (IntSet.empty,emptyRefs);
+  val initial : state =
+      let
+        val seen = IntMap.new ()
+
+        and store =
+            let
+              fun filter d =
+                  case d of
+                    ObjectData.TypeOp _ => true
+                  | ObjectData.Type _ => true
+                  | ObjectData.Const _ => true
+                  | ObjectData.Var _ => true
+                  | ObjectData.Term _ => true
+                  | _ => false
+            in
+              ObjectStore.new {filter = filter}
+            end
+      in
+        (seen,store)
+      end;
+
+  fun hiddenRefl obj =
+      let
+        val th = Object.destThm obj
+
+        val (l,r) = Term.destEq (Thm.concl th)
+
+        val () =
+            if Term.alphaEqual l r then ()
+            else raise Error "ObjectExport.hiddenRefl: not alpha equal"
+
+        val () =
+            case Object.provenance obj of
+              Object.Special {command = Command.Refl, ...} => ()
+            | _ => raise Error "ObjectExport.hiddenRefl: already a refl"
+      in
+        l
+      end;
 
   fun preDescent obj (acc : state) =
       let
-        val (seen,refs) = acc
+        val (seen,store) = acc
 
         val i = Object.id obj
+
+        val obj'' = IntMap.peek seen i
       in
-        if IntSet.member i seen then {descend = false, result = acc}
-        else {descend = true, result = (IntSet.add seen i, refs)}
+        case obj'' of
+          SOME obj' => {descend = false, result = (obj',acc)}
+        | NONE =>
+          case total hiddenRefl obj of
+            NONE => {descend = true, result = (NONE,acc)}
+          | SOME tm =>
+            let
+(*OpenTheoryTrace4
+              val () = Print.trace Object.pp
+                         "ObjectExport.compressProofs: obj" obj
+*)
+              val store = ObjectStore.add store obj
+
+              val (objT,store) = ObjectStore.build (ObjectData.Term tm) store
+
+              val objR' = SOME (Object.mkRefl {savable = true} objT)
+
+              val seen = IntMap.insert seen (i,objR')
+
+              val acc = (seen,store)
+            in
+              {descend = false, result = (objR',acc)}
+            end
       end;
 
-  fun postDescent obj (acc : state) =
+  fun postDescent obj obj' acc =
       let
-        val (seen,refs) = acc
+        val (seen,store) = acc
 
-        val refs = improveRefs refs obj
+        val i = Object.id obj
+
+        val seen = IntMap.insert seen (i,obj')
+
+        val acc = (seen,store)
       in
-        (seen,refs)
+        (obj',acc)
       end;
 
-  val addObj =
-      Object.foldl
+  val compressObj =
+      Object.maps
         {preDescent = preDescent,
-         postDescent = postDescent};
+         postDescent = postDescent,
+         savable = true};
 
-  fun addThm (th,acc) =
+  fun compressThm th acc =
       let
         val ObjectThm.Thm {proof,hyp,concl} = th
 
-        val acc = addObj acc proof
+        val (proof',acc) = compressObj proof acc
 
-        val acc = addObj acc hyp
-
-        val acc = addObj acc concl
+        val th' =
+            case proof' of
+              NONE => NONE
+            | SOME proof =>
+              SOME (ObjectThm.Thm {proof = proof, hyp = hyp, concl = concl})
       in
-        acc
+        (th',acc)
       end;
 in
-  fun toRefs exp =
+  fun compressProofs exp =
       let
-        val (_,refs) = foldl addThm initial exp
+        val (exp',_) = maps compressThm exp initial
       in
-        refs
+        exp'
       end;
 end;
 
 local
   type state = Object.object IntMap.map;
+
+  val toRefs =
+      let
+        val initial =
+            let
+              fun filter d =
+                  case d of
+                    ObjectData.Num _ => false
+                  | ObjectData.Name _ => false
+                  | _ => true
+            in
+              ObjectStore.new {filter = filter}
+            end
+
+        fun add (th,store) = ObjectThm.addStore store th;
+      in
+        foldl add initial
+      end;
 
   val initial : state = IntMap.new ();
 
@@ -245,14 +314,7 @@ local
           end
         | NONE =>
           let
-            val obI = Object.data objI
-
-            val objJ' = ObjectDataMap.peek refs obI
-
-            val objJ =
-                case objJ' of
-                  NONE => raise Bug "ObjectExport.compressRefs.preDescent"
-                | SOME obj => obj
+            val (objJ,_) = ObjectStore.build (Object.data objI) refs
 
             val j = Object.id objJ
           in
@@ -266,7 +328,7 @@ local
                   let
                     val acc = IntMap.insert acc (i,objJ)
                   in
-                    {descend = true, result = (objJ',acc)}
+                    {descend = true, result = (SOME objJ, acc)}
                   end
                 | SOME objR =>
                   let
@@ -310,8 +372,10 @@ local
 
   fun compressThm refs = ObjectThm.maps (compressObj refs);
 in
-  fun compressRefs refs exp =
+  fun compressRefs exp =
       let
+        val refs = toRefs exp
+
         val (exp',_) = maps (compressThm refs) exp initial
       in
         exp'
@@ -320,9 +384,19 @@ end;
 
 fun compress exp =
     let
-      val refs = toRefs exp
+      val unchanged = true
+
+      val (unchanged,exp) =
+          case compressProofs exp of
+            NONE => (unchanged,exp)
+          | SOME exp => (false,exp)
+
+      val (unchanged,exp) =
+          case compressRefs exp of
+            NONE => (unchanged,exp)
+          | SOME exp => (false,exp)
     in
-      compressRefs refs exp
+      if unchanged then NONE else SOME exp
     end;
 
 (* ------------------------------------------------------------------------- *)

@@ -38,6 +38,12 @@ val sharingEliminateUnwanted :
     thm -> ObjectUnwanted.eliminate -> thm option * ObjectUnwanted.eliminate
 
 (* ------------------------------------------------------------------------- *)
+(* Adding to a store.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val addStore : ObjectStore.store -> thm -> ObjectStore.store
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

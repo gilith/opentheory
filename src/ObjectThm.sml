@@ -77,6 +77,23 @@ fun maps f th acc =
 val sharingEliminateUnwanted = maps ObjectUnwanted.sharingEliminate;
 
 (* ------------------------------------------------------------------------- *)
+(* Adding to a store.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun addStore store th =
+    let
+      val Thm {proof,hyp,concl} = th
+
+      val store = ObjectStore.add store proof
+
+      val store = ObjectStore.add store hyp
+
+      val store = ObjectStore.add store concl
+    in
+      store
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
