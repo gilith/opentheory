@@ -3,6 +3,8 @@ version: 1.11
 description: Natural number min and max functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: natural-order
 show: "Data.Bool"
 show: "Number.Natural"
 

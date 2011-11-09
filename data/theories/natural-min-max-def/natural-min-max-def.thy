@@ -1,5 +1,5 @@
 name: natural-min-max-def
-version: 1.6
+version: 1.7
 description: Definition of natural number min and max functions
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
