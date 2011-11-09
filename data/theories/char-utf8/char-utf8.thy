@@ -1,5 +1,5 @@
 name: char-utf8
-version: 1.24
+version: 1.25
 description: Theory of UTF-8 encoders and decoders
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ def {
 
 thm {
   import: def
-  package: char-utf8-thm-1.25
+  package: char-utf8-thm-1.26
 }
 
 main {

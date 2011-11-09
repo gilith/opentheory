@@ -1,5 +1,5 @@
 name: word
-version: 1.15
+version: 1.16
 description: Parametric theory of words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -24,7 +24,7 @@ modular {
   interpret: const "Number.Modular.fromNatural" as "Data.Word.fromNatural"
   interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
   interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
-  package: modular-1.14
+  package: modular-1.15
 }
 
 bits {

@@ -1,5 +1,5 @@
 name: list-set
-version: 1.13
+version: 1.14
 description: Viewing lists as finite sets
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: list-set-thm-1.12
+  package: list-set-thm-1.13
 }
 
 main {

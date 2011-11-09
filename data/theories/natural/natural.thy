@@ -1,5 +1,5 @@
 name: natural
-version: 1.19
+version: 1.23
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,93 +15,87 @@ axiom-infinity {
 
 def {
   import: axiom-infinity
-  package: natural-def-1.5
+  package: natural-def-1.7
 }
 
-recursion {
+thm {
   import: def
-  package: natural-recursion-1.3
+  package: natural-thm-1.1
 }
 
-cases {
-  import: def
-  import: recursion
-  package: natural-cases-1.5
+dest {
+  import: thm
+  package: natural-dest-1.2
 }
 
 numeral {
-  import: cases
-  package: natural-numeral-1.6
-}
-
-pre {
-  import: cases
-  package: natural-pre-1.5
+  import: thm
+  package: natural-numeral-1.7
 }
 
 order {
   import: def
-  import: cases
-  import: numeral
-  package: natural-order-1.10
+  import: thm
+  package: natural-order-1.14
 }
 
 add {
   import: def
-  import: cases
+  import: thm
   import: numeral
   import: order
-  package: natural-add-1.13
+  package: natural-add-1.18
 }
 
 mult {
   import: def
-  import: cases
+  import: thm
+  import: numeral
   import: order
   import: add
-  package: natural-mult-1.12
+  package: natural-mult-1.17
 }
 
 exp {
   import: def
-  import: cases
+  import: thm
   import: numeral
   import: order
   import: add
   import: mult
-  package: natural-exp-1.7
+  package: natural-exp-1.13
 }
 
 even-odd {
   import: def
-  import: cases
+  import: thm
   import: numeral
   import: order
   import: add
   import: mult
   import: exp
-  package: natural-even-odd-1.6
+  package: natural-even-odd-1.11
 }
 
 sub {
   import: def
-  import: cases
-  import: pre
+  import: thm
+  import: dest
   import: order
   import: add
   import: mult
   import: even-odd
-  package: natural-sub-1.7
+  package: natural-sub-1.11
 }
 
 factorial {
   import: def
-  import: cases
+  import: thm
   import: numeral
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.7
+  package: natural-factorial-1.9
 }
 
 div-mod {
@@ -112,12 +106,12 @@ div-mod {
   import: mult
   import: exp
   import: even-odd
-  package: natural-div-mod-1.7
+  package: natural-div-mod-1.11
 }
 
 min-max {
   import: order
-  package: natural-min-max-1.9
+  package: natural-min-max-1.10
 }
 
 distance {
@@ -126,16 +120,15 @@ distance {
   import: add
   import: mult
   import: sub
-  package: natural-distance-1.7
+  package: natural-distance-1.9
 }
 
 main {
   import: axiom-infinity
   import: def
-  import: recursion
-  import: cases
+  import: thm
+  import: dest
   import: numeral
-  import: pre
   import: order
   import: add
   import: mult

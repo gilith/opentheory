@@ -1,5 +1,5 @@
 name: list-last
-version: 1.13
+version: 1.14
 description: Definitions and theorems about the list last function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: list-last-thm-1.13
+  package: list-last-thm-1.14
 }
 
 main {

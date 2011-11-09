@@ -1,40 +1,26 @@
 name: natural-add
-version: 1.13
-description: Definitions and theorems about natural number addition
+version: 1.18
+description: Natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: natural-def
+requires: natural-thm
+requires: natural-numeral
+requires: natural-order
 show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-add-def-1.6
+  package: natural-add-def-1.7
 }
 
 thm {
   import: def
-  package: natural-add-thm-1.5
-}
-
-numeral {
-  import: thm
-  package: natural-add-numeral-1.3
-}
-
-suc {
-  import: thm
-  import: numeral
-  package: natural-add-suc-1.2
-}
-
-order {
-  import: thm
-  package: natural-add-order-1.12
+  package: natural-add-thm-1.9
 }
 
 main {
   import: def
   import: thm
-  import: numeral
-  import: suc
-  import: order
 }

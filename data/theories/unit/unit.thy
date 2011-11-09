@@ -1,5 +1,5 @@
 name: unit
-version: 1.6
+version: 1.7
 description: The unit type
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ def {
 
 thm {
   import: def
-  package: unit-thm-1.3
+  package: unit-thm-1.4
 }
 
 main {

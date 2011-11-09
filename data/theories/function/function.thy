@@ -1,5 +1,5 @@
 name: function
-version: 1.14
+version: 1.16
 description: Function operators and combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,7 @@ show: "Data.Bool"
 show: "Function"
 
 def {
-  package: function-def-1.6
+  package: function-def-1.8
 }
 
 thm {

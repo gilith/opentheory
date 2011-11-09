@@ -1,5 +1,5 @@
 name: word12
-version: 1.13
+version: 1.14
 description: Basic theory of 12-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -35,7 +35,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word12.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word12.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word12.Bits.toWord"
-  package: word-1.15
+  package: word-1.16
 }
 
 bits {

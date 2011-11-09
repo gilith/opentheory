@@ -1,9 +1,9 @@
 name: relation-transitive
-version: 1.9
+version: 1.11
 description: relation-transitive
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-07
+provenance: HOL Light theory extracted on 2011-11-08
 show: "Data.Bool"
 
 main {

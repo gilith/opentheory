@@ -1,5 +1,5 @@
 name: natural-min-max
-version: 1.9
+version: 1.10
 description: Natural number min and max functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: natural-min-max-thm-1.6
+  package: natural-min-max-thm-1.7
 }
 
 main {

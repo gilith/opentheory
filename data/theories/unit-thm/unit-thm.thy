@@ -1,9 +1,9 @@
 name: unit-thm
-version: 1.3
+version: 1.4
 description: Properties of the unit type
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-09-21
+provenance: HOL Light theory extracted on 2011-11-08
 requires: bool
 requires: unit-def
 show: "Data.Bool"
