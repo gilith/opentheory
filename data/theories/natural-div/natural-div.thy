@@ -1,6 +1,6 @@
-name: natural-even-odd
-version: 1.11
-description: Even and odd natural numbers
+name: natural-div
+version: 1.13
+description: Natural number division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
@@ -11,16 +11,17 @@ requires: natural-order
 requires: natural-add
 requires: natural-mult
 requires: natural-exp
+requires: natural-sub
 show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-even-odd-def-1.8
+  package: natural-div-def-1.13
 }
 
 thm {
   import: def
-  package: natural-even-odd-thm-1.10
+  package: natural-div-thm-1.14
 }
 
 main {

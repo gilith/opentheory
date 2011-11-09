@@ -1,5 +1,5 @@
 name: natural-sub
-version: 1.11
+version: 1.13
 description: Natural number subtraction
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,7 +10,6 @@ requires: natural-dest
 requires: natural-order
 requires: natural-add
 requires: natural-mult
-requires: natural-even-odd
 show: "Data.Bool"
 show: "Number.Natural"
 
@@ -20,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: natural-sub-thm-1.9
+  package: natural-sub-thm-1.11
 }
 
 main {
