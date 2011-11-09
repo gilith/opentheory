@@ -19,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: natural-factorial-thm-1.9
+  package: natural-factorial-thm-1.10
 }
 
 main {

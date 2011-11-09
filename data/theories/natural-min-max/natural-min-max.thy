@@ -1,5 +1,5 @@
 name: natural-min-max
-version: 1.10
+version: 1.11
 description: Natural number min and max functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,7 +7,7 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-min-max-def-1.5
+  package: natural-min-max-def-1.6
 }
 
 thm {

@@ -1,5 +1,5 @@
 name: natural-order-def
-version: 1.10
+version: 1.11
 description: Definition of natural number orderings
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
