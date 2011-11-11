@@ -820,11 +820,13 @@ fun maps {preDescent,postDescent,savable} =
             if not descend then result
             else
               let
+                val unchanged = true
+
                 val (obj1',acc) = result
 
                 val (unchanged,obj1) =
                     case obj1' of
-                      NONE => (true,obj0)
+                      NONE => (unchanged,obj0)
                     | SOME obj => (false,obj)
 
                 val (unchanged,obj2,acc) =

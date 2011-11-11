@@ -38,4 +38,10 @@ val get : store -> ObjectData.data -> Object.object
 
 val build : ObjectData.data -> store -> Object.object * store
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : store Print.pp
+
 end

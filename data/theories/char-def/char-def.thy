@@ -1,9 +1,9 @@
 name: char-def
-version: 1.22
+version: 1.23
 description: char-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-07
+provenance: HOL Light theory extracted on 2011-11-10
 show: "Data.Bool"
 
 main {

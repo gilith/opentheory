@@ -1,5 +1,5 @@
 name: natural-add-def
-version: 1.7
+version: 1.8
 description: Definition of natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

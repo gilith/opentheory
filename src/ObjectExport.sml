@@ -160,13 +160,14 @@ fun eliminateUnwanted exp =
 (* ------------------------------------------------------------------------- *)
 
 local
-  type state = Object.object option IntMap.map * ObjectStore.store;
+  datatype state =
+      State of
+        {store : ObjectStore.store,
+         cache : Object.object option IntMap.map};
 
-  val initial : state =
+  val initialState =
       let
-        val seen = IntMap.new ()
-
-        and store =
+        val store =
             let
               fun filter d =
                   case d of
@@ -179,8 +180,62 @@ local
             in
               ObjectStore.new {filter = filter}
             end
+
+        and cache = IntMap.new ()
       in
-        (seen,store)
+        State
+          {store = store,
+           cache = cache}
+      end;
+
+  fun peekState (State {cache,...}) = IntMap.peek cache;
+
+  fun insertState acc i_obj' =
+      let
+        val State {store,cache} = acc
+
+        val cache = IntMap.insert cache i_obj'
+      in
+        State
+          {store = store,
+           cache = cache}
+      end;
+
+  fun buildState obj tm acc =
+      let
+        val State {store,cache} = acc
+
+        val store = ObjectStore.add store obj
+
+        val (objT,store) = ObjectStore.build (ObjectData.Term tm) store
+
+        val acc =
+            State
+              {store = store,
+               cache = cache}
+      in
+        (objT,acc)
+      end;
+
+  fun ppState acc =
+      let
+        val State {store,cache} = acc
+      in
+        Print.consistentBlock 0
+          [Print.ppString "State {",
+           Print.ppBreak (Print.Break {size = 0, extraIndent = 2}),
+           Print.inconsistentBlock 2
+             [Print.ppString "store =",
+              Print.break,
+              ObjectStore.pp store],
+           Print.ppString ",",
+           Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+           Print.inconsistentBlock 2
+             [Print.ppString "cache =",
+              Print.break,
+              Print.ppPrettyInt (IntMap.size cache)],
+           Print.breaks 0,
+           Print.ppString "}"]
       end;
 
   fun hiddenRefl obj =
@@ -202,39 +257,34 @@ local
         l
       end;
 
-  fun preDescent obj (acc : state) =
+  fun preDescent obj acc =
       let
-        val (seen,store) = acc
-
         val i = Object.id obj
-
-        val obj'' = IntMap.peek seen i
       in
-        case obj'' of
+        case peekState acc i of
           SOME obj' => {descend = false, result = (obj',acc)}
         | NONE =>
           case total hiddenRefl obj of
             NONE => {descend = true, result = (NONE,acc)}
           | SOME tm =>
             let
+              val (objT,acc) = buildState obj tm acc
+
+              val objR' = SOME (Object.mkRefl {savable = true} objT)
+
+              val acc = insertState acc (i,objR')
+
 (*OpenTheoryTrace4
+*)
               val () = Print.trace Object.pp
                          "ObjectExport.compressProofs: obj" obj
 
               val () = Print.trace Object.ppProvenance
                          "ObjectExport.compressProofs: provenance"
                            (Object.provenance obj)
-*)
 
-              val store = ObjectStore.add store obj
-
-              val (objT,store) = ObjectStore.build (ObjectData.Term tm) store
-
-              val objR' = SOME (Object.mkRefl {savable = true} objT)
-
-              val seen = IntMap.insert seen (i,objR')
-
-              val acc = (seen,store)
+              val () = Print.trace ppState
+                         "ObjectExport.compressProofs: state" acc
             in
               {descend = false, result = (objR',acc)}
             end
@@ -242,13 +292,9 @@ local
 
   fun postDescent obj obj' acc =
       let
-        val (seen,store) = acc
-
         val i = Object.id obj
 
-        val seen = IntMap.insert seen (i,obj')
-
-        val acc = (seen,store)
+        val acc = insertState acc (i,obj')
       in
         (obj',acc)
       end;
@@ -276,18 +322,64 @@ local
 in
   fun compressProofs exp =
       let
-        val (exp',_) = maps compressThm exp initial
+        val acc = initialState
+
+        val (exp',acc) = maps compressThm exp acc
+
+(*OpenTheoryTrace4
+*)
+        val () = Print.trace ppState
+                   "ObjectExport.compressProofs: final state" acc
       in
         exp'
       end;
 end;
 
 local
-  type state = Object.object IntMap.map;
+  datatype state =
+      State of
+        {cache : Object.object IntMap.map};
 
-  val toRefs =
+  val initialState =
       let
-        val initial =
+        val cache = IntMap.new ()
+      in
+        State
+          {cache = cache}
+      end;
+
+  fun peekState (State {cache,...}) = IntMap.peek cache;
+
+  fun insertState acc i_obj =
+      let
+        val State {cache} = acc
+
+        val cache = IntMap.insert cache i_obj
+      in
+        State
+          {cache = cache}
+      end;
+
+  fun ppState acc =
+      let
+        val State {cache} = acc
+      in
+        Print.consistentBlock 0
+          [Print.ppString "State {",
+           Print.ppBreak (Print.Break {size = 0, extraIndent = 2}),
+           Print.inconsistentBlock 2
+             [Print.ppString "cache =",
+              Print.break,
+              Print.ppPrettyInt (IntMap.size cache)],
+           Print.breaks 0,
+           Print.ppString "}"]
+      end;
+
+  val mkStore =
+      let
+        fun add (th,store) = ObjectThm.addStore store th;
+
+        val store =
             let
               fun filter d =
                   case d of
@@ -297,19 +389,15 @@ local
             in
               ObjectStore.new {filter = filter}
             end
-
-        fun add (th,store) = ObjectThm.addStore store th;
       in
-        foldl add initial
+        foldl add store
       end;
 
-  val initial : state = IntMap.new ();
-
-  fun preDescent refs objI (acc : state) =
+  fun preDescent store objI acc =
       let
         val i = Object.id objI
 
-        val objI' = IntMap.peek acc i
+        val objI' = peekState acc i
       in
         case objI' of
           SOME objR =>
@@ -320,25 +408,25 @@ local
           end
         | NONE =>
           let
-            val (objJ,_) = ObjectStore.build (Object.data objI) refs
+            val (objJ,_) = ObjectStore.build (Object.data objI) store
 
             val j = Object.id objJ
           in
             if j = i then {descend = true, result = (NONE,acc)}
             else
               let
-                val objR' = IntMap.peek acc j
+                val objR' = peekState acc j
               in
                 case objR' of
                   NONE =>
                   let
-                    val acc = IntMap.insert acc (i,objJ)
+                    val acc = insertState acc (i,objJ)
                   in
                     {descend = true, result = (SOME objJ, acc)}
                   end
                 | SOME objR =>
                   let
-                    val acc = IntMap.insert acc (i,objR)
+                    val acc = insertState acc (i,objR)
                   in
                     {descend = false, result = (objR',acc)}
                   end
@@ -353,36 +441,46 @@ local
         case objR' of
           NONE =>
           let
-            val acc = IntMap.insert acc (i,objI)
+            val acc = insertState acc (i,objI)
           in
             (objR',acc)
           end
         | SOME objR =>
           let
             val acc =
-                case IntMap.peek acc i of
+                case peekState acc i of
                   NONE => acc
-                | SOME objJ => IntMap.insert acc (Object.id objJ, objR)
+                | SOME objJ => insertState acc (Object.id objJ, objR)
 
-            val acc = IntMap.insert acc (i,objR)
+            val acc = insertState acc (i,objR)
           in
             (objR',acc)
           end
       end;
 
-  fun compressObj refs =
+  fun compressObj store =
       Object.maps
-        {preDescent = preDescent refs,
+        {preDescent = preDescent store,
          postDescent = postDescent,
          savable = true};
 
-  fun compressThm refs = ObjectThm.maps (compressObj refs);
+  fun compressThm store = ObjectThm.maps (compressObj store);
 in
   fun compressRefs exp =
       let
-        val refs = toRefs exp
+        val store = mkStore exp
 
-        val (exp',_) = maps (compressThm refs) exp initial
+        val acc = initialState
+
+        val (exp',acc) = maps (compressThm store) exp acc
+
+(*OpenTheoryTrace4
+*)
+        val () = Print.trace ObjectStore.pp
+                   "ObjectExport.compressRefs: refs" store
+
+        val () = Print.trace ppState
+                   "ObjectExport.compressRefs: final state" acc
       in
         exp'
       end;

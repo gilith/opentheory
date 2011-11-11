@@ -1,6 +1,6 @@
 name: gfp-def
 version: 1.0
-description: gfp-def
+description: Definition of GF(p)
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-11-07

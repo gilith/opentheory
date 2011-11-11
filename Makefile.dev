@@ -18,7 +18,7 @@ TEMP += \
 # The ML preprocessor.
 ###############################################################################
 
-MLPP_OPTS += -r 'OpenTheoryDebug'
+#MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
 
@@ -271,7 +271,7 @@ lines: $(LINES)
 # Profiling using MLton.
 ###############################################################################
 
-BENCHMARK_OPTS = -d test/opentheory compile --article benchmark.out test/opentheory/packages/hol-light-2009.8.24/hol-light.thy
+BENCHMARK_OPTS = info --preserve-theory --article -o benchmark.out ../hol-light/opentheory/articles/char-utf8-thm.thy
 
 profile-time.mlb: bin/mlton/benchmark.sml
 	echo '$$(SML_LIB)/basis/basis.mlb $$(SML_LIB)/basis/mlton.mlb $<' > $@

@@ -146,12 +146,37 @@ in
           val obj =
               case Object.mkCommand savable cmd objs of
                 [x] => x
-              | _ => raise Bug "ObjectStore.build: not a unique object"
+              | _ => raise Bug "ObjectStore.build: not a simple object"
 
           val store = add store obj
         in
           (obj,store)
-        end
+        end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun pp store =
+    let
+      val Store {filter = _, data, seen} = store
+    in
+      Print.consistentBlock 0
+        [Print.ppString "ObjectStore {",
+         Print.ppBreak (Print.Break {size = 0, extraIndent = 2}),
+           Print.inconsistentBlock 2
+             [Print.ppString "data =",
+              Print.break,
+              Print.ppPrettyInt (ObjectDataMap.size data)],
+         Print.ppString ",",
+         Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
+         Print.inconsistentBlock 2
+           [Print.ppString "cache =",
+            Print.break,
+            Print.ppPrettyInt (IntSet.size seen)],
+         Print.breaks 0,
+         Print.ppString "}"]
+    end;
 
 end
