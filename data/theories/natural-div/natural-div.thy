@@ -16,12 +16,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-div-def-1.13
+  package: natural-div-def-1.16
 }
 
 thm {
   import: def
-  package: natural-div-thm-1.14
+  package: natural-div-thm-1.17
 }
 
 main {

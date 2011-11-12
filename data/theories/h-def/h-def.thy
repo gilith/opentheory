@@ -1,9 +1,9 @@
 name: h-def
-version: 1.26
+version: 1.27
 description: h-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-07
+provenance: HOL Light theory extracted on 2011-11-12
 show: "Data.Bool"
 
 main {

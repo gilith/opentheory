@@ -1,5 +1,5 @@
 name: option-dest
-version: 1.16
+version: 1.17
 description: Theory of the option destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: option-dest-thm-1.3
+  package: option-dest-thm-1.4
 }
 
 main {

@@ -1,5 +1,5 @@
 name: set-size
-version: 1.15
+version: 1.16
 description: Sizes of finite sets
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: set-size-thm-1.19
+  package: set-size-thm-1.21
 }
 
 main {

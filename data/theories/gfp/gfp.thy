@@ -1,5 +1,5 @@
 name: gfp
-version: 1.0
+version: 1.1
 description: GF(p)
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,13 +12,13 @@ def {
 
 thm {
   import: def
-  package: gfp-thm-1.1
+  package: gfp-thm-1.3
 }
 
 inverse {
   import: def
   import: thm
-  package: gfp-inverse-1.0
+  package: gfp-inverse-1.1
 }
 
 main {

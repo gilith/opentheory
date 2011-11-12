@@ -1,5 +1,5 @@
 name: list-dest
-version: 1.14
+version: 1.15
 description: Theory of the list destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: list-dest-thm-1.5
+  package: list-dest-thm-1.6
 }
 
 main {

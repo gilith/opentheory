@@ -1,5 +1,5 @@
 name: natural-factorial
-version: 1.10
+version: 1.11
 description: Natural number factorial
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: natural-factorial-thm-1.10
+  package: natural-factorial-thm-1.11
 }
 
 main {

@@ -1,5 +1,5 @@
 name: relation-measure
-version: 1.10
+version: 1.11
 description: Definitions and theorems about natural number measures
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ def {
 
 thm {
   import: def
-  package: relation-measure-thm-1.11
+  package: relation-measure-thm-1.13
 }
 
 main {

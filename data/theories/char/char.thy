@@ -1,5 +1,5 @@
 name: char
-version: 1.26
+version: 1.27
 description: Theory of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,18 +14,18 @@ show: "Number.Natural" as "Natural"
 show: "Parser"
 
 def {
-  package: char-def-1.22
+  package: char-def-1.24
 }
 
 thm {
   import: def
-  package: char-thm-1.2
+  package: char-thm-1.3
 }
 
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.25
+  package: char-utf8-1.26
 }
 
 main {

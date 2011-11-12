@@ -1,9 +1,9 @@
 name: byte-bits
-version: 1.17
+version: 1.18
 description: byte-bits
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-10
+provenance: HOL Light theory extracted on 2011-11-11
 show: "Data.Bool"
 
 main {

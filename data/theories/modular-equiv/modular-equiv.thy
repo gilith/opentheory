@@ -1,5 +1,5 @@
 name: modular-equiv
-version: 1.11
+version: 1.12
 description: Definitions and theorems about modular equivalence
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: modular-equiv-thm-1.2
+  package: modular-equiv-thm-1.3
 }
 
 main {

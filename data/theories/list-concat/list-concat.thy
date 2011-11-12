@@ -1,5 +1,5 @@
 name: list-concat
-version: 1.13
+version: 1.14
 description: Definitions and theorems about the list concat function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 thm {
   import: def
-  package: list-concat-thm-1.3
+  package: list-concat-thm-1.4
 }
 
 main {
