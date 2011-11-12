@@ -33,6 +33,10 @@ fun new {filter} =
          seen = seen}
     end;
 
+val emptyDictionary = new {filter = ObjectData.inDictionary};
+
+val emptyTermBuilder = new {filter = ObjectData.termBuilder};
+
 (* ------------------------------------------------------------------------- *)
 (* Adding objects.                                                           *)
 (* ------------------------------------------------------------------------- *)

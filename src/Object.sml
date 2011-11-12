@@ -782,6 +782,17 @@ fun unMkVar obj =
     | _ => raise Error "Object.unMkVar";
 
 (* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp = Print.ppMap data ObjectData.pp;
+
+fun ppProvenance prov =
+    case prov of
+      Default => Print.ppString "default"
+    | Special {command,...} => Command.pp command;
+
+(* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -848,6 +859,14 @@ fun maps {preDescent,postDescent,savable} =
                             val objs = mkCommand {savable = savable} cmd args
 
                             val obj = List.nth (objs,idx)
+
+(*OpenTheoryTrace6
+                            val () = Print.trace Command.pp
+                                      "Object.maps: re-running command" cmd
+
+                            val () = Print.trace pp
+                                      "Object.maps: command result" obj
+*)
                           in
                             (false,obj,acc)
                           end
@@ -880,17 +899,6 @@ fun maps {preDescent,postDescent,savable} =
     in
       mapsObj
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty printing.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val pp = Print.ppMap data ObjectData.pp;
-
-fun ppProvenance prov =
-    case prov of
-      Default => Print.ppString "default"
-    | Special {command,...} => Command.pp command;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing unsavable objects.                                           *)

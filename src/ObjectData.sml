@@ -370,6 +370,34 @@ fun compare d1_d2 =
 fun equal d1 d2 = compare (d1,d2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
+(* Classes of object data.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun inDictionary d =
+    case d of
+      Num _ => false
+    | Name _ => false
+    | TypeOp _ => true
+    | Type _ => true
+    | Const _ => true
+    | Var _ => true
+    | Term _ => true
+    | Thm _ => true
+    | List l => not (List.null l);
+
+fun termBuilder d =
+    case d of
+      Num _ => false
+    | Name _ => false
+    | TypeOp _ => true
+    | Type _ => true
+    | Const _ => true
+    | Var _ => true
+    | Term _ => true
+    | Thm _ => false
+    | List l => List.exists termBuilder l;
+
+(* ------------------------------------------------------------------------- *)
 (* Extracting theorems from object data.                                     *)
 (* ------------------------------------------------------------------------- *)
 

@@ -18,6 +18,10 @@ type store
 
 val new : {filter : ObjectData.data -> bool} -> store
 
+val emptyDictionary : store
+
+val emptyTermBuilder : store
+
 (* ------------------------------------------------------------------------- *)
 (* Adding objects.                                                           *)
 (* ------------------------------------------------------------------------- *)

@@ -71,6 +71,11 @@ fun destIdxTerm tm =
 
 val isIdxTerm = can destIdxTerm;
 
+val idxTermSearch =
+    TermSearch.new
+      {predicate = isIdxTerm,
+       leftToRight = true};
+
 (* ------------------------------------------------------------------------- *)
 (* Eliminating instances of `Unwanted.id x` subterms.                        *)
 (* ------------------------------------------------------------------------- *)
@@ -83,25 +88,8 @@ datatype eliminateIdx =
 
 val emptyIdx =
     let
-      val idxSearch =
-          TermSearch.new
-            {predicate = isIdxTerm,
-             leftToRight = true}
-
-      and store =
-          let
-            fun filter d =
-                case d of
-                  ObjectData.TypeOp _ => true
-                | ObjectData.Type _ => true
-                | ObjectData.Const _ => true
-                | ObjectData.Var _ => true
-                | ObjectData.Term _ => true
-                | _ => false
-          in
-            ObjectStore.new {filter = filter}
-          end
-
+      val idxSearch = idxTermSearch
+      and store = ObjectStore.emptyTermBuilder
       and termRewr = TermMap.new ()
     in
       EliminateIdx

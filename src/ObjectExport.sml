@@ -162,182 +162,6 @@ fun eliminateUnwanted exp =
 local
   datatype state =
       State of
-        {store : ObjectStore.store,
-         cache : Object.object option IntMap.map};
-
-  val initialState =
-      let
-        val store =
-            let
-              fun filter d =
-                  case d of
-                    ObjectData.TypeOp _ => true
-                  | ObjectData.Type _ => true
-                  | ObjectData.Const _ => true
-                  | ObjectData.Var _ => true
-                  | ObjectData.Term _ => true
-                  | _ => false
-            in
-              ObjectStore.new {filter = filter}
-            end
-
-        and cache = IntMap.new ()
-      in
-        State
-          {store = store,
-           cache = cache}
-      end;
-
-  fun peekState (State {cache,...}) = IntMap.peek cache;
-
-  fun insertState acc i_obj' =
-      let
-        val State {store,cache} = acc
-
-        val cache = IntMap.insert cache i_obj'
-      in
-        State
-          {store = store,
-           cache = cache}
-      end;
-
-  fun buildState obj tm acc =
-      let
-        val State {store,cache} = acc
-
-        val store = ObjectStore.add store obj
-
-        val (objT,store) = ObjectStore.build (ObjectData.Term tm) store
-
-        val acc =
-            State
-              {store = store,
-               cache = cache}
-      in
-        (objT,acc)
-      end;
-
-  fun ppState acc =
-      let
-        val State {store,cache} = acc
-      in
-        Print.consistentBlock 0
-          [Print.ppString "State {",
-           Print.ppBreak (Print.Break {size = 0, extraIndent = 2}),
-           Print.inconsistentBlock 2
-             [Print.ppString "store =",
-              Print.break,
-              ObjectStore.pp store],
-           Print.ppString ",",
-           Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
-           Print.inconsistentBlock 2
-             [Print.ppString "cache =",
-              Print.break,
-              Print.ppPrettyInt (IntMap.size cache)],
-           Print.breaks 0,
-           Print.ppString "}"]
-      end;
-
-  fun hiddenRefl obj =
-      let
-        val th = Object.destThm obj
-
-        val (l,r) = Term.destEq (Thm.concl th)
-
-        val () =
-            if Term.alphaEqual l r then ()
-            else raise Error "ObjectExport.hiddenRefl: not alpha equal"
-
-        val () =
-            case Object.provenance obj of
-              Object.Special {command = Command.Refl, ...} =>
-              raise Error "ObjectExport.hiddenRefl: already a refl"
-            | _ => ()
-      in
-        l
-      end;
-
-  fun preDescent obj acc =
-      let
-        val i = Object.id obj
-      in
-        case peekState acc i of
-          SOME obj' => {descend = false, result = (obj',acc)}
-        | NONE =>
-          case total hiddenRefl obj of
-            NONE => {descend = true, result = (NONE,acc)}
-          | SOME tm =>
-            let
-              val (objT,acc) = buildState obj tm acc
-
-              val objR' = SOME (Object.mkRefl {savable = true} objT)
-
-              val acc = insertState acc (i,objR')
-
-(*OpenTheoryTrace4
-*)
-              val () = Print.trace Object.pp
-                         "ObjectExport.compressProofs: obj" obj
-
-              val () = Print.trace Object.ppProvenance
-                         "ObjectExport.compressProofs: provenance"
-                           (Object.provenance obj)
-
-              val () = Print.trace ppState
-                         "ObjectExport.compressProofs: state" acc
-            in
-              {descend = false, result = (objR',acc)}
-            end
-      end;
-
-  fun postDescent obj obj' acc =
-      let
-        val i = Object.id obj
-
-        val acc = insertState acc (i,obj')
-      in
-        (obj',acc)
-      end;
-
-  val compressObj =
-      Object.maps
-        {preDescent = preDescent,
-         postDescent = postDescent,
-         savable = true};
-
-  fun compressThm th acc =
-      let
-        val ObjectThm.Thm {proof,hyp,concl} = th
-
-        val (proof',acc) = compressObj proof acc
-
-        val th' =
-            case proof' of
-              NONE => NONE
-            | SOME proof =>
-              SOME (ObjectThm.Thm {proof = proof, hyp = hyp, concl = concl})
-      in
-        (th',acc)
-      end;
-in
-  fun compressProofs exp =
-      let
-        val acc = initialState
-
-        val (exp',acc) = maps compressThm exp acc
-
-(*OpenTheoryTrace4
-*)
-        val () = Print.trace ppState
-                   "ObjectExport.compressProofs: final state" acc
-      in
-        exp'
-      end;
-end;
-
-local
-  datatype state =
-      State of
         {cache : Object.object IntMap.map};
 
   val initialState =
@@ -378,19 +202,8 @@ local
   val mkStore =
       let
         fun add (th,store) = ObjectThm.addStore store th;
-
-        val store =
-            let
-              fun filter d =
-                  case d of
-                    ObjectData.Num _ => false
-                  | ObjectData.Name _ => false
-                  | _ => true
-            in
-              ObjectStore.new {filter = filter}
-            end
       in
-        foldl add store
+        foldl add ObjectStore.emptyDictionary
       end;
 
   fun preDescent store objI acc =
@@ -466,7 +279,7 @@ local
 
   fun compressThm store = ObjectThm.maps (compressObj store);
 in
-  fun compressRefs exp =
+  fun compress exp =
       let
         val store = mkStore exp
 
@@ -475,33 +288,16 @@ in
         val (exp',acc) = maps (compressThm store) exp acc
 
 (*OpenTheoryTrace4
-*)
         val () = Print.trace ObjectStore.pp
-                   "ObjectExport.compressRefs: refs" store
+                   "ObjectExport.compress: refs" store
 
         val () = Print.trace ppState
-                   "ObjectExport.compressRefs: final state" acc
+                   "ObjectExport.compress: final state" acc
+*)
       in
         exp'
       end;
 end;
-
-fun compress exp =
-    let
-      val unchanged = true
-
-      val (unchanged,exp) =
-          case compressProofs exp of
-            NONE => (unchanged,exp)
-          | SOME exp => (false,exp)
-
-      val (unchanged,exp) =
-          case compressRefs exp of
-            NONE => (unchanged,exp)
-          | SOME exp => (false,exp)
-    in
-      if unchanged then NONE else SOME exp
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

@@ -9,22 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Objects complex enough to be worth storing in a dictionary.               *)
-(* ------------------------------------------------------------------------- *)
-
-fun storableObject ob =
-    case ob of
-      ObjectData.Num _ => false
-    | ObjectData.Name _ => false
-    | ObjectData.TypeOp _ => true
-    | ObjectData.Type _ => true
-    | ObjectData.Const _ => true
-    | ObjectData.Var _ => true
-    | ObjectData.Term _ => true
-    | ObjectData.Thm _ => true
-    | ObjectData.List l => not (List.null l);
-
-(* ------------------------------------------------------------------------- *)
 (* Minimal dictionaries.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -58,7 +42,7 @@ local
       end;
 
   fun registerDefault (ob,refs) =
-      if not (storableObject ob) then refs
+      if not (ObjectData.inDictionary ob) then refs
       else if ObjectDataMap.inDomain ob refs then registerReference (ob,refs)
       else registerDefault' (ob,refs)
 
@@ -83,7 +67,7 @@ local
 *)
         val ob = Object.data obj
       in
-        if not (storableObject ob) then refs
+        if not (ObjectData.inDictionary ob) then refs
         else if ObjectDataMap.inDomain ob refs then registerReference (ob,refs)
         else
           case Object.provenance obj of
@@ -165,7 +149,7 @@ local
         val MinDict {refs,keys,nextKey} = dict
 
         val pointless =
-            not (storableObject ob) orelse
+            not (ObjectData.inDictionary ob) orelse
             ObjectDataMap.inDomain ob keys orelse
             not (ObjectDataMap.inDomain ob refs)
       in
@@ -206,7 +190,7 @@ local
 *)
 
   fun useKey dict ob =
-      if not (storableObject ob) then NONE
+      if not (ObjectData.inDictionary ob) then NONE
       else
         let
           val MinDict {refs,keys,nextKey} = dict
