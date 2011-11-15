@@ -1,5 +1,5 @@
 name: natural-mult
-version: 1.18
+version: 1.23
 description: Natural number multiplication
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -18,7 +18,7 @@ def {
 
 thm {
   import: def
-  package: natural-mult-thm-1.13
+  package: natural-mult-thm-1.18
 }
 
 main {

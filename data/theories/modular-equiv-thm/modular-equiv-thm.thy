@@ -1,5 +1,5 @@
 name: modular-equiv-thm
-version: 1.3
+version: 1.4
 description: modular-equiv-thm
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,18 +1,27 @@
 name: set-finite
-version: 1.15
-description: Finite set theory
+version: 1.21
+description: Finite sets
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: function
+requires: pair
+requires: natural
+requires: set-def
+requires: set-thm
 show: "Data.Bool"
+show: "Data.Pair"
+show: "Function"
+show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-finite-def-1.11
+  package: set-finite-def-1.14
 }
 
 thm {
   import: def
-  package: set-finite-thm-1.20
+  package: set-finite-thm-1.26
 }
 
 main {

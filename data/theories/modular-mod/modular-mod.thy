@@ -1,5 +1,5 @@
 name: modular-mod
-version: 1.6
+version: 1.7
 description: modular-mod
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,18 +1,27 @@
 name: set-size
-version: 1.16
-description: Sizes of finite sets
+version: 1.22
+description: Finite set cardinality
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: pair
+requires: natural
+requires: set-def
+requires: set-thm
+requires: set-finite
+requires: set-fold
 show: "Data.Bool"
+show: "Data.Pair"
+show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-size-def-1.12
+  package: set-size-def-1.14
 }
 
 thm {
   import: def
-  package: set-size-thm-1.21
+  package: set-size-thm-1.26
 }
 
 main {

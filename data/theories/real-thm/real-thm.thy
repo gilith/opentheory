@@ -1,9 +1,9 @@
 name: real-thm
-version: 1.9
+version: 1.15
 description: real-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-10
+provenance: HOL Light theory extracted on 2011-11-15
 show: "Data.Bool"
 
 main {

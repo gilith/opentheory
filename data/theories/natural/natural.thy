@@ -1,5 +1,5 @@
 name: natural
-version: 1.27
+version: 1.33
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ axiom-infinity {
 
 def {
   import: axiom-infinity
-  package: natural-def-1.9
+  package: natural-def-1.10
 }
 
 thm {
   import: def
-  package: natural-thm-1.3
+  package: natural-thm-1.5
 }
 
 dest {
@@ -36,7 +36,7 @@ numeral {
 order {
   import: def
   import: thm
-  package: natural-order-1.18
+  package: natural-order-1.20
 }
 
 add {
@@ -44,7 +44,7 @@ add {
   import: thm
   import: numeral
   import: order
-  package: natural-add-1.19
+  package: natural-add-1.24
 }
 
 mult {
@@ -53,7 +53,7 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.18
+  package: natural-mult-1.23
 }
 
 exp {
@@ -63,7 +63,7 @@ exp {
   import: order
   import: add
   import: mult
-  package: natural-exp-1.14
+  package: natural-exp-1.16
 }
 
 sub {
@@ -85,7 +85,7 @@ div {
   import: mult
   import: exp
   import: sub
-  package: natural-div-1.13
+  package: natural-div-1.15
 }
 
 factorial {
@@ -104,7 +104,7 @@ distance {
   import: add
   import: mult
   import: sub
-  package: natural-distance-1.11
+  package: natural-distance-1.17
 }
 
 main {

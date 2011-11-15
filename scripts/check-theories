@@ -20,6 +20,9 @@ if ($opt_h or scalar @ARGV != 0)
 # Autoflush STDIN
 $|++;
 
+my $orderthys = "scripts/order-theories";
+[ -x $orderthys ] or die "install-theories: $orderthys not an executable";
+
 my $opentheory = "bin/mlton/opentheory";
 [ -x $opentheory ] or die "check-theories: $opentheory not an executable";
 
@@ -146,10 +149,10 @@ while (my $thy = <THEORIES>) {
 
 close THEORIES;
 
-$cmd = "ls $source";
+$cmd = "$orderthys";
 
 open THEORIES, "$cmd |" or
-  die "check-theories: couldn't read $source directory: $!\n";
+  die "check-theories: couldn't order theories in source directory: $!\n";
 
 while (my $thy = <THEORIES>) {
     chomp $thy;
@@ -157,22 +160,50 @@ while (my $thy = <THEORIES>) {
     is_name($thy) or
         die "check-theories: bad theory name: $thy";
 
-    # Check this theory is useful
+    # Check this theory is useful and up to date
 
-    if (!(exists $version{$thy})) {
-        print STDOUT "check-theories: $thy not in the latest theory set\n";
+    my $thydir = "$source/$thy";
+
+    if (exists $version{$thy}) {
+      my $info1 = `$opentheory info --information $thydir/$thy.thy`;
+
+      if ($info1 =~ /^version: ([[:digit:].]+)$/m) {
+        my $version1 = $1;
+
+        my $version2 = $version{$thy};
+
+        if ($version1 eq $version2) {
+          my $info2 = `$opentheory info --information $thy-$version2`;
+
+          if ($info1 eq $info2) {
+            if ($info1 !~ /^requires: /m) {
+              print STDOUT "check-theories: theory $thy has no requires information\n";
+            }
+          }
+          else {
+            print STDOUT "check-theories: different package information in installed theory $thy\n";
+          }
+        }
+        else {
+          print STDOUT "check-theories: theory $thy: version = $version1; installed = $version2\n";
+        }
+      }
+      else {
+        print STDOUT "check-theories: no version information found in theory $thy\n";
+      }
+    }
+    else {
+      print STDOUT "check-theories: $thy not in the latest theory set\n";
     }
 
     # Check the theory files
-
-    my $thydir = "$source/$thy";
 
     my $files1 = `$opentheory info --files $thydir/$thy.thy | sort`;
 
     my $files2 = `find $thydir/*`;
 
     if ($files1 ne $files2) {
-        print STDOUT "check-theories: different files in theory $thy\n";
+      print STDOUT "check-theories: different files in theory $thy\n";
     }
 }
 

@@ -1,9 +1,9 @@
 name: list-filter-thm
-version: 1.16
+version: 1.21
 description: list-filter-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-11
+provenance: HOL Light theory extracted on 2011-11-15
 show: "Data.Bool"
 
 main {

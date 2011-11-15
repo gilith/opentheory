@@ -1,5 +1,5 @@
 name: list-quant
-version: 1.13
+version: 1.18
 description: Definitions and theorems about list quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,12 +8,12 @@ show: "Data.List"
 show: "Function"
 
 def {
-  package: list-quant-def-1.12
+  package: list-quant-def-1.16
 }
 
 thm {
   import: def
-  package: list-quant-thm-1.14
+  package: list-quant-thm-1.20
 }
 
 main {

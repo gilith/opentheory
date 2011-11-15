@@ -1,29 +1,44 @@
 name: relation
-version: 1.18
-description: Basic theory of relations
+version: 1.23
+description: Relation operators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: function
+requires: pair
+requires: natural
+requires: set
 show: "Data.Bool"
 show: "Data.Pair"
+show: "Function"
 show: "Number.Natural"
 show: "Relation"
 
-transitive {
-  package: relation-transitive-1.13
+def {
+  package: relation-def-1.3
+}
+
+thm {
+  import: def
+  package: relation-thm-1.2
 }
 
 well-founded {
-  import: transitive
-  package: relation-well-founded-1.17
+  import: def
+  import: thm
+  package: relation-well-founded-1.24
 }
 
-measure {
+natural {
+  import: def
+  import: thm
   import: well-founded
-  package: relation-measure-1.11
+  package: relation-natural-1.2
 }
 
 main {
-  import: transitive
+  import: def
+  import: thm
   import: well-founded
-  import: measure
+  import: natural
 }
