@@ -1,5 +1,5 @@
 name: relation-well-founded-thm
-version: 1.28
+version: 1.29
 description: Properties of well-founded relations
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

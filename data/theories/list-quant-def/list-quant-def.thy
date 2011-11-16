@@ -1,5 +1,5 @@
 name: list-quant-def
-version: 1.16
+version: 1.18
 description: list-quant-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,5 +1,5 @@
 name: list-filter-def
-version: 1.16
+version: 1.18
 description: list-filter-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

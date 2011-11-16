@@ -1,5 +1,5 @@
 name: list-interval-def
-version: 1.23
+version: 1.24
 description: list-interval-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

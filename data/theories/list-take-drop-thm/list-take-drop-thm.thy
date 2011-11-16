@@ -1,5 +1,5 @@
 name: list-take-drop-thm
-version: 1.22
+version: 1.24
 description: list-take-drop-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

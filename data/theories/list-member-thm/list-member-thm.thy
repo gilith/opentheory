@@ -1,5 +1,5 @@
 name: list-member-thm
-version: 1.25
+version: 1.27
 description: list-member-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

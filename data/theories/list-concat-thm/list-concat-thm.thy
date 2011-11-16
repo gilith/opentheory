@@ -1,9 +1,9 @@
 name: list-concat-thm
-version: 1.4
+version: 1.6
 description: list-concat-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-10
+provenance: HOL Light theory extracted on 2011-11-15
 show: "Data.Bool"
 
 main {

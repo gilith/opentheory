@@ -1,5 +1,5 @@
 name: list-last-thm
-version: 1.22
+version: 1.24
 description: list-last-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

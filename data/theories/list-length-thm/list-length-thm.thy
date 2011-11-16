@@ -1,10 +1,18 @@
 name: list-length-thm
-version: 1.21
-description: list-length-thm
+version: 1.24
+description: Properties of the list length function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2011-11-15
+requires: bool
+requires: natural
+requires: list-def
+requires: list-thm
+requires: list-dest
+requires: list-length-def
 show: "Data.Bool"
+show: "Data.List"
+show: "Number.Natural"
 
 main {
   article: "list-length-thm.art"

@@ -1,5 +1,5 @@
 name: list-take-drop-def
-version: 1.22
+version: 1.23
 description: list-take-drop-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,5 +1,5 @@
 name: natural-mult-thm
-version: 1.18
+version: 1.19
 description: Properties of natural number multiplication
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

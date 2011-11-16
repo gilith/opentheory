@@ -1,5 +1,5 @@
 name: natural-distance-thm
-version: 1.23
+version: 1.24
 description: Properties of natural number distance
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

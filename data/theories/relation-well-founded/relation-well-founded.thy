@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: relation-well-founded-thm-1.27
+  package: relation-well-founded-thm-1.29
 }
 
 main {

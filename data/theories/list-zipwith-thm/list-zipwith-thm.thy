@@ -1,5 +1,5 @@
 name: list-zipwith-thm
-version: 1.18
+version: 1.20
 description: list-zipwith-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

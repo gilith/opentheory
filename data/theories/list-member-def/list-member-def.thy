@@ -1,5 +1,5 @@
 name: list-member-def
-version: 1.17
+version: 1.19
 description: list-member-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

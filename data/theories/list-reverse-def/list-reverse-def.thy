@@ -1,5 +1,5 @@
 name: list-reverse-def
-version: 1.17
+version: 1.19
 description: list-reverse-def
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,9 +1,9 @@
 name: word16-bytes-thm
-version: 1.23
+version: 1.25
 description: Properties of 16-bit words as pairs of bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-14
+provenance: HOL Light theory extracted on 2011-11-15
 show: "Data.Bool"
 show: "Data.Byte" as "Byte"
 show: "Data.List"

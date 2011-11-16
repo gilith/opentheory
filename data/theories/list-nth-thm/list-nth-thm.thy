@@ -1,5 +1,5 @@
 name: list-nth-thm
-version: 1.24
+version: 1.26
 description: list-nth-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

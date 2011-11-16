@@ -1,18 +1,26 @@
 name: list-set
-version: 1.19
-description: Viewing lists as finite sets
+version: 1.22
+description: List to set conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: natural
+requires: set
+requires: list-def
+requires: list-thm
+requires: list-length
 show: "Data.Bool"
 show: "Data.List"
+show: "Number.Natural"
+show: "Set"
 
 def {
-  package: list-set-def-1.19
+  package: list-set-def-1.22
 }
 
 thm {
   import: def
-  package: list-set-thm-1.19
+  package: list-set-thm-1.21
 }
 
 main {

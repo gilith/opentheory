@@ -1,5 +1,5 @@
 name: real-thm
-version: 1.15
+version: 1.16
 description: real-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

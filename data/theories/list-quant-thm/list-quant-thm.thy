@@ -1,5 +1,5 @@
 name: list-quant-thm
-version: 1.20
+version: 1.22
 description: list-quant-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

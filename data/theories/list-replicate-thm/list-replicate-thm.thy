@@ -1,5 +1,5 @@
 name: list-replicate-thm
-version: 1.21
+version: 1.23
 description: list-replicate-thm
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
