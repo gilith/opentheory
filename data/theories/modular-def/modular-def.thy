@@ -1,5 +1,5 @@
 name: modular-def
-version: 1.21
+version: 1.22
 description: Definition of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT

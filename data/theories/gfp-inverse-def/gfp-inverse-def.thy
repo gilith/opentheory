@@ -1,5 +1,5 @@
 name: gfp-inverse-def
-version: 1.8
+version: 1.9
 description: Definition of GF(p) inverse
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: parser-comb-thm
-version: 1.24
+version: 1.25
 description: Theorems about the basic parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT

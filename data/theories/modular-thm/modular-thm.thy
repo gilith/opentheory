@@ -1,5 +1,5 @@
 name: modular-thm
-version: 1.12
+version: 1.13
 description: Properties of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT

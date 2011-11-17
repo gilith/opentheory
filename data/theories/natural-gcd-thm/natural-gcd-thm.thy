@@ -1,10 +1,15 @@
 name: natural-gcd-thm
-version: 1.6
+version: 1.8
 description: Properties of natural number greatest common divisor
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-11-16
+requires: bool
+requires: natural
+requires: natural-divides
+requires: natural-gcd-def
 show: "Data.Bool"
+show: "Number.Natural"
 
 main {
   article: "natural-gcd-thm.art"

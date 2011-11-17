@@ -1,5 +1,5 @@
 name: char-utf8-thm
-version: 1.36
+version: 1.37
 description: Theorems about UTF-8 encoders and decoders
 author: Joe Hurd <joe@gilith.com>
 license: MIT

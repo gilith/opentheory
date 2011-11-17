@@ -1,5 +1,5 @@
 name: word10-bits
-version: 1.20
+version: 1.21
 description: word10-bits
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -69,6 +69,18 @@ sub is_name_version {
     }
 }
 
+sub name_version_to_name {
+    (scalar @_ == 1) or die;
+    my $nv = shift @_;
+
+    if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+      return $1;
+    }
+    else {
+      die "check_theories: not a valid NAME-VERSION: $nv";
+    }
+}
+
 sub add_installed {
     (scalar @_ == 2) or die;
     my $par = shift @_;
@@ -128,23 +140,30 @@ while (my $thy = <THEORIES>) {
     is_name_version($thy) or
         die "check-theories: bad theory name: $thy";
 
-    add_toplevel($thy);
+    my $thy_name = name_version_to_name($thy);
 
-    $cmd = "$opentheory info --dependencies+ $thy";
+    if ( -d "$source/$thy_name" ) {
+      add_toplevel($thy);
 
-    open SUBTHEORIES, "$cmd |" or
+      $cmd = "$opentheory info --dependencies+ $thy";
+
+      open SUBTHEORIES, "$cmd |" or
         die "check-theories: couldn't list dependent theories of $thy: $!\n";
 
-    while (my $subthy = <SUBTHEORIES>) {
+      while (my $subthy = <SUBTHEORIES>) {
         chomp $subthy;
 
         is_name_version($subthy) or
-            die "check-theories: bad dependent theory of $thy: $subthy";
+          die "check-theories: bad dependent theory of $thy: $subthy";
 
         add_dependent($thy,$subthy);
-    }
+      }
 
-    close SUBTHEORIES;
+      close SUBTHEORIES;
+    }
+    else {
+      print STDOUT "check-theories: skipping obsolete theory $thy_name\n";
+    }
 }
 
 close THEORIES;

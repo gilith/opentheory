@@ -1,5 +1,5 @@
 name: char-def
-version: 1.29
+version: 1.30
 description: char-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT

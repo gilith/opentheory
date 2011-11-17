@@ -11,12 +11,12 @@ show: "Number.Modular"
 show: "Number.Natural"
 
 def {
-  package: modular-def-1.21
+  package: modular-def-1.22
 }
 
 thm {
   import: def
-  package: modular-thm-1.12
+  package: modular-thm-1.13
 }
 
 main {

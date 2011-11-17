@@ -1,5 +1,5 @@
 name: word16-bytes-def
-version: 1.21
+version: 1.22
 description: Definition of 16-bit words as pairs of bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT

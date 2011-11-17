@@ -1,5 +1,5 @@
 name: char-utf8-def
-version: 1.28
+version: 1.29
 description: Definitions of UTF-8 encoders and decoders
 author: Joe Hurd <joe@gilith.com>
 license: MIT

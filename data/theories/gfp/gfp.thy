@@ -1,6 +1,6 @@
 name: gfp
-version: 1.9
-description: Finite fields GF(p)
+version: 1.10
+description: Parametric theory of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
@@ -24,7 +24,7 @@ modular {
   interpret: const "Number.Modular.fromNatural" as "Number.GF(p).fromNatural"
   interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
   interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
-  package: modular-1.23
+  package: modular-1.24
 }
 
 thm {
@@ -37,7 +37,7 @@ inverse {
   import: def
   import: modular
   import: thm
-  package: gfp-inverse-1.8
+  package: gfp-inverse-1.9
 }
 
 main {

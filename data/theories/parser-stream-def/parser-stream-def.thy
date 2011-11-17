@@ -1,5 +1,5 @@
 name: parser-stream-def
-version: 1.28
+version: 1.29
 description: parser-stream-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT

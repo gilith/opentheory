@@ -1,5 +1,5 @@
 name: parser-comb-def
-version: 1.21
+version: 1.22
 description: Definition of the basic parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
