@@ -1,9 +1,9 @@
 name: natural-mult-thm
-version: 1.19
+version: 1.20
 description: Properties of natural number multiplication
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-15
+provenance: HOL Light theory extracted on 2011-11-16
 requires: bool
 requires: natural-def
 requires: natural-numeral

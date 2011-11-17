@@ -1,17 +1,17 @@
 name: base-examples
-version: 1.70
+version: 1.75
 description: All the example theories built on top of the standard library
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 
 base {
-  package: base-1.61
+  package: base-1.65
 }
 
 examples {
   import: base
-  package: examples-1.44
+  package: examples-1.46
 }
 
 main {

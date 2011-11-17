@@ -176,7 +176,7 @@ while (my $thy = <THEORIES>) {
           my $info2 = `$opentheory info --information $thy-$version2`;
 
           if ($info1 eq $info2) {
-            if ($info1 !~ /^requires: /m) {
+            if ($info1 !~ /^requires: /m && $thy ne "empty") {
               print STDOUT "check-theories: theory $thy has no requires information\n";
             }
           }

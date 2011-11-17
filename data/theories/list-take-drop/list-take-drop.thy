@@ -1,19 +1,27 @@
 name: list-take-drop
-version: 1.23
-description: Definitions and theorems about the list take and drop functions
+version: 1.25
+description: The list take and drop functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: natural
+requires: list-def
+requires: list-thm
+requires: list-dest
+requires: list-length
+requires: list-append
+requires: list-nth
 show: "Data.Bool"
 show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: list-take-drop-def-1.23
+  package: list-take-drop-def-1.25
 }
 
 thm {
   import: def
-  package: list-take-drop-thm-1.24
+  package: list-take-drop-thm-1.27
 }
 
 main {

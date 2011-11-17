@@ -1,18 +1,27 @@
 name: list-nub
-version: 1.25
-description: Definitions and theorems about the list nub function
+version: 1.27
+description: The list nub function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: natural
+requires: set
+requires: list-def
+requires: list-length
+requires: list-reverse
+requires: list-member
 show: "Data.Bool"
 show: "Data.List"
+show: "Number.Natural"
+show: "Set"
 
 def {
-  package: list-nub-def-1.21
+  package: list-nub-def-1.24
 }
 
 thm {
   import: def
-  package: list-nub-thm-1.26
+  package: list-nub-thm-1.29
 }
 
 main {

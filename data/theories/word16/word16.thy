@@ -1,5 +1,5 @@
 name: word16
-version: 1.27
+version: 1.29
 description: Theory of 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -35,20 +35,20 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word16.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word16.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word16.Bits.toWord"
-  package: word-1.23
+  package: word-1.25
 }
 
 bits {
   import: def
   import: word
-  package: word16-bits-1.22
+  package: word16-bits-1.23
 }
 
 bytes {
   import: def
   import: word
   import: bits
-  package: word16-bytes-1.23
+  package: word16-bytes-1.24
 }
 
 main {

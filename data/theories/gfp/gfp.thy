@@ -1,5 +1,5 @@
 name: gfp
-version: 1.7
+version: 1.9
 description: Finite fields GF(p)
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -24,7 +24,7 @@ modular {
   interpret: const "Number.Modular.fromNatural" as "Number.GF(p).fromNatural"
   interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
   interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
-  package: modular-1.21
+  package: modular-1.23
 }
 
 thm {
@@ -37,7 +37,7 @@ inverse {
   import: def
   import: modular
   import: thm
-  package: gfp-inverse-1.7
+  package: gfp-inverse-1.8
 }
 
 main {

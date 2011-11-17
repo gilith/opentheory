@@ -1,5 +1,5 @@
 name: bool
-version: 1.17
+version: 1.18
 description: Boolean operators and quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ def {
 
 int {
   import: def
-  package: bool-int-1.9
+  package: bool-int-1.10
 }
 
 axiom-extensionality {

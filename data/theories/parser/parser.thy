@@ -1,5 +1,5 @@
 name: parser
-version: 1.31
+version: 1.32
 description: Theory of simple parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,18 +12,18 @@ show: "Parser"
 show: "Relation"
 
 stream {
-  package: parser-stream-1.29
+  package: parser-stream-1.30
 }
 
 comb {
   import: stream
-  package: parser-comb-1.21
+  package: parser-comb-1.22
 }
 
 all {
   import: stream
   import: comb
-  package: parser-all-1.24
+  package: parser-all-1.25
 }
 
 main {

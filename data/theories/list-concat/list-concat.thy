@@ -1,18 +1,23 @@
 name: list-concat
-version: 1.20
-description: Definitions and theorems about the list concat function
+version: 1.22
+description: The list concat function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: list-def
+requires: list-dest
+requires: list-append
+requires: list-quant
 show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-concat-def-1.21
+  package: list-concat-def-1.22
 }
 
 thm {
   import: def
-  package: list-concat-thm-1.6
+  package: list-concat-thm-1.8
 }
 
 main {
