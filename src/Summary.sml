@@ -289,7 +289,7 @@ fun checkSequent show class seq =
 
                 val pps = if b then Print.break :: pps else pps
               in
-                Print.ppString err pps
+                Print.ppString err :: pps
               end
 
           fun ppErrs () =
