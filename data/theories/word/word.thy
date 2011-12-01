@@ -1,11 +1,12 @@
 name: word
-version: 1.26
+version: 1.30
 description: Parametric theory of words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural
 requires: list
+requires: natural-divides
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Word"
@@ -13,12 +14,12 @@ show: "Data.Word.Bits"
 show: "Number.Natural"
 
 def {
-  package: word-def-1.7
+  package: word-def-1.10
 }
 
 bits {
   import: def
-  package: word-bits-1.24
+  package: word-bits-1.26
 }
 
 main {

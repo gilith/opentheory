@@ -1,31 +1,43 @@
 name: char
-version: 1.36
-description: Theory of Unicode characters
+version: 1.42
+description: Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: pair
+requires: natural
+requires: option
+requires: list
+requires: byte
+requires: word16
+requires: parser
 show: "Data.Bool"
-show: "Data.Byte" as "Byte"
+show: "Data.Byte"
+show: "Data.Byte.Bits"
 show: "Data.Char"
+show: "Data.Char.UTF8"
 show: "Data.List"
-show: "Data.Option" as "Option"
+show: "Data.Option"
 show: "Data.Pair"
-show: "Data.Word16" as "Word16"
-show: "Number.Natural" as "Natural"
+show: "Data.Word16"
+show: "Data.Word16.Bits"
+show: "Number.Natural"
 show: "Parser"
+show: "Parser.Stream"
 
 def {
-  package: char-def-1.30
+  package: char-def-1.35
 }
 
 thm {
   import: def
-  package: char-thm-1.3
+  package: char-thm-1.4
 }
 
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.35
+  package: char-utf8-1.41
 }
 
 main {

@@ -1,11 +1,13 @@
 name: natural-distance-thm
-version: 1.25
+version: 1.27
 description: Properties of natural number distance
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-16
+provenance: HOL Light theory extracted on 2011-11-27
 requires: bool
 requires: natural-def
+requires: natural-thm
+requires: natural-numeral
 requires: natural-order
 requires: natural-add
 requires: natural-mult

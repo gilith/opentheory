@@ -1,9 +1,9 @@
 name: list-nub-thm
-version: 1.29
+version: 1.30
 description: Properties of the list nub function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-16
+provenance: HOL Light theory extracted on 2011-11-27
 requires: bool
 requires: natural
 requires: set

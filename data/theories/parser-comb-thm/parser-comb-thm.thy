@@ -1,10 +1,20 @@
 name: parser-comb-thm
-version: 1.25
-description: Theorems about the basic parser combinators
+version: 1.32
+description: Properties of stream parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-16
+provenance: HOL Light theory extracted on 2011-11-29
+requires: bool
+requires: pair
+requires: option
+requires: parser-stream
+requires: parser-comb-def
 show: "Data.Bool"
+show: "Data.List"
+show: "Data.Option"
+show: "Data.Pair"
+show: "Parser"
+show: "Parser.Stream"
 
 main {
   article: "parser-comb-thm.art"

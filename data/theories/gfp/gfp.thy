@@ -1,48 +1,38 @@
 name: gfp
-version: 1.10
+version: 1.14
 description: Parametric theory of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: pair
+requires: natural
+requires: relation
+requires: natural-divides
+requires: natural-gcd
+requires: natural-prime
+requires: gfp-witness
 show: "Data.Bool"
+show: "Data.Pair"
 show: "Number.GF(p)"
-show: "Number.Natural" as "Natural"
+show: "Number.Natural"
 
 def {
-  package: gfp-def-1.2
-}
-
-modular {
-  import: def
-  interpret: type "Number.Modular.modular" as "Number.GF(p).gfp"
-  interpret: const "Number.Modular.*" as "Number.GF(p).*"
-  interpret: const "Number.Modular.+" as "Number.GF(p).+"
-  interpret: const "Number.Modular.-" as "Number.GF(p).-"
-  interpret: const "Number.Modular.<" as "Number.GF(p).<"
-  interpret: const "Number.Modular.<=" as "Number.GF(p).<="
-  interpret: const "Number.Modular.~" as "Number.GF(p).~"
-  interpret: const "Number.Modular.fromNatural" as "Number.GF(p).fromNatural"
-  interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
-  interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
-  package: modular-1.24
+  package: gfp-def-1.5
 }
 
 thm {
   import: def
-  import: modular
-  package: gfp-thm-1.5
+  package: gfp-thm-1.8
 }
 
-inverse {
+div {
   import: def
-  import: modular
   import: thm
-  package: gfp-inverse-1.9
+  package: gfp-div-1.13
 }
 
 main {
   import: def
-  import: modular
   import: thm
-  import: inverse
+  import: div
 }

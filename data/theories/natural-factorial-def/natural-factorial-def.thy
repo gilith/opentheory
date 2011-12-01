@@ -1,9 +1,9 @@
 name: natural-factorial-def
-version: 1.9
+version: 1.10
 description: Definition of natural number factorial
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-08
+provenance: HOL Light theory extracted on 2011-11-27
 requires: bool
 requires: natural-thm
 show: "Data.Bool"

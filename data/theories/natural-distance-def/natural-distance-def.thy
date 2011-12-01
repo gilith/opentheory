@@ -1,9 +1,9 @@
 name: natural-distance-def
-version: 1.17
+version: 1.18
 description: Definition of natural number distance
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-16
+provenance: HOL Light theory extracted on 2011-11-27
 requires: bool
 show: "Data.Bool"
 show: "Number.Natural"

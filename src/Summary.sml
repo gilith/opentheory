@@ -261,33 +261,58 @@ fun checkShow seqs =
 
 fun checkSequent show class seq =
     let
-      val err =
-          case TermAlphaSet.size (Sequent.hyp seq) of
-            0 => NONE
-          | 1 => SOME "hypothesis"
-          | _ => SOME "hypotheses"
+      val errs = []
 
-      val err =
-          if Option.isSome err then err
-          else
-            case VarSet.size (Term.freeVars (Sequent.concl seq)) of
-              0 => NONE
-            | 1 => SOME "free variable"
-            | _ => SOME "free variables"
+      val errs =
+          case TermAlphaSet.size (Sequent.hyp seq) of
+            0 => errs
+          | 1 => "hypothesis" :: errs
+          | _ => "hypotheses" :: errs
+
+      val errs =
+          case VarSet.size (Term.freeVars (Sequent.concl seq)) of
+            0 => errs
+          | 1 => "free variable" :: errs
+          | _ => "free variables" :: errs
+
+      val errs =
+          if not (Term.isConj (Sequent.concl seq)) then errs
+          else "top-level conjunction" :: errs
     in
-      case err of
-        NONE => ()
-      | SOME err =>
+      case errs of
+        [] => ()
+      | err :: errs =>
         let
-          fun ppErr () =
+          fun addErr b s (err,pps) =
+              let
+                val pps = Print.ppString s :: Print.break :: pps
+
+                val pps = if b then Print.break :: pps else pps
+              in
+                Print.ppString err pps
+              end
+
+          fun ppErrs () =
+              let
+                val pps = addErr true "in" (err,[Print.ppString class])
+
+                val (pps,errs) =
+                    case errs of
+                      [] => (pps,errs)
+                    | err :: errs => (addErr true "and" (err,pps), errs)
+
+                val pps = List.foldl (addErr false ",") pps errs
+              in
+                Print.inconsistentBlock 0 pps
+              end
+
+          fun ppErrsSeq () =
               Print.consistentBlock 2
-                [Print.ppString err,
-                 Print.ppString " in ",
-                 Print.ppString class,
+                [ppErrs (),
                  Print.newline,
                  Sequent.ppWithShow show seq]
         in
-          warn (Print.toString ppErr ())
+          warn (Print.toString ppErrsSeq ())
         end
     end;
 

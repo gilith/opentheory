@@ -1,26 +1,39 @@
 name: char-utf8
-version: 1.35
-description: Theory of UTF-8 encoders and decoders
+version: 1.42
+description: The UTF-8 encoding of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: pair
+requires: natural
+requires: option
+requires: list
+requires: byte
+requires: word16
+requires: parser
+requires: char-def
+requires: char-thm
 show: "Data.Bool"
-show: "Data.Byte" as "Byte"
-show: "Data.Char" as "Char"
+show: "Data.Byte"
+show: "Data.Byte.Bits"
+show: "Data.Char"
 show: "Data.Char.UTF8"
 show: "Data.List"
-show: "Data.Option" as "Option"
+show: "Data.Option"
 show: "Data.Pair"
-show: "Data.Word16" as "Word16"
-show: "Number.Natural" as "Natural"
+show: "Data.Word16"
+show: "Data.Word16.Bits"
+show: "Number.Natural"
 show: "Parser"
+show: "Parser.Stream"
 
 def {
-  package: char-utf8-def-1.29
+  package: char-utf8-def-1.33
 }
 
 thm {
   import: def
-  package: char-utf8-thm-1.37
+  package: char-utf8-thm-1.45
 }
 
 main {

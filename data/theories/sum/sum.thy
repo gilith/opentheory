@@ -1,5 +1,5 @@
 name: sum
-version: 1.24
+version: 1.25
 description: Sum types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ show: "Data.Sum"
 show: "Number.Natural"
 
 def {
-  package: sum-def-1.30
+  package: sum-def-1.31
 }
 
 main {

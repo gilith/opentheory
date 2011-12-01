@@ -1,11 +1,37 @@
 name: gfp-def
-version: 1.2
-description: Definition of GF(p)
+version: 1.5
+description: Definition of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-11-15
+requires: bool
+requires: natural
+requires: natural-prime
+requires: gfp-witness
 show: "Data.Bool"
+show: "Number.GF(p)"
+show: "Number.Natural"
+
+def {
+  article: "gfp-def.art"
+}
+
+modular {
+  import: def
+  interpret: type "Number.Modular.modular" as "Number.GF(p).gfp"
+  interpret: const "Number.Modular.*" as "Number.GF(p).*"
+  interpret: const "Number.Modular.+" as "Number.GF(p).+"
+  interpret: const "Number.Modular.-" as "Number.GF(p).-"
+  interpret: const "Number.Modular.<" as "Number.GF(p).<"
+  interpret: const "Number.Modular.<=" as "Number.GF(p).<="
+  interpret: const "Number.Modular.~" as "Number.GF(p).~"
+  interpret: const "Number.Modular.fromNatural" as "Number.GF(p).fromNatural"
+  interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
+  interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
+  package: modular-1.26
+}
 
 main {
-  article: "gfp-def.art"
+  import: def
+  import: modular
 }

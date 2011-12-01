@@ -1,22 +1,31 @@
 name: word16-bytes
-version: 1.25
-description: Theory of 16-bit words as pairs of bytes
+version: 1.29
+description: 16-bit word to byte pair conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: bool
+requires: pair
+requires: natural
+requires: list
+requires: byte
+requires: word16-def
+requires: word16-bits
 show: "Data.Bool"
-show: "Data.Byte" as "Byte"
+show: "Data.Byte"
+show: "Data.Byte.Bits"
 show: "Data.List"
 show: "Data.Pair"
 show: "Data.Word16"
-show: "Number.Natural" as "Natural"
+show: "Data.Word16.Bits"
+show: "Number.Natural"
 
 def {
-  package: word16-bytes-def-1.22
+  package: word16-bytes-def-1.28
 }
 
 thm {
   import: def
-  package: word16-bytes-thm-1.27
+  package: word16-bytes-thm-1.34
 }
 
 main {
