@@ -1,5 +1,5 @@
 name: char-thm
-version: 1.5
+version: 1.6
 description: Properties of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,6 @@ show: "Data.Byte"
 show: "Data.Char"
 show: "Data.Pair"
 show: "Data.Word16"
-show: "Number.Natural"
 
 main {
   article: "char-thm.art"

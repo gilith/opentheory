@@ -28,12 +28,12 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: char-utf8-def-1.33
+  package: char-utf8-def-1.34
 }
 
 thm {
   import: def
-  package: char-utf8-thm-1.45
+  package: char-utf8-thm-1.46
 }
 
 main {
