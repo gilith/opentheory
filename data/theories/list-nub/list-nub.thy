@@ -1,5 +1,5 @@
 name: list-nub
-version: 1.28
+version: 1.30
 description: The list nub function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-nub-def-1.25
+  package: list-nub-def-1.27
 }
 
 thm {
   import: def
-  package: list-nub-thm-1.30
+  package: list-nub-thm-1.32
 }
 
 main {

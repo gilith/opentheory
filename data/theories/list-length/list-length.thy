@@ -1,5 +1,5 @@
 name: list-length
-version: 1.23
+version: 1.25
 description: The list length function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,12 +13,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: list-length-def-1.20
+  package: list-length-def-1.22
 }
 
 thm {
   import: def
-  package: list-length-thm-1.25
+  package: list-length-thm-1.27
 }
 
 main {

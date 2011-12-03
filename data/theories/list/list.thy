@@ -1,5 +1,5 @@
 name: list
-version: 1.40
+version: 1.42
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,32 +16,32 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.29
+  package: list-def-1.31
 }
 
 thm {
   import: def
-  package: list-thm-1.26
+  package: list-thm-1.28
 }
 
 dest {
   import: def
   import: thm
-  package: list-dest-1.22
+  package: list-dest-1.24
 }
 
 length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.23
+  package: list-length-1.25
 }
 
 set {
   import: def
   import: thm
   import: length
-  package: list-set-1.24
+  package: list-set-1.26
 }
 
 append {
@@ -50,7 +50,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.23
+  package: list-append-1.25
 }
 
 map {
@@ -59,7 +59,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.24
+  package: list-map-1.26
 }
 
 quant {
@@ -67,7 +67,7 @@ quant {
   import: set
   import: append
   import: map
-  package: list-quant-1.23
+  package: list-quant-1.25
 }
 
 filter {
@@ -76,7 +76,7 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.24
+  package: list-filter-1.26
 }
 
 last {
@@ -84,7 +84,7 @@ last {
   import: thm
   import: append
   import: set
-  package: list-last-1.25
+  package: list-last-1.27
 }
 
 reverse {
@@ -92,7 +92,7 @@ reverse {
   import: length
   import: set
   import: append
-  package: list-reverse-1.22
+  package: list-reverse-1.24
 }
 
 nth {
@@ -106,14 +106,14 @@ nth {
   import: quant
   import: last
   import: length
-  package: list-nth-1.26
+  package: list-nth-1.28
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.25
+  package: list-replicate-1.27
 }
 
 member {
@@ -126,7 +126,7 @@ member {
   import: reverse
   import: length
   import: nth
-  package: list-member-1.28
+  package: list-member-1.30
 }
 
 concat {
@@ -134,7 +134,7 @@ concat {
   import: dest
   import: append
   import: quant
-  package: list-concat-1.23
+  package: list-concat-1.25
 }
 
 take-drop {
@@ -144,20 +144,20 @@ take-drop {
   import: append
   import: length
   import: nth
-  package: list-take-drop-1.26
+  package: list-take-drop-1.28
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.26
+  package: list-interval-1.28
 }
 
 zipwith {
   import: def
   import: dest
   import: length
-  package: list-zipwith-1.24
+  package: list-zipwith-1.26
 }
 
 nub {
@@ -165,7 +165,7 @@ nub {
   import: reverse
   import: length
   import: member
-  package: list-nub-1.28
+  package: list-nub-1.30
 }
 
 main {

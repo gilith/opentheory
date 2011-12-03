@@ -1,5 +1,5 @@
 name: parser-comb
-version: 1.28
+version: 1.30
 description: Stream parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-comb-def-1.28
+  package: parser-comb-def-1.30
 }
 
 thm {
   import: def
-  package: parser-comb-thm-1.32
+  package: parser-comb-thm-1.34
 }
 
 main {

@@ -1,9 +1,9 @@
 name: list-quant-thm
-version: 1.25
+version: 1.27
 description: Properties of list quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-27
+provenance: HOL Light theory extracted on 2011-12-02
 requires: bool
 requires: function
 requires: set

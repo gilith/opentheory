@@ -1,9 +1,9 @@
 name: char-def
-version: 1.36
+version: 1.38
 description: Definition of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-30
+provenance: HOL Light theory extracted on 2011-12-02
 requires: bool
 requires: pair
 requires: natural

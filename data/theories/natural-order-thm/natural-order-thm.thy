@@ -1,9 +1,9 @@
 name: natural-order-thm
-version: 1.20
+version: 1.21
 description: Properties of natural number orderings
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-27
+provenance: HOL Light theory extracted on 2011-12-02
 requires: bool
 requires: natural-def
 requires: natural-order-def

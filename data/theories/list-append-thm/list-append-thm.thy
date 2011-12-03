@@ -1,9 +1,9 @@
 name: list-append-thm
-version: 1.13
+version: 1.14
 description: Properties of the list append function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-15
+provenance: HOL Light theory extracted on 2011-12-02
 requires: bool
 requires: natural
 requires: set

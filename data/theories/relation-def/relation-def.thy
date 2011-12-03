@@ -1,9 +1,9 @@
 name: relation-def
-version: 1.4
+version: 1.6
 description: Definition of relation operators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-27
+provenance: HOL Light theory extracted on 2011-12-02
 requires: bool
 show: "Data.Bool"
 show: "Data.Pair"

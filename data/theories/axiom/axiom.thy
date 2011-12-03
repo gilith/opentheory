@@ -1,5 +1,5 @@
 name: axiom
-version: 1.6
+version: 1.7
 description: Standard axioms
 author: Joe Hurd <joe@gilith.com>
 license: MIT
