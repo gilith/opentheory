@@ -1,5 +1,5 @@
 name: natural-gcd-def
-version: 1.5
+version: 1.6
 description: Definition of natural number greatest common divisor
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: list-append
-version: 1.25
+version: 1.26
 description: The list append function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: list-append-thm-1.14
+  package: list-append-thm-1.15
 }
 
 main {

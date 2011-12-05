@@ -1,5 +1,5 @@
 name: natural-div-thm
-version: 1.20
+version: 1.21
 description: Properties of natural number division
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

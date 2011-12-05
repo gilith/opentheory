@@ -1,5 +1,5 @@
 name: list-append-thm
-version: 1.14
+version: 1.15
 description: Properties of the list append function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

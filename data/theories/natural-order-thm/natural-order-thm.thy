@@ -1,5 +1,5 @@
 name: natural-order-thm
-version: 1.21
+version: 1.22
 description: Properties of natural number orderings
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

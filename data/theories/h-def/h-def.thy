@@ -1,5 +1,5 @@
 name: h-def
-version: 1.41
+version: 1.42
 description: h-def
 author: Joe Hurd <joe@gilith.com>
 license: MIT

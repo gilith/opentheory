@@ -1,5 +1,5 @@
 name: natural-def
-version: 1.12
+version: 1.13
 description: Constructing the natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

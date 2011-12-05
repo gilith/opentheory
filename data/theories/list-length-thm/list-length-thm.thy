@@ -1,5 +1,5 @@
 name: list-length-thm
-version: 1.27
+version: 1.28
 description: Properties of the list length function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,5 +1,5 @@
 name: gfp-div-gcd-thm
-version: 1.8
+version: 1.9
 description: Properties of a gcd-based GF(p) division algorithm
 author: Joe Hurd <joe@gilith.com>
 license: MIT

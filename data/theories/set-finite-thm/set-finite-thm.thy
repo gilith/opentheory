@@ -1,5 +1,5 @@
 name: set-finite-thm
-version: 1.30
+version: 1.31
 description: Properties of finite sets
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

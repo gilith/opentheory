@@ -1,5 +1,5 @@
 name: parser-comb-thm
-version: 1.34
+version: 1.35
 description: Properties of stream parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT

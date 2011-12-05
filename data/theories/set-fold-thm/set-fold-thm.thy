@@ -1,5 +1,5 @@
 name: set-fold-thm
-version: 1.20
+version: 1.21
 description: Properties of a fold operation on finite sets
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

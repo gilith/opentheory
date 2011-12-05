@@ -1,5 +1,5 @@
 name: natural-prime
-version: 1.11
+version: 1.12
 description: Prime natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ def {
 
 thm {
   import: def
-  package: natural-prime-thm-1.15
+  package: natural-prime-thm-1.16
 }
 
 main {

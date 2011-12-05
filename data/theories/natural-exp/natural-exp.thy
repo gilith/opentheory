@@ -1,5 +1,5 @@
 name: natural-exp
-version: 1.18
+version: 1.19
 description: Natural number exponentiation
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: natural-exp-thm-1.17
+  package: natural-exp-thm-1.18
 }
 
 main {

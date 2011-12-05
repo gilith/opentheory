@@ -1,5 +1,5 @@
 name: list-member
-version: 1.30
+version: 1.31
 description: The list member function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -28,7 +28,7 @@ def {
 
 thm {
   import: def
-  package: list-member-thm-1.32
+  package: list-member-thm-1.33
 }
 
 main {

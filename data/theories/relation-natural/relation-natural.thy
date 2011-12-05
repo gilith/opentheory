@@ -1,5 +1,5 @@
 name: relation-natural
-version: 1.6
+version: 1.7
 description: Relations over natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: relation-natural-thm-1.8
+  package: relation-natural-thm-1.9
 }
 
 main {

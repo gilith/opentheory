@@ -1,5 +1,5 @@
 name: h
-version: 1.37
+version: 1.38
 description: The memory safety proof of the H API
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ show: "Set"
 show: "System.H"
 
 def {
-  package: h-def-1.41
+  package: h-def-1.42
 }
 
 thm {

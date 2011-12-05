@@ -1,5 +1,5 @@
 name: parser-stream-def
-version: 1.39
+version: 1.40
 description: Definition of parse streams
 author: Joe Hurd <joe@gilith.com>
 license: MIT

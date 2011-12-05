@@ -1,5 +1,5 @@
 name: natural-div-def
-version: 1.20
+version: 1.21
 description: Definition of natural number division
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

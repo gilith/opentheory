@@ -1,5 +1,5 @@
 name: natural-prime-thm
-version: 1.15
+version: 1.16
 description: Properties of prime natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

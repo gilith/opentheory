@@ -1,9 +1,9 @@
 name: natural-thm
-version: 1.6
+version: 1.7
 description: Properties of natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-27
+provenance: HOL Light theory extracted on 2011-12-02
 requires: bool
 requires: natural-def
 show: "Data.Bool"

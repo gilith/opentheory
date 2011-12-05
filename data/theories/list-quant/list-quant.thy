@@ -1,5 +1,5 @@
 name: list-quant
-version: 1.25
+version: 1.26
 description: List quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: list-quant-thm-1.27
+  package: list-quant-thm-1.28
 }
 
 main {

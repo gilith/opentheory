@@ -1,5 +1,5 @@
 name: natural-distance
-version: 1.23
+version: 1.24
 description: Natural number distance
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ def {
 
 thm {
   import: def
-  package: natural-distance-thm-1.29
+  package: natural-distance-thm-1.30
 }
 
 main {

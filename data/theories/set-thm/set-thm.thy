@@ -1,5 +1,5 @@
 name: set-thm
-version: 1.30
+version: 1.31
 description: Properties of set types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,5 +1,5 @@
 name: list-quant-thm
-version: 1.27
+version: 1.28
 description: Properties of list quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

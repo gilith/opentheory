@@ -1,5 +1,5 @@
 name: list
-version: 1.42
+version: 1.43
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.31
+  package: list-def-1.32
 }
 
 thm {
@@ -34,7 +34,7 @@ length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.25
+  package: list-length-1.26
 }
 
 set {
@@ -50,7 +50,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.25
+  package: list-append-1.26
 }
 
 map {
@@ -59,7 +59,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.26
+  package: list-map-1.27
 }
 
 quant {
@@ -67,7 +67,7 @@ quant {
   import: set
   import: append
   import: map
-  package: list-quant-1.25
+  package: list-quant-1.26
 }
 
 filter {
@@ -106,7 +106,7 @@ nth {
   import: quant
   import: last
   import: length
-  package: list-nth-1.28
+  package: list-nth-1.29
 }
 
 replicate {
@@ -126,7 +126,7 @@ member {
   import: reverse
   import: length
   import: nth
-  package: list-member-1.30
+  package: list-member-1.31
 }
 
 concat {
@@ -150,7 +150,7 @@ take-drop {
 interval {
   import: length
   import: nth
-  package: list-interval-1.28
+  package: list-interval-1.29
 }
 
 zipwith {

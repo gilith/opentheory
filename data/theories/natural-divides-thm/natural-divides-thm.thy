@@ -1,5 +1,5 @@
 name: natural-divides-thm
-version: 1.13
+version: 1.14
 description: Properties of the divides relation on natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: option-def
-version: 1.31
+version: 1.32
 description: Definition of option types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

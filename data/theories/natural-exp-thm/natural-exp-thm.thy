@@ -1,5 +1,5 @@
 name: natural-exp-thm
-version: 1.17
+version: 1.18
 description: Properties of natural number exponentiation
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

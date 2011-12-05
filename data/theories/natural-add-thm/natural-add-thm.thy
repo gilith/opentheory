@@ -1,5 +1,5 @@
 name: natural-add-thm
-version: 1.22
+version: 1.23
 description: Properties of natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
