@@ -271,7 +271,7 @@ lines: $(LINES)
 # Profiling using MLton.
 ###############################################################################
 
-BENCHMARK_OPTS = info --article -o benchmark.out data/theories/char-utf8-thm/char-utf8-thm.art
+BENCHMARK_OPTS = info --preserve-theory --article -o benchmark.out ../hol-light/opentheory/articles/char-utf8-thm.thy
 
 profile-time.mlb: bin/mlton/benchmark.sml
 	echo '$$(SML_LIB)/basis/basis.mlb $$(SML_LIB)/basis/mlton.mlb $<' > $@
