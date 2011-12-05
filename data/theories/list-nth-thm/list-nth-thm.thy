@@ -1,9 +1,9 @@
 name: list-nth-thm
-version: 1.31
+version: 1.32
 description: Properties of the list nth function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-12-02
+provenance: HOL Light theory extracted on 2011-12-05
 requires: bool
 requires: natural
 requires: set

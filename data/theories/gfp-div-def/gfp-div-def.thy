@@ -1,9 +1,9 @@
 name: gfp-div-def
-version: 1.15
+version: 1.16
 description: Definition of GF(p) field division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-02
+provenance: HOL Light theory extracted on 2011-12-05
 requires: bool
 requires: natural
 requires: natural-divides
