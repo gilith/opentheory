@@ -480,22 +480,97 @@ end;
 
 datatype eliminate =
     Eliminate of
-      {defaultMap : (bool * Object.object) ObjectDataMap.map,
+      {unwantedSearch : TermSearch.search,
+       defaultMap : Object.object ObjectDataMap.map,
        specialMap : Object.object option IntMap.map,
        elimIdx : eliminateIdx};
 
 val empty =
     let
-      val defaultMap =
+      val unwantedSearch =
+          TermSearch.new
+            {predicate = Term.equalConst unwantedIdConst,
+             leftToRight = true}
+
+      and defaultMap =
           ObjectDataMap.fromList
-            [(ObjectData.Const unwantedIdConst, (false,idConstObject))]
+            [(ObjectData.Const unwantedIdConst, idConstObject)]
 
       and specialMap = IntMap.new ()
 
       and elimIdx = emptyIdx
     in
       Eliminate
-        {defaultMap = defaultMap,
+        {unwantedSearch = unwantedSearch,
+         defaultMap = defaultMap,
+         specialMap = specialMap,
+         elimIdx = elimIdx}
+    end;
+
+fun containsUnwanted d elim =
+    let
+      val Eliminate
+            {unwantedSearch,
+             defaultMap,
+             specialMap,
+             elimIdx} = elim
+
+      val (to,unwantedSearch) = ObjectData.sharingSearch d unwantedSearch
+
+      val elim =
+          Eliminate
+            {unwantedSearch = unwantedSearch,
+             defaultMap = defaultMap,
+             specialMap = specialMap,
+             elimIdx = elimIdx}
+    in
+      (Option.isSome to, elim)
+    end;
+
+fun peekDefaultMap elim =
+    let
+      val Eliminate {defaultMap,...} = elim
+    in
+      ObjectDataMap.peek defaultMap
+    end;
+
+fun insertDefaultMap elim d_obj' =
+    let
+      val Eliminate
+            {unwantedSearch,
+             defaultMap,
+             specialMap,
+             elimIdx} = elim
+
+      val defaultMap = ObjectDataMap.insert defaultMap d_obj'
+    in
+      Eliminate
+        {unwantedSearch = unwantedSearch,
+         defaultMap = defaultMap,
+         specialMap = specialMap,
+         elimIdx = elimIdx}
+    end;
+
+fun peekSpecialMap elim =
+    let
+      val Eliminate {specialMap,...} = elim
+    in
+      IntMap.peek specialMap
+    end;
+
+fun insertSpecialMap elim i_obj' =
+    let
+      val Eliminate
+            {unwantedSearch,
+             defaultMap,
+             specialMap,
+             elimIdx} = elim
+
+      val specialMap = IntMap.insert specialMap i_obj'
+    in
+      Eliminate
+        {unwantedSearch = unwantedSearch,
+         defaultMap = defaultMap,
          specialMap = specialMap,
          elimIdx = elimIdx}
     end;
@@ -504,7 +579,8 @@ local
   fun eliminateTopIdx obj elim =
       let
         val Eliminate
-              {defaultMap,
+              {unwantedSearch,
+               defaultMap,
                specialMap,
                elimIdx} = elim
 
@@ -531,7 +607,8 @@ local
 
         val elim =
             Eliminate
-              {defaultMap = defaultMap,
+              {unwantedSearch = unwantedSearch,
+               defaultMap = defaultMap,
                specialMap = specialMap,
                elimIdx = elimIdx}
       in
@@ -566,23 +643,21 @@ local
         (obj',elim)
       end;
 
-  fun eliminateOb' ob elim =
+  fun eliminateData d elim =
       let
-        val Eliminate
-              {defaultMap,
-               specialMap,
-               elimIdx} = elim
+(*OpenTheoryDebug
+        val () =
+            if fst (containsUnwanted d elim) then ()
+            else raise Bug "ObjectUnwanted.eliminateData: nothing to do"
+*)
       in
-        case ObjectDataMap.peek defaultMap ob of
-          SOME obj' => (obj',elim)
+        case peekDefaultMap elim d of
+          SOME obj => (obj,elim)
         | NONE =>
           let
-            val (cmd,obs) = ObjectData.command ob
+            val (cmd,ds) = ObjectData.command d
 
-            val (objs',elim) = maps eliminateOb' obs elim
-
-            val unchanged = List.all fst objs'
-            and objs = List.map snd objs'
+            val (objs,elim) = maps eliminateData' ds elim
 
             val obj =
                 let
@@ -592,76 +667,73 @@ local
                   val () =
                       case xs of
                         [_] => ()
-                      | _ => raise Bug "ObjectUnwanted.eliminateOb'"
+                      | _ => raise Bug "ObjectUnwanted.eliminateData"
 *)
                 in
                   hd xs
                 end
 
-            val (obj',elim) =
-                let
-                  val (obj',elim) = eliminateTop obj elim
+            val (obj',elim) = eliminateTop obj elim
 
-                  val obj' =
-                      case obj' of
-                        NONE => (unchanged,obj)
-                      | SOME obj => (false,obj)
-                in
-                  (obj',elim)
-                end
+            val obj = Option.getOpt (obj',obj)
 
-            val defaultMap = ObjectDataMap.insert defaultMap (ob,obj')
-
-            val elim =
-                Eliminate
-                  {defaultMap = defaultMap,
-                   specialMap = specialMap,
-                   elimIdx = elimIdx}
+            val elim = insertDefaultMap elim (d,obj)
           in
-            (obj',elim)
+            (obj,elim)
           end
-      end;
+      end
 
-  fun eliminateOb ob elim =
+  and eliminateData' d elim =
       let
-        val ((unchanged,obj),elim) = eliminateOb' ob elim
-
-        val obj' = if unchanged then NONE else SOME obj
-
-(*OpenTheoryTrace4
-        val () =
-            let
-              val ppElim =
-                  Print.ppOp2 " ->" ObjectData.pp
-                    (Print.ppOption Object.pp)
-            in
-              Print.trace ppElim "ObjectUnwanted.eliminateOb"
-                (ob,obj')
-            end
-*)
+        val (b,elim) = containsUnwanted d elim
       in
-        (obj',elim)
+        if b then eliminateData d elim
+        else
+          case peekDefaultMap elim d of
+            SOME obj => (obj,elim)
+          | NONE =>
+            let
+              val obj = Object.mkUnsavable d
+
+              val elim = insertDefaultMap elim (d,obj)
+            in
+              (obj,elim)
+            end
       end;
 
   fun eliminateObj obj elim =
       if not (Object.isDefault obj) then eliminateTop obj elim
-      else eliminateOb (Object.data obj) elim;
+      else
+        let
+          val d = Object.data obj
+
+          val (b,elim) = containsUnwanted d elim
+        in
+          if not b then (NONE,elim)
+          else
+            let
+              val (obj,elim) = eliminateData d elim
+
+(*OpenTheoryTrace4
+              val () =
+                  let
+                    val ppElim = Print.ppOp2 " ->" ObjectData.pp Object.pp
+                  in
+                    Print.trace ppElim "ObjectUnwanted.eliminateObj" (d,obj)
+                  end
+*)
+            in
+              (SOME obj, elim)
+            end
+        end;
 
   fun preDescent obj elim =
-      let
-        val Eliminate {specialMap,...} = elim
-
-        val i = Object.id obj
-      in
-        case IntMap.peek specialMap i of
-          NONE => {descend = true, result = (NONE,elim)}
-        | SOME obj' => {descend = false, result = (obj',elim)}
-      end;
+      case peekSpecialMap elim (Object.id obj) of
+        NONE => {descend = true, result = (NONE,elim)}
+      | SOME obj' => {descend = false, result = (obj',elim)};
 
   fun postDescent obj0 obj1' elim =
       let
-        val i = Object.id obj0
-
         val unchanged = true
 
         val (unchanged,obj1) =
@@ -669,7 +741,15 @@ local
               NONE => (unchanged,obj0)
             | SOME obj => (false,obj)
 
-        val (obj2',elim) = eliminateObj obj1 elim
+        val (obj2',elim) =
+            let
+              (* If nothing changed during a Special descent then *)
+              (* no Unwanted constants were instantiated, and so *)
+              (* there's nothing to be done at this subproof *)
+              val cutoff = unchanged andalso not (Object.isDefault obj0)
+            in
+              if cutoff then (NONE,elim) else eliminateObj obj1 elim
+            end
 
         val (unchanged,obj2) =
             case obj2' of
@@ -678,18 +758,7 @@ local
 
         val obj2' = if unchanged then NONE else SOME obj2
 
-        val Eliminate
-              {defaultMap,
-               specialMap,
-               elimIdx} = elim
-
-        val specialMap = IntMap.insert specialMap (i,obj2')
-
-        val elim =
-            Eliminate
-              {defaultMap = defaultMap,
-               specialMap = specialMap,
-               elimIdx = elimIdx}
+        val elim = insertSpecialMap elim (Object.id obj0, obj2')
       in
         (obj2',elim)
       end;

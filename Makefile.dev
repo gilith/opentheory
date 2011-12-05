@@ -41,7 +41,7 @@ bin/mosml/Makefile.src: Makefile Makefile.dev $(MOSML_DEP) $(MLPP)
 ###############################################################################
 
 MLTON_OPTS += -verbose 1 -keep ssa -keep ssa2
-MLTON_OPTS += -const 'Exn.keepHistory true'
+#MLTON_OPTS += -const 'Exn.keepHistory true'
 #MLTON_OPTS += -show-basis basis.sml
 #MLTON_OPTS += -inline 100000
 #MLTON_OPTS += -const 'MLton.safe false' -const 'MLton.detectOverflow false'
@@ -271,7 +271,7 @@ lines: $(LINES)
 # Profiling using MLton.
 ###############################################################################
 
-BENCHMARK_OPTS = info --preserve-theory --article -o benchmark.out ../hol-light/opentheory/articles/char-utf8-thm.thy
+BENCHMARK_OPTS = info --article -o benchmark.out data/theories/char-utf8-thm/char-utf8-thm.art
 
 profile-time.mlb: bin/mlton/benchmark.sml
 	echo '$$(SML_LIB)/basis/basis.mlb $$(SML_LIB)/basis/mlton.mlb $<' > $@
