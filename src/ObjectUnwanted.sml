@@ -485,11 +485,18 @@ datatype eliminate =
        specialMap : Object.object option IntMap.map,
        elimIdx : eliminateIdx};
 
+val isUnwantedConst = Const.equal unwantedIdConst;
+
+fun isUnwantedTerm tm =
+    case Term.dest tm of
+      TypeTerm.Const' (c,_) => isUnwantedConst c
+    | _ => false;
+
 val empty =
     let
       val unwantedSearch =
           TermSearch.new
-            {predicate = Term.equalConst unwantedIdConst,
+            {predicate = isUnwantedTerm,
              leftToRight = true}
 
       and defaultMap =
@@ -508,24 +515,27 @@ val empty =
     end;
 
 fun containsUnwanted d elim =
-    let
-      val Eliminate
-            {unwantedSearch,
-             defaultMap,
-             specialMap,
-             elimIdx} = elim
+    case d of
+      ObjectData.Const c => (isUnwantedConst c, elim)
+    | _ =>
+      let
+        val Eliminate
+              {unwantedSearch,
+               defaultMap,
+               specialMap,
+               elimIdx} = elim
 
-      val (to,unwantedSearch) = ObjectData.sharingSearch d unwantedSearch
+        val (to,unwantedSearch) = ObjectData.sharingSearch d unwantedSearch
 
-      val elim =
-          Eliminate
-            {unwantedSearch = unwantedSearch,
-             defaultMap = defaultMap,
-             specialMap = specialMap,
-             elimIdx = elimIdx}
-    in
-      (Option.isSome to, elim)
-    end;
+        val elim =
+            Eliminate
+              {unwantedSearch = unwantedSearch,
+               defaultMap = defaultMap,
+               specialMap = specialMap,
+               elimIdx = elimIdx}
+      in
+        (Option.isSome to, elim)
+      end;
 
 fun peekDefaultMap elim =
     let
@@ -655,9 +665,9 @@ local
           SOME obj => (obj,elim)
         | NONE =>
           let
-            val (cmd,ds) = ObjectData.command d
+            val (cmd,args) = ObjectData.command d
 
-            val (objs,elim) = maps eliminateData' ds elim
+            val (objs,elim) = Useful.maps eliminateData' args elim
 
             val obj =
                 let
@@ -701,31 +711,47 @@ local
             end
       end;
 
-  fun eliminateObj obj elim =
-      if not (Object.isDefault obj) then eliminateTop obj elim
-      else
-        let
-          val d = Object.data obj
-
-          val (b,elim) = containsUnwanted d elim
-        in
-          if not b then (NONE,elim)
-          else
-            let
-              val (obj,elim) = eliminateData d elim
-
-(*OpenTheoryTrace4
-              val () =
-                  let
-                    val ppElim = Print.ppOp2 " ->" ObjectData.pp Object.pp
-                  in
-                    Print.trace ppElim "ObjectUnwanted.eliminateObj" (d,obj)
-                  end
+  fun eliminateDefault obj elim =
+      let
+(*OpenTheoryDebug
+        val () =
+            if Object.isDefault obj then ()
+            else raise Bug "ObjectUnwanted.eliminateDefault: not default"
 *)
-            in
-              (SOME obj, elim)
-            end
-        end;
+        val d = Object.data obj
+
+        val (b,elim) = containsUnwanted d elim
+      in
+        if not b then (NONE,elim)
+        else
+          let
+            val (obj,elim) = eliminateData d elim
+
+(*OpenTheoryDebug
+            val () =
+                let
+                  val ppElim = Print.ppOp2 " ->" ObjectData.pp Object.pp
+
+                  val (bad,_) = containsUnwanted (Object.data obj) elim
+
+                  val show = bad
+(*OpenTheoryTrace4
+                  val show = true
+*)
+                  val () =
+                      if not show then ()
+                      else
+                        Print.trace ppElim "ObjectUnwanted.eliminateDefault"
+                          (d,obj)
+                in
+                  if not bad then ()
+                  else raise Bug "ObjectUnwanted.eliminateDefault: unwanted"
+                end
+*)
+          in
+            (SOME obj, elim)
+          end
+      end;
 
   fun preDescent obj elim =
       case peekSpecialMap elim (Object.id obj) of
@@ -742,20 +768,95 @@ local
             | SOME obj => (false,obj)
 
         val (obj2',elim) =
-            let
-              (* If nothing changed during a Special descent then *)
-              (* no Unwanted constants were instantiated, and so *)
-              (* there's nothing to be done at this subproof *)
-              val cutoff = unchanged andalso not (Object.isDefault obj0)
-            in
-              if cutoff then (NONE,elim) else eliminateObj obj1 elim
-            end
+            if Object.isDefault obj0 then
+              let
+(*OpenTheoryDebug
+                val () =
+                    if unchanged then ()
+                    else raise Bug "ObjectUnwanted.postDescent: default changed"
+*)
+              in
+                eliminateDefault obj1 elim
+              end
+            else
+              let
+(*OpenTheoryDebug
+                val () =
+                    let
+                      fun ppObj obj =
+                          Print.program
+                            [Object.pp obj,
+                             Print.ppString " [",
+                             Object.ppProvenance (Object.provenance obj),
+                             Print.ppString "]"]
+
+                      val ppElim = Print.ppOp2 " ->" ppObj (Print.ppOption ppObj)
+
+                      val (bad,_) = containsUnwanted (Object.data obj1) elim
+
+                      val show = bad
+(*OpenTheoryTrace4
+                      val show = true
+*)
+                      val () =
+                          if not show then ()
+                          else
+                            Print.trace ppElim "ObjectUnwanted.postDescent"
+                              (obj0,obj1')
+                    in
+                      if not bad then ()
+                      else raise Bug "ObjectUnwanted.postDescent: unwanted obj1"
+                    end
+*)
+              in
+                if unchanged then
+                  let
+                    (* If nothing changed during a Special descent then *)
+                    (* no Unwanted constants were instantiated, and so *)
+                    (* there's nothing to be done at this subproof *)
+                  in
+                    (NONE,elim)
+                  end
+                else
+                  eliminateTop obj1 elim
+              end
 
         val (unchanged,obj2) =
             case obj2' of
               NONE => (unchanged,obj1)
             | SOME obj => (false,obj)
 
+(*OpenTheoryDebug
+        val () =
+            let
+              fun ppObj obj =
+                  Print.program
+                    [Object.pp obj,
+                     Print.ppString " [",
+                     Object.ppProvenance (Object.provenance obj),
+                     Print.ppString "]"]
+
+              val ppElim =
+                  Print.ppOp2 " ->" ppObj
+                    (Print.ppOp2 " ->" (Print.ppOption ppObj)
+                       (Print.ppOption ppObj))
+
+              val (bad,_) = containsUnwanted (Object.data obj2) elim
+
+              val show = bad
+(*OpenTheoryTrace4
+              val show = true
+*)
+              val () =
+                  if not show then ()
+                  else
+                    Print.trace ppElim "ObjectUnwanted.postDescent"
+                      (obj0,(obj1',obj2'))
+            in
+              if not bad then ()
+              else raise Bug "ObjectUnwanted.postDescent: unwanted obj2"
+            end
+*)
         val obj2' = if unchanged then NONE else SOME obj2
 
         val elim = insertSpecialMap elim (Object.id obj0, obj2')
