@@ -12,7 +12,7 @@
 TEMP += \
   bin/mlton/*.ssa bin/mlton/*.ssa2 bin/mlton/basis.sml \
   bin/mlton/benchmark \
-  mlmon.out profile-*
+  mlmon.out profile-* benchmark.out
 
 ###############################################################################
 # The ML preprocessor.
