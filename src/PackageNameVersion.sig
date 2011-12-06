@@ -48,6 +48,12 @@ val isPrefixName : nameVersion -> nameVersion -> bool
 val isStrictPrefixName : nameVersion -> nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Converting to a logic name.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+val toGlobal : nameVersion -> Name.name
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

@@ -300,6 +300,32 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Imprinting theorems.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun mkThm n sym seq =
+      raise Bug "ObjectExport.imprint.mkThm: not implemented";
+
+  fun addThm n sym (th,exp) =
+      let
+        val th = mkThm n sym (Thm.sequent th)
+      in
+        add exp th
+      end;
+in
+  fun imprint n ths =
+      let
+        val sym = Thms.symbol ths
+        and set = Thms.thms ths
+
+        val exp = new {savable = true}
+      in
+        ThmSet.foldl (addThm n sym) exp set
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

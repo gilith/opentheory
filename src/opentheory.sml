@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20111201)";
+val release = " (release 20111205)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -557,6 +557,7 @@ datatype info =
   | ParentsInfo
   | SummaryInfo
   | TagsInfo
+  | TheoremsInfo
   | TheoryInfo;
 
 val outputListInfo : (info * {filename : string} option) list ref = ref [];
@@ -667,6 +668,9 @@ in
        {switches = ["--article"], arguments = [],
         description = "output the theory package in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
+       {switches = ["--theorems"], arguments = [],
+        description = "output the package theorems in article format",
+        processor = beginOpt endOpt (fn _ => addInfoOutput TheoremsInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write previous package information to FILE",
         processor =
@@ -1535,6 +1539,25 @@ local
   end;
 
   local
+    val cacheTheorems : ObjectExport.export option option ref = ref NONE;
+
+    fun computeTheorems () =
+        case getNameVersion () of
+          NONE => NONE
+        | SOME nv =>
+          case getThms () of
+            NONE => NONE
+          | SOME ths =>
+            let
+              val n = PackageNameVersion.toGlobal nv
+            in
+              SOME (ObjectExport.imprint n ths)
+            end;
+  in
+    val getTheorems = getCached cacheTheorems computeTheorems;
+  end;
+
+  local
     val cacheSummary : Summary.summary option option ref = ref NONE;
 
     fun computeSummary () =
@@ -1796,6 +1819,27 @@ local
           val strm = Print.toStream PackageTag.ppList tags
         in
           Stream.toTextFile file strm
+        end
+      | TheoremsInfo =>
+        let
+          val ths =
+              case getTheorems () of
+                SOME ths => ths
+              | NONE => raise Error "no theorem information available"
+
+          val ths =
+              case ObjectExport.eliminateUnwanted ths of
+                NONE => ths
+              | SOME ths => ths
+
+          val ths =
+              case ObjectExport.compress ths of
+                NONE => ths
+              | SOME ths => ths
+
+          val {filename} = file
+        in
+          ObjectWrite.toTextFile {export = ths, filename = filename}
         end
       | TheoryInfo =>
         let
