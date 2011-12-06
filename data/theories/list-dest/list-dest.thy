@@ -1,5 +1,5 @@
 name: list-dest
-version: 1.24
+version: 1.25
 description: List type destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,7 +10,7 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-dest-def-1.26
+  package: list-dest-def-1.27
 }
 
 thm {

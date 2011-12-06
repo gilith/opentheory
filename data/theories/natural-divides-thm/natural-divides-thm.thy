@@ -1,9 +1,9 @@
 name: natural-divides-thm
-version: 1.14
+version: 1.15
 description: Properties of the divides relation on natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-02
+provenance: HOL Light theory extracted on 2011-12-05
 requires: bool
 requires: natural
 requires: natural-divides-def

@@ -1,5 +1,5 @@
 name: natural-add
-version: 1.31
+version: 1.32
 description: Natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,12 +12,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-add-def-1.10
+  package: natural-add-def-1.11
 }
 
 thm {
   import: def
-  package: natural-add-thm-1.23
+  package: natural-add-thm-1.24
 }
 
 main {

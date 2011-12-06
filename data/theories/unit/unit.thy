@@ -1,5 +1,5 @@
 name: unit
-version: 1.10
+version: 1.11
 description: The unit type
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,7 @@ show: "Data.Bool"
 show: "Data.Unit"
 
 def {
-  package: unit-def-1.5
+  package: unit-def-1.6
 }
 
 thm {

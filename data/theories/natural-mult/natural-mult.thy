@@ -1,5 +1,5 @@
 name: natural-mult
-version: 1.29
+version: 1.30
 description: Natural number multiplication
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-mult-def-1.10
+  package: natural-mult-def-1.11
 }
 
 thm {

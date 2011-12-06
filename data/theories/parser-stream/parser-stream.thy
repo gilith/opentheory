@@ -1,5 +1,5 @@
 name: parser-stream
-version: 1.39
+version: 1.40
 description: Parse streams
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,12 +20,12 @@ show: "Parser.Stream"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.40
+  package: parser-stream-def-1.41
 }
 
 thm {
   import: def
-  package: parser-stream-thm-1.41
+  package: parser-stream-thm-1.42
 }
 
 main {

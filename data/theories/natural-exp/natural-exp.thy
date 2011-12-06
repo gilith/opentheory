@@ -1,5 +1,5 @@
 name: natural-exp
-version: 1.19
+version: 1.20
 description: Natural number exponentiation
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,12 +14,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-exp-def-1.14
+  package: natural-exp-def-1.15
 }
 
 thm {
   import: def
-  package: natural-exp-thm-1.18
+  package: natural-exp-thm-1.19
 }
 
 main {

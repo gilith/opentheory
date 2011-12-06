@@ -1,5 +1,5 @@
 name: gfp
-version: 1.17
+version: 1.18
 description: Parametric theory of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ show: "Number.GF(p)"
 show: "Number.Natural"
 
 def {
-  package: gfp-def-1.7
+  package: gfp-def-1.8
 }
 
 thm {
@@ -28,7 +28,7 @@ thm {
 div {
   import: def
   import: thm
-  package: gfp-div-1.16
+  package: gfp-div-1.17
 }
 
 main {
