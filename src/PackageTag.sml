@@ -178,8 +178,8 @@ end;
 
 fun toMapping tag =
     case destName PackageName.showTag tag of
-      SOME v => SOME (Show.fromStringMapping v)
-    | NONE => NONE;
+      NONE => NONE
+    | SOME value => SOME (Show.fromStringMapping value);
 
 fun fromMapping m =
     let

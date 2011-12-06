@@ -12,8 +12,7 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val asKeywordString = "as"
-and showTagName = "show";
+val asKeywordString = "as";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of mappings.                                                       *)
@@ -64,7 +63,17 @@ end;
 
 fun fromStringMapping s =
     Parse.fromString parserMapping s
-    handle Parse.NoParse => raise Error "Show.fromStringMapping";
+    handle Parse.NoParse =>
+      let
+        val err =
+            "bad show format:\n" ^
+            "  " ^ s ^ "\n" ^
+            "please use one of the following forms:\n" ^
+            "  \"NAMESPACE\"\n" ^
+            "  \"NAMESPACE\" " ^ asKeywordString ^ " \"NAMESPACE\""
+      in
+        raise Error err
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of mapping collections.                                            *)
