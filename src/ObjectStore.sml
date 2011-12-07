@@ -143,9 +143,9 @@ in
         SOME obj => (obj,store)
       | NONE =>
         let
-          val (cmd,ds) = ObjectData.command d
+          val (cmd,args) = ObjectData.command d
 
-          val (objs,store) = maps build ds store
+          val (objs,store) = maps build args store
 
           val obj =
               case Object.mkCommand savable cmd objs of

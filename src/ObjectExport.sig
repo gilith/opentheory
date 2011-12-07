@@ -69,10 +69,10 @@ val eliminateUnwanted : export -> export option
 val compress : export -> export option
 
 (* ------------------------------------------------------------------------- *)
-(* Imprinting theorems.                                                      *)
+(* Branding theorems.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val imprint : Name.name -> Thms.thms -> export
+val brand : Name.name -> Thms.thms -> export
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

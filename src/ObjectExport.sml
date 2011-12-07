@@ -300,28 +300,142 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Imprinting theorems.                                                      *)
+(* Branding theorems.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun mkThm n sym seq =
-      raise Bug "ObjectExport.imprint.mkThm: not implemented";
+  val savable = {savable = true};
 
-  fun addThm n sym (th,exp) =
+  val unknown = Name.mkGlobal "_";
+
+  fun brandTerm n =
       let
-        val th = mkThm n sym (Thm.sequent th)
+        fun mkData d store =
+            case ObjectStore.peek store d of
+              SOME obj => (obj,store)
+            | NONE =>
+              let
+                val (obj,store) =
+                    case d of
+                      ObjectData.TypeOp ot =>
+                      if TypeOp.isUndef ot then mkStandard d store
+                      else
+                        let
+                          val (obj,_,_,store) = mkTypeOp ot store
+                        in
+                          (obj,store)
+                        end
+                    | ObjectData.Const c =>
+                      if Const.isUndef c then mkStandard d store
+                      else mkConst c store
+                    | _ => mkStandard d store
+
+                val store = ObjectStore.add store obj
+              in
+                (obj,store)
+              end
+
+        and mkStandard d store =
+            let
+              val (cmd,args) = ObjectData.command d
+
+              val (args,store) = Useful.maps mkData args store
+
+              val objs = Object.mkCommand savable cmd args
+
+(*OpenTheoryDebug
+              val () =
+                  case objs of
+                    [_] => ()
+                  | _ => raise Bug "ObjectExport.brand.mkTerm.mkData"
+*)
+              val obj = hd objs
+            in
+              (obj,store)
+            end
+
+        and mkTypeOp ot store =
+            case TypeOp.prov ot of
+              TypeTerm.UndefProvOpTy => raise Bug "ObjectExport.brand.mkTypeOp"
+            | TypeTerm.DefProvOpTy def =>
+              let
+                val TypeTerm.DefOpTy {pred,vars} = def
+              in
+                raise Bug "ObjectExport.brand.mkTypeOp: not implemented"
+              end
+
+        and mkConst c store =
+            case Const.prov c of
+              TypeTerm.UndefProvConst => raise Bug "ObjectExport.brand.mkConst"
+            | TypeTerm.DefProvConst def =>
+              let
+                val TypeTerm.DefConst tm = def
+
+                val tm = Term.mkConst (Const.mkUndef n, Term.typeOf tm)
+
+                val (def,store) = mkTerm tm store
+
+                val (obj,_) = Object.mkDefineConst savable (Const.name c) def
+              in
+                (obj,store)
+              end
+            | TypeTerm.AbsProvConst ot =>
+              let
+                val (_,obj,_,store) = mkTypeOp ot store
+              in
+                (obj,store)
+              end
+            | TypeTerm.RepProvConst ot =>
+              let
+                val (_,_,obj,store) = mkTypeOp ot store
+              in
+                (obj,store)
+              end
+
+        and mkTerm tm store = mkData (ObjectData.Term tm) store
       in
-        add exp th
+        mkTerm
+      end;
+
+  fun brandThm n th store =
+      let
+        val Sequent.Sequent {hyp,concl} = Thm.sequent th
+
+        val hyp = TermAlphaSet.toList hyp
+
+        val (hyp,store) = Useful.maps (brandTerm n) hyp store
+
+        val hyp = Object.mkList savable hyp
+
+        val (concl,store) = brandTerm n concl store
+
+        val seq = Object.destSequent (hyp,concl)
+
+        val proof = Object.mkAxiom savable hyp concl seq
+
+        val th = ObjectThm.Thm {proof = proof, hyp = hyp, concl = concl}
+      in
+        (th,store)
+      end;
+
+  fun addThm n (th,(store,exp)) =
+      let
+        val (th,store) = brandThm n th store
+
+        val exp = add exp th
+      in
+        (store,exp)
       end;
 in
-  fun imprint n ths =
+  fun brand n ths =
       let
-        val sym = Thms.symbol ths
-        and set = Thms.thms ths
+        val store = ObjectStore.emptyDictionary
+        and exp = new savable
+        and ths = Thms.thms ths
 
-        val exp = new {savable = true}
+        val (_,exp) = ThmSet.foldl (addThm n) (store,exp) ths
       in
-        ThmSet.foldl (addThm n sym) exp set
+        exp
       end;
 end;
 

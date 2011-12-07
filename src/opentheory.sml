@@ -1551,7 +1551,7 @@ local
             let
               val n = PackageNameVersion.toGlobal nv
             in
-              SOME (ObjectExport.imprint n ths)
+              SOME (ObjectExport.brand n ths)
             end;
   in
     val getTheorems = getCached cacheTheorems computeTheorems;

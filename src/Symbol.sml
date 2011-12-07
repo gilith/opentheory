@@ -25,6 +25,11 @@ fun name sym =
       TypeOp ot => TypeOp.name ot
     | Const c => Const.name c;
 
+fun isUndef sym =
+    case sym of
+      TypeOp ot => TypeOp.isUndef ot
+    | Const c => Const.isUndef c;
+
 (* ------------------------------------------------------------------------- *)
 (* A total order on symbols.                                                 *)
 (* ------------------------------------------------------------------------- *)
