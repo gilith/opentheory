@@ -1828,11 +1828,6 @@ local
               | NONE => raise Error "no theorem information available"
 
           val ths =
-              case ObjectExport.eliminateUnwanted ths of
-                NONE => ths
-              | SOME ths => ths
-
-          val ths =
               case ObjectExport.compress ths of
                 NONE => ths
               | SOME ths => ths
@@ -3067,5 +3062,7 @@ let
 in
   succeed ()
 end
+(***
 handle Error s => die (program^" failed:\n" ^ s)
      | Bug s => die ("BUG found in "^program^" program:\n" ^ s);
+***)

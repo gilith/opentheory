@@ -18,7 +18,7 @@ TEMP += \
 # The ML preprocessor.
 ###############################################################################
 
-#MLPP_OPTS += -r 'OpenTheoryDebug'
+MLPP_OPTS += -r 'OpenTheoryDebug'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
 #MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
 
@@ -41,7 +41,7 @@ bin/mosml/Makefile.src: Makefile Makefile.dev $(MOSML_DEP) $(MLPP)
 ###############################################################################
 
 MLTON_OPTS += -verbose 1 -keep ssa -keep ssa2
-#MLTON_OPTS += -const 'Exn.keepHistory true'
+MLTON_OPTS += -const 'Exn.keepHistory true'
 #MLTON_OPTS += -show-basis basis.sml
 #MLTON_OPTS += -inline 100000
 #MLTON_OPTS += -const 'MLton.safe false' -const 'MLton.detectOverflow false'
