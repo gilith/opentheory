@@ -1000,7 +1000,8 @@ local
         val reserved =
             [("theory file", PackageInfo.theoryFile info),
              ("tarball", PackageInfo.tarball info),
-             ("document", PackageInfo.document info)]
+             ("document", PackageInfo.documentFile info),
+             ("theorems", PackageInfo.theoremsFile info)]
 
         val plan = StringMap.new ()
 

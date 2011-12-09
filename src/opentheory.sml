@@ -1539,7 +1539,7 @@ local
   end;
 
   local
-    val cacheTheorems : ObjectExport.export option option ref = ref NONE;
+    val cacheTheorems : PackageTheorems.theorems option option ref = ref NONE;
 
     fun computeTheorems () =
         case getNameVersion () of
@@ -1549,9 +1549,14 @@ local
             NONE => NONE
           | SOME ths =>
             let
-              val n = PackageNameVersion.toGlobal nv
+              val seqs = Sequents.fromThms ths
+
+              val ths' =
+                  PackageTheorems.Theorems'
+                    {package = nv,
+                     sequents = seqs}
             in
-              SOME (ObjectExport.brand n ths)
+              SOME (PackageTheorems.mk ths')
             end;
   in
     val getTheorems = getCached cacheTheorems computeTheorems;
@@ -1827,14 +1832,9 @@ local
                 SOME ths => ths
               | NONE => raise Error "no theorem information available"
 
-          val ths =
-              case ObjectExport.compress ths of
-                NONE => ths
-              | SOME ths => ths
-
           val {filename} = file
         in
-          ObjectWrite.toTextFile {export = ths, filename = filename}
+          PackageTheorems.toTextFile {theorems = ths, filename = filename}
         end
       | TheoryInfo =>
         let
@@ -3062,7 +3062,5 @@ let
 in
   succeed ()
 end
-(***
 handle Error s => die (program^" failed:\n" ^ s)
      | Bug s => die ("BUG found in "^program^" program:\n" ^ s);
-***)

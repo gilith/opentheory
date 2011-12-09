@@ -34,6 +34,8 @@ val toSet : export -> ObjectThmSet.set
 
 val toList : export -> ObjectThm.thm list
 
+val toThms : export -> Thms.thms
+
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -72,7 +74,7 @@ val compress : export -> export option
 (* Branding theorems.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val brand : Name.name -> Thms.thms -> export
+val brand : Name.name -> Sequents.sequents -> export
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

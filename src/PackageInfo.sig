@@ -127,8 +127,18 @@ val uploadTarball :
 (* Package document.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val document : info -> {filename : string}
+val documentFile : info -> {filename : string}
 
 val writeDocument : info -> PackageDocument.document -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Package theorems.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val theoremsFile : info -> {filename : string}
+
+val theorems : info -> PackageTheorems.theorems
+
+val writeTheorems : info -> PackageTheorems.theorems -> unit
 
 end

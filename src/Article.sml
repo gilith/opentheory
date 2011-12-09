@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* ARTICLES OF PROOFS IN HIGHER ORDER LOGIC                                  *)
+(* ARTICLES OF PROOF IN HIGHER ORDER LOGIC                                   *)
 (* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
 (* ========================================================================= *)
 

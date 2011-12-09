@@ -58,6 +58,13 @@ fun foldr f b exp = ObjectThmSet.foldr f b (toSet exp);
 
 fun toList exp = ObjectThmSet.toList (toSet exp);
 
+fun toThms exp =
+    let
+      val ths = List.map ObjectThm.thm (toList exp)
+    in
+      Thms.fromList ths
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -313,7 +320,8 @@ local
   val savable = {savable = true};
 
   val unknownName = Name.mkGlobal "_"
-  and xName = Name.mkGlobal "x";
+  and xName = Name.mkGlobal "x"
+  and yName = Name.mkGlobal "y";
 
   val emptyAbsRep =
       let
@@ -408,66 +416,92 @@ local
 
                 val c = Term.mkConst (Const.mkUndef n, ty)
 
-                val pred =
-                    let
-                      val x = Var.mk (xName,ty)
-                    in
-                      Term.mkAbs (x, Term.mkEq (Term.mkVar x, c))
-                    end
-
                 val (objX,store) =
                     let
-                      val predVars = Term.typeVars pred
+                      val tyVars = Type.typeVars ty
 
-                      fun notPredVar v = not (NameSet.member v predVars)
+                      fun notTyVar v = not (NameSet.member v tyVars)
                     in
-                      case List.filter notPredVar vars of
+                      case List.filter notTyVar vars of
                         [] =>
                         let
-                          val predC = Term.mkApp (pred,c)
-
-                          val (objPC,store) = mkTerm predC store
+                          val (objC,store) = mkTerm c store
 
 (* ------------------------------------------------------------------------- *)
-(* prove  |- (\x. x = c) c <=> c = c  (1)                                    *)
-(*    by  betaConv `(\x. x = c) c`                                           *)
+(* prove  |- c = c  (1)                                                      *)
+(*    by  refl `c`                                                           *)
 (* ------------------------------------------------------------------------- *)
-                          val obj1 = Object.mkBetaConv savable objPC
+                          val obj1 = Object.mkRefl savable objC
+                        in
+                          (obj1,store)
+                        end
+                      | v :: vs =>
+                        let
+                          val xTy =
+                              let
+                                fun toTy (w,t) = Type.mkFun (Type.mkVar w, t)
+                              in
+                                List.foldl toTy (Type.mkVar v) vs
+                              end
 
-                          val (objQ,objCC) =
+                          val xId =
+                              let
+                                val x = Var.mk (xName,xTy)
+                              in
+                                Term.mkAbs (x, Term.mkVar x)
+                              end
+
+                          val y = Var.mk (yName, Term.typeOf xId)
+
+                          val qcx =
+                              let
+                                val eqC = Term.rator (Term.mkRefl c)
+                              in
+                                Term.mkApp (Term.mkAbs (y,eqC), xId)
+                              end
+
+                          val (objQCX,store) = mkTerm qcx store
+
+(* ------------------------------------------------------------------------- *)
+(* prove  |- (\y. (=) c) (\x. x) = (=) c  (1)                                *)
+(*    by  betaConv `(\y. (=) c) (\x. x)`                                     *)
+(* ------------------------------------------------------------------------- *)
+                          val obj1 = Object.mkBetaConv savable objQCX
+
+                          val (objQ,objQC) =
                               Term.destApp (Thm.concl (Object.destThm obj1))
 
                           val (objQ,store) = mkTerm (Term.rator objQ) store
 
-                          val (objCC,store) = mkTerm objCC store
+                          val (objQC,store) = mkTerm (Term.rator objQC) store
 
 (* ------------------------------------------------------------------------- *)
-(* prove  |- (<=>) = (<=>)  (2)                                              *)
-(*    by  refl `(<=>)`                                                       *)
+(* prove  |- (=) = (=)  (2)                                                  *)
+(*    by  refl `(=)`                                                         *)
 (* ------------------------------------------------------------------------- *)
                           val obj2 = Object.mkRefl savable objQ
 
 (* ------------------------------------------------------------------------- *)
-(* prove  |- ((<=>) ((\x. x = c) c)) = ((<=>) (c = c))  (3)                  *)
+(* prove  |- (=) ((\y. (=) c) (\x. x)) = (=) ((=) c)  (3)                    *)
 (*    by  appThm (2) (1)                                                     *)
 (* ------------------------------------------------------------------------- *)
                           val obj3 = Object.mkAppThm savable obj2 obj1
 
 (* ------------------------------------------------------------------------- *)
-(* prove  |- (\x. x = c) c <=> (\x. x = c) c  (4)                            *)
-(*    by  refl `(\x. x = c) c`                                               *)
+(* prove  |- (\y. (=) c) (\x. x) = (\y. (=) c) (\x. x)  (4)                  *)
+(*    by  refl `(\y. (=) c) (\x. x)`                                         *)
 (* ------------------------------------------------------------------------- *)
-                          val obj4 = Object.mkRefl savable objPC
+                          val obj4 = Object.mkRefl savable objQCX
 
 (* ------------------------------------------------------------------------- *)
-(* prove  |- ((\x. x = c) c <=> (\x. x = c) c) <=>                           *)
-(*           (c = c <=> (\x. x = c) c)  (5)                                  *)
+(* prove  |- (\y. (=) c) (\x. x) = (\y. (=) c) (\x. x) <=>                   *)
+(*           (=) c = (\y. (=) c) (\x. x)  (5)                                *)
 (*    by  appThm (3) (4)                                                     *)
 (* ------------------------------------------------------------------------- *)
                           val obj5 = Object.mkAppThm savable obj3 obj4
 
 (* ------------------------------------------------------------------------- *)
-(* prove  |- c = c <=> (\x. x = c) c  (6)                                    *)
+(* prove  |- (=) c = (\y. (=) c) (\x. x)  (6)                                *)
 (*    by  eqMp (5) (4)                                                       *)
 (* ------------------------------------------------------------------------- *)
                           val obj6 = Object.mkEqMp savable obj5 obj4
@@ -481,15 +515,19 @@ local
                           val obj7 = Object.mkRefl savable objC
 
 (* ------------------------------------------------------------------------- *)
-(* prove  |- (\x. x = c) c  (8)                                              *)
-(*    by  eqMp (6) (7)                                                       *)
+(* prove  |- c = c <=> (\y. (=) c) (\x. x) c  (8)                            *)
+(*    by  appThm (6) (7)                                                     *)
 (* ------------------------------------------------------------------------- *)
-                          val obj8 = Object.mkEqMp savable obj6 obj7
+                          val obj8 = Object.mkAppThm savable obj6 obj7
+
+(* ------------------------------------------------------------------------- *)
+(* prove  |- (\y. (=) c) (\x. x) c  (9)                                      *)
+(*    by  eqMp (8) (7)                                                       *)
+(* ------------------------------------------------------------------------- *)
+                          val obj9 = Object.mkEqMp savable obj8 obj7
                         in
-                          (obj8,store)
+                          (obj9,store)
                         end
-                      | v :: vs =>
-                        raise Bug "ObjectExport.brand.mkTypeOp: not implemented"
                     end
 
                 val (abs,rep) = getAbsRep abs_rep ot
@@ -536,9 +574,9 @@ local
         mkTerm
       end;
 
-  fun brandThm n abs_rep th store =
+  fun brandThm n abs_rep seq store =
       let
-        val Sequent.Sequent {hyp,concl} = Thm.sequent th
+        val Sequent.Sequent {hyp,concl} = seq
 
         val hyp = TermAlphaSet.toList hyp
 
@@ -557,31 +595,31 @@ local
         (th,store)
       end;
 
-  fun addThm n abs_rep (th,(store,exp)) =
+  fun addThm n abs_rep (seq,(store,exp)) =
       let
-        val (th,store) = brandThm n abs_rep th store
+        val (th,store) = brandThm n abs_rep seq store
 
         val exp = add exp th
       in
         (store,exp)
       end;
 in
-  fun brand n thms =
+  fun brand n seqs =
       let
         val abs_rep = emptyAbsRep
-        and cs = SymbolTable.consts (Thms.symbol thms)
+        and cs = SymbolTable.consts (Sequents.symbol seqs)
 
         val abs_rep = ConstSet.foldl addAbsRep abs_rep cs
 
         val store = ObjectStore.emptyDictionary
         and exp = new savable
-        and ths = Thms.thms thms
+        and sqs = Sequents.sequents seqs
 
-        val (_,exp) = ThmSet.foldl (addThm n abs_rep) (store,exp) ths
+        val (_,exp) = SequentSet.foldl (addThm n abs_rep) (store,exp) sqs
 
 (*OpenTheoryTrace2
-*)
         val () = Print.trace pp "ObjectExport.brand: exp" exp
+*)
       in
         exp
       end;

@@ -17,17 +17,20 @@ datatype info =
       {system : DirectorySystem.system,
        nameVersion : PackageNameVersion.nameVersion,
        directory : string,
-       package : Package.package option ref};
+       package : Package.package option ref,
+       theorems : PackageTheorems.theorems option ref};
 
 fun mk {system,nameVersion,directory} =
     let
       val package = ref NONE
+      and theorems = ref NONE
     in
       Info
         {system = system,
          nameVersion = nameVersion,
          directory = directory,
-         package = package}
+         package = package,
+         theorems = theorems}
     end;
 
 fun system (Info {system = x, ...}) = x;
@@ -442,13 +445,56 @@ fun uploadTarball info chk {url,token} =
 (* Package document.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun document info = PackageDocument.mkFilename (nameVersion info);
+fun documentFile info = PackageDocument.mkFilename (nameVersion info);
 
 fun writeDocument info doc =
     let
-      val {filename = f} = joinDirectory info (document info)
+      val {filename} = joinDirectory info (documentFile info)
     in
-      PackageDocument.toHtmlFile {document = doc, filename = f}
+      PackageDocument.toHtmlFile {document = doc, filename = filename}
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package theorems.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun theoremsFile info = PackageTheorems.mkFilename (nameVersion info);
+
+fun theorems info =
+    let
+      val Info {theorems = ths, ...} = info
+    in
+      case !ths of
+        SOME t => t
+      | NONE =>
+        let
+          val nv = nameVersion info
+
+          val {filename} = joinDirectory info (theoremsFile info)
+
+          val t =
+              PackageTheorems.fromTextFile
+                {package = nv,
+                 filename = filename}
+
+          val () = ths := SOME t
+        in
+          t
+        end
+    end;
+
+fun writeTheorems info t =
+    let
+      val Info {theorems = ths, ...} = info
+
+      val {filename} = joinDirectory info (theoremsFile info)
+
+      val () =
+          PackageTheorems.toTextFile {theorems = t, filename = filename}
+
+      val () = ths := SOME t
+    in
+      ()
     end;
 
 end
