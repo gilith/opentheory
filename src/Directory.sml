@@ -726,12 +726,11 @@ fun postStagePackage dir fndr stageInfo warnSummary unsat {tool} =
     let
       (* Check the package tags *)
 
-      val pkg = PackageInfo.package stageInfo
+      val namever = PackageInfo.nameVersion stageInfo
+      and pkg = PackageInfo.package stageInfo
 
       val () =
           let
-            val namever = PackageInfo.nameVersion stageInfo
-
             val tags = Package.tags pkg
 
             val errs = checkTags dir namever tags
@@ -760,6 +759,21 @@ fun postStagePackage dir fndr stageInfo warnSummary unsat {tool} =
             in
               PackageSummary.check unsat (Package.show pkg) sum
             end
+
+      (* Create the package theorems *)
+
+      val () =
+          let
+            val seqs = PackageSummary.provides sum
+
+            val thms =
+                PackageTheorems.mk
+                  (PackageTheorems.Theorems'
+                     {package = namever,
+                      sequents = seqs})
+          in
+            PackageInfo.writeTheorems stageInfo thms
+          end
 
       (* Create the package document *)
 
@@ -1000,8 +1014,8 @@ local
         val reserved =
             [("theory file", PackageInfo.theoryFile info),
              ("tarball", PackageInfo.tarball info),
-             ("document", PackageInfo.documentFile info),
-             ("theorems", PackageInfo.theoremsFile info)]
+             ("theorems", PackageInfo.theoremsFile info),
+             ("document", PackageInfo.documentFile info)]
 
         val plan = StringMap.new ()
 

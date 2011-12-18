@@ -1542,22 +1542,25 @@ local
     val cacheTheorems : PackageTheorems.theorems option option ref = ref NONE;
 
     fun computeTheorems () =
-        case getNameVersion () of
-          NONE => NONE
-        | SOME nv =>
-          case getThms () of
+        case getInfo () of
+          SOME info => SOME (PackageInfo.theorems info)
+        | NONE =>
+          case getNameVersion () of
             NONE => NONE
-          | SOME ths =>
-            let
-              val seqs = Sequents.fromThms ths
+          | SOME nv =>
+            case getThms () of
+              NONE => NONE
+            | SOME ths =>
+              let
+                val seqs = Sequents.fromThms ths
 
-              val ths' =
-                  PackageTheorems.Theorems'
-                    {package = nv,
-                     sequents = seqs}
-            in
-              SOME (PackageTheorems.mk ths')
-            end;
+                val ths' =
+                    PackageTheorems.Theorems'
+                      {package = nv,
+                       sequents = seqs}
+              in
+                SOME (PackageTheorems.mk ths')
+              end;
   in
     val getTheorems = getCached cacheTheorems computeTheorems;
   end;
@@ -3063,4 +3066,5 @@ in
   succeed ()
 end
 handle Error s => die (program^" failed:\n" ^ s)
-     | Bug s => die ("BUG found in "^program^" program:\n" ^ s);
+     | Bug s => die ("BUG found in "^program^" program:\n" ^ s)
+     | e => die (program^" exception:\n"^ exnMessage e);

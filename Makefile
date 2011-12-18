@@ -136,8 +136,8 @@ SRC = \
   src/Package.sig src/Package.sml \
   src/DirectorySystem.sig src/DirectorySystem.sml \
   src/PackageTarball.sig src/PackageTarball.sml \
-  src/PackageDocument.sig src/PackageDocument.sml \
   src/PackageTheorems.sig src/PackageTheorems.sml \
+  src/PackageDocument.sig src/PackageDocument.sml \
   src/PackageInfo.sig src/PackageInfo.sml \
   src/PackageDependency.sig src/PackageDependency.sml \
   src/PackageFinder.sig src/PackageFinder.sml \

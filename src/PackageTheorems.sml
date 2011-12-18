@@ -13,19 +13,12 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 fun mkFilename namever =
-    Article.normalizeFilename
-      {filename = PackageNameVersion.toString namever};
+    Article.mkFilename {base = PackageNameVersion.toString namever};
 
 fun destFilename file =
-    if not (Article.isFilename file) then NONE
-    else
-      let
-        val {filename} = file
-
-        val base = OS.Path.base (OS.Path.file filename)
-      in
-        total PackageNameVersion.fromString base
-      end;
+    case Article.destFilename file of
+      NONE => NONE
+    | SOME {base} => total PackageNameVersion.fromString base;
 
 fun isFilename file = Option.isSome (destFilename file);
 

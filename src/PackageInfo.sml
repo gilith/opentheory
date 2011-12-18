@@ -442,19 +442,6 @@ fun uploadTarball info chk {url,token} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package document.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun documentFile info = PackageDocument.mkFilename (nameVersion info);
-
-fun writeDocument info doc =
-    let
-      val {filename} = joinDirectory info (documentFile info)
-    in
-      PackageDocument.toHtmlFile {document = doc, filename = filename}
-    end;
-
-(* ------------------------------------------------------------------------- *)
 (* Package theorems.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -495,6 +482,19 @@ fun writeTheorems info t =
       val () = ths := SOME t
     in
       ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package document.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun documentFile info = PackageDocument.mkFilename (nameVersion info);
+
+fun writeDocument info doc =
+    let
+      val {filename} = joinDirectory info (documentFile info)
+    in
+      PackageDocument.toHtmlFile {document = doc, filename = filename}
     end;
 
 end

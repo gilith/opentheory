@@ -1,5 +1,5 @@
 name: gfp
-version: 1.18
+version: 1.19
 description: Parametric theory of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -18,19 +18,32 @@ val fileExtension = "art";
 (* Article filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun isFilename {filename} =
-    case OS.Path.ext (OS.Path.file filename) of
-      SOME ext => ext = fileExtension
-    | NONE => false;
-
-fun normalizeFilename {filename} =
+fun mkFilename {base} =
     let
       val filename =
           OS.Path.joinBaseExt
-            {base = OS.Path.base (OS.Path.file filename),
+            {base = base,
              ext = SOME fileExtension}
     in
       {filename = filename}
+    end;
+
+fun destFilename {filename} =
+    let
+      val {base,ext} = OS.Path.splitBaseExt (OS.Path.file filename)
+    in
+      case ext of
+        SOME x => if x = fileExtension then SOME {base = base} else NONE
+      | NONE => NONE
+    end;
+
+fun isFilename file = Option.isSome (destFilename file);
+
+fun normalizeFilename {filename} =
+    let
+      val base = OS.Path.base (OS.Path.file filename)
+    in
+      mkFilename {base = base}
     end;
 
 (* ------------------------------------------------------------------------- *)

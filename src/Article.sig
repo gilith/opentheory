@@ -10,6 +10,10 @@ sig
 (* Article filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
+val mkFilename : {base : string} -> {filename : string}
+
+val destFilename : {filename : string} -> {base : string} option
+
 val isFilename : {filename : string} -> bool
 
 val normalizeFilename : {filename : string} -> {filename : string}
