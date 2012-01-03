@@ -289,7 +289,7 @@ local
       if TypeOp.equal ot1 ot2 then SOME ot2
       else
         let
-          val err = "duplicate type operator name " ^ Name.quotedToString n
+          val err = "different type operators named " ^ Name.quotedToString n
         in
           raise Error err
         end;
@@ -298,7 +298,7 @@ local
       if Const.equal c1 c2 then SOME c2
       else
         let
-          val err = "duplicate constant name " ^ Name.quotedToString n
+          val err = "different constants named " ^ Name.quotedToString n
         in
           raise Error err
         end;
@@ -330,10 +330,7 @@ in
            opM = opM,
            conS = conS,
            conM = conM}
-      end
-(*OpenTheoryDebug
-      handle Error err => raise Error ("SymbolTable.union: " ^ err);
-*)
+      end;
 end;
 
 local
@@ -365,6 +362,20 @@ fun partitionUndef sym =
       and dsym = addConstSet dsym dconS
     in
       {undefined = usym, defined = dsym}
+    end;
+
+fun undefined table =
+    let
+      val {undefined = x, defined = _} = partitionUndef table
+    in
+      x
+    end;
+
+fun defined table =
+    let
+      val {undefined = _, defined = x} = partitionUndef table
+    in
+      x
     end;
 
 (* ------------------------------------------------------------------------- *)

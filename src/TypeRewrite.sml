@@ -28,6 +28,17 @@ fun new apply =
 
 val id = new (K NONE);
 
+local
+  fun undefType ty' =
+      case ty' of
+        TypeTerm.OpTy' (ot,tys) =>
+        if TypeOp.isUndef ot then NONE
+        else SOME (Type.mkOp (TypeOp.mkUndef (TypeOp.name ot), tys))
+      | _ => NONE;
+in
+  val undef = new undefType;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* The bottom-up traversal.                                                  *)
 (* ------------------------------------------------------------------------- *)

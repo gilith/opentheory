@@ -1,9 +1,9 @@
 name: unit-def
-version: 1.6
+version: 1.7
 description: Definition of the unit type
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-12-05
+provenance: HOL Light theory extracted on 2011-12-18
 requires: bool
 show: "Data.Bool"
 

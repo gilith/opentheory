@@ -1,5 +1,5 @@
 name: list
-version: 1.44
+version: 1.45
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,32 +16,32 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.33
+  package: list-def-1.34
 }
 
 thm {
   import: def
-  package: list-thm-1.28
+  package: list-thm-1.29
 }
 
 dest {
   import: def
   import: thm
-  package: list-dest-1.25
+  package: list-dest-1.26
 }
 
 length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.27
+  package: list-length-1.28
 }
 
 set {
   import: def
   import: thm
   import: length
-  package: list-set-1.27
+  package: list-set-1.28
 }
 
 append {
@@ -50,7 +50,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.27
+  package: list-append-1.28
 }
 
 map {
@@ -59,7 +59,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.28
+  package: list-map-1.29
 }
 
 quant {
@@ -67,7 +67,7 @@ quant {
   import: set
   import: append
   import: map
-  package: list-quant-1.27
+  package: list-quant-1.28
 }
 
 filter {
@@ -76,7 +76,7 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.27
+  package: list-filter-1.28
 }
 
 last {
@@ -84,7 +84,7 @@ last {
   import: thm
   import: append
   import: set
-  package: list-last-1.28
+  package: list-last-1.29
 }
 
 reverse {
@@ -106,14 +106,14 @@ nth {
   import: quant
   import: last
   import: length
-  package: list-nth-1.30
+  package: list-nth-1.31
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.28
+  package: list-replicate-1.29
 }
 
 member {
@@ -126,7 +126,7 @@ member {
   import: reverse
   import: length
   import: nth
-  package: list-member-1.32
+  package: list-member-1.33
 }
 
 concat {
@@ -144,20 +144,20 @@ take-drop {
   import: append
   import: length
   import: nth
-  package: list-take-drop-1.29
+  package: list-take-drop-1.30
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.30
+  package: list-interval-1.31
 }
 
 zipwith {
   import: def
   import: dest
   import: length
-  package: list-zipwith-1.27
+  package: list-zipwith-1.28
 }
 
 nub {

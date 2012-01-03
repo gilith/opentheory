@@ -1,5 +1,5 @@
 name: list-zipwith
-version: 1.27
+version: 1.28
 description: The list zipWith function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: list-zipwith-def-1.28
+  package: list-zipwith-def-1.29
 }
 
 thm {

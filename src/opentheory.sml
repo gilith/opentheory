@@ -295,16 +295,11 @@ fun latestVersionDirectory name =
     end;
 
 fun getLatestVersionDirectory name =
-    case latestVersionDirectory name of
-      SOME namever => namever
-    | NONE =>
-      let
-        val err =
-            "can't find latest version of package " ^
-            PackageName.toString name
-      in
-        raise Error err
-      end;
+    let
+      val dir = directory ()
+    in
+      Directory.getLatestNameVersion dir name
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* The directory staged package finder.                                      *)
@@ -409,101 +404,6 @@ fun latestVersionRepositories name chk' =
     in
       List.foldl latest NONE repos
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Identifying unsatisfied assumptions.                                      *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  fun mkContext reqs =
-      let
-        val dir = directory ()
-        and impt = directoryImporter ()
-
-        fun add (nv,(graph,thys)) =
-            let
-              val info = Directory.get dir nv
-
-              val (graph,thy) =
-                  TheoryGraph.importPackageInfo impt graph
-                    {imports = thys,
-                     interpretation = Interpretation.natural,
-                     info = info}
-
-              val thys = TheorySet.add thys thy
-            in
-              (graph,thys)
-            end
-
-        val reqs = List.map getLatestVersionDirectory reqs
-
-        val graph = TheoryGraph.empty {savable = false}
-        and thys = TheorySet.empty
-
-        val (_,thys) = List.foldl add (graph,thys) reqs
-
-        val sum = TheorySet.summary thys
-      in
-        Summary.provides sum
-      end;
-in
-  fun mkUnsatisfiedAssumptions namevero reqs =
-      if List.null reqs then
-        let
-          val mesg = "package"
-
-          val mesg =
-              case namevero of
-                NONE => mesg
-              | SOME namever =>
-                mesg ^ " " ^ PackageNameVersion.toString namever
-
-          val mesg =
-              mesg ^ " has no \"" ^
-              PackageName.toString PackageName.requiresTag ^
-              "\" information"
-
-          val () = warn mesg
-        in
-          NONE
-        end
-      else
-        let
-          val context = mkContext reqs
-
-          val satisfied = Sequents.sequents context
-
-          val satisfied = SequentSet.union satisfied SequentSet.standardAxioms
-
-          fun outsideContext (seq,(acc,rewr)) =
-              let
-                val (seq',rewr) = Sequent.sharingRewrite seq rewr
-
-                val seq' = Option.getOpt (seq',seq)
-
-                val acc =
-                    if SequentSet.member seq' satisfied then acc
-                    else SequentSet.add acc seq
-              in
-                (acc,rewr)
-              end
-
-          fun isUnsat sum =
-              let
-                val asses = Sequents.sequents (Summary.requires sum)
-
-                val unsat = SequentSet.empty
-                and rewr = SymbolTable.inst (Sequents.symbol context)
-
-                val (unsat,_) =
-                    SequentSet.foldl outsideContext (unsat,rewr) asses
-              in
-                fn seq => SequentSet.member seq unsat
-              end
-        in
-          SOME isUnsat
-        end;
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Options for cleaning up staged packages.                                  *)
@@ -1303,16 +1203,6 @@ local
   end;
 
   local
-    val cacheRequires : PackageName.name list option option ref = ref NONE;
-
-    fun computeRequires () = NONE;
-  in
-    fun setRequires reqs = cacheRequires := SOME (SOME reqs);
-
-    val getRequires = getCached cacheRequires computeRequires;
-  end;
-
-  local
     val cacheChecksum : Checksum.checksum option option ref = ref NONE;
 
     fun computeChecksum () =
@@ -1341,6 +1231,17 @@ local
     fun setPackage pkg = cachePackage := SOME (SOME pkg);
 
     val getPackage = getCached cachePackage computePackage;
+  end;
+
+  local
+    val cacheRequires : PackageName.name list option option ref = ref NONE;
+
+    fun computeRequires () =
+        case getPackage () of
+          SOME pkg => SOME (Package.requires pkg)
+        | NONE => NONE;
+  in
+    val getRequires = getCached cacheRequires computeRequires;
   end;
 
   local
@@ -1578,7 +1479,7 @@ local
 
   local
     val cacheUnsatisfiedAssumptions :
-        (Summary.summary -> Sequent.sequent -> bool) option option option ref =
+        (SequentSet.set -> SequentSet.set) option option ref =
         ref NONE;
 
     fun computeUnsatisfiedAssumptions () =
@@ -1586,9 +1487,11 @@ local
           NONE => NONE
         | SOME reqs =>
           let
-            val namevero = getNameVersion ()
+            val dir = directory ()
           in
-            SOME (mkUnsatisfiedAssumptions namevero reqs)
+            case Directory.requiredTheorems dir reqs of
+              NONE => NONE
+            | SOME ths => PackageTheorems.unsatisfiedAssumptions ths
           end;
   in
     val getUnsatisfiedAssumptions =
@@ -1798,10 +1701,14 @@ local
           val unsat =
               case getUnsatisfiedAssumptions () of
                 NONE => NONE
-              | SOME uo =>
-                case uo of
-                  SOME u => SOME (u sum)
-                | NONE => NONE
+              | SOME f =>
+                let
+                  val asms = Summary.requires sum
+
+                  val asms = f (Sequents.sequents asms)
+                in
+                  SOME (C SequentSet.member asms)
+                end
 
           val grammar = infoSummaryGrammar unsat
 
@@ -1978,8 +1885,6 @@ local
         val () = setDirectory {directory = dir}
 
         val () = setPackage pkg
-
-        val () = setRequires (Package.requires pkg)
 
         val () = setFiles files
       in
@@ -2619,12 +2524,9 @@ local
 
         val () = List.app installAutoFree pars
 
-        val unsat =
-            mkUnsatisfiedAssumptions (SOME namever) (Package.requires pkg)
-
         val tool = {tool = versionHtml}
 
-        val chk = Directory.stageTheory dir namever pkg srcDir unsat tool
+        val chk = Directory.stageTheory dir namever pkg srcDir tool
 
         val () = Directory.installStaged dir namever chk
 

@@ -1,9 +1,9 @@
 name: natural-sub-def
-version: 1.14
+version: 1.15
 description: Definition of natural number subtraction
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-05
+provenance: HOL Light theory extracted on 2011-12-18
 requires: bool
 requires: natural-def
 requires: natural-thm

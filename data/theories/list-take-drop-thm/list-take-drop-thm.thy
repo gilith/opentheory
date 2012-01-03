@@ -1,9 +1,9 @@
 name: list-take-drop-thm
-version: 1.30
+version: 1.31
 description: Properties of the list take and drop functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-02
+provenance: HOL Light theory extracted on 2011-12-18
 requires: bool
 requires: natural
 requires: list-def

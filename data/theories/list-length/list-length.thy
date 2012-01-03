@@ -1,5 +1,5 @@
 name: list-length
-version: 1.27
+version: 1.28
 description: The list length function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -18,7 +18,7 @@ def {
 
 thm {
   import: def
-  package: list-length-thm-1.29
+  package: list-length-thm-1.30
 }
 
 main {

@@ -88,6 +88,10 @@ val unionList : table list -> table
 
 val partitionUndef : table -> {undefined : table, defined : table}
 
+val undefined : table -> table
+
+val defined : table -> table
+
 (* ------------------------------------------------------------------------- *)
 (* Instantiating undefined type operators and constants with definitions.    *)
 (* ------------------------------------------------------------------------- *)

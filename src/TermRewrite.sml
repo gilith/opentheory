@@ -30,6 +30,17 @@ fun new tyRewr apply =
 
 val id = new TypeRewrite.id (K NONE);
 
+local
+  fun undefTerm tm' =
+      case tm' of
+        TypeTerm.Const' (c,ty) =>
+        if Const.isUndef c then NONE
+        else SOME (Term.mkConst (Const.mkUndef (Const.name c), ty))
+      | _ => NONE;
+in
+  val undef = new TypeRewrite.undef undefTerm;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* The bottom-up traversal.                                                  *)
 (* ------------------------------------------------------------------------- *)

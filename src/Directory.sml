@@ -374,6 +374,44 @@ fun nameVersions dir name =
 fun latestNameVersion dir name =
     DirectoryPackages.latestNameVersion (packages dir) name;
 
+local
+  fun complaint name =
+      "can't find latest version of package " ^ PackageName.toString name;
+in
+  fun getLatestNameVersion dir name =
+      case latestNameVersion dir name of
+        SOME namever => namever
+      | NONE => raise Error (complaint name);
+
+  fun warnLatestNameVersion dir name =
+      let
+        val namevero = latestNameVersion dir name
+
+        val () =
+            if Option.isSome namevero then ()
+            else warn (complaint name)
+      in
+        namevero
+      end;
+end;
+
+local
+  fun consOption x xso =
+      case xso of
+        NONE => NONE
+      | SOME xs => SOME (x :: xs);
+
+  fun addLatest dir (name,nvs) =
+      case warnLatestNameVersion dir name of
+        SOME nv => consOption nv nvs
+      | NONE => NONE;
+in
+  fun warnLatestNameVersionList dir names =
+      case List.foldl (addLatest dir) (SOME []) names of
+        NONE => NONE
+      | SOME namevers => SOME (List.rev namevers);
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
@@ -420,6 +458,18 @@ fun auxiliaryDescendentsSet dir namevers =
 
 fun isAuxiliary dir namever =
     DirectoryPackages.isAuxiliary (packages dir) namever;
+
+(* Package requirements *)
+
+fun requiredPackages dir names =
+    case warnLatestNameVersionList dir names of
+      NONE => NONE
+    | SOME namevers => SOME (List.map (get dir) namevers);
+
+fun requiredTheorems dir names =
+    case requiredPackages dir names of
+      NONE => NONE
+    | SOME infos => SOME (List.map PackageInfo.theorems infos);
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
@@ -722,7 +772,7 @@ fun summary impt info =
 (* Post-stage functions.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun postStagePackage dir fndr stageInfo warnSummary unsat {tool} =
+fun postStagePackage dir fndr stageInfo warnSummary {tool} =
     let
       (* Check the package tags *)
 
@@ -746,16 +796,28 @@ fun postStagePackage dir fndr stageInfo warnSummary unsat {tool} =
             val impt = TheoryGraph.fromFinderImporter fndr
           in
             summary impt stageInfo
-          end;
+          end
 
       val () =
           if not warnSummary then ()
           else
             let
+              val reqs = Package.requires pkg
+
               val unsat =
-                  case unsat of
+                  case requiredTheorems dir reqs of
                     NONE => NONE
-                  | SOME u => SOME (u (PackageSummary.summary sum))
+                  | SOME ths =>
+                    case PackageTheorems.unsatisfiedAssumptions ths of
+                      NONE => NONE
+                    | SOME f =>
+                      let
+                        val req = PackageSummary.requires sum
+
+                        val seqs = f (Sequents.sequents req)
+                      in
+                        SOME (C SequentSet.member seqs)
+                      end
             in
               PackageSummary.check unsat (Package.show pkg) sum
             end
@@ -822,7 +884,7 @@ fun postStageTarball dir fndr stageInfo contents tool =
 
       (* Common post-stage operations *)
 
-      val () = postStagePackage dir fndr stageInfo false NONE tool
+      val () = postStagePackage dir fndr stageInfo false tool
     in
       ()
     end;
@@ -1256,7 +1318,7 @@ local
         Package.toTextFile {package = pkg, filename = filename}
       end;
 in
-  fun stageTheory dir namever pkg {directory = srcDir} unsat tool =
+  fun stageTheory dir namever pkg {directory = srcDir} tool =
       let
 (*OpenTheoryDebug
         val errs = checkStageTheory dir namever pkg
@@ -1299,7 +1361,7 @@ in
 
           val fndr = finder dir
 
-          val () = postStagePackage dir fndr stageInfo true unsat tool
+          val () = postStagePackage dir fndr stageInfo true tool
         in
           PackageInfo.checksumTarball stageInfo
         end

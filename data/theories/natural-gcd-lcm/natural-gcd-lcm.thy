@@ -1,5 +1,5 @@
 name: natural-gcd-lcm
-version: 1.4
+version: 1.5
 description: Natural number least common multiple
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: natural-gcd-lcm-thm-1.4
+  package: natural-gcd-lcm-thm-1.5
 }
 
 main {

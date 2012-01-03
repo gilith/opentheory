@@ -16,6 +16,8 @@ val new : (Type.ty' -> Type.ty option) -> rewrite
 
 val id : rewrite
 
+val undef : rewrite  (* Remove definitions from type operators *)
+
 (* ------------------------------------------------------------------------- *)
 (* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)

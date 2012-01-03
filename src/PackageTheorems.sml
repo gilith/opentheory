@@ -40,6 +40,8 @@ datatype theorems =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+fun sequents' (Theorems' {sequents = x, ...}) = x;
+
 fun mk ths' =
     let
       val Theorems' {package = nv, sequents = seqs} = ths'
@@ -61,6 +63,71 @@ fun mk ths' =
     end;
 
 fun dest (Theorems {theorems' = x, ...}) = x;
+
+fun sequents ths = sequents' (dest ths);
+
+fun symbol ths = Sequents.symbol (sequents ths);
+
+fun defined ths = SymbolTable.defined (symbol ths);
+
+(* ------------------------------------------------------------------------- *)
+(* Unsatisfied assumptions.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun unionDefined thl =
+      SOME (SymbolTable.unionList (List.map defined thl))
+      handle Error err =>
+        let
+          val mesg = "requires contain " ^ err
+
+          val () = warn mesg
+        in
+          NONE
+        end;
+
+  fun compatibleDefined thl = Option.isSome (unionDefined thl);
+
+  fun satisfy (th,(unsat,rewr)) =
+      let
+        val Theorems' {package = pkg, sequents = seqs} = dest th
+
+        val seqs = Sequents.sequents seqs
+
+        val (seqs',rewr) = SequentSet.sharingRewrite seqs rewr
+
+        val seqs = Option.getOpt (seqs',seqs)
+
+        val unsat' = SequentSet.difference unsat seqs
+
+        val () =
+            if SequentSet.size unsat' < SequentSet.size unsat then ()
+            else
+              let
+                val mesg =
+                    "redundant requires: " ^ PackageNameVersion.toString pkg
+
+                val () = warn mesg
+              in
+                ()
+              end
+      in
+        (unsat',rewr)
+      end;
+
+  fun removeSatisfied thl asms =
+      let
+        val asms = SequentSet.difference asms SequentSet.standardAxioms
+
+        val (unsat,_) = List.foldl satisfy (asms,TermRewrite.undef) thl
+      in
+        unsat
+      end;
+in
+  fun unsatisfiedAssumptions thl =
+      if not (compatibleDefined thl) then NONE
+      else SOME (removeSatisfied thl);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Output formats.                                                           *)

@@ -1,5 +1,5 @@
 name: natural-divides
-version: 1.12
+version: 1.13
 description: The divides relation on natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,7 +14,7 @@ def {
 
 thm {
   import: def
-  package: natural-divides-thm-1.15
+  package: natural-divides-thm-1.16
 }
 
 main {

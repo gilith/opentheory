@@ -16,6 +16,8 @@ val new : TypeRewrite.rewrite -> (Term.term' -> Term.term option) -> rewrite
 
 val id : rewrite
 
+val undef : rewrite  (* Remove definitions from type operators and constants *)
+
 (* ------------------------------------------------------------------------- *)
 (* Applying rewrites.                                                        *)
 (* ------------------------------------------------------------------------- *)

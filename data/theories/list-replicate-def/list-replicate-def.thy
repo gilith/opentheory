@@ -1,9 +1,9 @@
 name: list-replicate-def
-version: 1.26
+version: 1.27
 description: Definition of the list replicate function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-12-05
+provenance: HOL Light theory extracted on 2011-12-18
 requires: bool
 requires: natural
 show: "Data.Bool"

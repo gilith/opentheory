@@ -1,5 +1,5 @@
 name: natural-gcd
-version: 1.13
+version: 1.14
 description: Natural number greatest common divisor
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,13 +15,13 @@ def {
 
 thm {
   import: def
-  package: natural-gcd-thm-1.14
+  package: natural-gcd-thm-1.15
 }
 
 lcm {
   import: def
   import: thm
-  package: natural-gcd-lcm-1.4
+  package: natural-gcd-lcm-1.5
 }
 
 main {

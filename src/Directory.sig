@@ -83,6 +83,9 @@ val nameVersions :
 val latestNameVersion :
     directory -> PackageName.name -> PackageNameVersion.nameVersion option
 
+val getLatestNameVersion :
+    directory -> PackageName.name -> PackageNameVersion.nameVersion
+
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)
 (* ------------------------------------------------------------------------- *)
@@ -128,6 +131,14 @@ val auxiliaryDescendentsSet :
     directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
 
 val isAuxiliary : directory -> PackageNameVersion.nameVersion -> bool
+
+(* Package requirements *)
+
+val requiredPackages :
+    directory -> PackageName.name list -> PackageInfo.info list option
+
+val requiredTheorems :
+    directory -> PackageName.name list -> PackageTheorems.theorems list option
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
@@ -193,7 +204,6 @@ val checkStageTheory :
 val stageTheory :
     directory ->
     PackageNameVersion.nameVersion -> Package.package -> {directory : string} ->
-    (Summary.summary -> Sequent.sequent -> bool) option ->
     {tool : Html.inline list} ->
     Checksum.checksum
 

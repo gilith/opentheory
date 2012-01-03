@@ -1,9 +1,9 @@
 name: list-dest-thm
-version: 1.8
+version: 1.9
 description: Properties of list type destructors
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-11-15
+provenance: HOL Light theory extracted on 2011-12-18
 requires: bool
 requires: list-def
 requires: list-thm

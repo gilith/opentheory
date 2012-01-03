@@ -35,6 +35,19 @@ val mk : theorems' -> theorems
 
 val dest : theorems -> theorems'
 
+val sequents : theorems -> Sequents.sequents
+
+val symbol : theorems -> SymbolTable.table
+
+val defined : theorems -> SymbolTable.table
+
+(* ------------------------------------------------------------------------- *)
+(* Unsatisfied assumptions.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val unsatisfiedAssumptions :
+    theorems list -> (SequentSet.set -> SequentSet.set) option
+
 (* ------------------------------------------------------------------------- *)
 (* Output formats.                                                           *)
 (* ------------------------------------------------------------------------- *)

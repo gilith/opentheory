@@ -1,9 +1,9 @@
 name: relation-thm
-version: 1.3
+version: 1.4
 description: Properties of relation operators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-02
+provenance: HOL Light theory extracted on 2011-12-18
 requires: bool
 requires: pair
 requires: set
