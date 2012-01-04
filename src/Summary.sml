@@ -162,10 +162,14 @@ fun rewrite rewr sum =
 (* A type of theory summary information (for pretty printing).               *)
 (* ------------------------------------------------------------------------- *)
 
+datatype assumptions =
+    AllAssumptions of SequentSet.set
+  | ClassifiedAssumptions of {satisfied : int, unsatisfied : SequentSet.set};
+
 datatype info =
     Info of
       {input : SymbolTable.table,
-       assumed : SequentSet.set,
+       assumed : assumptions,
        defined : SymbolTable.table,
        axioms : SequentSet.set,
        thms : SequentSet.set};
@@ -207,8 +211,15 @@ in
 
         val ass =
             case unsatisfiedAssumptions of
-              SOME f => SequentSet.filter f ass
-            | NONE => ass
+              NONE => AllAssumptions ass
+            | SOME p =>
+              let
+                val unsat = SequentSet.filter p ass
+
+                val sat = SequentSet.size ass - SequentSet.size unsat
+              in
+                ClassifiedAssumptions {satisfied = sat, unsatisfied = unsat}
+              end
 
         val ths = Sequents.sequents provides
 
@@ -344,6 +355,11 @@ local
       let
         val Info {assumed,axioms,thms,...} = info
 
+        val assumed =
+            case assumed of
+              AllAssumptions seqs => seqs
+            | ClassifiedAssumptions _ => raise Bug "Summary.check.checkInfo"
+
         val () =
             if SequentSet.null axioms then ()
             else warnSequents "axiom" show axioms
@@ -449,6 +465,15 @@ local
               List.map (Print.sequence Print.break o ppX) xs)]
       end;
 
+  fun ppSatisfied n =
+      if n = 0 then []
+      else
+        [Print.consistentBlock 2
+           [Print.ppPrettyInt n,
+            Print.ppString " satisfied assumption",
+            (if n = 1 then Print.skip else Print.ppString "s"),
+            Print.ppString ": omitted"]];
+
   fun ppSequentList ppSeq (name,seqs) =
       let
         val n = List.length seqs
@@ -465,7 +490,7 @@ local
       end;
 in
   fun ppInfoWithShow ppTypeOpWS ppConstWS ppAssumptionWS ppAxiomWS ppTheoremWS
-                     isUnsat show =
+                     show =
       let
         val ppTypeOp = ppTypeOpWS show
         and ppConst = ppConstWS show
@@ -485,6 +510,12 @@ in
         fn asses => fn info =>
            let
              val Info {input,assumed,defined,axioms,thms} = info
+
+             val (sat,assumed) =
+                 case assumed of
+                   AllAssumptions seqs => (NONE,seqs)
+                 | ClassifiedAssumptions {satisfied,unsatisfied} =>
+                   (SOME satisfied, unsatisfied)
 
              val assumed = SequentSet.toList assumed
              and axioms = SequentSet.toList axioms
@@ -529,13 +560,20 @@ in
                         ppSeq seq]
                  end
 
-             val assumptionClass =
-                 if isUnsat then "unsatisfied assumption"
-                 else "assumption"
+             val assumptionBlocks =
+                 let
+                   val ppAssumed = ppSequentList (ppAss ppAssumption)
+                 in
+                   case sat of
+                     NONE => ppAssumed ("assumption",assumed)
+                   | SOME n =>
+                     ppSatisfied n @
+                     ppAssumed ("unsatisfied assumption",assumed)
+                 end
 
              val blocks =
                  ppSymbol ("input",input) @
-                 ppSequentList (ppAss ppAssumption) (assumptionClass,assumed) @
+                 assumptionBlocks @
                  ppSymbol ("defined",defined) @
                  ppSequentList (ppAss ppAxiom) ("axiom",axioms) @
                  ppSequentList (ppTh ppTheorem) ("theorem",thms)
@@ -567,7 +605,6 @@ fun ppWithGrammar grammar =
 
       val ppIWS =
           ppInfoWithShow ppTypeOp ppConst ppAssumptionWS ppAxiomWS ppTheoremWS
-          (Option.isSome unsatisfiedAssumptions)
     in
       fn show =>
          let
@@ -870,12 +907,20 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
       fn info =>
          let
            val Info {input,assumed,defined,axioms,thms} = info
+
+           val assumptionBlocks =
+               case assumed of
+                 AllAssumptions seqs =>
+                 toHtmlSequentSet toHtmlAssumption "Assumption" "made" [] seqs
+               | ClassifiedAssumptions {satisfied = _, unsatisfied} =>
+                 toHtmlSequentSet toHtmlAssumption
+                   "Unsatisfied assumption" "made" [] unsatisfied
          in
            toHtmlSymbol "Defined" defined @
            toHtmlSequentSet toHtmlAxiom "Axiom" "asserted" ["warning"] axioms @
            toHtmlSequentSet toHtmlTheorem "Theorem" "proved" [] thms @
            toHtmlSymbol "Input" input @
-           toHtmlSequentSet toHtmlAssumption "Assumption" "made" [] assumed
+           assumptionBlocks
          end
     end;
 
