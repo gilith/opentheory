@@ -1,9 +1,9 @@
 name: gfp-div-gcd-def
-version: 1.8
+version: 1.9
 description: Definition of a GF(p) division algorithm based on gcd
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-18
+provenance: HOL Light theory extracted on 2012-01-04
 requires: bool
 requires: pair
 requires: relation

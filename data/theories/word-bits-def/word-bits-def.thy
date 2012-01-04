@@ -1,9 +1,9 @@
 name: word-bits-def
-version: 1.31
+version: 1.32
 description: Definition of word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-18
+provenance: HOL Light theory extracted on 2012-01-04
 requires: bool
 requires: list
 show: "Data.Bool"

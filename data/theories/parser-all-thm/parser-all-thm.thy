@@ -1,9 +1,9 @@
 name: parser-all-thm
-version: 1.41
+version: 1.42
 description: Properties of the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-18
+provenance: HOL Light theory extracted on 2012-01-04
 requires: bool
 requires: pair
 requires: natural

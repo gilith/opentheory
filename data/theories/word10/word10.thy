@@ -1,5 +1,5 @@
 name: word10
-version: 1.35
+version: 1.36
 description: 10-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,12 +14,12 @@ show: "Data.Word10.Bits"
 show: "Number.Natural"
 
 def {
-  package: word10-def-1.10
+  package: word10-def-1.11
 }
 
 bits {
   import: def
-  package: word10-bits-1.30
+  package: word10-bits-1.31
 }
 
 main {

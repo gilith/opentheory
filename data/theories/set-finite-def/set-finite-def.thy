@@ -1,9 +1,9 @@
 name: set-finite-def
-version: 1.17
+version: 1.18
 description: Definition of finite sets
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2011-12-18
+provenance: HOL Light theory extracted on 2012-01-04
 requires: bool
 show: "Data.Bool"
 show: "Set"

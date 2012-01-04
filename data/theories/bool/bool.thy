@@ -1,18 +1,17 @@
 name: bool
-version: 1.22
+version: 1.23
 description: Boolean operators and quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-requires: empty
 show: "Data.Bool"
 
 def {
-  package: bool-def-1.7
+  package: bool-def-1.8
 }
 
 int {
   import: def
-  package: bool-int-1.12
+  package: bool-int-1.13
 }
 
 axiom-extensionality {
