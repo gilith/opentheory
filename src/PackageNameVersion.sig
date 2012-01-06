@@ -31,6 +31,8 @@ val version : nameVersion -> PackageVersion.version
 
 val equalName : PackageName.name -> nameVersion -> bool
 
+val equalVersion : PackageVersion.version -> nameVersion -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)

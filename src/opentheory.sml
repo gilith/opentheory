@@ -647,12 +647,7 @@ local
        processor = processor};
 in
   val installOpts : opt list =
-      [{switches = ["--repo"], arguments = ["REPO"],
-        description = "specify the repos to install from",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => addRepository s)},
-       {switches = ["--reinstall"], arguments = [],
+      [{switches = ["--reinstall"], arguments = [],
         description = "uninstall the package if it exists",
         processor = beginOpt endOpt (fn _ => reinstall := true)}] @
       List.map (addSuffix "-uninstall") uninstallOpts @
@@ -791,11 +786,7 @@ local
   open Useful Options;
 in
   val updateOpts : opt list =
-      [{switches = ["--repo"], arguments = ["REPO"],
-        description = "specify the repos to update",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => addRepository s)}];
+      [];
 end;
 
 val updateFooter = "";
@@ -817,12 +808,7 @@ local
   open Useful Options;
 in
   val uploadOpts : opt list =
-      [{switches = ["--repo"], arguments = ["REPO"],
-        description = "specify the target repo",
-        processor =
-          beginOpt (stringOpt endOpt)
-            (fn _ => fn s => addRepository s)},
-       {switches = ["--auto"], arguments = [],
+      [{switches = ["--auto"], arguments = [],
         description = "also upload dependent packages",
         processor = beginOpt endOpt (fn _ => setUpload := AutoUpload)},
        {switches = ["--manual"], arguments = [],
@@ -959,7 +945,12 @@ in
         description = "use this theory package directory",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => rootDirectoryOption := SOME s)}];
+            (fn _ => fn s => rootDirectoryOption := SOME s)},
+       {switches = ["--repo"], arguments = ["REPO"],
+        description = "use these theory package repos",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn _ => fn s => addRepository s)}];
 end;
 
 local
@@ -2563,7 +2554,7 @@ local
 
   fun filterLatestVersion dir pkgs =
       let
-        val pred = Directory.isLatestVersion dir
+        val pred = Directory.isLatestNameVersion dir
       in
         PackageNameVersionSet.filter pred pkgs
       end;

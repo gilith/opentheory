@@ -362,21 +362,21 @@ fun checksum dir namever = DirectoryPackages.checksum (packages dir) namever;
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun latestVersion dir namever =
-    DirectoryPackages.latestVersion (packages dir) namever;
-
-fun isLatestVersion dir namever =
-    DirectoryPackages.isLatestVersion (packages dir) namever;
-
 fun nameVersions dir name =
     DirectoryPackages.nameVersions (packages dir) name;
+
+fun latestVersion dir name =
+    DirectoryPackages.latestVersion (packages dir) name;
 
 fun latestNameVersion dir name =
     DirectoryPackages.latestNameVersion (packages dir) name;
 
+fun isLatestNameVersion dir namever =
+    DirectoryPackages.isLatestNameVersion (packages dir) namever;
+
 local
   fun complaint name =
-      "can't find latest version of package " ^ PackageName.toString name;
+      "package " ^ PackageName.toString name ^ " is not installed";
 in
   fun getLatestNameVersion dir name =
       case latestNameVersion dir name of
@@ -493,48 +493,15 @@ fun list dir = DirectoryPackages.list (packages dir);
 
 fun upgrade dir pkg =
     let
-      val pkgs = packages dir
-
-      fun latest nv =
+      fun latest namever =
           let
-            val () =
-                if DirectoryPackages.member nv pkgs then ()
-                else
-                  let
-                    val mesg =
-                        "package " ^ PackageNameVersion.toString nv ^
-                        " is not installed"
-                  in
-                    warn mesg
-                  end
-
-            val nvs = DirectoryPackages.latestVersion pkgs nv
-
-            val () =
-                if PackageNameVersionSet.size nvs <= 1 then ()
-                else
-                  let
-                    val err =
-                        "multiple upgrade paths for package " ^
-                        PackageNameVersion.toString nv
-                  in
-                    raise Error err
-                  end
-
-            val nv' =
-                case PackageNameVersionSet.findl (K true) nvs of
-                  SOME nv' => nv'
-                | NONE =>
-                  let
-                    val err =
-                        "no versions of package " ^
-                        PackageName.toString (PackageNameVersion.name nv) ^
-                        " are installed"
-                  in
-                    raise Error err
-                  end
+            val name = PackageNameVersion.name namever
           in
-            if PackageNameVersion.equal nv' nv then NONE else SOME nv'
+            case warnLatestNameVersion dir name of
+              NONE => NONE
+            | SOME nv =>
+              if PackageNameVersion.equal nv namever then NONE
+              else SOME nv
           end
     in
       Package.updatePackages latest pkg

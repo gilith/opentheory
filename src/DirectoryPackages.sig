@@ -46,17 +46,17 @@ val list : packages -> PackageNameVersionSet.set
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val latestVersion :
-    packages -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
-
-val isLatestVersion :
-    packages -> PackageNameVersion.nameVersion -> bool
-
 val nameVersions :
     packages -> PackageName.name -> PackageVersionSet.set
 
+val latestVersion :
+    packages -> PackageName.name -> PackageVersion.version option
+
 val latestNameVersion :
     packages -> PackageName.name -> PackageNameVersion.nameVersion option
+
+val isLatestNameVersion :
+    packages -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the installed packages.                                   *)
@@ -114,6 +114,17 @@ val installOrder :
 
 val installOrdered :
     packages -> PackageNameVersion.nameVersion list -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Package status.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+datatype status =
+    Obsolete
+  | Auxiliary
+  | Latest
+
+val status : packages -> PackageNameVersion.nameVersion -> status
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

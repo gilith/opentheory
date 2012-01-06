@@ -9,61 +9,176 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* A type of installed packages.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype installed =
+    Installed of PackageInfo.info PackageNameVersionMap.map;
+
+val emptyInstalled = Installed (PackageNameVersionMap.new ());
+
+fun sizeInstalled (Installed pkgs) = PackageNameVersionMap.size pkgs;
+
+fun peekInstalled (Installed pkgs) namever =
+    PackageNameVersionMap.peek pkgs namever;
+
+fun memberInstalled namever (Installed pkgs) =
+    PackageNameVersionMap.inDomain namever pkgs;
+
+fun toNameVersionSetInstalled (Installed pkgs) =
+    PackageNameVersionSet.domain pkgs;
+
+fun appInstalled f =
+    let
+      fun f' (_,info) = f info
+    in
+      fn Installed pkgs => PackageNameVersionMap.app f' pkgs
+    end;
+
+fun foldlInstalled f =
+    let
+      fun f' (_,info,acc) = f (info,acc)
+    in
+      fn acc => fn Installed pkgs => PackageNameVersionMap.foldl f' acc pkgs
+    end;
+
+fun addInstalled (Installed pkgs) namever_info =
+    let
+      val pkgs = PackageNameVersionMap.insert pkgs namever_info
+    in
+      Installed pkgs
+    end;
+
+fun deleteInstalled (Installed pkgs) namever =
+    let
+      val pkgs = PackageNameVersionMap.delete pkgs namever
+    in
+      Installed pkgs
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of package versions.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+datatype versions =
+    Versions of PackageVersionSet.set PackageNameMap.map;
+
+val emptyVersions =
+    let
+      val vermap = PackageNameMap.new ()
+    in
+      Versions vermap
+    end;
+
+local
+  fun totalPeek vermap name =
+      case PackageNameMap.peek vermap name of
+        SOME vers => vers
+      | NONE => PackageVersionSet.empty;
+in
+  fun peekVersions (Versions vermap) name = totalPeek vermap name;
+
+  fun addVersions (Versions vermap) namever =
+      let
+        val PackageNameVersion.NameVersion' {name,version} =
+            PackageNameVersion.dest namever
+
+        val vers = totalPeek vermap name
+
+        val vers = PackageVersionSet.add vers version
+
+        val vermap = PackageNameMap.insert vermap (name,vers)
+      in
+        Versions vermap
+      end;
+end;
+
+fun deleteVersions (Versions vermap) namever =
+    let
+      val PackageNameVersion.NameVersion' {name,version} =
+          PackageNameVersion.dest namever
+
+      val vers =
+          case PackageNameMap.peek vermap name of
+            SOME vs => vs
+          | NONE => raise Error "DirectoryPackages.deleteVersions"
+
+      val vers = PackageVersionSet.delete vers version
+
+      val vermap =
+          if PackageVersionSet.null vers then
+            PackageNameMap.delete vermap name
+          else
+            PackageNameMap.insert vermap (name,vers)
+    in
+      Versions vermap
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A pure type of installed packages.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 datatype purePackages =
-    PurePackages of PackageInfo.info PackageNameVersionMap.map;
+    PurePackages of
+      {installed : installed,
+       versions : versions};
 
-val emptyPure = PurePackages (PackageNameVersionMap.new ());
+fun installedPure (PurePackages {installed = x, ...}) = x;
 
-fun sizePure (PurePackages pkgs) = PackageNameVersionMap.size pkgs;
+fun versionsPure (PurePackages {versions = x, ...}) = x;
 
-fun peekPure (PurePackages pkgs) namever =
-    PackageNameVersionMap.peek pkgs namever;
-
-fun memberPure namever (PurePackages pkgs) =
-    PackageNameVersionMap.inDomain namever pkgs;
-
-fun toNameVersionSetPure (PurePackages pkgs) =
-    PackageNameVersionSet.domain pkgs;
-
-fun appPure f =
+val emptyPure =
     let
-      fun f' (_,info) = f info
+      val installed = emptyInstalled
+      and versions = emptyVersions
     in
-      fn PurePackages pkgs => PackageNameVersionMap.app f' pkgs
+      PurePackages
+        {installed = installed,
+         versions = versions}
     end;
 
-fun foldlPure f =
-    let
-      fun f' (_,info,acc) = f (info,acc)
-    in
-      fn acc => fn PurePackages pkgs => PackageNameVersionMap.foldl f' acc pkgs
-    end;
+fun sizePure pkgs = sizeInstalled (installedPure pkgs);
 
-fun addPure (PurePackages pkgs) info =
+fun peekPure pkgs namever = peekInstalled (installedPure pkgs) namever;
+
+fun memberPure namever pkgs = memberInstalled namever (installedPure pkgs);
+
+fun toNameVersionSetPure pkgs = toNameVersionSetInstalled (installedPure pkgs);
+
+fun appPure f pkgs = appInstalled f (installedPure pkgs);
+
+fun foldlPure f b pkgs = foldlInstalled f b (installedPure pkgs);
+
+fun addPure pkgs info =
     let
+      val PurePackages {installed,versions} = pkgs
+
       val namever = PackageInfo.nameVersion info
 
-      val pkgs = PackageNameVersionMap.insert pkgs (namever,info)
+      val installed = addInstalled installed (namever,info)
+
+      val versions = addVersions versions namever
     in
-      PurePackages pkgs
+      PurePackages
+        {installed = installed,
+         versions = versions}
     end;
 
-fun deletePure (PurePackages pkgs) namever =
+fun deletePure pkgs namever =
     let
-      val pkgs = PackageNameVersionMap.delete pkgs namever
+      val PurePackages {installed,versions} = pkgs
+
+      val installed = deleteInstalled installed namever
+
+      val versions = deleteVersions versions namever
     in
-      PurePackages pkgs
+      PurePackages
+        {installed = installed,
+         versions = versions}
     end;
 
-fun removePure (PurePackages pkgs) namever =
-    let
-      val pkgs = PackageNameVersionMap.remove pkgs namever
-    in
-      PurePackages pkgs
-    end;
+fun removePure pkgs namever =
+    if memberPure namever pkgs then deletePure pkgs namever else pkgs;
 
 val dependencyPure =
     let
@@ -72,14 +187,7 @@ val dependencyPure =
       foldlPure add PackageDependency.empty
     end;
 
-fun nameVersionsPure (PurePackages pkgs) name =
-    let
-      fun filt (nv,_,acc) =
-          if not (PackageNameVersion.equalName name nv) then acc
-          else PackageVersionSet.add acc (PackageNameVersion.version nv)
-    in
-      PackageNameVersionMap.foldl filt PackageVersionSet.empty pkgs
-    end;
+fun nameVersionsPure pkgs name = peekVersions (versionsPure pkgs) name;
 
 fun fromDirectoryPure sys =
     let
@@ -210,41 +318,32 @@ fun list pkgs = toNameVersionSetPure (packages pkgs);
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun latestVersion pkgs nv =
-    let
-      val n = PackageNameVersion.name nv
-    in
-      case PackageNameVersionSet.latestVersion (list pkgs) n of
-        SOME nv => PackageNameVersionSet.singleton nv
-      | NONE => PackageNameVersionSet.empty
-    end;
-
-fun isLatestVersion pkgs nv =
-    let
-      val nvs = latestVersion pkgs nv
-    in
-      PackageNameVersionSet.member nv nvs
-    end;
-
 fun nameVersions pkgs name = nameVersionsPure (packages pkgs) name;
 
-fun latestNameVersion pkgs name =
-    let
-      val versions = nameVersions pkgs name
-    in
-      case PackageVersionSet.latestVersion versions of
-        NONE => NONE
-      | SOME version =>
-        let
-          val namever' =
-              PackageNameVersion.NameVersion'
-                {name = name,
-                 version = version}
+fun latestVersion pkgs name =
+    PackageVersionSet.latestVersion (nameVersions pkgs name);
 
-          val namever = PackageNameVersion.mk namever'
-        in
-          if isLatestVersion pkgs namever then SOME namever else NONE
-        end
+fun latestNameVersion pkgs name =
+    case latestVersion pkgs name of
+      NONE => NONE
+    | SOME version =>
+      let
+        val namever' =
+            PackageNameVersion.NameVersion'
+              {name = name,
+               version = version}
+      in
+        SOME (PackageNameVersion.mk namever')
+      end;
+
+fun isLatestNameVersion pkgs namever =
+    let
+      val PackageNameVersion.NameVersion' {name,version} =
+          PackageNameVersion.dest namever
+    in
+      case latestVersion pkgs name of
+        NONE => false
+      | SOME ver => PackageVersion.equal ver version
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -330,6 +429,18 @@ fun isAuxiliary pkgs namever =
 fun installOrder pkgs = PackageNameVersionSet.postOrder (parents pkgs);
 
 fun installOrdered pkgs = PackageNameVersionSet.postOrdered (parents pkgs);
+
+(* ------------------------------------------------------------------------- *)
+(* Package status.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+datatype status =
+    Obsolete
+  | Auxiliary
+  | Latest;
+
+fun status pkgs namever =
+    raise Bug "DirectoryPackages.status: not implemented";
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

@@ -71,20 +71,20 @@ val getLicense : directory -> {name : string} -> DirectoryConfig.license
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val latestVersion :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
-
-val isLatestVersion :
-    directory -> PackageNameVersion.nameVersion -> bool
-
 val nameVersions :
     directory -> PackageName.name -> PackageVersionSet.set
+
+val latestVersion :
+    directory -> PackageName.name -> PackageVersion.version option
 
 val latestNameVersion :
     directory -> PackageName.name -> PackageNameVersion.nameVersion option
 
 val getLatestNameVersion :
     directory -> PackageName.name -> PackageNameVersion.nameVersion
+
+val isLatestNameVersion :
+    directory -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Dependencies in the package directory.                                    *)

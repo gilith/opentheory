@@ -43,6 +43,8 @@ fun version nv = version' (dest nv);
 
 fun equalName n nv = PackageName.equal n (name nv);
 
+fun equalVersion v nv = PackageVersion.equal v (version nv);
+
 (* ------------------------------------------------------------------------- *)
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
