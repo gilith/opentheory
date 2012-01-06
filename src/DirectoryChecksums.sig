@@ -52,7 +52,7 @@ val member : PackageNameVersion.nameVersion -> checksums -> bool
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val previousVersion :
+val previousNameVersion :
     checksums -> PackageNameVersion.nameVersion ->
     (PackageNameVersion.nameVersion * Checksum.checksum) option
 

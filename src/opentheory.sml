@@ -372,37 +372,11 @@ end;
 (* Getting the latest version of packages on repos.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun latestVersionRepositories name chk' =
+fun latestNameVersionRepositories name chk' =
     let
-      fun matches chk =
-          case chk' of
-            NONE => true
-          | SOME c => Checksum.equal c chk
-
-      fun later nv acc =
-          case acc of
-            NONE => true
-          | SOME (_,nv',_) =>
-            let
-              val v = PackageNameVersion.version nv
-              and v' = PackageNameVersion.version nv'
-            in
-              case PackageVersion.compare (v',v) of
-                LESS => true
-              | EQUAL => false
-              | GREATER => false
-            end
-
-      fun latest (repo,acc) =
-          case DirectoryRepo.latestNameVersion repo name of
-            NONE => acc
-          | SOME (nv,chk) =>
-            if not (matches chk andalso later nv acc) then acc
-            else SOME (repo,nv,chk)
-
       val repos = repositories ()
     in
-      List.foldl latest NONE repos
+      DirectoryRepo.latestNameVersionList repos name chk'
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2307,7 +2281,7 @@ local
             if not (!stageInstall) then ()
             else raise Error "can't stage a package name install"
       in
-        case latestVersionRepositories name (!checksumInstall) of
+        case latestNameVersionRepositories name (!checksumInstall) of
           NONE =>
           let
             val err =

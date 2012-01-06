@@ -1628,7 +1628,7 @@ local
   fun checkObsoleteInstalled dir repo =
       let
         fun check (nv,(obs,errs)) =
-            case DirectoryRepo.previousVersion repo nv of
+            case DirectoryRepo.previousNameVersion repo nv of
               NONE => (obs,errs)
             | SOME (nv',chk') =>
               case checksum dir nv' of

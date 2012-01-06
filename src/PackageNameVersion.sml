@@ -150,18 +150,18 @@ struct
     open S;
   end;
 
-  fun previousVersion m nv =
+  fun previousNameVersion m namever =
       let
-        val n = PackageNameVersion.name nv
-        and v = PackageNameVersion.version nv
+        val PackageNameVersion.NameVersion' {name,version} =
+            PackageNameVersion.dest namever
 
-        fun sameName (nv',_) = PackageNameVersion.equalName n nv'
+        fun sameName (nv,_) = PackageNameVersion.equalName name nv
 
-        fun earlier (nv',_) =
+        fun earlier (nv,_) =
             let
-              val v' = PackageNameVersion.version nv'
+              val v = PackageNameVersion.version nv
             in
-              case PackageVersion.compare (v',v) of
+              case PackageVersion.compare (v,version) of
                 LESS => true
               | _ => false
             end
@@ -169,6 +169,13 @@ struct
         val m = filter sameName m
       in
         findr earlier m
+      end;
+
+  fun latestNameVersion m name =
+      let
+        fun pred (nv,_) = PackageNameVersion.equalName name nv
+      in
+        findr pred m
       end;
 
   local

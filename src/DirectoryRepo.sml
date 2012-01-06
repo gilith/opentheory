@@ -128,11 +128,42 @@ fun find repos (n,c) =
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun previousVersion repo nv =
-    DirectoryChecksums.previousVersion (checksums repo) nv;
+fun previousNameVersion repo nv =
+    DirectoryChecksums.previousNameVersion (checksums repo) nv;
 
 fun latestNameVersion repo n =
     DirectoryChecksums.latestNameVersion (checksums repo) n;
+
+fun latestNameVersionList repos name chk' =
+    let
+      fun matches chk =
+          case chk' of
+            NONE => true
+          | SOME c => Checksum.equal c chk
+
+      fun later nv acc =
+          case acc of
+            NONE => true
+          | SOME (_,nv',_) =>
+            let
+              val v = PackageNameVersion.version nv
+              and v' = PackageNameVersion.version nv'
+            in
+              case PackageVersion.compare (v',v) of
+                LESS => true
+              | EQUAL => false
+              | GREATER => false
+            end
+
+      fun latest (repo,acc) =
+          case latestNameVersion repo name of
+            NONE => acc
+          | SOME (nv,chk) =>
+            if not (matches chk andalso later nv acc) then acc
+            else SOME (repo,nv,chk)
+    in
+      List.foldl latest NONE repos
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)

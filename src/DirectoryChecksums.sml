@@ -54,15 +54,11 @@ fun peekPure (PureChecksums m) = PackageNameVersionMap.peek m;
 
 fun memberPure nv (PureChecksums m) = PackageNameVersionMap.inDomain nv m;
 
-fun previousVersionPure (PureChecksums m) nv =
-    PackageNameVersionMap.previousVersion m nv;
+fun previousNameVersionPure (PureChecksums m) nv =
+    PackageNameVersionMap.previousNameVersion m nv;
 
 fun latestNameVersionPure (PureChecksums m) n =
-    let
-      fun pred (nv,_) = PackageName.equal (PackageNameVersion.name nv) n
-    in
-      PackageNameVersionMap.findr pred m
-    end;
+    PackageNameVersionMap.latestNameVersion m n;
 
 fun insertPure pc (nv,c) =
     if memberPure nv pc then
@@ -263,8 +259,8 @@ fun member n chks = memberPure n (checksums chks);
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun previousVersion chks nv =
-    previousVersionPure (checksums chks) nv;
+fun previousNameVersion chks nv =
+    previousNameVersionPure (checksums chks) nv;
 
 fun latestNameVersion chks n =
     latestNameVersionPure (checksums chks) n;
