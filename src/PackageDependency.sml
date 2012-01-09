@@ -12,7 +12,11 @@ open Useful;
 (* A type of package dependency graphs.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype dependency = Dependency of PackageNameVersionGraph.graph;
+datatype dependency =
+    Dependency of
+      {includes : PackageNameVersionGraph.graph,
+       requires : PackageNameVersionGraph.graph,
+       subtheories : PackageNameVersionGraph.graph}
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors.                                                             *)
@@ -20,69 +24,104 @@ datatype dependency = Dependency of PackageNameVersionGraph.graph;
 
 val empty =
     let
-      val graph = PackageNameVersionGraph.empty
+      val includes = PackageNameVersionGraph.empty
+      and requires = PackageNameVersionGraph.empty
+      and subtheories = PackageNameVersionGraph.empty
     in
-      Dependency graph
+      Dependency
+        {includes = includes,
+         requires = requires,
+         subtheories = subtheories}
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding package dependencies.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun addInfo dep info =
+fun addInfo latest dep info =
     let
-      val pars = PackageInfo.packages info
+      val incs = PackageInfo.includes info
+      and reqs = List.mapPartial latest (PackageInfo.requires info)
     in
-      if PackageNameVersionSet.null pars then dep
+      if PackageNameVersionSet.null incs andalso List.null reqs then dep
       else
         let
           val namever = PackageInfo.nameVersion info
 
-          fun add (p,graph) =
-              PackageNameVersionGraph.addEdge graph (p,namever)
+          fun addEdge (nv,graph) =
+              PackageNameVersionGraph.addEdge graph (nv,namever)
 
-          val Dependency graph = dep
+          fun addEdges graph nvs =
+              PackageNameVersionSet.foldl addEdge graph nvs
 
-          val graph = PackageNameVersionSet.foldl add graph pars
+          val reqs = PackageNameVersionSet.fromList reqs
+
+          val subs =
+              PackageNameVersionSet.filter
+                (PackageNameVersion.isStrictPrefixName namever)
+                (PackageNameVersionSet.union incs reqs)
+
+          val Dependency {includes,requires,subtheories} = dep
+
+          val includes = addEdges includes incs
+          and requires = addEdges requires reqs
+          and subtheories = addEdges subtheories subs
         in
-          Dependency graph
+          Dependency
+            {includes = includes,
+             requires = requires,
+             subtheories = subtheories}
         end
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Dependencies in the installed packages.                                   *)
+(* Querying package dependencies.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun parents (Dependency graph) namever =
-    PackageNameVersionGraph.parents graph namever;
+fun includes (Dependency {includes = x, ...}) =
+    PackageNameVersionGraph.parents x;
 
-fun children (Dependency graph) namever =
-    PackageNameVersionGraph.children graph namever;
+fun includedBy (Dependency {includes = x, ...}) =
+    PackageNameVersionGraph.children x;
 
-fun ancestors (Dependency graph) namever =
-    PackageNameVersionGraph.ancestors graph namever;
+fun requires (Dependency {requires = x, ...}) =
+    PackageNameVersionGraph.parents x;
 
-fun descendents (Dependency graph) namever =
-    PackageNameVersionGraph.descendents graph namever;
+fun requiredBy (Dependency {requires = x, ...}) =
+    PackageNameVersionGraph.children x;
 
-(* Set versions *)
+fun subtheories (Dependency {subtheories = x, ...}) =
+    PackageNameVersionGraph.parents x;
 
-fun ancestorsSet (Dependency graph) set =
-    PackageNameVersionGraph.ancestorsSet graph set;
-
-fun descendentsSet (Dependency graph) set =
-    PackageNameVersionGraph.descendentsSet graph set;
-
-(* ------------------------------------------------------------------------- *)
-(* Generate a valid installation order.                                      *)
-(* ------------------------------------------------------------------------- *)
-
-fun installOrder dep = PackageNameVersionSet.postOrder (parents dep);
+fun subtheoryOf (Dependency {subtheories = x, ...}) =
+    PackageNameVersionGraph.children x;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun toString (Dependency graph) = PackageNameVersionGraph.toString graph;
+local
+  fun ppGraph s g =
+      Print.inconsistentBlock 2
+        [Print.ppString s,
+         Print.space,
+         Print.ppString "=",
+         Print.break,
+         Print.ppString (PackageNameVersionGraph.toString g)];
+in
+  fun pp (Dependency {includes,requires,subtheories}) =
+      Print.consistentBlock 1
+        [Print.ppString "{",
+         ppGraph "includes" includes,
+         Print.ppString ",",
+         Print.break,
+         ppGraph "requires" requires,
+         Print.ppString ",",
+         Print.break,
+         ppGraph "subtheories" subtheories,
+         Print.ppString "}"];
+end;
+
+val toString = Print.toString pp;
 
 end

@@ -83,9 +83,9 @@ val articles : package -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packages : package -> PackageNameVersion.nameVersion list
+val includes : package -> PackageNameVersion.nameVersion list
 
-val updatePackages :
+val updateIncludes :
     (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
     package -> package option
 

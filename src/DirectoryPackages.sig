@@ -37,10 +37,12 @@ val checksum :
     packages -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
-(* All installed packages.                                                   *)
+(* Sets of installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-val list : packages -> PackageNameVersionSet.set
+val toSet : packages -> PackageNameVersionSet.set
+
+val latestSet : packages -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Package versions.                                                         *)
@@ -114,17 +116,6 @@ val installOrder :
 
 val installOrdered :
     packages -> PackageNameVersion.nameVersion list -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Package status.                                                           *)
-(* ------------------------------------------------------------------------- *)
-
-datatype status =
-    Obsolete
-  | Auxiliary
-  | Latest
-
-val status : packages -> PackageNameVersion.nameVersion -> status
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

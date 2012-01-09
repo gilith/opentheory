@@ -191,7 +191,7 @@ fun toPackageTheoryNode node =
         {interpretation = interpretation,
          filename = filename}
     | Package {interpretation,package,...} =>
-      PackageTheory.Package
+      PackageTheory.Include
         {interpretation = interpretation,
          package = package}
     | Union =>

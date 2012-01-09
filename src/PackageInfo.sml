@@ -178,11 +178,11 @@ fun allFiles info =
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun packages info =
+fun includes info =
     let
       val pkg = package info
     in
-      PackageNameVersionSet.fromList (Package.packages pkg)
+      PackageNameVersionSet.fromList (Package.includes pkg)
     end;
 
 (* ------------------------------------------------------------------------- *)

@@ -120,13 +120,13 @@ fun articles pkg = PackageTheory.articles (theories pkg);
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun packages pkg = PackageTheory.packages (theories pkg);
+fun includes pkg = PackageTheory.includes (theories pkg);
 
-fun updatePackages f pkg =
+fun updateIncludes f pkg =
     let
       val Package' {tags,theories} = dest pkg
     in
-      case PackageTheory.updatePackages f theories of
+      case PackageTheory.updateIncludes f theories of
         SOME theories =>
         let
           val pkg' = Package' {tags = tags, theories = theories}

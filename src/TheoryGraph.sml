@@ -324,13 +324,12 @@ fun member thy graph = TheorySet.member thy (theories graph);
 (* Looking up theories by package name.                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun lookupPackages packages package =
-    case PackageNameVersionMap.peek packages package of
+fun lookupPackages pkgs namever =
+    case PackageNameVersionMap.peek pkgs namever of
       SOME thys => thys
     | NONE => TheorySet.empty;
 
-fun lookup (Graph {packages,...}) package =
-    lookupPackages packages package;
+fun lookup (Graph {packages,...}) = lookupPackages packages;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding theories.                                                          *)
@@ -467,7 +466,7 @@ fun importNode importer graph info =
           in
             (graph,thy)
           end
-        | PackageTheory.Package {interpretation = int, package = namever} =>
+        | PackageTheory.Include {interpretation = int, package = namever} =>
           let
             val imports = TheorySet.union imports nodeImports
 

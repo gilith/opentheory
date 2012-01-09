@@ -16,7 +16,7 @@ datatype node =
     Article of
       {interpretation : Interpretation.interpretation,
        filename : string}
-  | Package of
+  | Include of
       {interpretation : Interpretation.interpretation,
        package : PackageNameVersion.nameVersion}
   | Union
@@ -69,21 +69,21 @@ val articles : theory list -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packageNode : node -> PackageNameVersion.nameVersion option
+val includeNode : node -> PackageNameVersion.nameVersion option
 
-val package : theory -> PackageNameVersion.nameVersion option
+val destInclude : theory -> PackageNameVersion.nameVersion option
 
-val packages : theory list -> PackageNameVersion.nameVersion list
+val includes : theory list -> PackageNameVersion.nameVersion list
 
-val updatePackageNode :
+val updateIncludeNode :
     (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
     node -> node option
 
-val updatePackage :
+val updateInclude :
     (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
     theory -> theory option
 
-val updatePackages :
+val updateIncludes :
     (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
     theory list -> theory list option
 

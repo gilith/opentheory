@@ -7,7 +7,7 @@ signature PackageDependency =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of package dependency graphs.                                      *)
+(* A type of package dependencies.                                           *)
 (* ------------------------------------------------------------------------- *)
 
 type dependency
@@ -22,45 +22,37 @@ val empty : dependency
 (* Adding package dependencies.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val addInfo : dependency -> PackageInfo.info -> dependency
+val addInfo :
+    (PackageName.name -> PackageNameVersion.nameVersion option) ->
+    dependency -> PackageInfo.info -> dependency
 
 (* ------------------------------------------------------------------------- *)
-(* Dependencies in the installed packages.                                   *)
+(* Querying package dependencies.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val parents :
+val includes :
     dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
 
-val children :
+val includedBy :
     dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
 
-val ancestors :
+val requires :
     dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
 
-val descendents :
+val requiredBy :
     dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
 
-(* Set versions *)
-
-val ancestorsSet :
-    dependency -> PackageNameVersionSet.set ->
+val subtheories :
+    dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
 
-val descendentsSet :
-    dependency -> PackageNameVersionSet.set ->
+val subtheoryOf :
+    dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
-
-(* ------------------------------------------------------------------------- *)
-(* Generate a valid installation order.                                      *)
-(* ------------------------------------------------------------------------- *)
-
-val installOrder :
-    dependency -> PackageNameVersionSet.set ->
-    PackageNameVersion.nameVersion list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

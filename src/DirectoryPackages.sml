@@ -431,18 +431,6 @@ fun installOrder pkgs = PackageNameVersionSet.postOrder (parents pkgs);
 fun installOrdered pkgs = PackageNameVersionSet.postOrdered (parents pkgs);
 
 (* ------------------------------------------------------------------------- *)
-(* Package status.                                                           *)
-(* ------------------------------------------------------------------------- *)
-
-datatype status =
-    Obsolete
-  | Auxiliary
-  | Latest;
-
-fun status pkgs namever =
-    raise Bug "DirectoryPackages.status: not implemented";
-
-(* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

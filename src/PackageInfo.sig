@@ -87,7 +87,7 @@ val allFiles : info -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val packages : info -> PackageNameVersionSet.set
+val includes : info -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Show.                                                                     *)

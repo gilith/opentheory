@@ -31,7 +31,7 @@ datatype node =
     Article of
       {interpretation : Interpretation.interpretation,
        filename : string}
-  | Package of
+  | Include of
       {interpretation : Interpretation.interpretation,
        package : PackageNameVersion.nameVersion}
   | Union;
@@ -92,40 +92,40 @@ fun articles thys = List.mapPartial article thys;
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun packageNode node =
+fun includeNode node =
     case node of
-      Package {package = p, ...} => SOME p
+      Include {package = p, ...} => SOME p
     | _ => NONE;
 
-fun package thy = packageNode (node thy);
+fun destInclude thy = includeNode (node thy);
 
-fun packages thys = List.mapPartial package thys;
+fun includes thys = List.mapPartial destInclude thys;
 
-fun updatePackageNode f node =
+fun updateIncludeNode f node =
     case node of
-      Package {interpretation = i, package = p} =>
+      Include {interpretation = i, package = p} =>
       (case f p of
-         SOME p => SOME (Package {interpretation = i, package = p})
+         SOME p => SOME (Include {interpretation = i, package = p})
        | NONE => NONE)
     | _ => NONE;
 
-fun updatePackage f thy =
+fun updateInclude f thy =
     let
       val Theory {name,imports,node} = thy
     in
-      case updatePackageNode f node of
+      case updateIncludeNode f node of
         SOME node => SOME (Theory {name = name, imports = imports, node = node})
       | NONE => NONE
     end;
 
-fun updatePackages f =
+fun updateIncludes f =
     let
       fun update thys =
           case thys of
             [] => NONE
           | thy :: thys =>
             let
-              val thy' = updatePackage f thy
+              val thy' = updateInclude f thy
               and thys' = update thys
             in
               case thys' of
@@ -345,7 +345,7 @@ fun mkTheory (name,cs) =
             let
               val int = Interpretation.fromRewriteList rws
             in
-              Package
+              Include
                 {interpretation = int,
                  package = p}
             end
@@ -371,7 +371,7 @@ fun destTheory thy =
               List.map InterpretConstraint rws @
               [ArticleConstraint {filename = f}]
             end
-          | Package {interpretation = int, package = p} =>
+          | Include {interpretation = int, package = p} =>
             let
               val rws = Interpretation.toRewriteList int
             in

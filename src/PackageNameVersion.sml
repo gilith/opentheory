@@ -155,18 +155,16 @@ struct
         val PackageNameVersion.NameVersion' {name,version} =
             PackageNameVersion.dest namever
 
-        fun sameName (nv,_) = PackageNameVersion.equalName name nv
-
         fun earlier (nv,_) =
             let
-              val v = PackageNameVersion.version nv
+              val PackageNameVersion.NameVersion' {name = n, version = v} =
+                  PackageNameVersion.dest nv
             in
+              PackageName.equal name n andalso
               case PackageVersion.compare (v,version) of
                 LESS => true
               | _ => false
             end
-
-        val m = filter sameName m
       in
         findr earlier m
       end;
@@ -200,75 +198,27 @@ struct
     open S;
   end;
 
-  fun preOrder children set =
+  fun previousNameVersion set namever =
       let
-        fun dfsCheck (namever,(seen,acc)) =
-            if member namever seen then (seen,acc)
-            else dfsNameVersion (seen,acc) namever
+        val PackageNameVersion.NameVersion' {name,version} =
+            PackageNameVersion.dest namever
 
-        and dfsNameVersion (seen,acc) namever =
+        fun earlier nv =
             let
-              val seen = add seen namever
-
-              val (seen,acc) = dfsSet (seen,acc) (children namever)
-
-              val acc = if member namever set then namever :: acc else acc
+              val PackageNameVersion.NameVersion' {name = n, version = v} =
+                  PackageNameVersion.dest nv
             in
-              (seen,acc)
-            end
-
-        and dfsSet seen_acc namevers = foldl dfsCheck seen_acc namevers
-
-        val (_,acc) = dfsSet (empty,[]) set
-      in
-        acc
-      end;
-
-  fun postOrder children set = List.rev (preOrder children set);
-
-  fun postOrdered children =
-      let
-        fun check acc nvl =
-            case nvl of
-              [] => true
-            | nv :: nvl =>
-              not (member nv acc) andalso
-              let
-                val acc = closedAdd children acc (singleton nv)
-              in
-                check acc nvl
-              end
-      in
-        check empty
-      end;
-
-  fun latestVersion set n =
-      let
-        val nvs = filter (PackageNameVersion.equalName n) set
-      in
-        findr (Useful.K true) nvs
-      end;
-
-  fun previousVersion set nv =
-      let
-        val n = PackageNameVersion.name nv
-        and v = PackageNameVersion.version nv
-
-        fun sameName nv' = PackageNameVersion.equalName n nv'
-
-        fun earlier nv' =
-            let
-              val v' = PackageNameVersion.version nv'
-            in
-              case PackageVersion.compare (v',v) of
+              PackageName.equal name n andalso
+              case PackageVersion.compare (v,version) of
                 LESS => true
               | _ => false
             end
-
-        val set = filter sameName set
       in
         findr earlier set
       end;
+
+  fun latestNameVersion set name =
+      findr (PackageNameVersion.equalName name) set;
 
   val pp =
       Print.ppMap
