@@ -73,7 +73,7 @@ fun addPurePackages (PurePackages {pkgs,latest}) info =
               val ver = PackageNameVersion.version namever
               and v = PackageNameVersion.version nv
             in
-              case PackageVersion.compare (v,ver) of
+              case PackageVersion.compare (ver,v) of
                 LESS => false
               | EQUAL => false
               | GREATER => true

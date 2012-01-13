@@ -152,6 +152,7 @@ SRC = \
   src/DirectoryError.sig src/DirectoryError.sml \
   src/DirectoryConfig.sig src/DirectoryConfig.sml \
   src/Directory.sig src/Directory.sml \
+  src/DirectoryQuery.sig src/DirectoryQuery.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Haskell.sig src/Haskell.sml \
   src/Options.sig src/Options.sml

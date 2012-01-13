@@ -220,6 +220,29 @@ struct
   fun latestNameVersion set name =
       findr (PackageNameVersion.equalName name) set;
 
+  local
+    fun incNew (namever,name_acc) =
+        let
+          val (name,acc) = name_acc
+
+          val n = PackageNameVersion.name namever
+        in
+          if PackageName.equal n name then name_acc else (n, add acc namever)
+        end;
+  in
+    fun latestVersions set =
+        case findr (Useful.K true) set of
+          NONE => empty
+        | SOME namever =>
+          let
+            val name_acc = (PackageNameVersion.name namever, singleton namever)
+
+            val (_,acc) = foldr incNew name_acc set
+          in
+            acc
+          end
+  end;
+
   val pp =
       Print.ppMap
         toList
