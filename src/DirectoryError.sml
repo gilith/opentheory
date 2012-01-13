@@ -26,7 +26,7 @@ datatype error =
   | FilenameClash of
       {srcs : {name : string, filename : string option} list,
        dest : {filename : string}}
-  | InstalledDescendent of
+  | InstalledUser of
       PackageNameVersion.nameVersion
   | MultipleAuthors of
       (PackageNameVersion.nameVersion * {author : string}) list
@@ -45,7 +45,7 @@ datatype error =
   | UninstalledObsolete of
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}
-  | UninstalledParent of
+  | UninstalledInclude of
       PackageNameVersion.nameVersion
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
@@ -91,36 +91,36 @@ fun removeAlreadyStaged errs =
       (removed,errs)
     end;
 
-fun destInstalledDescendent err =
+fun destInstalledUser err =
     case err of
-      InstalledDescendent nv => SOME nv
+      InstalledUser nv => SOME nv
     | _ => NONE;
 
-fun isInstalledDescendent err =
-    Option.isSome (destInstalledDescendent err);
+fun isInstalledUser err =
+    Option.isSome (destInstalledUser err);
 
-val removeInstalledDescendent =
+val removeInstalledUser =
     let
       fun remove (err,(nvs,errs)) =
-          case destInstalledDescendent err of
+          case destInstalledUser err of
             SOME nv => (nv :: nvs, errs)
           | NONE => (nvs, err :: errs)
     in
       List.foldr remove ([],[])
     end;
 
-fun destUninstalledParent err =
+fun destUninstalledInclude err =
     case err of
-      UninstalledParent nv => SOME nv
+      UninstalledInclude nv => SOME nv
     | _ => NONE;
 
-fun isUninstalledParent err =
-    Option.isSome (destUninstalledParent err);
+fun isUninstalledInclude err =
+    Option.isSome (destUninstalledInclude err);
 
-val removeUninstalledParent =
+val removeUninstalledInclude =
     let
       fun remove (err,(nvs,errs)) =
-          case destUninstalledParent err of
+          case destUninstalledInclude err of
             SOME nv => (nv :: nvs, errs)
           | NONE => (nvs, err :: errs)
     in
@@ -139,7 +139,7 @@ fun isFatal err =
     | AlreadyOnRepo _ => true
     | AlreadyStaged _ => true
     | FilenameClash _ => true
-    | InstalledDescendent _ => true
+    | InstalledUser _ => true
     | MultipleAuthors _ => true
     | ObsoleteAuthors _ => false
     | NotInstalled _ => true
@@ -148,7 +148,7 @@ fun isFatal err =
     | NoVersionInstalled _ => true
     | TagError _ => true
     | UninstalledObsolete _ => false
-    | UninstalledParent _ => true
+    | UninstalledInclude _ => true
     | WrongChecksumObsolete _ => false
     | WrongChecksumOnRepo _ => true;
 
@@ -196,7 +196,7 @@ in
          "filename clash in package directory:\n" ^
          "Package file " ^ PackageTheory.toStringFilename dest ^ "\n" ^
          " is target for " ^ toStringSrcs srcs
-       | InstalledDescendent namever =>
+       | InstalledUser namever =>
          "in use by installed package: " ^
          PackageNameVersion.toString namever
        | MultipleAuthors auths =>
@@ -223,8 +223,8 @@ in
          "upload package " ^ PackageNameVersion.toString upload ^
          " obsoletes package " ^ PackageNameVersion.toString obsolete ^
          ",\n  which is not installed"
-       | UninstalledParent namever =>
-         "depends on package " ^
+       | UninstalledInclude namever =>
+         "includes package " ^
          PackageNameVersion.toString namever ^
          " which is not installed"
        | WrongChecksumObsolete {upload,obsolete} =>

@@ -13,10 +13,14 @@ sig
 type dependency
 
 (* ------------------------------------------------------------------------- *)
-(* Constructors.                                                             *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 val empty : dependency
+
+val size : dependency -> int
+
+val member : PackageNameVersion.nameVersion -> dependency -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Adding package dependencies.                                              *)
@@ -27,7 +31,27 @@ val addInfo :
     dependency -> PackageInfo.info -> dependency
 
 (* ------------------------------------------------------------------------- *)
-(* Querying package dependencies.                                            *)
+(* Package requirements.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val requiresInstalled :
+    dependency -> PackageNameVersion.nameVersion ->
+    bool
+
+val requires :
+    dependency -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
+
+val requiredBy :
+    dependency -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
+
+val isRequired :
+    dependency -> PackageNameVersion.nameVersion ->
+    bool
+
+(* ------------------------------------------------------------------------- *)
+(* Included packages.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 val includes :
@@ -38,13 +62,17 @@ val includedBy :
     dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
 
-val requires :
+val isIncluded :
     dependency -> PackageNameVersion.nameVersion ->
-    PackageNameVersionSet.set
+    bool
 
-val requiredBy :
+(* ------------------------------------------------------------------------- *)
+(* Subtheory packages.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val subtheoriesInstalled :
     dependency -> PackageNameVersion.nameVersion ->
-    PackageNameVersionSet.set
+    bool
 
 val subtheories :
     dependency -> PackageNameVersion.nameVersion ->
@@ -53,6 +81,10 @@ val subtheories :
 val subtheoryOf :
     dependency -> PackageNameVersion.nameVersion ->
     PackageNameVersionSet.set
+
+val isSubtheory :
+    dependency -> PackageNameVersion.nameVersion ->
+    bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

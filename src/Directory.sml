@@ -359,14 +359,17 @@ fun member namever dir = Option.isSome (peek dir namever);
 fun checksum dir namever = DirectoryPackages.checksum (packages dir) namever;
 
 (* ------------------------------------------------------------------------- *)
+(* All installed packages.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun all dir = DirectoryPackages.all (packages dir);
+
+(* ------------------------------------------------------------------------- *)
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun nameVersions dir name =
     DirectoryPackages.nameVersions (packages dir) name;
-
-fun latestVersion dir name =
-    DirectoryPackages.latestVersion (packages dir) name;
 
 fun latestNameVersion dir name =
     DirectoryPackages.latestNameVersion (packages dir) name;
@@ -374,102 +377,80 @@ fun latestNameVersion dir name =
 fun isLatestNameVersion dir namever =
     DirectoryPackages.isLatestNameVersion (packages dir) namever;
 
-local
-  fun complaint name =
-      "package " ^ PackageName.toString name ^ " is not installed";
-in
-  fun getLatestNameVersion dir name =
-      case latestNameVersion dir name of
-        SOME namever => namever
-      | NONE => raise Error (complaint name);
+fun getLatestNameVersion dir namever =
+    DirectoryPackages.getLatestNameVersion (packages dir) namever;
 
-  fun warnLatestNameVersion dir name =
-      let
-        val namevero = latestNameVersion dir name
+fun warnLatestNameVersion dir namever =
+    DirectoryPackages.warnLatestNameVersion (packages dir) namever;
 
-        val () =
-            if Option.isSome namevero then ()
-            else warn (complaint name)
-      in
-        namevero
-      end;
-end;
-
-local
-  fun consOption x xso =
-      case xso of
-        NONE => NONE
-      | SOME xs => SOME (x :: xs);
-
-  fun addLatest dir (name,nvs) =
-      case warnLatestNameVersion dir name of
-        SOME nv => consOption nv nvs
-      | NONE => NONE;
-in
-  fun warnLatestNameVersionList dir names =
-      case List.foldl (addLatest dir) (SOME []) names of
-        NONE => NONE
-      | SOME namevers => SOME (List.rev namevers);
-end;
+fun warnLatestNameVersionList dir namevers =
+    DirectoryPackages.warnLatestNameVersionList (packages dir) namevers;
 
 (* ------------------------------------------------------------------------- *)
-(* Dependencies in the package directory.                                    *)
+(* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun parents dir namever =
-    DirectoryPackages.parents (packages dir) namever;
+fun requiresInstalled dir namever =
+    DirectoryPackages.requiresInstalled (packages dir) namever;
 
-fun children dir namever =
-    DirectoryPackages.children (packages dir) namever;
+fun requiredBy dir namever =
+    DirectoryPackages.requiredBy (packages dir) namever;
 
-fun ancestors dir namever =
-    DirectoryPackages.ancestors (packages dir) namever;
+fun isRequired dir namever =
+    DirectoryPackages.isRequired (packages dir) namever;
 
-fun descendents dir namever =
-    DirectoryPackages.descendents (packages dir) namever;
+fun requires dir namever =
+    DirectoryPackages.requires (packages dir) namever;
 
-(* Set versions *)
+fun requiresNameVersions dir reqs =
+    DirectoryPackages.requiresNameVersions (packages dir) reqs;
 
-fun ancestorsSet dir namevers =
-    DirectoryPackages.ancestorsSet (packages dir) namevers;
+fun requiresPackages dir reqs =
+    DirectoryPackages.requiresPackages (packages dir) reqs;
 
-fun descendentsSet dir namevers =
-    DirectoryPackages.descendentsSet (packages dir) namevers;
+fun requiresTheorems dir reqs =
+    DirectoryPackages.requiresTheorems (packages dir) reqs;
 
-(* Auxiliary packages *)
+(* ------------------------------------------------------------------------- *)
+(* Included packages.                                                        *)
+(* ------------------------------------------------------------------------- *)
 
-fun auxiliaryParents dir namever =
-    DirectoryPackages.auxiliaryParents (packages dir) namever;
+fun includes dir namever =
+    DirectoryPackages.includes (packages dir) namever;
 
-fun auxiliaryChildren dir namever =
-    DirectoryPackages.auxiliaryChildren (packages dir) namever;
+fun includedBy dir namever =
+    DirectoryPackages.includedBy (packages dir) namever;
 
-fun auxiliaryAncestors dir namever =
-    DirectoryPackages.auxiliaryAncestors (packages dir) namever;
+fun isIncluded dir namever =
+    DirectoryPackages.isIncluded (packages dir) namever;
 
-fun auxiliaryDescendents dir namever =
-    DirectoryPackages.auxiliaryDescendents (packages dir) namever;
+fun includesRTC dir namevers =
+    DirectoryPackages.includesRTC (packages dir) namevers;
 
-fun auxiliaryAncestorsSet dir namevers =
-    DirectoryPackages.auxiliaryAncestorsSet (packages dir) namevers;
+fun includedByRTC dir namevers =
+    DirectoryPackages.includedByRTC (packages dir) namevers;
 
-fun auxiliaryDescendentsSet dir namevers =
-    DirectoryPackages.auxiliaryDescendentsSet (packages dir) namevers;
+(* ------------------------------------------------------------------------- *)
+(* Subtheory packages.                                                       *)
+(* ------------------------------------------------------------------------- *)
 
-fun isAuxiliary dir namever =
-    DirectoryPackages.isAuxiliary (packages dir) namever;
+fun subtheoriesInstalled dir namever =
+    DirectoryPackages.subtheoriesInstalled (packages dir) namever;
 
-(* Package requirements *)
+fun subtheoryOf dir namever =
+    DirectoryPackages.subtheoryOf (packages dir) namever;
 
-fun requiredPackages dir names =
-    case warnLatestNameVersionList dir names of
-      NONE => NONE
-    | SOME namevers => SOME (List.map (get dir) namevers);
+fun isSubtheory dir namever =
+    DirectoryPackages.isSubtheory (packages dir) namever;
 
-fun requiredTheorems dir names =
-    case requiredPackages dir names of
-      NONE => NONE
-    | SOME infos => SOME (List.map PackageInfo.theorems infos);
+fun subtheoryOfRTC dir namever =
+    DirectoryPackages.subtheoryOfRTC (packages dir) namever;
+
+fun subtheories dir namever =
+    DirectoryPackages.subtheories (packages dir) namever;
+
+fun subtheoriesRTC dir namever =
+    DirectoryPackages.subtheoriesRTC (packages dir) namever;
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
@@ -481,11 +462,11 @@ fun installOrder dir namevers =
 fun installOrdered dir namevers =
     DirectoryPackages.installOrdered (packages dir) namevers;
 
-(* ------------------------------------------------------------------------- *)
-(* Listing packages in the package directory.                                *)
-(* ------------------------------------------------------------------------- *)
+fun uninstallOrder dir namevers =
+    DirectoryPackages.uninstallOrder (packages dir) namevers;
 
-fun list dir = DirectoryPackages.list (packages dir);
+fun uninstallOrdered dir namevers =
+    DirectoryPackages.uninstallOrdered (packages dir) namevers;
 
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)
@@ -495,16 +476,17 @@ fun upgrade dir pkg =
     let
       fun latest namever =
           let
-            val name = PackageNameVersion.name namever
+            val PackageNameVersion.NameVersion' {name,version} =
+                PackageNameVersion.dest namever
           in
             case warnLatestNameVersion dir name of
               NONE => NONE
             | SOME nv =>
-              if PackageNameVersion.equal nv namever then NONE
+              if PackageNameVersion.equalVersion version nv then NONE
               else SOME nv
           end
     in
-      Package.updatePackages latest pkg
+      Package.updateIncludes latest pkg
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -772,7 +754,7 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
               val reqs = Package.requires pkg
 
               val unsat =
-                  case requiredTheorems dir reqs of
+                  case requiresTheorems dir reqs of
                     NONE => NONE
                   | SOME ths =>
                     case PackageTheorems.unsatisfiedAssumptions ths of
@@ -843,11 +825,11 @@ fun postStageTarball dir fndr stageInfo contents tool =
 
       val () = PackageInfo.unpackTarball stageInfo contents minimal
 
-      (* Check the required packages are installed *)
+      (* Check the included packages are installed *)
 
-      val pars = PackageInfo.packages stageInfo
+      val incs = PackageInfo.includes stageInfo
 
-      val () = PackageNameVersionSet.app (PackageFinder.check fndr) pars
+      val () = PackageNameVersionSet.app (PackageFinder.check fndr) incs
 
       (* Common post-stage operations *)
 
@@ -993,7 +975,7 @@ fun stageTarball dir fndr tarFile contents tool =
 local
   fun checkDep dir (namever,errs) =
       if member namever dir then errs
-      else DirectoryError.UninstalledParent namever :: errs;
+      else DirectoryError.UninstalledInclude namever :: errs;
 
   fun mkFileCopyPlan info pkg =
       let
@@ -1119,7 +1101,7 @@ in
 
         val errs = checkTags dir namever (Package.tags pkg) @ errs
 
-        val errs = List.foldl (checkDep dir) errs (Package.packages pkg)
+        val errs = List.foldl (checkDep dir) errs (Package.includes pkg)
 
         val info = packageInfo dir namever
 
@@ -1367,11 +1349,11 @@ fun checkInstallStaged dir namever chk =
             let
               fun add (dep,acc) =
                   if member dep dir then acc
-                  else DirectoryError.UninstalledParent dep :: acc
+                  else DirectoryError.UninstalledInclude dep :: acc
 
               val pkg = PackageInfo.package stageInfo
             in
-              List.foldl add errs (Package.packages pkg)
+              List.foldl add errs (Package.includes pkg)
             end
     in
       List.rev errs
@@ -1479,15 +1461,15 @@ fun checkUninstall dir namever =
       let
         val errs = []
 
-        val desc = descendents dir namever
+        val users = includedByRTC dir (includedBy dir namever)
 
         val errs =
-            if PackageNameVersionSet.null desc then errs
+            if PackageNameVersionSet.null users then errs
             else
               let
-                fun add (n,acc) = DirectoryError.InstalledDescendent n :: acc
+                fun add (nv,acc) = DirectoryError.InstalledUser nv :: acc
               in
-                PackageNameVersionSet.foldl add errs desc
+                PackageNameVersionSet.foldl add errs users
               end
       in
         List.rev errs
@@ -1606,7 +1588,7 @@ local
            let
              val nvs = PackageNameVersionSet.fromList namevers
 
-             val ancs = ancestorsSet dir nvs
+             val ancs = includesRTC dir nvs
 
              val ancs = PackageNameVersionSet.difference ancs nvs
            in

@@ -24,7 +24,7 @@ datatype error =
   | FilenameClash of
       {srcs : {name : string, filename : string option} list,
        dest : {filename : string}}
-  | InstalledDescendent of
+  | InstalledUser of
       PackageNameVersion.nameVersion
   | MultipleAuthors of
       (PackageNameVersion.nameVersion * {author : string}) list
@@ -43,7 +43,7 @@ datatype error =
   | UninstalledObsolete of
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}
-  | UninstalledParent of
+  | UninstalledInclude of
       PackageNameVersion.nameVersion
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
@@ -71,22 +71,22 @@ val isAlreadyStaged : error -> bool
 
 val removeAlreadyStaged : error list -> bool * error list
 
-(* InstalledDescendent *)
+(* InstalledUser *)
 
-val destInstalledDescendent : error -> PackageNameVersion.nameVersion option
+val destInstalledUser : error -> PackageNameVersion.nameVersion option
 
-val isInstalledDescendent : error -> bool
+val isInstalledUser : error -> bool
 
-val removeInstalledDescendent :
+val removeInstalledUser :
     error list -> PackageNameVersion.nameVersion list * error list
 
-(* UninstalledParent *)
+(* UninstalledInclude *)
 
-val destUninstalledParent : error -> PackageNameVersion.nameVersion option
+val destUninstalledInclude : error -> PackageNameVersion.nameVersion option
 
-val isUninstalledParent : error -> bool
+val isUninstalledInclude : error -> bool
 
-val removeUninstalledParent :
+val removeUninstalledInclude :
     error list -> PackageNameVersion.nameVersion list * error list
 
 (* ------------------------------------------------------------------------- *)

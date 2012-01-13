@@ -771,10 +771,9 @@ val updateFooter = "";
 
 datatype setUpload =
     ManualUpload
-  | AuxiliaryUpload
-  | AutoUpload;
+  | SubtheoryUpload;
 
-val setUpload = ref AuxiliaryUpload;
+val setUpload = ref SubtheoryUpload;
 
 val confirmUpload = ref true;
 
@@ -782,11 +781,8 @@ local
   open Useful Options;
 in
   val uploadOpts : opt list =
-      [{switches = ["--auto"], arguments = [],
-        description = "also upload dependent packages",
-        processor = beginOpt endOpt (fn _ => setUpload := AutoUpload)},
-       {switches = ["--manual"], arguments = [],
-        description = "do not also upload dependent packages",
+      [{switches = ["--manual"], arguments = [],
+        description = "do not also upload subtheory packages",
         processor = beginOpt endOpt (fn _ => setUpload := ManualUpload)},
        {switches = ["--yes"], arguments = [],
         description = "do not ask for confirmation",
@@ -1454,7 +1450,7 @@ local
           let
             val dir = directory ()
           in
-            case Directory.requiredTheorems dir reqs of
+            case Directory.requiresTheorems dir reqs of
               NONE => NONE
             | SOME ths => PackageTheorems.unsatisfiedAssumptions ths
           end;
@@ -1551,7 +1547,7 @@ local
                 SOME p => p
               | NONE => raise Error "no package information available"
 
-          val namevers = Package.packages pkg
+          val namevers = Package.includes pkg
 
           val () =
               let
@@ -1560,7 +1556,7 @@ local
                     else
                       let
                         val err =
-                            "dependent package " ^
+                            "included package " ^
                             PackageNameVersion.toString nv ^
                             " is not installed"
                       in
@@ -1572,7 +1568,7 @@ local
 
           val namevers = PackageNameVersionSet.fromList namevers
 
-          val namevers = Directory.ancestorsSet dir namevers
+          val namevers = Directory.includesRTC dir namevers
         in
           outputPackageNameVersionSet namevers file
         end
@@ -1596,7 +1592,7 @@ local
                 SOME info => PackageInfo.nameVersion info
               | NONE => raise Error "package must be installed to have uses"
 
-          val namevers = Directory.children dir namever
+          val namevers = Directory.includedBy dir namever
         in
           outputPackageNameVersionSet namevers file
         end
@@ -1609,7 +1605,8 @@ local
                 SOME info => PackageInfo.nameVersion info
               | NONE => raise Error "package must be installed to have uses"
 
-          val namevers = Directory.descendents dir namever
+          val namevers =
+              Directory.includedByRTC dir (Directory.includedBy dir namever)
         in
           outputPackageNameVersionSet namevers file
         end
@@ -1652,7 +1649,7 @@ local
                 SOME p => p
               | NONE => raise Error "no package information available"
 
-          val namevers = PackageNameVersionSet.fromList (Package.packages pkg)
+          val namevers = PackageNameVersionSet.fromList (Package.includes pkg)
         in
           outputPackageNameVersionSet namevers file
         end
@@ -1937,7 +1934,7 @@ in
             if not (!autoUninstall) then errs
             else
               let
-                val (_,errs) = DirectoryError.removeInstalledDescendent errs
+                val (_,errs) = DirectoryError.removeInstalledUser errs
               in
                 errs
               end
@@ -1948,7 +1945,9 @@ in
             if not (!autoUninstall) then ()
             else
               let
-                val desc = Directory.descendents dir namever
+                val desc =
+                    Directory.includedByRTC dir
+                      (Directory.includedBy dir namever)
 
                 val desc = List.rev (Directory.installOrder dir desc)
               in
@@ -2473,7 +2472,7 @@ local
 
         val (pars,errs) =
             if not (!autoInstall) then ([],errs)
-            else DirectoryError.removeUninstalledParent errs
+            else DirectoryError.removeUninstalledInclude errs
 
         val () =
             if List.null errs then ()
@@ -2521,7 +2520,7 @@ end;
 local
   fun filterTopLevel dir pkgs =
       let
-        fun pred pkg = not (Directory.isAuxiliary dir pkg)
+        fun pred pkg = not (Directory.isSubtheory dir pkg)
       in
         PackageNameVersionSet.filter pred pkgs
       end;
@@ -2549,7 +2548,7 @@ in
 
           val pkgs' = filterLatestVersion dir pkgs'
 
-          val pkgs' = Directory.ancestorsSet dir pkgs'
+          val pkgs' = Directory.includesRTC dir pkgs'
         in
           PackageNameVersionSet.intersect pkgs pkgs'
         end
@@ -2567,7 +2566,7 @@ fun list () =
     let
       val dir = directory ()
 
-      val pkgs = Directory.list dir
+      val pkgs = Directory.all dir
 
       val pkgs = filterList dir pkgs (constraintList ());
 
@@ -2681,10 +2680,8 @@ local
                   case !setUpload of
                     ManualUpload =>
                     PackageNameVersionSet.empty
-                  | AuxiliaryUpload =>
-                    Directory.auxiliaryAncestorsSet dir namevers
-                  | AutoUpload =>
-                    Directory.ancestorsSet dir namevers
+                  | SubtheoryUpload =>
+                    Directory.subtheoriesRTC dir namevers
 
               val ancs = PackageNameVersionSet.filter notInRepo ancs
             in
@@ -2693,7 +2690,7 @@ local
 
         val support =
             let
-              val ancs = Directory.ancestorsSet dir namevers
+              val ancs = Directory.includesRTC dir namevers
 
               val ancs = PackageNameVersionSet.filter notInRepo ancs
 

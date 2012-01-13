@@ -45,6 +45,12 @@ val checksum :
     directory -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
+(* All installed packages.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val all : directory -> PackageNameVersionSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Looking up repos in the package directory.                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -68,77 +74,117 @@ val knownLicense : directory -> {name : string} -> bool
 val getLicense : directory -> {name : string} -> DirectoryConfig.license
 
 (* ------------------------------------------------------------------------- *)
-(* Package versions.                                                         *)
+(* Installed package versions.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 val nameVersions :
-    directory -> PackageName.name -> PackageVersionSet.set
-
-val latestVersion :
-    directory -> PackageName.name -> PackageVersion.version option
+    directory -> PackageName.name -> PackageNameVersionSet.set
 
 val latestNameVersion :
     directory -> PackageName.name -> PackageNameVersion.nameVersion option
 
-val getLatestNameVersion :
-    directory -> PackageName.name -> PackageNameVersion.nameVersion
-
 val isLatestNameVersion :
     directory -> PackageNameVersion.nameVersion -> bool
 
+val getLatestNameVersion :
+    directory -> PackageName.name -> PackageNameVersion.nameVersion
+
+val warnLatestNameVersion :
+    directory -> PackageName.name -> PackageNameVersion.nameVersion option
+
+val warnLatestNameVersionList :
+    directory -> PackageName.name list ->
+    PackageNameVersion.nameVersion list option
+
 (* ------------------------------------------------------------------------- *)
-(* Dependencies in the package directory.                                    *)
+(* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val parents :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+val requiresInstalled :
+    directory -> PackageNameVersion.nameVersion ->
+    bool
 
-val children :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+val requiredBy :
+    directory -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
 
-val ancestors :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+val isRequired :
+    directory -> PackageNameVersion.nameVersion ->
+    bool
 
-val descendents :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+(* This function silently ignores required packages that are not installed *)
 
-(* Set versions *)
+val requires :
+    directory -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
 
-val ancestorsSet :
-    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+(* These functions emit warnings if required packages are not installed *)
 
-val descendentsSet :
-    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+val requiresNameVersions :
+    directory -> PackageName.name list ->
+    PackageNameVersion.nameVersion list option
 
-(* Auxiliary packages *)
+val requiresPackages :
+    directory -> PackageName.name list ->
+    PackageInfo.info list option
 
-val auxiliaryParents :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+val requiresTheorems :
+    directory -> PackageName.name list ->
+    PackageTheorems.theorems list option
 
-val auxiliaryChildren :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+(* ------------------------------------------------------------------------- *)
+(* Included packages.                                                        *)
+(* ------------------------------------------------------------------------- *)
 
-val auxiliaryAncestors :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+val includes :
+    directory -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
 
-val auxiliaryDescendents :
-    directory -> PackageNameVersion.nameVersion -> PackageNameVersionSet.set
+val includedBy :
+    directory -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
 
-val auxiliaryAncestorsSet :
-    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+val isIncluded :
+    directory -> PackageNameVersion.nameVersion ->
+    bool
 
-val auxiliaryDescendentsSet :
-    directory -> PackageNameVersionSet.set -> PackageNameVersionSet.set
+val includesRTC :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
 
-val isAuxiliary : directory -> PackageNameVersion.nameVersion -> bool
+val includedByRTC :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
 
-(* Package requirements *)
+(* ------------------------------------------------------------------------- *)
+(* Subtheory packages.                                                       *)
+(* ------------------------------------------------------------------------- *)
 
-val requiredPackages :
-    directory -> PackageName.name list -> PackageInfo.info list option
+val subtheoriesInstalled :
+    directory -> PackageNameVersion.nameVersion ->
+    bool
 
-val requiredTheorems :
-    directory -> PackageName.name list -> PackageTheorems.theorems list option
+val subtheoryOf :
+    directory -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
+
+val isSubtheory :
+    directory -> PackageNameVersion.nameVersion ->
+    bool
+
+val subtheoryOfRTC :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
+
+(* These functions silently ignore subtheory packages that are not installed *)
+
+val subtheories :
+    directory -> PackageNameVersion.nameVersion ->
+    PackageNameVersionSet.set
+
+val subtheoriesRTC :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)
@@ -148,13 +194,17 @@ val installOrder :
     directory -> PackageNameVersionSet.set ->
     PackageNameVersion.nameVersion list
 
-val installOrdered : directory -> PackageNameVersion.nameVersion list -> bool
+val installOrdered :
+    directory -> PackageNameVersion.nameVersion list ->
+    bool
 
-(* ------------------------------------------------------------------------- *)
-(* Listing packages in the package directory.                                *)
-(* ------------------------------------------------------------------------- *)
+val uninstallOrder :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersion.nameVersion list
 
-val list : directory -> PackageNameVersionSet.set
+val uninstallOrdered :
+    directory -> PackageNameVersion.nameVersion list ->
+    bool
 
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)

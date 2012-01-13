@@ -1160,7 +1160,7 @@ in
 
         val graph = mkGraph syms symSrc
 
-        val sccl = SymbolGraph.preOrderSCC graph (SymbolGraph.vertexList graph)
+        val sccl = SymbolGraph.preOrderSCC graph (SymbolGraph.vertices graph)
       in
         linearize symSrc sccl
       end;
