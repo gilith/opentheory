@@ -276,12 +276,6 @@ fun member namever pkgs = memberPurePackages namever (packages pkgs);
 fun checksum pkgs namever = DirectoryChecksums.peek (checksums pkgs) namever;
 
 (* ------------------------------------------------------------------------- *)
-(* All installed packages.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun all pkgs = toNameVersionSetPurePackages (packages pkgs);
-
-(* ------------------------------------------------------------------------- *)
 (* Installed package versions.                                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -457,6 +451,103 @@ fun subtheories pkgs namever =
 
 fun subtheoriesRTC pkgs namevers =
     PackageNameVersionSet.close (subtheories pkgs) namevers;
+
+(* ------------------------------------------------------------------------- *)
+(* Installed package sets.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun all pkgs = toNameVersionSetPurePackages (packages pkgs);
+
+local
+  fun addSubs pkgs (namever,subs) =
+      if PackageNameVersionSet.member namever subs then subs
+      else
+        let
+          val namevers = subtheories pkgs namever
+        in
+          PackageNameVersionSet.closedAdd (subtheories pkgs) subs namevers
+        end;
+
+  fun addSubsSet pkgs =
+      PackageNameVersionSet.foldl (addSubs pkgs);
+
+  fun addSubsNameSet pkgs names =
+      let
+        fun notMember namever =
+            not (PackageNameSet.member (PackageNameVersion.name namever) names)
+
+        fun addSubsName (namever,subs) =
+            if notMember namever then subs
+            else addSubs pkgs (namever,subs)
+      in
+        if PackageNameSet.null names then K
+        else PackageNameVersionSet.foldl addSubsName
+      end;
+in
+  fun latest pkgs =
+    let
+      val namevers = all pkgs
+
+      val lats = PackageNameVersionSet.latestVersions namevers
+
+      val subs = PackageNameVersionSet.empty
+
+      val subs = addSubsSet pkgs subs lats
+
+      val lats = PackageNameVersionSet.difference lats subs
+
+      val sups = PackageNameVersionSet.name lats
+
+      val sups = PackageNameSet.strictPrefixes sups
+
+(*OpenTheoryTrace4
+      val () = Print.trace PackageNameSet.pp "DirectoryPackages.sups" sups
+*)
+
+      val subs = addSubsNameSet pkgs sups subs namevers
+    in
+      PackageNameVersionSet.difference lats subs
+    end;
+end;
+
+(*OpenTheoryDebug
+val latest = fn pkgs =>
+    let
+      val result = latest pkgs
+
+      val result' =
+          let
+            val namevers = all pkgs
+
+            val lats = PackageNameVersionSet.latestVersions namevers
+
+            val subs = PackageNameVersionSet.lift (subtheories pkgs) namevers
+          in
+            PackageNameVersionSet.difference lats subs
+          end
+
+      val () =
+          if PackageNameVersionSet.equal result result' then ()
+          else
+            let
+              fun ppSet n s =
+                  Print.inconsistentBlock 4
+                    [Print.ppString n,
+                     Print.ppString ":",
+                     Print.space,
+                     PackageNameVersionSet.pp s]
+
+              val bug =
+                  "DirectoryPackages.latest: wrong result:\n" ^
+                  "  " ^ Print.toString (ppSet "reference") result' ^ "\n" ^
+                  "  " ^ Print.toString (ppSet "optimized") result ^ "\n"
+            in
+              raise Bug bug
+            end
+    in
+      result
+    end;
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in installation order.                                 *)

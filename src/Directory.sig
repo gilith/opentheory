@@ -45,10 +45,13 @@ val checksum :
     directory -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
-(* All installed packages.                                                   *)
+(* Installed package sets.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val all : directory -> PackageNameVersionSet.set
+
+val latest :  (* (Latest - Subtheories) All *)
+    directory -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up repos in the package directory.                                *)

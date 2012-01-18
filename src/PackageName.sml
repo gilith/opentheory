@@ -115,6 +115,30 @@ fun isPrefix n1 n2 = equal n1 n2 orelse isStrictPrefix n1 n2;
 
 fun isSuffix n1 n2 = equal n1 n2 orelse isStrictSuffix n1 n2;
 
+local
+  fun collect acc xs =
+      case xs of
+        [] => acc
+      | _ :: xs => collect (xs :: acc) xs;
+
+  fun revMap f =
+      let
+        fun g (xs,ns) = f xs :: ns
+      in
+        List.foldl g []
+      end;
+
+  fun revName xs = Name (List.rev xs);
+in
+  fun strictPrefixes (Name xs) = revMap revName (collect [] (List.rev xs));
+
+  fun strictSuffixes (Name xs) = revMap Name (collect [] xs);
+end;
+
+fun prefixes n = n :: strictPrefixes n;
+
+fun suffixes n = n :: strictSuffixes n;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -223,4 +247,26 @@ struct type t = PackageName.name val compare = PackageName.compare end
 
 structure PackageNameMap = KeyMap (PackageNameOrdered)
 
-structure PackageNameSet = ElementSet (PackageNameMap)
+structure PackageNameSet =
+struct
+
+  local
+    structure S = ElementSet (PackageNameMap);
+  in
+    open S;
+  end;
+
+  local
+    fun addStrictPrefixes (n,s) =
+        if member n s then s
+        else addList s (PackageName.strictPrefixes n);
+  in
+    val strictPrefixes = foldr addStrictPrefixes empty;
+  end;
+
+  val pp =
+      Print.ppMap
+        toList
+        (Print.ppBracket "{" "}" (Print.ppOpList "," PackageName.pp));
+
+end

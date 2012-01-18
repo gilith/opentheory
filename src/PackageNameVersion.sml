@@ -198,6 +198,13 @@ struct
     open S;
   end;
 
+  val name =
+      let
+        fun inc (nv,s) = PackageNameSet.add s (PackageNameVersion.name nv)
+      in
+        foldl inc PackageNameSet.empty
+      end;
+
   fun previousNameVersion set namever =
       let
         val PackageNameVersion.NameVersion' {name,version} =

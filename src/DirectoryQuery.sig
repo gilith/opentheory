@@ -7,7 +7,7 @@ signature DirectoryQuery =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of query.                                                          *)
+(* A type of package query.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 datatype set =
@@ -30,7 +30,15 @@ datatype function =
   | Intersect of function * function
   | Difference of function * function
   | ReflexiveTransitive of function
+  | Transitive of function
+  | Optional of function
   | Compose of function * function
+
+(* ------------------------------------------------------------------------- *)
+(* Does the function ignore its input?                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val isConstant : function -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Evaluating queries.                                                       *)
@@ -39,5 +47,23 @@ datatype function =
 val evaluate :
     Directory.directory -> function -> PackageNameVersionSet.set ->
     PackageNameVersionSet.set
+
+(***
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : function Print.pp
+
+val toString : function -> string
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val parser : (char,function) Parse.parser
+
+val fromString : string -> function
+***)
 
 end

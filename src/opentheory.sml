@@ -2534,12 +2534,8 @@ local
 in
   fun filterList dir pkgs cons =
       if memberTopLevelConstraintList cons then
-        let
-          val pkgs = filterTopLevel dir pkgs
-        in
-          if not (memberLatestVersionConstraintList cons) then pkgs
-          else filterLatestVersion dir pkgs
-        end
+        if memberLatestVersionConstraintList cons then Directory.latest dir
+        else filterTopLevel dir pkgs
       else if memberLatestVersionConstraintList cons then
         let
           val pkgs' = pkgs

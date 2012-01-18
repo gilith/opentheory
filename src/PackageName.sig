@@ -44,11 +44,19 @@ val isStrictPrefix : name -> name -> bool
 
 val isPrefix : name -> name -> bool
 
+val strictPrefixes : name -> name list
+
+val prefixes : name -> name list
+
 val destStrictSuffix : name -> name -> name option
 
 val isStrictSuffix : name -> name -> bool
 
 val isSuffix : name -> name -> bool
+
+val strictSuffixes : name -> name list
+
+val suffixes : name -> name list
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

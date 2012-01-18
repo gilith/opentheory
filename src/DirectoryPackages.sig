@@ -37,10 +37,13 @@ val checksum :
     packages -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
-(* All installed packages.                                                   *)
+(* Installed package sets.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 val all : packages -> PackageNameVersionSet.set
+
+val latest :  (* (Latest - Subtheories) All *)
+    packages -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Installed package versions.                                               *)

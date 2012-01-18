@@ -359,10 +359,12 @@ fun member namever dir = Option.isSome (peek dir namever);
 fun checksum dir namever = DirectoryPackages.checksum (packages dir) namever;
 
 (* ------------------------------------------------------------------------- *)
-(* All installed packages.                                                   *)
+(* Installed package sets.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 fun all dir = DirectoryPackages.all (packages dir);
+
+fun latest dir = DirectoryPackages.latest (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Package versions.                                                         *)
