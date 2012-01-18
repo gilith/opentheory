@@ -421,14 +421,10 @@ val helpFooter = "";
 (* ------------------------------------------------------------------------- *)
 
 datatype info =
-    AncestorsInfo
-  | ArticleInfo
-  | ChildrenInfo
-  | DescendentsInfo
+    ArticleInfo
   | FilesInfo
   | FormatInfo of infoFormat
   | InferenceInfo
-  | ParentsInfo
   | SummaryInfo
   | TagsInfo
   | TheoremsInfo
@@ -518,18 +514,6 @@ in
        {switches = ["--files"], arguments = [],
         description = "list the package files",
         processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
-       {switches = ["--dependencies"], arguments = [],
-        description = "list direct package dependencies",
-        processor = beginOpt endOpt (fn _ => addInfoOutput ParentsInfo)},
-       {switches = ["--dependencies+"], arguments = [],
-        description = "list all package dependencies",
-        processor = beginOpt endOpt (fn _ => addInfoOutput AncestorsInfo)},
-       {switches = ["--uses"], arguments = [],
-        description = "list direct package users",
-        processor = beginOpt endOpt (fn _ => addInfoOutput ChildrenInfo)},
-       {switches = ["--uses+"], arguments = [],
-        description = "list all package users",
-        processor = beginOpt endOpt (fn _ => addInfoOutput DescendentsInfo)},
        {switches = ["--summary"], arguments = [],
         description = "display the package summary",
         processor = beginOpt endOpt (fn _ => addInfoOutput SummaryInfo)},
@@ -650,55 +634,10 @@ val installFooter = "";
 (* Options for listing installed packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-datatype constraintList =
-    LatestVersionList
-  | TopLevelList;
-
 datatype orderList =
     AlphabeticalList
   | DependencyList
   | ReverseList of orderList;
-
-local
-  fun isLatestVersionList f =
-      case f of
-        LatestVersionList => true
-      | _ => false;
-
-  fun notLatestVersionList f = not (isLatestVersionList f);
-
-  fun isTopLevelList f =
-      case f of
-        TopLevelList => true
-      | _ => false;
-
-  fun notTopLevelList f = not (isTopLevelList f);
-
-  val refConstraintList = ref [TopLevelList,LatestVersionList];
-in
-  val memberLatestVersionConstraintList = List.exists isLatestVersionList
-  and memberTopLevelConstraintList = List.exists isTopLevelList;
-
-  fun allVersionsConstraintList () =
-      let
-        val rcl = !refConstraintList
-
-        val rcl = List.filter notLatestVersionList rcl
-      in
-        refConstraintList := rcl
-      end;
-
-  fun auxiliaryConstraintList () =
-      let
-        val rcl = !refConstraintList
-
-        val rcl = List.filter notTopLevelList rcl
-      in
-        refConstraintList := rcl
-      end;
-
-  fun constraintList () = !refConstraintList;
-end;
 
 local
   val refOrderList = ref AlphabeticalList;
@@ -731,13 +670,7 @@ local
   open Useful Options;
 in
   val listOpts : opt list =
-      [{switches = ["--all-versions"], arguments = [],
-        description = "include all versions of packages",
-        processor = beginOpt endOpt (fn _ => allVersionsConstraintList ())},
-       {switches = ["--auxiliary"], arguments = [],
-        description = "include auxiliary packages",
-        processor = beginOpt endOpt (fn _ => auxiliaryConstraintList ())},
-       {switches = ["--dependency-order"], arguments = [],
+      [{switches = ["--dependency-order"], arguments = [],
         description = "list packages in dependency order",
         processor = beginOpt endOpt (fn _ => setOrderList DependencyList)},
        {switches = ["--reverse-order"], arguments = [],
@@ -840,7 +773,7 @@ fun commandArgs cmd =
     | Info => " <package-name>|input.thy|input.art"
     | Init => ""
     | Install => " <package-name>|input.thy"
-    | List => ""
+    | List => " <package-query>"
     | Uninstall => " <package-name>"
     | Update => ""
     | Upload => " <package-name> ...";
@@ -1005,6 +938,7 @@ datatype input =
     ArticleInput of {filename : string}
   | PackageInput of PackageNameVersion.nameVersion
   | PackageNameInput of PackageName.name
+  | PackageQueryInput of DirectoryQuery.function
   | StagedPackageInput of PackageNameVersion.nameVersion
   | TarballInput of {filename : string}
   | TheoryInput of {filename : string};
@@ -1031,20 +965,24 @@ fun fromStringInput cmd inp =
               case total PackageName.fromString inp of
                 SOME name => PackageNameInput name
               | NONE =>
-                let
-                  val f = {filename = inp}
-                in
-                  if Article.isFilename f then ArticleInput f
-                  else if PackageTarball.isFilename f then TarballInput f
-                  else if Package.isFilename f then TheoryInput f
-                  else commandUsage cmd ("unknown type of input: " ^ inp)
-                end;
+                case total DirectoryQuery.fromString inp of
+                  SOME query => PackageQueryInput query
+                | NONE =>
+                  let
+                    val f = {filename = inp}
+                  in
+                    if Article.isFilename f then ArticleInput f
+                    else if PackageTarball.isFilename f then TarballInput f
+                    else if Package.isFilename f then TheoryInput f
+                    else commandUsage cmd ("unknown type of input: " ^ inp)
+                  end;
 
 fun defaultInfoOutputList inp =
     case inp of
       ArticleInput _ => [mkInfoOutput SummaryInfo]
     | PackageInput _ => [mkInfoOutput TagsInfo]
     | PackageNameInput _ => [mkInfoOutput TagsInfo]
+    | PackageQueryInput _ => [mkInfoOutput TagsInfo]
     | StagedPackageInput _ => [mkInfoOutput TagsInfo]
     | TarballInput _ => [mkInfoOutput FilesInfo]
     | TheoryInput _ => [mkInfoOutput SummaryInfo];
@@ -1074,6 +1012,7 @@ local
         ArticleInput _ => raise Error "cannot clean up an article"
       | PackageInput _ => raise Error "cannot clean up an installed package"
       | PackageNameInput _ => raise Error "cannot clean up a package name"
+      | PackageQueryInput _ => raise Error "cannot clean up a package query"
       | StagedPackageInput namever => namever
       | TarballInput _ => raise Error "cannot clean up a tarball"
       | TheoryInput _ => raise Error "cannot clean up a theory file";
@@ -1109,6 +1048,7 @@ local
         ArticleInput _ => raise Error "cannot export an article"
       | PackageInput namever => namever
       | PackageNameInput name => getLatestVersionDirectory name
+      | PackageQueryInput _ => raise Error "cannot export a package query"
       | StagedPackageInput _ => raise Error "cannot export a staged package"
       | TarballInput _ => raise Error "cannot export a tarball"
       | TheoryInput _ => raise Error "cannot export a theory file";
@@ -1538,41 +1478,7 @@ local
 
   fun processInfoOutput (inf,file) =
       case inf of
-        AncestorsInfo =>
-        let
-          val dir = directory ()
-
-          val pkg =
-              case getPackage () of
-                SOME p => p
-              | NONE => raise Error "no package information available"
-
-          val namevers = Package.includes pkg
-
-          val () =
-              let
-                fun check nv =
-                    if Directory.member nv dir then ()
-                    else
-                      let
-                        val err =
-                            "included package " ^
-                            PackageNameVersion.toString nv ^
-                            " is not installed"
-                      in
-                        raise Error err
-                      end
-              in
-                List.app check namevers
-              end
-
-          val namevers = PackageNameVersionSet.fromList namevers
-
-          val namevers = Directory.includesRTC dir namevers
-        in
-          outputPackageNameVersionSet namevers file
-        end
-      | ArticleInfo =>
+        ArticleInfo =>
         let
           val art =
               case getArticle () of
@@ -1582,33 +1488,6 @@ local
           val {filename} = file
         in
           Article.toTextFile {article = art, filename = filename}
-        end
-      | ChildrenInfo =>
-        let
-          val dir = directory ()
-
-          val namever =
-              case getInfo () of
-                SOME info => PackageInfo.nameVersion info
-              | NONE => raise Error "package must be installed to have uses"
-
-          val namevers = Directory.includedBy dir namever
-        in
-          outputPackageNameVersionSet namevers file
-        end
-      | DescendentsInfo =>
-        let
-          val dir = directory ()
-
-          val namever =
-              case getInfo () of
-                SOME info => PackageInfo.nameVersion info
-              | NONE => raise Error "package must be installed to have uses"
-
-          val namevers =
-              Directory.includedByRTC dir (Directory.includedBy dir namever)
-        in
-          outputPackageNameVersionSet namevers file
         end
       | FilesInfo =>
         let
@@ -1641,17 +1520,6 @@ local
           val strm = Print.toStream Inference.pp inf
         in
           Stream.toTextFile file strm
-        end
-      | ParentsInfo =>
-        let
-          val pkg =
-              case getPackage () of
-                SOME p => p
-              | NONE => raise Error "no package information available"
-
-          val namevers = PackageNameVersionSet.fromList (Package.includes pkg)
-        in
-          outputPackageNameVersionSet namevers file
         end
       | SummaryInfo =>
         let
@@ -1861,6 +1729,8 @@ in
           ArticleInput file => infoArticle file infs
         | PackageInput namever => infoPackage namever infs
         | PackageNameInput name => infoPackageName name infs
+        | PackageQueryInput _ =>
+          raise Error "cannot display information about a package query"
         | StagedPackageInput namever => infoStagedPackage namever infs
         | TarballInput file => infoTarball file infs
         | TheoryInput file => infoTheory file infs
@@ -1892,6 +1762,7 @@ local
         ArticleInput _ => raise Error "cannot uninstall an article"
       | PackageInput namever => namever
       | PackageNameInput _ => raise Error "cannot uninstall a package name"
+      | PackageQueryInput _ => raise Error "cannot uninstall a package query"
       | StagedPackageInput _ =>
         let
           val err = "cannot uninstall a staged package (use cleanup instead)"
@@ -2508,6 +2379,7 @@ in
         ArticleInput _ => raise Error "cannot install an article"
       | PackageInput namever => installPackage namever
       | PackageNameInput name => installPackageName name
+      | PackageQueryInput name => raise Error "cannot install a package query"
       | StagedPackageInput namever => installStagedPackage namever
       | TarballInput file => installTarball file
       | TheoryInput file => installTheory file;
@@ -2517,54 +2389,36 @@ end;
 (* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun filterTopLevel dir pkgs =
-      let
-        fun pred pkg = not (Directory.isSubtheory dir pkg)
-      in
-        PackageNameVersionSet.filter pred pkgs
-      end;
-
-  fun filterLatestVersion dir pkgs =
-      let
-        val pred = Directory.isLatestNameVersion dir
-      in
-        PackageNameVersionSet.filter pred pkgs
-      end;
-in
-  fun filterList dir pkgs cons =
-      if memberTopLevelConstraintList cons then
-        if memberLatestVersionConstraintList cons then Directory.latest dir
-        else filterTopLevel dir pkgs
-      else if memberLatestVersionConstraintList cons then
-        let
-          val pkgs' = pkgs
-
-          val pkgs' = filterTopLevel dir pkgs'
-
-          val pkgs' = filterLatestVersion dir pkgs'
-
-          val pkgs' = Directory.includesRTC dir pkgs'
-        in
-          PackageNameVersionSet.intersect pkgs pkgs'
-        end
-      else
-        pkgs;
-end;
-
 fun sortList dir pkgs ord =
     case ord of
       AlphabeticalList => PackageNameVersionSet.toList pkgs
     | DependencyList => Directory.installOrder dir pkgs
     | ReverseList ord => List.rev (sortList dir pkgs ord);
 
-fun list () =
+fun list query =
     let
+      val query =
+          case query of
+            NONE => DirectoryQuery.Identity
+          | SOME inp =>
+            case inp of
+              ArticleInput _ => raise Error "cannot list an article"
+            | PackageInput namever =>
+              DirectoryQuery.Constant (DirectoryQuery.NameVersion namever)
+            | PackageNameInput name =>
+              DirectoryQuery.Constant (DirectoryQuery.Name name)
+            | PackageQueryInput query => query
+            | StagedPackageInput _ => raise Error "cannot list a staged package"
+            | TarballInput _ => raise Error "cannot list a tarball"
+            | TheoryInput _ => raise Error "cannot list a theory file"
+
       val dir = directory ()
 
-      val pkgs = Directory.all dir
+      val pkgs =
+          if DirectoryQuery.isConstant query then PackageNameVersionSet.empty
+          else Directory.latest dir
 
-      val pkgs = filterList dir pkgs (constraintList ());
+      val pkgs = DirectoryQuery.evaluate dir query pkgs
 
       val pkgs = sortList dir pkgs (orderList ());
 
@@ -2656,6 +2510,7 @@ local
         ArticleInput _ => raise Error "cannot upload an article"
       | PackageInput namever => namever
       | PackageNameInput name => getLatestVersionDirectory name
+      | PackageQueryInput _ => raise Error "cannot upload a package query"
       | StagedPackageInput _ => raise Error "cannot upload a staged package"
       | TarballInput _ => raise Error "cannot upload a tarball"
       | TheoryInput _ => raise Error "cannot upload a theory file";
@@ -2912,7 +2767,8 @@ let
       | (Info,[inp]) => info inp
       | (Init,[]) => init ()
       | (Install,[inp]) => install inp
-      | (List,[]) => list ()
+      | (List,[]) => list NONE
+      | (List,[inp]) => list (SOME inp)
       | (Uninstall,[pkg]) => uninstall pkg
       | (Update,[]) => update ()
       | (Upload, pkgs as _ :: _) => upload pkgs

@@ -48,10 +48,11 @@ val evaluate :
     Directory.directory -> function -> PackageNameVersionSet.set ->
     PackageNameVersionSet.set
 
-(***
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
+
+val ppSet : set Print.pp
 
 val pp : function Print.pp
 
@@ -61,9 +62,10 @@ val toString : function -> string
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+val parserSet : (char,set) Parse.parser
+
 val parser : (char,function) Parse.parser
 
 val fromString : string -> function
-***)
 
 end

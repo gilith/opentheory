@@ -491,3 +491,82 @@ val () = import "bool-true-assert-1.0";
 (* Compilation of the definition and assertion *)
 
 val () = import "bool-true-axiom-1.0";
+
+(* ------------------------------------------------------------------------- *)
+val () = SAY "Package queries";
+(* ------------------------------------------------------------------------- *)
+
+val latest = Directory.latest directory;
+
+fun query s =
+    let
+      val q = DirectoryQuery.fromString s
+
+      val s' = DirectoryQuery.toString q
+
+      val () =
+          if s = s' then ()
+          else
+            let
+              val bug =
+                  "bad parsing/printing of package query:\n" ^
+                  "  begin: " ^ s ^ "\n" ^
+                  "    end: " ^ s'
+            in
+              raise Bug bug
+            end
+
+      val namevers = DirectoryQuery.evaluate directory q latest
+    in
+      (s,namevers)
+    end;
+
+fun ppQuery (s,nvs) =
+    Print.inconsistentBlock 2
+      [Print.ppString "package query \"",
+       Print.ppString s,
+       Print.ppString "\" resulted in",
+       Print.newline,
+       PackageNameVersionSet.pp nvs];
+
+val pv = printval ppQuery;
+
+val _ = pv (query "Empty");
+
+val _ = pv (query "All");
+
+val _ = pv (query "bool-true");
+
+val _ = pv (query "bool-true-1.0");
+
+val _ = pv (query "bool-true-2.0");
+
+val _ = pv (query "Latest");
+
+val _ = pv (query "Latest bool-true");
+
+val _ = pv (query "Latest All");
+
+val _ = pv (query "Latest bool-true-1.0");
+
+val _ = pv (query "Includes bool-true");
+
+val _ = pv (query "Subtheories bool-true");
+
+val _ = pv (query "SubtheoryOf Subtheories bool-true");
+
+val _ = pv (query "Subtheories* bool-true");
+
+val _ = pv (query "SubtheoryOf Subtheories* bool-true");
+
+val _ = pv (query "Subtheories+ bool-true");
+
+val _ = pv (query "Subtheories? bool-true");
+
+val _ = pv (query "Subtheories?+ bool-true");
+
+val _ = pv (query "bool-true*");
+
+val _ = pv (query "bool-true+");
+
+val _ = pv (query "bool-true?");
