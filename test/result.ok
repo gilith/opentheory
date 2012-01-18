@@ -396,3 +396,15 @@ package query "bool-true?" resulted in
   {bool-true-1.0, bool-true-assert-1.0, bool-true-axiom-1.0, empty-1.0,
    theorems1-1.0}
 
+package query "bool-true | bool-true-def" resulted in
+  {bool-true-1.0, bool-true-def-1.0}
+
+package query "Subtheories+ bool-true - bool-true-def" resulted in
+  {bool-true-thm-1.0}
+
+package query "(RequiredBy | IncludedBy) bool-true-def" resulted in
+  {bool-true-1.0, bool-true-axiom-1.0}
+
+package query "(RequiredBy | IncludedBy)+ bool-true-def" resulted in
+  {bool-true-1.0, bool-true-axiom-1.0}
+

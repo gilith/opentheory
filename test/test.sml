@@ -570,3 +570,11 @@ val _ = pv (query "bool-true*");
 val _ = pv (query "bool-true+");
 
 val _ = pv (query "bool-true?");
+
+val _ = pv (query "bool-true | bool-true-def");
+
+val _ = pv (query "Subtheories+ bool-true - bool-true-def");
+
+val _ = pv (query "(RequiredBy | IncludedBy) bool-true-def");
+
+val _ = pv (query "(RequiredBy | IncludedBy)+ bool-true-def");

@@ -302,12 +302,6 @@ local
   and transitiveSymbolParser = exactString transitiveSymbolString
   and unionSymbolParser = exactString unionSymbolString;
 
-  fun mkInfix (s,f1,f2) =
-      if s = intersectSymbolString then Intersect (f1,f2)
-      else if s = differenceSymbolString then Difference (f1,f2)
-      else if s = unionSymbolString then Union (f1,f2)
-      else raise Bug "DirectoryQuery.parser.mkInfix";
-
   val bracketSpaceParser =
       let
         val openSpace = exactChar #"(" ++ manySpace >> fst
@@ -347,14 +341,24 @@ local
   fun unarySymbolSpaceParser func =
       unarySymbolParser ++ manySpace >> (fn (f,()) => f func);
 
+  fun mkInfix (s,f1,f2) =
+      if s = intersectSymbolString then Intersect (f1,f2)
+      else if s = differenceSymbolString then Difference (f1,f2)
+      else if s = unionSymbolString then Union (f1,f2)
+      else raise Bug "DirectoryQuery.parser.mkInfix";
+
   val infixSymbolParser =
       differenceSymbolParser >> K differenceSymbolString ||
       intersectSymbolParser >> K intersectSymbolString ||
       unionSymbolParser >> K unionSymbolString;
 
+  val infixSymbolSpaceParser =
+      infixSymbolParser ++ manySpace >> fst;
+
   fun unarySpaceParser tokens =
-      (basicSpaceParser >>++ mmany unarySymbolSpaceParser ||
-       bracketSpaceParser functionSpaceParser) tokens
+      ((basicSpaceParser ||
+        bracketSpaceParser functionSpaceParser) >>++
+       mmany unarySymbolSpaceParser) tokens
 
   and composeSpaceParser tokens =
       let
@@ -365,7 +369,8 @@ local
       end tokens
 
   and functionSpaceParser tokens =
-      parseInfixes infixes mkInfix infixSymbolParser composeSpaceParser tokens;
+      parseInfixes infixes mkInfix infixSymbolSpaceParser
+        composeSpaceParser tokens;
 in
   val parserSet = manySpace ++ setSpaceParser >> snd;
 
