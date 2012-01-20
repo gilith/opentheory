@@ -61,7 +61,7 @@ function uploaded_package_status($status) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// A class to store *uploaded* package information.
+// A class to store uploaded package information.
 ///////////////////////////////////////////////////////////////////////////////
 
 class Package {
@@ -503,16 +503,16 @@ class PackageTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function create_package($name_version,$description,$author,$license,$status) {
+  function create_package($name_version,$description,$author,$license,
+                          $registered,$status) {
     isset($name_version) or trigger_error('bad name_version');
     is_string($description) or trigger_error('bad description');
     isset($author) or trigger_error('bad author');
     is_string($license) or trigger_error('bad license');
+    isset($registered) or trigger_error('bad registered');
     is_package_status($status) or trigger_error('bad status');
 
     $id = $this->max_rows('id') + 1;
-
-    $registered = server_datetime();
 
     $auxiliary = false;
 
@@ -578,22 +578,24 @@ function package_table() {
 // Create a package.
 ///////////////////////////////////////////////////////////////////////////////
 
-function create_package($name_version,$description,$author,$license) {
+function create_package($name_version,$description,$author,$license,
+                        $registered) {
   $package_table = package_table();
 
   $status = INSTALLED_PACKAGE_STATUS;
 
   return $package_table->create_package($name_version,$description,
-                                        $author,$license,$status);
+                                        $author,$license,$registered,$status);
 }
 
-function create_staged_package($name_version,$description,$author,$license) {
+function create_staged_package($name_version,$description,$author,$license,
+                               $registered) {
   $package_table = package_table();
 
   $status = STAGED_PACKAGE_STATUS;
 
   return $package_table->create_package($name_version,$description,
-                                        $author,$license,$status);
+                                        $author,$license,$registered,$status);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -256,6 +256,20 @@ function opentheory_timestamp($name_version) {
   return $timestamp;
 }
 
+function opentheory_staged_timestamp($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $file = site_path($name_version->staged_theory_file_path());
+
+  $mod_time = filemtime($file);
+
+  $timestamp = new TimePoint();
+
+  $timestamp->from_datetime($mod_time);
+
+  return $timestamp;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Query package list.
 ///////////////////////////////////////////////////////////////////////////////

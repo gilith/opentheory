@@ -107,6 +107,8 @@ $title = 'Admin';
 $main =
 '<h2>Repo Administration<h2>' .
 
+'<h3>Package Status</h3>' .
+
 '<h3>Package Uploads</h3>' .
 pretty_recent_uploads(SHORT_RECENT_UPLOADS) .
 

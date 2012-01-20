@@ -56,10 +56,11 @@ function repo_check_staged($upload,$name_version,$tags,$parents) {
 // Register a staged package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 
-function repo_register_staged($upload,$name_version,$tags,$parents) {
+function repo_register_staged($upload,$name_version,$tags,$registered,$parents) {
   isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
   is_array($tags) or trigger_error('bad tags');
+  isset($registered) or trigger_error('bad registered');
   is_array($parents) or trigger_error('bad parents');
 
   // Create a new entry in the package table
@@ -70,7 +71,8 @@ function repo_register_staged($upload,$name_version,$tags,$parents) {
 
   $license = license_from_tags($tags);
 
-  $pkg = create_staged_package($name_version,$description,$author,$license);
+  $pkg = create_staged_package($name_version,$description,$author,$license,
+                               $registered);
 
   // Add the package to the upload set
 
@@ -110,7 +112,9 @@ function repo_register($name_version) {
 
   $license = license_from_tags($tags);
 
-  $pkg = create_package($name_version,$description,$author,$license);
+  $registered = opentheory_timestamp($name_version);
+
+  $pkg = create_package($name_version,$description,$author,$license,$registered);
 
   // Record the parents in the dependency table
 
