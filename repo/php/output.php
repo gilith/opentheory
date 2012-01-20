@@ -42,7 +42,8 @@ function site_map() {
     if (effective_privilege_is_admin()) {
       $global_site_map['admin'] =
         array('reset' => null,
-              'config' => null);
+              'config' => null,
+              'check' => null);
     }
   }
 

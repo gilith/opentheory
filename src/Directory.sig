@@ -190,22 +190,22 @@ val subtheoriesRTC :
     PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Arranging packages in installation order.                                 *)
+(* Arranging packages in dependency order.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val installOrder :
+val includeOrder :
     directory -> PackageNameVersionSet.set ->
     PackageNameVersion.nameVersion list
 
-val installOrdered :
+val includeOrdered :
     directory -> PackageNameVersion.nameVersion list ->
     bool
 
-val uninstallOrder :
+val dependencyOrder :  (* Includes | Requires *)
     directory -> PackageNameVersionSet.set ->
     PackageNameVersion.nameVersion list
 
-val uninstallOrdered :
+val dependencyOrdered :
     directory -> PackageNameVersion.nameVersion list ->
     bool
 

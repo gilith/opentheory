@@ -68,7 +68,7 @@ $pkg->theory_file_link($pkg->theory_file_name()) .
 
   if (count($parents) > 0) {
     $main .=
-'<h3>Dependencies</h3>' .
+'<h3>Includes</h3>' .
 '<ul>';
 
     foreach ($parents as $parent) {
@@ -86,7 +86,7 @@ string_to_html($parent->description()) .
 
   if ($num_children > 0) {
     $main .=
-'<h3>Uses</h3>';
+'<h3>Included By</h3>';
 
     if ($num_children <= CHILD_PACKAGE_LIMIT) {
       $children = package_children($pkg);
@@ -107,7 +107,7 @@ string_to_html($child->description()) .
 '</ul>';
     }
     else {
-      $main .= 'Used by ' . $num_children . ' packages';
+      $main .= 'Included by ' . $num_children . ' packages';
     }
   }
 

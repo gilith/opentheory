@@ -550,18 +550,16 @@ val latest = fn pkgs =>
 *)
 
 (* ------------------------------------------------------------------------- *)
-(* Arranging packages in installation order.                                 *)
+(* Arranging packages in dependency order.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun installDepends pkgs namever =
+fun dependencies pkgs namever =
     let
       val reqs = requires pkgs namever
       and incs = includes pkgs namever
     in
       PackageNameVersionSet.union reqs incs
     end;
-
-val uninstallDepends = includes;
 
 local
   fun ppCycle pkgs =
@@ -590,9 +588,37 @@ local
         fn nvl => Print.consistentBlock 2 (ppL nvl)
       end;
 in
-  fun installOrder pkgs namevers =
+  fun includeOrder pkgs namevers =
       let
-        fun deps namever = installDepends pkgs namever
+        val deps = dependencies pkgs
+
+        fun proj (scc,acc) =
+            let
+              val scc = PackageNameVersionSet.intersect scc namevers
+
+              fun incs namever =
+                  PackageNameVersionSet.intersect (includes pkgs namever) scc
+            in
+              case PackageNameVersionSet.postOrder incs scc of
+                PackageNameVersionSet.Linear l => List.revAppend (l,acc)
+              | PackageNameVersionSet.Cycle l =>
+                let
+                  val bug =
+                      "package inclusion cycle:\n  " ^
+                      Print.toString (ppCycle pkgs) l
+                in
+                  raise Bug bug
+                end
+            end
+
+        val sccs = PackageNameVersionSet.postOrderSCC deps namevers
+      in
+        List.rev (List.foldl proj [] sccs)
+      end;
+
+  fun dependencyOrder pkgs namevers =
+      let
+        val deps = dependencies pkgs
 
         fun proj scc =
             let
@@ -604,7 +630,7 @@ in
               | _ =>
                 case PackageNameVersionSet.postOrder deps scc of
                   PackageNameVersionSet.Linear _ =>
-                  raise Bug "DirectoryPackages.installOrder.proj"
+                  raise Bug "DirectoryPackages.dependencyOrder.proj"
                 | PackageNameVersionSet.Cycle l =>
                   let
                     val err =
@@ -619,29 +645,13 @@ in
       in
         List.mapPartial proj sccs
       end;
-
-  fun uninstallOrder pkgs namevers =
-      let
-        fun deps namever = uninstallDepends pkgs namever
-      in
-        case PackageNameVersionSet.preOrder deps namevers of
-          PackageNameVersionSet.Linear l => l
-        | PackageNameVersionSet.Cycle l =>
-          let
-            val bug =
-                "package dependency cycle:\n  " ^
-                Print.toString (ppCycle pkgs) l
-          in
-            raise Bug bug
-          end
-      end;
 end;
 
-fun installOrdered pkgs =
-    PackageNameVersionSet.postOrdered (installDepends pkgs);
+fun includeOrdered pkgs =
+    PackageNameVersionSet.postOrdered (includes pkgs);
 
-fun uninstallOrdered pkgs =
-    PackageNameVersionSet.preOrdered (uninstallDepends pkgs);
+fun dependencyOrdered pkgs =
+    PackageNameVersionSet.postOrdered (dependencies pkgs);
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)

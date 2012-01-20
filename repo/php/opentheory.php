@@ -239,11 +239,29 @@ function opentheory_staged_parents($name_version) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Query package timestamp.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_timestamp($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $file = site_path($name_version->theory_file_path());
+
+  $mod_time = filemtime($file);
+
+  $timestamp = new TimePoint();
+
+  $timestamp->from_datetime($mod_time);
+
+  return $timestamp;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Query package list.
 ///////////////////////////////////////////////////////////////////////////////
 
 function opentheory_list() {
-  $args = ' --dependency-order All';
+  $args = ' --include-order All';
 
   $output = opentheory_query('list',$args);
 

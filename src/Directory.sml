@@ -455,20 +455,20 @@ fun subtheoriesRTC dir namever =
     DirectoryPackages.subtheoriesRTC (packages dir) namever;
 
 (* ------------------------------------------------------------------------- *)
-(* Arranging packages in installation order.                                 *)
+(* Arranging packages in dependency order.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun installOrder dir namevers =
-    DirectoryPackages.installOrder (packages dir) namevers;
+fun includeOrder dir namevers =
+    DirectoryPackages.includeOrder (packages dir) namevers;
 
-fun installOrdered dir namevers =
-    DirectoryPackages.installOrdered (packages dir) namevers;
+fun includeOrdered dir namevers =
+    DirectoryPackages.includeOrdered (packages dir) namevers;
 
-fun uninstallOrder dir namevers =
-    DirectoryPackages.uninstallOrder (packages dir) namevers;
+fun dependencyOrder dir namevers =
+    DirectoryPackages.dependencyOrder (packages dir) namevers;
 
-fun uninstallOrdered dir namevers =
-    DirectoryPackages.uninstallOrdered (packages dir) namevers;
+fun dependencyOrdered dir namevers =
+    DirectoryPackages.dependencyOrdered (packages dir) namevers;
 
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)
@@ -1676,8 +1676,8 @@ in
             (* Check upload packages are in install order *)
 
             val () =
-                if installOrdered dir (support @ namevers) then ()
-                else raise Bug "Directory.checkUpload: not in install order"
+                if dependencyOrdered dir (support @ namevers) then ()
+                else raise Bug "Directory.checkUpload: not in dependency order"
 
             (* Check upload packages are not installed on the repo *)
 

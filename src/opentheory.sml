@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20120118)";
+val release = " (release 20120120)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -637,6 +637,7 @@ val installFooter = "";
 datatype orderList =
     AlphabeticalList
   | DependencyList
+  | IncludeList
   | ReverseList of orderList;
 
 local
@@ -673,6 +674,9 @@ in
       [{switches = ["--dependency-order"], arguments = [],
         description = "list packages in dependency order",
         processor = beginOpt endOpt (fn _ => setOrderList DependencyList)},
+       {switches = ["--include-order"], arguments = [],
+        description = "list packages in include order",
+        processor = beginOpt endOpt (fn _ => setOrderList IncludeList)},
        {switches = ["--reverse-order"], arguments = [],
         description = "reverse the order",
         processor = beginOpt endOpt (fn _ => reverseOrderList ())},
@@ -1820,7 +1824,7 @@ in
                     Directory.includedByRTC dir
                       (Directory.includedBy dir namever)
 
-                val desc = List.rev (Directory.installOrder dir desc)
+                val desc = List.rev (Directory.includeOrder dir desc)
               in
                 List.app (uninstallPackage true dir) desc
               end
@@ -2392,7 +2396,8 @@ end;
 fun sortList dir pkgs ord =
     case ord of
       AlphabeticalList => PackageNameVersionSet.toList pkgs
-    | DependencyList => Directory.installOrder dir pkgs
+    | IncludeList => Directory.includeOrder dir pkgs
+    | DependencyList => Directory.dependencyOrder dir pkgs
     | ReverseList ord => List.rev (sortList dir pkgs ord);
 
 fun list query =
@@ -2547,10 +2552,10 @@ local
 
               val ancs = PackageNameVersionSet.difference ancs namevers
             in
-              Directory.installOrder dir ancs
+              Directory.dependencyOrder dir ancs
             end
 
-        val namevers = unknown @ Directory.installOrder dir namevers
+        val namevers = unknown @ Directory.dependencyOrder dir namevers
       in
         (support,namevers)
       end;
