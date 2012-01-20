@@ -61,7 +61,7 @@ function uploaded_package_status($status) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// A class to store uploaded package information.
+// A class to store package information.
 ///////////////////////////////////////////////////////////////////////////////
 
 class Package {
@@ -72,7 +72,7 @@ class Package {
   var $_license;
   var $_registered;
   var $_status;
-  var $_auxiliary;
+  var $_subtheory;
   var $_obsolete;
 
   function id() { return $this->_id; }
@@ -89,7 +89,7 @@ class Package {
 
   function status() { return $this->_status; }
 
-  function auxiliary() { return $this->_auxiliary; }
+  function subtheory() { return $this->_subtheory; }
 
   function obsolete() { return $this->_obsolete; }
 
@@ -147,15 +147,6 @@ class Package {
     $status = $this->status();
 
     return uploaded_package_status($status);
-  }
-
-  function is_auxiliary_parent($parent) {
-    isset($parent) or trigger_error('bad parent');
-
-    $name1 = $this->name();
-    $name2 = $parent->name();
-
-    return is_prefix_package_name($name1,$name2);
   }
 
   function to_string() {
@@ -237,12 +228,12 @@ class Package {
 
   function mark_uploaded() { $this->_status = UPLOADED_PACKAGE_STATUS; }
 
-  function mark_auxiliary() { $this->_auxiliary = true; }
+  function mark_subtheory() { $this->_subtheory = true; }
 
   function mark_obsolete() { $this->_obsolete = true; }
 
   function Package($id,$name_version,$description,$author,$license,
-                   $registered,$status,$auxiliary,$obsolete)
+                   $registered,$status,$subtheory,$obsolete)
   {
     is_int($id) or trigger_error('bad id');
     isset($name_version) or trigger_error('bad name_version');
@@ -251,7 +242,7 @@ class Package {
     is_string($license) or trigger_error('bad license');
     isset($registered) or trigger_error('bad registered');
     is_package_status($status) or trigger_error('bad status');
-    is_bool($auxiliary) or trigger_error('bad auxiliary');
+    is_bool($subtheory) or trigger_error('bad subtheory');
     is_bool($obsolete) or trigger_error('bad obsolete');
 
     $this->_id = $id;
@@ -261,7 +252,7 @@ class Package {
     $this->_license = $license;
     $this->_registered = $registered;
     $this->_status = $status;
-    $this->_auxiliary = $auxiliary;
+    $this->_subtheory = $subtheory;
     $this->_obsolete = $obsolete;
   }
 }
@@ -277,7 +268,7 @@ function from_row_package($row) {
   $license = $row['license'];
   $registered_datetime = $row['registered'];
   $status = $row['status'];
-  $auxiliary_database = $row['auxiliary'];
+  $subtheory_database = $row['subtheory'];
   $obsolete_database = $row['obsolete'];
 
   $name_version = new PackageNameVersion($name,$version);
@@ -287,12 +278,12 @@ function from_row_package($row) {
   $registered = new TimePoint();
   $registered->from_database_datetime($registered_datetime);
 
-  $auxiliary = bool_from_database_bool($auxiliary_database);
+  $subtheory = bool_from_database_bool($subtheory_database);
 
   $obsolete = bool_from_database_bool($obsolete_database);
 
   return new Package($id,$name_version,$description,$author,$license,
-                     $registered,$status,$auxiliary,$obsolete);
+                     $registered,$status,$subtheory,$obsolete);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -377,7 +368,7 @@ class PackageTable extends DatabaseTable {
   function list_active_packages() {
     $where =
       'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
-      ' AND auxiliary <=> ' . database_value(DATABASE_FALSE) .
+      ' AND subtheory <=> ' . database_value(DATABASE_FALSE) .
       ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
 
     $order_by = 'name';
@@ -390,8 +381,17 @@ class PackageTable extends DatabaseTable {
   function count_active_packages() {
     $where =
       'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
-      ' AND auxiliary <=> ' . database_value(DATABASE_FALSE) .
+      ' AND subtheory <=> ' . database_value(DATABASE_FALSE) .
       ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
+
+    return $this->count_rows($where);
+  }
+
+  function count_packages_with_status($status) {
+    is_package_status($status) or trigger_error('bad status');
+
+    $where =
+      'status <=> ' . database_value($status);
 
     return $this->count_rows($where);
   }
@@ -401,7 +401,7 @@ class PackageTable extends DatabaseTable {
 
     $where =
       'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
-      ' AND auxiliary <=> ' . database_value(DATABASE_FALSE);
+      ' AND subtheory <=> ' . database_value(DATABASE_FALSE);
 
     $order_by = 'registered DESC';
 
@@ -444,8 +444,8 @@ class PackageTable extends DatabaseTable {
 
     $status = $package->status();
 
-    $auxiliary = $package->auxiliary();
-    $auxiliary_database = bool_to_database_bool($auxiliary);
+    $subtheory = $package->subtheory();
+    $subtheory_database = bool_to_database_bool($subtheory);
 
     $obsolete = $package->obsolete();
     $obsolete_database = bool_to_database_bool($obsolete);
@@ -460,7 +460,7 @@ class PackageTable extends DatabaseTable {
           license = ' . database_value($license) . ',
           registered = ' . database_value($registered_datetime) . ',
           status = ' . database_value($status) . ',
-          auxiliary = ' . database_value($auxiliary_database) . ',
+          subtheory = ' . database_value($subtheory_database) . ',
           obsolete = ' . database_value($obsolete_database) . ';');
   }
 
@@ -477,16 +477,16 @@ class PackageTable extends DatabaseTable {
       WHERE id = ' . database_value($id) . ';');
   }
 
-  function mark_auxiliary($pkg) {
+  function mark_subtheory($pkg) {
     isset($pkg) or trigger_error('bad pkg');
 
-    $pkg->mark_auxiliary();
+    $pkg->mark_subtheory();
 
     $id = $pkg->id();
 
     database_query('
       UPDATE ' . $this->table() . '
-      SET auxiliary = ' . database_value(DATABASE_TRUE) . '
+      SET subtheory = ' . database_value(DATABASE_TRUE) . '
       WHERE id = ' . database_value($id) . ';');
   }
 
@@ -514,12 +514,12 @@ class PackageTable extends DatabaseTable {
 
     $id = $this->max_rows('id') + 1;
 
-    $auxiliary = false;
+    $subtheory = false;
 
     $obsolete = false;
 
     $pkg = new Package($id,$name_version,$description,$author,$license,
-                       $registered,$status,$auxiliary,$obsolete);
+                       $registered,$status,$subtheory,$obsolete);
 
     $this->insert_package($pkg);
 
@@ -549,14 +549,14 @@ class PackageTable extends DatabaseTable {
             'registered' => 'datetime NOT NULL',
             'status' =>
               array_to_database_enum($all_package_status) . ' NOT NULL',
-            'auxiliary' => database_bool_type() . ' NOT NULL',
+            'subtheory' => database_bool_type() . ' NOT NULL',
             'obsolete' => database_bool_type() . ' NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (id)',
             'INDEX (name,version)',
-            'INDEX (status,auxiliary,obsolete,name)',
-            'INDEX (status,auxiliary,registered)');
+            'INDEX (status,subtheory,obsolete,name)',
+            'INDEX (status,subtheory,registered)');
 
     parent::DatabaseTable($table,$fields,$indexes);
   }
@@ -606,6 +606,14 @@ function count_active_packages() {
   $package_table = package_table();
 
   return $package_table->count_active_packages();
+}
+
+function count_packages_with_status($status) {
+  is_package_status($status) or trigger_error('bad status');
+
+  $package_table = package_table();
+
+  return $package_table->count_packages_with_status($status);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

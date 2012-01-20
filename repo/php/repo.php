@@ -23,11 +23,11 @@ require_once 'upload_package.php';
 // Check a staged package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 
-function repo_check_staged($upload,$name_version,$tags,$parents) {
+function repo_check_staged($upload,$name_version,$tags,$includes) {
   isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
   is_array($tags) or trigger_error('bad tags');
-  is_array($parents) or trigger_error('bad parents');
+  is_array($includes) or trigger_error('bad includes');
 
   // Check that we are not already registered
 
@@ -35,14 +35,14 @@ function repo_check_staged($upload,$name_version,$tags,$parents) {
     trigger_error('package already registered');
   }
 
-  // Check uploaded parent packages are part of this upload
+  // Check uploaded included packages are part of this upload
 
-  foreach ($parents as $parent_name_version) {
-    $parent = find_package_by_name_version($parent_name_version);
+  foreach ($includes as $inc_namever) {
+    $inc = find_package_by_name_version($inc_namever);
 
-    if ($parent->is_staged() && !member_package_upload($parent,$upload)) {
+    if ($inc->is_staged() && !member_package_upload($inc,$upload)) {
       $error =
-        'dependent package ' . $parent->to_string() .
+        'included package ' . $inc->to_string() .
         ' is not part of this upload set';
 
       return $error;
@@ -56,12 +56,13 @@ function repo_check_staged($upload,$name_version,$tags,$parents) {
 // Register a staged package with the repo.
 ///////////////////////////////////////////////////////////////////////////////
 
-function repo_register_staged($upload,$name_version,$tags,$registered,$parents) {
+function repo_register_staged($upload,$name_version,$tags,$registered,
+                              $includes) {
   isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
   is_array($tags) or trigger_error('bad tags');
   isset($registered) or trigger_error('bad registered');
-  is_array($parents) or trigger_error('bad parents');
+  is_array($includes) or trigger_error('bad includes');
 
   // Create a new entry in the package table
 
@@ -78,18 +79,17 @@ function repo_register_staged($upload,$name_version,$tags,$registered,$parents) 
 
   add_package_upload($upload,$pkg);
 
-  // Record the parents in the dependency table
+  // Record the package includes in the include table
 
-  foreach ($parents as $parent_name_version) {
-    $parent = find_package_by_name_version($parent_name_version);
+  foreach ($includes as $inc_namever) {
+    $inc = find_package_by_name_version($inc_namever);
+    if (!isset($inc)) { trigger_error('no included package entry'); }
 
-    if (!isset($parent)) { trigger_error('no parent package entry'); }
-
-    if ($parent->is_staged() && !member_package_upload($parent,$upload)) {
-      trigger_error('parent not installed or part of this upload set');
+    if ($inc->is_staged() && !member_package_upload($inc,$upload)) {
+      trigger_error('included package not installed or part of this upload set');
     }
 
-    add_package_dependency($parent,$pkg);
+    add_package_include($inc,$pkg);
   }
 
   return $pkg;
@@ -116,18 +116,15 @@ function repo_register($name_version) {
 
   $pkg = create_package($name_version,$description,$author,$license,$registered);
 
-  // Record the parents in the dependency table
+  // Record the package includes in the include table
 
-  $package_table = package_table();
+  $includes = opentheory_includes($name_version);
 
-  $parents = opentheory_parents($name_version);
+  foreach ($includes as $inc_namever) {
+    $inc = find_package_by_name_version($inc_namever);
+    if (!isset($inc)) { trigger_error('no included package entry'); }
 
-  foreach ($parents as $parent_name_version) {
-    $parent = find_package_by_name_version($parent_name_version);
-
-    if (!isset($parent)) { trigger_error('no parent package entry'); }
-
-    add_package_dependency($parent,$pkg);
+    add_package_include($inc,$pkg);
   }
 }
 
@@ -136,10 +133,42 @@ function repo_register($name_version) {
 ///////////////////////////////////////////////////////////////////////////////
 
 function repo_register_all() {
-  $name_versions = opentheory_list();
+  $package_table = package_table();
+
+  $name_versions = opentheory_list('All');
 
   foreach ($name_versions as $name_version) {
     repo_register($name_version);
+
+    // Mark all packages as uploaded, because we can't tell the difference
+    // between uploaded and installed.
+
+    $pkg = find_package_by_name_version($name_version);
+    isset($pkg) or trigger_error('no entry for package');
+
+    $package_table->mark_uploaded($pkg);
+  }
+
+  // Mark subtheory packages
+
+  $subtheories = opentheory_list('Subtheories All');
+
+  foreach ($subtheories as $subtheory_namever) {
+    $subtheory = find_package_by_name_version($subtheory_namever);
+    isset($subtheory) or trigger_error('no entry for subtheory package');
+
+    $package_table->mark_subtheory($subtheory);
+  }
+
+  // Mark obsolete packages
+
+  $obsoletes = opentheory_list('(Identity - Latest) All');
+
+  foreach ($obsoletes as $obsolete_namever) {
+    $obsolete = find_package_by_name_version($obsolete_namever);
+    isset($obsolete) or trigger_error('no entry for obsolete package');
+
+    $package_table->mark_obsolete($obsolete);
   }
 }
 
@@ -148,14 +177,16 @@ function repo_register_all() {
 ///////////////////////////////////////////////////////////////////////////////
 
 function repo_reset() {
+  opentheory_cleanup_all();
+
   $package_author_table = package_author_table();
   $package_author_table->reset();
 
   $package_table = package_table();
   $package_table->reset();
 
-  $dependency_table = dependency_table();
-  $dependency_table->reset();
+  $include_table = include_table();
+  $include_table->reset();
 
   $upload_table = upload_table();
   $upload_table->reset();

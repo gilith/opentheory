@@ -594,13 +594,17 @@ in
 
         fun proj (scc,acc) =
             let
-              val scc = PackageNameVersionSet.intersect scc namevers
-
               fun incs namever =
                   PackageNameVersionSet.intersect (includes pkgs namever) scc
+
+              val scc = PackageNameVersionSet.intersect scc namevers
+
+              fun add (namever,acc) =
+                  if not (PackageNameVersionSet.member namever scc) then acc
+                  else namever :: acc
             in
               case PackageNameVersionSet.postOrder incs scc of
-                PackageNameVersionSet.Linear l => List.revAppend (l,acc)
+                PackageNameVersionSet.Linear l => List.foldl add acc l
               | PackageNameVersionSet.Cycle l =>
                 let
                   val bug =

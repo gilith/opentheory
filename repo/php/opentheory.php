@@ -133,6 +133,12 @@ function opentheory_cleanup($name_version) {
   if (isset($error)) { trigger_error('cleanup failed: ' . $error); }
 }
 
+function opentheory_cleanup_all() {
+  $error = opentheory_action('cleanup','');
+
+  if (isset($error)) { trigger_error('cleanup failed: ' . $error); }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Install a package with a specified checksum.
 ///////////////////////////////////////////////////////////////////////////////
@@ -195,47 +201,61 @@ function opentheory_staged_tags($name_version) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Query package parents.
+// Query installed packages.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_parse_parents($target) {
-  is_string($target) or trigger_error('bad target');
+function opentheory_list($query) {
+  is_string($query) or trigger_error('bad query');
 
-  $args = " 'Includes " . $target . "'";
+  $args = " --include-order '" . $query . "'";
 
   $output = opentheory_query('list',$args);
 
-  $parents = array();
+  $name_versions = array();
 
   if (strcmp($output,'') != 0) {
     $lines = explode("\n", $output);
 
     foreach ($lines as $line) {
-      $parent = from_string_package_name_version($line);
+      $name_version = from_string_package_name_version($line);
 
-      if (!isset($parent)) { trigger_error('bad parent'); }
+      if (!isset($name_version)) {
+        trigger_error('bad NAME-VERSION format in ' . $line);
+      }
 
-      $parents[] = $parent;
+      $name_versions[] = $name_version;
     }
   }
 
-  return $parents;
+  return $name_versions;
 }
 
-function opentheory_parents($name_version) {
+///////////////////////////////////////////////////////////////////////////////
+// Query package dependencies.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_includes($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $target = $name_version->to_string();
+  $query = 'Includes ' . $name_version->to_string();
 
-  return opentheory_parse_parents($target);
+  return opentheory_list($query);
 }
 
-function opentheory_staged_parents($name_version) {
+function opentheory_staged_includes($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $target = $name_version->staged_to_string();
+  $query = 'Includes ' . $name_version->staged_to_string();
 
-  return opentheory_parse_parents($target);
+  return opentheory_list($query);
+}
+
+function opentheory_subtheories($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $query = 'Subtheories ' . $name_version->to_string();
+
+  return opentheory_list($query);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -268,34 +288,6 @@ function opentheory_staged_timestamp($name_version) {
   $timestamp->from_datetime($mod_time);
 
   return $timestamp;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Query package list.
-///////////////////////////////////////////////////////////////////////////////
-
-function opentheory_list() {
-  $args = ' --include-order All';
-
-  $output = opentheory_query('list',$args);
-
-  $name_versions = array();
-
-  if (strcmp($output,'') != 0) {
-    $lines = explode("\n", $output);
-
-    foreach ($lines as $line) {
-      $name_version = from_string_package_name_version($line);
-
-      if (!isset($name_version)) {
-        trigger_error('bad name_version in ' . $line);
-      }
-
-      $name_versions[] = $name_version;
-    }
-  }
-
-  return $name_versions;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

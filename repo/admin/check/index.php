@@ -73,7 +73,7 @@ function packages_out_of_sync_compare($a, $b) {
 function packages_out_of_sync() {
   $result = array();
 
-  $namevers = opentheory_list();
+  $namevers = opentheory_list('All');
 
   foreach ($namevers as $namever) {
     $pkg = find_package_by_name_version($namever);

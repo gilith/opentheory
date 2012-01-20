@@ -21,9 +21,9 @@ function pretty_package_information($pkg) {
 
   $registered = $pkg->registered();
 
-  $parents = package_parents($pkg);
+  $includes = package_includes($pkg);
 
-  $num_children = count_package_children($pkg);
+  $num_included_by = count_package_included_by($pkg);
 
   $version_info = pretty_list_package_versions($pkg->name_version());
 
@@ -66,17 +66,17 @@ $pkg->theory_file_link($pkg->theory_file_name()) .
 ' (included in the package tarball)</li>' .
 '</ul>';
 
-  if (count($parents) > 0) {
+  if (count($includes) > 0) {
     $main .=
 '<h3>Includes</h3>' .
 '<ul>';
 
-    foreach ($parents as $parent) {
+    foreach ($includes as $inc) {
       $main .=
 '<li>' .
-$parent->link($parent->to_string()) .
+$inc->link($inc->to_string()) .
 ' &mdash; ' .
-string_to_html($parent->description()) .
+string_to_html($inc->description()) .
 '</li>';
     }
 
@@ -84,22 +84,22 @@ string_to_html($parent->description()) .
 '</ul>';
   }
 
-  if ($num_children > 0) {
+  if ($num_included_by > 0) {
     $main .=
 '<h3>Included By</h3>';
 
-    if ($num_children <= CHILD_PACKAGE_LIMIT) {
-      $children = package_children($pkg);
+    if ($num_included_by <= CHILD_PACKAGE_LIMIT) {
+      $included_by = package_included_by($pkg);
 
       $main .=
 '<ul>';
 
-      foreach ($children as $child) {
+      foreach ($included_by as $incby) {
         $main .=
 '<li>' .
-$child->link($child->to_string()) .
+$incby->link($incby->to_string()) .
 ' &mdash; ' .
-string_to_html($child->description()) .
+string_to_html($incby->description()) .
 '</li>';
       }
 
@@ -107,7 +107,7 @@ string_to_html($child->description()) .
 '</ul>';
     }
     else {
-      $main .= 'Included by ' . $num_children . ' packages';
+      $main .= 'Included by ' . $num_included_by . ' packages';
     }
   }
 

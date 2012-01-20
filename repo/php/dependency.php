@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// PACKAGE DEPENDENCY TABLE
+// PACKAGE DEPENDENCY TABLES
 //
 // Copyright (c) 2010 Joe Hurd, distributed under the GNU GPL version 2
 //
@@ -15,11 +15,11 @@ require_once 'database.php';
 require_once 'package.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// The package dependency database table.
+// Tracking package dependencies using a database table.
 ///////////////////////////////////////////////////////////////////////////////
 
-class DependencyTable extends DatabaseTable {
-  function insert_dependency($parent,$child) {
+class PackageGraphTable extends DatabaseTable {
+  function insert_edge($parent,$child) {
     isset($parent) or trigger_error('bad parent');
     isset($child) or trigger_error('bad child');
 
@@ -99,10 +99,14 @@ class DependencyTable extends DatabaseTable {
 
     database_query('
       DELETE FROM ' . $this->table() . '
+      WHERE parent = ' . database_value($pkg_id) . ';');
+
+    database_query('
+      DELETE FROM ' . $this->table() . '
       WHERE child = ' . database_value($pkg_id) . ';');
   }
 
-  function DependencyTable($table) {
+  function PackageGraphTable($table) {
     $fields =
       array('parent' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL',
             'child' => 'int(' . PACKAGE_ID_DIGITS . ') NOT NULL');
@@ -115,91 +119,95 @@ class DependencyTable extends DatabaseTable {
   }
 }
 
-$global_dependency_table = null;
+///////////////////////////////////////////////////////////////////////////////
+// The package includes table.
+///////////////////////////////////////////////////////////////////////////////
 
-function dependency_table() {
-  global $global_dependency_table;
+$global_include_table = null;
 
-  if (!isset($global_dependency_table)) {
-    $global_dependency_table = new DependencyTable('dependency');
+function include_table() {
+  global $global_include_table;
+
+  if (!isset($global_include_table)) {
+    $global_include_table = new PackageGraphTable('include');
   }
 
-  return $global_dependency_table;
+  return $global_include_table;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Look up package parents.
+// Look up package includes.
 ///////////////////////////////////////////////////////////////////////////////
 
-function count_package_parents($pkg) {
+function count_package_includes($pkg) {
   isset($pkg) or trigger_error('bad pkg');
 
-  $dependency_table = dependency_table();
+  $include_table = include_table();
 
-  return $dependency_table->parent_count($pkg);
+  return $include_table->parent_count($pkg);
 }
 
-function package_parents($pkg) {
+function package_includes($pkg) {
   isset($pkg) or trigger_error('bad pkg');
 
-  $dependency_table = dependency_table();
+  $include_table = include_table();
 
-  $parent_ids = $dependency_table->parent_ids($pkg);
+  $includes_ids = $include_table->parent_ids($pkg);
 
-  $parents = array();
+  $includes = array();
 
-  foreach ($parent_ids as $parent_id) {
-    $parent = find_package($parent_id);
-    isset($parent) or trigger_error('bad parent');
+  foreach ($includes_ids as $pkg_id) {
+    $pkg = find_package($pkg_id);
+    isset($pkg) or trigger_error('bad includes');
 
-    $parents[] = $parent;
+    $includes[] = $pkg;
   }
 
-  return $parents;
+  return $includes;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Look up package children.
+// Look up package included by.
 ///////////////////////////////////////////////////////////////////////////////
 
-function count_package_children($pkg) {
+function count_package_included_by($pkg) {
   isset($pkg) or trigger_error('bad pkg');
 
-  $dependency_table = dependency_table();
+  $include_table = include_table();
 
-  return $dependency_table->child_count($pkg);
+  return $include_table->child_count($pkg);
 }
 
-function package_children($pkg) {
+function package_included_by($pkg) {
   isset($pkg) or trigger_error('bad pkg');
 
-  $dependency_table = dependency_table();
+  $include_table = include_table();
 
-  $child_ids = $dependency_table->child_ids($pkg);
+  $included_by_ids = $include_table->child_ids($pkg);
 
-  $children = array();
+  $included_by = array();
 
-  foreach ($child_ids as $child_id) {
-    $child = find_package($child_id);
-    isset($child) or trigger_error('bad child');
+  foreach ($included_by_ids as $pkg_id) {
+    $pkg = find_package($pkg_id);
+    isset($pkg) or trigger_error('bad included by');
 
-    $children[] = $child;
+    $included_by[] = $pkg;
   }
 
-  return $children;
+  return $included_by;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Add package dependency.
+// Add package include.
 ///////////////////////////////////////////////////////////////////////////////
 
-function add_package_dependency($parent,$child) {
-  isset($parent) or trigger_error('bad parent');
-  isset($child) or trigger_error('bad child');
+function add_package_include($included,$includer) {
+  isset($included) or trigger_error('bad included');
+  isset($includer) or trigger_error('bad includer');
 
-  $dependency_table = dependency_table();
+  $include_table = include_table();
 
-  $dependency_table->insert_dependency($parent,$child);
+  $include_table->insert_edge($included,$includer);
 }
 
 ?>

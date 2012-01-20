@@ -193,8 +193,8 @@ function delete_staged_package($pkg) {
   $upload_package_table = upload_package_table();
   $upload_package_table->delete_package($pkg);
 
-  $dependency_table = dependency_table();
-  $dependency_table->delete_package($pkg);
+  $include_table = include_table();
+  $include_table->delete_package($pkg);
 
   $package_table = package_table();
   $package_table->delete_package($pkg);
@@ -233,7 +233,7 @@ function obsolete_packages_upload($upload) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Compute whether a package author is obsoleted by an upload.
+// Compute the other author (if any) of packages obsoleted by an upload.
 ///////////////////////////////////////////////////////////////////////////////
 
 function obsolete_author_upload($upload) {
@@ -252,7 +252,7 @@ function obsolete_author_upload($upload) {
     if (!$pkg_author->equal($author)) {
       if (isset($obsolete)) {
         if (!$obsolete->equal($pkg_author)) {
-          trigger_error('upload obsoletes packages by multiple authors');
+          trigger_error('upload obsoletes packages by multiple other authors');
         }
       }
       else {
@@ -285,22 +285,25 @@ function complete_upload($upload) {
 
     $package_table->mark_uploaded($pkg);
 
-    $parents = package_parents($pkg);
+    // Mark subtheories
 
-    foreach ($parents as $parent) {
-      if (!$parent->auxiliary() && $pkg->is_auxiliary_parent($parent)) {
-        $package_table->mark_auxiliary($parent);
+    $subtheories = opentheory_subtheories($namever);
+
+    foreach ($subtheories as $subtheory_namever) {
+      $subtheory = find_package_by_name_version($subtheory_namever);
+      if (!isset($subtheory)) { trigger_error('no subtheory package entry'); }
+
+      if (!$subtheory->subtheory()) {
+        $package_table->mark_subtheory($subtheory);
       }
     }
   }
 
   // Obsoleted packages
 
-  $pkgs = packages_upload($upload);  // Refreshing
+  $obsoletes = obsolete_packages_upload($upload);
 
-  $obsolete_pkgs = obsolete_packages_upload($upload);
-
-  foreach ($obsolete_pkgs as $pkg) {
+  foreach ($obsoletes as $pkg) {
     if (!$pkg->obsolete()) {
       $package_table->mark_obsolete($pkg);
     }
@@ -324,12 +327,12 @@ function complete_upload($upload) {
   $upload_table = upload_table();
   $upload_table->delete_upload($upload);
 
-  // Tweet about the non-auxiliary packages
+  // Tweet about non-subtheory packages
 
   foreach ($pkgs as $pkg) {
     $namever = $pkg->name_version();
 
-    if (!$pkg->auxiliary()) {
+    if (!$pkg->subtheory()) {
       $status =
         $namever->to_string() . ' uploaded by ' .
         $author->name() . ' ' . $pkg->external_url();
