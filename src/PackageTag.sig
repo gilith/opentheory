@@ -59,7 +59,7 @@ val findVersion : tag list -> PackageVersion.version
 
 val findDescription : tag list -> {description : string}
 
-val findAuthor : tag list -> {author : string}
+val findAuthor : tag list -> PackageAuthor.author
 
 val findLicense : tag list -> {license : string}
 

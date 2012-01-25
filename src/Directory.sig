@@ -100,6 +100,17 @@ val warnLatestNameVersionList :
     PackageNameVersion.nameVersion list option
 
 (* ------------------------------------------------------------------------- *)
+(* Package authors.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val knownAuthor :
+    directory -> PackageAuthorSet.set -> PackageNameVersion.nameVersion ->
+    bool
+
+val selfAuthor :
+    directory -> PackageNameVersion.nameVersion -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

@@ -119,7 +119,7 @@ fun findDescription tags =
     {description = getName PackageName.descriptionTag tags};
 
 fun findAuthor tags =
-    {author = getName PackageName.authorTag tags};
+    PackageAuthor.fromString (getName PackageName.authorTag tags);
 
 fun findLicense tags =
     {license = getName PackageName.licenseTag tags};

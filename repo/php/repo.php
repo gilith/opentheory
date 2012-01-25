@@ -140,8 +140,9 @@ function repo_register_all() {
   foreach ($name_versions as $name_version) {
     repo_register($name_version);
 
-    // Mark all packages as uploaded, because we can't tell the difference
-    // between uploaded and installed.
+    // Mark all installed packages as 'uploaded', because after a reset we
+    // cannot tell which packages were uploaded by users and which were
+    // installed from other repos.
 
     $pkg = find_package_by_name_version($name_version);
     isset($pkg) or trigger_error('no entry for package');
@@ -177,6 +178,7 @@ function repo_register_all() {
 ///////////////////////////////////////////////////////////////////////////////
 
 function repo_reset() {
+  // Delete all staged packages
   opentheory_cleanup_all();
 
   $package_author_table = package_author_table();

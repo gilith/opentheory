@@ -244,6 +244,8 @@ fun rootDirectory (Directory {rootDirectory = x, ...}) = {rootDirectory = x};
 
 fun config (Directory {config = x, ...}) = x;
 
+fun authors dir = DirectoryConfig.authors (config dir);
+
 fun system dir = DirectoryConfig.system (config dir);
 
 fun packages (Directory {packages = x, ...}) = x;
@@ -387,6 +389,20 @@ fun warnLatestNameVersion dir namever =
 
 fun warnLatestNameVersionList dir namevers =
     DirectoryPackages.warnLatestNameVersionList (packages dir) namevers;
+
+(* ------------------------------------------------------------------------- *)
+(* Package authors.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun knownAuthor dir =
+    DirectoryPackages.knownAuthor (packages dir);
+
+fun selfAuthor dir =
+    let
+      val self = PackageAuthorSet.fromList (authors dir)
+    in
+      knownAuthor dir self
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
@@ -1514,18 +1530,18 @@ local
 
               val pkg = PackageInfo.package info
 
-              val {author} = Package.author pkg
+              val auth = Package.author pkg
             in
-              StringMap.insert acc (author,nv)
+              PackageAuthorMap.insert acc (auth,nv)
             end
 
-        fun mk (auth,nv) = (nv, {author = auth})
+        fun flip (auth,nv) = (nv,auth)
       in
         fn nvs =>
            let
-             val auths = List.foldl add (StringMap.new ()) nvs
+             val auths = List.foldl add (PackageAuthorMap.new ()) nvs
            in
-             List.map mk (StringMap.toList auths)
+             List.map flip (PackageAuthorMap.toList auths)
            end
       end;
 
@@ -1642,7 +1658,7 @@ local
 
   fun checkObsoleteAuthors dir author obsolete errs =
       let
-        fun notAuthor (_,auth) = auth <> author
+        fun notAuthor (_,auth) = not (PackageAuthor.equal auth author)
 
         val auths = collectAuthors dir obsolete
 
@@ -1758,7 +1774,7 @@ fun ppUpload dir {repo,support,packages} =
           ppNameVer nv ::
           List.map (Print.sequence Print.break o ppNameVer) nvs
 
-      fun ppAuthor {author} = Print.ppString author
+      val ppAuthor = PackageAuthor.pp
 
       val step = 0
 

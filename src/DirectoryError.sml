@@ -29,7 +29,7 @@ datatype error =
   | InstalledUser of
       PackageNameVersion.nameVersion
   | MultipleAuthors of
-      (PackageNameVersion.nameVersion * {author : string}) list
+      (PackageNameVersion.nameVersion * PackageAuthor.author) list
   | NotInstalled of
       PackageNameVersion.nameVersion
   | NotOnRepo of
@@ -39,7 +39,7 @@ datatype error =
   | NoVersionInstalled of
       PackageName.name
   | ObsoleteAuthors of
-      (PackageNameVersion.nameVersion * {author : string}) list
+      (PackageNameVersion.nameVersion * PackageAuthor.author) list
   | TagError of
       PackageTag.name * string
   | UninstalledObsolete of
@@ -168,8 +168,9 @@ local
   fun toStringSrcs srcs =
       join "\n  and also for " (List.map toStringSrc srcs);
 
-  fun toStringAuthor (nv,{author}) =
-      PackageNameVersion.toString nv ^ " authored by " ^ author;
+  fun toStringAuthor (nv,auth) =
+      PackageNameVersion.toString nv ^ " authored by " ^
+      PackageAuthor.toString auth;
 
   fun toStringAuthors authors =
       join "\n  " (List.map toStringAuthor authors);

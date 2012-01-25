@@ -19,7 +19,7 @@ type nameVersion
 datatype nameVersion' =
     NameVersion' of
       {name : PackageName.name,
-       version : PackageVersion.version};
+       version : PackageVersion.version}
 
 val mk : nameVersion' -> nameVersion
 

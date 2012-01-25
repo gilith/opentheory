@@ -334,6 +334,30 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Package authors.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun authorInSet pkgs auths namever =
+      let
+(*OpenTheoryDebug
+        val () =
+            if member namever pkgs then ()
+            else raise Bug "DirectoryPackages.authoredBy: unknown package"
+*)
+        val info = get pkgs namever
+
+        val auth = PackageInfo.author info
+      in
+        PackageAuthorSet.member auth auths
+      end;
+in
+  fun knownAuthor pkgs auths =
+      if PackageAuthorSet.null auths then K false
+      else authorInSet pkgs auths;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

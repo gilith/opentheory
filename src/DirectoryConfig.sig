@@ -54,6 +54,8 @@ val minimalInstall : install -> bool
 
 type config
 
+val authors : config -> PackageAuthor.author list
+
 val repos : config -> repo list
 
 val licenses : config -> license list

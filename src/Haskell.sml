@@ -2042,7 +2042,7 @@ in
       let
         val {description} = Package.description pkg
         and {license} = Package.license pkg
-        and {author} = Package.author pkg
+        and auth = Package.author pkg
       in
         Print.inconsistentBlock 0
           [Print.ppString "{- |",
@@ -2053,7 +2053,7 @@ in
               ("License", Print.ppString license)],
            Print.newlines 2,
            ppTags
-             [("Maintainer", Print.ppString author),
+             [("Maintainer", PackageAuthor.pp auth),
               ("Stability", Print.ppString "provisional"),
               ("Portability", Print.ppString "portable")],
            Print.newline,
@@ -2131,7 +2131,7 @@ in
         and version = Package.version pkg
         and {description} = Package.description pkg
         and {license} = Package.license pkg
-        and {author} = Package.author pkg
+        and auth = Package.author pkg
         and mods = exposedModule source
       in
         Print.inconsistentBlock 0
@@ -2143,8 +2143,8 @@ in
               ("License-file", Print.ppString "LICENSE"),
               ("Cabal-version", Print.ppString ">= 1.8.0.6"),
               ("Build-type", Print.ppString "Simple"),
-              ("Author", Print.ppString author),
-              ("Maintainer", Print.ppString author)],
+              ("Author", PackageAuthor.pp auth),
+              ("Maintainer", PackageAuthor.pp auth)],
            Print.newline,
            Print.newline,
            ppSection "Library"

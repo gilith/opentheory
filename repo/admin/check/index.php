@@ -103,7 +103,7 @@ function packages_out_of_sync() {
 $select_sync = new SelectSyncData('s');
 
 if ($select_sync->is_value()) {
-  /* Synchronize */
+  trigger_error('synchronizing timestamps is not implemented');
 
   if (is_script()) {
     output_script('successfully synchronized package timestamps');

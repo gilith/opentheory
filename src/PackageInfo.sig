@@ -57,7 +57,7 @@ val description : info -> {description : string}
 (* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val author : info -> {author : string}
+val author : info -> PackageAuthor.author
 
 (* ------------------------------------------------------------------------- *)
 (* Package license.                                                          *)

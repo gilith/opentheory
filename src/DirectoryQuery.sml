@@ -20,6 +20,7 @@ and includedByKeywordString = "IncludedBy"
 and includesKeywordString = "Includes"
 and intersectSymbolString = "&"
 and latestKeywordString = "Latest"
+and mineKeywordString = "Mine"
 and optionalSymbolString = "?"
 and reflexiveTransitiveSymbolString = "*"
 and requiredByKeywordString = "RequiredBy"
@@ -49,6 +50,7 @@ datatype function =
   | Subtheories
   | SubtheoryOf
   | Latest
+  | Mine
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function
@@ -72,6 +74,7 @@ fun isConstant func =
     | Subtheories => false
     | SubtheoryOf => false
     | Latest => false
+    | Mine => false
     | Union (func1,func2) => isConstant func1 andalso isConstant func2
     | Intersect (func1,func2) => isConstant func1 andalso isConstant func2
     | Difference (func1,func2) => isConstant func1 andalso isConstant func2
@@ -115,6 +118,7 @@ in
       | Subtheories => PackageNameVersionSet.lift (Directory.subtheories dir)
       | SubtheoryOf => PackageNameVersionSet.lift (Directory.subtheoryOf dir)
       | Latest => PackageNameVersionSet.latestVersions
+      | Mine => PackageNameVersionSet.filter (Directory.selfAuthor dir)
       | Union (func1,func2) =>
         let
           val f1 = evaluate dir func1
@@ -179,6 +183,7 @@ and ppIdentityKeyword = Print.ppString identityKeywordString
 and ppIncludedByKeyword = Print.ppString includedByKeywordString
 and ppIncludesKeyword = Print.ppString includesKeywordString
 and ppLatestKeyword = Print.ppString latestKeywordString
+and ppMineKeyword = Print.ppString mineKeywordString
 and ppOptionalSymbol = Print.ppString optionalSymbolString
 and ppReflexiveTransitiveSymbol = Print.ppString reflexiveTransitiveSymbolString
 and ppRequiredByKeyword = Print.ppString requiredByKeywordString
@@ -237,6 +242,7 @@ local
       | Subtheories => ppSubtheoriesKeyword
       | SubtheoryOf => ppSubtheoryOfKeyword
       | Latest => ppLatestKeyword
+      | Mine => ppMineKeyword
       | _ => ppBracket func
 
   and ppUnary func =
@@ -292,6 +298,7 @@ local
   and includesKeywordParser = exactString includesKeywordString
   and intersectSymbolParser = exactString intersectSymbolString
   and latestKeywordParser = exactString latestKeywordString
+  and mineKeywordParser = exactString mineKeywordString
   and optionalSymbolParser = exactString optionalSymbolString
   and reflexiveTransitiveSymbolParser =
       exactString reflexiveTransitiveSymbolString
@@ -327,7 +334,8 @@ local
       includedByKeywordParser >> K IncludedBy ||
       subtheoriesKeywordParser >> K Subtheories ||
       subtheoryOfKeywordParser >> K SubtheoryOf ||
-      latestKeywordParser >> K Latest;
+      latestKeywordParser >> K Latest ||
+      mineKeywordParser >> K Mine;
 
   val basicSpaceParser =
       basicParser ++ manySpace >> fst ||

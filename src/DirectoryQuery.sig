@@ -26,6 +26,10 @@ datatype function =
   | Subtheories
   | SubtheoryOf
   | Latest
+  | Mine
+(***
+  | EarlierThanRepo
+***)
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function

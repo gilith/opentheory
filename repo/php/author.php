@@ -16,7 +16,7 @@ require_once 'error.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 define('PACKAGE_AUTHOR_NAME_REGEXP',
-       '[a-zA-Z0-9 ]+');
+       '[-a-zA-Z0-9\' ]+');
 
 define('PACKAGE_AUTHOR_EMAIL_REGEXP',
        '[a-zA-Z0-9_.@-]+');

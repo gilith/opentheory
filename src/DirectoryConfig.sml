@@ -12,15 +12,18 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val autoCleanupKey = "auto"
+val authorSection = "author"
+and autoCleanupKey = "auto"
 and chmodSystemKey = "chmod"
 and cleanupSection = "cleanup"
 and cpSystemKey = "cp"
 and curlSystemKey = "curl"
 and echoSystemKey = "echo"
+and emailAuthorKey = "email"
 and installSection = "install"
 and licenseSection = "license"
 and minimalInstallKey = "minimal"
+and nameAuthorKey = "name"
 and nameLicenseKey = "name"
 and nameRepoKey = "name"
 and refreshRepoKey = "refresh"
@@ -107,6 +110,164 @@ fun toStringOptionalInterval ot =
 fun fromStringOptionalInterval s =
     if s = "never" then NONE
     else SOME (fromStringInterval s);
+
+(* ------------------------------------------------------------------------- *)
+(* A type of author configuration data.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun toSectionAuthor author =
+    let
+      val PackageAuthor.Author' {name,email} = PackageAuthor.dest author
+    in
+      Config.Section
+        {name = authorSection,
+         keyValues =
+           [Config.KeyValue
+              {key = nameAuthorKey,
+               value = name},
+            Config.KeyValue
+              {key = emailAuthorKey,
+               value = email}]}
+    end;
+
+local
+  datatype authorSectionState =
+      AuthorSectionState of
+        {name : string option,
+         email : string option};
+
+  val initialAuthorSectionState =
+      let
+        val name = NONE
+        and email = NONE
+      in
+        AuthorSectionState
+          {name = name,
+           email = email}
+      end;
+
+  fun addNameAuthorSectionState x state =
+      let
+        val AuthorSectionState {name,email} = state
+
+        val name =
+            case name of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "multiple " ^
+                    Config.toStringKey {key = nameAuthorKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        AuthorSectionState
+          {name = name,
+           email = email}
+      end;
+
+  fun addEmailAuthorSectionState x state =
+      let
+        val AuthorSectionState {name,email} = state
+
+        val email =
+            case email of
+              NONE => SOME x
+            | SOME x' =>
+              let
+                val err =
+                    "multiple " ^
+                    Config.toStringKey {key = emailAuthorKey} ^
+                    " keys: " ^ x ^ " and " ^ x'
+              in
+                raise Error err
+              end
+      in
+        AuthorSectionState
+          {name = name,
+           email = email}
+      end;
+
+  fun processAuthorSectionState (kv,state) =
+      let
+        val Config.KeyValue {key,value} = kv
+      in
+        if key = nameAuthorKey then addNameAuthorSectionState value state
+        else if key = emailAuthorKey then addEmailAuthorSectionState value state
+        else
+          let
+            val mesg =
+                "unknown key " ^ Config.toStringKey {key = key} ^
+                " in section " ^
+                Config.toStringSectionName {name = authorSection} ^
+                " of config file"
+
+            val () = warn mesg
+          in
+            state
+          end
+      end;
+
+  fun finalAuthorSectionState state =
+      let
+        val AuthorSectionState {name,email} = state
+
+        val name =
+            case name of
+              SOME x => x
+            | NONE =>
+              let
+                val err =
+                    "missing " ^
+                    Config.toStringKey {key = nameAuthorKey} ^ " key"
+              in
+                raise Error err
+              end
+
+        val email =
+            case email of
+              SOME x => x
+            | NONE =>
+              let
+                val err =
+                    "missing " ^
+                    Config.toStringKey {key = emailAuthorKey} ^ " key"
+              in
+                raise Error err
+              end
+
+        val auth' =
+            PackageAuthor.Author'
+              {name = name,
+               email = email}
+      in
+        PackageAuthor.mk auth'
+      end;
+in
+  fun fromSectionAuthor kvs =
+      let
+        val state = initialAuthorSectionState
+
+        val state = List.foldl processAuthorSectionState state kvs
+      in
+        finalAuthorSectionState state
+      end
+      handle Error err =>
+        let
+          val err =
+              "in section " ^
+              Config.toStringSectionName {name = authorSection} ^
+              " of config file:\n" ^ err
+        in
+          raise Error err
+        end;
+end;
+
+val defaultAuthors : PackageAuthor.author list = [];
+
+val repoDefaultAuthors = defaultAuthors;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of repo configuration data.                                        *)
@@ -1085,7 +1246,8 @@ val repoDefaultSystem =
 
 datatype config =
     Config of
-      {repos : repo list,
+      {authors : PackageAuthor.author list,
+       repos : repo list,
        licenses : license list,
        cleanup : cleanup,
        install : install,
@@ -1097,19 +1259,23 @@ datatype config =
 
 val empty =
     let
-      val repos = []
+      val authors = []
+      and repos = []
       and licenses = []
       and cleanup = defaultCleanup
       and install = defaultInstall
       and system = defaultSystem
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
          system = system}
     end;
+
+fun authors (Config {authors = x, ...}) = x;
 
 fun repos (Config {repos = x, ...}) = x;
 
@@ -1125,10 +1291,43 @@ fun system (Config {system = x, ...}) = x;
 (* Basic operations.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
+fun addAuthor cfg auth =
+    let
+      val Config
+            {authors,
+             repos,
+             licenses,
+             cleanup,
+             install,
+             system} = cfg
+
+      val () =
+          if not (List.exists (PackageAuthor.equal auth) authors) then ()
+          else
+            let
+              val err =
+                  "repeated author " ^ PackageAuthor.toString auth ^
+                  " in the config file"
+            in
+              raise Error err
+            end
+
+      val authors = authors @ [auth]
+    in
+      Config
+        {authors = authors,
+         repos = repos,
+         licenses = licenses,
+         cleanup = cleanup,
+         install = install,
+         system = system}
+    end;
+
 fun addRepo cfg repo =
     let
       val Config
-            {repos,
+            {authors,
+             repos,
              licenses,
              cleanup,
              install,
@@ -1152,7 +1351,8 @@ fun addRepo cfg repo =
       val repos = repos @ [repo]
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1162,7 +1362,8 @@ fun addRepo cfg repo =
 fun addLicense cfg license =
     let
       val Config
-            {repos,
+            {authors,
+             repos,
              licenses,
              cleanup,
              install,
@@ -1186,7 +1387,8 @@ fun addLicense cfg license =
       val licenses = licenses @ [license]
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1196,14 +1398,16 @@ fun addLicense cfg license =
 fun replaceCleanup cfg cleanup =
     let
       val Config
-            {repos,
+            {authors,
+             repos,
              licenses,
              cleanup = _,
              install,
              system} = cfg
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1213,14 +1417,16 @@ fun replaceCleanup cfg cleanup =
 fun replaceInstall cfg install =
     let
       val Config
-            {repos,
+            {authors,
+             repos,
              licenses,
              cleanup,
              install = _,
              system} = cfg
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1230,14 +1436,16 @@ fun replaceInstall cfg install =
 fun replaceSystem cfg system =
     let
       val Config
-            {repos,
+            {authors,
+             repos,
              licenses,
              cleanup,
              install,
              system = _} = cfg
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1251,13 +1459,15 @@ fun replaceSystem cfg system =
 fun toSections cfg =
     let
       val Config
-            {repos,
+            {authors,
+             repos,
              licenses,
              cleanup,
              install,
              system} = cfg
 
       val sections =
+          List.map toSectionAuthor authors @
           List.map toSectionRepo repos @
           List.map toSectionLicense licenses @
           [toSectionCleanup cleanup] @
@@ -1278,7 +1488,13 @@ local
       let
         val Config.Section {name,keyValues} = sect
       in
-        if name = repoSection then
+        if name = authorSection then
+          let
+            val auth = fromSectionAuthor keyValues
+          in
+            addAuthor cfg auth
+          end
+        else if name = repoSection then
           let
             val repo = fromSectionRepo keyValues
           in
@@ -1359,14 +1575,16 @@ fun toTextFile {config,filename} =
 
 val default =
     let
-      val repos = defaultRepos
+      val authors = defaultAuthors
+      and repos = defaultRepos
       and licenses = defaultLicenses
       and cleanup = defaultCleanup
       and install = defaultInstall
       and system = defaultSystem
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1375,14 +1593,16 @@ val default =
 
 val repoDefault =
     let
-      val repos = repoDefaultRepos
+      val authors = repoDefaultAuthors
+      and repos = repoDefaultRepos
       and licenses = repoDefaultLicenses
       and cleanup = repoDefaultCleanup
       and install = repoDefaultInstall
       and system = repoDefaultSystem
     in
       Config
-        {repos = repos,
+        {authors = authors,
+         repos = repos,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
