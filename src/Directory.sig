@@ -341,6 +341,36 @@ val importer : directory -> TheoryGraph.importer
 val stagedFinder : directory -> PackageFinder.finder
 
 (* ------------------------------------------------------------------------- *)
+(* Comparing packages with repos.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val consistentWithRepo :
+    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    bool
+
+val notEarlierThanRepo :
+    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    bool
+
+val laterThanRepo :
+    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    bool
+
+(* Logical conjunction of the above *)
+
+val consistentWithRepoList :
+    directory -> DirectoryRepo.repo list -> PackageNameVersion.nameVersion ->
+    bool
+
+val notEarlierThanRepoList :
+    directory -> DirectoryRepo.repo list -> PackageNameVersion.nameVersion ->
+    bool
+
+val laterThanRepoList :
+    directory -> DirectoryRepo.repo list -> PackageNameVersion.nameVersion ->
+    bool
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

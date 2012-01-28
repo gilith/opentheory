@@ -516,7 +516,7 @@ fun query s =
               raise Bug bug
             end
 
-      val namevers = DirectoryQuery.evaluate directory q latest
+      val namevers = DirectoryQuery.evaluate directory [] q latest
     in
       (s,namevers)
     end;
@@ -578,3 +578,7 @@ val _ = pv (query "Subtheories+ bool-true - bool-true-def");
 val _ = pv (query "(RequiredBy | IncludedBy) bool-true-def");
 
 val _ = pv (query "(RequiredBy | IncludedBy)+ bool-true-def");
+
+val _ = pv (query "Uploadable");
+
+val _ = pv (query "Upgradable");

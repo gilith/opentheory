@@ -27,9 +27,11 @@ datatype function =
   | SubtheoryOf
   | Latest
   | Mine
-(***
-  | EarlierThanRepo
-***)
+  | ConsistentWithRepo
+  | NotEarlierThanRepo
+  | LaterThanRepo
+  | Upgradable  (* Identity - NotEarlierThanRepo *)
+  | Uploadable  (* LaterThanRepo & Mine & ConsistentWithRepo *)
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function
@@ -49,8 +51,8 @@ val isConstant : function -> bool
 (* ------------------------------------------------------------------------- *)
 
 val evaluate :
-    Directory.directory -> function -> PackageNameVersionSet.set ->
-    PackageNameVersionSet.set
+    Directory.directory -> DirectoryRepo.repo list -> function ->
+    PackageNameVersionSet.set -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

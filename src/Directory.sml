@@ -1874,6 +1874,28 @@ fun ppUpload dir {repo,support,packages} =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Comparing packages with repos.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun consistentWithRepo dir =
+    DirectoryPackages.consistentWithRepo (packages dir);
+
+fun notEarlierThanRepo dir =
+    DirectoryPackages.notEarlierThanRepo (packages dir);
+
+fun laterThanRepo dir =
+    DirectoryPackages.laterThanRepo (packages dir);
+
+fun consistentWithRepoList dir =
+    DirectoryPackages.consistentWithRepoList (packages dir);
+
+fun notEarlierThanRepoList dir =
+    DirectoryPackages.notEarlierThanRepoList (packages dir);
+
+fun laterThanRepoList dir =
+    DirectoryPackages.laterThanRepoList (packages dir);
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

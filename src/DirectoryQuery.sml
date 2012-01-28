@@ -14,13 +14,16 @@ open Useful;
 
 val allKeywordString = "All"
 and emptyKeywordString = "Empty"
+and consistentWithRepoKeywordString = "ConsistentWithRepo"
 and differenceSymbolString = "-"
 and identityKeywordString = "Identity"
 and includedByKeywordString = "IncludedBy"
 and includesKeywordString = "Includes"
 and intersectSymbolString = "&"
+and laterThanRepoKeywordString = "LaterThanRepo"
 and latestKeywordString = "Latest"
 and mineKeywordString = "Mine"
+and notEarlierThanRepoKeywordString = "NotEarlierThanRepo"
 and optionalSymbolString = "?"
 and reflexiveTransitiveSymbolString = "*"
 and requiredByKeywordString = "RequiredBy"
@@ -28,6 +31,8 @@ and requiresKeywordString = "Requires"
 and subtheoriesKeywordString = "Subtheories"
 and subtheoryOfKeywordString = "SubtheoryOf"
 and transitiveSymbolString = "+"
+and upgradableKeywordString = "Upgradable"
+and uploadableKeywordString = "Uploadable"
 and unionSymbolString = "|";
 
 (* ------------------------------------------------------------------------- *)
@@ -51,6 +56,11 @@ datatype function =
   | SubtheoryOf
   | Latest
   | Mine
+  | ConsistentWithRepo
+  | NotEarlierThanRepo
+  | LaterThanRepo
+  | Upgradable
+  | Uploadable
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function
@@ -75,6 +85,11 @@ fun isConstant func =
     | SubtheoryOf => false
     | Latest => false
     | Mine => false
+    | ConsistentWithRepo => false
+    | NotEarlierThanRepo => false
+    | LaterThanRepo => false
+    | Upgradable => false
+    | Uploadable => false
     | Union (func1,func2) => isConstant func1 andalso isConstant func2
     | Intersect (func1,func2) => isConstant func1 andalso isConstant func2
     | Difference (func1,func2) => isConstant func1 andalso isConstant func2
@@ -86,6 +101,12 @@ fun isConstant func =
 (* ------------------------------------------------------------------------- *)
 (* Evaluating queries.                                                       *)
 (* ------------------------------------------------------------------------- *)
+
+val upgradableDef =
+    Difference (Identity,NotEarlierThanRepo);
+
+val uploadableDef =
+    Intersect (LaterThanRepo, Intersect (Mine,ConsistentWithRepo));
 
 fun evaluateSet dir set =
     case set of
@@ -107,7 +128,7 @@ local
         if converged then set else rtc f set'
       end;
 in
-  fun evaluate dir func =
+  fun evaluate dir repos func =
       case func of
         Identity => I
       | Constant set => K (evaluateSet dir set)
@@ -118,50 +139,75 @@ in
       | Subtheories => PackageNameVersionSet.lift (Directory.subtheories dir)
       | SubtheoryOf => PackageNameVersionSet.lift (Directory.subtheoryOf dir)
       | Latest => PackageNameVersionSet.latestVersions
-      | Mine => PackageNameVersionSet.filter (Directory.selfAuthor dir)
+      | Mine =>
+        let
+          val pred = Directory.selfAuthor dir
+        in
+          PackageNameVersionSet.filter pred
+        end
+      | ConsistentWithRepo =>
+        let
+          val pred = Directory.consistentWithRepoList dir repos
+        in
+          PackageNameVersionSet.filter pred
+        end
+      | NotEarlierThanRepo =>
+        let
+          val pred = Directory.notEarlierThanRepoList dir repos
+        in
+          PackageNameVersionSet.filter pred
+        end
+      | LaterThanRepo =>
+        let
+          val pred = Directory.laterThanRepoList dir repos
+        in
+          PackageNameVersionSet.filter pred
+        end
+      | Upgradable => evaluate dir repos upgradableDef
+      | Uploadable => evaluate dir repos uploadableDef
       | Union (func1,func2) =>
         let
-          val f1 = evaluate dir func1
-          and f2 = evaluate dir func2
+          val f1 = evaluate dir repos func1
+          and f2 = evaluate dir repos func2
         in
           fn s => PackageNameVersionSet.union (f1 s) (f2 s)
         end
       | Intersect (func1,func2) =>
         let
-          val f1 = evaluate dir func1
-          and f2 = evaluate dir func2
+          val f1 = evaluate dir repos func1
+          and f2 = evaluate dir repos func2
         in
           fn s => PackageNameVersionSet.intersect (f1 s) (f2 s)
         end
       | Difference (func1,func2) =>
         let
-          val f1 = evaluate dir func1
-          and f2 = evaluate dir func2
+          val f1 = evaluate dir repos func1
+          and f2 = evaluate dir repos func2
         in
           fn s => PackageNameVersionSet.difference (f1 s) (f2 s)
         end
       | ReflexiveTransitive func =>
         let
-          val f = evaluate dir func
+          val f = evaluate dir repos func
         in
           rtc f
         end
       | Transitive func =>
         let
-          val f = evaluate dir func
+          val f = evaluate dir repos func
         in
           rtc f o f
         end
       | Optional func =>
         let
-          val f = evaluate dir func
+          val f = evaluate dir repos func
         in
           fn s => PackageNameVersionSet.union s (f s)
         end
       | Compose (func1,func2) =>
         let
-          val f1 = evaluate dir func1
-          and f2 = evaluate dir func2
+          val f1 = evaluate dir repos func1
+          and f2 = evaluate dir repos func2
         in
           f1 o f2
         end;
@@ -178,19 +224,24 @@ val infixes =
        {token = unionSymbolString, precedence = 2, assoc = Print.LeftAssoc}];
 
 val ppAllKeyword = Print.ppString allKeywordString
+and ppConsistentWithRepoKeyword = Print.ppString consistentWithRepoKeywordString
 and ppEmptyKeyword = Print.ppString emptyKeywordString
 and ppIdentityKeyword = Print.ppString identityKeywordString
 and ppIncludedByKeyword = Print.ppString includedByKeywordString
 and ppIncludesKeyword = Print.ppString includesKeywordString
+and ppLaterThanRepoKeyword = Print.ppString laterThanRepoKeywordString
 and ppLatestKeyword = Print.ppString latestKeywordString
 and ppMineKeyword = Print.ppString mineKeywordString
+and ppNotEarlierThanRepoKeyword = Print.ppString notEarlierThanRepoKeywordString
 and ppOptionalSymbol = Print.ppString optionalSymbolString
 and ppReflexiveTransitiveSymbol = Print.ppString reflexiveTransitiveSymbolString
 and ppRequiredByKeyword = Print.ppString requiredByKeywordString
 and ppRequiresKeyword = Print.ppString requiresKeywordString
 and ppSubtheoriesKeyword = Print.ppString subtheoriesKeywordString
 and ppSubtheoryOfKeyword = Print.ppString subtheoryOfKeywordString
-and ppTransitiveSymbol = Print.ppString transitiveSymbolString;
+and ppTransitiveSymbol = Print.ppString transitiveSymbolString
+and ppUpgradableKeyword = Print.ppString upgradableKeywordString
+and ppUploadableKeyword = Print.ppString uploadableKeywordString;
 
 fun ppSet set =
     case set of
@@ -243,6 +294,11 @@ local
       | SubtheoryOf => ppSubtheoryOfKeyword
       | Latest => ppLatestKeyword
       | Mine => ppMineKeyword
+      | ConsistentWithRepo => ppConsistentWithRepoKeyword
+      | NotEarlierThanRepo => ppNotEarlierThanRepoKeyword
+      | LaterThanRepo => ppLaterThanRepoKeyword
+      | Upgradable => ppUpgradableKeyword
+      | Uploadable => ppUploadableKeyword
       | _ => ppBracket func
 
   and ppUnary func =
@@ -291,14 +347,19 @@ local
   open Parse;
 
   val allKeywordParser = exactString allKeywordString
+  val consistentWithRepoKeywordParser =
+      exactString consistentWithRepoKeywordString
   and differenceSymbolParser = exactString differenceSymbolString
   and emptyKeywordParser = exactString emptyKeywordString
   and identityKeywordParser = exactString identityKeywordString
   and includedByKeywordParser = exactString includedByKeywordString
   and includesKeywordParser = exactString includesKeywordString
   and intersectSymbolParser = exactString intersectSymbolString
+  and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
   and latestKeywordParser = exactString latestKeywordString
   and mineKeywordParser = exactString mineKeywordString
+  and notEarlierThanRepoKeywordParser =
+      exactString notEarlierThanRepoKeywordString
   and optionalSymbolParser = exactString optionalSymbolString
   and reflexiveTransitiveSymbolParser =
       exactString reflexiveTransitiveSymbolString
@@ -307,7 +368,9 @@ local
   and subtheoriesKeywordParser = exactString subtheoriesKeywordString
   and subtheoryOfKeywordParser = exactString subtheoryOfKeywordString
   and transitiveSymbolParser = exactString transitiveSymbolString
-  and unionSymbolParser = exactString unionSymbolString;
+  and unionSymbolParser = exactString unionSymbolString
+  and upgradableKeywordParser = exactString upgradableKeywordString
+  and uploadableKeywordParser = exactString uploadableKeywordString;
 
   val bracketSpaceParser =
       let
@@ -335,7 +398,12 @@ local
       subtheoriesKeywordParser >> K Subtheories ||
       subtheoryOfKeywordParser >> K SubtheoryOf ||
       latestKeywordParser >> K Latest ||
-      mineKeywordParser >> K Mine;
+      mineKeywordParser >> K Mine ||
+      consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
+      notEarlierThanRepoKeywordParser >> K NotEarlierThanRepo ||
+      laterThanRepoKeywordParser >> K LaterThanRepo ||
+      upgradableKeywordParser >> K Upgradable ||
+      uploadableKeywordParser >> K Uploadable;
 
   val basicSpaceParser =
       basicParser ++ manySpace >> fst ||

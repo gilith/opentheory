@@ -735,6 +735,78 @@ fun delete pkgs namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Comparing packages with repos.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun consistentWithRepo pkgs repo =
+    let
+      fun checkInc inc =
+          case DirectoryRepo.peek repo inc of
+            NONE => true
+          | SOME chk =>
+            case checksum pkgs inc of
+              SOME c => Checksum.equal c chk
+            | NONE =>
+              let
+                val err =
+                    PackageNameVersion.toString inc ^
+                    " seems to be badly installed"
+              in
+                raise Error err
+              end
+    in
+      fn namever =>
+         let
+           val nvs = PackageNameVersionSet.singleton namever
+
+           val incs = includesRTC pkgs nvs
+         in
+           PackageNameVersionSet.all checkInc incs
+         end
+    end;
+
+fun notEarlierThanRepo pkgs repo namever =
+    let
+      val PackageNameVersion.NameVersion' {name,version} =
+          PackageNameVersion.dest namever
+    in
+      case DirectoryRepo.latestNameVersion repo name of
+        NONE => true
+      | SOME (nv,_) =>
+        case PackageVersion.compare (version, PackageNameVersion.version nv) of
+          LESS => false
+        | EQUAL => true
+        | GREATER => true
+    end;
+
+fun laterThanRepo pkgs repo namever =
+    let
+      val PackageNameVersion.NameVersion' {name,version} =
+          PackageNameVersion.dest namever
+    in
+      case DirectoryRepo.latestNameVersion repo name of
+        NONE => true
+      | SOME (nv,_) =>
+        case PackageVersion.compare (version, PackageNameVersion.version nv) of
+          LESS => false
+        | EQUAL => false
+        | GREATER => true
+    end;
+
+local
+  fun checkList pred pkgs repos nv =
+      let
+        fun check repo = pred pkgs repo nv
+      in
+        List.all check repos
+      end;
+in
+  val consistentWithRepoList = checkList consistentWithRepo
+  and notEarlierThanRepoList = checkList notEarlierThanRepo
+  and laterThanRepoList = checkList laterThanRepo
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

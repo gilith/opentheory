@@ -2419,11 +2419,13 @@ fun list query =
 
       val dir = directory ()
 
+      val repos = repositories ()
+
       val pkgs =
           if DirectoryQuery.isConstant query then PackageNameVersionSet.empty
           else Directory.latest dir
 
-      val pkgs = DirectoryQuery.evaluate dir query pkgs
+      val pkgs = DirectoryQuery.evaluate dir repos query pkgs
 
       val pkgs = sortList dir pkgs (orderList ());
 

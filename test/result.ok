@@ -408,3 +408,9 @@ package query "(RequiredBy | IncludedBy) bool-true-def" resulted in
 package query "(RequiredBy | IncludedBy)+ bool-true-def" resulted in
   {bool-true-1.0, bool-true-axiom-1.0}
 
+package query "Uploadable" resulted in
+  {}
+
+package query "Upgradable" resulted in
+  {}
+
