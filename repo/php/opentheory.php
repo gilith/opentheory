@@ -204,17 +204,13 @@ function opentheory_staged_tags($name_version) {
 // Query installed packages.
 ///////////////////////////////////////////////////////////////////////////////
 
-function opentheory_list($query) {
-  is_string($query) or trigger_error('bad query');
-
-  $args = " --include-order '" . $query . "'";
-
-  $output = opentheory_query('list',$args);
+function opentheory_parse_name_versions($text) {
+  is_string($text) or trigger_error('bad text');
 
   $name_versions = array();
 
-  if (strcmp($output,'') != 0) {
-    $lines = explode("\n", $output);
+  if (strcmp($text,'') != 0) {
+    $lines = explode("\n", $text);
 
     foreach ($lines as $line) {
       $name_version = from_string_package_name_version($line);
@@ -230,6 +226,18 @@ function opentheory_list($query) {
   return $name_versions;
 }
 
+function opentheory_list($query) {
+  is_string($query) or trigger_error('bad query');
+
+  $args = " --include-order '" . $query . "'";
+
+  $output = opentheory_query('list',$args);
+
+  $name_versions = opentheory_parse_name_versions($output);
+
+  return $name_versions;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Query package dependencies.
 ///////////////////////////////////////////////////////////////////////////////
@@ -237,17 +245,25 @@ function opentheory_list($query) {
 function opentheory_includes($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $query = 'Includes ' . $name_version->to_string();
+  $args = ' --includes ' . $name_version->to_string();
 
-  return opentheory_list($query);
+  $output = opentheory_query('info',$args);
+
+  $name_versions = opentheory_parse_name_versions($output);
+
+  return $name_versions;
 }
 
 function opentheory_staged_includes($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $query = 'Includes ' . $name_version->staged_to_string();
+  $args = ' --includes ' . $name_version->staged_to_string();
 
-  return opentheory_list($query);
+  $output = opentheory_query('info',$args);
+
+  $name_versions = opentheory_parse_name_versions($output);
+
+  return $name_versions;
 }
 
 function opentheory_subtheories($name_version) {

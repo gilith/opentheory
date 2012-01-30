@@ -26,9 +26,16 @@ my $repo = ($opt_l ? "gilith" : "mordor");
 
 my $cmd = "$opentheory --repo $repo list '" . 'Mine & (LaterThanRepo /\ ConsistentWithRepo)' . "'";
 
-my $thys = `$cmd`;
+my @thys = split (/[[:space:]]+/, `$cmd`);
 
-print STDOUT "$thys\n";
+$cmd = "$opentheory --repo $repo upload " . join (" ", @thys);
+
+if ($opt_n) {
+  print STDOUT "$cmd\n";
+}
+else {
+  (system ($cmd) == 0) or die;
+}
 
 __END__
 

@@ -424,6 +424,7 @@ datatype info =
     ArticleInfo
   | FilesInfo
   | FormatInfo of infoFormat
+  | IncludesInfo
   | InferenceInfo
   | SummaryInfo
   | TagsInfo
@@ -523,6 +524,9 @@ in
        {switches = ["--theory"], arguments = [],
         description = "display the package theory file",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
+       {switches = ["--includes"], arguments = [],
+        description = "list the included theory packages",
+        processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
        {switches = ["--article"], arguments = [],
         description = "output the theory package in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
@@ -1511,6 +1515,21 @@ local
           val sl = processFormat fmt @ ["\n"]
 
           val strm = Stream.fromList sl
+        in
+          Stream.toTextFile file strm
+        end
+      | IncludesInfo =>
+        let
+          fun mk nv = PackageNameVersion.toString nv ^ "\n"
+
+          val pkg =
+              case getPackage () of
+                SOME p => p
+              | NONE => raise Error "no includes information available"
+
+          val incs = Package.includes pkg
+
+          val strm = Stream.map mk (Stream.fromList incs)
         in
           Stream.toTextFile file strm
         end
