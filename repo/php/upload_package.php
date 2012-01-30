@@ -285,7 +285,7 @@ function complete_upload($upload) {
 
     $package_table->mark_uploaded($pkg);
 
-    // Mark subtheories
+    // Mark subtheories of uploaded packages
 
     $subtheories = opentheory_subtheories($namever);
 
@@ -299,7 +299,7 @@ function complete_upload($upload) {
     }
   }
 
-  // Obsoleted packages
+  // Mark packages obsoleted by this upload
 
   $obsoletes = obsolete_packages_upload($upload);
 
@@ -308,6 +308,13 @@ function complete_upload($upload) {
       $package_table->mark_obsolete($pkg);
     }
   }
+
+  // Refresh the uploaded package list from the package table to ensure we
+  // have the correct subtheory and obsolete markings
+
+  $pkgs = packages_upload($upload);
+
+  // Mark uploaded packages that are obsolete on arrival
 
   foreach ($pkgs as $pkg) {
     if (!$pkg->obsolete()) {
