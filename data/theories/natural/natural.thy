@@ -1,5 +1,5 @@
 name: natural
-version: 1.43
+version: 1.44
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -105,7 +105,7 @@ distance {
   import: add
   import: mult
   import: sub
-  package: natural-distance-1.27
+  package: natural-distance-1.28
 }
 
 main {
