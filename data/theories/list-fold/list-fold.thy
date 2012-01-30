@@ -1,5 +1,5 @@
 name: list-fold
-version: 1.0
+version: 1.2
 description: List fold operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -11,15 +11,14 @@ requires: list-reverse
 show: "Data.Bool"
 show: "Data.List"
 show: "Function"
-show: "Set"
 
 def {
-  package: list-fold-def-1.0
+  package: list-fold-def-1.1
 }
 
 thm {
   import: def
-  package: list-fold-thm-1.0
+  package: list-fold-thm-1.1
 }
 
 main {
