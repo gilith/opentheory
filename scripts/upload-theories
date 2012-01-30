@@ -24,17 +24,28 @@ my $opentheory = "bin/mlton/opentheory";
 
 my $repo = ($opt_l ? "gilith" : "mordor");
 
-my $cmd = "$opentheory --repo $repo list '" . 'Mine & (LaterThanRepo /\ ConsistentWithRepo)' . "'";
+my $cmd = "$opentheory --repo $repo update";
+
+(system ($cmd) == 0) or die;
+
+$cmd = "$opentheory --repo $repo list '" . 'Mine & (LaterThanRepo /\ ConsistentWithRepo)' . "'";
 
 my @thys = split (/[[:space:]]+/, `$cmd`);
 
-$cmd = "$opentheory --repo $repo upload " . join (" ", @thys);
+my $thylist = join (" ", @thys);
 
-if ($opt_n) {
-  print STDOUT "$cmd\n";
+if ($thylist eq "") {
+  print STDOUT "no theories on $repo need upgrading\n";
 }
 else {
-  (system ($cmd) == 0) or die;
+  $cmd = "$opentheory --repo $repo upload $thylist";
+
+  if ($opt_n) {
+    print STDOUT "$cmd\n";
+  }
+  else {
+    (system ($cmd) == 0) or die;
+  }
 }
 
 __END__

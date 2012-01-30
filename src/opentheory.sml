@@ -357,10 +357,6 @@ in
 
         val repos = Directory.repos dir
 
-        val () =
-            if not (List.null repos) then ()
-            else raise Error "no repos listed in config file"
-
         val ns = !repoOption
       in
         if List.null ns then repos
