@@ -1,10 +1,9 @@
 name: natural-distance
-version: 1.26
+version: 1.27
 description: Natural number distance
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: natural-def
 requires: natural-thm
 requires: natural-numeral
 requires: natural-order
@@ -15,12 +14,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-distance-def-1.20
+  package: natural-distance-def-1.21
 }
 
 thm {
   import: def
-  package: natural-distance-thm-1.32
+  package: natural-distance-thm-1.33
 }
 
 main {

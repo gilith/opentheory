@@ -145,7 +145,7 @@ while (my $thy = <THEORIES>) {
     if ( -d "$source/$thy_name" ) {
       add_toplevel($thy);
 
-      $cmd = "$opentheory info --dependencies+ $thy";
+      $cmd = "$opentheory list '(Requires | Includes)* $thy'";
 
       open SUBTHEORIES, "$cmd |" or
         die "check-theories: couldn't list dependent theories of $thy: $!\n";
@@ -195,7 +195,12 @@ while (my $thy = <THEORIES>) {
           my $info2 = `$opentheory info --information $thy-$version2`;
 
           if ($info1 eq $info2) {
-            if ($info1 !~ /^requires: /m && $thy ne "empty") {
+            if ($info1 !~ /^requires: /m &&
+                $thy ne "base" &&
+                $thy ne "bool" &&
+                $thy ne "bool-def" &&
+                $thy ne "empty")
+            {
               print STDOUT "check-theories: theory $thy has no requires information\n";
             }
           }

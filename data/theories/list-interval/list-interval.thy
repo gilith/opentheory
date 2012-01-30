@@ -1,5 +1,5 @@
 name: list-interval
-version: 1.31
+version: 1.32
 description: The list interval function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,12 +12,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: list-interval-def-1.32
+  package: list-interval-def-1.33
 }
 
 thm {
   import: def
-  package: list-interval-thm-1.30
+  package: list-interval-thm-1.31
 }
 
 main {

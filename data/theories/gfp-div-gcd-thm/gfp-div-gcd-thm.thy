@@ -1,9 +1,9 @@
 name: gfp-div-gcd-thm
-version: 1.12
+version: 1.13
 description: Properties of a gcd-based GF(p) division algorithm
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-01-04
+provenance: HOL Light theory extracted on 2012-01-29
 requires: bool
 requires: natural
 requires: natural-gcd

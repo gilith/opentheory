@@ -1,9 +1,9 @@
 name: word16-bytes-def
-version: 1.31
+version: 1.32
 description: Definition of 16-bit word to byte pair conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-01-04
+provenance: HOL Light theory extracted on 2012-01-29
 requires: bool
 show: "Data.Bool"
 show: "Data.Byte"

@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20120120)";
+val release = " (release 20120129)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -2422,7 +2422,7 @@ fun list query =
       val repos = repositories ()
 
       val pkgs =
-          if DirectoryQuery.isConstant query then PackageNameVersionSet.empty
+          if DirectoryQuery.ignoresInput query then PackageNameVersionSet.empty
           else Directory.latest dir
 
       val pkgs = DirectoryQuery.evaluate dir repos query pkgs

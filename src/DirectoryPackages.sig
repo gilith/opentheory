@@ -206,26 +206,12 @@ val consistentWithRepo :
     packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
     bool
 
-val notEarlierThanRepo :
+val earlierThanRepo :
     packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
     bool
 
 val laterThanRepo :
     packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
-    bool
-
-(* Logical conjunction of the above *)
-
-val consistentWithRepoList :
-    packages -> DirectoryRepo.repo list -> PackageNameVersion.nameVersion ->
-    bool
-
-val notEarlierThanRepoList :
-    packages -> DirectoryRepo.repo list -> PackageNameVersion.nameVersion ->
-    bool
-
-val laterThanRepoList :
-    packages -> DirectoryRepo.repo list -> PackageNameVersion.nameVersion ->
     bool
 
 (* ------------------------------------------------------------------------- *)

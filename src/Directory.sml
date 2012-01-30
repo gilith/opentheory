@@ -1880,20 +1880,11 @@ fun ppUpload dir {repo,support,packages} =
 fun consistentWithRepo dir =
     DirectoryPackages.consistentWithRepo (packages dir);
 
-fun notEarlierThanRepo dir =
-    DirectoryPackages.notEarlierThanRepo (packages dir);
+fun earlierThanRepo dir =
+    DirectoryPackages.earlierThanRepo (packages dir);
 
 fun laterThanRepo dir =
     DirectoryPackages.laterThanRepo (packages dir);
-
-fun consistentWithRepoList dir =
-    DirectoryPackages.consistentWithRepoList (packages dir);
-
-fun notEarlierThanRepoList dir =
-    DirectoryPackages.notEarlierThanRepoList (packages dir);
-
-fun laterThanRepoList dir =
-    DirectoryPackages.laterThanRepoList (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

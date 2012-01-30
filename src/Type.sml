@@ -495,10 +495,13 @@ local
 
   val infixes =
       Print.Infixes
-        [{token = pairString, precedence = 3, assoc = Print.RightAssoc},
+        [(* Primitive *)
+         {token = funString, precedence = 1, assoc = Print.RightAssoc},
+         (* Products *)
+         {token = pairString, precedence = 3, assoc = Print.RightAssoc},
          {token = crossString, precedence = 3, assoc = Print.RightAssoc},
-         {token = sumString, precedence = 2, assoc = Print.RightAssoc},
-         {token = funString, precedence = 1, assoc = Print.RightAssoc}];
+         (* Sums *)
+         {token = sumString, precedence = 2, assoc = Print.RightAssoc}];
 
   fun ppInfixBuffer ppInf ot_n =
       Print.program [Print.space, ppInf ot_n, Print.break];

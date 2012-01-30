@@ -1605,37 +1605,40 @@ local
 
   val infixes =
       Print.Infixes
-        [(* ML *)
+        [(* Primitive *)
+         {token = eqString, precedence = 3, assoc = Print.NonAssoc},
+         (* Booleans *)
+         {token = conjString, precedence = ~1, assoc = Print.RightAssoc},
+         {token = disjString, precedence = ~2, assoc = Print.RightAssoc},
+         {token = impString, precedence = ~3, assoc = Print.RightAssoc},
+         {token = iffString, precedence = ~4, assoc = Print.RightAssoc},
+         (* Functions *)
+         {token = composeString, precedence = 4, assoc = Print.LeftAssoc},
+         {token = circLatex, precedence = 4, assoc = Print.LeftAssoc},
+         (* Products *)
+         {token = pairString, precedence = ~1000, assoc = Print.RightAssoc},
+         (* Arithmetic *)
+         {token = "^", precedence = 8, assoc = Print.RightAssoc},
          {token = "/", precedence = 7, assoc = Print.LeftAssoc},
          {token = "div", precedence = 7, assoc = Print.LeftAssoc},
          {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
          {token = "*", precedence = 7, assoc = Print.LeftAssoc},
          {token = "+", precedence = 6, assoc = Print.LeftAssoc},
          {token = "-", precedence = 6, assoc = Print.LeftAssoc},
-         {token = "@", precedence = 5, assoc = Print.RightAssoc},
-         {token = "::", precedence = 5, assoc = Print.RightAssoc},
-         {token = eqString, precedence = 4, assoc = Print.NonAssoc},
-         {token = "<=", precedence = 4, assoc = Print.NonAssoc},
-         {token = "<", precedence = 4, assoc = Print.NonAssoc},
-         {token = ">=", precedence = 4, assoc = Print.NonAssoc},
-         {token = ">", precedence = 4, assoc = Print.NonAssoc},
-         {token = composeString, precedence = 3, assoc = Print.LeftAssoc},
-         {token = circLatex, precedence = 3, assoc = Print.LeftAssoc},
-         (* Arithmetic *)
-         {token = "^", precedence = 8, assoc = Print.RightAssoc},
+         {token = "<=", precedence = 3, assoc = Print.NonAssoc},
+         {token = "<", precedence = 3, assoc = Print.NonAssoc},
+         {token = ">=", precedence = 3, assoc = Print.NonAssoc},
+         {token = ">", precedence = 3, assoc = Print.NonAssoc},
          (* Set theory *)
          {token = capLatex, precedence = 7, assoc = Print.LeftAssoc},
          {token = backslashLatex, precedence = 6, assoc = Print.LeftAssoc},
          {token = cupLatex, precedence = 6, assoc = Print.LeftAssoc},
-         {token = inLatex, precedence = 4, assoc = Print.NonAssoc},
-         {token = subsetLatex, precedence = 4, assoc = Print.NonAssoc},
-         {token = subseteqLatex, precedence = 4, assoc = Print.NonAssoc},
-         (* HOL *)
-         {token = conjString, precedence = ~1, assoc = Print.RightAssoc},
-         {token = disjString, precedence = ~2, assoc = Print.RightAssoc},
-         {token = impString, precedence = ~3, assoc = Print.RightAssoc},
-         {token = iffString, precedence = ~4, assoc = Print.RightAssoc},
-         {token = pairString, precedence = ~1000, assoc = Print.RightAssoc}];
+         {token = inLatex, precedence = 3, assoc = Print.NonAssoc},
+         {token = subsetLatex, precedence = 3, assoc = Print.NonAssoc},
+         {token = subseteqLatex, precedence = 3, assoc = Print.NonAssoc},
+         (* List syntax *)
+         {token = "@", precedence = 5, assoc = Print.RightAssoc},
+         {token = "::", precedence = 5, assoc = Print.RightAssoc}];
 
   val binders =
       [forallString,

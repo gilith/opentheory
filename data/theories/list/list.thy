@@ -1,5 +1,5 @@
 name: list
-version: 1.46
+version: 1.47
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -106,14 +106,14 @@ nth {
   import: quant
   import: last
   import: length
-  package: list-nth-1.31
+  package: list-nth-1.32
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.29
+  package: list-replicate-1.30
 }
 
 member {
@@ -126,7 +126,7 @@ member {
   import: reverse
   import: length
   import: nth
-  package: list-member-1.33
+  package: list-member-1.34
 }
 
 concat {
@@ -134,7 +134,7 @@ concat {
   import: dest
   import: append
   import: quant
-  package: list-concat-1.26
+  package: list-concat-1.27
 }
 
 take-drop {
@@ -144,20 +144,20 @@ take-drop {
   import: append
   import: length
   import: nth
-  package: list-take-drop-1.30
+  package: list-take-drop-1.31
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.31
+  package: list-interval-1.32
 }
 
 zipwith {
   import: def
   import: dest
   import: length
-  package: list-zipwith-1.28
+  package: list-zipwith-1.29
 }
 
 nub {
@@ -165,7 +165,7 @@ nub {
   import: reverse
   import: length
   import: member
-  package: list-nub-1.31
+  package: list-nub-1.32
 }
 
 main {

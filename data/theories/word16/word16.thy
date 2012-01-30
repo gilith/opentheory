@@ -1,5 +1,5 @@
 name: word16
-version: 1.41
+version: 1.42
 description: 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,18 +19,18 @@ show: "Data.Word16.Bits"
 show: "Number.Natural"
 
 def {
-  package: word16-def-1.11
+  package: word16-def-1.12
 }
 
 bits {
   import: def
-  package: word16-bits-1.33
+  package: word16-bits-1.34
 }
 
 bytes {
   import: def
   import: bits
-  package: word16-bytes-1.35
+  package: word16-bytes-1.36
 }
 
 main {

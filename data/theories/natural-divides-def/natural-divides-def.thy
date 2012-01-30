@@ -1,9 +1,9 @@
 name: natural-divides-def
-version: 1.10
+version: 1.11
 description: Definition of the divides relation on natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-02
+provenance: HOL Light theory extracted on 2012-01-29
 requires: bool
 show: "Data.Bool"
 show: "Number.Natural"

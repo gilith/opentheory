@@ -1,5 +1,5 @@
 name: list-concat
-version: 1.26
+version: 1.27
 description: The list concat function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-concat-def-1.26
+  package: list-concat-def-1.27
 }
 
 thm {

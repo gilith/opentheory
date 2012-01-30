@@ -13,9 +13,11 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val allKeywordString = "All"
-and emptyKeywordString = "Empty"
+and andSymbolString = "/\\"
 and consistentWithRepoKeywordString = "ConsistentWithRepo"
 and differenceSymbolString = "-"
+and earlierThanRepoKeywordString = "EarlierThanRepo"
+and emptyKeywordString = "Empty"
 and identityKeywordString = "Identity"
 and includedByKeywordString = "IncludedBy"
 and includesKeywordString = "Includes"
@@ -23,8 +25,10 @@ and intersectSymbolString = "&"
 and laterThanRepoKeywordString = "LaterThanRepo"
 and latestKeywordString = "Latest"
 and mineKeywordString = "Mine"
-and notEarlierThanRepoKeywordString = "NotEarlierThanRepo"
+and notSymbolString = "~"
+and onRepoKeywordString = "OnRepo"
 and optionalSymbolString = "?"
+and orSymbolString = "\\/"
 and reflexiveTransitiveSymbolString = "*"
 and requiredByKeywordString = "RequiredBy"
 and requiresKeywordString = "Requires"
@@ -45,9 +49,20 @@ datatype set =
   | All
   | Empty;
 
+datatype predicate =
+    Mine
+  | OnRepo
+  | ConsistentWithRepo
+  | EarlierThanRepo
+  | LaterThanRepo
+  | Not of predicate
+  | And of predicate * predicate
+  | Or of predicate * predicate;
+
 datatype function =
     Identity
   | Constant of set
+  | Filter of predicate
   | Requires
   | RequiredBy
   | Includes
@@ -55,12 +70,8 @@ datatype function =
   | Subtheories
   | SubtheoryOf
   | Latest
-  | Mine
-  | ConsistentWithRepo
-  | NotEarlierThanRepo
-  | LaterThanRepo
-  | Upgradable
-  | Uploadable
+  | Upgradable  (* EarlierThanRepo *)
+  | Uploadable  (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function
@@ -73,10 +84,22 @@ datatype function =
 (* Does the function ignore its input?                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun isConstant func =
+fun ignoresRepo pred =
+    case pred of
+      Mine => true
+    | OnRepo => false
+    | ConsistentWithRepo => false
+    | EarlierThanRepo => false
+    | LaterThanRepo => false
+    | Not pred1 => ignoresRepo pred1
+    | And (pred1,pred2) => ignoresRepo pred1 andalso ignoresRepo pred2
+    | Or (pred1,pred2) => ignoresRepo pred1 andalso ignoresRepo pred2;
+
+fun ignoresInput func =
     case func of
       Identity => false
     | Constant _ => true
+    | Filter _ => false
     | Requires => false
     | RequiredBy => false
     | Includes => false
@@ -84,29 +107,30 @@ fun isConstant func =
     | Subtheories => false
     | SubtheoryOf => false
     | Latest => false
-    | Mine => false
-    | ConsistentWithRepo => false
-    | NotEarlierThanRepo => false
-    | LaterThanRepo => false
     | Upgradable => false
     | Uploadable => false
-    | Union (func1,func2) => isConstant func1 andalso isConstant func2
-    | Intersect (func1,func2) => isConstant func1 andalso isConstant func2
-    | Difference (func1,func2) => isConstant func1 andalso isConstant func2
+    | Union (func1,func2) => ignoresInput func1 andalso ignoresInput func2
+    | Intersect (func1,func2) => ignoresInput func1 andalso ignoresInput func2
+    | Difference (func1,func2) => ignoresInput func1 andalso ignoresInput func2
     | ReflexiveTransitive _ => false
-    | Transitive func => isConstant func
+    | Transitive func => ignoresInput func
     | Optional _ => false
-    | Compose (func1,func2) => isConstant func1 orelse isConstant func2;
+    | Compose (func1,func2) => ignoresInput func1 orelse ignoresInput func2;
 
 (* ------------------------------------------------------------------------- *)
 (* Evaluating queries.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 val upgradableDef =
-    Difference (Identity,NotEarlierThanRepo);
+    Filter EarlierThanRepo;
 
 val uploadableDef =
-    Intersect (LaterThanRepo, Intersect (Mine,ConsistentWithRepo));
+    Intersect
+      (Filter Mine,
+       Filter
+         (And
+            (Not OnRepo,
+             And (Not EarlierThanRepo, ConsistentWithRepo))));
 
 fun evaluateSet dir set =
     case set of
@@ -116,6 +140,30 @@ fun evaluateSet dir set =
       else PackageNameVersionSet.empty
     | All => Directory.all dir
     | Empty => PackageNameVersionSet.empty;
+
+local
+  fun evalPred dir pred namever repo =
+      case pred of
+        Mine => Directory.selfAuthor dir namever
+      | OnRepo => DirectoryRepo.member namever repo
+      | ConsistentWithRepo => Directory.consistentWithRepo dir repo namever
+      | EarlierThanRepo => Directory.earlierThanRepo dir repo namever
+      | LaterThanRepo => Directory.laterThanRepo dir repo namever
+      | Not pred1 => not (evalPred dir pred1 namever repo)
+      | And (pred1,pred2) =>
+        evalPred dir pred1 namever repo andalso
+        evalPred dir pred2 namever repo
+      | Or (pred1,pred2) =>
+        evalPred dir pred1 namever repo orelse
+        evalPred dir pred2 namever repo;
+in
+  fun evaluatePredicate dir repos pred namever =
+      case repos of
+        [] => false
+      | repo :: _ =>
+        if ignoresRepo pred then evalPred dir pred namever repo
+        else List.exists (evalPred dir pred namever) repos
+end;
 
 local
   fun rtc f set =
@@ -132,6 +180,12 @@ in
       case func of
         Identity => I
       | Constant set => K (evaluateSet dir set)
+      | Filter predicate =>
+        let
+          val pred = evaluatePredicate dir repos predicate
+        in
+          PackageNameVersionSet.filter pred
+        end
       | Requires => PackageNameVersionSet.lift (Directory.requires dir)
       | RequiredBy => PackageNameVersionSet.lift (Directory.requiredBy dir)
       | Includes => PackageNameVersionSet.lift (Directory.includes dir)
@@ -139,30 +193,6 @@ in
       | Subtheories => PackageNameVersionSet.lift (Directory.subtheories dir)
       | SubtheoryOf => PackageNameVersionSet.lift (Directory.subtheoryOf dir)
       | Latest => PackageNameVersionSet.latestVersions
-      | Mine =>
-        let
-          val pred = Directory.selfAuthor dir
-        in
-          PackageNameVersionSet.filter pred
-        end
-      | ConsistentWithRepo =>
-        let
-          val pred = Directory.consistentWithRepoList dir repos
-        in
-          PackageNameVersionSet.filter pred
-        end
-      | NotEarlierThanRepo =>
-        let
-          val pred = Directory.notEarlierThanRepoList dir repos
-        in
-          PackageNameVersionSet.filter pred
-        end
-      | LaterThanRepo =>
-        let
-          val pred = Directory.laterThanRepoList dir repos
-        in
-          PackageNameVersionSet.filter pred
-        end
       | Upgradable => evaluate dir repos upgradableDef
       | Uploadable => evaluate dir repos uploadableDef
       | Union (func1,func2) =>
@@ -217,6 +247,11 @@ end;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val infixesPredicate =
+    Print.Infixes
+      [{token = andSymbolString, precedence = 3, assoc = Print.LeftAssoc},
+       {token = orSymbolString, precedence = 2, assoc = Print.LeftAssoc}];
+
 val infixes =
     Print.Infixes
       [{token = intersectSymbolString, precedence = 3, assoc = Print.LeftAssoc},
@@ -225,6 +260,7 @@ val infixes =
 
 val ppAllKeyword = Print.ppString allKeywordString
 and ppConsistentWithRepoKeyword = Print.ppString consistentWithRepoKeywordString
+and ppEarlierThanRepoKeyword = Print.ppString earlierThanRepoKeywordString
 and ppEmptyKeyword = Print.ppString emptyKeywordString
 and ppIdentityKeyword = Print.ppString identityKeywordString
 and ppIncludedByKeyword = Print.ppString includedByKeywordString
@@ -232,7 +268,8 @@ and ppIncludesKeyword = Print.ppString includesKeywordString
 and ppLaterThanRepoKeyword = Print.ppString laterThanRepoKeywordString
 and ppLatestKeyword = Print.ppString latestKeywordString
 and ppMineKeyword = Print.ppString mineKeywordString
-and ppNotEarlierThanRepoKeyword = Print.ppString notEarlierThanRepoKeywordString
+and ppNotSymbol = Print.ppString notSymbolString
+and ppOnRepoKeyword = Print.ppString onRepoKeywordString
 and ppOptionalSymbol = Print.ppString optionalSymbolString
 and ppReflexiveTransitiveSymbol = Print.ppString reflexiveTransitiveSymbolString
 and ppRequiredByKeyword = Print.ppString requiredByKeywordString
@@ -249,6 +286,51 @@ fun ppSet set =
     | NameVersion namever => PackageNameVersion.pp namever
     | All => ppAllKeyword
     | Empty => ppEmptyKeyword;
+
+local
+  fun destUnary pred =
+      case pred of
+        Not p => SOME (ppNotSymbol, p)
+      | _ => NONE;
+
+  fun destInfix pred =
+      case pred of
+        And (p1,p2) => SOME (andSymbolString, p1, p2)
+      | Or (p1,p2) => SOME (orSymbolString, p1, p2)
+      | _ => NONE;
+
+  fun isInfix pred = Option.isSome (destInfix pred);
+
+  fun ppInfixToken (_,s) =
+      Print.program [Print.space, Print.ppString s, Print.break];
+
+  val ppInfix = Print.ppInfixes infixesPredicate destInfix ppInfixToken
+
+  fun ppBasic pred =
+      case pred of
+        Mine => ppMineKeyword
+      | OnRepo => ppOnRepoKeyword
+      | ConsistentWithRepo => ppConsistentWithRepoKeyword
+      | EarlierThanRepo => ppEarlierThanRepoKeyword
+      | LaterThanRepo => ppLaterThanRepoKeyword
+      | _ => ppBracket pred
+
+  and ppUnary pred =
+      case destUnary pred of
+        SOME (u,f) => Print.program [u, ppUnary f]
+      | NONE => ppBasic pred
+
+  and ppUnaryHanging (pred,_) = ppUnary pred
+
+  and ppHanging pred_r = ppInfix ppUnaryHanging pred_r
+
+  and ppNormal pred = ppHanging (pred,false)
+
+  and ppBracket pred = Print.ppBracket "(" ")" ppNormal pred
+in
+  val ppBasicPredicate = ppBasic
+  and ppPredicate = ppNormal;
+end;
 
 local
   fun destUnary func =
@@ -286,6 +368,7 @@ local
       case func of
         Identity => ppIdentityKeyword
       | Constant set => ppSet set
+      | Filter pred => ppBasicPredicate pred
       | Requires => ppRequiresKeyword
       | RequiredBy => ppRequiredByKeyword
       | Includes => ppIncludesKeyword
@@ -293,10 +376,6 @@ local
       | Subtheories => ppSubtheoriesKeyword
       | SubtheoryOf => ppSubtheoryOfKeyword
       | Latest => ppLatestKeyword
-      | Mine => ppMineKeyword
-      | ConsistentWithRepo => ppConsistentWithRepoKeyword
-      | NotEarlierThanRepo => ppNotEarlierThanRepoKeyword
-      | LaterThanRepo => ppLaterThanRepoKeyword
       | Upgradable => ppUpgradableKeyword
       | Uploadable => ppUploadableKeyword
       | _ => ppBracket func
@@ -321,9 +400,14 @@ local
             (ppUnary f :: List.map ppComposeArgument fs)
       end
 
-  and ppComposeHanging (func,_) = ppCompose func
+  and ppFilter func =
+      case func of
+        Filter pred => ppPredicate pred
+      | _ => ppCompose func
 
-  and ppHanging func_r = ppInfix ppComposeHanging func_r
+  and ppFilterHanging (func,_) = ppFilter func
+
+  and ppHanging func_r = ppInfix ppFilterHanging func_r
 
   and ppNormal func = ppHanging (func,false)
 
@@ -347,19 +431,103 @@ local
   open Parse;
 
   val allKeywordParser = exactString allKeywordString
-  val consistentWithRepoKeywordParser =
+  and emptyKeywordParser = exactString emptyKeywordString;
+
+  val setParser =
+      PackageNameVersion.parser >> NameVersion ||
+      PackageName.parser >> Name ||
+      allKeywordParser >> K All ||
+      emptyKeywordParser >> K Empty;
+
+  val setSpaceParser = setParser ++ manySpace >> fst;
+in
+  val parserSet = manySpace ++ setSpaceParser >> snd;
+end;
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+
+  val andSymbolParser = exactString andSymbolString
+  and consistentWithRepoKeywordParser =
       exactString consistentWithRepoKeywordString
-  and differenceSymbolParser = exactString differenceSymbolString
-  and emptyKeywordParser = exactString emptyKeywordString
+  and earlierThanRepoKeywordParser = exactString earlierThanRepoKeywordString
+  and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
+  and mineKeywordParser = exactString mineKeywordString
+  and notSymbolParser = exactString notSymbolString
+  and onRepoKeywordParser = exactString onRepoKeywordString
+  and orSymbolParser = exactString orSymbolString;
+
+  val bracketSpaceParser =
+      let
+        val openSpace = exactChar #"(" ++ manySpace >> fst
+
+        val closeSpace = exactChar #")" ++ manySpace >> fst
+      in
+        fn p => openSpace ++ p ++ closeSpace >> (fn ((),(v,())) => v)
+      end;
+
+  val basicKeywordParser =
+      mineKeywordParser >> K Mine ||
+      consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
+      earlierThanRepoKeywordParser >> K EarlierThanRepo ||
+      laterThanRepoKeywordParser >> K LaterThanRepo ||
+      onRepoKeywordParser >> K OnRepo;
+
+  val basicKeywordSpaceParser =
+      basicKeywordParser ++ manySpace >> fst;
+
+  val unarySymbolParser =
+      notSymbolParser >> K Not;
+
+  val unarySymbolSpaceParser =
+      unarySymbolParser ++ manySpace >> fst;
+
+  fun mkInfix (s,p1,p2) =
+      if s = andSymbolString then And (p1,p2)
+      else if s = orSymbolString then Or (p1,p2)
+      else raise Bug "DirectoryQuery.parserPredicate.mkInfix";
+
+  val infixSymbolParser =
+      andSymbolParser >> K andSymbolString ||
+      orSymbolParser >> K orSymbolString;
+
+  val infixSymbolSpaceParser =
+      infixSymbolParser ++ manySpace >> fst;
+
+  fun basicSpaceParser tokens =
+      (basicKeywordSpaceParser ||
+       bracketSpaceParser predicateSpaceParser) tokens
+
+  and unarySpaceParser tokens =
+      (many unarySymbolSpaceParser ++ basicSpaceParser >>
+       (fn (uns,pred) => List.foldr (fn (f,x) => f x) pred uns)) tokens
+
+  and predicateSpaceParser tokens =
+      parseInfixes infixesPredicate mkInfix infixSymbolSpaceParser
+        unarySpaceParser tokens;
+in
+  val parserPredicate = manySpace ++ predicateSpaceParser >> snd;
+end;
+
+local
+  infixr 9 >>++
+  infixr 8 ++
+  infixr 7 >>
+  infixr 6 ||
+
+  open Parse;
+
+  val differenceSymbolParser = exactString differenceSymbolString
   and identityKeywordParser = exactString identityKeywordString
   and includedByKeywordParser = exactString includedByKeywordString
   and includesKeywordParser = exactString includesKeywordString
   and intersectSymbolParser = exactString intersectSymbolString
-  and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
   and latestKeywordParser = exactString latestKeywordString
-  and mineKeywordParser = exactString mineKeywordString
-  and notEarlierThanRepoKeywordParser =
-      exactString notEarlierThanRepoKeywordString
   and optionalSymbolParser = exactString optionalSymbolString
   and reflexiveTransitiveSymbolParser =
       exactString reflexiveTransitiveSymbolString
@@ -381,15 +549,7 @@ local
         fn p => openSpace ++ p ++ closeSpace >> (fn ((),(v,())) => v)
       end;
 
-  val setParser =
-      PackageNameVersion.parser >> NameVersion ||
-      PackageName.parser >> Name ||
-      allKeywordParser >> K All ||
-      emptyKeywordParser >> K Empty;
-
-  val setSpaceParser = setParser ++ manySpace >> fst;
-
-  val basicParser =
+  val basicKeywordParser =
       identityKeywordParser >> K Identity ||
       requiresKeywordParser >> K Requires ||
       requiredByKeywordParser >> K RequiredBy ||
@@ -398,16 +558,11 @@ local
       subtheoriesKeywordParser >> K Subtheories ||
       subtheoryOfKeywordParser >> K SubtheoryOf ||
       latestKeywordParser >> K Latest ||
-      mineKeywordParser >> K Mine ||
-      consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
-      notEarlierThanRepoKeywordParser >> K NotEarlierThanRepo ||
-      laterThanRepoKeywordParser >> K LaterThanRepo ||
       upgradableKeywordParser >> K Upgradable ||
       uploadableKeywordParser >> K Uploadable;
 
-  val basicSpaceParser =
-      basicParser ++ manySpace >> fst ||
-      setSpaceParser >> Constant;
+  val basicKeywordSpaceParser =
+      basicKeywordParser ++ manySpace >> fst;
 
   val unarySymbolParser =
       reflexiveTransitiveSymbolParser >> K ReflexiveTransitive ||
@@ -431,9 +586,14 @@ local
   val infixSymbolSpaceParser =
       infixSymbolParser ++ manySpace >> fst;
 
-  fun unarySpaceParser tokens =
-      ((basicSpaceParser ||
-        bracketSpaceParser functionSpaceParser) >>++
+  fun basicSpaceParser tokens =
+      (basicKeywordSpaceParser ||
+       parserSet >> Constant ||
+       parserPredicate >> Filter ||
+       bracketSpaceParser functionSpaceParser) tokens
+
+  and unarySpaceParser tokens =
+      (basicSpaceParser >>++
        mmany unarySymbolSpaceParser) tokens
 
   and composeSpaceParser tokens =
@@ -448,8 +608,6 @@ local
       parseInfixes infixes mkInfix infixSymbolSpaceParser
         composeSpaceParser tokens;
 in
-  val parserSet = manySpace ++ setSpaceParser >> snd;
-
   val parser = manySpace ++ functionSpaceParser >> snd;
 end;
 

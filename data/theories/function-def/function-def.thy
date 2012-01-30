@@ -1,5 +1,5 @@
 name: function-def
-version: 1.9
+version: 1.10
 description: Definition of function operators and combinators
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -16,9 +16,20 @@ datatype set =
   | All
   | Empty
 
+datatype predicate =
+    Mine
+  | OnRepo
+  | ConsistentWithRepo
+  | EarlierThanRepo
+  | LaterThanRepo
+  | Not of predicate
+  | And of predicate * predicate
+  | Or of predicate * predicate
+
 datatype function =
     Identity
   | Constant of set
+  | Filter of predicate
   | Requires
   | RequiredBy
   | Includes
@@ -26,12 +37,8 @@ datatype function =
   | Subtheories
   | SubtheoryOf
   | Latest
-  | Mine
-  | ConsistentWithRepo
-  | NotEarlierThanRepo
-  | LaterThanRepo
-  | Upgradable  (* Identity - NotEarlierThanRepo *)
-  | Uploadable  (* LaterThanRepo & Mine & ConsistentWithRepo *)
+  | Upgradable  (* EarlierThanRepo *)
+  | Uploadable  (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function
@@ -44,7 +51,9 @@ datatype function =
 (* Does the function ignore its input?                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val isConstant : function -> bool
+val ignoresRepo : predicate -> bool
+
+val ignoresInput : function -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Evaluating queries.                                                       *)
@@ -60,6 +69,8 @@ val evaluate :
 
 val ppSet : set Print.pp
 
+val ppPredicate : predicate Print.pp
+
 val pp : function Print.pp
 
 val toString : function -> string
@@ -69,6 +80,8 @@ val toString : function -> string
 (* ------------------------------------------------------------------------- *)
 
 val parserSet : (char,set) Parse.parser
+
+val parserPredicate : (char,predicate) Parse.parser
 
 val parser : (char,function) Parse.parser
 

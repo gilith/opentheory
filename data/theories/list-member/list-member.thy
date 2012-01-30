@@ -1,5 +1,5 @@
 name: list-member
-version: 1.33
+version: 1.34
 description: The list member function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -23,12 +23,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-member-def-1.25
+  package: list-member-def-1.26
 }
 
 thm {
   import: def
-  package: list-member-thm-1.35
+  package: list-member-thm-1.36
 }
 
 main {

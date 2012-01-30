@@ -7,11 +7,14 @@ opentheory/doc/IMPORT-METIS
 opentheory/doc/logo
 opentheory/release
 opentheory/repo
+opentheory/scripts/check-theories
 opentheory/scripts/copy_src
 opentheory/scripts/mkthy
 opentheory/scripts/ml_lines
 opentheory/scripts/mlimport
 opentheory/scripts/mosml_dep
+opentheory/scripts/order-theories
 opentheory/scripts/release_stamp
 opentheory/scripts/upload
+opentheory/scripts/upload-theories
 opentheory/src/benchmark.sml

@@ -1,9 +1,9 @@
 name: word16-bits
-version: 1.33
+version: 1.34
 description: 16-bit word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-01-04
+provenance: HOL Light theory extracted on 2012-01-29
 requires: bool
 requires: natural
 requires: list

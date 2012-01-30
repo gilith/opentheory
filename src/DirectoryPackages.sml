@@ -765,18 +765,18 @@ fun consistentWithRepo pkgs repo =
          end
     end;
 
-fun notEarlierThanRepo pkgs repo namever =
+fun earlierThanRepo pkgs repo namever =
     let
       val PackageNameVersion.NameVersion' {name,version} =
           PackageNameVersion.dest namever
     in
       case DirectoryRepo.latestNameVersion repo name of
-        NONE => true
+        NONE => false
       | SOME (nv,_) =>
         case PackageVersion.compare (version, PackageNameVersion.version nv) of
-          LESS => false
-        | EQUAL => true
-        | GREATER => true
+          LESS => true
+        | EQUAL => false
+        | GREATER => false
     end;
 
 fun laterThanRepo pkgs repo namever =
@@ -785,26 +785,13 @@ fun laterThanRepo pkgs repo namever =
           PackageNameVersion.dest namever
     in
       case DirectoryRepo.latestNameVersion repo name of
-        NONE => true
+        NONE => false
       | SOME (nv,_) =>
         case PackageVersion.compare (version, PackageNameVersion.version nv) of
           LESS => false
         | EQUAL => false
         | GREATER => true
     end;
-
-local
-  fun checkList pred pkgs repos nv =
-      let
-        fun check repo = pred pkgs repo nv
-      in
-        List.all check repos
-      end;
-in
-  val consistentWithRepoList = checkList consistentWithRepo
-  and notEarlierThanRepoList = checkList notEarlierThanRepo
-  and laterThanRepoList = checkList laterThanRepo
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

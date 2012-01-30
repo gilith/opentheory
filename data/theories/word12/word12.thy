@@ -1,5 +1,5 @@
 name: word12
-version: 1.35
+version: 1.36
 description: 12-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,12 +14,12 @@ show: "Data.Word12.Bits"
 show: "Number.Natural"
 
 def {
-  package: word12-def-1.11
+  package: word12-def-1.12
 }
 
 bits {
   import: def
-  package: word12-bits-1.30
+  package: word12-bits-1.31
 }
 
 main {
