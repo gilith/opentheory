@@ -24,6 +24,7 @@ val lambdaSyntaxComponent : component
 (* Standard latex syntax *)
 
 val backslashLatexComponent : component
+val botLatexComponent : component
 val capLatexComponent : component
 val circLatexComponent : component
 val crossLatexComponent : component
@@ -34,6 +35,7 @@ val lambdaLatexComponent : component
 val lnotLatexComponent : component
 val subsetLatexComponent : component
 val subseteqLatexComponent : component
+val topLatexComponent : component
 
 (* Standard namespaces *)
 

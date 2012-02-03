@@ -54,6 +54,7 @@ and lambdaSyntaxComponent = "\\";
 (* Standard latex symbols *)
 
 val backslashLatexComponent = "\\backslash"
+and botLatexComponent = "\\bot"
 and capLatexComponent = "\\cap"
 and circLatexComponent = "\\circ"
 and crossLatexComponent = "\\cross"
@@ -63,7 +64,8 @@ and inLatexComponent = "\\in"
 and lambdaLatexComponent = "\\lambda"
 and lnotLatexComponent = "\\lnot"
 and subsetLatexComponent = "\\subset"
-and subseteqLatexComponent = "\\subseteq";
+and subseteqLatexComponent = "\\subseteq"
+and topLatexComponent = "\\top";
 
 (* Standard namespaces *)
 
@@ -156,6 +158,7 @@ local
          ("\\/", [Html.Entity "or"]),
          (* Latex symbols *)
          (backslashLatexComponent, [Html.Text "\\"]),
+         (botLatexComponent, [Html.Entity "perp"]),
          (capLatexComponent, [Html.Entity "cap"]),
          (circLatexComponent, [Html.Entity "#8728"]),
          (crossLatexComponent, [Html.Entity "times"]),
@@ -166,6 +169,7 @@ local
          (lnotLatexComponent, [Html.Entity "not"]),
          (subsetLatexComponent, [Html.Entity "sub"]),
          (subseteqLatexComponent, [Html.Entity "sube"]),
+         (topLatexComponent, [Html.Entity "#8868"]),
          (* Quantifier symbols *)
          (existsConstComponent, [Html.Entity "exist"]),
          (existsUniqueConstComponent, [Html.Entity "exist", Html.Text "!"]),

@@ -174,11 +174,13 @@ local
         [renaming Name.composeConst Namespace.circLatexComponent,
          renaming Name.differenceConst Namespace.backslashLatexComponent,
          renaming Name.emptyConst Namespace.emptysetLatexComponent,
+         renaming Name.falseConst Namespace.botLatexComponent,
          renaming Name.intersectConst Namespace.capLatexComponent,
          renaming Name.memberConst Namespace.inLatexComponent,
          renaming Name.negConst Namespace.lnotLatexComponent,
          renaming Name.properSubsetConst Namespace.subsetLatexComponent,
          renaming Name.subsetConst Namespace.subseteqLatexComponent,
+         renaming Name.trueConst Namespace.topLatexComponent,
          renaming Name.unionConst Namespace.cupLatexComponent];
 
   fun eqName ty =
