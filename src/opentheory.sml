@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20120129)";
+val release = " (release 20120202)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -610,7 +610,7 @@ in
         processor = beginOpt endOpt (fn _ => reinstall := true)}] @
       List.map (addSuffix "-uninstall") uninstallOpts @
       [{switches = ["--manual"], arguments = [],
-        description = "do not also install required packages",
+        description = "do not also install included packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)},
        {switches = ["--name"], arguments = ["NAME"],
         description = "confirm the package name",
