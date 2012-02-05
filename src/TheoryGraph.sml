@@ -565,7 +565,7 @@ fun importPackage importer graph info =
            nameVersion = namever,
            package = pkg} = info
 
-      val theories = Package.theories pkg
+      val theories = Package.theory pkg
 
       val info =
           {directory = directory,

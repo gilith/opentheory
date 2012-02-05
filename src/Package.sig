@@ -35,9 +35,11 @@ val mk : package' -> package
 
 val dest : package -> package'
 
-val tags : package -> PackageTag.tag list
+(* ------------------------------------------------------------------------- *)
+(* Package information.                                                      *)
+(* ------------------------------------------------------------------------- *)
 
-val theories : package -> PackageTheory.theory list
+val tags : package -> PackageTag.tag list
 
 (* ------------------------------------------------------------------------- *)
 (* Package name.                                                             *)
@@ -68,13 +70,33 @@ val author : package -> PackageAuthor.author
 val license : package -> {license : string}
 
 (* ------------------------------------------------------------------------- *)
+(* Extra package files.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val extraFiles : package -> PackageExtra.extra list
+
+(* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 val requires : package -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
-(* Article dependencies.                                                     *)
+(* Show.                                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val show : package -> Show.show
+
+(* ------------------------------------------------------------------------- *)
+(* Package theory.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val theory : package -> PackageTheory.theory list
+
+val emptyTheory : package -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Package articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 val articles : package -> {filename : string} list
@@ -88,18 +110,6 @@ val includes : package -> PackageNameVersion.nameVersion list
 val updateIncludes :
     (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
     package -> package option
-
-(* ------------------------------------------------------------------------- *)
-(* Extra package files.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-val extraFiles : package -> PackageExtra.extra list
-
-(* ------------------------------------------------------------------------- *)
-(* Show.                                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-val show : package -> Show.show
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

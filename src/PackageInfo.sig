@@ -38,6 +38,12 @@ val nukeDirectory : info -> unit
 val isInstalled : info -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Read the package.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val package : info -> Package.package
+
+(* ------------------------------------------------------------------------- *)
 (* Package name.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -96,10 +102,12 @@ val includes : info -> PackageNameVersionSet.set
 val show : info -> Show.show
 
 (* ------------------------------------------------------------------------- *)
-(* Read the package.                                                         *)
+(* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val package : info -> Package.package
+val theory : info -> PackageTheory.theory list
+
+val emptyTheory : info -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)

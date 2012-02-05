@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20120202)";
+val release = " (release 20120204)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -435,12 +435,14 @@ val preserveTheoryInfo = ref false;
 
 val showAssumptionsInfo = ref false;
 
+val showDerivationsInfo = ref false;
+
 fun savableInfo info =
     case info of
       ArticleInfo => true
     | _ => false;
 
-fun infoSummaryGrammar unsatisfiedAssumptions =
+fun infoSummaryGrammar unsat =
     let
       val Summary.Grammar
             {assumptionGrammar,
@@ -451,7 +453,8 @@ fun infoSummaryGrammar unsatisfiedAssumptions =
              unsatisfiedAssumptions = _,
              showTheoremAssumptions = _} = Summary.defaultGrammar
 
-      val showTheoremAssumptions = !showAssumptionsInfo
+      val unsatisfiedAssumptions = if !showAssumptionsInfo then NONE else unsat
+      and showTheoremAssumptions = !showDerivationsInfo
     in
       Summary.Grammar
         {assumptionGrammar = assumptionGrammar,
@@ -508,24 +511,24 @@ in
        {switches = ["--information"], arguments = [],
         description = "display all package information",
         processor = beginOpt endOpt (fn _ => addInfoOutput TagsInfo)},
-       {switches = ["--files"], arguments = [],
-        description = "list the package files",
-        processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
        {switches = ["--summary"], arguments = [],
         description = "display the package summary",
         processor = beginOpt endOpt (fn _ => addInfoOutput SummaryInfo)},
+       {switches = ["--article"], arguments = [],
+        description = "output the theory package in article format",
+        processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
        {switches = ["--inference"], arguments = [],
         description = "display the number of primitive inferences",
         processor = beginOpt endOpt (fn _ => addInfoOutput InferenceInfo)},
        {switches = ["--theory"], arguments = [],
         description = "display the package theory file",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
+       {switches = ["--files"], arguments = [],
+        description = "list the package files",
+        processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
        {switches = ["--includes"], arguments = [],
         description = "list the included theory packages",
         processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
-       {switches = ["--article"], arguments = [],
-        description = "output the theory package in article format",
-        processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
        {switches = ["--theorems"], arguments = [],
         description = "output the package theorems in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoremsInfo)},
@@ -535,10 +538,13 @@ in
           beginOpt (stringOpt endOpt)
             (fn f => fn s => setInfoOutputFilename f s)},
        {switches = ["--show-assumptions"], arguments = [],
-        description = "show the assumptions/axioms for each theorem",
+        description = "do not omit satisfied assumptions",
         processor = beginOpt endOpt (fn _ => showAssumptionsInfo := true)},
+       {switches = ["--show-derivations"], arguments = [],
+        description = "show the assumptions/axioms for each theorem",
+        processor = beginOpt endOpt (fn _ => showDerivationsInfo := true)},
        {switches = ["--upgrade-theory"], arguments = [],
-        description = "upgrade the theory file",
+        description = "upgrade the theory file to the latest versions",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
        {switches = ["--preserve-theory"], arguments = [],
         description = "do not optimize the theory file",
@@ -1203,7 +1209,7 @@ local
                 SOME p => p
               | NONE => raise Error "no theory file upgrade possible"
         in
-          Package.theories pkg
+          Package.theory pkg
         end;
 
     fun unwindTheories theories =
@@ -1232,7 +1238,7 @@ local
           let
             val pkg = PackageInfo.package info
           in
-            if not (!upgradeTheoryInfo) then SOME (Package.theories pkg)
+            if not (!upgradeTheoryInfo) then SOME (Package.theory pkg)
             else unwindTheories (upgradeTheories pkg)
           end
         | NONE =>
@@ -1241,7 +1247,7 @@ local
           | SOME pkg =>
             let
               val theories =
-                  if not (!upgradeTheoryInfo) then Package.theories pkg
+                  if not (!upgradeTheoryInfo) then Package.theory pkg
                   else upgradeTheories pkg
             in
               unwindTheories theories

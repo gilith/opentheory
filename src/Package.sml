@@ -60,13 +60,13 @@ fun mk pkg' : package = pkg';
 
 fun dest pkg : package' = pkg;
 
+(* ------------------------------------------------------------------------- *)
+(* Package information.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
 fun tags' (Package' {tags = x, ...}) = x;
 
-fun theories' (Package' {theories = x, ...}) = x;
-
 fun tags pkg = tags' (dest pkg);
-
-fun theories pkg = theories' (dest pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package name.                                                             *)
@@ -105,22 +105,47 @@ fun author pkg = PackageTag.findAuthor (tags pkg);
 fun license pkg = PackageTag.findLicense (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
+(* Extra package files.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun extraFiles pkg = PackageTag.toExtraList (tags pkg);
+
+(* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 fun requires pkg = PackageTag.requires (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
-(* Article dependencies.                                                     *)
+(* Show.                                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun articles pkg = PackageTheory.articles (theories pkg);
+fun show pkg = PackageTag.toShow (tags pkg);
+
+(* ------------------------------------------------------------------------- *)
+(* Package theory.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun theory' (Package' {theories = x, ...}) = x;
+
+fun theory pkg = theory' (dest pkg);
+
+fun emptyTheory pkg =
+    case theory pkg of
+      [thy] => PackageTheory.emptyMain thy
+    | _ => false;
+
+(* ------------------------------------------------------------------------- *)
+(* Package articles.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun articles pkg = PackageTheory.articles (theory pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun includes pkg = PackageTheory.includes (theories pkg);
+fun includes pkg = PackageTheory.includes (theory pkg);
 
 fun updateIncludes f pkg =
     let
@@ -135,18 +160,6 @@ fun updateIncludes f pkg =
         end
       | NONE => NONE
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Extra package files.                                                      *)
-(* ------------------------------------------------------------------------- *)
-
-fun extraFiles pkg = PackageTag.toExtraList (tags pkg);
-
-(* ------------------------------------------------------------------------- *)
-(* Show.                                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-fun show pkg = PackageTag.toShow (tags pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

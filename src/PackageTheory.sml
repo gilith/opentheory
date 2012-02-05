@@ -64,16 +64,6 @@ fun variantName {avoid} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* The main theory.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val mainName = PackageName.mainTheory;
-
-fun isMainName name = PackageName.equal name mainName;
-
-fun isMain thy = isMainName (name thy);
-
-(* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -156,6 +146,23 @@ fun importsUnion thy =
     case destUnion thy of
       SOME ts => ts
     | NONE => [];
+
+fun isEmpty thy =
+    case destUnion thy of
+      SOME ts => List.null ts
+    | NONE => false;
+
+(* ------------------------------------------------------------------------- *)
+(* The main theory.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val mainName = PackageName.mainTheory;
+
+fun isMainName name = PackageName.equal name mainName;
+
+fun isMain thy = isMainName (name thy);
+
+fun emptyMain thy = isEmpty thy andalso isMain thy;
 
 (* ------------------------------------------------------------------------- *)
 (* Topological sort of theories.                                             *)

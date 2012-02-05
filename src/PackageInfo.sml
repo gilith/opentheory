@@ -192,6 +192,14 @@ fun includes info =
 fun show info = Package.show (package info);
 
 (* ------------------------------------------------------------------------- *)
+(* Package theory.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun theory info = Package.theory (package info);
+
+fun emptyTheory info = Package.emptyTheory (package info);
+
+(* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 

@@ -10,7 +10,8 @@
 ###############################################################################
 
 .PHONY: default
-default: mosml
+default:
+	@if type -P mosmlc > /dev/null ; then $(MAKE) mosml ; else if type -P mlton > /dev/null ; then $(MAKE) mlton ; else if type -P poly > /dev/null ; then $(MAKE) polyml ; else echo "ERROR: No ML found on path: install either MLton, Poly/ML or Moscow ML." ; exit 1 ; fi ; fi ; fi
 
 ###############################################################################
 # Cleaning temporary files.

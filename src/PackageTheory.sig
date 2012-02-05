@@ -53,6 +53,8 @@ val isMainName : name -> bool
 
 val isMain : theory -> bool
 
+val emptyMain : theory -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Article dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)

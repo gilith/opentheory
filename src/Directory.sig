@@ -50,7 +50,7 @@ val checksum :
 
 val all : directory -> PackageNameVersionSet.set
 
-val latest :  (* (Latest - Subtheories) All *)
+val latest :  (* ~Empty (Latest - Subtheories) All *)
     directory -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
@@ -109,6 +109,12 @@ val knownAuthor :
 
 val selfAuthor :
     directory -> PackageNameVersion.nameVersion -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Package theory.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val emptyTheory : directory -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)

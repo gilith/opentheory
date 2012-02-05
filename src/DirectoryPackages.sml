@@ -343,7 +343,7 @@ local
 (*OpenTheoryDebug
         val () =
             if member namever pkgs then ()
-            else raise Bug "DirectoryPackages.authoredBy: unknown package"
+            else raise Bug "DirectoryPackages.knownAuthor: unknown package"
 *)
         val info = get pkgs namever
 
@@ -356,6 +356,22 @@ in
       if PackageAuthorSet.null auths then K false
       else authorInSet pkgs auths;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Package theory.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun emptyTheory pkgs namever =
+    let
+(*OpenTheoryDebug
+      val () =
+          if member namever pkgs then ()
+          else raise Bug "DirectoryPackages.emptyTheory: unknown package"
+*)
+      val info = get pkgs namever
+    in
+      PackageInfo.emptyTheory info
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
@@ -507,6 +523,8 @@ local
         if PackageNameSet.null names then K
         else PackageNameVersionSet.foldl addSubsName
       end;
+
+  fun nonEmpty pkgs namever = not (emptyTheory pkgs namever);
 in
   fun latest pkgs =
     let
@@ -529,8 +547,10 @@ in
 *)
 
       val subs = addSubsNameSet pkgs sups subs namevers
+
+      val lats = PackageNameVersionSet.difference lats subs
     in
-      PackageNameVersionSet.difference lats subs
+      PackageNameVersionSet.filter (nonEmpty pkgs) lats
     end;
 end;
 
@@ -546,8 +566,10 @@ val latest = fn pkgs =>
             val lats = PackageNameVersionSet.latestVersions namevers
 
             val subs = PackageNameVersionSet.lift (subtheories pkgs) namevers
+
+            val lats = PackageNameVersionSet.difference lats subs
           in
-            PackageNameVersionSet.difference lats subs
+            PackageNameVersionSet.filter (not o emptyTheory pkgs) lats
           end
 
       val () =

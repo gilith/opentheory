@@ -42,7 +42,7 @@ val checksum :
 
 val all : packages -> PackageNameVersionSet.set
 
-val latest :  (* (Latest - Subtheories) All *)
+val latest :  (* ~Empty (Latest - Subtheories) All *)
     packages -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
@@ -75,6 +75,12 @@ val warnLatestNameVersionList :
 val knownAuthor :
     packages -> PackageAuthorSet.set -> PackageNameVersion.nameVersion ->
     bool
+
+(* ------------------------------------------------------------------------- *)
+(* Package theory.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val emptyTheory : packages -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)

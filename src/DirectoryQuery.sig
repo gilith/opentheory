@@ -14,10 +14,11 @@ datatype set =
     Name of PackageName.name
   | NameVersion of PackageNameVersion.nameVersion
   | All
-  | Empty
+  | None
 
 datatype predicate =
-    Mine
+    Empty
+  | Mine
   | OnRepo
   | ConsistentWithRepo
   | EarlierThanRepo

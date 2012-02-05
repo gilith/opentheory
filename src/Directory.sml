@@ -349,7 +349,7 @@ fun stagingPackageInfo dir namever =
 (* Looking up packages in the package directory.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun peek dir namever = DirectoryPackages.peek (packages dir) namever;
+fun peek dir = DirectoryPackages.peek (packages dir);
 
 fun get dir namever =
     case peek dir namever of
@@ -358,7 +358,7 @@ fun get dir namever =
 
 fun member namever dir = Option.isSome (peek dir namever);
 
-fun checksum dir namever = DirectoryPackages.checksum (packages dir) namever;
+fun checksum dir = DirectoryPackages.checksum (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Installed package sets.                                                   *)
@@ -372,23 +372,23 @@ fun latest dir = DirectoryPackages.latest (packages dir);
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun nameVersions dir name =
-    DirectoryPackages.nameVersions (packages dir) name;
+fun nameVersions dir =
+    DirectoryPackages.nameVersions (packages dir);
 
-fun latestNameVersion dir name =
-    DirectoryPackages.latestNameVersion (packages dir) name;
+fun latestNameVersion dir =
+    DirectoryPackages.latestNameVersion (packages dir);
 
-fun isLatestNameVersion dir namever =
-    DirectoryPackages.isLatestNameVersion (packages dir) namever;
+fun isLatestNameVersion dir =
+    DirectoryPackages.isLatestNameVersion (packages dir);
 
-fun getLatestNameVersion dir namever =
-    DirectoryPackages.getLatestNameVersion (packages dir) namever;
+fun getLatestNameVersion dir =
+    DirectoryPackages.getLatestNameVersion (packages dir);
 
-fun warnLatestNameVersion dir namever =
-    DirectoryPackages.warnLatestNameVersion (packages dir) namever;
+fun warnLatestNameVersion dir =
+    DirectoryPackages.warnLatestNameVersion (packages dir);
 
-fun warnLatestNameVersionList dir namevers =
-    DirectoryPackages.warnLatestNameVersionList (packages dir) namevers;
+fun warnLatestNameVersionList dir =
+    DirectoryPackages.warnLatestNameVersionList (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Package authors.                                                          *)
@@ -405,86 +405,92 @@ fun selfAuthor dir =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Package theory.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+fun emptyTheory dir = DirectoryPackages.emptyTheory (packages dir);
+
+(* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun requiresInstalled dir namever =
-    DirectoryPackages.requiresInstalled (packages dir) namever;
+fun requiresInstalled dir =
+    DirectoryPackages.requiresInstalled (packages dir);
 
-fun requiredBy dir namever =
-    DirectoryPackages.requiredBy (packages dir) namever;
+fun requiredBy dir =
+    DirectoryPackages.requiredBy (packages dir);
 
-fun isRequired dir namever =
-    DirectoryPackages.isRequired (packages dir) namever;
+fun isRequired dir =
+    DirectoryPackages.isRequired (packages dir);
 
-fun requires dir namever =
-    DirectoryPackages.requires (packages dir) namever;
+fun requires dir =
+    DirectoryPackages.requires (packages dir);
 
-fun requiresNameVersions dir reqs =
-    DirectoryPackages.requiresNameVersions (packages dir) reqs;
+fun requiresNameVersions dir =
+    DirectoryPackages.requiresNameVersions (packages dir);
 
-fun requiresPackages dir reqs =
-    DirectoryPackages.requiresPackages (packages dir) reqs;
+fun requiresPackages dir =
+    DirectoryPackages.requiresPackages (packages dir);
 
-fun requiresTheorems dir reqs =
-    DirectoryPackages.requiresTheorems (packages dir) reqs;
+fun requiresTheorems dir =
+    DirectoryPackages.requiresTheorems (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Included packages.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun includes dir namever =
-    DirectoryPackages.includes (packages dir) namever;
+fun includes dir =
+    DirectoryPackages.includes (packages dir);
 
-fun includedBy dir namever =
-    DirectoryPackages.includedBy (packages dir) namever;
+fun includedBy dir =
+    DirectoryPackages.includedBy (packages dir);
 
-fun isIncluded dir namever =
-    DirectoryPackages.isIncluded (packages dir) namever;
+fun isIncluded dir =
+    DirectoryPackages.isIncluded (packages dir);
 
-fun includesRTC dir namevers =
-    DirectoryPackages.includesRTC (packages dir) namevers;
+fun includesRTC dir =
+    DirectoryPackages.includesRTC (packages dir);
 
-fun includedByRTC dir namevers =
-    DirectoryPackages.includedByRTC (packages dir) namevers;
+fun includedByRTC dir =
+    DirectoryPackages.includedByRTC (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Subtheory packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun subtheoriesInstalled dir namever =
-    DirectoryPackages.subtheoriesInstalled (packages dir) namever;
+fun subtheoriesInstalled dir =
+    DirectoryPackages.subtheoriesInstalled (packages dir);
 
-fun subtheoryOf dir namever =
-    DirectoryPackages.subtheoryOf (packages dir) namever;
+fun subtheoryOf dir =
+    DirectoryPackages.subtheoryOf (packages dir);
 
-fun isSubtheory dir namever =
-    DirectoryPackages.isSubtheory (packages dir) namever;
+fun isSubtheory dir =
+    DirectoryPackages.isSubtheory (packages dir);
 
-fun subtheoryOfRTC dir namever =
-    DirectoryPackages.subtheoryOfRTC (packages dir) namever;
+fun subtheoryOfRTC dir =
+    DirectoryPackages.subtheoryOfRTC (packages dir);
 
-fun subtheories dir namever =
-    DirectoryPackages.subtheories (packages dir) namever;
+fun subtheories dir =
+    DirectoryPackages.subtheories (packages dir);
 
-fun subtheoriesRTC dir namever =
-    DirectoryPackages.subtheoriesRTC (packages dir) namever;
+fun subtheoriesRTC dir =
+    DirectoryPackages.subtheoriesRTC (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in dependency order.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun includeOrder dir namevers =
-    DirectoryPackages.includeOrder (packages dir) namevers;
+fun includeOrder dir =
+    DirectoryPackages.includeOrder (packages dir);
 
-fun includeOrdered dir namevers =
-    DirectoryPackages.includeOrdered (packages dir) namevers;
+fun includeOrdered dir =
+    DirectoryPackages.includeOrdered (packages dir);
 
-fun dependencyOrder dir namevers =
-    DirectoryPackages.dependencyOrder (packages dir) namevers;
+fun dependencyOrder dir =
+    DirectoryPackages.dependencyOrder (packages dir);
 
-fun dependencyOrdered dir namevers =
-    DirectoryPackages.dependencyOrdered (packages dir) namevers;
+fun dependencyOrdered dir =
+    DirectoryPackages.dependencyOrdered (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)

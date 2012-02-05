@@ -25,6 +25,7 @@ and intersectSymbolString = "&"
 and laterThanRepoKeywordString = "LaterThanRepo"
 and latestKeywordString = "Latest"
 and mineKeywordString = "Mine"
+and noneKeywordString = "None"
 and notSymbolString = "~"
 and onRepoKeywordString = "OnRepo"
 and optionalSymbolString = "?"
@@ -47,10 +48,11 @@ datatype set =
     Name of PackageName.name
   | NameVersion of PackageNameVersion.nameVersion
   | All
-  | Empty;
+  | None;
 
 datatype predicate =
-    Mine
+    Empty
+  | Mine
   | OnRepo
   | ConsistentWithRepo
   | EarlierThanRepo
@@ -86,7 +88,8 @@ datatype function =
 
 fun ignoresRepo pred =
     case pred of
-      Mine => true
+      Empty => true
+    | Mine => true
     | OnRepo => false
     | ConsistentWithRepo => false
     | EarlierThanRepo => false
@@ -139,12 +142,13 @@ fun evaluateSet dir set =
       if Directory.member nv dir then PackageNameVersionSet.singleton nv
       else PackageNameVersionSet.empty
     | All => Directory.all dir
-    | Empty => PackageNameVersionSet.empty;
+    | None => PackageNameVersionSet.empty;
 
 local
   fun evalPred dir pred namever repo =
       case pred of
-        Mine => Directory.selfAuthor dir namever
+        Empty => Directory.emptyTheory dir namever
+      | Mine => Directory.selfAuthor dir namever
       | OnRepo => DirectoryRepo.member namever repo
       | ConsistentWithRepo => Directory.consistentWithRepo dir repo namever
       | EarlierThanRepo => Directory.earlierThanRepo dir repo namever
@@ -268,6 +272,7 @@ and ppIncludesKeyword = Print.ppString includesKeywordString
 and ppLaterThanRepoKeyword = Print.ppString laterThanRepoKeywordString
 and ppLatestKeyword = Print.ppString latestKeywordString
 and ppMineKeyword = Print.ppString mineKeywordString
+and ppNoneKeyword = Print.ppString noneKeywordString
 and ppNotSymbol = Print.ppString notSymbolString
 and ppOnRepoKeyword = Print.ppString onRepoKeywordString
 and ppOptionalSymbol = Print.ppString optionalSymbolString
@@ -285,7 +290,7 @@ fun ppSet set =
       Name name => PackageName.pp name
     | NameVersion namever => PackageNameVersion.pp namever
     | All => ppAllKeyword
-    | Empty => ppEmptyKeyword;
+    | None => ppNoneKeyword;
 
 local
   fun destUnary pred =
@@ -308,7 +313,8 @@ local
 
   fun ppBasic pred =
       case pred of
-        Mine => ppMineKeyword
+        Empty => ppEmptyKeyword
+      | Mine => ppMineKeyword
       | OnRepo => ppOnRepoKeyword
       | ConsistentWithRepo => ppConsistentWithRepoKeyword
       | EarlierThanRepo => ppEarlierThanRepoKeyword
@@ -431,13 +437,13 @@ local
   open Parse;
 
   val allKeywordParser = exactString allKeywordString
-  and emptyKeywordParser = exactString emptyKeywordString;
+  and noneKeywordParser = exactString noneKeywordString;
 
   val setParser =
       PackageNameVersion.parser >> NameVersion ||
       PackageName.parser >> Name ||
       allKeywordParser >> K All ||
-      emptyKeywordParser >> K Empty;
+      noneKeywordParser >> K None;
 
   val setSpaceParser = setParser ++ manySpace >> fst;
 in
@@ -456,6 +462,7 @@ local
   and consistentWithRepoKeywordParser =
       exactString consistentWithRepoKeywordString
   and earlierThanRepoKeywordParser = exactString earlierThanRepoKeywordString
+  and emptyKeywordParser = exactString emptyKeywordString
   and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
   and mineKeywordParser = exactString mineKeywordString
   and notSymbolParser = exactString notSymbolString
@@ -472,6 +479,7 @@ local
       end;
 
   val basicKeywordParser =
+      emptyKeywordParser >> K Empty ||
       mineKeywordParser >> K Mine ||
       consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
       earlierThanRepoKeywordParser >> K EarlierThanRepo ||
