@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20120204)";
+val release = " (release 20120205)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -76,11 +76,14 @@ fun annotateOptions s =
 datatype infoItem =
     ChecksumItem
   | DescriptionItem
+  | EmptyItem
   | NameItem
   | SeparatorItem of string
   | VersionItem;
 
 datatype infoFormat = InfoFormat of infoItem list;
+
+fun emptyToString empty = if empty then "T" else "F";
 
 local
   fun getSep acc l =
@@ -115,12 +118,14 @@ local
 
   val checksumKeywordParser = exactString "CHECKSUM"
   and descriptionKeywordParser = exactString "DESCRIPTION"
+  and emptyKeywordParser = exactString "EMPTY"
   and nameKeywordParser = exactString "NAME"
   and versionKeywordParser = exactString "VERSION";
 
   val itemParser =
       (checksumKeywordParser >> K ChecksumItem) ||
       (descriptionKeywordParser >> K DescriptionItem) ||
+      (emptyKeywordParser >> K EmptyItem) ||
       (nameKeywordParser >> K NameItem) ||
       (versionKeywordParser >> K VersionItem) ||
       any >> (fn c => SeparatorItem (str c));
@@ -130,13 +135,20 @@ in
   val parserInfoFormat = itemListParser >> (compressInfoFormat o InfoFormat);
 end;
 
+val describeInfoFormat =
+    "FORMAT is any string containing " ^
+    "{NAME,VERSION,DESCRIPTION,CHECKSUM,EMPTY}";
+
 fun fromStringInfoFormat fmt =
     Parse.fromString parserInfoFormat fmt
-    handle Parse.NoParse => raise Error ("bad output format: " ^ fmt);
-
-val describeInfoFormat =
-    "where FORMAT is a string containing " ^
-    "NAME, VERSION, DESCRIPTION and CHECKSUM";
+    handle Parse.NoParse =>
+      let
+        val err =
+            "bad package information format:\n  \"" ^ fmt ^ "\"\n" ^
+            "correct " ^ describeInfoFormat
+      in
+        raise Error err
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Clean up a staged package.                                                *)
@@ -1448,6 +1460,17 @@ local
               in
                 description
               end
+            | EmptyItem =>
+              let
+                val pkg =
+                    case getPackage () of
+                      SOME p => p
+                    | NONE => raise Error "no package information available"
+
+                val empty = Package.emptyTheory pkg
+              in
+                emptyToString empty
+              end
             | NameItem =>
               let
                 val namever =
@@ -2477,6 +2500,17 @@ fun list query =
                     val {description} = Package.description pkg
                   in
                     description
+                  end
+                | EmptyItem =>
+                  let
+                    val info =
+                        case Directory.peek dir namever of
+                          SOME i => i
+                        | NONE => raise Error "corrupt installation"
+
+                    val empty = PackageInfo.emptyTheory info
+                  in
+                    emptyToString empty
                   end
                 | NameItem =>
                   let

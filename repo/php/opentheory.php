@@ -307,6 +307,46 @@ function opentheory_staged_timestamp($name_version) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Query whether a package is empty.
+///////////////////////////////////////////////////////////////////////////////
+
+function opentheory_parse_empty_theory($output) {
+  is_string($output) or trigger_error('bad output');
+
+  if (strcmp($output,"T") == 0) {
+    $empty_theory = true;
+  }
+  elseif (strcmp($output,"F") == 0) {
+    $empty_theory = false;
+  }
+  else {
+    trigger_error('bad output string');
+  }
+
+  return $empty_theory;
+}
+
+function opentheory_empty_theory($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $args = ' --format EMPTY ' . $name_version->to_string();
+
+  $output = opentheory_query('info',$args);
+
+  return opentheory_parse_empty_theory($output);
+}
+
+function opentheory_staged_empty_theory($name_version) {
+  isset($name_version) or trigger_error('bad name_version');
+
+  $args = ' --format EMPTY ' . $name_version->staged_to_string();
+
+  $output = opentheory_query('info',$args);
+
+  return opentheory_parse_empty_theory($output);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Reset the opentheory repo.
 ///////////////////////////////////////////////////////////////////////////////
 

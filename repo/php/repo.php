@@ -57,11 +57,12 @@ function repo_check_staged($upload,$name_version,$tags,$includes) {
 ///////////////////////////////////////////////////////////////////////////////
 
 function repo_register_staged($upload,$name_version,$tags,$registered,
-                              $includes) {
+                              $empty_theory,$includes) {
   isset($upload) or trigger_error('bad upload');
   isset($name_version) or trigger_error('bad name_version');
   is_array($tags) or trigger_error('bad tags');
   isset($registered) or trigger_error('bad registered');
+  is_bool($empty_theory) or trigger_error('bad empty_theory');
   is_array($includes) or trigger_error('bad includes');
 
   // Create a new entry in the package table
@@ -73,7 +74,7 @@ function repo_register_staged($upload,$name_version,$tags,$registered,
   $license = license_from_tags($tags);
 
   $pkg = create_staged_package($name_version,$description,$author,$license,
-                               $registered);
+                               $registered,$empty_theory);
 
   // Add the package to the upload set
 
@@ -114,7 +115,10 @@ function repo_register($name_version) {
 
   $registered = opentheory_timestamp($name_version);
 
-  $pkg = create_package($name_version,$description,$author,$license,$registered);
+  $empty_theory = opentheory_empty_theory($name_version);
+
+  $pkg = create_package($name_version,$description,$author,$license,
+                        $registered,$empty_theory);
 
   // Record the package includes in the include table
 

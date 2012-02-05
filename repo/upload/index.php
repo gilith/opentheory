@@ -157,6 +157,8 @@ if ($select->is_value()) {
 
     $registered = opentheory_staged_timestamp($name_version);
 
+    $empty = opentheory_staged_empty($name_version);
+
     $includes = opentheory_staged_includes($name_version);
 
     $error = repo_check_staged($upload,$name_version,$tags,$includes);
@@ -179,7 +181,7 @@ if ($select->is_value()) {
   }
   else {
     $pkg = repo_register_staged($upload,$name_version,$tags,$registered,
-                                $includes);
+                                $empty,$includes);
 
     $status = $upload->status();
 

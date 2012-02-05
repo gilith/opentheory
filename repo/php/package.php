@@ -72,6 +72,7 @@ class Package {
   var $_license;
   var $_registered;
   var $_status;
+  var $_empty_theory;
   var $_subtheory;
   var $_obsolete;
 
@@ -88,6 +89,8 @@ class Package {
   function registered() { return $this->_registered; }
 
   function status() { return $this->_status; }
+
+  function empty_theory() { return $this->_empty_theory; }
 
   function subtheory() { return $this->_subtheory; }
 
@@ -233,7 +236,7 @@ class Package {
   function mark_obsolete() { $this->_obsolete = true; }
 
   function Package($id,$name_version,$description,$author,$license,
-                   $registered,$status,$subtheory,$obsolete)
+                   $registered,$status,$empty_theory,$subtheory,$obsolete)
   {
     is_int($id) or trigger_error('bad id');
     isset($name_version) or trigger_error('bad name_version');
@@ -242,6 +245,7 @@ class Package {
     is_string($license) or trigger_error('bad license');
     isset($registered) or trigger_error('bad registered');
     is_package_status($status) or trigger_error('bad status');
+    is_bool($empty_theory) or trigger_error('bad empty_theory');
     is_bool($subtheory) or trigger_error('bad subtheory');
     is_bool($obsolete) or trigger_error('bad obsolete');
 
@@ -252,6 +256,7 @@ class Package {
     $this->_license = $license;
     $this->_registered = $registered;
     $this->_status = $status;
+    $this->_empty_theory = $empty_theory;
     $this->_subtheory = $subtheory;
     $this->_obsolete = $obsolete;
   }
@@ -268,6 +273,7 @@ function from_row_package($row) {
   $license = $row['license'];
   $registered_datetime = $row['registered'];
   $status = $row['status'];
+  $empty_theory_database = $row['empty_theory'];
   $subtheory_database = $row['subtheory'];
   $obsolete_database = $row['obsolete'];
 
@@ -278,12 +284,14 @@ function from_row_package($row) {
   $registered = new TimePoint();
   $registered->from_database_datetime($registered_datetime);
 
+  $empty_theory = bool_from_database_bool($empty_theory_database);
+
   $subtheory = bool_from_database_bool($subtheory_database);
 
   $obsolete = bool_from_database_bool($obsolete_database);
 
   return new Package($id,$name_version,$description,$author,$license,
-                     $registered,$status,$subtheory,$obsolete);
+                     $registered,$status,$empty_theory,$subtheory,$obsolete);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -369,7 +377,8 @@ class PackageTable extends DatabaseTable {
     $where =
       'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
       ' AND subtheory <=> ' . database_value(DATABASE_FALSE) .
-      ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
+      ' AND obsolete <=> ' . database_value(DATABASE_FALSE) .
+      ' AND empty_theory <=> ' . database_value(DATABASE_FALSE);
 
     $order_by = 'name';
 
@@ -382,7 +391,8 @@ class PackageTable extends DatabaseTable {
     $where =
       'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
       ' AND subtheory <=> ' . database_value(DATABASE_FALSE) .
-      ' AND obsolete <=> ' . database_value(DATABASE_FALSE);
+      ' AND obsolete <=> ' . database_value(DATABASE_FALSE) .
+      ' AND empty_theory <=> ' . database_value(DATABASE_FALSE);
 
     return $this->count_rows($where);
   }
@@ -444,6 +454,9 @@ class PackageTable extends DatabaseTable {
 
     $status = $package->status();
 
+    $empty_theory = $package->empty_theory();
+    $empty_theory_database = bool_to_database_bool($empty_theory);
+
     $subtheory = $package->subtheory();
     $subtheory_database = bool_to_database_bool($subtheory);
 
@@ -460,6 +473,7 @@ class PackageTable extends DatabaseTable {
           license = ' . database_value($license) . ',
           registered = ' . database_value($registered_datetime) . ',
           status = ' . database_value($status) . ',
+          empty_theory = ' . database_value($empty_theory_database) . ',
           subtheory = ' . database_value($subtheory_database) . ',
           obsolete = ' . database_value($obsolete_database) . ';');
   }
@@ -504,13 +518,14 @@ class PackageTable extends DatabaseTable {
   }
 
   function create_package($name_version,$description,$author,$license,
-                          $registered,$status) {
+                          $registered,$status,$empty_theory) {
     isset($name_version) or trigger_error('bad name_version');
     is_string($description) or trigger_error('bad description');
     isset($author) or trigger_error('bad author');
     is_string($license) or trigger_error('bad license');
     isset($registered) or trigger_error('bad registered');
     is_package_status($status) or trigger_error('bad status');
+    is_bool($empty_theory) or trigger_error('bad empty_theory');
 
     $id = $this->max_rows('id') + 1;
 
@@ -519,7 +534,7 @@ class PackageTable extends DatabaseTable {
     $obsolete = false;
 
     $pkg = new Package($id,$name_version,$description,$author,$license,
-                       $registered,$status,$subtheory,$obsolete);
+                       $registered,$status,$empty_theory,$subtheory,$obsolete);
 
     $this->insert_package($pkg);
 
@@ -549,13 +564,14 @@ class PackageTable extends DatabaseTable {
             'registered' => 'datetime NOT NULL',
             'status' =>
               array_to_database_enum($all_package_status) . ' NOT NULL',
+            'empty_theory' => database_bool_type() . ' NOT NULL',
             'subtheory' => database_bool_type() . ' NOT NULL',
             'obsolete' => database_bool_type() . ' NOT NULL');
 
     $indexes =
       array('PRIMARY KEY (id)',
             'INDEX (name,version)',
-            'INDEX (status,subtheory,obsolete,name)',
+            'INDEX (status,subtheory,obsolete,empty_theory,name)',
             'INDEX (status,subtheory,registered)');
 
     parent::DatabaseTable($table,$fields,$indexes);
@@ -579,23 +595,25 @@ function package_table() {
 ///////////////////////////////////////////////////////////////////////////////
 
 function create_package($name_version,$description,$author,$license,
-                        $registered) {
+                        $registered,$empty_theory) {
   $package_table = package_table();
 
   $status = INSTALLED_PACKAGE_STATUS;
 
-  return $package_table->create_package($name_version,$description,
-                                        $author,$license,$registered,$status);
+  return $package_table->create_package($name_version,$description,$author,
+                                        $license,$registered,$status,
+                                        $empty_theory);
 }
 
 function create_staged_package($name_version,$description,$author,$license,
-                               $registered) {
+                               $registered,$empty_theory) {
   $package_table = package_table();
 
   $status = STAGED_PACKAGE_STATUS;
 
-  return $package_table->create_package($name_version,$description,
-                                        $author,$license,$registered,$status);
+  return $package_table->create_package($name_version,$description,$author,
+                                        $license,$registered,$status,
+                                        $empty_theory);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
