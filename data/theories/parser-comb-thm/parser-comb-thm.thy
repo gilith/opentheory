@@ -1,9 +1,9 @@
 name: parser-comb-thm
-version: 1.39
+version: 1.40
 description: Properties of stream parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-01-29
+provenance: HOL Light theory extracted on 2012-02-05
 requires: bool
 requires: pair
 requires: option

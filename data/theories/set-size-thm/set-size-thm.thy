@@ -1,9 +1,9 @@
 name: set-size-thm
-version: 1.34
+version: 1.35
 description: Properties of finite set cardinality
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-01-04
+provenance: HOL Light theory extracted on 2012-02-05
 requires: bool
 requires: pair
 requires: natural
