@@ -198,8 +198,7 @@ while (my $thy = <THEORIES>) {
             if ($info1 !~ /^requires: /m &&
                 $thy ne "base" &&
                 $thy ne "bool" &&
-                $thy ne "bool-def" &&
-                $thy ne "empty")
+                $thy ne "bool-def")
             {
               print STDOUT "check-theories: theory $thy has no requires information\n";
             }
@@ -217,7 +216,9 @@ while (my $thy = <THEORIES>) {
       }
     }
     else {
-      print STDOUT "check-theories: $thy not in the latest theory set\n";
+      if ($thy ne "empty") {
+        print STDOUT "check-theories: $thy not in the latest theory set\n";
+      }
     }
 
     # Check the theory files

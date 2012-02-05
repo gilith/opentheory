@@ -281,7 +281,7 @@ function opentheory_subtheories($name_version) {
 function opentheory_timestamp($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $file = site_path($name_version->theory_file_path());
+  $file = site_path($name_version->tarball_path());
 
   $mod_time = filemtime($file);
 
@@ -295,7 +295,7 @@ function opentheory_timestamp($name_version) {
 function opentheory_staged_timestamp($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $file = site_path($name_version->staged_theory_file_path());
+  $file = site_path($name_version->staged_tarball_path());
 
   $mod_time = filemtime($file);
 
