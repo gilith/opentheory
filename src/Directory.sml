@@ -819,13 +819,13 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
                   val {filename = theory} = PackageInfo.theoryFile stageInfo
                   and {filename = tarball} = PackageInfo.tarball stageInfo
                 in
-                  {theory = theory, tarball = tarball}
+                  {theory = SOME theory, tarball = SOME tarball}
                 end
 
             val doc =
                 PackageDocument.mk
                   (PackageDocument.Document'
-                     {package = pkg,
+                     {package = SOME pkg,
                       summary = sum,
                       files = files,
                       tool = tool})

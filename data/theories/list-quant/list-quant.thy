@@ -1,5 +1,5 @@
 name: list-quant
-version: 1.28
+version: 1.30
 description: List quantifiers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ show: "Function"
 show: "Set"
 
 def {
-  package: list-quant-def-1.25
+  package: list-quant-def-1.28
 }
 
 thm {
   import: def
-  package: list-quant-thm-1.30
+  package: list-quant-thm-1.33
 }
 
 main {

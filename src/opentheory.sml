@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20120205)";
+val release = " (release 20120212)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -430,6 +430,7 @@ val helpFooter = "";
 
 datatype info =
     ArticleInfo
+  | DocumentInfo
   | FilesInfo
   | FormatInfo of infoFormat
   | IncludesInfo
@@ -541,6 +542,9 @@ in
        {switches = ["--includes"], arguments = [],
         description = "list the included theory packages",
         processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
+       {switches = ["--document"], arguments = [],
+        description = "output the package document in HTML format",
+        processor = beginOpt endOpt (fn _ => addInfoOutput DocumentInfo)},
        {switches = ["--theorems"], arguments = [],
         description = "output the package theorems in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoremsInfo)},
@@ -1291,6 +1295,32 @@ local
   end;
 
   local
+    val cacheTheoryFile : {filename : string} option option ref = ref NONE;
+
+    fun computeTheoryFile () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.theoryFile info)
+        | NONE => NONE;
+  in
+    fun setTheoryFile file = cacheTheoryFile := SOME (SOME file);
+
+    val getTheoryFile = getCached cacheTheoryFile computeTheoryFile;
+  end;
+
+  local
+    val cacheTarball : {filename : string} option option ref = ref NONE;
+
+    fun computeTarball () =
+        case getInfo () of
+          SOME info => SOME (PackageInfo.tarball info)
+        | NONE => NONE;
+  in
+    fun setTarball file = cacheTarball := SOME (SOME file);
+
+    val getTarball = getCached cacheTarball computeTarball;
+  end;
+
+  local
     val cacheSavable : bool option option ref = ref NONE;
 
     fun computeSavable () = NONE;
@@ -1522,6 +1552,57 @@ local
         in
           Article.toTextFile {article = art, filename = filename}
         end
+      | DocumentInfo =>
+        let
+          val pkg = getPackage ()
+
+          val sum =
+              case getTheory () of
+                SOME (_,t) => TheoryGraph.summary t
+              | NONE =>
+                case getSummary () of
+                  SOME s =>
+                  let
+                    val e : PackageSummary.sequentSource = SequentMap.new ()
+
+                    val ps =
+                        PackageSummary.Summary'
+                          {summary = s,
+                           requires = e,
+                           provides = e}
+                  in
+                    PackageSummary.mk ps
+                  end
+                | NONE => raise Error "no summary information available"
+
+          val files =
+              let
+                fun unwrap file =
+                    case file of
+                      SOME {filename} => SOME filename
+                    | NONE => NONE
+              in
+                {theory = unwrap (getTheoryFile ()),
+                 tarball = unwrap (getTarball ())}
+              end
+
+          val tool = versionHtml
+
+          val doc =
+              PackageDocument.Document'
+                {package = pkg,
+                 summary = sum,
+                 files = files,
+                 tool = tool}
+
+          val doc = PackageDocument.mk doc
+
+          val {filename} = file
+        in
+          PackageDocument.toHtmlFile
+            {document = doc,
+             filename = filename}
+        end
       | FilesInfo =>
         let
           fun mk {filename} = filename ^ "\n"
@@ -1739,7 +1820,11 @@ local
         val PackageTarball.Contents {nameVersion,theoryFile,otherFiles} =
             PackageTarball.contents sys {filename = filename}
 
+        val () = setTarball {filename = filename}
+
         val () = setNameVersion nameVersion
+
+        val () = setTheoryFile theoryFile
 
         val () = setFiles (theoryFile :: otherFiles)
       in
@@ -1761,6 +1846,8 @@ local
             List.map (joinDir o PackageExtra.filename) (Package.extraFiles pkg)
 
         val () = setDirectory {directory = dir}
+
+        val () = setTheoryFile {filename = filename}
 
         val () = setPackage pkg
 

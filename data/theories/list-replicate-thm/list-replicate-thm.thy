@@ -1,9 +1,9 @@
 name: list-replicate-thm
-version: 1.30
+version: 1.33
 description: Properties of the list replicate function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-01-28
+provenance: HOL Light theory extracted on 2012-02-10
 requires: bool
 requires: natural
 requires: set

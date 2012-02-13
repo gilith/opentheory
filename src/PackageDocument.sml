@@ -47,9 +47,9 @@ fun isFilename file = Option.isSome (destFilename file);
 
 datatype document' =
     Document' of
-      {package : Package.package,
+      {package : Package.package option,
        summary : PackageSummary.summary,
-       files : {theory : string, tarball : string},
+       files : {theory : string option, tarball : string option},
        tool : Html.inline list}
 
 type document = document';
@@ -96,130 +96,149 @@ local
 
   fun mkTitle namever =
       let
+        val text = "OpenTheory package"
+
         val text =
-            "OpenTheory package " ^
-            PackageNameVersion.toString namever
+            case namever of
+              SOME nv => text ^ " " ^ PackageNameVersion.toString nv
+            | NONE => text
       in
         Html.Title text
       end;
 
-  fun mkName pkg =
+  fun mkName package =
       let
-        val name = PackageName.toString (Package.name pkg)
+        val text = "Package"
 
-        val {description} = Package.description pkg
+        val text =
+            case package of
+              NONE => text
+            | SOME pkg =>
+              let
+                val name = PackageName.toString (Package.name pkg)
 
-        val text = "Package " ^ name ^ ": " ^ description
+                val {description} = Package.description pkg
+              in
+                text ^ " " ^ name ^ ": " ^ description
+              end
       in
         Html.H1 [Html.Text text]
       end;
 
-  fun mkInfo pkg =
-      let
-        val isRequiresTag = PackageTag.equalName PackageName.requiresTag
-        and isShowTag = PackageTag.equalName PackageName.showTag
+  fun mkInfo package =
+      case package of
+        NONE => []
+      | SOME pkg =>
+        let
+          val isRequiresTag = PackageTag.equalName PackageName.requiresTag
+          and isShowTag = PackageTag.equalName PackageName.showTag
 
-        fun tagName n = Html.Text (PackageName.toString n)
+          fun tagName n = Html.Text (PackageName.toString n)
 
-        fun tagEntry n v =
-            let
-              val n = tagName n
+          fun tagEntry n v =
+              let
+                val n = tagName n
 
-              val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
-              and v = Html.TableEntry (Html.emptyAttrs, Html.Inline v)
-            in
-              Html.TableRow [n,v]
-            end
+                val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
+                and v = Html.TableEntry (Html.emptyAttrs, Html.Inline v)
+              in
+                Html.TableRow [n,v]
+              end
 
-        fun tagBlock tag =
-            let
-              val PackageTag.Tag' {name,value} = PackageTag.dest tag
+          fun tagBlock tag =
+              let
+                val PackageTag.Tag' {name,value} = PackageTag.dest tag
 
-              val value = [Html.Text value]
-            in
-              tagEntry name value
-            end
+                val value = [Html.Text value]
+              in
+                tagEntry name value
+              end
 
-        val tagsBlock =
-            let
-              val tags = Package.tags pkg
+          val tagsBlock =
+              let
+                val tags = Package.tags pkg
 
-              val (reqs,tags) = List.partition isRequiresTag tags
+                val (reqs,tags) = List.partition isRequiresTag tags
 
-              val (show,tags) = List.partition isShowTag tags
+                val (show,tags) = List.partition isShowTag tags
 
-              val ts = List.map tagBlock tags
+                val ts = List.map tagBlock tags
 
-              val ts =
-                  case PackageTag.requires reqs of
-                    [] => ts
-                  | req :: reqs =>
-                    let
-                      fun add (r,l) = Html.Break :: tagName r :: l
+                val ts =
+                    case PackageTag.requires reqs of
+                      [] => ts
+                    | req :: reqs =>
+                      let
+                        fun add (r,l) = Html.Break :: tagName r :: l
 
-                      val value =
-                          tagName req :: List.foldl add [] (List.rev reqs)
-                    in
-                      ts @ [tagEntry PackageName.requiresTag value]
-                    end
+                        val value =
+                            tagName req :: List.foldl add [] (List.rev reqs)
+                      in
+                        ts @ [tagEntry PackageName.requiresTag value]
+                      end
 
-              val ts =
-                  if List.null show then ts
-                  else
-                    let
-                      val show = PackageTag.toShow show
-                    in
-                      ts @ [tagEntry PackageName.showTag (Show.toHtml show)]
-                    end
-            in
-              Html.Table (Html.emptyAttrs,ts)
-            end
-      in
-        [Html.H2 [Html.Text "Information"],
-         tagsBlock]
-      end;
+                val ts =
+                    if List.null show then ts
+                    else
+                      let
+                        val show = PackageTag.toShow show
+                      in
+                        ts @ [tagEntry PackageName.showTag (Show.toHtml show)]
+                      end
+              in
+                Html.Table (Html.emptyAttrs,ts)
+              end
+        in
+          [Html.H2 [Html.Text "Information"],
+           tagsBlock]
+        end;
 
   fun mkFiles files =
       let
         val {theory,tarball} = files
 
         val tarballItem =
-            let
-              val text =
-                  [Html.Text "Package tarball ",
-                   Html.Anchor (Html.hrefAttrs tarball,
-                                [Html.Text tarball])]
-            in
-              Html.ListItem (Html.emptyAttrs, [Html.Inline text])
-            end
+            case tarball of
+              NONE => []
+            | SOME tar =>
+              let
+                val text =
+                    [Html.Text "Package tarball ",
+                     Html.Anchor (Html.hrefAttrs tar, [Html.Text tar])]
+              in
+                [Html.ListItem (Html.emptyAttrs, [Html.Inline text])]
+              end
 
         val theoryItem =
-            let
-              val text =
-                  [Html.Text "Theory file ",
-                   Html.Anchor (Html.hrefAttrs theory,
-                                [Html.Text theory]),
-                   Html.Text " (included in the package tarball)"]
-            in
-              Html.ListItem (Html.emptyAttrs, [Html.Inline text])
-            end
+            case theory of
+              NONE => []
+            | SOME thy =>
+              let
+                val text =
+                    [Html.Text "Theory file ",
+                     Html.Anchor (Html.hrefAttrs thy, [Html.Text thy])]
 
-        val filesBlock =
-            let
-              val items = [tarballItem,theoryItem]
-            in
-              Html.Ulist (Html.emptyAttrs,items)
-            end
+                val text =
+                    if not (Option.isSome tarball) then text
+                    else text @ [Html.Text " (included in the package tarball)"]
+              in
+                [Html.ListItem (Html.emptyAttrs, [Html.Inline text])]
+              end
+
+        val items = tarballItem @ theoryItem
       in
-        [Html.H2 [Html.Text "Files"],
-         filesBlock]
+        if List.null items then []
+        else
+          [Html.H2 [Html.Text "Files"],
+           Html.Ulist (Html.emptyAttrs,items)]
       end;
 
-  fun mkSummary pkg sum =
+  fun mkSummary package sum =
       let
-        val tags = Package.tags pkg
-
-        val show = PackageTag.toShow tags
+        val show =
+            case package of
+              NONE => Show.default
+            | SOME pkg => Package.show pkg
       in
         PackageSummary.toHtml show sum
       end;
@@ -254,7 +273,12 @@ in
 
         val head =
             let
-              val title = mkTitle (Package.nameVersion package)
+              val namever =
+                  case package of
+                    SOME pkg => SOME (Package.nameVersion pkg)
+                  | NONE => NONE
+
+              val title = mkTitle namever
             in
               Html.Head (title,[],[style])
             end

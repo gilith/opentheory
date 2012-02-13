@@ -28,9 +28,9 @@ type document
 
 datatype document' =
     Document' of
-      {package : Package.package,
+      {package : Package.package option,
        summary : PackageSummary.summary,
-       files : {theory : string, tarball : string},
+       files : {theory : string option, tarball : string option},
        tool : Html.inline list}
 
 val mk : document' -> document

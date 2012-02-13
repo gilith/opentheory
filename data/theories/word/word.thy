@@ -1,5 +1,5 @@
 name: word
-version: 1.37
+version: 1.39
 description: Parametric theory of words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,12 +14,12 @@ show: "Data.Word.Bits"
 show: "Number.Natural"
 
 def {
-  package: word-def-1.15
+  package: word-def-1.17
 }
 
 bits {
   import: def
-  package: word-bits-1.33
+  package: word-bits-1.35
 }
 
 main {

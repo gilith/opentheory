@@ -1,9 +1,9 @@
 name: list-member-thm
-version: 1.36
+version: 1.39
 description: Properties of the list member function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-01-28
+provenance: HOL Light theory extracted on 2012-02-10
 requires: bool
 requires: function
 requires: natural

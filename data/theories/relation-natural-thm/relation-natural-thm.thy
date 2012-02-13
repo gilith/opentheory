@@ -1,9 +1,9 @@
 name: relation-natural-thm
-version: 1.12
+version: 1.15
 description: Properties of relations over natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-01-04
+provenance: HOL Light theory extracted on 2012-02-10
 requires: bool
 requires: function
 requires: natural

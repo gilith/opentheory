@@ -1,9 +1,9 @@
 name: modular-thm
-version: 1.18
+version: 1.20
 description: Properties of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-01-29
+provenance: HOL Light theory extracted on 2012-02-10
 requires: bool
 requires: natural
 requires: modular-def

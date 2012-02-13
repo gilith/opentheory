@@ -1,5 +1,5 @@
 name: gfp-div
-version: 1.21
+version: 1.23
 description: GF(p) field division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,18 +19,18 @@ show: "Number.GF(p)"
 show: "Number.Natural"
 
 def {
-  package: gfp-div-def-1.20
+  package: gfp-div-def-1.22
 }
 
 thm {
   import: def
-  package: gfp-div-thm-1.16
+  package: gfp-div-thm-1.18
 }
 
 gcd {
   import: def
   import: thm
-  package: gfp-div-gcd-1.11
+  package: gfp-div-gcd-1.13
 }
 
 main {
