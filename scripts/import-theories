@@ -53,115 +53,116 @@ open THEORIES, "$cmd |" or
   die "import-theories: couldn't read $source directory: $!\n";
 
 while (my $thy = <THEORIES>) {
-    chomp $thy;
+  chomp $thy;
 
-    if ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {
-        my $base = $1;
-        my $tdir = "$target/$base";
-        my $tthy = "$tdir/$base.thy";
-        my $tart = "$tdir/$base.art";
-        my $tthynew = "$tthy.importing";
-        my $tthynewtmp = "$tthynew.thy";
-        my $tartnew = "$tart.importing";
-        my $tartnewtmp = "$tartnew.art";
+  if ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {
+    my $base = $1;
+    my $tdir = "$target/$base";
+    my $tthy = "$tdir/$base.thy";
+    my $tart = "$tdir/$base.art";
+    my $tthynew = "$tthy.importing";
+    my $tthynewtmp = "$tthynew.thy";
+    my $tartnew = "$tart.importing";
+    my $tartnewtmp = "$tartnew.art";
 
-        if (!(-d $tdir)) {
-            mkdir $tdir or
-                die "import-theories: couldn't make directory $tdir: $!\n";
+    if (!(-d $tdir)) {
+      mkdir $tdir or
+        die "import-theories: couldn't make directory $tdir: $!\n";
 
-            my $today = `date "+%Y-%m-%d"`;
-            chomp $today;
+      my $today = `date "+%Y-%m-%d"`;
+      chomp $today;
 
-            open THEORY, "> $tthy" or
-                die "import-theories: couldn't open $tthy for writing: $!\n";
+      open THEORY, "> $tthy" or
+        die "import-theories: couldn't open $tthy for writing: $!\n";
 
-            print THEORY "name: $base\n";
-            print THEORY "version: 1.0\n";
-            print THEORY "description: $base\n";
-            print THEORY "author: $author\n";
-            print THEORY "license: $license\n";
-            print THEORY "provenance: $provenance extracted on $today\n";
-            print THEORY "show: \"Data.Bool\"\n";
-            print THEORY "\n";
-            print THEORY "main {\n";
-            print THEORY "  article: \"$base.art\"\n";
-            print THEORY "}\n";
+      print THEORY "name: $base\n";
+      print THEORY "version: 1.0\n";
+      print THEORY "description: $base\n";
+      print THEORY "author: $author\n";
+      print THEORY "license: $license\n";
+      print THEORY "provenance: $provenance extracted on $today\n";
+      print THEORY "show: \"Data.Bool\"\n";
+      print THEORY "\n";
+      print THEORY "main {\n";
+      print THEORY "  article: \"$base.art\"\n";
+      print THEORY "}\n";
 
-            close THEORY;
-        }
-
-        $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
-        (system ($cmd) == 0) or
-            die "import-theories: couldn't execute $cmd: $!\n";
-
-        if ($base =~ /^haskell/) {
-            open THEORY, "> $tthynewtmp" or
-                die "import-theories: couldn't open $tthynewtmp for writing: $!\n";
-
-            print THEORY "main {\n";
-
-            open INTERPRETATION, $haskellint or
-                die "import-theories: couldn't open $haskellint for reading: $!\n";
-
-            while (my $int = <INTERPRETATION>) {
-                chomp $int;
-
-                if ($int ne '' && $int !~ /^[#]/) {
-                    print THEORY "  interpret: $int\n";
-                }
-            }
-
-            close INTERPRETATION;
-
-            print THEORY "  article: \"$base.art.importing.art\"\n";
-            print THEORY "}\n";
-
-            close THEORY;
-
-            rename($tartnew,$tartnewtmp) or
-              die "import-theories: couldn't rename $tartnew to $tartnewtmp: $!\n";
-
-            $cmd = "$opentheory info --preserve-theory --article -o $tartnew theory:$tthynewtmp";
-            (system ($cmd) == 0) or
-                die "import-theories: couldn't execute $cmd: $!\n";
-
-            unlink $tthynewtmp or
-                die "import-theories: couldn't remove $tthynewtmp: $!\n";
-
-            unlink $tartnewtmp or
-                die "import-theories: couldn't remove $tartnewtmp: $!\n";
-        }
-
-        $cmd = "grep 'Unwanted' $tartnew";
-        (system ($cmd) != 0) or
-            die "import-theories: Unwanted symbols found in $base\n";
-
-        if ($opt_u && defined( -e $tart )) {
-            $cmd = "diff $tart $tartnew >/dev/null";
-            if (system ($cmd) == 0) {
-                unlink $tartnew or
-                    die "import-theories: couldn't remove $tartnew: $!\n";
-            }
-            else {
-                $cmd = "$bumpver -p $tthy > $tthynew";
-                (system ($cmd) == 0) or
-                    die "import-theories: couldn't execute $cmd: $!\n";
-
-                rename($tthynew,$tthy) or
-                    die "import-theories: couldn't rename $tthynew to $tthy: $!\n";
-                rename($tartnew,$tart) or
-                    die "import-theories: couldn't rename $tartnew to $tart: $!\n";
-
-                print STDOUT "re-imported $base\n";
-            }
-        }
-        else {
-            rename($tartnew,$tart) or
-                die "import-theories: couldn't rename $tartnew to $tart: $!\n";
-
-            print STDOUT "imported $base\n";
-        }
+      close THEORY;
     }
+
+    $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
+    (system ($cmd) == 0) or
+      die "import-theories: couldn't execute $cmd: $!\n";
+
+    if ($base =~ /^haskell/) {
+      open THEORY, "> $tthynewtmp" or
+        die "import-theories: couldn't open $tthynewtmp for writing: $!\n";
+
+      print THEORY "main {\n";
+
+      open INTERPRETATION, $haskellint or
+        die "import-theories: couldn't open $haskellint for reading: $!\n";
+
+      while (my $int = <INTERPRETATION>) {
+        chomp $int;
+
+        if ($int ne '' && $int !~ /^[#]/) {
+          print THEORY "  interpret: $int\n";
+        }
+      }
+
+      close INTERPRETATION;
+
+      print THEORY "  article: \"$base.art.importing.art\"\n";
+      print THEORY "}\n";
+
+      close THEORY;
+
+      rename($tartnew,$tartnewtmp) or
+        die "import-theories: couldn't rename $tartnew to $tartnewtmp: $!\n";
+
+      $cmd = "$opentheory info --preserve-theory --article -o $tartnew theory:$tthynewtmp";
+      (system ($cmd) == 0) or
+        die "import-theories: couldn't execute $cmd: $!\n";
+
+      unlink $tthynewtmp or
+        die "import-theories: couldn't remove $tthynewtmp: $!\n";
+
+      unlink $tartnewtmp or
+        die "import-theories: couldn't remove $tartnewtmp: $!\n";
+    }
+
+    $cmd = "grep 'Unwanted' $tartnew";
+    (system ($cmd) != 0) or
+      die "import-theories: Unwanted symbols found in $base\n";
+
+    if ($opt_u && defined( -e $tart )) {
+      $cmd = "diff $tart $tartnew >/dev/null";
+      if (system ($cmd) == 0) {
+        unlink $tartnew or
+          die "import-theories: couldn't remove $tartnew: $!\n";
+      }
+      else {
+        $cmd = "$bumpver -p $tthy > $tthynew";
+        (system ($cmd) == 0) or
+          die "import-theories: couldn't execute $cmd: $!\n";
+
+        rename($tthynew,$tthy) or
+          die "import-theories: couldn't rename $tthynew to $tthy: $!\n";
+
+        rename($tartnew,$tart) or
+          die "import-theories: couldn't rename $tartnew to $tart: $!\n";
+
+        print STDOUT "re-imported $base\n";
+      }
+    }
+    else {
+      rename($tartnew,$tart) or
+        die "import-theories: couldn't rename $tartnew to $tart: $!\n";
+
+      print STDOUT "imported $base\n";
+    }
+  }
 }
 
 close THEORIES;
