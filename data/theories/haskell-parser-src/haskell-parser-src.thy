@@ -1,9 +1,9 @@
 name: haskell-parser-src
-version: 1.20
+version: 1.22
 description: Haskell source for simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-12-02
+provenance: HOL Light theory extracted on 2012-02-18
 requires: bool
 show: "Data.Bool"
 show: "Data.List"

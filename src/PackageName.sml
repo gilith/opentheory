@@ -232,13 +232,29 @@ val gilithRepo = Name [gilithString];
 (* Haskell export names.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val haskellExport = Name [haskellString];
+val srcHaskellTheory = Name [srcString];
 
-val newHaskellExport = Name [opentheoryString];
+val testHaskellTheory = Name [testString];
 
-val srcHaskellExport = Name [srcString];
+local
+  val oldHaskell = Name [haskellString]
+  and newHaskell = Name [opentheoryString];
+in
+  fun exportHaskell hn =
+      if equal hn oldHaskell then SOME newHaskell
+      else
+        case destStrictPrefix oldHaskell hn of
+          SOME n => SOME (append newHaskell n)
+        | NONE => NONE;
+end;
 
-val testHaskellExport = Name [testString];
+fun isHaskell hn = Option.isSome (exportHaskell hn);
+
+(* ------------------------------------------------------------------------- *)
+(* Export names.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun isExport n = isHaskell n;
 
 end
 

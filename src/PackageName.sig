@@ -124,12 +124,18 @@ val gilithRepo : name
 (* Haskell export names.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val haskellExport : name
+val srcHaskellTheory : name
 
-val newHaskellExport : name
+val testHaskellTheory : name
 
-val srcHaskellExport : name
+val exportHaskell : name -> name option
 
-val testHaskellExport : name
+val isHaskell : name -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Export names.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val isExport : name -> bool
 
 end

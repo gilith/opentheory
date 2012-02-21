@@ -29,9 +29,6 @@ if ($opt_l) { $license = $opt_l; }
 my $provenance = 'Theory';
 if ($opt_p) { $provenance = $opt_p; }
 
-my $haskellint = 'data/haskell/haskell.int';
-[ -e $haskellint ] or die "import-theories: $haskellint not readable";
-
 my $opentheory = "bin/mlton/opentheory";
 [ -x $opentheory ] or die "import-theories: $opentheory not an executable";
 
@@ -93,44 +90,6 @@ while (my $thy = <THEORIES>) {
     $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
     (system ($cmd) == 0) or
       die "import-theories: couldn't execute $cmd: $!\n";
-
-    if ($base =~ /^haskell/) {
-      open THEORY, "> $tthynewtmp" or
-        die "import-theories: couldn't open $tthynewtmp for writing: $!\n";
-
-      print THEORY "main {\n";
-
-      open INTERPRETATION, $haskellint or
-        die "import-theories: couldn't open $haskellint for reading: $!\n";
-
-      while (my $int = <INTERPRETATION>) {
-        chomp $int;
-
-        if ($int ne '' && $int !~ /^[#]/) {
-          print THEORY "  interpret: $int\n";
-        }
-      }
-
-      close INTERPRETATION;
-
-      print THEORY "  article: \"$base.art.importing.art\"\n";
-      print THEORY "}\n";
-
-      close THEORY;
-
-      rename($tartnew,$tartnewtmp) or
-        die "import-theories: couldn't rename $tartnew to $tartnewtmp: $!\n";
-
-      $cmd = "$opentheory info --preserve-theory --article -o $tartnew theory:$tthynewtmp";
-      (system ($cmd) == 0) or
-        die "import-theories: couldn't execute $cmd: $!\n";
-
-      unlink $tthynewtmp or
-        die "import-theories: couldn't remove $tthynewtmp: $!\n";
-
-      unlink $tartnewtmp or
-        die "import-theories: couldn't remove $tartnewtmp: $!\n";
-    }
 
     $cmd = "grep 'Unwanted' $tartnew";
     (system ($cmd) != 0) or

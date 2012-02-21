@@ -1078,8 +1078,6 @@ local
       | StagedPackageInput _ => raise Error "cannot export a staged package"
       | TarballInput _ => raise Error "cannot export a tarball"
       | TheoryInput _ => raise Error "cannot export a theory file";
-
-  val isHaskell = PackageName.isStrictPrefix Haskell.prefix;
 in
   fun export inp =
       let
@@ -1089,7 +1087,7 @@ in
 
         val name = PackageNameVersion.name namever
       in
-        if isHaskell name then Haskell.export dir namever
+        if PackageName.isHaskell name then Haskell.export dir namever
         else raise Error ("unknown export type: " ^ PackageName.toString name)
       end
       handle Error err =>

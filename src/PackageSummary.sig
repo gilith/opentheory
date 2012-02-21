@@ -42,7 +42,10 @@ val provides : summary -> Sequents.sequents
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val check : (Sequent.sequent -> bool) option -> Show.show -> summary -> unit
+val check :
+    {unsatisfiedAssumptions : (Sequent.sequent -> bool) option,
+     checkTheorems : bool} ->
+    Show.show -> summary -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)

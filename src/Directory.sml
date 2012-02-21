@@ -775,7 +775,8 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
           if not warnSummary then ()
           else
             let
-              val reqs = Package.requires pkg
+              val name = PackageNameVersion.name namever
+              and reqs = Package.requires pkg
 
               val unsat =
                   case requiresTheorems dir reqs of
@@ -791,8 +792,14 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
                       in
                         SOME (C SequentSet.member seqs)
                       end
+
+              val chkThms = not (PackageName.isExport name)
+
+              val chks =
+                  {unsatisfiedAssumptions = unsat,
+                   checkTheorems = chkThms}
             in
-              PackageSummary.check unsat (Package.show pkg) sum
+              PackageSummary.check chks (Package.show pkg) sum
             end
 
       (* Create the package theorems *)

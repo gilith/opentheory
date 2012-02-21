@@ -9,12 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A prefix marking theories that can be exported as Haskell packages.       *)
-(* ------------------------------------------------------------------------- *)
-
-val prefix = PackageName.haskellExport;
-
-(* ------------------------------------------------------------------------- *)
 (* Anonymizing unused variables.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -48,22 +42,14 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 fun exportPackageName name =
-    let
-      val old = PackageName.haskellExport
-      and new = PackageName.newHaskellExport
-    in
-      if PackageName.equal name old then new
-      else
-        case PackageName.destStrictPrefix old name of
-          SOME n => PackageName.append new n
-        | NONE =>
-          let
-            val err =
-                "non-Haskell package name: " ^ PackageName.toString name
-          in
-            raise Error err
-          end
-    end;
+    case PackageName.exportHaskell name of
+      SOME n => n
+    | NONE =>
+      let
+        val err = "non-Haskell package name: " ^ PackageName.toString name
+      in
+        raise Error err
+      end;
 
 val opentheoryNamespace = Namespace.fromList ["OpenTheory"];
 
@@ -1249,8 +1235,8 @@ in
               Theory.Package {theories,...} => theories
             | _ => raise Bug "Haskell.theories: not a package theory"
 
-        val src = getTheory PackageName.srcHaskellExport thys
-        and test = getTheory PackageName.testHaskellExport thys
+        val src = getTheory PackageName.srcHaskellTheory thys
+        and test = getTheory PackageName.testHaskellTheory thys
       in
         {src = src,
          test = test}

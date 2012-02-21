@@ -351,9 +351,14 @@ local
         ()
       end;
 
-  fun checkInfo unsat show info =
+  fun checkSequents chk show class seqs =
+      if not chk then ()
+      else SequentSet.app (checkSequent show class) seqs;
+
+  fun checkInfo chks show info =
       let
-        val Info {assumed,axioms,thms,...} = info
+        val {unsatisfiedAssumptions = unsat, checkTheorems = chkSeqs} = chks
+        and Info {assumed,axioms,thms,...} = info
 
         val assumed =
             case assumed of
@@ -368,13 +373,9 @@ local
 
         val () = checkShow seqs show
 
-        val () = SequentSet.app (checkSequent show "assumption") assumed
-
-        val () = SequentSet.app (checkSequent show "theorem") thms
-
         val () =
             case unsat of
-              NONE => ()
+              NONE => checkSequents chkSeqs show "assumption" assumed
             | SOME p =>
               let
                 val asses = SequentSet.filter p assumed
@@ -382,11 +383,13 @@ local
                 if SequentSet.null asses then ()
                 else warnSequents "unsatisfied assumption" show asses
               end
+
+        val () = checkSequents chkSeqs show "theorem" thms
       in
         ()
       end;
 in
-  fun check unsat show sum = checkInfo unsat show (toInfo NONE sum);
+  fun check chks show sum = checkInfo chks show (toInfo NONE sum);
 end;
 
 (* ------------------------------------------------------------------------- *)

@@ -44,7 +44,7 @@ fun provides sum = Summary.provides (summary sum);
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun check unsat show sum = Summary.check unsat show (summary sum);
+fun check chks show sum = Summary.check chks show (summary sum);
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)
