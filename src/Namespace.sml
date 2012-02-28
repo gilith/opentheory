@@ -92,7 +92,8 @@ and sumTypeOpComponent = "+";
 
 (* Standard constants *)
 
-val bit0ConstComponent = "bit0"
+val addConstComponent = "+"
+and bit0ConstComponent = "bit0"
 and bit1ConstComponent = "bit1"
 and composeConstComponent = "o"
 and caseConstComponent = "case"

@@ -213,7 +213,7 @@ HASKELL_OPENTHEORY_LIST = ../../$(OPENTHEORY) list
 haskell: $(OPENTHEORY)
 	cd $(HASKELL_DIR)/opentheory && cabal install
 	cd $(HASKELL_DIR)/example-utf8 && cabal install
-	cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne '$$nv = $$_; chomp $$nv; if ($$nv =~ /^haskell-/) { $$n = `$(HASKELL_OPENTHEORY_INFO) --format NAME $$nv`; chomp $$n; $$n =~ s/^haskell-/opentheory-/; if ( -d $$n ) { (system("rm -r $$n") == 0) or die; print STDOUT "Re-exporting $$nv\n"; } else { print STDOUT "Exporting $$nv\n"; } (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; (system("echo dist > $$n/.gitignore") == 0) or die; (system("find $$n") == 0) or die; (system("cd $$n && cabal install") == 0) or die; }')
+	cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne '$$nv = $$_; chomp $$nv; if ($$nv =~ /^haskell-[a-z]/) { $$n = `$(HASKELL_OPENTHEORY_INFO) --format NAME $$nv`; chomp $$n; $$n =~ s/^haskell-/opentheory-/; if ( -d $$n ) { (system("rm -r $$n") == 0) or die; print STDOUT "Re-exporting $$nv\n"; } else { print STDOUT "Exporting $$nv\n"; } (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; (system("echo dist > $$n/.gitignore") == 0) or die; (system("find $$n") == 0) or die; (system("cd $$n && cabal install") == 0) or die; }')
 
 ###############################################################################
 # Create the test OpenTheory directory.

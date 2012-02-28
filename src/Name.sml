@@ -280,7 +280,8 @@ end;
 local
   fun mkNatural c = mk (Namespace.natural,c);
 in
-  val bit0Const = mkNatural Namespace.bit0ConstComponent
+  val addConst = mkNatural Namespace.addConstComponent
+  and bit0Const = mkNatural Namespace.bit0ConstComponent
   and bit1Const = mkNatural Namespace.bit1ConstComponent
   and minimalConst = mkNatural Namespace.minimalConstComponent
   and sucConst = mkNatural Namespace.sucConstComponent

@@ -62,6 +62,7 @@ val sumTypeOpComponent : component
 
 (* Standard constants *)
 
+val addConstComponent : component
 val bit0ConstComponent : component
 val bit1ConstComponent : component
 val caseConstComponent : component

@@ -27,7 +27,7 @@ fromList l = append l Eof
 size :: Stream a -> OpenTheory.Number.Natural.Natural
 size Error = 0
 size Eof = 0
-size (Stream _ s) = OpenTheory.Number.Natural.suc (size s)
+size (Stream _ s) = size s+1
 
 toList :: Stream a -> Maybe [a]
 toList Error = Nothing

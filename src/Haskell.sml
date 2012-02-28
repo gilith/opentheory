@@ -81,19 +81,19 @@ local
 
   val constMapping =
       NameMap.fromList
-        [(Name.bit0Const, Name.mkGlobal "--bit0--"),
+        [(Name.addConst, Name.mkGlobal "+"),
+         (Name.bit0Const, Name.mkGlobal "--bit0--"),
          (Name.bit1Const, Name.mkGlobal "--bit1--"),
          (Name.condConst, Name.mkGlobal "--cond--"),
          (Name.conjConst, Name.mkGlobal "&&"),
          (Name.consConst, Name.mkGlobal ":"),
-         (Name.eqConst, Name.mkGlobal "=="),
+         (Name.eqConst, Name.mkGlobal "--equal--"),
          (Name.forallConst, Name.mkGlobal "--forall--"),
          (Name.nilConst, Name.mkGlobal "[]"),
          (Name.noneConst, Name.mkGlobal "Nothing"),
          (Name.pairConst, Name.mkGlobal ","),
          (Name.selectConst, Name.mkGlobal "--select--"),
          (Name.someConst, Name.mkGlobal "Just"),
-         (Name.sucConst, mkNaturalName "suc"),
          (Name.zeroConst, mkNaturalName "zero")];
 
   fun exportName n =
