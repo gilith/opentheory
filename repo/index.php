@@ -210,13 +210,26 @@ $pkg = from_string(input('pkg'));
 if (isset($pkg)) {
   set_bread_crumbs_extension(array());
 
-  $namever = from_string_package_name_version($pkg);
-  if (!isset($namever)) { trigger_error('bad namever'); }
+  $name = from_string_package_name_version($pkg);
 
-  $pkg = find_package_by_name_version($namever);
+  if (isset($name)) {
+    $pkg = find_package_by_name_version($name);
+
+    $name = $name->to_string();
+  }
+  elseif (is_valid_package_name($pkg)) {
+    $name = $pkg;
+
+    $pkg = latest_package_version($name);
+
+    if (isset($pkg)) { $name = $pkg->to_string(); }
+  }
+  else {
+    trigger_error('bad package name');
+  }
 
   $main =
-'<h2>Package ' . $namever->to_string() . '</h2>';
+'<h2>Package ' . $name . '</h2>';
 
   if (isset($pkg)) {
     $main .= pretty_package_information($pkg);
@@ -224,13 +237,13 @@ if (isset($pkg)) {
   else {
     $main .=
 '<p>Sorry for the inconvenience, but the package ' .
-$namever->to_string() .
+$name .
 ' is not on the ' .
 repo_name() .
 '.</p>';
   }
 
-  $title = 'Package ' . $namever->to_string();
+  $title = 'Package ' . $name;
 
   $image = site_image('sunset-tree.jpg','Sunset Tree');
 

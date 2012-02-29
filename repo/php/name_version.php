@@ -226,6 +226,14 @@ function is_prefix_package_name($name1,$name2) {
   return is_prefix_string($s1,$s2);
 }
 
+function is_valid_package_name($name) {
+  is_string($name) or trigger_error('bad name');
+
+  $re = '/^' . PACKAGE_NAME_REGEXP . '$/';
+
+  return (preg_match($re,$name) != 0);
+}
+
 function from_string_package_name_version($namever) {
   is_string($namever) or trigger_error('bad namever');
 

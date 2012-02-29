@@ -674,6 +674,17 @@ function list_package_versions($name) {
   return $package_table->list_package_versions($name);
 }
 
+function latest_package_version($name) {
+  is_string($name) or trigger_error('bad name');
+
+  $pkgs = list_package_versions($name);
+
+  $n = count($pkgs);
+
+  if ($n > 0) { return $pkgs[$n - 1]; }
+  else { return null; }
+}
+
 function previous_package_version($namever) {
   isset($namever) or trigger_error('bad namever');
 
