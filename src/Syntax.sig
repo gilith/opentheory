@@ -105,4 +105,24 @@ val mkExistsUnique : SymbolTable.table -> Var.var * Term.term -> Term.term
 val listMkExistsUnique :
     SymbolTable.table -> Var.var list * Term.term -> Term.term
 
+(* ------------------------------------------------------------------------- *)
+(* Pair syntax.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+(* Pair type operator *)
+
+val typeOpPair : SymbolTable.table -> TypeOp.typeOp
+
+val mkTypePair : SymbolTable.table -> Type.ty * Type.ty -> Type.ty
+
+(* Pair constant *)
+
+val constPair : SymbolTable.table -> Const.const
+
+val mkTermPair : SymbolTable.table -> Type.ty * Type.ty -> Term.term
+
+val mkPair : SymbolTable.table -> Term.term * Term.term -> Term.term
+
+val listMkPair : SymbolTable.table -> Term.term list -> Term.term
+
 end

@@ -1,5 +1,5 @@
 name: list
-version: 1.50
+version: 1.51
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.38
+  package: list-def-1.39
 }
 
 thm {

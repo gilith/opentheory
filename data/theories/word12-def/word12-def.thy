@@ -1,5 +1,5 @@
 name: word12-def
-version: 1.14
+version: 1.19
 description: Definition of 12-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -26,6 +26,7 @@ word {
   interpret: const "Data.Word.-" as "Data.Word12.-"
   interpret: const "Data.Word.<" as "Data.Word12.<"
   interpret: const "Data.Word.<=" as "Data.Word12.<="
+  interpret: const "Data.Word.^" as "Data.Word12.^"
   interpret: const "Data.Word.~" as "Data.Word12.~"
   interpret: const "Data.Word.and" as "Data.Word12.and"
   interpret: const "Data.Word.bit" as "Data.Word12.bit"
@@ -41,7 +42,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word12.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word12.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word12.Bits.toWord"
-  package: word-1.39
+  package: word-1.43
 }
 
 main {

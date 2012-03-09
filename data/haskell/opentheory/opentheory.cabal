@@ -18,6 +18,8 @@ Library
   ghc-options: -Wall -Werror
 
   Exposed-modules:
+    OpenTheory.Data.Option
+    OpenTheory.Data.List
     OpenTheory.Number.Natural
     OpenTheory.Test
     OpenTheory.Word

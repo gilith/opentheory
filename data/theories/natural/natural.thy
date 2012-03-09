@@ -1,5 +1,5 @@
 name: natural
-version: 1.46
+version: 1.47
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -63,7 +63,7 @@ exp {
   import: order
   import: add
   import: mult
-  package: natural-exp-1.23
+  package: natural-exp-1.24
 }
 
 sub {
@@ -85,7 +85,7 @@ div {
   import: mult
   import: exp
   import: sub
-  package: natural-div-1.23
+  package: natural-div-1.24
 }
 
 factorial {

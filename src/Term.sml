@@ -1618,11 +1618,11 @@ local
          (* Products *)
          {token = pairString, precedence = ~1000, assoc = Print.RightAssoc},
          (* Arithmetic *)
-         {token = "^", precedence = 8, assoc = Print.RightAssoc},
+         {token = "^", precedence = 9, assoc = Print.RightAssoc},
+         {token = "*", precedence = 8, assoc = Print.LeftAssoc},
          {token = "/", precedence = 7, assoc = Print.LeftAssoc},
          {token = "div", precedence = 7, assoc = Print.LeftAssoc},
          {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "*", precedence = 7, assoc = Print.LeftAssoc},
          {token = "+", precedence = 6, assoc = Print.LeftAssoc},
          {token = "-", precedence = 6, assoc = Print.LeftAssoc},
          {token = "<=", precedence = 3, assoc = Print.NonAssoc},

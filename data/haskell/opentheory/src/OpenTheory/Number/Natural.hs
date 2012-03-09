@@ -10,7 +10,8 @@ Portability: portable
 A natural number type
 -}
 module OpenTheory.Number.Natural
-  ( Natural )
+  ( Natural,
+    equal )
 where
 
 import Test.QuickCheck
@@ -41,3 +42,6 @@ instance Num Natural where
       if 0 <= x
         then Natural x
         else error "OpenTheory.Number.Natural.fromInteger"
+
+equal :: Natural -> Natural -> Bool
+equal n1 n2 = n1 == n2

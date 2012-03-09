@@ -1,9 +1,9 @@
 name: haskell-parser-def
-version: 1.10
+version: 1.14
 description: Definition of simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-02-26
+provenance: HOL Light theory extracted on 2012-03-08
 requires: base
 show: "Data.Bool"
 show: "Data.Option"

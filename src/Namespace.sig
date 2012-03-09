@@ -86,6 +86,7 @@ val idConstComponent : component
 val impConstComponent : component
 val intersectConstComponent : component
 val leConstComponent : component
+val lengthConstComponent : component
 val ltConstComponent : component
 val memberConstComponent : component
 val minimalConstComponent : component

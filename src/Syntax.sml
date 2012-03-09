@@ -165,4 +165,38 @@ fun mkExistsUnique sym (v,b) =
 fun listMkExistsUnique sym (vs,b) =
     List.foldl (mkExistsUnique sym) b (List.rev vs);
 
+(* ------------------------------------------------------------------------- *)
+(* Pair syntax.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+(* Pair type operator *)
+
+fun typeOpPair sym = SymbolTable.mkTypeOp sym Name.pairTypeOp;
+
+fun mkTypePair sym (a,b) = Type.mkOp (typeOpPair sym, [a,b]);
+
+(* Pair constant *)
+
+fun constPair sym = SymbolTable.mkConst sym Name.pairConst;
+
+fun mkTermPair sym (a,b) =
+    let
+      val c = constPair sym
+      and ty = Type.mkFun (a, Type.mkFun (b, mkTypePair sym (a,b)))
+    in
+      Term.mkConst (c,ty)
+    end;
+
+fun mkPair sym (a,b) =
+    let
+      val c = mkTermPair sym (Term.typeOf a, Term.typeOf b)
+    in
+      Term.mkApp (Term.mkApp (c,a), b)
+    end;
+
+fun listMkPair sym tms =
+    case List.rev tms of
+      [] => raise Error "Syntax.listMkPair: empty list"
+    | tm :: tms => List.foldl (mkPair sym) tm tms;
+
 end

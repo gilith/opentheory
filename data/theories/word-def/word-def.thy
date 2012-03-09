@@ -1,9 +1,9 @@
 name: word-def
-version: 1.17
+version: 1.22
 description: Definition of word operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2011-11-12
+provenance: HOL Light theory extracted on 2012-03-08
 requires: bool
 requires: natural
 requires: natural-divides
@@ -23,11 +23,12 @@ modular {
   interpret: const "Number.Modular.-" as "Data.Word.-"
   interpret: const "Number.Modular.<" as "Data.Word.<"
   interpret: const "Number.Modular.<=" as "Data.Word.<="
+  interpret: const "Number.Modular.^" as "Data.Word.^"
   interpret: const "Number.Modular.~" as "Data.Word.~"
   interpret: const "Number.Modular.fromNatural" as "Data.Word.fromNatural"
   interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
   interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
-  package: modular-1.33
+  package: modular-1.37
 }
 
 main {

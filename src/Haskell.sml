@@ -56,6 +56,8 @@ val opentheoryNamespace = Namespace.fromList ["OpenTheory"];
 local
   val haskellNamespace = Namespace.fromList ["Haskell"];
 in
+  val haskellTestNamespace = Namespace.mkNested (haskellNamespace,"Test");
+
   fun exportNamespace ns =
       case Namespace.rewrite (haskellNamespace,opentheoryNamespace) ns of
         SOME ns => ns
@@ -68,7 +70,8 @@ local
   fun mkOpentheoryName ns s =
       Name.mk (mkOpentheoryNamespace ns, s);
 
-  val mkNaturalName = mkOpentheoryName Namespace.natural;
+  val mkListName = mkOpentheoryName Namespace.list
+  and mkNaturalName = mkOpentheoryName Namespace.natural;
 
   val typeOpMapping =
       NameMap.fromList
@@ -89,6 +92,7 @@ local
          (Name.consConst, Name.mkGlobal ":"),
          (Name.eqConst, Name.mkGlobal "--equal--"),
          (Name.forallConst, Name.mkGlobal "--forall--"),
+         (Name.lengthConst, mkListName "size"),
          (Name.nilConst, Name.mkGlobal "[]"),
          (Name.noneConst, Name.mkGlobal "Nothing"),
          (Name.pairConst, Name.mkGlobal ","),
@@ -280,10 +284,16 @@ datatype module =
        source : source list,
        submodules : module list};
 
+datatype test =
+    Test of
+      {name : string,
+       value : value};
+
 datatype haskell =
      Haskell of
        {package : Package.package,
-        source : module};
+        source : module,
+        tests : test list};
 
 (* ------------------------------------------------------------------------- *)
 (* Symbols in Haskell declarations.                                          *)
@@ -800,6 +810,53 @@ fun destSource th =
         end
     end;
 
+fun destTest th n =
+    let
+      val Sequent.Sequent {hyp,concl} = Thm.sequent th
+
+      val () =
+          if TermAlphaSet.null hyp then ()
+          else raise Error "hypotheses"
+
+      val () =
+          if VarSet.null (Term.freeVars concl) then ()
+          else raise Error "free variables"
+
+      val (vs,body) = Term.stripForall concl
+
+      val () =
+          if not (List.null vs) then ()
+          else raise Error "no universally quantified variables"
+
+      val arg = Syntax.listMkPair SymbolTable.empty (List.map Term.mkVar vs)
+
+      val eqn =
+          Equation
+            {arguments = [arg],
+             body = body,
+             whereValues = []}
+
+      val name = "prop" ^ Int.toString n
+
+      val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
+
+      val ty = Type.mkFun (Term.typeOf arg, Term.typeOf body)
+
+      val value =
+          Value
+            {name = const,
+             ty = ty,
+             equations = [eqn]}
+
+      val test = Test {name = name, value = value}
+
+      val n = n + 1
+    in
+      (test,n)
+    end
+    handle Error err =>
+      raise Error ("bad test theorem: " ^ err);
+
 (* ------------------------------------------------------------------------- *)
 (* Sorting Haskell declarations into a module hierarchy.                     *)
 (* ------------------------------------------------------------------------- *)
@@ -1258,15 +1315,32 @@ fun destSourceTheory src =
       src
     end;
 
+fun destTestTheory test =
+    let
+      val art = Theory.article test
+
+      val ths = ThmSet.toList (Thms.thms (Article.thms art))
+
+      val (tests,n) = maps destTest ths 0
+
+      val () =
+          if n > 0 then ()
+          else raise Error "no tests defined"
+    in
+      tests
+    end;
+
 fun convert pkg thy =
     let
-      val {src, test = _} = splitTheories thy
+      val {src,test} = splitTheories thy
 
       val source = mkModule (destSourceTheory src)
+      and tests = destTestTheory test
     in
       Haskell
         {package = pkg,
-         source = source}
+         source = source,
+         tests = tests}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1276,6 +1350,11 @@ fun convert pkg thy =
 (* Names *)
 
 fun ppPackageName name = PackageName.pp (exportPackageName name);
+
+fun ppPackageTestName name =
+    Print.sequence
+      (PackageName.pp (exportPackageName name))
+      (Print.ppString "-test");
 
 local
   fun relativeNamespace namespace ns =
@@ -1573,7 +1652,14 @@ local
 
   val isInfix = can destInfix;
 
-  fun ppInfixToken (_,s) = Print.ppString s;
+  fun ppInfixToken (_,s) =
+      let
+        val x = Print.ppString s
+
+        val x = if s = "," then x else Print.sequence Print.space x
+      in
+        Print.sequence x Print.break
+      end;
 
   val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken;
 
@@ -2053,6 +2139,83 @@ in
       end;
 end;
 
+local
+  fun ppTestsImport tests =
+      let
+        val namespace = haskellTestNamespace
+        and source = List.map (fn Test {value,...} => ValueSource value) tests
+      in
+        ppModuleImport namespace source
+      end;
+
+  fun ppTestSpace test =
+      let
+        val Test {value,...} = test
+        and namespace = haskellTestNamespace
+      in
+        Print.sequence (ppValue namespace value) (Print.newlines 2)
+      end;
+
+  fun ppInvokeTest test =
+      let
+        val Test {name,...} = test
+      in
+        Print.program
+          [Print.ppString "OpenTheory.Test.check \"",
+           Print.ppString name,
+           Print.ppString "\" ",
+           Print.ppString name,
+           Print.newline]
+      end;
+
+  fun ppMain tests =
+      Print.inconsistentBlock 0
+        [Print.ppString "main :: IO ()",
+         Print.newline,
+         Print.inconsistentBlock 4
+           [Print.ppString "main =",
+            Print.newline,
+            Print.consistentBlock 3
+              [Print.ppString "do ",
+               Print.program (List.map ppInvokeTest tests),
+               Print.ppString "return ()"]]];
+in
+  fun ppTests (pkg,tests) =
+      let
+        val {description} = Package.description pkg
+        and {license} = Package.license pkg
+        and auth = Package.author pkg
+      in
+        Print.inconsistentBlock 0
+          [Print.ppString "{- |",
+           Print.newline,
+           ppTags
+             [("Module", Print.ppString "Main"),
+              ("Description", Print.ppString (description ^ " - testing")),
+              ("License", Print.ppString license)],
+           Print.newlines 2,
+           ppTags
+             [("Maintainer", PackageAuthor.pp auth),
+              ("Stability", Print.ppString "provisional"),
+              ("Portability", Print.ppString "portable")],
+           Print.newline,
+           Print.ppString "-}",
+           Print.newline,
+           Print.ppString "module Main",
+           Print.newline,
+           Print.ppString "  ( main )",
+           Print.newline,
+           Print.ppString "where",
+           Print.newlines 2,
+           ppTestsImport tests,
+           Print.ppString "import qualified OpenTheory.Test",
+           Print.newline,
+           Print.newline,
+           Print.program (List.map ppTestSpace tests),
+           ppMain tests]
+      end;
+end;
+
 (* Cabal *)
 
 local
@@ -2143,7 +2306,20 @@ in
               ppTag ("ghc-options", Print.ppString "-Wall -Werror"),
               Print.newline,
               Print.newline,
-              ppSection "Exposed-modules:" (ppExposedModules mods)]]
+              ppSection "Exposed-modules:" (ppExposedModules mods)],
+           Print.newline,
+           Print.newline,
+           ppSection ("Executable " ^ Print.toString ppPackageTestName name)
+             [ppSection "Build-depends:" ppBuildDepends,
+              Print.newline,
+              Print.newline,
+              ppTag ("hs-source-dirs", Print.ppString "src, testsrc"),
+              Print.newline,
+              Print.newline,
+              ppTag ("ghc-options", Print.ppString "-Wall -Werror"),
+              Print.newline,
+              Print.newline,
+              ppTag ("Main-is", Print.ppString "Test.hs")]]
       end;
 end;
 
@@ -2264,9 +2440,34 @@ in
       end;
 end;
 
+local
+  fun outputMain pkg {directory = dir} tests =
+      let
+        val ss = Print.toStream ppTests (pkg,tests)
+
+        val file =
+            let
+              val f = OS.Path.joinBaseExt {base = "Test", ext = SOME "hs"}
+            in
+              OS.Path.joinDirFile {dir = dir, file = f}
+            end
+
+        val () = Stream.toTextFile {filename = file} ss
+      in
+        ()
+      end;
+in
+  fun outputTests dir pkg tests =
+      let
+        val dir = mkSubDirectory dir "testsrc"
+      in
+        outputMain pkg dir tests
+      end;
+end;
+
 fun toPackage dir haskell =
     let
-      val Haskell {package,source} = haskell
+      val Haskell {package,source,tests} = haskell
 
       val directory =
           let
@@ -2282,6 +2483,8 @@ fun toPackage dir haskell =
       val () = outputLicense dir directory package
 
       val () = outputSource directory package source
+
+      val () = outputTests directory package tests
     in
       ()
     end;

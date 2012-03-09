@@ -23,10 +23,10 @@ partialMap f p =
     pf a s =
       case unParser p a s of
         Nothing -> Nothing
-        Just (b,s') ->
+        Just (b, s') ->
           case f b of
             Nothing -> Nothing
-            Just c -> Just (c,s')
+            Just c -> Just (c, s')
 
 map :: (b -> c) -> Parser a b -> Parser a c
 map f p = partialMap (\b -> Just (f b)) p
@@ -41,7 +41,7 @@ parseAll =
   Parser pa
   where
   {-pa :: a -> Stream.Stream a -> Maybe (a, Stream.Stream a)-}
-    pa a s = Just (a,s)
+    pa a s = Just (a, s)
 
 parseNone :: Parser a b
 parseNone =
@@ -61,10 +61,10 @@ parsePair pb pc =
     pbc a s =
       case unParser pb a s of
         Nothing -> Nothing
-        Just (b,s') ->
+        Just (b, s') ->
           case parse pc s' of
             Nothing -> Nothing
-            Just (c,s'') -> Just ((b,c),s'')
+            Just (c, s'') -> Just ((b, c), s'')
 
 parseSome :: (a -> Bool) -> Parser a a
 parseSome p = parseOption (\a -> if p a then Just a else Nothing)
@@ -75,4 +75,4 @@ parseStream _ Stream.Eof = Stream.Eof
 parseStream p (Stream.Stream a s) =
   case unParser p a s of
     Nothing -> Stream.Error
-    Just (b,s') -> Stream.Stream b (parseStream p s')
+    Just (b, s') -> Stream.Stream b (parseStream p s')

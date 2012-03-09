@@ -255,6 +255,7 @@ local
   fun mkList c = mk (Namespace.list,c);
 in
   val consConst = mkList Namespace.consConstComponent
+  and lengthConst = mkList Namespace.lengthConstComponent
   and nilConst = mkList Namespace.nilConstComponent;
 end;
 

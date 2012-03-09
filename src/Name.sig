@@ -126,6 +126,7 @@ val idConst : name
 (* Lists *)
 
 val consConst : name
+val lengthConst : name
 val nilConst : name
 
 (* Options *)

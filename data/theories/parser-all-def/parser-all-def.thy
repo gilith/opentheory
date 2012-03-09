@@ -1,9 +1,9 @@
 name: parser-all-def
-version: 1.39
+version: 1.43
 description: Definition of the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-02-10
+provenance: HOL Light theory extracted on 2012-03-08
 requires: bool
 requires: pair
 requires: option
