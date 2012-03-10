@@ -151,6 +151,7 @@ local
          ("<", [Html.Entity "lt"]),
          (">=", [Html.Entity "ge"]),
          (">", [Html.Entity "gt"]),
+         ("^", [Html.Entity "uarr"]),
          ("<-", [Html.Entity "larr"]),
          ("->", [Html.Entity "rarr"]),
          ("<==", [Html.Entity "lArr"]),

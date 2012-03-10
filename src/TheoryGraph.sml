@@ -30,6 +30,10 @@ in
   fun ancestors thy = ancsPar TheorySet.empty thy [];
 end;
 
+(* ------------------------------------------------------------------------- *)
+(* Primitive theory packages cannot be replaced with their contents.         *)
+(* ------------------------------------------------------------------------- *)
+
 local
   fun primsList acc thys = List.foldl primsNameThy acc thys
 
@@ -41,26 +45,26 @@ local
 
   and primsNode acc node =
       case node of
-        Theory.Article _ => raise Bug "Graph.primitives: Article"
+        Theory.Article _ => raise Bug "TheoryGraph.primitives: Article"
       | Theory.Package {theories,...} => primsList acc theories
       | Theory.Union => acc;
 in
-  fun primitives thy =
-      let
-(*OpenTheoryDebug
-        val _ = not (Theory.isUnion thy) orelse
-                raise Bug "Graph.primitives: Union"
-*)
-      in
-        primsThy TheorySet.empty thy
-      end;
+  val addPrimitives = primsThy;
 end;
 
-(* ------------------------------------------------------------------------- *)
-(* Primitive theory packages cannot be replaced with their contents.         *)
-(* ------------------------------------------------------------------------- *)
+fun primitives thy =
+    let
+(*OpenTheoryDebug
+      val _ = not (Theory.isUnion thy) orelse
+              raise Bug "TheoryGraph.primitives: Union"
+*)
+    in
+      addPrimitives TheorySet.empty thy
+    end;
 
 local
+  datatype vps = VPS of TheorySet.set * Theory.theory list;
+
   fun primsList seen acc thys = List.foldl primsThy (seen,acc) thys
 
   and primsThy (thy,(seen,acc)) =
@@ -78,7 +82,7 @@ local
         val Theory.Theory' {imports,node,...} = thy'
       in
         case node of
-          Theory.Article _ => raise Bug "Graph.visiblePrimitives: Article"
+          Theory.Article _ => raise Bug "TheoryGraph.visiblePrimitives: Article"
         | Theory.Package {theories,...} =>
           let
             val main = Theory.mainTheory theories
@@ -88,16 +92,50 @@ local
         | Theory.Union => primsList seen acc imports
       end;
 in
-  fun visiblePrimitives thy =
-      let
-(*OpenTheoryDebug
-        val _ = not (Theory.isUnion thy) orelse
-                raise Bug "Graph.visiblePrimitives: Union"
-*)
+  val initialVisiblePrimitives = VPS (TheorySet.empty,[]);
 
-        val (_,acc) = primsThy (thy,(TheorySet.empty,[]))
+  fun addVisiblePrimitives (VPS seen_acc) thy = VPS (primsThy (thy,seen_acc));
+
+  fun finalizeVisiblePrimitives (VPS (_,acc)) = List.rev acc;
+end;
+
+fun visiblePrimitives thy =
+    let
+(*OpenTheoryDebug
+      val _ = not (Theory.isUnion thy) orelse
+              raise Bug "TheoryGraph.visiblePrimitives: Union"
+*)
+      val vps = initialVisiblePrimitives
+
+      val vps = addVisiblePrimitives vps thy
+    in
+      finalizeVisiblePrimitives vps
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Expand Union theories before searching for primitives.                    *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun expand (thy,acc) =
+      if not (Theory.isUnion thy) then addPrimitives acc thy
+      else List.foldl expand acc (Theory.imports thy);
+in
+  fun expandUnionPrimitives thy = expand (thy,TheorySet.empty);
+end;
+
+local
+  fun expand (thy,vps) =
+      if not (Theory.isUnion thy) then addVisiblePrimitives vps thy
+      else List.foldl expand vps (Theory.imports thy);
+in
+  fun expandUnionVisiblePrimitives thy =
+      let
+        val vps = initialVisiblePrimitives
+
+        val vps = expand (thy,vps)
       in
-        List.rev acc
+        finalizeVisiblePrimitives vps
       end;
 end;
 
@@ -123,12 +161,12 @@ fun peekSummary (Summary m) thy = TheoryMap.peek m thy;
 fun getSummary sums thy =
     case peekSummary sums thy of
       SOME sum => sum
-    | NONE => raise Bug "Graph.getSummary";
+    | NONE => raise Bug "TheoryGraph.getSummary";
 
 fun getRequires req thy =
     case TheoryMap.peek req thy of
       SOME seqs => seqs
-    | NONE => raise Bug "Graph.getRequires";
+    | NONE => raise Bug "TheoryGraph.getRequires";
 
 fun getListRequires req thys =
     if List.null thys then SequentMap.new ()
@@ -217,7 +255,7 @@ fun mkProvides sums thy =
     let
       val acc = SequentMap.new ()
 
-      val prims = visiblePrimitives thy
+      val prims = expandUnionVisiblePrimitives thy
 
       val acc = List.foldl (addProvides sums) acc (List.rev prims)
     in
@@ -226,19 +264,21 @@ fun mkProvides sums thy =
 
 fun summary thy =
     let
-      val sums = mkSummary (primitives thy)
+      val sums = mkSummary (expandUnionPrimitives thy)
 
       val sum = Theory.summary thy
 
       val req = mkRequires sums thy
 
       val prov = mkProvides sums thy
+
+      val sum' =
+          PackageSummary.Summary'
+            {summary = sum,
+             requires = req,
+             provides = prov}
     in
-      PackageSummary.mk
-        (PackageSummary.Summary'
-           {summary = sum,
-            requires = req,
-            provides = prov})
+      PackageSummary.mk sum'
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -341,7 +381,7 @@ fun add graph thy =
       val thys = parents thy
 
       val _ = TheorySet.all (fn i => member i graph) thys orelse
-              raise Bug "Graph.add: parent theory not in graph"
+              raise Bug "TheoryGraph.add: parent theory not in graph"
 *)
 
       val Graph {savable,theories,packages} = graph
@@ -350,7 +390,7 @@ fun add graph thy =
       val sav = Article.savable (Theory.article thy)
 
       val _ = sav orelse not savable orelse
-              raise Bug "Graph.add: adding unsavable theory to savable graph"
+              raise Bug "TheoryGraph.add: adding unsavable theory to savable graph"
 *)
 
       val theories = TheorySet.add theories thy
@@ -401,7 +441,7 @@ fun match graph spec =
           case Theory.node thy of
             Theory.Package {interpretation = int', ...} =>
             Interpretation.equal int int'
-          | _ => raise Bug "Graph.match.matchInt: theory not a Package"
+          | _ => raise Bug "TheoryGraph.match.matchInt: theory not a Package"
 
       fun matchThy thy =
           matchImp thy andalso
