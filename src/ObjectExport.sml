@@ -336,19 +336,19 @@ local
       | TypeTerm.DefProvConst _ => abs_rep
       | TypeTerm.AbsProvConst ot =>
         let
-          val (abs,rep) = abs_rep
+          val (absM,repM) = abs_rep
 
-          val abs = TypeOpMap.insert abs (ot, Const.name c)
+          val absM = TypeOpMap.insert absM (ot, Const.name c)
         in
-          (abs,rep)
+          (absM,repM)
         end
       | TypeTerm.RepProvConst ot =>
         let
-          val (abs,rep) = abs_rep
+          val (absM,repM) = abs_rep
 
-          val rep = TypeOpMap.insert rep (ot, Const.name c)
+          val repM = TypeOpMap.insert repM (ot, Const.name c)
         in
-          (abs,rep)
+          (absM,repM)
         end;
 
   fun getAbsRep (absM,repM) ot =
