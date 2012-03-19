@@ -1,5 +1,5 @@
 name: natural
-version: 1.47
+version: 1.48
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -36,7 +36,7 @@ numeral {
 order {
   import: def
   import: thm
-  package: natural-order-1.27
+  package: natural-order-1.28
 }
 
 add {
@@ -44,7 +44,7 @@ add {
   import: thm
   import: numeral
   import: order
-  package: natural-add-1.36
+  package: natural-add-1.37
 }
 
 mult {
@@ -53,7 +53,7 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.34
+  package: natural-mult-1.35
 }
 
 exp {
@@ -63,7 +63,7 @@ exp {
   import: order
   import: add
   import: mult
-  package: natural-exp-1.24
+  package: natural-exp-1.25
 }
 
 sub {
@@ -73,7 +73,7 @@ sub {
   import: order
   import: add
   import: mult
-  package: natural-sub-1.20
+  package: natural-sub-1.21
 }
 
 div {
@@ -85,7 +85,7 @@ div {
   import: mult
   import: exp
   import: sub
-  package: natural-div-1.24
+  package: natural-div-1.25
 }
 
 factorial {
@@ -95,7 +95,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.17
+  package: natural-factorial-1.18
 }
 
 distance {
@@ -105,7 +105,7 @@ distance {
   import: add
   import: mult
   import: sub
-  package: natural-distance-1.30
+  package: natural-distance-1.31
 }
 
 main {

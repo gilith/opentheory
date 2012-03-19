@@ -1,9 +1,9 @@
 name: list-zipwith-thm
-version: 1.29
+version: 1.30
 description: Properties of the list zipWith function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-02-07
+provenance: HOL Light theory extracted on 2012-03-18
 requires: bool
 requires: natural
 requires: list-def

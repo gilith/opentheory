@@ -1,9 +1,9 @@
 name: list-zipwith-def
-version: 1.33
+version: 1.34
 description: Definition of the list zipWith function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-02-10
+provenance: HOL Light theory extracted on 2012-03-18
 requires: bool
 requires: list-def
 requires: list-dest

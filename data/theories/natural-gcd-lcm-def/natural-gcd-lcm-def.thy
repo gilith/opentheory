@@ -1,9 +1,9 @@
 name: natural-gcd-lcm-def
-version: 1.6
+version: 1.7
 description: Definition of natural number least common multiple
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-02-10
+provenance: HOL Light theory extracted on 2012-03-18
 requires: bool
 requires: natural
 requires: natural-divides

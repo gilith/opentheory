@@ -1,5 +1,5 @@
 name: word16-bytes
-version: 1.43
+version: 1.45
 description: 16-bit word to byte pair conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,12 +20,12 @@ show: "Data.Word16.Bits"
 show: "Number.Natural"
 
 def {
-  package: word16-bytes-def-1.38
+  package: word16-bytes-def-1.40
 }
 
 thm {
   import: def
-  package: word16-bytes-thm-1.48
+  package: word16-bytes-thm-1.50
 }
 
 main {

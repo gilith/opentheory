@@ -1,9 +1,9 @@
 name: real-def
-version: 1.43
+version: 1.44
 description: Construction of the real numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-08
+provenance: HOL Light theory extracted on 2012-03-18
 requires: bool
 requires: function
 requires: pair

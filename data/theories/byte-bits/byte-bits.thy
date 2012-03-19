@@ -1,9 +1,9 @@
 name: byte-bits
-version: 1.42
+version: 1.44
 description: Byte to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-08
+provenance: HOL Light theory extracted on 2012-03-18
 requires: bool
 requires: natural
 requires: list

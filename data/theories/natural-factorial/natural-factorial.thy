@@ -1,5 +1,5 @@
 name: natural-factorial
-version: 1.17
+version: 1.18
 description: Natural number factorial
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,12 +14,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-factorial-def-1.16
+  package: natural-factorial-def-1.17
 }
 
 thm {
   import: def
-  package: natural-factorial-thm-1.16
+  package: natural-factorial-thm-1.17
 }
 
 main {

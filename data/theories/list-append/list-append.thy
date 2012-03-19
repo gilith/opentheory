@@ -1,5 +1,5 @@
 name: list-append
-version: 1.30
+version: 1.31
 description: The list append function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -17,12 +17,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-append-def-1.27
+  package: list-append-def-1.28
 }
 
 thm {
   import: def
-  package: list-append-thm-1.15
+  package: list-append-thm-1.16
 }
 
 main {
