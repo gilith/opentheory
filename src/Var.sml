@@ -127,28 +127,61 @@ val toString = Print.toString pp;
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun toHtml show =
-    let
-      val ppTy = Type.ppHtml show
-    in
-      fn var =>
-         let
-           val (name,ty) = dest var
+local
+  fun stripDigitSuffix s =
+      let
+        val n = size s
 
-           val attrs =
-               let
-                 val class = "var"
+        fun p i =
+            let
+              val j = i - 1
+            in
+              if 0 <= j andalso Char.isDigit (String.sub (s,j)) then p j else i
+            end
 
-                 and title = Name.toString name ^ " : " ^ Print.toString ppTy ty
-               in
-                 Html.fromListAttrs [("class",class),("title",title)]
-               end
+        val m = p n
+      in
+        if m = 0 orelse m = n then NONE
+        else SOME (String.substring (s,0,m), String.extract (s,m,NONE))
+      end;
+in
+  fun toHtml show =
+      let
+        val ppTy = Type.ppHtml show
+      in
+        fn var =>
+           let
+             val (name,ty) = dest var
 
-           val inlines = Name.toHtml name
-         in
-           [Html.Span (attrs,inlines)]
-         end
-    end;
+             val attrs =
+                 let
+                   val class = "var"
+
+                   and title =
+                       Name.toString name ^ " : " ^ Print.toString ppTy ty
+                 in
+                   Html.fromListAttrs [("class",class),("title",title)]
+                 end
+
+             val inlines =
+                 let
+                   val (ns,n) = Name.dest name
+                 in
+                   case stripDigitSuffix n of
+                     NONE => Name.toHtml name
+                   | SOME (n,d) =>
+                     let
+                       val r = Name.toHtml (Name.mk (ns,n))
+                       and s = Html.Sub [Html.Text d]
+                     in
+                       r @ [s]
+                     end
+                 end
+           in
+             [Html.Span (attrs,inlines)]
+           end
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Debugging.                                                                *)

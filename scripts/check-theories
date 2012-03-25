@@ -230,6 +230,14 @@ while (my $thy = <THEORIES>) {
     if ($files1 ne $files2) {
       print STDOUT "check-theories: different files in theory $thy\n";
     }
+
+    # Check the theorems
+
+    $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
+
+    if (system ($cmd) == 0) {
+      print STDOUT "check-theories: unwanted/system names in theory $thy\n";
+    }
 }
 
 close THEORIES;

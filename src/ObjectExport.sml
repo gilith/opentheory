@@ -359,10 +359,23 @@ local
         (abs,rep)
       end;
 
+  fun internalAbsRep (absM,repM) ot =
+      not (TypeOpMap.inDomain ot absM) andalso
+      not (TypeOpMap.inDomain ot repM);
+
+  val emptyStore : Object.object ObjectDataMap.map =
+      ObjectDataMap.new ();
+
+  fun peekStore (store : Object.object ObjectDataMap.map) d =
+      ObjectDataMap.peek store d;
+
+  fun addStore (store : Object.object ObjectDataMap.map) d_obj =
+      ObjectDataMap.insert store d_obj;
+
   fun brandTerm n abs_rep =
       let
         fun mkData d store =
-            case ObjectStore.peek store d of
+            case peekStore store d of
               SOME obj => (obj,store)
             | NONE =>
               let
@@ -381,7 +394,7 @@ local
                       else mkConst c store
                     | _ => mkStandard d store
 
-                val store = ObjectStore.add store obj
+                val store = addStore store (d,obj)
               in
                 (obj,store)
               end
@@ -412,7 +425,9 @@ local
               let
                 val TypeTerm.DefOpTy {pred,vars} = def
 
-                val ty = Type.domainFun (Term.typeOf pred)
+                val ty =
+                    if internalAbsRep abs_rep ot then Type.bool
+                    else Type.domainFun (Term.typeOf pred)
 
                 val c = Term.mkConst (Const.mkUndef n, ty)
 
@@ -611,7 +626,7 @@ in
 
         val abs_rep = ConstSet.foldl addAbsRep abs_rep cs
 
-        val store = ObjectStore.emptyDictionary
+        val store = emptyStore
         and exp = new savable
         and sqs = Sequents.sequents seqs
 
