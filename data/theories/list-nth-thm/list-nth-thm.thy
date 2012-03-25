@@ -1,21 +1,21 @@
 name: list-nth-thm
-version: 1.38
+version: 1.41
 description: Properties of the list nth function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-18
+provenance: HOL Light theory extracted on 2012-03-24
 requires: bool
+requires: list-append
+requires: list-def
+requires: list-dest
+requires: list-last
+requires: list-length
+requires: list-map
+requires: list-nth-def
+requires: list-set
+requires: list-thm
 requires: natural
 requires: set
-requires: list-def
-requires: list-thm
-requires: list-length
-requires: list-set
-requires: list-append
-requires: list-map
-requires: list-quant
-requires: list-last
-requires: list-nth-def
 show: "Data.Bool"
 show: "Data.List"
 show: "Number.Natural"

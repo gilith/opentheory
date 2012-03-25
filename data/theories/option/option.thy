@@ -1,5 +1,5 @@
 name: option
-version: 1.44
+version: 1.45
 description: Option types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,18 +10,18 @@ show: "Data.Option"
 show: "Number.Natural"
 
 def {
-  package: option-def-1.40
+  package: option-def-1.41
 }
 
 thm {
   import: def
-  package: option-thm-1.31
+  package: option-thm-1.32
 }
 
 dest {
   import: def
   import: thm
-  package: option-dest-1.33
+  package: option-dest-1.34
 }
 
 main {

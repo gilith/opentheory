@@ -1,16 +1,17 @@
 name: list-map
-version: 1.32
+version: 1.34
 description: The list map function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: set
+requires: list-append
 requires: list-def
-requires: list-thm
+requires: list-dest
 requires: list-length
 requires: list-set
-requires: list-append
+requires: list-thm
+requires: set
 show: "Data.Bool"
 show: "Data.List"
 show: "Function"
@@ -18,12 +19,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-map-def-1.28
+  package: list-map-def-1.29
 }
 
 thm {
   import: def
-  package: list-map-thm-1.35
+  package: list-map-thm-1.39
 }
 
 main {

@@ -1,9 +1,9 @@
 name: list-reverse-thm
-version: 1.12
+version: 1.13
 description: Properties of the list reverse function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-02-07
+provenance: HOL Light theory extracted on 2012-03-24
 requires: bool
 requires: natural
 requires: set

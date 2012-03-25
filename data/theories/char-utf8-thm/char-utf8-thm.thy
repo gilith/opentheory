@@ -1,9 +1,9 @@
 name: char-utf8-thm
-version: 1.63
+version: 1.65
 description: Properties of the UTF-8 encoding of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-18
+provenance: HOL Light theory extracted on 2012-03-24
 requires: bool
 requires: pair
 requires: natural

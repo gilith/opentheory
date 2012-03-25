@@ -1,25 +1,21 @@
 name: list-last
-version: 1.32
+version: 1.34
 description: The last list function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: set
 requires: list-def
-requires: list-thm
-requires: list-set
-requires: list-append
+requires: list-dest
 show: "Data.Bool"
 show: "Data.List"
-show: "Set"
 
 def {
-  package: list-last-def-1.26
+  package: list-last-def-1.27
 }
 
 thm {
   import: def
-  package: list-last-thm-1.34
+  package: list-last-thm-1.37
 }
 
 main {

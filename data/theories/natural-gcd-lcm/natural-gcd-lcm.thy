@@ -1,5 +1,5 @@
 name: natural-gcd-lcm
-version: 1.9
+version: 1.10
 description: Natural number least common multiple
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,12 +12,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-gcd-lcm-def-1.7
+  package: natural-gcd-lcm-def-1.8
 }
 
 thm {
   import: def
-  package: natural-gcd-lcm-thm-1.9
+  package: natural-gcd-lcm-thm-1.10
 }
 
 main {

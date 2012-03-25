@@ -1,25 +1,25 @@
-name: word-bits
-version: 1.42
-description: Word to bit-list conversions
+name: list-zip
+version: 1.1
+description: The list zip function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: list-def
+requires: list-dest
+requires: list-length
 requires: natural
-requires: list
-requires: word-def
 show: "Data.Bool"
 show: "Data.List"
-show: "Data.Word"
-show: "Data.Word.Bits"
+show: "Data.Pair"
 show: "Number.Natural"
 
 def {
-  package: word-bits-def-1.42
+  package: list-zip-def-1.1
 }
 
 thm {
   import: def
-  package: word-bits-thm-1.46
+  package: list-zip-thm-1.1
 }
 
 main {

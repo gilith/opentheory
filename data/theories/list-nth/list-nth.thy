@@ -1,32 +1,31 @@
 name: list-nth
-version: 1.35
+version: 1.38
 description: The list nth function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: list-append
+requires: list-def
+requires: list-dest
+requires: list-last
+requires: list-length
+requires: list-map
+requires: list-set
+requires: list-thm
 requires: natural
 requires: set
-requires: list-def
-requires: list-thm
-requires: list-dest
-requires: list-length
-requires: list-set
-requires: list-append
-requires: list-map
-requires: list-quant
-requires: list-last
 show: "Data.Bool"
 show: "Data.List"
 show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-nth-def-1.32
+  package: list-nth-def-1.34
 }
 
 thm {
   import: def
-  package: list-nth-thm-1.38
+  package: list-nth-thm-1.41
 }
 
 main {

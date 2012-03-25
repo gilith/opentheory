@@ -1,18 +1,19 @@
 name: list-map-thm
-version: 1.35
+version: 1.39
 description: Properties of the list map function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-18
+provenance: HOL Light theory extracted on 2012-03-24
 requires: bool
 requires: function
-requires: set
-requires: list-def
-requires: list-thm
-requires: list-length
-requires: list-set
 requires: list-append
+requires: list-def
+requires: list-dest
+requires: list-length
 requires: list-map-def
+requires: list-set
+requires: list-thm
+requires: set
 show: "Data.Bool"
 show: "Data.List"
 show: "Function"
