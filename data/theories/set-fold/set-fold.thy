@@ -1,23 +1,23 @@
 name: set-fold
-version: 1.28
+version: 1.29
 description: A fold operation on finite sets
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural
-requires: set-thm
 requires: set-finite
+requires: set-thm
 show: "Data.Bool"
 show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-fold-def-1.33
+  package: set-fold-def-1.34
 }
 
 thm {
   import: def
-  package: set-fold-thm-1.24
+  package: set-fold-thm-1.25
 }
 
 main {

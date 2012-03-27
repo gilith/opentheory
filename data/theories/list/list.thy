@@ -1,12 +1,12 @@
 name: list
-version: 1.54
+version: 1.55
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: pair
 requires: natural
+requires: pair
 requires: set
 show: "Data.Bool"
 show: "Data.List"
@@ -21,27 +21,27 @@ def {
 
 thm {
   import: def
-  package: list-thm-1.34
+  package: list-thm-1.35
 }
 
 dest {
   import: def
   import: thm
-  package: list-dest-1.30
+  package: list-dest-1.31
 }
 
 length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.32
+  package: list-length-1.33
 }
 
 set {
   import: def
   import: dest
   import: length
-  package: list-set-1.34
+  package: list-set-1.35
 }
 
 append {
@@ -83,7 +83,7 @@ reverse {
   import: set
   import: append
   import: map
-  package: list-reverse-1.30
+  package: list-reverse-1.31
 }
 
 fold {
@@ -91,7 +91,7 @@ fold {
   import: length
   import: append
   import: reverse
-  package: list-fold-1.7
+  package: list-fold-1.8
 }
 
 nth {
@@ -103,14 +103,14 @@ nth {
   import: append
   import: map
   import: last
-  package: list-nth-1.38
+  package: list-nth-1.39
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.35
+  package: list-replicate-1.36
 }
 
 take-drop {
@@ -120,13 +120,13 @@ take-drop {
   import: length
   import: append
   import: nth
-  package: list-take-drop-1.36
+  package: list-take-drop-1.37
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.37
+  package: list-interval-1.38
 }
 
 zip {

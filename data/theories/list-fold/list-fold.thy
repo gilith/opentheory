@@ -1,15 +1,15 @@
 name: list-fold
-version: 1.7
+version: 1.8
 description: List fold operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: natural
+requires: list-append
 requires: list-def
 requires: list-length
-requires: list-append
 requires: list-reverse
+requires: natural
 show: "Data.Bool"
 show: "Data.List"
 show: "Function"
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: list-fold-thm-1.8
+  package: list-fold-thm-1.9
 }
 
 main {

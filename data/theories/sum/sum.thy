@@ -1,18 +1,18 @@
 name: sum
-version: 1.36
+version: 1.37
 description: Sum types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: pair
 requires: natural
+requires: pair
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Data.Sum"
 show: "Number.Natural"
 
 def {
-  package: sum-def-1.43
+  package: sum-def-1.44
 }
 
 main {

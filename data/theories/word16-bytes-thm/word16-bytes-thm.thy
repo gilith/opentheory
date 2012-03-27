@@ -1,17 +1,17 @@
 name: word16-bytes-thm
-version: 1.52
+version: 1.54
 description: Properties of 16-bit word to byte pair conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2012-03-26
 requires: bool
-requires: pair
-requires: natural
-requires: list
 requires: byte
-requires: word16-def
+requires: list
+requires: natural
+requires: pair
 requires: word16-bits
 requires: word16-bytes-def
+requires: word16-def
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.Byte.Bits"

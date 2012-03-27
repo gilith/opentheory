@@ -1,13 +1,13 @@
 name: modular-def
-version: 1.39
+version: 1.41
 description: Definition of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2012-03-26
 requires: bool
+requires: modular-witness
 requires: natural
 requires: natural-divides
-requires: modular-witness
 show: "Data.Bool"
 show: "Number.Modular"
 show: "Number.Natural"

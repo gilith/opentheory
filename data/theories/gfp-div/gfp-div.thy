@@ -1,5 +1,5 @@
 name: gfp-div
-version: 1.31
+version: 1.33
 description: GF(p) field division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,9 +10,9 @@ requires: gfp-witness
 requires: list
 requires: natural
 requires: natural-divides
+requires: natural-fibonacci
 requires: natural-gcd
 requires: natural-prime
-requires: natural-fibonacci
 requires: pair
 requires: relation
 show: "Data.Bool"
@@ -23,24 +23,24 @@ show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 
 def {
-  package: gfp-div-def-1.28
+  package: gfp-div-def-1.30
 }
 
 thm {
   import: def
-  package: gfp-div-thm-1.26
+  package: gfp-div-thm-1.28
 }
 
 gcd {
   import: def
   import: thm
-  package: gfp-div-gcd-1.21
+  package: gfp-div-gcd-1.23
 }
 
 exp {
   import: def
   import: thm
-  package: gfp-div-exp-1.3
+  package: gfp-div-exp-1.5
 }
 
 main {

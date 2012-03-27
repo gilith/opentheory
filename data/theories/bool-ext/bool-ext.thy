@@ -1,12 +1,12 @@
 name: bool-ext
-version: 1.7
+version: 1.8
 description: Extensional boolean theorems
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2011-11-12
+requires: axiom-extensionality
 requires: bool-def
 requires: bool-int
-requires: axiom-extensionality
 show: "Data.Bool"
 
 main {

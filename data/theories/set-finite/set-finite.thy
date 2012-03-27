@@ -1,12 +1,12 @@
 name: set-finite
-version: 1.32
+version: 1.33
 description: Finite sets
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: pair
 requires: natural
+requires: pair
 requires: set-def
 requires: set-thm
 show: "Data.Bool"
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: set-finite-thm-1.37
+  package: set-finite-thm-1.38
 }
 
 main {

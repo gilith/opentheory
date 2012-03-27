@@ -231,6 +231,22 @@ while (my $thy = <THEORIES>) {
       print STDOUT "check-theories: different files in theory $thy\n";
     }
 
+    # Check the requires: list in theory files
+
+    $cmd = "grep '^requires: ' $thydir/$thy.thy | sort -c 2> /dev/null";
+
+    if (system($cmd) != 0) {
+      print STDOUT "check-theories: unsorted requires: list in theory $thy\n";
+    }
+
+    # Check the show: list in theory files
+
+    $cmd = "grep '^show: ' $thydir/$thy.thy | sed 's/^show: .* as /show: /' | sort -c 2> /dev/null";
+
+    if (system($cmd) != 0) {
+      print STDOUT "check-theories: unsorted show: list in theory $thy\n";
+    }
+
     # Check the theorems
 
     $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";

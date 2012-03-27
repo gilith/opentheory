@@ -1,16 +1,16 @@
 name: char
-version: 1.63
+version: 1.65
 description: Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: pair
+requires: byte
+requires: list
 requires: natural
 requires: option
-requires: list
-requires: byte
-requires: word16
+requires: pair
 requires: parser
+requires: word16
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.Byte.Bits"
@@ -26,18 +26,18 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: char-def-1.52
+  package: char-def-1.54
 }
 
 thm {
   import: def
-  package: char-thm-1.8
+  package: char-thm-1.9
 }
 
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.60
+  package: char-utf8-1.62
 }
 
 main {

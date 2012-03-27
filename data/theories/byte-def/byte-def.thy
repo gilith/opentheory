@@ -1,12 +1,12 @@
 name: byte-def
-version: 1.21
+version: 1.23
 description: Definition of bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-07-25
 requires: bool
-requires: natural
 requires: list
+requires: natural
 requires: natural-divides
 show: "Data.Bool"
 show: "Data.Byte"
@@ -42,7 +42,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Byte.Bits.fromByte"
   interpret: const "Data.Word.Bits.normal" as "Data.Byte.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Byte.Bits.toByte"
-  package: word-1.46
+  package: word-1.48
 }
 
 main {

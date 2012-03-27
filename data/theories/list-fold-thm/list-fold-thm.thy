@@ -1,17 +1,17 @@
 name: list-fold-thm
-version: 1.8
+version: 1.9
 description: Properties of the list fold operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-03-24
 requires: bool
 requires: function
-requires: natural
-requires: list-def
-requires: list-length
 requires: list-append
-requires: list-reverse
+requires: list-def
 requires: list-fold-def
+requires: list-length
+requires: list-reverse
+requires: natural
 show: "Data.Bool"
 show: "Data.List"
 show: "Function"

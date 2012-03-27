@@ -1,16 +1,16 @@
 name: list-reverse
-version: 1.30
+version: 1.31
 description: The list reverse function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: natural
-requires: set
+requires: list-append
 requires: list-def
 requires: list-length
-requires: list-set
-requires: list-append
 requires: list-map
+requires: list-set
+requires: natural
+requires: set
 show: "Data.Bool"
 show: "Data.List"
 show: "Number.Natural"
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: list-reverse-thm-1.13
+  package: list-reverse-thm-1.14
 }
 
 main {

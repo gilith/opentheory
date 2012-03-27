@@ -1,16 +1,16 @@
 name: list-replicate-thm
-version: 1.37
+version: 1.38
 description: Properties of the list replicate function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-03-24
 requires: bool
-requires: natural
-requires: set
 requires: list-length
-requires: list-set
 requires: list-nth
 requires: list-replicate-def
+requires: list-set
+requires: natural
+requires: set
 show: "Data.Bool"
 show: "Data.List"
 show: "Number.Natural"

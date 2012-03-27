@@ -1,14 +1,14 @@
 name: natural-sub-def
-version: 1.18
+version: 1.19
 description: Definition of natural number subtraction
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-03-18
 requires: bool
-requires: natural-def
-requires: natural-thm
-requires: natural-dest
 requires: natural-add
+requires: natural-def
+requires: natural-dest
+requires: natural-thm
 show: "Data.Bool"
 show: "Number.Natural"
 

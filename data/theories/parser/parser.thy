@@ -1,15 +1,15 @@
 name: parser
-version: 1.59
+version: 1.61
 description: Stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: pair
-requires: natural
-requires: relation
-requires: option
 requires: list
+requires: natural
+requires: option
+requires: pair
+requires: relation
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
@@ -21,18 +21,18 @@ show: "Parser.Stream"
 show: "Relation"
 
 stream {
-  package: parser-stream-1.53
+  package: parser-stream-1.55
 }
 
 comb {
   import: stream
-  package: parser-comb-1.46
+  package: parser-comb-1.48
 }
 
 all {
   import: stream
   import: comb
-  package: parser-all-1.51
+  package: parser-all-1.53
 }
 
 main {

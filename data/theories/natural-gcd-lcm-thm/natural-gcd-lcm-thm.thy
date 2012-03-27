@@ -1,15 +1,15 @@
 name: natural-gcd-lcm-thm
-version: 1.10
+version: 1.12
 description: Properties of natural number least common multiple
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2012-03-26
 requires: bool
 requires: natural
 requires: natural-divides
 requires: natural-gcd-def
-requires: natural-gcd-thm
 requires: natural-gcd-lcm-def
+requires: natural-gcd-thm
 show: "Data.Bool"
 show: "Number.Natural"
 

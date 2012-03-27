@@ -1,13 +1,13 @@
 name: set-thm
-version: 1.39
+version: 1.40
 description: Properties of set types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-03-24
 requires: bool
 requires: function
-requires: pair
 requires: natural
+requires: pair
 requires: set-def
 show: "Data.Bool"
 show: "Data.Pair"

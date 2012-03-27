@@ -1,27 +1,27 @@
 name: natural-div
-version: 1.25
+version: 1.26
 description: Natural number division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: natural-add
 requires: natural-def
-requires: natural-thm
+requires: natural-exp
+requires: natural-mult
 requires: natural-numeral
 requires: natural-order
-requires: natural-add
-requires: natural-mult
-requires: natural-exp
 requires: natural-sub
+requires: natural-thm
 show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-div-def-1.27
+  package: natural-div-def-1.28
 }
 
 thm {
   import: def
-  package: natural-div-thm-1.29
+  package: natural-div-thm-1.30
 }
 
 main {

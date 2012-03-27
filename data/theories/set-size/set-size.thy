@@ -1,15 +1,15 @@
 name: set-size
-version: 1.36
+version: 1.37
 description: Finite set cardinality
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: pair
 requires: natural
+requires: pair
 requires: set-def
-requires: set-thm
 requires: set-finite
 requires: set-fold
+requires: set-thm
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Number.Natural"
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: set-size-thm-1.41
+  package: set-size-thm-1.42
 }
 
 main {

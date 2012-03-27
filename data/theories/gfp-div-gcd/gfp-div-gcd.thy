@@ -1,31 +1,31 @@
 name: gfp-div-gcd
-version: 1.21
+version: 1.23
 description: A GF(p) division algorithm based on gcd
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: pair
-requires: natural
-requires: relation
-requires: natural-gcd
-requires: natural-prime
-requires: gfp-witness
 requires: gfp-def
-requires: gfp-thm
 requires: gfp-div-def
 requires: gfp-div-thm
+requires: gfp-thm
+requires: gfp-witness
+requires: natural
+requires: natural-gcd
+requires: natural-prime
+requires: pair
+requires: relation
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Number.GF(p)"
 show: "Number.Natural"
 
 def {
-  package: gfp-div-gcd-def-1.20
+  package: gfp-div-gcd-def-1.21
 }
 
 thm {
   import: def
-  package: gfp-div-gcd-thm-1.23
+  package: gfp-div-gcd-thm-1.25
 }
 
 main {

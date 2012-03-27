@@ -1,27 +1,27 @@
 name: real
-version: 1.36
+version: 1.37
 description: The real numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: pair
 requires: natural
+requires: pair
 requires: set
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Function"
-show: "Number.Natural" as "Natural"
+show: "Number.Natural"
 show: "Number.Real"
 show: "Set"
 
 def {
-  package: real-def-1.45
+  package: real-def-1.46
 }
 
 thm {
   import: def
-  package: real-thm-1.28
+  package: real-thm-1.29
 }
 
 main {

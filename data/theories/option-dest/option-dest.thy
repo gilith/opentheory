@@ -1,5 +1,5 @@
 name: option-dest
-version: 1.34
+version: 1.35
 description: Option type destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,7 +15,7 @@ def {
 
 thm {
   import: def
-  package: option-dest-thm-1.8
+  package: option-dest-thm-1.9
 }
 
 main {

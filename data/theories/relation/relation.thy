@@ -1,12 +1,12 @@
 name: relation
-version: 1.35
+version: 1.36
 description: Relation operators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: pair
 requires: natural
+requires: pair
 requires: set
 show: "Data.Bool"
 show: "Data.Pair"
@@ -20,7 +20,7 @@ def {
 
 thm {
   import: def
-  package: relation-thm-1.4
+  package: relation-thm-1.5
 }
 
 well-founded {
@@ -33,7 +33,7 @@ natural {
   import: def
   import: thm
   import: well-founded
-  package: relation-natural-1.14
+  package: relation-natural-1.15
 }
 
 main {

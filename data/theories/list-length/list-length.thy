@@ -1,13 +1,13 @@
 name: list-length
-version: 1.32
+version: 1.33
 description: The list length function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
-requires: natural
 requires: list-def
-requires: list-thm
 requires: list-dest
+requires: list-thm
+requires: natural
 show: "Data.Bool"
 show: "Data.List"
 show: "Number.Natural"
@@ -18,7 +18,7 @@ def {
 
 thm {
   import: def
-  package: list-length-thm-1.35
+  package: list-length-thm-1.36
 }
 
 main {

@@ -1,12 +1,12 @@
 name: word10-def
-version: 1.22
+version: 1.24
 description: Definition of 10-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-07-25
 requires: bool
-requires: natural
 requires: list
+requires: natural
 requires: natural-divides
 show: "Data.Bool"
 show: "Data.List"
@@ -42,7 +42,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word10.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word10.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word10.Bits.toWord"
-  package: word-1.46
+  package: word-1.48
 }
 
 main {

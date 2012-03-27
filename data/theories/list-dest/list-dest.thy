@@ -1,5 +1,5 @@
 name: list-dest
-version: 1.30
+version: 1.31
 description: List type destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,7 +15,7 @@ def {
 
 thm {
   import: def
-  package: list-dest-thm-1.10
+  package: list-dest-thm-1.11
 }
 
 main {

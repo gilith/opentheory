@@ -1,13 +1,13 @@
 name: natural-add
-version: 1.38
+version: 1.39
 description: Natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural-def
-requires: natural-thm
 requires: natural-numeral
 requires: natural-order
+requires: natural-thm
 show: "Data.Bool"
 show: "Number.Natural"
 
@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: natural-add-thm-1.31
+  package: natural-add-thm-1.32
 }
 
 main {

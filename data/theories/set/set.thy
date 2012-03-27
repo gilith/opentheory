@@ -1,12 +1,12 @@
 name: set
-version: 1.38
+version: 1.40
 description: Set types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
-requires: pair
 requires: natural
+requires: pair
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Function"
@@ -19,19 +19,19 @@ def {
 
 thm {
   import: def
-  package: set-thm-1.39
+  package: set-thm-1.40
 }
 
 finite {
   import: def
   import: thm
-  package: set-finite-1.32
+  package: set-finite-1.33
 }
 
 fold {
   import: thm
   import: finite
-  package: set-fold-1.28
+  package: set-fold-1.29
 }
 
 size {
@@ -39,7 +39,7 @@ size {
   import: thm
   import: finite
   import: fold
-  package: set-size-1.36
+  package: set-size-1.37
 }
 
 main {

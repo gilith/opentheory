@@ -1,15 +1,15 @@
 name: natural-factorial
-version: 1.18
+version: 1.20
 description: Natural number factorial
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: natural-add
 requires: natural-def
-requires: natural-thm
+requires: natural-mult
 requires: natural-numeral
 requires: natural-order
-requires: natural-add
-requires: natural-mult
+requires: natural-thm
 show: "Data.Bool"
 show: "Number.Natural"
 
@@ -19,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: natural-factorial-thm-1.17
+  package: natural-factorial-thm-1.18
 }
 
 main {

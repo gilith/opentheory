@@ -1,15 +1,15 @@
 name: natural-exp
-version: 1.25
+version: 1.26
 description: Natural number exponentiation
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: natural-add
 requires: natural-def
-requires: natural-thm
+requires: natural-mult
 requires: natural-numeral
 requires: natural-order
-requires: natural-add
-requires: natural-mult
+requires: natural-thm
 show: "Data.Bool"
 show: "Number.Natural"
 
@@ -19,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: natural-exp-thm-1.25
+  package: natural-exp-thm-1.26
 }
 
 main {

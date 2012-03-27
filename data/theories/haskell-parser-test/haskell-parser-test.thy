@@ -1,14 +1,14 @@
 name: haskell-parser-test
-version: 1.9
+version: 1.10
 description: QuickCheck tests for simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-03-01
 requires: base
-requires: parser
 requires: haskell
 requires: haskell-parser-def
 requires: haskell-parser-thm
+requires: parser
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"

@@ -1,5 +1,5 @@
 name: haskell
-version: 1.7
+version: 1.8
 description: The Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -11,12 +11,12 @@ show: "Data.List"
 show: "Data.Option"
 
 def {
-  package: haskell-def-1.9
+  package: haskell-def-1.10
 }
 
 thm {
   import: def
-  package: haskell-thm-1.9
+  package: haskell-thm-1.10
 }
 
 main {
