@@ -1,5 +1,5 @@
 name: list
-version: 1.55
+version: 1.56
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.41
+  package: list-def-1.42
 }
 
 thm {
   import: def
-  package: list-thm-1.35
+  package: list-thm-1.36
 }
 
 dest {
@@ -103,14 +103,14 @@ nth {
   import: append
   import: map
   import: last
-  package: list-nth-1.39
+  package: list-nth-1.40
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.36
+  package: list-replicate-1.37
 }
 
 take-drop {
@@ -120,20 +120,20 @@ take-drop {
   import: length
   import: append
   import: nth
-  package: list-take-drop-1.37
+  package: list-take-drop-1.38
 }
 
 interval {
   import: length
   import: nth
-  package: list-interval-1.38
+  package: list-interval-1.39
 }
 
 zip {
   import: def
   import: dest
   import: length
-  package: list-zip-1.1
+  package: list-zip-1.2
 }
 
 nub {

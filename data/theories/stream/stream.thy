@@ -1,23 +1,25 @@
-name: set-fold
-version: 1.30
-description: A fold operation on finite sets
+name: stream
+version: 1.2
+description: Stream types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: list
 requires: natural
-requires: set-finite
-requires: set-thm
+requires: pair
 show: "Data.Bool"
+show: "Data.List"
+show: "Data.Pair"
+show: "Data.Stream"
 show: "Number.Natural"
-show: "Set"
 
 def {
-  package: set-fold-def-1.35
+  package: stream-def-1.7
 }
 
 thm {
   import: def
-  package: set-fold-thm-1.25
+  package: stream-thm-1.3
 }
 
 main {

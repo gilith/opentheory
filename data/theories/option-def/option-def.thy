@@ -1,9 +1,9 @@
 name: option-def
-version: 1.41
+version: 1.42
 description: Definition of option types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2012-03-26
 requires: bool
 requires: natural
 show: "Data.Bool"

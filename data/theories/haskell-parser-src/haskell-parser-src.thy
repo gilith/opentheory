@@ -1,9 +1,9 @@
 name: haskell-parser-src
-version: 1.40
+version: 1.44
 description: Haskell source for simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-26
+provenance: HOL Light theory extracted on 2012-03-29
 requires: base
 requires: haskell-parser-def
 requires: haskell-parser-thm

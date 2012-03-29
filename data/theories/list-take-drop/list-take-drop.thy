@@ -1,5 +1,5 @@
 name: list-take-drop
-version: 1.37
+version: 1.38
 description: The list take and drop functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: list-take-drop-thm-1.39
+  package: list-take-drop-thm-1.40
 }
 
 main {

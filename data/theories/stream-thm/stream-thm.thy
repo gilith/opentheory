@@ -1,19 +1,20 @@
-name: byte-bits
-version: 1.51
-description: Byte to bit-list conversions
+name: stream-thm
+version: 1.4
+description: Properties of stream types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-03-29
 requires: bool
-requires: byte-def
 requires: list
 requires: natural
+requires: pair
+requires: stream-def
 show: "Data.Bool"
-show: "Data.Byte"
-show: "Data.Byte.Bits"
 show: "Data.List"
+show: "Data.Pair"
+show: "Data.Stream"
 show: "Number.Natural"
 
 main {
-  article: "byte-bits.art"
+  article: "stream-thm.art"
 }

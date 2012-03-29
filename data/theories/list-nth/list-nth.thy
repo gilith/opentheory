@@ -1,5 +1,5 @@
 name: list-nth
-version: 1.39
+version: 1.40
 description: The list nth function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -25,7 +25,7 @@ def {
 
 thm {
   import: def
-  package: list-nth-thm-1.41
+  package: list-nth-thm-1.42
 }
 
 main {

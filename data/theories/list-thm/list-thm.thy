@@ -1,9 +1,9 @@
 name: list-thm
-version: 1.35
+version: 1.36
 description: Properties of list types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2012-03-26
 requires: bool
 requires: list-def
 requires: natural

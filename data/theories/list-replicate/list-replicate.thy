@@ -1,5 +1,5 @@
 name: list-replicate
-version: 1.36
+version: 1.37
 description: The list replicate function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ def {
 
 thm {
   import: def
-  package: list-replicate-thm-1.38
+  package: list-replicate-thm-1.39
 }
 
 main {
