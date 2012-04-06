@@ -285,10 +285,6 @@ fun checkSequent show class seq =
             0 => errs
           | 1 => "free variable" :: errs
           | _ => "free variables" :: errs
-
-      val errs =
-          if not (Term.isConj (Sequent.concl seq)) then errs
-          else "top-level conjunction" :: errs
     in
       case errs of
         [] => ()

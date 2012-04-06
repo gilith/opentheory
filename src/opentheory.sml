@@ -36,7 +36,7 @@ val program = "opentheory";
 
 val version = "1.1";
 
-val release = " (release 20120326)";
+val release = " (release 20120406)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
