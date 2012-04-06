@@ -1,9 +1,9 @@
 name: char-utf8-def
-version: 1.53
+version: 1.54
 description: Definition of the UTF-8 encoding of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-29
+provenance: HOL Light theory extracted on 2012-04-05
 requires: bool
 requires: pair
 show: "Data.Bool"

@@ -1,5 +1,5 @@
 name: parser
-version: 1.65
+version: 1.66
 description: Stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,18 +21,18 @@ show: "Parser.Stream"
 show: "Relation"
 
 stream {
-  package: parser-stream-1.59
+  package: parser-stream-1.60
 }
 
 comb {
   import: stream
-  package: parser-comb-1.52
+  package: parser-comb-1.53
 }
 
 all {
   import: stream
   import: comb
-  package: parser-all-1.57
+  package: parser-all-1.58
 }
 
 main {

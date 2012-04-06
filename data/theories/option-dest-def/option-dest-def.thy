@@ -1,9 +1,9 @@
 name: option-dest-def
-version: 1.37
+version: 1.38
 description: Definition of option type destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2012-04-05
 requires: bool
 requires: option-def
 show: "Data.Bool"

@@ -1,5 +1,5 @@
 name: probability
-version: 1.0
+version: 1.3
 description: Probability
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,7 +10,7 @@ show: "Data.Stream"
 show: "Probability.Random"
 
 def {
-  package: probability-def-1.3
+  package: probability-def-1.6
 }
 
 main {

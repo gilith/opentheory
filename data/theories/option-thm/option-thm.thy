@@ -1,9 +1,9 @@
 name: option-thm
-version: 1.33
+version: 1.34
 description: Properties of option types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-26
+provenance: HOL Light theory extracted on 2012-04-05
 requires: bool
 requires: natural
 requires: option-def

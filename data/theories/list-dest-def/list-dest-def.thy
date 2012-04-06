@@ -1,9 +1,9 @@
 name: list-dest-def
-version: 1.33
+version: 1.34
 description: Definition of list type destructors
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2012-04-05
 requires: bool
 requires: list-def
 show: "Data.Bool"
