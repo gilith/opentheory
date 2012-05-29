@@ -1,8 +1,10 @@
 name: h
-version: 1.57
-description: The memory safety proof of the H API
+version: 1.70
+description: Memory safety for the H API
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+requires: base
+requires: word10
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.List"
@@ -16,12 +18,12 @@ show: "Set"
 show: "System.H"
 
 def {
-  package: h-def-1.60
+  package: h-def-1.73
 }
 
 thm {
   import: def
-  package: h-thm-1.61
+  package: h-thm-1.75
 }
 
 main {

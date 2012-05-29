@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.73
+version: 1.77
 description: Simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,18 +14,18 @@ show: "Haskell.Parser"
 show: "Number.Natural"
 
 def {
-  package: haskell-parser-def-1.26
+  package: haskell-parser-def-1.30
 }
 
 thm {
   import: def
-  package: haskell-parser-thm-1.22
+  package: haskell-parser-thm-1.26
 }
 
 src {
   import: def
   import: thm
-  package: haskell-parser-src-1.46
+  package: haskell-parser-src-1.50
 }
 
 test {

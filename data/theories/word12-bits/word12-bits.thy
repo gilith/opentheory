@@ -1,9 +1,9 @@
 name: word12-bits
-version: 1.47
+version: 1.48
 description: 12-bit word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-04-05
+provenance: HOL Light theory extracted on 2012-05-18
 requires: bool
 requires: list
 requires: natural

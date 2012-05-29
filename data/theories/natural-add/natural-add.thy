@@ -1,5 +1,5 @@
 name: natural-add
-version: 1.41
+version: 1.42
 description: Natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: natural-add-thm-1.34
+  package: natural-add-thm-1.35
 }
 
 main {

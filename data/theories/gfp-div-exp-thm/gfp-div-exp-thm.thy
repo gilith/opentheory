@@ -1,9 +1,9 @@
 name: gfp-div-exp-thm
-version: 1.11
+version: 1.12
 description: Properties of a GF(p) exponentiation algorithm based on division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-04-05
+provenance: HOL Light theory extracted on 2012-05-18
 requires: bool
 requires: gfp-def
 requires: gfp-div-def

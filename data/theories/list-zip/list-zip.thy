@@ -1,5 +1,5 @@
 name: list-zip
-version: 1.3
+version: 1.5
 description: The list zip function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,6 +7,7 @@ requires: bool
 requires: list-def
 requires: list-dest
 requires: list-length
+requires: list-nth
 requires: natural
 show: "Data.Bool"
 show: "Data.List"
@@ -19,7 +20,7 @@ def {
 
 thm {
   import: def
-  package: list-zip-thm-1.3
+  package: list-zip-thm-1.5
 }
 
 main {

@@ -1,5 +1,5 @@
 name: byte
-version: 1.58
+version: 1.59
 description: Bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,12 +14,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: byte-def-1.31
+  package: byte-def-1.32
 }
 
 bits {
   import: def
-  package: byte-bits-1.52
+  package: byte-bits-1.53
 }
 
 main {
