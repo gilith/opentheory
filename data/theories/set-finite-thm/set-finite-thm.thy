@@ -1,9 +1,9 @@
 name: set-finite-thm
-version: 1.40
+version: 1.41
 description: Properties of finite sets
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-04-05
+provenance: HOL Light theory extracted on 2012-06-04
 requires: bool
 requires: function
 requires: natural
