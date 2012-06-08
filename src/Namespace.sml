@@ -77,6 +77,8 @@ and naturalNamespaceComponent = "Natural"
 and numberNamespaceComponent = "Number"
 and optionNamespaceComponent = "Option"
 and pairNamespaceComponent = "Pair"
+and probabilityNamespaceComponent = "Probability"
+and randomNamespaceComponent = "Random"
 and setNamespaceComponent = "Set";
 
 (* Standard type operators *)
@@ -88,11 +90,13 @@ and listTypeOpComponent = "list"
 and naturalTypeOpComponent = "natural"
 and optionTypeOpComponent = "option"
 and pairTypeOpComponent = "*"
+and randomTypeOpComponent = "random"
 and sumTypeOpComponent = "+";
 
 (* Standard constants *)
 
 val addConstComponent = "+"
+and bitConstComponent = "bit"
 and bit0ConstComponent = "bit0"
 and bit1ConstComponent = "bit1"
 and composeConstComponent = "o"
@@ -127,6 +131,7 @@ and pairConstComponent = ","
 and properSubsetConstComponent = "properSubset"
 and selectConstComponent = "select"
 and someConstComponent = "some"
+and splitConstComponent = "split"
 and subsetConstComponent = "subset"
 and sucConstComponent = "suc"
 and trueConstComponent = "T"
@@ -255,6 +260,7 @@ in
   val data = mkGlobal dataNamespaceComponent
   and function = mkGlobal functionNamespaceComponent
   and number = mkGlobal numberNamespaceComponent
+  and probability = mkGlobal probabilityNamespaceComponent
   and set = mkGlobal setNamespaceComponent;
 end;
 
@@ -275,6 +281,14 @@ local
   fun mkNumber c = mkNested (number,c);
 in
   val natural = mkNumber naturalNamespaceComponent;
+end;
+
+(* Probability *)
+
+local
+  fun mkProbability c = mkNested (probability,c);
+in
+  val random = mkProbability randomNamespaceComponent;
 end;
 
 (* ------------------------------------------------------------------------- *)

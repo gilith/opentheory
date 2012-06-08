@@ -96,6 +96,10 @@ val pairTypeOp : name
 
 val naturalTypeOp : name
 
+(* Random streams *)
+
+val randomTypeOp : name
+
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -147,6 +151,11 @@ val isFromNaturalConst : name -> bool
 val minimalConst : name
 val sucConst : name
 val zeroConst : name
+
+(* Random streams *)
+
+val bitConst : name
+val splitConst : name
 
 (* Sets *)
 

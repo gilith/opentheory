@@ -47,6 +47,8 @@ val naturalNamespaceComponent : component
 val numberNamespaceComponent : component
 val optionNamespaceComponent : component
 val pairNamespaceComponent : component
+val probabilityNamespaceComponent : component
+val randomNamespaceComponent : component
 val setNamespaceComponent : component
 
 (* Standard type operators *)
@@ -58,11 +60,13 @@ val listTypeOpComponent : component
 val naturalTypeOpComponent : component
 val optionTypeOpComponent : component
 val pairTypeOpComponent : component
+val randomTypeOpComponent : component
 val sumTypeOpComponent : component
 
 (* Standard constants *)
 
 val addConstComponent : component
+val bitConstComponent : component
 val bit0ConstComponent : component
 val bit1ConstComponent : component
 val caseConstComponent : component
@@ -97,6 +101,7 @@ val pairConstComponent : component
 val properSubsetConstComponent : component
 val selectConstComponent : component
 val someConstComponent : component
+val splitConstComponent : component
 val subsetConstComponent : component
 val sucConstComponent : component
 val trueConstComponent : component
@@ -170,6 +175,8 @@ val natural : namespace
 val option : namespace
 
 val pair : namespace
+
+val random : namespace
 
 val set : namespace
 

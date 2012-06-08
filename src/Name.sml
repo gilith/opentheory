@@ -214,6 +214,14 @@ in
   val naturalTypeOp = mkNatural Namespace.naturalTypeOpComponent;
 end;
 
+(* Random streams *)
+
+local
+  fun mkRandom c = mk (Namespace.random,c);
+in
+  val randomTypeOp = mkRandom Namespace.randomTypeOpComponent;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -291,6 +299,15 @@ end;
 
 fun isFromNaturalConst n =
     component n = Namespace.fromNaturalConstComponent;
+
+(* Random streams *)
+
+local
+  fun mkRandom c = mk (Namespace.random,c);
+in
+  val bitConst = mkRandom Namespace.bitConstComponent
+  and splitConst = mkRandom Namespace.splitConstComponent;
+end;
 
 (* Sets *)
 

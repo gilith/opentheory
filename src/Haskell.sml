@@ -65,13 +65,19 @@ in
 end;
 
 local
-  val mkOpentheoryNamespace = Namespace.append opentheoryNamespace;
+  val mkOpentheoryNamespace =
+      let
+        val ns = Namespace.mkNested (opentheoryNamespace,"Primitive")
+      in
+        Namespace.append ns
+      end;
 
   fun mkOpentheoryName ns s =
       Name.mk (mkOpentheoryNamespace ns, s);
 
   val mkListName = mkOpentheoryName Namespace.list
-  and mkNaturalName = mkOpentheoryName Namespace.natural;
+  and mkNaturalName = mkOpentheoryName Namespace.natural
+  and mkRandomName = mkOpentheoryName Namespace.random;
 
   val typeOpMapping =
       NameMap.fromList
@@ -80,11 +86,13 @@ local
          (Name.listTypeOp, Name.mkGlobal "List"),
          (Name.naturalTypeOp, mkNaturalName "Natural"),
          (Name.optionTypeOp, Name.mkGlobal "Maybe"),
-         (Name.pairTypeOp, Name.mkGlobal "Pair")];
+         (Name.pairTypeOp, Name.mkGlobal "Pair"),
+         (Name.randomTypeOp, mkRandomName "Random")];
 
   val constMapping =
       NameMap.fromList
         [(Name.addConst, Name.mkGlobal "+"),
+         (Name.bitConst, mkRandomName "bit"),
          (Name.bit0Const, Name.mkGlobal "--bit0--"),
          (Name.bit1Const, Name.mkGlobal "--bit1--"),
          (Name.condConst, Name.mkGlobal "--cond--"),
@@ -98,6 +106,7 @@ local
          (Name.pairConst, Name.mkGlobal ","),
          (Name.selectConst, Name.mkGlobal "--select--"),
          (Name.someConst, Name.mkGlobal "Just"),
+         (Name.splitConst, mkRandomName "split"),
          (Name.zeroConst, mkNaturalName "zero")];
 
   fun exportName n =
