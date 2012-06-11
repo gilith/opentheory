@@ -34,7 +34,7 @@ map f p = partialMap (\b -> Just (f b)) p
 parse :: Parser a b -> Stream.Stream a -> Maybe (b, Stream.Stream a)
 parse _ Stream.Error = Nothing
 parse _ Stream.Eof = Nothing
-parse p (Stream.Stream a s) = unParser p a s
+parse p (Stream.Cons a s) = unParser p a s
 
 parseAll :: Parser a a
 parseAll =
@@ -72,7 +72,7 @@ parseSome p = parseOption (\a -> if p a then Just a else Nothing)
 parseStream :: Parser a b -> Stream.Stream a -> Stream.Stream b
 parseStream _ Stream.Error = Stream.Error
 parseStream _ Stream.Eof = Stream.Eof
-parseStream p (Stream.Stream a s) =
+parseStream p (Stream.Cons a s) =
   case unParser p a s of
     Nothing -> Stream.Error
-    Just (b, s') -> Stream.Stream b (parseStream p s')
+    Just (b, s') -> Stream.Cons b (parseStream p s')

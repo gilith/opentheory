@@ -9,7 +9,7 @@ Portability: portable
 
 OpenTheory QuickCheck interface
 -}
-module OpenTheory.Test
+module OpenTheory.Primitive.Test
   ( check )
 where
 
@@ -19,6 +19,6 @@ checkArgs :: Test.QuickCheck.Args
 checkArgs = Test.QuickCheck.stdArgs { maxSuccess = 100 }
 
 check :: Testable prop => String -> prop -> IO ()
-check name prop =
-  do putStr (name ++ ": ")
+check desc prop =
+  do putStr desc
      Test.QuickCheck.quickCheckWith checkArgs prop

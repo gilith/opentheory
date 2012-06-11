@@ -1,9 +1,9 @@
 name: h-thm
-version: 1.75
+version: 1.80
 description: Proof of memory safety for the H API
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-05-29
+provenance: HOL Light theory extracted on 2012-06-10
 requires: base
 requires: h-def
 requires: word10
@@ -13,7 +13,6 @@ show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
 show: "Data.Word10"
-show: "Data.Word12"
 show: "Function"
 show: "Number.Natural"
 show: "Set"

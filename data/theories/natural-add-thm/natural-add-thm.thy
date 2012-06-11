@@ -1,9 +1,9 @@
 name: natural-add-thm
-version: 1.35
+version: 1.36
 description: Properties of natural number addition
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-05-18
+provenance: HOL Light theory extracted on 2012-06-08
 requires: bool
 requires: natural-add-def
 requires: natural-def

@@ -1,5 +1,5 @@
 name: parser-all
-version: 1.59
+version: 1.63
 description: The whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,12 +19,12 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-all-def-1.56
+  package: parser-all-def-1.60
 }
 
 thm {
   import: def
-  package: parser-all-thm-1.62
+  package: parser-all-thm-1.66
 }
 
 main {

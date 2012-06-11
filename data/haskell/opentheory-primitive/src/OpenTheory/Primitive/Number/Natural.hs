@@ -9,28 +9,27 @@ Portability: portable
 
 A natural number type
 -}
-module OpenTheory.Number.Natural
-  ( Natural,
-    equal )
+module OpenTheory.Primitive.Number.Natural
+  ( Natural )
 where
-
-import Test.QuickCheck
 
 newtype Natural =
     Natural { unNatural :: Integer }
-  deriving (Eq,Show)
+  deriving Eq
 
-instance Arbitrary Natural where
-  arbitrary = fmap fromInt arbitrary
-      where
-    fromInt :: Integer -> Natural
-    fromInt x = Natural (if 0 <= x then x else -(x + 1))
+instance Show Natural where
+  show n = show (unNatural n)
 
 instance Ord Natural where
   compare x y = compare (unNatural x) (unNatural y)
 
 instance Num Natural where
   x + y = Natural (unNatural x + unNatural y)
+
+  x - y =
+      if y <= x
+        then Natural (unNatural x - unNatural y)
+        else error "OpenTheory.Primitive.Number.Natural.-"
 
   x * y = Natural (unNatural x * unNatural y)
 
@@ -41,7 +40,4 @@ instance Num Natural where
   fromInteger x =
       if 0 <= x
         then Natural x
-        else error "OpenTheory.Number.Natural.fromInteger"
-
-equal :: Natural -> Natural -> Bool
-equal n1 n2 = n1 == n2
+        else error "OpenTheory.Primitive.Number.Natural.fromInteger"

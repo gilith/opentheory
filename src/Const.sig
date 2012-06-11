@@ -91,6 +91,10 @@ val isNeg : const -> bool
 
 val isTrue : const -> bool
 
+(* Pairs *)
+
+val isPair : const -> bool
+
 (* Natural numbers *)
 
 val isBit0 : const -> bool

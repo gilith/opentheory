@@ -1,9 +1,9 @@
 name: word10-bits
-version: 1.49
+version: 1.52
 description: 10-bit word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-05-18
+provenance: HOL Light theory extracted on 2012-06-10
 requires: bool
 requires: list
 requires: natural

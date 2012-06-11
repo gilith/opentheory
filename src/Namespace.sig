@@ -103,6 +103,7 @@ val selectConstComponent : component
 val someConstComponent : component
 val splitConstComponent : component
 val subsetConstComponent : component
+val subtractConstComponent : component
 val sucConstComponent : component
 val trueConstComponent : component
 val unionConstComponent : component

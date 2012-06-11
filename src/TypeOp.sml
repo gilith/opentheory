@@ -105,6 +105,8 @@ fun isList ot = Name.equal Name.listTypeOp (name ot);
 
 fun isPair ot = Name.equal Name.pairTypeOp (name ot);
 
+fun isRandom ot = Name.equal Name.randomTypeOp (name ot);
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

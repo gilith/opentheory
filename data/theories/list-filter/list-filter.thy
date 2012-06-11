@@ -1,5 +1,5 @@
 name: list-filter
-version: 1.35
+version: 1.36
 description: The list filter function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,12 +19,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-filter-def-1.30
+  package: list-filter-def-1.31
 }
 
 thm {
   import: def
-  package: list-filter-thm-1.36
+  package: list-filter-thm-1.37
 }
 
 main {

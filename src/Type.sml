@@ -474,6 +474,16 @@ fun destPair ty =
 
 val isPair = can destPair;
 
+(* Random streams *)
+
+fun destRandom ty =
+    destNullaryOp TypeOp.isRandom ty
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Type.destRandom:\n" ^ err);
+*)
+
+val isRandom = can destRandom;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

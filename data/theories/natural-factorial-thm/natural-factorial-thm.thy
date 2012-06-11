@@ -1,9 +1,9 @@
 name: natural-factorial-thm
-version: 1.19
+version: 1.20
 description: Properties of natural number factorial
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-26
+provenance: HOL Light theory extracted on 2012-06-08
 requires: bool
 requires: natural-add
 requires: natural-def

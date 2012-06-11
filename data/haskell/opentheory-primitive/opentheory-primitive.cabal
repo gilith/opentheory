@@ -1,6 +1,6 @@
-Name: opentheory
+Name: opentheory-primitive
 Version: 1.0
-Description: Base Haskell library needed by OpenTheory packages
+Description: Haskell primitives used by OpenTheory packages
 License: MIT
 License-file: LICENSE
 Cabal-version: >= 1.8.0.6
@@ -11,6 +11,7 @@ Maintainer: Joe Hurd <joe@gilith.com>
 Library
   Build-depends:
     base >= 4.0 && < 5.0,
+    random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0
 
   hs-source-dirs: src
@@ -18,8 +19,19 @@ Library
   ghc-options: -Wall -Werror
 
   Exposed-modules:
-    OpenTheory.Data.Option
-    OpenTheory.Data.List
-    OpenTheory.Number.Natural
-    OpenTheory.Test
-    OpenTheory.Word
+    OpenTheory.Primitive.Data.Word16
+    OpenTheory.Primitive.Number.Natural
+    OpenTheory.Primitive.Probability.Random
+    OpenTheory.Primitive.Test
+
+Executable opentheory-primitive-test
+  Build-depends:
+    base >= 4.0 && < 5.0,
+    random >= 1.0.1.1 && < 2,
+    QuickCheck >= 2.4.0.1 && < 3.0
+
+  hs-source-dirs: src, testsrc
+
+  ghc-options: -Wall -Werror
+
+  Main-is: Test.hs

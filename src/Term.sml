@@ -1305,6 +1305,27 @@ fun destCond tm =
 
 val isCond = can destCond;
 
+(* Pairs *)
+
+val isPairConst = isNullaryOp Const.isPair;
+
+fun destPair tm =
+    destBinaryOp Const.isPair tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Term.destPair:\n" ^ err);
+*)
+
+val isPair = can destPair;
+
+local
+  fun strip acc tm =
+      case total destPair tm of
+        NONE => List.revAppend (acc,[tm])
+      | SOME (x,y) => strip (x :: acc) y;
+in
+  val stripPair = strip [];
+end;
+
 (* Generalized abstractions *)
 
 fun destGenAbs tm =
@@ -1594,7 +1615,6 @@ local
   and lnotLatex = Namespace.lnotLatexComponent
   and minimalString = Namespace.minimalConstComponent
   and negString = Namespace.negConstComponent
-  and pairString = Namespace.pairConstComponent
   and selectString = Namespace.selectConstComponent
   and subsetLatex = Namespace.subsetLatexComponent
   and subseteqLatex = Namespace.subseteqLatexComponent;
@@ -1615,8 +1635,6 @@ local
          (* Functions *)
          {token = composeString, precedence = 4, assoc = Print.LeftAssoc},
          {token = circLatex, precedence = 4, assoc = Print.LeftAssoc},
-         (* Products *)
-         {token = pairString, precedence = ~1000, assoc = Print.RightAssoc},
          (* Arithmetic *)
          {token = "^", precedence = 9, assoc = Print.RightAssoc},
          {token = "*", precedence = 8, assoc = Print.LeftAssoc},
@@ -1651,20 +1669,8 @@ local
 
   fun showConst show (c,ty) = Const.showName show (c, SOME ty);
 
-  local
-    val pairName = mkName pairString;
-  in
-    fun ppInfixBuffer ppInf c_n =
-        let
-          val (_,n) = c_n
-
-          val pps = [ppInf c_n, Print.break]
-
-          val pps = if Name.equal n pairName then pps else Print.space :: pps
-        in
-          Print.program pps
-        end;
-  end;
+  fun ppInfixBuffer ppInf c_n =
+      Print.program [Print.space, ppInf c_n, Print.break];
 
   local
     fun isAlpha c_n =
@@ -2020,6 +2026,8 @@ local
               raise Error "Term.pp.destGenApp: numeral"
             else if isCond tm then
               raise Error "Term.pp.destGenApp: cond"
+            else if isPair tm then
+              raise Error "Term.pp.destGenApp: pair"
             else if isLet tm then
               raise Error "Term.pp.destGenApp: let"
             else if isComprehension tm then
@@ -2048,14 +2056,17 @@ local
             case total destNumeral tm of
               SOME i => ppNumeral (i, typeOf tm)
             | NONE =>
-              case total destComprehension tm of
-                SOME v_vs_pat_pred => ppComprehension v_vs_pat_pred
+              case total destPair tm of
+                SOME x_y => ppPair x_y
               | NONE =>
-                case dest tm of
-                  TypeTerm.Var' v => ppVar v
-                | TypeTerm.Const' c_ty => ppConst c_ty
-                | TypeTerm.App' _ => ppBracketTerm tm
-                | TypeTerm.Abs' _ => ppBracketTerm tm
+                case total destComprehension tm of
+                  SOME v_vs_pat_pred => ppComprehension v_vs_pat_pred
+                | NONE =>
+                  case dest tm of
+                    TypeTerm.Var' v => ppVar v
+                  | TypeTerm.Const' c_ty => ppConst c_ty
+                  | TypeTerm.App' _ => ppBracketTerm tm
+                  | TypeTerm.Abs' _ => ppBracketTerm tm
 
         and ppApplicationTerm tm =
             let
@@ -2069,6 +2080,23 @@ local
               else
                 Print.inconsistentBlock 0
                   (ppBasicTerm tm :: List.map ppArg xs)
+            end
+
+        and ppPair (x,y) =
+            let
+              fun ppComponent tm = ppInfixTerm (tm,true)
+
+              fun ppSepComponent tm =
+                  Print.program
+                    [ppSyntax ",",
+                     Print.break,
+                     ppComponent tm]
+            in
+              Print.inconsistentBlock 1
+                (ppSyntax "(" ::
+                 ppComponent x ::
+                 List.map ppSepComponent (stripPair y) @
+                 [ppSyntax ")"])
             end
 
         and ppBoundVars (v,vs) =

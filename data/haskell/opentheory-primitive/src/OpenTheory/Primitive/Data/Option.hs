@@ -9,7 +9,7 @@ Portability: portable
 
 Option types
 -}
-module OpenTheory.Data.Option
+module OpenTheory.Prelude.Data.Option
   ( equal )
 where
 

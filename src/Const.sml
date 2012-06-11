@@ -144,6 +144,10 @@ fun isNeg c = Name.equal Name.negConst (name c);
 
 fun isTrue c = Name.equal Name.trueConst (name c);
 
+(* Pairs *)
+
+fun isPair c = Name.equal Name.pairConst (name c);
+
 (* Natural numbers *)
 
 fun isBit0 c = Name.equal Name.bit0Const (name c);

@@ -9,6 +9,22 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Escaping strings.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val escapeString =
+    let
+      fun escape c =
+          case c of
+            #"\\" => "\\\\"
+          | #"\"" => "\\\""
+          | #"\n" => "\\n"
+          | c => str c
+    in
+      String.translate escape
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Anonymizing unused variables.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -98,16 +114,20 @@ local
          (Name.condConst, Name.mkGlobal "--cond--"),
          (Name.conjConst, Name.mkGlobal "&&"),
          (Name.consConst, Name.mkGlobal ":"),
-         (Name.eqConst, Name.mkGlobal "--equal--"),
+         (Name.disjConst, Name.mkGlobal "||"),
+         (Name.eqConst, Name.mkGlobal "=="),
+         (Name.falseConst, Name.mkGlobal "False"),
          (Name.forallConst, Name.mkGlobal "--forall--"),
-         (Name.lengthConst, mkListName "size"),
+         (Name.negConst, Name.mkGlobal "not"),
          (Name.nilConst, Name.mkGlobal "[]"),
          (Name.noneConst, Name.mkGlobal "Nothing"),
          (Name.pairConst, Name.mkGlobal ","),
          (Name.selectConst, Name.mkGlobal "--select--"),
          (Name.someConst, Name.mkGlobal "Just"),
          (Name.splitConst, mkRandomName "split"),
-         (Name.zeroConst, mkNaturalName "zero")];
+         (Name.subtractConst, Name.mkGlobal "-"),
+         (Name.trueConst, Name.mkGlobal "True"),
+         (Name.zeroConst, Name.mkGlobal "--zero--")];
 
   fun exportName n =
       let
@@ -296,6 +316,7 @@ datatype module =
 datatype test =
     Test of
       {name : string,
+       description : string,
        value : value};
 
 datatype haskell =
@@ -506,11 +527,33 @@ fun definedSymbolTableSource s =
     | NewtypeSource x => definedSymbolTableNewtype x
     | ValueSource x => definedSymbolTableValue x;
 
+fun importSymbolTableSource s =
+    case s of
+      DataSource x => symbolTableData x
+    | NewtypeSource x => symbolTableNewtype x
+    | ValueSource value =>
+      let
+        val Value {name = _, ty, equations = _} = value
+
+        val cs = SymbolTable.consts (symbolTableValue value)
+
+        val sym = SymbolTable.empty
+
+        val sym = SymbolTable.addConstSet sym cs
+
+        val sym = SymbolTable.addType sym ty
+      in
+        sym
+      end;
+
 fun symbolTableSourceList sl =
     SymbolTable.unionList (List.map symbolTableSource sl);
 
 fun definedSymbolTableSourceList sl =
     SymbolTable.unionList (List.map definedSymbolTableSource sl);
+
+fun importSymbolTableSourceList sl =
+    SymbolTable.unionList (List.map importSymbolTableSource sl);
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting Haskell declarations.                                           *)
@@ -819,52 +862,64 @@ fun destSource th =
         end
     end;
 
-fun destTest th n =
-    let
-      val Sequent.Sequent {hyp,concl} = Thm.sequent th
+local
+  fun ppProposition show (n,prop) =
+      Print.inconsistentBlock 2
+        [Print.ppString "Proposition ",
+         Print.ppInt n,
+         Print.ppString ":",
+         Print.newline,
+         Term.ppWithShow show prop]
+in
+  fun destTest show th n =
+      let
+        val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
-      val () =
-          if TermAlphaSet.null hyp then ()
-          else raise Error "hypotheses"
+        val () =
+            if TermAlphaSet.null hyp then ()
+            else raise Error "hypotheses"
 
-      val () =
-          if VarSet.null (Term.freeVars concl) then ()
-          else raise Error "free variables"
+        val () =
+            if VarSet.null (Term.freeVars concl) then ()
+            else raise Error "free variables"
 
-      val (vs,body) = Term.stripForall concl
+        val (v,body) = Term.destForall concl
 
-      val () =
-          if not (List.null vs) then ()
-          else raise Error "no universally quantified variables"
+        val () =
+            if Type.isRandom (Var.typeOf v) then ()
+            else raise Error "bad quantified variable type"
 
-      val arg = Syntax.listMkPair SymbolTable.empty (List.map Term.mkVar vs)
+        val arg = Term.mkVar v
 
-      val eqn =
-          Equation
-            {arguments = [arg],
-             body = body,
-             whereValues = []}
+        val eqn =
+            Equation
+              {arguments = [arg],
+               body = body,
+               whereValues = []}
 
-      val name = "prop" ^ Int.toString n
+        val name = "prop" ^ Int.toString n
 
-      val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
+        val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
 
-      val ty = Type.mkFun (Term.typeOf arg, Term.typeOf body)
+        val ty = Type.mkFun (Term.typeOf arg, Term.typeOf body)
 
-      val value =
-          Value
-            {name = const,
-             ty = ty,
-             equations = [eqn]}
+        val value =
+            Value
+              {name = const,
+               ty = ty,
+               equations = [eqn]}
 
-      val test = Test {name = name, value = value}
+        val desc = Print.toString (ppProposition show) (n,concl)
 
-      val n = n + 1
-    in
-      (test,n)
-    end
-    handle Error err =>
-      raise Error ("bad test theorem: " ^ err);
+        val test = Test {name = name, description = desc, value = value}
+
+        val n = n + 1
+      in
+        (test,n)
+      end
+      handle Error err =>
+        raise Error ("bad test theorem: " ^ err);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Sorting Haskell declarations into a module hierarchy.                     *)
@@ -1324,13 +1379,13 @@ fun destSourceTheory src =
       src
     end;
 
-fun destTestTheory test =
+fun destTestTheory show test =
     let
       val art = Theory.article test
 
       val ths = ThmSet.toList (Thms.thms (Article.thms art))
 
-      val (tests,n) = maps destTest ths 0
+      val (tests,n) = maps (destTest show) ths 0
 
       val () =
           if n > 0 then ()
@@ -1344,7 +1399,7 @@ fun convert pkg thy =
       val {src,test} = splitTheories thy
 
       val source = mkModule (destSourceTheory src)
-      and tests = destTestTheory test
+      and tests = destTestTheory (Package.show pkg) test
     in
       Haskell
         {package = pkg,
@@ -1405,7 +1460,7 @@ local
       let
         val white =
             let
-              val table = symbolTableSourceList source
+              val table = importSymbolTableSourceList source
             in
               exportSymbolTableNamespaces table
             end
@@ -1631,8 +1686,7 @@ local
          (*{token = "=<<", precedence = 1, assoc = Print.RightAssoc},*)
          {token = "$", precedence = 0, assoc = Print.RightAssoc},
          {token = "$!", precedence = 0, assoc = Print.RightAssoc},
-         {token = "seq", precedence = 0, assoc = Print.RightAssoc},
-         {token = ",", precedence = ~1000, assoc = Print.RightAssoc}];
+         {token = "seq", precedence = 0, assoc = Print.RightAssoc}];
 
   val infixTokens = Print.tokensInfixes infixes;
 
@@ -1662,13 +1716,8 @@ local
   val isInfix = can destInfix;
 
   fun ppInfixToken (_,s) =
-      let
-        val x = Print.ppString s
-
-        val x = if s = "," then x else Print.sequence Print.space x
-      in
-        Print.sequence x Print.break
-      end;
+      Print.program
+        [Print.space, Print.ppString s, Print.break];
 
   val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken;
 
@@ -1677,6 +1726,8 @@ local
         raise Error "Haskell.ppTerm.destGenApp: numeral"
       else if Term.isCond tm then
         raise Error "Haskell.ppTerm.destGenApp: cond"
+      else if Term.isPair tm then
+        raise Error "Haskell.ppTerm.destGenApp: pair"
       else if Term.isLet tm then
         raise Error "Haskell.ppTerm.destGenApp: let"
       else if isInfix tm then
@@ -1708,11 +1759,14 @@ in
             case total Term.destNumeral tm of
               SOME i => Print.ppInt i
             | NONE =>
-              case Term.dest tm of
-                TypeTerm.Var' v => ppVar v
-              | TypeTerm.Const' (c,_) => ppConst namespace c
-              | TypeTerm.App' _ => ppBracketTerm tm
-              | TypeTerm.Abs' _ => ppBracketTerm tm
+              case total Term.destPair tm of
+                SOME x_y => ppPair x_y
+              | NONE =>
+                case Term.dest tm of
+                  TypeTerm.Var' v => ppVar v
+                | TypeTerm.Const' (c,_) => ppConst namespace c
+                | TypeTerm.App' _ => ppBracketTerm tm
+                | TypeTerm.Abs' _ => ppBracketTerm tm
 
         and ppApplicationTerm tm =
             let
@@ -1726,6 +1780,19 @@ in
               else
                 Print.inconsistentBlock 0
                   (ppBasicTerm tm :: List.map ppArg xs)
+            end
+
+        and ppPair (x,y) =
+            let
+              fun ppComponent tm = ppInfixTerm (tm,true)
+            in
+              Print.inconsistentBlock 1
+                [ppSyntax "(",
+                 ppComponent x,
+                 ppSyntax ",",
+                 Print.break,
+                 ppComponent y,
+                 ppSyntax ")"]
             end
 
         and ppBoundVars (v,vs) =
@@ -1770,7 +1837,7 @@ in
                      Print.space,
                      ppApplicationTerm v,
                      Print.space,
-                     ppSyntax "<-",
+                     ppSyntax "=",
                      Print.break,
                      ppLetCondCaseNestedTerm (t,true),
                      Print.space,
@@ -2167,12 +2234,12 @@ local
 
   fun ppInvokeTest test =
       let
-        val Test {name,...} = test
+        val Test {name, description = desc, ...} = test
       in
         Print.program
-          [Print.ppString "OpenTheory.Test.check \"",
-           Print.ppString name,
-           Print.ppString "\" ",
+          [Print.ppString "OpenTheory.Primitive.Test.check \"",
+           Print.ppString (escapeString desc),
+           Print.ppString "\\n  \" ",
            Print.ppString name,
            Print.newline]
       end;
@@ -2217,7 +2284,7 @@ in
            Print.ppString "where",
            Print.newlines 2,
            ppTestsImport tests,
-           Print.ppString "import qualified OpenTheory.Test",
+           Print.ppString "import qualified OpenTheory.Primitive.Test",
            Print.newline,
            Print.newline,
            Print.program (List.map ppTestSpace tests),
@@ -2271,10 +2338,13 @@ local
          Print.program pps];
 
   val ppBuildDepends =
-      [Print.ppString "base >= 4.0 && < 5.0",
-       Print.ppString ",",
+      [Print.ppString "base >= 4.0 && < 5.0,",
        Print.newline,
-       Print.ppString "opentheory >= 1.0 && < 2.0"];
+       Print.ppString "random >= 1.0.1.1 && < 2.0,",
+       Print.newline,
+       Print.ppString "QuickCheck >= 2.4.0.1 && < 3.0,",
+       Print.newline,
+       Print.ppString "opentheory-primitive >= 1.0 && < 2.0"];
 
   fun ppExposedModules mods =
       case NamespaceSet.toList mods of

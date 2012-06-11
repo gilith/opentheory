@@ -363,6 +363,16 @@ val destCond : term -> term * term * term
 
 val isCond : term -> bool
 
+(* Pairs *)
+
+val isPairConst : term -> bool
+
+val destPair : term -> term * term
+
+val isPair : term -> bool
+
+val stripPair : term -> term list
+
 (* Generalized abstractions *)
 
 val destGenAbs : term -> term * term

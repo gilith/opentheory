@@ -149,6 +149,7 @@ val bit0Const : name
 val bit1Const : name
 val isFromNaturalConst : name -> bool
 val minimalConst : name
+val subtractConst : name
 val sucConst : name
 val zeroConst : name
 

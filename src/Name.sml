@@ -293,6 +293,7 @@ in
   and bit0Const = mkNatural Namespace.bit0ConstComponent
   and bit1Const = mkNatural Namespace.bit1ConstComponent
   and minimalConst = mkNatural Namespace.minimalConstComponent
+  and subtractConst = mkNatural Namespace.subtractConstComponent
   and sucConst = mkNatural Namespace.sucConstComponent
   and zeroConst = mkNatural Namespace.zeroConstComponent;
 end;
