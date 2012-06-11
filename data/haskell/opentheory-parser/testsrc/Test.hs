@@ -18,8 +18,8 @@ import qualified OpenTheory.Parser.Stream
 import qualified OpenTheory.Primitive.Probability.Random
 import qualified OpenTheory.Primitive.Test
 
-prop0 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
-prop0 r =
+proposition0 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
+proposition0 r =
   let (l, _) =
       OpenTheory.Data.List.fromRandom OpenTheory.Number.Natural.fromRandom
         r in
@@ -27,8 +27,8 @@ prop0 r =
     (OpenTheory.Parser.Stream.toList (OpenTheory.Parser.Stream.fromList l))
     (Just l)
 
-prop1 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
-prop1 r =
+proposition1 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
+proposition1 r =
   let (l, r') =
       OpenTheory.Data.List.fromRandom OpenTheory.Number.Natural.fromRandom
         r in
@@ -40,6 +40,6 @@ prop1 r =
 
 main :: IO ()
 main =
-    do OpenTheory.Primitive.Test.check "Proposition 0:\n  !r.\n    let (l, r') <-\n        Haskell.Data.List.fromRandom Haskell.Number.Natural.fromRandom r in\n    Haskell.Data.Option.equal (Haskell.Data.List.equal (=))\n      (Stream.toList (Stream.fromList l)) (some l)\n  " prop0
-       OpenTheory.Primitive.Test.check "Proposition 1:\n  !r.\n    let (l, r') <-\n        Haskell.Data.List.fromRandom Haskell.Number.Natural.fromRandom r in\n    let (s, r'') <-\n        Stream.fromRandom Haskell.Number.Natural.fromRandom r' in\n    Stream.size (Stream.append l s) =\n    Haskell.Data.List.size l + Stream.size s\n  " prop1
+    do OpenTheory.Primitive.Test.check "Proposition 0:\n  !r.\n    let (l, r') <-\n        Haskell.Data.List.fromRandom Haskell.Number.Natural.fromRandom r in\n    Haskell.Data.Option.equal (Haskell.Data.List.equal (=))\n      (Stream.toList (Stream.fromList l)) (some l)\n  " proposition0
+       OpenTheory.Primitive.Test.check "Proposition 1:\n  !r.\n    let (l, r') <-\n        Haskell.Data.List.fromRandom Haskell.Number.Natural.fromRandom r in\n    let (s, r'') <-\n        Stream.fromRandom Haskell.Number.Natural.fromRandom r' in\n    Stream.size (Stream.append l s) =\n    Haskell.Data.List.size l + Stream.size s\n  " proposition1
        return ()

@@ -897,7 +897,7 @@ in
                body = body,
                whereValues = []}
 
-        val name = "prop" ^ Int.toString n
+        val name = "proposition" ^ Int.toString n
 
         val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
 
