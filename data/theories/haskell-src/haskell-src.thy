@@ -1,9 +1,9 @@
 name: haskell-src
-version: 1.11
+version: 1.15
 description: Source of the Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-10
+provenance: HOL Light theory extracted on 2012-06-17
 requires: base
 requires: haskell-def
 requires: natural-fibonacci

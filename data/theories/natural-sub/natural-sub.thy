@@ -1,5 +1,5 @@
 name: natural-sub
-version: 1.24
+version: 1.26
 description: Natural number subtraction
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -14,12 +14,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-sub-def-1.21
+  package: natural-sub-def-1.22
 }
 
 thm {
   import: def
-  package: natural-sub-thm-1.22
+  package: natural-sub-thm-1.24
 }
 
 main {

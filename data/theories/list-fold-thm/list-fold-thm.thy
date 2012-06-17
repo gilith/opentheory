@@ -1,9 +1,9 @@
 name: list-fold-thm
-version: 1.11
+version: 1.13
 description: Properties of the list fold operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-08
+provenance: HOL Light theory extracted on 2012-06-16
 requires: bool
 requires: function
 requires: list-append

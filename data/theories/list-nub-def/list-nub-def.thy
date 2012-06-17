@@ -1,9 +1,9 @@
 name: list-nub-def
-version: 1.37
+version: 1.39
 description: Definition of the list nub function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-08
+provenance: HOL Light theory extracted on 2012-06-16
 requires: bool
 requires: list-def
 show: "Data.Bool"

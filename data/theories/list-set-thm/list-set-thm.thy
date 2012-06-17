@@ -1,9 +1,9 @@
 name: list-set-thm
-version: 1.34
+version: 1.36
 description: Properties of list to set conversions
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-06-08
+provenance: HOL Light theory extracted on 2012-06-16
 requires: bool
 requires: list-def
 requires: list-dest

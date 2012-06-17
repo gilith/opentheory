@@ -1,9 +1,9 @@
 name: haskell-parser-thm
-version: 1.31
+version: 1.35
 description: Properties of simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-10
+provenance: HOL Light theory extracted on 2012-06-17
 requires: base
 requires: haskell-parser-def
 requires: parser

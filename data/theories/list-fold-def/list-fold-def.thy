@@ -1,9 +1,9 @@
 name: list-fold-def
-version: 1.9
+version: 1.11
 description: Definition of the list fold operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-08
+provenance: HOL Light theory extracted on 2012-06-16
 requires: bool
 requires: list-def
 show: "Data.Bool"

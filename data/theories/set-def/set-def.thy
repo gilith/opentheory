@@ -1,9 +1,9 @@
 name: set-def
-version: 1.35
+version: 1.37
 description: Definition of set types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-06-08
+provenance: HOL Light theory extracted on 2012-06-16
 requires: bool
 show: "Data.Bool"
 show: "Data.Pair"

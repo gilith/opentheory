@@ -1,9 +1,9 @@
 name: list-zip-thm
-version: 1.6
+version: 1.9
 description: Properties of the list zip function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-08
+provenance: HOL Light theory extracted on 2012-06-16
 requires: bool
 requires: list-def
 requires: list-length

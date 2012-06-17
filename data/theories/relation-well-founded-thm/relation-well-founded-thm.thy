@@ -1,9 +1,9 @@
 name: relation-well-founded-thm
-version: 1.43
+version: 1.45
 description: Properties of well-founded relations
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-06-08
+provenance: HOL Light theory extracted on 2012-06-16
 requires: bool
 requires: pair
 requires: relation-def
