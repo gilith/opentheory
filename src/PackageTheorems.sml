@@ -130,12 +130,17 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Different package versions.                                               *)
+(* Using different versions of required packages to satisfy all assumptions. *)
 (* ------------------------------------------------------------------------- *)
 
+datatype versions =
+    Versions of
+      {definedTypeOps : PackageName.name NameMap.map,
+       definedConsts : PackageName.name NameMap.map,
+       assumptions : PackageNameSet.set SequentMap.map};
+
 (***
-datatype
-fun from
+fun mkVersions thl =
 ***)
 
 (* ------------------------------------------------------------------------- *)
