@@ -1,5 +1,5 @@
 name: map-reduce-bit3x3
-version: 1.0
+version: 1.1
 description: Correctness proof for the map reduce 3x3 bit matrix example
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,6 @@ license: MIT
 # Package names listed as requires like this:
 #
 requires: base
-requires: list-fold
 #
 # use the theorems proved by theory packages to satisfy the assumptions
 # of this theory. Do you need to add any package names here?
@@ -27,7 +26,7 @@ sat {
 
 product {
   import: sat
-  package: map-reduce-bit3x3-product-1.2
+  package: map-reduce-bit3x3-product-1.3
 }
 
 main {
