@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PACKAGE INFORMATION STORED AS "NAME: VALUE" TAGS                          *)
-(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2009 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 signature PackageTag =

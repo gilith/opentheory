@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PACKAGE VERSIONS                                                          *)
-(* Copyright (c) 2009 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2009 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure PackageVersion :> PackageVersion =

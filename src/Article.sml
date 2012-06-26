@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ARTICLES OF PROOF IN HIGHER ORDER LOGIC                                   *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the GNU GPL version 2      *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Article :> Article =
