@@ -135,12 +135,53 @@ end;
 
 datatype versions =
     Versions of
-      {definedTypeOps : PackageName.name NameMap.map,
+      {names : PackageNameSet.set,
+       definedTypeOps : PackageName.name NameMap.map,
        definedConsts : PackageName.name NameMap.map,
-       assumptions : PackageNameSet.set SequentMap.map};
+       satisfiedBy : PackageNameSet.set SequentMap.map};
 
 (***
-fun mkVersions thl =
+local
+  fun destSequents seqs =
+      let
+        val sym = Sequents.symbol seqs
+        and seqs = Sequents.sequents seqs
+
+        val seqs' = SequentSet.rewrite TermRewrite.undef seqs
+      in
+        (sym, Option.getOpt (seqs',seqs))
+      end;
+
+  fun destTheorems th =
+      let
+        val Theorems' {package = nv, sequents = seqs} = dest th
+
+        val n = PackageNameVersion.name nv
+        and (sym,seqs) = destSequents seqs
+      in
+        (n,sym,seqs)
+      end;
+
+  fun add (th,(ns,ots,cs,sat)) =
+      let
+        val (n,sym,seqs) = destTheorems th
+
+        val () =
+            if not (PackageNameSet.member n ns) then ()
+            else raise Error "duplicate required package name"
+
+        val ns = PackageNameSet.add ns n
+        and ots = addTypeOps ots (SymbolTable.typeOps sym)
+        and cs = addConsts cs (SymbolTable.consts sym)
+        and sat = SequentMap.transform (addSat n seqs) sat
+      in
+      end
+in
+  fun mkVersions asms =
+      let
+      in
+      end;
+end;
 ***)
 
 (* ------------------------------------------------------------------------- *)
