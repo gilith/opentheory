@@ -162,6 +162,18 @@ local
         (n,sym,seqs)
       end;
 
+  fun addTypeOps n =
+      let
+        fun
+      in
+ seqs (seq,ns) =
+      if not (SequentSet.member seq seqs) then ns
+      else PackageNameSet.add ns ns;
+
+  fun addSat n seqs (seq,ns) =
+      if not (SequentSet.member seq seqs) then ns
+      else PackageNameSet.add ns ns;
+
   fun add (th,(ns,ots,cs,sat)) =
       let
         val (n,sym,seqs) = destTheorems th
@@ -171,15 +183,27 @@ local
             else raise Error "duplicate required package name"
 
         val ns = PackageNameSet.add ns n
-        and ots = addTypeOps ots (SymbolTable.typeOps sym)
-        and cs = addConsts cs (SymbolTable.consts sym)
-        and sat = SequentMap.transform (addSat n seqs) sat
+        and ots = addTypeOps n ots (SymbolTable.typeOps sym)
+        and cs = addConsts n cs (SymbolTable.consts sym)
+        and sat = SequentMap.map (addSat n seqs) sat
       in
-      end
+        (ns,ots,cs,sat)
+      end;
 in
-  fun mkVersions asms =
+  fun mkVersions asms thl =
       let
+        val ns = PackageNameSet.empty
+        and ots =
+        and cs =
+        and sat = SequentSet.map (K PackageNameSet.empty) asms
+
+        val (ns,ots,cs,sat) = List.foldl add (ns,ots,cs,sat) thl
       in
+        Versions
+          {names = ns,
+           definedTypeOps = ots,
+           definedConsts = cs,
+           satisfiedBy = sat}
       end;
 end;
 ***)
