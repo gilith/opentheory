@@ -333,6 +333,26 @@ in
       | SOME namevers => SOME (List.rev namevers);
 end;
 
+fun previousNameVersion pkgs namever =
+    let
+(*OpenTheoryDebug
+      val () =
+          if member namever pkgs then ()
+          else
+            let
+              val bug =
+                  "DirectoryPackages.previousNameVersion: unknown package"
+            in
+              raise Bug bug
+            end
+*)
+      val chks = checksums pkgs
+    in
+      case DirectoryChecksums.previousNameVersion chks namever of
+        SOME (nv,_) => SOME nv
+      | NONE => NONE
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Package authors.                                                          *)
 (* ------------------------------------------------------------------------- *)

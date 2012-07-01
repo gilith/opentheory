@@ -68,6 +68,10 @@ val warnLatestNameVersionList :
     packages -> PackageName.name list ->
     PackageNameVersion.nameVersion list option
 
+val previousNameVersion :
+    packages -> PackageNameVersion.nameVersion ->
+    PackageNameVersion.nameVersion option
+
 (* ------------------------------------------------------------------------- *)
 (* Package authors.                                                          *)
 (* ------------------------------------------------------------------------- *)

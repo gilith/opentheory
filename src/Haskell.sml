@@ -25,6 +25,17 @@ val escapeString =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Haskell has a notion of "symbol names".                                   *)
+(* See: http://www.haskell.org/onlinereport/lexemes.html                     *)
+(* ------------------------------------------------------------------------- *)
+
+val isSymbolChar = Char.contains "!#$%&*+./<=>?@\\^|-~:";
+
+val isSymbolString = CharVector.all isSymbolChar;
+
+fun isSymbolName n = isSymbolString (Name.component n);
+
+(* ------------------------------------------------------------------------- *)
 (* Anonymizing unused variables.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -269,6 +280,12 @@ fun exportSymbolTableNamespaces table =
 (* A type of Haskell packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+datatype depend =
+    Depend of
+      {name : PackageName.name,
+       oldest : PackageVersion.version,
+       newest : PackageVersion.version};
+
 datatype data =
     Data of
       {name : TypeOp.typeOp,
@@ -322,8 +339,109 @@ datatype test =
 datatype haskell =
      Haskell of
        {package : Package.package,
+        depends : depend list,
         source : module,
         tests : test list};
+
+(* ------------------------------------------------------------------------- *)
+(* Haskell package dependencies.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun mkDepends dir pkg thy =
+    let
+      fun checkPrevious oldest ths vs =
+          if Queue.null ths then oldest
+          else
+            let
+              val (th,ths) = Queue.hdTl ths
+
+              val nv = PackageTheorems.package th
+            in
+              case Directory.previousNameVersion dir nv of
+                NONE =>
+                let
+                  val n = PackageNameVersion.name nv
+                  and v = PackageNameVersion.version nv
+
+                  val oldest = PackageNameMap.insert oldest (n,v)
+                in
+                  checkPrevious oldest ths vs
+                end
+              | SOME nv' =>
+                let
+                  val info = Directory.get dir nv'
+
+                  val th = PackageInfo.theorems info
+                in
+                  case total (PackageTheorems.addVersion vs) th of
+                    NONE =>
+                    let
+                      val n = PackageNameVersion.name nv
+                      and v = PackageNameVersion.version nv
+
+                      val oldest = PackageNameMap.insert oldest (n,v)
+                    in
+                      checkPrevious oldest ths vs
+                    end
+                  | SOME vs =>
+                    let
+                      val ths = Queue.add th ths
+                    in
+                      checkPrevious oldest ths vs
+                    end
+                end
+            end
+
+      val ths =
+          case Directory.requiresTheorems dir (Package.requires pkg) of
+            SOME ths => ths
+          | NONE => raise Error "required theories not installed"
+
+      val asms =
+          Sequents.sequents (Summary.requires (Theory.summary thy))
+
+      val vs =
+          PackageTheorems.mkVersions asms ths
+          handle Error err =>
+            raise Error ("required theories not up to date:\n" ^ err)
+
+      val ths =
+          let
+            fun isHaskell th =
+                let
+                  val nv = PackageTheorems.package th
+
+                  val n = PackageNameVersion.name nv
+                in
+                  PackageName.isHaskell n
+                end
+          in
+            List.filter isHaskell ths
+          end
+
+      val oldest =
+          checkPrevious (PackageNameMap.new ()) (Queue.fromList ths) vs
+
+      fun mk th =
+          let
+            val nv = PackageTheorems.package th
+
+            val n = PackageNameVersion.name nv
+            and new = PackageNameVersion.version nv
+
+            val old =
+                case PackageNameMap.peek oldest n of
+                  SOME v => v
+                | NONE => raise Bug "Haskell.mkDepends.mk"
+          in
+            Depend
+              {name = n,
+               oldest = old,
+               newest = new}
+          end
+    in
+      List.map mk ths
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Symbols in Haskell declarations.                                          *)
@@ -1394,15 +1512,17 @@ fun destTestTheory show test =
       tests
     end;
 
-fun convert pkg thy =
+fun convert dir pkg thy =
     let
       val {src,test} = splitTheories thy
 
-      val source = mkModule (destSourceTheory src)
+      val deps = mkDepends dir pkg thy
+      and source = mkModule (destSourceTheory src)
       and tests = destTestTheory (Package.show pkg) test
     in
       Haskell
         {package = pkg,
+         depends = deps,
          source = source,
          tests = tests}
     end;
@@ -1634,7 +1754,18 @@ end;
 
 (* Terms *)
 
-fun ppConst ns c = ppConstName ns (Const.name c);
+fun ppConst ns c =
+    let
+      val n = Const.name c
+
+      val p = ppConstName ns
+
+      val p =
+          if not (isSymbolName (exportConstName n)) then p
+          else Print.ppBracket "(" ")" p
+    in
+      p n
+    end;
 
 local
   val unused = #"_";
@@ -1716,8 +1847,17 @@ local
   val isInfix = can destInfix;
 
   fun ppInfixToken (_,s) =
-      Print.program
-        [Print.space, Print.ppString s, Print.break];
+      let
+        val l = [Print.ppString s]
+
+        val l =
+            if isSymbolString s then l
+            else [Print.ppString "`"] @ l @ [Print.ppString "`"]
+
+        val l = [Print.space] @ l @ [Print.break]
+      in
+        Print.program l
+      end;
 
   val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken;
 
@@ -1838,7 +1978,7 @@ in
                      ppApplicationTerm v,
                      Print.space,
                      ppSyntax "=",
-                     Print.break,
+                     Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
                      ppLetCondCaseNestedTerm (t,true),
                      Print.space,
                      ppSyntax "in"]
@@ -1977,6 +2117,22 @@ in
 end;
 
 (* Haskell *)
+
+fun ppDepend dep =
+    let
+      val Depend {name,oldest,newest} = dep
+    in
+      Print.program
+        (ppPackageName name ::
+         (if PackageVersion.equal newest oldest then
+            [Print.ppString " == ",
+             PackageVersion.pp newest]
+          else
+            [Print.ppString " >= ",
+             PackageVersion.pp oldest,
+             Print.ppString " && <= ",
+             PackageVersion.pp newest]))
+    end;
 
 local
   fun ppDecl ns (name,parms) =
@@ -2337,14 +2493,23 @@ local
          Print.newline,
          Print.program pps];
 
-  val ppBuildDepends =
-      [Print.ppString "base >= 4.0 && < 5.0,",
-       Print.newline,
-       Print.ppString "random >= 1.0.1.1 && < 2.0,",
-       Print.newline,
-       Print.ppString "QuickCheck >= 2.4.0.1 && < 3.0,",
-       Print.newline,
-       Print.ppString "opentheory-primitive >= 1.0 && < 2.0"];
+  local
+    fun ppExtraDepend dep =
+        Print.program
+          [Print.ppString ",",
+           Print.newline,
+           ppDepend dep];
+  in
+    fun ppBuildDepends deps =
+        Print.ppString "base >= 4.0 && < 5.0," ::
+        Print.newline ::
+        Print.ppString "random >= 1.0.1.1 && < 2.0," ::
+        Print.newline ::
+        Print.ppString "QuickCheck >= 2.4.0.1 && < 3.0," ::
+        Print.newline ::
+        Print.ppString "opentheory-primitive >= 1.0 && < 2.0" ::
+        List.map ppExtraDepend deps;
+  end;
 
   fun ppExposedModules mods =
       case NamespaceSet.toList mods of
@@ -2353,7 +2518,7 @@ local
         ppFullNamespace ns ::
         List.map (Print.sequence Print.newline o ppFullNamespace) nss;
 in
-  fun ppCabal (pkg,source) =
+  fun ppCabal (pkg,deps,source) =
       let
         val name = Package.name pkg
         and version = Package.version pkg
@@ -2376,7 +2541,7 @@ in
            Print.newline,
            Print.newline,
            ppSection "Library"
-             [ppSection "Build-depends:" ppBuildDepends,
+             [ppSection "Build-depends:" (ppBuildDepends deps),
               Print.newline,
               Print.newline,
               ppTag ("hs-source-dirs", Print.ppString "src"),
@@ -2389,7 +2554,7 @@ in
            Print.newline,
            Print.newline,
            ppSection ("Executable " ^ Print.toString ppPackageTestName name)
-             [ppSection "Build-depends:" ppBuildDepends,
+             [ppSection "Build-depends:" (ppBuildDepends deps),
               Print.newline,
               Print.newline,
               ppTag ("hs-source-dirs", Print.ppString "src, testsrc"),
@@ -2415,9 +2580,9 @@ fun mkSubDirectory {directory = dir} sub =
       {directory = dir}
     end;
 
-fun outputCabal {directory = dir} pkg source =
+fun outputCabal {directory = dir} pkg deps source =
     let
-      val ss = Print.toStream ppCabal (pkg,source)
+      val ss = Print.toStream ppCabal (pkg,deps,source)
 
       val file =
           let
@@ -2546,7 +2711,7 @@ end;
 
 fun toPackage dir haskell =
     let
-      val Haskell {package,source,tests} = haskell
+      val Haskell {package,depends,source,tests} = haskell
 
       val directory =
           let
@@ -2557,7 +2722,7 @@ fun toPackage dir haskell =
             mkSubDirectory directory name
           end
 
-      val () = outputCabal directory package source
+      val () = outputCabal directory package depends source
 
       val () = outputLicense dir directory package
 
@@ -2602,7 +2767,7 @@ fun export dir namever =
              interpretation = int,
              info = info}
 
-      val haskell = convert pkg thy
+      val haskell = convert dir pkg thy
 
       val () = toPackage dir haskell
     in

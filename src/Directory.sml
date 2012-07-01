@@ -390,6 +390,9 @@ fun warnLatestNameVersion dir =
 fun warnLatestNameVersionList dir =
     DirectoryPackages.warnLatestNameVersionList (packages dir);
 
+fun previousNameVersion dir =
+    DirectoryPackages.previousNameVersion (packages dir);
+
 (* ------------------------------------------------------------------------- *)
 (* Package authors.                                                          *)
 (* ------------------------------------------------------------------------- *)

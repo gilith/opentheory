@@ -21,20 +21,20 @@ import qualified OpenTheory.Primitive.Test
 proposition0 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
 proposition0 r =
   let (l, _) =
-      OpenTheory.Data.List.fromRandom OpenTheory.Number.Natural.fromRandom
-        r in
-  OpenTheory.Data.Option.equal (OpenTheory.Data.List.equal ==)
+        OpenTheory.Data.List.fromRandom
+          OpenTheory.Number.Natural.fromRandom r in
+  OpenTheory.Data.Option.equal (OpenTheory.Data.List.equal (==))
     (OpenTheory.Parser.Stream.toList (OpenTheory.Parser.Stream.fromList l))
     (Just l)
 
 proposition1 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
 proposition1 r =
   let (l, r') =
-      OpenTheory.Data.List.fromRandom OpenTheory.Number.Natural.fromRandom
-        r in
+        OpenTheory.Data.List.fromRandom
+          OpenTheory.Number.Natural.fromRandom r in
   let (s, _) =
-      OpenTheory.Parser.Stream.fromRandom
-        OpenTheory.Number.Natural.fromRandom r' in
+        OpenTheory.Parser.Stream.fromRandom
+          OpenTheory.Number.Natural.fromRandom r' in
   OpenTheory.Parser.Stream.size (OpenTheory.Parser.Stream.append l s) ==
   OpenTheory.Data.List.size l + OpenTheory.Parser.Stream.size s
 

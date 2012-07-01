@@ -73,6 +73,8 @@ PortableMlton.sml
 PortablePolyml.sml
 Print.sig
 Print.sml
+Queue.sig
+Queue.sml
 Random.sig
 Random.sml
 selftest.sml

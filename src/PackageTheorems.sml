@@ -40,6 +40,8 @@ datatype theorems =
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+fun package' (Theorems' {package = x, ...}) = x;
+
 fun sequents' (Theorems' {sequents = x, ...}) = x;
 
 fun mk ths' =
@@ -63,6 +65,8 @@ fun mk ths' =
     end;
 
 fun dest (Theorems {theorems' = x, ...}) = x;
+
+fun package ths = package' (dest ths);
 
 fun sequents ths = sequents' (dest ths);
 
@@ -130,7 +134,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Using different versions of required packages to satisfy all assumptions. *)
+(* Testing different versions of required theories.                          *)
 (* ------------------------------------------------------------------------- *)
 
 datatype versions =
@@ -140,12 +144,13 @@ datatype versions =
        definedConsts : PackageName.name NameMap.map,
        satisfiedBy : PackageNameSet.set SequentMap.map};
 
-(***
 local
   fun destSequents seqs =
       let
         val sym = Sequents.symbol seqs
         and seqs = Sequents.sequents seqs
+
+        val sym = SymbolTable.defined sym
 
         val seqs' = SequentSet.rewrite TermRewrite.undef seqs
       in
@@ -164,15 +169,67 @@ local
 
   fun addTypeOps n =
       let
-        fun
+        fun add (ot,ots) =
+            let
+              val otn = TypeOp.name ot
+            in
+              case NameMap.peek ots otn of
+                NONE => NameMap.insert ots (otn,n)
+              | SOME n' =>
+                if PackageName.equal n' n then ots
+                else
+                  let
+                    val err =
+                        "clashing type operator name " ^ Name.toString otn
+                  in
+                    raise Error err
+                  end
+            end
       in
- seqs (seq,ns) =
-      if not (SequentSet.member seq seqs) then ns
-      else PackageNameSet.add ns ns;
+        TypeOpSet.foldl add
+      end;
+
+  fun addConsts n =
+      let
+        fun add (c,cs) =
+            let
+              val cn = Const.name c
+            in
+              case NameMap.peek cs cn of
+                NONE => NameMap.insert cs (cn,n)
+              | SOME n' =>
+                if PackageName.equal n' n then cs
+                else
+                  let
+                    val err =
+                        "clashing constant name " ^ Name.toString cn
+                  in
+                    raise Error err
+                  end
+            end
+      in
+        ConstSet.foldl add
+      end;
 
   fun addSat n seqs (seq,ns) =
       if not (SequentSet.member seq seqs) then ns
-      else PackageNameSet.add ns ns;
+      else PackageNameSet.add ns n;
+
+  fun checkSat ns =
+      if not (PackageNameSet.null ns) then ()
+      else raise Error "unsatisfied assumption";
+
+  fun deleteSat n seqs (seq,ns) =
+      if not (PackageNameSet.member n ns) then ns
+      else if SequentSet.member seq seqs then ns
+      else
+        let
+          val ns = PackageNameSet.delete ns n
+
+          val () = checkSat ns
+        in
+          ns
+        end;
 
   fun add (th,(ns,ots,cs,sat)) =
       let
@@ -193,11 +250,38 @@ in
   fun mkVersions asms thl =
       let
         val ns = PackageNameSet.empty
-        and ots =
-        and cs =
+        and ots = NameMap.new ()
+        and cs = NameMap.new ()
         and sat = SequentSet.map (K PackageNameSet.empty) asms
 
         val (ns,ots,cs,sat) = List.foldl add (ns,ots,cs,sat) thl
+
+        val () = SequentMap.app (checkSat o snd) sat
+      in
+        Versions
+          {names = ns,
+           definedTypeOps = ots,
+           definedConsts = cs,
+           satisfiedBy = sat}
+      end;
+
+  fun addVersion vs th =
+      let
+        val Versions
+            {names = ns,
+             definedTypeOps = ots,
+             definedConsts = cs,
+             satisfiedBy = sat} = vs
+
+        val (n,sym,seqs) = destTheorems th
+
+        val () =
+            if PackageNameSet.member n ns then ()
+            else raise Error "unknown required package name"
+
+        val ots = addTypeOps n ots (SymbolTable.typeOps sym)
+        and cs = addConsts n cs (SymbolTable.consts sym)
+        and sat = SequentMap.map (deleteSat n seqs) sat
       in
         Versions
           {names = ns,
@@ -206,7 +290,6 @@ in
            satisfiedBy = sat}
       end;
 end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Output formats.                                                           *)

@@ -16,7 +16,8 @@ type haskell
 (* Converting a theory to a Haskell package.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val convert : Package.package -> Theory.theory -> haskell
+val convert :
+    Directory.directory -> Package.package -> Theory.theory -> haskell
 
 (* ------------------------------------------------------------------------- *)
 (* Writing a Haskell package to disk.                                        *)

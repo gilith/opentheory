@@ -420,6 +420,7 @@ datatype info =
   | FormatInfo of infoFormat
   | IncludesInfo
   | InferenceInfo
+  | RequiresInfo
   | SummaryInfo
   | TagsInfo
   | TheoremsInfo
@@ -527,6 +528,9 @@ in
        {switches = ["--includes"], arguments = [],
         description = "list the included theory packages",
         processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
+       {switches = ["--requires"], arguments = [],
+        description = "list satisfying required theory packages",
+        processor = beginOpt endOpt (fn _ => addInfoOutput RequiresInfo)},
        {switches = ["--document"], arguments = [],
         description = "output the package document in HTML format",
         processor = beginOpt endOpt (fn _ => addInfoOutput DocumentInfo)},
@@ -1090,6 +1094,8 @@ fun help () = usage "displaying command help";
 (* ------------------------------------------------------------------------- *)
 
 local
+  type 'a cache = 'a option option ref;
+
   fun getCached r f () =
       case !r of
         SOME x => x
@@ -1103,7 +1109,7 @@ local
         end;
 
   local
-    val cacheInfo : PackageInfo.info option option ref = ref NONE;
+    val cacheInfo : PackageInfo.info cache = ref NONE;
 
     fun computeInfo () = NONE;
   in
@@ -1113,7 +1119,7 @@ local
   end;
 
   local
-    val cacheChecksum : Checksum.checksum option option ref = ref NONE;
+    val cacheChecksum : Checksum.checksum cache = ref NONE;
 
     fun computeChecksum () =
         case getInfo () of
@@ -1131,7 +1137,7 @@ local
   end;
 
   local
-    val cachePackage : Package.package option option ref = ref NONE;
+    val cachePackage : Package.package cache = ref NONE;
 
     fun computePackage () =
         case getInfo () of
@@ -1144,7 +1150,7 @@ local
   end;
 
   local
-    val cacheRequires : PackageName.name list option option ref = ref NONE;
+    val cacheRequires : PackageName.name list cache = ref NONE;
 
     fun computeRequires () =
         case getPackage () of
@@ -1155,7 +1161,7 @@ local
   end;
 
   local
-    val cacheNameVersion : PackageNameVersion.nameVersion option option ref =
+    val cacheNameVersion : PackageNameVersion.nameVersion cache =
         ref NONE;
 
     fun computeNameVersion () =
@@ -1172,7 +1178,7 @@ local
   end;
 
   local
-    val cacheTags : PackageTag.tag list option option ref = ref NONE;
+    val cacheTags : PackageTag.tag list cache = ref NONE;
 
     fun computeTags () =
         case getPackage () of
@@ -1183,7 +1189,7 @@ local
   end;
 
   local
-    val cacheDirectory : {directory : string} option option ref = ref NONE;
+    val cacheDirectory : {directory : string} cache = ref NONE;
 
     fun computeDirectory () =
         case getInfo () of
@@ -1196,7 +1202,7 @@ local
   end;
 
   local
-    val cacheTheories : PackageTheory.theory list option option ref =
+    val cacheTheories : PackageTheory.theory list cache =
         ref NONE;
 
     fun upgradeTheories pkg =
@@ -1258,7 +1264,7 @@ local
   end;
 
   local
-    val cacheFiles : {filename : string} list option option ref = ref NONE;
+    val cacheFiles : {filename : string} list cache = ref NONE;
 
     fun computeFiles () =
         case getInfo () of
@@ -1278,7 +1284,7 @@ local
   end;
 
   local
-    val cacheTheoryFile : {filename : string} option option ref = ref NONE;
+    val cacheTheoryFile : {filename : string} cache = ref NONE;
 
     fun computeTheoryFile () =
         case getInfo () of
@@ -1291,7 +1297,7 @@ local
   end;
 
   local
-    val cacheTarball : {filename : string} option option ref = ref NONE;
+    val cacheTarball : {filename : string} cache = ref NONE;
 
     fun computeTarball () =
         case getInfo () of
@@ -1304,7 +1310,7 @@ local
   end;
 
   local
-    val cacheSavable : bool option option ref = ref NONE;
+    val cacheSavable : bool cache = ref NONE;
 
     fun computeSavable () = NONE;
   in
@@ -1314,7 +1320,7 @@ local
   end;
 
   local
-    val cacheTheory : (TheoryGraph.graph * Theory.theory) option option ref =
+    val cacheTheory : (TheoryGraph.graph * Theory.theory) cache =
         ref NONE;
 
     fun computeTheory () =
@@ -1352,7 +1358,7 @@ local
   end;
 
   local
-    val cacheArticle : Article.article option option ref = ref NONE;
+    val cacheArticle : Article.article cache = ref NONE;
 
     fun computeArticle () =
         case getTheory () of
@@ -1365,7 +1371,7 @@ local
   end;
 
   local
-    val cacheThms : Thms.thms option option ref = ref NONE;
+    val cacheThms : Thms.thms cache = ref NONE;
 
     fun computeThms () =
         case getArticle () of
@@ -1376,7 +1382,7 @@ local
   end;
 
   local
-    val cacheTheorems : PackageTheorems.theorems option option ref = ref NONE;
+    val cacheTheorems : PackageTheorems.theorems cache = ref NONE;
 
     fun computeTheorems () =
         case getInfo () of
@@ -1403,7 +1409,7 @@ local
   end;
 
   local
-    val cacheSummary : Summary.summary option option ref = ref NONE;
+    val cacheSummary : Summary.summary cache = ref NONE;
 
     fun computeSummary () =
         case getThms () of
@@ -1414,28 +1420,39 @@ local
   end;
 
   local
-    val cacheUnsatisfiedAssumptions :
-        (SequentSet.set -> SequentSet.set) option option ref =
+    val cacheRequiresTheorems : PackageTheorems.theorems list cache =
         ref NONE;
 
-    fun computeUnsatisfiedAssumptions () =
+    fun computeRequiresTheorems () =
         case getRequires () of
           NONE => NONE
         | SOME reqs =>
           let
             val dir = directory ()
           in
-            case Directory.requiresTheorems dir reqs of
-              NONE => NONE
-            | SOME ths => PackageTheorems.unsatisfiedAssumptions ths
+            Directory.requiresTheorems dir reqs
           end;
+  in
+    val getRequiresTheorems =
+        getCached cacheRequiresTheorems computeRequiresTheorems;
+  end;
+
+  local
+    val cacheUnsatisfiedAssumptions :
+        (SequentSet.set -> SequentSet.set) cache =
+        ref NONE;
+
+    fun computeUnsatisfiedAssumptions () =
+        case getRequiresTheorems () of
+          NONE => NONE
+        | SOME ths => PackageTheorems.unsatisfiedAssumptions ths;
   in
     val getUnsatisfiedAssumptions =
         getCached cacheUnsatisfiedAssumptions computeUnsatisfiedAssumptions;
   end;
 
   local
-    val cacheInference : Inference.inference option option ref = ref NONE;
+    val cacheInference : Inference.inference cache = ref NONE;
 
     fun computeInference () =
         case getTheory () of
@@ -1630,6 +1647,93 @@ local
               | NONE => raise Error "no inference information available"
 
           val strm = Print.toStream Inference.pp inf
+        in
+          Stream.toTextFile file strm
+        end
+      | RequiresInfo =>
+        let
+          fun checkPrevious oldest ths vs =
+              if Queue.null ths then oldest
+              else
+                let
+                  val (th,ths) = Queue.hdTl ths
+
+                  val nv = PackageTheorems.package th
+                in
+                  case Directory.previousNameVersion (directory ()) nv of
+                    NONE =>
+                    let
+                      val n = PackageNameVersion.name nv
+                      and v = PackageNameVersion.version nv
+
+                      val oldest = PackageNameMap.insert oldest (n,v)
+                    in
+                      checkPrevious oldest ths vs
+                    end
+                  | SOME nv' =>
+                    let
+                      val info = Directory.get (directory ()) nv'
+
+                      val th = PackageInfo.theorems info
+                    in
+                      case total (PackageTheorems.addVersion vs) th of
+                        NONE =>
+                        let
+                          val n = PackageNameVersion.name nv
+                          and v = PackageNameVersion.version nv
+
+                          val oldest = PackageNameMap.insert oldest (n,v)
+                        in
+                          checkPrevious oldest ths vs
+                        end
+                      | SOME vs =>
+                        let
+                          val ths = Queue.add th ths
+                        in
+                          checkPrevious oldest ths vs
+                        end
+                    end
+                end
+
+          val ths =
+              case getRequiresTheorems () of
+                SOME r => r
+              | NONE => raise Error "no requires information available"
+
+          val asms =
+              case getSummary () of
+                SOME s => Sequents.sequents (Summary.requires s)
+              | NONE => raise Error "no assumptions information available"
+
+          val vs =
+              PackageTheorems.mkVersions asms ths
+              handle Error err =>
+                raise Error ("required theories not up to date:\n" ^ err)
+
+          val oldest =
+              checkPrevious (PackageNameMap.new ()) (Queue.fromList ths) vs
+
+          fun mk th =
+              let
+                val nv = PackageTheorems.package th
+
+                val n = PackageNameVersion.name nv
+                and new = PackageNameVersion.version nv
+
+                val old =
+                    case PackageNameMap.peek oldest n of
+                      SOME v => v
+                    | NONE => raise Bug "opentheory.info.RequiresInfo.mk"
+              in
+                PackageName.toString n ^
+                (if PackageVersion.equal new old then
+                   " == " ^ PackageVersion.toString new
+                 else
+                   " >= " ^ PackageVersion.toString old ^
+                   " /\\ <= " ^ PackageVersion.toString new) ^ "\n"
+              end
+
+          val strm = Stream.map mk (Stream.fromList ths)
         in
           Stream.toTextFile file strm
         end
@@ -2072,7 +2176,8 @@ in
             | NONE =>
               let
                 val err =
-                    "can't find package " ^ PackageNameVersion.toString namever ^
+                    "can't find package " ^
+                    PackageNameVersion.toString namever ^
                     " in any repo"
               in
                 raise Error err

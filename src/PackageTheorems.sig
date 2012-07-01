@@ -35,6 +35,8 @@ val mk : theorems' -> theorems
 
 val dest : theorems -> theorems'
 
+val package : theorems -> PackageNameVersion.nameVersion
+
 val sequents : theorems -> Sequents.sequents
 
 val symbol : theorems -> SymbolTable.table
@@ -47,6 +49,16 @@ val defined : theorems -> SymbolTable.table
 
 val unsatisfiedAssumptions :
     theorems list -> (SequentSet.set -> SequentSet.set) option
+
+(* ------------------------------------------------------------------------- *)
+(* Testing different versions of required theories.                          *)
+(* ------------------------------------------------------------------------- *)
+
+type versions
+
+val mkVersions : SequentSet.set -> theorems list -> versions
+
+val addVersion : versions -> theorems -> versions
 
 (* ------------------------------------------------------------------------- *)
 (* Output formats.                                                           *)

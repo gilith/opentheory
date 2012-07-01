@@ -58,6 +58,7 @@ SRC = \
   src/VertexGraph.sig src/VertexGraph.sml \
   src/Sharing.sig src/Sharing.sml \
   src/Stream.sig src/Stream.sml \
+  src/Queue.sig src/Queue.sml \
   src/Heap.sig src/Heap.sml \
   src/Print.sig src/Print.sml \
   src/Parse.sig src/Parse.sml \
