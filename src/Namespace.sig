@@ -40,6 +40,7 @@ val topLatexComponent : component
 (* Standard namespaces *)
 
 val boolNamespaceComponent : component
+val byteNamespaceComponent : component
 val dataNamespaceComponent : component
 val functionNamespaceComponent : component
 val listNamespaceComponent : component
@@ -50,10 +51,12 @@ val pairNamespaceComponent : component
 val probabilityNamespaceComponent : component
 val randomNamespaceComponent : component
 val setNamespaceComponent : component
+val word16NamespaceComponent : component
 
 (* Standard type operators *)
 
 val boolTypeOpComponent : component
+val byteTypeOpComponent : component
 val funTypeOpComponent : component
 val indTypeOpComponent : component
 val listTypeOpComponent : component
@@ -62,6 +65,7 @@ val optionTypeOpComponent : component
 val pairTypeOpComponent : component
 val randomTypeOpComponent : component
 val sumTypeOpComponent : component
+val word16TypeOpComponent : component
 
 (* Standard constants *)
 
@@ -167,6 +171,8 @@ val rewrite : namespace * namespace -> namespace -> namespace option
 
 val bool : namespace
 
+val byte : namespace
+
 val function : namespace
 
 val list : namespace
@@ -180,6 +186,8 @@ val pair : namespace
 val random : namespace
 
 val set : namespace
+
+val word16 : namespace
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)

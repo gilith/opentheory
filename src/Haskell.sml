@@ -92,53 +92,77 @@ in
 end;
 
 local
-  val mkOpentheoryNamespace =
-      let
-        val ns = Namespace.mkNested (opentheoryNamespace,"Primitive")
-      in
-        Namespace.append ns
-      end;
+  local
+    fun mkName root ns = curry Name.mk (Namespace.append root ns);
 
-  fun mkOpentheoryName ns s =
-      Name.mk (mkOpentheoryNamespace ns, s);
+    val nativeRoot = Namespace.global
+    and primitiveRoot = Namespace.mkNested (opentheoryNamespace,"Primitive");
 
-  val mkListName = mkOpentheoryName Namespace.list
-  and mkNaturalName = mkOpentheoryName Namespace.natural
-  and mkRandomName = mkOpentheoryName Namespace.random;
+    val mkNative = mkName nativeRoot o Namespace.fromList
+    and mkPrimitive = mkName primitiveRoot;
+  in
+    val mkNativeGlobal = mkNative []
+    and mkNativeWord = mkNative ["Data","Word"];
+
+    val mkPrimitiveList = mkPrimitive Namespace.list
+    and mkPrimitiveNatural = mkPrimitive Namespace.natural
+    and mkPrimitiveRandom = mkPrimitive Namespace.random;
+
+    fun mkFake s = mkNativeGlobal ("--" ^ s ^ "--");
+  end;
 
   val typeOpMapping =
       NameMap.fromList
-        [(Name.boolTypeOp, Name.mkGlobal "Bool"),
-         (Name.funTypeOp, Name.mkGlobal "->"),
-         (Name.listTypeOp, Name.mkGlobal "List"),
-         (Name.naturalTypeOp, mkNaturalName "Natural"),
-         (Name.optionTypeOp, Name.mkGlobal "Maybe"),
-         (Name.pairTypeOp, Name.mkGlobal "Pair"),
-         (Name.randomTypeOp, mkRandomName "Random")];
+        [(* Native types *)
+         (Name.boolTypeOp, mkNativeGlobal "Bool"),
+         (Name.byteTypeOp, mkNativeWord "Word8"),
+         (Name.funTypeOp, mkNativeGlobal "->"),
+         (Name.listTypeOp, mkNativeGlobal "List"),
+         (Name.optionTypeOp, mkNativeGlobal "Maybe"),
+         (Name.pairTypeOp, mkNativeGlobal "Pair"),
+         (Name.word16TypeOp, mkNativeWord "Word16"),
+         (* Primitive types *)
+         (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
+         (Name.randomTypeOp, mkPrimitiveRandom "Random")];
 
   val constMapping =
       NameMap.fromList
-        [(Name.addConst, Name.mkGlobal "+"),
-         (Name.bitConst, mkRandomName "bit"),
-         (Name.bit0Const, Name.mkGlobal "--bit0--"),
-         (Name.bit1Const, Name.mkGlobal "--bit1--"),
-         (Name.condConst, Name.mkGlobal "--cond--"),
-         (Name.conjConst, Name.mkGlobal "&&"),
-         (Name.consConst, Name.mkGlobal ":"),
-         (Name.disjConst, Name.mkGlobal "||"),
-         (Name.eqConst, Name.mkGlobal "=="),
-         (Name.falseConst, Name.mkGlobal "False"),
-         (Name.forallConst, Name.mkGlobal "--forall--"),
-         (Name.negConst, Name.mkGlobal "not"),
-         (Name.nilConst, Name.mkGlobal "[]"),
-         (Name.noneConst, Name.mkGlobal "Nothing"),
-         (Name.pairConst, Name.mkGlobal ","),
-         (Name.selectConst, Name.mkGlobal "--select--"),
-         (Name.someConst, Name.mkGlobal "Just"),
-         (Name.splitConst, mkRandomName "split"),
-         (Name.subtractConst, Name.mkGlobal "-"),
-         (Name.trueConst, Name.mkGlobal "True"),
-         (Name.zeroConst, Name.mkGlobal "--zero--")];
+        [(* Fake constants *)
+         (Name.bit0Const, mkFake "bit0"),
+         (Name.bit1Const, mkFake "bit1"),
+         (Name.condConst, mkFake "cond"),
+         (Name.fromNaturalByteConst, mkFake "fromNaturalByte"),
+         (Name.fromNaturalWord16Const, mkFake "fromNaturalWord16"),
+         (Name.forallConst, mkFake "forall"),
+         (Name.zeroConst, mkFake "zero"),
+         (* Native constants *)
+         (Name.addConst, mkNativeGlobal "+"),
+         (Name.addByteConst, mkNativeGlobal "+"),
+         (Name.addWord16Const, mkNativeGlobal "+"),
+         (Name.conjConst, mkNativeGlobal "&&"),
+         (Name.consConst, mkNativeGlobal ":"),
+         (Name.disjConst, mkNativeGlobal "||"),
+         (Name.eqConst, mkNativeGlobal "=="),
+         (Name.falseConst, mkNativeGlobal "False"),
+         (Name.leConst, mkNativeGlobal "<="),
+         (Name.leByteConst, mkNativeGlobal "<="),
+         (Name.leWord16Const, mkNativeGlobal "<="),
+         (Name.ltConst, mkNativeGlobal "<"),
+         (Name.ltByteConst, mkNativeGlobal "<"),
+         (Name.ltWord16Const, mkNativeGlobal "<"),
+         (Name.negConst, mkNativeGlobal "not"),
+         (Name.nilConst, mkNativeGlobal "[]"),
+         (Name.noneConst, mkNativeGlobal "Nothing"),
+         (Name.pairConst, mkNativeGlobal ","),
+         (Name.selectConst, mkNativeGlobal "--select--"),
+         (Name.someConst, mkNativeGlobal "Just"),
+         (Name.subtractConst, mkNativeGlobal "-"),
+         (Name.subtractByteConst, mkNativeGlobal "-"),
+         (Name.subtractWord16Const, mkNativeGlobal "-"),
+         (Name.trueConst, mkNativeGlobal "True"),
+         (* Primitive constants *)
+         (Name.bitConst, mkPrimitiveRandom "bit"),
+         (Name.splitConst, mkPrimitiveRandom "split")];
 
   fun exportName n =
       let

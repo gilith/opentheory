@@ -80,6 +80,10 @@ val boolTypeOp : name
 val funTypeOp : name
 val indTypeOp : name
 
+(* Bytes *)
+
+val byteTypeOp : name
+
 (* Lists *)
 
 val listTypeOp : name
@@ -91,6 +95,10 @@ val optionTypeOp : name
 (* Pairs *)
 
 val pairTypeOp : name
+
+(* 16-bit words *)
+
+val word16TypeOp : name
 
 (* Natural numbers *)
 
@@ -122,6 +130,14 @@ val impConst : name
 val negConst : name
 val trueConst : name
 
+(* Bytes *)
+
+val addByteConst : name
+val fromNaturalByteConst : name
+val leByteConst : name
+val ltByteConst : name
+val subtractByteConst : name
+
 (* Functions *)
 
 val composeConst : name
@@ -148,6 +164,8 @@ val addConst : name
 val bit0Const : name
 val bit1Const : name
 val isFromNaturalConst : name -> bool
+val leConst : name
+val ltConst : name
 val minimalConst : name
 val subtractConst : name
 val sucConst : name
@@ -168,6 +186,14 @@ val memberConst : name
 val properSubsetConst : name
 val subsetConst : name
 val unionConst : name
+
+(* 16-bit words *)
+
+val addWord16Const : name
+val fromNaturalWord16Const : name
+val leWord16Const : name
+val ltWord16Const : name
+val subtractWord16Const : name
 
 (* Case expressions *)
 

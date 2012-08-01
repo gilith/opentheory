@@ -70,6 +70,7 @@ and topLatexComponent = "\\top";
 (* Standard namespaces *)
 
 val boolNamespaceComponent = "Bool"
+and byteNamespaceComponent = "Byte"
 and dataNamespaceComponent = "Data"
 and functionNamespaceComponent = "Function"
 and listNamespaceComponent = "List"
@@ -79,11 +80,13 @@ and optionNamespaceComponent = "Option"
 and pairNamespaceComponent = "Pair"
 and probabilityNamespaceComponent = "Probability"
 and randomNamespaceComponent = "Random"
-and setNamespaceComponent = "Set";
+and setNamespaceComponent = "Set"
+and word16NamespaceComponent = "Word16";
 
 (* Standard type operators *)
 
 val boolTypeOpComponent = "bool"
+and byteTypeOpComponent = "byte"
 and funTypeOpComponent = "->"
 and indTypeOpComponent = "ind"
 and listTypeOpComponent = "list"
@@ -91,7 +94,8 @@ and naturalTypeOpComponent = "natural"
 and optionTypeOpComponent = "option"
 and pairTypeOpComponent = "*"
 and randomTypeOpComponent = "random"
-and sumTypeOpComponent = "+";
+and sumTypeOpComponent = "+"
+and word16TypeOpComponent = "word16";
 
 (* Standard constants *)
 
@@ -271,9 +275,11 @@ local
   fun mkData c = mkNested (data,c);
 in
   val bool = mkData boolNamespaceComponent
+  and byte = mkData byteNamespaceComponent
   and list = mkData listNamespaceComponent
   and option = mkData optionNamespaceComponent
-  and pair = mkData pairNamespaceComponent;
+  and pair = mkData pairNamespaceComponent
+  and word16 = mkData word16NamespaceComponent;
 end;
 
 (* Number *)

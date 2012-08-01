@@ -182,6 +182,14 @@ val boolTypeOp = mkGlobal Namespace.boolTypeOpComponent
 and funTypeOp = mkGlobal Namespace.funTypeOpComponent
 and indTypeOp = mkGlobal Namespace.indTypeOpComponent;
 
+(* Bytes *)
+
+local
+  fun mkByte c = mk (Namespace.byte,c);
+in
+  val byteTypeOp = mkByte Namespace.byteTypeOpComponent;
+end;
+
 (* Lists *)
 
 local
@@ -204,6 +212,14 @@ local
   fun mkPair c = mk (Namespace.pair,c);
 in
   val pairTypeOp = mkPair Namespace.pairTypeOpComponent;
+end;
+
+(* 16-bit words *)
+
+local
+  fun mkWord16 c = mk (Namespace.word16,c);
+in
+  val word16TypeOp = mkWord16 Namespace.word16TypeOpComponent;
 end;
 
 (* Natural numbers *)
@@ -246,6 +262,18 @@ in
   and impConst = mkBool Namespace.impConstComponent
   and negConst = mkBool Namespace.negConstComponent
   and trueConst = mkBool Namespace.trueConstComponent;
+end;
+
+(* Bytes *)
+
+local
+  fun mkByte c = mk (Namespace.byte,c);
+in
+  val addByteConst = mkByte Namespace.addConstComponent
+  and fromNaturalByteConst = mkByte Namespace.fromNaturalConstComponent
+  and leByteConst = mkByte Namespace.leConstComponent
+  and ltByteConst = mkByte Namespace.ltConstComponent
+  and subtractByteConst = mkByte Namespace.subtractConstComponent;
 end;
 
 (* Functions *)
@@ -292,6 +320,8 @@ in
   val addConst = mkNatural Namespace.addConstComponent
   and bit0Const = mkNatural Namespace.bit0ConstComponent
   and bit1Const = mkNatural Namespace.bit1ConstComponent
+  and leConst = mkNatural Namespace.leConstComponent
+  and ltConst = mkNatural Namespace.ltConstComponent
   and minimalConst = mkNatural Namespace.minimalConstComponent
   and subtractConst = mkNatural Namespace.subtractConstComponent
   and sucConst = mkNatural Namespace.sucConstComponent
@@ -323,6 +353,18 @@ in
   and properSubsetConst = mkSet Namespace.properSubsetConstComponent
   and subsetConst = mkSet Namespace.subsetConstComponent
   and unionConst = mkSet Namespace.unionConstComponent;
+end;
+
+(* 16-bit words *)
+
+local
+  fun mkWord16 c = mk (Namespace.word16,c);
+in
+  val addWord16Const = mkWord16 Namespace.addConstComponent
+  and fromNaturalWord16Const = mkWord16 Namespace.fromNaturalConstComponent
+  and leWord16Const = mkWord16 Namespace.leConstComponent
+  and ltWord16Const = mkWord16 Namespace.ltConstComponent
+  and subtractWord16Const = mkWord16 Namespace.subtractConstComponent;
 end;
 
 (* Case expressions *)
