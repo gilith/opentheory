@@ -270,9 +270,16 @@ local
   fun mkByte c = mk (Namespace.byte,c);
 in
   val addByteConst = mkByte Namespace.addConstComponent
+  and andByteConst = mkByte Namespace.andConstComponent
+  and bitByteConst = mkByte Namespace.bitConstComponent
   and fromNaturalByteConst = mkByte Namespace.fromNaturalConstComponent
   and leByteConst = mkByte Namespace.leConstComponent
   and ltByteConst = mkByte Namespace.ltConstComponent
+  and multiplyByteConst = mkByte Namespace.multiplyConstComponent
+  and notByteConst = mkByte Namespace.notConstComponent
+  and orByteConst = mkByte Namespace.orConstComponent
+  and shiftLeftByteConst = mkByte Namespace.shiftLeftConstComponent
+  and shiftRightByteConst = mkByte Namespace.shiftRightConstComponent
   and subtractByteConst = mkByte Namespace.subtractConstComponent;
 end;
 
@@ -320,9 +327,12 @@ in
   val addConst = mkNatural Namespace.addConstComponent
   and bit0Const = mkNatural Namespace.bit0ConstComponent
   and bit1Const = mkNatural Namespace.bit1ConstComponent
+  and divConst = mkNatural Namespace.divConstComponent
   and leConst = mkNatural Namespace.leConstComponent
   and ltConst = mkNatural Namespace.ltConstComponent
   and minimalConst = mkNatural Namespace.minimalConstComponent
+  and modConst = mkNatural Namespace.modConstComponent
+  and multiplyConst = mkNatural Namespace.multiplyConstComponent
   and subtractConst = mkNatural Namespace.subtractConstComponent
   and sucConst = mkNatural Namespace.sucConstComponent
   and zeroConst = mkNatural Namespace.zeroConstComponent;
@@ -361,9 +371,16 @@ local
   fun mkWord16 c = mk (Namespace.word16,c);
 in
   val addWord16Const = mkWord16 Namespace.addConstComponent
+  and andWord16Const = mkWord16 Namespace.andConstComponent
+  and bitWord16Const = mkWord16 Namespace.bitConstComponent
   and fromNaturalWord16Const = mkWord16 Namespace.fromNaturalConstComponent
   and leWord16Const = mkWord16 Namespace.leConstComponent
   and ltWord16Const = mkWord16 Namespace.ltConstComponent
+  and multiplyWord16Const = mkWord16 Namespace.multiplyConstComponent
+  and notWord16Const = mkWord16 Namespace.notConstComponent
+  and orWord16Const = mkWord16 Namespace.orConstComponent
+  and shiftLeftWord16Const = mkWord16 Namespace.shiftLeftConstComponent
+  and shiftRightWord16Const = mkWord16 Namespace.shiftRightConstComponent
   and subtractWord16Const = mkWord16 Namespace.subtractConstComponent;
 end;
 

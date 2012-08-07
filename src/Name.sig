@@ -133,9 +133,16 @@ val trueConst : name
 (* Bytes *)
 
 val addByteConst : name
+val andByteConst : name
+val bitByteConst : name
 val fromNaturalByteConst : name
 val leByteConst : name
 val ltByteConst : name
+val multiplyByteConst : name
+val notByteConst : name
+val orByteConst : name
+val shiftLeftByteConst : name
+val shiftRightByteConst : name
 val subtractByteConst : name
 
 (* Functions *)
@@ -163,10 +170,13 @@ val pairConst : name
 val addConst : name
 val bit0Const : name
 val bit1Const : name
+val divConst : name
 val isFromNaturalConst : name -> bool
 val leConst : name
 val ltConst : name
 val minimalConst : name
+val modConst : name
+val multiplyConst : name
 val subtractConst : name
 val sucConst : name
 val zeroConst : name
@@ -190,9 +200,16 @@ val unionConst : name
 (* 16-bit words *)
 
 val addWord16Const : name
+val andWord16Const : name
+val bitWord16Const : name
 val fromNaturalWord16Const : name
 val leWord16Const : name
 val ltWord16Const : name
+val multiplyWord16Const : name
+val notWord16Const : name
+val orWord16Const : name
+val shiftLeftWord16Const : name
+val shiftRightWord16Const : name
 val subtractWord16Const : name
 
 (* Case expressions *)

@@ -104,9 +104,11 @@ local
     val mkNativeGlobal = mkNative []
     and mkNativeWord = mkNative ["Data","Word"];
 
-    val mkPrimitiveList = mkPrimitive Namespace.list
+    val mkPrimitiveByte = mkPrimitive Namespace.byte
+    and mkPrimitiveList = mkPrimitive Namespace.list
     and mkPrimitiveNatural = mkPrimitive Namespace.natural
-    and mkPrimitiveRandom = mkPrimitive Namespace.random;
+    and mkPrimitiveRandom = mkPrimitive Namespace.random
+    and mkPrimitiveWord16 = mkPrimitive Namespace.word16;
 
     fun mkFake s = mkNativeGlobal ("--" ^ s ^ "--");
   end;
@@ -131,17 +133,18 @@ local
          (Name.bit0Const, mkFake "bit0"),
          (Name.bit1Const, mkFake "bit1"),
          (Name.condConst, mkFake "cond"),
-         (Name.fromNaturalByteConst, mkFake "fromNaturalByte"),
-         (Name.fromNaturalWord16Const, mkFake "fromNaturalWord16"),
          (Name.forallConst, mkFake "forall"),
          (Name.zeroConst, mkFake "zero"),
          (* Native constants *)
          (Name.addConst, mkNativeGlobal "+"),
          (Name.addByteConst, mkNativeGlobal "+"),
          (Name.addWord16Const, mkNativeGlobal "+"),
+         (Name.andByteConst, mkNativeGlobal "&"),
+         (Name.andWord16Const, mkNativeGlobal "&"),
          (Name.conjConst, mkNativeGlobal "&&"),
          (Name.consConst, mkNativeGlobal ":"),
          (Name.disjConst, mkNativeGlobal "||"),
+         (Name.divConst, mkNativeGlobal "div"),
          (Name.eqConst, mkNativeGlobal "=="),
          (Name.falseConst, mkNativeGlobal "False"),
          (Name.leConst, mkNativeGlobal "<="),
@@ -150,9 +153,17 @@ local
          (Name.ltConst, mkNativeGlobal "<"),
          (Name.ltByteConst, mkNativeGlobal "<"),
          (Name.ltWord16Const, mkNativeGlobal "<"),
+         (Name.modConst, mkNativeGlobal "mod"),
+         (Name.multiplyConst, mkNativeGlobal "*"),
+         (Name.multiplyByteConst, mkNativeGlobal "*"),
+         (Name.multiplyWord16Const, mkNativeGlobal "*"),
          (Name.negConst, mkNativeGlobal "not"),
          (Name.nilConst, mkNativeGlobal "[]"),
          (Name.noneConst, mkNativeGlobal "Nothing"),
+         (Name.notByteConst, mkNativeGlobal "complement"),
+         (Name.notWord16Const, mkNativeGlobal "complement"),
+         (Name.orByteConst, mkNativeGlobal "|"),
+         (Name.orWord16Const, mkNativeGlobal "|"),
          (Name.pairConst, mkNativeGlobal ","),
          (Name.selectConst, mkNativeGlobal "--select--"),
          (Name.someConst, mkNativeGlobal "Just"),
@@ -162,7 +173,13 @@ local
          (Name.trueConst, mkNativeGlobal "True"),
          (* Primitive constants *)
          (Name.bitConst, mkPrimitiveRandom "bit"),
-         (Name.splitConst, mkPrimitiveRandom "split")];
+         (Name.bitByteConst, mkPrimitiveByte "bit"),
+         (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
+         (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
+         (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
+         (Name.splitConst, mkPrimitiveRandom "split"),
+         (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
+         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft")];
 
   fun exportName n =
       let
@@ -317,6 +334,7 @@ datatype data =
        constructors : (Const.const * Type.ty list) list,
        caseConst : Const.const};
 
+(*** Should remove the unused predicate field ***)
 datatype newtype =
     Newtype of
       {name : TypeOp.typeOp,

@@ -70,6 +70,7 @@ val word16TypeOpComponent : component
 (* Standard constants *)
 
 val addConstComponent : component
+val andConstComponent : component
 val bitConstComponent : component
 val bit0ConstComponent : component
 val bit1ConstComponent : component
@@ -80,6 +81,7 @@ val conjConstComponent : component
 val consConstComponent : component
 val differenceConstComponent : component
 val disjConstComponent : component
+val divConstComponent : component
 val emptyConstComponent : component
 val eqConstComponent : component
 val existsConstComponent : component
@@ -98,12 +100,18 @@ val lengthConstComponent : component
 val ltConstComponent : component
 val memberConstComponent : component
 val minimalConstComponent : component
+val modConstComponent : component
+val multiplyConstComponent : component
 val negConstComponent : component
 val nilConstComponent : component
 val noneConstComponent : component
+val notConstComponent : component
+val orConstComponent : component
 val pairConstComponent : component
 val properSubsetConstComponent : component
 val selectConstComponent : component
+val shiftLeftConstComponent : component
+val shiftRightConstComponent : component
 val someConstComponent : component
 val splitConstComponent : component
 val subsetConstComponent : component
