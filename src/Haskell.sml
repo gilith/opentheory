@@ -1878,10 +1878,8 @@ local
 
   val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken;
 
-  fun destCase tm =
+  fun casePatterns (a,bs) =
       let
-        val (a,bs) = Term.destCase tm
-
         val ty = Term.typeOf a
 
         fun mkBranch (n,xs,t) =
@@ -2075,7 +2073,7 @@ in
               ppElseBranch
             end
 
-        and ppCaseTerm (a,bs,r) =
+        and ppCaseTerm ((a,bs),r) =
             let
               fun ppBranch (pat,(t,r)) =
                   let
@@ -2104,22 +2102,11 @@ in
 
               val brs =
                   let
-                    val ty = Term.typeOf a
-
-                    fun mkBranch (n,xs,t) =
-                        let
-                          val c = Const.mkUndef n
-
-                          val ty = Type.listMkFun (List.map Term.typeOf xs, ty)
-
-                          val pat = Term.listMkApp (Term.mkConst (c,ty), xs)
-                        in
-                          (pat,(t,true))
-                        end
+                    fun add ((pat,t),bs) = (pat,(t,true)) :: bs
                   in
-                    case List.rev (List.map mkBranch bs) of
+                    case List.rev bs of
                       [] => raise Bug "Haskell.ppTerm.ppCaseTerm: no branches"
-                    | (pat,(t,_)) :: rest => List.rev ((pat,(t,r)) :: rest)
+                    | (pat,t) :: bs => List.foldl add [(pat,(t,r))] bs
                   end
             in
               Print.consistentBlock 2
@@ -2136,7 +2123,7 @@ in
                 Print.consistentBlock 0 (ppCondTerm (true,c,a,b,r))
               | NONE =>
                 case total Term.destCase tm of
-                  SOME (a,bs) => ppCaseTerm (a,bs,r)
+                  SOME a_bs => ppCaseTerm (casePatterns a_bs, r)
                 | NONE => ppInfixTerm (tm,r)
 
         and ppLetCondCaseTerm (tm,r) =
@@ -2481,40 +2468,6 @@ end;
 
 local
   val ppVersion = PackageVersion.pp;
-(***
-  fun ppVersion version =
-      let
-        val today = Date.fromTimeLocal (Time.now ())
-
-        val y = Date.year today
-        and m = Date.month today
-        and d = Date.day today
-
-        val m =
-            case m of
-              Date.Jan => 1
-            | Date.Feb => 2
-            | Date.Mar => 3
-            | Date.Apr => 4
-            | Date.May => 5
-            | Date.Jun => 6
-            | Date.Jul => 7
-            | Date.Aug => 8
-            | Date.Sep => 9
-            | Date.Oct => 10
-            | Date.Nov => 11
-            | Date.Dec => 12
-      in
-        Print.program
-          [PackageVersion.pp version,
-           Print.ppString ".",
-           Print.ppInt y,
-           Print.ppString ".",
-           Print.ppInt m,
-           Print.ppString ".",
-           Print.ppInt d]
-      end;
-***)
 
   fun ppSection s pps =
       Print.inconsistentBlock 2
