@@ -152,6 +152,7 @@ val idConst : name
 
 (* Lists *)
 
+val appendConst : name
 val consConst : name
 val lengthConst : name
 val nilConst : name
@@ -202,6 +203,7 @@ val unionConst : name
 val addWord16Const : name
 val andWord16Const : name
 val bitWord16Const : name
+val fromBytesWord16Const : name
 val fromNaturalWord16Const : name
 val leWord16Const : name
 val ltWord16Const : name
@@ -211,6 +213,7 @@ val orWord16Const : name
 val shiftLeftWord16Const : name
 val shiftRightWord16Const : name
 val subtractWord16Const : name
+val toBytesWord16Const : name
 
 (* Case expressions *)
 

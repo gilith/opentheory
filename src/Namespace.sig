@@ -71,6 +71,7 @@ val word16TypeOpComponent : component
 
 val addConstComponent : component
 val andConstComponent : component
+val appendConstComponent : component
 val bitConstComponent : component
 val bit0ConstComponent : component
 val bit1ConstComponent : component
@@ -88,6 +89,7 @@ val existsConstComponent : component
 val existsUniqueConstComponent : component
 val falseConstComponent : component
 val forallConstComponent : component
+val fromBytesConstComponent : component
 val fromNaturalConstComponent : component
 val fromPredicateConstComponent : component
 val geConstComponent : component
@@ -117,6 +119,7 @@ val splitConstComponent : component
 val subsetConstComponent : component
 val subtractConstComponent : component
 val sucConstComponent : component
+val toBytesConstComponent : component
 val trueConstComponent : component
 val unionConstComponent : component
 val zeroConstComponent : component

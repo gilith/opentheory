@@ -297,7 +297,8 @@ end;
 local
   fun mkList c = mk (Namespace.list,c);
 in
-  val consConst = mkList Namespace.consConstComponent
+  val appendConst = mkList Namespace.appendConstComponent
+  and consConst = mkList Namespace.consConstComponent
   and lengthConst = mkList Namespace.lengthConstComponent
   and nilConst = mkList Namespace.nilConstComponent;
 end;
@@ -373,6 +374,7 @@ in
   val addWord16Const = mkWord16 Namespace.addConstComponent
   and andWord16Const = mkWord16 Namespace.andConstComponent
   and bitWord16Const = mkWord16 Namespace.bitConstComponent
+  and fromBytesWord16Const = mkWord16 Namespace.fromBytesConstComponent
   and fromNaturalWord16Const = mkWord16 Namespace.fromNaturalConstComponent
   and leWord16Const = mkWord16 Namespace.leConstComponent
   and ltWord16Const = mkWord16 Namespace.ltConstComponent
@@ -381,7 +383,8 @@ in
   and orWord16Const = mkWord16 Namespace.orConstComponent
   and shiftLeftWord16Const = mkWord16 Namespace.shiftLeftConstComponent
   and shiftRightWord16Const = mkWord16 Namespace.shiftRightConstComponent
-  and subtractWord16Const = mkWord16 Namespace.subtractConstComponent;
+  and subtractWord16Const = mkWord16 Namespace.subtractConstComponent
+  and toBytesWord16Const = mkWord16 Namespace.toBytesConstComponent;
 end;
 
 (* Case expressions *)

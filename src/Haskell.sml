@@ -93,93 +93,86 @@ end;
 
 local
   local
-    fun mkName root ns = curry Name.mk (Namespace.append root ns);
+    fun mkName root ns =
+        curry Name.mk (Namespace.append root (Namespace.fromList ns));
 
-    val nativeRoot = Namespace.global
-    and primitiveRoot = Namespace.mkNested (opentheoryNamespace,"Primitive");
+    val primitiveRoot = Namespace.mkNested (opentheoryNamespace,"Primitive");
 
-    val mkNative = mkName nativeRoot o Namespace.fromList
-    and mkPrimitive = mkName primitiveRoot;
+    val mkPrimitive = mkName primitiveRoot;
   in
-    val mkNativeGlobal = mkNative []
-    and mkNativeWord = mkNative ["Data","Word"];
+    val mkNative = mkName Namespace.global [];
 
-    val mkPrimitiveByte = mkPrimitive Namespace.byte
-    and mkPrimitiveList = mkPrimitive Namespace.list
-    and mkPrimitiveNatural = mkPrimitive Namespace.natural
-    and mkPrimitiveRandom = mkPrimitive Namespace.random
-    and mkPrimitiveWord16 = mkPrimitive Namespace.word16;
-
-    fun mkFake s = mkNativeGlobal ("--" ^ s ^ "--");
+    val mkPrimitiveByte = mkPrimitive ["Byte"]
+    and mkPrimitiveNatural = mkPrimitive ["Natural"]
+    and mkPrimitiveRandom = mkPrimitive ["Random"]
+    and mkPrimitiveWord16 = mkPrimitive ["Word16"];
   end;
 
   val typeOpMapping =
       NameMap.fromList
         [(* Native types *)
-         (Name.boolTypeOp, mkNativeGlobal "Bool"),
-         (Name.byteTypeOp, mkNativeWord "Word8"),
-         (Name.funTypeOp, mkNativeGlobal "->"),
-         (Name.listTypeOp, mkNativeGlobal "List"),
-         (Name.optionTypeOp, mkNativeGlobal "Maybe"),
-         (Name.pairTypeOp, mkNativeGlobal "Pair"),
-         (Name.word16TypeOp, mkNativeWord "Word16"),
+         (Name.boolTypeOp, mkNative "Bool"),
+         (Name.funTypeOp, mkNative "->"),
+         (Name.listTypeOp, mkNative "List"),
+         (Name.optionTypeOp, mkNative "Maybe"),
+         (Name.pairTypeOp, mkNative "Pair"),
          (* Primitive types *)
+         (Name.byteTypeOp, mkPrimitiveByte "Byte"),
          (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
-         (Name.randomTypeOp, mkPrimitiveRandom "Random")];
+         (Name.randomTypeOp, mkPrimitiveRandom "Random"),
+         (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
 
   val constMapping =
       NameMap.fromList
-        [(* Fake constants *)
-         (Name.bit0Const, mkFake "bit0"),
-         (Name.bit1Const, mkFake "bit1"),
-         (Name.condConst, mkFake "cond"),
-         (Name.forallConst, mkFake "forall"),
-         (Name.zeroConst, mkFake "zero"),
-         (* Native constants *)
-         (Name.addConst, mkNativeGlobal "+"),
-         (Name.addByteConst, mkNativeGlobal "+"),
-         (Name.addWord16Const, mkNativeGlobal "+"),
-         (Name.andByteConst, mkNativeGlobal "&"),
-         (Name.andWord16Const, mkNativeGlobal "&"),
-         (Name.conjConst, mkNativeGlobal "&&"),
-         (Name.consConst, mkNativeGlobal ":"),
-         (Name.disjConst, mkNativeGlobal "||"),
-         (Name.divConst, mkNativeGlobal "div"),
-         (Name.eqConst, mkNativeGlobal "=="),
-         (Name.falseConst, mkNativeGlobal "False"),
-         (Name.leConst, mkNativeGlobal "<="),
-         (Name.leByteConst, mkNativeGlobal "<="),
-         (Name.leWord16Const, mkNativeGlobal "<="),
-         (Name.ltConst, mkNativeGlobal "<"),
-         (Name.ltByteConst, mkNativeGlobal "<"),
-         (Name.ltWord16Const, mkNativeGlobal "<"),
-         (Name.modConst, mkNativeGlobal "mod"),
-         (Name.multiplyConst, mkNativeGlobal "*"),
-         (Name.multiplyByteConst, mkNativeGlobal "*"),
-         (Name.multiplyWord16Const, mkNativeGlobal "*"),
-         (Name.negConst, mkNativeGlobal "not"),
-         (Name.nilConst, mkNativeGlobal "[]"),
-         (Name.noneConst, mkNativeGlobal "Nothing"),
-         (Name.notByteConst, mkNativeGlobal "complement"),
-         (Name.notWord16Const, mkNativeGlobal "complement"),
-         (Name.orByteConst, mkNativeGlobal "|"),
-         (Name.orWord16Const, mkNativeGlobal "|"),
-         (Name.pairConst, mkNativeGlobal ","),
-         (Name.selectConst, mkNativeGlobal "--select--"),
-         (Name.someConst, mkNativeGlobal "Just"),
-         (Name.subtractConst, mkNativeGlobal "-"),
-         (Name.subtractByteConst, mkNativeGlobal "-"),
-         (Name.subtractWord16Const, mkNativeGlobal "-"),
-         (Name.trueConst, mkNativeGlobal "True"),
+        [(* Native constants *)
+         (Name.addConst, mkNative "+"),
+         (Name.addByteConst, mkNative "+"),
+         (Name.addWord16Const, mkNative "+"),
+         (Name.appendConst, mkNative "++"),
+         (Name.conjConst, mkNative "&&"),
+         (Name.consConst, mkNative ":"),
+         (Name.disjConst, mkNative "||"),
+         (Name.divConst, mkNative "div"),
+         (Name.eqConst, mkNative "=="),
+         (Name.falseConst, mkNative "False"),
+         (Name.leConst, mkNative "<="),
+         (Name.leByteConst, mkNative "<="),
+         (Name.leWord16Const, mkNative "<="),
+         (Name.ltConst, mkNative "<"),
+         (Name.ltByteConst, mkNative "<"),
+         (Name.ltWord16Const, mkNative "<"),
+         (Name.modConst, mkNative "mod"),
+         (Name.multiplyConst, mkNative "*"),
+         (Name.multiplyByteConst, mkNative "*"),
+         (Name.multiplyWord16Const, mkNative "*"),
+         (Name.negConst, mkNative "not"),
+         (Name.nilConst, mkNative "[]"),
+         (Name.noneConst, mkNative "Nothing"),
+         (Name.pairConst, mkNative ","),
+         (Name.someConst, mkNative "Just"),
+         (Name.subtractConst, mkNative "-"),
+         (Name.subtractByteConst, mkNative "-"),
+         (Name.subtractWord16Const, mkNative "-"),
+         (Name.trueConst, mkNative "True"),
          (* Primitive constants *)
+         (Name.andByteConst, mkPrimitiveByte "and"),
+         (Name.andWord16Const, mkPrimitiveWord16 "and"),
          (Name.bitConst, mkPrimitiveRandom "bit"),
          (Name.bitByteConst, mkPrimitiveByte "bit"),
          (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
+         (Name.fromBytesWord16Const, mkPrimitiveWord16 "fromBytes"),
          (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
          (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
-         (Name.splitConst, mkPrimitiveRandom "split"),
+         (Name.notByteConst, mkPrimitiveByte "not"),
+         (Name.notWord16Const, mkPrimitiveWord16 "not"),
+         (Name.orByteConst, mkPrimitiveByte "or"),
+         (Name.orWord16Const, mkPrimitiveWord16 "or"),
          (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
-         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft")];
+         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft"),
+         (Name.shiftRightByteConst, mkPrimitiveByte "shiftRight"),
+         (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
+         (Name.splitConst, mkPrimitiveRandom "split"),
+         (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
 
   fun exportName n =
       let
@@ -226,97 +219,6 @@ in
       end;
 end;
 
-(***
-local
-  fun exportTypeVarName v =
-      let
-        val (ns,s) = Name.dest v
-
-        val () =
-            if Namespace.isGlobal ns then ()
-            else raise Error "non-global type variable"
-
-        val cs = String.explode s
-
-        val cs = dropWhile (not o Char.isAlpha) cs
-
-        val () =
-            if List.all Char.isAlphaNum cs then ()
-            else raise Error "non-alphanumerical chars in type variable"
-
-        val cs =
-            case cs of
-              [] => raise Error "empty type variable"
-            | c :: ct =>
-              if Char.isLower c then cs else Char.toLower c :: ct
-
-        val s' = String.implode cs
-      in
-        if s = s' then NONE else SOME (Name.mkGlobal s')
-      end;
-in
-  fun exportTypeVarNames vs =
-      let
-        fun add (v,acc) =
-            case exportTypeVarName v of
-              NONE => acc
-            | SOME v' =>
-              let
-                val () =
-                    if not (NameSet.member v' vs) then ()
-                    else raise Error "type variable name clash"
-              in
-                (v, Type.mkVar v') :: acc
-              end
-
-        val tymap = NameSet.foldr add [] vs
-      in
-        TypeSubst.mk (TypeSubst.fromListMap tymap)
-      end;
-end;
-***)
-
-local
-  fun addName (n,ns) = NameSet.add ns n;
-
-  fun addTypeOp (ot,ns) =
-      let
-        val n = TypeOp.name ot
-
-        val n = exportTypeOpName n
-      in
-        addName (n,ns)
-      end;
-
-  fun addConst (c,ns) =
-      let
-        val n = Const.name c
-
-        val nl =
-            case total Name.destCase n of
-              SOME (_,nl) => nl
-            | NONE => [n]
-
-        val nl = List.map exportConstName nl
-      in
-        List.foldl addName ns nl
-      end;
-in
-  fun exportSymbolTableNames table =
-      let
-        val ns = NameSet.empty
-
-        val ns = TypeOpSet.foldl addTypeOp ns (SymbolTable.typeOps table)
-
-        val ns = ConstSet.foldl addConst ns (SymbolTable.consts table)
-      in
-        ns
-      end;
-end;
-
-fun exportSymbolTableNamespaces table =
-    NameSet.namespace (exportSymbolTableNames table);
-
 (* ------------------------------------------------------------------------- *)
 (* A type of Haskell packages.                                               *)
 (* ------------------------------------------------------------------------- *)
@@ -334,13 +236,11 @@ datatype data =
        constructors : (Const.const * Type.ty list) list,
        caseConst : Const.const};
 
-(*** Should remove the unused predicate field ***)
 datatype newtype =
     Newtype of
       {name : TypeOp.typeOp,
        parameters : Name.name list,
        repType : Type.ty,
-       predicate : Term.term option,
        abs : Const.const,
        rep : Const.const};
 
@@ -556,7 +456,6 @@ fun symbolTableNewtype newtype =
       val Newtype
             {name,
              parameters = _,
-             predicate = pred,
              repType,
              abs,
              rep} = newtype
@@ -564,11 +463,6 @@ fun symbolTableNewtype newtype =
       val sym = SymbolTable.empty
 
       val sym = SymbolTable.addTypeOp sym name
-
-      val sym =
-          case pred of
-            SOME tm => SymbolTable.addTerm sym tm
-          | NONE => sym
 
       val sym = SymbolTable.addType sym repType
 
@@ -584,7 +478,6 @@ fun definedSymbolTableNewtype newtype =
       val Newtype
             {name,
              parameters = _,
-             predicate = _,
              repType = _,
              abs,
              rep} = newtype
@@ -687,33 +580,11 @@ fun definedSymbolTableSource s =
     | NewtypeSource x => definedSymbolTableNewtype x
     | ValueSource x => definedSymbolTableValue x;
 
-fun importSymbolTableSource s =
-    case s of
-      DataSource x => symbolTableData x
-    | NewtypeSource x => symbolTableNewtype x
-    | ValueSource value =>
-      let
-        val Value {name = _, ty, equations = _} = value
-
-        val cs = SymbolTable.consts (symbolTableValue value)
-
-        val sym = SymbolTable.empty
-
-        val sym = SymbolTable.addConstSet sym cs
-
-        val sym = SymbolTable.addType sym ty
-      in
-        sym
-      end;
-
 fun symbolTableSourceList sl =
     SymbolTable.unionList (List.map symbolTableSource sl);
 
 fun definedSymbolTableSourceList sl =
     SymbolTable.unionList (List.map definedSymbolTableSource sl);
-
-fun importSymbolTableSourceList sl =
-    SymbolTable.unionList (List.map importSymbolTableSource sl);
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting Haskell declarations.                                           *)
@@ -818,14 +689,9 @@ fun destNewtype th =
           if TermAlphaSet.null hyp then ()
           else raise Error "hypotheses"
 
-      val (absRep,repAbs) =
-          case total Term.destConj concl of
-            SOME (ar,ra) => (ar, SOME ra)
-          | NONE => (concl,NONE)
-
       val (abs,rep) =
           let
-            val (a,t0) = Term.destForall absRep
+            val (a,t0) = Term.destForall concl
 
             val (t1,t2) = Term.destEq t0
 
@@ -844,48 +710,6 @@ fun destNewtype th =
             (abs,rep)
           end
 
-      val pred =
-          case repAbs of
-            NONE => NONE
-          | SOME tm =>
-            let
-              val (r,t0) = Term.destForall tm
-
-              val (pred,t1) = Term.destImp t0
-
-              val () =
-                  let
-                    val vs = Term.freeVars pred
-                  in
-                    if VarSet.subset vs (VarSet.singleton r) then ()
-                    else raise Error "extra free vars in predicate"
-                  end
-
-              val (t2,t3) = Term.destEq t1
-
-              val () =
-                  if Term.equalVar r t3 then ()
-                  else raise Error "bad rhs of repAbs"
-
-              val (rep',t4) = Term.destApp t2
-
-              val () =
-                  if Term.equal rep' rep' then ()
-                  else raise Error "different reps in absRep and repAbs"
-
-              val (abs',t5) = Term.destApp t4
-
-              val () =
-                  if Term.equal abs' abs then ()
-                  else raise Error "different abs in absRep and repAbs"
-
-              val () =
-                  if Term.equalVar r t5 then ()
-                  else raise Error "bad var inside repAbs"
-            in
-              SOME (Term.mkAbs (r,pred))
-            end
-
       val (abs,repAbsTy) = Term.destConst abs
       and (rep,_) = Term.destConst rep
 
@@ -899,7 +723,6 @@ fun destNewtype th =
         {name = name,
          parameters = parms,
          repType = repTy,
-         predicate = pred,
          abs = abs,
          rep = rep}
     end
@@ -1463,9 +1286,9 @@ local
            submodules = List.map (addTree namespace) nsubs}
       end
 
-  and addTree namespace (n,nsource) =
+  and addTree parent (n,nsource) =
       let
-        val namespace = Namespace.mkNested (namespace,n)
+        val namespace = Namespace.mkNested (parent,n)
       in
         mkTree namespace nsource
       end;
@@ -1570,6 +1393,164 @@ fun convert dir pkg thy =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Creating the symbol name mapping in preparation for printing.             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype symbolExport =
+    SymbolExport of
+      {namespace : Namespace.namespace,
+       importNamespaces : NamespaceSet.set,
+       exportTypeOps : Name.name NameMap.map,
+       exportConsts : Name.name NameMap.map};
+
+val importSymbolTableData = symbolTableData;
+
+val importSymbolTableNewtype = symbolTableNewtype;
+
+local
+  fun destSpecialTerm tm =
+      if Term.isNumeral tm then SOME []
+      else
+        case total Term.destCond tm of
+          SOME (c,a,b) => SOME [c,a,b]
+        | NONE =>
+          case total Term.destLet tm of
+            SOME (v,x,y) => SOME [v,x,y]
+          | NONE =>
+            case total Term.destGenAbs tm of
+              SOME (v,x) => SOME [v,x]
+            | NONE => NONE;
+
+  fun addTerm (tm,sym) =
+      case destSpecialTerm tm of
+        SOME tms => List.foldl addTerm sym tms
+      | NONE =>
+        case Term.dest tm of
+          TypeTerm.Const' (c,_) => SymbolTable.addConst sym c
+        | TypeTerm.Var' _ => sym
+        | TypeTerm.App' (f,x) => addTerm (f, addTerm (x,sym))
+        | TypeTerm.Abs' (_,b) => addTerm (b,sym);
+
+  fun addValue (value,sym) =
+      let
+        val WhereValue {name = _, equations = eqns} = value
+
+        val sym = List.foldl addEquation sym eqns
+      in
+        sym
+      end
+
+  and addEquation (eqn,sym) =
+      let
+        val Equation {arguments = args, body, whereValues = values} = eqn
+
+        val sym = List.foldl addTerm sym args
+
+        val sym = addTerm (body,sym)
+
+        val sym = List.foldl addValue sym values
+      in
+        sym
+      end;
+in
+  fun importSymbolTableValue value =
+      let
+        val Value {name, ty, equations = eqns} = value
+
+        val sym = SymbolTable.empty
+
+        val sym = SymbolTable.addConst sym name
+
+        val sym = SymbolTable.addType sym ty
+
+        val sym = List.foldl addEquation sym eqns
+      in
+        sym
+      end;
+end;
+
+fun importSymbolTableSource s =
+    case s of
+      DataSource x => importSymbolTableData x
+    | NewtypeSource x => importSymbolTableNewtype x
+    | ValueSource x => importSymbolTableValue x;
+
+fun importSymbolTableSourceList sl =
+    SymbolTable.unionList (List.map importSymbolTableSource sl);
+
+local
+  val targetNamespaces =
+      let
+        fun add (_,t,s) = NamespaceSet.add s (Name.namespace t)
+      in
+        NameMap.foldl add NamespaceSet.empty
+      end;
+
+  fun addTypeOp (t,ns) =
+      let
+        val n = TypeOp.name t
+      in
+        NameSet.add ns n
+      end;
+
+  fun mkTypeOpMap table =
+      let
+        val ts = SymbolTable.typeOps table
+
+        val ns = TypeOpSet.foldl addTypeOp NameSet.empty ts
+      in
+        NameSet.map exportTypeOpName ns
+      end;
+
+  fun addConst (c,ns) =
+      let
+        val n = Const.name c
+      in
+        case total Name.destCase n of
+          SOME (_,nl) => NameSet.addList ns nl
+        | NONE => NameSet.add ns n
+      end;
+
+  fun mkConstMap table =
+      let
+        val cs = SymbolTable.consts table
+
+        val ns = ConstSet.foldl addConst NameSet.empty cs
+      in
+        NameSet.map exportConstName ns
+      end;
+in
+  fun mkSymbolExport namespace source =
+      let
+        val namespace = exportNamespace namespace
+
+        val impTable = importSymbolTableSourceList source
+        and defTable = definedSymbolTableSourceList source
+
+        val ts = mkTypeOpMap impTable
+        and cs = mkConstMap impTable
+
+        val white =
+            NamespaceSet.union
+              (targetNamespaces ts)
+              (targetNamespaces cs)
+
+        val black =
+            NamespaceSet.add
+              (targetNamespaces (mkConstMap defTable))
+              Namespace.global
+
+        val ns = NamespaceSet.difference white black
+      in
+        SymbolExport
+          {namespace = namespace,
+           importNamespaces = ns,
+           exportTypeOps = ts,
+           exportConsts = cs}
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Printing Haskell source code.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1582,109 +1563,103 @@ fun ppPackageTestName name =
       (PackageName.pp (exportPackageName name))
       (Print.ppString "-test");
 
+fun ppNamespace ns = Namespace.pp (exportNamespace ns);
+
 local
-  fun relativeNamespace namespace ns =
+  fun shortenNamespace namespace ns =
       case Namespace.rewrite (namespace,Namespace.global) ns of
         SOME ns => ns
-      | NONE => ns;
+      | NONE =>
+        case Namespace.rewrite (opentheoryNamespace,Namespace.global) ns of
+          SOME ns => ns
+        | NONE =>
+          let
+            val bug =
+                "Haskell.shortenNamespace: " ^
+                Print.toString Namespace.pp ns
+          in
+            raise Bug bug
+          end;
 
-  fun relativeName namespace n =
+  fun shortenName namespace n =
       let
-        val (ns,n) = Name.dest n
-
-        val ns = relativeNamespace namespace ns
+        val (ns,c) = Name.dest n
       in
-        Name.mk (ns,n)
-      end;
-
-  fun exportRelativeNamespace namespace =
-      let
-        val namespace = exportNamespace namespace
-      in
-        fn ns => relativeNamespace namespace (exportNamespace ns)
-      end;
-
-  fun exportRelativeTypeOpName namespace =
-      let
-        val namespace = exportNamespace namespace
-      in
-        fn n => relativeName namespace (exportTypeOpName n)
-      end;
-
-  fun exportRelativeConstName namespace =
-      let
-        val namespace = exportNamespace namespace
-      in
-        fn n => relativeName namespace (exportConstName n)
-      end;
-
-  fun exportImportNamespaces source =
-      let
-        val white =
-            let
-              val table = importSymbolTableSourceList source
-            in
-              exportSymbolTableNamespaces table
-            end
-
-        val black =
-            let
-              val table = definedSymbolTableSourceList source
-            in
-              exportSymbolTableNamespaces table
-            end
-
-        val black = NamespaceSet.add black Namespace.global
-      in
-        NamespaceSet.difference white black
+        if Namespace.isGlobal ns then n
+        else Name.mk (shortenNamespace namespace ns, c)
       end;
 
   fun ppImportNamespace namespace ns =
       let
-        val namespace = exportNamespace namespace
+        val ns' = shortenNamespace namespace ns
 
-        val ns' = relativeNamespace namespace ns
-
-        val ppImport =
-            [Print.ppString "import",
-             Print.space,
-             Print.ppString "qualified",
-             Print.space,
-             Namespace.pp ns]
-
-        val ppAs =
-            if Namespace.equal ns' ns then []
-            else
-              [Print.break,
+        val ppImportAs =
+            Print.inconsistentBlock 2
+              [Print.ppString "import",
+               Print.space,
+               Print.ppString "qualified",
+               Print.space,
+               Namespace.pp ns,
+               Print.break,
                Print.ppString "as",
                Print.space,
                Namespace.pp ns']
-
-        val ppImportAs = Print.inconsistentBlock 2 (ppImport @ ppAs)
       in
         Print.sequence ppImportAs Print.newline
       end;
 in
-  fun ppFullNamespace ns = Namespace.pp (exportNamespace ns);
-
-  fun ppModuleImport namespace source =
+  fun ppModuleDeclaration exp =
       let
-        val import = exportImportNamespaces source
+        val SymbolExport {namespace,exportTypeOps,...} = exp
+      in
+        Print.inconsistentBlock 0
+          [Print.ppString "module ",
+           Namespace.pp namespace,
+           Print.newline,
+           Print.ppString "where"]
+      end;
 
-        val import = NamespaceSet.toList import
+  fun ppModuleImport exp =
+      let
+        val SymbolExport {namespace,importNamespaces,...} = exp
+
+        val import = NamespaceSet.toList importNamespaces
       in
         Print.inconsistentBlock 0
           (List.map (ppImportNamespace namespace) import)
       end;
 
-  fun ppNamespace namespace ns =
-      Namespace.pp (exportRelativeNamespace namespace ns);
+  fun ppTypeOpName exp n =
+      let
+        val SymbolExport {namespace,exportTypeOps,...} = exp
 
-  fun ppTypeOpName namespace n =
-      Name.pp (exportRelativeTypeOpName namespace n);
+        val n =
+            case NameMap.peek exportTypeOps n of
+              SOME n => n
+            | NONE =>
+              (* This "cache-miss" should only happen for commented-out *)
+              (* types annotating nested declarations *)
+              exportTypeOpName n
+      in
+        Name.pp (shortenName namespace n)
+      end;
 
-  fun ppConstName namespace n =
-      Name.pp (exportRelativeConstName namespace n);
+  fun ppConstName exp n =
+      let
+        val SymbolExport {namespace,exportConsts,...} = exp
+
+        val n =
+            case NameMap.peek exportConsts n of
+              SOME n => n
+            | NONE =>
+              let
+                val bug = "Haskell.ppConstName: " ^ Name.toString n
+              in
+                raise Bug bug
+              end
+      in
+        Name.pp (shortenName namespace n)
+      end;
 end;
 
 fun ppVarName n =
@@ -1903,6 +1878,26 @@ local
 
   val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken;
 
+  fun destCase tm =
+      let
+        val (a,bs) = Term.destCase tm
+
+        val ty = Term.typeOf a
+
+        fun mkBranch (n,xs,t) =
+            let
+              val c = Const.mkUndef n
+
+              val ty = Type.listMkFun (List.map Term.typeOf xs, ty)
+
+              val pat = Term.listMkApp (Term.mkConst (c,ty), xs)
+            in
+              (pat,t)
+            end
+      in
+        (a, List.map mkBranch bs)
+      end;
+
   fun destGenApp tm =
       if Term.isNumeral tm then
         raise Error "Haskell.ppTerm.destGenApp: numeral"
@@ -1918,7 +1913,8 @@ local
         raise Error "Haskell.ppTerm.destGenApp: abstraction"
       else if Term.isCase tm then
         raise Error "Haskell.ppTerm.destGenApp: case"
-      else Term.destApp tm;
+      else
+        Term.destApp tm;
 
   val stripGenApp =
       let
@@ -2243,7 +2239,6 @@ in
         val Newtype
               {name,
                parameters = parms,
-               predicate = pred,
                repType,
                abs,
                rep} = newtype
@@ -2376,58 +2371,49 @@ fun ppTags spps =
         (ppTag spp ::
          List.map (Print.sequence Print.newline o ppTag) spps);
 
-local
-  fun ppModuleDeclaration namespace =
+fun ppModule (pkg,namespace,source) =
+    let
+      val {description} = Package.description pkg
+      and {license} = Package.license pkg
+      and auth = Package.author pkg
+      and exp = mkSymbolExport namespace source
+    in
       Print.inconsistentBlock 0
-        [Print.ppString "module ",
-         ppFullNamespace namespace,
+        [Print.ppString "{- |",
          Print.newline,
-         Print.ppString "where"];
-in
-  fun ppModule (pkg,namespace,source) =
-      let
-        val {description} = Package.description pkg
-        and {license} = Package.license pkg
-        and auth = Package.author pkg
-      in
-        Print.inconsistentBlock 0
-          [Print.ppString "{- |",
-           Print.newline,
-           ppTags
-             [("Module", Print.ppString "$Header$"),
-              ("Description", Print.ppString description),
-              ("License", Print.ppString license)],
-           Print.newlines 2,
-           ppTags
-             [("Maintainer", PackageAuthor.pp auth),
-              ("Stability", Print.ppString "provisional"),
-              ("Portability", Print.ppString "portable")],
-           Print.newline,
-           Print.ppString "-}",
-           Print.newline,
-           ppModuleDeclaration namespace,
-           Print.newlines 2,
-           ppModuleImport namespace source,
-           Print.newline,
-           ppSourceList namespace source]
-      end;
-end;
+         ppTags
+           [("Module", Print.ppString "$Header$"),
+            ("Description", Print.ppString description),
+            ("License", Print.ppString license)],
+         Print.newlines 2,
+         ppTags
+           [("Maintainer", PackageAuthor.pp auth),
+            ("Stability", Print.ppString "provisional"),
+            ("Portability", Print.ppString "portable")],
+         Print.newline,
+         Print.ppString "-}",
+         Print.newline,
+         ppModuleDeclaration exp,
+         Print.newlines 2,
+         ppModuleImport exp,
+         Print.newline,
+         ppSourceList exp source]
+    end;
 
 local
-  fun ppTestsImport tests =
+  fun mkTestsSymbolExport tests =
       let
         val namespace = haskellTestNamespace
         and source = List.map (fn Test {value,...} => ValueSource value) tests
       in
-        ppModuleImport namespace source
+        mkSymbolExport namespace source
       end;
 
-  fun ppTestSpace test =
+  fun ppTestSpace exp test =
       let
         val Test {value,...} = test
-        and namespace = haskellTestNamespace
       in
-        Print.sequence (ppValue namespace value) (Print.newlines 2)
+        Print.sequence (ppValue exp value) (Print.newlines 2)
       end;
 
   fun ppInvokeTest test =
@@ -2435,7 +2421,7 @@ local
         val Test {name, description = desc, ...} = test
       in
         Print.program
-          [Print.ppString "OpenTheory.Primitive.Test.check \"",
+          [Print.ppString "Primitive.Test.check \"",
            Print.ppString (escapeString desc),
            Print.ppString "\\n  \" ",
            Print.ppString name,
@@ -2459,6 +2445,7 @@ in
         val {description} = Package.description pkg
         and {license} = Package.license pkg
         and auth = Package.author pkg
+        and exp = mkTestsSymbolExport tests
       in
         Print.inconsistentBlock 0
           [Print.ppString "{- |",
@@ -2481,11 +2468,11 @@ in
            Print.newline,
            Print.ppString "where",
            Print.newlines 2,
-           ppTestsImport tests,
-           Print.ppString "import qualified OpenTheory.Primitive.Test",
+           ppModuleImport exp,
+           Print.ppString "import qualified OpenTheory.Primitive.Test as Primitive.Test",
            Print.newline,
            Print.newline,
-           Print.program (List.map ppTestSpace tests),
+           Print.program (List.map (ppTestSpace exp) tests),
            ppMain tests]
       end;
 end;
@@ -2557,8 +2544,8 @@ local
       case NamespaceSet.toList mods of
         [] => []
       | ns :: nss =>
-        ppFullNamespace ns ::
-        List.map (Print.sequence Print.newline o ppFullNamespace) nss;
+        ppNamespace ns ::
+        List.map (Print.sequence Print.newline o ppNamespace) nss;
 in
   fun ppCabal (pkg,deps,source) =
       let
@@ -2663,6 +2650,23 @@ fun outputLicense dir {directory} pkg =
     end;
 
 local
+  fun exportSubNamespace parent ns =
+      let
+        val xparent =
+            if Namespace.isGlobal parent then parent
+            else exportNamespace parent
+
+        val xns = exportNamespace ns
+
+        val (xns_nested,xns_sub) = Namespace.destNested xns
+
+        val () =
+            if Namespace.equal xparent xns_nested then ()
+            else raise Bug "Haskell.exportSubNamespace"
+      in
+        xns_sub
+      end;
+
   fun outputSrc pkg {directory = dir} sub namespace source =
       let
         val ss = Print.toStream ppModule (pkg,namespace,source)
@@ -2679,18 +2683,11 @@ local
         ()
       end;
 
-  fun outputMod pkg dir ns module =
+  fun outputMod pkg dir parent module =
       let
         val Module {namespace,source,submodules} = module
 
-        val sub =
-            let
-              val pp =
-                  if Namespace.isGlobal ns then ppFullNamespace
-                  else ppNamespace ns
-            in
-              Print.toLine pp namespace
-            end
+        val sub = exportSubNamespace parent namespace
 
         val () =
             if List.null source then ()
