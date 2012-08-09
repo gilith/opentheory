@@ -27,9 +27,9 @@ instance Num Natural where
   x + y = Natural (unNatural x + unNatural y)
 
   x - y =
-      if y <= x
-        then Natural (unNatural x - unNatural y)
-        else error "OpenTheory.Primitive.Number.Natural.-"
+      if x < y
+        then error "OpenTheory.Primitive.Number.Natural.-"
+        else Natural (unNatural x - unNatural y)
 
   x * y = Natural (unNatural x * unNatural y)
 
@@ -38,6 +38,27 @@ instance Num Natural where
   signum x = if unNatural x == 0 then x else Natural 1
 
   fromInteger x =
-      if 0 <= x
-        then Natural x
-        else error "OpenTheory.Primitive.Number.Natural.fromInteger"
+      if x < 0
+        then error "OpenTheory.Primitive.Number.Natural.fromInteger"
+        else Natural x
+
+instance Real Natural where
+  toRational x = toRational (unNatural x)
+
+instance Enum Natural where
+  toEnum x =
+      if x < 0
+        then error "OpenTheory.Primitive.Number.Natural.toEnum"
+        else Natural (toEnum x)
+
+  fromEnum x = fromEnum (unNatural x)
+
+instance Integral Natural where
+  quotRem x y =
+      if y == 0
+        then error "OpenTheory.Primitive.Number.Natural.quotRem"
+        else
+          let (q,r) = quotRem (unNatural x) (unNatural y)
+          in (Natural q, Natural r)
+
+  toInteger = unNatural
