@@ -28,9 +28,9 @@ TEMP = \
 .PHONY: clean
 clean:
 	@echo
-	@echo '********************'
-	@echo '* Clean everything *'
-	@echo '********************'
+	@echo '+------------------+'
+	@echo '| Clean everything |'
+	@echo '+------------------+'
 	@echo
 	rm -f $(TEMP)
 	$(MAKE) -C test $@
@@ -188,9 +188,9 @@ include bin/mosml/Makefile.src
 .PHONY: mosml-info
 mosml-info:
 	@echo
-	@echo '*****************************************'
-	@echo '* Build and test the Moscow ML programs *'
-	@echo '*****************************************'
+	@echo '+---------------------------------------+'
+	@echo '| Build and test the Moscow ML programs |'
+	@echo '+---------------------------------------+'
 	@echo
 
 .PHONY: mosml
@@ -222,9 +222,9 @@ bin/mlton/%.mlb: bin/mlton/%.sml
 
 bin/mlton/%: bin/mlton/%.mlb
 	@echo
-	@echo '***************************'
-	@echo '* Compile a MLton program *'
-	@echo '***************************'
+	@echo '+-------------------------+'
+	@echo '| Compile a MLton program |'
+	@echo '+-------------------------+'
 	@echo
 	@echo $@
 	cd bin/mlton ; $(MLTON) $(MLTON_OPTS) $(notdir $<)
@@ -233,9 +233,9 @@ bin/mlton/%: bin/mlton/%.mlb
 .PHONY: mlton-info
 mlton-info:
 	@echo
-	@echo '*************************************'
-	@echo '* Build and test the MLton programs *'
-	@echo '*************************************'
+	@echo '+-----------------------------------+'
+	@echo '| Build and test the MLton programs |'
+	@echo '+-----------------------------------+'
 	@echo
 
 .PHONY: mlton
@@ -277,9 +277,9 @@ bin/polyml/%.o: bin/polyml/%.sml
 
 bin/polyml/%: bin/polyml/%.o
 	@echo
-	@echo '*****************************'
-	@echo '* Compile a Poly/ML program *'
-	@echo '*****************************'
+	@echo '+---------------------------+'
+	@echo '| Compile a Poly/ML program |'
+	@echo '+---------------------------+'
 	@echo
 	@echo $@
 	cd bin/polyml && $(CC) -o $(notdir $@) $(notdir $<) $(POLYML_LINK_OPTS)
@@ -288,9 +288,9 @@ bin/polyml/%: bin/polyml/%.o
 .PHONY: polyml-info
 polyml-info:
 	@echo
-	@echo '***************************************'
-	@echo '* Build and test the Poly/ML programs *'
-	@echo '***************************************'
+	@echo '+-------------------------------------+'
+	@echo '| Build and test the Poly/ML programs |'
+	@echo '+-------------------------------------+'
 	@echo
 
 .PHONY: polyml

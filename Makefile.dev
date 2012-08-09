@@ -30,9 +30,9 @@ MOSML_DEP = scripts/mosml_dep
 
 bin/mosml/Makefile.src: Makefile Makefile.dev $(MOSML_DEP) $(MLPP)
 	@echo
-	@echo '****************************************************'
-	@echo '* Regenerating the Moscow ML makefile dependencies *'
-	@echo '****************************************************'
+	@echo '+--------------------------------------------------+'
+	@echo '| Regenerating the Moscow ML makefile dependencies |'
+	@echo '+--------------------------------------------------+'
 	@echo
 	@$(MOSML_DEP) $(MOSML_SRC) $(MOSML_TARGETS) > $@
 
@@ -250,9 +250,9 @@ test-directory:
 .PHONY: init
 init:
 	@echo
-	@echo '******************************************************'
-	@echo '* Initialize this development snapshot of opentheory *'
-	@echo '******************************************************'
+	@echo '+----------------------------------------------------+'
+	@echo '| Initialize this development snapshot of opentheory |'
+	@echo '+----------------------------------------------------+'
 	@echo
 	$(MAKE) test-directory
 
@@ -280,9 +280,9 @@ profile-time.mlb: bin/mlton/benchmark.sml
 
 profile-time: profile-time.mlb
 	@echo
-	@echo '********************************************************'
-	@echo '* Compile the OpenTheory benchmark with time profiling *'
-	@echo '********************************************************'
+	@echo '+------------------------------------------------------+'
+	@echo '| Compile the OpenTheory benchmark with time profiling |'
+	@echo '+------------------------------------------------------+'
 	@echo
 	$(MLTON) $(MLTON_OPTS) -profile time -profile-stack true -profile-branch true $<
 	@echo
@@ -328,7 +328,8 @@ release: release-stamp mosml mlton polyml documentation
 	$(MAKE) tarball
 	rsync -azv --delete --checksum --size-only --exclude=.cvsignore --exclude=CVS -e ssh $(RELEASE_DIR)/ gilith@login.gilith.com:public_html/software/opentheory
 	ssh gilith@login.gilith.com '/bin/bash -l scripts/install_opentheory'
-	echo Completed release
+	@if GIT_PAGER='' git grep '[*][*][*]' ; then echo "WARNING: TODO comments discovered" ; fi
+	@echo Completed release
 
 ###############################################################################
 # The build scripts.
