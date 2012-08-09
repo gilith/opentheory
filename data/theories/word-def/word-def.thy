@@ -1,5 +1,5 @@
 name: word-def
-version: 1.43
+version: 1.48
 description: Definition of word operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -26,9 +26,10 @@ modular {
   interpret: const "Number.Modular.^" as "Data.Word.^"
   interpret: const "Number.Modular.~" as "Data.Word.~"
   interpret: const "Number.Modular.fromNatural" as "Data.Word.fromNatural"
+  interpret: const "Number.Modular.fromRandom" as "Data.Word.fromRandom"
   interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
   interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
-  package: modular-1.58
+  package: modular-1.63
 }
 
 main {

@@ -9,7 +9,7 @@ Portability: portable
 
 A natural number type
 -}
-module OpenTheory.Primitive.Number.Natural
+module OpenTheory.Primitive.Natural
   ( Natural )
 where
 
@@ -28,7 +28,7 @@ instance Num Natural where
 
   x - y =
       if x < y
-        then error "OpenTheory.Primitive.Number.Natural.-"
+        then error "OpenTheory.Primitive.Natural.-"
         else Natural (unNatural x - unNatural y)
 
   x * y = Natural (unNatural x * unNatural y)
@@ -39,7 +39,7 @@ instance Num Natural where
 
   fromInteger x =
       if x < 0
-        then error "OpenTheory.Primitive.Number.Natural.fromInteger"
+        then error "OpenTheory.Primitive.Natural.fromInteger"
         else Natural x
 
 instance Real Natural where
@@ -48,15 +48,22 @@ instance Real Natural where
 instance Enum Natural where
   toEnum x =
       if x < 0
-        then error "OpenTheory.Primitive.Number.Natural.toEnum"
+        then error "OpenTheory.Primitive.Natural.toEnum"
         else Natural (toEnum x)
 
   fromEnum x = fromEnum (unNatural x)
 
 instance Integral Natural where
+  divMod x y =
+      if y == 0
+        then error "OpenTheory.Primitive.Natural.divMod"
+        else
+          let (d,m) = divMod (unNatural x) (unNatural y)
+          in (Natural d, Natural m)
+
   quotRem x y =
       if y == 0
-        then error "OpenTheory.Primitive.Number.Natural.quotRem"
+        then error "OpenTheory.Primitive.Natural.quotRem"
         else
           let (q,r) = quotRem (unNatural x) (unNatural y)
           in (Natural q, Natural r)

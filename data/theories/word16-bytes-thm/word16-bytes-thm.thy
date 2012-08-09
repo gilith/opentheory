@@ -1,9 +1,9 @@
 name: word16-bytes-thm
-version: 1.68
+version: 1.74
 description: Properties of 16-bit word to byte pair conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-17
+provenance: HOL Light theory extracted on 2012-08-07
 requires: bool
 requires: byte
 requires: list

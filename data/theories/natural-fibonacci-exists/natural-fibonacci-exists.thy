@@ -1,9 +1,9 @@
 name: natural-fibonacci-exists
-version: 1.17
+version: 1.22
 description: Existence of Fibonacci numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-17
+provenance: HOL Light theory extracted on 2012-08-06
 requires: base
 show: "Data.Bool"
 show: "Function"

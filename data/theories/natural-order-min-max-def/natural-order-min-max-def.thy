@@ -1,9 +1,9 @@
 name: natural-order-min-max-def
-version: 1.22
+version: 1.23
 description: Definition of natural number min and max functions
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-06-16
+provenance: HOL Light theory extracted on 2012-07-28
 requires: bool
 requires: natural-order-thm
 show: "Data.Bool"

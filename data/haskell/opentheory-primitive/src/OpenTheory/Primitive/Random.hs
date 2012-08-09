@@ -9,7 +9,7 @@ Portability: portable
 
 Random stream primitives
 -}
-module OpenTheory.Primitive.Probability.Random
+module OpenTheory.Primitive.Random
   ( Random,
     bit,
     split,

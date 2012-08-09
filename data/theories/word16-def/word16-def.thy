@@ -1,5 +1,5 @@
 name: word16-def
-version: 1.41
+version: 1.48
 description: Definition of 16-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,17 @@ provenance: HOL Light theory extracted on 2011-07-25
 requires: bool
 requires: list
 requires: natural
+requires: natural-bits
 requires: natural-divides
+requires: pair
+requires: probability
 show: "Data.Bool"
 show: "Data.List"
+show: "Data.Pair"
 show: "Data.Word16"
 show: "Data.Word16.Bits"
 show: "Number.Natural"
+show: "Probability.Random"
 
 def {
   article: "word16-def.art"
@@ -31,6 +36,7 @@ word {
   interpret: const "Data.Word.and" as "Data.Word16.and"
   interpret: const "Data.Word.bit" as "Data.Word16.bit"
   interpret: const "Data.Word.fromNatural" as "Data.Word16.fromNatural"
+  interpret: const "Data.Word.fromRandom" as "Data.Word16.fromRandom"
   interpret: const "Data.Word.modulus" as "Data.Word16.modulus"
   interpret: const "Data.Word.not" as "Data.Word16.not"
   interpret: const "Data.Word.or" as "Data.Word16.or"
@@ -42,7 +48,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word16.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word16.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word16.Bits.toWord"
-  package: word-1.65
+  package: word-1.72
 }
 
 main {

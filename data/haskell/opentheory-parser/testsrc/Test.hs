@@ -11,35 +11,53 @@ module Main
   ( main )
 where
 
-import qualified OpenTheory.Data.List
-import qualified OpenTheory.Data.Option
-import qualified OpenTheory.Number.Natural
-import qualified OpenTheory.Parser.Stream
-import qualified OpenTheory.Primitive.Probability.Random
-import qualified OpenTheory.Primitive.Test
+import qualified OpenTheory.Data.List as Data.List
+import qualified OpenTheory.Data.Option as Data.Option
+import qualified OpenTheory.Number.Natural as Number.Natural
+import qualified OpenTheory.Parser.Stream as Parser.Stream
+import qualified OpenTheory.Primitive.Random as Primitive.Random
+import qualified OpenTheory.Primitive.Test as Primitive.Test
 
-proposition0 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
+proposition0 :: Primitive.Random.Random -> Bool
 proposition0 r =
-  let (l, _) =
-        OpenTheory.Data.List.fromRandom
-          OpenTheory.Number.Natural.fromRandom r in
-  OpenTheory.Data.Option.equal (OpenTheory.Data.List.equal (==))
-    (OpenTheory.Parser.Stream.toList (OpenTheory.Parser.Stream.fromList l))
-    (Just l)
+  let (l, _) = Data.List.fromRandom Number.Natural.fromRandom r in
+  Parser.Stream.size (Parser.Stream.fromList l) == Data.List.size l
 
-proposition1 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
+proposition1 :: Primitive.Random.Random -> Bool
 proposition1 r =
-  let (l, r') =
-        OpenTheory.Data.List.fromRandom
-          OpenTheory.Number.Natural.fromRandom r in
-  let (s, _) =
-        OpenTheory.Parser.Stream.fromRandom
-          OpenTheory.Number.Natural.fromRandom r' in
-  OpenTheory.Parser.Stream.size (OpenTheory.Parser.Stream.append l s) ==
-  OpenTheory.Data.List.size l + OpenTheory.Parser.Stream.size s
+  let (l, _) = Data.List.fromRandom Number.Natural.fromRandom r in
+  Data.Option.equal (Data.List.equal (==))
+    (Parser.Stream.toList (Parser.Stream.fromList l)) (Just l)
+
+proposition2 :: Primitive.Random.Random -> Bool
+proposition2 r =
+  let (s, _) = Parser.Stream.fromRandom Number.Natural.fromRandom r in
+  case Parser.Stream.toList s of
+    Nothing -> True
+    Just l -> Data.List.size l == Parser.Stream.size s
+
+proposition3 :: Primitive.Random.Random -> Bool
+proposition3 r =
+  let (l, r') = Data.List.fromRandom Number.Natural.fromRandom r in
+  let (s, _) = Parser.Stream.fromRandom Number.Natural.fromRandom r' in
+  Parser.Stream.size (Parser.Stream.append l s) ==
+  Data.List.size l + Parser.Stream.size s
+
+proposition4 :: Primitive.Random.Random -> Bool
+proposition4 r =
+  let (l, r') = Data.List.fromRandom Number.Natural.fromRandom r in
+  let (s, _) = Parser.Stream.fromRandom Number.Natural.fromRandom r' in
+  Data.Option.equal (Data.List.equal (==))
+    (Parser.Stream.toList (Parser.Stream.append l s))
+    (case Parser.Stream.toList s of
+       Nothing -> Nothing
+       Just ls -> Just (l ++ ls))
 
 main :: IO ()
 main =
-    do OpenTheory.Primitive.Test.check "Proposition 0:\n  !r.\n    let (l, r') <-\n        Haskell.Data.List.fromRandom Haskell.Number.Natural.fromRandom r in\n    Haskell.Data.Option.equal (Haskell.Data.List.equal (=))\n      (Stream.toList (Stream.fromList l)) (some l)\n  " proposition0
-       OpenTheory.Primitive.Test.check "Proposition 1:\n  !r.\n    let (l, r') <-\n        Haskell.Data.List.fromRandom Haskell.Number.Natural.fromRandom r in\n    let (s, r'') <-\n        Stream.fromRandom Haskell.Number.Natural.fromRandom r' in\n    Stream.size (Stream.append l s) =\n    Haskell.Data.List.size l + Stream.size s\n  " proposition1
+    do Primitive.Test.check "Proposition 0:\n  !r.\n    let (l, r') <- H.fromRandom H.fromRandom r in\n    H.Stream.size (H.Stream.fromList l) = H.size l\n  " proposition0
+       Primitive.Test.check "Proposition 1:\n  !r.\n    let (l, r') <- H.fromRandom H.fromRandom r in\n    H.equal (H.equal (=)) (H.Stream.toList (H.Stream.fromList l)) (some l)\n  " proposition1
+       Primitive.Test.check "Proposition 2:\n  !r.\n    let (s, r') <- H.Stream.fromRandom H.fromRandom r in\n    case H.Stream.toList s of\n      none -> T\n    | some l -> H.size l = H.Stream.size s\n  " proposition2
+       Primitive.Test.check "Proposition 3:\n  !r.\n    let (l, r') <- H.fromRandom H.fromRandom r in\n    let (s, r'') <- H.Stream.fromRandom H.fromRandom r' in\n    H.Stream.size (H.Stream.append l s) = H.size l + H.Stream.size s\n  " proposition3
+       Primitive.Test.check "Proposition 4:\n  !r.\n    let (l, r') <- H.fromRandom H.fromRandom r in\n    let (s, r'') <- H.Stream.fromRandom H.fromRandom r' in\n    H.equal (H.equal (=)) (H.Stream.toList (H.Stream.append l s))\n      (case H.Stream.toList s of none -> none | some ls -> some (l @ ls))\n  " proposition4
        return ()

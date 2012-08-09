@@ -1,9 +1,10 @@
 name: probability
-version: 1.11
+version: 1.19
 description: Probability
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: list
 requires: natural
 requires: pair
 requires: relation
@@ -15,9 +16,15 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: probability-def-1.14
+  package: probability-def-1.21
+}
+
+thm {
+  import: def
+  package: probability-thm-1.1
 }
 
 main {
   import: def
+  import: thm
 }

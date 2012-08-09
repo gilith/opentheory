@@ -9,11 +9,12 @@ Portability: portable
 
 Byte primitive functions
 -}
-module OpenTheory.Primitive.Data.Byte
-  ( Byte(..),
+module OpenTheory.Primitive.Byte
+  ( Byte,
     and,
     bit,
     fromNatural,
+    not,
     or,
     shiftLeft,
     shiftRight )
@@ -22,30 +23,29 @@ where
 import Prelude (Bool, (<), (&&), fromIntegral)
 import qualified Data.Bits
 import qualified Data.Word
-import qualified OpenTheory.Primitive.Number.Natural
+import qualified OpenTheory.Primitive.Natural as Primitive.Natural
 
 type Byte = Data.Word.Word8
 
-and :: Data.Word.Word8 -> Data.Word.Word8 -> Data.Word.Word8
+and :: Byte -> Byte -> Byte
 and w1 w2 = (Data.Bits..&.) w1 w2
 
-bit :: Data.Word.Word8 -> OpenTheory.Primitive.Number.Natural.Natural -> Bool
+bit :: Byte -> Primitive.Natural.Natural -> Bool
 bit w i = i < 8 && Data.Bits.testBit w (fromIntegral i)
 
-fromNatural :: OpenTheory.Primitive.Number.Natural.Natural -> Data.Word.Word8
+fromNatural :: Primitive.Natural.Natural -> Byte
 fromNatural = fromIntegral
 
-or :: Data.Word.Word8 -> Data.Word.Word8 -> Data.Word.Word8
+not :: Byte -> Byte
+not w = (Data.Bits.complement) w
+
+or :: Byte -> Byte -> Byte
 or w1 w2 = (Data.Bits..|.) w1 w2
 
-shiftLeft ::
-    Data.Word.Word8 -> OpenTheory.Primitive.Number.Natural.Natural ->
-    Data.Word.Word8
+shiftLeft :: Byte -> Primitive.Natural.Natural -> Byte
 shiftLeft w n =
     if n < 8 then (Data.Bits.shiftL) w (fromIntegral n) else 0
 
-shiftRight ::
-    Data.Word.Word8 -> OpenTheory.Primitive.Number.Natural.Natural ->
-    Data.Word.Word8
+shiftRight :: Byte -> Primitive.Natural.Natural -> Byte
 shiftRight w n =
     if n < 8 then (Data.Bits.shiftR) w (fromIntegral n) else 0

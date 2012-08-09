@@ -1,5 +1,5 @@
 name: char
-version: 1.81
+version: 1.90
 description: Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -26,18 +26,18 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: char-def-1.70
+  package: char-def-1.78
 }
 
 thm {
   import: def
-  package: char-thm-1.9
+  package: char-thm-1.11
 }
 
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.76
+  package: char-utf8-1.82
 }
 
 main {

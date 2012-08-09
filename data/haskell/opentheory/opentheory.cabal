@@ -1,5 +1,5 @@
 Name: opentheory
-Version: 1.35
+Version: 1.53
 Description: The Haskell base
 License: MIT
 License-file: LICENSE
@@ -20,9 +20,15 @@ Library
   ghc-options: -Wall -Werror
 
   Exposed-modules:
+    OpenTheory.Data.Byte
+    OpenTheory.Data.Byte.Bits
     OpenTheory.Data.List
     OpenTheory.Data.Option
+    OpenTheory.Data.Word16
+    OpenTheory.Data.Word16.Bits
     OpenTheory.Number.Natural
+    OpenTheory.Number.Natural.Bits
+    OpenTheory.Number.Natural.Uniform
     OpenTheory.Probability.Random
 
 Executable opentheory-test

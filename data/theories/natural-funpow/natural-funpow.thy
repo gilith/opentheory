@@ -1,5 +1,5 @@
 name: natural-funpow
-version: 1.1
+version: 1.5
 description: Function power
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,7 +15,7 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: natural-funpow-def-1.1
+  package: natural-funpow-def-1.7
 }
 
 thm {

@@ -1,9 +1,9 @@
 name: natural-funpow-def
-version: 1.1
+version: 1.7
 description: Definition of function power
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-15
+provenance: HOL Light theory extracted on 2012-08-06
 requires: bool
 requires: natural-thm
 show: "Data.Bool"

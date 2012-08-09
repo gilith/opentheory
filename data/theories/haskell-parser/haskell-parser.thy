@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.88
+version: 1.99
 description: Simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,33 +10,31 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
-show: "Haskell.Parser"
+show: "Function"
+show: "Haskell.Data.List" as "H"
+show: "Haskell.Data.Option" as "H"
+show: "Haskell.Number.Natural" as "H"
+show: "Haskell.Parser" as "H"
 show: "Number.Natural"
+show: "Parser"
+show: "Probability.Random"
 
 def {
-  package: haskell-parser-def-1.39
-}
-
-thm {
-  import: def
-  package: haskell-parser-thm-1.35
+  package: haskell-parser-def-1.44
 }
 
 src {
   import: def
-  import: thm
-  package: haskell-parser-src-1.60
+  package: haskell-parser-src-1.69
 }
 
 test {
   import: def
-  import: thm
-  package: haskell-parser-test-1.19
+  package: haskell-parser-test-1.30
 }
 
 main {
   import: def
-  import: thm
   import: src
   import: test
 }

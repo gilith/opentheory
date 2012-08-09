@@ -1,5 +1,5 @@
 name: natural
-version: 1.62
+version: 1.71
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -36,15 +36,16 @@ numeral {
 order {
   import: def
   import: thm
-  package: natural-order-1.37
+  package: natural-order-1.38
 }
 
 add {
   import: def
   import: thm
+  import: dest
   import: numeral
   import: order
-  package: natural-add-1.46
+  package: natural-add-1.51
 }
 
 mult {
@@ -53,27 +54,7 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.44
-}
-
-exp {
-  import: def
-  import: thm
-  import: numeral
-  import: order
-  import: add
-  import: mult
-  package: natural-exp-1.30
-}
-
-sub {
-  import: def
-  import: thm
-  import: dest
-  import: order
-  import: add
-  import: mult
-  package: natural-sub-1.26
+  package: natural-mult-1.48
 }
 
 div {
@@ -83,9 +64,18 @@ div {
   import: order
   import: add
   import: mult
-  import: exp
-  import: sub
-  package: natural-div-1.33
+  package: natural-div-1.37
+}
+
+exp {
+  import: def
+  import: thm
+  import: numeral
+  import: order
+  import: add
+  import: mult
+  import: div
+  package: natural-exp-1.36
 }
 
 factorial {
@@ -95,7 +85,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.23
+  package: natural-factorial-1.27
 }
 
 distance {
@@ -104,8 +94,7 @@ distance {
   import: order
   import: add
   import: mult
-  import: sub
-  package: natural-distance-1.38
+  package: natural-distance-1.43
 }
 
 funpow {
@@ -114,7 +103,7 @@ funpow {
   import: numeral
   import: add
   import: mult
-  package: natural-funpow-1.1
+  package: natural-funpow-1.5
 }
 
 main {
@@ -126,9 +115,8 @@ main {
   import: order
   import: add
   import: mult
-  import: exp
-  import: sub
   import: div
+  import: exp
   import: factorial
   import: distance
   import: funpow

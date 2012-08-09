@@ -13,16 +13,15 @@ module Main
   ( main )
 where
 
-import qualified Data.Word
-import qualified OpenTheory.Primitive.Data.Word16
-import qualified OpenTheory.Primitive.Test
+import qualified OpenTheory.Primitive.Random as Primitive.Random
+import qualified OpenTheory.Primitive.Test as Primitive.Test
 
-prop0 :: Data.Word.Word16 -> Bool
-prop0 w =
-  let (b1,b2) = OpenTheory.Primitive.Data.Word16.toBytes w in
-  OpenTheory.Primitive.Data.Word16.fromBytes b1 b2 == w
+proposition0 :: Primitive.Random.Random -> Bool
+proposition0 r =
+  let (p,_) = Primitive.Random.bit r in
+  p || not p
 
 main :: IO ()
 main =
-    do OpenTheory.Primitive.Test.check "prop0" prop0
+    do Primitive.Test.check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
        return ()

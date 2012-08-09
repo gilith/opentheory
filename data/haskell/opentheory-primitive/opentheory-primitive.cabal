@@ -19,9 +19,10 @@ Library
   ghc-options: -Wall -Werror
 
   Exposed-modules:
-    OpenTheory.Primitive.Data.Word16
-    OpenTheory.Primitive.Number.Natural
-    OpenTheory.Primitive.Probability.Random
+    OpenTheory.Primitive.Byte
+    OpenTheory.Primitive.Natural
+    OpenTheory.Primitive.Random
+    OpenTheory.Primitive.Word16
     OpenTheory.Primitive.Test
 
 Executable opentheory-primitive-test

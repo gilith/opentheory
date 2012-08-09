@@ -1,9 +1,9 @@
 name: gfp-thm
-version: 1.36
+version: 1.41
 description: Properties of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-17
+provenance: HOL Light theory extracted on 2012-08-06
 requires: bool
 requires: gfp-def
 requires: gfp-witness

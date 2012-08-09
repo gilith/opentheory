@@ -1,9 +1,9 @@
 name: list-zip-def
-version: 1.5
+version: 1.10
 description: Definition of the list zip function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-16
+provenance: HOL Light theory extracted on 2012-08-06
 requires: bool
 requires: list-def
 requires: list-dest

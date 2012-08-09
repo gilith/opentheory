@@ -11,17 +11,17 @@ module Main
   ( main )
 where
 
-import qualified OpenTheory.Number.Natural
-import qualified OpenTheory.Primitive.Probability.Random
-import qualified OpenTheory.Primitive.Test
+import qualified OpenTheory.Number.Natural as Number.Natural
+import qualified OpenTheory.Primitive.Random as Primitive.Random
+import qualified OpenTheory.Primitive.Test as Primitive.Test
 
-proposition0 :: OpenTheory.Primitive.Probability.Random.Random -> Bool
+proposition0 :: Primitive.Random.Random -> Bool
 proposition0 r =
-  let (n1, r') = OpenTheory.Number.Natural.fromRandom r in
-  let (n2, _) = OpenTheory.Number.Natural.fromRandom r' in
+  let (n1, r') = Number.Natural.fromRandom r in
+  let (n2, _) = Number.Natural.fromRandom r' in
   not (n1 == n2) || n2 == n1
 
 main :: IO ()
 main =
-    do OpenTheory.Primitive.Test.check "Proposition 0:\n  !r.\n    let (n1, r') <- Number.Natural.fromRandom r in\n    let (n2, r'') <- Number.Natural.fromRandom r' in\n    ~(n1 = n2) \\/ n2 = n1\n  " proposition0
+    do Primitive.Test.check "Proposition 0:\n  !r.\n    let (n1, r') <- H.fromRandom r in\n    let (n2, r'') <- H.fromRandom r' in\n    ~(n1 = n2) \\/ n2 = n1\n  " proposition0
        return ()

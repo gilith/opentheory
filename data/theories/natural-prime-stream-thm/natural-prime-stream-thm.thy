@@ -1,9 +1,9 @@
 name: natural-prime-stream-thm
-version: 1.4
+version: 1.9
 description: Properties of the ordered stream of all prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-06-16
+provenance: HOL Light theory extracted on 2012-08-06
 requires: bool
 requires: list
 requires: natural

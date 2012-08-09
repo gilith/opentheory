@@ -1,5 +1,5 @@
 name: relation
-version: 1.43
+version: 1.46
 description: Relation operators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -15,7 +15,7 @@ show: "Number.Natural"
 show: "Relation"
 
 def {
-  package: relation-def-1.14
+  package: relation-def-1.19
 }
 
 thm {
@@ -26,14 +26,14 @@ thm {
 well-founded {
   import: def
   import: thm
-  package: relation-well-founded-1.40
+  package: relation-well-founded-1.43
 }
 
 natural {
   import: def
   import: thm
   import: well-founded
-  package: relation-natural-1.22
+  package: relation-natural-1.25
 }
 
 main {

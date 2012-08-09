@@ -1,5 +1,5 @@
 name: byte-def
-version: 1.40
+version: 1.47
 description: Definition of bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,17 @@ provenance: HOL Light theory extracted on 2011-07-25
 requires: bool
 requires: list
 requires: natural
+requires: natural-bits
 requires: natural-divides
+requires: pair
+requires: probability
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.Byte.Bits"
 show: "Data.List"
+show: "Data.Pair"
 show: "Number.Natural"
+show: "Probability.Random"
 
 def {
   article: "byte-def.art"
@@ -31,6 +36,7 @@ word {
   interpret: const "Data.Word.and" as "Data.Byte.and"
   interpret: const "Data.Word.bit" as "Data.Byte.bit"
   interpret: const "Data.Word.fromNatural" as "Data.Byte.fromNatural"
+  interpret: const "Data.Word.fromRandom" as "Data.Byte.fromRandom"
   interpret: const "Data.Word.modulus" as "Data.Byte.modulus"
   interpret: const "Data.Word.not" as "Data.Byte.not"
   interpret: const "Data.Word.or" as "Data.Byte.or"
@@ -42,7 +48,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Byte.Bits.fromByte"
   interpret: const "Data.Word.Bits.normal" as "Data.Byte.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Byte.Bits.toByte"
-  package: word-1.65
+  package: word-1.72
 }
 
 main {

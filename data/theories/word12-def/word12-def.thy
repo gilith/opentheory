@@ -1,5 +1,5 @@
 name: word12-def
-version: 1.41
+version: 1.48
 description: Definition of 12-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,12 +7,17 @@ provenance: HOL Light theory extracted on 2011-07-25
 requires: bool
 requires: list
 requires: natural
+requires: natural-bits
 requires: natural-divides
+requires: pair
+requires: probability
 show: "Data.Bool"
 show: "Data.List"
+show: "Data.Pair"
 show: "Data.Word12"
 show: "Data.Word12.Bits"
 show: "Number.Natural"
+show: "Probability.Random"
 
 def {
   article: "word12-def.art"
@@ -31,6 +36,7 @@ word {
   interpret: const "Data.Word.and" as "Data.Word12.and"
   interpret: const "Data.Word.bit" as "Data.Word12.bit"
   interpret: const "Data.Word.fromNatural" as "Data.Word12.fromNatural"
+  interpret: const "Data.Word.fromRandom" as "Data.Word12.fromRandom"
   interpret: const "Data.Word.modulus" as "Data.Word12.modulus"
   interpret: const "Data.Word.not" as "Data.Word12.not"
   interpret: const "Data.Word.or" as "Data.Word12.or"
@@ -42,7 +48,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word12.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word12.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word12.Bits.toWord"
-  package: word-1.65
+  package: word-1.72
 }
 
 main {

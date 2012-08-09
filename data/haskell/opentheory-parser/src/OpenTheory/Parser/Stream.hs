@@ -10,9 +10,9 @@ Portability: portable
 module OpenTheory.Parser.Stream
 where
 
-import qualified OpenTheory.Data.List
-import qualified OpenTheory.Primitive.Number.Natural
-import qualified OpenTheory.Primitive.Probability.Random
+import qualified OpenTheory.Data.List as Data.List
+import qualified OpenTheory.Primitive.Natural as Primitive.Natural
+import qualified OpenTheory.Primitive.Random as Primitive.Random
 
 data Stream a =
     Error
@@ -27,16 +27,14 @@ fromList :: [a] -> Stream a
 fromList l = append l Eof
 
 fromRandom ::
-  (OpenTheory.Primitive.Probability.Random.Random ->
-     (a, OpenTheory.Primitive.Probability.Random.Random)) ->
-    OpenTheory.Primitive.Probability.Random.Random ->
-    (Stream a, OpenTheory.Primitive.Probability.Random.Random)
+  (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
+    Primitive.Random.Random -> (Stream a, Primitive.Random.Random)
 fromRandom d r =
-  let (l, r') = OpenTheory.Data.List.fromRandom d r in
-  let (b, r'') = OpenTheory.Primitive.Probability.Random.bit r' in
+  let (l, r') = Data.List.fromRandom d r in
+  let (b, r'') = Primitive.Random.bit r' in
   (append l (if b then Error else Eof), r'')
 
-size :: Stream a -> OpenTheory.Primitive.Number.Natural.Natural
+size :: Stream a -> Primitive.Natural.Natural
 size Error = 0
 size Eof = 0
 size (Cons _ s) = size s + 1

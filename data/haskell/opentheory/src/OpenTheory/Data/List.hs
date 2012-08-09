@@ -10,8 +10,8 @@ Portability: portable
 module OpenTheory.Data.List
 where
 
-import qualified OpenTheory.Primitive.Number.Natural
-import qualified OpenTheory.Primitive.Probability.Random
+import qualified OpenTheory.Primitive.Natural as Primitive.Natural
+import qualified OpenTheory.Primitive.Random as Primitive.Random
 
 equal :: (a -> a -> Bool) -> [a] -> [a] -> Bool
 equal _ [] [] = True
@@ -20,20 +20,16 @@ equal _ (_ : _) [] = False
 equal eq (h1 : t1) (h2 : t2) = eq h1 h2 && equal eq t1 t2
 
 fromRandom ::
-  (OpenTheory.Primitive.Probability.Random.Random ->
-     (a, OpenTheory.Primitive.Probability.Random.Random)) ->
-    OpenTheory.Primitive.Probability.Random.Random ->
-    ([a], OpenTheory.Primitive.Probability.Random.Random)
+  (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
+    Primitive.Random.Random -> ([a], Primitive.Random.Random)
 fromRandom d =
-  \r ->
-    let (r1, r2) = OpenTheory.Primitive.Probability.Random.split r in
-    (dest [] r1, r2)
+  \r -> let (r1, r2) = Primitive.Random.split r in (dest [] r1, r2)
   where
-  {-dest :: [a] -> OpenTheory.Primitive.Probability.Random.Random -> [a]-}
+  {-dest :: [a] -> Primitive.Random.Random -> [a]-}
     dest l r =
-      let (b, r') = OpenTheory.Primitive.Probability.Random.bit r in
+      let (b, r') = Primitive.Random.bit r in
       if b then l else let (x, r'') = d r' in dest (x : l) r''
 
-size :: [a] -> OpenTheory.Primitive.Number.Natural.Natural
+size :: [a] -> Primitive.Natural.Natural
 size [] = 0
 size (_ : t) = 1 + size t
