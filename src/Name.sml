@@ -298,8 +298,10 @@ local
   fun mkList c = mk (Namespace.list,c);
 in
   val appendConst = mkList Namespace.appendConstComponent
+  and concatConst = mkList Namespace.concatConstComponent
   and consConst = mkList Namespace.consConstComponent
   and lengthConst = mkList Namespace.lengthConstComponent
+  and mapConst = mkList Namespace.mapConstComponent
   and nilConst = mkList Namespace.nilConstComponent;
 end;
 

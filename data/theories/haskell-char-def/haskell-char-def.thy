@@ -1,9 +1,9 @@
 name: haskell-char-def
-version: 1.13
+version: 1.14
 description: Definition of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-07
+provenance: HOL Light theory extracted on 2012-08-10
 requires: base
 show: "Data.Bool"
 show: "Data.Byte"

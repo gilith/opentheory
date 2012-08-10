@@ -1,9 +1,9 @@
 name: h-def
-version: 1.88
+version: 1.89
 description: Definition of memory safety for the H API
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-07
+provenance: HOL Light theory extracted on 2012-08-10
 requires: base
 show: "Data.Bool"
 show: "Data.Byte"

@@ -1,10 +1,11 @@
 name: parser-all-thm
-version: 1.75
+version: 1.77
 description: Properties of the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-06
+provenance: HOL Light theory extracted on 2012-08-10
 requires: bool
+requires: function
 requires: list
 requires: natural
 requires: option
@@ -16,6 +17,7 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
+show: "Function"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"

@@ -77,6 +77,7 @@ val bit0ConstComponent : component
 val bit1ConstComponent : component
 val caseConstComponent : component
 val composeConstComponent : component
+val concatConstComponent : component
 val condConstComponent : component
 val conjConstComponent : component
 val consConstComponent : component
@@ -100,6 +101,7 @@ val intersectConstComponent : component
 val leConstComponent : component
 val lengthConstComponent : component
 val ltConstComponent : component
+val mapConstComponent : component
 val memberConstComponent : component
 val minimalConstComponent : component
 val modConstComponent : component

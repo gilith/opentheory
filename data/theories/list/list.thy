@@ -1,5 +1,5 @@
 name: list
-version: 1.67
+version: 1.68
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -59,7 +59,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.41
+  package: list-map-1.42
 }
 
 filter {

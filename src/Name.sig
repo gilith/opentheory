@@ -153,8 +153,10 @@ val idConst : name
 (* Lists *)
 
 val appendConst : name
+val concatConst : name
 val consConst : name
 val lengthConst : name
+val mapConst : name
 val nilConst : name
 
 (* Options *)

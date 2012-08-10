@@ -1,5 +1,5 @@
 name: list-map
-version: 1.41
+version: 1.42
 description: The list map function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -24,7 +24,7 @@ def {
 
 thm {
   import: def
-  package: list-map-thm-1.48
+  package: list-map-thm-1.49
 }
 
 main {

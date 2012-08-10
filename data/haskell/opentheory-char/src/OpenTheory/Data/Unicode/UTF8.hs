@@ -12,6 +12,7 @@ where
 
 import qualified OpenTheory.Data.Unicode as Data.Unicode
 import qualified OpenTheory.Parser as Parser
+import qualified OpenTheory.Parser.Stream as Parser.Stream
 import qualified OpenTheory.Primitive.Byte as Primitive.Byte
 import qualified OpenTheory.Primitive.Word16 as Primitive.Word16
 
@@ -128,3 +129,67 @@ decoder =
               Data.Unicode.Position (Primitive.Word16.fromBytes p0 p1) in
         let ch = Data.Unicode.Unicode (pl, pos) in
         Just ch
+
+decodeStream ::
+  Parser.Stream.Stream Primitive.Byte.Byte ->
+    Parser.Stream.Stream Data.Unicode.Unicode
+decodeStream = Parser.parseStream decoder
+
+decode :: [Primitive.Byte.Byte] -> Maybe [Data.Unicode.Unicode]
+decode bs = Parser.Stream.toList (decodeStream (Parser.Stream.fromList bs))
+
+encoder :: Data.Unicode.Unicode -> [Primitive.Byte.Byte]
+encoder =
+  \ch ->
+    let (pl, pos) = Data.Unicode.unUnicode ch in
+    let p = Data.Unicode.unPlane pl in
+    let (p0, p1) =
+          Primitive.Word16.toBytes (Data.Unicode.unPosition pos) in
+    if p == 0 then
+      if p1 == 0 && not (Primitive.Byte.bit p0 7) then p0 : []
+      else if Primitive.Byte.and 248 p1 == 0 then encode1 p1 p0
+      else encode2 p1 p0
+    else encode3 p p1 p0
+  where
+  {-encode1 ::
+        Primitive.Byte.Byte -> Primitive.Byte.Byte ->
+          [Primitive.Byte.Byte]-}
+    encode1 p1 p0 =
+      let b00 = Primitive.Byte.shiftLeft p1 2 in
+      let b01 = Primitive.Byte.shiftRight (Primitive.Byte.and p0 192) 6 in
+      let b0 = Primitive.Byte.or 192 (Primitive.Byte.or b00 b01) in
+      let b10 = Primitive.Byte.and p0 63 in
+      let b1 = Primitive.Byte.or 128 b10 in
+      b0 : b1 : []
+
+  {-encode2 ::
+        Primitive.Byte.Byte -> Primitive.Byte.Byte ->
+          [Primitive.Byte.Byte]-}
+    encode2 p1 p0 =
+      let b00 = Primitive.Byte.shiftRight (Primitive.Byte.and p1 240) 4 in
+      let b0 = Primitive.Byte.or 224 b00 in
+      let b10 = Primitive.Byte.shiftLeft (Primitive.Byte.and p1 15) 2 in
+      let b11 = Primitive.Byte.shiftRight (Primitive.Byte.and p0 192) 6 in
+      let b1 = Primitive.Byte.or 128 (Primitive.Byte.or b10 b11) in
+      let b20 = Primitive.Byte.and p0 63 in
+      let b2 = Primitive.Byte.or 128 b20 in
+      b0 : b1 : b2 : []
+
+  {-encode3 ::
+        Primitive.Byte.Byte -> Primitive.Byte.Byte ->
+          Primitive.Byte.Byte -> [Primitive.Byte.Byte]-}
+    encode3 p p1 p0 =
+      let b00 = Primitive.Byte.shiftRight (Primitive.Byte.and p 28) 2 in
+      let b0 = Primitive.Byte.or 240 b00 in
+      let b10 = Primitive.Byte.shiftLeft (Primitive.Byte.and p 3) 4 in
+      let b11 = Primitive.Byte.shiftRight (Primitive.Byte.and p1 240) 4 in
+      let b1 = Primitive.Byte.or 128 (Primitive.Byte.or b10 b11) in
+      let b20 = Primitive.Byte.shiftLeft (Primitive.Byte.and p1 15) 2 in
+      let b21 = Primitive.Byte.shiftRight (Primitive.Byte.and p0 192) 6 in
+      let b2 = Primitive.Byte.or 128 (Primitive.Byte.or b20 b21) in
+      let b30 = Primitive.Byte.and p0 63 in
+      let b3 = Primitive.Byte.or 128 b30 in
+      b0 : b1 : b2 : b3 : []
+
+encode :: [Data.Unicode.Unicode] -> [Primitive.Byte.Byte]
+encode chs = concat (map encoder chs)

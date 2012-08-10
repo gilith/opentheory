@@ -1,5 +1,5 @@
 name: h
-version: 1.85
+version: 1.86
 description: Memory safety for the H API
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -18,12 +18,12 @@ show: "Set"
 show: "System.H"
 
 def {
-  package: h-def-1.88
+  package: h-def-1.89
 }
 
 thm {
   import: def
-  package: h-thm-1.91
+  package: h-thm-1.92
 }
 
 main {
