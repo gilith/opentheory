@@ -484,6 +484,16 @@ fun destRandom ty =
 
 val isRandom = can destRandom;
 
+(* Streams *)
+
+fun destStream ty =
+    destUnaryOp TypeOp.isStream ty
+(*OpenTheoryDebug
+    handle Error err => raise Error ("Type.destStream:\n" ^ err);
+*)
+
+val isStream = can destStream;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

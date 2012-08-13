@@ -88,6 +88,10 @@ val byteTypeOp : name
 
 val listTypeOp : name
 
+(* Natural numbers *)
+
+val naturalTypeOp : name
+
 (* Options *)
 
 val optionTypeOp : name
@@ -96,17 +100,17 @@ val optionTypeOp : name
 
 val pairTypeOp : name
 
-(* 16-bit words *)
-
-val word16TypeOp : name
-
-(* Natural numbers *)
-
-val naturalTypeOp : name
-
 (* Random streams *)
 
 val randomTypeOp : name
+
+(* Streams *)
+
+val streamTypeOp : name
+
+(* 16-bit words *)
+
+val word16TypeOp : name
 
 (* ------------------------------------------------------------------------- *)
 (* Constants.                                                                *)
@@ -156,8 +160,10 @@ val appendConst : name
 val concatConst : name
 val consConst : name
 val lengthConst : name
+val headConst : name
 val mapConst : name
 val nilConst : name
+val tailConst : name
 
 (* Options *)
 
@@ -166,7 +172,17 @@ val someConst : name
 
 (* Pairs *)
 
+val fstConst : name
 val pairConst : name
+val sndConst : name
+
+(* Streams *)
+
+val appendStreamConst : name
+val consStreamConst : name
+val headStreamConst : name
+val mapStreamConst : name
+val tailStreamConst : name
 
 (* Natural numbers *)
 

@@ -1,5 +1,5 @@
 name: probability
-version: 1.19
+version: 1.21
 description: Probability
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: probability-def-1.21
+  package: probability-def-1.23
 }
 
 thm {
   import: def
-  package: probability-thm-1.1
+  package: probability-thm-1.3
 }
 
 main {

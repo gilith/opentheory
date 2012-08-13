@@ -81,6 +81,7 @@ and pairNamespaceComponent = "Pair"
 and probabilityNamespaceComponent = "Probability"
 and randomNamespaceComponent = "Random"
 and setNamespaceComponent = "Set"
+and streamNamespaceComponent = "Stream"
 and word16NamespaceComponent = "Word16";
 
 (* Standard type operators *)
@@ -94,6 +95,7 @@ and naturalTypeOpComponent = "natural"
 and optionTypeOpComponent = "option"
 and pairTypeOpComponent = "*"
 and randomTypeOpComponent = "random"
+and streamTypeOpComponent = "stream"
 and sumTypeOpComponent = "+"
 and word16TypeOpComponent = "word16";
 
@@ -123,8 +125,10 @@ and forallConstComponent = "!"
 and fromBytesConstComponent = "fromBytes"
 and fromNaturalConstComponent = "fromNatural"
 and fromPredicateConstComponent = "fromPredicate"
+and fstConstComponent = "fst"
 and geConstComponent = ">="
 and gtConstComponent = ">"
+and headConstComponent = "head"
 and idConstComponent = "id"
 and impConstComponent = "==>"
 and intersectConstComponent = "intersect"
@@ -146,11 +150,13 @@ and properSubsetConstComponent = "properSubset"
 and selectConstComponent = "select"
 and shiftLeftConstComponent = "shiftLeft"
 and shiftRightConstComponent = "shiftRight"
+and sndConstComponent = "snd"
 and someConstComponent = "some"
 and splitConstComponent = "split"
 and subsetConstComponent = "subset"
 and subtractConstComponent = "-"
 and sucConstComponent = "suc"
+and tailConstComponent = "tail"
 and toBytesConstComponent = "toBytes"
 and trueConstComponent = "T"
 and unionConstComponent = "union"
@@ -292,6 +298,7 @@ in
   and list = mkData listNamespaceComponent
   and option = mkData optionNamespaceComponent
   and pair = mkData pairNamespaceComponent
+  and stream = mkData streamNamespaceComponent
   and word16 = mkData word16NamespaceComponent;
 end;
 

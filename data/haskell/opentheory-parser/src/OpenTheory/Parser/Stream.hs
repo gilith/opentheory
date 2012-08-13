@@ -30,7 +30,7 @@ fromRandom ::
   (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
     Primitive.Random.Random -> (Stream a, Primitive.Random.Random)
 fromRandom d r =
-  let (l, r') = Data.List.fromRandom d r in
+  let (l, r') = Data.List.fromGeometricRandom d r in
   let (b, r'') = Primitive.Random.bit r' in
   (append l (if b then Error else Eof), r'')
 

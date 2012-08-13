@@ -1,5 +1,5 @@
 name: stream
-version: 1.15
+version: 1.16
 description: Stream types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: stream-def-1.18
+  package: stream-def-1.19
 }
 
 thm {
   import: def
-  package: stream-thm-1.16
+  package: stream-thm-1.17
 }
 
 main {

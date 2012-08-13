@@ -1,9 +1,9 @@
 name: haskell-thm
-version: 1.42
+version: 1.45
 description: Properties of the Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-10
+provenance: HOL Light theory extracted on 2012-08-13
 requires: base
 requires: haskell-def
 show: "Data.Bool"

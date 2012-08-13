@@ -107,6 +107,8 @@ fun isPair ot = Name.equal Name.pairTypeOp (name ot);
 
 fun isRandom ot = Name.equal Name.randomTypeOp (name ot);
 
+fun isStream ot = Name.equal Name.streamTypeOp (name ot);
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

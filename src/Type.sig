@@ -209,6 +209,12 @@ val isPair : ty -> bool
 
 val isRandom : ty -> bool
 
+(* Streams *)
+
+val destStream : ty -> ty
+
+val isStream : ty -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

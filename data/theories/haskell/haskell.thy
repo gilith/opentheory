@@ -1,5 +1,5 @@
 name: haskell
-version: 1.54
+version: 1.60
 description: The Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,40 +9,43 @@ requires: byte
 requires: natural-bits
 requires: natural-fibonacci
 requires: probability
+requires: stream
 requires: word16
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
+show: "Data.Stream"
 show: "Data.Word16"
 show: "Function"
 show: "Haskell.Data.Byte" as "H"
 show: "Haskell.Data.List" as "H"
 show: "Haskell.Data.Option" as "H"
+show: "Haskell.Data.Stream" as "H"
+show: "Haskell.Data.Word16" as "H"
 show: "Haskell.Number.Natural" as "H"
 show: "Haskell.Probability.Random" as "H"
-show: "Haskell.Data.Word16" as "H"
 show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: haskell-def-1.50
+  package: haskell-def-1.54
 }
 
 thm {
   import: def
-  package: haskell-thm-1.42
+  package: haskell-thm-1.45
 }
 
 src {
   import: def
-  package: haskell-src-1.33
+  package: haskell-src-1.39
 }
 
 test {
   import: def
-  package: haskell-test-1.22
+  package: haskell-test-1.25
 }
 
 main {

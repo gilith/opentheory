@@ -10,8 +10,21 @@ Portability: portable
 module OpenTheory.Data.List
 where
 
+import qualified OpenTheory.Number.Natural.Geometric
+  as Number.Natural.Geometric
 import qualified OpenTheory.Primitive.Natural as Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Primitive.Random
+
+fromRandom ::
+  (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
+    Primitive.Natural.Natural -> Primitive.Random.Random ->
+    ([a], Primitive.Random.Random)
+fromRandom d n r =
+  if n == 0 then ([], r)
+  else
+    let (h, r') = d r in
+    let (t, r'') = fromRandom d (n - 1) r' in
+    (h : t, r'')
 
 equal :: (a -> a -> Bool) -> [a] -> [a] -> Bool
 equal _ [] [] = True
@@ -19,16 +32,11 @@ equal _ [] (_ : _) = False
 equal _ (_ : _) [] = False
 equal eq (h1 : t1) (h2 : t2) = eq h1 h2 && equal eq t1 t2
 
-fromRandom ::
+fromGeometricRandom ::
   (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
     Primitive.Random.Random -> ([a], Primitive.Random.Random)
-fromRandom d =
-  \r -> let (r1, r2) = Primitive.Random.split r in (dest [] r1, r2)
-  where
-  {-dest :: [a] -> Primitive.Random.Random -> [a]-}
-    dest l r =
-      let (b, r') = Primitive.Random.bit r in
-      if b then l else let (x, r'') = d r' in dest (x : l) r''
+fromGeometricRandom d r =
+  let (n, r') = Number.Natural.Geometric.fromRandom r in fromRandom d n r'
 
 size :: [a] -> Primitive.Natural.Natural
 size [] = 0

@@ -1,5 +1,5 @@
 Name: opentheory-char
-Version: 1.24
+Version: 1.28
 Description: Unicode characters
 License: MIT
 License-file: LICENSE
@@ -14,8 +14,8 @@ Library
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.52 && <= 1.54,
-    opentheory-parser >= 1.93 && <= 1.100
+    opentheory >= 1.52 && <= 1.60,
+    opentheory-parser >= 1.93 && <= 1.103
 
   hs-source-dirs: src
 
@@ -31,8 +31,8 @@ Executable opentheory-char-test
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.52 && <= 1.54,
-    opentheory-parser >= 1.93 && <= 1.100
+    opentheory >= 1.52 && <= 1.60,
+    opentheory-parser >= 1.93 && <= 1.103
 
   hs-source-dirs: src, testsrc
 

@@ -198,6 +198,14 @@ in
   val listTypeOp = mkList Namespace.listTypeOpComponent;
 end;
 
+(* Natural numbers *)
+
+local
+  fun mkNatural c = mk (Namespace.natural,c);
+in
+  val naturalTypeOp = mkNatural Namespace.naturalTypeOpComponent;
+end;
+
 (* Options *)
 
 local
@@ -214,28 +222,28 @@ in
   val pairTypeOp = mkPair Namespace.pairTypeOpComponent;
 end;
 
-(* 16-bit words *)
-
-local
-  fun mkWord16 c = mk (Namespace.word16,c);
-in
-  val word16TypeOp = mkWord16 Namespace.word16TypeOpComponent;
-end;
-
-(* Natural numbers *)
-
-local
-  fun mkNatural c = mk (Namespace.natural,c);
-in
-  val naturalTypeOp = mkNatural Namespace.naturalTypeOpComponent;
-end;
-
 (* Random streams *)
 
 local
   fun mkRandom c = mk (Namespace.random,c);
 in
   val randomTypeOp = mkRandom Namespace.randomTypeOpComponent;
+end;
+
+(* Streams *)
+
+local
+  fun mkStream c = mk (Namespace.stream,c);
+in
+  val streamTypeOp = mkStream Namespace.streamTypeOpComponent;
+end;
+
+(* 16-bit words *)
+
+local
+  fun mkWord16 c = mk (Namespace.word16,c);
+in
+  val word16TypeOp = mkWord16 Namespace.word16TypeOpComponent;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -300,26 +308,11 @@ in
   val appendConst = mkList Namespace.appendConstComponent
   and concatConst = mkList Namespace.concatConstComponent
   and consConst = mkList Namespace.consConstComponent
+  and headConst = mkList Namespace.headConstComponent
   and lengthConst = mkList Namespace.lengthConstComponent
   and mapConst = mkList Namespace.mapConstComponent
-  and nilConst = mkList Namespace.nilConstComponent;
-end;
-
-(* Options *)
-
-local
-  fun mkOption c = mk (Namespace.option,c);
-in
-  val noneConst = mkOption Namespace.noneConstComponent
-  and someConst = mkOption Namespace.someConstComponent;
-end;
-
-(* Pairs *)
-
-local
-  fun mkPair c = mk (Namespace.pair,c);
-in
-  val pairConst = mkPair Namespace.pairConstComponent;
+  and nilConst = mkList Namespace.nilConstComponent
+  and tailConst = mkList Namespace.tailConstComponent;
 end;
 
 (* Natural numbers *)
@@ -344,6 +337,25 @@ end;
 fun isFromNaturalConst n =
     component n = Namespace.fromNaturalConstComponent;
 
+(* Options *)
+
+local
+  fun mkOption c = mk (Namespace.option,c);
+in
+  val noneConst = mkOption Namespace.noneConstComponent
+  and someConst = mkOption Namespace.someConstComponent;
+end;
+
+(* Pairs *)
+
+local
+  fun mkPair c = mk (Namespace.pair,c);
+in
+  val fstConst = mkPair Namespace.fstConstComponent
+  and pairConst = mkPair Namespace.pairConstComponent
+  and sndConst = mkPair Namespace.sndConstComponent;
+end;
+
 (* Random streams *)
 
 local
@@ -366,6 +378,21 @@ in
   and properSubsetConst = mkSet Namespace.properSubsetConstComponent
   and subsetConst = mkSet Namespace.subsetConstComponent
   and unionConst = mkSet Namespace.unionConstComponent;
+end;
+
+(* Streams *)
+
+local
+  fun mkStream c = mk (Namespace.stream,c);
+in
+  val appendStreamConst = mkStream Namespace.appendConstComponent
+  and concatStreamConst = mkStream Namespace.concatConstComponent
+  and consStreamConst = mkStream Namespace.consConstComponent
+  and headStreamConst = mkStream Namespace.headConstComponent
+  and lengthStreamConst = mkStream Namespace.lengthConstComponent
+  and mapStreamConst = mkStream Namespace.mapConstComponent
+  and nilStreamConst = mkStream Namespace.nilConstComponent
+  and tailStreamConst = mkStream Namespace.tailConstComponent;
 end;
 
 (* 16-bit words *)

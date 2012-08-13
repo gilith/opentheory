@@ -116,6 +116,7 @@ local
          (Name.listTypeOp, mkNative "List"),
          (Name.optionTypeOp, mkNative "Maybe"),
          (Name.pairTypeOp, mkNative "Pair"),
+         (Name.streamTypeOp, mkNative "List"),
          (* Primitive types *)
          (Name.byteTypeOp, mkPrimitiveByte "Byte"),
          (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
@@ -129,13 +130,18 @@ local
          (Name.addByteConst, mkNative "+"),
          (Name.addWord16Const, mkNative "+"),
          (Name.appendConst, mkNative "++"),
+         (Name.appendStreamConst, mkNative "++"),
          (Name.concatConst, mkNative "concat"),
          (Name.conjConst, mkNative "&&"),
          (Name.consConst, mkNative ":"),
+         (Name.consStreamConst, mkNative ":"),
          (Name.disjConst, mkNative "||"),
          (Name.divConst, mkNative "div"),
          (Name.eqConst, mkNative "=="),
          (Name.falseConst, mkNative "False"),
+         (Name.fstConst, mkNative "fst"),
+         (Name.headConst, mkNative "head"),
+         (Name.headStreamConst, mkNative "head"),
          (Name.leConst, mkNative "<="),
          (Name.leByteConst, mkNative "<="),
          (Name.leWord16Const, mkNative "<="),
@@ -143,6 +149,7 @@ local
          (Name.ltByteConst, mkNative "<"),
          (Name.ltWord16Const, mkNative "<"),
          (Name.mapConst, mkNative "map"),
+         (Name.mapStreamConst, mkNative "map"),
          (Name.modConst, mkNative "mod"),
          (Name.multiplyConst, mkNative "*"),
          (Name.multiplyByteConst, mkNative "*"),
@@ -151,10 +158,13 @@ local
          (Name.nilConst, mkNative "[]"),
          (Name.noneConst, mkNative "Nothing"),
          (Name.pairConst, mkNative ","),
+         (Name.sndConst, mkNative "snd"),
          (Name.someConst, mkNative "Just"),
          (Name.subtractConst, mkNative "-"),
          (Name.subtractByteConst, mkNative "-"),
          (Name.subtractWord16Const, mkNative "-"),
+         (Name.tailConst, mkNative "tail"),
+         (Name.tailStreamConst, mkNative "tail"),
          (Name.trueConst, mkNative "True"),
          (* Primitive constants *)
          (Name.andByteConst, mkPrimitiveByte "and"),
@@ -1684,9 +1694,15 @@ val ppTypeVarList =
     end;
 
 local
+  fun destList ty =
+      Type.destList ty
+      handle Error _ => Type.destStream ty;
+
+  val isList = can destList;
+
   fun destApp ty =
       if Type.isFun ty then raise Error "Haskell.destApp: fun"
-      else if Type.isList ty then raise Error "Haskell.destApp: list"
+      else if isList ty then raise Error "Haskell.destApp: list"
       else if Type.isPair ty then raise Error "Haskell.destApp: pair"
       else
         case Type.dest ty of
@@ -1703,16 +1719,13 @@ local
         else Print.ppBracket "(" ")" (ppGen ns) ty
 
   and ppList ns ty =
-      if not (Type.isList ty) then ppBasic ns ty
-      else
-        let
-          val a = Type.destList ty
-        in
-          Print.inconsistentBlock 1
-            [Print.ppString "[",
-             ppGen ns a,
-             Print.ppString "]"]
-        end
+      case total destList ty of
+        NONE => ppBasic ns ty
+      | SOME a =>
+        Print.inconsistentBlock 1
+          [Print.ppString "[",
+           ppGen ns a,
+           Print.ppString "]"]
 
   and ppPair ns ty =
       if not (Type.isPair ty) then ppList ns ty

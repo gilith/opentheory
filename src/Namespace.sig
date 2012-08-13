@@ -51,6 +51,7 @@ val pairNamespaceComponent : component
 val probabilityNamespaceComponent : component
 val randomNamespaceComponent : component
 val setNamespaceComponent : component
+val streamNamespaceComponent : component
 val word16NamespaceComponent : component
 
 (* Standard type operators *)
@@ -64,6 +65,7 @@ val naturalTypeOpComponent : component
 val optionTypeOpComponent : component
 val pairTypeOpComponent : component
 val randomTypeOpComponent : component
+val streamTypeOpComponent : component
 val sumTypeOpComponent : component
 val word16TypeOpComponent : component
 
@@ -93,8 +95,10 @@ val forallConstComponent : component
 val fromBytesConstComponent : component
 val fromNaturalConstComponent : component
 val fromPredicateConstComponent : component
+val fstConstComponent : component
 val geConstComponent : component
 val gtConstComponent : component
+val headConstComponent : component
 val idConstComponent : component
 val impConstComponent : component
 val intersectConstComponent : component
@@ -116,11 +120,13 @@ val properSubsetConstComponent : component
 val selectConstComponent : component
 val shiftLeftConstComponent : component
 val shiftRightConstComponent : component
+val sndConstComponent : component
 val someConstComponent : component
 val splitConstComponent : component
 val subsetConstComponent : component
 val subtractConstComponent : component
 val sucConstComponent : component
+val tailConstComponent : component
 val toBytesConstComponent : component
 val trueConstComponent : component
 val unionConstComponent : component
@@ -199,6 +205,8 @@ val pair : namespace
 val random : namespace
 
 val set : namespace
+
+val stream : namespace
 
 val word16 : namespace
 
