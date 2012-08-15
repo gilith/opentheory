@@ -1,1 +1,0 @@
-instance, a 2-byte encoded line feed (LF) would not be caught by a            |

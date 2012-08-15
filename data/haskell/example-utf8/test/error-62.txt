@@ -1,1 +1,0 @@
-5.2.2  U+D800 U+DFFF = ed a0 80 ed bf bf = "í €í¿¿"                               |

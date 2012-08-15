@@ -1,1 +1,0 @@
-is a boundary test for safe UTF-8 decoders. All five characters should        |

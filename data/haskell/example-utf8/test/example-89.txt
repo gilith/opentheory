@@ -1,1 +1,0 @@
-used to bypass filters that check only for ASCII characters. For              |

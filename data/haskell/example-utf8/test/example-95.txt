@@ -1,1 +1,0 @@
-represented by ASCII bytes in the range 0x00-0x7f. To ensure this             |

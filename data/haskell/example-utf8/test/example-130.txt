@@ -1,1 +1,0 @@
-5.1 Single UTF-16 surrogates                                                  |

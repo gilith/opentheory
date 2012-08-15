@@ -1,1 +1,0 @@
-5.2.8  U+DBFF U+DFFF = ed af bf ed bf bf = "í¯¿í¿¿"                               |

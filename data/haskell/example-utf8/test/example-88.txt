@@ -1,1 +1,0 @@
-alternative representations of characters, that could maliciously be          |

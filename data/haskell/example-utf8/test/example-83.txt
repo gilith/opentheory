@@ -1,1 +1,0 @@
-a correct UTF-8 encoder is not allowed to produce them. A "safe UTF-8         |

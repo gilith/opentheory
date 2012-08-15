@@ -1,1 +1,0 @@
-4.3  Overlong representation of the NUL character                             |

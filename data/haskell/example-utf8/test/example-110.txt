@@ -1,1 +1,0 @@
-Below you see the highest Unicode value that is still resulting in an         |

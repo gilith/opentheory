@@ -1,1 +1,0 @@
-safe UTF-8 decoder!                                                           |
