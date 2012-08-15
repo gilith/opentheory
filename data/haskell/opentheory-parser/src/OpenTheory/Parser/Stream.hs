@@ -10,7 +10,7 @@ portability: portable
 module OpenTheory.Parser.Stream
 where
 
-import qualified OpenTheory.Data.List as Data.List
+import qualified OpenTheory.Data.List.Geometric as Data.List.Geometric
 import qualified OpenTheory.Primitive.Natural as Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Primitive.Random
 
@@ -30,7 +30,7 @@ fromRandom ::
   (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
     Primitive.Random.Random -> (Stream a, Primitive.Random.Random)
 fromRandom d r =
-  let (l, r') = Data.List.fromGeometricRandom d r in
+  let (l, r') = Data.List.Geometric.fromRandom d r in
   let (b, r'') = Primitive.Random.bit r' in
   (append l (if b then Error else Eof), r'')
 

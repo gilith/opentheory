@@ -1,0 +1,1 @@
+3.2.4  All 4 first bytes of 5-byte sequences (0xf8-0xfb),                     |

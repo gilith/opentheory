@@ -1,9 +1,9 @@
 name: haskell-def
-version: 1.54
+version: 1.55
 description: Definition of the Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-13
+provenance: HOL Light theory extracted on 2012-08-15
 requires: base
 show: "Data.Bool"
 show: "Data.List"

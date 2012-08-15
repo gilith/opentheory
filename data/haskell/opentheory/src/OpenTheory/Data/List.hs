@@ -10,8 +10,6 @@ portability: portable
 module OpenTheory.Data.List
 where
 
-import qualified OpenTheory.Number.Natural.Geometric
-  as Number.Natural.Geometric
 import qualified OpenTheory.Primitive.Natural as Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Primitive.Random
 
@@ -31,12 +29,6 @@ equal _ [] [] = True
 equal _ [] (_ : _) = False
 equal _ (_ : _) [] = False
 equal eq (h1 : t1) (h2 : t2) = eq h1 h2 && equal eq t1 t2
-
-fromGeometricRandom ::
-  (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
-    Primitive.Random.Random -> ([a], Primitive.Random.Random)
-fromGeometricRandom d r =
-  let (n, r') = Number.Natural.Geometric.fromRandom r in fromRandom d n r'
 
 size :: [a] -> Primitive.Natural.Natural
 size [] = 0

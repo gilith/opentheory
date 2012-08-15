@@ -1,5 +1,5 @@
 name: opentheory
-version: 1.60
+version: 1.61
 category: Formal Methods
 synopsis: The Haskell base
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Hurd <joe@gilith.com>
 maintainer: Joe Hurd <joe@gilith.com>
 description:
   The Haskell base
-  Automatically generated from the opentheory package haskell-1.60
+  Automatically generated from the opentheory package haskell-1.61
 
 library
   build-depends:
@@ -27,6 +27,7 @@ library
     OpenTheory.Data.Byte
     OpenTheory.Data.Byte.Bits
     OpenTheory.Data.List
+    OpenTheory.Data.List.Geometric
     OpenTheory.Data.Option
     OpenTheory.Data.Stream
     OpenTheory.Data.Word16

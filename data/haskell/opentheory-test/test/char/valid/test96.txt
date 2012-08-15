@@ -1,0 +1,1 @@
+aspect of ASCII compatibility, use only "safe UTF-8 decoders" that            |

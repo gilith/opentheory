@@ -1,0 +1,1 @@
+3.2.3  All 8 first bytes of 4-byte sequences (0xf0-0xf7),                     |

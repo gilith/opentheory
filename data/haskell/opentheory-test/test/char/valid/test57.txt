@@ -1,0 +1,1 @@
+3.2.5  All 2 first bytes of 6-byte sequences (0xfc-0xfd),                     |

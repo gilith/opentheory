@@ -1,9 +1,9 @@
 name: haskell-char-test
-version: 1.15
+version: 1.16
 description: QuickCheck tests for Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-13
+provenance: HOL Light theory extracted on 2012-08-15
 requires: base
 requires: char
 requires: haskell

@@ -1,0 +1,1 @@
+5.2.7  U+DBFF U+DC00 = ed af bf ed b0 80 = "í¯¿í°€"                               |

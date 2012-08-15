@@ -1,0 +1,25 @@
+name: opentheory-test
+version: 1.0
+synopsis: Testing packages exported from OpenTheory
+license: MIT
+license-file: LICENSE
+cabal-version: >= 1.8.0.6
+build-type: Simple
+author: Joe Hurd <joe@gilith.com>
+maintainer: Joe Hurd <joe@gilith.com>
+description:
+  This package comprises many tests of the Haskell packages exported
+  from formally verified OpenTheory packages.
+
+executable opentheory-test
+  build-depends:
+    base >= 4.0 && < 5.0,
+    bytestring >= 0.9 && < 1.0,
+    directory >= 1.1 && < 1.2,
+    opentheory-char >= 1.0 && < 2.0
+
+  hs-source-dirs: testsrc
+
+  ghc-options: -Wall -Werror
+
+  main-is: Test.hs

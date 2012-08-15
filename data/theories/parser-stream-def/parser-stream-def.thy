@@ -1,9 +1,9 @@
 name: parser-stream-def
-version: 1.79
+version: 1.80
 description: Definition of parse streams
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-13
+provenance: HOL Light theory extracted on 2012-08-15
 requires: bool
 requires: list
 requires: natural

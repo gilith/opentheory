@@ -1,5 +1,5 @@
 name: parser-stream
-version: 1.78
+version: 1.79
 description: Parse streams
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ show: "Parser.Stream"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.79
+  package: parser-stream-def-1.80
 }
 
 thm {
