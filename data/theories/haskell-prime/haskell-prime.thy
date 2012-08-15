@@ -1,8 +1,9 @@
 name: haskell-prime
-version: 1.8
+version: 1.9
 description: Prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+haskell-category: Number Theory
 requires: base
 requires: haskell
 requires: natural-divides
@@ -31,7 +32,7 @@ src {
 
 test {
   import: def
-  package: haskell-prime-test-1.9
+  package: haskell-prime-test-1.10
 }
 
 main {

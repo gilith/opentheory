@@ -1,5 +1,5 @@
 name: haskell-prime-test
-version: 1.9
+version: 1.10
 description: QuickCheck tests for prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,8 +7,8 @@ provenance: HOL Light theory extracted on 2012-08-13
 requires: base
 requires: haskell
 requires: haskell-prime-def
-requires: natural-prime
 requires: natural-divides
+requires: natural-prime
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Data.Stream"

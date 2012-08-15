@@ -1,11 +1,11 @@
 {- |
-Module: $Header$
-Description: The Haskell base
-License: MIT
+module: $Header$
+description: The Haskell base
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Number.Natural
 where

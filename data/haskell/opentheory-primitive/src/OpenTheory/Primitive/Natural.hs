@@ -1,13 +1,11 @@
 {- |
-Module: $Header$
-Description: A natural number type
-License: MIT
+module: $Header$
+description: Primitive natural number functions
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
-
-A natural number type
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Primitive.Natural
   ( Natural )

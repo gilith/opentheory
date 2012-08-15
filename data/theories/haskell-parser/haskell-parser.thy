@@ -1,8 +1,9 @@
 name: haskell-parser
-version: 1.103
+version: 1.104
 description: Simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+haskell-category: Parsing
 requires: base
 requires: haskell
 requires: parser

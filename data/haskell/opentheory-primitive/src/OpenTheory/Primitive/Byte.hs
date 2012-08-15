@@ -1,13 +1,11 @@
 {- |
-Module: $Header$
-Description: Byte primitive functions
-License: MIT
+module: $Header$
+description: Primitive byte functions
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
-
-Byte primitive functions
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Primitive.Byte
   ( Byte,

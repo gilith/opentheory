@@ -1,13 +1,11 @@
 {- |
-Module: $Header$
-Description: Word16 primitive functions
-License: MIT
+module: $Header$
+description: Primitive 16-bit word functions
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
-
-Word16 primitive functions
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Primitive.Word16
   ( Word16,

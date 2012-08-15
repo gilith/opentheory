@@ -1,13 +1,11 @@
 {- |
-Module: $Header$
-Description: Random stream primitives
-License: MIT
+module: $Header$
+description: Primitive random bit-stream functions
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
-
-Random stream primitives
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Primitive.Random
   ( Random,

@@ -1,15 +1,19 @@
-Name: opentheory-prime
-Version: 1.8
-Description: Prime numbers
-License: MIT
-License-file: LICENSE
-Cabal-version: >= 1.8.0.6
-Build-type: Simple
-Author: Joe Hurd <joe@gilith.com>
-Maintainer: Joe Hurd <joe@gilith.com>
+name: opentheory-prime
+version: 1.9
+category: Number Theory
+synopsis: Prime numbers
+license: MIT
+license-file: LICENSE
+cabal-version: >= 1.8.0.6
+build-type: Simple
+author: Joe Hurd <joe@gilith.com>
+maintainer: Joe Hurd <joe@gilith.com>
+description:
+  Prime numbers
+  Automatically generated from the opentheory package haskell-prime-1.9
 
-Library
-  Build-depends:
+library
+  build-depends:
     base >= 4.0 && < 5.0,
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
@@ -18,14 +22,14 @@ Library
 
   hs-source-dirs: src
 
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
 
-  Exposed-modules:
+  exposed-modules:
     OpenTheory.Number.Natural.Prime
     OpenTheory.Number.Natural.Prime.Sieve
 
-Executable opentheory-prime-test
-  Build-depends:
+executable opentheory-prime-test
+  build-depends:
     base >= 4.0 && < 5.0,
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
@@ -34,6 +38,6 @@ Executable opentheory-prime-test
 
   hs-source-dirs: src, testsrc
 
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
 
-  Main-is: Test.hs
+  main-is: Test.hs

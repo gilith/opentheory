@@ -1,8 +1,9 @@
 name: haskell-char
-version: 1.28
+version: 1.29
 description: Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
+haskell-category: Text
 requires: base
 requires: char
 requires: haskell

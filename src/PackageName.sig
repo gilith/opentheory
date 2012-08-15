@@ -124,6 +124,8 @@ val gilithRepo : name
 (* Haskell export names.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
+val haskell : name
+
 val srcHaskellTheory : name
 
 val testHaskellTheory : name

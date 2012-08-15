@@ -1,11 +1,11 @@
 {- |
-Module: $Header$
-Description: Simple stream parsers
-License: MIT
+module: $Header$
+description: Simple stream parsers
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Parser
 where

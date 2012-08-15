@@ -1,11 +1,11 @@
 {- |
-Module: $Header$
-Description: Unicode characters
-License: MIT
+module: $Header$
+description: Unicode characters
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Data.Unicode
 where

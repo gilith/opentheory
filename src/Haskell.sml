@@ -1563,6 +1563,104 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Haskell tags.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype tags = Tags of string StringMap.map;
+
+val authorTag = "author"
+and buildTypeTag = "build-type"
+and cabalVersionTag = "cabal-version"
+and categoryTag = "category"
+and descriptionTag = "description"
+and ghcOptionsTag = "ghc-options"
+and licenseTag = "license"
+and licenseFileTag = "license-file"
+and maintainerTag = "maintainer"
+and moduleTag = "module"
+and nameTag = "name"
+and portabilityTag = "portability"
+and stabilityTag = "stability"
+and synopsisTag = "synopsis"
+and versionTag = "version";
+
+fun allTags (Tags m) = StringSet.domain m;
+
+fun getTag (Tags m) n =
+    case StringMap.peek m n of
+      SOME v => v
+    | NONE => raise Bug "Haskell.getTag: not found";
+
+local
+  fun overrideTag (tag,tags) =
+      let
+        val PackageTag.Tag' {name,value} = PackageTag.dest tag
+      in
+        case PackageName.destStrictPrefix PackageName.haskell name of
+          NONE => tags
+        | SOME name =>
+          let
+            val name = PackageName.toString name
+          in
+            StringMap.insert tags (name,value)
+          end
+      end;
+in
+  fun mkTags pkg =
+      let
+        val name = Package.name pkg
+        and version = Package.version pkg
+        and {description} = Package.description pkg
+        and author = Package.author pkg
+        and {license} = Package.license pkg
+
+        val tags =
+            StringMap.fromList
+              [(authorTag, PackageAuthor.toString author),
+               (buildTypeTag,"Simple"),
+               (cabalVersionTag,">= 1.8.0.6"),
+               (categoryTag,"Formal Methods"),
+               (descriptionTag,description),
+               (ghcOptionsTag,"-Wall"),
+               (licenseTag,license),
+               (licenseFileTag,"LICENSE"),
+               (maintainerTag, PackageAuthor.toString author),
+               (nameTag, PackageName.toString (exportPackageName name)),
+               (portabilityTag,"portable"),
+               (stabilityTag,"provisional"),
+               (synopsisTag,description),
+               (versionTag, PackageVersion.toString version)]
+
+        val tags = List.foldl overrideTag tags (Package.tags pkg)
+      in
+        Tags tags
+      end;
+end;
+
+fun ppTag (n,v) =
+    Print.inconsistentBlock 2
+      [Print.ppString n,
+       Print.ppString ": ",
+       Print.ppString v];
+
+local
+  fun ppTag1 tags n =
+      let
+        val v = getTag tags n
+      in
+        ppTag (n,v)
+      end;
+in
+  fun ppTags tags ns =
+      case ns of
+        [] => raise Bug "Haskell.ppTags: not found"
+      | n :: ns =>
+        Print.inconsistentBlock 0
+          (ppTag1 tags n ::
+           List.map (Print.sequence Print.newline o ppTag1 tags) ns);
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Printing Haskell source code.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -2359,39 +2457,24 @@ in
         Print.program (ppSource ns s :: List.map (ppSpaceSource ns) sl);
 end;
 
-fun ppTag (s,pp) =
-    Print.inconsistentBlock 2
-      [Print.ppString s,
-       Print.ppString ": ",
-       pp];
-
-fun ppTags spps =
-    case spps of
-      [] => Print.skip
-    | spp :: spps =>
-      Print.inconsistentBlock 0
-        (ppTag spp ::
-         List.map (Print.sequence Print.newline o ppTag) spps);
-
-fun ppModule (pkg,namespace,source) =
+fun ppModule (tags,namespace,source) =
     let
-      val {description} = Package.description pkg
-      and {license} = Package.license pkg
-      and auth = Package.author pkg
+      val desc = getTag tags descriptionTag
       and exp = mkSymbolExport namespace source
     in
       Print.inconsistentBlock 0
         [Print.ppString "{- |",
          Print.newline,
-         ppTags
-           [("Module", Print.ppString "$Header$"),
-            ("Description", Print.ppString description),
-            ("License", Print.ppString license)],
+         ppTag (moduleTag,"$Header$"),
+         Print.newline,
+         ppTags tags
+           [descriptionTag,
+            licenseTag],
          Print.newlines 2,
-         ppTags
-           [("Maintainer", PackageAuthor.pp auth),
-            ("Stability", Print.ppString "provisional"),
-            ("Portability", Print.ppString "portable")],
+         ppTags tags
+           [maintainerTag,
+            stabilityTag,
+            portabilityTag],
          Print.newline,
          Print.ppString "-}",
          Print.newline,
@@ -2442,25 +2525,24 @@ local
                Print.program (List.map ppInvokeTest tests),
                Print.ppString "return ()"]]];
 in
-  fun ppTests (pkg,tests) =
+  fun ppTests (tags,tests) =
       let
-        val {description} = Package.description pkg
-        and {license} = Package.license pkg
-        and auth = Package.author pkg
+        val desc = getTag tags descriptionTag
         and exp = mkTestsSymbolExport tests
       in
         Print.inconsistentBlock 0
           [Print.ppString "{- |",
            Print.newline,
-           ppTags
-             [("Module", Print.ppString "Main"),
-              ("Description", Print.ppString (description ^ " - testing")),
-              ("License", Print.ppString license)],
+           ppTag (moduleTag,"Main"),
+           Print.newline,
+           ppTag (descriptionTag, desc ^ " - testing"),
+           Print.newline,
+           ppTags tags [licenseTag],
            Print.newlines 2,
-           ppTags
-             [("Maintainer", PackageAuthor.pp auth),
-              ("Stability", Print.ppString "provisional"),
-              ("Portability", Print.ppString "portable")],
+           ppTags tags
+             [maintainerTag,
+              stabilityTag,
+              portabilityTag],
            Print.newline,
            Print.ppString "-}",
            Print.newline,
@@ -2482,7 +2564,25 @@ end;
 (* Cabal *)
 
 local
-  val ppVersion = PackageVersion.pp;
+  val initialTags =
+      [nameTag,
+       versionTag,
+       categoryTag,
+       synopsisTag,
+       licenseTag,
+       licenseFileTag,
+       cabalVersionTag,
+       buildTypeTag,
+       authorTag,
+       maintainerTag];
+
+  val nonExtraTags =
+      StringSet.fromList
+        (descriptionTag ::
+         ghcOptionsTag ::
+         portabilityTag ::
+         stabilityTag ::
+         initialTags)
 
   fun ppSection s pps =
       Print.inconsistentBlock 2
@@ -2515,52 +2615,54 @@ local
         ppNamespace ns ::
         List.map (Print.sequence Print.newline o ppNamespace) nss;
 in
-  fun ppCabal (pkg,deps,source) =
+  fun ppCabal (pkg,tags,deps,source) =
       let
         val name = Package.name pkg
-        and version = Package.version pkg
-        and {description} = Package.description pkg
-        and {license} = Package.license pkg
-        and auth = Package.author pkg
+        and nameVersion = Package.nameVersion pkg
+        and desc = getTag tags descriptionTag
         and mods = exposedModule source
+
+        val extraTags = StringSet.difference (allTags tags) nonExtraTags
       in
         Print.inconsistentBlock 0
-          [ppTags
-             [("Name", ppPackageName name),
-              ("Version", ppVersion version),
-              ("Description", Print.ppString description),
-              ("License", Print.ppString license),
-              ("License-file", Print.ppString "LICENSE"),
-              ("Cabal-version", Print.ppString ">= 1.8.0.6"),
-              ("Build-type", Print.ppString "Simple"),
-              ("Author", PackageAuthor.pp auth),
-              ("Maintainer", PackageAuthor.pp auth)],
+          [ppTags tags (initialTags @ StringSet.toList extraTags),
+           Print.newline,
+           Print.inconsistentBlock 2
+             [Print.ppString descriptionTag,
+              Print.ppString ":",
+              Print.newline,
+              Print.ppString desc,
+              Print.newline,
+              Print.ppString
+                "Automatically generated from the opentheory package",
+              Print.break,
+              PackageNameVersion.pp nameVersion],
            Print.newline,
            Print.newline,
-           ppSection "Library"
-             [ppSection "Build-depends:" (ppBuildDepends deps),
+           ppSection "library"
+             [ppSection "build-depends:" (ppBuildDepends deps),
               Print.newline,
               Print.newline,
-              ppTag ("hs-source-dirs", Print.ppString "src"),
+              ppTag ("hs-source-dirs","src"),
               Print.newline,
               Print.newline,
-              ppTag ("ghc-options", Print.ppString "-Wall -Werror"),
+              ppTags tags [ghcOptionsTag],
               Print.newline,
               Print.newline,
-              ppSection "Exposed-modules:" (ppExposedModules mods)],
+              ppSection "exposed-modules:" (ppExposedModules mods)],
            Print.newline,
            Print.newline,
-           ppSection ("Executable " ^ Print.toString ppPackageTestName name)
-             [ppSection "Build-depends:" (ppBuildDepends deps),
+           ppSection ("executable " ^ Print.toString ppPackageTestName name)
+             [ppSection "build-depends:" (ppBuildDepends deps),
               Print.newline,
               Print.newline,
-              ppTag ("hs-source-dirs", Print.ppString "src, testsrc"),
+              ppTag ("hs-source-dirs","src, testsrc"),
               Print.newline,
               Print.newline,
-              ppTag ("ghc-options", Print.ppString "-Wall -Werror"),
+              ppTags tags [ghcOptionsTag],
               Print.newline,
               Print.newline,
-              ppTag ("Main-is", Print.ppString "Test.hs")]]
+              ppTag ("main-is","Test.hs")]]
       end;
 end;
 
@@ -2577,9 +2679,9 @@ fun mkSubDirectory {directory = dir} sub =
       {directory = dir}
     end;
 
-fun outputCabal {directory = dir} pkg deps source =
+fun outputCabal {directory = dir} pkg tags deps source =
     let
-      val ss = Print.toStream ppCabal (pkg,deps,source)
+      val ss = Print.toStream ppCabal (pkg,tags,deps,source)
 
       val file =
           let
@@ -2595,15 +2697,16 @@ fun outputCabal {directory = dir} pkg deps source =
       ()
     end;
 
-fun outputLicense dir {directory} pkg =
+fun outputLicense dir {directory} pkg tags =
     let
       val {license} = Package.license pkg
+      and licenseFile = getTag tags licenseFileTag
 
       val license = Directory.getLicense dir {name = license}
 
       val {url} = DirectoryConfig.urlLicense license
 
-      val file = OS.Path.joinDirFile {dir = directory, file = "LICENSE"}
+      val file = OS.Path.joinDirFile {dir = directory, file = licenseFile}
 
       val {curl = cmd} = DirectorySystem.curl (Directory.system dir)
 
@@ -2616,6 +2719,31 @@ fun outputLicense dir {directory} pkg =
       if OS.Process.isSuccess (OS.Process.system cmd) then ()
       else raise Error "downloading the license file failed"
     end;
+
+local
+  val setupContents =
+      Stream.fromList
+        ["module Main(main)\n",
+         "\n",
+         "import Distribution.Simple\n",
+         "\n",
+         "main :: IO ()\n",
+         "main = defaultMain\n"];
+in
+  fun outputSetup {directory = dir} =
+      let
+        val file =
+            let
+              val f = OS.Path.joinBaseExt {base = "Setup", ext = SOME "hs"}
+            in
+              OS.Path.joinDirFile {dir = dir, file = f}
+            end
+
+        val () = Stream.toTextFile {filename = file} setupContents
+      in
+        ()
+      end;
+end;
 
 local
   fun exportSubNamespace parent ns =
@@ -2635,9 +2763,9 @@ local
         xns_sub
       end;
 
-  fun outputSrc pkg {directory = dir} sub namespace source =
+  fun outputSrc tags {directory = dir} sub namespace source =
       let
-        val ss = Print.toStream ppModule (pkg,namespace,source)
+        val ss = Print.toStream ppModule (tags,namespace,source)
 
         val file =
             let
@@ -2651,7 +2779,7 @@ local
         ()
       end;
 
-  fun outputMod pkg dir parent module =
+  fun outputMod tags dir parent module =
       let
         val Module {namespace,source,submodules} = module
 
@@ -2659,7 +2787,7 @@ local
 
         val () =
             if List.null source then ()
-            else outputSrc pkg dir sub namespace source
+            else outputSrc tags dir sub namespace source
 
         val () =
             if List.null submodules then ()
@@ -2667,13 +2795,13 @@ local
               let
                 val dir = mkSubDirectory dir sub
               in
-                List.app (outputMod pkg dir namespace) submodules
+                List.app (outputMod tags dir namespace) submodules
               end
       in
         ()
       end;
 in
-  fun outputSource dir pkg module =
+  fun outputSource dir tags module =
       let
         val Module {namespace,source,submodules} = module
 
@@ -2687,14 +2815,14 @@ in
 
         val dir = mkSubDirectory dir "src"
       in
-        List.app (outputMod pkg dir namespace) submodules
+        List.app (outputMod tags dir namespace) submodules
       end;
 end;
 
 local
-  fun outputMain pkg {directory = dir} tests =
+  fun outputMain tags {directory = dir} tests =
       let
-        val ss = Print.toStream ppTests (pkg,tests)
+        val ss = Print.toStream ppTests (tags,tests)
 
         val file =
             let
@@ -2708,17 +2836,19 @@ local
         ()
       end;
 in
-  fun outputTests dir pkg tests =
+  fun outputTests dir tags tests =
       let
         val dir = mkSubDirectory dir "testsrc"
       in
-        outputMain pkg dir tests
+        outputMain tags dir tests
       end;
 end;
 
 fun toPackage dir haskell =
     let
       val Haskell {package,depends,source,tests} = haskell
+
+      val tags = mkTags package
 
       val directory =
           let
@@ -2729,13 +2859,15 @@ fun toPackage dir haskell =
             mkSubDirectory directory name
           end
 
-      val () = outputCabal directory package depends source
+      val () = outputCabal directory package tags depends source
 
-      val () = outputLicense dir directory package
+      val () = outputLicense dir directory package tags
 
-      val () = outputSource directory package source
+      val () = outputSetup directory
 
-      val () = outputTests directory package tests
+      val () = outputSource directory tags source
+
+      val () = outputTests directory tags tests
     in
       ()
     end;

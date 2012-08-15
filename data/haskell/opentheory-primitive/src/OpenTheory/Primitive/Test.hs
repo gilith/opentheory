@@ -1,13 +1,11 @@
 {- |
-Module: $Header$
-Description: OpenTheory QuickCheck interface
-License: MIT
+module: $Header$
+description: OpenTheory QuickCheck interface
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
-
-OpenTheory QuickCheck interface
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module OpenTheory.Primitive.Test
   ( check )

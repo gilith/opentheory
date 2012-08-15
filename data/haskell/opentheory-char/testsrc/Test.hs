@@ -1,11 +1,11 @@
 {- |
-Module: Main
-Description: Unicode characters - testing
-License: MIT
+module: Main
+description: Unicode characters - testing
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module Main
   ( main )

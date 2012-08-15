@@ -1,11 +1,11 @@
 {- |
-Module: Main
-Description: The Haskell base - testing
-License: MIT
+module: Main
+description: The Haskell base - testing
+license: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
-Stability: provisional
-Portability: portable
+maintainer: Joe Hurd <joe@gilith.com>
+stability: provisional
+portability: portable
 -}
 module Main
   ( main )
