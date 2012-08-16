@@ -2632,9 +2632,10 @@ in
               Print.ppString ":",
               Print.newline,
               Print.ppString desc,
+              Print.ppString " -",
               Print.newline,
               Print.ppString
-                "Automatically generated from the opentheory package",
+                "automatically generated from the opentheory package",
               Print.break,
               PackageNameVersion.pp nameVersion],
            Print.newline,

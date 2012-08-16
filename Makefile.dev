@@ -213,9 +213,9 @@ HASKELL_OPENTHEORY_LIST = ../../$(OPENTHEORY) list --dependency-order
 
 .PHONY: haskell
 haskell: $(OPENTHEORY)
-	cd $(HASKELL_DIR)/opentheory-primitive && cabal install --force-reinstalls && dist/build/opentheory-primitive-test/opentheory-primitive-test && cabal check
-	cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne '$$nv = $$_; chomp $$nv; if ($$nv =~ /^haskell-/) { $$n = `$(HASKELL_OPENTHEORY_INFO) --format NAME $$nv`; chomp $$n; $$n =~ s/^haskell/opentheory/; if ( -d $$n ) { (system("rm -r $$n") == 0) or die; print STDOUT "Re-exporting $$nv\n"; } else { print STDOUT "Exporting $$nv\n"; } (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; (system("echo dist > $$n/.gitignore") == 0) or die; (system("find $$n") == 0) or die; (system("cd $$n && cabal install --force-reinstalls && dist/build/$$n-test/$$n-test && cabal check") == 0) or die; }')
-	cd $(HASKELL_DIR)/opentheory-test && cabal install --force-reinstalls && dist/build/opentheory-test/opentheory-test
+	cd $(HASKELL_DIR)/opentheory-primitive && cabal clean && cabal install --force-reinstalls && dist/build/opentheory-primitive-test/opentheory-primitive-test && cabal check && cabal sdist
+	cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne '$$nv = $$_; chomp $$nv; if ($$nv =~ /^haskell-/) { $$n = `$(HASKELL_OPENTHEORY_INFO) --format NAME $$nv`; chomp $$n; $$n =~ s/^haskell/opentheory/; if ( -d $$n ) { (system("rm -r $$n") == 0) or die; print STDOUT "Re-exporting $$nv\n"; } else { print STDOUT "Exporting $$nv\n"; } (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; (system("echo dist > $$n/.gitignore") == 0) or die; (system("find $$n") == 0) or die; (system("cd $$n && cabal clean && cabal install --force-reinstalls && dist/build/$$n-test/$$n-test && cabal check && cabal sdist") == 0) or die; }')
+	cd $(HASKELL_DIR)/opentheory-test && cabal clean && cabal install --force-reinstalls && dist/build/opentheory-test/opentheory-test
 
 ###############################################################################
 # Create the test OpenTheory directory.
