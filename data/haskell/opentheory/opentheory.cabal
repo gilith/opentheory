@@ -9,8 +9,8 @@ build-type: Simple
 author: Joe Hurd <joe@gilith.com>
 maintainer: Joe Hurd <joe@gilith.com>
 description:
-  The Haskell base
-  Automatically generated from the opentheory package haskell-1.61
+  The Haskell base - automatically generated from the opentheory package
+  haskell-1.61
 
 library
   build-depends:

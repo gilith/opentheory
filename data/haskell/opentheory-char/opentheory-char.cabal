@@ -9,8 +9,8 @@ build-type: Simple
 author: Joe Hurd <joe@gilith.com>
 maintainer: Joe Hurd <joe@gilith.com>
 description:
-  Unicode characters
-  Automatically generated from the opentheory package haskell-char-1.30
+  Unicode characters - automatically generated from the opentheory package
+  haskell-char-1.30
 
 library
   build-depends:

@@ -2614,6 +2614,14 @@ local
       | ns :: nss =>
         ppNamespace ns ::
         List.map (Print.sequence Print.newline o ppNamespace) nss;
+
+  fun ppText s =
+      case String.tokens Char.isSpace s of
+        [] => Print.skip
+      | x :: xs =>
+        Print.program
+          (Print.ppString x ::
+           List.map (Print.sequence Print.break o Print.ppString) xs);
 in
   fun ppCabal (pkg,tags,deps,source) =
       let
@@ -2631,11 +2639,9 @@ in
              [Print.ppString descriptionTag,
               Print.ppString ":",
               Print.newline,
-              Print.ppString desc,
-              Print.ppString " -",
-              Print.newline,
-              Print.ppString
-                "automatically generated from the opentheory package",
+              ppText
+                (desc ^
+                 " - automatically generated from the opentheory package"),
               Print.break,
               PackageNameVersion.pp nameVersion],
            Print.newline,

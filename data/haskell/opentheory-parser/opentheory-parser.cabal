@@ -9,8 +9,8 @@ build-type: Simple
 author: Joe Hurd <joe@gilith.com>
 maintainer: Joe Hurd <joe@gilith.com>
 description:
-  Simple stream parsers
-  Automatically generated from the opentheory package haskell-parser-1.105
+  Simple stream parsers - automatically generated from the opentheory
+  package haskell-parser-1.105
 
 library
   build-depends:

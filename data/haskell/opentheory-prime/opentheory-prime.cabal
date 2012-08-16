@@ -9,8 +9,8 @@ build-type: Simple
 author: Joe Hurd <joe@gilith.com>
 maintainer: Joe Hurd <joe@gilith.com>
 description:
-  Prime numbers
-  Automatically generated from the opentheory package haskell-prime-1.9
+  Prime numbers - automatically generated from the opentheory package
+  haskell-prime-1.9
 
 library
   build-depends:
