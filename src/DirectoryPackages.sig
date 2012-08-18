@@ -212,6 +212,10 @@ val delete : packages -> PackageNameVersion.nameVersion -> unit
 (* Comparing packages with repos.                                            *)
 (* ------------------------------------------------------------------------- *)
 
+val identicalOnRepo :
+    packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    bool
+
 val consistentWithRepo :
     packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
     bool

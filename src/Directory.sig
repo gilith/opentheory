@@ -354,6 +354,10 @@ val stagedFinder : directory -> PackageFinder.finder
 (* Comparing packages with repos.                                            *)
 (* ------------------------------------------------------------------------- *)
 
+val identicalOnRepo :
+    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    bool
+
 val consistentWithRepo :
     directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
     bool

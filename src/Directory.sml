@@ -1893,6 +1893,9 @@ fun ppUpload dir {repo,support,packages} =
 (* Comparing packages with repos.                                            *)
 (* ------------------------------------------------------------------------- *)
 
+fun identicalOnRepo dir =
+    DirectoryPackages.identicalOnRepo (packages dir);
+
 fun consistentWithRepo dir =
     DirectoryPackages.consistentWithRepo (packages dir);
 

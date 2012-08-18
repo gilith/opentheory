@@ -780,32 +780,33 @@ fun delete pkgs namever =
 (* Comparing packages with repos.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun consistentWithRepo pkgs repo =
-    let
-      fun checkInc inc =
-          case DirectoryRepo.peek repo inc of
-            NONE => true
-          | SOME chk =>
-            case checksum pkgs inc of
-              SOME c => Checksum.equal c chk
-            | NONE =>
-              let
-                val err =
-                    PackageNameVersion.toString inc ^
-                    " seems to be badly installed"
-              in
-                raise Error err
-              end
-    in
-      fn namever =>
-         let
-           val nvs = PackageNameVersionSet.singleton namever
+local
+  fun checkConsistency missing pkgs repo namever =
+      case DirectoryRepo.peek repo namever of
+        NONE => missing
+      | SOME chk =>
+        case checksum pkgs namever of
+          SOME c => Checksum.equal c chk
+        | NONE =>
+          let
+            val err =
+                PackageNameVersion.toString namever ^
+                " seems to be badly installed"
+          in
+            raise Error err
+          end;
+in
+  val identicalOnRepo = checkConsistency false;
 
-           val incs = includesRTC pkgs nvs
-         in
-           PackageNameVersionSet.all checkInc incs
-         end
-    end;
+  fun consistentWithRepo pkgs repo namever =
+      let
+        val nvs = PackageNameVersionSet.singleton namever
+
+        val incs = includesRTC pkgs nvs
+      in
+        PackageNameVersionSet.all (checkConsistency true pkgs repo) incs
+      end
+end;
 
 fun earlierThanRepo pkgs repo namever =
     let

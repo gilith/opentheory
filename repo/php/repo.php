@@ -139,19 +139,26 @@ function repo_register($name_version) {
 function repo_register_all() {
   $package_table = package_table();
 
+  opentheory_update();
+
   $name_versions = opentheory_list('All');
+
+  $upstream_name_versions = opentheory_list('IdenticalOnRepo All');
 
   foreach ($name_versions as $name_version) {
     repo_register($name_version);
 
-    // Mark all installed packages as 'uploaded', because after a reset we
-    // cannot tell which packages were uploaded by users and which were
-    // installed from other repos.
+    // After a reset we cannot tell the difference between packages
+    // uploaded by users and downloaded from upstream repos, so we use
+    // the following simple heuristic: we mark a package as 'uploaded'
+    // iff it is not available from an upstream repo.
 
-    $pkg = find_package_by_name_version($name_version);
-    isset($pkg) or trigger_error('no entry for package');
+    if (array_search($name_version,$upstream_name_versions) === false) {
+      $pkg = find_package_by_name_version($name_version);
+      isset($pkg) or trigger_error('no entry for package');
 
-    $package_table->mark_uploaded($pkg);
+      $package_table->mark_uploaded($pkg);
+    }
   }
 
   // Mark subtheory packages

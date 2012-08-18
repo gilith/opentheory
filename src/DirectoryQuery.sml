@@ -18,6 +18,7 @@ and consistentWithRepoKeywordString = "ConsistentWithRepo"
 and differenceSymbolString = "-"
 and earlierThanRepoKeywordString = "EarlierThanRepo"
 and emptyKeywordString = "Empty"
+and identicalOnRepoKeywordString = "IdenticalOnRepo"
 and identityKeywordString = "Identity"
 and includedByKeywordString = "IncludedBy"
 and includesKeywordString = "Includes"
@@ -54,6 +55,7 @@ datatype predicate =
     Empty
   | Mine
   | OnRepo
+  | IdenticalOnRepo
   | ConsistentWithRepo
   | EarlierThanRepo
   | LaterThanRepo
@@ -91,6 +93,7 @@ fun ignoresRepo pred =
       Empty => true
     | Mine => true
     | OnRepo => false
+    | IdenticalOnRepo => false
     | ConsistentWithRepo => false
     | EarlierThanRepo => false
     | LaterThanRepo => false
@@ -150,6 +153,7 @@ local
         Empty => Directory.emptyTheory dir namever
       | Mine => Directory.selfAuthor dir namever
       | OnRepo => DirectoryRepo.member namever repo
+      | IdenticalOnRepo => Directory.identicalOnRepo dir repo namever
       | ConsistentWithRepo => Directory.consistentWithRepo dir repo namever
       | EarlierThanRepo => Directory.earlierThanRepo dir repo namever
       | LaterThanRepo => Directory.laterThanRepo dir repo namever
@@ -266,6 +270,7 @@ val ppAllKeyword = Print.ppString allKeywordString
 and ppConsistentWithRepoKeyword = Print.ppString consistentWithRepoKeywordString
 and ppEarlierThanRepoKeyword = Print.ppString earlierThanRepoKeywordString
 and ppEmptyKeyword = Print.ppString emptyKeywordString
+and ppIdenticalOnRepoKeyword = Print.ppString identicalOnRepoKeywordString
 and ppIdentityKeyword = Print.ppString identityKeywordString
 and ppIncludedByKeyword = Print.ppString includedByKeywordString
 and ppIncludesKeyword = Print.ppString includesKeywordString
@@ -316,6 +321,7 @@ local
         Empty => ppEmptyKeyword
       | Mine => ppMineKeyword
       | OnRepo => ppOnRepoKeyword
+      | IdenticalOnRepo => ppIdenticalOnRepoKeyword
       | ConsistentWithRepo => ppConsistentWithRepoKeyword
       | EarlierThanRepo => ppEarlierThanRepoKeyword
       | LaterThanRepo => ppLaterThanRepoKeyword
@@ -463,6 +469,7 @@ local
       exactString consistentWithRepoKeywordString
   and earlierThanRepoKeywordParser = exactString earlierThanRepoKeywordString
   and emptyKeywordParser = exactString emptyKeywordString
+  and identicalOnRepoKeywordParser = exactString identicalOnRepoKeywordString
   and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
   and mineKeywordParser = exactString mineKeywordString
   and notSymbolParser = exactString notSymbolString
@@ -483,6 +490,7 @@ local
       mineKeywordParser >> K Mine ||
       consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
       earlierThanRepoKeywordParser >> K EarlierThanRepo ||
+      identicalOnRepoKeywordParser >> K IdenticalOnRepo ||
       laterThanRepoKeywordParser >> K LaterThanRepo ||
       onRepoKeywordParser >> K OnRepo;
 

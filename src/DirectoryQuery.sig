@@ -20,6 +20,7 @@ datatype predicate =
     Empty
   | Mine
   | OnRepo
+  | IdenticalOnRepo
   | ConsistentWithRepo
   | EarlierThanRepo
   | LaterThanRepo

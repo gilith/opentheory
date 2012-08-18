@@ -18,6 +18,7 @@ import qualified Data.Word
 import qualified System.Directory
 
 import qualified OpenTheory.Data.Unicode.UTF8
+import qualified OpenTheory.Number.Natural.Prime
 
 readTestCharFile :: Bool -> FilePath -> IO ()
 readTestCharFile x f =
@@ -75,6 +76,12 @@ partitionTestCharFile =
        do Data.ByteString.Lazy.writeFile ("test/char/" ++ f ++ ".txt") bs
           outputLine ex' err' rest
 
+testInitialPrimes :: IO ()
+testInitialPrimes =
+    let b = take 20 OpenTheory.Number.Natural.Prime.all ==
+              [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71] in
+    if b then return () else error "wrong initial 20 primes"
+
 main :: IO ()
 main =
     do putStr "Testing opentheory-char... "
@@ -84,5 +91,8 @@ main =
          ([0..139] :: [Int])
        mapM_ (\i -> readInvalidCharFile $ "invalid/test" ++ show i)
          ([0..70] :: [Int])
+       putStrLn "ok"
+       putStr "Testing opentheory-prime... "
+       testInitialPrimes
        putStrLn "ok"
        return ()
