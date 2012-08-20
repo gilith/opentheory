@@ -222,13 +222,29 @@ val includeOrdered :
     directory -> PackageNameVersion.nameVersion list ->
     bool
 
-val dependencyOrder :  (* Includes | Requires *)
+val dependencyOrder :  (* Requires | Includes *)
     directory -> PackageNameVersionSet.set ->
     PackageNameVersion.nameVersion list
 
 val dependencyOrdered :
     directory -> PackageNameVersion.nameVersion list ->
     bool
+
+(* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val closedDependencies :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
+
+val acyclicDependencies :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
+
+val wellFoundedDependencies :
+    directory -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)

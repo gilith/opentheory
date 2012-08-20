@@ -724,6 +724,19 @@ fun dependencyOrdered pkgs =
     PackageNameVersionSet.postOrdered (dependencies pkgs);
 
 (* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun closedDependencies pkgs namevers =
+    raise Bug "DirectoryPackages.closedDependencies";
+
+fun acyclicDependencies pkgs namevers =
+    raise Bug "DirectoryPackages.acyclicDependencies";
+
+fun wellFoundedDependencies pkgs namevers =
+    raise Bug "DirectoryPackages.wellFoundedDependencies";
+
+(* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

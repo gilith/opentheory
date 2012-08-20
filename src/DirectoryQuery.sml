@@ -12,9 +12,12 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val allKeywordString = "All"
+val acyclicKeywordString = "Acyclic"
+and allKeywordString = "All"
 and andSymbolString = "/\\"
+and closedKeywordString = "Closed"
 and consistentWithRepoKeywordString = "ConsistentWithRepo"
+and deprecatedKeywordString = "Deprecated"
 and differenceSymbolString = "-"
 and earlierThanRepoKeywordString = "EarlierThanRepo"
 and emptyKeywordString = "Empty"
@@ -28,6 +31,7 @@ and latestKeywordString = "Latest"
 and mineKeywordString = "Mine"
 and noneKeywordString = "None"
 and notSymbolString = "~"
+and obsoleteKeywordString = "Obsolete"
 and onRepoKeywordString = "OnRepo"
 and optionalSymbolString = "?"
 and orSymbolString = "\\/"
@@ -39,7 +43,8 @@ and subtheoryOfKeywordString = "SubtheoryOf"
 and transitiveSymbolString = "+"
 and upgradableKeywordString = "Upgradable"
 and uploadableKeywordString = "Uploadable"
-and unionSymbolString = "|";
+and unionSymbolString = "|"
+and wellFoundedKeywordString = "WellFounded";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of package query.                                                  *)
@@ -54,6 +59,9 @@ datatype set =
 datatype predicate =
     Empty
   | Mine
+  | Closed
+  | Acyclic
+  | WellFounded
   | OnRepo
   | IdenticalOnRepo
   | ConsistentWithRepo
@@ -74,6 +82,8 @@ datatype function =
   | Subtheories
   | SubtheoryOf
   | Latest
+  | Deprecated  (* (Identity - Latest) (Requires|Includes)* *)
+  | Obsolete  (* All - (Requires|Includes)* *)
   | Upgradable  (* EarlierThanRepo *)
   | Uploadable  (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
   | Union of function * function
@@ -92,6 +102,9 @@ fun ignoresRepo pred =
     case pred of
       Empty => true
     | Mine => true
+    | Closed => true
+    | Acyclic => true
+    | WellFounded => true
     | OnRepo => false
     | IdenticalOnRepo => false
     | ConsistentWithRepo => false
@@ -113,6 +126,8 @@ fun ignoresInput func =
     | Subtheories => false
     | SubtheoryOf => false
     | Latest => false
+    | Deprecated => false
+    | Obsolete => false
     | Upgradable => false
     | Uploadable => false
     | Union (func1,func2) => ignoresInput func1 andalso ignoresInput func2
@@ -126,6 +141,16 @@ fun ignoresInput func =
 (* ------------------------------------------------------------------------- *)
 (* Evaluating queries.                                                       *)
 (* ------------------------------------------------------------------------- *)
+
+val deprecatedDef =
+    Compose
+      (Difference (Identity,Latest),
+       ReflexiveTransitive (Union (Requires,Includes)));
+
+val obsoleteDef =
+    Difference
+      (Constant All,
+       ReflexiveTransitive (Union (Requires,Includes)));
 
 val upgradableDef =
     Filter EarlierThanRepo;
@@ -148,7 +173,7 @@ fun evaluateSet dir set =
     | None => PackageNameVersionSet.empty;
 
 local
-  fun evalPred dir pred namever repo =
+  fun evalPred dir repo pred namever =
       case pred of
         Empty => Directory.emptyTheory dir namever
       | Mine => Directory.selfAuthor dir namever
@@ -157,20 +182,61 @@ local
       | ConsistentWithRepo => Directory.consistentWithRepo dir repo namever
       | EarlierThanRepo => Directory.earlierThanRepo dir repo namever
       | LaterThanRepo => Directory.laterThanRepo dir repo namever
-      | Not pred1 => not (evalPred dir pred1 namever repo)
-      | And (pred1,pred2) =>
-        evalPred dir pred1 namever repo andalso
-        evalPred dir pred2 namever repo
-      | Or (pred1,pred2) =>
-        evalPred dir pred1 namever repo orelse
-        evalPred dir pred2 namever repo;
+      | _ => raise Bug "DirectoryQuery.evalPred";
+
+  fun evalPredSet dir repo pred namevers =
+      if PackageNameVersionSet.null namevers then namevers
+      else
+        case pred of
+          Closed => Directory.closedDependencies dir namevers
+        | Acyclic => Directory.acyclicDependencies dir namevers
+        | WellFounded => Directory.wellFoundedDependencies dir namevers
+        | Not pred1 =>
+          let
+            val result1 = evalPredSet dir repo pred1 namevers
+          in
+            PackageNameVersionSet.difference namevers result1
+          end
+        | And (pred1,pred2) =>
+          let
+            val result1 = evalPredSet dir repo pred1 namevers
+
+            val result2 = evalPredSet dir repo pred2 result1
+          in
+            result2
+          end
+        | Or (pred1,pred2) =>
+          let
+            val result1 = evalPredSet dir repo pred1 namevers
+
+            val namevers = PackageNameVersionSet.difference namevers result1
+
+            val result2 = evalPredSet dir repo pred2 namevers
+          in
+            PackageNameVersionSet.union result1 result2
+          end
+        | _ =>
+          PackageNameVersionSet.filter (evalPred dir repo pred) namevers;
+
+  fun evalPredSetRepo dir pred namevers (repo,result) =
+      let
+        val namevers' = PackageNameVersionSet.difference namevers result
+
+        val result' = evalPredSet dir repo pred namevers'
+      in
+        PackageNameVersionSet.union result result'
+      end;
 in
-  fun evaluatePredicate dir repos pred namever =
+  fun evaluatePredicateSet dir repos pred namevers =
       case repos of
-        [] => false
-      | repo :: _ =>
-        if ignoresRepo pred then evalPred dir pred namever repo
-        else List.exists (evalPred dir pred namever) repos
+        [] => PackageNameVersionSet.empty
+      | repo :: repos =>
+        let
+          val result = evalPredSet dir repo pred namevers
+        in
+          if ignoresRepo pred then result
+          else List.foldl (evalPredSetRepo dir pred namevers) result repos
+        end;
 end;
 
 local
@@ -188,12 +254,7 @@ in
       case func of
         Identity => I
       | Constant set => K (evaluateSet dir set)
-      | Filter predicate =>
-        let
-          val pred = evaluatePredicate dir repos predicate
-        in
-          PackageNameVersionSet.filter pred
-        end
+      | Filter pred => evaluatePredicateSet dir repos pred
       | Requires => PackageNameVersionSet.lift (Directory.requires dir)
       | RequiredBy => PackageNameVersionSet.lift (Directory.requiredBy dir)
       | Includes => PackageNameVersionSet.lift (Directory.includes dir)
@@ -201,6 +262,8 @@ in
       | Subtheories => PackageNameVersionSet.lift (Directory.subtheories dir)
       | SubtheoryOf => PackageNameVersionSet.lift (Directory.subtheoryOf dir)
       | Latest => PackageNameVersionSet.latestVersions
+      | Deprecated => evaluate dir repos deprecatedDef
+      | Obsolete => evaluate dir repos obsoleteDef
       | Upgradable => evaluate dir repos upgradableDef
       | Uploadable => evaluate dir repos uploadableDef
       | Union (func1,func2) =>
@@ -266,8 +329,11 @@ val infixes =
        {token = differenceSymbolString, precedence = 2, assoc = Print.LeftAssoc},
        {token = unionSymbolString, precedence = 2, assoc = Print.LeftAssoc}];
 
-val ppAllKeyword = Print.ppString allKeywordString
+val ppAcyclicKeyword = Print.ppString acyclicKeywordString
+and ppAllKeyword = Print.ppString allKeywordString
+and ppClosedKeyword = Print.ppString closedKeywordString
 and ppConsistentWithRepoKeyword = Print.ppString consistentWithRepoKeywordString
+and ppDeprecatedKeyword = Print.ppString deprecatedKeywordString
 and ppEarlierThanRepoKeyword = Print.ppString earlierThanRepoKeywordString
 and ppEmptyKeyword = Print.ppString emptyKeywordString
 and ppIdenticalOnRepoKeyword = Print.ppString identicalOnRepoKeywordString
@@ -279,6 +345,7 @@ and ppLatestKeyword = Print.ppString latestKeywordString
 and ppMineKeyword = Print.ppString mineKeywordString
 and ppNoneKeyword = Print.ppString noneKeywordString
 and ppNotSymbol = Print.ppString notSymbolString
+and ppObsoleteKeyword = Print.ppString obsoleteKeywordString
 and ppOnRepoKeyword = Print.ppString onRepoKeywordString
 and ppOptionalSymbol = Print.ppString optionalSymbolString
 and ppReflexiveTransitiveSymbol = Print.ppString reflexiveTransitiveSymbolString
@@ -288,7 +355,8 @@ and ppSubtheoriesKeyword = Print.ppString subtheoriesKeywordString
 and ppSubtheoryOfKeyword = Print.ppString subtheoryOfKeywordString
 and ppTransitiveSymbol = Print.ppString transitiveSymbolString
 and ppUpgradableKeyword = Print.ppString upgradableKeywordString
-and ppUploadableKeyword = Print.ppString uploadableKeywordString;
+and ppUploadableKeyword = Print.ppString uploadableKeywordString
+and ppWellFoundedKeyword = Print.ppString wellFoundedKeywordString;
 
 fun ppSet set =
     case set of
@@ -320,6 +388,9 @@ local
       case pred of
         Empty => ppEmptyKeyword
       | Mine => ppMineKeyword
+      | Closed => ppClosedKeyword
+      | Acyclic => ppAcyclicKeyword
+      | WellFounded => ppWellFoundedKeyword
       | OnRepo => ppOnRepoKeyword
       | IdenticalOnRepo => ppIdenticalOnRepoKeyword
       | ConsistentWithRepo => ppConsistentWithRepoKeyword
@@ -388,6 +459,8 @@ local
       | Subtheories => ppSubtheoriesKeyword
       | SubtheoryOf => ppSubtheoryOfKeyword
       | Latest => ppLatestKeyword
+      | Deprecated => ppDeprecatedKeyword
+      | Obsolete => ppObsoleteKeyword
       | Upgradable => ppUpgradableKeyword
       | Uploadable => ppUploadableKeyword
       | _ => ppBracket func
@@ -464,7 +537,9 @@ local
 
   open Parse;
 
-  val andSymbolParser = exactString andSymbolString
+  val acyclicKeywordParser = exactString acyclicKeywordString
+  and andSymbolParser = exactString andSymbolString
+  and closedKeywordParser = exactString closedKeywordString
   and consistentWithRepoKeywordParser =
       exactString consistentWithRepoKeywordString
   and earlierThanRepoKeywordParser = exactString earlierThanRepoKeywordString
@@ -474,7 +549,8 @@ local
   and mineKeywordParser = exactString mineKeywordString
   and notSymbolParser = exactString notSymbolString
   and onRepoKeywordParser = exactString onRepoKeywordString
-  and orSymbolParser = exactString orSymbolString;
+  and orSymbolParser = exactString orSymbolString
+  and wellFoundedKeywordParser = exactString wellFoundedKeywordString;
 
   val bracketSpaceParser =
       let
@@ -488,6 +564,9 @@ local
   val basicKeywordParser =
       emptyKeywordParser >> K Empty ||
       mineKeywordParser >> K Mine ||
+      closedKeywordParser >> K Closed ||
+      acyclicKeywordParser >> K Acyclic ||
+      wellFoundedKeywordParser >> K WellFounded ||
       consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
       earlierThanRepoKeywordParser >> K EarlierThanRepo ||
       identicalOnRepoKeywordParser >> K IdenticalOnRepo ||
@@ -538,12 +617,14 @@ local
 
   open Parse;
 
-  val differenceSymbolParser = exactString differenceSymbolString
+  val deprecatedKeywordParser = exactString deprecatedKeywordString
+  and differenceSymbolParser = exactString differenceSymbolString
   and identityKeywordParser = exactString identityKeywordString
   and includedByKeywordParser = exactString includedByKeywordString
   and includesKeywordParser = exactString includesKeywordString
   and intersectSymbolParser = exactString intersectSymbolString
   and latestKeywordParser = exactString latestKeywordString
+  and obsoleteKeywordParser = exactString obsoleteKeywordString
   and optionalSymbolParser = exactString optionalSymbolString
   and reflexiveTransitiveSymbolParser =
       exactString reflexiveTransitiveSymbolString
@@ -574,6 +655,8 @@ local
       subtheoriesKeywordParser >> K Subtheories ||
       subtheoryOfKeywordParser >> K SubtheoryOf ||
       latestKeywordParser >> K Latest ||
+      deprecatedKeywordParser >> K Deprecated ||
+      obsoleteKeywordParser >> K Obsolete ||
       upgradableKeywordParser >> K Upgradable ||
       uploadableKeywordParser >> K Uploadable;
 

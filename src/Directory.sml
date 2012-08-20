@@ -496,6 +496,19 @@ fun dependencyOrdered dir =
     DirectoryPackages.dependencyOrdered (packages dir);
 
 (* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun closedDependencies dir =
+    DirectoryPackages.closedDependencies (packages dir);
+
+fun acyclicDependencies dir =
+    DirectoryPackages.acyclicDependencies (packages dir);
+
+fun wellFoundedDependencies dir =
+    DirectoryPackages.wellFoundedDependencies (packages dir);
+
+(* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 

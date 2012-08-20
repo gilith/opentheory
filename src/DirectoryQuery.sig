@@ -19,6 +19,9 @@ datatype set =
 datatype predicate =
     Empty
   | Mine
+  | Closed
+  | Acyclic
+  | WellFounded
   | OnRepo
   | IdenticalOnRepo
   | ConsistentWithRepo
@@ -39,6 +42,8 @@ datatype function =
   | Subtheories
   | SubtheoryOf
   | Latest
+  | Deprecated  (* (Identity - Latest) (Requires|Includes)* *)
+  | Obsolete  (* All - (Requires|Includes)* *)
   | Upgradable  (* EarlierThanRepo *)
   | Uploadable  (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
   | Union of function * function

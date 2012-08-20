@@ -1,5 +1,5 @@
 name: natural-funpow-thm
-version: 1.1
+version: 1.2
 description: Properties of function power
 author: Joe Hurd <joe@gilith.com>
 license: MIT

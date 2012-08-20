@@ -1,5 +1,5 @@
 name: modular-witness
-version: 1.1
+version: 1.2
 description: Parametric theory witness for modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -197,6 +197,22 @@ val dependencyOrdered :
     bool
 
 (* ------------------------------------------------------------------------- *)
+(* Package dependencies.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val closedDependencies :
+    packages -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
+
+val acyclicDependencies :
+    packages -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
+
+val wellFoundedDependencies :
+    packages -> PackageNameVersionSet.set ->
+    PackageNameVersionSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

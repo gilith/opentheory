@@ -1,5 +1,5 @@
 name: natural
-version: 1.71
+version: 1.72
 description: The natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -103,7 +103,7 @@ funpow {
   import: numeral
   import: add
   import: mult
-  package: natural-funpow-1.5
+  package: natural-funpow-1.6
 }
 
 main {

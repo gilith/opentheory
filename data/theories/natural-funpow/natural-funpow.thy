@@ -1,5 +1,5 @@
 name: natural-funpow
-version: 1.5
+version: 1.6
 description: Function power
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ def {
 
 thm {
   import: def
-  package: natural-funpow-thm-1.1
+  package: natural-funpow-thm-1.2
 }
 
 main {
