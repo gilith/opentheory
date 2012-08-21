@@ -793,7 +793,18 @@ local
 
   fun expandWellFounded pkgs namevers =
       let
-        val finder = PackageFinder.mk (peek pkgs)
+        fun addTheory graph imps nv =
+            let
+              val finder = PackageFinder.mk (peek pkgs)
+
+              val spec =
+                  TheoryGraph.Specification
+                    {imports = imps,
+                     interpretation = Interpretation.natural,
+                     nameVersion = nv}
+            in
+              total (TheoryGraph.importPackageName finder graph) spec
+            end
 
         fun process (nv,(graph,thys)) =
             if not (allInDomain (includes pkgs nv) thys) then (graph,thys)
@@ -801,20 +812,14 @@ local
               case peekSet thys (requires pkgs nv) of
                 NONE => (graph,thys)
               | SOME imps =>
-                let
-                  val spec =
-                      TheoryGraph.Specification
-                        {imports = imps,
-                         interpretation = Interpretation.natural,
-                         nameVersion = nv}
-
-                  val (graph,thy) =
-                      TheoryGraph.importPackageName finder graph spec
-
-                  val thys = PackageNameVersionMap.insert thys (nv,thy)
-                in
-                  (graph,thys)
-                end
+                case addTheory graph imps nv of
+                  NONE => (graph,thys)
+                | SOME (graph,thy) =>
+                  let
+                    val thys = PackageNameVersionMap.insert thys (nv,thy)
+                  in
+                    (graph,thys)
+                  end
 
         val namevers = expandClosed pkgs namevers
 
