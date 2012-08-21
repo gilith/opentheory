@@ -627,6 +627,9 @@ fun dependencies pkgs namever =
       PackageNameVersionSet.union reqs incs
     end;
 
+fun dependenciesSet pkgs =
+    PackageNameVersionSet.lift (dependencies pkgs);
+
 local
   fun ppCycle pkgs =
       let
@@ -727,14 +730,127 @@ fun dependencyOrdered pkgs =
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun closedDependencies pkgs namevers =
-    raise Bug "DirectoryPackages.closedDependencies";
+local
+  fun allInDomain nvs nvm =
+      let
+        fun inDom nv = PackageNameVersionMap.inDomain nv nvm
+      in
+        PackageNameVersionSet.all inDom nvs
+      end;
 
-fun acyclicDependencies pkgs namevers =
-    raise Bug "DirectoryPackages.acyclicDependencies";
+  fun peekSet nvm nvs =
+      if not (allInDomain nvs nvm) then NONE
+      else
+        let
+          val nvs = PackageNameVersionSet.toList nvs
 
-fun wellFoundedDependencies pkgs namevers =
-    raise Bug "DirectoryPackages.wellFoundedDependencies";
+          val thys = List.map (PackageNameVersionMap.get nvm) nvs
+        in
+          SOME (TheorySet.fromList thys)
+        end;
+
+  fun mkSccs pkgs = PackageNameVersionSet.postOrderSCC (dependencies pkgs);
+
+  fun expandClosed pkgs namevers =
+      let
+        fun process (scc,acc) =
+            let
+              val deps = dependenciesSet pkgs scc
+
+              val acc' = PackageNameVersionSet.union acc scc
+
+              val ok =
+                  PackageNameVersionSet.subset deps acc' andalso
+                  PackageNameVersionSet.all (requiresInstalled pkgs) scc
+            in
+              if ok then acc' else acc
+            end
+
+        val sccs = mkSccs pkgs namevers
+      in
+        List.foldl process PackageNameVersionSet.empty sccs
+      end;
+
+  fun expandAcyclic pkgs namevers =
+      let
+        fun process (nv,acc) =
+            if PackageNameVersionSet.size nv <> 1 then acc
+            else
+              let
+                val nv = PackageNameVersionSet.pick nv
+
+                val deps = dependencies pkgs nv
+
+                val ok = PackageNameVersionSet.subset deps acc
+              in
+                if ok then PackageNameVersionSet.add acc nv else acc
+              end
+
+        val sccs = mkSccs pkgs namevers
+      in
+        List.foldl process PackageNameVersionSet.empty sccs
+      end;
+
+  fun expandWellFounded pkgs namevers =
+      let
+        val finder = PackageFinder.mk (peek pkgs)
+
+        fun process (nv,(graph,thys)) =
+            if not (allInDomain (includes pkgs nv) thys) then (graph,thys)
+            else
+              case peekSet thys (requires pkgs nv) of
+                NONE => (graph,thys)
+              | SOME imps =>
+                let
+                  val spec =
+                      TheoryGraph.Specification
+                        {imports = imps,
+                         interpretation = Interpretation.natural,
+                         nameVersion = nv}
+
+                  val (graph,thy) =
+                      TheoryGraph.importPackageName finder graph spec
+
+                  val thys = PackageNameVersionMap.insert thys (nv,thy)
+                in
+                  (graph,thys)
+                end
+
+        val namevers = expandClosed pkgs namevers
+
+        val namevers = expandAcyclic pkgs namevers
+
+        val namevers = dependencyOrder pkgs namevers
+
+        val graph = TheoryGraph.empty {savable = false}
+        and thys = PackageNameVersionMap.new ()
+
+        val (_,thys) = List.foldl process (graph,thys) namevers
+      in
+        PackageNameVersionSet.domain thys
+      end;
+in
+  fun closedDependencies pkgs namevers =
+      let
+        val result = expandClosed pkgs namevers
+      in
+        PackageNameVersionSet.intersect namevers result
+      end;
+
+  fun acyclicDependencies pkgs namevers =
+      let
+        val result = expandAcyclic pkgs namevers
+      in
+        PackageNameVersionSet.intersect namevers result
+      end;
+
+  fun wellFoundedDependencies pkgs namevers =
+      let
+        val result = expandWellFounded pkgs namevers
+      in
+        PackageNameVersionSet.intersect namevers result
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Adding a new package.                                                     *)
