@@ -43,14 +43,12 @@ val provides : summary -> Sequents.sequents
 (* ------------------------------------------------------------------------- *)
 
 val check :
-    {unsatisfiedAssumptions : (Sequent.sequent -> bool) option,
-     checkTheorems : bool} ->
-    Show.show -> summary -> unit
+    {checkTheorems : bool} -> Summary.context -> Show.show -> summary -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val toHtml : Show.show -> summary -> Html.block list
+val toHtml : Summary.context -> Show.show -> summary -> Html.block list
 
 end

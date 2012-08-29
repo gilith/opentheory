@@ -14,6 +14,8 @@ type table
 
 val empty : table
 
+val isEmpty : table -> bool
+
 val symbols : table -> SymbolSet.set
 
 val typeOps : table -> TypeOpSet.set
@@ -47,6 +49,12 @@ val addTypeOpSet : table -> TypeOpSet.set -> table
 val addConst : table -> Const.const -> table
 
 val addConstSet : table -> ConstSet.set -> table
+
+val addSymbol : table -> Symbol.symbol -> table
+
+val addSymbolList : table -> Symbol.symbol list -> table
+
+val addSymbolSet : table -> SymbolSet.set -> table
 
 val addType : table -> Type.ty -> table
 
@@ -92,6 +100,14 @@ val undefined : table -> table
 
 val defined : table -> table
 
+val existsUndefined : table -> bool
+
+val existsDefined : table -> bool
+
+val allUndefined : table -> bool
+
+val allDefined : table -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Instantiating undefined type operators and constants with definitions.    *)
 (* ------------------------------------------------------------------------- *)
@@ -101,6 +117,12 @@ val instType : table -> Type.ty' -> Type.ty option
 val instTerm : table -> Term.term' -> Term.term option
 
 val inst : table -> TermRewrite.rewrite
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive symbols.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val primitives : table
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

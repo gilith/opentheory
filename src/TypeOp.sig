@@ -73,6 +73,10 @@ val ind : typeOp
 
 val isInd : typeOp -> bool
 
+(* The standard primitives *)
+
+val primitives : typeOp list
+
 (* ------------------------------------------------------------------------- *)
 (* Special syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)

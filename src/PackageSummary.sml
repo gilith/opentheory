@@ -44,7 +44,7 @@ fun provides sum = Summary.provides (summary sum);
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun check chks show sum = Summary.check chks show (summary sum);
+fun check chks ctxt show sum = Summary.check chks ctxt show (summary sum);
 
 (* ------------------------------------------------------------------------- *)
 (* HTML output.                                                              *)
@@ -102,7 +102,6 @@ fun htmlGrammar req prov =
       val Summary.Grammar
             {ppTypeOp,
              ppConst,
-             unsatisfiedAssumptions,
              showTheoremAssumptions,...} = Summary.htmlGrammar
 
       val assumptionTitle = mkTitle req "Assumption made"
@@ -119,17 +118,16 @@ fun htmlGrammar req prov =
          theoremGrammar = theoremGrammar,
          ppTypeOp = ppTypeOp,
          ppConst = ppConst,
-         unsatisfiedAssumptions = unsatisfiedAssumptions,
          showTheoremAssumptions = showTheoremAssumptions}
     end;
 
-fun toHtml show sum =
+fun toHtml ctxt show sum =
     let
       val Summary' {summary,requires,provides} = dest sum
 
       val grammar = htmlGrammar requires provides
     in
-      Summary.toHtmlWithGrammar grammar show summary
+      Summary.toHtmlWithGrammar grammar ctxt show summary
     end;
 
 end

@@ -381,13 +381,16 @@ fun summarize name =
 
       val sum = Summary.fromThms ths
 
+      val context = Summary.NoContext
+
       val show = Show.default
 
       val sumFilename = mkSummaryFilename name
 
       val () =
           Summary.toTextFile
-            {show = show,
+            {context = context,
+             show = show,
              summary = sum,
              filename = sumFilename}
 

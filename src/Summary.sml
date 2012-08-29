@@ -18,7 +18,8 @@ val noAssumptions = Assumptions (K SequentSet.empty);
 
 fun getAssumptions (Assumptions f) seq = f seq;
 
-fun addAssumptions axs (seq,acc) = SequentSet.union acc (getAssumptions axs seq);
+fun addAssumptions axs (seq,acc) =
+    SequentSet.union acc (getAssumptions axs seq);
 
 fun getListAssumptions axs seqs =
     List.foldl (addAssumptions axs) SequentSet.empty seqs;
@@ -159,16 +160,81 @@ fun rewrite rewr sum =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory summary information (for pretty printing).               *)
+(* A type of theory contexts.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+datatype context =
+    NoContext
+  | Context of
+      {groundedInputTypeOp : TypeOp.typeOp -> bool,
+       groundedInputConst : Const.const -> bool,
+       satisfiedAssumption : Sequent.sequent -> bool};
+
+val defaultContext = NoContext;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of summary input symbols.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+datatype inputs =
+    AllInputs of SymbolTable.table
+  | ClassifiedInputs of
+      {grounded : SymbolTable.table,
+       ungrounded : SymbolTable.table};
+
+fun mkInputs ctxt inp =
+    case ctxt of
+      NoContext => AllInputs inp
+    | Context
+        {groundedInputTypeOp = gtp,
+         groundedInputConst = gcp, ...} =>
+      let
+        val ts = SymbolTable.typeOps inp
+        and cs = SymbolTable.consts inp
+
+        val (gts,uts) = TypeOpSet.partition gtp ts
+        and (gcs,ucs) = ConstSet.partition gcp cs
+
+        val gs = SymbolTable.empty
+        val gs = SymbolTable.addTypeOpSet gs gts
+        val gs = SymbolTable.addConstSet gs gcs
+
+        val us = SymbolTable.empty
+        val us = SymbolTable.addTypeOpSet us uts
+        val us = SymbolTable.addConstSet us ucs
+      in
+        ClassifiedInputs {grounded = gs, ungrounded = us}
+      end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of summary assumptions.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 datatype assumptions =
     AllAssumptions of SequentSet.set
-  | ClassifiedAssumptions of {satisfied : int, unsatisfied : SequentSet.set};
+  | ClassifiedAssumptions of
+      {satisfied : int,
+       unsatisfied : SequentSet.set};
+
+fun mkAssumptions ctxt ass =
+    case ctxt of
+      NoContext => AllAssumptions ass
+    | Context {satisfiedAssumption = p, ...} =>
+      let
+        val unsat = SequentSet.filter (not o p) ass
+
+        val sat = SequentSet.size ass - SequentSet.size unsat
+      in
+        ClassifiedAssumptions {satisfied = sat, unsatisfied = unsat}
+      end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of theory summary information (for pretty printing).               *)
+(* ------------------------------------------------------------------------- *)
 
 datatype info =
     Info of
-      {input : SymbolTable.table,
+      {input : inputs,
        assumed : assumptions,
        defined : SymbolTable.table,
        axioms : SequentSet.set,
@@ -185,7 +251,7 @@ local
            ConstSet.subset (Sequent.consts seq) cs
       end;
 in
-  fun toInfo unsatisfiedAssumptions summary =
+  fun toInfo ctxt summary =
       let
 (*OpenTheoryTrace5
         val () = trace "entering Summary.toInfo\n"
@@ -209,17 +275,9 @@ in
               SequentSet.partition (allSymbolsIn inp) req
             end
 
-        val ass =
-            case unsatisfiedAssumptions of
-              NONE => AllAssumptions ass
-            | SOME p =>
-              let
-                val unsat = SequentSet.filter p ass
+        val inp = mkInputs ctxt inp
 
-                val sat = SequentSet.size ass - SequentSet.size unsat
-              in
-                ClassifiedAssumptions {satisfied = sat, unsatisfied = unsat}
-              end
+        val ass = mkAssumptions ctxt ass
 
         val ths = Sequents.sequents provides
 
@@ -324,6 +382,51 @@ fun checkSequent show class seq =
     end;
 
 local
+  fun warnNames class show ns =
+      let
+        fun ppName n =
+            let
+              val n = Show.showName show n
+            in
+              Print.sequence Print.break (Name.pp n)
+            end
+
+        val n = List.length ns
+
+        fun ppNames () =
+            Print.inconsistentBlock 2
+              (Print.ppPrettyInt n ::
+               Print.space ::
+               Print.ppString class ::
+               (if n = 1 then Print.skip else Print.ppString "s") ::
+               Print.ppString ":" ::
+               List.map ppName ns)
+
+        val mesg = Print.toString ppNames ()
+
+        val () = warn mesg
+      in
+        ()
+      end;
+
+  fun warnTypeOps class show ts =
+      let
+        val class = class ^ " type operator"
+
+        val ns = List.map TypeOp.name (TypeOpSet.toList ts)
+      in
+        warnNames class show ns
+      end;
+
+  fun warnConsts class show cs =
+      let
+        val class = class ^ " constant"
+
+        val ns = List.map Const.name (ConstSet.toList cs)
+      in
+        warnNames class show ns
+      end;
+
   fun warnSequents class show seqs =
       let
         fun ppSeq seq =
@@ -351,15 +454,22 @@ local
       if not chk then ()
       else SequentSet.app (checkSequent show class) seqs;
 
-  fun checkInfo chks show info =
+  fun checkInfo chks ctxt show info =
       let
-        val {unsatisfiedAssumptions = unsat, checkTheorems = chkSeqs} = chks
-        and Info {assumed,axioms,thms,...} = info
+        val {checkTheorems = chkSeqs} = chks
+        and Info {input,assumed,axioms,thms,...} = info
+
+        val input =
+            case input of
+              AllInputs sym => sym
+            | ClassifiedInputs _ =>
+              raise Bug "Summary.check.checkInfo.ClassifiedInputs"
 
         val assumed =
             case assumed of
               AllAssumptions seqs => seqs
-            | ClassifiedAssumptions _ => raise Bug "Summary.check.checkInfo"
+            | ClassifiedAssumptions _ =>
+              raise Bug "Summary.check.checkInfo.ClassifiedAssumptions"
 
         val () =
             if SequentSet.null axioms then ()
@@ -370,22 +480,39 @@ local
         val () = checkShow seqs show
 
         val () =
-            case unsat of
-              NONE => checkSequents chkSeqs show "assumption" assumed
-            | SOME p =>
+            case mkInputs ctxt input of
+              AllInputs _ => ()
+            | ClassifiedInputs {ungrounded = inp, ...} =>
               let
-                val asses = SequentSet.filter p assumed
+                val ts = SymbolTable.typeOps inp
+                and cs = SymbolTable.consts inp
+
+                val () =
+                    if TypeOpSet.null ts then ()
+                    else warnTypeOps "ungrounded input" show ts
+
+                val () =
+                    if ConstSet.null cs then ()
+                    else warnConsts "ungrounded input" show cs
               in
-                if SequentSet.null asses then ()
-                else warnSequents "unsatisfied assumption" show asses
+                ()
               end
+
+        val () =
+            case mkAssumptions ctxt assumed of
+              AllAssumptions ass =>
+              checkSequents chkSeqs show "assumption" assumed
+            | ClassifiedAssumptions {unsatisfied = ass, ...} =>
+              if SequentSet.null ass then ()
+              else warnSequents "unsatisfied assumption" show ass
 
         val () = checkSequents chkSeqs show "theorem" thms
       in
         ()
       end;
 in
-  fun check chks show sum = checkInfo chks show (toInfo NONE sum);
+  fun check chks ctxt show sum =
+      checkInfo chks ctxt show (toInfo NoContext sum);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -399,7 +526,6 @@ datatype grammar =
        theoremGrammar : Sequent.grammar,
        ppTypeOp : Show.show -> TypeOp.typeOp Print.pp,
        ppConst : Show.show -> Const.const Print.pp,
-       unsatisfiedAssumptions : (Sequent.sequent -> bool) option,
        showTheoremAssumptions : bool};
 
 val defaultGrammar =
@@ -409,7 +535,6 @@ val defaultGrammar =
       and theoremGrammar = Sequent.defaultGrammar
       and ppTypeOp = TypeOp.ppWithShow
       and ppConst = Const.ppWithShow
-      and unsatisfiedAssumptions = NONE
       and showTheoremAssumptions = false
     in
       Grammar
@@ -418,7 +543,6 @@ val defaultGrammar =
          theoremGrammar = theoremGrammar,
          ppTypeOp = ppTypeOp,
          ppConst = ppConst,
-         unsatisfiedAssumptions = unsatisfiedAssumptions,
          showTheoremAssumptions = showTheoremAssumptions}
     end;
 
@@ -510,6 +634,12 @@ in
            let
              val Info {input,assumed,defined,axioms,thms} = info
 
+             val (input,uinput) =
+                 case input of
+                   AllInputs inp => (inp,SymbolTable.empty)
+                 | ClassifiedInputs {grounded,ungrounded} =>
+                   (grounded,ungrounded)
+
              val (sat,assumed) =
                  case assumed of
                    AllAssumptions seqs => (NONE,seqs)
@@ -572,6 +702,7 @@ in
 
              val blocks =
                  ppSymbol ("input",input) @
+                 ppSymbol ("ungrounded input",uinput) @
                  assumptionBlocks @
                  ppSymbol ("defined",defined) @
                  ppSequentList (ppAss ppAxiom) ("axiom",axioms) @
@@ -593,7 +724,6 @@ fun ppWithGrammar grammar =
              theoremGrammar,
              ppTypeOp,
              ppConst,
-             unsatisfiedAssumptions,
              showTheoremAssumptions} = grammar
 
       val ppAssumptionWS = Sequent.ppWithGrammar assumptionGrammar
@@ -602,12 +732,12 @@ fun ppWithGrammar grammar =
 
       val ppTheoremWS = Sequent.ppWithGrammar theoremGrammar
 
-      val ppIWS =
+      val ppInfoWS =
           ppInfoWithShow ppTypeOp ppConst ppAssumptionWS ppAxiomWS ppTheoremWS
     in
-      fn show =>
+      fn context => fn show =>
          let
-           val ppI = ppIWS show
+           val ppInfo = ppInfoWS show
          in
            fn sum =>
               let
@@ -615,24 +745,26 @@ fun ppWithGrammar grammar =
                     if showTheoremAssumptions then assumptions sum
                     else noAssumptions
 
-                val info = toInfo unsatisfiedAssumptions sum
+                val info = toInfo context sum
               in
-                ppI asses info
+                ppInfo asses info
               end
          end
     end;
 
-val ppWithShow = ppWithGrammar defaultGrammar;
+val ppWithContext = ppWithGrammar defaultGrammar;
+
+val ppWithShow = ppWithContext NoContext;
 
 val pp = ppWithShow Show.default;
 
 fun toTextFileWithGrammar grammar =
     let
-      val ppWS = ppWithGrammar grammar
+      val ppWCS = ppWithGrammar grammar
     in
-      fn {show,summary,filename} =>
+      fn {context,show,summary,filename} =>
          let
-           val lines = Print.toStream (ppWS show) summary
+           val lines = Print.toStream (ppWCS context show) summary
 
            val () = Stream.toTextFile {filename = filename} lines
          in
@@ -714,12 +846,10 @@ in
         val assumptionGrammar = htmlGrammarSequent "assumption" "Assumption"
         and axiomGrammar = htmlGrammarSequent "axiom" "Axiom"
         and theoremGrammar = htmlGrammarSequent "theorem" "Theorem"
-        and unsatisfiedAssumptions = NONE
         and showTheoremAssumptions = false
       in
         Grammar
-          {unsatisfiedAssumptions = unsatisfiedAssumptions,
-           assumptionGrammar = assumptionGrammar,
+          {assumptionGrammar = assumptionGrammar,
            axiomGrammar = axiomGrammar,
            theoremGrammar = theoremGrammar,
            ppTypeOp = ppTypeOp,
@@ -811,7 +941,7 @@ in
                 item :: toItemList stack subs
               end
       in
-        fn name => fn nxs =>
+        fn name => fn classes => fn nxs =>
             let
               val n = length nxs
 
@@ -821,7 +951,10 @@ in
                   Print.toString Print.ppPrettyInt n ^ " " ^
                   String.map Char.toLower name
 
-              val attrs = Html.singletonAttrs ("title",title)
+              val attrs =
+                  Html.fromListAttrs
+                    (("title",title) ::
+                     List.map (fn c => ("class",c)) classes)
 
               val header = Html.Span (attrs, [Html.Text name])
             in
@@ -841,7 +974,7 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
       and toHtmlAxiom = toHtmlAxiomWS show
       and toHtmlTheorem = toHtmlTheoremWS show
 
-      fun toHtmlTypeOps name ots =
+      fun toHtmlTypeOps name classes ots =
           if List.null ots then []
           else
             let
@@ -851,11 +984,13 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
                   in
                     (n,ot)
                   end
+
+              val name = name ^ " Type Operator"
             in
-              toHtmlNames ppTypeOp (name ^ " Type Operator") (List.map dest ots)
+              toHtmlNames ppTypeOp name classes (List.map dest ots)
             end
 
-      fun toHtmlConsts name cs =
+      fun toHtmlConsts name classes cs =
           if List.null cs then []
           else
             let
@@ -865,17 +1000,19 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
                   in
                     (n,c)
                   end
+
+              val name = name ^ " Constant"
             in
-              toHtmlNames ppConst (name ^ " Constant") (List.map dest cs)
+              toHtmlNames ppConst name classes (List.map dest cs)
             end
 
-      fun toHtmlSymbol name sym =
+      fun toHtmlSymbol name classes sym =
           let
             val ots = TypeOpSet.toList (SymbolTable.typeOps sym)
             and cs = ConstSet.toList (SymbolTable.consts sym)
           in
-            toHtmlTypeOps name ots @
-            toHtmlConsts name cs
+            toHtmlTypeOps name classes ots @
+            toHtmlConsts name classes cs
           end
 
       fun toHtmlSequentSet toHtmlSeq name verb classes seqs =
@@ -907,6 +1044,12 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
          let
            val Info {input,assumed,defined,axioms,thms} = info
 
+           val (uinput,input) =
+               case input of
+                 AllInputs sym => (SymbolTable.empty,sym)
+               | ClassifiedInputs {grounded = sym, ungrounded = usym} =>
+                 (usym,sym)
+
            val assumptionBlocks =
                case assumed of
                  AllAssumptions seqs =>
@@ -915,10 +1058,11 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
                  toHtmlSequentSet toHtmlAssumption
                    "Unsatisfied assumption" "made" [] unsatisfied
          in
-           toHtmlSymbol "Defined" defined @
+           toHtmlSymbol "Defined" [] defined @
+           toHtmlSymbol "Ungrounded Input" ["warning"] uinput @
            toHtmlSequentSet toHtmlAxiom "Axiom" "asserted" ["warning"] axioms @
            toHtmlSequentSet toHtmlTheorem "Theorem" "proved" [] thms @
-           toHtmlSymbol "Input" input @
+           toHtmlSymbol "Input" [] input @
            assumptionBlocks
          end
     end;
@@ -931,7 +1075,6 @@ fun toHtmlInfoWithGrammar grammar =
              theoremGrammar,
              ppTypeOp,
              ppConst,
-             unsatisfiedAssumptions = _,
              showTheoremAssumptions = _} = grammar
 
       val toHtmlAssumption = Sequent.toHtmlWithGrammar assumptionGrammar
@@ -945,18 +1088,18 @@ fun toHtmlInfoWithGrammar grammar =
 
 fun toHtmlWithGrammar grammar =
     let
-      val Grammar {unsatisfiedAssumptions, ...} = grammar
-
       val toHIWS = toHtmlInfoWithGrammar grammar
     in
-      fn show =>
+      fn context => fn show =>
          let
            val toHI = toHIWS show
          in
-           fn sum => toHI (toInfo unsatisfiedAssumptions sum)
+           fn sum => toHI (toInfo context sum)
          end
     end;
 
-val toHtml = toHtmlWithGrammar htmlGrammar;
+val toHtmlWithContext = toHtmlWithGrammar htmlGrammar;
+
+val toHtml = toHtmlWithContext NoContext;
 
 end

@@ -83,7 +83,7 @@ val sharingSearch :
 val search : TermSearch.search -> sequent -> Term.term option
 
 (* ------------------------------------------------------------------------- *)
-(* Axioms.                                                                   *)
+(* Standard axioms.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val axiomOfExtensionality : sequent

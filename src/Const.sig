@@ -65,6 +65,10 @@ val select : const
 
 val isSelect : const -> bool
 
+(* The standard primitives *)
+
+val primitives : const list
+
 (* ------------------------------------------------------------------------- *)
 (* Special syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)

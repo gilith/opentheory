@@ -44,6 +44,14 @@ fun compare (sym1,sym2) =
 fun equal sym1 sym2 = compare (sym1,sym2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
+(* Primitive symbols.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val primitives =
+    List.map TypeOp TypeOp.primitives @
+    List.map Const Const.primitives;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -79,6 +87,8 @@ struct
   in
     open S;
   end;
+
+  val primitives = fromList Symbol.primitives;
 
   local
     val ppSymList = Print.ppBracket "{" "}" (Print.ppOpList "," Symbol.pp);

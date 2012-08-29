@@ -118,6 +118,10 @@ val select = mkUndef Name.selectConst;
 
 val isSelect = equal select;
 
+(* The standard primitives *)
+
+val primitives = [eq,select];
+
 (* ------------------------------------------------------------------------- *)
 (* Special syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)

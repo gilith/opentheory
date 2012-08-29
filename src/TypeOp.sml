@@ -97,6 +97,10 @@ val ind = mkUndef Name.indTypeOp;
 
 val isInd = equal ind;
 
+(* The standard primitives *)
+
+val primitives = [bool,func,ind];
+
 (* ------------------------------------------------------------------------- *)
 (* Special syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)

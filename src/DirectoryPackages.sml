@@ -815,6 +815,7 @@ local
                 case addTheory graph imps nv of
                   NONE => (graph,thys)
                 | SOME (graph,thy) =>
+                  (*** Check for Satisfied and Grounded here ***)
                   let
                     val thys = PackageNameVersionMap.insert thys (nv,thy)
                   in

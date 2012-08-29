@@ -50,13 +50,21 @@ val sharingRewrite :
 val rewrite : TermRewrite.rewrite -> summary -> summary option
 
 (* ------------------------------------------------------------------------- *)
+(* A type of theory contexts.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+datatype context =
+    NoContext
+  | Context of
+      {groundedInputTypeOp : TypeOp.typeOp -> bool,
+       groundedInputConst : Const.const -> bool,
+       satisfiedAssumption : Sequent.sequent -> bool}
+
+(* ------------------------------------------------------------------------- *)
 (* Check summary.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val check :
-    {unsatisfiedAssumptions : (Sequent.sequent -> bool) option,
-     checkTheorems : bool} ->
-    Show.show -> summary -> unit
+val check : {checkTheorems : bool} -> context -> Show.show -> summary -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
@@ -69,12 +77,13 @@ datatype grammar =
        theoremGrammar : Sequent.grammar,
        ppTypeOp : Show.show -> TypeOp.typeOp Print.pp,
        ppConst : Show.show -> Const.const Print.pp,
-       unsatisfiedAssumptions : (Sequent.sequent -> bool) option,
        showTheoremAssumptions : bool}
 
 val defaultGrammar : grammar
 
-val ppWithGrammar : grammar -> Show.show -> summary Print.pp
+val ppWithGrammar : grammar -> context -> Show.show -> summary Print.pp
+
+val ppWithContext : context -> Show.show -> summary Print.pp
 
 val ppWithShow : Show.show -> summary Print.pp
 
@@ -82,12 +91,14 @@ val pp : summary Print.pp
 
 val toTextFileWithGrammar :
     grammar ->
-    {show : Show.show,
+    {context : context,
+     show : Show.show,
      summary : summary,
      filename : string} -> unit
 
 val toTextFile :
-    {show : Show.show,
+    {context : context,
+     show : Show.show,
      summary : summary,
      filename : string} -> unit
 
@@ -97,7 +108,10 @@ val toTextFile :
 
 val htmlGrammar : grammar
 
-val toHtmlWithGrammar : grammar -> Show.show -> summary -> Html.block list
+val toHtmlWithGrammar :
+    grammar -> context -> Show.show -> summary -> Html.block list
+
+val toHtmlWithContext : context -> Show.show -> summary -> Html.block list
 
 val toHtml : Show.show -> summary -> Html.block list
 

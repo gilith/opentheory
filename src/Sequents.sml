@@ -33,6 +33,18 @@ fun sequents (Sequents {sequents = x, ...}) = x;
 
 fun symbol (Sequents {symbol = x, ...}) = x;
 
+fun undefined seqs = SymbolTable.undefined (symbol seqs);
+
+fun defined seqs = SymbolTable.defined (symbol seqs);
+
+fun existsUndefined seqs = SymbolTable.existsUndefined (symbol seqs);
+
+fun existsDefined seqs = SymbolTable.existsDefined (symbol seqs);
+
+fun allUndefined seqs = SymbolTable.allUndefined (symbol seqs);
+
+fun allDefined seqs = SymbolTable.allDefined (symbol seqs);
+
 (* ------------------------------------------------------------------------- *)
 (* Adding sequents.                                                          *)
 (* ------------------------------------------------------------------------- *)

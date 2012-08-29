@@ -794,28 +794,16 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
               val name = PackageNameVersion.name namever
               and reqs = Package.requires pkg
 
-              val unsat =
+              val ctxt =
                   case requiresTheorems dir reqs of
-                    NONE => NONE
-                  | SOME ths =>
-                    case PackageTheorems.unsatisfiedAssumptions ths of
-                      NONE => NONE
-                    | SOME f =>
-                      let
-                        val req = PackageSummary.requires sum
-
-                        val seqs = f (Sequents.sequents req)
-                      in
-                        SOME (C SequentSet.member seqs)
-                      end
+                    NONE => Summary.NoContext
+                  | SOME ths => PackageTheorems.packageSummaryContext sum ths
 
               val chkThms = not (PackageName.isExport name)
 
-              val chks =
-                  {unsatisfiedAssumptions = unsat,
-                   checkTheorems = chkThms}
+              val chks = {checkTheorems = chkThms}
             in
-              PackageSummary.check chks (Package.show pkg) sum
+              PackageSummary.check chks ctxt (Package.show pkg) sum
             end
 
       (* Create the package theorems *)

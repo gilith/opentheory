@@ -240,7 +240,7 @@ local
               NONE => Show.default
             | SOME pkg => Package.show pkg
       in
-        PackageSummary.toHtml show sum
+        PackageSummary.toHtml Summary.NoContext show sum
       end;
 
   val mkFooter =

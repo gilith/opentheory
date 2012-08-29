@@ -41,14 +41,30 @@ val sequents : theorems -> Sequents.sequents
 
 val symbol : theorems -> SymbolTable.table
 
+val undefined : theorems -> SymbolTable.table
+
 val defined : theorems -> SymbolTable.table
 
+val allUndefined : theorems -> bool
+
+val allDefined : theorems -> bool
+
+val existsUndefined : theorems -> bool
+
+val existsDefined : theorems -> bool
+
 (* ------------------------------------------------------------------------- *)
-(* Unsatisfied assumptions.                                                  *)
+(* Theory contexts.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val unsatisfiedAssumptions :
-    theorems list -> (SequentSet.set -> SequentSet.set) option
+val context :
+    SymbolTable.table * SequentSet.set -> theorems list -> Summary.context
+
+val summaryContext :
+    Summary.summary -> theorems list -> Summary.context
+
+val packageSummaryContext :
+    PackageSummary.summary -> theorems list -> Summary.context
 
 (* ------------------------------------------------------------------------- *)
 (* Testing different versions of required theories.                          *)

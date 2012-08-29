@@ -20,6 +20,18 @@ val sequents : sequents -> SequentSet.set
 
 val symbol : sequents -> SymbolTable.table
 
+val undefined : sequents -> SymbolTable.table
+
+val defined : sequents -> SymbolTable.table
+
+val allUndefined : sequents -> bool
+
+val allDefined : sequents -> bool
+
+val existsUndefined : sequents -> bool
+
+val existsDefined : sequents -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Adding sequents.                                                          *)
 (* ------------------------------------------------------------------------- *)

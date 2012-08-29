@@ -38,6 +38,8 @@ val empty =
 
 fun symbols (Table {symS,...}) = symS;
 
+fun isEmpty sym = SymbolSet.null (symbols sym);
+
 fun typeOps (Table {opS,...}) = Term.toSetSharingTypeOps opS;
 
 fun consts (Table {conS,...}) = Term.toSetSharingConsts conS;
@@ -185,6 +187,31 @@ fun addConstSet sym cs =
 (*OpenTheoryDebug
     handle Error err => raise Error ("SymbolTable.addConstSet: " ^ err);
 *)
+
+local
+  fun add (s,sym) =
+      case s of
+        Symbol.TypeOp t => addTypeOp sym t
+      | Symbol.Const c => addConst sym c;
+in
+  fun addSymbol sym s =
+      add (s,sym)
+(*OpenTheoryDebug
+      handle Error err => raise Error ("SymbolTable.addSymbol: " ^ err);
+*)
+
+  fun addSymbolList sym sl =
+      List.foldl add sym sl
+(*OpenTheoryDebug
+      handle Error err => raise Error ("SymbolTable.addSymbolList: " ^ err);
+*)
+
+  fun addSymbolSet sym ss =
+      SymbolSet.foldl add sym ss
+(*OpenTheoryDebug
+      handle Error err => raise Error ("SymbolTable.addSymbolSet: " ^ err);
+*)
+end;
 
 fun addType sym ty =
     addX Term.addTypeSharingTypeOps addNothing sym ty
@@ -378,6 +405,14 @@ fun defined table =
       x
     end;
 
+fun allUndefined table = isEmpty (defined table);
+
+fun allDefined table = isEmpty (undefined table);
+
+fun existsUndefined table = not (allDefined table);
+
+fun existsDefined table = not (allUndefined table);
+
 (* ------------------------------------------------------------------------- *)
 (* Instantiating undefined type operators and constants with definitions.    *)
 (* ------------------------------------------------------------------------- *)
@@ -416,6 +451,12 @@ fun inst sym =
     in
       TermRewrite.new tyRewr (instTerm sym)
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive symbols.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val primitives = addSymbolSet empty SymbolSet.primitives;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

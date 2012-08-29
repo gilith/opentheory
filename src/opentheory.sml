@@ -441,7 +441,7 @@ fun savableInfo info =
       ArticleInfo => true
     | _ => false;
 
-fun infoSummaryGrammar unsat =
+fun infoSummaryGrammar () =
     let
       val Summary.Grammar
             {assumptionGrammar,
@@ -449,11 +449,9 @@ fun infoSummaryGrammar unsat =
              theoremGrammar,
              ppTypeOp,
              ppConst,
-             unsatisfiedAssumptions = _,
              showTheoremAssumptions = _} = Summary.defaultGrammar
 
-      val unsatisfiedAssumptions = if !showAssumptionsInfo then NONE else unsat
-      and showTheoremAssumptions = !showDerivationsInfo
+      val showTheoremAssumptions = !showDerivationsInfo
     in
       Summary.Grammar
         {assumptionGrammar = assumptionGrammar,
@@ -461,7 +459,6 @@ fun infoSummaryGrammar unsat =
          theoremGrammar = theoremGrammar,
          ppTypeOp = ppTypeOp,
          ppConst = ppConst,
-         unsatisfiedAssumptions = unsatisfiedAssumptions,
          showTheoremAssumptions = showTheoremAssumptions}
     end;
 
@@ -1438,20 +1435,6 @@ local
   end;
 
   local
-    val cacheUnsatisfiedAssumptions :
-        (SequentSet.set -> SequentSet.set) cache =
-        ref NONE;
-
-    fun computeUnsatisfiedAssumptions () =
-        case getRequiresTheorems () of
-          NONE => NONE
-        | SOME ths => PackageTheorems.unsatisfiedAssumptions ths;
-  in
-    val getUnsatisfiedAssumptions =
-        getCached cacheUnsatisfiedAssumptions computeUnsatisfiedAssumptions;
-  end;
-
-  local
     val cacheInference : Inference.inference cache = ref NONE;
 
     fun computeInference () =
@@ -1744,19 +1727,14 @@ local
                 SOME s => s
               | NONE => raise Error "no summary information available"
 
-          val unsat =
-              case getUnsatisfiedAssumptions () of
-                NONE => NONE
-              | SOME f =>
-                let
-                  val asms = Summary.requires sum
+          val grammar = infoSummaryGrammar ()
 
-                  val asms = f (Sequents.sequents asms)
-                in
-                  SOME (C SequentSet.member asms)
-                end
-
-          val grammar = infoSummaryGrammar unsat
+          val context =
+              if !showAssumptionsInfo then Summary.NoContext
+              else
+                case getRequiresTheorems () of
+                  NONE => Summary.NoContext
+                | SOME ths => PackageTheorems.summaryContext sum ths
 
           val show =
               case getPackage () of
@@ -1766,7 +1744,8 @@ local
           val {filename} = file
         in
           Summary.toTextFileWithGrammar grammar
-            {show = show,
+            {context = context,
+             show = show,
              summary = sum,
              filename = filename}
         end
