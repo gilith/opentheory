@@ -56,8 +56,7 @@ val rewrite : TermRewrite.rewrite -> summary -> summary option
 datatype context =
     NoContext
   | Context of
-      {groundedInputTypeOp : TypeOp.typeOp -> bool,
-       groundedInputConst : Const.const -> bool,
+      {groundedInput : Symbol.symbol -> bool,
        satisfiedAssumption : Sequent.sequent -> bool}
 
 (* ------------------------------------------------------------------------- *)

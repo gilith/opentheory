@@ -72,6 +72,8 @@ fun sequents ths = sequents' (dest ths);
 
 fun symbol ths = Sequents.symbol (sequents ths);
 
+fun partitionUndef ths = Sequents.partitionUndef (sequents ths);
+
 fun undefined ths = Sequents.undefined (sequents ths);
 
 fun defined ths = Sequents.defined (sequents ths);
@@ -88,66 +90,8 @@ fun allDefined ths = Sequents.allDefined (sequents ths);
 (* Theory contexts.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-(***
 local
-  fun unionDefined thl =
-      SOME (SymbolTable.unionList (List.map defined thl))
-      handle Error err =>
-        let
-          val mesg = "requires contain " ^ err
-
-          val () = warn mesg
-        in
-          NONE
-        end;
-
-  fun compatibleDefined thl = Option.isSome (unionDefined thl);
-
-  fun satisfy (th,(unsat,rewr)) =
-      let
-        val Theorems' {package = pkg, sequents = seqs} = dest th
-
-        val seqs = Sequents.sequents seqs
-
-        val (seqs',rewr) = SequentSet.sharingRewrite seqs rewr
-
-        val seqs = Option.getOpt (seqs',seqs)
-
-        val unsat' = SequentSet.difference unsat seqs
-
-        val () =
-            (*** It's not redundant if it adds definitions ***)
-            if SequentSet.size unsat' < SequentSet.size unsat then ()
-            else
-              let
-                val mesg =
-                    "redundant requires: " ^ PackageNameVersion.toString pkg
-
-                val () = warn mesg
-              in
-                ()
-              end
-      in
-        (unsat',rewr)
-      end;
-
-  fun removeSatisfied thl asms =
-      let
-        val asms = SequentSet.difference asms SequentSet.standardAxioms
-
-        val (unsat,_) = List.foldl satisfy (asms,TermRewrite.undef) thl
-      in
-        unsat
-      end;
-in
-  fun unsatisfiedAssumptions thl =
-      if not (compatibleDefined thl) then NONE
-      else SOME (removeSatisfied thl);
-end;
-***)
-
-local
-  val initialGrounded = SymbolTable.primitives
+  val initialGrounded = SymbolSet.primitives
   and initialSatisfied = SequentSet.standardAxioms;
 
   fun unionDefined thl =
@@ -161,16 +105,20 @@ local
           NONE
         end;
 
-  fun compatibleDefined thl = Option.isSome (unionDefined thl);
-
-  fun mkSatisfy ((pkg,seq),(seqs,asms)) =
+  fun mkSatisfy ((pkg,undef,seq),((undefs,seqs),(ungr,asms))) =
       let
-        val seqs = SequentSet.union seqs seq
+        val undefs = SymbolSet.union undefs undef
+        and seqs = SequentSet.union seqs seq
 
-        val asms' = SequentSet.difference asms seqs
+        val ungr' = SymbolSet.difference ungr undefs
+        and asms' = SequentSet.difference asms seqs
+
+        val progress =
+            SymbolSet.size ungr' < SymbolSet.size ungr orelse
+            SequentSet.size asms' < SequentSet.size asms
 
         val () =
-            if SequentSet.size asms' < SequentSet.size asms then ()
+            if progress then ()
             else
               let
                 val mesg =
@@ -181,84 +129,101 @@ local
                 ()
               end
       in
-        (seqs,asms')
+        ((undefs,seqs),(ungr',asms'))
       end;
 
-  fun groundsInput inp sym =
-      case sym of
-        Symbol.TypeOp t => SymbolTable.knownTypeOp inp (TypeOp.name t)
-      | Symbol.Const c => SymbolTable.knownConst inp (Const.name c);
+  fun definesSomeInput inp =
+      let
+        fun check sym =
+          case sym of
+            Symbol.TypeOp t => SymbolTable.knownTypeOp inp (TypeOp.name t)
+          | Symbol.Const c => SymbolTable.knownConst inp (Const.name c)
+      in
+        SymbolSet.exists check
+      end;
 
-  fun mkGrounded inp thl =
+  fun definesInput inp thl =
       case thl of
         [] => (initialGrounded,initialSatisfied,[],TermRewrite.undef)
       | th :: thl =>
         let
-          val (defs,seqs,seqsl,rewr) = mkGrounded inp thl
+          val (undefs,seqs,seqsl,rewr) = definesInput inp thl
 
-          val def = defined th
+          val {defined = def, undefined = undef} = partitionUndef th
           and seq = Sequents.sequents (sequents th)
 
-          val defs = SymbolTable.union defs def
-
-          val grounds =
-              SymbolSet.exists (groundsInput inp) (SymbolTable.symbols def)
+          val undef = SymbolTable.symbols undef
 
           val (seq',rewr) = SequentSet.sharingRewrite seq rewr
 
           val seq = Option.getOpt (seq',seq)
         in
-          if grounds then (defs, SequentSet.union seq seqs, seqsl, rewr)
-          else (defs, seqs, (package th, seq) :: seqsl, rewr)
+          if definesSomeInput inp (SymbolTable.symbols def) then
+            let
+              val undefs = SymbolSet.union undefs undef
+              and seqs = SequentSet.union seqs seq
+            in
+              (undefs,seqs,seqsl,rewr)
+            end
+          else
+            let
+              val seqsl = (package th, undef, seq) :: seqsl
+            in
+              (undefs,seqs,seqsl,rewr)
+            end
         end;
 
-  fun groundedInputTypeOp defs t =
-      SymbolTable.knownTypeOp defs (TypeOp.name t);
-
-  fun groundedInputConst defs c =
-      SymbolTable.knownConst defs (Const.name c);
+  fun groundedInput undefs defs s =
+      SymbolSet.member s undefs orelse
+      case s of
+        Symbol.TypeOp t => SymbolTable.knownTypeOp defs (TypeOp.name t)
+      | Symbol.Const c => SymbolTable.knownConst defs (Const.name c);
 
   fun satisfiedAssumption seqs seq = SequentSet.member seq seqs;
 
-  fun mkContext inp asms thl =
+  fun mkContext inp ungr asms thl defs =
       let
-        val (defs,seqs,seqsl,_) = mkGrounded inp thl
+        val (undefs,seqs,seqsl,_) = definesInput inp thl
 
-        val asms = SequentSet.difference asms seqs
+        val ungr = SymbolSet.difference ungr undefs
+        and asms = SequentSet.difference asms seqs
 
-        val (seqs,_) = List.foldl mkSatisfy (seqs,asms) seqsl
+        val ((undefs,seqs),_) =
+            List.foldl mkSatisfy ((undefs,seqs),(ungr,asms)) seqsl
       in
         Summary.Context
-          {groundedInputTypeOp = groundedInputTypeOp defs,
-           groundedInputConst = groundedInputConst defs,
+          {groundedInput = groundedInput undefs defs,
            satisfiedAssumption = satisfiedAssumption seqs}
       end;
 in
-  (* This function must compute the correct context for the input thl; *)
-  (* the inp and asms arguments may be used *only* for the purpose of *)
-  (* generating warnings about redundant requirements. *)
+  (* This function must compute the correct context for the input theorems *)
+  (* argument (thl); the summary argument (sum) may be used *only* for the *)
+  (* purpose of generating warnings about redundant requirements. *)
 
-  fun context (inp,asms) thl =
-      if compatibleDefined thl then mkContext inp asms thl
-      else Summary.NoContext;
+  fun context sum thl =
+      case unionDefined thl of
+        NONE => Summary.NoContext
+      | SOME defs =>
+        let
+          val Summary.Summary' {requires = req, provides = prov} =
+              Summary.dest sum
+
+          val ireq = Sequents.undefined req
+          and iprov = Sequents.undefined prov
+
+          val inp = SymbolTable.union ireq iprov
+
+          val ungr =
+              SymbolSet.difference
+                (SymbolTable.symbols iprov) (SymbolTable.symbols ireq)
+
+          val asms = Sequents.sequents req
+        in
+          mkContext inp ungr asms thl defs
+        end;
 end;
 
-fun summaryContext sum =
-    let
-      val Summary.Summary' {requires = req, provides = prov} =
-          Summary.dest sum
-
-      val inp =
-          SymbolTable.union
-            (Sequents.undefined req) (Sequents.undefined prov)
-
-      val asms = Sequents.sequents req
-    in
-      context (inp,asms)
-    end;
-
-fun packageSummaryContext sum =
-    summaryContext (PackageSummary.summary sum);
+fun packageContext sum = context (PackageSummary.summary sum);
 
 (* ------------------------------------------------------------------------- *)
 (* Testing different versions of required theories.                          *)

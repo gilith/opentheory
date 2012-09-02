@@ -20,6 +20,9 @@ val sequents : sequents -> SequentSet.set
 
 val symbol : sequents -> SymbolTable.table
 
+val partitionUndef :
+    sequents -> {undefined : SymbolTable.table, defined : SymbolTable.table}
+
 val undefined : sequents -> SymbolTable.table
 
 val defined : sequents -> SymbolTable.table

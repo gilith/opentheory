@@ -166,8 +166,7 @@ fun rewrite rewr sum =
 datatype context =
     NoContext
   | Context of
-      {groundedInputTypeOp : TypeOp.typeOp -> bool,
-       groundedInputConst : Const.const -> bool,
+      {groundedInput : Symbol.symbol -> bool,
        satisfiedAssumption : Sequent.sequent -> bool};
 
 val defaultContext = NoContext;
@@ -185,23 +184,15 @@ datatype inputs =
 fun mkInputs ctxt inp =
     case ctxt of
       NoContext => AllInputs inp
-    | Context
-        {groundedInputTypeOp = gtp,
-         groundedInputConst = gcp, ...} =>
+    | Context {groundedInput = g, ...} =>
       let
-        val ts = SymbolTable.typeOps inp
-        and cs = SymbolTable.consts inp
+        val s = SymbolTable.symbols inp
 
-        val (gts,uts) = TypeOpSet.partition gtp ts
-        and (gcs,ucs) = ConstSet.partition gcp cs
+        val (gs,us) = SymbolSet.partition g s
 
-        val gs = SymbolTable.empty
-        val gs = SymbolTable.addTypeOpSet gs gts
-        val gs = SymbolTable.addConstSet gs gcs
+        val gs = SymbolTable.addSymbolSet SymbolTable.empty gs
 
-        val us = SymbolTable.empty
-        val us = SymbolTable.addTypeOpSet us uts
-        val us = SymbolTable.addConstSet us ucs
+        val us = SymbolTable.addSymbolSet SymbolTable.empty us
       in
         ClassifiedInputs {grounded = gs, ungrounded = us}
       end;

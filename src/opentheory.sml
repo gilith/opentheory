@@ -1734,7 +1734,7 @@ local
               else
                 case getRequiresTheorems () of
                   NONE => Summary.NoContext
-                | SOME ths => PackageTheorems.summaryContext sum ths
+                | SOME ths => PackageTheorems.context sum ths
 
           val show =
               case getPackage () of

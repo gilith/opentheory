@@ -33,6 +33,8 @@ fun sequents (Sequents {sequents = x, ...}) = x;
 
 fun symbol (Sequents {symbol = x, ...}) = x;
 
+fun partitionUndef seqs = SymbolTable.partitionUndef (symbol seqs);
+
 fun undefined seqs = SymbolTable.undefined (symbol seqs);
 
 fun defined seqs = SymbolTable.defined (symbol seqs);

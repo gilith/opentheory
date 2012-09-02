@@ -41,6 +41,9 @@ val sequents : theorems -> Sequents.sequents
 
 val symbol : theorems -> SymbolTable.table
 
+val partitionUndef :
+    theorems -> {undefined : SymbolTable.table, defined : SymbolTable.table}
+
 val undefined : theorems -> SymbolTable.table
 
 val defined : theorems -> SymbolTable.table
@@ -57,14 +60,10 @@ val existsDefined : theorems -> bool
 (* Theory contexts.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val context :
-    SymbolTable.table * SequentSet.set -> theorems list -> Summary.context
+val context : Summary.summary -> theorems list -> Summary.context
 
-val summaryContext :
-    Summary.summary -> theorems list -> Summary.context
-
-val packageSummaryContext :
-    PackageSummary.summary -> theorems list -> Summary.context
+val packageContext :
+     PackageSummary.summary -> theorems list -> Summary.context
 
 (* ------------------------------------------------------------------------- *)
 (* Testing different versions of required theories.                          *)

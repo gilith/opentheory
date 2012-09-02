@@ -797,7 +797,7 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
               val ctxt =
                   case requiresTheorems dir reqs of
                     NONE => Summary.NoContext
-                  | SOME ths => PackageTheorems.packageSummaryContext sum ths
+                  | SOME ths => PackageTheorems.packageContext sum ths
 
               val chkThms = not (PackageName.isExport name)
 
