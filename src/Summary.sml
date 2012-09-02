@@ -595,7 +595,7 @@ local
            [Print.ppPrettyInt n,
             Print.ppString " satisfied assumption",
             (if n = 1 then Print.skip else Print.ppString "s"),
-            Print.ppString ": omitted"]];
+            Print.ppString ": hidden"]];
 
   fun ppSequentList ppSeq (name,seqs) =
       let
