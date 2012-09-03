@@ -817,6 +817,8 @@ local
                 | SOME (graph,thy) =>
                   (*** Check for Satisfied and Grounded here ***)
                   let
+                    val sum = Theory.summary thy
+
                     val thys = PackageNameVersionMap.insert thys (nv,thy)
                   in
                     (graph,thys)

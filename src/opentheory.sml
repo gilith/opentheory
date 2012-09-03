@@ -55,6 +55,19 @@ fun annotateOptions s =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Basic format descriptions.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val describeFileFormat =
+    "FILE is any filename; use - to read from stdin or write to stdout";
+
+val describeNameFormat =
+    "NAME is any package name, such as base";
+
+val describeVersionFormat =
+    "VERSION is any package version, such as 1.0";
+
+(* ------------------------------------------------------------------------- *)
 (* Output format for basic package information.                              *)
 (* ------------------------------------------------------------------------- *)
 
@@ -383,7 +396,9 @@ in
 end;
 
 val cleanupFooter =
-    "With no <package-name> arguments will clean up all staged packages.\n";
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n" ^
+    "With no arguments this command will clean up all staged packages.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for exporting installed theory packages.                          *)
@@ -553,7 +568,11 @@ in
         processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)}];
 end;
 
-val infoFooter = describeInfoFormat ^ ".\n";
+val infoFooter =
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n" ^
+    describeInfoFormat ^ ".\n" ^
+    describeFileFormat ^ ".\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
@@ -779,7 +798,7 @@ fun commandString cmd =
 
 fun commandArgs cmd =
     case cmd of
-      Cleanup => " <package-name> ..."
+      Cleanup => " staged:NAME-VERSION ..."
     | Export => " <package-name>"
     | Help => ""
     | Info => " <package-name>|input.thy|input.art"
@@ -841,7 +860,7 @@ in
       | NONE => NONE;
 end;
 
-val allCommandOptions =
+val allCommandOpts =
     let
       fun mk cmd = annotateOptions (commandString cmd) (commandOpts cmd)
     in
@@ -872,10 +891,8 @@ local
   fun mkProgramOptions header footer opts =
       {name = program,
        version = versionString,
-       header = "usage: "^program^" "^header^"\n",
-       footer = footer ^
-                "Read from stdin or write to stdout using " ^
-                "the special - filename.\n",
+       header = "usage: " ^ program ^ " " ^ header ^ "\n",
+       footer = footer,
        options = opts @ Options.basicOptions};
 
   val globalUsage = "[global options] command [command options] ...";
@@ -893,11 +910,17 @@ local
         val table = alignTable alignment (List.map f allCommands)
       in
         globalUsage ^ "\n" ^
-        "where the possible commands are:\n" ^
+        "where the available commands are:\n" ^
         join "\n" table ^ "\n"
       end;
 
-  val globalFooter = describeInfoFormat ^ ".\n";
+  val globalFooter = "";
+
+  val allFormatsFooter =
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n" ^
+    describeInfoFormat ^ ".\n" ^
+    describeFileFormat ^ ".\n";
 in
   val globalOptions =
       mkProgramOptions
@@ -922,11 +945,22 @@ in
 
   fun programOptions () =
       let
-        val header = globalHeader ^ "Displaying all options:"
+        val header = globalHeader ^ "Displaying global options:"
 
         val footer = globalFooter
 
-        val opts = annotateOptions "global" globalOpts @ allCommandOptions
+        val opts = globalOpts
+      in
+        mkProgramOptions header footer opts
+      end;
+
+  fun allCommandOptions () =
+      let
+        val header = globalHeader ^ "Displaying all options:"
+
+        val footer = globalFooter ^ allFormatsFooter;
+
+        val opts = annotateOptions "global" globalOpts @ allCommandOpts
       in
         mkProgramOptions header footer opts
       end;
@@ -941,6 +975,10 @@ fun fail mesg = Options.fail (programOptions ()) mesg;
 fun usage mesg = Options.usage (programOptions ()) mesg;
 
 fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
+
+fun allCommandHelp mesg =
+    Options.exit (allCommandOptions ())
+      {message = SOME mesg, usage = true, success = true};
 
 (* ------------------------------------------------------------------------- *)
 (* Input types.                                                              *)
@@ -1084,7 +1122,7 @@ end;
 (* Displaying command help.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun help () = usage "displaying command help";
+fun help () = allCommandHelp "displaying all command help";
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying package information.                                           *)
