@@ -819,9 +819,37 @@ local
                   let
                     val sum = Theory.summary thy
 
-                    val thys = PackageNameVersionMap.insert thys (nv,thy)
+                    val Summary.Summary'
+                        {requires = req,
+                         provides = prov} = Summary.dest sum
+
+                    val satisfied =
+                        SequentSet.subset
+                          (Sequents.sequents req)
+                          SequentSet.standardAxioms
                   in
-                    (graph,thys)
+                    if not satisfied then (graph,thys)
+                    else
+                      let
+                        val grounded =
+                            let
+                              val {undefined = inp, defined = _} =
+                                  SymbolTable.partitionUndef
+                                    (Sequents.symbol prov)
+                            in
+                              SymbolSet.subset
+                                (SymbolTable.symbols inp)
+                                SymbolSet.primitives
+                            end
+                      in
+                        if not grounded then (graph,thys)
+                        else
+                          let
+                            val thys = PackageNameVersionMap.insert thys (nv,thy)
+                          in
+                            (graph,thys)
+                          end
+                      end
                   end
 
         val namevers = expandClosed pkgs namevers
