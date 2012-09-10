@@ -58,14 +58,134 @@ fun annotateOptions s =
 (* Basic format descriptions.                                                *)
 (* ------------------------------------------------------------------------- *)
 
+val describeDirFormat =
+    "DIR is any directory on the file system";
+
 val describeFileFormat =
     "FILE is any filename; use - to read from stdin or write to stdout";
 
+val describeRepoFormat =
+    "REPO is the name of any repo in the config file";
+
 val describeNameFormat =
-    "NAME is any package name, such as base";
+    "NAME is any package name (e.g., base)";
 
 val describeVersionFormat =
-    "VERSION is any package version, such as 1.0";
+    "VERSION is any package version (e.g., 1.0)";
+
+val describeQueryFormat =
+    "QUERY represents a subset S of the installed theory packages P, as follows:\n" ^
+    "1. A FUNCTION expression in the grammar below is parsed from the command line,\n" ^
+    "   which represents a function f of type S -> S\n" ^
+    "2. Another function g of type S -> S is computed, which may be represented by\n" ^
+    "   the FUNCTION expression ~Empty (Latest - Subtheories) All\n" ^
+    "3. The set f(g({})) is evaluated as the result, where {} is the empty set\n" ^
+    "FUNCTION          // represents a function with type S -> S\n" ^
+    "  <- SET          // the constant function with return value SET\n" ^
+    "  || PREDICATE    // the filter function with predicate PREDICATE\n" ^
+    "  || FUNCTION FUNCTION\n" ^
+    "                  // \\f g s. f (g s)\n" ^
+    "  || FUNCTION | FUNCTION\n" ^
+    "                  // \\f g s. { p IN P | p IN f(s) \\/ p in g(s) }\n" ^
+    "  || FUNCTION & FUNCTION\n" ^
+    "                  // \\f g s. { p IN P | p IN f(s) /\\ p in g(s) }\n" ^
+    "  || FUNCTION - FUNCTION\n" ^
+    "                  // \\f g s. { p IN P | p IN f(s) /\\ ~p in g(s) }\n" ^
+    "  || FUNCTION?    // \\f. Identity | f\n" ^
+    "  || FUNCTION*    // \\f. Identity | f | f f | f f f | ...\n" ^
+    "  || FUNCTION+    // \\f. f | f f | f f f | ...\n" ^
+    "  || Identity     // \\s. s\n" ^
+    "  || Requires     // \\s. { p IN P | ?q IN s. q requires p }\n" ^
+    "  || RequiredBy   // \\s. { p IN P | ?q IN s. p requires q }\n" ^
+    "  || Includes     // \\s. { p IN P | ?q IN s. q includes p }\n" ^
+    "  || IncludedBy   // \\s. { p IN P | ?q IN s. p includes q }\n" ^
+    "  || Subtheories  // \\s. { p IN P | ?q IN s. p is a subtheory of q }\n" ^
+    "  || SubtheoryOf  // \\s. { p IN P | ?q IN s. q is a subtheory of p }\n" ^
+    "  || Latest       // \\s. { p IN s | ~?q IN s. q is a later version of p }\n" ^
+    "  || Deprecated   // (Identity - Latest) (Requires | Includes)*\n" ^
+    "  || Obsolete     // All - (Requires | Includes)*\n" ^
+    "  || Upgradable   // EarlierThanRepo\n" ^
+    "  || Uploadable   // Mine /\\ ~OnRepo /\\ ~EarlierThanRepo /\\ ConsistentWithRepo\n" ^
+    "PREDICATE         // represents a predicate with type P -> bool\n" ^
+    "  <- PREDICATE \\/ PREDICATE\n" ^
+    "                  // \\f g p. f(p) \\/ g(p)\n" ^
+    "  || PREDICATE /\\ PREDICATE\n" ^
+    "                  // \\f g p. f(p) /\\ g(p)\n" ^
+    "  || ~PREDICATE   // \\f p. ~f(p)\n" ^
+    "  || Empty        // does the package have an empty theory (i.e., main {})?\n" ^
+    "  || Mine         // does the package author match a name in the config file?\n" ^
+    "  || Closed       // are all the required theories installed?\n" ^
+    "  || Acyclic      // is the required theory graph free of cycles?\n" ^
+    "  || WellFounded  // are all assumptions satisfied and inputs grounded?\n" ^
+    "  || OnRepo       // is there a theory package with the same name on the repo?\n" ^
+    "  || IdenticalOnRepo\n" ^
+    "                  // is this exact same theory package on the repo?\n" ^
+    "  || ConsistentWithRepo\n" ^
+    "                  // are all the included packages consistent with the repo?\n" ^
+    "  || EarlierThanRepo\n" ^
+    "                  // is there a later version of this ackage on the repo?\n" ^
+    "  || LaterThanRepo\n" ^
+    "                  // is this package later than all versions on the repo?\n" ^
+    "SET               // represents a set with type S\n" ^
+    "  <- All          // P\n" ^
+    "  || None         // {}\n" ^
+    "  || NAME         // \\n. { p IN P | p has name n }\n" ^
+    "  || NAME-VERSION // \\n v. { p IN P | p has name n and version v }\n";
+
+(* ------------------------------------------------------------------------- *)
+(* Input types.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+datatype input =
+    ArticleInput of {filename : string}
+  | PackageInput of PackageNameVersion.nameVersion
+  | PackageNameInput of PackageName.name
+  | PackageQueryInput of DirectoryQuery.function
+  | StagedPackageInput of PackageNameVersion.nameVersion
+  | TarballInput of {filename : string}
+  | TheoryInput of {filename : string};
+
+fun fromStringInput inp =
+    case total (destPrefix "article:") inp of
+      SOME f => ArticleInput {filename = f}
+    | NONE =>
+      case total (destPrefix "tarball:") inp of
+        SOME f => TarballInput {filename = f}
+      | NONE =>
+        case total (destPrefix "theory:") inp of
+          SOME f => TheoryInput {filename = f}
+        | NONE =>
+          case total (destPrefix "staged:") inp of
+            SOME nv =>
+            (case total PackageNameVersion.fromString nv of
+               SOME namever => StagedPackageInput namever
+             | NONE => raise Error ("bad staged package name: " ^ inp))
+          | NONE =>
+            case total PackageNameVersion.fromString inp of
+              SOME namever => PackageInput namever
+            | NONE =>
+              case total PackageName.fromString inp of
+                SOME name => PackageNameInput name
+              | NONE =>
+                case total DirectoryQuery.fromString inp of
+                  SOME query => PackageQueryInput query
+                | NONE =>
+                  let
+                    val f = {filename = inp}
+                  in
+                    if Article.isFilename f then ArticleInput f
+                    else if PackageTarball.isFilename f then TarballInput f
+                    else if Package.isFilename f then TheoryInput f
+                    else raise Error ("unknown type of input: " ^ inp)
+                  end;
+
+val describeInputFormat =
+    "INPUT is one of the following forms:\n" ^
+    "- a theory package: NAME-VERSION or NAME (for the latest version)\n" ^
+    "- a theory file: FILE.thy or theory:FILE\n" ^
+    "- a proof article file: FILE.art or article:FILE\n" ^
+    "- a theory package tarball: FILE.tgz or tarball:FILE\n" ^
+    "- a theory package staged for installation: staged:NAME-VERSION";
 
 (* ------------------------------------------------------------------------- *)
 (* Output format for basic package information.                              *)
@@ -187,7 +307,8 @@ val rootDirectory =
                      SOME d => {directory = d, autoInit = false}
                    | NONE =>
                      case OS.Process.getEnv homeEnvVar of
-                       NONE => raise Error "please specify the package directory"
+                       NONE =>
+                       raise Error "please specify the package directory"
                      | SOME homeDir =>
                        let
                          val d =
@@ -398,7 +519,7 @@ end;
 val cleanupFooter =
     describeNameFormat ^ ".\n" ^
     describeVersionFormat ^ ".\n" ^
-    "With no arguments this command will clean up all staged packages.\n";
+    "Given no arguments this command will clean up all staged theory packages.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for exporting installed theory packages.                          *)
@@ -410,7 +531,10 @@ in
   val exportOpts : opt list = [];
 end;
 
-val exportFooter = "";
+val exportFooter =
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n" ^
+    "Given a NAME input this command will export the latest installed version.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
@@ -441,6 +565,23 @@ datatype info =
   | TheoremsInfo
   | TheoryInfo;
 
+fun savableInfo info =
+    case info of
+      ArticleInfo => true
+    | _ => false;
+
+fun mkInfoOutput info = (info,NONE);
+
+fun defaultInfoOutputList inp =
+    case inp of
+      ArticleInput _ => [mkInfoOutput SummaryInfo]
+    | PackageInput _ => [mkInfoOutput TagsInfo]
+    | PackageNameInput _ => [mkInfoOutput TagsInfo]
+    | PackageQueryInput _ => [mkInfoOutput TagsInfo]
+    | StagedPackageInput _ => [mkInfoOutput TagsInfo]
+    | TarballInput _ => [mkInfoOutput FilesInfo]
+    | TheoryInput _ => [mkInfoOutput SummaryInfo];
+
 val outputListInfo : (info * {filename : string} option) list ref = ref [];
 
 val upgradeTheoryInfo = ref false;
@@ -450,11 +591,6 @@ val preserveTheoryInfo = ref false;
 val showAssumptionsInfo = ref false;
 
 val showDerivationsInfo = ref false;
-
-fun savableInfo info =
-    case info of
-      ArticleInfo => true
-    | _ => false;
 
 fun infoSummaryGrammar () =
     let
@@ -476,8 +612,6 @@ fun infoSummaryGrammar () =
          ppConst = ppConst,
          showTheoremAssumptions = showTheoremAssumptions}
     end;
-
-fun mkInfoOutput info = (info,NONE);
 
 fun addInfoOutput info =
     let
@@ -508,6 +642,21 @@ fun setInfoOutputFilename flag filename =
     in
       ()
     end;
+
+local
+  fun readList inp =
+      let
+        val l = List.rev (!outputListInfo)
+      in
+        if List.null l then defaultInfoOutputList inp else l
+      end;
+
+  val defaultInfoOutputFilename = {filename = "-"};
+
+  fun defaultize (i,f) = (i, Option.getOpt (f,defaultInfoOutputFilename));
+in
+  fun readInfoOutputList inp = List.map defaultize (readList inp);
+end;
 
 local
   open Useful Options;
@@ -569,10 +718,11 @@ in
 end;
 
 val infoFooter =
+    describeInputFormat ^ "\n" ^
     describeNameFormat ^ ".\n" ^
     describeVersionFormat ^ ".\n" ^
-    describeInfoFormat ^ ".\n" ^
-    describeFileFormat ^ ".\n";
+    describeFileFormat ^ ".\n" ^
+    describeInfoFormat ^ ".\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for displaying command help.                                      *)
@@ -583,7 +733,7 @@ local
 in
   val initOpts : opt list =
       [{switches = ["--repo"], arguments = [],
-        description = "configure the package directory as a repo",
+        description = "configure the new package directory as a repo",
         processor =
           beginOpt endOpt
             (fn _ => repoInit := DirectoryConfig.repoDefault)}];
@@ -602,11 +752,13 @@ local
 in
   val uninstallOpts : opt list =
       [{switches = ["--auto"], arguments = [],
-        description = "also uninstall dependent packages",
+        description = "also uninstall included packages",
         processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
 end;
 
-val uninstallFooter = "";
+val uninstallFooter =
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for installing theory packages.                                   *)
@@ -655,7 +807,10 @@ in
         processor = beginOpt endOpt (fn _ => stageInstall := true)}];
 end;
 
-val installFooter = "";
+val installFooter =
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n" ^
+    "Given a NAME input this command will install the latest available version.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for listing installed packages.                                   *)
@@ -714,7 +869,12 @@ in
             (fn _ => fn s => setFormatList (fromStringInfoFormat s))}];
 end;
 
-val listFooter = describeInfoFormat ^ ".\n";
+val listFooter =
+    describeQueryFormat ^
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n" ^
+    describeInfoFormat ^ ".\n" ^
+    "If the QUERY argument is missing the default Identity is used instead.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for updating package lists.                                       *)
@@ -753,7 +913,10 @@ in
         processor = beginOpt endOpt (fn _ => confirmUpload := false)}];
 end;
 
-val uploadFooter = "";
+val uploadFooter =
+    describeNameFormat ^ ".\n" ^
+    describeVersionFormat ^ ".\n" ^
+    "Given NAME inputs this command will upload the latest installed versions.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Commands.                                                                 *)
@@ -799,26 +962,26 @@ fun commandString cmd =
 fun commandArgs cmd =
     case cmd of
       Cleanup => " staged:NAME-VERSION ..."
-    | Export => " <package-name>"
+    | Export => " NAME|NAME-VERSION"
     | Help => ""
-    | Info => " <package-name>|input.thy|input.art"
+    | Info => " INPUT"
     | Init => ""
-    | Install => " <package-name>|input.thy"
-    | List => " <package-query>"
-    | Uninstall => " <package-name>"
+    | Install => " NAME|NAME-VERSION|FILE.thy"
+    | List => " QUERY"
+    | Uninstall => " NAME-VERSION"
     | Update => ""
-    | Upload => " <package-name> ...";
+    | Upload => " NAME|NAME-VERSION ...";
 
 fun commandDescription cmd =
     case cmd of
-      Cleanup => "clean up staged theory packages"
-    | Export => "export an installed theory package"
-    | Help => "display command help"
-    | Info => "display package information"
-    | Init => "initialize package directory"
-    | Install => "install a theory package"
+      Cleanup => "clean up theory packages staged for installation"
+    | Export => "export an installed theory package from OpenTheory"
+    | Help => "display help on all available commands"
+    | Info => "extract information from theory packages and files"
+    | Init => "initialize a new package directory"
+    | Install => "install a package from a theory file or repo"
     | List => "list installed theory packages"
-    | Uninstall => "uninstall a theory package"
+    | Uninstall => "uninstall an installed theory package"
     | Update => "update repo package lists"
     | Upload => "upload theory packages to a repo";
 
@@ -895,7 +1058,7 @@ local
        footer = footer,
        options = opts @ Options.basicOptions};
 
-  val globalUsage = "[global options] command [command options] ...";
+  val globalUsage = "[global options] command [command options] INPUT ...";
 
   val globalHeader =
       let
@@ -917,10 +1080,15 @@ local
   val globalFooter = "";
 
   val allFormatsFooter =
+    describeInputFormat ^ "\n" ^
+    "The list command takes a special QUERY input:\n" ^
+    describeQueryFormat ^
     describeNameFormat ^ ".\n" ^
     describeVersionFormat ^ ".\n" ^
+    describeFileFormat ^ ".\n" ^
     describeInfoFormat ^ ".\n" ^
-    describeFileFormat ^ ".\n";
+    describeDirFormat ^ ".\n" ^
+    describeRepoFormat ^ ".\n";
 in
   val globalOptions =
       mkProgramOptions
@@ -979,78 +1147,6 @@ fun commandUsage cmd mesg = Options.usage (commandOptions cmd) mesg;
 fun allCommandHelp mesg =
     Options.exit (allCommandOptions ())
       {message = SOME mesg, usage = true, success = true};
-
-(* ------------------------------------------------------------------------- *)
-(* Input types.                                                              *)
-(* ------------------------------------------------------------------------- *)
-
-datatype input =
-    ArticleInput of {filename : string}
-  | PackageInput of PackageNameVersion.nameVersion
-  | PackageNameInput of PackageName.name
-  | PackageQueryInput of DirectoryQuery.function
-  | StagedPackageInput of PackageNameVersion.nameVersion
-  | TarballInput of {filename : string}
-  | TheoryInput of {filename : string};
-
-fun fromStringInput cmd inp =
-    case total (destPrefix "article:") inp of
-      SOME f => ArticleInput {filename = f}
-    | NONE =>
-      case total (destPrefix "tarball:") inp of
-        SOME f => TarballInput {filename = f}
-      | NONE =>
-        case total (destPrefix "theory:") inp of
-          SOME f => TheoryInput {filename = f}
-        | NONE =>
-          case total (destPrefix "staged:") inp of
-            SOME nv =>
-            (case total PackageNameVersion.fromString nv of
-               SOME namever => StagedPackageInput namever
-             | NONE => commandUsage cmd ("bad staged package name: " ^ inp))
-          | NONE =>
-            case total PackageNameVersion.fromString inp of
-              SOME namever => PackageInput namever
-            | NONE =>
-              case total PackageName.fromString inp of
-                SOME name => PackageNameInput name
-              | NONE =>
-                case total DirectoryQuery.fromString inp of
-                  SOME query => PackageQueryInput query
-                | NONE =>
-                  let
-                    val f = {filename = inp}
-                  in
-                    if Article.isFilename f then ArticleInput f
-                    else if PackageTarball.isFilename f then TarballInput f
-                    else if Package.isFilename f then TheoryInput f
-                    else commandUsage cmd ("unknown type of input: " ^ inp)
-                  end;
-
-fun defaultInfoOutputList inp =
-    case inp of
-      ArticleInput _ => [mkInfoOutput SummaryInfo]
-    | PackageInput _ => [mkInfoOutput TagsInfo]
-    | PackageNameInput _ => [mkInfoOutput TagsInfo]
-    | PackageQueryInput _ => [mkInfoOutput TagsInfo]
-    | StagedPackageInput _ => [mkInfoOutput TagsInfo]
-    | TarballInput _ => [mkInfoOutput FilesInfo]
-    | TheoryInput _ => [mkInfoOutput SummaryInfo];
-
-local
-  fun readList inp =
-      let
-        val l = List.rev (!outputListInfo)
-      in
-        if List.null l then defaultInfoOutputList inp else l
-      end;
-
-  val defaultInfoOutputFilename = {filename = "-"};
-
-  fun defaultize (i,f) = (i, Option.getOpt (f,defaultInfoOutputFilename));
-in
-  fun readInfoOutputList inp = List.map defaultize (readList inp);
-end;
 
 (* ------------------------------------------------------------------------- *)
 (* Cleaning up staged packages.                                              *)
@@ -1122,7 +1218,7 @@ end;
 (* Displaying command help.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun help () = allCommandHelp "displaying all command help";
+fun help () = allCommandHelp "displaying help on all available commands";
 
 (* ------------------------------------------------------------------------- *)
 (* Displaying package information.                                           *)
@@ -3009,7 +3105,9 @@ let
 
   val (_,work) = Options.processOptions (commandOptions cmd) work
 
-  val work = List.map (fromStringInput cmd) work
+  val work =
+      List.map fromStringInput work
+      handle Error err => commandUsage cmd err
 
   (* Process command options *)
 
