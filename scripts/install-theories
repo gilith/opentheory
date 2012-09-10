@@ -7,9 +7,9 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h $opt_u);
+use vars qw($opt_h $opt_u $opt_d);
 
-getopts('hu');
+getopts('hud');
 
 if ($opt_h or scalar @ARGV != 0)
 {
@@ -37,10 +37,12 @@ my $cmd = "$orderthys";
 # print STDOUT "cmd = $cmd\n";
 
 open THEORIES, "$cmd |" or
-  die "install-theories: couldn't execute $cmd: $!\n";
+    die "install-theories: couldn't execute $cmd: $!\n";
 
 while (my $name = <THEORIES>) {
     chomp $name;
+
+    if ($opt_d) { print STDOUT "processing theory $name.\n"; }
 
     my $thy = $source . '/' . $name . '/' . $name . '.thy';
 
@@ -48,9 +50,16 @@ while (my $name = <THEORIES>) {
     my $version = `$cmd`;
     chomp $version;
 
-    $cmd = "$opentheory info --format CHECKSUM $name-$version &> /dev/null";
+    if ($opt_d) { print STDOUT "queued version is $version.\n"; }
+
+    $cmd = "$opentheory info --format CHECKSUM $name-$version >/dev/null 2>&1";
     # print STDOUT "cmd = $cmd\n";
     my $installed = (system ($cmd) == 0);
+
+    if ($opt_d) {
+      if ($installed) { print STDOUT "this version is already installed.\n"; }
+      else { print STDOUT "this version is not already installed.\n"; }
+    }
 
     if ($opt_u) {
         my $thynew = $thy . '.upgrading';
@@ -58,10 +67,12 @@ while (my $name = <THEORIES>) {
         $cmd = "$opentheory info --theory --upgrade-theory --preserve-theory $thy >$thynew 2>/dev/null";
         # print STDOUT "cmd = $cmd\n";
         if (system ($cmd) == 0) {
+            if ($opt_d) { print STDOUT "auto-upgraded theory file.\n"; }
             if ($installed) {
                 $cmd = "$bumpver $thynew > $thy";
                 (system ($cmd) == 0) or
                     die "install-theories: couldn't execute $cmd: $!\n";
+                if ($opt_d) { print STDOUT "bumped version number.\n"; }
 
                 unlink $thynew or
                     die "install-theories: couldn't remove $thynew: $!\n";
@@ -84,6 +95,11 @@ while (my $name = <THEORIES>) {
         (system ($cmd) == 0) or
             die "install-theories: couldn't execute $cmd: $!\n";
     }
+    else {
+        if ($opt_d) { print STDOUT "skipping installation.\n"; }
+    }
+
+    if ($opt_d) { print STDOUT "finished processing theory $name.\n\n"; }
 }
 
 close THEORIES;
@@ -113,6 +129,10 @@ Produce this documentation.
 =item B<-u>
 
 Auto-upgrade the theories before installing them.
+
+=item B<-d>
+
+Debug mode: be chatty about what is happening.
 
 =back
 
