@@ -1,5 +1,5 @@
 name: natural-order-min-max
-version: 1.28
+version: 1.30
 description: Natural number min and max functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

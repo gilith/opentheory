@@ -1,5 +1,5 @@
 name: relation-thm
-version: 1.6
+version: 1.7
 description: Properties of relation operators
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -11,6 +11,7 @@ requires: set
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Relation"
+show: "Set"
 
 main {
   article: "relation-thm.art"

@@ -1,5 +1,5 @@
 name: relation-well-founded-def
-version: 1.31
+version: 1.33
 description: Definition of well-founded relations
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

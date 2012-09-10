@@ -1,5 +1,5 @@
 name: probability
-version: 1.22
+version: 1.24
 description: Probability
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,6 +8,7 @@ requires: list
 requires: natural
 requires: pair
 requires: relation
+requires: stream
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Pair"
@@ -16,7 +17,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: probability-def-1.24
+  package: probability-def-1.26
 }
 
 thm {

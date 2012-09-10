@@ -1,5 +1,5 @@
 name: gfp
-version: 1.61
+version: 1.63
 description: Parametric theory of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -7,6 +7,7 @@ requires: bool
 requires: gfp-witness
 requires: list
 requires: natural
+requires: natural-bits
 requires: natural-divides
 requires: natural-fibonacci
 requires: natural-gcd
@@ -19,9 +20,10 @@ show: "Data.Pair"
 show: "Number.GF(p)"
 show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
+show: "Probability.Random"
 
 def {
-  package: gfp-def-1.46
+  package: gfp-def-1.48
 }
 
 thm {

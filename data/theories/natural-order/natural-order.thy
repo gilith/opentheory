@@ -1,5 +1,5 @@
 name: natural-order
-version: 1.38
+version: 1.39
 description: Natural number orderings
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ thm {
 min-max {
   import: def
   import: thm
-  package: natural-order-min-max-1.28
+  package: natural-order-min-max-1.30
 }
 
 main {

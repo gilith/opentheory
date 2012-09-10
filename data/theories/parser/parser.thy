@@ -1,5 +1,5 @@
 name: parser
-version: 1.87
+version: 1.89
 description: Stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,6 +9,7 @@ requires: list
 requires: natural
 requires: option
 requires: pair
+requires: probability
 requires: relation
 show: "Data.Bool"
 show: "Data.List"
@@ -18,10 +19,11 @@ show: "Function"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
+show: "Probability.Random"
 show: "Relation"
 
 stream {
-  package: parser-stream-1.79
+  package: parser-stream-1.81
 }
 
 comb {

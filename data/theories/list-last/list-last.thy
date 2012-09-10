@@ -1,5 +1,5 @@
 name: list-last
-version: 1.41
+version: 1.42
 description: The last list function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,7 +10,7 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-last-def-1.36
+  package: list-last-def-1.37
 }
 
 thm {

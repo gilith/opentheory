@@ -1,5 +1,5 @@
 name: function
-version: 1.41
+version: 1.43
 description: Function operators and combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT

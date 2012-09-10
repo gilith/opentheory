@@ -13,7 +13,7 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-mult-def-1.19
+  package: natural-mult-def-1.21
 }
 
 thm {

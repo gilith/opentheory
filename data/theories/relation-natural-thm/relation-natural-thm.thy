@@ -1,5 +1,5 @@
 name: relation-natural-thm
-version: 1.30
+version: 1.31
 description: Properties of relations over natural numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight
@@ -16,6 +16,7 @@ show: "Data.Bool"
 show: "Function"
 show: "Number.Natural"
 show: "Relation"
+show: "Set"
 
 main {
   article: "relation-natural-thm.art"

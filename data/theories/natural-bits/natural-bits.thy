@@ -1,5 +1,5 @@
 name: natural-bits
-version: 1.5
+version: 1.7
 description: Natural number to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -8,6 +8,7 @@ requires: function
 requires: list
 requires: natural
 requires: pair
+requires: probability
 requires: relation
 show: "Data.Bool"
 show: "Data.List"
@@ -17,7 +18,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: natural-bits-def-1.8
+  package: natural-bits-def-1.9
 }
 
 thm {
