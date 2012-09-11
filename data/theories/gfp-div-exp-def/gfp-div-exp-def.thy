@@ -1,10 +1,11 @@
 name: gfp-div-exp-def
-version: 1.29
+version: 1.30
 description: Definition of a GF(p) exponentiation algorithm based on division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-13
 requires: bool
+requires: gfp-div-def
 requires: list
 show: "Data.Bool"
 show: "Data.List"

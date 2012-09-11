@@ -1,10 +1,11 @@
 name: natural-prime-stream-def
-version: 1.10
+version: 1.11
 description: Definition of the ordered stream of all prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-13
 requires: bool
+requires: natural
 requires: natural-prime-thm
 requires: stream
 show: "Data.Bool"

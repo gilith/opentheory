@@ -1,5 +1,5 @@
 name: byte
-version: 1.79
+version: 1.81
 description: Bytes
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: byte-def-1.52
+  package: byte-def-1.54
 }
 
 bits {
