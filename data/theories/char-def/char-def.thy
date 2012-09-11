@@ -1,5 +1,5 @@
 name: char-def
-version: 1.82
+version: 1.83
 description: Definition of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT

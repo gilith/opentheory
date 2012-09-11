@@ -1,5 +1,5 @@
 name: word-def
-version: 1.53
+version: 1.54
 description: Definition of word operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -10,6 +10,7 @@ requires: natural-bits
 requires: natural-divides
 requires: pair
 requires: probability
+requires: word-witness
 show: "Data.Bool"
 show: "Data.Pair"
 show: "Data.Word"
