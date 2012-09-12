@@ -1,5 +1,5 @@
 name: haskell-char
-version: 1.31
+version: 1.32
 description: Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -34,12 +34,12 @@ def {
 
 src {
   import: def
-  package: haskell-char-src-1.29
+  package: haskell-char-src-1.30
 }
 
 test {
   import: def
-  package: haskell-char-test-1.16
+  package: haskell-char-test-1.17
 }
 
 main {

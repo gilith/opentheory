@@ -1,5 +1,5 @@
 name: gfp-thm
-version: 1.44
+version: 1.45
 description: Properties of GF(p) finite fields
 author: Joe Hurd <joe@gilith.com>
 license: MIT

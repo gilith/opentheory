@@ -1,5 +1,5 @@
 name: natural-fibonacci-thm
-version: 1.34
+version: 1.35
 description: Properties of Fibonacci numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

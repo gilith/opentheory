@@ -1,5 +1,5 @@
 name: set-fold-def
-version: 1.43
+version: 1.44
 description: Definition of a fold operation on finite sets
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

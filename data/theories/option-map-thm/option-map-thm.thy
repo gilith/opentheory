@@ -1,5 +1,5 @@
 name: option-map-thm
-version: 1.6
+version: 1.7
 description: Properties of the option map function
 author: Joe Hurd <joe@gilith.com>
 license: MIT

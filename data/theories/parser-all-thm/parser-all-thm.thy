@@ -1,5 +1,5 @@
 name: parser-all-thm
-version: 1.80
+version: 1.81
 description: Properties of the whole stream parser
 author: Joe Hurd <joe@gilith.com>
 license: MIT

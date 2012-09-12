@@ -1,5 +1,5 @@
 name: list
-version: 1.72
+version: 1.73
 description: List types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -16,18 +16,18 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.51
+  package: list-def-1.52
 }
 
 thm {
   import: def
-  package: list-thm-1.45
+  package: list-thm-1.46
 }
 
 dest {
   import: def
   import: thm
-  package: list-dest-1.38
+  package: list-dest-1.39
 }
 
 length {
@@ -41,7 +41,7 @@ set {
   import: def
   import: dest
   import: length
-  package: list-set-1.42
+  package: list-set-1.43
 }
 
 append {
@@ -49,7 +49,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.41
+  package: list-append-1.42
 }
 
 map {
@@ -59,7 +59,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.42
+  package: list-map-1.43
 }
 
 filter {
@@ -68,7 +68,7 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.41
+  package: list-filter-1.42
 }
 
 last {
@@ -91,7 +91,7 @@ fold {
   import: length
   import: append
   import: reverse
-  package: list-fold-1.16
+  package: list-fold-1.17
 }
 
 nth {
@@ -103,14 +103,14 @@ nth {
   import: append
   import: map
   import: last
-  package: list-nth-1.49
+  package: list-nth-1.50
 }
 
 replicate {
   import: length
   import: set
   import: nth
-  package: list-replicate-1.46
+  package: list-replicate-1.47
 }
 
 take-drop {
@@ -120,14 +120,14 @@ take-drop {
   import: length
   import: append
   import: nth
-  package: list-take-drop-1.46
+  package: list-take-drop-1.47
 }
 
 interval {
   import: length
   import: map
   import: nth
-  package: list-interval-1.49
+  package: list-interval-1.50
 }
 
 zip {
@@ -135,7 +135,7 @@ zip {
   import: dest
   import: length
   import: nth
-  package: list-zip-1.14
+  package: list-zip-1.15
 }
 
 nub {
@@ -143,7 +143,7 @@ nub {
   import: length
   import: reverse
   import: set
-  package: list-nub-1.46
+  package: list-nub-1.47
 }
 
 main {

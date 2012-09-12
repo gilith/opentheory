@@ -1,5 +1,5 @@
 name: word16-bits
-version: 1.66
+version: 1.67
 description: 16-bit word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

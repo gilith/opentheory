@@ -1,5 +1,5 @@
 name: list-filter-def
-version: 1.38
+version: 1.39
 description: Definition of the list filter function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

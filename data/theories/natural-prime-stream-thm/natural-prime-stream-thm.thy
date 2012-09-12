@@ -1,5 +1,5 @@
 name: natural-prime-stream-thm
-version: 1.13
+version: 1.14
 description: Properties of the ordered stream of all prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

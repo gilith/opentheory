@@ -1,5 +1,5 @@
 name: probability-thm
-version: 1.3
+version: 1.4
 description: Properties of probability
 author: Joe Hurd <joe@gilith.com>
 license: MIT

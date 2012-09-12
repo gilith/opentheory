@@ -1,5 +1,5 @@
 name: real-def
-version: 1.60
+version: 1.61
 description: Definition of the real numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

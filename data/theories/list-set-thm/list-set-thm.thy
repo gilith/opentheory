@@ -1,5 +1,5 @@
 name: list-set-thm
-version: 1.41
+version: 1.42
 description: Properties of list to set conversions
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

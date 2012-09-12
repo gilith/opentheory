@@ -1,5 +1,5 @@
 name: probability
-version: 1.24
+version: 1.25
 description: Probability
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: probability-thm-1.3
+  package: probability-thm-1.4
 }
 
 main {

@@ -1,5 +1,5 @@
 name: haskell-prime-test
-version: 1.10
+version: 1.11
 description: QuickCheck tests for prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

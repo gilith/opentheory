@@ -1,5 +1,5 @@
 name: haskell-thm
-version: 1.45
+version: 1.46
 description: Properties of the Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT

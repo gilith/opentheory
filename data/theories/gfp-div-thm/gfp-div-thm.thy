@@ -1,5 +1,5 @@
 name: gfp-div-thm
-version: 1.49
+version: 1.50
 description: Properties of GF(p) field division
 author: Joe Hurd <joe@gilith.com>
 license: MIT

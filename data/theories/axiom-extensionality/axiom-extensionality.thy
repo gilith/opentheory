@@ -1,5 +1,5 @@
 name: axiom-extensionality
-version: 1.5
+version: 1.6
 description: Axiom of Extensionality
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: word-bits
-version: 1.70
+version: 1.71
 description: Word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -24,7 +24,7 @@ def {
 
 thm {
   import: def
-  package: word-bits-thm-1.73
+  package: word-bits-thm-1.74
 }
 
 main {

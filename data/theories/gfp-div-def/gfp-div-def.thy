@@ -1,5 +1,5 @@
 name: gfp-div-def
-version: 1.50
+version: 1.51
 description: Definition of GF(p) field division
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: natural-bits-thm
-version: 1.7
+version: 1.8
 description: Properties of natural number to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

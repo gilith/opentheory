@@ -1,5 +1,5 @@
 name: gfp-div-exp
-version: 1.25
+version: 1.26
 description: A GF(p) exponentiation algorithm based on division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: gfp-div-exp-thm-1.27
+  package: gfp-div-exp-thm-1.28
 }
 
 main {

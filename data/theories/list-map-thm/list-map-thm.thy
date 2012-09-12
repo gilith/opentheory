@@ -1,5 +1,5 @@
 name: list-map-thm
-version: 1.49
+version: 1.50
 description: Properties of the list map function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

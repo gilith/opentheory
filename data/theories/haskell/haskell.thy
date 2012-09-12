@@ -1,5 +1,5 @@
 name: haskell
-version: 1.63
+version: 1.64
 description: The Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -35,12 +35,12 @@ def {
 
 thm {
   import: def
-  package: haskell-thm-1.45
+  package: haskell-thm-1.46
 }
 
 src {
   import: def
-  package: haskell-src-1.40
+  package: haskell-src-1.41
 }
 
 test {

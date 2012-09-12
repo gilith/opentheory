@@ -1,5 +1,5 @@
 name: natural-gcd-thm
-version: 1.37
+version: 1.38
 description: Properties of natural number greatest common divisor
 author: Joe Hurd <joe@gilith.com>
 license: MIT

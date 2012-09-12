@@ -1,5 +1,5 @@
 name: list-set-def
-version: 1.42
+version: 1.43
 description: Definition of list to set conversions
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

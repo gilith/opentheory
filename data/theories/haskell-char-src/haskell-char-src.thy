@@ -1,5 +1,5 @@
 name: haskell-char-src
-version: 1.29
+version: 1.30
 description: Haskell source for Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT

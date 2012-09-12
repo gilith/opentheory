@@ -1,5 +1,5 @@
 name: haskell-prime-src
-version: 1.8
+version: 1.9
 description: Haskell source for prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: list-take-drop-thm
-version: 1.49
+version: 1.50
 description: Properties of the list take and drop functions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: list-interval
-version: 1.49
+version: 1.50
 description: The list interval function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -18,7 +18,7 @@ def {
 
 thm {
   import: def
-  package: list-interval-thm-1.51
+  package: list-interval-thm-1.52
 }
 
 main {

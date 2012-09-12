@@ -1,5 +1,5 @@
 name: h-thm
-version: 1.95
+version: 1.96
 description: Proof of memory safety for the H API
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: char-thm
-version: 1.11
+version: 1.12
 description: Properties of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT

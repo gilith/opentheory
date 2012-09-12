@@ -1,5 +1,5 @@
 name: option-dest-def
-version: 1.48
+version: 1.49
 description: Definition of option type destructors
 author: Joe Hurd <joe@gilith.com>
 license: MIT

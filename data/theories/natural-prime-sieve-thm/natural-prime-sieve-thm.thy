@@ -1,5 +1,5 @@
 name: natural-prime-sieve-thm
-version: 1.15
+version: 1.16
 description: Properties of the sieve of Eratosthenes
 author: Joe Hurd <joe@gilith.com>
 license: MIT

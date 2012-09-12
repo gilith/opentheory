@@ -1,5 +1,5 @@
 name: list-interval-thm
-version: 1.51
+version: 1.52
 description: Properties of the list interval function
 author: Joe Hurd <joe@gilith.com>
 license: MIT

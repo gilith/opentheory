@@ -1,5 +1,5 @@
 name: list-def
-version: 1.51
+version: 1.52
 description: Definition of list types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

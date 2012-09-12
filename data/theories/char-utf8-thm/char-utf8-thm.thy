@@ -1,5 +1,5 @@
 name: char-utf8-thm
-version: 1.92
+version: 1.93
 description: Properties of the UTF-8 encoding of Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT

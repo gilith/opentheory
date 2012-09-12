@@ -1,5 +1,5 @@
 name: word16-bytes-thm
-version: 1.77
+version: 1.78
 description: Properties of 16-bit word to byte pair conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

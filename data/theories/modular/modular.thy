@@ -1,5 +1,5 @@
 name: modular
-version: 1.68
+version: 1.69
 description: Parametric theory of modular arithmetic
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: modular-thm-1.53
+  package: modular-thm-1.54
 }
 
 main {

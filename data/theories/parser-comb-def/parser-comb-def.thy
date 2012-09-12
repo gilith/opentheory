@@ -1,5 +1,5 @@
 name: parser-comb-def
-version: 1.68
+version: 1.69
 description: Definition of stream parser combinators
 author: Joe Hurd <joe@gilith.com>
 license: MIT

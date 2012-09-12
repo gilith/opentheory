@@ -1,5 +1,5 @@
 name: word12-bits
-version: 1.63
+version: 1.64
 description: 12-bit word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

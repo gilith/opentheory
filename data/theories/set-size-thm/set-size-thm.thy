@@ -1,5 +1,5 @@
 name: set-size-thm
-version: 1.53
+version: 1.54
 description: Properties of finite set cardinality
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

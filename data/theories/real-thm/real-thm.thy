@@ -1,5 +1,5 @@
 name: real-thm
-version: 1.39
+version: 1.40
 description: Properties of the real numbers
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

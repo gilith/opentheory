@@ -1,5 +1,5 @@
 name: option
-version: 1.56
+version: 1.57
 description: Option types
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -12,24 +12,24 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: option-def-1.51
+  package: option-def-1.52
 }
 
 thm {
   import: def
-  package: option-thm-1.43
+  package: option-thm-1.44
 }
 
 dest {
   import: def
   import: thm
-  package: option-dest-1.43
+  package: option-dest-1.44
 }
 
 map {
   import: def
   import: thm
-  package: option-map-1.2
+  package: option-map-1.3
 }
 
 main {

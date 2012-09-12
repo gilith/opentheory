@@ -1,5 +1,5 @@
 name: option-thm
-version: 1.43
+version: 1.44
 description: Properties of option types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

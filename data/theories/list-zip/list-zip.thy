@@ -1,5 +1,5 @@
 name: list-zip
-version: 1.14
+version: 1.15
 description: The list zip function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: list-zip-thm-1.14
+  package: list-zip-thm-1.15
 }
 
 main {

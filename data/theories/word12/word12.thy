@@ -1,5 +1,5 @@
 name: word12
-version: 1.78
+version: 1.79
 description: 12-bit words
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -19,12 +19,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word12-def-1.55
+  package: word12-def-1.56
 }
 
 bits {
   import: def
-  package: word12-bits-1.63
+  package: word12-bits-1.64
 }
 
 main {

@@ -1,5 +1,5 @@
 name: byte-bits
-version: 1.68
+version: 1.69
 description: Byte to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

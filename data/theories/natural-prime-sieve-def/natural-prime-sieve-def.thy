@@ -1,5 +1,5 @@
 name: natural-prime-sieve-def
-version: 1.17
+version: 1.18
 description: Definition of the sieve of Eratosthenes
 author: Joe Hurd <joe@gilith.com>
 license: MIT

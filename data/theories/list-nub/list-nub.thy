@@ -1,5 +1,5 @@
 name: list-nub
-version: 1.46
+version: 1.47
 description: The list nub function
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: list-nub-thm-1.49
+  package: list-nub-thm-1.50
 }
 
 main {

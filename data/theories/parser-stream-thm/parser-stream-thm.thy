@@ -1,5 +1,5 @@
 name: parser-stream-thm
-version: 1.80
+version: 1.81
 description: Properties of parse streams
 author: Joe Hurd <joe@gilith.com>
 license: MIT

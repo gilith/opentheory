@@ -1,5 +1,5 @@
 name: list-thm
-version: 1.45
+version: 1.46
 description: Properties of list types
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

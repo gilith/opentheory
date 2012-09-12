@@ -1,5 +1,5 @@
 name: list-map-def
-version: 1.38
+version: 1.39
 description: Definition of the list map function
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

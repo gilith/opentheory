@@ -1,5 +1,5 @@
 name: word10-bits
-version: 1.64
+version: 1.65
 description: 10-bit word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

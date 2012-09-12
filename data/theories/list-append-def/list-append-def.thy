@@ -1,5 +1,5 @@
 name: list-append-def
-version: 1.39
+version: 1.40
 description: Definition of appending lists
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

@@ -1,5 +1,5 @@
 name: list-zip-thm
-version: 1.14
+version: 1.15
 description: Properties of the list zip function
 author: Joe Hurd <joe@gilith.com>
 license: MIT

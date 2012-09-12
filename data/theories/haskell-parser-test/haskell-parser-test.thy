@@ -1,5 +1,5 @@
 name: haskell-parser-test
-version: 1.35
+version: 1.36
 description: QuickCheck tests for simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: bool-class
-version: 1.16
+version: 1.17
 description: Classical boolean theorems
 author: Joe Hurd <joe@gilith.com>
 license: MIT

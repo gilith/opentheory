@@ -1,5 +1,5 @@
 name: natural-gcd-lcm-thm
-version: 1.29
+version: 1.30
 description: Properties of natural number least common multiple
 author: Joe Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: gfp-div-exp-thm
-version: 1.27
+version: 1.28
 description: Properties of a GF(p) exponentiation algorithm based on division
 author: Joe Hurd <joe@gilith.com>
 license: MIT

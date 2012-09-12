@@ -1,5 +1,5 @@
 name: word-bits-thm
-version: 1.73
+version: 1.74
 description: Properties of word to bit-list conversions
 author: Joe Hurd <joe@gilith.com>
 license: MIT

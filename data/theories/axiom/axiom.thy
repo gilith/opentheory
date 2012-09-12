@@ -1,5 +1,5 @@
 name: axiom
-version: 1.8
+version: 1.9
 description: Standard axioms
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -9,7 +9,7 @@ show: "Data.Bool"
 show: "Function"
 
 extensionality {
-  package: axiom-extensionality-1.5
+  package: axiom-extensionality-1.6
 }
 
 choice {

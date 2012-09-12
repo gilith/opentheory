@@ -1,5 +1,5 @@
 name: list-fold-thm
-version: 1.18
+version: 1.19
 description: Properties of the list fold operations
 author: Joe Hurd <joe@gilith.com>
 license: MIT
