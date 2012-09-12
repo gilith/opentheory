@@ -1,5 +1,5 @@
 name: gfp-div
-version: 1.54
+version: 1.56
 description: GF(p) field division
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -34,13 +34,13 @@ thm {
 gcd {
   import: def
   import: thm
-  package: gfp-div-gcd-1.44
+  package: gfp-div-gcd-1.45
 }
 
 exp {
   import: def
   import: thm
-  package: gfp-div-exp-1.24
+  package: gfp-div-exp-1.25
 }
 
 main {

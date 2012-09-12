@@ -1,5 +1,5 @@
 name: haskell-prime
-version: 1.9
+version: 1.10
 description: Prime numbers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ show: "Number.Natural.Prime.Sieve"
 show: "Probability.Random"
 
 def {
-  package: haskell-prime-def-1.7
+  package: haskell-prime-def-1.8
 }
 
 src {

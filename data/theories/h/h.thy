@@ -1,10 +1,12 @@
 name: h
-version: 1.89
+version: 1.91
 description: Memory safety for the H API
 author: Joe Hurd <joe@gilith.com>
 license: MIT
 requires: base
+requires: byte
 requires: word10
+requires: word12
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.List"
@@ -18,7 +20,7 @@ show: "Set"
 show: "System.H"
 
 def {
-  package: h-def-1.92
+  package: h-def-1.93
 }
 
 thm {

@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.105
+version: 1.106
 description: Simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ show: "Parser"
 show: "Probability.Random"
 
 def {
-  package: haskell-parser-def-1.44
+  package: haskell-parser-def-1.45
 }
 
 src {

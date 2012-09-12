@@ -1,5 +1,5 @@
 name: haskell
-version: 1.61
+version: 1.63
 description: The Haskell base
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -30,7 +30,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: haskell-def-1.55
+  package: haskell-def-1.56
 }
 
 thm {
@@ -45,7 +45,7 @@ src {
 
 test {
   import: def
-  package: haskell-test-1.25
+  package: haskell-test-1.26
 }
 
 main {

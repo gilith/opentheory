@@ -1,5 +1,5 @@
 name: haskell-char
-version: 1.30
+version: 1.31
 description: Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
@@ -29,7 +29,7 @@ show: "Parser"
 show: "Probability.Random"
 
 def {
-  package: haskell-char-def-1.14
+  package: haskell-char-def-1.15
 }
 
 src {
