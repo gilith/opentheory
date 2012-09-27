@@ -815,7 +815,6 @@ local
                 case addTheory graph imps nv of
                   NONE => (graph,thys)
                 | SOME (graph,thy) =>
-                  (*** Check for Satisfied and Grounded here ***)
                   let
                     val sum = Theory.summary thy
 
@@ -845,7 +844,8 @@ local
                         if not grounded then (graph,thys)
                         else
                           let
-                            val thys = PackageNameVersionMap.insert thys (nv,thy)
+                            val thys =
+                                PackageNameVersionMap.insert thys (nv,thy)
                           in
                             (graph,thys)
                           end
