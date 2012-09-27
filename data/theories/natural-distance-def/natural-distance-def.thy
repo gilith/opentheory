@@ -1,5 +1,5 @@
 name: natural-distance-def
-version: 1.35
+version: 1.36
 description: Definition of natural number distance
 author: Joe Hurd <joe@gilith.com>
 license: HOLLight

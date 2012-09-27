@@ -221,7 +221,7 @@ opType
 constTerm
 35
 def
-"_14729"
+"_14876"
 21
 ref
 var
@@ -694,7 +694,7 @@ def
 appTerm
 95
 def
-"Number.Natural.bit0"
+"Number.Natural.bit1"
 const
 1
 ref
@@ -715,20 +715,20 @@ constTerm
 def
 98
 ref
-98
-ref
-98
-ref
-"Number.Natural.bit1"
+"Number.Natural.bit0"
 const
 97
 remove
 constTerm
 99
 def
-98
-remove
 99
+ref
+98
+ref
+99
+remove
+98
 remove
 "Number.Natural.zero"
 const
@@ -9570,7 +9570,7 @@ ref
 ref
 73
 ref
-"_14713"
+"_14860"
 66
 ref
 var
@@ -9669,7 +9669,7 @@ ref
 nil
 807
 remove
-"_14711"
+"_14858"
 65
 ref
 var
@@ -9945,7 +9945,7 @@ ref
 ref
 19
 ref
-"_14708"
+"_14855"
 23
 ref
 var
@@ -10082,7 +10082,7 @@ opType
 constTerm
 843
 def
-"_14707"
+"_14854"
 9
 ref
 var
@@ -14060,7 +14060,7 @@ ref
 ref
 73
 remove
-"_14725"
+"_14872"
 66
 remove
 var
@@ -14159,7 +14159,7 @@ ref
 nil
 1097
 remove
-"_14723"
+"_14870"
 65
 remove
 var
@@ -14317,7 +14317,7 @@ ref
 ref
 19
 ref
-"_14720"
+"_14867"
 23
 remove
 var
@@ -14420,7 +14420,7 @@ eqMp
 ref
 843
 remove
-"_14719"
+"_14866"
 9
 remove
 var

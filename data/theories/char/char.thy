@@ -26,7 +26,7 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: char-def-1.83
+  package: char-def-1.84
 }
 
 thm {

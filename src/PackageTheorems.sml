@@ -121,8 +121,9 @@ local
             if progress then ()
             else
               let
-                val mesg =
-                    "redundant requires: " ^ PackageNameVersion.toString pkg
+                val name = PackageNameVersion.name pkg
+
+                val mesg = "redundant requires: " ^ PackageName.toString name
 
                 val () = warn mesg
               in

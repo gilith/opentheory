@@ -1,5 +1,5 @@
 name: natural-mult
-version: 1.49
+version: 1.50
 description: Natural number multiplication
 author: Joe Hurd <joe@gilith.com>
 license: MIT

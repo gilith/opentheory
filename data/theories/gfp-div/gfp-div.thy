@@ -23,12 +23,12 @@ show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 
 def {
-  package: gfp-div-def-1.51
+  package: gfp-div-def-1.52
 }
 
 thm {
   import: def
-  package: gfp-div-thm-1.50
+  package: gfp-div-thm-1.51
 }
 
 gcd {

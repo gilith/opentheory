@@ -22,12 +22,12 @@ show: "Probability.Random"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.81
+  package: parser-stream-def-1.82
 }
 
 thm {
   import: def
-  package: parser-stream-thm-1.81
+  package: parser-stream-thm-1.82
 }
 
 main {

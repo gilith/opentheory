@@ -20,12 +20,12 @@ show: "Data.Word16.Bits"
 show: "Number.Natural"
 
 def {
-  package: word16-bytes-def-1.64
+  package: word16-bytes-def-1.65
 }
 
 thm {
   import: def
-  package: word16-bytes-thm-1.78
+  package: word16-bytes-thm-1.79
 }
 
 main {

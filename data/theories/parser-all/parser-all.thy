@@ -21,12 +21,12 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-all-def-1.74
+  package: parser-all-def-1.75
 }
 
 thm {
   import: def
-  package: parser-all-thm-1.81
+  package: parser-all-thm-1.82
 }
 
 main {

@@ -54,7 +54,7 @@ var
 10
 def
 "Data.Char.isPosition"
-"_14848"
+"_14995"
 2
 ref
 var
@@ -2587,7 +2587,7 @@ def
 21
 ref
 "Data.Char.isPlane"
-"_14838"
+"_14985"
 231
 ref
 var
@@ -45183,7 +45183,7 @@ constTerm
 2977
 def
 "Data.Char.planeFromRandom"
-"_14843"
+"_14990"
 2970
 ref
 var
@@ -45509,7 +45509,7 @@ constTerm
 3005
 def
 "Data.Char.positionFromRandom"
-"_14853"
+"_15000"
 2970
 ref
 var
@@ -45783,7 +45783,7 @@ def
 21
 ref
 "Data.Char.isChar"
-"_14858"
+"_15005"
 2974
 ref
 2949
@@ -46247,7 +46247,7 @@ ref
 ref
 21
 ref
-"_14864"
+"_15011"
 197
 ref
 var
@@ -46396,7 +46396,7 @@ opType
 constTerm
 3079
 def
-"_14863"
+"_15010"
 2949
 ref
 var
@@ -49245,7 +49245,7 @@ constTerm
 3236
 def
 "Data.Char.fromRandom"
-"_14867"
+"_15014"
 2970
 ref
 var

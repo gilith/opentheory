@@ -1,9 +1,9 @@
 name: haskell-char-src
-version: 1.30
+version: 1.31
 description: Haskell source for Unicode characters
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-13
+provenance: HOL Light theory extracted on 2012-09-25
 requires: base
 requires: char
 requires: haskell

@@ -1,9 +1,9 @@
 name: haskell-parser-test
-version: 1.36
+version: 1.37
 description: QuickCheck tests for simple stream parsers
 author: Joe Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-15
+provenance: HOL Light theory extracted on 2012-09-25
 requires: base
 requires: haskell
 requires: haskell-parser-def

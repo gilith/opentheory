@@ -27,12 +27,12 @@ def {
 
 src {
   import: def
-  package: haskell-prime-src-1.9
+  package: haskell-prime-src-1.10
 }
 
 test {
   import: def
-  package: haskell-prime-test-1.11
+  package: haskell-prime-test-1.12
 }
 
 main {

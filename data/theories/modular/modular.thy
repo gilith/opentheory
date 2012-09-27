@@ -17,12 +17,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: modular-def-1.65
+  package: modular-def-1.66
 }
 
 thm {
   import: def
-  package: modular-thm-1.54
+  package: modular-thm-1.55
 }
 
 main {

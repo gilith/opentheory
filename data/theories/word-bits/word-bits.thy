@@ -19,12 +19,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word-bits-def-1.64
+  package: word-bits-def-1.65
 }
 
 thm {
   import: def
-  package: word-bits-thm-1.74
+  package: word-bits-thm-1.75
 }
 
 main {

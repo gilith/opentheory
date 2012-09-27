@@ -20,12 +20,12 @@ show: "Number.GF(p)"
 show: "Number.Natural"
 
 def {
-  package: gfp-div-gcd-def-1.43
+  package: gfp-div-gcd-def-1.44
 }
 
 thm {
   import: def
-  package: gfp-div-gcd-thm-1.48
+  package: gfp-div-gcd-thm-1.49
 }
 
 main {

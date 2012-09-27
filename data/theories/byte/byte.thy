@@ -24,7 +24,7 @@ def {
 
 bits {
   import: def
-  package: byte-bits-1.69
+  package: byte-bits-1.70
 }
 
 main {

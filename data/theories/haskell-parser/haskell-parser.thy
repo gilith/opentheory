@@ -26,12 +26,12 @@ def {
 
 src {
   import: def
-  package: haskell-parser-src-1.75
+  package: haskell-parser-src-1.76
 }
 
 test {
   import: def
-  package: haskell-parser-test-1.36
+  package: haskell-parser-test-1.37
 }
 
 main {

@@ -34,12 +34,12 @@ def {
 
 src {
   import: def
-  package: haskell-char-src-1.30
+  package: haskell-char-src-1.31
 }
 
 test {
   import: def
-  package: haskell-char-test-1.17
+  package: haskell-char-test-1.18
 }
 
 main {

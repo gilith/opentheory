@@ -16,12 +16,12 @@ show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 
 def {
-  package: gfp-div-exp-def-1.30
+  package: gfp-div-exp-def-1.31
 }
 
 thm {
   import: def
-  package: gfp-div-exp-thm-1.28
+  package: gfp-div-exp-thm-1.29
 }
 
 main {

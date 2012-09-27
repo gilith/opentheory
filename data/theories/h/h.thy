@@ -20,12 +20,12 @@ show: "Set"
 show: "System.H"
 
 def {
-  package: h-def-1.93
+  package: h-def-1.94
 }
 
 thm {
   import: def
-  package: h-thm-1.96
+  package: h-thm-1.97
 }
 
 main {

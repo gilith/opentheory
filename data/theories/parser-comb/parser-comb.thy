@@ -15,12 +15,12 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-comb-def-1.69
+  package: parser-comb-def-1.70
 }
 
 thm {
   import: def
-  package: parser-comb-thm-1.77
+  package: parser-comb-thm-1.78
 }
 
 main {

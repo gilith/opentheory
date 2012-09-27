@@ -71,7 +71,7 @@ constTerm
 10
 def
 "Data.Word16.toBytes"
-"_13915"
+"_14062"
 1
 ref
 var
@@ -630,13 +630,13 @@ constTerm
 59
 def
 "Data.Word16.fromBytes"
-"_13920"
+"_14067"
 7
 ref
 var
 60
 def
-"_13921"
+"_14068"
 7
 ref
 var

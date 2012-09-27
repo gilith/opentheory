@@ -27,7 +27,7 @@ def {
 
 bits {
   import: def
-  package: word16-bits-1.67
+  package: word16-bits-1.68
 }
 
 bytes {

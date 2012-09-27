@@ -30,22 +30,22 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: haskell-def-1.56
+  package: haskell-def-1.57
 }
 
 thm {
   import: def
-  package: haskell-thm-1.46
+  package: haskell-thm-1.47
 }
 
 src {
   import: def
-  package: haskell-src-1.41
+  package: haskell-src-1.42
 }
 
 test {
   import: def
-  package: haskell-test-1.26
+  package: haskell-test-1.27
 }
 
 main {

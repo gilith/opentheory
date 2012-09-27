@@ -28,7 +28,7 @@ def {
 
 thm {
   import: def
-  package: gfp-thm-1.45
+  package: gfp-thm-1.46
 }
 
 div {
