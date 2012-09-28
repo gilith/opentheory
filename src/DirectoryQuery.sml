@@ -44,6 +44,7 @@ and transitiveSymbolString = "+"
 and upgradableKeywordString = "Upgradable"
 and uploadableKeywordString = "Uploadable"
 and unionSymbolString = "|"
+and versionsKeywordString = "Versions"
 and wellFoundedKeywordString = "WellFounded";
 
 (* ------------------------------------------------------------------------- *)
@@ -81,6 +82,7 @@ datatype function =
   | IncludedBy
   | Subtheories
   | SubtheoryOf
+  | Versions
   | Latest
   | Deprecated  (* (Identity - Latest) (Requires|Includes)* *)
   | Obsolete  (* All - (Requires|Includes)* *)
@@ -125,6 +127,7 @@ fun ignoresInput func =
     | IncludedBy => false
     | Subtheories => false
     | SubtheoryOf => false
+    | Versions => false
     | Latest => false
     | Deprecated => false
     | Obsolete => false
@@ -165,7 +168,10 @@ val uploadableDef =
 
 fun evaluateSet dir set =
     case set of
-      Name n => Directory.nameVersions dir n
+      Name n =>
+      (case Directory.latestNameVersion dir n of
+         NONE => PackageNameVersionSet.empty
+       | SOME nv => PackageNameVersionSet.singleton nv)
     | NameVersion nv =>
       if Directory.member nv dir then PackageNameVersionSet.singleton nv
       else PackageNameVersionSet.empty
@@ -240,6 +246,9 @@ in
 end;
 
 local
+  fun versions dir nv =
+      Directory.nameVersions dir (PackageNameVersion.name nv);
+
   fun rtc f set =
       let
         val set' = PackageNameVersionSet.union (f set) set
@@ -261,6 +270,7 @@ in
       | IncludedBy => PackageNameVersionSet.lift (Directory.includedBy dir)
       | Subtheories => PackageNameVersionSet.lift (Directory.subtheories dir)
       | SubtheoryOf => PackageNameVersionSet.lift (Directory.subtheoryOf dir)
+      | Versions => PackageNameVersionSet.lift (versions dir)
       | Latest => PackageNameVersionSet.latestVersions
       | Deprecated => evaluate dir repos deprecatedDef
       | Obsolete => evaluate dir repos obsoleteDef
@@ -356,6 +366,7 @@ and ppSubtheoryOfKeyword = Print.ppString subtheoryOfKeywordString
 and ppTransitiveSymbol = Print.ppString transitiveSymbolString
 and ppUpgradableKeyword = Print.ppString upgradableKeywordString
 and ppUploadableKeyword = Print.ppString uploadableKeywordString
+and ppVersionsKeyword = Print.ppString versionsKeywordString
 and ppWellFoundedKeyword = Print.ppString wellFoundedKeywordString;
 
 fun ppSet set =
@@ -458,6 +469,7 @@ local
       | IncludedBy => ppIncludedByKeyword
       | Subtheories => ppSubtheoriesKeyword
       | SubtheoryOf => ppSubtheoryOfKeyword
+      | Versions => ppVersionsKeyword
       | Latest => ppLatestKeyword
       | Deprecated => ppDeprecatedKeyword
       | Obsolete => ppObsoleteKeyword
@@ -635,7 +647,8 @@ local
   and transitiveSymbolParser = exactString transitiveSymbolString
   and unionSymbolParser = exactString unionSymbolString
   and upgradableKeywordParser = exactString upgradableKeywordString
-  and uploadableKeywordParser = exactString uploadableKeywordString;
+  and uploadableKeywordParser = exactString uploadableKeywordString
+  and versionsKeywordParser = exactString versionsKeywordString;
 
   val bracketSpaceParser =
       let
@@ -654,6 +667,7 @@ local
       includedByKeywordParser >> K IncludedBy ||
       subtheoriesKeywordParser >> K Subtheories ||
       subtheoryOfKeywordParser >> K SubtheoryOf ||
+      versionsKeywordParser >> K Versions ||
       latestKeywordParser >> K Latest ||
       deprecatedKeywordParser >> K Deprecated ||
       obsoleteKeywordParser >> K Obsolete ||

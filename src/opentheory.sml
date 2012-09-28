@@ -65,7 +65,7 @@ val describeFileFormat =
     "FILE is any filename; use - to read from stdin or write to stdout";
 
 val describeRepoFormat =
-    "REPO is the name of any repo in the config file";
+    "REPO is the name of any repo in the config file (e.g., gilith)";
 
 val describeNameFormat =
     "NAME is any package name (e.g., base)";
@@ -101,6 +101,7 @@ val describeQueryFormat =
     "  || IncludedBy   // \\s. { p IN P | ?q IN s. p includes q }\n" ^
     "  || Subtheories  // \\s. { p IN P | ?q IN s. p is a subtheory of q }\n" ^
     "  || SubtheoryOf  // \\s. { p IN P | ?q IN s. q is a subtheory of p }\n" ^
+    "  || Versions     // \\s. { p IN P | ?q IN s. p is a version of q }\n" ^
     "  || Latest       // \\s. { p IN s | ~?q IN s. q is a later version of p }\n" ^
     "  || Deprecated   // (Identity - Latest) (Requires | Includes)*\n" ^
     "  || Obsolete     // All - (Requires | Includes)*\n" ^
@@ -129,7 +130,7 @@ val describeQueryFormat =
     "SET               // represents a set with type S\n" ^
     "  <- All          // P\n" ^
     "  || None         // {}\n" ^
-    "  || NAME         // \\n. { p IN P | p has name n }\n" ^
+    "  || NAME         // \\n. Latest { p IN P | p has name n }\n" ^
     "  || NAME-VERSION // \\n v. { p IN P | p has name n and version v }\n";
 
 (* ------------------------------------------------------------------------- *)
@@ -2745,7 +2746,8 @@ fun list query =
             | PackageNameInput name =>
               DirectoryQuery.Constant (DirectoryQuery.Name name)
             | PackageQueryInput query => query
-            | StagedPackageInput _ => raise Error "cannot list a staged package"
+            | StagedPackageInput _ =>
+              raise Error "cannot list a staged package"
             | TarballInput _ => raise Error "cannot list a tarball"
             | TheoryInput _ => raise Error "cannot list a theory file"
 

@@ -41,6 +41,7 @@ datatype function =
   | IncludedBy
   | Subtheories
   | SubtheoryOf
+  | Versions
   | Latest
   | Deprecated  (* (Identity - Latest) (Requires|Includes)* *)
   | Obsolete  (* All - (Requires|Includes)* *)
