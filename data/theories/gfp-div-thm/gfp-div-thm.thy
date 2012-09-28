@@ -1,7 +1,7 @@
 name: gfp-div-thm
-version: 1.51
+version: 1.53
 description: Properties of GF(p) field division
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25
 requires: bool

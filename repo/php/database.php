@@ -4,7 +4,7 @@
 //
 // DATABASE INTERFACE
 //
-// Copyright (c) 2006 Joe Hurd, distributed under the MIT license
+// Copyright (c) 2006 Joe Leslie-Hurd, distributed under the MIT license
 //
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -1,7 +1,7 @@
 name: list-nub
-version: 1.47
+version: 1.48
 description: The list nub function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: list-def
@@ -16,12 +16,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-nub-def-1.45
+  package: list-nub-def-1.46
 }
 
 thm {
   import: def
-  package: list-nub-thm-1.50
+  package: list-nub-thm-1.51
 }
 
 main {

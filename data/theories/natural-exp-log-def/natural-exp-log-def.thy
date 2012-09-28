@@ -1,7 +1,7 @@
 name: natural-exp-log-def
-version: 1.7
+version: 1.8
 description: Definition of natural number logarithm
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-05
 requires: bool

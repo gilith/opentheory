@@ -4,7 +4,7 @@
 //
 // SITE-SPECIFIC PAGE OUTPUT
 //
-// Copyright (c) 2009 Joe Hurd, distributed under the MIT license
+// Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license
 //
 ///////////////////////////////////////////////////////////////////////////////
 

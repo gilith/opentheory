@@ -1,7 +1,7 @@
 name: natural-fibonacci-thm
-version: 1.35
+version: 1.36
 description: Properties of Fibonacci numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-13
 requires: base

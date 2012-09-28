@@ -1,7 +1,7 @@
 name: list-zip-def
-version: 1.11
+version: 1.12
 description: Definition of the list zip function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-06
 requires: bool

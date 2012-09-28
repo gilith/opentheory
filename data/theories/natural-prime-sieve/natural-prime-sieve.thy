@@ -1,7 +1,7 @@
 name: natural-prime-sieve
-version: 1.13
+version: 1.14
 description: The sieve of Eratosthenes
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -21,12 +21,12 @@ show: "Number.Natural"
 show: "Number.Natural.Prime.Sieve"
 
 def {
-  package: natural-prime-sieve-def-1.18
+  package: natural-prime-sieve-def-1.19
 }
 
 thm {
   import: def
-  package: natural-prime-sieve-thm-1.16
+  package: natural-prime-sieve-thm-1.17
 }
 
 main {

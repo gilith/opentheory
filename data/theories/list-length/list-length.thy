@@ -1,7 +1,7 @@
 name: list-length
-version: 1.41
+version: 1.42
 description: The list length function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: list-def
@@ -13,12 +13,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: list-length-def-1.38
+  package: list-length-def-1.39
 }
 
 thm {
   import: def
-  package: list-length-thm-1.36
+  package: list-length-thm-1.37
 }
 
 main {

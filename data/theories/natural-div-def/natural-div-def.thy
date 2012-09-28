@@ -1,7 +1,7 @@
 name: natural-div-def
-version: 1.33
+version: 1.34
 description: Definition of natural number division
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-07-28
 requires: bool

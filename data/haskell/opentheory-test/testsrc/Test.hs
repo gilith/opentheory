@@ -3,7 +3,7 @@ module: Main
 description: Testing packages exported from OpenTheory
 license: MIT
 
-maintainer: Joe Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}

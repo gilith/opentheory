@@ -1,7 +1,7 @@
 name: sum-def
-version: 1.55
+version: 1.56
 description: Definition of sum types
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-08-06
 requires: bool

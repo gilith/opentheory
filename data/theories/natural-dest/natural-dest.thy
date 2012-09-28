@@ -1,7 +1,7 @@
 name: natural-dest
-version: 1.9
+version: 1.10
 description: Natural number destructors
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-06-08
 requires: bool

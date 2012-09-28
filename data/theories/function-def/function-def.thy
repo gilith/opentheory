@@ -1,7 +1,7 @@
 name: function-def
-version: 1.14
+version: 1.16
 description: Definition of function operators and combinators
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 requires: bool
 show: "Data.Bool"

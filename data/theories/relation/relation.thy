@@ -1,7 +1,7 @@
 name: relation
-version: 1.48
+version: 1.49
 description: Relation operators
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -16,25 +16,25 @@ show: "Relation"
 show: "Set"
 
 def {
-  package: relation-def-1.20
+  package: relation-def-1.21
 }
 
 thm {
   import: def
-  package: relation-thm-1.7
+  package: relation-thm-1.8
 }
 
 well-founded {
   import: def
   import: thm
-  package: relation-well-founded-1.45
+  package: relation-well-founded-1.46
 }
 
 natural {
   import: def
   import: thm
   import: well-founded
-  package: relation-natural-1.26
+  package: relation-natural-1.27
 }
 
 main {

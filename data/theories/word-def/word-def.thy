@@ -1,7 +1,7 @@
 name: word-def
-version: 1.55
+version: 1.56
 description: Definition of word operations
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-03-26
 requires: bool
@@ -35,7 +35,7 @@ modular {
   interpret: const "Number.Modular.fromRandom" as "Data.Word.fromRandom"
   interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
   interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
-  package: modular-1.69
+  package: modular-1.70
 }
 
 main {

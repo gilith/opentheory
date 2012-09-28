@@ -1,7 +1,7 @@
 name: natural-prime-thm
-version: 1.43
+version: 1.44
 description: Properties of prime natural numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-13
 requires: bool

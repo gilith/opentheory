@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* WRITING OBJECTS TO COMMANDS                                               *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2004 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
 structure ObjectWrite :> ObjectWrite =

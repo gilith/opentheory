@@ -1,7 +1,7 @@
 name: natural-factorial
-version: 1.28
+version: 1.29
 description: Natural number factorial
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural-add
@@ -14,12 +14,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-factorial-def-1.26
+  package: natural-factorial-def-1.27
 }
 
 thm {
   import: def
-  package: natural-factorial-thm-1.27
+  package: natural-factorial-thm-1.28
 }
 
 main {

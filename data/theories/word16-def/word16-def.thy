@@ -1,7 +1,7 @@
 name: word16-def
-version: 1.56
+version: 1.57
 description: Definition of 16-bit words
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-07-25
 requires: bool
@@ -48,7 +48,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word16.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word16.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word16.Bits.toWord"
-  package: word-1.80
+  package: word-1.81
 }
 
 main {

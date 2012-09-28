@@ -1,7 +1,7 @@
 name: natural-distance
-version: 1.44
+version: 1.45
 description: Natural number distance
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural-add
@@ -13,12 +13,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-distance-def-1.36
+  package: natural-distance-def-1.37
 }
 
 thm {
   import: def
-  package: natural-distance-thm-1.51
+  package: natural-distance-thm-1.52
 }
 
 main {

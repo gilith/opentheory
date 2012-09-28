@@ -1,7 +1,7 @@
 name: natural-funpow-thm
-version: 1.2
+version: 1.3
 description: Properties of function power
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-06-15
 requires: bool

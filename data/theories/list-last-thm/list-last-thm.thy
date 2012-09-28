@@ -1,7 +1,7 @@
 name: list-last-thm
-version: 1.37
+version: 1.38
 description: Properties of the last list function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-03-24
 requires: bool

@@ -1,7 +1,7 @@
 name: natural-fibonacci
-version: 1.39
+version: 1.40
 description: Fibonacci numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: base
 requires: probability
@@ -17,18 +17,18 @@ show: "Probability.Random"
 show: "Relation"
 
 exists {
-  package: natural-fibonacci-exists-1.26
+  package: natural-fibonacci-exists-1.27
 }
 
 def {
   import: exists
-  package: natural-fibonacci-def-1.30
+  package: natural-fibonacci-def-1.31
 }
 
 thm {
   import: exists
   import: def
-  package: natural-fibonacci-thm-1.35
+  package: natural-fibonacci-thm-1.36
 }
 
 main {

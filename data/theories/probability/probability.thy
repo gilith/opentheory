@@ -1,7 +1,7 @@
 name: probability
-version: 1.25
+version: 1.26
 description: Probability
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: list
@@ -17,12 +17,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: probability-def-1.26
+  package: probability-def-1.27
 }
 
 thm {
   import: def
-  package: probability-thm-1.4
+  package: probability-thm-1.5
 }
 
 main {

@@ -1,6 +1,6 @@
 ###############################################################################
 # OPENTHEORY MAKEFILE
-# Copyright (c) 2005 Joe Hurd, distributed under the MIT license
+# Copyright (c) 2005 Joe Leslie-Hurd, distributed under the MIT license
 ###############################################################################
 
 .SUFFIXES:

@@ -1,7 +1,7 @@
 name: group-mult-sub-thm
-version: 1.3
+version: 1.5
 description: Correctness of group multiplication by repeated subtraction
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25
 requires: bool

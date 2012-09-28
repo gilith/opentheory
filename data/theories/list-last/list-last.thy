@@ -1,7 +1,7 @@
 name: list-last
-version: 1.42
+version: 1.44
 description: The last list function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: list-def
@@ -10,12 +10,12 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-last-def-1.37
+  package: list-last-def-1.39
 }
 
 thm {
   import: def
-  package: list-last-thm-1.37
+  package: list-last-thm-1.38
 }
 
 main {

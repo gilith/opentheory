@@ -1,7 +1,7 @@
 name: char-thm
-version: 1.12
+version: 1.14
 description: Properties of Unicode characters
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-05
 requires: bool

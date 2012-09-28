@@ -1,7 +1,7 @@
 name: natural-prime-def
-version: 1.36
+version: 1.37
 description: Definition of prime natural numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-13
 requires: bool

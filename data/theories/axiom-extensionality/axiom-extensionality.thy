@@ -1,7 +1,7 @@
 name: axiom-extensionality
-version: 1.6
+version: 1.8
 description: Axiom of Extensionality
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-07-19
 requires: bool-def

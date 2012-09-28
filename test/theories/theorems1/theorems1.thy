@@ -1,7 +1,7 @@
 name: theorems1
 version: 1.0
 description: First test generating theorems
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 show: "Data.List"

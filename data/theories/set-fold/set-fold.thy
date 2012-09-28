@@ -1,7 +1,7 @@
 name: set-fold
-version: 1.37
+version: 1.38
 description: A fold operation on finite sets
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural
@@ -12,12 +12,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-fold-def-1.44
+  package: set-fold-def-1.45
 }
 
 thm {
   import: def
-  package: set-fold-thm-1.34
+  package: set-fold-thm-1.35
 }
 
 main {

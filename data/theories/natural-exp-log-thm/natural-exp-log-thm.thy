@@ -1,7 +1,7 @@
 name: natural-exp-log-thm
-version: 1.4
+version: 1.5
 description: Properties of natural number logarithm
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-06
 requires: bool

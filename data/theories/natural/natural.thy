@@ -1,7 +1,7 @@
 name: natural
-version: 1.77
+version: 1.78
 description: The natural numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -10,33 +10,33 @@ show: "Function"
 show: "Number.Natural"
 
 axiom-infinity {
-  package: axiom-infinity-1.5
+  package: axiom-infinity-1.7
 }
 
 def {
   import: axiom-infinity
-  package: natural-def-1.22
+  package: natural-def-1.23
 }
 
 thm {
   import: def
-  package: natural-thm-1.15
+  package: natural-thm-1.16
 }
 
 dest {
   import: thm
-  package: natural-dest-1.9
+  package: natural-dest-1.10
 }
 
 numeral {
   import: thm
-  package: natural-numeral-1.14
+  package: natural-numeral-1.15
 }
 
 order {
   import: def
   import: thm
-  package: natural-order-1.39
+  package: natural-order-1.40
 }
 
 add {
@@ -45,7 +45,7 @@ add {
   import: dest
   import: numeral
   import: order
-  package: natural-add-1.51
+  package: natural-add-1.52
 }
 
 mult {
@@ -54,7 +54,7 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.50
+  package: natural-mult-1.51
 }
 
 div {
@@ -64,7 +64,7 @@ div {
   import: order
   import: add
   import: mult
-  package: natural-div-1.37
+  package: natural-div-1.38
 }
 
 exp {
@@ -75,7 +75,7 @@ exp {
   import: add
   import: mult
   import: div
-  package: natural-exp-1.37
+  package: natural-exp-1.38
 }
 
 factorial {
@@ -85,7 +85,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.28
+  package: natural-factorial-1.29
 }
 
 distance {
@@ -94,7 +94,7 @@ distance {
   import: order
   import: add
   import: mult
-  package: natural-distance-1.44
+  package: natural-distance-1.45
 }
 
 funpow {
@@ -103,7 +103,7 @@ funpow {
   import: numeral
   import: add
   import: mult
-  package: natural-funpow-1.7
+  package: natural-funpow-1.8
 }
 
 main {

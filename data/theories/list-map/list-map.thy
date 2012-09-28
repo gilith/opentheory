@@ -1,7 +1,7 @@
 name: list-map
-version: 1.43
+version: 1.44
 description: The list map function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -19,12 +19,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-map-def-1.39
+  package: list-map-def-1.40
 }
 
 thm {
   import: def
-  package: list-map-thm-1.50
+  package: list-map-thm-1.51
 }
 
 main {

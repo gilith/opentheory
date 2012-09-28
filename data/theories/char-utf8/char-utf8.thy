@@ -1,7 +1,7 @@
 name: char-utf8
-version: 1.88
+version: 1.90
 description: The UTF-8 encoding of Unicode characters
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: byte
@@ -28,12 +28,12 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: char-utf8-def-1.76
+  package: char-utf8-def-1.78
 }
 
 thm {
   import: def
-  package: char-utf8-thm-1.94
+  package: char-utf8-thm-1.96
 }
 
 main {

@@ -1,7 +1,7 @@
 name: group-mult-thm
-version: 1.3
+version: 1.5
 description: Properties of group multiplication
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25
 requires: bool

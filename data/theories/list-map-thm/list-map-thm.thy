@@ -1,7 +1,7 @@
 name: list-map-thm
-version: 1.50
+version: 1.51
 description: Properties of the list map function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-08-10
 requires: bool

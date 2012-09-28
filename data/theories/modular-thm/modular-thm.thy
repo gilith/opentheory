@@ -1,7 +1,7 @@
 name: modular-thm
-version: 1.55
+version: 1.56
 description: Properties of modular arithmetic
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25
 requires: bool

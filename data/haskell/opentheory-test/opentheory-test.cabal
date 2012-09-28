@@ -5,8 +5,8 @@ license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.6
 build-type: Simple
-author: Joe Hurd <joe@gilith.com>
-maintainer: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   This package comprises many tests of the Haskell packages exported
   from formally verified OpenTheory packages.

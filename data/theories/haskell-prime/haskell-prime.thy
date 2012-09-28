@@ -1,7 +1,7 @@
 name: haskell-prime
-version: 1.11
+version: 1.13
 description: Prime numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 haskell-category: Number Theory
 requires: base
@@ -22,17 +22,17 @@ show: "Number.Natural.Prime.Sieve"
 show: "Probability.Random"
 
 def {
-  package: haskell-prime-def-1.8
+  package: haskell-prime-def-1.10
 }
 
 src {
   import: def
-  package: haskell-prime-src-1.10
+  package: haskell-prime-src-1.12
 }
 
 test {
   import: def
-  package: haskell-prime-test-1.12
+  package: haskell-prime-test-1.14
 }
 
 main {

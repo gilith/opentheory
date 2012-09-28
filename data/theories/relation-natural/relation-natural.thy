@@ -1,7 +1,7 @@
 name: relation-natural
-version: 1.26
+version: 1.27
 description: Relations over natural numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -16,12 +16,12 @@ show: "Number.Natural"
 show: "Relation"
 
 def {
-  package: relation-natural-def-1.21
+  package: relation-natural-def-1.22
 }
 
 thm {
   import: def
-  package: relation-natural-thm-1.31
+  package: relation-natural-thm-1.32
 }
 
 main {

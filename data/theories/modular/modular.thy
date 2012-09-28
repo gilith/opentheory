@@ -1,7 +1,7 @@
 name: modular
-version: 1.69
+version: 1.70
 description: Parametric theory of modular arithmetic
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: modular-witness
@@ -17,12 +17,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: modular-def-1.66
+  package: modular-def-1.67
 }
 
 thm {
   import: def
-  package: modular-thm-1.55
+  package: modular-thm-1.56
 }
 
 main {

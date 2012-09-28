@@ -1,7 +1,7 @@
 name: haskell
-version: 1.64
+version: 1.66
 description: The Haskell base
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-02-26
 requires: base
@@ -30,22 +30,22 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: haskell-def-1.57
+  package: haskell-def-1.59
 }
 
 thm {
   import: def
-  package: haskell-thm-1.47
+  package: haskell-thm-1.49
 }
 
 src {
   import: def
-  package: haskell-src-1.42
+  package: haskell-src-1.44
 }
 
 test {
   import: def
-  package: haskell-test-1.27
+  package: haskell-test-1.29
 }
 
 main {

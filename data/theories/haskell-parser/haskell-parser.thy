@@ -1,7 +1,7 @@
 name: haskell-parser
-version: 1.107
+version: 1.109
 description: Simple stream parsers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 haskell-category: Parsing
 requires: base
@@ -21,17 +21,17 @@ show: "Parser"
 show: "Probability.Random"
 
 def {
-  package: haskell-parser-def-1.45
+  package: haskell-parser-def-1.47
 }
 
 src {
   import: def
-  package: haskell-parser-src-1.76
+  package: haskell-parser-src-1.78
 }
 
 test {
   import: def
-  package: haskell-parser-test-1.37
+  package: haskell-parser-test-1.39
 }
 
 main {

@@ -1,7 +1,7 @@
 name: gfp-witness
-version: 1.3
+version: 1.5
 description: Parametric theory witness for GF(p) finite fields
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-03-26
 requires: bool

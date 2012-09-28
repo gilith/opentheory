@@ -1,7 +1,7 @@
 name: gfp-def
-version: 1.49
+version: 1.51
 description: Definition of GF(p) finite fields
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2011-11-15
 requires: bool
@@ -34,7 +34,7 @@ modular {
   interpret: const "Number.Modular.fromRandom" as "Number.GF(p).fromRandom"
   interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
   interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
-  package: modular-1.69
+  package: modular-1.70
 }
 
 main {

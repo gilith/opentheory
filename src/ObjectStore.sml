@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* OBJECT STORE                                                              *)
-(* Copyright (c) 2011 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
 structure ObjectStore :> ObjectStore =

@@ -1,7 +1,7 @@
 name: gfp-div
-version: 1.57
+version: 1.59
 description: GF(p) field division
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: gfp-def
@@ -23,24 +23,24 @@ show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 
 def {
-  package: gfp-div-def-1.52
+  package: gfp-div-def-1.54
 }
 
 thm {
   import: def
-  package: gfp-div-thm-1.51
+  package: gfp-div-thm-1.53
 }
 
 gcd {
   import: def
   import: thm
-  package: gfp-div-gcd-1.46
+  package: gfp-div-gcd-1.48
 }
 
 exp {
   import: def
   import: thm
-  package: gfp-div-exp-1.26
+  package: gfp-div-exp-1.28
 }
 
 main {

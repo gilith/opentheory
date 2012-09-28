@@ -1,7 +1,7 @@
 name: natural-div
-version: 1.37
+version: 1.38
 description: Natural number division
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural-add
@@ -14,12 +14,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-div-def-1.33
+  package: natural-div-def-1.34
 }
 
 thm {
   import: def
-  package: natural-div-thm-1.42
+  package: natural-div-thm-1.43
 }
 
 main {

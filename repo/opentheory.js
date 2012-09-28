@@ -2,7 +2,7 @@
 //
 // OPENTHEORY REPO
 //
-// Copyright (c) 2009 Joe Hurd
+// Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license
 //
 ///////////////////////////////////////////////////////////////////////////////
 

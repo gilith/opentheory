@@ -1,7 +1,7 @@
 name: natural-mult-def
-version: 1.21
+version: 1.22
 description: Definition of natural number multiplication
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-07-28
 requires: bool

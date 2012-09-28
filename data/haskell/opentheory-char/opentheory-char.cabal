@@ -1,16 +1,16 @@
 name: opentheory-char
-version: 1.30
+version: 1.34
 category: Text
 synopsis: Unicode characters
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.6
 build-type: Simple
-author: Joe Hurd <joe@gilith.com>
-maintainer: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Unicode characters - automatically generated from the opentheory package
-  haskell-char-1.30
+  haskell-char-1.34
 
 library
   build-depends:
@@ -18,8 +18,8 @@ library
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.52 && <= 1.61,
-    opentheory-parser >= 1.93 && <= 1.105
+    opentheory >= 1.52 && <= 1.66,
+    opentheory-parser >= 1.93 && <= 1.109
 
   hs-source-dirs: src
 
@@ -35,8 +35,8 @@ executable opentheory-char-test
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.52 && <= 1.61,
-    opentheory-parser >= 1.93 && <= 1.105
+    opentheory >= 1.52 && <= 1.66,
+    opentheory-parser >= 1.93 && <= 1.109
 
   hs-source-dirs: src, testsrc
 

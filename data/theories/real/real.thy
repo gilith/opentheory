@@ -1,7 +1,7 @@
 name: real
-version: 1.49
+version: 1.50
 description: The real numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -16,12 +16,12 @@ show: "Number.Real"
 show: "Set"
 
 def {
-  package: real-def-1.61
+  package: real-def-1.62
 }
 
 thm {
   import: def
-  package: real-thm-1.40
+  package: real-thm-1.41
 }
 
 main {

@@ -4,7 +4,7 @@
 //
 // INITIALIZATION COMMANDS
 //
-// Copyright (c) 2008 Joe Hurd, distributed under the MIT license
+// Copyright (c) 2008 Joe Leslie-Hurd, distributed under the MIT license
 //
 ///////////////////////////////////////////////////////////////////////////////
 

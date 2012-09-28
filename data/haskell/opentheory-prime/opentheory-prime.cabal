@@ -1,16 +1,16 @@
 name: opentheory-prime
-version: 1.9
+version: 1.13
 category: Number Theory
 synopsis: Prime numbers
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.6
 build-type: Simple
-author: Joe Hurd <joe@gilith.com>
-maintainer: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Prime numbers - automatically generated from the opentheory package
-  haskell-prime-1.9
+  haskell-prime-1.13
 
 library
   build-depends:
@@ -18,7 +18,7 @@ library
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.56 && <= 1.61
+    opentheory >= 1.56 && <= 1.66
 
   hs-source-dirs: src
 
@@ -34,7 +34,7 @@ executable opentheory-prime-test
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.56 && <= 1.61
+    opentheory >= 1.56 && <= 1.66
 
   hs-source-dirs: src, testsrc
 

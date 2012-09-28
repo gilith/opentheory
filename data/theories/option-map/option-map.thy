@@ -1,7 +1,7 @@
 name: option-map
-version: 1.3
+version: 1.4
 description: The option map function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -12,12 +12,12 @@ show: "Data.Option"
 show: "Function"
 
 def {
-  package: option-map-def-1.7
+  package: option-map-def-1.8
 }
 
 thm {
   import: def
-  package: option-map-thm-1.7
+  package: option-map-thm-1.8
 }
 
 main {

@@ -1,7 +1,7 @@
 name: natural-order-min-max-thm
-version: 1.26
+version: 1.27
 description: Properties of natural number min and max functions
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-07-28
 requires: bool

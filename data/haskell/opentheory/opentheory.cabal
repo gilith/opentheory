@@ -1,16 +1,16 @@
 name: opentheory
-version: 1.61
+version: 1.66
 category: Formal Methods
 synopsis: The Haskell base
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.6
 build-type: Simple
-author: Joe Hurd <joe@gilith.com>
-maintainer: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   The Haskell base - automatically generated from the opentheory package
-  haskell-1.61
+  haskell-1.66
 
 library
   build-depends:

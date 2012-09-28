@@ -1,7 +1,7 @@
 name: list-nth-thm
-version: 1.53
+version: 1.54
 description: Properties of the list nth function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-08-06
 requires: bool

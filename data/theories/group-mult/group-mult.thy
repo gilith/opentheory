@@ -1,7 +1,7 @@
 name: group-mult
-version: 1.2
+version: 1.4
 description: Group scalar multiplication
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: group-def
@@ -17,24 +17,24 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: group-mult-def-1.2
+  package: group-mult-def-1.4
 }
 
 thm {
   import: def
-  package: group-mult-thm-1.3
+  package: group-mult-thm-1.5
 }
 
 add {
   import: def
   import: thm
-  package: group-mult-add-1.1
+  package: group-mult-add-1.3
 }
 
 sub {
   import: def
   import: thm
-  package: group-mult-sub-1.1
+  package: group-mult-sub-1.3
 }
 
 main {

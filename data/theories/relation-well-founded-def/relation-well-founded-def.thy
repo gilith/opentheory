@@ -1,7 +1,7 @@
 name: relation-well-founded-def
-version: 1.33
+version: 1.34
 description: Definition of well-founded relations
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-08-06
 requires: bool

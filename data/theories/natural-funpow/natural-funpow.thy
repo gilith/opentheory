@@ -1,7 +1,7 @@
 name: natural-funpow
-version: 1.7
+version: 1.8
 description: Function power
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -15,12 +15,12 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: natural-funpow-def-1.8
+  package: natural-funpow-def-1.9
 }
 
 thm {
   import: def
-  package: natural-funpow-thm-1.2
+  package: natural-funpow-thm-1.3
 }
 
 main {

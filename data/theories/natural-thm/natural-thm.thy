@@ -1,7 +1,7 @@
 name: natural-thm
-version: 1.15
+version: 1.16
 description: Properties of natural numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-06-08
 requires: bool

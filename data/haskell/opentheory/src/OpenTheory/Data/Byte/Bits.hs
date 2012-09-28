@@ -3,7 +3,7 @@ module: $Header$
 description: The Haskell base
 license: MIT
 
-maintainer: Joe Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}

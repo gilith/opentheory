@@ -1,7 +1,7 @@
 name: set-finite-def
-version: 1.30
+version: 1.31
 description: Definition of finite sets
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
 provenance: HOL Light theory extracted on 2012-08-06
 requires: bool

@@ -1,19 +1,19 @@
 name: function
-version: 1.45
+version: 1.47
 description: Function operators and combinators
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 show: "Data.Bool"
 show: "Function"
 
 def {
-  package: function-def-1.14
+  package: function-def-1.16
 }
 
 thm {
   import: def
-  package: function-thm-1.40
+  package: function-thm-1.42
 }
 
 main {

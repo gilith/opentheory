@@ -4,7 +4,7 @@
 //
 // SITE-SPECIFIC CONFIGURATION
 //
-// Copyright (c) 2009 Joe Hurd, distributed under the MIT license
+// Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +34,7 @@ define('REPO_LOG','log');
 // Admin details.
 ///////////////////////////////////////////////////////////////////////////////
 
-define('ADMIN_NAME','Joe Hurd');
+define('ADMIN_NAME','Joe Leslie-Hurd');
 
 define('ADMIN_EMAIL','joe@gilith.com');
 

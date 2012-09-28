@@ -1,7 +1,7 @@
 name: list-take-drop
-version: 1.47
+version: 1.48
 description: The list take and drop functions
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: list-append
@@ -16,12 +16,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: list-take-drop-def-1.46
+  package: list-take-drop-def-1.47
 }
 
 thm {
   import: def
-  package: list-take-drop-thm-1.50
+  package: list-take-drop-thm-1.51
 }
 
 main {

@@ -1,7 +1,7 @@
 name: bool-true-axiom
 version: 1.0
 description: Definition and assertion about the boolean true constant
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 

@@ -1,7 +1,7 @@
 name: group-mult-sub
-version: 1.1
+version: 1.3
 description: Group multiplication by repeated subtraction
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: group-def
@@ -18,12 +18,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: group-mult-sub-def-1.5
+  package: group-mult-sub-def-1.7
 }
 
 thm {
   import: def
-  package: group-mult-sub-thm-1.3
+  package: group-mult-sub-thm-1.5
 }
 
 main {

@@ -1,7 +1,7 @@
 name: haskell-prime-src
-version: 1.10
+version: 1.12
 description: Haskell source for prime numbers
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25
 requires: base

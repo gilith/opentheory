@@ -3,7 +3,7 @@ module: $Header$
 description: Simple stream parsers
 license: MIT
 
-maintainer: Joe Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}

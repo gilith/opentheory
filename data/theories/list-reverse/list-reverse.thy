@@ -1,7 +1,7 @@
 name: list-reverse
-version: 1.39
+version: 1.40
 description: The list reverse function
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: list-append
@@ -17,12 +17,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-reverse-def-1.39
+  package: list-reverse-def-1.40
 }
 
 thm {
   import: def
-  package: list-reverse-thm-1.14
+  package: list-reverse-thm-1.15
 }
 
 main {

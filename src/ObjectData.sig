@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* OPENTHEORY OBJECT DATA                                                    *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2004 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
 signature ObjectData =

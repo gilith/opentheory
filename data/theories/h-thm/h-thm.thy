@@ -1,7 +1,7 @@
 name: h-thm
-version: 1.97
+version: 1.99
 description: Proof of memory safety for the H API
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25
 requires: base

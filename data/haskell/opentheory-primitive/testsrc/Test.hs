@@ -3,7 +3,7 @@ Module: $Header$
 Description: OpenTheory QuickCheck interface
 License: MIT
 
-Maintainer: Joe Hurd <joe@gilith.com>
+Maintainer: Joe Leslie-Hurd <joe@gilith.com>
 Stability: provisional
 Portability: portable
 

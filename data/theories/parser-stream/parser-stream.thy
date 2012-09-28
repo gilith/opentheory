@@ -1,7 +1,7 @@
 name: parser-stream
-version: 1.82
+version: 1.83
 description: Parse streams
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -22,12 +22,12 @@ show: "Probability.Random"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.82
+  package: parser-stream-def-1.83
 }
 
 thm {
   import: def
-  package: parser-stream-thm-1.82
+  package: parser-stream-thm-1.83
 }
 
 main {

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2006 Joe Hurd, distributed under the MIT license
+# Copyright (c) 2006 Joe Leslie-Hurd, distributed under the MIT license
 
 use strict;
 use warnings;
@@ -53,7 +53,7 @@ sub upload_dir {
     }
     else {
         (system ($cmd) == 0) or
-            die "upload: couldn't execute command:\n$cmd\n$!\n";
+            die "upload-repo: couldn't execute command:\n$cmd\n$!\n";
     }
 }
 
@@ -71,7 +71,7 @@ if ($opt_l) {
     }
     else {
         (system ($cmd) == 0) or
-            die "upload: couldn't execute command:\n$cmd\n$!\n";
+            die "upload-repo: couldn't execute command:\n$cmd\n$!\n";
     }
 }
 
@@ -84,11 +84,11 @@ __END__
 
 =head1 NAME
 
-upload - Upload the Gilith OpenTheory repo scripts.
+upload-repo - Upload the Gilith OpenTheory repo scripts.
 
 =head1 SYNOPSIS
 
-upload [-h] [-m] [-s] [-l] [-n]
+upload-repo [-h] [-m] [-s] [-l] [-n]
 
 =head1 ARGUMENTS
 
@@ -129,7 +129,7 @@ Waiting to rear their ugly heads.
 
 =head1 AUTHORS
 
-Joe Hurd <joe@gilith.com>
+Joe Leslie-Hurd <joe@gilith.com>
 
 =head1 SEE ALSO
 

@@ -1,7 +1,7 @@
 name: stream
-version: 1.18
+version: 1.19
 description: Stream types
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -16,12 +16,12 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: stream-def-1.20
+  package: stream-def-1.21
 }
 
 thm {
   import: def
-  package: stream-thm-1.18
+  package: stream-thm-1.19
 }
 
 main {

@@ -1,7 +1,7 @@
 name: set
-version: 1.54
+version: 1.55
 description: Set types
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -14,24 +14,24 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-def-1.43
+  package: set-def-1.44
 }
 
 thm {
   import: def
-  package: set-thm-1.52
+  package: set-thm-1.53
 }
 
 finite {
   import: def
   import: thm
-  package: set-finite-1.44
+  package: set-finite-1.45
 }
 
 fold {
   import: thm
   import: finite
-  package: set-fold-1.37
+  package: set-fold-1.38
 }
 
 size {
@@ -39,7 +39,7 @@ size {
   import: thm
   import: finite
   import: fold
-  package: set-size-1.48
+  package: set-size-1.49
 }
 
 main {

@@ -1,7 +1,7 @@
 name: group-mult-add
-version: 1.1
+version: 1.3
 description: Group multiplication by repeated addition
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: group-mult-def
@@ -17,12 +17,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: group-mult-add-def-1.5
+  package: group-mult-add-def-1.7
 }
 
 thm {
   import: def
-  package: group-mult-add-thm-1.4
+  package: group-mult-add-thm-1.6
 }
 
 main {

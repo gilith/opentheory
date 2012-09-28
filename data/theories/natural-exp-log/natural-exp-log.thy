@@ -1,7 +1,7 @@
 name: natural-exp-log
-version: 1.2
+version: 1.3
 description: Natural number logarithm
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: natural-add
@@ -17,12 +17,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-exp-log-def-1.7
+  package: natural-exp-log-def-1.8
 }
 
 thm {
   import: def
-  package: natural-exp-log-thm-1.4
+  package: natural-exp-log-thm-1.5
 }
 
 main {

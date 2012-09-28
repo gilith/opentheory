@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THEORY PACKAGE DIRECTORIES                                                *)
-(* Copyright (c) 2009 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
 structure Directory :> Directory =

@@ -1,7 +1,7 @@
 name: option
-version: 1.57
+version: 1.58
 description: Option types
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: function
@@ -12,24 +12,24 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: option-def-1.52
+  package: option-def-1.53
 }
 
 thm {
   import: def
-  package: option-thm-1.44
+  package: option-thm-1.45
 }
 
 dest {
   import: def
   import: thm
-  package: option-dest-1.44
+  package: option-dest-1.45
 }
 
 map {
   import: def
   import: thm
-  package: option-map-1.3
+  package: option-map-1.4
 }
 
 main {

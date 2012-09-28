@@ -1,7 +1,7 @@
 name: list-dest
-version: 1.39
+version: 1.41
 description: List type destructors
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
 requires: list-def
@@ -10,12 +10,12 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-dest-def-1.43
+  package: list-dest-def-1.45
 }
 
 thm {
   import: def
-  package: list-dest-thm-1.11
+  package: list-dest-thm-1.13
 }
 
 main {

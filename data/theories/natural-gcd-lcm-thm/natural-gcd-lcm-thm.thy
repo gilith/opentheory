@@ -1,7 +1,7 @@
 name: natural-gcd-lcm-thm
-version: 1.30
+version: 1.31
 description: Properties of natural number least common multiple
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-08-13
 requires: bool

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* EXTRA PACKAGE FILES                                                       *)
-(* Copyright (c) 2010 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
 signature PackageExtra =

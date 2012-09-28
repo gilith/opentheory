@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PACKAGE AUTHORS                                                           *)
-(* Copyright (c) 2012 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2012 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
 structure PackageAuthor :> PackageAuthor =

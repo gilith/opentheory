@@ -1,7 +1,7 @@
 name: char-def
-version: 1.84
+version: 1.86
 description: Definition of Unicode characters
-author: Joe Hurd <joe@gilith.com>
+author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25
 requires: bool
