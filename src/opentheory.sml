@@ -75,11 +75,11 @@ val describeVersionFormat =
 
 val describeQueryFormat =
     "QUERY represents a subset S of the installed theory packages P, as follows:\n" ^
-    "1. A FUNCTION expression in the grammar below is parsed from the command line,\n" ^
-    "   which represents a function f of type S -> S\n" ^
-    "2. Another function g of type S -> S is computed, which may be represented by\n" ^
-    "   the FUNCTION expression ~Empty (Latest - Subtheories) All\n" ^
-    "3. The set f(g({})) is evaluated as the result, where {} is the empty set\n" ^
+    "  1. A FUNCTION expression in the grammar below is parsed from the command\n" ^
+    "     line, which represents a function f of type S -> S\n" ^
+    "  2. Another function g of type S -> S is computed, which may be represented\n" ^
+    "     by the FUNCTION expression ~Empty (Latest - Subtheories) All\n" ^
+    "  3. The set f(g({})) is evaluated as the result, where {} is the empty set\n" ^
     "FUNCTION          // represents a function with type S -> S\n" ^
     "  <- SET          // the constant function with return value SET\n" ^
     "  || PREDICATE    // the filter function with predicate PREDICATE\n" ^
@@ -181,11 +181,11 @@ fun fromStringInput inp =
 
 val describeInputFormat =
     "INPUT is one of the following forms:\n" ^
-    "- a theory package: NAME-VERSION or NAME (for the latest version)\n" ^
-    "- a theory file: FILE.thy or theory:FILE\n" ^
-    "- a proof article file: FILE.art or article:FILE\n" ^
-    "- a theory package tarball: FILE.tgz or tarball:FILE\n" ^
-    "- a theory package staged for installation: staged:NAME-VERSION";
+    "  1. A theory package: NAME-VERSION or NAME (for the latest version)\n" ^
+    "  2. A theory file: FILE.thy or theory:FILE\n" ^
+    "  3. A proof article file: FILE.art or article:FILE\n" ^
+    "  4. A theory package tarball: FILE.tgz or tarball:FILE\n" ^
+    "  5. A theory package staged for installation: staged:NAME-VERSION";
 
 (* ------------------------------------------------------------------------- *)
 (* Output format for basic package information.                              *)
