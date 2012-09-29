@@ -27,7 +27,7 @@ datatype error =
   | InstalledUser of
       PackageNameVersion.nameVersion
   | MultipleAuthors of
-      (PackageNameVersion.nameVersion * PackageAuthor.author) list
+      (PackageNameVersionSet.set * PackageAuthor.author) list
   | NotInstalled of
       PackageNameVersion.nameVersion
   | NotOnRepo of
@@ -37,7 +37,7 @@ datatype error =
   | NoVersionInstalled of
       PackageName.name
   | ObsoleteAuthors of
-      (PackageNameVersion.nameVersion * PackageAuthor.author) list
+      (PackageNameVersionSet.set * PackageAuthor.author) list
   | TagError of
       PackageTag.name * string
   | UninstalledObsolete of

@@ -1548,11 +1548,18 @@ local
               val pkg = PackageInfo.package info
 
               val auth = Package.author pkg
+
+              val nvs =
+                  case PackageAuthorMap.peek acc auth of
+                    NONE => PackageNameVersionSet.empty
+                  | SOME s => s
+
+              val nvs = PackageNameVersionSet.add nvs nv
             in
-              PackageAuthorMap.insert acc (auth,nv)
+              PackageAuthorMap.insert acc (auth,nvs)
             end
 
-        fun flip (auth,nv) = (nv,auth)
+        fun flip (auth,nvs) = (nvs,auth)
       in
         fn nvs =>
            let

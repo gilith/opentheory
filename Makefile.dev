@@ -170,32 +170,10 @@ reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
-.PHONY: import-standard-theories
-import-standard-theories: $(OPENTHEORY)
-	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory standard-theories
-	$(IMPORT_THEORIES) -l HOLLight $(HOL_LIGHT_DIR)/opentheory/articles
-
-.PHONY: import-example-theories
-import-example-theories: $(OPENTHEORY)
-	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory example-theories
-	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
-
-.PHONY: standard-theories
-standard-theories: $(OPENTHEORY)
-	$(MAKE) import-standard-theories
-	$(INSTALL_THEORIES)
-	$(CHECK_THEORIES)
-
-.PHONY: example-theories
-example-theories: $(OPENTHEORY)
-	$(MAKE) import-example-theories
-	$(INSTALL_THEORIES)
-	$(CHECK_THEORIES)
-
 .PHONY: theories
 theories: $(OPENTHEORY)
-	$(MAKE) import-standard-theories
-	$(MAKE) import-example-theories
+	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory theories
+	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
 	$(INSTALL_THEORIES)
 	$(CHECK_THEORIES)
 

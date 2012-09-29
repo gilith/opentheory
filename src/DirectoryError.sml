@@ -29,7 +29,7 @@ datatype error =
   | InstalledUser of
       PackageNameVersion.nameVersion
   | MultipleAuthors of
-      (PackageNameVersion.nameVersion * PackageAuthor.author) list
+      (PackageNameVersionSet.set * PackageAuthor.author) list
   | NotInstalled of
       PackageNameVersion.nameVersion
   | NotOnRepo of
@@ -39,7 +39,7 @@ datatype error =
   | NoVersionInstalled of
       PackageName.name
   | ObsoleteAuthors of
-      (PackageNameVersion.nameVersion * PackageAuthor.author) list
+      (PackageNameVersionSet.set * PackageAuthor.author) list
   | TagError of
       PackageTag.name * string
   | UninstalledObsolete of
@@ -168,8 +168,23 @@ local
   fun toStringSrcs srcs =
       join "\n  and also for " (List.map toStringSrc srcs);
 
-  fun toStringAuthor (nv,auth) =
-      PackageNameVersion.toString nv ^ " authored by " ^
+  fun toStringNonEmptySet nvs =
+      case PackageNameVersionSet.findl (K true) nvs of
+        NONE => raise Bug "DirectoryError.toStringNonEmptySet: empty"
+      | SOME nv =>
+        let
+          val s = PackageNameVersion.toString nv
+
+          val n = PackageNameVersionSet.size nvs - 1
+        in
+          if n = 0 then s
+          else
+            s ^ " and " ^ Print.toString Print.ppPrettyInt n ^
+            " other" ^ (if n = 1 then "" else "s")
+        end;
+
+  fun toStringAuthor (nvs,auth) =
+      toStringNonEmptySet nvs ^ " authored by " ^
       PackageAuthor.toString auth;
 
   fun toStringAuthors authors =
@@ -222,7 +237,7 @@ in
          "package " ^ PackageName.toString tag ^ " information " ^ msg
        | UninstalledObsolete {upload,obsolete} =>
          "upload package " ^ PackageNameVersion.toString upload ^
-         " obsoletes package " ^ PackageNameVersion.toString obsolete ^
+         "\n  obsoletes package " ^ PackageNameVersion.toString obsolete ^
          ",\n  which is not installed"
        | UninstalledInclude namever =>
          "includes package " ^
@@ -230,7 +245,7 @@ in
          " which is not installed"
        | WrongChecksumObsolete {upload,obsolete} =>
          "upload package " ^ PackageNameVersion.toString upload ^
-         " obsoletes package " ^ PackageNameVersion.toString obsolete ^
+         "\n  obsoletes package " ^ PackageNameVersion.toString obsolete ^
          ",\n  which is installed with a different checksum"
        | WrongChecksumOnRepo (namever,repo) =>
          "package " ^ PackageNameVersion.toString namever ^
