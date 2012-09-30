@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.2";
 
-val release = " (release 20120929)";
+val release = " (release 20120930)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -86,23 +86,23 @@ val describeQueryFormat =
     "  || FUNCTION FUNCTION\n" ^
     "                  // \\f g s. f (g s)\n" ^
     "  || FUNCTION | FUNCTION\n" ^
-    "                  // \\f g s. { p IN P | p IN f(s) \\/ p in g(s) }\n" ^
+    "                  // \\f g s. { p in P | p in f(s) \\/ p in g(s) }\n" ^
     "  || FUNCTION & FUNCTION\n" ^
-    "                  // \\f g s. { p IN P | p IN f(s) /\\ p in g(s) }\n" ^
+    "                  // \\f g s. { p in P | p in f(s) /\\ p in g(s) }\n" ^
     "  || FUNCTION - FUNCTION\n" ^
-    "                  // \\f g s. { p IN P | p IN f(s) /\\ ~p in g(s) }\n" ^
+    "                  // \\f g s. { p in P | p in f(s) /\\ ~p in g(s) }\n" ^
     "  || FUNCTION?    // \\f. Identity | f\n" ^
     "  || FUNCTION*    // \\f. Identity | f | f f | f f f | ...\n" ^
     "  || FUNCTION+    // \\f. f | f f | f f f | ...\n" ^
     "  || Identity     // \\s. s\n" ^
-    "  || Requires     // \\s. { p IN P | ?q IN s. q requires p }\n" ^
-    "  || RequiredBy   // \\s. { p IN P | ?q IN s. p requires q }\n" ^
-    "  || Includes     // \\s. { p IN P | ?q IN s. q includes p }\n" ^
-    "  || IncludedBy   // \\s. { p IN P | ?q IN s. p includes q }\n" ^
-    "  || Subtheories  // \\s. { p IN P | ?q IN s. p is a subtheory of q }\n" ^
-    "  || SubtheoryOf  // \\s. { p IN P | ?q IN s. q is a subtheory of p }\n" ^
-    "  || Versions     // \\s. { p IN P | ?q IN s. p is a version of q }\n" ^
-    "  || Latest       // \\s. { p IN s | ~?q IN s. q is a later version of p }\n" ^
+    "  || Requires     // \\s. { p in P | ?q in s. q requires p }\n" ^
+    "  || RequiredBy   // \\s. { p in P | ?q in s. p requires q }\n" ^
+    "  || Includes     // \\s. { p in P | ?q in s. q includes p }\n" ^
+    "  || IncludedBy   // \\s. { p in P | ?q in s. p includes q }\n" ^
+    "  || Subtheories  // \\s. { p in P | ?q in s. p is a subtheory of q }\n" ^
+    "  || SubtheoryOf  // \\s. { p in P | ?q in s. q is a subtheory of p }\n" ^
+    "  || Versions     // \\s. { p in P | ?q in s. p is a version of q }\n" ^
+    "  || Latest       // \\s. { p in s | ~?q in s. q is a later version of p }\n" ^
     "  || Deprecated   // (Identity - Latest) (Requires | Includes)*\n" ^
     "  || Obsolete     // All - (Requires | Includes)*\n" ^
     "  || Upgradable   // EarlierThanRepo\n" ^
@@ -130,8 +130,8 @@ val describeQueryFormat =
     "SET               // represents a set with type S\n" ^
     "  <- All          // P\n" ^
     "  || None         // {}\n" ^
-    "  || NAME         // \\n. Latest { p IN P | p has name n }\n" ^
-    "  || NAME-VERSION // \\n v. { p IN P | p has name n and version v }\n";
+    "  || NAME         // \\n. Latest { p in P | p has name n }\n" ^
+    "  || NAME-VERSION // \\n v. { p in P | p has name n and version v }\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Input types.                                                              *)
