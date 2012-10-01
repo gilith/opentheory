@@ -13,8 +13,8 @@ getopts('h');
 
 if ($opt_h or scalar @ARGV != 0)
 {
-    pod2usage({-exitval => 2,
-	       -verbose => 2});
+  pod2usage({-exitval => 2,
+             -verbose => 2});
 }
 
 # Autoflush STDIN
@@ -34,100 +34,100 @@ my %installed = ();
 my %version = ();
 
 sub is_name {
-    (scalar @_ == 1) or die;
-    my $n = shift @_;
+  (scalar @_ == 1) or die;
+  my $n = shift @_;
 
-    if ($n =~ m{^(?:(?:[[:alpha:]][[:alnum:]]*-)*[[:alpha:]][[:alnum:]]*)$}) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+  if ($n =~ m{^(?:(?:[[:alpha:]][[:alnum:]]*-)*[[:alpha:]][[:alnum:]]*)$}) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
 }
 
 sub is_version {
-    (scalar @_ == 1) or die;
-    my $v = shift @_;
+  (scalar @_ == 1) or die;
+  my $v = shift @_;
 
-    if ($v =~ m{^(?:[[:digit:]]+[.])*[[:digit:]]+$}) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+  if ($v =~ m{^(?:[[:digit:]]+[.])*[[:digit:]]+$}) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
 }
 
 sub is_name_version {
-    (scalar @_ == 1) or die;
-    my $nv = shift @_;
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
 
-    if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
-        return is_name($1) && is_version($2);
-    }
-    else {
-        return 0;
-    }
+  if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+    return is_name($1) && is_version($2);
+  }
+  else {
+    return 0;
+  }
 }
 
 sub name_version_to_name {
-    (scalar @_ == 1) or die;
-    my $nv = shift @_;
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
 
-    if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
-      return $1;
-    }
-    else {
-      die "check_theories: not a valid NAME-VERSION: $nv";
-    }
+  if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+    return $1;
+  }
+  else {
+    die "check_theories: not a valid NAME-VERSION: $nv";
+  }
 }
 
 sub add_installed {
-    (scalar @_ == 2) or die;
-    my $par = shift @_;
-    my $thy = shift @_;
+  (scalar @_ == 2) or die;
+  my $par = shift @_;
+  my $thy = shift @_;
 
-    $installed{$thy} = $par;
+  $installed{$thy} = $par;
 
-    ($thy =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) or
-        die "check-theories: bad theory name: $thy";
+  ($thy =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) or
+    die "check-theories: bad theory name: $thy";
 
-    my $n = $1;
-    my $v = $2;
+  my $n = $1;
+  my $v = $2;
 
-    if (exists $version{$n}) {
-        if ($version{$n} ne $v) {
-            die "check-theories: multiple versions of theory $n";
-        }
+  if (exists $version{$n}) {
+    if ($version{$n} ne $v) {
+      die "check-theories: multiple versions of theory $n";
     }
-    else {
-        $version{$n} = $v;
-    }
+  }
+  else {
+    $version{$n} = $v;
+  }
 }
 
 sub add_toplevel {
-    (scalar @_ == 1) or die;
-    my $thy = shift @_;
+  (scalar @_ == 1) or die;
+  my $thy = shift @_;
 
-    if (exists $toplevel{$thy}) {
-        die "check-theories: duplicate top-level theory: $thy";
-    }
+  if (exists $toplevel{$thy}) {
+    die "check-theories: duplicate top-level theory: $thy";
+  }
 
-    $toplevel{$thy} = 1;
+  $toplevel{$thy} = 1;
 
-    add_installed('',$thy);
+  add_installed('',$thy);
 }
 
 sub add_dependent {
-    (scalar @_ == 2) or die;
-    my $thy = shift @_;
-    my $subthy = shift @_;
+  (scalar @_ == 2) or die;
+  my $thy = shift @_;
+  my $subthy = shift @_;
 
-    if (!(exists $installed{$subthy})) {
-        add_installed($thy,$subthy);
-    }
+  if (!(exists $installed{$subthy})) {
+    add_installed($thy,$subthy);
+  }
 }
 
-my $cmd = "$opentheory list";
+my $cmd = "$opentheory list Mine";
 
 # print STDOUT "cmd = $cmd\n";
 
@@ -135,35 +135,35 @@ open THEORIES, "$cmd |" or
   die "check-theories: couldn't list installed theories: $!\n";
 
 while (my $thy = <THEORIES>) {
-    chomp $thy;
+  chomp $thy;
 
-    is_name_version($thy) or
-        die "check-theories: bad theory name: $thy";
+  is_name_version($thy) or
+    die "check-theories: bad theory name: $thy";
 
-    my $thy_name = name_version_to_name($thy);
+  my $thy_name = name_version_to_name($thy);
 
-    if ( -d "$source/$thy_name" ) {
-      add_toplevel($thy);
+  if ( -d "$source/$thy_name" ) {
+    add_toplevel($thy);
 
-      $cmd = "$opentheory list '(Requires | Includes)* $thy'";
+    $cmd = "$opentheory list '(Requires | Includes)* $thy'";
 
-      open SUBTHEORIES, "$cmd |" or
-        die "check-theories: couldn't list dependent theories of $thy: $!\n";
+    open SUBTHEORIES, "$cmd |" or
+      die "check-theories: couldn't list dependent theories of $thy: $!\n";
 
-      while (my $subthy = <SUBTHEORIES>) {
-        chomp $subthy;
+    while (my $subthy = <SUBTHEORIES>) {
+      chomp $subthy;
 
-        is_name_version($subthy) or
-          die "check-theories: bad dependent theory of $thy: $subthy";
+      is_name_version($subthy) or
+        die "check-theories: bad dependent theory of $thy: $subthy";
 
-        add_dependent($thy,$subthy);
-      }
-
-      close SUBTHEORIES;
+      add_dependent($thy,$subthy);
     }
-    else {
-      print STDOUT "check-theories: skipping obsolete theory $thy_name\n";
-    }
+
+    close SUBTHEORIES;
+  }
+  else {
+    die "check-theories: couldn't find source for theory $thy_name\n";
+  }
 }
 
 close THEORIES;
@@ -174,89 +174,111 @@ open THEORIES, "$cmd |" or
   die "check-theories: couldn't order theories in source directory: $!\n";
 
 while (my $thy = <THEORIES>) {
-    chomp $thy;
+  chomp $thy;
 
-    is_name($thy) or
-        die "check-theories: bad theory name: $thy";
+  is_name($thy) or
+    die "check-theories: bad theory name: $thy";
 
-    # Check this theory is useful and up to date
+  # Check this theory is useful and up to date
 
-    my $thydir = "$source/$thy";
+  my $thydir = "$source/$thy";
 
-    if (exists $version{$thy}) {
-      my $info1 = `$opentheory info --information $thydir/$thy.thy`;
+  if (exists $version{$thy}) {
+    my $info1 = `$opentheory info --information $thydir/$thy.thy`;
 
-      if ($info1 =~ /^version: ([[:digit:].]+)$/m) {
-        my $version1 = $1;
+    if ($info1 =~ /^version: ([[:digit:].]+)$/m) {
+      my $version1 = $1;
 
-        my $version2 = $version{$thy};
+      my $version2 = $version{$thy};
 
-        if ($version1 eq $version2) {
-          my $info2 = `$opentheory info --information $thy-$version2`;
+      if ($version1 eq $version2) {
+        my $info2 = `$opentheory info --information $thy-$version2`;
 
-          if ($info1 eq $info2) {
-            if ($info1 !~ /^requires: /m &&
-                $thy ne "base" &&
-                $thy ne "bool" &&
-                $thy ne "bool-def")
-            {
-              print STDOUT "check-theories: theory $thy has no requires information\n";
-            }
-          }
-          else {
-            print STDOUT "check-theories: different package information in installed theory $thy\n";
+        if ($info1 eq $info2) {
+          if ($info1 !~ /^requires: /m &&
+              $thy ne "base" &&
+              $thy ne "bool" &&
+              $thy ne "bool-def")
+          {
+            print STDOUT "check-theories: theory $thy has no requires information\n";
           }
         }
         else {
-          print STDOUT "check-theories: theory $thy: version = $version1; installed = $version2\n";
+          print STDOUT "check-theories: different package information in installed theory $thy\n";
         }
       }
       else {
-        print STDOUT "check-theories: no version information found in theory $thy\n";
+        print STDOUT "check-theories: theory $thy: version = $version1; installed = $version2\n";
       }
     }
     else {
-      if ($thy ne "empty") {
-        print STDOUT "check-theories: $thy not in the latest theory set\n";
-      }
+      print STDOUT "check-theories: no version information found in theory $thy\n";
     }
-
-    # Check the theory files
-
-    my $files1 = `$opentheory info --files $thydir/$thy.thy | sort`;
-
-    my $files2 = `find $thydir/*`;
-
-    if ($files1 ne $files2) {
-      print STDOUT "check-theories: different files in theory $thy\n";
+  }
+  else {
+    if ($thy ne "empty") {
+      print STDOUT "check-theories: $thy not in the latest theory set\n";
     }
+  }
 
-    # Check the requires: list in theory files
+  # Check the theory files
 
-    $cmd = "grep '^requires: ' $thydir/$thy.thy | sort -c 2> /dev/null";
+  my $files1 = `$opentheory info --files $thydir/$thy.thy | sort`;
 
-    if (system($cmd) != 0) {
-      print STDOUT "check-theories: unsorted requires: list in theory $thy\n";
-    }
+  my $files2 = `find $thydir/*`;
 
-    # Check the show: list in theory files
+  if ($files1 ne $files2) {
+    print STDOUT "check-theories: different files in theory $thy\n";
+  }
 
-    $cmd = "grep '^show: ' $thydir/$thy.thy | sed 's/^show: .* as /show: /' | sort -c 2> /dev/null";
+  # Check the requires: list in theory files
 
-    if (system($cmd) != 0) {
-      print STDOUT "check-theories: unsorted show: list in theory $thy\n";
-    }
+  $cmd = "grep '^requires: ' $thydir/$thy.thy | sort -c 2> /dev/null";
 
-    # Check the theorems
+  if (system($cmd) != 0) {
+    print STDOUT "check-theories: unsorted requires: list in theory $thy\n";
+  }
 
-    $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
+  # Check the show: list in theory files
 
-    if (system ($cmd) == 0) {
-      print STDOUT "check-theories: unwanted/system names in theory $thy\n";
-    }
+  $cmd = "grep '^show: ' $thydir/$thy.thy | sed 's/^show: .* as /show: /' | sort -c 2> /dev/null";
+
+  if (system($cmd) != 0) {
+    print STDOUT "check-theories: unsorted show: list in theory $thy\n";
+  }
+
+  # Check the theorems
+
+  $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
+
+  if (system ($cmd) == 0) {
+    print STDOUT "check-theories: unwanted/system names in theory $thy\n";
+  }
 }
 
 close THEORIES;
+
+$cmd = "$opentheory list '~WellFounded (Requires|Includes)* Mine'";
+
+# print STDOUT "cmd = $cmd\n";
+
+open THEORIES, "$cmd |" or
+  die "check-theories: couldn't list non-well-founded theories: $!\n";
+
+my $nonwellfounded = '';
+
+while (my $thy = <THEORIES>) {
+  chomp $thy;
+
+  $nonwellfounded .= "  " . $thy . "\n";
+}
+
+close THEORIES;
+
+if ($nonwellfounded ne '') {
+  print STDOUT
+    ("check-theories: non-well-founded theories:\n" . $nonwellfounded);
+}
 
 __END__
 
