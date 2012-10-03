@@ -415,6 +415,9 @@ local
         (n,sym,seqs)
       end;
 
+  val mkGrounded =
+      let
+
   val mkGroundedTypeOps =
       let
         fun add (ot,acc) =
@@ -442,7 +445,7 @@ local
         SequentMap.map add
       end;
 
-  fun addInitial (th,(ns,dots,dcs,gots,gcs,sat)) =
+  fun addInitial (th,(ns,dots_dcs,gots_gcs,sat)) =
       let
         val (n,sym,seqs) = destTheorems th
 
@@ -487,8 +490,10 @@ local
           raise Error err
         end;
 
-  fun checkInitial gots gcs sat =
+  fun checkInitial gr sat =
       let
+        val {typeOps = gots, consts = gcs} = gr
+
         val () = checkInitialGrounded "type operator" gots
         and () = checkInitialGrounded "constant" gcs
         and () = checkInitialSatisfied sat
