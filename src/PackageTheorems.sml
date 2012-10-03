@@ -216,7 +216,8 @@ in
 
           val ungr =
               SymbolSet.difference
-                (SymbolTable.symbols iprov) (SymbolTable.symbols ireq)
+                (SymbolTable.symbols iprov)
+                (SymbolTable.symbols ireq)
 
           val asms = Sequents.sequents req
         in
@@ -233,10 +234,15 @@ fun packageContext sum = context (PackageSummary.summary sum);
 datatype versions =
     Versions of
       {names : PackageNameSet.set,
-       definedTypeOps : PackageName.name NameMap.map,
-       definedConsts : PackageName.name NameMap.map,
-       satisfiedBy : PackageNameSet.set SequentMap.map};
+       defined :
+         {typeOps : PackageName.name NameMap.map,
+          consts : PackageName.name NameMap.map},
+       grounded :
+         {typeOps : PackageNameSet.set NameMap.map,
+          consts : PackageNameSet.set NameMap.map},
+       satisfied : PackageNameSet.set SequentMap.map};
 
+(***
 local
   fun destSequents seqs =
       let
@@ -381,6 +387,185 @@ in
            definedTypeOps = ots,
            definedConsts = cs,
            satisfiedBy = sat}
+      end;
+end;
+***)
+
+local
+  val initialGrounded = SymbolSet.primitives
+  and initialSatisfied = SequentSet.standardAxioms;
+
+  fun destSequents seqs =
+      let
+        val sym = Sequents.symbol seqs
+        and seqs = Sequents.sequents seqs
+
+        val seqs' = SequentSet.rewrite TermRewrite.undef seqs
+      in
+        (sym, Option.getOpt (seqs',seqs))
+      end;
+
+  fun destTheorems th =
+      let
+        val Theorems' {package = nv, sequents = seqs} = dest th
+
+        val n = PackageNameVersion.name nv
+        and (sym,seqs) = destSequents seqs
+      in
+        (n,sym,seqs)
+      end;
+
+  val mkGroundedTypeOps =
+      let
+        fun add (ot,acc) =
+            NameMap.insert acc (TypeOp.name ot, PackageNameSet.empty)
+      in
+        TypeOpSet.foldl add (NameMap.new ())
+      end;
+
+  val mkGroundedConsts =
+      let
+        fun add (c,acc) =
+            NameMap.insert acc (Const.name c, PackageNameSet.empty)
+      in
+        ConstSet.foldl add (NameMap.new ())
+      end;
+
+  val mkSatisfied = SequentSet.map (K PackageNameSet.empty);
+
+  fun addSatisfied n seqs =
+      let
+        fun add (seq,ns) =
+            if not (SequentSet.member seq seqs) then ns
+            else PackageNameSet.add ns n
+      in
+        SequentMap.map add
+      end;
+
+  fun addInitial (th,(ns,dots,dcs,gots,gcs,sat)) =
+      let
+        val (n,sym,seqs) = destTheorems th
+
+        val () =
+            if not (PackageNameSet.member n ns) then ()
+            else
+              let
+                val err =
+                    "duplicate in required theories: " ^
+                    PackageName.toString n
+              in
+                raise Error err
+              end
+
+        val ns = PackageNameSet.add ns n
+(***
+        and ots = addTypeOps n ots (SymbolTable.typeOps sym)
+        and cs = addConsts n cs (SymbolTable.consts sym)
+***)
+        and sat = addSatisfied n seqs sat
+      in
+        (ns,dots,dcs,gots,gcs,sat)
+      end;
+
+  fun checkInitialGrounded kind gr =
+      case NameMap.findl (PackageNameSet.null o snd) gr of
+        NONE => ()
+      | SOME (n,_) =>
+        let
+          val err = "ungrounded input " ^ kind ^ ":\n" ^ Name.toString n
+        in
+          raise Error err
+        end;
+
+  fun checkInitialSatisfied sat =
+      case SequentMap.findl (PackageNameSet.null o snd) sat of
+        NONE => ()
+      | SOME (asm,_) =>
+        let
+          val err = "unsatisfied assumption:\n" ^ Sequent.toString asm
+        in
+          raise Error err
+        end;
+
+  fun checkInitial gots gcs sat =
+      let
+        val () = checkInitialGrounded "type operator" gots
+        and () = checkInitialGrounded "constant" gcs
+        and () = checkInitialSatisfied sat
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error ("required theories not sufficient:\n" ^ err);
+in
+  fun mkVersions sum thl =
+      let
+        val Summary.Summary' {requires = req, provides = prov} =
+            Summary.dest sum
+
+        val (uots,ucs) =
+            let
+              val ireq = SymbolTable.symbols (Sequents.undefined req)
+              and iprov = SymbolTable.symbols (Sequents.undefined prov)
+
+              val gr = SymbolSet.union ireq initialGrounded
+
+              val ungr = SymbolSet.difference iprov gr
+            in
+              SymbolSet.categorize ungr
+            end
+
+        val unsat =
+            let
+              val asms = Sequents.sequents req
+            in
+              SequentSet.difference asms initialSatisfied
+            end
+
+        val ns = PackageNameSet.empty
+        and dots = NameMap.new ()
+        and dcs = NameMap.new ()
+        and gots = mkGroundedTypeOps uots
+        and gcs = mkGroundedConsts ucs
+        and sat = mkSatisfied unsat
+
+        val (ns,dots,dcs,gots,gcs,sat) =
+            List.foldl addInitial (ns,dots,dcs,gots,gcs,sat) thl
+
+        val () = checkInitial gots gcs sat
+      in
+        Versions
+          {names = ns,
+           defined = {typeOps = dots, consts = dcs},
+           grounded = {typeOps = gots, consts = gcs},
+           satisfied = sat}
+      end;
+
+  fun addVersion vs th =
+      let
+        val Versions
+              {names = ns,
+               defined = {typeOps = dots, consts = dcs},
+               grounded = {typeOps = gots, consts = gcs},
+               satisfied = sat} = vs
+
+        val (n,sym,seqs) = destTheorems th
+
+        val () =
+            if PackageNameSet.member n ns then ()
+            else raise Error "unknown required package name"
+
+(***
+        val ots = addTypeOps n ots (SymbolTable.typeOps sym)
+        and cs = addConsts n cs (SymbolTable.consts sym)
+        and sat = SequentMap.map (deleteSat n seqs) sat
+***)
+      in
+        Versions
+          {names = ns,
+           defined = {typeOps = dots, consts = dcs},
+           grounded = {typeOps = gots, consts = gcs},
+           satisfied = sat}
       end;
 end;
 

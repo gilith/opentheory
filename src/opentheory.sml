@@ -1818,15 +1818,12 @@ local
                 SOME r => r
               | NONE => raise Error "no requires information available"
 
-          val asms =
+          val sum =
               case getSummary () of
-                SOME s => Sequents.sequents (Summary.requires s)
-              | NONE => raise Error "no assumptions information available"
+                SOME s => s
+              | NONE => raise Error "no summary information available"
 
-          val vs =
-              PackageTheorems.mkVersions asms ths
-              handle Error err =>
-                raise Error ("required theories not up to date:\n" ^ err)
+          val vs = PackageTheorems.mkVersions sum ths
 
           val oldest =
               checkPrevious (PackageNameMap.new ()) (Queue.fromList ths) vs

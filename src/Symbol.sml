@@ -82,19 +82,29 @@ end
 structure SymbolSet =
 struct
 
-  local
-    structure S = ElementSet (SymbolMap);
-  in
-    open S;
-  end;
+local
+  structure S = ElementSet (SymbolMap);
+in
+  open S;
+end;
 
-  val primitives = fromList Symbol.primitives;
+val categorize =
+    let
+      fun cat (s,(ots,cs)) =
+          case s of
+            Symbol.TypeOp ot => (TypeOpSet.add ots ot, cs)
+          | Symbol.Const c => (ots, ConstSet.add cs c)
+    in
+      foldl cat (TypeOpSet.empty,ConstSet.empty)
+    end;
 
-  local
-    val ppSymList = Print.ppBracket "{" "}" (Print.ppOpList "," Symbol.pp);
-  in
-    val pp = Print.ppMap toList ppSymList;
-  end;
+val primitives = fromList Symbol.primitives;
+
+local
+  val ppSymList = Print.ppBracket "{" "}" (Print.ppOpList "," Symbol.pp);
+in
+  val pp = Print.ppMap toList ppSymList;
+end;
 
 end
 

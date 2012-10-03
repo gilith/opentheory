@@ -351,13 +351,7 @@ fun mkDepends dir pkg thy =
             SOME ths => ths
           | NONE => raise Error "required theories not installed"
 
-      val asms =
-          Sequents.sequents (Summary.requires (Theory.summary thy))
-
-      val vs =
-          PackageTheorems.mkVersions asms ths
-          handle Error err =>
-            raise Error ("required theories not up to date:\n" ^ err)
+      val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
 
       val ths =
           let

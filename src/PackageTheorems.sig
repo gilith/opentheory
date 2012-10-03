@@ -71,7 +71,7 @@ val packageContext :
 
 type versions
 
-val mkVersions : SequentSet.set -> theorems list -> versions
+val mkVersions : Summary.summary -> theorems list -> versions
 
 val addVersion : versions -> theorems -> versions
 
