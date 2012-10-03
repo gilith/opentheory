@@ -113,7 +113,7 @@ val describeQueryFormat =
     "  || PREDICATE /\\ PREDICATE\n" ^
     "                  // \\f g p. f(p) /\\ g(p)\n" ^
     "  || ~PREDICATE   // \\f p. ~f(p)\n" ^
-    "  || Empty        // does the package have an empty theory (i.e., main {})?\n" ^
+    "  || Empty        // does the package have an empty theory (i.e., main { })?\n" ^
     "  || Mine         // does the package author match a name in the config file?\n" ^
     "  || Closed       // are all the required theories installed?\n" ^
     "  || Acyclic      // is the required theory graph free of cycles?\n" ^
@@ -124,14 +124,14 @@ val describeQueryFormat =
     "  || ConsistentWithRepo\n" ^
     "                  // are all the included packages consistent with the repo?\n" ^
     "  || EarlierThanRepo\n" ^
-    "                  // is there a later version of this ackage on the repo?\n" ^
+    "                  // is there a later version of this package on the repo?\n" ^
     "  || LaterThanRepo\n" ^
     "                  // is this package later than all versions on the repo?\n" ^
     "SET               // represents a set with type S\n" ^
     "  <- All          // P\n" ^
     "  || None         // {}\n" ^
-    "  || NAME         // \\n. Latest { p in P | p has name n }\n" ^
-    "  || NAME-VERSION // \\n v. { p in P | p has name n and version v }\n";
+    "  || NAME         // Latest { p in P | p has name NAME }\n" ^
+    "  || NAME-VERSION // { p in P | p has name NAME and version VERSION }\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Input types.                                                              *)
