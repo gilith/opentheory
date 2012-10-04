@@ -448,6 +448,45 @@ local
 
   val mkSatisfied = SequentSet.map (K PackageNameSet.empty);
 
+  fun addDefined pkg =
+      let
+        fun addName kind nm n =
+            case NameMap.peek nm n of
+                NONE => NameMap.insert nm (n,pkg)
+              | SOME pkg' =>
+                if PackageName.equal pkg' pkg then nm
+                else
+                  let
+                    val err =
+                        "name clash in defined " ^ kind ^ "s: " ^
+                        Name.toString n
+                  in
+                    raise Error err
+                  end
+
+        fun addSymbol (s, {typeOps = ots, consts = cs}) =
+            case s of
+              Symbol.TypeOp ot =>
+              let
+                val ots = addName "type operator" ots (TypeOp.name ot)
+              in
+                {typeOps = ots, consts = cs}
+              end
+            | Symbol.Const c =>
+              let
+                val cs = addName "constant" cs (Const.name c)
+              in
+                {typeOps = ots, consts = cs}
+              end
+      in
+        fn def => fn sym =>
+           let
+             val dsym = SymbolTable.symbols (SymbolTable.defined sym)
+           in
+             SymbolSet.foldl addSymbol def dsym
+           end
+      end;
+
   fun addSatisfied n seqs =
       let
         fun add (seq,ns) =
@@ -473,6 +512,7 @@ local
               end
 
         val ns = PackageNameSet.add ns n
+        and def = addDefined n def sym
 (***
         and ots = addTypeOps n ots (SymbolTable.typeOps sym)
         and cs = addConsts n cs (SymbolTable.consts sym)
@@ -482,15 +522,26 @@ local
         (ns,def,gr,sat)
       end;
 
-  fun checkInitialGrounded kind gr =
-      case NameMap.findl (PackageNameSet.null o snd) gr of
-        NONE => ()
-      | SOME (n,_) =>
-        let
-          val err = "ungrounded input " ^ kind ^ ":\n" ^ Name.toString n
-        in
-          raise Error err
-        end;
+  val checkInitialGrounded =
+      let
+        fun check kind gr =
+            case NameMap.findl (PackageNameSet.null o snd) gr of
+              NONE => ()
+            | SOME (n,_) =>
+              let
+                val err = "ungrounded input " ^ kind ^ ":\n" ^ Name.toString n
+              in
+                raise Error err
+              end
+      in
+        fn {typeOps = ots, consts = cs} =>
+          let
+            val () = check "type operator" ots
+            and () = check "constant" cs
+          in
+            ()
+          end
+      end;
 
   fun checkInitialSatisfied sat =
       case SequentMap.findl (PackageNameSet.null o snd) sat of
@@ -504,10 +555,7 @@ local
 
   fun checkInitial gr sat =
       let
-        val {typeOps = ots, consts = cs} = gr
-
-        val () = checkInitialGrounded "type operator" ots
-        and () = checkInitialGrounded "constant" cs
+        val () = checkInitialGrounded gr
         and () = checkInitialSatisfied sat
       in
         ()
@@ -567,6 +615,7 @@ in
             if PackageNameSet.member n ns then ()
             else raise Error "unknown required package name"
 
+        val def = addDefined n def sym
 (***
         val ots = addTypeOps n ots (SymbolTable.typeOps sym)
         and cs = addConsts n cs (SymbolTable.consts sym)
