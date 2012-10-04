@@ -415,23 +415,35 @@ local
         (n,sym,seqs)
       end;
 
-  val mkGrounded =
+  val mkDefined =
       let
-
-  val mkGroundedTypeOps =
-      let
-        fun add (ot,acc) =
-            NameMap.insert acc (TypeOp.name ot, PackageNameSet.empty)
+        val emptyName : PackageName.name NameMap.map = NameMap.new ()
       in
-        TypeOpSet.foldl add (NameMap.new ())
+        {typeOps = emptyName, consts = emptyName}
       end;
 
-  val mkGroundedConsts =
+  val mkGrounded =
       let
-        fun add (c,acc) =
-            NameMap.insert acc (Const.name c, PackageNameSet.empty)
+        val emptyName : PackageNameSet.set NameMap.map = NameMap.new ()
+
+        fun addName nm n = NameMap.insert nm (n, PackageNameSet.empty)
+
+        fun add (s, {typeOps = ots, consts = cs}) =
+            case s of
+              Symbol.TypeOp ot =>
+              let
+                val ots = addName ots (TypeOp.name ot)
+              in
+                {typeOps = ots, consts = cs}
+              end
+            | Symbol.Const c =>
+              let
+                val cs = addName cs (Const.name c)
+              in
+                {typeOps = ots, consts = cs}
+              end
       in
-        ConstSet.foldl add (NameMap.new ())
+        SymbolSet.foldl add {typeOps = emptyName, consts = emptyName}
       end;
 
   val mkSatisfied = SequentSet.map (K PackageNameSet.empty);
@@ -445,7 +457,7 @@ local
         SequentMap.map add
       end;
 
-  fun addInitial (th,(ns,dots_dcs,gots_gcs,sat)) =
+  fun addInitial (th,(ns,def,gr,sat)) =
       let
         val (n,sym,seqs) = destTheorems th
 
@@ -467,7 +479,7 @@ local
 ***)
         and sat = addSatisfied n seqs sat
       in
-        (ns,dots,dcs,gots,gcs,sat)
+        (ns,def,gr,sat)
       end;
 
   fun checkInitialGrounded kind gr =
@@ -492,10 +504,10 @@ local
 
   fun checkInitial gr sat =
       let
-        val {typeOps = gots, consts = gcs} = gr
+        val {typeOps = ots, consts = cs} = gr
 
-        val () = checkInitialGrounded "type operator" gots
-        and () = checkInitialGrounded "constant" gcs
+        val () = checkInitialGrounded "type operator" ots
+        and () = checkInitialGrounded "constant" cs
         and () = checkInitialSatisfied sat
       in
         ()
@@ -508,16 +520,14 @@ in
         val Summary.Summary' {requires = req, provides = prov} =
             Summary.dest sum
 
-        val (uots,ucs) =
+        val ungr =
             let
               val ireq = SymbolTable.symbols (Sequents.undefined req)
               and iprov = SymbolTable.symbols (Sequents.undefined prov)
 
               val gr = SymbolSet.union ireq initialGrounded
-
-              val ungr = SymbolSet.difference iprov gr
             in
-              SymbolSet.categorize ungr
+              SymbolSet.difference iprov gr
             end
 
         val unsat =
@@ -528,21 +538,18 @@ in
             end
 
         val ns = PackageNameSet.empty
-        and dots = NameMap.new ()
-        and dcs = NameMap.new ()
-        and gots = mkGroundedTypeOps uots
-        and gcs = mkGroundedConsts ucs
+        and def = mkDefined
+        and gr = mkGrounded ungr
         and sat = mkSatisfied unsat
 
-        val (ns,dots,dcs,gots,gcs,sat) =
-            List.foldl addInitial (ns,dots,dcs,gots,gcs,sat) thl
+        val (ns,def,gr,sat) = List.foldl addInitial (ns,def,gr,sat) thl
 
-        val () = checkInitial gots gcs sat
+        val () = checkInitial gr sat
       in
         Versions
           {names = ns,
-           defined = {typeOps = dots, consts = dcs},
-           grounded = {typeOps = gots, consts = gcs},
+           defined = def,
+           grounded = gr,
            satisfied = sat}
       end;
 
@@ -550,8 +557,8 @@ in
       let
         val Versions
               {names = ns,
-               defined = {typeOps = dots, consts = dcs},
-               grounded = {typeOps = gots, consts = gcs},
+               defined = def,
+               grounded = gr,
                satisfied = sat} = vs
 
         val (n,sym,seqs) = destTheorems th
@@ -568,8 +575,8 @@ in
       in
         Versions
           {names = ns,
-           defined = {typeOps = dots, consts = dcs},
-           grounded = {typeOps = gots, consts = gcs},
+           defined = def,
+           grounded = gr,
            satisfied = sat}
       end;
 end;
