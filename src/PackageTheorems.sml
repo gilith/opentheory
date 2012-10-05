@@ -242,155 +242,6 @@ datatype versions =
           consts : PackageNameSet.set NameMap.map},
        satisfied : PackageNameSet.set SequentMap.map};
 
-(***
-local
-  fun destSequents seqs =
-      let
-        val sym = Sequents.symbol seqs
-        and seqs = Sequents.sequents seqs
-
-        val sym = SymbolTable.defined sym
-
-        val seqs' = SequentSet.rewrite TermRewrite.undef seqs
-      in
-        (sym, Option.getOpt (seqs',seqs))
-      end;
-
-  fun destTheorems th =
-      let
-        val Theorems' {package = nv, sequents = seqs} = dest th
-
-        val n = PackageNameVersion.name nv
-        and (sym,seqs) = destSequents seqs
-      in
-        (n,sym,seqs)
-      end;
-
-  fun addTypeOps n =
-      let
-        fun add (ot,ots) =
-            let
-              val otn = TypeOp.name ot
-            in
-              case NameMap.peek ots otn of
-                NONE => NameMap.insert ots (otn,n)
-              | SOME n' =>
-                if PackageName.equal n' n then ots
-                else
-                  let
-                    val err =
-                        "clashing type operator name " ^ Name.toString otn
-                  in
-                    raise Error err
-                  end
-            end
-      in
-        TypeOpSet.foldl add
-      end;
-
-  fun addConsts n =
-      let
-        fun add (c,cs) =
-            let
-              val cn = Const.name c
-            in
-              case NameMap.peek cs cn of
-                NONE => NameMap.insert cs (cn,n)
-              | SOME n' =>
-                if PackageName.equal n' n then cs
-                else
-                  let
-                    val err =
-                        "clashing constant name " ^ Name.toString cn
-                  in
-                    raise Error err
-                  end
-            end
-      in
-        ConstSet.foldl add
-      end;
-
-  fun addSat n seqs (seq,ns) =
-      if not (SequentSet.member seq seqs) then ns
-      else PackageNameSet.add ns n;
-
-  fun checkSat ns =
-      if not (PackageNameSet.null ns) then ()
-      else raise Error "unsatisfied assumption";
-
-  fun deleteSat n seqs (seq,ns) =
-      if not (PackageNameSet.member n ns) then ns
-      else if SequentSet.member seq seqs then ns
-      else
-        let
-          val ns = PackageNameSet.delete ns n
-
-          val () = checkSat ns
-        in
-          ns
-        end;
-
-  fun add (th,(ns,ots,cs,sat)) =
-      let
-        val (n,sym,seqs) = destTheorems th
-
-        val () =
-            if not (PackageNameSet.member n ns) then ()
-            else raise Error "duplicate required package name"
-
-        val ns = PackageNameSet.add ns n
-        and ots = addTypeOps n ots (SymbolTable.typeOps sym)
-        and cs = addConsts n cs (SymbolTable.consts sym)
-        and sat = SequentMap.map (addSat n seqs) sat
-      in
-        (ns,ots,cs,sat)
-      end;
-in
-  fun mkVersions asms thl =
-      let
-        val ns = PackageNameSet.empty
-        and ots = NameMap.new ()
-        and cs = NameMap.new ()
-        and sat = SequentSet.map (K PackageNameSet.empty) asms
-
-        val (ns,ots,cs,sat) = List.foldl add (ns,ots,cs,sat) thl
-
-        val () = SequentMap.app (checkSat o snd) sat
-      in
-        Versions
-          {names = ns,
-           definedTypeOps = ots,
-           definedConsts = cs,
-           satisfiedBy = sat}
-      end;
-
-  fun addVersion vs th =
-      let
-        val Versions
-            {names = ns,
-             definedTypeOps = ots,
-             definedConsts = cs,
-             satisfiedBy = sat} = vs
-
-        val (n,sym,seqs) = destTheorems th
-
-        val () =
-            if PackageNameSet.member n ns then ()
-            else raise Error "unknown required package name"
-
-        val ots = addTypeOps n ots (SymbolTable.typeOps sym)
-        and cs = addConsts n cs (SymbolTable.consts sym)
-        and sat = SequentMap.map (deleteSat n seqs) sat
-      in
-        Versions
-          {names = ns,
-           definedTypeOps = ots,
-           definedConsts = cs,
-           satisfiedBy = sat}
-      end;
-end;
-***)
-
 local
   val initialGrounded = SymbolSet.primitives
   and initialSatisfied = SequentSet.standardAxioms;
@@ -487,13 +338,31 @@ local
            end
       end;
 
-  fun addSatisfied n seqs =
+  fun addGrounded n gr sym =
+      let
+        fun addTypeOp (ot,ns) =
+            if not (SymbolTable.knownTypeOp sym ot) then ns
+            else PackageNameSet.add ns n
+
+        fun addConst (c,ns) =
+            if not (SymbolTable.knownConst sym c) then ns
+            else PackageNameSet.add ns n
+
+        val {typeOps = ots, consts = cs} = gr
+
+        val ots = NameMap.map addTypeOp ots
+        and cs = NameMap.map addConst cs
+      in
+        {typeOps = ots, consts = cs}
+      end;
+
+  fun addSatisfied n sat seqs =
       let
         fun add (seq,ns) =
             if not (SequentSet.member seq seqs) then ns
             else PackageNameSet.add ns n
       in
-        SequentMap.map add
+        SequentMap.map add sat
       end;
 
   fun addInitial (th,(ns,def,gr,sat)) =
@@ -513,11 +382,8 @@ local
 
         val ns = PackageNameSet.add ns n
         and def = addDefined n def sym
-(***
-        and ots = addTypeOps n ots (SymbolTable.typeOps sym)
-        and cs = addConsts n cs (SymbolTable.consts sym)
-***)
-        and sat = addSatisfied n seqs sat
+        and gr = addGrounded n gr sym
+        and sat = addSatisfied n sat seqs
       in
         (ns,def,gr,sat)
       end;
@@ -562,6 +428,54 @@ local
       end
       handle Error err =>
         raise Error ("required theories not sufficient:\n" ^ err);
+
+  fun removeGrounded n gr sym =
+      let
+        fun removeTypeOp (ot,ns) =
+            if not (PackageNameSet.member n ns) then ns
+            else if SymbolTable.knownTypeOp sym ot then ns
+            else
+              let
+                val ns = PackageNameSet.delete ns n
+              in
+                if not (PackageNameSet.null ns) then ns
+                else raise Error "ungrounded input type operator"
+              end
+
+        fun removeConst (c,ns) =
+            if not (PackageNameSet.member n ns) then ns
+            else if SymbolTable.knownConst sym c then ns
+            else
+              let
+                val ns = PackageNameSet.delete ns n
+              in
+                if not (PackageNameSet.null ns) then ns
+                else raise Error "ungrounded input constant"
+              end
+
+        val {typeOps = ots, consts = cs} = gr
+
+        val ots = NameMap.map removeTypeOp ots
+        and cs = NameMap.map removeConst cs
+      in
+        {typeOps = ots, consts = cs}
+      end;
+
+  fun removeSatisfied n sat seqs =
+      let
+        fun remove (seq,ns) =
+            if not (PackageNameSet.member n ns) then ns
+            else if SequentSet.member seq seqs then ns
+            else
+              let
+                val ns = PackageNameSet.delete ns n
+              in
+                if not (PackageNameSet.null ns) then ns
+                else raise Error "unsatisfied assumption"
+              end
+      in
+        SequentMap.map remove sat
+      end;
 in
   fun mkVersions sum thl =
       let
@@ -616,11 +530,8 @@ in
             else raise Error "unknown required package name"
 
         val def = addDefined n def sym
-(***
-        val ots = addTypeOps n ots (SymbolTable.typeOps sym)
-        and cs = addConsts n cs (SymbolTable.consts sym)
-        and sat = SequentMap.map (deleteSat n seqs) sat
-***)
+        and gr = removeGrounded n gr sym
+        and sat = removeSatisfied n sat seqs
       in
         Versions
           {names = ns,
