@@ -1,5 +1,5 @@
 name: word10-def
-version: 1.57
+version: 1.58
 description: Definition of 10-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -48,7 +48,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word10.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word10.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word10.Bits.toWord"
-  package: word-1.81
+  package: word-1.82
 }
 
 main {

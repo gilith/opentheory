@@ -1,6 +1,6 @@
 name: gfp-div-exp-thm
-version: 1.31
-description: Properties of a GF(p) exponentiation algorithm based on division
+version: 1.32
+description: Correctness of a GF(p) exponentiation algorithm based on division
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-25

@@ -1,5 +1,5 @@
 name: gfp
-version: 1.68
+version: 1.69
 description: Parametric theory of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -34,7 +34,7 @@ thm {
 div {
   import: def
   import: thm
-  package: gfp-div-1.59
+  package: gfp-div-1.60
 }
 
 main {

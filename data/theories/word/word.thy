@@ -1,5 +1,5 @@
 name: word
-version: 1.81
+version: 1.82
 description: Parametric theory of words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -25,7 +25,7 @@ def {
 
 bits {
   import: def
-  package: word-bits-1.72
+  package: word-bits-1.73
 }
 
 main {

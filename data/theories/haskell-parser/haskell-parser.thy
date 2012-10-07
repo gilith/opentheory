@@ -1,6 +1,6 @@
 name: haskell-parser
-version: 1.109
-description: Simple stream parsers
+version: 1.110
+description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 haskell-category: Parsing
@@ -21,17 +21,17 @@ show: "Parser"
 show: "Probability.Random"
 
 def {
-  package: haskell-parser-def-1.47
+  package: haskell-parser-def-1.48
 }
 
 src {
   import: def
-  package: haskell-parser-src-1.78
+  package: haskell-parser-src-1.79
 }
 
 test {
   import: def
-  package: haskell-parser-test-1.39
+  package: haskell-parser-test-1.40
 }
 
 main {
