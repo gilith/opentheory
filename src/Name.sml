@@ -305,7 +305,9 @@ end;
 local
   fun mkList c = mk (Namespace.list,c);
 in
-  val appendConst = mkList Namespace.appendConstComponent
+  val allConst = mkList Namespace.allConstComponent
+  and anyConst = mkList Namespace.anyConstComponent
+  and appendConst = mkList Namespace.appendConstComponent
   and concatConst = mkList Namespace.concatConstComponent
   and consConst = mkList Namespace.consConstComponent
   and headConst = mkList Namespace.headConstComponent

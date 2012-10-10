@@ -129,6 +129,8 @@ local
          (Name.addConst, mkNative "+"),
          (Name.addByteConst, mkNative "+"),
          (Name.addWord16Const, mkNative "+"),
+         (Name.allConst, mkNative "all"),
+         (Name.anyConst, mkNative "any"),
          (Name.appendConst, mkNative "++"),
          (Name.appendStreamConst, mkNative "++"),
          (Name.concatConst, mkNative "concat"),

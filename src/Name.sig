@@ -156,6 +156,8 @@ val idConst : name
 
 (* Lists *)
 
+val allConst : name
+val anyConst : name
 val appendConst : name
 val concatConst : name
 val consConst : name
