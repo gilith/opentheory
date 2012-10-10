@@ -26,5 +26,6 @@ proposition0 r =
 
 main :: IO ()
 main =
-    do Primitive.Test.check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
+    do Primitive.Test.assert "Assertion 0:\n  T\n  " assertion0
+       Primitive.Test.check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
        return ()
