@@ -864,7 +864,7 @@ fun destTests show =
              Print.newline,
              Term.ppWithShow show test]
 
-      val ppAssertion = ppTest "Assertion
+      val ppAssertion = ppTest "Assertion"
       and ppProposition = ppTest "Proposition"
 
       fun destProposition pl th =
@@ -881,10 +881,10 @@ fun destTests show =
                 if VarSet.null (Term.freeVars concl) then ()
                 else raise Error "free variables"
 
-            val isProp = Term.isForall concl
+            val isAssert = not (Term.isForall concl)
 
             val (args,body) =
-                if not isProp then ([],concl)
+                if isAssert then ([],concl)
                 else
                   let
                     val (v,body) = Term.destForall concl
@@ -898,14 +898,15 @@ fun destTests show =
                     ([arg],body)
                   end
 
-        val eqn =
-            Equation
-              {arguments = [arg],
-               body = body,
-               whereValues = []}
+            val eqn =
+                Equation
+                  {arguments = [arg],
+                   body = body,
+                   whereValues = []}
 
-        val n = if isProp 
-        val name = "proposition" ^ Int.toString n
+            val n = length (if isAssert then al else pl)
+
+            val name = "proposition" ^ Int.toString n
 
         val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
 
