@@ -16,6 +16,9 @@ where
 import qualified OpenTheory.Primitive.Random as Primitive.Random
 import qualified OpenTheory.Primitive.Test as Primitive.Test
 
+assertion0 :: Bool
+assertion0 = True
+
 proposition0 :: Primitive.Random.Random -> Bool
 proposition0 r =
   let (p,_) = Primitive.Random.bit r in
@@ -23,5 +26,6 @@ proposition0 r =
 
 main :: IO ()
 main =
-    do Primitive.Test.check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
+    do Primitive.Test.assert "Assertion 0:\n  T\n  " assertion0
+       Primitive.Test.check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
        return ()

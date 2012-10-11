@@ -129,6 +129,8 @@ local
          (Name.addConst, mkNative "+"),
          (Name.addByteConst, mkNative "+"),
          (Name.addWord16Const, mkNative "+"),
+         (Name.allConst, mkNative "all"),
+         (Name.anyConst, mkNative "any"),
          (Name.appendConst, mkNative "++"),
          (Name.appendStreamConst, mkNative "++"),
          (Name.concatConst, mkNative "concat"),
@@ -851,34 +853,50 @@ fun destSource th =
         end
     end;
 
-local
-  fun ppProposition show (n,prop) =
-      Print.inconsistentBlock 2
-        [Print.ppString "Proposition ",
-         Print.ppInt n,
-         Print.ppString ":",
-         Print.newline,
-         Term.ppWithShow show prop]
-in
-  fun destTest show th n =
-      let
-        val Sequent.Sequent {hyp,concl} = Thm.sequent th
+fun destTests show =
+    let
+      fun ppTest kind (n,test) =
+          Print.inconsistentBlock 2
+            [Print.ppString kind,
+             Print.ppString " ",
+             Print.ppInt n,
+             Print.ppString ":",
+             Print.newline,
+             Term.ppWithShow show test]
 
-        val () =
-            if TermAlphaSet.null hyp then ()
-            else raise Error "hypotheses"
+      val ppAssertion = ppTest "Assertion
+      and ppProposition = ppTest "Proposition"
 
-        val () =
-            if VarSet.null (Term.freeVars concl) then ()
-            else raise Error "free variables"
+      fun destProposition pl th =
 
-        val (v,body) = Term.destForall concl
+      fun destTest al pl th =
+          let
+            val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
-        val () =
-            if Type.isRandom (Var.typeOf v) then ()
-            else raise Error "bad quantified variable type"
+            val () =
+                if TermAlphaSet.null hyp then ()
+                else raise Error "hypotheses"
 
-        val arg = Term.mkVar v
+            val () =
+                if VarSet.null (Term.freeVars concl) then ()
+                else raise Error "free variables"
+
+            val isProp = Term.isForall concl
+
+            val (args,body) =
+                if not isProp then ([],concl)
+                else
+                  let
+                    val (v,body) = Term.destForall concl
+
+                    val () =
+                        if Type.isRandom (Var.typeOf v) then ()
+                        else raise Error "bad quantified variable type"
+
+                    val arg = Term.mkVar v
+                  in
+                    ([arg],body)
+                  end
 
         val eqn =
             Equation
@@ -886,6 +904,7 @@ in
                body = body,
                whereValues = []}
 
+        val n = if isProp 
         val name = "proposition" ^ Int.toString n
 
         val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
@@ -907,8 +926,20 @@ in
         (test,n)
       end
       handle Error err =>
-        raise Error ("bad test theorem: " ^ err);
-end;
+        raise Error ("bad test theorem: " ^ err)
+
+      fun dest al pl ths =
+          case ths of
+            [] => List.revAppend (al, List.rev pl)
+          | th :: ths =>
+            let
+              val (al,pl) = destTest al pl th
+            in
+              dest al pl ths
+            end
+    in
+      dest [] []
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Sorting Haskell declarations into a module hierarchy.                     *)
@@ -1374,10 +1405,10 @@ fun destTestTheory show test =
 
       val ths = ThmSet.toList (Thms.thms (Article.thms art))
 
-      val (tests,n) = maps (destTest show) ths 0
+      val tests = destTests show ths
 
       val () =
-          if n > 0 then ()
+          if not (List.null tests) then ()
           else raise Error "no tests defined"
     in
       tests

@@ -102,7 +102,9 @@ and word16TypeOpComponent = "word16";
 (* Standard constants *)
 
 val addConstComponent = "+"
+and allConstComponent = "all"
 and andConstComponent = "and"
+and anyConstComponent = "any"
 and appendConstComponent = "@"
 and bitConstComponent = "bit"
 and bit0ConstComponent = "bit0"

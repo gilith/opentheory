@@ -72,7 +72,9 @@ val word16TypeOpComponent : component
 (* Standard constants *)
 
 val addConstComponent : component
+val allConstComponent : component
 val andConstComponent : component
+val anyConstComponent : component
 val appendConstComponent : component
 val bitConstComponent : component
 val bit0ConstComponent : component

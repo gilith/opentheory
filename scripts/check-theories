@@ -258,7 +258,7 @@ while (my $thy = <THEORIES>) {
 
 close THEORIES;
 
-$cmd = "$opentheory list '~WellFounded (Requires|Includes)* Mine'";
+$cmd = "$opentheory list --dependency-order '~WellFounded (Requires|Includes)* Mine'";
 
 # print STDOUT "cmd = $cmd\n";
 
