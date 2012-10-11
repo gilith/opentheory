@@ -1,9 +1,9 @@
 name: probability-thm
-version: 1.5
+version: 1.6
 description: Properties of probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-13
+provenance: HOL Light theory extracted on 2012-10-10
 requires: bool
 requires: list
 requires: natural

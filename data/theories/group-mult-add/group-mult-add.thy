@@ -1,5 +1,5 @@
 name: group-mult-add
-version: 1.3
+version: 1.5
 description: Group multiplication by repeated addition
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,12 +17,12 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: group-mult-add-def-1.7
+  package: group-mult-add-def-1.9
 }
 
 thm {
   import: def
-  package: group-mult-add-thm-1.6
+  package: group-mult-add-thm-1.8
 }
 
 main {

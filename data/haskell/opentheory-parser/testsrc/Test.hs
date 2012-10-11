@@ -1,6 +1,6 @@
 {- |
 module: Main
-description: Simple stream parsers - testing
+description: Stream parsers - testing
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>

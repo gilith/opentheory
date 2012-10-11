@@ -1,6 +1,6 @@
 {- |
 module: $Header$
-description: Simple stream parsers
+description: Stream parsers
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>

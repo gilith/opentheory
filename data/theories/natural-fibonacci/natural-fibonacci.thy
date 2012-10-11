@@ -1,5 +1,5 @@
 name: natural-fibonacci
-version: 1.40
+version: 1.42
 description: Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,18 +17,18 @@ show: "Probability.Random"
 show: "Relation"
 
 exists {
-  package: natural-fibonacci-exists-1.27
+  package: natural-fibonacci-exists-1.29
 }
 
 def {
   import: exists
-  package: natural-fibonacci-def-1.31
+  package: natural-fibonacci-def-1.33
 }
 
 thm {
   import: exists
   import: def
-  package: natural-fibonacci-thm-1.36
+  package: natural-fibonacci-thm-1.38
 }
 
 main {

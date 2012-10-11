@@ -1,9 +1,9 @@
 name: group-mult-add-thm
-version: 1.6
+version: 1.8
 description: Correctness of group multiplication by repeated addition
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-09-25
+provenance: HOL Light theory extracted on 2012-10-10
 requires: bool
 requires: group-mult-add-def
 requires: group-mult-def

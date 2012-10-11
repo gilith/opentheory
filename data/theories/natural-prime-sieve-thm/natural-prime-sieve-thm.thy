@@ -1,9 +1,9 @@
 name: natural-prime-sieve-thm
-version: 1.17
+version: 1.19
 description: Properties of the sieve of Eratosthenes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-13
+provenance: HOL Light theory extracted on 2012-10-10
 requires: bool
 requires: function
 requires: list
