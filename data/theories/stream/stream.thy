@@ -23,7 +23,7 @@ def {
 
 thm {
   import: def
-  package: stream-thm-1.20
+  package: stream-thm-1.21
 }
 
 main {

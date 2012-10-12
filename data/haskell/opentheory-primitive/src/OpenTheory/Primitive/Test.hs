@@ -17,10 +17,11 @@ import Test.QuickCheck
 assert :: String -> Bool -> IO ()
 assert desc prop =
   do putStr desc
-     if prop then putStrLn "Passed"
-     else
-       do putStrLn "Failed"
-          error "Assertion failed"
+     if prop
+       then putStrLn "+++ OK"
+       else
+         do putStrLn "*** Failed!"
+            error "Assertion failed"
 
 checkArgs :: Test.QuickCheck.Args
 checkArgs = Test.QuickCheck.stdArgs { maxSuccess = 100 }

@@ -1,13 +1,14 @@
 name: haskell-src
-version: 1.46
+version: 1.48
 description: Source of the Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-10-10
+provenance: HOL Light theory extracted on 2012-10-11
 requires: base
 requires: byte
 requires: haskell-def
 requires: natural-bits
+requires: natural-divides
 requires: natural-fibonacci
 requires: probability
 requires: stream

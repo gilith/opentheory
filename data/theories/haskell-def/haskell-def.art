@@ -4595,7 +4595,7 @@ appTerm
 remove
 appTerm
 thm
-"HOLLight.dividesH"
+"Haskell.Number.Natural.divides"
 "Number.Natural.divides"
 const
 0

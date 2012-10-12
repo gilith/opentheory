@@ -1,5 +1,5 @@
 name: list-filter
-version: 1.44
+version: 1.45
 description: The list filter function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -24,7 +24,7 @@ def {
 
 thm {
   import: def
-  package: list-filter-thm-1.47
+  package: list-filter-thm-1.48
 }
 
 main {

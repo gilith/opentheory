@@ -1,5 +1,5 @@
 name: haskell
-version: 1.68
+version: 1.71
 description: The Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -7,6 +7,7 @@ provenance: HOL Light theory extracted on 2012-02-26
 requires: base
 requires: byte
 requires: natural-bits
+requires: natural-divides
 requires: natural-fibonacci
 requires: probability
 requires: stream
@@ -30,7 +31,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: haskell-def-1.61
+  package: haskell-def-1.62
 }
 
 thm {
@@ -40,12 +41,12 @@ thm {
 
 src {
   import: def
-  package: haskell-src-1.46
+  package: haskell-src-1.48
 }
 
 test {
   import: def
-  package: haskell-test-1.31
+  package: haskell-test-1.33
 }
 
 main {

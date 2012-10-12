@@ -1,5 +1,5 @@
 name: list
-version: 1.75
+version: 1.76
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -41,7 +41,7 @@ set {
   import: def
   import: dest
   import: length
-  package: list-set-1.44
+  package: list-set-1.45
 }
 
 append {
@@ -49,7 +49,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.44
+  package: list-append-1.45
 }
 
 map {
@@ -59,7 +59,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.44
+  package: list-map-1.45
 }
 
 filter {
@@ -68,7 +68,7 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.44
+  package: list-filter-1.45
 }
 
 last {
@@ -103,7 +103,7 @@ nth {
   import: append
   import: map
   import: last
-  package: list-nth-1.51
+  package: list-nth-1.52
 }
 
 replicate {

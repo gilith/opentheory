@@ -290,7 +290,8 @@ datatype test =
     Test of
       {name : string,
        description : string,
-       value : value};
+       value : value,
+       invocation : string};
 
 datatype haskell =
      Haskell of
@@ -855,19 +856,14 @@ fun destSource th =
 
 fun destTests show =
     let
-      fun ppTest kind (n,test) =
+      fun ppTest (kind,n,test) =
           Print.inconsistentBlock 2
-            [Print.ppString kind,
+            [Print.ppString (capitalize kind),
              Print.ppString " ",
              Print.ppInt n,
              Print.ppString ":",
              Print.newline,
              Term.ppWithShow show test]
-
-      val ppAssertion = ppTest "Assertion"
-      and ppProposition = ppTest "Proposition"
-
-      fun destProposition pl th =
 
       fun destTest al pl th =
           let
@@ -900,34 +896,46 @@ fun destTests show =
 
             val eqn =
                 Equation
-                  {arguments = [arg],
+                  {arguments = args,
                    body = body,
                    whereValues = []}
 
             val n = length (if isAssert then al else pl)
 
-            val name = "proposition" ^ Int.toString n
+            val kind = if isAssert then "assertion" else "proposition"
 
-        val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
+            val name = kind ^ Int.toString n
 
-        val ty = Type.mkFun (Term.typeOf arg, Term.typeOf body)
+            val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
 
-        val value =
-            Value
-              {name = const,
-               ty = ty,
-               equations = [eqn]}
+            val ty =
+                let
+                  fun addArg (arg,acc) = Type.mkFun (Term.typeOf arg, acc)
+                in
+                  List.foldr addArg (Term.typeOf body) args
+                end
 
-        val desc = Print.toString (ppProposition show) (n,concl)
+            val value =
+                Value
+                  {name = const,
+                   ty = ty,
+                   equations = [eqn]}
 
-        val test = Test {name = name, description = desc, value = value}
+            val desc = Print.toString ppTest (kind,n,concl)
 
-        val n = n + 1
-      in
-        (test,n)
-      end
-      handle Error err =>
-        raise Error ("bad test theorem: " ^ err)
+            val invoke = if isAssert then "assert" else "check"
+
+            val test =
+                Test
+                  {name = name,
+                   description = desc,
+                   value = value,
+                   invocation = invoke}
+          in
+            if isAssert then (test :: al, pl) else (al, test :: pl)
+          end
+          handle Error err =>
+            raise Error ("bad test theorem: " ^ err)
 
       fun dest al pl ths =
           case ths of
@@ -2529,10 +2537,12 @@ local
 
   fun ppInvokeTest test =
       let
-        val Test {name, description = desc, ...} = test
+        val Test {name, description = desc, invocation = invoke, ...} = test
       in
         Print.program
-          [Print.ppString "Primitive.Test.check \"",
+          [Print.ppString "Primitive.Test.",
+           Print.ppString invoke,
+           Print.ppString " \"",
            Print.ppString (escapeString desc),
            Print.ppString "\\n  \" ",
            Print.ppString name,

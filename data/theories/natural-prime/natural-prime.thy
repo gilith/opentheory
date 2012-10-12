@@ -1,5 +1,5 @@
 name: natural-prime
-version: 1.52
+version: 1.53
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -31,7 +31,7 @@ thm {
 
 stream {
   import: thm
-  package: natural-prime-stream-1.16
+  package: natural-prime-stream-1.17
 }
 
 sieve {

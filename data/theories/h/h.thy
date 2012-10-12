@@ -1,5 +1,5 @@
 name: h
-version: 1.98
+version: 1.99
 description: Memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ show: "Set"
 show: "System.H"
 
 def {
-  package: h-def-1.99
+  package: h-def-1.100
 }
 
 thm {

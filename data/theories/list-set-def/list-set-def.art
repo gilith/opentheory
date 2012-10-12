@@ -10436,7 +10436,7 @@ appTerm
 761
 def
 appTerm
-"Data.List.exists"
+"Data.List.any"
 761
 ref
 defineConst
