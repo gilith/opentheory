@@ -1,5 +1,5 @@
 name: haskell-prime
-version: 1.17
+version: 1.19
 description: Prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -32,7 +32,7 @@ src {
 
 test {
   import: def
-  package: haskell-prime-test-1.18
+  package: haskell-prime-test-1.20
 }
 
 main {

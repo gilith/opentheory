@@ -23,7 +23,7 @@ import qualified OpenTheory.Primitive.Test as Primitive.Test
 proposition0 :: Primitive.Random.Random -> Bool
 proposition0 r =
   let (cs, _) = Data.List.Geometric.fromRandom Data.Unicode.fromRandom r in
-  Data.List.size cs <= Data.List.size (Data.Unicode.UTF8.encode cs)
+  Data.List.length' cs <= Data.List.length' (Data.Unicode.UTF8.encode cs)
 
 proposition1 :: Primitive.Random.Random -> Bool
 proposition1 r =
@@ -48,7 +48,7 @@ proposition3 r =
 
 main :: IO ()
 main =
-    do Primitive.Test.check "Proposition 0:\n  !r.\n    let (cs, r') <- H.Geometric.fromRandom H.fromRandom r in\n    H.size cs <= H.size (H.UTF8.encode cs)\n  " proposition0
+    do Primitive.Test.check "Proposition 0:\n  !r.\n    let (cs, r') <- H.Geometric.fromRandom H.fromRandom r in\n    H.length' cs <= H.length' (H.UTF8.encode cs)\n  " proposition0
        Primitive.Test.check "Proposition 1:\n  !r.\n    let (cs, r') <- H.Geometric.fromRandom H.fromRandom r in\n    H.equal (H.equal H.equal) (H.UTF8.decode (H.UTF8.encode cs)) (some cs)\n  " proposition1
        Primitive.Test.check "Proposition 2:\n  !r.\n    let (bs, r') <- H.Geometric.fromRandom H.fromRandom r in\n    case H.UTF8.decode bs of\n      none -> T\n    | some cs -> H.equal (=) (H.UTF8.encode cs) bs\n  " proposition2
        Primitive.Test.check "Proposition 3:\n  !r.\n    let (c, r') <- H.fromRandom r in\n    let (pl, pos) <- H.unUnicode c in\n    let pli <- H.unPlane pl in\n    let posi <- H.unPosition pos in\n    ~(pli = 0) \\/ posi < 55296 \\/ 57343 < posi /\\ posi < 65534\n  " proposition3

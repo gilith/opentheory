@@ -1,5 +1,5 @@
 name: haskell-src
-version: 1.48
+version: 1.50
 description: Source of the Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

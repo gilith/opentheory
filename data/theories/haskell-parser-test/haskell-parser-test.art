@@ -14041,7 +14041,7 @@ opType
 constTerm
 1098
 def
-"Haskell.Data.List.size"
+"Haskell.Data.List.length'"
 const
 1099
 def

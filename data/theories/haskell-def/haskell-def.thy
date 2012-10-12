@@ -1,5 +1,5 @@
 name: haskell-def
-version: 1.62
+version: 1.64
 description: Definition of the Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

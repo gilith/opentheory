@@ -30035,7 +30035,7 @@ def
 constTerm
 2141
 def
-"Haskell.Data.List.size"
+"Haskell.Data.List.length'"
 const
 2142
 def

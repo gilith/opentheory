@@ -37,9 +37,18 @@ proposition1 r =
     (Number.Natural.divides (Data.Stream.nth Number.Natural.Prime.all i)
        (Data.Stream.nth Number.Natural.Prime.all (i + j + 1)))
 
+proposition2 :: Primitive.Random.Random -> Bool
+proposition2 r =
+  let (n, r') = Number.Natural.fromRandom r in
+  let (i, _) = Number.Natural.Geometric.fromRandom r' in
+  any (\p -> Number.Natural.divides p (n + 2))
+    (Data.Stream.take' Number.Natural.Prime.all i) ||
+  Data.Stream.nth Number.Natural.Prime.all i <= n + 2
+
 main :: IO ()
 main =
     do Primitive.Test.assert "Assertion 0:\n  ~(H.nth H.Prime.all 0 = 0)\n  " assertion0
        Primitive.Test.check "Proposition 0:\n  !r.\n    let (i, r') <- H.Geometric.fromRandom r in\n    let (j, r'') <- H.Geometric.fromRandom r' in\n    H.nth H.Prime.all i <= H.nth H.Prime.all j <=> i <= j\n  " proposition0
        Primitive.Test.check "Proposition 1:\n  !r.\n    let (i, r') <- H.Geometric.fromRandom r in\n    let (j, r'') <- H.Geometric.fromRandom r' in\n    ~H.divides (H.nth H.Prime.all i) (H.nth H.Prime.all (i + j + 1))\n  " proposition1
+       Primitive.Test.check "Proposition 2:\n  !r.\n    let (n, r') <- H.fromRandom r in\n    let (i, r'') <- H.Geometric.fromRandom r' in\n    any (\\p. H.divides p (n + 2)) (H.take' H.Prime.all i) \\/\n    H.nth H.Prime.all i <= n + 2\n  " proposition2
        return ()

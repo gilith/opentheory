@@ -30,6 +30,6 @@ equal _ [] (_ : _) = False
 equal _ (_ : _) [] = False
 equal eq (h1 : t1) (h2 : t2) = eq h1 h2 && equal eq t1 t2
 
-size :: [a] -> Primitive.Natural.Natural
-size [] = 0
-size (_ : t) = 1 + size t
+length' :: [a] -> Primitive.Natural.Natural
+length' [] = 0
+length' (_ : t) = 1 + length' t

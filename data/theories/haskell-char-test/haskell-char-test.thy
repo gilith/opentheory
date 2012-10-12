@@ -1,5 +1,5 @@
 name: haskell-char-test
-version: 1.23
+version: 1.24
 description: QuickCheck tests for Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

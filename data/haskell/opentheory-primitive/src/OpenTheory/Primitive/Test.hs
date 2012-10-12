@@ -20,7 +20,8 @@ assert desc prop =
      if prop
        then putStrLn "+++ OK"
        else
-         do putStrLn "*** Failed!"
+         do putStr "**"
+            putStrLn "* Failed!"
             error "Assertion failed"
 
 checkArgs :: Test.QuickCheck.Args

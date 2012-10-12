@@ -1,5 +1,5 @@
 name: opentheory-primitive
-version: 1.1
+version: 1.2
 category: Formal Methods
 synopsis: Haskell primitives used by OpenTheory packages
 license: MIT
