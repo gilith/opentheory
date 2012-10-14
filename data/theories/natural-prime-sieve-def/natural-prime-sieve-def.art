@@ -180,7 +180,7 @@ var
 def
 7
 ref
-"_12054"
+"_22818"
 2
 ref
 var
@@ -668,6 +668,8 @@ ref
 constTerm
 95
 def
+95
+ref
 "Number.Natural.bit0"
 const
 83
@@ -675,8 +677,6 @@ ref
 constTerm
 96
 def
-96
-ref
 95
 ref
 95
@@ -690,9 +690,9 @@ appTerm
 def
 appTerm
 appTerm
-appTerm
 98
 def
+appTerm
 appTerm
 appTerm
 99
@@ -3288,7 +3288,7 @@ ref
 ref
 55
 ref
-"_12051"
+"_22815"
 79
 ref
 var
@@ -3996,7 +3996,7 @@ remove
 var
 373
 def
-"_12050"
+"_22814"
 314
 ref
 var
@@ -5904,19 +5904,19 @@ assume
 eqMp
 516
 def
-"_12047"
+"_22811"
 2
 ref
 var
 517
 def
-"_12048"
+"_22812"
 2
 ref
 var
 518
 def
-"_12049"
+"_22813"
 22
 ref
 var
@@ -7447,7 +7447,7 @@ ref
 ref
 63
 remove
-"_12073"
+"_22837"
 49
 ref
 var
@@ -7570,7 +7570,7 @@ ref
 nil
 600
 remove
-"_12071"
+"_22835"
 20
 ref
 var
@@ -8089,7 +8089,7 @@ ref
 ref
 38
 ref
-"_12067"
+"_22831"
 2
 ref
 var
@@ -8285,7 +8285,7 @@ eqMp
 ref
 429
 ref
-"_12066"
+"_22830"
 2
 ref
 var
@@ -8433,7 +8433,7 @@ eqMp
 ref
 319
 ref
-"_12065"
+"_22829"
 2
 ref
 var
@@ -12466,7 +12466,7 @@ refl
 ref
 80
 ref
-"_12061"
+"_22825"
 17
 ref
 var
@@ -13056,7 +13056,7 @@ refl
 ref
 80
 ref
-"_12063"
+"_22827"
 17
 remove
 var
@@ -13519,7 +13519,7 @@ ref
 38
 ref
 "Number.Natural.Prime.Sieve.invariant"
-"_12075"
+"_22839"
 14
 ref
 2
@@ -13888,7 +13888,7 @@ ref
 ref
 38
 ref
-"_12081"
+"_22845"
 22
 ref
 var
@@ -14078,7 +14078,7 @@ eqMp
 ref
 533
 ref
-"_12080"
+"_22844"
 2
 ref
 var
@@ -17200,7 +17200,7 @@ def
 80
 ref
 "Number.Natural.Prime.Sieve.max"
-"_12084"
+"_22848"
 1206
 ref
 var
@@ -17333,7 +17333,7 @@ ref
 1006
 ref
 "Number.Natural.Prime.Sieve.primes"
-"_12089"
+"_22853"
 1206
 ref
 var
@@ -17607,7 +17607,7 @@ var
 def
 7
 ref
-"_12101"
+"_22865"
 2
 ref
 var
@@ -18032,11 +18032,14 @@ appTerm
 1306
 def
 96
+ref
+96
 remove
 95
 ref
 98
 remove
+appTerm
 appTerm
 1307
 def
@@ -18950,7 +18953,7 @@ ref
 ref
 55
 ref
-"_12098"
+"_22862"
 1350
 ref
 var
@@ -19281,7 +19284,7 @@ remove
 var
 1370
 def
-"_12097"
+"_22861"
 1352
 ref
 var
@@ -20439,19 +20442,19 @@ assume
 eqMp
 1446
 def
-"_12094"
+"_22858"
 2
 ref
 var
 1447
 def
-"_12095"
+"_22859"
 2
 ref
 var
 1448
 def
-"_12096"
+"_22860"
 22
 remove
 var
@@ -21946,7 +21949,7 @@ ref
 ref
 1278
 remove
-"_12120"
+"_22884"
 1275
 ref
 var
@@ -22069,7 +22072,7 @@ ref
 nil
 1519
 remove
-"_12118"
+"_22882"
 20
 remove
 var
@@ -22361,7 +22364,7 @@ ref
 ref
 1249
 remove
-"_12114"
+"_22878"
 2
 ref
 var
@@ -22556,7 +22559,7 @@ eqMp
 ref
 1420
 ref
-"_12113"
+"_22877"
 2
 ref
 var
@@ -22672,7 +22675,7 @@ eqMp
 ref
 1357
 ref
-"_12112"
+"_22876"
 2
 ref
 var
@@ -23227,7 +23230,7 @@ constTerm
 1582
 def
 "Number.Natural.Prime.Sieve.increment"
-"_12122"
+"_22886"
 1206
 ref
 var
@@ -23651,7 +23654,7 @@ var
 def
 7
 ref
-"_12179"
+"_22943"
 2
 ref
 var
@@ -26099,7 +26102,7 @@ ref
 ref
 1684
 ref
-"_12137"
+"_22901"
 1580
 ref
 var
@@ -26200,7 +26203,7 @@ ref
 nil
 1783
 ref
-"_12135"
+"_22899"
 1579
 ref
 var
@@ -26383,7 +26386,7 @@ ref
 ref
 38
 ref
-"_12132"
+"_22896"
 1206
 ref
 var
@@ -26535,7 +26538,7 @@ opType
 constTerm
 1816
 def
-"_12131"
+"_22895"
 3
 ref
 var
@@ -27033,7 +27036,7 @@ appThm
 1691
 remove
 refl
-"_12149"
+"_22913"
 1690
 remove
 var
@@ -27102,7 +27105,7 @@ ref
 ref
 1627
 ref
-"_12161"
+"_22925"
 1624
 ref
 var
@@ -27203,7 +27206,7 @@ ref
 nil
 1841
 ref
-"_12159"
+"_22923"
 1579
 ref
 var
@@ -27360,7 +27363,7 @@ ref
 ref
 1606
 ref
-"_12156"
+"_22920"
 1206
 ref
 var
@@ -27824,7 +27827,7 @@ ref
 ref
 1627
 ref
-"_12173"
+"_22937"
 1624
 remove
 var
@@ -27925,7 +27928,7 @@ ref
 nil
 1889
 ref
-"_12171"
+"_22935"
 1579
 remove
 var
@@ -28097,7 +28100,7 @@ ref
 ref
 1606
 ref
-"_12168"
+"_22932"
 1206
 remove
 var
@@ -28225,7 +28228,7 @@ eqMp
 ref
 1612
 remove
-"_12167"
+"_22931"
 3
 ref
 var
@@ -28681,7 +28684,7 @@ ref
 ref
 38
 ref
-"_12177"
+"_22941"
 3
 ref
 var
@@ -29414,7 +29417,7 @@ ref
 ref
 38
 ref
-"_12175"
+"_22939"
 3
 ref
 var

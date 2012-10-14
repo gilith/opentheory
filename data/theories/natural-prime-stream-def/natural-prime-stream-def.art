@@ -222,7 +222,7 @@ var
 def
 10
 ref
-"_11920"
+"_22684"
 7
 ref
 var
@@ -368,10 +368,6 @@ ref
 constTerm
 54
 def
-54
-ref
-54
-remove
 "Number.Natural.bit1"
 const
 22
@@ -379,6 +375,10 @@ remove
 constTerm
 55
 def
+54
+remove
+55
+ref
 55
 ref
 55
@@ -2891,7 +2891,7 @@ constTerm
 219
 def
 "Number.Natural.Prime.below"
-"_11921"
+"_22685"
 7
 ref
 var

@@ -275,7 +275,7 @@ def
 constTerm
 45
 def
-"_13422"
+"_24186"
 19
 ref
 var
@@ -355,10 +355,6 @@ appTerm
 def
 52
 ref
-52
-ref
-52
-remove
 "Number.Natural.bit0"
 const
 51
@@ -366,6 +362,10 @@ ref
 constTerm
 57
 def
+57
+ref
+52
+remove
 57
 ref
 57
@@ -4492,7 +4492,7 @@ ref
 ref
 68
 ref
-"_13420"
+"_24184"
 19
 ref
 var
@@ -6491,7 +6491,7 @@ ref
 ref
 68
 ref
-"_13418"
+"_24182"
 19
 remove
 var
@@ -8099,7 +8099,7 @@ ref
 ref
 68
 ref
-"_13416"
+"_24180"
 3
 remove
 var
@@ -8571,13 +8571,13 @@ remove
 16
 ref
 "Number.GF(p)./"
-"_13423"
+"_24187"
 2
 ref
 var
 622
 def
-"_13424"
+"_24188"
 2
 ref
 var
@@ -9543,7 +9543,7 @@ ref
 ref
 68
 remove
-"_13435"
+"_24199"
 2
 remove
 var

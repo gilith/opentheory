@@ -1,5 +1,5 @@
 name: base
-version: 1.128
+version: 1.129
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -68,7 +68,7 @@ option {
   import: bool
   import: function
   import: natural
-  package: option-1.58
+  package: option-1.59
 }
 
 list {

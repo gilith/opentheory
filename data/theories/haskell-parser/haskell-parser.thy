@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.114
+version: 1.115
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,12 +26,12 @@ def {
 
 src {
   import: def
-  package: haskell-parser-src-1.82
+  package: haskell-parser-src-1.83
 }
 
 test {
   import: def
-  package: haskell-parser-test-1.44
+  package: haskell-parser-test-1.45
 }
 
 main {

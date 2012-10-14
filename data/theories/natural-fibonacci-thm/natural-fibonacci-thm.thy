@@ -1,9 +1,9 @@
 name: natural-fibonacci-thm
-version: 1.38
+version: 1.39
 description: Properties of Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-10-10
+provenance: HOL Light theory extracted on 2012-10-13
 requires: base
 requires: natural-fibonacci-def
 requires: natural-fibonacci-exists

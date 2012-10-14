@@ -1,5 +1,5 @@
 name: gfp
-version: 1.71
+version: 1.72
 description: Parametric theory of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -23,18 +23,18 @@ show: "Number.Natural.Fibonacci"
 show: "Probability.Random"
 
 def {
-  package: gfp-def-1.53
+  package: gfp-def-1.54
 }
 
 thm {
   import: def
-  package: gfp-thm-1.50
+  package: gfp-thm-1.51
 }
 
 div {
   import: def
   import: thm
-  package: gfp-div-1.62
+  package: gfp-div-1.63
 }
 
 main {

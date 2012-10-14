@@ -1,5 +1,5 @@
 name: group
-version: 1.5
+version: 1.6
 description: Parametric theory of groups
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ show: "Data.Pair"
 show: "Number.Natural"
 
 def {
-  package: group-def-1.7
+  package: group-def-1.8
 }
 
 thm {
@@ -27,18 +27,18 @@ thm {
 mult {
   import: def
   import: thm
-  package: group-mult-1.6
+  package: group-mult-1.7
 }
 
 crypt {
   import: thm
   import: mult
-  package: group-crypt-1.4
+  package: group-crypt-1.5
 }
 
 abelian {
   import: thm
-  package: group-abelian-1.6
+  package: group-abelian-1.7
 }
 
 main {

@@ -214,7 +214,7 @@ opType
 constTerm
 32
 def
-"_13233"
+"_23997"
 16
 ref
 var
@@ -367,6 +367,8 @@ ref
 constTerm
 51
 def
+51
+ref
 "Number.Natural.bit1"
 const
 43
@@ -374,8 +376,6 @@ remove
 constTerm
 52
 def
-51
-ref
 51
 ref
 51
@@ -2524,7 +2524,7 @@ appTerm
 refl
 220
 ref
-"_13230"
+"_23994"
 46
 ref
 var
@@ -3487,7 +3487,7 @@ remove
 var
 288
 def
-"_13229"
+"_23993"
 215
 ref
 var
@@ -4932,13 +4932,13 @@ assume
 eqMp
 390
 def
-"_13227"
+"_23991"
 8
 remove
 var
 391
 def
-"_13228"
+"_23992"
 16
 remove
 var

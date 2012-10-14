@@ -64,7 +64,7 @@ constTerm
 11
 def
 "Number.Natural.Bits.normal"
-"_11518"
+"_22282"
 4
 ref
 var
@@ -499,7 +499,7 @@ constTerm
 66
 def
 "Number.Natural.Bits.width"
-"_11496"
+"_22260"
 61
 ref
 var
@@ -776,13 +776,13 @@ def
 11
 ref
 "Number.Natural.Bits.bit"
-"_11501"
+"_22265"
 61
 ref
 var
 96
 def
-"_11502"
+"_22266"
 61
 ref
 var
@@ -1044,7 +1044,7 @@ constTerm
 115
 def
 "Number.Natural.Bits.fromNatural"
-"_11513"
+"_22277"
 61
 ref
 var
@@ -1322,7 +1322,7 @@ var
 def
 94
 ref
-"_11526"
+"_22290"
 61
 ref
 var
@@ -1479,7 +1479,7 @@ appTerm
 def
 78
 ref
-77
+78
 ref
 78
 ref
@@ -1490,10 +1490,10 @@ ref
 79
 ref
 appTerm
-appTerm
-appTerm
 159
 def
+appTerm
+appTerm
 appTerm
 appTerm
 160
@@ -3357,7 +3357,7 @@ ref
 ref
 150
 ref
-"_11523"
+"_22287"
 61
 ref
 var
@@ -4289,7 +4289,7 @@ var
 def
 94
 ref
-"_11581"
+"_22345"
 61
 ref
 var
@@ -4546,11 +4546,17 @@ appTerm
 402
 def
 77
+ref
+77
+ref
+77
 remove
 78
 remove
 159
 remove
+appTerm
+appTerm
 appTerm
 appTerm
 403
@@ -7868,7 +7874,7 @@ ref
 ref
 11
 ref
-"_11527"
+"_22291"
 379
 ref
 var
@@ -8042,7 +8048,7 @@ ref
 ref
 476
 remove
-"_11539"
+"_22303"
 473
 ref
 var
@@ -8141,7 +8147,7 @@ ref
 nil
 611
 remove
-"_11537"
+"_22301"
 379
 ref
 var
@@ -8358,7 +8364,7 @@ ref
 ref
 11
 ref
-"_11534"
+"_22298"
 349
 ref
 var
@@ -8523,7 +8529,7 @@ opType
 constTerm
 646
 def
-"_11533"
+"_22297"
 4
 ref
 var
@@ -13918,7 +13924,7 @@ ref
 ref
 383
 ref
-"_11563"
+"_22327"
 380
 ref
 var
@@ -14017,7 +14023,7 @@ ref
 nil
 1003
 remove
-"_11561"
+"_22325"
 379
 ref
 var
@@ -14166,7 +14172,7 @@ ref
 ref
 66
 ref
-"_11558"
+"_22322"
 349
 ref
 var
@@ -14263,7 +14269,7 @@ opType
 constTerm
 1027
 def
-"_11557"
+"_22321"
 4
 ref
 var
@@ -14640,7 +14646,7 @@ ref
 ref
 383
 ref
-"_11575"
+"_22339"
 380
 remove
 var
@@ -14739,7 +14745,7 @@ ref
 nil
 1049
 remove
-"_11573"
+"_22337"
 379
 remove
 var
@@ -14911,7 +14917,7 @@ ref
 ref
 66
 ref
-"_11570"
+"_22334"
 349
 ref
 var
@@ -15022,7 +15028,7 @@ eqMp
 ref
 1027
 remove
-"_11569"
+"_22333"
 4
 remove
 var
@@ -15466,7 +15472,7 @@ ref
 ref
 11
 ref
-"_11579"
+"_22343"
 2
 ref
 var
@@ -16237,7 +16243,7 @@ ref
 ref
 11
 ref
-"_11577"
+"_22341"
 2
 ref
 var
@@ -17602,13 +17608,13 @@ constTerm
 1210
 def
 "Number.Natural.Uniform.fromRandom"
-"_11582"
+"_22346"
 61
 ref
 var
 1211
 def
-"_11583"
+"_22347"
 349
 ref
 var

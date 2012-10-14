@@ -1,5 +1,5 @@
 name: option-map
-version: 1.4
+version: 1.5
 description: The option map function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -12,7 +12,7 @@ show: "Data.Option"
 show: "Function"
 
 def {
-  package: option-map-def-1.8
+  package: option-map-def-1.9
 }
 
 thm {
