@@ -258,26 +258,25 @@ while (my $thy = <THEORIES>) {
 
 close THEORIES;
 
-$cmd = "$opentheory list --dependency-order '~WellFounded (Requires|Includes)* Mine'";
+$cmd = "$opentheory list --dependency-order '~UpToDate (Requires|Includes)* Mine'";
 
 # print STDOUT "cmd = $cmd\n";
 
 open THEORIES, "$cmd |" or
-  die "check-theories: couldn't list non-well-founded theories: $!\n";
+  die "check-theories: couldn't list not-up-to-date theories: $!\n";
 
-my $nonwellfounded = '';
+my $notuptodate = '';
 
 while (my $thy = <THEORIES>) {
   chomp $thy;
 
-  $nonwellfounded .= "  " . $thy . "\n";
+  $notuptodate .= "  " . $thy . "\n";
 }
 
 close THEORIES;
 
-if ($nonwellfounded ne '') {
-  print STDOUT
-    ("check-theories: non-well-founded theories:\n" . $nonwellfounded);
+if ($notuptodate ne '') {
+  print STDOUT ("check-theories: not-up-to-date theories:\n" . $notuptodate);
 }
 
 __END__

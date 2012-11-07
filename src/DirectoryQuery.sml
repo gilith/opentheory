@@ -41,11 +41,11 @@ and requiresKeywordString = "Requires"
 and subtheoriesKeywordString = "Subtheories"
 and subtheoryOfKeywordString = "SubtheoryOf"
 and transitiveSymbolString = "+"
+and upToDateKeywordString = "UpToDate"
 and upgradableKeywordString = "Upgradable"
 and uploadableKeywordString = "Uploadable"
 and unionSymbolString = "|"
-and versionsKeywordString = "Versions"
-and wellFoundedKeywordString = "WellFounded";
+and versionsKeywordString = "Versions";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of package query.                                                  *)
@@ -62,7 +62,7 @@ datatype predicate =
   | Mine
   | Closed
   | Acyclic
-  | WellFounded
+  | UpToDate
   | OnRepo
   | IdenticalOnRepo
   | ConsistentWithRepo
@@ -106,7 +106,7 @@ fun ignoresRepo pred =
     | Mine => true
     | Closed => true
     | Acyclic => true
-    | WellFounded => true
+    | UpToDate => true
     | OnRepo => false
     | IdenticalOnRepo => false
     | ConsistentWithRepo => false
@@ -196,7 +196,7 @@ local
         case pred of
           Closed => Directory.closedDependencies dir namevers
         | Acyclic => Directory.acyclicDependencies dir namevers
-        | WellFounded => Directory.wellFoundedDependencies dir namevers
+        | UpToDate => Directory.upToDateDependencies dir namevers
         | Not pred1 =>
           let
             val result1 = evalPredSet dir repo pred1 namevers
@@ -364,10 +364,10 @@ and ppRequiresKeyword = Print.ppString requiresKeywordString
 and ppSubtheoriesKeyword = Print.ppString subtheoriesKeywordString
 and ppSubtheoryOfKeyword = Print.ppString subtheoryOfKeywordString
 and ppTransitiveSymbol = Print.ppString transitiveSymbolString
+and ppUpToDateKeyword = Print.ppString upToDateKeywordString
 and ppUpgradableKeyword = Print.ppString upgradableKeywordString
 and ppUploadableKeyword = Print.ppString uploadableKeywordString
-and ppVersionsKeyword = Print.ppString versionsKeywordString
-and ppWellFoundedKeyword = Print.ppString wellFoundedKeywordString;
+and ppVersionsKeyword = Print.ppString versionsKeywordString;
 
 fun ppSet set =
     case set of
@@ -401,7 +401,7 @@ local
       | Mine => ppMineKeyword
       | Closed => ppClosedKeyword
       | Acyclic => ppAcyclicKeyword
-      | WellFounded => ppWellFoundedKeyword
+      | UpToDate => ppUpToDateKeyword
       | OnRepo => ppOnRepoKeyword
       | IdenticalOnRepo => ppIdenticalOnRepoKeyword
       | ConsistentWithRepo => ppConsistentWithRepoKeyword
@@ -562,7 +562,7 @@ local
   and notSymbolParser = exactString notSymbolString
   and onRepoKeywordParser = exactString onRepoKeywordString
   and orSymbolParser = exactString orSymbolString
-  and wellFoundedKeywordParser = exactString wellFoundedKeywordString;
+  and upToDateKeywordParser = exactString upToDateKeywordString;
 
   val bracketSpaceParser =
       let
@@ -578,7 +578,7 @@ local
       mineKeywordParser >> K Mine ||
       closedKeywordParser >> K Closed ||
       acyclicKeywordParser >> K Acyclic ||
-      wellFoundedKeywordParser >> K WellFounded ||
+      upToDateKeywordParser >> K UpToDate ||
       consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
       earlierThanRepoKeywordParser >> K EarlierThanRepo ||
       identicalOnRepoKeywordParser >> K IdenticalOnRepo ||

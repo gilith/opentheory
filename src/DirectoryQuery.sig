@@ -21,7 +21,7 @@ datatype predicate =
   | Mine
   | Closed
   | Acyclic
-  | WellFounded
+  | UpToDate
   | OnRepo
   | IdenticalOnRepo
   | ConsistentWithRepo

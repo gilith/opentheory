@@ -117,7 +117,7 @@ val describeQueryFormat =
     "  || Mine         // does the package author match a name in the config file?\n" ^
     "  || Closed       // are all the required theories installed?\n" ^
     "  || Acyclic      // is the required theory graph free of cycles?\n" ^
-    "  || WellFounded  // are all assumptions satisfied and inputs grounded?\n" ^
+    "  || UpToDate     // are all assumptions satisfied and inputs grounded?\n" ^
     "  || OnRepo       // is there a theory package with the same name on the repo?\n" ^
     "  || IdenticalOnRepo\n" ^
     "                  // is this exact same theory package on the repo?\n" ^

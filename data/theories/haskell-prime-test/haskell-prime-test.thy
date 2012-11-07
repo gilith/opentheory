@@ -1,5 +1,5 @@
 name: haskell-prime-test
-version: 1.21
+version: 1.22
 description: QuickCheck tests for prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,6 +10,7 @@ requires: haskell-prime-def
 requires: natural-divides
 requires: natural-prime
 show: "Data.Bool"
+show: "Data.List"
 show: "Data.Pair"
 show: "Data.Stream"
 show: "Haskell.Data.Stream" as "H"

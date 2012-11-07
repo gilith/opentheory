@@ -791,7 +791,7 @@ local
         List.foldl process PackageNameVersionSet.empty sccs
       end;
 
-  fun expandWellFounded pkgs namevers =
+  fun expandUpToDate pkgs namevers =
       let
         fun addTheory graph imps nv =
             let
@@ -880,9 +880,9 @@ in
         PackageNameVersionSet.intersect namevers result
       end;
 
-  fun wellFoundedDependencies pkgs namevers =
+  fun upToDateDependencies pkgs namevers =
       let
-        val result = expandWellFounded pkgs namevers
+        val result = expandUpToDate pkgs namevers
       in
         PackageNameVersionSet.intersect namevers result
       end;

@@ -1,5 +1,5 @@
 name: haskell-prime-src
-version: 1.16
+version: 1.17
 description: Haskell source for prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,6 +10,7 @@ requires: haskell-prime-def
 requires: natural-prime
 requires: stream
 show: "Data.Bool"
+show: "Data.List"
 show: "Data.Pair"
 show: "Data.Stream"
 show: "Function"

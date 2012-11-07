@@ -208,7 +208,7 @@ val acyclicDependencies :
     packages -> PackageNameVersionSet.set ->
     PackageNameVersionSet.set
 
-val wellFoundedDependencies :
+val upToDateDependencies :
     packages -> PackageNameVersionSet.set ->
     PackageNameVersionSet.set
 

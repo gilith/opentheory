@@ -242,7 +242,7 @@ val acyclicDependencies :
     directory -> PackageNameVersionSet.set ->
     PackageNameVersionSet.set
 
-val wellFoundedDependencies :
+val upToDateDependencies :
     directory -> PackageNameVersionSet.set ->
     PackageNameVersionSet.set
 

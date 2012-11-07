@@ -505,8 +505,8 @@ fun closedDependencies dir =
 fun acyclicDependencies dir =
     DirectoryPackages.acyclicDependencies (packages dir);
 
-fun wellFoundedDependencies dir =
-    DirectoryPackages.wellFoundedDependencies (packages dir);
+fun upToDateDependencies dir =
+    DirectoryPackages.upToDateDependencies (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory packages.                                                *)
