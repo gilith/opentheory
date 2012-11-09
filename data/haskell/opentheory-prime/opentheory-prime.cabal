@@ -1,5 +1,5 @@
 name: opentheory-prime
-version: 1.20
+version: 1.21
 category: Number Theory
 synopsis: Prime numbers
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Prime numbers - automatically generated from the opentheory package
-  haskell-prime-1.20
+  haskell-prime-1.21
 
 library
   build-depends:

@@ -20,14 +20,16 @@ if ($opt_h or scalar @ARGV != 0)
 # Autoflush STDIN
 $|++;
 
+my $program = "check-theories";
+
 my $orderthys = "scripts/order-theories";
-[ -x $orderthys ] or die "install-theories: $orderthys not an executable";
+[ -x $orderthys ] or die "$program: $orderthys not an executable";
 
 my $opentheory = "bin/mlton/opentheory";
-[ -x $opentheory ] or die "check-theories: $opentheory not an executable";
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
 
 my $source = "data/theories";
-[ -d $source ] or die "check-theories: $source not a directory";
+[ -d $source ] or die "$program: $source not a directory";
 
 my %toplevel = ();
 my %installed = ();
@@ -77,7 +79,7 @@ sub name_version_to_name {
     return $1;
   }
   else {
-    die "check_theories: not a valid NAME-VERSION: $nv";
+    die "$program: not a valid NAME-VERSION: $nv";
   }
 }
 
@@ -89,14 +91,14 @@ sub add_installed {
   $installed{$thy} = $par;
 
   ($thy =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) or
-    die "check-theories: bad theory name: $thy";
+    die "$program: bad theory name: $thy";
 
   my $n = $1;
   my $v = $2;
 
   if (exists $version{$n}) {
     if ($version{$n} ne $v) {
-      die "check-theories: multiple versions of theory $n";
+      die "$program: multiple versions of theory $n";
     }
   }
   else {
@@ -109,7 +111,7 @@ sub add_toplevel {
   my $thy = shift @_;
 
   if (exists $toplevel{$thy}) {
-    die "check-theories: duplicate top-level theory: $thy";
+    die "$program: duplicate top-level theory: $thy";
   }
 
   $toplevel{$thy} = 1;
@@ -132,13 +134,13 @@ my $cmd = "$opentheory list Mine";
 # print STDOUT "cmd = $cmd\n";
 
 open THEORIES, "$cmd |" or
-  die "check-theories: couldn't list installed theories: $!\n";
+  die "$program: couldn't list installed theories: $!\n";
 
 while (my $thy = <THEORIES>) {
   chomp $thy;
 
   is_name_version($thy) or
-    die "check-theories: bad theory name: $thy";
+    die "$program: bad theory name: $thy";
 
   my $thy_name = name_version_to_name($thy);
 
@@ -148,13 +150,13 @@ while (my $thy = <THEORIES>) {
     $cmd = "$opentheory list '(Requires | Includes)* $thy'";
 
     open SUBTHEORIES, "$cmd |" or
-      die "check-theories: couldn't list dependent theories of $thy: $!\n";
+      die "$program: couldn't list dependent theories of $thy: $!\n";
 
     while (my $subthy = <SUBTHEORIES>) {
       chomp $subthy;
 
       is_name_version($subthy) or
-        die "check-theories: bad dependent theory of $thy: $subthy";
+        die "$program: bad dependent theory of $thy: $subthy";
 
       add_dependent($thy,$subthy);
     }
@@ -162,7 +164,7 @@ while (my $thy = <THEORIES>) {
     close SUBTHEORIES;
   }
   else {
-    die "check-theories: couldn't find source for theory $thy_name\n";
+    die "$program: couldn't find source for theory $thy_name\n";
   }
 }
 
@@ -171,13 +173,13 @@ close THEORIES;
 $cmd = "$orderthys";
 
 open THEORIES, "$cmd |" or
-  die "check-theories: couldn't order theories in source directory: $!\n";
+  die "$program: couldn't order theories in source directory: $!\n";
 
 while (my $thy = <THEORIES>) {
   chomp $thy;
 
   is_name($thy) or
-    die "check-theories: bad theory name: $thy";
+    die "$program: bad theory name: $thy";
 
   # Check this theory is useful and up to date
 
@@ -200,24 +202,24 @@ while (my $thy = <THEORIES>) {
               $thy ne "bool" &&
               $thy ne "bool-def")
           {
-            print STDOUT "check-theories: theory $thy has no requires information\n";
+            print STDOUT "$program: theory $thy has no requires information\n";
           }
         }
         else {
-          print STDOUT "check-theories: different package information in installed theory $thy\n";
+          print STDOUT "$program: different package information in installed theory $thy\n";
         }
       }
       else {
-        print STDOUT "check-theories: theory $thy: version = $version1; installed = $version2\n";
+        print STDOUT "$program: theory $thy: version = $version1; installed = $version2\n";
       }
     }
     else {
-      print STDOUT "check-theories: no version information found in theory $thy\n";
+      print STDOUT "$program: no version information found in theory $thy\n";
     }
   }
   else {
     if ($thy ne "empty") {
-      print STDOUT "check-theories: $thy not in the latest theory set\n";
+      print STDOUT "$program: $thy not in the latest theory set\n";
     }
   }
 
@@ -228,7 +230,7 @@ while (my $thy = <THEORIES>) {
   my $files2 = `find $thydir/*`;
 
   if ($files1 ne $files2) {
-    print STDOUT "check-theories: different files in theory $thy\n";
+    print STDOUT "$program: different files in theory $thy\n";
   }
 
   # Check the requires: list in theory files
@@ -236,7 +238,7 @@ while (my $thy = <THEORIES>) {
   $cmd = "grep '^requires: ' $thydir/$thy.thy | sort -c 2> /dev/null";
 
   if (system($cmd) != 0) {
-    print STDOUT "check-theories: unsorted requires: list in theory $thy\n";
+    print STDOUT "$program: unsorted requires: list in theory $thy\n";
   }
 
   # Check the show: list in theory files
@@ -244,7 +246,7 @@ while (my $thy = <THEORIES>) {
   $cmd = "grep '^show: ' $thydir/$thy.thy | sed 's/^show: .* as /show: /' | sort -c 2> /dev/null";
 
   if (system($cmd) != 0) {
-    print STDOUT "check-theories: unsorted show: list in theory $thy\n";
+    print STDOUT "$program: unsorted show: list in theory $thy\n";
   }
 
   # Check the theorems
@@ -252,7 +254,7 @@ while (my $thy = <THEORIES>) {
   $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
 
   if (system ($cmd) == 0) {
-    print STDOUT "check-theories: unwanted/system names in theory $thy\n";
+    print STDOUT "$program: unwanted/system names in theory $thy\n";
   }
 }
 
@@ -263,7 +265,7 @@ $cmd = "$opentheory list --dependency-order '~UpToDate (Requires|Includes)* Mine
 # print STDOUT "cmd = $cmd\n";
 
 open THEORIES, "$cmd |" or
-  die "check-theories: couldn't list not-up-to-date theories: $!\n";
+  die "$program: couldn't list not-up-to-date theories: $!\n";
 
 my $notuptodate = '';
 
@@ -276,7 +278,7 @@ while (my $thy = <THEORIES>) {
 close THEORIES;
 
 if ($notuptodate ne '') {
-  print STDOUT ("check-theories: not-up-to-date theories:\n" . $notuptodate);
+  print STDOUT ("$program: not-up-to-date theories:\n" . $notuptodate);
 }
 
 __END__

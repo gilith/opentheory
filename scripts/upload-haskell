@@ -1,0 +1,153 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2012 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h $opt_m $opt_s $opt_l $opt_n);
+
+getopts('hmsln');
+
+if ($opt_h) {
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $program = "upload-haskell";
+
+my $opentheory = "bin/mlton/opentheory";
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
+
+my $source = "data/haskell";
+[ -d $source ] or die "$program: $source not a directory";
+
+sub name_version_to_name {
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
+
+  if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+    return $1;
+  }
+  else {
+    die "$program: not a valid NAME-VERSION: $nv";
+  }
+}
+
+my $cmd = "cabal update";
+if (system($cmd) != 0) { die "$program: couldn't run $cmd"; }
+
+my $skipping = '';
+my $staging = '';
+my $upload_cmd = 'cabal upload';
+
+$cmd = "$opentheory list --dependency-order Mine";
+
+# print STDOUT "cmd = $cmd\n";
+
+open THEORIES, "$cmd |" or
+  die "$program: couldn't list installed theories: $!\n";
+
+while (my $name_ver = <THEORIES>) {
+  chomp $name_ver;
+
+  if ($name_ver =~ s/^haskell/opentheory/) {
+    my $name = name_version_to_name($name_ver);
+
+    my $tar = "$source/$name/dist/$name_ver.tar.gz";
+
+    if ( -f $tar ) {
+      print STDOUT "Checking $tar\n";
+
+      $cmd = "cabal upload -c $tar";
+
+      my $upload_ok = 0;
+
+      open UPLOAD_CHECK, "$cmd |" or
+        die "$program: couldn't check package for uploading: $!\n";
+
+      while (my $upload_check = <UPLOAD_CHECK>) {
+        chomp $upload_check;
+
+        if ($upload_check eq "Ok") { $upload_ok = 1; }
+      }
+
+      close UPLOAD_CHECK;
+
+      if ($upload_ok) {
+        print STDOUT "Staging $name_ver\n";
+        $staging .= "\n  $name_ver";
+        $upload_cmd .= " $tar";
+      }
+      else {
+        print STDOUT "Skipping $name_ver\n";
+        $skipping .= "\n  $name_ver";
+      }
+    }
+    else {
+      die "$program: couldn't find source for $name\n";
+    }
+  }
+}
+
+close THEORIES;
+
+if ($skipping ne '') {
+  print STDOUT "\nSkipping the following Haskell packages:$skipping\n";
+}
+
+if ($staging ne '') {
+  print STDOUT "\nUploading the following Haskell packages:$staging\n\n";
+
+  if (system($upload_cmd) != 0) {
+    die "$program: couldn't execute $upload_cmd: $!\n";
+  }
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+upload-haskell - Upload the auto-generated Haskell packages
+
+=head1 SYNOPSIS
+
+upload-haskell [-h]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+Uploads the verified Haskell packages that were generated from
+OpenTheory packages to the Hackage repo.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut
