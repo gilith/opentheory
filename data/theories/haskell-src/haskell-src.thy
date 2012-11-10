@@ -1,9 +1,9 @@
 name: haskell-src
-version: 1.51
+version: 1.53
 description: Source of the Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-10-13
+provenance: HOL Light theory extracted on 2012-11-10
 requires: base
 requires: byte
 requires: haskell-def

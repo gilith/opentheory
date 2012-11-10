@@ -1,9 +1,9 @@
 name: set-size-def
-version: 1.29
+version: 1.30
 description: Definition of finite set cardinality
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-08-06
+provenance: HOL Light theory extracted on 2012-11-10
 requires: bool
 requires: natural
 requires: set-fold

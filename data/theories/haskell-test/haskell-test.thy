@@ -1,9 +1,9 @@
 name: haskell-test
-version: 1.34
+version: 1.36
 description: Testing the Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-10-13
+provenance: HOL Light theory extracted on 2012-11-10
 requires: base
 requires: haskell-def
 requires: probability

@@ -2142,7 +2142,7 @@ constTerm
 195
 def
 "Probability.Random.bit"
-"_22109"
+"_22113"
 149
 ref
 var
@@ -2363,7 +2363,7 @@ constTerm
 215
 def
 "Probability.Random.split"
-"_22114"
+"_22118"
 149
 ref
 var
@@ -2860,7 +2860,7 @@ opType
 constTerm
 268
 def
-"_22126"
+"_22130"
 251
 ref
 var
@@ -4384,7 +4384,7 @@ appTerm
 refl
 389
 ref
-"_22123"
+"_22127"
 382
 ref
 var
@@ -5423,7 +5423,7 @@ remove
 var
 466
 def
-"_22122"
+"_22126"
 384
 ref
 var
@@ -7052,19 +7052,19 @@ assume
 eqMp
 582
 def
-"_22119"
+"_22123"
 240
 ref
 var
 583
 def
-"_22120"
+"_22124"
 251
 ref
 var
 584
 def
-"_22121"
+"_22125"
 149
 ref
 var
@@ -8167,7 +8167,7 @@ var
 def
 268
 ref
-"_22205"
+"_22209"
 251
 ref
 var
@@ -10649,7 +10649,7 @@ ref
 ref
 708
 remove
-"_22137"
+"_22141"
 701
 remove
 var
@@ -10750,7 +10750,7 @@ ref
 nil
 815
 remove
-"_22135"
+"_22139"
 684
 ref
 var
@@ -10979,7 +10979,7 @@ ref
 ref
 6
 ref
-"_22132"
+"_22136"
 149
 ref
 var
@@ -14946,7 +14946,7 @@ appThm
 711
 ref
 refl
-"_22175"
+"_22179"
 193
 ref
 var
@@ -15295,7 +15295,7 @@ ref
 ref
 722
 remove
-"_22149"
+"_22153"
 719
 remove
 var
@@ -15396,7 +15396,7 @@ ref
 nil
 1125
 remove
-"_22147"
+"_22151"
 684
 ref
 var
@@ -15618,7 +15618,7 @@ def
 ref
 724
 ref
-"_22144"
+"_22148"
 149
 ref
 var
@@ -15774,7 +15774,7 @@ opType
 constTerm
 1156
 def
-"_22143"
+"_22147"
 251
 ref
 var
@@ -16351,7 +16351,7 @@ appThm
 728
 ref
 refl
-"_22187"
+"_22191"
 725
 ref
 var
@@ -16689,7 +16689,7 @@ appTerm
 appTerm
 689
 remove
-"_22161"
+"_22165"
 685
 remove
 var
@@ -17227,7 +17227,7 @@ ref
 ref
 6
 ref
-"_22163"
+"_22167"
 192
 ref
 var
@@ -17484,7 +17484,7 @@ ref
 nil
 1107
 remove
-"_22173"
+"_22177"
 192
 ref
 var
@@ -17667,7 +17667,7 @@ ref
 ref
 6
 ref
-"_22170"
+"_22174"
 149
 ref
 var
@@ -17844,7 +17844,7 @@ opType
 constTerm
 1275
 def
-"_22169"
+"_22173"
 2
 ref
 var
@@ -18336,7 +18336,7 @@ ref
 nil
 1189
 remove
-"_22185"
+"_22189"
 192
 ref
 var
@@ -18485,7 +18485,7 @@ ref
 ref
 724
 ref
-"_22182"
+"_22186"
 149
 ref
 var
@@ -18852,7 +18852,7 @@ ref
 ref
 644
 ref
-"_22199"
+"_22203"
 641
 ref
 var
@@ -18951,7 +18951,7 @@ ref
 nil
 1329
 remove
-"_22197"
+"_22201"
 192
 remove
 var
@@ -19115,7 +19115,7 @@ ref
 ref
 623
 ref
-"_22194"
+"_22198"
 149
 ref
 var
@@ -19248,7 +19248,7 @@ opType
 constTerm
 1355
 def
-"_22193"
+"_22197"
 2
 ref
 var
@@ -19690,7 +19690,7 @@ ref
 ref
 6
 ref
-"_22203"
+"_22207"
 2
 ref
 var
@@ -20454,7 +20454,7 @@ ref
 ref
 6
 ref
-"_22201"
+"_22205"
 2
 ref
 var
@@ -21777,7 +21777,7 @@ ref
 724
 ref
 "Number.Natural.Geometric.fromRandom"
-"_22206"
+"_22210"
 149
 ref
 var
@@ -21993,13 +21993,13 @@ remove
 249
 ref
 "Data.List.Geometric.fromRandom"
-"_22211"
+"_22215"
 240
 remove
 var
 1504
 def
-"_22212"
+"_22216"
 149
 remove
 var

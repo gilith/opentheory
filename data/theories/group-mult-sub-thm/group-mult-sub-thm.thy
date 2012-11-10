@@ -1,9 +1,9 @@
 name: group-mult-sub-thm
-version: 1.8
+version: 1.9
 description: Correctness of group multiplication by repeated subtraction
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-10-13
+provenance: HOL Light theory extracted on 2012-11-10
 requires: bool
 requires: group-def
 requires: group-mult-def

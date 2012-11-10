@@ -1,5 +1,5 @@
 name: group-mult
-version: 1.7
+version: 1.8
 description: Group scalar multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: group-mult-def-1.7
+  package: group-mult-def-1.8
 }
 
 thm {
@@ -28,13 +28,13 @@ thm {
 add {
   import: def
   import: thm
-  package: group-mult-add-1.6
+  package: group-mult-add-1.7
 }
 
 sub {
   import: def
   import: thm
-  package: group-mult-sub-1.6
+  package: group-mult-sub-1.7
 }
 
 main {

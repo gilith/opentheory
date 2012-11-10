@@ -1,5 +1,5 @@
 name: relation-well-founded
-version: 1.46
+version: 1.47
 description: Well-founded relations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -12,12 +12,12 @@ show: "Data.Pair"
 show: "Relation"
 
 def {
-  package: relation-well-founded-def-1.34
+  package: relation-well-founded-def-1.35
 }
 
 thm {
   import: def
-  package: relation-well-founded-thm-1.53
+  package: relation-well-founded-thm-1.54
 }
 
 main {

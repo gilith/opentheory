@@ -223,7 +223,7 @@ opType
 constTerm
 35
 def
-"_9999"
+"_10003"
 18
 ref
 var
@@ -2567,7 +2567,7 @@ refl
 def
 234
 ref
-"_9996"
+"_10000"
 20
 ref
 var
@@ -5989,7 +5989,7 @@ var
 def
 35
 ref
-"_10003"
+"_10007"
 18
 remove
 var
@@ -6606,7 +6606,7 @@ ref
 remove
 234
 ref
-"_10000"
+"_10004"
 20
 remove
 var

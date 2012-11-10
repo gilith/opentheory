@@ -1,9 +1,9 @@
 name: natural-gcd-def
-version: 1.33
+version: 1.34
 description: Definition of natural number greatest common divisor
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-10-13
+provenance: HOL Light theory extracted on 2012-11-10
 requires: bool
 requires: natural-divides
 show: "Data.Bool"

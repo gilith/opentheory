@@ -230,13 +230,13 @@ constTerm
 38
 def
 "Number.Natural.log"
-"_3202"
+"_3206"
 1
 ref
 var
 39
 def
-"_3203"
+"_3207"
 1
 ref
 var
@@ -6177,7 +6177,7 @@ subst
 ref
 57
 ref
-"_3218"
+"_3222"
 1
 ref
 var

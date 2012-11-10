@@ -64,7 +64,7 @@ constTerm
 11
 def
 "Number.Natural.Bits.normal"
-"_22282"
+"_22286"
 4
 ref
 var
@@ -499,7 +499,7 @@ constTerm
 66
 def
 "Number.Natural.Bits.width"
-"_22260"
+"_22264"
 61
 ref
 var
@@ -776,13 +776,13 @@ def
 11
 ref
 "Number.Natural.Bits.bit"
-"_22265"
+"_22269"
 61
 ref
 var
 96
 def
-"_22266"
+"_22270"
 61
 ref
 var
@@ -1044,7 +1044,7 @@ constTerm
 115
 def
 "Number.Natural.Bits.fromNatural"
-"_22277"
+"_22281"
 61
 ref
 var
@@ -1322,7 +1322,7 @@ var
 def
 94
 ref
-"_22290"
+"_22294"
 61
 ref
 var
@@ -3357,7 +3357,7 @@ ref
 ref
 150
 ref
-"_22287"
+"_22291"
 61
 ref
 var
@@ -4289,7 +4289,7 @@ var
 def
 94
 ref
-"_22345"
+"_22349"
 61
 ref
 var
@@ -7874,7 +7874,7 @@ ref
 ref
 11
 ref
-"_22291"
+"_22295"
 379
 ref
 var
@@ -8048,7 +8048,7 @@ ref
 ref
 476
 remove
-"_22303"
+"_22307"
 473
 ref
 var
@@ -8147,7 +8147,7 @@ ref
 nil
 611
 remove
-"_22301"
+"_22305"
 379
 ref
 var
@@ -8364,7 +8364,7 @@ ref
 ref
 11
 ref
-"_22298"
+"_22302"
 349
 ref
 var
@@ -8529,7 +8529,7 @@ opType
 constTerm
 646
 def
-"_22297"
+"_22301"
 4
 ref
 var
@@ -13924,7 +13924,7 @@ ref
 ref
 383
 ref
-"_22327"
+"_22331"
 380
 ref
 var
@@ -14023,7 +14023,7 @@ ref
 nil
 1003
 remove
-"_22325"
+"_22329"
 379
 ref
 var
@@ -14172,7 +14172,7 @@ ref
 ref
 66
 ref
-"_22322"
+"_22326"
 349
 ref
 var
@@ -14269,7 +14269,7 @@ opType
 constTerm
 1027
 def
-"_22321"
+"_22325"
 4
 ref
 var
@@ -14646,7 +14646,7 @@ ref
 ref
 383
 ref
-"_22339"
+"_22343"
 380
 remove
 var
@@ -14745,7 +14745,7 @@ ref
 nil
 1049
 remove
-"_22337"
+"_22341"
 379
 remove
 var
@@ -14917,7 +14917,7 @@ ref
 ref
 66
 ref
-"_22334"
+"_22338"
 349
 ref
 var
@@ -15028,7 +15028,7 @@ eqMp
 ref
 1027
 remove
-"_22333"
+"_22337"
 4
 remove
 var
@@ -15472,7 +15472,7 @@ ref
 ref
 11
 ref
-"_22343"
+"_22347"
 2
 ref
 var
@@ -16243,7 +16243,7 @@ ref
 ref
 11
 ref
-"_22341"
+"_22345"
 2
 ref
 var
@@ -17608,13 +17608,13 @@ constTerm
 1210
 def
 "Number.Natural.Uniform.fromRandom"
-"_22346"
+"_22350"
 61
 ref
 var
 1211
 def
-"_22347"
+"_22351"
 349
 ref
 var

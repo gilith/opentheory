@@ -1,5 +1,5 @@
 name: list-nth
-version: 1.52
+version: 1.53
 description: The list nth function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,12 +20,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-nth-def-1.46
+  package: list-nth-def-1.47
 }
 
 thm {
   import: def
-  package: list-nth-thm-1.55
+  package: list-nth-thm-1.56
 }
 
 main {

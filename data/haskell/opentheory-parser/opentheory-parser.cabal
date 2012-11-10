@@ -1,5 +1,5 @@
 name: opentheory-parser
-version: 1.115
+version: 1.117
 category: Parsing
 synopsis: Stream parsers
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Stream parsers - automatically generated from the opentheory package
-  haskell-parser-1.115
+  haskell-parser-1.117
 
 library
   build-depends:
@@ -18,7 +18,7 @@ library
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.73 && <= 1.74
+    opentheory >= 1.73 && <= 1.76
 
   hs-source-dirs: src
 
@@ -34,7 +34,7 @@ executable opentheory-parser-test
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.73 && <= 1.74
+    opentheory >= 1.73 && <= 1.76
 
   hs-source-dirs: src, testsrc
 

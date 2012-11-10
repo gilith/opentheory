@@ -224,7 +224,7 @@ opType
 constTerm
 34
 def
-"_3251"
+"_3255"
 18
 ref
 var
@@ -2519,7 +2519,7 @@ appTerm
 refl
 220
 ref
-"_3248"
+"_3252"
 48
 ref
 var
@@ -3482,7 +3482,7 @@ remove
 var
 288
 def
-"_3247"
+"_3251"
 215
 ref
 var
@@ -4927,13 +4927,13 @@ assume
 eqMp
 390
 def
-"_3245"
+"_3249"
 10
 remove
 var
 391
 def
-"_3246"
+"_3250"
 18
 remove
 var

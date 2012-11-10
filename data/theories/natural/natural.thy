@@ -1,5 +1,5 @@
 name: natural
-version: 1.78
+version: 1.80
 description: The natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -45,7 +45,7 @@ add {
   import: dest
   import: numeral
   import: order
-  package: natural-add-1.52
+  package: natural-add-1.53
 }
 
 mult {
@@ -54,7 +54,7 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.51
+  package: natural-mult-1.52
 }
 
 div {
@@ -64,7 +64,7 @@ div {
   import: order
   import: add
   import: mult
-  package: natural-div-1.38
+  package: natural-div-1.40
 }
 
 exp {
@@ -75,7 +75,7 @@ exp {
   import: add
   import: mult
   import: div
-  package: natural-exp-1.38
+  package: natural-exp-1.40
 }
 
 factorial {
@@ -85,7 +85,7 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.29
+  package: natural-factorial-1.30
 }
 
 distance {
@@ -94,7 +94,7 @@ distance {
   import: order
   import: add
   import: mult
-  package: natural-distance-1.45
+  package: natural-distance-1.46
 }
 
 funpow {
@@ -103,7 +103,7 @@ funpow {
   import: numeral
   import: add
   import: mult
-  package: natural-funpow-1.8
+  package: natural-funpow-1.9
 }
 
 main {

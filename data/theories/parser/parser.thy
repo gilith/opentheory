@@ -1,5 +1,5 @@
 name: parser
-version: 1.94
+version: 1.95
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -23,18 +23,18 @@ show: "Probability.Random"
 show: "Relation"
 
 stream {
-  package: parser-stream-1.86
+  package: parser-stream-1.87
 }
 
 comb {
   import: stream
-  package: parser-comb-1.77
+  package: parser-comb-1.78
 }
 
 all {
   import: stream
   import: comb
-  package: parser-all-1.81
+  package: parser-all-1.82
 }
 
 main {
