@@ -1,5 +1,5 @@
 name: opentheory-char
-version: 1.41
+version: 1.43
 category: Text
 synopsis: Unicode characters
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Unicode characters - automatically generated from the opentheory package
-  haskell-char-1.41
+  haskell-char-1.43
 
 library
   build-depends:
@@ -18,8 +18,8 @@ library
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.73 && <= 1.76,
-    opentheory-parser >= 1.94 && <= 1.117
+    opentheory >= 1.73 && <= 1.78,
+    opentheory-parser >= 1.94 && <= 1.119
 
   hs-source-dirs: src
 
@@ -35,8 +35,8 @@ executable opentheory-char-test
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.73 && <= 1.76,
-    opentheory-parser >= 1.94 && <= 1.117
+    opentheory >= 1.73 && <= 1.78,
+    opentheory-parser >= 1.94 && <= 1.119
 
   hs-source-dirs: src, testsrc
 

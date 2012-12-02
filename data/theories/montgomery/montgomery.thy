@@ -1,5 +1,5 @@
 name: montgomery
-version: 1.1
+version: 1.4
 description: Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,12 +10,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: montgomery-def-1.1
+  package: montgomery-def-1.3
 }
 
 thm {
   import: def
-  package: montgomery-thm-1.1
+  package: montgomery-thm-1.5
 }
 
 main {

@@ -67639,11 +67639,11 @@ thm
 nil
 5
 ref
-6
+13
 ref
 12
 ref
-13
+6
 ref
 12
 ref
@@ -67731,7 +67731,7 @@ cons
 79
 ref
 subst
-6
+13
 ref
 nil
 80
@@ -67765,7 +67765,7 @@ cons
 79
 ref
 subst
-13
+6
 ref
 nil
 80
