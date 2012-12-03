@@ -1,5 +1,5 @@
 name: list-reverse
-version: 1.41
+version: 1.42
 description: The list reverse function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-reverse-def-1.41
+  package: list-reverse-def-1.42
 }
 
 thm {

@@ -1,9 +1,9 @@
 name: natural-distance-def
-version: 1.38
+version: 1.39
 description: Definition of natural number distance
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-11-10
+provenance: HOL Light theory extracted on 2012-12-02
 requires: bool
 requires: natural-add
 requires: natural-order

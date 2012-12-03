@@ -1,5 +1,5 @@
 name: byte-def
-version: 1.63
+version: 1.65
 description: Definition of bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -48,7 +48,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Byte.Bits.fromByte"
   interpret: const "Data.Word.Bits.normal" as "Data.Byte.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Byte.Bits.toByte"
-  package: word-1.87
+  package: word-1.89
 }
 
 main {

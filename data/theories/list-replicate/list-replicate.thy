@@ -1,5 +1,5 @@
 name: list-replicate
-version: 1.49
+version: 1.50
 description: The list replicate function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-replicate-def-1.45
+  package: list-replicate-def-1.46
 }
 
 thm {
   import: def
-  package: list-replicate-thm-1.52
+  package: list-replicate-thm-1.53
 }
 
 main {

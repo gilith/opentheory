@@ -1,5 +1,5 @@
 name: haskell
-version: 1.78
+version: 1.80
 description: The Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -31,22 +31,22 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: haskell-def-1.69
+  package: haskell-def-1.71
 }
 
 thm {
   import: def
-  package: haskell-thm-1.56
+  package: haskell-thm-1.58
 }
 
 src {
   import: def
-  package: haskell-src-1.55
+  package: haskell-src-1.57
 }
 
 test {
   import: def
-  package: haskell-test-1.38
+  package: haskell-test-1.40
 }
 
 main {

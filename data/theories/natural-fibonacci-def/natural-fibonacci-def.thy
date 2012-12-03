@@ -1,9 +1,9 @@
 name: natural-fibonacci-def
-version: 1.35
+version: 1.36
 description: Definition of Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-11-10
+provenance: HOL Light theory extracted on 2012-12-02
 requires: base
 requires: natural-fibonacci-exists
 requires: probability

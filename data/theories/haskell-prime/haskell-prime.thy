@@ -1,5 +1,5 @@
 name: haskell-prime
-version: 1.25
+version: 1.27
 description: Prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -27,12 +27,12 @@ def {
 
 src {
   import: def
-  package: haskell-prime-src-1.21
+  package: haskell-prime-src-1.23
 }
 
 test {
   import: def
-  package: haskell-prime-test-1.26
+  package: haskell-prime-test-1.28
 }
 
 main {

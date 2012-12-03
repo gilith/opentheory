@@ -1,5 +1,5 @@
 name: natural-divides
-version: 1.42
+version: 1.43
 description: The divides relation on natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -9,12 +9,12 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-divides-def-1.37
+  package: natural-divides-def-1.38
 }
 
 thm {
   import: def
-  package: natural-divides-thm-1.45
+  package: natural-divides-thm-1.46
 }
 
 main {

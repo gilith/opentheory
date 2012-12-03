@@ -1,5 +1,5 @@
 name: modular
-version: 1.75
+version: 1.76
 description: Parametric theory of modular arithmetic
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,12 +17,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: modular-def-1.72
+  package: modular-def-1.73
 }
 
 thm {
   import: def
-  package: modular-thm-1.60
+  package: modular-thm-1.61
 }
 
 main {

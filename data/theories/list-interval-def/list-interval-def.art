@@ -208,7 +208,7 @@ var
 def
 10
 ref
-"_10030"
+"_10128"
 8
 ref
 var
@@ -2506,7 +2506,7 @@ appTerm
 refl
 220
 ref
-"_10027"
+"_10125"
 19
 ref
 var
@@ -3465,7 +3465,7 @@ remove
 var
 287
 def
-"_10026"
+"_10124"
 21
 ref
 var
@@ -4894,13 +4894,13 @@ assume
 eqMp
 387
 def
-"_10024"
+"_10122"
 8
 ref
 var
 388
 def
-"_10025"
+"_10123"
 8
 remove
 var

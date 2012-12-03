@@ -1,5 +1,5 @@
 name: group-crypt
-version: 1.6
+version: 1.7
 description: Group cryptography
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ show: "Data.Pair"
 show: "Number.Natural"
 
 def {
-  package: group-crypt-def-1.9
+  package: group-crypt-def-1.10
 }
 
 thm {
   import: def
-  package: group-crypt-thm-1.9
+  package: group-crypt-thm-1.10
 }
 
 main {

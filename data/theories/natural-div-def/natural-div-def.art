@@ -144,7 +144,7 @@ ref
 constTerm
 24
 def
-"_1994"
+"_2076"
 10
 ref
 var
@@ -2327,7 +2327,7 @@ appTerm
 refl
 8
 ref
-"_1991"
+"_2073"
 1
 ref
 var
@@ -3614,7 +3614,7 @@ var
 def
 24
 ref
-"_1998"
+"_2080"
 10
 ref
 var
@@ -4125,7 +4125,7 @@ appThm
 nil
 228
 remove
-"_1995"
+"_2077"
 1
 ref
 var
@@ -4571,7 +4571,7 @@ var
 def
 24
 ref
-"_2006"
+"_2088"
 10
 ref
 var
@@ -4801,7 +4801,7 @@ var
 def
 24
 ref
-"_2007"
+"_2089"
 10
 ref
 var
@@ -11015,7 +11015,7 @@ refl
 ref
 549
 ref
-"_1999"
+"_2081"
 10
 ref
 var
@@ -11499,7 +11499,7 @@ ref
 ref
 8
 ref
-"_2000"
+"_2082"
 10
 ref
 var
@@ -23758,7 +23758,7 @@ def
 459
 ref
 nil
-"_2010"
+"_2092"
 10
 ref
 var
@@ -23796,7 +23796,7 @@ subst
 1649
 def
 nil
-"_2011"
+"_2093"
 10
 ref
 var
@@ -29422,7 +29422,7 @@ eqMp
 1988
 def
 nil
-"_2036"
+"_2118"
 10
 ref
 var
@@ -29460,7 +29460,7 @@ subst
 1991
 def
 nil
-"_2037"
+"_2119"
 10
 remove
 var

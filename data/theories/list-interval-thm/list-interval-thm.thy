@@ -1,9 +1,9 @@
 name: list-interval-thm
-version: 1.55
+version: 1.56
 description: Properties of the list interval function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-11-10
+provenance: HOL Light theory extracted on 2012-12-02
 requires: bool
 requires: list-interval-def
 requires: list-length

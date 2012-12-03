@@ -1,5 +1,5 @@
 name: word-bits
-version: 1.78
+version: 1.80
 description: Word to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,12 +19,12 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word-bits-def-1.70
+  package: word-bits-def-1.72
 }
 
 thm {
   import: def
-  package: word-bits-thm-1.82
+  package: word-bits-thm-1.84
 }
 
 main {

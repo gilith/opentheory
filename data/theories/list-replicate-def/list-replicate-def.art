@@ -229,7 +229,7 @@ opType
 constTerm
 35
 def
-"_9983"
+"_10081"
 19
 ref
 var
@@ -2509,7 +2509,7 @@ appTerm
 refl
 216
 ref
-"_9980"
+"_10078"
 209
 ref
 var
@@ -3472,7 +3472,7 @@ remove
 var
 284
 def
-"_9979"
+"_10077"
 211
 ref
 var
@@ -4903,13 +4903,13 @@ assume
 eqMp
 385
 def
-"_9977"
+"_10075"
 8
 remove
 var
 386
 def
-"_9978"
+"_10076"
 19
 remove
 var

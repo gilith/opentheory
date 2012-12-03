@@ -1,9 +1,9 @@
 name: natural-bits-thm
-version: 1.12
+version: 1.13
 description: Properties of natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-11-10
+provenance: HOL Light theory extracted on 2012-12-02
 requires: bool
 requires: function
 requires: list

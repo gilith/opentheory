@@ -1,9 +1,9 @@
 name: real-def
-version: 1.63
+version: 1.64
 description: Definition of the real numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-11-10
+provenance: HOL Light theory extracted on 2012-12-02
 requires: bool
 requires: function
 requires: natural

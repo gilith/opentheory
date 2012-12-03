@@ -1,9 +1,9 @@
 name: group-witness
-version: 1.8
+version: 1.9
 description: Parametric theory witness for groups
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-11-10
+provenance: HOL Light theory extracted on 2012-12-02
 requires: bool
 requires: set
 requires: unit

@@ -1,9 +1,9 @@
 name: option-map-def
-version: 1.10
+version: 1.11
 description: Definition of the option map function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-11-10
+provenance: HOL Light theory extracted on 2012-12-02
 requires: bool
 requires: option-def
 show: "Data.Bool"

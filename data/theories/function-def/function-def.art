@@ -566,7 +566,7 @@ constTerm
 54
 def
 "Function.injective"
-"_1611"
+"_1693"
 6
 ref
 var
@@ -1006,7 +1006,7 @@ remove
 54
 ref
 "Function.surjective"
-"_1616"
+"_1698"
 6
 remove
 var

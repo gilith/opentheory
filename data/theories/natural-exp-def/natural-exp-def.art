@@ -193,7 +193,7 @@ var
 def
 10
 ref
-"_2884"
+"_2966"
 8
 ref
 var
@@ -2432,7 +2432,7 @@ appTerm
 refl
 211
 ref
-"_2881"
+"_2963"
 17
 ref
 var
@@ -3391,7 +3391,7 @@ remove
 var
 278
 def
-"_2880"
+"_2962"
 19
 ref
 var
@@ -4820,13 +4820,13 @@ assume
 eqMp
 378
 def
-"_2878"
+"_2960"
 8
 ref
 var
 379
 def
-"_2879"
+"_2961"
 8
 remove
 var

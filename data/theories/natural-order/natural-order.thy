@@ -1,5 +1,5 @@
 name: natural-order
-version: 1.40
+version: 1.41
 description: Natural number orderings
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,18 +10,18 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-order-def-1.25
+  package: natural-order-def-1.26
 }
 
 thm {
   import: def
-  package: natural-order-thm-1.35
+  package: natural-order-thm-1.36
 }
 
 min-max {
   import: def
   import: thm
-  package: natural-order-min-max-1.31
+  package: natural-order-min-max-1.32
 }
 
 main {

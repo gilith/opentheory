@@ -1,5 +1,5 @@
 name: pair
-version: 1.20
+version: 1.21
 description: Product types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ def {
 
 thm {
   import: def
-  package: pair-thm-1.22
+  package: pair-thm-1.23
 }
 
 main {

@@ -1,5 +1,5 @@
 name: natural-numeral
-version: 1.15
+version: 1.16
 description: Natural number numerals
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
