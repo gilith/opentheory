@@ -20,6 +20,8 @@ if ($opt_h or scalar @ARGV != 1)
 # Autoflush STDIN
 $|++;
 
+my $program = "import-theories";
+
 my $author = 'Joe Leslie-Hurd <joe@gilith.com>';
 if ($opt_a) { $author = $opt_a; }
 
@@ -30,24 +32,24 @@ my $provenance = 'Theory';
 if ($opt_p) { $provenance = $opt_p; }
 
 my $opentheory = "bin/mlton/opentheory";
-[ -x $opentheory ] or die "import-theories: $opentheory not an executable";
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
 
 my $bumpver = "scripts/bump-theory-version";
-[ -x $bumpver ] or die "import-theories: $bumpver not an executable";
+[ -x $bumpver ] or die "$program: $bumpver not an executable";
 
 my $source = $ARGV[0];
 if ($source ne '/' && $source =~ m{^(.*)/$}) { $source = $1; }
-[ -d $source ] or die "import-theories: $source not a directory";
+[ -d $source ] or die "$program: $source not a directory";
 
 my $target = "data/theories";
-[ -d $target ] or die "import-theories: $target not a directory";
+[ -d $target ] or die "$program: $target not a directory";
 
 my $cmd = "ls $source";
 
 # print STDOUT "cmd = $cmd\n";
 
 open THEORIES, "$cmd |" or
-  die "import-theories: couldn't read $source directory: $!\n";
+  die "$program: couldn't read $source directory: $!\n";
 
 while (my $thy = <THEORIES>) {
   chomp $thy;
@@ -64,13 +66,13 @@ while (my $thy = <THEORIES>) {
 
     if (!(-d $tdir)) {
       mkdir $tdir or
-        die "import-theories: couldn't make directory $tdir: $!\n";
+        die "$program: couldn't make directory $tdir: $!\n";
 
       my $today = `date "+%Y-%m-%d"`;
       chomp $today;
 
       open THEORY, "> $tthy" or
-        die "import-theories: couldn't open $tthy for writing: $!\n";
+        die "$program: couldn't open $tthy for writing: $!\n";
 
       print THEORY "name: $base\n";
       print THEORY "version: 1.0\n";
@@ -89,35 +91,83 @@ while (my $thy = <THEORIES>) {
 
     $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
     (system ($cmd) == 0) or
-      die "import-theories: couldn't execute $cmd: $!\n";
+      die "$program: couldn't execute $cmd: $!\n";
 
     $cmd = "grep 'Unwanted' $tartnew";
     (system ($cmd) != 0) or
-      die "import-theories: Unwanted symbols found in $base\n";
+      die "$program: Unwanted symbols found in $base\n";
 
     if ($opt_u && defined( -e $tart )) {
-      $cmd = "diff $tart $tartnew >/dev/null";
-      if (system ($cmd) == 0) {
-        unlink $tartnew or
-          die "import-theories: couldn't remove $tartnew: $!\n";
+      my $replace = 1;
+
+      if ($replace) {
+        $cmd = "diff $tart $tartnew >/dev/null";
+        if (system ($cmd) == 0) {
+          $replace = 0;
+        }
       }
-      else {
+
+      if ($replace) {
+        if (( -s $tart ) <= ( -s $tartnew )) {
+          $cmd = "$opentheory info --theorems -o $tart.thms $tart";
+          (system ($cmd) == 0) or
+            die "$program: couldn't execute $cmd: $!\n";
+
+          $cmd = "$opentheory info --theorems -o $tartnew.thms $tartnew";
+          (system ($cmd) == 0) or
+            die "$program: couldn't execute $cmd: $!\n";
+
+          $cmd = "diff $tart.thms $tartnew.thms >/dev/null";
+          if (system ($cmd) == 0) {
+            $cmd = "$opentheory info --theorems -o $tart.asms $tart";
+            (system ($cmd) == 0) or
+              die "$program: couldn't execute $cmd: $!\n";
+
+            $cmd = "$opentheory info --theorems -o $tartnew.asms $tartnew";
+            (system ($cmd) == 0) or
+              die "$program: couldn't execute $cmd: $!\n";
+
+            $cmd = "diff $tart.asms $tartnew.asms >/dev/null";
+            if (system ($cmd) == 0) {
+              $replace = 0;
+            }
+
+            unlink "$tart.asms" or
+              die "$program: couldn't remove $tart.asms: $!\n";
+
+            unlink "$tartnew.asms" or
+              die "$program: couldn't remove $tartnew.asms: $!\n";
+          }
+
+          unlink "$tart.thms" or
+            die "$program: couldn't remove $tart.thms: $!\n";
+
+          unlink "$tartnew.thms" or
+            die "$program: couldn't remove $tartnew.thms: $!\n";
+        }
+      }
+
+      if ($replace) {
         $cmd = "$bumpver -p $tthy > $tthynew";
         (system ($cmd) == 0) or
-          die "import-theories: couldn't execute $cmd: $!\n";
+          die "$program: couldn't execute $cmd: $!\n";
 
         rename($tthynew,$tthy) or
-          die "import-theories: couldn't rename $tthynew to $tthy: $!\n";
+          die "$program: couldn't rename $tthynew to $tthy: $!\n";
 
         rename($tartnew,$tart) or
-          die "import-theories: couldn't rename $tartnew to $tart: $!\n";
+          die "$program: couldn't rename $tartnew to $tart: $!\n";
 
         print STDOUT "re-imported $base\n";
+      }
+      else {
+        unlink $tartnew or
+          die "$program: couldn't remove $tartnew: $!\n";
       }
     }
     else {
       rename($tartnew,$tart) or
-        die "import-theories: couldn't rename $tartnew to $tart: $!\n";
+        die "$program: couldn't rename $tartnew to $tart: $!\n";
 
       print STDOUT "imported $base\n";
     }
@@ -136,7 +186,7 @@ import-theories - import theories extracted from a theorem prover
 
 =head1 SYNOPSIS
 
-import-theories [-h] [-l LICENSE] [-p PROVENANCE] [-u] <theory-dir>
+import-theories [-h] [-a AUTHOR] [-l LICENSE] [-p PROVENANCE] [-u] <theory-dir>
 
 =head1 ARGUMENTS
 
