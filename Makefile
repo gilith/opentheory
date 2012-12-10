@@ -127,6 +127,7 @@ SRC = \
   src/ObjectStack.sig src/ObjectStack.sml \
   src/ObjectRead.sig src/ObjectRead.sml \
   src/ObjectWrite.sig src/ObjectWrite.sml \
+  src/ObjectTheorems.sig src/ObjectTheorems.sml \
   src/Article.sig src/Article.sml \
   src/PackageName.sig src/PackageName.sml \
   src/PackageVersion.sig src/PackageVersion.sml \

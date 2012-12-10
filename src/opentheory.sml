@@ -555,6 +555,7 @@ val helpFooter = "";
 
 datatype info =
     ArticleInfo
+  | AssumptionsInfo
   | DocumentInfo
   | FilesInfo
   | FormatInfo of infoFormat
@@ -699,6 +700,9 @@ in
        {switches = ["--theorems"], arguments = [],
         description = "output the package theorems in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoremsInfo)},
+       {switches = ["--assumptions"], arguments = [],
+        description = "output the package assumptions in article format",
+        processor = beginOpt endOpt (fn _ => addInfoOutput AssumptionsInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write previous package information to FILE",
         processor =
@@ -1528,13 +1532,8 @@ local
             | SOME ths =>
               let
                 val seqs = Sequents.fromThms ths
-
-                val ths' =
-                    PackageTheorems.Theorems'
-                      {package = nv,
-                       sequents = seqs}
               in
-                SOME (PackageTheorems.mk ths')
+                SOME (PackageTheorems.mk nv seqs)
               end;
   in
     val getTheorems = getCached cacheTheorems computeTheorems;
@@ -1582,6 +1581,60 @@ local
           | NONE => NONE;
   in
     val getInference = getCached cacheInference computeInference;
+  end;
+
+  local
+    val cacheBrand : Name.name cache = ref NONE;
+
+    fun computeBrand () =
+        case getNameVersion () of
+          SOME nv => SOME (PackageNameVersion.toGlobal nv)
+        | NONE => SOME (Name.mkGlobal "unknown")
+  in
+    val getBrand = getCached cacheBrand computeBrand;
+  end;
+
+  local
+    val cacheObjectTheorems : ObjectTheorems.theorems cache = ref NONE;
+
+    fun computeObjectTheorems () =
+        case getTheorems () of
+          SOME ths => SOME (PackageTheorems.theorems ths)
+        | NONE =>
+          case getBrand () of
+            NONE => NONE
+          | SOME brand =>
+            case getThms () of
+              NONE => NONE
+            | SOME ths =>
+              let
+                val seqs = Sequents.fromThms ths
+              in
+                SOME (ObjectTheorems.mk brand seqs)
+              end;
+  in
+    val getObjectTheorems =
+        getCached cacheObjectTheorems computeObjectTheorems;
+  end;
+
+  local
+    val cacheObjectAssumptions : ObjectTheorems.theorems cache = ref NONE;
+
+    fun computeObjectAssumptions () =
+        case getBrand () of
+          NONE => NONE
+        | SOME brand =>
+          case getSummary () of
+            NONE => NONE
+          | SOME sum =>
+            let
+              val seqs = Summary.requires sum
+            in
+              SOME (ObjectTheorems.mk brand seqs)
+            end;
+  in
+    val getObjectAssumptions =
+        getCached cacheObjectAssumptions computeObjectAssumptions;
   end;
 
   fun processFormat (InfoFormat items) =
@@ -1669,6 +1722,17 @@ local
           val {filename} = file
         in
           Article.toTextFile {article = art, filename = filename}
+        end
+      | AssumptionsInfo =>
+        let
+          val ths =
+              case getObjectAssumptions () of
+                SOME ths => ths
+              | NONE => raise Error "no assumption information available"
+
+          val {filename} = file
+        in
+          ObjectTheorems.toTextFile {theorems = ths, filename = filename}
         end
       | DocumentInfo =>
         let
@@ -1895,13 +1959,13 @@ local
       | TheoremsInfo =>
         let
           val ths =
-              case getTheorems () of
+              case getObjectTheorems () of
                 SOME ths => ths
               | NONE => raise Error "no theorem information available"
 
           val {filename} = file
         in
-          PackageTheorems.toTextFile {theorems = ths, filename = filename}
+          ObjectTheorems.toTextFile {theorems = ths, filename = filename}
         end
       | TheoryInfo =>
         let

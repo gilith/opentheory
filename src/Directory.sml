@@ -812,11 +812,7 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
           let
             val seqs = PackageSummary.provides sum
 
-            val thms =
-                PackageTheorems.mk
-                  (PackageTheorems.Theorems'
-                     {package = namever,
-                      sequents = seqs})
+            val thms = PackageTheorems.mk namever seqs
           in
             PackageInfo.writeTheorems stageInfo thms
           end

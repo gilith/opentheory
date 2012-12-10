@@ -26,49 +26,31 @@ fun isFilename file = Option.isSome (destFilename file);
 (* A type of package theorems.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-datatype theorems' =
-    Theorems' of
-      {package : PackageNameVersion.nameVersion,
-       sequents : Sequents.sequents}
-
 datatype theorems =
     Theorems of
-      {theorems' : theorems',
-       export : ObjectExport.export};
+      {package : PackageNameVersion.nameVersion,
+       theorems : ObjectTheorems.theorems};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun package' (Theorems' {package = x, ...}) = x;
-
-fun sequents' (Theorems' {sequents = x, ...}) = x;
-
-fun mk ths' =
+fun mk pkg seqs =
     let
-      val Theorems' {package = nv, sequents = seqs} = ths'
+      val brand = PackageNameVersion.toGlobal pkg
 
-      val n = PackageNameVersion.toGlobal nv
-
-      val exp = ObjectExport.brand n seqs
-
-      val seqs = Sequents.fromThms (ObjectExport.toThms exp)
-
-      val ths' =
-          Theorems'
-            {package = nv,
-             sequents = seqs}
+      val ths = ObjectTheorems.mk brand seqs
     in
       Theorems
-        {theorems' = ths',
-         export = exp}
+        {package = pkg,
+         theorems = ths}
     end;
 
-fun dest (Theorems {theorems' = x, ...}) = x;
+fun package (Theorems {package = x, ...}) = x;
 
-fun package ths = package' (dest ths);
+fun theorems (Theorems {theorems = x, ...}) = x;
 
-fun sequents ths = sequents' (dest ths);
+fun sequents ths = ObjectTheorems.sequents (theorems ths);
 
 fun symbol ths = Sequents.symbol (sequents ths);
 
@@ -258,9 +240,10 @@ local
 
   fun destTheorems th =
       let
-        val Theorems' {package = nv, sequents = seqs} = dest th
+        val pkg = package th
+        and seqs = sequents th
 
-        val n = PackageNameVersion.name nv
+        val n = PackageNameVersion.name pkg
         and (sym,seqs) = destSequents seqs
       in
         (n,sym,seqs)
@@ -545,42 +528,20 @@ end;
 (* Output formats.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun fromTextFile {package = nv, filename} =
+fun fromTextFile {package = pkg, filename} =
     let
-      val state =
-          ObjectRead.initial
-            {import = ObjectThms.new {savable = true},
-             interpretation = Interpretation.natural,
-             savable = true}
-
-      val state = ObjectRead.executeTextFile {filename = filename} state
-
-      val ths = ObjectRead.thms state
-
-      val exp = ObjectThms.toExport ths
-
-      val seqs = Sequents.fromThms (ObjectThms.thms ths)
-
-      val ths' =
-          Theorems'
-            {package = nv,
-             sequents = seqs}
+      val ths = ObjectTheorems.fromTextFile {filename = filename}
     in
       Theorems
-        {theorems' = ths',
-         export = exp}
+        {package = pkg,
+         theorems = ths}
     end;
 
 fun toTextFile {theorems,filename} =
     let
-      val Theorems {theorems' = _, export = exp} = theorems
+      val Theorems {package = _, theorems = ths} = theorems
 
-      val exp =
-          case ObjectExport.compress exp of
-            NONE => exp
-          | SOME exp => exp
-
-      val () = ObjectWrite.toTextFile {export = exp, filename = filename}
+      val () = ObjectTheorems.toTextFile {theorems = ths, filename = filename}
     in
       ()
     end;

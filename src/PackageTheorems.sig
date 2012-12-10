@@ -26,16 +26,11 @@ type theorems
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype theorems' =
-    Theorems' of
-      {package : PackageNameVersion.nameVersion,
-       sequents : Sequents.sequents}
-
-val mk : theorems' -> theorems
-
-val dest : theorems -> theorems'
+val mk : PackageNameVersion.nameVersion -> Sequents.sequents -> theorems
 
 val package : theorems -> PackageNameVersion.nameVersion
+
+val theorems : theorems -> ObjectTheorems.theorems
 
 val sequents : theorems -> Sequents.sequents
 
@@ -63,7 +58,7 @@ val existsDefined : theorems -> bool
 val context : Summary.summary -> theorems list -> Summary.context
 
 val packageContext :
-     PackageSummary.summary -> theorems list -> Summary.context
+    PackageSummary.summary -> theorems list -> Summary.context
 
 (* ------------------------------------------------------------------------- *)
 (* Testing different versions of required theories.                          *)
