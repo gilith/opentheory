@@ -1,5 +1,5 @@
 name: stream-thm
-version: 1.25
+version: 1.26
 description: Properties of stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
