@@ -1,5 +1,5 @@
 name: stream
-version: 1.24
+version: 1.25
 description: Stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -23,7 +23,7 @@ def {
 
 thm {
   import: def
-  package: stream-thm-1.24
+  package: stream-thm-1.25
 }
 
 main {

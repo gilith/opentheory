@@ -1,5 +1,5 @@
 name: group
-version: 1.8
+version: 1.9
 description: Parametric theory of groups
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -33,7 +33,7 @@ mult {
 crypt {
   import: thm
   import: mult
-  package: group-crypt-1.7
+  package: group-crypt-1.8
 }
 
 abelian {

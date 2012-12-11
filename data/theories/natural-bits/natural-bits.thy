@@ -1,5 +1,5 @@
 name: natural-bits
-version: 1.13
+version: 1.14
 description: Natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -18,7 +18,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: natural-bits-def-1.14
+  package: natural-bits-def-1.15
 }
 
 thm {

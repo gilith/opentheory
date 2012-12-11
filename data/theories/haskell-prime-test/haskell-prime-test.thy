@@ -1,9 +1,9 @@
 name: haskell-prime-test
-version: 1.28
+version: 1.29
 description: QuickCheck tests for prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-12-02
+provenance: HOL Light theory extracted on 2012-12-10
 requires: base
 requires: haskell
 requires: haskell-prime-def

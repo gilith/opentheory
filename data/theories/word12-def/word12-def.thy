@@ -1,5 +1,5 @@
 name: word12-def
-version: 1.65
+version: 1.66
 description: Definition of 12-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -48,7 +48,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word12.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word12.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word12.Bits.toWord"
-  package: word-1.89
+  package: word-1.90
 }
 
 main {

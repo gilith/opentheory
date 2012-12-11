@@ -1,9 +1,9 @@
 name: group-crypt-def
-version: 1.10
+version: 1.11
 description: Definition of group cryptography
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-12-02
+provenance: HOL Light theory extracted on 2012-12-10
 requires: bool
 requires: group-mult
 requires: group-witness

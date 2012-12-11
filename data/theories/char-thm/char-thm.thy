@@ -1,9 +1,9 @@
 name: char-thm
-version: 1.14
+version: 1.15
 description: Properties of Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-08-05
+provenance: HOL Light theory extracted on 2012-12-10
 requires: bool
 requires: char-def
 requires: pair

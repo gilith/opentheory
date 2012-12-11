@@ -1,5 +1,5 @@
 name: option
-version: 1.61
+version: 1.62
 description: Option types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: option-thm-1.48
+  package: option-thm-1.49
 }
 
 dest {

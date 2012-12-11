@@ -1,5 +1,5 @@
 name: list
-version: 1.78
+version: 1.79
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: list-thm-1.49
+  package: list-thm-1.50
 }
 
 dest {
