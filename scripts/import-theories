@@ -109,21 +109,21 @@ while (my $thy = <THEORIES>) {
 
       if ($replace) {
         if (( -s $tart ) <= ( -s $tartnew )) {
-          $cmd = "$opentheory info --theorems -o $tart.thms $tart";
+          $cmd = "$opentheory info --theorems -o $tart.thms article:$tart";
           (system ($cmd) == 0) or
             die "$program: couldn't execute $cmd: $!\n";
 
-          $cmd = "$opentheory info --theorems -o $tartnew.thms $tartnew";
+          $cmd = "$opentheory info --theorems -o $tartnew.thms article:$tartnew";
           (system ($cmd) == 0) or
             die "$program: couldn't execute $cmd: $!\n";
 
           $cmd = "diff $tart.thms $tartnew.thms >/dev/null";
           if (system ($cmd) == 0) {
-            $cmd = "$opentheory info --theorems -o $tart.asms $tart";
+            $cmd = "$opentheory info --assumptions -o $tart.asms article:$tart";
             (system ($cmd) == 0) or
               die "$program: couldn't execute $cmd: $!\n";
 
-            $cmd = "$opentheory info --theorems -o $tartnew.asms $tartnew";
+            $cmd = "$opentheory info --assumptions -o $tartnew.asms article:$tartnew";
             (system ($cmd) == 0) or
               die "$program: couldn't execute $cmd: $!\n";
 
