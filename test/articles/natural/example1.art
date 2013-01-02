@@ -1,4 +1,6 @@
-# Tiny example for the PLMMS paper.
+# Tiny example to illustrate the
+# article syntax - JLH
+#
 # Construct the hypothesis list
 nil
 # Construct the conclusion term
@@ -11,9 +13,9 @@ opType
 constTerm
 1
 def
-# Construct the theorem
+# Import an assumption: |- T
 axiom
-# Export the theorem
+# Export a theorem: |- T
 nil
 1
 remove
