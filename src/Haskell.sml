@@ -1652,7 +1652,7 @@ in
             StringMap.fromList
               [(authorTag, PackageAuthor.toString author),
                (buildTypeTag,"Simple"),
-               (cabalVersionTag,">= 1.8.0.6"),
+               (cabalVersionTag,">= 1.8.0.2"),
                (categoryTag,"Formal Methods"),
                (descriptionTag,description),
                (ghcOptionsTag,"-Wall"),

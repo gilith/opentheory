@@ -1,16 +1,16 @@
 name: opentheory
-version: 1.82
+version: 1.78
 category: Formal Methods
 synopsis: The Haskell base
 license: MIT
 license-file: LICENSE
-cabal-version: >= 1.8.0.6
+cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   The Haskell base - automatically generated from the opentheory package
-  haskell-1.82
+  haskell-1.78
 
 library
   build-depends:

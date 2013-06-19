@@ -3,7 +3,7 @@ version: 1.0
 synopsis: Testing packages exported from OpenTheory
 license: MIT
 license-file: LICENSE
-cabal-version: >= 1.8.0.6
+cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
@@ -15,7 +15,7 @@ Library
   build-depends:
     base >= 4.0 && < 5.0,
     bytestring >= 0.9 && < 1.0,
-    directory >= 1.1 && < 1.2,
+    directory >= 1.0 && < 1.2,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.0 && < 2.0,
     opentheory-char >= 1.0 && < 2.0,
@@ -32,7 +32,7 @@ executable nth-prime
   build-depends:
     base >= 4.0 && < 5.0,
     bytestring >= 0.9 && < 1.0,
-    directory >= 1.1 && < 1.2,
+    directory >= 1.0 && < 1.2,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.0 && < 2.0,
     opentheory-char >= 1.0 && < 2.0,
@@ -48,7 +48,7 @@ executable opentheory-test
   build-depends:
     base >= 4.0 && < 5.0,
     bytestring >= 0.9 && < 1.0,
-    directory >= 1.1 && < 1.2,
+    directory >= 1.0 && < 1.2,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.0 && < 2.0,
     opentheory-char >= 1.0 && < 2.0,

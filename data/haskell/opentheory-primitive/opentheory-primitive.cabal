@@ -4,7 +4,7 @@ category: Formal Methods
 synopsis: Haskell primitives used by OpenTheory packages
 license: MIT
 license-file: LICENSE
-cabal-version: >= 1.8.0.6
+cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
