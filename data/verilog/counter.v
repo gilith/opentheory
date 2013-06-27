@@ -79,7 +79,7 @@ module main;
         $display("+------------------------+");
         $display("| Test bench for counter |");
         $display("+------------------------+");
-        $monitor("ld = %b, sr = %h, cr = %h, dn = %b",
+        $monitor("ld = %b, sr = %d, cr = %d, dn = %b",
                   root.ld, root.sr, root.cr, root.dn);
         clk = 0;
         repeat(10) @(posedge clk);

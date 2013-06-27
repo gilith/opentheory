@@ -53,7 +53,7 @@ iverilog-info:
 iverilog: iverilog-info $(TARGETS)
 
 %.out: %.o
-	$(VVP) $<
+	$(VVP) $< | tee $@
 
 %.o: %.v
 	$(IVERILOG) -o $@ $<
