@@ -1,78 +1,110 @@
-module twoToTwo(a,b,s,c);
-   input [0:31] a;
-   input [0:31] b;
-   output [0:31] s;
-   output [0:31] c;
+module compressor2(a,b,s,c);
+   parameter width = 0;
 
-   s = a ^ b;
-   c = a & b;
+   input [width-1:0] a;
+   input [width-1:0] b;
 
-endmodule // twoToTwo
+   output [width-1:0] s;
+   output [width-1:0] c;
+
+   assign s = a ^ b;
+   assign c = a & b;
+
+endmodule // compressor2
 
 module counter(clk,ld,nb,dn);
+   parameter width = 0;
 
    input clk;
    input ld;
-   input [0:32] nb;
-   
-   output       dn;
+   input [width-1:0] nb;
 
-   reg [0:31] sr;
-   reg [0:32] cr;
-   reg        dr;
+   output dn;
 
-   wire [0:31] sq;
-   wire [0:32] cq;
-   wire        dq;
+   reg [width-2:0] sp;
+   reg [width-1:0] cp;
+   reg dp;
 
-   twoToTwo
+   wire [width-2:0] sq;
+   wire [width-1:0] cq;
+   wire dq;
+   wire [width-2:0] sr;
+   wire [width-1:0] cr;
+
+   compressor2
+     #(.width (width-1))
+     advance
+     (.a (sp),
+      .b (cp[width-2:0]),
+      .s (sq),
+      .c (cq[width-1:1]));
+
+   assign cq[0] = ~cp[0];
+   assign dq = dp | cp[width-1];
+
+   assign sr = ld ? nb[width-1:1] : sq;
+   assign cr[0] = ld ? nb[0] : cq[0];
+   assign cr[width-1:1] = ld ? {(width-1) {1'b0}} : cq[width-1:1];
+   assign dn = ld ? 1'b0 : dq;
+     
    always @(posedge clk)
-     if (ld)
-       begin
-          dn <= 1'b0;
-          sr <= 
-     dn <= dr | cr[32];
-   
+     begin
+        sp <= sr;
+        cp <= cr;
+        dp <= dn;
+     end
 
-           endmodule; // counter
-
+endmodule // counter
 
 module main;
+   parameter delay = 10;
+   parameter width = 5;
+                    
+   reg clk;
+   reg inp;
+   reg [width-1:0] nb;
 
+   wire out;
 
-   reg clk, reset;
+   counter
+     #(.width (width))
+     root
+     (.clk (clk),
+      .ld (inp),
+      .nb (nb),
+      .dn (out));
 
-   reg [31:0] value;
+   initial
+     begin
+        $display("+------------------------+");
+        $display("| Test bench for counter |");
+        $display("+------------------------+");
+        $monitor("ld = %b, sr = %h, cr = %h, dn = %b",
+                  root.ld, root.sr, root.cr, root.dn);
+        clk = 0;
+        repeat(10) @(posedge clk);
+        nb =  {width {1'b0}} - (delay + 1 - width);
+        inp = 1;
+        @(posedge clk);
+        inp = 0;
+        repeat(delay-1) @(posedge clk);
+        if (out)
+          begin
+             $display("ERROR: counter finished too soon");
+          end
+        @(posedge clk);
+        if (!out)
+          begin
+             $display("ERROR: counter did not finish on time");
+          end
+        //while(!out) @(posedge clk);
+        repeat(5) @(posedge clk);
+        $monitoroff;
+        $display("Test complete at time %0t.", $time);
+        $finish;
+     end
 
-   wire [15:0] result;
+   always
+     #5 clk = !clk;
 
-   wire        rdy;
-
-
-   sqrt32 root(.clk(clk), .rdy(rdy), .reset(reset), .x(value), .y(result));
-
-
-   always #5 clk = ~clk;
-
-
-      always @(posedge rdy) begin
-         $display("sqrt(%d) --> %d", value, result);
-
-         $finish;
-
-      end
-
-
-      initial begin
-         clk = 0;
-
-         reset = 1;
-
-         $monitor($time,,"%m.acc = %b", root.acc);
-
-         #100 value = 63;
-
-         reset = 0;
-
-      end // initial begin
-endmodule /* main */
+endmodule // main

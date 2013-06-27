@@ -17,7 +17,7 @@ default: iverilog
 ###############################################################################
 
 TEMP = \
-  a.out \
+  *.out \
   *.o
 
 .PHONY: clean
@@ -38,7 +38,8 @@ IVERILOG = iverilog
 VVP = vvp
 
 TARGETS = \
-  compressor2.o
+  compressor2.out \
+  counter.out
 
 .PHONY: iverilog-info
 iverilog-info:
@@ -51,6 +52,8 @@ iverilog-info:
 .PHONY: iverilog
 iverilog: iverilog-info $(TARGETS)
 
+%.out: %.o
+	$(VVP) $<
+
 %.o: %.v
 	$(IVERILOG) -o $@ $<
-	$(VVP) $@
