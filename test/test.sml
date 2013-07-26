@@ -347,6 +347,8 @@ val () = compress "natural" "example8";
 
 val () = compress "natural" "example9";
 
+val () = compress "natural" "example10";
+
 val () = compress "hol-light" "bool-true-def";
 
 val () = compress "hol-light" "bool-true-thm";
@@ -418,6 +420,8 @@ val () = summarize "example7";
 val () = summarize "example8";
 
 val () = summarize "example9";
+
+val () = summarize "example10";
 
 val () = summarize "bool-true-def";
 

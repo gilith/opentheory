@@ -1,0 +1,23 @@
+# Tiny example to check that two constructed constant terms
+# are alpha-equivalent - Joe Leslie-Hurd
+nil
+# First construction of constant term `c : bool`
+"c"
+const
+"bool"
+typeOp
+nil
+opType
+constTerm
+axiom
+nil
+# Second construction of constant term `c : bool`
+"c"
+const
+"bool"
+typeOp
+nil
+opType
+constTerm
+# This thm would fail if the two terms were not alpha-equivalent
+thm
