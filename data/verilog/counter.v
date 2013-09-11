@@ -46,7 +46,7 @@ module counter(clk,ld,nb,dn);
    assign cr[0] = ld ? nb[0] : cq[0];
    assign cr[width-1:1] = ld ? {(width-1) {1'b0}} : cq[width-1:1];
    assign dn = ld ? 1'b0 : dq;
-     
+
    always @(posedge clk)
      begin
         sp <= sr;
@@ -59,7 +59,7 @@ endmodule // counter
 module main;
    parameter delay = 10;
    parameter width = 5;
-                    
+
    reg clk;
    reg inp;
    reg [width-1:0] nb;
@@ -97,7 +97,6 @@ module main;
           begin
              $display("ERROR: counter did not finish on time");
           end
-        //while(!out) @(posedge clk);
         repeat(5) @(posedge clk);
         $monitoroff;
         $display("Test complete at time %0t.", $time);

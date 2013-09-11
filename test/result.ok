@@ -161,30 +161,30 @@ Summarizing compressed article "empty"
 
 
 Summarizing compressed article "example1"
-1 input type operator: bool
-1 input constant: T
+1 external type operator: bool
+1 external constant: T
 1 assumption:
   |- T
 1 theorem:
   |- T
 
 Summarizing compressed article "example2"
-1 input type operator: bool
-1 input constant: T
+1 external type operator: bool
+1 external constant: T
 1 assumption:
   |- let x <- T in x
 1 theorem:
   |- let y <- T in y
 
 Summarizing compressed article "example3"
-2 input type operators: -> bool
-1 input constant: =
+2 external type operators: -> bool
+1 external constant: =
 1 theorem:
   |- x = x
 
 Summarizing compressed article "example4"
-2 input type operators: -> bool
-3 input constants: = a b
+2 external type operators: -> bool
+3 external constants: = a b
 2 assumptions:
   |- a
   |- a <=> b
@@ -192,14 +192,14 @@ Summarizing compressed article "example4"
   |- b
 
 Summarizing compressed article "example5"
-2 input type operators: -> bool
-2 input constants: = a
+2 external type operators: -> bool
+2 external constants: = a
 1 theorem:
   |- a <=> a
 
 Summarizing compressed article "example6"
-2 input type operators: -> bool
-4 input constants: = a b c
+2 external type operators: -> bool
+4 external constants: = a b c
 2 assumptions:
   |- a <=> b
   |- b <=> c
@@ -207,8 +207,8 @@ Summarizing compressed article "example6"
   |- a <=> c
 
 Summarizing compressed article "example7"
-2 input type operators: -> bool
-4 input constants: = a b c
+2 external type operators: -> bool
+4 external constants: = a b c
 2 assumptions:
   |- a <=> b
   |- b <=> c
@@ -216,8 +216,8 @@ Summarizing compressed article "example7"
   |- a <=> c
 
 Summarizing compressed article "example8"
-2 input type operators: -> bool
-4 input constants: = a b c
+2 external type operators: -> bool
+4 external constants: = a b c
 2 assumptions:
   |- a <=> b
   |- b <=> c
@@ -225,8 +225,8 @@ Summarizing compressed article "example8"
   |- a <=> c
 
 Summarizing compressed article "example9"
-2 input type operators: -> bool
-4 input constants: = a b c
+2 external type operators: -> bool
+4 external constants: = a b c
 2 assumptions:
   |- a <=> b
   |- b <=> c
@@ -234,23 +234,23 @@ Summarizing compressed article "example9"
   |- a <=> c
 
 Summarizing compressed article "example10"
-1 input type operator: bool
-1 input constant: c
+1 external type operator: bool
+1 external constant: c
 1 assumption:
   |- c
 1 theorem:
   |- c
 
 Summarizing compressed article "bool-true-def"
-2 input type operators: -> bool
-1 input constant: =
+2 external type operators: -> bool
+1 external constant: =
 1 defined constant: T
 1 theorem:
   |- T <=> (\p. p) = \p. p
 
 Summarizing compressed article "bool-true-thm"
-2 input type operators: -> bool
-2 input constants: = T
+2 external type operators: -> bool
+2 external constants: = T
 1 assumption:
   |- T <=> (\p. p) = \p. p
 1 theorem:
@@ -298,39 +298,39 @@ Importing theory package "empty-1.0"
 
 
 Importing theory package "bool-true-def-1.0"
-2 input type operators: -> bool
-1 input constant: =
+2 external type operators: -> bool
+1 external constant: =
 1 defined constant: T
 1 theorem:
   |- T <=> (\p. p) = \p. p
 
 Importing theory package "bool-true-thm-1.0"
-2 input type operators: -> bool
-2 input constants: = T
+2 external type operators: -> bool
+2 external constants: = T
 1 assumption:
   |- T <=> (\p. p) = \p. p
 1 theorem:
   |- T
 
 Importing theory package "bool-true-1.0"
-2 input type operators: -> bool
-1 input constant: =
+2 external type operators: -> bool
+1 external constant: =
 1 defined constant: T
 2 theorems:
   |- T
   |- T <=> (\p. p) = \p. p
 
 Importing theory package "bool-true-assert-1.0"
-2 input type operators: -> bool
-2 input constants: = T
+2 external type operators: -> bool
+2 external constants: = T
 1 assumption:
   |- T <=> (\a. T) = \b. b
 1 theorem:
   |- T <=> (\a. T) = \b. b
 
 Importing theory package "bool-true-axiom-1.0"
-2 input type operators: -> bool
-1 input constant: =
+2 external type operators: -> bool
+1 external constant: =
 1 defined constant: T
 1 axiom:
   |- T <=> (\a. T) = \b. b

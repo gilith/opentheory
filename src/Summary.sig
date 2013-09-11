@@ -56,7 +56,7 @@ val rewrite : TermRewrite.rewrite -> summary -> summary option
 datatype context =
     NoContext
   | Context of
-      {groundedInput : Symbol.symbol -> bool,
+      {groundedExternal : Symbol.symbol -> bool,
        satisfiedAssumption : Sequent.sequent -> bool}
 
 (* ------------------------------------------------------------------------- *)

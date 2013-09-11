@@ -166,25 +166,25 @@ fun rewrite rewr sum =
 datatype context =
     NoContext
   | Context of
-      {groundedInput : Symbol.symbol -> bool,
+      {groundedExternal : Symbol.symbol -> bool,
        satisfiedAssumption : Sequent.sequent -> bool};
 
 val defaultContext = NoContext;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of summary input symbols.                                          *)
+(* A type of summary external symbols.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-datatype inputs =
-    AllInputs of SymbolTable.table
-  | ClassifiedInputs of
+datatype externals =
+    AllExternals of SymbolTable.table
+  | ClassifiedExternals of
       {grounded : SymbolTable.table,
        ungrounded : SymbolTable.table};
 
-fun mkInputs ctxt inp =
+fun mkExternals ctxt inp =
     case ctxt of
-      NoContext => AllInputs inp
-    | Context {groundedInput = g, ...} =>
+      NoContext => AllExternals inp
+    | Context {groundedExternal = g, ...} =>
       let
         val s = SymbolTable.symbols inp
 
@@ -194,7 +194,7 @@ fun mkInputs ctxt inp =
 
         val us = SymbolTable.addSymbolSet SymbolTable.empty us
       in
-        ClassifiedInputs {grounded = gs, ungrounded = us}
+        ClassifiedExternals {grounded = gs, ungrounded = us}
       end;
 
 (* ------------------------------------------------------------------------- *)
@@ -225,7 +225,7 @@ fun mkAssumptions ctxt ass =
 
 datatype info =
     Info of
-      {input : inputs,
+      {external : externals,
        assumed : assumptions,
        defined : SymbolTable.table,
        axioms : SequentSet.set,
@@ -266,7 +266,7 @@ in
               SequentSet.partition (allSymbolsIn inp) req
             end
 
-        val inp = mkInputs ctxt inp
+        val inp = mkExternals ctxt inp
 
         val ass = mkAssumptions ctxt ass
 
@@ -277,7 +277,7 @@ in
 *)
       in
         Info
-          {input = inp,
+          {external = inp,
            assumed = ass,
            defined = def,
            axioms = ax,
@@ -448,13 +448,13 @@ local
   fun checkInfo chks ctxt show info =
       let
         val {checkTheorems = chkSeqs} = chks
-        and Info {input,assumed,axioms,thms,...} = info
+        and Info {external,assumed,axioms,thms,...} = info
 
-        val input =
-            case input of
-              AllInputs sym => sym
-            | ClassifiedInputs _ =>
-              raise Bug "Summary.check.checkInfo.ClassifiedInputs"
+        val external =
+            case external of
+              AllExternals sym => sym
+            | ClassifiedExternals _ =>
+              raise Bug "Summary.check.checkInfo.ClassifiedExternals"
 
         val assumed =
             case assumed of
@@ -471,20 +471,20 @@ local
         val () = checkShow seqs show
 
         val () =
-            case mkInputs ctxt input of
-              AllInputs _ => ()
-            | ClassifiedInputs {ungrounded = inp, ...} =>
+            case mkExternals ctxt external of
+              AllExternals _ => ()
+            | ClassifiedExternals {ungrounded = inp, ...} =>
               let
                 val ts = SymbolTable.typeOps inp
                 and cs = SymbolTable.consts inp
 
                 val () =
                     if TypeOpSet.null ts then ()
-                    else warnTypeOps "ungrounded input" show ts
+                    else warnTypeOps "ungrounded external" show ts
 
                 val () =
                     if ConstSet.null cs then ()
-                    else warnConsts "ungrounded input" show cs
+                    else warnConsts "ungrounded external" show cs
               in
                 ()
               end
@@ -623,12 +623,12 @@ in
       in
         fn asses => fn info =>
            let
-             val Info {input,assumed,defined,axioms,thms} = info
+             val Info {external,assumed,defined,axioms,thms} = info
 
-             val (input,uinput) =
-                 case input of
-                   AllInputs inp => (inp,SymbolTable.empty)
-                 | ClassifiedInputs {grounded,ungrounded} =>
+             val (external,uexternal) =
+                 case external of
+                   AllExternals inp => (inp,SymbolTable.empty)
+                 | ClassifiedExternals {grounded,ungrounded} =>
                    (grounded,ungrounded)
 
              val (sat,assumed) =
@@ -692,8 +692,8 @@ in
                  end
 
              val blocks =
-                 ppSymbol ("input",input) @
-                 ppSymbol ("ungrounded input",uinput) @
+                 ppSymbol ("external",external) @
+                 ppSymbol ("ungrounded external",uexternal) @
                  assumptionBlocks @
                  ppSymbol ("defined",defined) @
                  ppSequentList (ppAss ppAxiom) ("axiom",axioms) @
@@ -1033,12 +1033,12 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
     in
       fn info =>
          let
-           val Info {input,assumed,defined,axioms,thms} = info
+           val Info {external,assumed,defined,axioms,thms} = info
 
-           val (uinput,input) =
-               case input of
-                 AllInputs sym => (SymbolTable.empty,sym)
-               | ClassifiedInputs {grounded = sym, ungrounded = usym} =>
+           val (uexternal,external) =
+               case external of
+                 AllExternals sym => (SymbolTable.empty,sym)
+               | ClassifiedExternals {grounded = sym, ungrounded = usym} =>
                  (usym,sym)
 
            val assumptionBlocks =
@@ -1050,10 +1050,10 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
                    "Unsatisfied assumption" "made" [] unsatisfied
          in
            toHtmlSymbol "Defined" [] defined @
-           toHtmlSymbol "Ungrounded Input" ["warning"] uinput @
+           toHtmlSymbol "Ungrounded External" ["warning"] uexternal @
            toHtmlSequentSet toHtmlAxiom "Axiom" "asserted" ["warning"] axioms @
            toHtmlSequentSet toHtmlTheorem "Theorem" "proved" [] thms @
-           toHtmlSymbol "Input" [] input @
+           toHtmlSymbol "External" [] external @
            assumptionBlocks
          end
     end;

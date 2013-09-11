@@ -115,7 +115,7 @@ local
         ((undefs,seqs),(ungr',asms'))
       end;
 
-  fun definesSomeInput inp =
+  fun definesSomeExternal inp =
       let
         fun check sym =
           case sym of
@@ -125,12 +125,12 @@ local
         SymbolSet.exists check
       end;
 
-  fun definesInput inp thl =
+  fun definesExternal inp thl =
       case thl of
         [] => (initialGrounded,initialSatisfied,[],TermRewrite.undef)
       | th :: thl =>
         let
-          val (undefs,seqs,seqsl,rewr) = definesInput inp thl
+          val (undefs,seqs,seqsl,rewr) = definesExternal inp thl
 
           val {defined = def, undefined = undef} = partitionUndef th
           and seq = Sequents.sequents (sequents th)
@@ -141,7 +141,7 @@ local
 
           val seq = Option.getOpt (seq',seq)
         in
-          if definesSomeInput inp (SymbolTable.symbols def) then
+          if definesSomeExternal inp (SymbolTable.symbols def) then
             let
               val undefs = SymbolSet.union undefs undef
               and seqs = SequentSet.union seqs seq
@@ -156,7 +156,7 @@ local
             end
         end;
 
-  fun groundedInput undefs defs s =
+  fun groundedExternal undefs defs s =
       SymbolSet.member s undefs orelse
       case s of
         Symbol.TypeOp t => SymbolTable.knownTypeOp defs (TypeOp.name t)
@@ -166,7 +166,7 @@ local
 
   fun mkContext inp ungr asms thl defs =
       let
-        val (undefs,seqs,seqsl,_) = definesInput inp thl
+        val (undefs,seqs,seqsl,_) = definesExternal inp thl
 
         val ungr = SymbolSet.difference ungr undefs
         and asms = SequentSet.difference asms seqs
@@ -175,7 +175,7 @@ local
             List.foldl mkSatisfy ((undefs,seqs),(ungr,asms)) seqsl
       in
         Summary.Context
-          {groundedInput = groundedInput undefs defs,
+          {groundedExternal = groundedExternal undefs defs,
            satisfiedAssumption = satisfiedAssumption seqs}
       end;
 in
@@ -378,7 +378,8 @@ local
               NONE => ()
             | SOME (n,_) =>
               let
-                val err = "ungrounded input " ^ kind ^ ":\n" ^ Name.toString n
+                val err =
+                    "ungrounded external " ^ kind ^ ":\n" ^ Name.toString n
               in
                 raise Error err
               end
@@ -422,7 +423,7 @@ local
                 val ns = PackageNameSet.delete ns n
               in
                 if not (PackageNameSet.null ns) then ns
-                else raise Error "ungrounded input type operator"
+                else raise Error "ungrounded external type operator"
               end
 
         fun removeConst (c,ns) =
@@ -433,7 +434,7 @@ local
                 val ns = PackageNameSet.delete ns n
               in
                 if not (PackageNameSet.null ns) then ns
-                else raise Error "ungrounded input constant"
+                else raise Error "ungrounded external constant"
               end
 
         val {typeOps = ots, consts = cs} = gr
