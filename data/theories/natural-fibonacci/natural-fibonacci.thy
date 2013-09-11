@@ -1,5 +1,5 @@
 name: natural-fibonacci
-version: 1.46
+version: 1.47
 description: Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -28,7 +28,7 @@ def {
 thm {
   import: exists
   import: def
-  package: natural-fibonacci-thm-1.42
+  package: natural-fibonacci-thm-1.43
 }
 
 main {

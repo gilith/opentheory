@@ -1,5 +1,5 @@
 name: list
-version: 1.79
+version: 1.86
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -46,10 +46,11 @@ set {
 
 append {
   import: def
+  import: thm
   import: dest
   import: length
   import: set
-  package: list-append-1.47
+  package: list-append-1.50
 }
 
 map {
@@ -107,10 +108,14 @@ nth {
 }
 
 replicate {
+  import: def
+  import: thm
   import: length
   import: set
+  import: append
+  import: map
   import: nth
-  package: list-replicate-1.50
+  package: list-replicate-1.55
 }
 
 take-drop {
@@ -120,7 +125,8 @@ take-drop {
   import: length
   import: append
   import: nth
-  package: list-take-drop-1.50
+  import: replicate
+  package: list-take-drop-1.55
 }
 
 interval {

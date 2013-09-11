@@ -18434,7 +18434,7 @@ subst
 eqMp
 appThm
 nil
-"f"
+"u"
 670
 remove
 var
@@ -18449,7 +18449,7 @@ cons
 cons
 225
 remove
-"f"
+"u"
 712
 remove
 var

@@ -1,9 +1,9 @@
 name: h-def
-version: 1.108
+version: 1.110
 description: Definition of memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-12-10
+provenance: HOL Light theory extracted on 2013-03-23
 requires: base
 requires: byte
 requires: word10

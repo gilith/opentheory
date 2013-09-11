@@ -1,5 +1,5 @@
 name: montgomery
-version: 1.6
+version: 1.9
 description: Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,7 +15,7 @@ def {
 
 thm {
   import: def
-  package: montgomery-thm-1.7
+  package: montgomery-thm-1.10
 }
 
 main {

@@ -1,5 +1,5 @@
 name: list-append
-version: 1.47
+version: 1.50
 description: Appending lists
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,6 +8,7 @@ requires: list-def
 requires: list-dest
 requires: list-length
 requires: list-set
+requires: list-thm
 requires: natural
 requires: set
 show: "Data.Bool"
@@ -21,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: list-append-thm-1.21
+  package: list-append-thm-1.24
 }
 
 main {
