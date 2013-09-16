@@ -1,11 +1,11 @@
 name: hardware-wire-def
-version: 1.3
+version: 1.5
 description: Definition of hardware wire devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-09-09
+provenance: HOL Light theory extracted on 2013-09-15
 requires: bool
-requires: hardware-def
+requires: hardware-thm
 show: "Data.Bool"
 show: "Hardware"
 show: "Number.Natural"
