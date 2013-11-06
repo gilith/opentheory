@@ -29,6 +29,8 @@ function pretty_package_information($pkg) {
 
   $version_info = pretty_list_package_versions($pkg->name_version());
 
+  $description_info = string_to_html($pkg->description());
+
   $author_info = string_to_html($author->to_string());
 
   $license_info = string_to_html($pkg->license());
@@ -42,31 +44,25 @@ function pretty_package_information($pkg) {
   $registered_info = string_to_html($registered_info);
 
   $main =
-'<p>' . string_to_html($pkg->description()) . '</p>';
-
-  $main .=
 '<h3>Information</h3>' .
 '<table class="information">' .
 '<tr><td>versions</td><td>' . $version_info . '</td></tr>' .
+'<tr><td>description</td><td>' . $description_info . '</td></tr>' .
 '<tr><td>author</td><td>' . $author_info . '</td></tr>' .
 '<tr><td>license</td><td>' . $license_info . '</td></tr>' .
 '<tr><td>' . string_to_html($registered_key) . '</td><td>' .
 $registered_info . '</td></tr>' .
-'</table>';
-
-  $main .=
-'<h3>Files</h3>' .
-'<ul>' .
-'<li>Package summary ' .
+'<tr><td>theory file</td><td>' .
 $pkg->summary_file_link($pkg->summary_file_name()) .
-'</li>' .
-'<li>Package tarball ' .
+'</td></tr>' .
+'<tr><td>tarball</td><td>' .
 $pkg->tarball_link($pkg->tarball_name()) .
-'</li>' .
-'<li>Theory file ' .
+'</td></tr>' .
+'<tr><td>theory source file</td><td>' .
 $pkg->theory_file_link($pkg->theory_file_name()) .
-' (included in the package tarball)</li>' .
-'</ul>';
+' (included in the tarball)</li>' .
+'</td></tr>' .
+'</table>';
 
   if (count($includes) > 0) {
     $main .=

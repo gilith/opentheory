@@ -761,7 +761,8 @@ function pretty_list_package_versions($namever) {
         $found = true;
       }
 
-      $versions[] = $nv->package_link($nv->version());
+      $versions[] =
+        '<small>' . $nv->package_link($nv->version()) . '</small>';
     }
   }
 
@@ -769,7 +770,7 @@ function pretty_list_package_versions($namever) {
     $versions[] = $thisver;
   }
 
-  return implode(', ', $versions);
+  return implode('<small>&rarr;</small>', $versions);
 }
 
 ?>
