@@ -36,6 +36,10 @@ fun checkBool seq =
 (* A total order on sequents modulo alpha equivalence.                       *)
 (* ------------------------------------------------------------------------- *)
 
+fun isStandardAxiom (Sequent {hyp,concl}) =
+    TermAlphaSet.null hyp andalso
+    TermAlphaSet.member concl TermAlphaSet.standardAxioms;
+
 fun compare (s1,s2) =
     if Portable.pointerEqual (s1,s2) then EQUAL
     else
@@ -43,10 +47,15 @@ fun compare (s1,s2) =
         val Sequent {hyp = h1, concl = c1} = s1
         and Sequent {hyp = h2, concl = c2} = s2
       in
-        case Term.alphaCompare (c1,c2) of
-          LESS => LESS
-        | EQUAL => TermAlphaSet.compare (h1,h2)
-        | GREATER => GREATER
+        case (isStandardAxiom s1, isStandardAxiom s2) of
+          (true,true) => Term.alphaCompare (c1,c2)
+        | (true,false) => LESS
+        | (false,true) => GREATER
+        | (false,false) =>
+          case Term.alphaCompare (c1,c2) of
+            LESS => LESS
+          | EQUAL => TermAlphaSet.compare (h1,h2)
+          | GREATER => GREATER
       end;
 
 fun equal s1 s2 = compare (s1,s2) = EQUAL;
@@ -246,6 +255,7 @@ datatype grammar =
        hypGrammar : Term.grammar,
        conclGrammar : Term.grammar,
        ppConnective : (sequent * Print.token) Print.pp,
+       ppStandardAxiom : Term.term Print.pp,
        showHyp : bool};
 
 val defaultGrammar =
@@ -254,6 +264,7 @@ val defaultGrammar =
       and hypGrammar = Term.defaultGrammar
       and conclGrammar = Term.defaultGrammar
       and ppConnective = Print.ppMap snd Print.ppString
+      and ppStandardAxiom = Print.ppMap Term.axiomToString Print.ppString
       and showHyp = true
     in
       Grammar
@@ -261,6 +272,7 @@ val defaultGrammar =
          hypGrammar = hypGrammar,
          conclGrammar = conclGrammar,
          ppConnective = ppConnective,
+         ppStandardAxiom = ppStandardAxiom,
          showHyp = showHyp}
     end;
 
@@ -274,6 +286,7 @@ in
                hypGrammar,
                conclGrammar,
                ppConnective,
+               ppStandardAxiom,
                showHyp} = gram
 
         val indent = size connective + 1
@@ -302,11 +315,15 @@ in
                 let
                   val Sequent {hyp,concl} = seq
 
+                  val ppConclAxiom =
+                      if isStandardAxiom seq then ppStandardAxiom
+                      else ppConcl
+
                   val ppConnectiveConcl =
                       Print.inconsistentBlock indent
                         [ppConnective (seq,connective),
                          Print.ppString " ",
-                         ppConcl concl]
+                         ppConclAxiom concl]
                 in
                   if TermAlphaSet.null hyp then ppConnectiveConcl
                   else
@@ -339,12 +356,29 @@ val toHtmlConnective =
          | _ => raise Bug "Sequent.toHtmlConnective"
     end;
 
+fun toHtmlStandardAxiom tm =
+    let
+      val class = "standard-axiom"
+
+      val title = Term.axiomToHtml tm
+
+      val attrs =
+          Html.fromListAttrs
+            [("class",class),
+             ("title",title)]
+
+      val name = Term.axiomToString tm
+    in
+      [Html.Span (attrs, [Html.Text name])]
+    end;
+
 val htmlGrammar =
     let
       val connective = "-"
       and hypGrammar = Term.htmlGrammar
       and conclGrammar = Term.htmlGrammar
       and ppConnective = Print.ppMap toHtmlConnective Html.ppFixed
+      and ppStandardAxiom = Print.ppMap toHtmlStandardAxiom Html.ppFixed
       and showHyp = true
     in
       Grammar
@@ -352,6 +386,7 @@ val htmlGrammar =
          hypGrammar = hypGrammar,
          conclGrammar = conclGrammar,
          ppConnective = ppConnective,
+         ppStandardAxiom = ppStandardAxiom,
          showHyp = showHyp}
     end;
 

@@ -247,6 +247,10 @@ val axiomOfChoice : term
 
 val axiomOfInfinity : term
 
+val axiomToString : term -> string
+
+val axiomToHtml : term -> string
+
 (* ------------------------------------------------------------------------- *)
 (* General syntax operations.                                                *)
 (* ------------------------------------------------------------------------- *)

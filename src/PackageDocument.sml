@@ -75,6 +75,7 @@ local
        "div#main ul { padding-left: 1.25em; }",
        "div#main p.sequent { font-family: courier, monospace; }",
        "div#main span.warning { color: #ff0000; }",
+       "div#main span.standard-axiom { font-weight: bold; }",
        "div#main span.syntax { color: #606080; }",
        "div#main span.namespace { font-style: italic; }",
        "div#main span.var { color: #008000; }",
@@ -215,7 +216,7 @@ local
             | SOME thy =>
               let
                 val text =
-                    [Html.Text "Theory file ",
+                    [Html.Text "Theory source file ",
                      Html.Anchor (Html.hrefAttrs thy, [Html.Text thy])]
 
                 val text =

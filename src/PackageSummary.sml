@@ -68,22 +68,25 @@ fun toHtmlConnective class title (seq,c) =
 
 fun htmlGrammarSequent class title =
     let
+      val Sequent.Grammar
+            {connective = _,
+             hypGrammar,
+             conclGrammar,
+             ppConnective = _,
+             ppStandardAxiom,
+             showHyp} = Sequent.htmlGrammar
+
       val connective = "-"
-
-      val hypGrammar = Term.htmlGrammar
-
-      val conclGrammar = Term.htmlGrammar
 
       val ppConnective =
           Print.ppMap (toHtmlConnective class title) Html.ppFixed
-
-      val showHyp = true
     in
       Sequent.Grammar
         {connective = connective,
          hypGrammar = hypGrammar,
          conclGrammar = conclGrammar,
          ppConnective = ppConnective,
+         ppStandardAxiom = ppStandardAxiom,
          showHyp = showHyp}
     end;
 

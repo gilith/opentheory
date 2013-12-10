@@ -951,17 +951,17 @@ val axiomOfInfinity =
       val v11 = Var.mk (Name.mkGlobal "l", ty3)
       val v12 = Var.mk (Name.mkGlobal "m", ty1)
       val v13 = Var.mk (Name.mkGlobal "n", ty1)
-      val v14 = Var.mk (Name.mkGlobal "o", ty1)
-      val v15 = Var.mk (Name.mkGlobal "p", ty6)
-      val v16 = Var.mk (Name.mkGlobal "q", ty0)
-      val v17 = Var.mk (Name.mkGlobal "r", ty0)
-      val v18 = Var.mk (Name.mkGlobal "s", ty0)
-      val v19 = Var.mk (Name.mkGlobal "t", ty2)
-      val v20 = Var.mk (Name.mkGlobal "u", ty0)
-      val v21 = Var.mk (Name.mkGlobal "v", ty6)
-      val v22 = Var.mk (Name.mkGlobal "w", ty2)
-      val v23 = Var.mk (Name.mkGlobal "x", ty0)
-      val v24 = Var.mk (Name.mkGlobal "y", ty0)
+      val v14 = Var.mk (Name.mkGlobal "p", ty1)
+      val v15 = Var.mk (Name.mkGlobal "q", ty6)
+      val v16 = Var.mk (Name.mkGlobal "r", ty0)
+      val v17 = Var.mk (Name.mkGlobal "s", ty0)
+      val v18 = Var.mk (Name.mkGlobal "t", ty0)
+      val v19 = Var.mk (Name.mkGlobal "u", ty2)
+      val v20 = Var.mk (Name.mkGlobal "v", ty0)
+      val v21 = Var.mk (Name.mkGlobal "w", ty6)
+      val v22 = Var.mk (Name.mkGlobal "x", ty2)
+      val v23 = Var.mk (Name.mkGlobal "y", ty0)
+      val v24 = Var.mk (Name.mkGlobal "z", ty0)
       val tm0 = mkVar v1
       val tm1 = mkVar v3
       val tm2 = mkAbs (v3,tm1)
@@ -1057,6 +1057,22 @@ val axiomOfInfinity =
     in
       tm91
     end;
+
+fun axiomToString tm =
+    if alphaEqual tm axiomOfExtensionality then "AXIOM OF EXTENSIONALITY"
+    else if alphaEqual tm axiomOfChoice then "AXIOM OF CHOICE"
+    else if alphaEqual tm axiomOfInfinity then "AXIOM OF INFINITY"
+    else raise Bug "Term.axiomToString: not a standard axiom";
+
+fun axiomToHtml tm =
+    if alphaEqual tm axiomOfExtensionality then
+      "&forall;t. (&lambda;x. t x) = t"
+    else if alphaEqual tm axiomOfChoice then
+      "&forall;p x. p x &rArr; p ((select) p)"
+    else if alphaEqual tm axiomOfInfinity then
+      "&exist;f. injective f &and; &not;surjective f"
+    else
+      raise Bug "Term.axiomToHtml: not a standard axiom";
 
 (* ------------------------------------------------------------------------- *)
 (* General syntax operations.                                                *)
@@ -2851,5 +2867,11 @@ struct
         | GREATER => GREATER;
 
   fun dealphaEqual s1 s2 = dealphaCompare (s1,s2) = EQUAL;
+
+  val standardAxioms =
+      fromList
+        [Term.axiomOfExtensionality,
+         Term.axiomOfChoice,
+         Term.axiomOfInfinity];
 
 end

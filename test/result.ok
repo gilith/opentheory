@@ -32,44 +32,44 @@ let a d <-
     e = (\f. (\c. c) = \c. c) in
 a = \b. (\c. c) = \c. c
 
-let a o <-
+let a p <-
     (let h <-
-         let p r <-
-             let p s <-
-                 (let f <- o r = o s in
+         let q s <-
+             let q t <-
+                 (let f <- p s = p t in
                   \g.
                     (let h <- f in
                      \i.
                        (\j. j h i) =
                        \k. k ((\d. d) = \d. d) ((\d. d) = \d. d)) g <=> f)
-                   (r = s) in
-             p = (\q. (\d. d) = \d. d) in
-         p = (\q. (\d. d) = \d. d) in
+                   (s = t) in
+             q = (\r. (\d. d) = \d. d) in
+         q = (\r. (\d. d) = \d. d) in
      \i. (\j. j h i) = \k. k ((\d. d) = \d. d) ((\d. d) = \d. d))
-      (let t <-
-           let p u <-
-               let v y <- u = o y in
-               let b w <-
+      (let u <-
+           let q v <-
+               let w z <- v = p z in
+               let b x <-
                    (let f <-
-                        let p x <-
-                            (let f <- v x in
+                        let q y <-
+                            (let f <- w y in
                              \g.
                                (let h <- f in
                                 \i.
                                   (\j. j h i) =
                                   \k.
                                     k ((\d. d) = \d. d) ((\d. d) = \d. d))
-                                 g <=> f) w in
-                        p = (\q. (\d. d) = \d. d) in
+                                 g <=> f) x in
+                        q = (\r. (\d. d) = \d. d) in
                     \g.
                       (let h <- f in
                        \i.
                          (\j. j h i) =
                          \k. k ((\d. d) = \d. d) ((\d. d) = \d. d)) g <=>
-                      f) w in
+                      f) x in
                b = (\c. (\d. d) = \d. d) in
-           p = (\q. (\d. d) = \d. d) in
-       (let f <- t in
+           q = (\r. (\d. d) = \d. d) in
+       (let f <- u in
         \g.
           (let h <- f in
            \i. (\j. j h i) = \k. k ((\d. d) = \d. d) ((\d. d) = \d. d))

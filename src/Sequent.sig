@@ -94,6 +94,8 @@ val axiomOfInfinity : sequent
 
 val standardAxioms : sequent list
 
+val isStandardAxiom : sequent -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -104,6 +106,7 @@ datatype grammar =
        hypGrammar : Term.grammar,
        conclGrammar : Term.grammar,
        ppConnective : (sequent * Print.token) Print.pp,
+       ppStandardAxiom : Term.term Print.pp,
        showHyp : bool}
 
 val defaultGrammar : grammar
