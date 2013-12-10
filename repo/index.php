@@ -52,17 +52,10 @@ function pretty_package_information($pkg) {
 '<tr><td>license</td><td>' . $license_info . '</td></tr>' .
 '<tr><td>' . string_to_html($registered_key) . '</td><td>' .
 $registered_info . '</td></tr>' .
-'<tr><td>theory file</td><td>' .
-$pkg->summary_file_link($pkg->summary_file_name()) .
-'</td></tr>' .
-'<tr><td>tarball</td><td>' .
-$pkg->tarball_link($pkg->tarball_name()) .
-'</td></tr>' .
-'<tr><td>theory source file</td><td>' .
-$pkg->theory_file_link($pkg->theory_file_name()) .
-' (included in the tarball)</li>' .
-'</td></tr>' .
-'</table>';
+'</table>' .
+'<p>For more details see the ' .
+$pkg->summary_file_link('package document') .
+'.</p>';
 
   if (count($includes) > 0) {
     $main .=
