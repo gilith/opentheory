@@ -1,5 +1,5 @@
 name: axiom
-version: 1.11
+version: 1.12
 description: Standard axioms
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ choice {
 }
 
 infinity {
-  package: axiom-infinity-1.7
+  package: axiom-infinity-1.8
 }
 
 main {

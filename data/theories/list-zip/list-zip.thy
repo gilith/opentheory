@@ -1,9 +1,10 @@
 name: list-zip
-version: 1.18
+version: 1.20
 description: The list zip function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: list-append
 requires: list-def
 requires: list-dest
 requires: list-length
@@ -21,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: list-zip-thm-1.18
+  package: list-zip-thm-1.20
 }
 
 main {

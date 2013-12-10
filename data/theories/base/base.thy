@@ -1,5 +1,5 @@
 name: base
-version: 1.143
+version: 1.147
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -37,7 +37,7 @@ pair {
 natural {
   import: bool
   import: function
-  package: natural-1.84
+  package: natural-1.85
 }
 
 set {
@@ -45,7 +45,7 @@ set {
   import: function
   import: pair
   import: natural
-  package: set-1.60
+  package: set-1.61
 }
 
 relation {
@@ -77,7 +77,7 @@ list {
   import: pair
   import: natural
   import: set
-  package: list-1.86
+  package: list-1.89
 }
 
 real {

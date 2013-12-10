@@ -1,5 +1,5 @@
 name: natural
-version: 1.84
+version: 1.85
 description: The natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,7 +10,7 @@ show: "Function"
 show: "Number.Natural"
 
 axiom-infinity {
-  package: axiom-infinity-1.7
+  package: axiom-infinity-1.8
 }
 
 def {

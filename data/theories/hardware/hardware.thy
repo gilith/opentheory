@@ -1,5 +1,5 @@
 name: hardware
-version: 1.28
+version: 1.39
 description: Hardware devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -7,6 +7,7 @@ requires: bool
 requires: list
 requires: natural
 requires: natural-bits
+requires: set
 requires: stream
 show: "Data.Bool"
 show: "Data.List"
@@ -15,30 +16,38 @@ show: "Hardware"
 show: "Number.Natural"
 
 def {
-  package: hardware-def-1.12
+  package: hardware-def-1.15
 }
 
 thm {
   import: def
-  package: hardware-thm-1.17
+  package: hardware-thm-1.21
 }
 
 wire {
   import: thm
-  package: hardware-wire-1.2
+  package: hardware-wire-1.6
 }
 
 bus {
   import: thm
   import: wire
-  package: hardware-bus-1.27
+  package: hardware-bus-1.31
 }
 
 adder {
   import: thm
   import: wire
   import: bus
-  package: hardware-adder-1.4
+  package: hardware-adder-1.5
+}
+
+counter {
+  import: thm
+  import: wire
+  import: bus
+  import: adder
+  package: hardware-counter-1.1
 }
 
 main {
@@ -47,4 +56,5 @@ main {
   import: wire
   import: bus
   import: adder
+  import: counter
 }
