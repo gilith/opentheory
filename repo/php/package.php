@@ -172,22 +172,22 @@ class Package {
     return $namever->package_link($text);
   }
 
-  function summary_file_name() {
+  function document_file_name() {
     $namever = $this->name_version();
 
-    return $namever->summary_file_name();
+    return $namever->document_file_name();
   }
 
-  function summary_file_link($text) {
+  function document_file_link($text) {
     is_string($text) or trigger_error('bad text');
 
     $namever = $this->name_version();
 
     if ($this->is_staged()) {
-      return $namever->staged_summary_file_link($text);
+      return $namever->staged_document_file_link($text);
     }
     else {
-      return $namever->summary_file_link($text);
+      return $namever->document_file_link($text);
     }
   }
 

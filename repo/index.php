@@ -54,7 +54,7 @@ function pretty_package_information($pkg) {
 $registered_info . '</td></tr>' .
 '</table>' .
 '<p>For more details see the ' .
-$pkg->summary_file_link('package document') .
+$pkg->document_file_link('package document') .
 '.</p>';
 
   if (count($includes) > 0) {

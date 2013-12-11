@@ -183,7 +183,7 @@ fun fromStringInput inp =
 val describeInputFormat =
     "INPUT is one of the following forms:\n" ^
     "  1. A theory package: NAME-VERSION or NAME (for the latest version)\n" ^
-    "  2. A theory file: FILE.thy or theory:FILE\n" ^
+    "  2. A theory source file: FILE.thy or theory:FILE\n" ^
     "  3. A proof article file: FILE.art or article:FILE\n" ^
     "  4. A theory package tarball: FILE.tgz or tarball:FILE\n" ^
     "  5. A theory package staged for installation: staged:NAME-VERSION";
@@ -673,36 +673,36 @@ in
        {switches = ["--information"], arguments = [],
         description = "display all package information",
         processor = beginOpt endOpt (fn _ => addInfoOutput TagsInfo)},
-       {switches = ["--summary"], arguments = [],
-        description = "display the package summary",
+       {switches = ["--theory"], arguments = [],
+        description = "display the package theory",
         processor = beginOpt endOpt (fn _ => addInfoOutput SummaryInfo)},
        {switches = ["--article"], arguments = [],
-        description = "output the theory package in article format",
+        description = "output the package theory in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
-       {switches = ["--inference"], arguments = [],
-        description = "display the number of primitive inferences",
-        processor = beginOpt endOpt (fn _ => addInfoOutput InferenceInfo)},
-       {switches = ["--theory"], arguments = [],
-        description = "display the package theory file",
-        processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
-       {switches = ["--files"], arguments = [],
-        description = "list the package files",
-        processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
-       {switches = ["--includes"], arguments = [],
-        description = "list the included theory packages",
-        processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
        {switches = ["--requires"], arguments = [],
         description = "list satisfying required theory packages",
         processor = beginOpt endOpt (fn _ => addInfoOutput RequiresInfo)},
+       {switches = ["--inference"], arguments = [],
+        description = "display the number of primitive inferences",
+        processor = beginOpt endOpt (fn _ => addInfoOutput InferenceInfo)},
+       {switches = ["--files"], arguments = [],
+        description = "list the package files",
+        processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
        {switches = ["--document"], arguments = [],
         description = "output the package document in HTML format",
         processor = beginOpt endOpt (fn _ => addInfoOutput DocumentInfo)},
+       {switches = ["--theory-source"], arguments = [],
+        description = "output the package theory source file",
+        processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
        {switches = ["--theorems"], arguments = [],
         description = "output the package theorems in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoremsInfo)},
        {switches = ["--assumptions"], arguments = [],
         description = "output the package assumptions in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput AssumptionsInfo)},
+       {switches = ["--includes"], arguments = [],
+        description = "list the included theory packages",
+        processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write previous package information to FILE",
         processor =
@@ -715,10 +715,10 @@ in
         description = "show the assumptions/axioms for each theorem",
         processor = beginOpt endOpt (fn _ => showDerivationsInfo := true)},
        {switches = ["--upgrade-theory"], arguments = [],
-        description = "upgrade the theory file to the latest versions",
+        description = "upgrade the theory source file to the latest versions",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
        {switches = ["--preserve-theory"], arguments = [],
-        description = "do not optimize the theory file",
+        description = "do not optimize the theory source file",
         processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)}];
 end;
 
@@ -1160,13 +1160,13 @@ fun allCommandHelp mesg =
 local
   fun cleanupInput inp =
       case inp of
-        ArticleInput _ => raise Error "cannot clean up an article"
+        ArticleInput _ => raise Error "cannot clean up an article file"
       | PackageInput _ => raise Error "cannot clean up an installed package"
       | PackageNameInput _ => raise Error "cannot clean up a package name"
       | PackageQueryInput _ => raise Error "cannot clean up a package query"
       | StagedPackageInput namever => namever
       | TarballInput _ => raise Error "cannot clean up a tarball"
-      | TheoryInput _ => raise Error "cannot clean up a theory file";
+      | TheoryInput _ => raise Error "cannot clean up a theory source file";
 in
   fun cleanup nameverl =
       let
@@ -1196,13 +1196,13 @@ end;
 local
   fun exportInput inp =
       case inp of
-        ArticleInput _ => raise Error "cannot export an article"
+        ArticleInput _ => raise Error "cannot export an article file"
       | PackageInput namever => namever
       | PackageNameInput name => getLatestVersionDirectory name
       | PackageQueryInput _ => raise Error "cannot export a package query"
       | StagedPackageInput _ => raise Error "cannot export a staged package"
       | TarballInput _ => raise Error "cannot export a tarball"
-      | TheoryInput _ => raise Error "cannot export a theory file";
+      | TheoryInput _ => raise Error "cannot export a theory source file";
 in
   fun export inp =
       let
@@ -1348,7 +1348,7 @@ local
           val pkg =
               case Directory.upgrade dir pkg of
                 SOME p => p
-              | NONE => raise Error "no theory file upgrade possible"
+              | NONE => raise Error "no theory source file upgrade possible"
         in
           Package.theory pkg
         end;
@@ -1755,7 +1755,7 @@ local
                   in
                     PackageSummary.mk ps
                   end
-                | NONE => raise Error "no summary information available"
+                | NONE => raise Error "no theory information available"
 
           val files =
               let
@@ -1885,7 +1885,7 @@ local
           val sum =
               case getSummary () of
                 SOME s => s
-              | NONE => raise Error "no summary information available"
+              | NONE => raise Error "no theory information available"
 
           val vs = PackageTheorems.mkVersions sum ths
 
@@ -1921,7 +1921,7 @@ local
           val sum =
               case getSummary () of
                 SOME s => s
-              | NONE => raise Error "no summary information available"
+              | NONE => raise Error "no theory information available"
 
           val grammar = infoSummaryGrammar ()
 
@@ -1977,7 +1977,7 @@ local
           val theories =
               case getTheories () of
                 SOME t => t
-              | NONE => raise Error "no theory information available"
+              | NONE => raise Error "no theory source file information available"
 
           val package =
               Package.mk
@@ -2156,7 +2156,7 @@ fun init () =
 local
   fun uninstallInput inp =
       case inp of
-        ArticleInput _ => raise Error "cannot uninstall an article"
+        ArticleInput _ => raise Error "cannot uninstall an article file"
       | PackageInput namever => namever
       | PackageNameInput _ => raise Error "cannot uninstall a package name"
       | PackageQueryInput _ => raise Error "cannot uninstall a package query"
@@ -2167,7 +2167,7 @@ local
           raise Error err
         end
       | TarballInput _ => raise Error "cannot uninstall a tarball"
-      | TheoryInput _ => raise Error "cannot uninstall a theory file";
+      | TheoryInput _ => raise Error "cannot uninstall a theory source file";
 
   fun complain errs =
       if List.null errs then ()
@@ -2695,11 +2695,11 @@ local
       let
         val () =
             if not (Option.isSome (!checksumInstall)) then ()
-            else raise Error "can't specify checksum for a theory file install"
+            else raise Error "can't specify checksum for a theory source file install"
 
         val () =
             if not (!stageInstall) then ()
-            else raise Error "can't stage a package install from theory file"
+            else raise Error "can't stage a package install from theory source file"
 
         val dir = directory ()
 
@@ -2765,16 +2765,16 @@ local
 
         val () =
             chat ((if replace then "re" else "") ^ "installed package " ^
-                  PackageNameVersion.toString namever ^ " from theory file")
+                  PackageNameVersion.toString namever ^ " from theory source file")
       in
         ()
       end
       handle Error err =>
-        raise Error (err ^ "\npackage install from theory file failed");
+        raise Error (err ^ "\npackage install from theory source file failed");
 in
   fun install inp =
       case inp of
-        ArticleInput _ => raise Error "cannot install an article"
+        ArticleInput _ => raise Error "cannot install an article file"
       | PackageInput namever => installPackage namever
       | PackageNameInput name => installPackageName name
       | PackageQueryInput name => raise Error "cannot install a package query"
@@ -2801,7 +2801,7 @@ fun list query =
             NONE => DirectoryQuery.Identity
           | SOME inp =>
             case inp of
-              ArticleInput _ => raise Error "cannot list an article"
+              ArticleInput _ => raise Error "cannot list an article file"
             | PackageInput namever =>
               DirectoryQuery.Constant (DirectoryQuery.NameVersion namever)
             | PackageNameInput name =>
@@ -2810,7 +2810,7 @@ fun list query =
             | StagedPackageInput _ =>
               raise Error "cannot list a staged package"
             | TarballInput _ => raise Error "cannot list a tarball"
-            | TheoryInput _ => raise Error "cannot list a theory file"
+            | TheoryInput _ => raise Error "cannot list a theory source file"
 
       val dir = directory ()
 
@@ -2920,13 +2920,13 @@ fun update () =
 local
   fun uploadInput inp =
       case inp of
-        ArticleInput _ => raise Error "cannot upload an article"
+        ArticleInput _ => raise Error "cannot upload an article file"
       | PackageInput namever => namever
       | PackageNameInput name => getLatestVersionDirectory name
       | PackageQueryInput _ => raise Error "cannot upload a package query"
       | StagedPackageInput _ => raise Error "cannot upload a staged package"
       | TarballInput _ => raise Error "cannot upload a tarball"
-      | TheoryInput _ => raise Error "cannot upload a theory file";
+      | TheoryInput _ => raise Error "cannot upload a theory source file";
 
   fun computeSupport dir repo namevers =
       let

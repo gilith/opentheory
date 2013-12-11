@@ -95,38 +95,38 @@ class PackageNameVersion {
     return array(REPO_DIR,REPO_STAGING_DIR,$dir);
   }
 
-  function summary_file_name() {
+  function document_file_name() {
     return ($this->to_string() . '.html');
   }
 
-  function summary_file_path() {
+  function document_file_path() {
     $dir = $this->directory_name();
 
-    $file = $this->summary_file_name();
+    $file = $this->document_file_name();
 
     return array(REPO_DIR,REPO_PACKAGES_DIR,$dir,$file);
   }
 
-  function staged_summary_file_path() {
+  function staged_document_file_path() {
     $dir = $this->directory_name();
 
-    $file = $this->summary_file_name();
+    $file = $this->document_file_name();
 
     return array(REPO_DIR,REPO_STAGING_DIR,$dir,$file);
   }
 
-  function summary_file_link($text) {
+  function document_file_link($text) {
     is_string($text) or trigger_error('bad text');
 
-    $path = $this->summary_file_path();
+    $path = $this->document_file_path();
 
     return site_link($path,$text);
   }
 
-  function staged_summary_file_link($text) {
+  function staged_document_file_link($text) {
     is_string($text) or trigger_error('bad text');
 
-    $path = $this->staged_summary_file_path();
+    $path = $this->staged_document_file_path();
 
     return site_link($path,$text);
   }
