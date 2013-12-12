@@ -17,17 +17,23 @@ require_once 'name_version.php';
 require_once 'author.php';
 
 ///////////////////////////////////////////////////////////////////////////////
+// Constants.
+///////////////////////////////////////////////////////////////////////////////
+
+define('EARLIER_VERSION_LIMIT',2);
+
+define('LATER_VERSION_LIMIT',2);
+
+///////////////////////////////////////////////////////////////////////////////
 // Package status.
 ///////////////////////////////////////////////////////////////////////////////
 
 define('INSTALLED_PACKAGE_STATUS','installed');
 define('STAGED_PACKAGE_STATUS','staged');
-define('UPLOADED_PACKAGE_STATUS','uploaded');
 
 $all_package_status =
   array(INSTALLED_PACKAGE_STATUS,
-        STAGED_PACKAGE_STATUS,
-        UPLOADED_PACKAGE_STATUS);
+        STAGED_PACKAGE_STATUS);
 
 function is_package_status($status) {
   global $all_package_status;
@@ -52,12 +58,6 @@ function staged_package_status($status) {
   is_package_status($status) or trigger_error('bad status');
 
   return equal_package_status($status,STAGED_PACKAGE_STATUS);
-}
-
-function uploaded_package_status($status) {
-  is_package_status($status) or trigger_error('bad status');
-
-  return equal_package_status($status,UPLOADED_PACKAGE_STATUS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,12 +146,6 @@ class Package {
     return staged_package_status($status);
   }
 
-  function is_uploaded() {
-    $status = $this->status();
-
-    return uploaded_package_status($status);
-  }
-
   function to_string() {
     $namever = $this->name_version();
 
@@ -229,7 +223,7 @@ class Package {
     }
   }
 
-  function mark_uploaded() { $this->_status = UPLOADED_PACKAGE_STATUS; }
+  function mark_installed() { $this->_status = INSTALLED_PACKAGE_STATUS; }
 
   function mark_subtheory() { $this->_subtheory = true; }
 
@@ -375,7 +369,7 @@ class PackageTable extends DatabaseTable {
 
   function list_active_packages() {
     $where =
-      'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
+      'status <=> ' . database_value(INSTALLED_PACKAGE_STATUS) .
       ' AND subtheory <=> ' . database_value(DATABASE_FALSE) .
       ' AND obsolete <=> ' . database_value(DATABASE_FALSE) .
       ' AND empty_theory <=> ' . database_value(DATABASE_FALSE);
@@ -389,7 +383,7 @@ class PackageTable extends DatabaseTable {
 
   function count_active_packages() {
     $where =
-      'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
+      'status <=> ' . database_value(INSTALLED_PACKAGE_STATUS) .
       ' AND subtheory <=> ' . database_value(DATABASE_FALSE) .
       ' AND obsolete <=> ' . database_value(DATABASE_FALSE) .
       ' AND empty_theory <=> ' . database_value(DATABASE_FALSE);
@@ -410,7 +404,7 @@ class PackageTable extends DatabaseTable {
     is_int($limit) or trigger_error('bad limit');
 
     $where =
-      'status <=> ' . database_value(UPLOADED_PACKAGE_STATUS) .
+      'status <=> ' . database_value(INSTALLED_PACKAGE_STATUS) .
       ' AND subtheory <=> ' . database_value(DATABASE_FALSE);
 
     $order_by = 'registered DESC';
@@ -423,7 +417,7 @@ class PackageTable extends DatabaseTable {
 
     $where =
       'name <=> ' . database_value($name) .
-      ' AND status <=> ' . database_value(UPLOADED_PACKAGE_STATUS);
+      ' AND status <=> ' . database_value(INSTALLED_PACKAGE_STATUS);
 
     $order_by = null;
 
@@ -478,16 +472,16 @@ class PackageTable extends DatabaseTable {
           obsolete = ' . database_value($obsolete_database) . ';');
   }
 
-  function mark_uploaded($pkg) {
+  function mark_installed($pkg) {
     isset($pkg) or trigger_error('bad pkg');
 
-    $pkg->mark_uploaded();
+    $pkg->mark_installed();
 
     $id = $pkg->id();
 
     database_query('
       UPDATE ' . $this->table() . '
-      SET status = ' . database_value(UPLOADED_PACKAGE_STATUS) . '
+      SET status = ' . database_value(INSTALLED_PACKAGE_STATUS) . '
       WHERE id = ' . database_value($id) . ';');
   }
 
@@ -742,32 +736,55 @@ function pretty_list_package_versions($namever) {
 
   $thisver = $namever->version();
 
-  $versions = array();
-
-  $found = false;
+  $earlier_versions = array();
+  $later_versions = array();
 
   foreach ($pkgs as $pkg) {
     $nv = $pkg->name_version();
 
     $cmp = compare_name_version($nv,$namever);
 
-    if ($cmp == 0) {
-      $versions[] = $thisver;
-      $found = true;
+    if ($cmp < 0) {
+      $earlier_versions[] = $nv;
     }
-    else {
-      if (!$found && $cmp > 0) {
-        $versions[] = $thisver;
-        $found = true;
-      }
-
-      $versions[] =
-        '<small>' . $nv->package_link($nv->version()) . '</small>';
+    elseif ($cmp > 0) {
+      $later_versions[] = $nv;
     }
   }
 
-  if (!$found) {
-    $versions[] = $thisver;
+  $versions = array();
+
+  $n = count($earlier_versions);
+  for ($i = 0; $i < $n; ++$i) {
+    if ($i == 0 || $n < $i + EARLIER_VERSION_LIMIT + 1) {
+      $nv = $earlier_versions[$i];
+      $versions[] =
+        '<small>' . $nv->package_link($nv->version()) . '</small>';
+    }
+    elseif ($n == $i + EARLIER_VERSION_LIMIT + 1) {
+      $versions[] = '<small>&nbsp;&middot;&middot;&middot;&nbsp;</small>';
+    }
+  }
+
+  $versions[] =
+    ((count($earlier_versions) == 0) ? '' : '&nbsp;') .
+    $thisver .
+    ((count($later_versions) == 0) ? '' : '&nbsp;');
+
+  $n = count($later_versions);
+  for ($i = 0; $i < $n; ++$i) {
+    if ($i + 1 == $n) {
+      $nv = $later_versions[$i];
+      $versions[] = '&nbsp;' . $nv->package_link($nv->version());
+    }
+    elseif ($i < LATER_VERSION_LIMIT) {
+      $nv = $later_versions[$i];
+      $versions[] =
+        '<small>' . $nv->package_link($nv->version()) . '</small>';
+    }
+    elseif ($i == LATER_VERSION_LIMIT) {
+      $versions[] = '<small>&nbsp;&middot;&middot;&middot;&nbsp;</small>';
+    }
   }
 
   return implode('<small>&rarr;</small>', $versions);

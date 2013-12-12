@@ -283,7 +283,7 @@ function complete_upload($upload) {
 
     opentheory_complete($namever);
 
-    $package_table->mark_uploaded($pkg);
+    $package_table->mark_installed($pkg);
 
     // Mark subtheories of uploaded packages
 

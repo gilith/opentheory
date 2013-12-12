@@ -35,8 +35,6 @@ function pretty_package_information($pkg) {
 
   $license_info = string_to_html($pkg->license());
 
-  $registered_key = ($pkg->is_installed() ? 'installed' : 'uploaded');
-
   $registered_info =
     $registered->to_string_time() . ' on ' .
     $registered->to_verbose_string_date();
@@ -50,8 +48,7 @@ function pretty_package_information($pkg) {
 '<tr><td>description</td><td>' . $description_info . '</td></tr>' .
 '<tr><td>author</td><td>' . $author_info . '</td></tr>' .
 '<tr><td>license</td><td>' . $license_info . '</td></tr>' .
-'<tr><td>' . string_to_html($registered_key) . '</td><td>' .
-$registered_info . '</td></tr>' .
+'<tr><td>installed</td><td>' . $registered_info . '</td></tr>' .
 '</table>' .
 '<p>For more details see the ' .
 $pkg->document_file_link('package document') .

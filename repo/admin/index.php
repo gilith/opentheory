@@ -21,29 +21,30 @@ define('SHORT_REPO_LOG_LINES',5);
 ///////////////////////////////////////////////////////////////////////////////
 
 function profile_repo_packages() {
-  $uploaded = count_packages_with_status(UPLOADED_PACKAGE_STATUS);
-  $staged = count_packages_with_status(STAGED_PACKAGE_STATUS);
   $installed = count_packages_with_status(INSTALLED_PACKAGE_STATUS);
+  $staged = count_packages_with_status(STAGED_PACKAGE_STATUS);
 
-  $total = $uploaded + $staged + $installed;
+  if ($installed == 0) {
+    $text = 'The repo doesn\'t contain any theory packages';
 
-  if ($total == 0) {
-    $text = 'The repo doesn\'t contain any theory packages.';
+    if ($staged > 0) {
+      $text .=
+', but there ' .
+(($staged == 1) ? 'is' : 'are') .
+' ' .
+pretty_number($staged) .
+' staged';
+    }
+
+    $text .= '.';
   }
   else {
     $text =
-'The repo contains ' . pretty_number($total) . ' theory package' .
-(($total == 1) ? '' : 's') .
-(($uploaded == $total) ? ', all' : (': ' . pretty_number($uploaded))) .
-' uploaded by users';
+'The repo contains ' . pretty_number($installed) . ' theory package' .
+(($installed == 1) ? '' : 's');
 
     if ($staged > 0) {
-      $text .= ' (plus ' . pretty_number($staged) . ' more staged)';
-    }
-
-    if ($installed > 0) {
-      $text .=
-'; and ' . pretty_number($installed) . ' installed from other repos';
+      $text .= ', plus ' . pretty_number($staged) . ' more staged';
     }
 
     $text .= '.';
