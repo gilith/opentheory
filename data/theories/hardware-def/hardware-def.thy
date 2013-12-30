@@ -1,9 +1,9 @@
 name: hardware-def
-version: 1.15
+version: 1.16
 description: Definition of the hardware model
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-11-16
+provenance: HOL Light theory extracted on 2013-12-23
 requires: bool
 requires: list
 requires: stream

@@ -1,12 +1,12 @@
-name: hardware-bus
-version: 1.33
-description: Hardware bus devices
+name: hardware-multiplier
+version: 1.2
+description: Hardware multiplier devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: bool
+requires: hardware-adder
+requires: hardware-bus
 requires: hardware-thm
-requires: hardware-wire
-requires: list
 requires: natural
 requires: natural-bits
 show: "Data.Bool"
@@ -15,12 +15,12 @@ show: "Hardware"
 show: "Number.Natural"
 
 def {
-  package: hardware-bus-def-1.20
+  package: hardware-multiplier-def-1.2
 }
 
 thm {
   import: def
-  package: hardware-bus-thm-1.32
+  package: hardware-multiplier-thm-1.2
 }
 
 main {

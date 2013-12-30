@@ -1,20 +1,28 @@
 name: hardware-counter-thm
-version: 1.2
+version: 1.5
 description: Properties of hardware counter devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-09-22
+provenance: HOL Light theory extracted on 2013-12-23
 requires: bool
+requires: function
 requires: hardware-adder
 requires: hardware-bus
 requires: hardware-counter-def
+requires: hardware-def
 requires: hardware-thm
 requires: hardware-wire
+requires: list
 requires: natural
 requires: natural-bits
+requires: pair
 requires: set
+requires: stream
 show: "Data.Bool"
 show: "Data.List"
+show: "Data.Pair"
+show: "Data.Stream"
+show: "Function"
 show: "Hardware"
 show: "Number.Natural"
 show: "Set"

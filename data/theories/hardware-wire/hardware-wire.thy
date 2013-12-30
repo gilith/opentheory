@@ -1,5 +1,5 @@
 name: hardware-wire
-version: 1.6
+version: 1.8
 description: Hardware wire devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -18,7 +18,7 @@ def {
 
 thm {
   import: def
-  package: hardware-wire-thm-1.10
+  package: hardware-wire-thm-1.12
 }
 
 main {
