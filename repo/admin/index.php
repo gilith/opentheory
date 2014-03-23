@@ -71,7 +71,10 @@ function pretty_recent_uploads($limit) {
     $ret = '<ul>';
 
     foreach ($upls as $upl) {
-      $status_info = $upl->status();
+      $author = $upl->author_name();
+
+      $author_info =
+        isset($author) ? string_to_html($author) : 'Starting';
 
       $since_initiated = $upl->since_initiated();
 
@@ -79,7 +82,7 @@ function pretty_recent_uploads($limit) {
 
       $ret .=
 '<li>' .
-$upl->link($status_info) .
+$upl->link($author_info) .
 ' &mdash; ' .
 string_to_html($initiated_info) .
 '</li>';
@@ -150,7 +153,10 @@ profile_repo_packages() .
 pretty_recent_uploads(SHORT_RECENT_UPLOADS) .
 
 '<h3>Repo Log</h3>' .
-read_log(SHORT_REPO_LOG_LINES);
+read_log(SHORT_REPO_LOG_LINES) .
+
+'<h3>Tool version</h3>' .
+opentheory_version();
 
 $image = site_image('cedar-point.jpg','Cedar Point');
 
