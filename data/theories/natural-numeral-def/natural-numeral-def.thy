@@ -1,5 +1,5 @@
 name: natural-numeral-def
-version: 1.0
+version: 1.6
 description: Definition of natural number numerals
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

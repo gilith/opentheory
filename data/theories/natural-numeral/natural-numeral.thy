@@ -1,5 +1,5 @@
 name: natural-numeral
-version: 1.17
+version: 1.18
 description: Natural number numerals
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -9,7 +9,7 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-numeral-def-1.0
+  package: natural-numeral-def-1.6
 }
 
 main {

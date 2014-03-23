@@ -1,5 +1,5 @@
 name: natural
-version: 1.93
+version: 1.94
 description: The natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -30,7 +30,7 @@ dest {
 
 numeral {
   import: thm
-  package: natural-numeral-1.17
+  package: natural-numeral-1.18
 }
 
 order {
