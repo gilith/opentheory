@@ -1,9 +1,9 @@
 name: haskell-def
-version: 1.77
+version: 1.78
 description: Definition of the Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-04-15
+provenance: HOL Light theory extracted on 2014-01-13
 requires: base
 requires: byte
 requires: natural-bits

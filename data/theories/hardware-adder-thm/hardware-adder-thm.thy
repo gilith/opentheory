@@ -1,9 +1,9 @@
 name: hardware-adder-thm
-version: 1.10
+version: 1.14
 description: Properties of hardware adder devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-12-24
+provenance: HOL Light theory extracted on 2014-02-24
 requires: bool
 requires: hardware-adder-def
 requires: hardware-bus

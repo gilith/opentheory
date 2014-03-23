@@ -1,5 +1,5 @@
 name: hardware-counter
-version: 1.4
+version: 1.12
 description: Hardware counter devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,12 +26,12 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: hardware-counter-def-1.2
+  package: hardware-counter-def-1.6
 }
 
 thm {
   import: def
-  package: hardware-counter-thm-1.5
+  package: hardware-counter-thm-1.13
 }
 
 main {

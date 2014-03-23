@@ -1,5 +1,5 @@
 name: function
-version: 1.49
+version: 1.50
 description: Function operators and combinators
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -13,7 +13,7 @@ def {
 
 thm {
   import: def
-  package: function-thm-1.44
+  package: function-thm-1.45
 }
 
 main {

@@ -1,9 +1,9 @@
 name: bool-class
-version: 1.19
+version: 1.21
 description: Classical boolean theorems
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-02-10
+provenance: HOL Light theory extracted on 2014-01-23
 requires: axiom-choice
 requires: axiom-extensionality
 requires: bool-def

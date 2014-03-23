@@ -1,5 +1,5 @@
 name: list
-version: 1.89
+version: 1.92
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.56
+  package: list-def-1.58
 }
 
 thm {
@@ -27,21 +27,21 @@ thm {
 dest {
   import: def
   import: thm
-  package: list-dest-1.43
+  package: list-dest-1.44
 }
 
 length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.44
+  package: list-length-1.45
 }
 
 set {
   import: def
   import: dest
   import: length
-  package: list-set-1.47
+  package: list-set-1.48
 }
 
 append {
@@ -50,7 +50,7 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.50
+  package: list-append-1.52
 }
 
 map {
@@ -60,7 +60,7 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.47
+  package: list-map-1.48
 }
 
 filter {
@@ -69,13 +69,13 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.47
+  package: list-filter-1.48
 }
 
 last {
   import: def
   import: dest
-  package: list-last-1.46
+  package: list-last-1.47
 }
 
 reverse {
@@ -84,7 +84,7 @@ reverse {
   import: set
   import: append
   import: map
-  package: list-reverse-1.42
+  package: list-reverse-1.43
 }
 
 fold {
@@ -92,7 +92,7 @@ fold {
   import: length
   import: append
   import: reverse
-  package: list-fold-1.21
+  package: list-fold-1.22
 }
 
 nth {
@@ -104,7 +104,7 @@ nth {
   import: append
   import: map
   import: last
-  package: list-nth-1.54
+  package: list-nth-1.55
 }
 
 replicate {
@@ -115,7 +115,7 @@ replicate {
   import: append
   import: map
   import: nth
-  package: list-replicate-1.55
+  package: list-replicate-1.56
 }
 
 take-drop {
@@ -126,14 +126,14 @@ take-drop {
   import: append
   import: nth
   import: replicate
-  package: list-take-drop-1.55
+  package: list-take-drop-1.56
 }
 
 interval {
   import: length
   import: map
   import: nth
-  package: list-interval-1.54
+  package: list-interval-1.55
 }
 
 zip {
@@ -142,7 +142,7 @@ zip {
   import: length
   import: append
   import: nth
-  package: list-zip-1.20
+  package: list-zip-1.21
 }
 
 nub {
@@ -150,7 +150,7 @@ nub {
   import: length
   import: reverse
   import: set
-  package: list-nub-1.50
+  package: list-nub-1.51
 }
 
 main {

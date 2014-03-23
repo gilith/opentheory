@@ -1,9 +1,9 @@
 name: stream-def
-version: 1.27
+version: 1.28
 description: Definition of stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-03-13
+provenance: HOL Light theory extracted on 2014-01-13
 requires: bool
 requires: function
 requires: list

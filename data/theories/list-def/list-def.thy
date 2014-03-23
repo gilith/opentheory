@@ -1,9 +1,9 @@
 name: list-def
-version: 1.56
+version: 1.58
 description: Definition of list types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-12-02
+provenance: HOL Light theory extracted on 2014-01-15
 requires: bool
 requires: natural
 show: "Data.Bool"

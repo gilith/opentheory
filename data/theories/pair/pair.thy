@@ -1,5 +1,5 @@
 name: pair
-version: 1.22
+version: 1.23
 description: Product types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,7 @@ show: "Data.Bool"
 show: "Data.Pair"
 
 def {
-  package: pair-def-1.19
+  package: pair-def-1.20
 }
 
 thm {

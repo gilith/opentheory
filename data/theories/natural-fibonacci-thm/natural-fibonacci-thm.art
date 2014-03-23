@@ -4958,7 +4958,7 @@ ref
 ref
 92
 ref
-"_23969"
+"_24156"
 2
 ref
 var
@@ -5181,7 +5181,7 @@ cons
 nil
 cons
 cons
-514
+21
 ref
 92
 ref
@@ -5223,13 +5223,13 @@ appTerm
 absTerm
 523
 def
-518
+22
 ref
 appTerm
 524
 def
 betaConv
-21
+45
 ref
 20
 ref
@@ -5241,13 +5241,13 @@ def
 absTerm
 526
 def
-22
+51
 ref
 appTerm
 527
 def
 betaConv
-45
+514
 ref
 20
 ref
@@ -5259,7 +5259,7 @@ def
 absTerm
 529
 def
-51
+518
 ref
 appTerm
 530
@@ -5284,8 +5284,17 @@ remove
 nil
 cons
 cons
-435
+415
 ref
+518
+ref
+nil
+cons
+cons
+nil
+cons
+533
+def
 cons
 nil
 cons
@@ -5293,7 +5302,7 @@ cons
 436
 ref
 subst
-533
+534
 def
 nil
 135
@@ -5320,7 +5329,7 @@ cons
 ref
 subst
 deductAntisym
-533
+534
 remove
 eqMp
 deductAntisym
@@ -5328,7 +5337,7 @@ deductAntisym
 remove
 eqMp
 eqMp
-534
+535
 def
 nil
 394
@@ -5338,7 +5347,7 @@ remove
 nil
 cons
 cons
-457
+435
 ref
 cons
 nil
@@ -5347,7 +5356,7 @@ cons
 436
 ref
 subst
-535
+536
 def
 nil
 135
@@ -5374,15 +5383,15 @@ cons
 ref
 subst
 deductAntisym
-535
+536
 remove
 eqMp
 deductAntisym
-534
+535
 remove
 eqMp
 eqMp
-536
+537
 def
 nil
 394
@@ -5392,17 +5401,8 @@ remove
 nil
 cons
 cons
-415
+457
 ref
-518
-ref
-nil
-cons
-cons
-nil
-cons
-537
-def
 cons
 nil
 cons
@@ -5441,7 +5441,7 @@ deductAntisym
 remove
 eqMp
 deductAntisym
-536
+537
 remove
 eqMp
 eqMp
@@ -11533,7 +11533,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -12362,7 +12362,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -13849,7 +13849,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -21569,7 +21569,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -22313,7 +22313,7 @@ def
 nil
 1608
 remove
-537
+533
 ref
 cons
 nil
@@ -22981,7 +22981,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -23142,7 +23142,7 @@ ref
 ref
 92
 ref
-"_23971"
+"_24158"
 2
 ref
 var
@@ -23261,7 +23261,7 @@ eqMp
 ref
 92
 ref
-"_23977"
+"_24164"
 2
 ref
 var
@@ -23573,7 +23573,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -25519,7 +25519,7 @@ ref
 ref
 92
 ref
-"_23979"
+"_24166"
 2
 ref
 var
@@ -25654,7 +25654,7 @@ eqMp
 ref
 92
 ref
-"_23981"
+"_24168"
 2
 ref
 var
@@ -27329,7 +27329,7 @@ ref
 ref
 92
 ref
-"_23983"
+"_24170"
 2
 ref
 var
@@ -27446,7 +27446,7 @@ eqMp
 ref
 92
 ref
-"_23985"
+"_24172"
 2
 ref
 var
@@ -28884,7 +28884,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -29223,7 +29223,7 @@ def
 nil
 2096
 remove
-537
+533
 ref
 cons
 nil
@@ -30208,7 +30208,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -30540,7 +30540,7 @@ def
 nil
 2184
 remove
-537
+533
 ref
 cons
 nil
@@ -34317,7 +34317,7 @@ ref
 ref
 92
 ref
-"_23987"
+"_24174"
 2
 ref
 var
@@ -36720,7 +36720,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -36994,7 +36994,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -37344,7 +37344,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -38285,7 +38285,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -39246,7 +39246,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -39934,7 +39934,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -40867,7 +40867,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -42479,7 +42479,7 @@ def
 ref
 92
 ref
-"_24011"
+"_24198"
 2
 ref
 var
@@ -43236,7 +43236,7 @@ ref
 93
 ref
 nil
-"_24015"
+"_24202"
 67
 ref
 var
@@ -45456,7 +45456,7 @@ ref
 ref
 92
 ref
-"_23995"
+"_24182"
 3
 ref
 var
@@ -45731,7 +45731,7 @@ ref
 93
 ref
 nil
-"_23997"
+"_24184"
 67
 ref
 var
@@ -46355,7 +46355,7 @@ ref
 ref
 92
 ref
-"_24007"
+"_24194"
 2
 ref
 var
@@ -46865,7 +46865,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -47997,7 +47997,7 @@ ref
 ref
 92
 ref
-"_24003"
+"_24190"
 2
 ref
 var
@@ -48458,7 +48458,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -48711,7 +48711,7 @@ ref
 ref
 92
 ref
-"_24005"
+"_24192"
 2
 ref
 var
@@ -50450,7 +50450,7 @@ ref
 ref
 92
 ref
-"_23993"
+"_24180"
 2
 ref
 var
@@ -51251,7 +51251,7 @@ ref
 ref
 92
 ref
-"_24021"
+"_24208"
 2
 ref
 var
@@ -52696,7 +52696,7 @@ ref
 ref
 92
 ref
-"_24023"
+"_24210"
 2
 ref
 var
@@ -55427,7 +55427,7 @@ ref
 ref
 92
 ref
-"_24030"
+"_24217"
 3
 ref
 var
@@ -55697,7 +55697,7 @@ ref
 ref
 92
 ref
-"_24028"
+"_24215"
 3
 ref
 var
@@ -56757,7 +56757,7 @@ ref
 ref
 92
 ref
-"_24025"
+"_24212"
 3
 ref
 var
@@ -60954,7 +60954,7 @@ ref
 ref
 92
 ref
-"_24038"
+"_24225"
 3
 ref
 var
@@ -61585,7 +61585,7 @@ ref
 ref
 92
 ref
-"_24044"
+"_24231"
 3
 ref
 var
@@ -61937,7 +61937,7 @@ ref
 ref
 92
 ref
-"_24042"
+"_24229"
 3
 ref
 var
@@ -62486,7 +62486,7 @@ ref
 ref
 92
 ref
-"_24036"
+"_24223"
 3
 ref
 var
@@ -62748,7 +62748,7 @@ ref
 ref
 92
 ref
-"_24040"
+"_24227"
 3
 ref
 var
@@ -63678,7 +63678,7 @@ ref
 ref
 92
 ref
-"_24034"
+"_24221"
 3
 ref
 var
@@ -64158,7 +64158,7 @@ ref
 ref
 92
 ref
-"_24032"
+"_24219"
 3
 ref
 var
@@ -65411,7 +65411,7 @@ ref
 ref
 92
 ref
-"_24050"
+"_24237"
 3
 ref
 var
@@ -65631,7 +65631,7 @@ ref
 ref
 92
 ref
-"_24048"
+"_24235"
 3
 ref
 var
@@ -65819,7 +65819,7 @@ ref
 ref
 92
 ref
-"_24046"
+"_24233"
 2
 ref
 var
@@ -71542,7 +71542,7 @@ ref
 ref
 92
 ref
-"_24058"
+"_24245"
 3
 ref
 var
@@ -71856,7 +71856,7 @@ ref
 ref
 92
 ref
-"_24062"
+"_24249"
 3
 ref
 var
@@ -72087,7 +72087,7 @@ ref
 ref
 92
 ref
-"_24060"
+"_24247"
 3
 ref
 var
@@ -72406,7 +72406,7 @@ ref
 ref
 92
 ref
-"_24056"
+"_24243"
 3
 ref
 var
@@ -75983,7 +75983,7 @@ ref
 ref
 92
 ref
-"_24054"
+"_24241"
 3
 ref
 var
@@ -76246,7 +76246,7 @@ ref
 ref
 92
 ref
-"_24052"
+"_24239"
 3
 ref
 var
@@ -78301,7 +78301,7 @@ ref
 ref
 92
 ref
-"_24066"
+"_24253"
 3
 ref
 var
@@ -78949,7 +78949,7 @@ ref
 ref
 92
 ref
-"_24118"
+"_24305"
 67
 ref
 var
@@ -79082,7 +79082,7 @@ refl
 ref
 92
 ref
-"_24116"
+"_24303"
 3
 ref
 var
@@ -79211,7 +79211,7 @@ ref
 ref
 92
 ref
-"_24130"
+"_24317"
 67
 ref
 var
@@ -79346,7 +79346,7 @@ refl
 ref
 92
 ref
-"_24114"
+"_24301"
 3
 ref
 var
@@ -79470,7 +79470,7 @@ eqMp
 ref
 92
 ref
-"_24138"
+"_24325"
 67
 ref
 var
@@ -79583,7 +79583,7 @@ eqMp
 ref
 92
 ref
-"_24126"
+"_24313"
 67
 ref
 var
@@ -79690,7 +79690,7 @@ def
 ref
 92
 ref
-"_24122"
+"_24309"
 67
 ref
 var
@@ -79795,7 +79795,7 @@ def
 ref
 92
 ref
-"_24132"
+"_24319"
 67
 ref
 var
@@ -82867,7 +82867,7 @@ ref
 ref
 92
 ref
-"_23991"
+"_24178"
 3
 ref
 var
@@ -83196,7 +83196,7 @@ ref
 ref
 92
 ref
-"_23989"
+"_24176"
 3
 ref
 var
@@ -83555,7 +83555,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -85054,7 +85054,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -86303,7 +86303,7 @@ ref
 ref
 92
 ref
-"_24082"
+"_24269"
 67
 ref
 var
@@ -86442,7 +86442,7 @@ refl
 ref
 92
 ref
-"_24080"
+"_24267"
 3
 ref
 var
@@ -86541,7 +86541,7 @@ ref
 ref
 92
 ref
-"_24094"
+"_24281"
 67
 ref
 var
@@ -86670,7 +86670,7 @@ refl
 ref
 92
 ref
-"_24078"
+"_24265"
 3
 ref
 var
@@ -86764,7 +86764,7 @@ eqMp
 ref
 92
 ref
-"_24102"
+"_24289"
 67
 ref
 var
@@ -86877,7 +86877,7 @@ eqMp
 ref
 92
 ref
-"_24090"
+"_24277"
 67
 ref
 var
@@ -86957,7 +86957,7 @@ def
 ref
 92
 ref
-"_24086"
+"_24273"
 67
 ref
 var
@@ -87035,7 +87035,7 @@ def
 ref
 92
 ref
-"_24096"
+"_24283"
 67
 ref
 var
@@ -88540,7 +88540,7 @@ ref
 ref
 92
 ref
-"_24064"
+"_24251"
 3
 ref
 var
@@ -89918,7 +89918,7 @@ eqMp
 ref
 92
 ref
-"_24162"
+"_24349"
 2
 ref
 var
@@ -90044,7 +90044,7 @@ def
 ref
 92
 ref
-"_24160"
+"_24347"
 2
 ref
 var
@@ -91218,7 +91218,7 @@ ref
 ref
 92
 ref
-"_24168"
+"_24355"
 2
 ref
 var
@@ -92181,7 +92181,7 @@ ref
 93
 ref
 nil
-"_24182"
+"_24369"
 67
 ref
 var
@@ -93668,7 +93668,7 @@ ref
 93
 ref
 nil
-"_24172"
+"_24359"
 67
 ref
 var
@@ -94018,7 +94018,7 @@ ref
 ref
 92
 ref
-"_24178"
+"_24365"
 2
 ref
 var
@@ -94635,7 +94635,7 @@ ref
 ref
 92
 ref
-"_24180"
+"_24367"
 2
 ref
 var
@@ -96163,7 +96163,7 @@ ref
 ref
 92
 ref
-"_24140"
+"_24327"
 3
 ref
 var
@@ -96478,7 +96478,7 @@ ref
 93
 ref
 nil
-"_24142"
+"_24329"
 67
 ref
 var
@@ -97772,7 +97772,7 @@ ref
 ref
 92
 ref
-"_24148"
+"_24335"
 2
 ref
 var
@@ -97899,7 +97899,7 @@ eqMp
 ref
 92
 ref
-"_24152"
+"_24339"
 2
 ref
 var
@@ -102774,7 +102774,7 @@ ref
 ref
 92
 ref
-"_24188"
+"_24375"
 67
 ref
 var
@@ -104433,7 +104433,7 @@ ref
 ref
 6864
 ref
-"_24260"
+"_24447"
 6861
 ref
 var
@@ -104534,7 +104534,7 @@ ref
 nil
 6877
 ref
-"_24258"
+"_24445"
 6860
 ref
 var
@@ -104800,7 +104800,7 @@ ref
 ref
 6759
 ref
-"_24255"
+"_24442"
 6752
 ref
 var
@@ -104940,7 +104940,7 @@ opType
 constTerm
 6914
 def
-"_24254"
+"_24441"
 6752
 ref
 var
@@ -109742,7 +109742,7 @@ refl
 ref
 7211
 ref
-"_24248"
+"_24435"
 7208
 ref
 var
@@ -110009,7 +110009,7 @@ ref
 nil
 7224
 ref
-"_24246"
+"_24433"
 7207
 ref
 var
@@ -110292,7 +110292,7 @@ def
 ref
 7206
 ref
-"_24243"
+"_24430"
 6748
 ref
 var
@@ -110446,7 +110446,7 @@ opType
 constTerm
 7277
 def
-"_24242"
+"_24429"
 6748
 ref
 var
@@ -113759,7 +113759,7 @@ remove
 nil
 cons
 cons
-537
+533
 ref
 cons
 nil
@@ -114438,7 +114438,7 @@ ref
 ref
 7467
 ref
-"_24228"
+"_24415"
 7464
 ref
 var
@@ -114574,7 +114574,7 @@ ref
 nil
 7559
 remove
-"_24226"
+"_24413"
 7463
 ref
 var
@@ -114899,7 +114899,7 @@ ref
 ref
 50
 ref
-"_24223"
+"_24410"
 6752
 ref
 var
@@ -115079,7 +115079,7 @@ opType
 constTerm
 7606
 def
-"_24222"
+"_24409"
 3
 ref
 var
@@ -116406,7 +116406,7 @@ ref
 ref
 92
 ref
-"_24230"
+"_24417"
 3
 ref
 var
@@ -117359,7 +117359,7 @@ ref
 ref
 92
 ref
-"_24232"
+"_24419"
 2
 ref
 var
@@ -117498,7 +117498,7 @@ ref
 ref
 92
 ref
-"_24236"
+"_24423"
 3
 ref
 var
@@ -117817,7 +117817,7 @@ ref
 ref
 92
 ref
-"_24234"
+"_24421"
 3
 ref
 var
@@ -118704,7 +118704,7 @@ ref
 ref
 92
 ref
-"_24190"
+"_24377"
 3
 ref
 var
@@ -118976,7 +118976,7 @@ ref
 ref
 92
 ref
-"_24192"
+"_24379"
 3
 ref
 var
@@ -119543,7 +119543,7 @@ refl
 ref
 7467
 ref
-"_24216"
+"_24403"
 7464
 ref
 var
@@ -120024,7 +120024,7 @@ ref
 nil
 7869
 remove
-"_24214"
+"_24401"
 7463
 ref
 var
@@ -120244,7 +120244,7 @@ ref
 ref
 50
 ref
-"_24211"
+"_24398"
 6752
 ref
 var
@@ -120483,7 +120483,7 @@ eqMp
 ref
 7606
 ref
-"_24210"
+"_24397"
 3
 ref
 var
@@ -120970,7 +120970,7 @@ ref
 ref
 7467
 remove
-"_24204"
+"_24391"
 7464
 remove
 var
@@ -121094,7 +121094,7 @@ ref
 nil
 7942
 remove
-"_24202"
+"_24389"
 7463
 remove
 var
@@ -121284,7 +121284,7 @@ ref
 ref
 50
 ref
-"_24199"
+"_24386"
 6752
 remove
 var
@@ -121437,7 +121437,7 @@ eqMp
 ref
 7606
 remove
-"_24198"
+"_24385"
 3
 ref
 var
@@ -122827,7 +122827,7 @@ remove
 nil
 cons
 cons
-537
+533
 remove
 cons
 nil
@@ -123362,7 +123362,7 @@ ref
 ref
 92
 ref
-"_24262"
+"_24449"
 67
 remove
 var
@@ -123717,7 +123717,7 @@ ref
 ref
 92
 ref
-"_24264"
+"_24451"
 2
 remove
 var
@@ -124909,7 +124909,7 @@ ref
 ref
 92
 ref
-"_9586"
+"_9705"
 3
 ref
 var
@@ -125220,7 +125220,7 @@ ref
 ref
 92
 ref
-"_9584"
+"_9703"
 3
 ref
 var
@@ -125455,7 +125455,7 @@ ref
 ref
 92
 ref
-"_9590"
+"_9709"
 3
 ref
 var
@@ -125727,7 +125727,7 @@ ref
 ref
 92
 remove
-"_9588"
+"_9707"
 3
 remove
 var

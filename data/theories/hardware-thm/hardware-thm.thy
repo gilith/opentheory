@@ -1,9 +1,9 @@
 name: hardware-thm
-version: 1.22
+version: 1.25
 description: Properties of the hardware model
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-12-23
+provenance: HOL Light theory extracted on 2014-03-12
 requires: bool
 requires: hardware-def
 requires: list

@@ -1,5 +1,5 @@
 name: hardware-bus
-version: 1.33
+version: 1.38
 description: Hardware bus devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ show: "Hardware"
 show: "Number.Natural"
 
 def {
-  package: hardware-bus-def-1.20
+  package: hardware-bus-def-1.23
 }
 
 thm {
   import: def
-  package: hardware-bus-thm-1.32
+  package: hardware-bus-thm-1.37
 }
 
 main {
