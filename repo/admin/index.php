@@ -74,7 +74,7 @@ function pretty_recent_uploads($limit) {
       $author = $upl->author_name();
 
       $author_info =
-        isset($author) ? string_to_html($author) : 'Starting';
+        isset($author) ? string_to_html($author) : 'Initiating';
 
       $since_initiated = $upl->since_initiated();
 
