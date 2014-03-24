@@ -11,7 +11,7 @@
 
 .PHONY: default
 default:
-	@if command -v mosmlc > /dev/null ; then $(MAKE) mosml ; else if command -v mlton > /dev/null ; then $(MAKE) mlton ; else if command -v poly > /dev/null ; then $(MAKE) polyml ; else echo "ERROR: No ML found on path: install either MLton, Poly/ML or Moscow ML." ; exit 1 ; fi ; fi ; fi
+	@if command -v mosmlc > /dev/null ; then $(MAKE) mosml ; else if command -v mlton > /dev/null ; then $(MAKE) mlton ; else if command -v polyc > /dev/null ; then $(MAKE) polyml ; else echo "ERROR: No ML found on path: install either MLton, Poly/ML or Moscow ML." ; exit 1 ; fi ; fi ; fi
 
 ###############################################################################
 # Cleaning temporary files.
@@ -23,7 +23,7 @@ TEMP = \
   $(MLTON_TARGETS) \
   bin/mlton/*.sml bin/mlton/*.mlb \
   $(POLYML_TARGETS) \
-  bin/polyml/*.sml bin/polyml/*.log bin/polyml/*.o
+  bin/polyml/*.sml bin/polyml/*.o
 
 .PHONY: clean
 clean:
@@ -247,15 +247,9 @@ mlton: mlton-info $(MLTON_TARGETS)
 # Building using Poly/ML.
 ###############################################################################
 
-POLYML = poly
+POLYML = polyc
 
 POLYML_OPTS =
-
-ifeq ($(shell uname), Darwin)
-  POLYML_LINK_OPTS = -lpolymain -lpolyml -segprot POLY rwx rwx
-else
-  POLYML_LINK_OPTS = -lpolymain -lpolyml
-endif
 
 POLYML_SRC = \
   src/Random.sig src/Random.sml \
@@ -272,18 +266,14 @@ bin/polyml/%.sml: src/%.sml $(POLYML_SRC)
 	@$(MLPP) $(MLPP_OPTS) -c polyml $< >> $@
 	@echo "in () end handle e => (TextIO.output (TextIO.stdErr, \"FATAL EXCEPTION:\\\\n\"^ exnMessage e); OS.Process.exit OS.Process.failure); PolyML.export(\"$(basename $(notdir $<))\", main);" >> $@
 
-bin/polyml/%.o: bin/polyml/%.sml
-	cd bin/polyml ; echo "use \"$(notdir $<)\";" | $(POLYML) $(POLYML_OPTS) > $(basename $(notdir $<)).log
-	@if test $@ -nt $< ; then echo 'compiled $@' ; else cat bin/polyml/$(basename $(notdir $<)).log ; exit 1 ; fi
-
-bin/polyml/%: bin/polyml/%.o
+bin/polyml/%: bin/polyml/%.sml
 	@echo
 	@echo '+---------------------------+'
 	@echo '| Compile a Poly/ML program |'
 	@echo '+---------------------------+'
 	@echo
 	@echo $@
-	cd bin/polyml && $(CC) -o $(notdir $@) $(notdir $<) $(POLYML_LINK_OPTS)
+	cd bin/polyml && $(POLYML) $(POLYML_OPTS) -o $(notdir $@) $(notdir $<)
 	@echo
 
 .PHONY: polyml-info
