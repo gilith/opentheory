@@ -1,5 +1,5 @@
 name: option-map
-version: 1.8
+version: 1.9
 description: The option map function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: option-map-thm-1.10
+  package: option-map-thm-1.11
 }
 
 main {

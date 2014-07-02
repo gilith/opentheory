@@ -1,9 +1,9 @@
 name: list-append-thm
-version: 1.25
+version: 1.26
 description: Properties of appending lists
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-03-12
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: list-append-def
 requires: list-def

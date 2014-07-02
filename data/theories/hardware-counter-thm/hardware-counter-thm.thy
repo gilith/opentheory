@@ -1,9 +1,9 @@
 name: hardware-counter-thm
-version: 1.13
+version: 1.16
 description: Properties of hardware counter devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-01-15
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: function
 requires: hardware-adder

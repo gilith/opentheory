@@ -1,5 +1,5 @@
 name: list-fold
-version: 1.22
+version: 1.23
 description: List fold operations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: list-fold-thm-1.23
+  package: list-fold-thm-1.24
 }
 
 main {

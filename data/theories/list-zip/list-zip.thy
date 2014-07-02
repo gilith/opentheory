@@ -1,5 +1,5 @@
 name: list-zip
-version: 1.21
+version: 1.22
 description: The list zip function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,12 +17,12 @@ show: "Data.Pair"
 show: "Number.Natural"
 
 def {
-  package: list-zip-def-1.15
+  package: list-zip-def-1.16
 }
 
 thm {
   import: def
-  package: list-zip-thm-1.20
+  package: list-zip-thm-1.21
 }
 
 main {

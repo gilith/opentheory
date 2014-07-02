@@ -1,5 +1,5 @@
 name: haskell
-version: 1.88
+version: 1.89
 description: The Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -41,12 +41,12 @@ thm {
 
 src {
   import: def
-  package: haskell-src-1.61
+  package: haskell-src-1.62
 }
 
 test {
   import: def
-  package: haskell-test-1.41
+  package: haskell-test-1.42
 }
 
 main {

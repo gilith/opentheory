@@ -1,5 +1,5 @@
 name: natural-exp-log
-version: 1.6
+version: 1.7
 description: Natural number logarithm
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: natural-exp-log-thm-1.8
+  package: natural-exp-log-thm-1.9
 }
 
 main {

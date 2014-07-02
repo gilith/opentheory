@@ -1,9 +1,9 @@
 name: natural-distance-thm
-version: 1.55
+version: 1.56
 description: Properties of natural number distance
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2013-08-09
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: natural-add
 requires: natural-distance-def

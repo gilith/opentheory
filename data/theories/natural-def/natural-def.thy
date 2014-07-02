@@ -1,9 +1,9 @@
 name: natural-def
-version: 1.25
+version: 1.26
 description: Constructing the natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-01-13
+provenance: HOL Light theory extracted on 2014-06-12
 requires: axiom-infinity
 requires: bool
 requires: function

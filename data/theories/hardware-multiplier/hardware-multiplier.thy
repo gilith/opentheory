@@ -1,5 +1,5 @@
 name: hardware-multiplier
-version: 1.10
+version: 1.11
 description: Hardware multiplier devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: hardware-multiplier-thm-1.9
+  package: hardware-multiplier-thm-1.10
 }
 
 main {

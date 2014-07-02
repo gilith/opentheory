@@ -1,9 +1,9 @@
 name: hardware-bus-thm
-version: 1.37
+version: 1.39
 description: Properties of hardware bus devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-03-12
+provenance: HOL Light theory extracted on 2014-06-17
 requires: bool
 requires: hardware-bus-def
 requires: hardware-thm

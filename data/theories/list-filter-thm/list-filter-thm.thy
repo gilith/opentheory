@@ -1,9 +1,9 @@
 name: list-filter-thm
-version: 1.50
+version: 1.51
 description: Properties of the list filter function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-12-02
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: function
 requires: list-append

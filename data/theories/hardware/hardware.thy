@@ -1,5 +1,5 @@
 name: hardware
-version: 1.64
+version: 1.71
 description: Hardware devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,25 +26,25 @@ def {
 
 thm {
   import: def
-  package: hardware-thm-1.25
+  package: hardware-thm-1.27
 }
 
 wire {
   import: thm
-  package: hardware-wire-1.12
+  package: hardware-wire-1.18
 }
 
 bus {
   import: thm
   import: wire
-  package: hardware-bus-1.38
+  package: hardware-bus-1.40
 }
 
 adder {
   import: thm
   import: wire
   import: bus
-  package: hardware-adder-1.11
+  package: hardware-adder-1.12
 }
 
 counter {
@@ -53,7 +53,7 @@ counter {
   import: wire
   import: bus
   import: adder
-  package: hardware-counter-1.12
+  package: hardware-counter-1.15
 }
 
 multiplier {
@@ -61,7 +61,7 @@ multiplier {
   import: bus
   import: counter
   import: adder
-  package: hardware-multiplier-1.10
+  package: hardware-multiplier-1.11
 }
 
 main {

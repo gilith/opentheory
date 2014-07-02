@@ -1,9 +1,9 @@
 name: list-nth-def
-version: 1.49
+version: 1.50
 description: Definition of the list nth function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-01-13
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: list-dest
 requires: list-length

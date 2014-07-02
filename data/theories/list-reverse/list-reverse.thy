@@ -1,5 +1,5 @@
 name: list-reverse
-version: 1.43
+version: 1.44
 description: The list reverse function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: list-reverse-thm-1.15
+  package: list-reverse-thm-1.16
 }
 
 main {

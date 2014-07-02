@@ -1,9 +1,9 @@
 name: parser-stream-thm
-version: 1.91
+version: 1.92
 description: Properties of parse streams
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-01-13
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: function
 requires: list

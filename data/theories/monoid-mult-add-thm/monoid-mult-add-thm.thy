@@ -1,9 +1,9 @@
 name: monoid-mult-add-thm
-version: 1.5
+version: 1.6
 description: Correctness of monoid multiplication by repeated addition
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2013-04-12
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: list
 requires: monoid-mult-add-def

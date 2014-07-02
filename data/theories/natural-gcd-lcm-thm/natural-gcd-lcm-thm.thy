@@ -1,9 +1,9 @@
 name: natural-gcd-lcm-thm
-version: 1.35
+version: 1.36
 description: Properties of natural number least common multiple
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2012-12-02
+provenance: HOL Light theory extracted on 2014-06-12
 requires: bool
 requires: natural
 requires: natural-divides
