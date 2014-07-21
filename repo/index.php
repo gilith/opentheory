@@ -594,8 +594,8 @@ pretty_recent_packages(SHORT_RECENT_PACKAGE_LIMIT);
 
 $image =
   array(site_image('silver-falls.jpg','Silver Falls'),
-        ('<div id="twitter-wrapper"><div id="twitter"><p><a href="http://twitter.com/OpenTheory">OpenTheory twitter feed:</a></p><ul id="twitter_update_list"><li>Loading...</li></ul></div></div>' .
-         '<script type="text/javascript" src="http://twitter.com/javascripts/blogger.js"></script><script type="text/javascript" src="http://api.twitter.com/1/statuses/user_timeline.json?screen_name=OpenTheory&amp;include_rts=true&amp;count=' . TWEET_LIMIT . '&amp;callback=twitterCallback2"></script>'));
+        ('<p class="image"><a class="twitter-timeline" href="https://twitter.com/OpenTheory" data-widget-id="491329944429936641" width="320" data-chrome="noborders nofooter" data-tweet-limit="' . TWEET_LIMIT . '">Tweets by @OpenTheory</a></p>' .
+         '<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>'));
 
 output(array(), $main, $image);
 
