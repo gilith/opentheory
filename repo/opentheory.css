@@ -192,6 +192,11 @@ div.image {
   padding: 1px;
 }
 
+div.image p {
+  margin: 0;
+  padding: 0;
+}
+
 div.image img {
   margin: 0;
   padding: 0;
@@ -227,58 +232,6 @@ div#footer img {
 div#footer a {
   text-decoration: none;
   color: black;
-}
-
-/*-----------------------------------------------------------------------------
-| Twitter feed.
-+----------------------------------------------------------------------------*/
-
-div#twitter-wrapper {
-  width: 320px;
-  background-color: #f0f4ff;
-  color: black;
-  font-size: smaller;
-}
-
-div#twitter {
-  margin: 0;
-  padding: 1em;
-}
-
-div#twitter p {
-  margin-top: 0;
-  margin-bottom: 10px;
-  margin-left: 0;
-  margin-right: 0;
-  padding: 0;
-  font-weight: bold;
-}
-
-div#twitter p a {
-  text-decoration: none;
-  color: black;
-}
-
-div#twitter ul {
-  margin: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 1em;
-  padding-right: 0;
-}
-
-div#twitter ul a {
-  text-decoration: none;
-  color: black;
-  font-style: italic;
-}
-
-div#twitter ul li {
-  margin-top: 0;
-  margin-bottom: 2px;
-  margin-left: 0;
-  margin-right: 0;
-  padding: 0;
 }
 
 /*-----------------------------------------------------------------------------
