@@ -84,10 +84,10 @@ datatype function =
   | SubtheoryOf
   | Versions
   | Latest
-  | Deprecated  (* (Identity - Latest) (Requires|Includes)* *)
-  | Obsolete  (* All - (Requires|Includes)* *)
-  | Upgradable  (* EarlierThanRepo *)
-  | Uploadable  (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
+  | Deprecated
+  | Obsolete
+  | Upgradable
+  | Uploadable
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function
@@ -146,25 +146,26 @@ fun ignoresInput func =
 (* ------------------------------------------------------------------------- *)
 
 val deprecatedDef =
+    (* (Identity - Latest) (Requires|Includes)* *)
     Compose
       (Difference (Identity,Latest),
        ReflexiveTransitive (Union (Requires,Includes)));
 
 val obsoleteDef =
+    (* All - (Requires|Includes)* *)
     Difference
       (Constant All,
        ReflexiveTransitive (Union (Requires,Includes)));
 
 val upgradableDef =
+    (* EarlierThanRepo *)
     Filter EarlierThanRepo;
 
 val uploadableDef =
+    (* Mine & (~OnRepo /\ LaterThanRepo /\ ConsistentWithRepo) *)
     Intersect
       (Filter Mine,
-       Filter
-         (And
-            (Not OnRepo,
-             And (Not EarlierThanRepo, ConsistentWithRepo))));
+       Filter (And (Not OnRepo, And (LaterThanRepo,ConsistentWithRepo))));
 
 fun evaluateSet dir set =
     case set of

@@ -43,10 +43,10 @@ datatype function =
   | SubtheoryOf
   | Versions
   | Latest
-  | Deprecated  (* (Identity - Latest) (Requires|Includes)* *)
-  | Obsolete  (* All - (Requires|Includes)* *)
-  | Upgradable  (* EarlierThanRepo *)
-  | Uploadable  (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
+  | Deprecated
+  | Obsolete
+  | Upgradable
+  | Uploadable
   | Union of function * function
   | Intersect of function * function
   | Difference of function * function

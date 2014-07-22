@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.2";
 
-val release = " (release 20140322)";
+val release = " (release 20140721)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -106,7 +106,7 @@ val describeQueryFormat =
     "  || Deprecated   // (Identity - Latest) (Requires | Includes)*\n" ^
     "  || Obsolete     // All - (Requires | Includes)*\n" ^
     "  || Upgradable   // EarlierThanRepo\n" ^
-    "  || Uploadable   // Mine /\\ ~OnRepo /\\ ~EarlierThanRepo /\\ ConsistentWithRepo\n" ^
+    "  || Uploadable   // Mine /\\ ~OnRepo /\\ LaterThanRepo /\\ ConsistentWithRepo\n" ^
     "PREDICATE         // represents a predicate with type P -> bool\n" ^
     "  <- PREDICATE \\/ PREDICATE\n" ^
     "                  // \\f g p. f(p) \\/ g(p)\n" ^
