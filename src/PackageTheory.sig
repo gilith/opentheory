@@ -18,7 +18,8 @@ datatype node =
        filename : string}
   | Include of
       {interpretation : Interpretation.interpretation,
-       package : PackageNameVersion.nameVersion}
+       package : PackageNameVersion.nameVersion,
+       checksum : Checksum.checksum option}
   | Union
 
 datatype theory =
@@ -71,22 +72,31 @@ val articles : theory list -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val includeNode : node -> PackageNameVersion.nameVersion option
+val includeNode :
+    node ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) option
 
-val destInclude : theory -> PackageNameVersion.nameVersion option
+val destInclude :
+    theory ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) option
 
-val includes : theory list -> PackageNameVersion.nameVersion list
+val includes :
+    theory list ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) list
 
 val updateIncludeNode :
-    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    (PackageNameVersion.nameVersion -> Checksum.checksum option ->
+     (PackageNameVersion.nameVersion * Checksum.checksum option) option) ->
     node -> node option
 
 val updateInclude :
-    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    (PackageNameVersion.nameVersion -> Checksum.checksum option ->
+     (PackageNameVersion.nameVersion * Checksum.checksum option) option) ->
     theory -> theory option
 
 val updateIncludes :
-    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    (PackageNameVersion.nameVersion -> Checksum.checksum option ->
+     (PackageNameVersion.nameVersion * Checksum.checksum option) option) ->
     theory list -> theory list option
 
 (* ------------------------------------------------------------------------- *)

@@ -421,14 +421,28 @@ datatype specification =
     Specification of
       {imports : TheorySet.set,
        interpretation : Interpretation.interpretation,
-       nameVersion : PackageNameVersion.nameVersion}
+       nameVersion : PackageNameVersion.nameVersion,
+       checksum : Checksum.checksum option}
 
 fun match graph spec =
     let
       val Specification
             {imports = imp,
              interpretation = int,
-             nameVersion = namever} = spec
+             nameVersion = namever,
+             checksum = chk} = spec
+
+      val matchChk =
+          case chk of
+            NONE => K true
+          | SOME chk =>
+            fn thy =>
+               case Theory.node thy of
+                 Theory.Package {checksum = chk', ...} =>
+                 (case chk' of
+                    SOME chk' => Checksum.equal chk' chk
+                  | NONE => true)
+               | _ => raise Bug "TheoryGraph.match.matchChk"
 
       fun matchImp thy =
           let
@@ -441,9 +455,10 @@ fun match graph spec =
           case Theory.node thy of
             Theory.Package {interpretation = int', ...} =>
             Interpretation.equal int int'
-          | _ => raise Bug "TheoryGraph.match.matchInt: theory not a Package"
+          | _ => raise Bug "TheoryGraph.match.matchInt"
 
       fun matchThy thy =
+          matchChk thy andalso
           matchImp thy andalso
           matchInt thy
     in
@@ -506,7 +521,8 @@ fun importNode importer graph info =
           in
             (graph,thy)
           end
-        | PackageTheory.Include {interpretation = int, package = namever} =>
+        | PackageTheory.Include
+            {interpretation = int, package = namever, checksum = chk} =>
           let
             val imports = TheorySet.union imports nodeImports
 
@@ -516,7 +532,8 @@ fun importNode importer graph info =
                 Specification
                   {imports = imports,
                    interpretation = interpretation,
-                   nameVersion = namever}
+                   nameVersion = namever,
+                   checksum = chk}
           in
             applyImporter importer graph spec
           end
@@ -597,28 +614,30 @@ fun importTheories importer graph info =
       List.foldl impThy (graph,env) theories
     end;
 
-fun importPackage importer graph info =
+fun importPackage importer graph data =
     let
       val {directory,
            imports,
            interpretation,
            nameVersion = namever,
-           package = pkg} = info
+           checksum = chk,
+           package = pkg} = data
 
       val theories = Package.theory pkg
 
-      val info =
+      val data =
           {directory = directory,
            imports = imports,
            interpretation = interpretation,
            theories = theories}
 
-      val (graph,env) = importTheories importer graph info
+      val (graph,env) = importTheories importer graph data
 
       val node =
           Theory.Package
             {interpretation = interpretation,
              package = namever,
+             checksum = chk,
              theories = theoriesEnvironment env}
 
       val article = Theory.article (mainEnvironment env)
@@ -642,7 +661,7 @@ fun importPackage importer graph info =
 
 fun importPackageInfo importer graph data =
     let
-      val {imports,interpretation,info} = data
+      val {imports,interpretation,info,checksum} = data
 
       val {directory} = PackageInfo.directory info
       and namever = PackageInfo.nameVersion info
@@ -653,6 +672,7 @@ fun importPackageInfo importer graph data =
            imports = imports,
            interpretation = interpretation,
            nameVersion = namever,
+           checksum = checksum,
            package = pkg}
     in
       importPackage importer graph data
@@ -667,23 +687,34 @@ fun importPackageName finder graph spec =
         let
           val importer = fromFinderImporter finder
 
-          val Specification {imports,interpretation,nameVersion} = spec
+          val Specification
+                {imports,
+                 interpretation,
+                 nameVersion = namever,
+                 checksum = chk} = spec
 
-          val info =
-              case PackageFinder.find finder nameVersion of
+          val (info,chk) =
+              case PackageFinder.find finder namever chk of
                 SOME i => i
-              | NONE => raise Error ("couldn't find package " ^
-                                     PackageNameVersion.toString nameVersion)
+              | NONE =>
+                let
+                  val err =
+                      "couldn't find package " ^
+                      PackageNameVersion.toString namever
+                in
+                  raise Error err
+                end
 
           val data =
               {imports = imports,
                interpretation = interpretation,
-               info = info}
+               info = info,
+               checksum = SOME chk}
         in
           importPackageInfo importer graph data
           handle Error err =>
             raise Error ("while importing package " ^
-                         PackageNameVersion.toString nameVersion ^ "\n" ^ err)
+                         PackageNameVersion.toString namever ^ "\n" ^ err)
         end
     end
 

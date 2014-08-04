@@ -509,12 +509,12 @@ fun upToDateDependencies dir =
     DirectoryPackages.upToDateDependencies (packages dir);
 
 (* ------------------------------------------------------------------------- *)
-(* Upgrading theory packages.                                                *)
+(* Upgrading theory source files.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 fun upgrade dir pkg =
     let
-      fun latest namever =
+      fun latest namever _ =
           let
             val PackageNameVersion.NameVersion' {name,version} =
                 PackageNameVersion.dest namever
@@ -523,7 +523,7 @@ fun upgrade dir pkg =
               NONE => NONE
             | SOME nv =>
               if PackageNameVersion.equalVersion version nv then NONE
-              else SOME nv
+              else SOME (nv, checksum dir nv)
           end
     in
       Package.updateIncludes latest pkg
@@ -533,9 +533,9 @@ fun upgrade dir pkg =
 (* A package finder and importer.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun finder dir = PackageFinder.mk (peek dir);
+fun finder dir = DirectoryPackages.finder (packages dir);
 
-fun importer dir = TheoryGraph.fromFinderImporter (finder dir);
+fun importer dir = DirectoryPackages.importer (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* A package finder for *staged* packages.                                   *)
@@ -543,23 +543,21 @@ fun importer dir = TheoryGraph.fromFinderImporter (finder dir);
 
 fun stagedFinder dir =
     let
-      fun stagedPeek namever =
+      fun stagedPeek namever chko =
           let
-(*OpenTheoryTrace3
-            val () = Print.trace PackageNameVersion.pp
-                       "Directory.stagedFinder: namever" namever
-*)
             val info = stagingPackageInfo dir namever
-
-            val result =
-                if PackageInfo.existsDirectory info then SOME info else NONE
-
-(*OpenTheoryTrace3
-            val () = Print.trace Print.ppBool
-                       "Directory.stagedFinder: found" (Option.isSome result)
-*)
           in
-            result
+            if not (PackageInfo.existsDirectory info) then NONE else
+            let
+              val chk = PackageInfo.checksumTarball info
+
+              val match =
+                  case chko of
+                    SOME chk' => Checksum.equal chk' chk
+                  | NONE => true
+            in
+              if match then SOME (info,chk) else NONE
+            end
           end
     in
       PackageFinder.mk stagedPeek

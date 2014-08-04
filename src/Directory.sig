@@ -247,7 +247,7 @@ val upToDateDependencies :
     PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Upgrading theory packages.                                                *)
+(* Upgrading theory source files.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 val upgrade : directory -> Package.package -> Package.package option

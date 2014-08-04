@@ -16,17 +16,28 @@ type finder
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : (PackageNameVersion.nameVersion -> PackageInfo.info option) -> finder
+val mk :
+    (PackageNameVersion.nameVersion -> Checksum.checksum option ->
+     (PackageInfo.info * Checksum.checksum) option) -> finder
 
 (* ------------------------------------------------------------------------- *)
 (* Finding packages.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val find : finder -> PackageNameVersion.nameVersion -> PackageInfo.info option
+val find :
+    finder ->
+    PackageNameVersion.nameVersion -> Checksum.checksum option ->
+    (PackageInfo.info * Checksum.checksum) option
 
-val get : finder -> PackageNameVersion.nameVersion -> PackageInfo.info
+val get :
+    finder ->
+    PackageNameVersion.nameVersion -> Checksum.checksum option ->
+    PackageInfo.info * Checksum.checksum
 
-val check : finder -> PackageNameVersion.nameVersion -> unit
+val check :
+    finder ->
+    PackageNameVersion.nameVersion ->  Checksum.checksum option ->
+    unit
 
 (* ------------------------------------------------------------------------- *)
 (* Finder combinators.                                                       *)

@@ -276,6 +276,31 @@ fun member namever pkgs = memberPurePackages namever (packages pkgs);
 fun checksum pkgs namever = DirectoryChecksums.peek (checksums pkgs) namever;
 
 (* ------------------------------------------------------------------------- *)
+(* A package finder and importer.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun finder pkgs =
+    let
+      fun find namever chko =
+          case checksum pkgs namever of
+            NONE => NONE
+          | SOME chk =>
+            let
+              val match =
+                  case chko of
+                    NONE => true
+                  | SOME chk' => Checksum.equal chk chk'
+            in
+              if not match then NONE
+              else SOME (get pkgs namever, chk)
+            end
+    in
+      PackageFinder.mk find
+    end;
+
+fun importer pkgs = TheoryGraph.fromFinderImporter (finder pkgs);
+
+(* ------------------------------------------------------------------------- *)
 (* Installed package versions.                                               *)
 (* ------------------------------------------------------------------------- *)
 
@@ -795,15 +820,16 @@ local
       let
         fun addTheory graph imps nv =
             let
-              val finder = PackageFinder.mk (peek pkgs)
+              val find = finder pkgs
 
               val spec =
                   TheoryGraph.Specification
                     {imports = imps,
                      interpretation = Interpretation.natural,
-                     nameVersion = nv}
+                     nameVersion = nv,
+                     checksum = NONE}
             in
-              total (TheoryGraph.importPackageName finder graph) spec
+              total (TheoryGraph.importPackageName find graph) spec
             end
 
         fun process (nv,(graph,thys)) =

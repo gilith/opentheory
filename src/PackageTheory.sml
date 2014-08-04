@@ -13,6 +13,7 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val articleKeywordString = "article"
+and checksumKeywordString = "checksum"
 and closeBlockChar = #"}"
 and importKeywordString = "import"
 and interpretKeywordString = "interpret"
@@ -33,7 +34,8 @@ datatype node =
        filename : string}
   | Include of
       {interpretation : Interpretation.interpretation,
-       package : PackageNameVersion.nameVersion}
+       package : PackageNameVersion.nameVersion,
+       checksum : Checksum.checksum option}
   | Union;
 
 datatype theory =
@@ -84,7 +86,7 @@ fun articles thys = List.mapPartial article thys;
 
 fun includeNode node =
     case node of
-      Include {package = p, ...} => SOME p
+      Include {package = nv, checksum = c, ...} => SOME (nv,c)
     | _ => NONE;
 
 fun destInclude thy = includeNode (node thy);
@@ -93,9 +95,10 @@ fun includes thys = List.mapPartial destInclude thys;
 
 fun updateIncludeNode f node =
     case node of
-      Include {interpretation = i, package = p} =>
-      (case f p of
-         SOME p => SOME (Include {interpretation = i, package = p})
+      Include {interpretation = i, package = nv, checksum = c} =>
+      (case f nv c of
+         SOME (nv,c) =>
+         SOME (Include {interpretation = i, package = nv, checksum = c})
        | NONE => NONE)
     | _ => NONE;
 
@@ -291,6 +294,7 @@ fun sortUnion thys =
 
 datatype constraint =
     ArticleConstraint of {filename : string}
+  | ChecksumConstraint of Checksum.checksum
   | ImportConstraint of name
   | InterpretConstraint of Interpretation.rewrite
   | PackageConstraint of PackageNameVersion.nameVersion;
@@ -298,6 +302,11 @@ datatype constraint =
 fun destArticleConstraint c =
     case c of
       ArticleConstraint f => SOME f
+    | _ => NONE;
+
+fun destChecksumConstraint c =
+    case c of
+      ChecksumConstraint x => SOME x
     | _ => NONE;
 
 fun destImportConstraint c =
@@ -317,6 +326,8 @@ fun destPackageConstraint c =
 
 fun destArticleConstraints cs = List.mapPartial destArticleConstraint cs;
 
+fun destChecksumConstraints cs = List.mapPartial destChecksumConstraint cs;
+
 fun destImportConstraints cs = List.mapPartial destImportConstraint cs;
 
 fun destInterpretConstraints cs = List.mapPartial destInterpretConstraint cs;
@@ -329,11 +340,22 @@ fun mkTheory (name,cs) =
 
       val rws = destInterpretConstraints cs
 
+      val chks = destChecksumConstraints cs
+
       val node =
           case (destArticleConstraints cs, destPackageConstraints cs) of
             ([],[]) =>
-            if List.null rws then Union
-            else raise Error "interpret has no effect in union theory block"
+            let
+              val () =
+                  if List.null rws then ()
+                  else raise Error "interpret in union theory block"
+
+              val () =
+                  if List.null chks then ()
+                  else raise Error "checksum in union theory block"
+            in
+              Union
+            end
           | (_ :: _, _ :: _) =>
             raise Error "conflicting article and package in theory block"
           | (_ :: _ :: _, []) =>
@@ -342,6 +364,10 @@ fun mkTheory (name,cs) =
             raise Error "multiple packages in theory block"
           | ([{filename}],[]) =>
             let
+              val () =
+                  if List.null chks then ()
+                  else raise Error "checksum in article theory block"
+
               val int = Interpretation.fromRewriteList rws
             in
               Article
@@ -350,11 +376,19 @@ fun mkTheory (name,cs) =
             end
           | ([],[p]) =>
             let
+              val c =
+                  case chks of
+                    [] => NONE
+                  | [c] => SOME c
+                  | _ :: _ :: _ =>
+                    raise Error "multiple checksums in package theory block"
+
               val int = Interpretation.fromRewriteList rws
             in
               Include
                 {interpretation = int,
-                 package = p}
+                 package = p,
+                 checksum = c}
             end
     in
       Theory
@@ -378,12 +412,18 @@ fun destTheory thy =
               List.map InterpretConstraint rws @
               [ArticleConstraint {filename = f}]
             end
-          | Include {interpretation = int, package = p} =>
+          | Include {interpretation = int, package = p, checksum = c} =>
             let
               val rws = Interpretation.toRewriteList int
+
+              val cs =
+                  case c of
+                    SOME chk => [chk]
+                  | NONE => []
             in
               List.map InterpretConstraint rws @
-              [PackageConstraint p]
+              [PackageConstraint p] @
+              List.map ChecksumConstraint cs
             end
           | Union =>
             []
@@ -398,6 +438,7 @@ fun destTheory thy =
 val escapeCharsFilename = [quoteChar];
 
 val ppArticleKeyword = Print.ppString articleKeywordString
+and ppChecksumKeyword = Print.ppString checksumKeywordString
 and ppCloseBlock = Print.ppChar closeBlockChar
 and ppImportKeyword = Print.ppString importKeywordString
 and ppInterpretKeyword = Print.ppString interpretKeywordString
@@ -433,6 +474,8 @@ in
       case c of
         ArticleConstraint f =>
         ppNameValue ppArticleKeyword (ppFilename f)
+      | ChecksumConstraint x =>
+        ppNameValue ppChecksumKeyword (Checksum.pp x)
       | ImportConstraint r =>
         ppNameValue ppImportKeyword (PackageName.pp r)
       | InterpretConstraint r =>
@@ -495,6 +538,7 @@ local
   open Parse;
 
   val articleKeywordParser = exactString articleKeywordString
+  and checksumKeywordParser = exactString checksumKeywordString
   and closeBlockParser = exactChar closeBlockChar
   and importKeywordParser = exactString importKeywordString
   and interpretKeywordParser = exactString interpretKeywordString
@@ -517,6 +561,12 @@ local
        filenameParser) >>
       (fn ((),((),((),((),f)))) => ArticleConstraint f);
 
+  val checksumConstraintParser =
+      (checksumKeywordParser ++ manySpace ++
+       separatorParser ++ manySpace ++
+       Checksum.parser) >>
+      (fn ((),((),((),((),r)))) => ChecksumConstraint r);
+
   val importConstraintParser =
       (importKeywordParser ++ manySpace ++
        separatorParser ++ manySpace ++
@@ -537,6 +587,7 @@ local
 
   val constraintParser =
       articleConstraintParser ||
+      checksumConstraintParser ||
       importConstraintParser ||
       interpretConstraintParser ||
       packageConstraintParser;

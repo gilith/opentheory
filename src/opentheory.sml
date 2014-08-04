@@ -796,7 +796,7 @@ in
       [{switches = ["--manual"], arguments = [],
         description = "do not also install included packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)},
-       {switches = ["--name"], arguments = ["NAME"],
+       {switches = ["--name"], arguments = ["NAME-VERSION"],
         description = "confirm the package name",
         processor =
           beginOpt (stringOpt endOpt)

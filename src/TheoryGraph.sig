@@ -83,7 +83,8 @@ datatype specification =
     Specification of
       {imports : TheorySet.set,
        interpretation : Interpretation.interpretation,
-       nameVersion : PackageNameVersion.nameVersion}
+       nameVersion : PackageNameVersion.nameVersion,
+       checksum : Checksum.checksum option}
 
 val match : graph -> specification -> TheorySet.set
 
@@ -133,6 +134,7 @@ val importPackage :
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      nameVersion : PackageNameVersion.nameVersion,
+     checksum : Checksum.checksum option,
      package : Package.package} ->
     graph * Theory.theory
 
@@ -140,7 +142,8 @@ val importPackageInfo :
     importer -> graph ->
     {imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     info : PackageInfo.info} ->
+     info : PackageInfo.info,
+     checksum : Checksum.checksum option} ->
     graph * Theory.theory
 
 val importPackageName :

@@ -32,6 +32,7 @@ and node =
   | Package of
       {interpretation : Interpretation.interpretation,
        package : PackageNameVersion.nameVersion,
+       checksum : Checksum.checksum option,
        theories : (PackageTheory.name * theory) list}
   | Union;
 
@@ -125,7 +126,7 @@ fun isArticle thy = isArticleNode (node thy);
 
 fun destPackageNode node =
     case node of
-      Package {package = pkg, ...} => SOME pkg
+      Package {package = nv, ...} => SOME nv
     | _ => NONE;
 
 fun destPackage thy = destPackageNode (node thy);
@@ -190,10 +191,11 @@ fun toPackageTheoryNode node =
       PackageTheory.Article
         {interpretation = interpretation,
          filename = filename}
-    | Package {interpretation,package,...} =>
+    | Package {interpretation,package,checksum,...} =>
       PackageTheory.Include
         {interpretation = interpretation,
-         package = package}
+         package = package,
+         checksum = checksum}
     | Union =>
       PackageTheory.Union;
 

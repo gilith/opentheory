@@ -13,7 +13,9 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 datatype finder =
-    Finder of PackageNameVersion.nameVersion -> PackageInfo.info option;
+    Finder of
+      PackageNameVersion.nameVersion -> Checksum.checksum option ->
+      (PackageInfo.info * Checksum.checksum) option;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -25,22 +27,21 @@ val mk = Finder;
 (* Finding packages.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun find (Finder f) n = f n;
+fun find (Finder f) nv c = f nv c;
 
-fun get f nv =
-    case find f nv of
+fun get f nv c =
+    case find f nv c of
       SOME p => p
     | NONE =>
       let
-        val err =
-            "package " ^ PackageNameVersion.toString nv ^ " is not installed"
+        val err = "couldn't find package " ^ PackageNameVersion.toString nv
       in
         raise Error err
       end;
 
-fun check f nv =
+fun check f nv c =
     let
-      val _ = get f nv
+      val _ = get f nv c
     in
       ()
     end;
@@ -49,13 +50,13 @@ fun check f nv =
 (* Finder combinators.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val useless = mk (K NONE);
+val useless = mk (K (K NONE));
 
 fun orelsef f1 f2 =
     let
-      fun f nv =
-          case find f1 nv of
-            NONE => find f2 nv
+      fun f nv c =
+          case find f1 nv c of
+            NONE => find f2 nv c
           | r as SOME _ => r
     in
       mk f

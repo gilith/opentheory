@@ -23,6 +23,7 @@ datatype node =
   | Package of
       {interpretation : Interpretation.interpretation,
        package : PackageNameVersion.nameVersion,
+       checksum : Checksum.checksum option,
        theories : (PackageTheory.name * theory) list}
   | Union
 

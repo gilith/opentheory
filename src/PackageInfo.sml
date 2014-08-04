@@ -182,7 +182,7 @@ fun includes info =
     let
       val pkg = package info
     in
-      PackageNameVersionSet.fromList (Package.includes pkg)
+      PackageNameVersionSet.fromList (map fst (Package.includes pkg))
     end;
 
 (* ------------------------------------------------------------------------- *)

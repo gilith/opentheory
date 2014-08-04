@@ -37,6 +37,14 @@ val checksum :
     packages -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
+(* A package finder and importer.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val finder : packages -> PackageFinder.finder
+
+val importer : packages -> TheoryGraph.importer
+
+(* ------------------------------------------------------------------------- *)
 (* Installed package sets.                                                   *)
 (* ------------------------------------------------------------------------- *)
 

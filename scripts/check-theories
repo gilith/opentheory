@@ -264,13 +264,15 @@ while (my $thy = <THEORIES>) {
   if (system ($cmd) != 0) {
     $cmd = "$opentheory info --theory $thy | grep '^[[:digit:]]\\+ defined ' > /dev/null";
 
+    my $defthy = ($thy =~ /-def$/ or $thy =~ /-witness$/);
+
     if (system ($cmd) == 0) {
-      if ($thy !~ /-def$/) {
+      if (!$defthy) {
         print STDOUT "$program: definitions present in leaf theory $thy\n";
       }
     }
     else {
-      if ($thy =~ /-def$/) {
+      if ($defthy) {
         print STDOUT "$program: no definitions present in theory $thy\n";
       }
     }

@@ -105,10 +105,13 @@ val articles : package -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val includes : package -> PackageNameVersion.nameVersion list
+val includes :
+    package ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) list
 
 val updateIncludes :
-    (PackageNameVersion.nameVersion -> PackageNameVersion.nameVersion option) ->
+    (PackageNameVersion.nameVersion -> Checksum.checksum option ->
+     (PackageNameVersion.nameVersion * Checksum.checksum option) option) ->
     package -> package option
 
 (* ------------------------------------------------------------------------- *)
