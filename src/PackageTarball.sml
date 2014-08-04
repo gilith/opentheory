@@ -55,7 +55,7 @@ fun rawContents sys {filename} =
     let
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {tar = cmd} = DirectorySystem.tar sys
+      val {tar = cmd} = RepositorySystem.tar sys
 
       val cmd = cmd ^ " tzf " ^ filename ^ " > " ^ tmpFile
 
@@ -103,7 +103,8 @@ in
 
         val namever = PackageNameVersion.fromString dir
 
-        val theoryFile = Package.mkFilename (PackageNameVersion.name namever)
+        val theoryFile =
+            PackageSource.mkFilename (PackageNameVersion.name namever)
 
         val otherFiles =
             case List.partition (equal theoryFile) files of
@@ -154,7 +155,7 @@ fun checksum sys {filename = tarFile} =
     let
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {sha = cmd} = DirectorySystem.sha sys
+      val {sha = cmd} = RepositorySystem.sha sys
 
       val cmd = cmd ^ " " ^ tarFile ^ " > " ^ tmpFile
 

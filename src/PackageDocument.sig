@@ -28,7 +28,8 @@ type document
 
 datatype document' =
     Document' of
-      {package : Package.package option,
+      {source : PackageSource.source option,
+       checksum : Checksum.checksum option,
        summary : PackageSummary.summary,
        files : {theory : string option, tarball : string option},
        tool : Html.inline list}

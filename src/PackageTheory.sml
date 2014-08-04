@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* THEORIES OF HIGHER ORDER LOGIC USED IN PACKAGES                           *)
+(* PACKAGE THEORY SYNTAX                                                     *)
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 

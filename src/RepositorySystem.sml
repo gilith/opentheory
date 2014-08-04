@@ -1,49 +1,44 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY SYSTEM COMMANDS                                         *)
+(* PACKAGE REPOSITORY SYSTEM COMMANDS                                        *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectorySystem =
-sig
+structure RepositorySystem :> RepositorySystem =
+struct
+
+open Useful;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system commands.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-type system
+datatype system =
+    System of
+      {chmod : string,
+       cp : string,
+       curl : string,
+       echo : string,
+       sha : string,
+       tar : string};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk :
-    {chmod : string,
-     cp : string,
-     curl : string,
-     echo : string,
-     sha : string,
-     tar : string} ->
-    system
+fun mk data = System data;
 
-val dest :
-    system ->
-    {chmod : string,
-     cp : string,
-     curl : string,
-     echo : string,
-     sha : string,
-     tar : string}
+fun dest (System data) = data;
 
-val chmod : system -> {chmod : string}
+fun chmod (System {chmod = x, ...}) = {chmod = x};
 
-val cp : system -> {cp : string}
+fun cp (System {cp = x, ...}) = {cp = x};
 
-val curl : system -> {curl : string}
+fun curl (System {curl = x, ...}) = {curl = x};
 
-val echo : system -> {echo : string}
+fun echo (System {echo = x, ...}) = {echo = x};
 
-val sha : system -> {sha : string}
+fun sha (System {sha = x, ...}) = {sha = x};
 
-val tar : system -> {tar : string}
+fun tar (System {tar = x, ...}) = {tar = x};
 
 end

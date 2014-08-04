@@ -1,152 +1,137 @@
 (* ========================================================================= *)
-(* THEORY PACKAGE META-DATA                                                  *)
-(* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
+(* PACKAGE THEORY SOURCE FILES                                               *)
+(* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature PackageInfo =
+signature PackageSource =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package meta-data.                                       *)
+(* Theory package source filenames.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type info
+val mkFilename : PackageName.name -> {filename : string}
 
-val mk :
-    {system : DirectorySystem.system,
-     nameVersion : PackageNameVersion.nameVersion,
-     directory : string} -> info
+val destFilename : {filename : string} -> PackageName.name option
 
-(* ------------------------------------------------------------------------- *)
-(* Package directory.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-val directory : info -> {directory : string}
-
-val joinDirectory : info -> {filename : string} -> {filename : string}
-
-val existsDirectory : info -> bool
-
-val createDirectory : info -> unit
-
-val nukeDirectory : info -> unit
+val isFilename : {filename : string} -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Is the package installed?                                                 *)
+(* A type of theory package source files.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val isInstalled : info -> bool
+type source
 
 (* ------------------------------------------------------------------------- *)
-(* Read the package.                                                         *)
+(* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val package : info -> Package.package
+datatype source' =
+    Source' of
+      {tags : PackageTag.tag list,
+       theories : PackageTheory.theory list}
+
+val mk : source' -> source
+
+val dest : source -> source'
+
+(* ------------------------------------------------------------------------- *)
+(* Package information.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val tags : source -> PackageTag.tag list
 
 (* ------------------------------------------------------------------------- *)
 (* Package name.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val name : info -> PackageName.name
+val name : source -> PackageName.name
 
-val version : info -> PackageVersion.version
+val version : source -> PackageVersion.version
 
-val nameVersion : info -> PackageNameVersion.nameVersion
+val nameVersion : source -> PackageNameVersion.nameVersion
 
 (* ------------------------------------------------------------------------- *)
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val description : info -> {description : string}
+val description : source -> {description : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val author : info -> PackageAuthor.author
+val author : source -> PackageAuthor.author
 
 (* ------------------------------------------------------------------------- *)
 (* Package license.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val license : info -> {license : string}
+val license : source -> {license : string}
+
+(* ------------------------------------------------------------------------- *)
+(* Extra package files.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val extraFiles : source -> PackageExtra.extra list
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val requires : info -> PackageName.name list
-
-(* ------------------------------------------------------------------------- *)
-(* The files needed by the package.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val theoryFile : info -> {filename : string}
-
-val articleFiles : info -> {filename : string} list
-
-val extraFiles : info -> PackageExtra.extra list
-
-val allFiles : info -> {filename : string} list
-
-(* ------------------------------------------------------------------------- *)
-(* Package dependencies.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-val includes : info -> PackageNameVersionSet.set
+val requires : source -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Show.                                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val show : info -> Show.show
+val show : source -> Show.show
 
 (* ------------------------------------------------------------------------- *)
 (* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val theory : info -> PackageTheory.theory list
+val theory : source -> PackageTheory.theory list
 
-val emptyTheory : info -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Package tarball.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val tarball : info -> {filename : string}
-
-val createTarball : info -> unit
-
-val copyTarball : info -> {filename : string} -> unit
-
-val downloadTarball : info -> {url : string} -> unit
-
-val checksumTarball : info -> Checksum.checksum
-
-val contentsTarball : info -> PackageTarball.contents
-
-val unpackTarball : info -> PackageTarball.contents -> {minimal : bool} -> unit
-
-val uploadTarball :
-    info -> Checksum.checksum -> {url : string, token : string} ->
-    {response : string}
+val emptyTheory : source -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Package theorems.                                                         *)
+(* Package articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val theoremsFile : info -> {filename : string}
-
-val theorems : info -> PackageTheorems.theorems
-
-val writeTheorems : info -> PackageTheorems.theorems -> unit
+val articles : source -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
-(* Package document.                                                         *)
+(* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val documentFile : info -> {filename : string}
+val includes :
+    source ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) list
 
-val writeDocument : info -> PackageDocument.document -> unit
+val updateIncludes :
+    (PackageNameVersion.nameVersion -> Checksum.checksum option ->
+     (PackageNameVersion.nameVersion * Checksum.checksum option) option) ->
+    source -> source option
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : source Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val parser : (char,source) Parse.parser
+
+(* ------------------------------------------------------------------------- *)
+(* Input/Output.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val fromTextFile : {filename : string} -> source
+
+val toTextFile : {source : source, filename : string} -> unit
 
 end

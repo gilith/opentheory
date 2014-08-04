@@ -1,44 +1,49 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY SYSTEM COMMANDS                                         *)
+(* PACKAGE REPOSITORY SYSTEM COMMANDS                                        *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectorySystem :> DirectorySystem =
-struct
-
-open Useful;
+signature RepositorySystem =
+sig
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system commands.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-datatype system =
-    System of
-      {chmod : string,
-       cp : string,
-       curl : string,
-       echo : string,
-       sha : string,
-       tar : string};
+type system
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk data = System data;
+val mk :
+    {chmod : string,
+     cp : string,
+     curl : string,
+     echo : string,
+     sha : string,
+     tar : string} ->
+    system
 
-fun dest (System data) = data;
+val dest :
+    system ->
+    {chmod : string,
+     cp : string,
+     curl : string,
+     echo : string,
+     sha : string,
+     tar : string}
 
-fun chmod (System {chmod = x, ...}) = {chmod = x};
+val chmod : system -> {chmod : string}
 
-fun cp (System {cp = x, ...}) = {cp = x};
+val cp : system -> {cp : string}
 
-fun curl (System {curl = x, ...}) = {curl = x};
+val curl : system -> {curl : string}
 
-fun echo (System {echo = x, ...}) = {echo = x};
+val echo : system -> {echo : string}
 
-fun sha (System {sha = x, ...}) = {sha = x};
+val sha : system -> {sha : string}
 
-fun tar (System {tar = x, ...}) = {tar = x};
+val tar : system -> {tar : string}
 
 end

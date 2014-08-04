@@ -26,13 +26,13 @@ datatype contents =
        theoryFile : {filename : string},
        otherFiles : {filename : string} list}
 
-val contents : DirectorySystem.system -> {filename : string} -> contents
+val contents : RepositorySystem.system -> {filename : string} -> contents
 
 (* ------------------------------------------------------------------------- *)
 (* Creating a checksum.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 val checksum :
-    DirectorySystem.system -> {filename : string} -> Checksum.checksum
+    RepositorySystem.system -> {filename : string} -> Checksum.checksum
 
 end

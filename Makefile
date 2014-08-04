@@ -137,26 +137,26 @@ SRC = \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/PackageExtra.sig src/PackageExtra.sml \
   src/PackageTag.sig src/PackageTag.sml \
-  src/Package.sig src/Package.sml \
-  src/DirectorySystem.sig src/DirectorySystem.sml \
+  src/PackageSource.sig src/PackageSource.sml \
+  src/RepositorySystem.sig src/RepositorySystem.sml \
   src/PackageTarball.sig src/PackageTarball.sml \
   src/PackageTheorems.sig src/PackageTheorems.sml \
   src/PackageDocument.sig src/PackageDocument.sml \
-  src/PackageInfo.sig src/PackageInfo.sml \
+  src/Package.sig src/Package.sml \
   src/PackageDependency.sig src/PackageDependency.sml \
   src/PackageFinder.sig src/PackageFinder.sml \
   src/Theory.sig src/Theory.sml \
   src/TheoryName.sig src/TheoryName.sml \
   src/TheoryGraph.sig src/TheoryGraph.sml \
   src/PackageDag.sig src/PackageDag.sml \
-  src/DirectoryChecksums.sig src/DirectoryChecksums.sml \
-  src/DirectoryPath.sig src/DirectoryPath.sml \
-  src/DirectoryRepo.sig src/DirectoryRepo.sml \
-  src/DirectoryPackages.sig src/DirectoryPackages.sml \
-  src/DirectoryError.sig src/DirectoryError.sml \
-  src/DirectoryConfig.sig src/DirectoryConfig.sml \
-  src/Directory.sig src/Directory.sml \
-  src/DirectoryQuery.sig src/DirectoryQuery.sml \
+  src/RepositoryChecksums.sig src/RepositoryChecksums.sml \
+  src/RepositoryPath.sig src/RepositoryPath.sml \
+  src/RepositoryRemote.sig src/RepositoryRemote.sml \
+  src/RepositoryPackages.sig src/RepositoryPackages.sml \
+  src/RepositoryError.sig src/RepositoryError.sml \
+  src/RepositoryConfig.sig src/RepositoryConfig.sml \
+  src/Repository.sig src/Repository.sml \
+  src/RepositoryQuery.sig src/RepositoryQuery.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Haskell.sig src/Haskell.sml \
   src/Options.sig src/Options.sml
