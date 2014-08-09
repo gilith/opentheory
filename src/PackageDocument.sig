@@ -7,7 +7,7 @@ signature PackageDocument =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Document filenames.                                                       *)
+(* Package document filenames.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 val mkFilename : PackageNameVersion.nameVersion -> {filename : string}
@@ -28,7 +28,7 @@ type document
 
 datatype document' =
     Document' of
-      {source : PackageSource.source option,
+      {info : PackageInfo.info option,
        checksum : Checksum.checksum option,
        summary : PackageSummary.summary,
        files : {theory : string option, tarball : string option},

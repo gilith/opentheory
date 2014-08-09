@@ -137,7 +137,7 @@ SRC = \
   src/PackageTheory.sig src/PackageTheory.sml \
   src/PackageExtra.sig src/PackageExtra.sml \
   src/PackageTag.sig src/PackageTag.sml \
-  src/PackageSource.sig src/PackageSource.sml \
+  src/PackageInfo.sig src/PackageInfo.sml \
   src/RepositorySystem.sig src/RepositorySystem.sml \
   src/PackageTarball.sig src/PackageTarball.sml \
   src/PackageTheorems.sig src/PackageTheorems.sml \

@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE THEORY SOURCE FILES                                               *)
+(* PACKAGE INFORMATION                                                       *)
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure PackageSource :> PackageSource =
+structure PackageInfo :> PackageInfo =
 struct
 
 open Useful;
@@ -15,7 +15,7 @@ open Useful;
 val fileExtension = "thy";
 
 (* ------------------------------------------------------------------------- *)
-(* Theory package source filenames.                                          *)
+(* Package information is stored in theory files.                            *)
 (* ------------------------------------------------------------------------- *)
 
 fun mkFilename name =
@@ -42,44 +42,44 @@ fun destFilename {filename} =
 fun isFilename file = Option.isSome (destFilename file);
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package source files.                                    *)
+(* A type of package information.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-datatype source' =
-    Source' of
+datatype info' =
+    Info' of
       {tags : PackageTag.tag list,
        theories : PackageTheory.theory list};
 
-type source = source';
+type info = info';
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk src' : source = src';
+fun mk info' : info = info';
 
-fun dest src : source' = src;
+fun dest info : info' = info;
 
 (* ------------------------------------------------------------------------- *)
 (* Package information.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun tags' (Source' {tags = x, ...}) = x;
+fun tags' (Info' {tags = x, ...}) = x;
 
-fun tags src = tags' (dest src);
+fun tags info = tags' (dest info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package name.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun name src = PackageTag.findName (tags src);
+fun name info = PackageTag.findName (tags info);
 
-fun version src = PackageTag.findVersion (tags src);
+fun version info = PackageTag.findVersion (tags info);
 
-fun nameVersion src =
+fun nameVersion info =
     let
-      val b = name src
-      and v = version src
+      val b = name info
+      and v = version info
 
       val nv' = PackageNameVersion.NameVersion' {name = b, version = v}
     in
@@ -90,48 +90,48 @@ fun nameVersion src =
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun description src = PackageTag.findDescription (tags src);
+fun description info = PackageTag.findDescription (tags info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun author src = PackageTag.findAuthor (tags src);
+fun author info = PackageTag.findAuthor (tags info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package license.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun license src = PackageTag.findLicense (tags src);
+fun license info = PackageTag.findLicense (tags info);
 
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun extraFiles src = PackageTag.toExtraList (tags src);
+fun extraFiles info = PackageTag.toExtraList (tags info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun requires src = PackageTag.requires (tags src);
+fun requires info = PackageTag.requires (tags info);
 
 (* ------------------------------------------------------------------------- *)
 (* Show.                                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun show src = PackageTag.toShow (tags src);
+fun show info = PackageTag.toShow (tags info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun theory' (Source' {theories = x, ...}) = x;
+fun theory' (Info' {theories = x, ...}) = x;
 
-fun theory src = theory' (dest src);
+fun theory info = theory' (dest info);
 
-fun emptyTheory src =
-    case theory src of
+fun emptyTheory info =
+    case theory info of
       [thy] => PackageTheory.emptyMain thy
     | _ => false;
 
@@ -139,24 +139,24 @@ fun emptyTheory src =
 (* Package articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun articles src = PackageTheory.articles (theory src);
+fun articles info = PackageTheory.articles (theory info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun includes src = PackageTheory.includes (theory src);
+fun includes info = PackageTheory.includes (theory info);
 
-fun updateIncludes f src =
+fun updateIncludes f info =
     let
-      val Source' {tags,theories} = dest src
+      val Info' {tags,theories} = dest info
     in
       case PackageTheory.updateIncludes f theories of
         SOME theories =>
         let
-          val src' = Source' {tags = tags, theories = theories}
+          val info' = Info' {tags = tags, theories = theories}
         in
-          SOME (mk src')
+          SOME (mk info')
         end
       | NONE => NONE
     end;
@@ -172,9 +172,9 @@ local
          Print.newline,
          PackageTheory.pp thy];
 in
-  fun pp' src =
+  fun pp' info =
     let
-      val Source' {tags,theories} = src
+      val Info' {tags,theories} = info
     in
       if List.null tags then
         case theories of
@@ -204,24 +204,24 @@ local
 
   open Parse;
 
-  val sourceSpaceParser' =
+  val infoSpaceParser' =
       (PackageTag.parserList ++
        atLeastOne PackageTheory.parser) >>
-      (fn (ts,ths) => Source' {tags = ts, theories = ths});
+      (fn (ts,ths) => Info' {tags = ts, theories = ths});
 
-  val sourceSpaceParser = sourceSpaceParser' >> mk;
+  val infoSpaceParser = infoSpaceParser' >> mk;
 in
-  val parser = manySpace ++ sourceSpaceParser >> snd;
+  val parser = manySpace ++ infoSpaceParser >> snd;
 
-  val parser' = parser >> (fn src => [src]);
+  val parser' = parser >> (fn info => [info]);
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTextFile {source,filename} =
-    Stream.toTextFile {filename = filename} (Print.toStream pp source);
+fun toTextFile {info,filename} =
+    Stream.toTextFile {filename = filename} (Print.toStream pp info);
 
 fun fromTextFile {filename} =
     let
@@ -238,13 +238,13 @@ fun fromTextFile {filename} =
 
          val chars = Parse.everything Parse.any chars
 
-         (* The source stream *)
+         (* The info stream *)
 
-         val srcs = Parse.everything parser' chars
+         val info = Parse.everything parser' chars
        in
-         case Stream.toList srcs of
+         case Stream.toList info of
            [] => raise Error "missing theory block"
-         | [src] => src
+         | [inf] => inf
          | _ :: _ :: _ => raise Error "multiple tag blocks"
        end
        handle Parse.NoParse => raise Error "parse error")

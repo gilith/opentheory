@@ -104,13 +104,14 @@ in
         val namever = PackageNameVersion.fromString dir
 
         val theoryFile =
-            PackageSource.mkFilename (PackageNameVersion.name namever)
+            PackageInfo.mkFilename (PackageNameVersion.name namever)
 
         val otherFiles =
             case List.partition (equal theoryFile) files of
               ([],_) => raise Error "no theory file in tarball"
             | ([_],l) => l
-            | (_ :: _ :: _, _) => raise Error "multiple theory files in tarball"
+            | (_ :: _ :: _, _) =>
+              raise Error "multiple theory files in tarball"
       in
         Contents
           {nameVersion = namever,

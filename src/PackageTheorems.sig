@@ -7,7 +7,7 @@ signature PackageTheorems =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Theorems filenames.                                                       *)
+(* Package theorems filenames.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 val mkFilename : PackageNameVersion.nameVersion -> {filename : string}

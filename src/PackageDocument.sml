@@ -15,7 +15,7 @@ open Useful;
 val fileExtension = "html";
 
 (* ------------------------------------------------------------------------- *)
-(* Document filenames.                                                       *)
+(* Package document filenames.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 fun mkFilename namever =
@@ -47,7 +47,8 @@ fun isFilename file = Option.isSome (destFilename file);
 
 datatype document' =
     Document' of
-      {package : Package.package option,
+      {info : PackageInfo.info option,
+       checksum : Checksum.checksum option,
        summary : PackageSummary.summary,
        files : {theory : string option, tarball : string option},
        tool : Html.inline list}
@@ -97,28 +98,26 @@ local
 
   fun mkTitle namever =
       let
-        val text = "OpenTheory package"
-
         val text =
             case namever of
-              SOME nv => text ^ " " ^ PackageNameVersion.toString nv
-            | NONE => text
+              SOME nv => PackageNameVersion.toString nv
+            | NONE => "OpenTheory package"
       in
         Html.Title text
       end;
 
-  fun mkName package =
+  fun mkName info =
       let
         val text = "Package"
 
         val text =
-            case package of
+            case info of
               NONE => text
-            | SOME pkg =>
+            | SOME inf =>
               let
-                val name = PackageName.toString (Package.name pkg)
+                val name = PackageName.toString (PackageInfo.name inf)
 
-                val {description} = Package.description pkg
+                val {description} = PackageInfo.description inf
               in
                 text ^ " " ^ name ^ ": " ^ description
               end
@@ -126,7 +125,7 @@ local
         Html.H1 [Html.Text text]
       end;
 
-  fun mkInfo package =
+  fun mkInfo info chko =
       case package of
         NONE => []
       | SOME pkg =>
@@ -157,7 +156,7 @@ local
 
           val tagsBlock =
               let
-                val tags = Package.tags pkg
+                val tags = PackageInfo.tags pkg
 
                 val (reqs,tags) = List.partition isRequiresTag tags
 
@@ -270,7 +269,7 @@ local
 in
   fun toHtml doc =
       let
-        val Document' {package,summary,files,tool} = dest doc
+        val Document' {info,checksum,summary,files,tool} = dest doc
 
         val head =
             let
