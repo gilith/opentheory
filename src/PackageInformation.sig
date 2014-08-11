@@ -3,7 +3,7 @@
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature PackageInfo =
+signature PackageInformation =
 sig
 
 (* ------------------------------------------------------------------------- *)
@@ -20,118 +20,120 @@ val isFilename : {filename : string} -> bool
 (* A type of package information.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-type info
+type information
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-datatype info' =
-    Info' of
+datatype information' =
+    Information' of
       {tags : PackageTag.tag list,
-       theories : PackageTheory.theory list}
+       theory : PackageTheory.theory list}
 
-val mk : info' -> info
+val mk : information' -> information
 
-val dest : info -> info'
+val dest : information -> information'
 
 (* ------------------------------------------------------------------------- *)
 (* Package information.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val tags : info -> PackageTag.tag list
+val tags : information -> PackageTag.tag list
 
 (* ------------------------------------------------------------------------- *)
 (* Package name.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val name : info -> PackageName.name
+val name : information -> PackageName.name
 
-val version : info -> PackageVersion.version
+val version : information -> PackageVersion.version
 
-val nameVersion : info -> PackageNameVersion.nameVersion
+val nameVersion : information -> PackageNameVersion.nameVersion
 
 (* ------------------------------------------------------------------------- *)
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val description : info -> {description : string}
+val description : information -> {description : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val author : info -> PackageAuthor.author
+val author : information -> PackageAuthor.author
 
 (* ------------------------------------------------------------------------- *)
 (* Package license.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val license : info -> {license : string}
+val license : information -> {license : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val extraFiles : info -> PackageExtra.extra list
+val extraFiles : information -> PackageExtra.extra list
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val requires : info -> PackageName.name list
+val requires : information -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* Show.                                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val show : info -> Show.show
+val show : information -> Show.show
 
 (* ------------------------------------------------------------------------- *)
 (* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val theory : info -> PackageTheory.theory list
+val theory : information -> PackageTheory.theory list
 
-val emptyTheory : info -> bool
+val emptyTheory : information -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val articles : info -> {filename : string} list
+val articles : information -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 val includes :
-    info ->
+    information ->
     (PackageNameVersion.nameVersion * Checksum.checksum option) list
+
+val nameVersionIncludes : information -> PackageNameVersionSet.set
 
 val updateIncludes :
     (PackageNameVersion.nameVersion -> Checksum.checksum option ->
      (PackageNameVersion.nameVersion * Checksum.checksum option) option) ->
-    info -> info option
+    information -> information option
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : info Print.pp
+val pp : information Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val parser : (char,info) Parse.parser
+val parser : (char,information) Parse.parser
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val fromTextFile : {filename : string} -> info
+val fromTextFile : {filename : string} -> information
 
-val toTextFile : {info : info, filename : string} -> unit
+val toTextFile : {information : information, filename : string} -> unit
 
 end

@@ -3,7 +3,7 @@
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure PackageInfo :> PackageInfo =
+structure PackageInformation :> PackageInformation =
 struct
 
 open Useful;
@@ -45,26 +45,26 @@ fun isFilename file = Option.isSome (destFilename file);
 (* A type of package information.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-datatype info' =
-    Info' of
+datatype information' =
+    Information' of
       {tags : PackageTag.tag list,
-       theories : PackageTheory.theory list};
+       theory : PackageTheory.theory list};
 
-type info = info';
+type information = information';
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mk info' : info = info';
+fun mk info' : information = info';
 
-fun dest info : info' = info;
+fun dest info : information' = info;
 
 (* ------------------------------------------------------------------------- *)
 (* Package information.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun tags' (Info' {tags = x, ...}) = x;
+fun tags' (Information' {tags = x, ...}) = x;
 
 fun tags info = tags' (dest info);
 
@@ -126,7 +126,7 @@ fun show info = PackageTag.toShow (tags info);
 (* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun theory' (Info' {theories = x, ...}) = x;
+fun theory' (Information' {theory = x, ...}) = x;
 
 fun theory info = theory' (dest info);
 
@@ -147,14 +147,17 @@ fun articles info = PackageTheory.articles (theory info);
 
 fun includes info = PackageTheory.includes (theory info);
 
+fun nameVersionIncludes info =
+    PackageNameVersionSet.fromList (List.map fst (includes info));
+
 fun updateIncludes f info =
     let
-      val Info' {tags,theories} = dest info
+      val Information' {tags,theory} = dest info
     in
-      case PackageTheory.updateIncludes f theories of
-        SOME theories =>
+      case PackageTheory.updateIncludes f theory of
+        SOME theory =>
         let
-          val info' = Info' {tags = tags, theories = theories}
+          val info' = Information' {tags = tags, theory = theory}
         in
           SOME (mk info')
         end
@@ -174,19 +177,19 @@ local
 in
   fun pp' info =
     let
-      val Info' {tags,theories} = info
+      val Information' {tags,theory} = info
     in
       if List.null tags then
-        case theories of
+        case theory of
           [] => Print.skip
-        | thy :: theories =>
+        | thy :: theory =>
           Print.consistentBlock 0
             (PackageTheory.pp thy ::
-             List.map ppThy theories)
+             List.map ppThy theory)
       else
         Print.consistentBlock 0
           (PackageTag.ppList tags ::
-           List.map ppThy theories)
+           List.map ppThy theory)
     end;
 end;
 
@@ -204,14 +207,14 @@ local
 
   open Parse;
 
-  val infoSpaceParser' =
+  val informationSpaceParser' =
       (PackageTag.parserList ++
        atLeastOne PackageTheory.parser) >>
-      (fn (ts,ths) => Info' {tags = ts, theories = ths});
+      (fn (ts,ths) => Information' {tags = ts, theory = ths});
 
-  val infoSpaceParser = infoSpaceParser' >> mk;
+  val informationSpaceParser = informationSpaceParser' >> mk;
 in
-  val parser = manySpace ++ infoSpaceParser >> snd;
+  val parser = manySpace ++ informationSpaceParser >> snd;
 
   val parser' = parser >> (fn info => [info]);
 end;
@@ -220,8 +223,8 @@ end;
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTextFile {info,filename} =
-    Stream.toTextFile {filename = filename} (Print.toStream pp info);
+fun toTextFile {information,filename} =
+    Stream.toTextFile {filename = filename} (Print.toStream pp information);
 
 fun fromTextFile {filename} =
     let
@@ -238,7 +241,7 @@ fun fromTextFile {filename} =
 
          val chars = Parse.everything Parse.any chars
 
-         (* The info stream *)
+         (* The information stream *)
 
          val info = Parse.everything parser' chars
        in

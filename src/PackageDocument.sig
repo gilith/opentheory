@@ -28,7 +28,7 @@ type document
 
 datatype document' =
     Document' of
-      {info : PackageInfo.info option,
+      {information : PackageInformation.information option,
        checksum : Checksum.checksum option,
        summary : PackageSummary.summary,
        files : {theory : string option, tarball : string option},

@@ -1,152 +1,151 @@
 (* ========================================================================= *)
-(* THEORY PACKAGE META-DATA                                                  *)
+(* THEORY PACKAGES                                                           *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature PackageInfo =
+signature Package =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package meta-data.                                       *)
+(* A type of theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-type info
+type package
 
 val mk :
-    {system : DirectorySystem.system,
+    {system : RepositorySystem.system,
      nameVersion : PackageNameVersion.nameVersion,
-     directory : string} -> info
+     directory : string} -> package
 
 (* ------------------------------------------------------------------------- *)
 (* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val directory : info -> {directory : string}
+val directory : package -> {directory : string}
 
-val joinDirectory : info -> {filename : string} -> {filename : string}
+val joinDirectory : package -> {filename : string} -> {filename : string}
 
-val existsDirectory : info -> bool
+val existsDirectory : package -> bool
 
-val createDirectory : info -> unit
+val createDirectory : package -> unit
 
-val nukeDirectory : info -> unit
+val nukeDirectory : package -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Is the package installed?                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val isInstalled : info -> bool
+val isInstalled : package -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Read the package.                                                         *)
+(* Package information.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val package : info -> Package.package
+val information : package -> PackageInformation.information
 
 (* ------------------------------------------------------------------------- *)
-(* Package name.                                                             *)
+(* Package name and version.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val name : info -> PackageName.name
+val name : package -> PackageName.name
 
-val version : info -> PackageVersion.version
+val version : package -> PackageVersion.version
 
-val nameVersion : info -> PackageNameVersion.nameVersion
+val nameVersion : package -> PackageNameVersion.nameVersion
 
 (* ------------------------------------------------------------------------- *)
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val description : info -> {description : string}
+val description : package -> {description : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val author : info -> PackageAuthor.author
+val author : package -> PackageAuthor.author
 
 (* ------------------------------------------------------------------------- *)
 (* Package license.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val license : info -> {license : string}
+val license : package -> {license : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val requires : info -> PackageName.name list
+val requires : package -> PackageName.name list
 
 (* ------------------------------------------------------------------------- *)
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val theoryFile : info -> {filename : string}
+val theoryFile : package -> {filename : string}
 
-val articleFiles : info -> {filename : string} list
+val articleFiles : package -> {filename : string} list
 
-val extraFiles : info -> PackageExtra.extra list
+val extraFiles : package -> PackageExtra.extra list
 
-val allFiles : info -> {filename : string} list
+val allFiles : package -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val includes : info -> PackageNameVersionSet.set
+val includes : package -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Show.                                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val show : info -> Show.show
+val show : package -> Show.show
 
 (* ------------------------------------------------------------------------- *)
 (* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val theory : info -> PackageTheory.theory list
+val theory : package -> PackageTheory.theory list
 
-val emptyTheory : info -> bool
+val emptyTheory : package -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val tarball : info -> {filename : string}
+val tarball : package -> {filename : string}
 
-val createTarball : info -> unit
+val createTarball : package -> unit
 
-val copyTarball : info -> {filename : string} -> unit
+val copyTarball : package -> {filename : string} -> unit
 
-val downloadTarball : info -> {url : string} -> unit
+val downloadTarball : package -> {url : string} -> unit
 
-val checksumTarball : info -> Checksum.checksum
+val checksumTarball : package -> Checksum.checksum
 
-val contentsTarball : info -> PackageTarball.contents
+val contentsTarball : package -> PackageTarball.contents
 
-val unpackTarball : info -> PackageTarball.contents -> {minimal : bool} -> unit
+val unpackTarball : package -> {minimal : bool} -> unit
 
 val uploadTarball :
-    info -> Checksum.checksum -> {url : string, token : string} ->
-    {response : string}
+    package -> {url : string, token : string} -> {response : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package theorems.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val theoremsFile : info -> {filename : string}
+val theoremsFile : package -> {filename : string}
 
-val theorems : info -> PackageTheorems.theorems
+val theorems : package -> PackageTheorems.theorems
 
-val writeTheorems : info -> PackageTheorems.theorems -> unit
+val writeTheorems : package -> PackageTheorems.theorems -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Package document.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val documentFile : info -> {filename : string}
+val documentFile : package -> {filename : string}
 
-val writeDocument : info -> PackageDocument.document -> unit
+val writeDocument : package -> PackageDocument.document -> unit
 
 end

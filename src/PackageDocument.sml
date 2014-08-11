@@ -47,7 +47,7 @@ fun isFilename file = Option.isSome (destFilename file);
 
 datatype document' =
     Document' of
-      {info : PackageInfo.info option,
+      {information : PackageInformation.information option,
        checksum : Checksum.checksum option,
        summary : PackageSummary.summary,
        files : {theory : string option, tarball : string option},
@@ -115,9 +115,9 @@ local
               NONE => text
             | SOME inf =>
               let
-                val name = PackageName.toString (PackageInfo.name inf)
+                val name = PackageName.toString (PackageInformation.name inf)
 
-                val {description} = PackageInfo.description inf
+                val {description} = PackageInformation.description inf
               in
                 text ^ " " ^ name ^ ": " ^ description
               end
@@ -126,72 +126,85 @@ local
       end;
 
   fun mkInfo info chko =
-      case package of
-        NONE => []
-      | SOME pkg =>
-        let
-          val isRequiresTag = PackageTag.equalName PackageName.requiresTag
-          and isShowTag = PackageTag.equalName PackageName.showTag
+      let
+        val isRequiresTag = PackageTag.equalName PackageName.requiresTag
+        and isShowTag = PackageTag.equalName PackageName.showTag
 
-          fun tagName n = Html.Text (PackageName.toString n)
+        fun tagName n = Html.Text (PackageName.toString n)
 
-          fun tagEntry n v =
-              let
-                val n = tagName n
+        fun tagRow n v =
+            let
+              val n = tagName n
 
-                val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
-                and v = Html.TableEntry (Html.emptyAttrs, Html.Inline v)
-              in
-                Html.TableRow [n,v]
-              end
+              val n = Html.TableEntry (Html.emptyAttrs, Html.Inline [n])
+              and v = Html.TableEntry (Html.emptyAttrs, Html.Inline v)
+            in
+              Html.TableRow [n,v]
+            end
 
-          fun tagBlock tag =
-              let
-                val PackageTag.Tag' {name,value} = PackageTag.dest tag
+        fun tagEntry n v = tagRow n [Html.Text v]
 
-                val value = [Html.Text value]
-              in
-                tagEntry name value
-              end
+        fun tagBlock tag =
+            let
+              val PackageTag.Tag' {name,value} = PackageTag.dest tag
+            in
+              tagEntry name value
+            end
 
-          val tagsBlock =
-              let
-                val tags = PackageInfo.tags pkg
+        val tagsBlock =
+            let
+              val tags =
+                  case info of
+                    NONE => []
+                  | SOME inf => PackageInformation.tags inf
 
-                val (reqs,tags) = List.partition isRequiresTag tags
+              val (reqs,tags) = List.partition isRequiresTag tags
 
-                val (show,tags) = List.partition isShowTag tags
+              val (show,tags) = List.partition isShowTag tags
 
-                val ts = List.map tagBlock tags
+              val ts = List.map tagBlock tags
 
-                val ts =
-                    case PackageTag.requires reqs of
-                      [] => ts
-                    | req :: reqs =>
-                      let
-                        fun add (r,l) = Html.Break :: tagName r :: l
+              val ts =
+                  case chko of
+                    NONE => ts
+                  | SOME chk =>
+                    let
+                      val n = PackageName.checksumTag
+                      and v = Checksum.toString chk
+                    in
+                      ts @ [tagEntry n v]
+                    end
 
-                        val value =
-                            tagName req :: List.foldl add [] (List.rev reqs)
-                      in
-                        ts @ [tagEntry PackageName.requiresTag value]
-                      end
+              val ts =
+                  case PackageTag.requires reqs of
+                    [] => ts
+                  | req :: reqs =>
+                    let
+                      fun add (r,l) = Html.Break :: tagName r :: l
 
-                val ts =
-                    if List.null show then ts
-                    else
-                      let
-                        val show = PackageTag.toShow show
-                      in
-                        ts @ [tagEntry PackageName.showTag (Show.toHtml show)]
-                      end
-              in
-                Html.Table (Html.emptyAttrs,ts)
-              end
-        in
+                      val value =
+                          tagName req :: List.foldl add [] (List.rev reqs)
+                    in
+                      ts @ [tagRow PackageName.requiresTag value]
+                    end
+
+              val ts =
+                  if List.null show then ts
+                  else
+                    let
+                      val show = PackageTag.toShow show
+                    in
+                      ts @ [tagRow PackageName.showTag (Show.toHtml show)]
+                    end
+            in
+              ts
+            end
+      in
+        if List.null tagsBlock then []
+        else
           [Html.H2 [Html.Text "Information"],
-           tagsBlock]
-        end;
+           Html.Table (Html.emptyAttrs,tagsBlock)]
+      end;
 
   fun mkFiles files =
       let
@@ -233,12 +246,12 @@ local
            Html.Ulist (Html.emptyAttrs,items)]
       end;
 
-  fun mkSummary package sum =
+  fun mkSummary info sum =
       let
         val show =
-            case package of
+            case info of
               NONE => Show.default
-            | SOME pkg => Package.show pkg
+            | SOME inf => PackageInformation.show inf
       in
         PackageSummary.toHtml Summary.NoContext show sum
       end;
@@ -256,12 +269,12 @@ local
               Html.Anchor (attrs, [Html.Text text])
             end
 
-        val packageSummaryGeneratedBy =
+        val packageDocumentGeneratedBy =
             Html.Text " package document generated by "
       in
         fn tool =>
            let
-             val inlines = opentheory :: packageSummaryGeneratedBy :: tool
+             val inlines = opentheory :: packageDocumentGeneratedBy :: tool
            in
              Html.Para (Html.emptyAttrs,inlines)
            end
@@ -269,13 +282,13 @@ local
 in
   fun toHtml doc =
       let
-        val Document' {info,checksum,summary,files,tool} = dest doc
+        val Document' {information,checksum,summary,files,tool} = dest doc
 
         val head =
             let
               val namever =
-                  case package of
-                    SOME pkg => SOME (Package.nameVersion pkg)
+                  case information of
+                    SOME info => SOME (PackageInformation.nameVersion info)
                   | NONE => NONE
 
               val title = mkTitle namever
@@ -287,13 +300,13 @@ in
             let
               val main =
                   let
-                    val nameBlock = mkName package
+                    val nameBlock = mkName information
 
-                    val infoBlocks = mkInfo package
+                    val infoBlocks = mkInfo information checksum
 
                     val fileBlocks = mkFiles files
 
-                    val summaryBlocks = mkSummary package summary
+                    val summaryBlocks = mkSummary information summary
 
                     val blocks =
                         nameBlock ::

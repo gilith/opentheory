@@ -123,9 +123,9 @@ local
 
   val nameParser =
       nameComponentParser ++ many spaceNameComponentParser >>
-      (fn (s,sl) => implode (List.concat (s :: sl)));
+      (fn (s,sl) => String.implode (List.concat (s :: sl)));
 
-  val emailParser = atLeastOne (some isEmailChar) >> implode;
+  val emailParser = atLeastOne (some isEmailChar) >> String.implode;
 
   val parser' =
       nameParser ++

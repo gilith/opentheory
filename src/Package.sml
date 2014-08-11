@@ -1,74 +1,77 @@
 (* ========================================================================= *)
-(* THEORY PACKAGE META-DATA                                                  *)
+(* THEORY PACKAGES                                                           *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure PackageInfo :> PackageInfo =
+structure Package :> Package =
 struct
 
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package meta-data.                                       *)
+(* A type of theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-datatype info =
-    Info of
-      {system : DirectorySystem.system,
+datatype package =
+    Package of
+      {system : RepositorySystem.system,
        nameVersion : PackageNameVersion.nameVersion,
        directory : string,
-       package : Package.package option ref,
+       information : PackageInformation.information option ref,
+       checksum : Checksum.checksum option ref,
        theorems : PackageTheorems.theorems option ref};
 
 fun mk {system,nameVersion,directory} =
     let
-      val package = ref NONE
+      val information = ref NONE
+      and checksum = ref NONE
       and theorems = ref NONE
     in
-      Info
+      Package
         {system = system,
          nameVersion = nameVersion,
          directory = directory,
-         package = package,
+         information = information,
+         checksum = checksum,
          theorems = theorems}
     end;
 
-fun system (Info {system = x, ...}) = x;
+fun system (Package {system = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
-(* Package name.                                                             *)
+(* Package name and version.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun nameVersion (Info {nameVersion = x, ...}) = x;
+fun nameVersion (Package {nameVersion = x, ...}) = x;
 
-fun name info = PackageNameVersion.name (nameVersion info);
+fun name pkg = PackageNameVersion.name (nameVersion pkg);
 
-fun version info = PackageNameVersion.version (nameVersion info);
+fun version pkg = PackageNameVersion.version (nameVersion pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package directory.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun directory (Info {directory = x, ...}) = {directory = x};
+fun directory (Package {directory = x, ...}) = {directory = x};
 
-fun joinDirectory info =
+fun joinDirectory pkg =
     let
-      val {directory = dir} = directory info
+      val {directory = dir} = directory pkg
     in
       fn {filename} => {filename = OS.Path.concat (dir,filename)}
     end;
 
-fun existsDirectory info =
+fun existsDirectory pkg =
     let
-      val {directory = dir} = directory info
+      val {directory = dir} = directory pkg
     in
       OS.FileSys.isDir dir
       handle OS.SysErr _ => false
     end;
 
-fun createDirectory info =
+fun createDirectory pkg =
     let
-      val {directory = dir} = directory info
+      val {directory = dir} = directory pkg
     in
       OS.FileSys.mkDir dir
     end;
@@ -76,15 +79,23 @@ fun createDirectory info =
 local
   fun delete {filename} = OS.FileSys.remove filename
 in
-  fun nukeDirectory info =
+  fun nukeDirectory pkg =
       let
-        val Info {directory = dir, package = pkg, ...} = info
+        val Package
+              {system = _,
+               nameVersion = _,
+               directory = dir,
+               information = info,
+               checksum = chk,
+               theorems = thms} = pkg
 
         val filenames = readDirectory {directory = dir}
 
         val () = app delete filenames
 
-        val () = pkg := NONE
+        val () = info := NONE
+        and () = chk := NONE
+        and () = thms := NONE
 
         val () = OS.FileSys.rmDir dir
       in
@@ -96,44 +107,44 @@ end;
 (* Is the package installed?                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun isInstalled info = existsDirectory info;
+fun isInstalled pkg = existsDirectory pkg;
 
 (* ------------------------------------------------------------------------- *)
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryFile info = Package.mkFilename (name info);
+fun theoryFile pkg = PackageInformation.mkFilename (name pkg);
 
 (* ------------------------------------------------------------------------- *)
-(* Read the package.                                                         *)
+(* Package information.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun package info =
+fun information pkg =
     let
-      val Info {package = pkg, ...} = info
+      val Package {information = info, ...} = pkg
     in
-      case !pkg of
-        SOME p => p
+      case !info of
+        SOME inf => inf
       | NONE =>
         let
-          val filename = joinDirectory info (theoryFile info)
+          val filename = joinDirectory pkg (theoryFile pkg)
 
-          val p = Package.fromTextFile filename
+          val inf = PackageInformation.fromTextFile filename
 
 (*OpenTheoryDebug
           val () =
               let
-                val n1 = nameVersion info
-                and n2 = Package.nameVersion p
+                val n1 = nameVersion pkg
+                and n2 = PackageInformation.nameVersion inf
               in
                 if PackageNameVersion.equal n1 n2 then ()
-                else  raise Bug "PackageInfo.package: different name"
+                else  raise Bug "Package.information: different name"
               end
 *)
 
-          val () = pkg := SOME p
+          val () = info := SOME inf
         in
-          p
+          inf
         end
     end;
 
@@ -141,85 +152,83 @@ fun package info =
 (* Package description.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun description info = Package.description (package info);
+fun description pkg = PackageInformation.description (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun author info = Package.author (package info);
+fun author pkg = PackageInformation.author (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package license.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun license info = Package.license (package info);
+fun license pkg = PackageInformation.license (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun requires info = Package.requires (package info);
+fun requires pkg = PackageInformation.requires (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun articleFiles info = Package.articles (package info);
+fun articleFiles pkg = PackageInformation.articles (information pkg);
 
-fun extraFiles info = Package.extraFiles (package info);
+fun extraFiles pkg = PackageInformation.extraFiles (information pkg);
 
-fun allFiles info =
-    theoryFile info ::
-    articleFiles info @
-    List.map PackageExtra.filename (extraFiles info);
+fun allFiles pkg =
+    theoryFile pkg ::
+    articleFiles pkg @
+    List.map PackageExtra.filename (extraFiles pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun includes info =
-    let
-      val pkg = package info
-    in
-      PackageNameVersionSet.fromList (map fst (Package.includes pkg))
-    end;
+fun includes pkg = PackageInformation.includes (information pkg);
+
+fun nameVersionIncludes pkg =
+    PackageInformation.nameVersionIncludes (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Show.                                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun show info = Package.show (package info);
+fun show pkg = PackageInformation.show (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun theory info = Package.theory (package info);
+fun theory pkg = PackageInformation.theory (information pkg);
 
-fun emptyTheory info = Package.emptyTheory (package info);
+fun emptyTheory pkg = PackageInformation.emptyTheory (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun tarball info = PackageTarball.mkFilename (nameVersion info);
+fun tarball pkg = PackageTarball.mkFilename (nameVersion pkg);
 
-fun createTarball info =
+fun createTarball pkg =
     let
-      val sys = system info
-      and {directory = dir} = directory info
+      val sys = system pkg
+      and {directory = dir} = directory pkg
 
       val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
 
       fun joinDir {filename} =
           {filename = OS.Path.concat (pkgDir,filename)}
 
-      val {filename = tarFile} = joinDir (tarball info)
+      val {filename = tarFile} = joinDir (tarball pkg)
 
-      val pkgFiles = List.map joinDir (allFiles info)
+      val pkgFiles = List.map joinDir (allFiles pkg)
 
-      val {tar = cmd} = DirectorySystem.tar sys
+      val {tar = cmd} = RepositorySystem.tar sys
 
       val cmd =
           cmd ^ " czf " ^ tarFile ^
@@ -245,13 +254,13 @@ fun createTarball info =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
-fun copyTarball info {filename = src} =
+fun copyTarball pkg {filename = src} =
     let
-      val sys = system info
+      val sys = system pkg
 
-      val {filename = dest} = joinDirectory info (tarball info)
+      val {filename = dest} = joinDirectory pkg (tarball pkg)
 
-      val {cp = cmd} = DirectorySystem.cp sys
+      val {cp = cmd} = RepositorySystem.cp sys
 
       val cmd = cmd ^ " " ^ src ^ " " ^ dest
 
@@ -263,7 +272,7 @@ fun copyTarball info {filename = src} =
           if OS.Process.isSuccess (OS.Process.system cmd) then ()
           else raise Error "copying the package tarball failed"
 
-      val {chmod = cmd} = DirectorySystem.chmod sys
+      val {chmod = cmd} = RepositorySystem.chmod sys
 
       val cmd = cmd ^ " 644 " ^ dest
 
@@ -278,13 +287,13 @@ fun copyTarball info {filename = src} =
       ()
     end;
 
-fun downloadTarball info {url} =
+fun downloadTarball pkg {url} =
     let
-      val sys = system info
+      val sys = system pkg
 
-      val {filename = f} = joinDirectory info (tarball info)
+      val {filename = f} = joinDirectory pkg (tarball pkg)
 
-      val {curl = cmd} = DirectorySystem.curl sys
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
@@ -299,30 +308,30 @@ fun downloadTarball info {url} =
       ()
     end;
 
-fun checksumTarball info =
+fun checksumTarball pkg =
     let
-      val sys = system info
+      val sys = system pkg
 
-      val tarFile = joinDirectory info (tarball info)
+      val tarFile = joinDirectory pkg (tarball pkg)
     in
       PackageTarball.checksum sys tarFile
     end;
 
-fun contentsTarball info =
+fun contentsTarball pkg =
     let
-      val sys = system info
+      val sys = system pkg
 
-      val tarFile = joinDirectory info (tarball info)
+      val tarFile = joinDirectory pkg (tarball pkg)
     in
       PackageTarball.contents sys tarFile
     end;
 
-fun extractTarball info files =
+fun extractTarball pkg files =
     if List.null files then ()
     else
       let
-        val sys = system info
-        and {directory = dir} = directory info
+        val sys = system pkg
+        and {directory = dir} = directory pkg
 
         val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
 
@@ -336,9 +345,9 @@ fun extractTarball info files =
               " " ^ filename
             end
 
-        val {filename = tarFile} = joinDir (tarball info)
+        val {filename = tarFile} = joinDir (tarball pkg)
 
-        val {tar = cmd} = DirectorySystem.tar sys
+        val {tar = cmd} = RepositorySystem.tar sys
 
         val cmd =
             cmd ^ " xzf " ^ tarFile ^ String.concat (List.map mkArg files)
@@ -363,23 +372,23 @@ fun extractTarball info files =
         handle e => let val () = OS.FileSys.chDir workingDir in raise e end
       end;
 
-fun unpackTarball info contents {minimal} =
+fun unpackTarball pkg contents {minimal} =
     let
       val PackageTarball.Contents
             {nameVersion = nv, theoryFile, otherFiles} = contents
 
 (*OpenTheoryDebug
-        val () = if PackageNameVersion.equal (nameVersion info) nv then ()
-                 else raise Bug "PackageInfo.unpackTarball: name clash"
+        val () = if PackageNameVersion.equal (nameVersion pkg) nv then ()
+                 else raise Bug "Package.unpackTarball: name clash"
 *)
 
-      val () = extractTarball info [theoryFile]
+      val () = extractTarball pkg [theoryFile]
 
-      val pkg = package info
+      val pkg = information pkg
 
-      val arts = Package.articles pkg
+      val arts = PackageInformation.articles pkg
 
-      val exts = List.map PackageExtra.filename (Package.extraFiles pkg)
+      val exts = List.map PackageExtra.filename (PackageInformation.extraFiles pkg)
 
       val () =
           let
@@ -408,20 +417,20 @@ fun unpackTarball info contents {minimal} =
 
       val files = if minimal then arts else arts @ exts
 
-      val () = extractTarball info files
+      val () = extractTarball pkg files
     in
       ()
     end;
 
-fun uploadTarball info chk {url,token} =
+fun uploadTarball pkg chk {url,token} =
     let
-      val sys = system info
+      val sys = system pkg
 
-      val {filename = file} = joinDirectory info (tarball info)
+      val {filename = file} = joinDirectory pkg (tarball pkg)
 
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {curl = cmd} = DirectorySystem.curl sys
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd =
           cmd ^ " " ^ url ^
@@ -453,19 +462,19 @@ fun uploadTarball info chk {url,token} =
 (* Package theorems.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoremsFile info = PackageTheorems.mkFilename (nameVersion info);
+fun theoremsFile pkg = PackageTheorems.mkFilename (nameVersion pkg);
 
-fun theorems info =
+fun theorems pkg =
     let
-      val Info {theorems = ths, ...} = info
+      val Info {theorems = ths, ...} = pkg
     in
       case !ths of
         SOME t => t
       | NONE =>
         let
-          val nv = nameVersion info
+          val nv = nameVersion pkg
 
-          val {filename} = joinDirectory info (theoremsFile info)
+          val {filename} = joinDirectory pkg (theoremsFile pkg)
 
           val t =
               PackageTheorems.fromTextFile
@@ -478,11 +487,11 @@ fun theorems info =
         end
     end;
 
-fun writeTheorems info t =
+fun writeTheorems pkg t =
     let
-      val Info {theorems = ths, ...} = info
+      val Info {theorems = ths, ...} = pkg
 
-      val {filename} = joinDirectory info (theoremsFile info)
+      val {filename} = joinDirectory pkg (theoremsFile pkg)
 
       val () =
           PackageTheorems.toTextFile {theorems = t, filename = filename}
@@ -496,11 +505,11 @@ fun writeTheorems info t =
 (* Package document.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun documentFile info = PackageDocument.mkFilename (nameVersion info);
+fun documentFile pkg = PackageDocument.mkFilename (nameVersion pkg);
 
-fun writeDocument info doc =
+fun writeDocument pkg doc =
     let
-      val {filename} = joinDirectory info (documentFile info)
+      val {filename} = joinDirectory pkg (documentFile pkg)
     in
       PackageDocument.toHtmlFile {document = doc, filename = filename}
     end;

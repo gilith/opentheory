@@ -96,6 +96,8 @@ val nameTag : name
 
 val versionTag : name
 
+val checksumTag : name
+
 (* Extra package files *)
 
 val extraSuffixTag : name
@@ -109,16 +111,16 @@ val requiresTag : name
 val showTag : name
 
 (* ------------------------------------------------------------------------- *)
-(* Directory checksums names.                                                *)
+(* Repository list of installed packages and checksums.                      *)
 (* ------------------------------------------------------------------------- *)
 
 val installedChecksums : name
 
 (* ------------------------------------------------------------------------- *)
-(* Repo names.                                                               *)
+(* Remote repository names.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val gilithRepo : name
+val gilithRepository : name
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell export names.                                                     *)

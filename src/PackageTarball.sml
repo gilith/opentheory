@@ -84,7 +84,7 @@ local
         (dir, {filename = file})
       end;
 in
-  fun contents sys tarFile =
+  fun listContents sys tarFile =
       let
         val files = rawContents sys tarFile
 
@@ -104,7 +104,7 @@ in
         val namever = PackageNameVersion.fromString dir
 
         val theoryFile =
-            PackageInfo.mkFilename (PackageNameVersion.name namever)
+            PackageInformation.mkFilename (PackageNameVersion.name namever)
 
         val otherFiles =
             case List.partition (equal theoryFile) files of
@@ -152,7 +152,7 @@ fun readChecksum tarFile tmpFile =
     end
     handle Parse.NoParse => raise Error "bad checksum format";
 
-fun checksum sys {filename = tarFile} =
+fun createChecksum sys {filename = tarFile} =
     let
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -174,5 +174,20 @@ fun checksum sys {filename = tarFile} =
     in
       chk
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of package tarball.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+datatype tarball =
+    Tarball of
+      {system : RepositorySystem.system,
+       filename : string,
+       contents : contents option ref,
+       checksum : Checksum.checksum option ref};
+
+
+val mk : {system : RepositorySystem.system, filename : string} -> tarball
+
 
 end

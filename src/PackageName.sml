@@ -14,6 +14,7 @@ open Useful;
 
 val authorString = "author"
 and avoidString = "a"
+and checksumString = "checksum"
 and descriptionString = "description"
 and extraSuffixString = "file"
 and gilithString = "gilith"
@@ -204,6 +205,8 @@ val nameTag = Name [nameString];
 
 val versionTag = Name [versionString];
 
+val checksumTag = Name [checksumString];
+
 (* Extra package files *)
 
 val extraSuffixTag = Name [extraSuffixString];
@@ -217,16 +220,16 @@ val requiresTag = Name [requiresString];
 val showTag = Name [showString];
 
 (* ------------------------------------------------------------------------- *)
-(* Directory checksums names.                                                *)
+(* Repository list of installed packages and checksums.                      *)
 (* ------------------------------------------------------------------------- *)
 
 val installedChecksums = Name [installedString];
 
 (* ------------------------------------------------------------------------- *)
-(* Repo names.                                                               *)
+(* Remote repository names.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val gilithRepo = Name [gilithString];
+val gilithRepository = Name [gilithString];
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell export names.                                                     *)

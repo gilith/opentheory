@@ -17,6 +17,14 @@ val destFilename : {filename : string} -> PackageNameVersion.nameVersion option
 val isFilename : {filename : string} -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* A type of package tarball.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+type tarball
+
+val mk : {system : RepositorySystem.system, filename : string} -> tarball
+
+(* ------------------------------------------------------------------------- *)
 (* Listing the contents.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -26,13 +34,12 @@ datatype contents =
        theoryFile : {filename : string},
        otherFiles : {filename : string} list}
 
-val contents : RepositorySystem.system -> {filename : string} -> contents
+val contents : tarball -> contents
 
 (* ------------------------------------------------------------------------- *)
 (* Creating a checksum.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val checksum :
-    RepositorySystem.system -> {filename : string} -> Checksum.checksum
+val checksum : tarball -> Checksum.checksum
 
 end
