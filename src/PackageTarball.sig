@@ -24,6 +24,8 @@ type tarball
 
 val mk : {system : RepositorySystem.system, filename : string} -> tarball
 
+val filename : tarball -> {filename : string}
+
 (* ------------------------------------------------------------------------- *)
 (* Listing the contents.                                                     *)
 (* ------------------------------------------------------------------------- *)

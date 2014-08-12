@@ -113,7 +113,9 @@ val emptyTheory : package -> bool
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val tarball : package -> {filename : string}
+val tarballFile : package -> {filename : string}
+
+val tarball : package -> PackageTarball.tarball
 
 val packTarball : package -> unit
 

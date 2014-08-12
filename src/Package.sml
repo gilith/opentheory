@@ -18,13 +18,49 @@ datatype package =
        nameVersion : PackageNameVersion.nameVersion,
        directory : string,
        information : PackageInformation.information option ref,
-       checksum : Checksum.checksum option ref,
+       tarball : PackageTarball.tarball option ref,
        theorems : PackageTheorems.theorems option ref};
+
+fun flushInformation pkg =
+    let
+      val Package {information = info, ...} = pkg
+
+      val () = info := NONE
+    in
+      ()
+    end;
+
+fun flushTarball pkg =
+    let
+      val Package {tarball = tarr, ...} = pkg
+
+      val () = tarr := NONE
+    in
+      ()
+    end;
+
+fun flushTheorems pkg =
+    let
+      val Package {theorems = thms, ...} = pkg
+
+      val () = thms := NONE
+    in
+      ()
+    end;
+
+fun flush pkg =
+    let
+      val () = flushInformation pkg
+      and () = flushTarball pkg
+      and () = flushTheorems pkg
+    in
+      ()
+    end;
 
 fun mk {system,nameVersion,directory} =
     let
       val information = ref NONE
-      and checksum = ref NONE
+      and tarball = ref NONE
       and theorems = ref NONE
     in
       Package
@@ -32,7 +68,7 @@ fun mk {system,nameVersion,directory} =
          nameVersion = nameVersion,
          directory = directory,
          information = information,
-         checksum = checksum,
+         tarball = tarball,
          theorems = theorems}
     end;
 
@@ -81,21 +117,13 @@ local
 in
   fun nukeDirectory pkg =
       let
-        val Package
-              {system = _,
-               nameVersion = _,
-               directory = dir,
-               information = info,
-               checksum = chk,
-               theorems = thms} = pkg
+        val () = flush pkg
+
+        val {directory = dir} = directory pkg
 
         val filenames = readDirectory {directory = dir}
 
         val () = app delete filenames
-
-        val () = info := NONE
-        and () = chk := NONE
-        and () = thms := NONE
 
         val () = OS.FileSys.rmDir dir
       in
@@ -212,10 +240,30 @@ fun emptyTheory pkg = PackageInformation.emptyTheory (information pkg);
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun tarball pkg = PackageTarball.mkFilename (nameVersion pkg);
+fun tarballFile pkg = PackageTarball.mkFilename (nameVersion pkg);
 
-fun createTarball pkg =
+fun tarball pkg =
     let
+      val Package {system = sys, tarball = tarr, ...} = pkg
+    in
+      case !tarr of
+        SOME tar => tar
+      | NONE =>
+        let
+          val {filename = file} = joinDirectory pkg (tarballFile pkg)
+
+          val tar = PackageTarball.mk {system = sys, filename = file}
+
+          val () = tarr := SOME tar
+        in
+          tar
+        end
+    end;
+
+fun packTarball pkg =
+    let
+      val () = flushTarball pkg
+
       val sys = system pkg
       and {directory = dir} = directory pkg
 
@@ -224,7 +272,7 @@ fun createTarball pkg =
       fun joinDir {filename} =
           {filename = OS.Path.concat (pkgDir,filename)}
 
-      val {filename = tarFile} = joinDir (tarball pkg)
+      val {filename = tarFile} = joinDir (tarballFile pkg)
 
       val pkgFiles = List.map joinDir (allFiles pkg)
 
@@ -256,9 +304,11 @@ fun createTarball pkg =
 
 fun copyTarball pkg {filename = src} =
     let
+      val () = flushTarball pkg
+
       val sys = system pkg
 
-      val {filename = dest} = joinDirectory pkg (tarball pkg)
+      val {filename = dest} = joinDirectory pkg (tarballFile pkg)
 
       val {cp = cmd} = RepositorySystem.cp sys
 
@@ -289,9 +339,11 @@ fun copyTarball pkg {filename = src} =
 
 fun downloadTarball pkg {url} =
     let
+      val () = flushTarball pkg
+
       val sys = system pkg
 
-      val {filename = f} = joinDirectory pkg (tarball pkg)
+      val {filename = f} = joinDirectory pkg (tarballFile pkg)
 
       val {curl = cmd} = RepositorySystem.curl sys
 
@@ -308,23 +360,9 @@ fun downloadTarball pkg {url} =
       ()
     end;
 
-fun checksumTarball pkg =
-    let
-      val sys = system pkg
+fun checksumTarball pkg = PackageTarball.checksum (tarball pkg);
 
-      val tarFile = joinDirectory pkg (tarball pkg)
-    in
-      PackageTarball.checksum sys tarFile
-    end;
-
-fun contentsTarball pkg =
-    let
-      val sys = system pkg
-
-      val tarFile = joinDirectory pkg (tarball pkg)
-    in
-      PackageTarball.contents sys tarFile
-    end;
+fun contentsTarball pkg = PackageTarball.contents (tarball pkg);
 
 fun extractTarball pkg files =
     if List.null files then ()
@@ -345,7 +383,7 @@ fun extractTarball pkg files =
               " " ^ filename
             end
 
-        val {filename = tarFile} = joinDir (tarball pkg)
+        val {filename = tarFile} = joinDir (tarballFile pkg)
 
         val {tar = cmd} = RepositorySystem.tar sys
 
@@ -378,8 +416,8 @@ fun unpackTarball pkg contents {minimal} =
             {nameVersion = nv, theoryFile, otherFiles} = contents
 
 (*OpenTheoryDebug
-        val () = if PackageNameVersion.equal (nameVersion pkg) nv then ()
-                 else raise Bug "Package.unpackTarball: name clash"
+      val () = if PackageNameVersion.equal (nameVersion pkg) nv then ()
+               else raise Bug "Package.unpackTarball: name clash"
 *)
 
       val () = extractTarball pkg [theoryFile]
@@ -388,7 +426,8 @@ fun unpackTarball pkg contents {minimal} =
 
       val arts = PackageInformation.articles pkg
 
-      val exts = List.map PackageExtra.filename (PackageInformation.extraFiles pkg)
+      val exts =
+          List.map PackageExtra.filename (PackageInformation.extraFiles pkg)
 
       val () =
           let
@@ -426,7 +465,7 @@ fun uploadTarball pkg chk {url,token} =
     let
       val sys = system pkg
 
-      val {filename = file} = joinDirectory pkg (tarball pkg)
+      val {filename = file} = joinDirectory pkg (tarballFile pkg)
 
       val tmpFile = OS.FileSys.tmpName ()
 

@@ -198,6 +198,8 @@ fun mk {system,filename} =
          checksum = checksum}
     end;
 
+fun filename (Tarball {filename = x, ...}) = {filename = x};
+
 fun contents tar =
     let
       val Tarball {system = sys, filename, contents = cntr, ...} = tar
