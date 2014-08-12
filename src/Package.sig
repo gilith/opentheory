@@ -115,7 +115,7 @@ val emptyTheory : package -> bool
 
 val tarball : package -> {filename : string}
 
-val createTarball : package -> unit
+val packTarball : package -> unit
 
 val copyTarball : package -> {filename : string} -> unit
 

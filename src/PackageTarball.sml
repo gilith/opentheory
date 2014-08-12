@@ -186,8 +186,48 @@ datatype tarball =
        contents : contents option ref,
        checksum : Checksum.checksum option ref};
 
+fun mk {system,filename} =
+    let
+      val contents = ref NONE
+      and checksum = ref NONE
+    in
+      Tarball
+        {system = system,
+         filename = filename,
+         contents = contents,
+         checksum = checksum}
+    end;
 
-val mk : {system : RepositorySystem.system, filename : string} -> tarball
+fun contents tar =
+    let
+      val Tarball {system = sys, filename, contents = cntr, ...} = tar
+    in
+      case !cntr of
+        SOME cnt => cnt
+      | NONE =>
+        let
+          val cnt = listContents sys {filename = filename}
 
+          val () = cntr := SOME cnt
+        in
+          cnt
+        end
+    end;
+
+fun checksum tar =
+    let
+      val Tarball {system = sys, filename, checksum = chkr, ...} = tar
+    in
+      case !chkr of
+        SOME chk => chk
+      | NONE =>
+        let
+          val chk = createChecksum sys {filename = filename}
+
+          val () = chkr := SOME chk
+        in
+          chk
+        end
+    end;
 
 end
