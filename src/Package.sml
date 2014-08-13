@@ -41,9 +41,9 @@ fun flushTarball pkg =
 
 fun flushTheorems pkg =
     let
-      val Package {theorems = thms, ...} = pkg
+      val Package {theorems = thmsr, ...} = pkg
 
-      val () = thms := NONE
+      val () = thmsr := NONE
     in
       ()
     end;
@@ -204,7 +204,7 @@ fun requires pkg = PackageInformation.requires (information pkg);
 (* The files needed by the package.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun articleFiles pkg = PackageInformation.articles (information pkg);
+fun articleFiles pkg = PackageInformation.articleFiles (information pkg);
 
 fun extraFiles pkg = PackageInformation.extraFiles (information pkg);
 
@@ -302,37 +302,15 @@ fun packTarball pkg =
       handle e => let val () = OS.FileSys.chDir workingDir in raise e end
     end;
 
-fun copyTarball pkg {filename = src} =
+fun copyTarball pkg tar =
     let
-      val () = flushTarball pkg
+      val pkgTarFile = joinDirectory pkg (tarballFile pkg)
 
-      val sys = system pkg
+      val tar = PackageTarball.copy tar pkgTarFile
 
-      val {filename = dest} = joinDirectory pkg (tarballFile pkg)
+      val Package {tarball = tarr, ...} = pkg
 
-      val {cp = cmd} = RepositorySystem.cp sys
-
-      val cmd = cmd ^ " " ^ src ^ " " ^ dest
-
-(*OpenTheoryTrace1
-      val () = trace (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "copying the package tarball failed"
-
-      val {chmod = cmd} = RepositorySystem.chmod sys
-
-      val cmd = cmd ^ " 644 " ^ dest
-
-(*OpenTheoryTrace1
-      val () = trace (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "changing mode of the package tarball failed"
+      val () = tarr := SOME tar
     in
       ()
     end;
@@ -410,24 +388,21 @@ fun extractTarball pkg files =
         handle e => let val () = OS.FileSys.chDir workingDir in raise e end
       end;
 
-fun unpackTarball pkg contents {minimal} =
+fun unpackTarball pkg {minimal} =
     let
       val PackageTarball.Contents
-            {nameVersion = nv, theoryFile, otherFiles} = contents
+            {nameVersion = nv, theoryFile, otherFiles} =
+          contentsTarball pkg
 
-(*OpenTheoryDebug
-      val () = if PackageNameVersion.equal (nameVersion pkg) nv then ()
-               else raise Bug "Package.unpackTarball: name clash"
-*)
+      val () =
+          if PackageNameVersion.equal (nameVersion pkg) nv then ()
+          else raise Error "package tarball has unexpected contents"
 
       val () = extractTarball pkg [theoryFile]
 
-      val pkg = information pkg
+      val arts = articleFiles pkg
 
-      val arts = PackageInformation.articles pkg
-
-      val exts =
-          List.map PackageExtra.filename (PackageInformation.extraFiles pkg)
+      val exts = List.map PackageExtra.filename (extraFiles pkg)
 
       val () =
           let
@@ -461,9 +436,11 @@ fun unpackTarball pkg contents {minimal} =
       ()
     end;
 
-fun uploadTarball pkg chk {url,token} =
+fun uploadTarball pkg {url,token} =
     let
       val sys = system pkg
+
+      val chk = checksumTarball pkg
 
       val {filename = file} = joinDirectory pkg (tarballFile pkg)
 
@@ -505,37 +482,37 @@ fun theoremsFile pkg = PackageTheorems.mkFilename (nameVersion pkg);
 
 fun theorems pkg =
     let
-      val Info {theorems = ths, ...} = pkg
+      val Package {theorems = thmsr, ...} = pkg
     in
-      case !ths of
-        SOME t => t
+      case !thmsr of
+        SOME thms => thms
       | NONE =>
         let
           val nv = nameVersion pkg
 
           val {filename} = joinDirectory pkg (theoremsFile pkg)
 
-          val t =
+          val thms =
               PackageTheorems.fromTextFile
                 {package = nv,
                  filename = filename}
 
-          val () = ths := SOME t
+          val () = thmsr := SOME thms
         in
-          t
+          thms
         end
     end;
 
-fun writeTheorems pkg t =
+fun writeTheorems pkg thms =
     let
-      val Info {theorems = ths, ...} = pkg
+      val Package {theorems = thmsr, ...} = pkg
 
       val {filename} = joinDirectory pkg (theoremsFile pkg)
 
       val () =
-          PackageTheorems.toTextFile {theorems = t, filename = filename}
+          PackageTheorems.toTextFile {theorems = thms, filename = filename}
 
-      val () = ths := SOME t
+      val () = thmsr := SOME thms
     in
       ()
     end;

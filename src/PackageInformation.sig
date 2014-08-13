@@ -99,7 +99,7 @@ val emptyTheory : information -> bool
 (* Package articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val articles : information -> {filename : string} list
+val articleFiles : information -> {filename : string} list
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)

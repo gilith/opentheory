@@ -44,4 +44,10 @@ val contents : tarball -> contents
 
 val checksum : tarball -> Checksum.checksum
 
+(* ------------------------------------------------------------------------- *)
+(* Copying a tarball.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val copy : tarball -> {filename : string} -> tarball
+
 end

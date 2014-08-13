@@ -93,7 +93,11 @@ val allFiles : package -> {filename : string} list
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val includes : package -> PackageNameVersionSet.set
+val includes :
+    package ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) list
+
+val nameVersionIncludes : package -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Show.                                                                     *)
@@ -119,7 +123,7 @@ val tarball : package -> PackageTarball.tarball
 
 val packTarball : package -> unit
 
-val copyTarball : package -> {filename : string} -> unit
+val copyTarball : package -> PackageTarball.tarball -> unit
 
 val downloadTarball : package -> {url : string} -> unit
 

@@ -139,7 +139,7 @@ fun emptyTheory info =
 (* Package articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun articles info = PackageTheory.articles (theory info);
+fun articleFiles info = PackageTheory.articles (theory info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)

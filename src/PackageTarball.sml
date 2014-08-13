@@ -176,6 +176,37 @@ fun createChecksum sys {filename = tarFile} =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Copying a tarball.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun copyTarball sys {filename = src} {filename = dest} =
+    let
+      val {cp} = RepositorySystem.cp sys
+
+      val cmd = cp ^ " " ^ src ^ " " ^ dest
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "copying package tarball failed"
+
+      val {chmod} = RepositorySystem.chmod sys
+
+      val cmd = chmod ^ " 644 " ^ dest
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "changing mode of package tarball failed"
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of package tarball.                                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -230,6 +261,23 @@ fun checksum tar =
         in
           chk
         end
+    end;
+
+fun copy tar {filename = dest} =
+    let
+      val Tarball
+            {system = sys,
+             filename = src,
+             contents = ref cnt,
+             checksum = ref chk} = tar
+
+      val () = copyTarball sys {filename = src} {filename = dest}
+    in
+      Tarball
+        {system = sys,
+         filename = dest,
+         contents = ref cnt,
+         checksum = ref chk}
     end;
 
 end
