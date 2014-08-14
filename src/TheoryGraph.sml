@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* HIGHER ORDER LOGIC THEORY GRAPHS                                          *)
+(* THEORY GRAPHS                                                             *)
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 

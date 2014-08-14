@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* THEORY PACKAGE SUMMARIES                                                  *)
+(* PACKAGE THEORY SUMMARIES                                                  *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 

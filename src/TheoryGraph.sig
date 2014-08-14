@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* HIGHER ORDER LOGIC THEORY GRAPHS                                          *)
+(* THEORY GRAPHS                                                             *)
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
@@ -128,21 +128,21 @@ val importTheories :
      theories : PackageTheory.theory list} ->
     graph * environment
 
-val importPackage :
+val importPackageInformation :
     importer -> graph ->
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      nameVersion : PackageNameVersion.nameVersion,
      checksum : Checksum.checksum option,
-     package : Package.package} ->
+     packageInformation : PackageInformation.information} ->
     graph * Theory.theory
 
-val importPackageInfo :
+val importPackage :
     importer -> graph ->
     {imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     info : PackageInfo.info,
+     package : Package.package,
      checksum : Checksum.checksum option} ->
     graph * Theory.theory
 

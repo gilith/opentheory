@@ -15,7 +15,7 @@ open Useful;
 datatype finder =
     Finder of
       PackageNameVersion.nameVersion -> Checksum.checksum option ->
-      (PackageInfo.info * Checksum.checksum) option;
+      (Package.package * Checksum.checksum) option;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)

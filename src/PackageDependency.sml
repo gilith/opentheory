@@ -53,9 +53,9 @@ fun member namever dep = PackageNameVersionSet.member namever (packages dep);
 (* Adding package dependencies.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun addInfo latest dep info =
+fun add latest dep pkg =
     let
-      val namever = PackageInfo.nameVersion info
+      val namever = Package.nameVersion pkg
     in
       if member namever dep then dep
       else
@@ -73,8 +73,8 @@ fun addInfo latest dep info =
 
           val name = PackageNameVersion.name namever
 
-          val incs = PackageInfo.includes info
-          and reqs = PackageInfo.requires info
+          val incs = Package.nameVersionIncludes pkg
+          and reqs = Package.requires pkg
 
           val (reqs,missing) =
               List.foldl partReq (PackageNameVersionSet.empty,[]) reqs

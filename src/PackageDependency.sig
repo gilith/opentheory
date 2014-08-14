@@ -26,9 +26,9 @@ val member : PackageNameVersion.nameVersion -> dependency -> bool
 (* Adding package dependencies.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val addInfo :
+val add :
     (PackageName.name -> PackageNameVersion.nameVersion option) ->
-    dependency -> PackageInfo.info -> dependency
+    dependency -> Package.package -> dependency
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
