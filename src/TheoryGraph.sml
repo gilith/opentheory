@@ -466,30 +466,17 @@ fun match graph spec =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* An importer is used to import theory packages into a graph.               *)
-(* ------------------------------------------------------------------------- *)
-
-datatype importer =
-    Importer of (graph -> specification -> graph * Theory.theory);
-
-fun applyImporter (Importer f) graph spec = f graph spec;
-
-(* ------------------------------------------------------------------------- *)
 (* Importing theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun importNode importer graph info =
+fun importNode finder graph info =
     let
       val {directory,imports,interpretation,nodeImports,node} = info
     in
       case node of
           PackageTheory.Article {interpretation = int, filename = f} =>
           let
-            val savable = savable graph
-
             val imports = TheorySet.union imports nodeImports
-
-            val import = TheorySet.article imports
 
             val interpretation = Interpretation.compose int interpretation
 
@@ -502,8 +489,8 @@ fun importNode importer graph info =
 
             val article =
                 Article.fromTextFile
-                  {savable = savable,
-                   import = import,
+                  {savable = savable graph,
+                   import = TheorySet.article imports,
                    interpretation = interpretation,
                    filename = filename}
 
@@ -535,7 +522,7 @@ fun importNode importer graph info =
                    nameVersion = namever,
                    checksum = chk}
           in
-            applyImporter importer graph spec
+            import finder graph spec
           end
         | PackageTheory.Union =>
           let
@@ -557,9 +544,9 @@ fun importNode importer graph info =
           in
             (graph,thy)
           end
-    end;
+    end
 
-fun importTheory importer graph env info =
+and importTheory finder graph env info =
     let
       val {directory,imports,interpretation,theory} = info
 
@@ -585,14 +572,14 @@ fun importTheory importer graph env info =
            nodeImports = nodeImports,
            node = node}
 
-      val (graph,thy) = importNode importer graph info
+      val (graph,thy) = importNode finder graph info
 
       val env = insertEnvironment env (name,thy)
     in
       (graph,env,thy)
-    end;
+    end
 
-fun importTheories importer graph info =
+and importTheories finder graph info =
     let
       val {directory,imports,interpretation,theories} = info
 
@@ -604,7 +591,7 @@ fun importTheories importer graph info =
                  interpretation = interpretation,
                  theory = theory}
 
-            val (graph,env,_) = importTheory importer graph env info
+            val (graph,env,_) = importTheory finder graph env info
           in
             (graph,env)
           end
@@ -612,18 +599,18 @@ fun importTheories importer graph info =
       val env = emptyEnvironment
     in
       List.foldl impThy (graph,env) theories
-    end;
+    end
 
-fun importPackage importer graph data =
+and importPackageInformation finder graph data =
     let
       val {directory,
            imports,
            interpretation,
            nameVersion = namever,
            checksum = chk,
-           package = pkg} = data
+           information = info} = data
 
-      val theories = Package.theory pkg
+      val theories = PackageInformation.theory info
 
       val data =
           {directory = directory,
@@ -631,7 +618,7 @@ fun importPackage importer graph data =
            interpretation = interpretation,
            theories = theories}
 
-      val (graph,env) = importTheories importer graph data
+      val (graph,env) = importTheories finder graph data
 
       val node =
           Theory.Package
@@ -657,15 +644,15 @@ fun importPackage importer graph data =
       val graph = add graph thy
     in
       (graph,thy)
-    end;
+    end
 
-fun importPackageInfo importer graph data =
+and importPackage finder graph data =
     let
-      val {imports,interpretation,info,checksum} = data
+      val {imports,interpretation,package,checksum} = data
 
-      val {directory} = PackageInfo.directory info
-      and namever = PackageInfo.nameVersion info
-      and pkg = PackageInfo.package info
+      val {directory} = Package.directory package
+      and namever = Package.nameVersion package
+      and info = Package.information package
 
       val data =
           {directory = directory,
@@ -673,29 +660,27 @@ fun importPackageInfo importer graph data =
            interpretation = interpretation,
            nameVersion = namever,
            checksum = checksum,
-           package = pkg}
+           information = info}
     in
-      importPackage importer graph data
-    end;
+      importPackageInformation finder graph data
+    end
 
-fun importPackageName finder graph spec =
+and import finder graph spec =
     let
       val thys = match graph spec
     in
       if not (TheorySet.null thys) then (graph, TheorySet.pick thys)
       else
         let
-          val importer = fromFinderImporter finder
-
           val Specification
                 {imports,
                  interpretation,
                  nameVersion = namever,
                  checksum = chk} = spec
 
-          val (info,chk) =
+          val (pkg,chk) =
               case PackageFinder.find finder namever chk of
-                SOME i => i
+                SOME pc => pc
               | NONE =>
                 let
                   val err =
@@ -708,17 +693,15 @@ fun importPackageName finder graph spec =
           val data =
               {imports = imports,
                interpretation = interpretation,
-               info = info,
+               package = pkg,
                checksum = SOME chk}
         in
-          importPackageInfo importer graph data
+          importPackage finder graph data
           handle Error err =>
             raise Error ("while importing package " ^
                          PackageNameVersion.toString namever ^ "\n" ^ err)
         end
-    end
-
-and fromFinderImporter finder = Importer (importPackageName finder);
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

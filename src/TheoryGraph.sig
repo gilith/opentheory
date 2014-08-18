@@ -89,22 +89,11 @@ datatype specification =
 val match : graph -> specification -> TheorySet.set
 
 (* ------------------------------------------------------------------------- *)
-(* An importer is used to import theory packages into a graph.               *)
-(* ------------------------------------------------------------------------- *)
-
-type importer
-
-val applyImporter :
-    importer -> graph -> specification -> graph * Theory.theory
-
-val fromFinderImporter : PackageFinder.finder -> importer
-
-(* ------------------------------------------------------------------------- *)
 (* Importing theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
 val importNode :
-    importer -> graph ->
+    PackageFinder.finder -> graph ->
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
@@ -113,7 +102,7 @@ val importNode :
     graph * Theory.theory
 
 val importTheory :
-    importer -> graph -> environment ->
+    PackageFinder.finder -> graph -> environment ->
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
@@ -121,7 +110,7 @@ val importTheory :
     graph * environment * Theory.theory
 
 val importTheories :
-    importer -> graph ->
+    PackageFinder.finder -> graph ->
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
@@ -129,24 +118,24 @@ val importTheories :
     graph * environment
 
 val importPackageInformation :
-    importer -> graph ->
+    PackageFinder.finder -> graph ->
     {directory : string,
      imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      nameVersion : PackageNameVersion.nameVersion,
      checksum : Checksum.checksum option,
-     packageInformation : PackageInformation.information} ->
+     information : PackageInformation.information} ->
     graph * Theory.theory
 
 val importPackage :
-    importer -> graph ->
+    PackageFinder.finder -> graph ->
     {imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
      package : Package.package,
      checksum : Checksum.checksum option} ->
     graph * Theory.theory
 
-val importPackageName :
+val import :
     PackageFinder.finder -> graph -> specification -> graph * Theory.theory
 
 (* ------------------------------------------------------------------------- *)

@@ -133,6 +133,10 @@ fun destPackage thy = destPackageNode (node thy);
 
 fun isPackage thy = Option.isSome (destPackage thy);
 
+(* ------------------------------------------------------------------------- *)
+(* Package theory graph.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
 fun isArticleTheory (_ : PackageTheory.name, thy) = isArticle thy;
 
 fun existsArticleTheory theories = List.exists isArticleTheory theories;

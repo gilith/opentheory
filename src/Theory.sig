@@ -61,6 +61,10 @@ val destPackage : theory -> PackageNameVersion.nameVersion option
 
 val isPackage : theory -> bool
 
+(* ------------------------------------------------------------------------- *)
+(* Package theory graph.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
 val existsArticleTheory : (PackageTheory.name * theory) list -> bool
 
 val peekTheory :
