@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY PATHS                                                   *)
+(* REPOSITORY PATHS                                                          *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectoryPath =
+signature RepositoryPath =
 sig
 
 (* ------------------------------------------------------------------------- *)
@@ -38,28 +38,28 @@ val mkTarballUrl :
     {rootUrl : string} -> PackageNameVersion.nameVersion -> {url : string}
 
 (* ------------------------------------------------------------------------- *)
-(* The package staging directory.                                            *)
+(* The staged packages directory.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val mkStagingPackagesDirectory :
+val mkStagedPackagesDirectory :
     {rootDirectory : string} -> {directory : string}
 
-val mkStagingPackageDirectory :
+val mkStagedPackageDirectory :
     {rootDirectory : string} -> PackageNameVersion.nameVersion ->
     {directory : string}
 
 (* ------------------------------------------------------------------------- *)
-(* The repos directory.                                                      *)
+(* The remote repositories directory.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val mkReposDirectory :
+val mkRemoteRepositoriesDirectory :
     {rootDirectory : string} -> {directory : string}
 
-val mkRepoFilename :
+val mkRemoteRepositoryFilename :
     {rootDirectory : string} -> PackageName.name -> {filename : string}
 
 (* ------------------------------------------------------------------------- *)
-(* The repo upload script.                                                   *)
+(* The remote repository upload script.                                      *)
 (* ------------------------------------------------------------------------- *)
 
 val mkUploadUrl : {rootUrl : string} -> {url : string}

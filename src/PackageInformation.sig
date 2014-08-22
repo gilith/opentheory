@@ -88,7 +88,7 @@ val requires : information -> PackageName.name list
 val show : information -> Show.show
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 val theory : information -> PackageTheory.theory list

@@ -42,8 +42,7 @@ val peekEnvironment :
 val insertEnvironment :
     environment -> PackageTheory.name * Theory.theory -> environment
 
-val theoriesEnvironment :
-    environment -> (PackageTheory.name * Theory.theory) list
+val nestedEnvironment : environment -> Theory.nested
 
 val mainEnvironment : environment -> Theory.theory
 

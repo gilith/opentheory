@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* UNWIND MUTUALLY RECURSIVE THEORY PACKAGES                                 *)
+(* UNWIND MUTUALLY RECURSIVE PACKAGE THEORY GRAPHS                           *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure PackageDag :> PackageDag =
+structure PackageTheoryGraph :> PackageTheoryGraph =
 struct
 
 open Useful;
@@ -21,7 +21,7 @@ val emptyVanilla = Vanilla (PackageNameMap.new ());
 fun getVanilla (Vanilla vmap) name =
     case PackageNameMap.peek vmap name of
       SOME x => x
-    | NONE => raise Bug "PackageDag.getVanilla";
+    | NONE => raise Bug "PackageTheoryGraph.getVanilla";
 
 fun getNameTheoryVanilla vanilla name =
     let
@@ -33,7 +33,7 @@ fun getNameTheoryVanilla vanilla name =
 fun getMainNameTheoryVanilla vanilla =
     getNameTheoryVanilla vanilla PackageTheory.mainName;
 
-fun addVanilla importer {directory} (theory, Vanilla vmap) =
+fun addVanilla finder {directory} (theory, Vanilla vmap) =
     let
       val PackageTheory.Theory {name,node,...} = theory
 
@@ -46,7 +46,7 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
       val nodeImports = TheorySet.empty
 
       val (graph,thy) =
-          TheoryGraph.importNode importer graph
+          TheoryGraph.importNode finder graph
             {directory = directory,
              imports = imports,
              interpretation = int,
@@ -62,10 +62,10 @@ fun addVanilla importer {directory} (theory, Vanilla vmap) =
       Vanilla (PackageNameMap.insert vmap (name,(graph,thy,sum)))
     end;
 
-fun fromListVanilla importer dir theories =
-    List.foldl (addVanilla importer dir) emptyVanilla theories
+fun fromListVanilla finder dir theories =
+    List.foldl (addVanilla finder dir) emptyVanilla theories
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.fromListVanilla: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.fromListVanilla: " ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -93,7 +93,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace2
-      val () = Print.trace PackageName.pp "PackageDag.addDefinitions.name" name
+      val () = Print.trace PackageName.pp "PackageTheoryGraph.addDefinitions.name" name
 *)
 
       val defs = getDefinitions definitions name
@@ -130,10 +130,10 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
 
 (*OpenTheoryDebug
       val _ = TypeOpSet.subset (SymbolTable.typeOps defs) (SymbolTable.typeOps defs')
-              orelse raise Bug "PackageDag.addDefinitions: shrinking type op defs"
+              orelse raise Bug "PackageTheoryGraph.addDefinitions: shrinking type op defs"
 
       val _ = ConstSet.subset (SymbolTable.consts defs) (SymbolTable.consts defs')
-              orelse raise Bug "PackageDag.addDefinitions: shrinking const defs"
+              orelse raise Bug "PackageTheoryGraph.addDefinitions: shrinking const defs"
 *)
 
       val same =
@@ -150,7 +150,7 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
           val dmap = PackageNameMap.insert dmap (name,defs')
 
 (*OpenTheoryTrace2
-          val () = Print.trace SymbolTable.pp "PackageDag.addDefinitions.defs'" defs'
+          val () = Print.trace SymbolTable.pp "PackageTheoryGraph.addDefinitions.defs'" defs'
 *)
         in
           (true, Definitions dmap)
@@ -170,7 +170,7 @@ fun fromListDefinitions vanilla theories =
       pass emptyDefinitions
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.fromListDefinitions: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.fromListDefinitions: " ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -184,7 +184,7 @@ val emptySummary = Summary (PackageNameMap.new ());
 fun getSummary (Summary smap) name =
     case PackageNameMap.peek smap name of
       SOME sum => sum
-    | NONE => raise Bug "PackageDag.getSummary";
+    | NONE => raise Bug "PackageTheoryGraph.getSummary";
 
 fun addSummary vanilla definitions (theory,summary) =
     let
@@ -192,7 +192,7 @@ fun addSummary vanilla definitions (theory,summary) =
       and Summary smap = summary
 
 (*OpenTheoryTrace2
-      val () = Print.trace PackageName.pp "PackageDag.addSummary.name" name
+      val () = Print.trace PackageName.pp "PackageTheoryGraph.addSummary.name" name
 *)
 
       val sum =
@@ -218,7 +218,7 @@ fun addSummary vanilla definitions (theory,summary) =
               val idefs = getListDefinitions definitions imports
 
 (*OpenTheoryTrace2
-              val () = Print.trace SymbolTable.pp "PackageDag.addSummary.idefs" idefs
+              val () = Print.trace SymbolTable.pp "PackageTheoryGraph.addSummary.idefs" idefs
 *)
 
               val rewr = SymbolTable.inst idefs
@@ -227,7 +227,7 @@ fun addSummary vanilla definitions (theory,summary) =
             end
 
 (*OpenTheoryTrace2
-      val () = Print.trace Summary.pp "PackageDag.addSummary.sum" sum
+      val () = Print.trace Summary.pp "PackageTheoryGraph.addSummary.sum" sum
 *)
     in
       Summary (PackageNameMap.insert smap (name,sum))
@@ -236,7 +236,7 @@ fun addSummary vanilla definitions (theory,summary) =
 fun fromListSummary vanilla definitions theories =
     List.foldl (addSummary vanilla definitions) emptySummary theories
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.fromListSummary: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.fromListSummary: " ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -409,47 +409,47 @@ fun removeDeadBlocks outputWarning theories =
 (* Remove dead theory imports and blocks.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-datatype theories =
-    Theories of
-      {importer : TheoryGraph.importer,
+datatype theory =
+    Theory of
+      {finder : PackageFinder.finder,
        directory : string,
-       theories : PackageTheory.theory list,
+       theory : PackageTheory.theory list,
        vanilla : vanilla,
        definitions : definitions};
 
-fun removeDead outputWarning {importer,directory,theories} =
+fun removeDead outputWarning {finder,directory,theory} =
     let
       val dir = {directory = directory}
 
-      val theories' = PackageTheory.sortUnion theories
+      val theory' = PackageTheory.sortUnion theory
 
-      val vanilla = fromListVanilla importer dir theories
+      val vanilla = fromListVanilla finder dir theory
 
-      val definitions = fromListDefinitions vanilla theories'
+      val definitions = fromListDefinitions vanilla theory'
 
-      val summary = fromListSummary vanilla definitions theories'
+      val summary = fromListSummary vanilla definitions theory'
 
       (* Remove redundant imports and theory blocks *)
 
-      val theories =
-          removeDeadImports outputWarning vanilla definitions summary theories
+      val theory =
+          removeDeadImports outputWarning vanilla definitions summary theory
 
-      val theories = removeDeadBlocks outputWarning theories
+      val theory = removeDeadBlocks outputWarning theory
     in
-      Theories
-        {importer = importer,
+      Theory
+        {finder = finder,
          directory = directory,
-         theories = theories,
+         theory = theory,
          vanilla = vanilla,
          definitions = definitions}
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.removeDead: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.removeDead: " ^ err);
 *)
 
 val mk = removeDead true;
 
-fun theories (Theories {theories = x, ...}) = x;
+fun theory (Theory {theory = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Visible primitive theories of theory blocks.                              *)
@@ -466,7 +466,7 @@ val emptyVisible = Visible (PackageNameMap.new ());
 fun getVisible (Visible vmap) name =
     case PackageNameMap.peek vmap name of
       SOME vs => vs
-    | NONE => raise Bug "PackageDag.getVisible";
+    | NONE => raise Bug "PackageTheoryGraph.getVisible";
 
 fun getListVisible visible names =
     let
@@ -481,7 +481,7 @@ fun addVisible vanilla definitions (theory,visible) =
       and Visible vmap = visible
 
 (*OpenTheoryTrace2
-      val () = Print.trace PackageName.pp "PackageDag.addVisible.name" name
+      val () = Print.trace PackageName.pp "PackageTheoryGraph.addVisible.name" name
 *)
 
       val vs =
@@ -530,7 +530,7 @@ fun addVisible vanilla definitions (theory,visible) =
 fun fromListVisible vanilla definitions theories =
     List.foldl (addVisible vanilla definitions) emptyVisible theories
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.fromListVisible: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.fromListVisible: " ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -546,7 +546,7 @@ fun getGenerate (Generate gmap) nt =
     case TheoryNameMap.peek gmap nt of
       SOME nts => nts
     | NONE =>
-      raise Bug ("PackageDag.getGenerate: " ^ Print.toString TheoryName.pp nt);
+      raise Bug ("PackageTheoryGraph.getGenerate: " ^ Print.toString TheoryName.pp nt);
 
 local
   fun add generate (nt,acc) =
@@ -563,7 +563,7 @@ fun insertGenerate (Generate gmap) (nt,nts) =
     let
 (*OpenTheoryDebug
       val () = if not (TheoryNameMap.inDomain nt gmap) then ()
-               else raise Bug "PackageDag.insertGenerate"
+               else raise Bug "PackageTheoryGraph.insertGenerate"
 *)
     in
       Generate (TheoryNameMap.insert gmap (nt,nts))
@@ -582,7 +582,7 @@ fun addTheoryGenerate vanilla (theory,generate) =
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace2
-      val () = Print.trace PackageName.pp "PackageDag.addGenerate.name" name
+      val () = Print.trace PackageName.pp "PackageTheoryGraph.addGenerate.name" name
 *)
     in
       if PackageTheory.isUnion theory then
@@ -607,7 +607,7 @@ fun addTheoryGenerate vanilla (theory,generate) =
           val (graph,main,_) = getVanilla vanilla name
 
 (*OpenTheoryTrace2
-          val () = Print.trace TheoryGraph.pp "PackageDag.addGenerate.graph" graph
+          val () = Print.trace TheoryGraph.pp "PackageTheoryGraph.addGenerate.graph" graph
 *)
 
           val primThys = TheoryGraph.primitives main
@@ -618,15 +618,15 @@ fun addTheoryGenerate vanilla (theory,generate) =
 
 (*OpenTheoryTrace2
                 val () = Print.trace TheoryName.pp
-                           "PackageDag.addGenerate.addThy.nt" nt
+                           "PackageTheoryGraph.addGenerate.addThy.nt" nt
 *)
 
                 val gens =
                     case Theory.node thy of
                       Theory.Article _ => TheoryNameSet.empty
-                    | Theory.Package {theories,...} =>
+                    | Theory.Package {nested,...} =>
                       let
-                        val main = Theory.mainTheory theories
+                        val main = Theory.mainNested nested
                       in
                         getGens generate main
                       end
@@ -650,13 +650,13 @@ fun fromTheoryListGenerate vanilla theories =
 
 (*OpenTheoryTrace2
       val () = Print.trace ppGenerate
-                 "PackageDag.fromTheoryListGenerate.generate" generate
+                 "PackageTheoryGraph.fromTheoryListGenerate.generate" generate
 *)
     in
       generate
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.fromTheoryListGenerate: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.fromTheoryListGenerate: " ^ err);
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -672,7 +672,7 @@ fun getDependency (Dependency dmap) nt =
     case TheoryNameMap.peek dmap nt of
       SOME nts => nts
     | NONE =>
-      raise Bug ("PackageDag.getDependency: " ^ Print.toString TheoryName.pp nt);
+      raise Bug ("PackageTheoryGraph.getDependency: " ^ Print.toString TheoryName.pp nt);
 
 local
   fun add dependency (nt,acc) =
@@ -689,7 +689,7 @@ fun insertDependency (Dependency dmap) (nt,nts) =
     let
 (*OpenTheoryDebug
       val () = if not (TheoryNameMap.inDomain nt dmap) then ()
-               else raise Bug "PackageDag.insertDependency"
+               else raise Bug "PackageTheoryGraph.insertDependency"
 *)
     in
       Dependency (TheoryNameMap.insert dmap (nt,nts))
@@ -699,7 +699,7 @@ fun updateDependency (Dependency dmap) (nt,nts) =
     let
 (*OpenTheoryDebug
       val () = if TheoryNameMap.inDomain nt dmap then ()
-               else raise Bug "PackageDag.updateDependency"
+               else raise Bug "PackageTheoryGraph.updateDependency"
 *)
     in
       Dependency (TheoryNameMap.insert dmap (nt,nts))
@@ -725,7 +725,7 @@ fun addTheoryDependency vanilla definitions visible generate
       val PackageTheory.Theory {name,imports,...} = theory
 
 (*OpenTheoryTrace2
-      val () = Print.trace PackageName.pp "PackageDag.addDependency.name" name
+      val () = Print.trace PackageName.pp "PackageTheoryGraph.addDependency.name" name
 *)
     in
       if PackageTheory.isUnion theory then
@@ -759,7 +759,7 @@ fun addTheoryDependency vanilla definitions visible generate
 
 (*OpenTheoryTrace2
                 val () = Print.trace TheoryName.pp
-                           "PackageDag.addDependency.addVisThy.nt" nt
+                           "PackageTheoryGraph.addDependency.addVisThy.nt" nt
 *)
 
                 val (deps,rewr) =
@@ -857,9 +857,9 @@ fun addTheoryDependency vanilla definitions visible generate
                       in
                         (deps,rewr)
                       end
-                    | Theory.Package {theories,...} =>
+                    | Theory.Package {nested,...} =>
                       let
-                        val main = Theory.mainTheory theories
+                        val main = Theory.mainNested nested
 
                         val deps = getDeps dependency main
                       in
@@ -883,7 +883,7 @@ fun addTheoryDependency vanilla definitions visible generate
 
 (*OpenTheoryTrace2
                 val () = Print.trace TheoryName.pp
-                           "PackageDag.addDependency.addGenThy.nt" nt
+                           "PackageTheoryGraph.addDependency.addGenThy.nt" nt
 *)
 
                 val deps = getDeps dependency thy
@@ -898,7 +898,7 @@ fun addTheoryDependency vanilla definitions visible generate
           val (graph,_,_) = getVanilla vanilla name
 
 (*OpenTheoryTrace2
-          val () = Print.trace TheoryGraph.pp "PackageDag.addDependency.graph" graph
+          val () = Print.trace TheoryGraph.pp "PackageTheoryGraph.addDependency.graph" graph
 *)
 
           val rewr = SymbolTable.inst (getListDefinitions definitions imports)
@@ -924,13 +924,13 @@ fun fromTheoryListDependency vanilla definitions visible generate theories =
 
 (*OpenTheoryTrace2
       val () = Print.trace ppDependency
-                 "PackageDag.fromTheoryListDependency.dependency" dependency
+                 "PackageTheoryGraph.fromTheoryListDependency.dependency" dependency
 *)
     in
       dependency
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.fromTheoryListDependency: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.fromTheoryListDependency: " ^ err);
 *)
 
 local
@@ -965,14 +965,14 @@ in
 
 (*OpenTheoryTrace2
         val () = Print.trace ppDependency
-                   "PackageDag.transitiveClosureDependency.dependency" dependency'
+                   "PackageTheoryGraph.transitiveClosureDependency.dependency" dependency'
 *)
       in
         dependency'
       end
 (*OpenTheoryDebug
       handle Error err =>
-        raise Error ("PackageDag.transitiveClosureDependency: " ^ err);
+        raise Error ("PackageTheoryGraph.transitiveClosureDependency: " ^ err);
 *)
 end;
 
@@ -1025,11 +1025,11 @@ fun addExportableDependency vanilla generate dependency expanded exported
                       List.foldl (addExp stack) (seen,acc) (Theory.imports thy)
                 in
                   case Theory.node thy of
-                    Theory.Package {theories,...} =>
+                    Theory.Package {nested,...} =>
                     let
                       val stack = nt :: stack
 
-                      val main = Theory.mainTheory theories
+                      val main = Theory.mainNested nested
                     in
                       addExp stack (main,(seen,acc))
                     end
@@ -1089,11 +1089,11 @@ fun exportablePlan vanilla generate dependency expanded exported =
                             List.foldl (addExpThy stack) (seen,exp) imps
                       in
                         case Theory.node thy of
-                          Theory.Package {theories,...} =>
+                          Theory.Package {nested,...} =>
                           let
                             val stack = nt :: stack
 
-                            val main = Theory.mainTheory theories
+                            val main = Theory.mainNested nested
                           in
                             addExpThy stack (main,(seen,exp))
                           end
@@ -1177,14 +1177,14 @@ fun addUnionsPlan vanilla dependency expanded exported =
                       in
                         case Theory.node thy of
                           Theory.Article _ => (seen,news,plan)
-                        | Theory.Package {theories,...} =>
+                        | Theory.Package {nested,...} =>
                           if not (TheoryNameSet.member nt expanded) then
                             (seen,news,plan)
                           else
                             let
                               val stack = nt :: stack
 
-                              val main = Theory.mainTheory theories
+                              val main = Theory.mainNested nested
 
                               val (seen,news,plan) =
                                   addThy stack (main,(seen,news,plan))
@@ -1305,14 +1305,14 @@ in
         val plan = mkPlan expanded exported plan
 
 (*OpenTheoryTrace2
-        val () = Print.trace ppPlan "PackageDag.fromTheoryListPlan.plan" plan
+        val () = Print.trace ppPlan "PackageTheoryGraph.fromTheoryListPlan.plan" plan
 *)
       in
         plan
       end
 (*OpenTheoryDebug
       handle Error err =>
-        raise Error ("PackageDag.fromTheoryListPlan: " ^ err);
+        raise Error ("PackageTheoryGraph.fromTheoryListPlan: " ^ err);
 *)
 end;
 
@@ -1323,11 +1323,13 @@ local
 
         val n =
             case Theory.node thy of
-              Theory.Package {theories,...} =>
+              Theory.Package {nested,...} =>
               let
                 fun isT (_,t') = Theory.equal t t'
+
+                val Theory.Nested thys = nested
               in
-                case List.find isT theories of
+                case List.find isT thys of
                   SOME (n,_) => n
                 | NONE => raise Error "mkName.mkSeg: where is t?"
               end
@@ -1429,7 +1431,7 @@ in
     end
 (*OpenTheoryDebug
     handle Error err =>
-      raise Error ("PackageDag.toTheoryListPlan: " ^ err);
+      raise Error ("PackageTheoryGraph.toTheoryListPlan: " ^ err);
 *)
 end;
 
@@ -1439,24 +1441,24 @@ end;
 
 fun unwind theoryInfo =
     let
-      val Theories
-            {importer,
+      val Theory
+            {finder,
              directory,
-             theories,
+             theory,
              vanilla,
              definitions} = theoryInfo
 
       (* Precisely compute dependencies between theory blocks *)
 
-      val theories' = PackageTheory.sortUnion theories
+      val theory' = PackageTheory.sortUnion theory
 
-      val visible = fromListVisible vanilla definitions theories'
+      val visible = fromListVisible vanilla definitions theory'
 
-      val generate = fromTheoryListGenerate vanilla theories'
+      val generate = fromTheoryListGenerate vanilla theory'
 
       val dependency =
           fromTheoryListDependency
-            vanilla definitions visible generate theories'
+            vanilla definitions visible generate theory'
 
       (* Untangle any theory block cycles *)
 
@@ -1469,24 +1471,24 @@ fun unwind theoryInfo =
             | SOME (nt,_) => reportCycleDependency dependency nt
           end
 
-      val plan = fromTheoryListPlan vanilla generate dependency theories
+      val plan = fromTheoryListPlan vanilla generate dependency theory
 
-      val theories = toTheoryListPlan vanilla generate dependency plan
+      val theory = toTheoryListPlan vanilla generate dependency plan
 
 (*OpenTheoryTrace2
       val () =
-          Print.trace PackageTheory.ppList "PackageDag.unwind.theories" theories
+          Print.trace PackageTheory.ppList "PackageTheoryGraph.unwind.theory" theory
 *)
 
       val info =
-          {importer = importer,
+          {finder = finder,
            directory = directory,
-           theories = theories}
+           theory = theory}
     in
       removeDead false info
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageDag.unwind: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.unwind: " ^ err);
 *)
 
 end

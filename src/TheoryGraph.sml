@@ -35,7 +35,7 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun primsList acc thys = List.foldl primsNameThy acc thys
+  fun primsNested acc (Theory.Nested thys) = List.foldl primsNameThy acc thys
 
   and primsNameThy ((_,thy),acc) = primsThy acc thy
 
@@ -46,7 +46,7 @@ local
   and primsNode acc node =
       case node of
         Theory.Article _ => raise Bug "TheoryGraph.primitives: Article"
-      | Theory.Package {theories,...} => primsList acc theories
+      | Theory.Package {nested,...} => primsNested acc nested
       | Theory.Union => acc;
 in
   val addPrimitives = primsThy;
@@ -83,9 +83,9 @@ local
       in
         case node of
           Theory.Article _ => raise Bug "TheoryGraph.visiblePrimitives: Article"
-        | Theory.Package {theories,...} =>
+        | Theory.Package {nested,...} =>
           let
-            val main = Theory.mainTheory theories
+            val main = Theory.mainNested nested
           in
             primsThy (main,(seen,acc))
           end
@@ -209,9 +209,9 @@ fun addRequires sums (thy,req) =
                 in
                   (seqs,req)
                 end
-              | Theory.Package {theories,...} =>
+              | Theory.Package {nested,...} =>
                 let
-                  val main = Theory.mainTheory theories
+                  val main = Theory.mainNested nested
 
                   val req = addRequires sums (main,req)
 
@@ -321,7 +321,8 @@ fun insertEnvironment env (name,thy) =
          imported = imported}
     end;
 
-fun theoriesEnvironment (Environment {imported,...}) = List.rev imported;
+fun nestedEnvironment (Environment {imported,...}) =
+    Theory.Nested (List.rev imported);
 
 fun mainEnvironment (Environment {named,...}) =
     case PackageNameMap.peek named PackageTheory.mainName of
@@ -625,7 +626,7 @@ and importPackageInformation finder graph data =
             {interpretation = interpretation,
              package = namever,
              checksum = chk,
-             theories = theoriesEnvironment env}
+             nested = nestedEnvironment env}
 
       val article = Theory.article (mainEnvironment env)
 

@@ -123,7 +123,7 @@ fun requires info = PackageTag.requires (tags info);
 fun show info = PackageTag.toShow (tags info);
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 fun theory' (Information' {theory = x, ...}) = x;

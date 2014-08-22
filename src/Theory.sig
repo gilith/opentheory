@@ -16,6 +16,8 @@ type theory
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype nested = Nested of (PackageTheory.name * theory) list
+
 datatype node =
     Article of
       {interpretation : Interpretation.interpretation,
@@ -24,7 +26,7 @@ datatype node =
       {interpretation : Interpretation.interpretation,
        package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option,
-       theories : (PackageTheory.name * theory) list}
+       nested : nested}
   | Union
 
 datatype theory' =
@@ -62,17 +64,6 @@ val destPackage : theory -> PackageNameVersion.nameVersion option
 val isPackage : theory -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory graph.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-val existsArticleTheory : (PackageTheory.name * theory) list -> bool
-
-val peekTheory :
-    PackageTheory.name -> (PackageTheory.name * theory) list -> theory option
-
-val mainTheory : (PackageTheory.name * theory) list -> theory
-
-(* ------------------------------------------------------------------------- *)
 (* Union theories.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -81,7 +72,17 @@ val isUnionNode : node -> bool
 val isUnion : theory -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive theories cannot be expanded.                                    *)
+(* Nested theories.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val existsArticleNested : nested -> bool
+
+val peekNested : PackageTheory.name -> nested -> theory option
+
+val mainNested : nested -> theory
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive theory packages cannot be replaced with their contents.         *)
 (* ------------------------------------------------------------------------- *)
 
 val isPrimitiveNode : node -> bool

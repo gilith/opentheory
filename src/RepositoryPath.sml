@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY PATHS                                                   *)
+(* REPOSITORY PATHS                                                          *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectoryPath :> DirectoryPath =
+structure RepositoryPath :> RepositoryPath =
 struct
 
 open Useful;
@@ -13,27 +13,28 @@ open Useful;
 (* ------------------------------------------------------------------------- *)
 
 val configFile = "config"
+and configFileExtension = "txt"
 and deleteDirectory = "delete"
-and directoryDirectory = "opentheory"
 and finishDirectory = "finish"
 and installDirectory = "install"
-and packagesDirectory = "packages"
-and repoArgumentValueSeparator = "="
-and repoQuery = "?"
-and repoSeparator = "/"
-and reposDirectory = "repos"
-and stagingDirectory = "staging"
+and packagesDirectory = "installed"
+and remoteRepositoryArgumentValueSeparator = "="
+and remoteQuery = "?"
+and remoteSeparator = "/"
+and remoteRepositoriesDirectory = "remote"
+and remoteRepositoryDirectory = "opentheory"
+and stagedDirectory = "staged"
 and startDirectory = "start"
 and statusUploadArgument = "upload"
 and uploadDirectory = "upload";
 
 (* ------------------------------------------------------------------------- *)
-(* The directory of a repo.                                                  *)
+(* The repository directory of a remote repository.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkDirectoryUrl {rootUrl} =
+fun mkRepositoryUrl {rootUrl} =
       let
-        val url = rootUrl ^ directoryDirectory ^ repoSeparator
+        val url = rootUrl ^ remoteRepositoryDirectory ^ remoteSeparator
       in
         {url = url}
       end;
@@ -71,7 +72,7 @@ in
 
   fun mkInstalledUrl root =
       let
-        val {url} = mkDirectoryUrl root
+        val {url} = mkRepositoryUrl root
 
         val url = url ^ installedFilename
       in
@@ -92,7 +93,7 @@ fun mkPackagesDirectory {rootDirectory = dir} =
 
 fun mkPackagesUrl root =
     let
-      val {url} = mkDirectoryUrl root
+      val {url} = mkRepositoryUrl root
 
       val url = url ^ packagesDirectory ^ repoSeparator
     in
@@ -129,19 +130,19 @@ fun mkTarballUrl root namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* The package staging directory.                                            *)
+(* The staged packages directory.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkStagingPackagesDirectory {rootDirectory = dir} =
+fun mkStagedPackagesDirectory {rootDirectory = dir} =
     let
-      val directory = OS.Path.joinDirFile {dir = dir, file = stagingDirectory}
+      val directory = OS.Path.joinDirFile {dir = dir, file = stagedDirectory}
     in
       {directory = directory}
     end;
 
-fun mkStagingPackageDirectory root namever =
+fun mkStagedPackageDirectory root namever =
     let
-      val {directory = dir} = mkStagingPackagesDirectory root
+      val {directory = dir} = mkStagedPackagesDirectory root
       and file = PackageNameVersion.toString namever
 
       val directory = OS.Path.joinDirFile {dir = dir, file = file}
@@ -150,12 +151,15 @@ fun mkStagingPackageDirectory root namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* The repos directory.                                                      *)
+(* The remote repositories directory.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 fun mkReposDirectory {rootDirectory = dir} =
     let
-      val directory = OS.Path.joinDirFile {dir = dir, file = reposDirectory}
+      val directory =
+          OS.Path.joinDirFile
+            {dir = dir,
+             file = remoteRepositoriesDirectory}
     in
       {directory = directory}
     end;
@@ -225,8 +229,8 @@ fun mkStatusUploadUrl root token =
       val {rootUrl = url} = root
 
       val url =
-          url ^ repoQuery ^ statusUploadArgument ^
-          repoArgumentValueSeparator ^ Checksum.toString token
+          url ^ remoteQuery ^ statusUploadArgument ^
+          remoteRepositoryArgumentValueSeparator ^ Checksum.toString token
     in
       {url = url}
     end;

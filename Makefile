@@ -148,7 +148,7 @@ SRC = \
   src/Theory.sig src/Theory.sml \
   src/TheoryName.sig src/TheoryName.sml \
   src/TheoryGraph.sig src/TheoryGraph.sml \
-  src/PackageDag.sig src/PackageDag.sml \
+  src/PackageTheoryGraph.sig src/PackageTheoryGraph.sml \
   src/RepositoryChecksums.sig src/RepositoryChecksums.sml \
   src/RepositoryPath.sig src/RepositoryPath.sml \
   src/RepositoryRemote.sig src/RepositoryRemote.sml \

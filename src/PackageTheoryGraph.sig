@@ -1,28 +1,28 @@
 (* ========================================================================= *)
-(* UNWIND MUTUALLY RECURSIVE THEORY PACKAGES                                 *)
+(* UNWIND MUTUALLY RECURSIVE PACKAGE THEORY GRAPHS                           *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature PackageDag =
+signature PackageTheoryGraph =
 sig
 
 (* ------------------------------------------------------------------------- *)
 (* Remove dead theory imports and blocks.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-type theories
+type theory
 
 val mk :
-    {importer : TheoryGraph.importer,
+    {finder : PackageFinder.finder,
      directory : string,
-     theories : PackageTheory.theory list} -> theories
+     theory : PackageTheory.theory list} -> theory
 
-val theories : theories -> PackageTheory.theory list
+val theory : theory -> PackageTheory.theory list
 
 (* ------------------------------------------------------------------------- *)
 (* Unwind mutually recursive theory packages.                                *)
 (* ------------------------------------------------------------------------- *)
 
-val unwind : theories -> theories
+val unwind : theory -> theory
 
 end

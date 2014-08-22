@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY CHECKSUMS                                               *)
+(* REPOSITORY PACKAGE CHECKSUMS                                              *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectoryChecksums :> DirectoryChecksums =
+structure RepositoryChecksums :> RepositoryChecksums =
 struct
 
 open Useful;
@@ -12,7 +12,7 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val fileExtension = "pkg";
+val fileExtension = "txt";
 
 (* ------------------------------------------------------------------------- *)
 (* Checksums filenames.                                                      *)
@@ -159,7 +159,7 @@ fun create {filename} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of package directory checkums.                                     *)
+(* A type of repository package checkums.                                    *)
 (* ------------------------------------------------------------------------- *)
 
 datatype checksumsState =
@@ -169,7 +169,7 @@ datatype checksumsState =
 
 datatype checksums =
     Checksums of
-      {system : DirectorySystem.system,
+      {system : RepositorySystem.system,
        filename : string,
        checksums : checksumsState ref};
 
@@ -183,7 +183,7 @@ fun update chks {url} =
 
       val () = rox := UpToDate
 
-      val {curl = cmd} = DirectorySystem.curl sys
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd = cmd ^ " " ^ url ^ " --output " ^ f
 
@@ -276,7 +276,7 @@ fun add chks (n,c) =
 (*OpenTheoryDebug
       val () =
           case !rox of
-            UpdateFrom _ => raise Bug "DirectoryChecksums.add: UpdateFrom"
+            UpdateFrom _ => raise Bug "RepositoryChecksums.add: UpdateFrom"
           | _ => ()
 *)
 
@@ -285,7 +285,7 @@ fun add chks (n,c) =
             Ready x => rox := Ready (insertPure x (n,c))
           | _ => ()
 
-      val {echo = cmd} = DirectorySystem.echo sys
+      val {echo = cmd} = RepositorySystem.echo sys
 
       val cmd =
           cmd ^ " \"" ^ PackageNameVersion.toString n ^ " " ^
@@ -314,7 +314,7 @@ fun delete chks n =
             val Checksums {system = _, filename = _, checksums = rox} = chks
           in
             case !rox of
-              UpdateFrom _ => raise Bug "DirectoryChecksums.delete: UpdateFrom"
+              UpdateFrom _ => raise Bug "RepositoryChecksums.delete: UpdateFrom"
             | _ => ()
           end
 *)

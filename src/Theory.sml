@@ -33,8 +33,10 @@ and node =
       {interpretation : Interpretation.interpretation,
        package : PackageNameVersion.nameVersion,
        checksum : Checksum.checksum option,
-       theories : (PackageTheory.name * theory) list}
-  | Union;
+       nested : nested}
+  | Union
+
+and nested = Nested of (PackageTheory.name * theory) list;
 
 (* ------------------------------------------------------------------------- *)
 (* Theory IDs.                                                             *)
@@ -134,35 +136,6 @@ fun destPackage thy = destPackageNode (node thy);
 fun isPackage thy = Option.isSome (destPackage thy);
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory graph.                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-fun isArticleTheory (_ : PackageTheory.name, thy) = isArticle thy;
-
-fun existsArticleTheory theories = List.exists isArticleTheory theories;
-
-fun peekTheory name theories =
-    case List.filter (PackageName.equal name o fst) theories of
-      [] => NONE
-    | [(_,thy)] => SOME thy
-    | _ :: _ :: _ =>
-      let
-        val err =
-            "Theory.peekTheory: multiple " ^
-            PackageName.toString name ^ " theories"
-      in
-        raise Error err
-      end;
-
-fun isMainTheory (name, _ : theory) = PackageTheory.isMainName name;
-
-fun mainTheory theories =
-    case List.filter isMainTheory theories of
-      [] => raise Error "Theory.mainTheory: no main theory"
-    | [(_,thy)] => thy
-    | _ :: _ :: _ => raise Error "Theory.mainTheory: multiple main theories";
-
-(* ------------------------------------------------------------------------- *)
 (* Union theories.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -174,13 +147,49 @@ fun isUnionNode node =
 fun isUnion thy = isUnionNode (node thy);
 
 (* ------------------------------------------------------------------------- *)
-(* Primitive theories cannot be expanded.                                    *)
+(* Nested theories.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val existsArticleNested =
+    let
+      fun isArt (_ : PackageTheory.name, thy) = isArticle thy
+    in
+      fn Nested thys => List.exists isArt thys
+    end;
+
+fun peekNested name (Nested thys) =
+    case List.filter (PackageName.equal name o fst) thys of
+      [] => NONE
+    | [(_,thy)] => SOME thy
+    | _ :: _ :: _ =>
+      let
+        val err =
+            "Theory.peekNested: multiple " ^
+            PackageName.toString name ^ " theories"
+      in
+        raise Error err
+      end;
+
+val mainNested =
+    let
+      fun isMain (name, _ : theory) = PackageTheory.isMainName name
+    in
+      fn Nested thys =>
+         case List.filter isMain thys of
+           [] => raise Error "Theory.mainNested: no main nested theory"
+         | [(_,thy)] => thy
+         | _ :: _ :: _ =>
+           raise Error "Theory.mainNested: multiple main nested theories"
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Primitive theory packages cannot be replaced with their contents.         *)
 (* ------------------------------------------------------------------------- *)
 
 fun isPrimitiveNode node =
     case node of
       Article _ => true
-    | Package {theories,...} => existsArticleTheory theories
+    | Package {nested,...} => existsArticleNested nested
     | Union => false;
 
 fun isPrimitive thy = isPrimitiveNode (node thy);

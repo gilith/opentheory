@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY CHECKSUMS                                               *)
+(* REPOSITORY PACKAGE CHECKSUMS                                              *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectoryChecksums =
+signature RepositoryChecksums =
 sig
 
 (* ------------------------------------------------------------------------- *)
@@ -23,7 +23,7 @@ val isFilename : {filename : string} -> bool
 val create : {filename : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* A type of package directory checkums.                                     *)
+(* A type of repository package checkums.                                    *)
 (* ------------------------------------------------------------------------- *)
 
 type checksums
@@ -33,7 +33,7 @@ type checksums
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {system : DirectorySystem.system,
+    {system : RepositorySystem.system,
      filename : string,
      updateFrom : {url : string} option} -> checksums
 
@@ -74,7 +74,7 @@ val add :
 val delete : checksums -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Updating the package list.                                                *)
+(* Updating the package checksums from a remote repository.                  *)
 (* ------------------------------------------------------------------------- *)
 
 val update : checksums -> {url : string} -> unit
