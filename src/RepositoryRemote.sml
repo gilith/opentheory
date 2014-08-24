@@ -1,25 +1,25 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY REPOSITORIES                                            *)
+(* REMOTE REPOSITORIES                                                       *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectoryRepo :> DirectoryRepo =
+structure RepositoryRemote :> RepositoryRemote =
 struct
 
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of repos.                                                          *)
+(* A type of remote repositories.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 type name = PackageName.name;
 
 datatype repo =
     Repo of
-      {system : DirectorySystem.system,
+      {system : RepositorySystem.system,
        name : name,
        rootUrl : string,
-       checksums : DirectoryChecksums.checksums};
+       checksums : RepositoryChecksums.checksums};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -30,13 +30,14 @@ fun mk {system = sys, name, rootDirectory = rootDir, rootUrl, upToDate} =
       val checksums =
           let
             val {filename} =
-                DirectoryPath.mkRepoFilename {rootDirectory = rootDir} name
+                RepositoryPath.mkRemoteRepositoryChecksumsFilename
+                  {rootDirectory = rootDir} name
 
             val updateFrom =
                 if upToDate then NONE
-                else SOME (DirectoryPath.mkInstalledUrl {rootUrl = rootUrl})
+                else SOME (RepositoryPath.mkInstalledUrl {rootUrl = rootUrl})
           in
-            DirectoryChecksums.mk
+            RepositoryChecksums.mk
               {system = sys,
                filename = filename,
                updateFrom = updateFrom}
@@ -73,36 +74,36 @@ val toString = Print.toString pp;
 (* ------------------------------------------------------------------------- *)
 
 fun installedUrl repo =
-    DirectoryPath.mkInstalledUrl (rootUrl repo);
+    RepositoryPath.mkInstalledUrl (rootUrl repo);
 
-fun tarballUrl repo n =
-    DirectoryPath.mkTarballUrl (rootUrl repo) n;
+fun tarballUrl repo nv =
+    RepositoryPath.mkTarballUrl (rootUrl repo) nv;
 
 fun uploadUrl repo =
-    DirectoryPath.mkUploadUrl (rootUrl repo);
+    RepositoryPath.mkUploadUrl (rootUrl repo);
 
 fun startUploadUrl repo =
-    DirectoryPath.mkStartUploadUrl (rootUrl repo);
+    RepositoryPath.mkStartUploadUrl (rootUrl repo);
 
 fun installUploadUrl repo =
-    DirectoryPath.mkInstallUploadUrl (rootUrl repo);
+    RepositoryPath.mkInstallUploadUrl (rootUrl repo);
 
 fun finishUploadUrl repo =
-    DirectoryPath.mkFinishUploadUrl (rootUrl repo);
+    RepositoryPath.mkFinishUploadUrl (rootUrl repo);
 
 fun deleteUploadUrl repo =
-    DirectoryPath.mkDeleteUploadUrl (rootUrl repo);
+    RepositoryPath.mkDeleteUploadUrl (rootUrl repo);
 
-fun statusUploadUrl repo token =
-    DirectoryPath.mkStatusUploadUrl (rootUrl repo) token;
+fun uploadStatusUrl repo token =
+    RepositoryPath.mkUploadStatusUrl (rootUrl repo) token;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun peek repo n = DirectoryChecksums.peek (checksums repo) n;
+fun peek repo n = RepositoryChecksums.peek (checksums repo) n;
 
-fun member n repo = DirectoryChecksums.member n (checksums repo);
+fun member n repo = RepositoryChecksums.member n (checksums repo);
 
 fun first repos n =
     let
@@ -129,10 +130,10 @@ fun find repos (n,c) =
 (* ------------------------------------------------------------------------- *)
 
 fun previousNameVersion repo nv =
-    DirectoryChecksums.previousNameVersion (checksums repo) nv;
+    RepositoryChecksums.previousNameVersion (checksums repo) nv;
 
 fun latestNameVersion repo n =
-    DirectoryChecksums.latestNameVersion (checksums repo) n;
+    RepositoryChecksums.latestNameVersion (checksums repo) n;
 
 fun latestNameVersionList repos name chk' =
     let
@@ -170,7 +171,7 @@ fun latestNameVersionList repos name chk' =
 (* ------------------------------------------------------------------------- *)
 
 fun update repo =
-    DirectoryChecksums.update (checksums repo) (installedUrl repo);
+    RepositoryChecksums.update (checksums repo) (installedUrl repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)
@@ -307,7 +308,7 @@ fun startUpload repo =
 
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {curl = cmd} = DirectorySystem.curl sys
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd =
           cmd ^ " " ^ url ^
@@ -351,7 +352,7 @@ fun supportUpload upl namever chk =
 
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {curl = cmd} = DirectorySystem.curl sys
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd =
           cmd ^ " " ^ url ^
@@ -456,7 +457,7 @@ fun finishUpload upl =
 
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {curl = cmd} = DirectorySystem.curl sys
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd =
           cmd ^ " " ^ url ^
@@ -510,7 +511,7 @@ fun deleteUpload upl =
 
       val tmpFile = OS.FileSys.tmpName ()
 
-      val {curl = cmd} = DirectorySystem.curl sys
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd =
           cmd ^ " " ^ url ^

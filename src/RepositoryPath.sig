@@ -55,7 +55,7 @@ val mkStagedPackageDirectory :
 val mkRemoteRepositoriesDirectory :
     {rootDirectory : string} -> {directory : string}
 
-val mkRemoteRepositoryFilename :
+val mkRemoteRepositoryChecksumsFilename :
     {rootDirectory : string} -> PackageName.name -> {filename : string}
 
 (* ------------------------------------------------------------------------- *)
@@ -72,7 +72,7 @@ val mkFinishUploadUrl : {rootUrl : string} -> {url : string}
 
 val mkDeleteUploadUrl : {rootUrl : string} -> {url : string}
 
-val mkStatusUploadUrl :
+val mkUploadStatusUrl :
     {rootUrl : string} -> Checksum.checksum -> {url : string}
 
 end

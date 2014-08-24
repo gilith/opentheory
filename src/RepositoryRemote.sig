@@ -1,13 +1,13 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY REPOSITORIES                                            *)
+(* REMOTE REPOSITORIES                                                       *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectoryRepo =
+signature RepositoryRemote =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of repos.                                                          *)
+(* A type of remote repositories.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 type name = PackageName.name
@@ -19,7 +19,7 @@ type repo
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {system : DirectorySystem.system,
+    {system : RepositorySystem.system,
      name : name,
      rootDirectory : string,
      rootUrl : string,
@@ -71,7 +71,7 @@ val update : repo -> unit
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val download : repo -> PackageInfo.info -> unit
+val download : repo -> Package.package -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages.                                                       *)
@@ -84,7 +84,7 @@ val startUpload : repo -> upload
 val supportUpload :
     upload -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
 
-val packageUpload : upload -> PackageInfo.info -> Checksum.checksum -> unit
+val packageUpload : upload -> Package.package -> Checksum.checksum -> unit
 
 val finishUpload : upload -> unit
 
