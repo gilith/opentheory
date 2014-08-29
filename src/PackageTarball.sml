@@ -176,6 +176,52 @@ fun createChecksum sys {filename = tarFile} =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Packing a tarball.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun joinTarFiles {filename} files =
+    let
+      val {dir = pkgDir, file = tarFile} = OS.Path.splitDirFile filename
+
+      val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile pkgDir
+
+      fun joinDir {filename} = OS.Path.concat (pkgDir,filename)
+
+      val tarFile = joinDir {filename = tarFile}
+
+      val files = List.map joinDir files
+    in
+      ({directory = baseDir}, join " " (tarFile :: files))
+    end;
+
+fun packTarball sys tar files =
+    let
+      val ({directory = baseDir}, tarFiles) = joinTarFiles tar files
+
+      val {tar} = RepositorySystem.tar sys
+
+      val cmd = tar ^ " czf " ^ tarFiles
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+      val workingDir = OS.FileSys.getDir ()
+    in
+      let
+        val () = OS.FileSys.chDir baseDir
+
+        val () =
+            if OS.Process.isSuccess (OS.Process.system cmd) then ()
+            else raise Error "creating tarball failed"
+
+        val () = OS.FileSys.chDir workingDir
+      in
+        ()
+      end
+      handle e => let val () = OS.FileSys.chDir workingDir in raise e end
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Copying a tarball.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -207,26 +253,162 @@ fun copyTarball sys {filename = src} {filename = dest} =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Downloading a package tarball.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+fun downloadTarball sys {url} {filename} =
+    let
+      val {curl} = RepositorySystem.curl sys
+
+      val cmd = curl ^ " " ^ url ^ " --output " ^ filename
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
+
+      val () =
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "downloading the package tarball failed"
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Unpacking a tarball.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun extractTarball sys tar files =
+    if List.null files then ()
+    else
+      let
+        val ({directory = baseDir}, tarFiles) = joinTarFiles tar files
+
+        val {tar} = RepositorySystem.tar sys
+
+        val cmd = tar ^ " xzf " ^ tarFiles
+
+(*OpenTheoryTrace1
+        val () = trace (cmd ^ "\n")
+*)
+        val workingDir = OS.FileSys.getDir ()
+      in
+        let
+          val () = OS.FileSys.chDir baseDir
+
+          val () =
+              if OS.Process.isSuccess (OS.Process.system cmd) then ()
+              else raise Error "unpacking tarball failed"
+
+          val () = OS.FileSys.chDir workingDir
+        in
+          ()
+        end
+        handle e => let val () = OS.FileSys.chDir workingDir in raise e end
+      end;
+
+fun unpackTarball sys tar cnt {minimal} =
+    let
+      val PackageTarball.Contents
+            {nameVersion = nv, theoryFile, otherFiles} = cnt
+
+      val () =
+          if PackageNameVersion.equal (nameVersion pkg) nv then ()
+          else raise Error "package tarball has unexpected contents"
+
+      val () = extractTarball pkg [theoryFile]
+
+      val arts = articleFiles pkg
+
+      val exts = List.map PackageExtra.filename (extraFiles pkg)
+
+      val () =
+          let
+            fun add ({filename},set) = StringSet.add set filename
+
+            val filel = arts @ exts
+
+            val files = List.foldl add StringSet.empty filel
+
+            val () =
+                if length filel = StringSet.size files then ()
+                else raise Error "filename clash in package"
+
+            val files' = List.foldl add StringSet.empty otherFiles
+
+            val () =
+                if StringSet.subset files files' then ()
+                else raise Error "extra files in tarball"
+
+            val () =
+                if StringSet.subset files' files then ()
+                else raise Error "missing package files in tarball"
+          in
+            ()
+          end
+
+      val files = if minimal then arts else arts @ exts
+
+      val () = extractTarball pkg files
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of package tarball.                                                *)
 (* ------------------------------------------------------------------------- *)
 
 datatype tarball =
     Tarball of
       {system : RepositorySystem.system,
+       nameVersion : PackageNameVersion.nameVersion,
        filename : string,
        contents : contents option ref,
        checksum : Checksum.checksum option ref};
 
-fun mk {system,filename} =
+fun invalidateContents tar =
     let
-      val contents = ref NONE
-      and checksum = ref NONE
+      val Tarball {contents = cntr, ...} = tar
+
+      val () = cntr := NONE
+    in
+      ()
+    end;
+
+fun invalidateChecksum tar =
+    let
+      val Tarball {checksum = chkr, ...} = tar
+
+      val () = chkr := NONE
+    in
+      ()
+    end;
+
+fun invalidate tar =
+    let
+      val () = invalidateContents tar
+      and () = invalidateChecksum tar
+    in
+      ()
+    end;
+
+fun mk {system,nameVersion,checksum,directory} =
+    let
+      val filename =
+          let
+            val {filename} = PackageTarball.mkFilename nameVersion;
+          in
+            OS.Path.concat (directory,filename)
+          end
+
+      val cntr = ref NONE
+      and chkr = ref checksum
     in
       Tarball
         {system = system,
+         nameVersion = nameVersion,
          filename = filename,
-         contents = contents,
-         checksum = checksum}
+         contents = cntr,
+         checksum = chkr}
     end;
 
 fun filename (Tarball {filename = x, ...}) = {filename = x};
@@ -240,6 +422,12 @@ fun contents tar =
       | NONE =>
         let
           val cnt = listContents sys {filename = filename}
+
+          val Contents {nameVersion = nv, ...} = cnt
+
+          val () =
+              if PackageNameVersion.equal nv nameVersion then ()
+              else raise Error "package tarball has unexpected contents"
 
           val () = cntr := SOME cnt
         in
@@ -263,21 +451,48 @@ fun checksum tar =
         end
     end;
 
-fun copy tar {filename = dest} =
+fun pack tar files =
     let
-      val Tarball
-            {system = sys,
-             filename = src,
-             contents = ref cnt,
-             checksum = ref chk} = tar
+      val Tarball {system = sys, filename, ...} = tar
+
+      val () = invalidate tar
+
+      val () = packTarball sys {filename = filename} files
+    in
+      ()
+    end;
+
+fun copy tar {filename = src} =
+    let
+      val Tarball {system = sys, filename = dest, ...} = tar
+
+      val () = invalidate tar
 
       val () = copyTarball sys {filename = src} {filename = dest}
     in
-      Tarball
-        {system = sys,
-         filename = dest,
-         contents = ref cnt,
-         checksum = ref chk}
+      ()
+    end;
+
+fun download tar url =
+    let
+      val Tarball {system = sys, filename, ...} = tar
+
+      val () = invalidate tar
+
+      val () = downloadTarball sys url {filename = filename}
+    in
+      ()
+    end;
+
+fun unpack tar minimal =
+    let
+      val Tarball {system = sys, filename, nameVersion, ...} = tar
+
+      val cnts = contents tar
+
+      val () = unpackTarball sys {filename = filename} minimal
+    in
+      ()
     end;
 
 end

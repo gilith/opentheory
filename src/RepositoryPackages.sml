@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* INSTALLED PACKAGE DIRECTORY                                               *)
+(* REPOSITORY INSTALLED PACKAGES                                             *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
@@ -918,7 +918,7 @@ end;
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun add pkgs info chk =
+fun add pkgs pkg =
     let
       val Packages
             {system = _,
@@ -927,10 +927,12 @@ fun add pkgs info chk =
              dependency = _,
              checksums = chks} = pkgs
 
+      val chk = 
+
       val () =
           case !rop of
             NONE => ()
-          | SOME p => rop := SOME (addPurePackages p info)
+          | SOME p => rop := SOME (addPurePackages p pkg)
 
       val () =
           let

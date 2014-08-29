@@ -22,7 +22,10 @@ val isFilename : {filename : string} -> bool
 
 type tarball
 
-val mk : {system : RepositorySystem.system, filename : string} -> tarball
+val mk :
+    {system : RepositorySystem.system,
+     filename : string,
+     checksum : Checksum.checksum option} -> tarball
 
 val filename : tarball -> {filename : string}
 
@@ -45,9 +48,27 @@ val contents : tarball -> contents
 val checksum : tarball -> Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)
+(* Packing a tarball.                                                        *)
+(* ------------------------------------------------------------------------- *)
+
+val pack : tarball -> {filename : string} list -> unit
+
+(* ------------------------------------------------------------------------- *)
 (* Copying a tarball.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val copy : tarball -> {filename : string} -> tarball
+val copy : tarball -> {filename : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Downloading a package tarball.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val download : tarball -> {url : string} -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Unpacking a tarball.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val unpack : tarball -> {minimal : bool} -> unit
 
 end

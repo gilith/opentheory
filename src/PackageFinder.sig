@@ -18,7 +18,7 @@ type finder
 
 val mk :
     (PackageNameVersion.nameVersion -> Checksum.checksum option ->
-     (Package.package * Checksum.checksum) option) -> finder
+     Package.package option) -> finder
 
 (* ------------------------------------------------------------------------- *)
 (* Finding packages.                                                         *)
@@ -27,12 +27,12 @@ val mk :
 val find :
     finder ->
     PackageNameVersion.nameVersion -> Checksum.checksum option ->
-    (Package.package * Checksum.checksum) option
+    Package.package option
 
 val get :
     finder ->
     PackageNameVersion.nameVersion -> Checksum.checksum option ->
-    Package.package * Checksum.checksum
+    Package.package
 
 val check :
     finder ->

@@ -15,6 +15,7 @@ type package
 val mk :
     {system : RepositorySystem.system,
      nameVersion : PackageNameVersion.nameVersion,
+     checksum : Checksum.checksum option,
      directory : string} -> package
 
 (* ------------------------------------------------------------------------- *)
@@ -117,17 +118,15 @@ val emptyTheory : package -> bool
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val tarballFile : package -> {filename : string}
-
 val tarball : package -> PackageTarball.tarball
 
 val packTarball : package -> unit
 
-val copyTarball : package -> PackageTarball.tarball -> unit
+val copyTarball : package -> {filename : string} -> unit
 
 val downloadTarball : package -> {url : string} -> unit
 
-val checksumTarball : package -> Checksum.checksum
+val checksum : package -> Checksum.checksum
 
 val contentsTarball : package -> PackageTarball.contents
 

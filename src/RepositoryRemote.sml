@@ -177,9 +177,9 @@ fun update repo =
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun download repo info =
+fun download repo pkg =
     let
-      val nv = PackageInfo.nameVersion info
+      val nv = Package.nameVersion pkg
 
       val chk =
           case peek repo nv of
@@ -195,13 +195,13 @@ fun download repo info =
 
       (* Download the tarball *)
 
-      val () = PackageInfo.downloadTarball info (tarballUrl repo nv)
+      val () = Package.downloadTarball pkg (tarballUrl repo nv)
 
       (* Check the checksum *)
 
       val () =
           let
-            val chk' = PackageInfo.checksumTarball info
+            val chk' = Package.checksumTarball pkg
           in
             if Checksum.equal chk' chk then ()
             else
@@ -227,7 +227,7 @@ datatype upload =
     Upload of
       {repo : repo,
        token : Checksum.checksum,
-       repoName : PackageName.name};
+       repoName : name};
 
 local
   infixr 9 >>++
@@ -405,7 +405,7 @@ fun supportUpload upl namever chk =
         end
     end;
 
-fun packageUpload upl info chk =
+fun packageUpload upl pkg =
     let
       val Upload {repo,token,repoName} = upl
 
@@ -416,11 +416,11 @@ fun packageUpload upl info chk =
       (* Upload the tarball *)
 
       val {response} =
-          PackageInfo.uploadTarball info chk {url = url, token = token}
+          Package.uploadTarball pkg {url = url, token = token}
 
       (* Check the repo response *)
 
-      val namever = PackageInfo.nameVersion info
+      val namever = Package.nameVersion pkg
     in
       case total fromStringPackageUpload response of
         NONE => raise Error ("error response from repo:\n" ^ response)
@@ -557,7 +557,7 @@ fun urlUpload upl =
     let
       val Upload {repo,token,...} = upl
     in
-      statusUploadUrl repo token
+      uploadStatusUrl repo token
     end;
 
 end

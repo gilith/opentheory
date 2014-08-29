@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* INSTALLED PACKAGE DIRECTORY                                               *)
+(* REPOSITORY INSTALLED PACKAGES                                             *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectoryPackages =
+signature RepositoryPackages =
 sig
 
 (* ------------------------------------------------------------------------- *)
@@ -17,7 +17,7 @@ type packages
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {system : DirectorySystem.system,
+    {system : RepositorySystem.system,
      rootDirectory : string} -> packages
 
 val size : packages -> int
@@ -27,9 +27,9 @@ val size : packages -> int
 (* ------------------------------------------------------------------------- *)
 
 val peek :
-    packages -> PackageNameVersion.nameVersion -> PackageInfo.info option
+    packages -> PackageNameVersion.nameVersion -> Package.package option
 
-val get : packages -> PackageNameVersion.nameVersion -> PackageInfo.info
+val get : packages -> PackageNameVersion.nameVersion -> Package.package
 
 val member : PackageNameVersion.nameVersion -> packages -> bool
 
@@ -37,12 +37,10 @@ val checksum :
     packages -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
 (* ------------------------------------------------------------------------- *)
-(* A package finder and importer.                                            *)
+(* A package finder.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 val finder : packages -> PackageFinder.finder
-
-val importer : packages -> TheoryGraph.importer
 
 (* ------------------------------------------------------------------------- *)
 (* Installed package sets.                                                   *)
@@ -124,7 +122,7 @@ val requiresNameVersions :
 
 val requiresPackages :
     packages -> PackageName.name list ->
-    PackageInfo.info list option
+    Package.package list option
 
 val requiresTheorems :
     packages -> PackageName.name list ->
@@ -224,7 +222,7 @@ val upToDateDependencies :
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val add : packages -> PackageInfo.info -> Checksum.checksum -> unit
+val add : packages -> Package.package -> Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Deleting a package.                                                       *)

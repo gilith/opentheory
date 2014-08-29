@@ -84,7 +84,7 @@ val startUpload : repo -> upload
 val supportUpload :
     upload -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
 
-val packageUpload : upload -> Package.package -> Checksum.checksum -> unit
+val packageUpload : upload -> Package.package -> unit
 
 val finishUpload : upload -> unit
 

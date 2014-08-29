@@ -17,11 +17,11 @@ datatype package =
       {system : RepositorySystem.system,
        nameVersion : PackageNameVersion.nameVersion,
        directory : string,
+       tarball : PackageTarball.tarball,
        information : PackageInformation.information option ref,
-       tarball : PackageTarball.tarball option ref,
        theorems : PackageTheorems.theorems option ref};
 
-fun flushInformation pkg =
+fun invalidateInformation pkg =
     let
       val Package {information = info, ...} = pkg
 
@@ -30,16 +30,7 @@ fun flushInformation pkg =
       ()
     end;
 
-fun flushTarball pkg =
-    let
-      val Package {tarball = tarr, ...} = pkg
-
-      val () = tarr := NONE
-    in
-      ()
-    end;
-
-fun flushTheorems pkg =
+fun invalidateTheorems pkg =
     let
       val Package {theorems = thmsr, ...} = pkg
 
@@ -48,28 +39,12 @@ fun flushTheorems pkg =
       ()
     end;
 
-fun flush pkg =
+fun invalidate pkg =
     let
-      val () = flushInformation pkg
-      and () = flushTarball pkg
-      and () = flushTheorems pkg
+      val () = invalidateInformation pkg
+      and () = invalidateTheorems pkg
     in
       ()
-    end;
-
-fun mk {system,nameVersion,directory} =
-    let
-      val information = ref NONE
-      and tarball = ref NONE
-      and theorems = ref NONE
-    in
-      Package
-        {system = system,
-         nameVersion = nameVersion,
-         directory = directory,
-         information = information,
-         tarball = tarball,
-         theorems = theorems}
     end;
 
 fun system (Package {system = x, ...}) = x;
@@ -117,7 +92,7 @@ local
 in
   fun nukeDirectory pkg =
       let
-        val () = flush pkg
+        val () = invalidate pkg
 
         val {directory = dir} = directory pkg
 
@@ -240,103 +215,23 @@ fun emptyTheory pkg = PackageInformation.emptyTheory (information pkg);
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun tarballFile pkg = PackageTarball.mkFilename (nameVersion pkg);
+fun tarball (Package {tarball = x, ...}) = x;
 
-fun tarball pkg =
+fun mkTarball {system,nameVersion,checksum,directory} =
     let
-      val Package {system = sys, tarball = tarr, ...} = pkg
+      val {filename} = PackageTarball.mkFilename nameVersion;
     in
-      case !tarr of
-        SOME tar => tar
-      | NONE =>
-        let
-          val {filename = file} = joinDirectory pkg (tarballFile pkg)
-
-          val tar = PackageTarball.mk {system = sys, filename = file}
-
-          val () = tarr := SOME tar
-        in
-          tar
-        end
+      PackageTarball.mk
+        {system = system,
+         filename = OS.Path.concat (directory,filename),
+         checksum = checksum}
     end;
 
-fun packTarball pkg =
-    let
-      val () = flushTarball pkg
+fun packTarball pkg = PackageTarball.pack (tarball pkg) (allFiles pkg);
 
-      val sys = system pkg
-      and {directory = dir} = directory pkg
+fun copyTarball pkg src = PackageTarball.copy (tarball pkg) src;
 
-      val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
-
-      fun joinDir {filename} =
-          {filename = OS.Path.concat (pkgDir,filename)}
-
-      val {filename = tarFile} = joinDir (tarballFile pkg)
-
-      val pkgFiles = List.map joinDir (allFiles pkg)
-
-      val {tar = cmd} = RepositorySystem.tar sys
-
-      val cmd =
-          cmd ^ " czf " ^ tarFile ^
-          String.concat (List.map (fn {filename = f} => " " ^ f) pkgFiles)
-
-(*OpenTheoryTrace1
-      val () = trace (cmd ^ "\n")
-*)
-
-      val workingDir = OS.FileSys.getDir ()
-    in
-      let
-        val () = OS.FileSys.chDir baseDir
-
-        val () =
-            if OS.Process.isSuccess (OS.Process.system cmd) then ()
-            else raise Error "creating tarball failed"
-
-        val () = OS.FileSys.chDir workingDir
-      in
-        ()
-      end
-      handle e => let val () = OS.FileSys.chDir workingDir in raise e end
-    end;
-
-fun copyTarball pkg tar =
-    let
-      val pkgTarFile = joinDirectory pkg (tarballFile pkg)
-
-      val tar = PackageTarball.copy tar pkgTarFile
-
-      val Package {tarball = tarr, ...} = pkg
-
-      val () = tarr := SOME tar
-    in
-      ()
-    end;
-
-fun downloadTarball pkg {url} =
-    let
-      val () = flushTarball pkg
-
-      val sys = system pkg
-
-      val {filename = f} = joinDirectory pkg (tarballFile pkg)
-
-      val {curl = cmd} = RepositorySystem.curl sys
-
-      val cmd = cmd ^ " " ^ url ^ " --output " ^ f
-
-(*OpenTheoryTrace1
-      val () = trace (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "downloading the package tarball failed"
-    in
-      ()
-    end;
+fun downloadTarball pkg url = PackageTarball.download (tarball pkg) url;
 
 fun checksumTarball pkg = PackageTarball.checksum (tarball pkg);
 
@@ -528,6 +423,27 @@ fun writeDocument pkg doc =
       val {filename} = joinDirectory pkg (documentFile pkg)
     in
       PackageDocument.toHtmlFile {document = doc, filename = filename}
+    end;
+
+fun mk {system,nameVersion,checksum,directory} =
+    let
+      val tarball =
+          mkTarball
+            {system = system,
+             nameVersion = nameVersion,
+             checksum = checksum,
+             directory = directory}
+
+      val information = ref NONE
+      and theorems = ref NONE
+    in
+      Package
+        {system = system,
+         nameVersion = nameVersion,
+         directory = directory,
+         tarball = tarball,
+         information = information,
+         theorems = theorems}
     end;
 
 end
