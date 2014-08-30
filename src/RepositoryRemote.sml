@@ -201,7 +201,7 @@ fun download repo pkg =
 
       val () =
           let
-            val chk' = Package.checksumTarball pkg
+            val chk' = Package.checksum pkg
           in
             if Checksum.equal chk' chk then ()
             else
@@ -415,8 +415,7 @@ fun packageUpload upl pkg =
 
       (* Upload the tarball *)
 
-      val {response} =
-          Package.uploadTarball pkg {url = url, token = token}
+      val {response} = Package.upload pkg {url = url, token = token}
 
       (* Check the repo response *)
 

@@ -3,7 +3,7 @@
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectoryPackages :> DirectoryPackages =
+structure RepositoryPackages :> RepositoryPackages =
 struct
 
 open Useful;
@@ -14,7 +14,7 @@ open Useful;
 
 datatype purePackages =
     PurePackages of
-      {pkgs : PackageInfo.info PackageNameVersionMap.map,
+      {pkgs : Package.package PackageNameVersionMap.map,
        latest : PackageNameVersion.nameVersion PackageNameMap.map};
 
 val emptyPurePackages =
@@ -51,19 +51,19 @@ fun appPurePackages f =
 
 fun foldlPurePackages f =
     let
-      fun f' (_,info,acc) = f (info,acc)
+      fun f' (_,pkg,acc) = f (pkg,acc)
     in
       fn acc => fn PurePackages {pkgs,...} =>
          PackageNameVersionMap.foldl f' acc pkgs
     end;
 
-fun addPurePackages (PurePackages {pkgs,latest}) info =
+fun addPurePackages (PurePackages {pkgs,latest}) pkg =
     let
-      val namever = PackageInfo.nameVersion info
+      val namever = Package.nameVersion pkg
 
       val name = PackageNameVersion.name namever
 
-      val pkgs = PackageNameVersionMap.insert pkgs (namever,info)
+      val pkgs = PackageNameVersionMap.insert pkgs (namever,pkg)
 
       val later =
           case PackageNameMap.peek latest name of
@@ -96,7 +96,7 @@ fun deletePurePackages (PurePackages {pkgs,latest}) namever =
 
       val obsolete =
           case PackageNameMap.peek latest name of
-            NONE => raise Bug "DirectoryPackages.deletePurePackages"
+            NONE => raise Bug "RepositoryPackages.deletePurePackages"
           | SOME nv => not (PackageNameVersion.equal nv namever)
 
       val latest =
@@ -121,12 +121,13 @@ fun packageDependencyPurePackages pkgs dep namever =
       let
         val latest = latestNameVersionPurePackages pkgs
 
-        val info =
+        val pkg =
             case peekPurePackages pkgs namever of
-              SOME i => i
-            | NONE => raise Bug "DirectoryPackages.addDependencyPurePackages"
+              SOME p => p
+            | NONE =>
+              raise Bug "RepositoryPackages.packageDependencyPurePackages"
       in
-        SOME (PackageDependency.addInfo latest dep info)
+        SOME (PackageDependency.add {latest = latest} dep pkg)
       end;
 
 fun completeDependencyPurePackages pkgs dep =
@@ -135,7 +136,7 @@ fun completeDependencyPurePackages pkgs dep =
       let
         val latest = latestNameVersionPurePackages pkgs
 
-        fun add (info,dep) = PackageDependency.addInfo latest dep info
+        fun add (pkg,dep) = PackageDependency.add {latest = latest} dep pkg
       in
         SOME (foldlPurePackages add dep pkgs)
       end;
@@ -145,20 +146,33 @@ fun nameVersionsPurePackages pkgs name =
       (PackageNameVersion.equalName name)
       (toNameVersionSetPurePackages pkgs);
 
-fun fromDirectoryPurePackages sys =
+fun fromDirectoryPurePackages sys chks =
     let
       fun add ({filename},pkgs) =
           let
             val namever =
                 PackageNameVersion.fromString (OS.Path.file filename)
 
-            val info =
-                PackageInfo.mk
+            val chk =
+                case RepositoryChecksums.peek chks namever of
+                  SOME c => c
+                | NONE =>
+                  let
+                    val err =
+                        "package " ^ PackageNameVersion.toString namever ^
+                        " is installed but has no checksum"
+                  in
+                    raise Error err
+                  end
+
+            val pkg =
+                Package.mk
                   {system = sys,
                    nameVersion = namever,
+                   checksum = SOME chk,
                    directory = filename}
           in
-            addPurePackages pkgs info
+            addPurePackages pkgs pkg
           end
     in
       fn dir => List.foldl add emptyPurePackages (readDirectory dir)
@@ -170,11 +184,11 @@ fun fromDirectoryPurePackages sys =
 
 datatype packages =
     Packages of
-      {system : DirectorySystem.system,
+      {system : RepositorySystem.system,
        directory : string,
        packages : purePackages option ref,
        dependency : PackageDependency.dependency ref,
-       checksums : DirectoryChecksums.checksums};
+       checksums : RepositoryChecksums.checksums};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -183,36 +197,43 @@ datatype packages =
 fun mk {system = sys, rootDirectory = rootDir} =
     let
       val {directory} =
-          DirectoryPath.mkPackagesDirectory {rootDirectory = rootDir}
-
-      val packages = ref NONE
-
-      val dependency = ref PackageDependency.empty
+          RepositoryPath.mkPackagesDirectory {rootDirectory = rootDir}
 
       val checksums =
           let
             val {filename} =
-                DirectoryPath.mkInstalledFilename {rootDirectory = rootDir}
+                RepositoryPath.mkInstalledFilename {rootDirectory = rootDir}
           in
-            DirectoryChecksums.mk
+            RepositoryChecksums.mk
               {system = sys,
                filename = filename,
                updateFrom = NONE}
           end
+
+      val packages = ref NONE
+
+      val dependency = ref PackageDependency.empty
     in
       Packages
         {system = sys,
          directory = directory,
+         checksums = checksums,
          packages = packages,
-         dependency = dependency,
-         checksums = checksums}
+         dependency = dependency}
     end;
 
 fun directory (Packages {directory = x, ...}) = {directory = x};
 
+fun checksums (Packages {checksums = x, ...}) = x;
+
 fun packages pkgs =
     let
-      val Packages {system = sys, directory = dir, packages = rox, ...} = pkgs
+      val Packages
+            {system = sys,
+             directory = dir,
+             checksums = chks,
+             packages = rox,
+             ...} = pkgs
 
       val ref ox = rox
     in
@@ -220,7 +241,7 @@ fun packages pkgs =
         SOME x => x
       | NONE =>
         let
-          val x = fromDirectoryPurePackages sys {directory = dir}
+          val x = fromDirectoryPurePackages sys chks {directory = dir}
 
           val () = rox := SOME x
         in
@@ -256,8 +277,6 @@ fun completeDependency pkgs =
         end
     end;
 
-fun checksums (Packages {checksums = x, ...}) = x;
-
 fun size pkgs = sizePurePackages (packages pkgs);
 
 (* ------------------------------------------------------------------------- *)
@@ -269,36 +288,31 @@ fun peek pkgs namever = peekPurePackages (packages pkgs) namever;
 fun get pkgs namever =
     case peek pkgs namever of
       SOME info => info
-    | NONE => raise Error "DirectoryPackages.get";
+    | NONE => raise Error "RepositoryPackages.get";
 
 fun member namever pkgs = memberPurePackages namever (packages pkgs);
 
-fun checksum pkgs namever = DirectoryChecksums.peek (checksums pkgs) namever;
-
 (* ------------------------------------------------------------------------- *)
-(* A package finder and importer.                                            *)
+(* A package finder.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun finder pkgs =
     let
       fun find namever chko =
-          case checksum pkgs namever of
+          case peek pkgs namever of
             NONE => NONE
-          | SOME chk =>
+          | SOME pkg =>
             let
               val match =
                   case chko of
                     NONE => true
-                  | SOME chk' => Checksum.equal chk chk'
+                  | SOME chk => Checksum.equal chk (Package.checksum pkg)
             in
-              if not match then NONE
-              else SOME (get pkgs namever, chk)
+              if match then SOME pkg else NONE
             end
     in
       PackageFinder.mk find
     end;
-
-fun importer pkgs = TheoryGraph.fromFinderImporter (finder pkgs);
 
 (* ------------------------------------------------------------------------- *)
 (* Installed package versions.                                               *)
@@ -366,14 +380,14 @@ fun previousNameVersion pkgs namever =
           else
             let
               val bug =
-                  "DirectoryPackages.previousNameVersion: unknown package"
+                  "RepositoryPackages.previousNameVersion: unknown package"
             in
               raise Bug bug
             end
 *)
       val chks = checksums pkgs
     in
-      case DirectoryChecksums.previousNameVersion chks namever of
+      case RepositoryChecksums.previousNameVersion chks namever of
         SOME (nv,_) => SOME nv
       | NONE => NONE
     end;
@@ -388,11 +402,11 @@ local
 (*OpenTheoryDebug
         val () =
             if member namever pkgs then ()
-            else raise Bug "DirectoryPackages.knownAuthor: unknown package"
+            else raise Bug "RepositoryPackages.knownAuthor: unknown package"
 *)
-        val info = get pkgs namever
+        val pkg = get pkgs namever
 
-        val auth = PackageInfo.author info
+        val auth = Package.author pkg
       in
         PackageAuthorSet.member auth auths
       end;
@@ -411,11 +425,11 @@ fun emptyTheory pkgs namever =
 (*OpenTheoryDebug
       val () =
           if member namever pkgs then ()
-          else raise Bug "DirectoryPackages.emptyTheory: unknown package"
+          else raise Bug "RepositoryPackages.emptyTheory: unknown package"
 *)
-      val info = get pkgs namever
+      val pkg = get pkgs namever
     in
-      PackageInfo.emptyTheory info
+      Package.emptyTheory pkg
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -456,15 +470,15 @@ fun requires pkgs namever =
 
 val requiresNameVersions = warnLatestNameVersionList;
 
-fun requiresPackages dir names =
-    case requiresNameVersions dir names of
+fun requiresPackages pkgs names =
+    case requiresNameVersions pkgs names of
       NONE => NONE
-    | SOME nameverl => SOME (List.map (get dir) nameverl);
+    | SOME nvs => SOME (List.map (get pkgs) nvs);
 
-fun requiresTheorems dir names =
-    case requiresPackages dir names of
+fun requiresTheorems pkgs names =
+    case requiresPackages pkgs names of
       NONE => NONE
-    | SOME infol => SOME (List.map PackageInfo.theorems infol);
+    | SOME ps => SOME (List.map Package.theorems ps);
 
 (* ------------------------------------------------------------------------- *)
 (* Included packages.                                                        *)
@@ -588,7 +602,7 @@ in
       val sups = PackageNameSet.strictPrefixes sups
 
 (*OpenTheoryTrace4
-      val () = Print.trace PackageNameSet.pp "DirectoryPackages.sups" sups
+      val () = Print.trace PackageNameSet.pp "RepositoryPackages.sups" sups
 *)
 
       val subs = addSubsNameSet pkgs sups subs namevers
@@ -629,7 +643,7 @@ val latest = fn pkgs =>
                      PackageNameVersionSet.pp s]
 
               val bug =
-                  "DirectoryPackages.latest: wrong result:\n" ^
+                  "RepositoryPackages.latest: wrong result:\n" ^
                   "  " ^ Print.toString (ppSet "reference") result' ^ "\n" ^
                   "  " ^ Print.toString (ppSet "optimized") result ^ "\n"
             in
@@ -664,11 +678,11 @@ local
             else if PackageNameVersionSet.member nv2 (requires pkgs nv1) then
               "requires"
             else
-              raise Bug "DirectoryPackages.installOrder.ppCycle.verb"
+              raise Bug "RepositoryPackages.installOrder.ppCycle.verb"
 
         fun ppL nvl =
             case nvl of
-              [] => raise Bug "DirectoryPackages.installOrder.ppCycle.ppL"
+              [] => raise Bug "RepositoryPackages.installOrder.ppCycle.ppL"
             | nv :: nvl =>
               PackageNameVersion.pp nv ::
               (case nvl of
@@ -728,7 +742,7 @@ in
               | _ =>
                 case PackageNameVersionSet.postOrder deps scc of
                   PackageNameVersionSet.Linear _ =>
-                  raise Bug "DirectoryPackages.dependencyOrder.proj"
+                  raise Bug "RepositoryPackages.dependencyOrder.proj"
                 | PackageNameVersionSet.Cycle l =>
                   let
                     val err =
@@ -829,7 +843,7 @@ local
                      nameVersion = nv,
                      checksum = NONE}
             in
-              total (TheoryGraph.importPackageName find graph) spec
+              total (TheoryGraph.import find graph) spec
             end
 
         fun process (nv,(graph,thys)) =
@@ -927,7 +941,7 @@ fun add pkgs pkg =
              dependency = _,
              checksums = chks} = pkgs
 
-      val chk = 
+      val chk = Package.checksum pkg
 
       val () =
           case !rop of
@@ -936,9 +950,9 @@ fun add pkgs pkg =
 
       val () =
           let
-            val nv = PackageInfo.nameVersion info
+            val nv = Package.nameVersion pkg
           in
-            DirectoryChecksums.add chks (nv,chk)
+            RepositoryChecksums.add chks nv chk
           end
     in
       ()
@@ -964,7 +978,7 @@ fun delete pkgs namever =
 
       val () = rd := PackageDependency.empty
 
-      val () = DirectoryChecksums.delete chks namever
+      val () = RepositoryChecksums.delete chks namever
     in
       ()
     end;
@@ -975,7 +989,7 @@ fun delete pkgs namever =
 
 local
   fun checkConsistency missing pkgs repo namever =
-      case DirectoryRepo.peek repo namever of
+      case RepositoryRemote.peek repo namever of
         NONE => missing
       | SOME chk =>
         case checksum pkgs namever of
@@ -1006,7 +1020,7 @@ fun earlierThanRepo pkgs repo namever =
       val PackageNameVersion.NameVersion' {name,version} =
           PackageNameVersion.dest namever
     in
-      case DirectoryRepo.latestNameVersion repo name of
+      case RepositoryRemote.latestNameVersion repo name of
         NONE => false
       | SOME (nv,_) =>
         case PackageVersion.compare (version, PackageNameVersion.version nv) of
@@ -1020,7 +1034,7 @@ fun laterThanRepo pkgs repo namever =
       val PackageNameVersion.NameVersion' {name,version} =
           PackageNameVersion.dest namever
     in
-      case DirectoryRepo.latestNameVersion repo name of
+      case RepositoryRemote.latestNameVersion repo name of
         NONE => false
       | SOME (nv,_) =>
         case PackageVersion.compare (version, PackageNameVersion.version nv) of

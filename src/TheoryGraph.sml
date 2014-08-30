@@ -679,17 +679,9 @@ and import finder graph spec =
                  nameVersion = namever,
                  checksum = chk} = spec
 
-          val (pkg,chk) =
-              case PackageFinder.find finder namever chk of
-                SOME pc => pc
-              | NONE =>
-                let
-                  val err =
-                      "couldn't find package " ^
-                      PackageNameVersion.toString namever
-                in
-                  raise Error err
-                end
+          val pkg = PackageFinder.get finder namever chk
+
+          val chk = Package.checksum pkg
 
           val data =
               {imports = imports,

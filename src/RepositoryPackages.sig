@@ -33,9 +33,6 @@ val get : packages -> PackageNameVersion.nameVersion -> Package.package
 
 val member : PackageNameVersion.nameVersion -> packages -> bool
 
-val checksum :
-    packages -> PackageNameVersion.nameVersion -> Checksum.checksum option
-
 (* ------------------------------------------------------------------------- *)
 (* A package finder.                                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -222,7 +219,7 @@ val upToDateDependencies :
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val add : packages -> Package.package -> Checksum.checksum -> unit
+val add : packages -> Package.package -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Deleting a package.                                                       *)
@@ -235,19 +232,15 @@ val delete : packages -> PackageNameVersion.nameVersion -> unit
 (* ------------------------------------------------------------------------- *)
 
 val identicalOnRepo :
-    packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
-    bool
-
-val consistentWithRepo :
-    packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    packages -> RepositoryRemote.repo -> PackageNameVersion.nameVersion ->
     bool
 
 val earlierThanRepo :
-    packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    packages -> RepositoryRemote.repo -> PackageNameVersion.nameVersion ->
     bool
 
 val laterThanRepo :
-    packages -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+    packages -> RepositoryRemote.repo -> PackageNameVersion.nameVersion ->
     bool
 
 (* ------------------------------------------------------------------------- *)

@@ -269,7 +269,7 @@ fun latestNameVersion chks n =
 (* Adding a new package.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun add chks (n,c) =
+fun add chks n c =
     let
       val Checksums {system = sys, filename = f, checksums = rox} = chks
 

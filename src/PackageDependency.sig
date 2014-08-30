@@ -27,7 +27,7 @@ val member : PackageNameVersion.nameVersion -> dependency -> bool
 (* ------------------------------------------------------------------------- *)
 
 val add :
-    (PackageName.name -> PackageNameVersion.nameVersion option) ->
+    {latest : PackageName.name -> PackageNameVersion.nameVersion option} ->
     dependency -> Package.package -> dependency
 
 (* ------------------------------------------------------------------------- *)

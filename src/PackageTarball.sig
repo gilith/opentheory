@@ -24,8 +24,9 @@ type tarball
 
 val mk :
     {system : RepositorySystem.system,
-     filename : string,
-     checksum : Checksum.checksum option} -> tarball
+     nameVersion : PackageNameVersion.nameVersion,
+     checksum : Checksum.checksum option,
+     directory : string} -> tarball
 
 val filename : tarball -> {filename : string}
 
@@ -54,21 +55,27 @@ val checksum : tarball -> Checksum.checksum
 val pack : tarball -> {filename : string} list -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Copying a tarball.                                                        *)
+(* Copying a tarball from a file.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 val copy : tarball -> {filename : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Downloading a package tarball.                                            *)
+(* Downloading a tarball.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 val download : tarball -> {url : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Unpacking a tarball.                                                      *)
+(* Extracting files from a tarball.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val unpack : tarball -> {minimal : bool} -> unit
+val extract : tarball -> {filename : string} list -> unit
+
+(* ------------------------------------------------------------------------- *)
+(* Uploading a tarball.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val upload : tarball -> {url : string, token : string} -> {response : string}
 
 end

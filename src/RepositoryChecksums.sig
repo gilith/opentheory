@@ -65,7 +65,7 @@ val latestNameVersion :
 (* ------------------------------------------------------------------------- *)
 
 val add :
-    checksums -> PackageNameVersion.nameVersion * Checksum.checksum -> unit
+    checksums -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Deleting a package.                                                       *)

@@ -217,83 +217,24 @@ fun emptyTheory pkg = PackageInformation.emptyTheory (information pkg);
 
 fun tarball (Package {tarball = x, ...}) = x;
 
-fun mkTarball {system,nameVersion,checksum,directory} =
-    let
-      val {filename} = PackageTarball.mkFilename nameVersion;
-    in
-      PackageTarball.mk
-        {system = system,
-         filename = OS.Path.concat (directory,filename),
-         checksum = checksum}
-    end;
-
 fun packTarball pkg = PackageTarball.pack (tarball pkg) (allFiles pkg);
 
 fun copyTarball pkg src = PackageTarball.copy (tarball pkg) src;
 
 fun downloadTarball pkg url = PackageTarball.download (tarball pkg) url;
 
-fun checksumTarball pkg = PackageTarball.checksum (tarball pkg);
-
-fun contentsTarball pkg = PackageTarball.contents (tarball pkg);
-
-fun extractTarball pkg files =
-    if List.null files then ()
-    else
-      let
-        val sys = system pkg
-        and {directory = dir} = directory pkg
-
-        val {dir = baseDir, file = pkgDir} = OS.Path.splitDirFile dir
-
-        fun joinDir {filename} =
-            {filename = OS.Path.concat (pkgDir,filename)}
-
-        fun mkArg file =
-            let
-              val {filename} = joinDir file
-            in
-              " " ^ filename
-            end
-
-        val {filename = tarFile} = joinDir (tarballFile pkg)
-
-        val {tar = cmd} = RepositorySystem.tar sys
-
-        val cmd =
-            cmd ^ " xzf " ^ tarFile ^ String.concat (List.map mkArg files)
-
-(*OpenTheoryTrace1
-        val () = trace (cmd ^ "\n")
-*)
-
-        val workingDir = OS.FileSys.getDir ()
-      in
-        let
-          val () = OS.FileSys.chDir baseDir
-
-          val () =
-              if OS.Process.isSuccess (OS.Process.system cmd) then ()
-              else raise Error "unpacking tarball failed"
-
-          val () = OS.FileSys.chDir workingDir
-        in
-          ()
-        end
-        handle e => let val () = OS.FileSys.chDir workingDir in raise e end
-      end;
+fun checksum pkg = PackageTarball.checksum (tarball pkg);
 
 fun unpackTarball pkg {minimal} =
     let
-      val PackageTarball.Contents
-            {nameVersion = nv, theoryFile, otherFiles} =
-          contentsTarball pkg
+      val () = invalidate pkg
 
-      val () =
-          if PackageNameVersion.equal (nameVersion pkg) nv then ()
-          else raise Error "package tarball has unexpected contents"
+      val tar = tarball pkg
 
-      val () = extractTarball pkg [theoryFile]
+      val PackageTarball.Contents {nameVersion = _, theoryFile, otherFiles} =
+          PackageTarball.contents tar
+
+      val () = PackageTarball.extract tar [theoryFile]
 
       val arts = articleFiles pkg
 
@@ -326,48 +267,12 @@ fun unpackTarball pkg {minimal} =
 
       val files = if minimal then arts else arts @ exts
 
-      val () = extractTarball pkg files
+      val () = PackageTarball.extract tar files
     in
       ()
     end;
 
-fun uploadTarball pkg {url,token} =
-    let
-      val sys = system pkg
-
-      val chk = checksumTarball pkg
-
-      val {filename = file} = joinDirectory pkg (tarballFile pkg)
-
-      val tmpFile = OS.FileSys.tmpName ()
-
-      val {curl = cmd} = RepositorySystem.curl sys
-
-      val cmd =
-          cmd ^ " " ^ url ^
-          " --form \"u=" ^ token ^ "\"" ^
-          " --form \"t=@" ^ file ^ "\"" ^
-          " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
-          " --form \"x=upload package\"" ^
-          " --output " ^ tmpFile
-
-(*OpenTheoryTrace1
-      val () = trace (cmd ^ "\n")
-*)
-
-      val () =
-          if OS.Process.isSuccess (OS.Process.system cmd) then ()
-          else raise Error "uploading the package tarball failed"
-
-      val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
-
-      val () = OS.FileSys.remove tmpFile
-
-      val response = chomp (String.concat lines)
-    in
-      if size response = 0 then raise Error "no response from repo"
-      else {response = response}
-    end;
+fun upload pkg url = PackageTarball.upload (tarball pkg) url
 
 (* ------------------------------------------------------------------------- *)
 (* Package theorems.                                                         *)
@@ -428,7 +333,7 @@ fun writeDocument pkg doc =
 fun mk {system,nameVersion,checksum,directory} =
     let
       val tarball =
-          mkTarball
+          PackageTarball.mk
             {system = system,
              nameVersion = nameVersion,
              checksum = checksum,

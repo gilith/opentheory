@@ -222,7 +222,7 @@ fun packTarball sys tar files =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Copying a tarball.                                                        *)
+(* Copying a tarball from a file.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 fun copyTarball sys {filename = src} {filename = dest} =
@@ -253,7 +253,7 @@ fun copyTarball sys {filename = src} {filename = dest} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Downloading a package tarball.                                            *)
+(* Downloading a tarball.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 fun downloadTarball sys {url} {filename} =
@@ -274,7 +274,7 @@ fun downloadTarball sys {url} {filename} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Unpacking a tarball.                                                      *)
+(* Extracting files from a tarball.                                          *)
 (* ------------------------------------------------------------------------- *)
 
 fun extractTarball sys tar files =
@@ -306,51 +306,40 @@ fun extractTarball sys tar files =
         handle e => let val () = OS.FileSys.chDir workingDir in raise e end
       end;
 
-fun unpackTarball sys tar cnt {minimal} =
+(* ------------------------------------------------------------------------- *)
+(* Uploading a tarball.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun uploadTarball sys {filename} chk {url,token} =
     let
-      val PackageTarball.Contents
-            {nameVersion = nv, theoryFile, otherFiles} = cnt
+      val tmpFile = OS.FileSys.tmpName ()
+
+      val {curl} = RepositorySystem.curl sys
+
+      val cmd =
+          curl ^ " " ^ url ^
+          " --form \"u=" ^ token ^ "\"" ^
+          " --form \"t=@" ^ filename ^ "\"" ^
+          " --form \"c=" ^ Checksum.toString chk ^ "\"" ^
+          " --form \"x=upload package\"" ^
+          " --output " ^ tmpFile
+
+(*OpenTheoryTrace1
+      val () = trace (cmd ^ "\n")
+*)
 
       val () =
-          if PackageNameVersion.equal (nameVersion pkg) nv then ()
-          else raise Error "package tarball has unexpected contents"
+          if OS.Process.isSuccess (OS.Process.system cmd) then ()
+          else raise Error "uploading the package tarball failed"
 
-      val () = extractTarball pkg [theoryFile]
+      val lines = Stream.toList (Stream.fromTextFile {filename = tmpFile})
 
-      val arts = articleFiles pkg
+      val () = OS.FileSys.remove tmpFile
 
-      val exts = List.map PackageExtra.filename (extraFiles pkg)
-
-      val () =
-          let
-            fun add ({filename},set) = StringSet.add set filename
-
-            val filel = arts @ exts
-
-            val files = List.foldl add StringSet.empty filel
-
-            val () =
-                if length filel = StringSet.size files then ()
-                else raise Error "filename clash in package"
-
-            val files' = List.foldl add StringSet.empty otherFiles
-
-            val () =
-                if StringSet.subset files files' then ()
-                else raise Error "extra files in tarball"
-
-            val () =
-                if StringSet.subset files' files then ()
-                else raise Error "missing package files in tarball"
-          in
-            ()
-          end
-
-      val files = if minimal then arts else arts @ exts
-
-      val () = extractTarball pkg files
+      val response = chomp (String.concat lines)
     in
-      ()
+      if size response = 0 then raise Error "no response from repo"
+      else {response = response}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -395,7 +384,7 @@ fun mk {system,nameVersion,checksum,directory} =
     let
       val filename =
           let
-            val {filename} = PackageTarball.mkFilename nameVersion;
+            val {filename} = mkFilename nameVersion;
           in
             OS.Path.concat (directory,filename)
           end
@@ -415,7 +404,12 @@ fun filename (Tarball {filename = x, ...}) = {filename = x};
 
 fun contents tar =
     let
-      val Tarball {system = sys, filename, contents = cntr, ...} = tar
+      val Tarball
+        {system = sys,
+         nameVersion = namever,
+         filename,
+         contents = cntr,
+         ...} = tar
     in
       case !cntr of
         SOME cnt => cnt
@@ -426,7 +420,7 @@ fun contents tar =
           val Contents {nameVersion = nv, ...} = cnt
 
           val () =
-              if PackageNameVersion.equal nv nameVersion then ()
+              if PackageNameVersion.equal nv namever then ()
               else raise Error "package tarball has unexpected contents"
 
           val () = cntr := SOME cnt
@@ -484,15 +478,22 @@ fun download tar url =
       ()
     end;
 
-fun unpack tar minimal =
+fun extract tar files =
     let
-      val Tarball {system = sys, filename, nameVersion, ...} = tar
+      val Tarball {system = sys, filename, ...} = tar
 
-      val cnts = contents tar
-
-      val () = unpackTarball sys {filename = filename} minimal
+      val () = extractTarball sys {filename = filename} files
     in
       ()
+    end;
+
+fun upload tar url =
+    let
+      val Tarball {system = sys, filename, ...} = tar
+
+      val chk = checksum tar
+    in
+      uploadTarball sys {filename = filename} chk url
     end;
 
 end

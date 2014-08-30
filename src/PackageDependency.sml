@@ -53,7 +53,7 @@ fun member namever dep = PackageNameVersionSet.member namever (packages dep);
 (* Adding package dependencies.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun add latest dep pkg =
+fun add {latest} dep pkg =
     let
       val namever = Package.nameVersion pkg
     in

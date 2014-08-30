@@ -128,12 +128,9 @@ val downloadTarball : package -> {url : string} -> unit
 
 val checksum : package -> Checksum.checksum
 
-val contentsTarball : package -> PackageTarball.contents
-
 val unpackTarball : package -> {minimal : bool} -> unit
 
-val uploadTarball :
-    package -> {url : string, token : string} -> {response : string}
+val upload : package -> {url : string, token : string} -> {response : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Package theorems.                                                         *)
