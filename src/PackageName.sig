@@ -120,7 +120,7 @@ val installedChecksums : name
 (* Remote repository names.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val gilithRepository : name
+val gilithRemote : name
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell export names.                                                     *)

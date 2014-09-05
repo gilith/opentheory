@@ -1,70 +1,67 @@
 (* ========================================================================= *)
-(* THEORY PACKAGE DIRECTORIES                                                *)
+(* PACKAGE REPOSITORIES                                                      *)
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature Directory =
+signature Repository =
 sig
 
 (* ------------------------------------------------------------------------- *)
 (* Creating a new theory package directory.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val create : {rootDirectory : string, config : DirectoryConfig.config} -> unit
+val create : {rootDirectory : string, config : RepositoryConfig.config} -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package directories.                                     *)
+(* A type of package repositories.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-type directory
+type repository
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val mk : {rootDirectory : string} -> directory
+val mk : {rootDirectory : string} -> repository
 
-val rootDirectory : directory -> {rootDirectory : string}
+val rootDirectory : repository -> {rootDirectory : string}
 
-val config : directory -> DirectoryConfig.config
+val config : repository -> RepositoryConfig.config
 
-val system : directory -> DirectorySystem.system
+val system : repository -> RepositorySystem.system
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up packages in the package directory.                             *)
+(* Looking up packages in the repository.                                    *)
 (* ------------------------------------------------------------------------- *)
 
 val peek :
-    directory -> PackageNameVersion.nameVersion -> PackageInfo.info option
+    repository -> PackageNameVersion.nameVersion -> Package.package option
 
-val get : directory -> PackageNameVersion.nameVersion -> PackageInfo.info
+val get : repository -> PackageNameVersion.nameVersion -> Package.package
 
-val member : PackageNameVersion.nameVersion -> directory -> bool
-
-val checksum :
-    directory -> PackageNameVersion.nameVersion -> Checksum.checksum option
+val member : PackageNameVersion.nameVersion -> repository -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Installed package sets.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val all : directory -> PackageNameVersionSet.set
+val all : repository -> PackageNameVersionSet.set
 
 val latest :  (* ~Empty (Latest - Subtheories) All *)
-    directory -> PackageNameVersionSet.set
+    repository -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up repos in the package directory.                                *)
+(* Looking up remote repositories known to the repository.                   *)
 (* ------------------------------------------------------------------------- *)
 
-val repos : directory -> DirectoryRepo.repo list
+val repos : repository -> RepositoryRepo.repo list
 
-val peekRepo : directory -> DirectoryRepo.name -> DirectoryRepo.repo option
+val peekRepo : repository -> RepositoryRepo.name -> RepositoryRepo.repo option
 
-val getRepo : directory -> DirectoryRepo.name -> DirectoryRepo.repo
+val getRepo : repository -> RepositoryRepo.name -> RepositoryRepo.repo
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up acceptable licenses in the package directory.                  *)
+(* Looking up licenses acceptable to the repository.                         *)
 (* ------------------------------------------------------------------------- *)
 
 val licenses : directory -> DirectoryConfig.license list

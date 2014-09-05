@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY CONFIG FILE                                             *)
+(* REPOSITORY CONFIG FILE                                                    *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectoryConfig :> DirectoryConfig =
+structure RepositoryConfig :> RepositoryConfig =
 struct
 
 open Useful;
@@ -25,23 +25,23 @@ and licenseSection = "license"
 and minimalInstallKey = "minimal"
 and nameAuthorKey = "name"
 and nameLicenseKey = "name"
-and nameRepoKey = "name"
-and refreshRepoKey = "refresh"
-and repoSection = "repo"
+and nameRemoteKey = "name"
+and refreshRemoteKey = "refresh"
+and remoteSection = "repo"
 and shaSystemKey = "sha"
 and systemSection = "system"
 and tarSystemKey = "tar"
 and urlLicenseKey = "url"
-and urlRepoKey = "url";
+and urlRemoteKey = "url";
 
-(* Repo constants *)
+(* Remote repository constants *)
 
-val gilithRepoName = PackageName.gilithRepo
-and gilithRepoUrl = "http://opentheory.gilith.com/";
+val gilithRemoteName = PackageName.gilithRemote
+and gilithRemoteUrl = "http://opentheory.gilith.com/";
 
-val defaultRepoRefresh = Time.fromSeconds 604800;  (* 1 week *)
+val defaultRemoteRefresh = Time.fromSeconds 604800;  (* 1 week *)
 
-val repoDefaultRepoRefresh = Time.fromSeconds 43200;  (* 12 hours *)
+val remoteDefaultRemoteRefresh = Time.fromSeconds 43200;  (* 12 hours *)
 
 (* License constants *)
 
@@ -57,13 +57,13 @@ and holLightLicenseUrl = licenseUrlDirectory ^ "/" ^ "HOLLight.txt";
 
 val defaultCleanupAuto = SOME (Time.fromSeconds 3600);  (* 1 hour *)
 
-val repoDefaultCleanupAuto = (NONE : Time.time option);
+val remoteDefaultCleanupAuto = (NONE : Time.time option);
 
 (* Install constants *)
 
 val defaultInstallMinimal = false;
 
-val repoDefaultInstallMinimal = true;
+val remoteDefaultInstallMinimal = true;
 
 (* System constants *)
 
@@ -74,12 +74,12 @@ and defaultSystemEcho = "echo"
 and defaultSystemSha = "sha1sum --binary"
 and defaultSystemTar = "tar";
 
-val repoDefaultSystemChmod = defaultSystemChmod
-and repoDefaultSystemCp = defaultSystemCp
-and repoDefaultSystemCurl = defaultSystemCurl
-and repoDefaultSystemEcho = defaultSystemEcho
-and repoDefaultSystemSha = defaultSystemSha
-and repoDefaultSystemTar = defaultSystemTar;
+val remoteDefaultSystemChmod = defaultSystemChmod
+and remoteDefaultSystemCp = defaultSystemCp
+and remoteDefaultSystemCurl = defaultSystemCurl
+and remoteDefaultSystemEcho = defaultSystemEcho
+and remoteDefaultSystemSha = defaultSystemSha
+and remoteDefaultSystemTar = defaultSystemTar;
 
 (* ------------------------------------------------------------------------- *)
 (* Time interval functions.                                                  *)
@@ -267,76 +267,76 @@ end;
 
 val defaultAuthors : PackageAuthor.author list = [];
 
-val repoDefaultAuthors = defaultAuthors;
+val remoteDefaultAuthors = defaultAuthors;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of repo configuration data.                                        *)
+(* A type of remote repository configuration data.                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype repo =
-    Repo of
-      {name : DirectoryRepo.name,
+datatype remote =
+    Remote of
+      {name : RepositoryRemote.name,
        url : string,
        refresh : Time.time};
 
-fun nameRepo (Repo {name = x, ...}) = x;
+fun nameRemote (Remote {name = x, ...}) = x;
 
-fun urlRepo (Repo {url = x, ...}) = {url = x};
+fun urlRemote (Remote {url = x, ...}) = {url = x};
 
-fun refreshRepo (Repo {refresh = x, ...}) = x;
+fun refreshRemote (Remote {refresh = x, ...}) = x;
 
-fun findRepo repos name =
+fun findRemote remotes name =
     let
-      fun pred repo = PackageName.equal name (nameRepo repo)
+      fun pred remote = PackageName.equal name (nameRemote remote)
     in
-      case List.filter pred repos of
+      case List.filter pred remotes of
         [] => NONE
-      | [repo] => SOME repo
+      | [remote] => SOME remote
       | _ :: _ :: _ => raise Bug "multiple repos with the same name"
     end;
 
-fun memberRepo repos name = Option.isSome (findRepo repos name);
+fun memberRemote remotes name = Option.isSome (findRemote remotes name);
 
-fun toSectionRepo repo =
+fun toSectionRemote remote =
     let
-      val Repo {name,url,refresh} = repo
+      val Remote {name,url,refresh} = remote
     in
       Config.Section
-        {name = repoSection,
+        {name = remoteSection,
          keyValues =
            [Config.KeyValue
-              {key = nameRepoKey,
+              {key = nameRemoteKey,
                value = PackageName.toString name},
             Config.KeyValue
-              {key = urlRepoKey,
+              {key = urlRemoteKey,
                value = url},
             Config.KeyValue
-              {key = refreshRepoKey,
+              {key = refreshRemoteKey,
                value = toStringInterval refresh}]}
     end;
 
 local
-  datatype repoSectionState =
-      RepoSectionState of
+  datatype remoteSectionState =
+      RemoteSectionState of
         {name : string option,
          url : string option,
          refresh : string option};
 
-  val initialRepoSectionState =
+  val initialRemoteSectionState =
       let
         val name = NONE
         and url = NONE
         and refresh = NONE
       in
-        RepoSectionState
+        RemoteSectionState
           {name = name,
            url = url,
            refresh = refresh}
       end;
 
-  fun addNameRepoSectionState x state =
+  fun addNameRemoteSectionState x state =
       let
-        val RepoSectionState {name,url,refresh} = state
+        val RemoteSectionState {name,url,refresh} = state
 
         val name =
             case name of
@@ -345,21 +345,21 @@ local
               let
                 val err =
                     "multiple " ^
-                    Config.toStringKey {key = nameRepoKey} ^
+                    Config.toStringKey {key = nameRemoteKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
                 raise Error err
               end
       in
-        RepoSectionState
+        RemoteSectionState
           {name = name,
            url = url,
            refresh = refresh}
       end;
 
-  fun addUrlRepoSectionState x state =
+  fun addUrlRemoteSectionState x state =
       let
-        val RepoSectionState {name,url,refresh} = state
+        val RemoteSectionState {name,url,refresh} = state
 
         val url =
             case url of
@@ -368,21 +368,21 @@ local
               let
                 val err =
                     "multiple " ^
-                    Config.toStringKey {key = urlRepoKey} ^
+                    Config.toStringKey {key = urlRemoteKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
                 raise Error err
               end
       in
-        RepoSectionState
+        RemoteSectionState
           {name = name,
            url = url,
            refresh = refresh}
       end;
 
-  fun addRefreshRepoSectionState x state =
+  fun addRefreshRemoteSectionState x state =
       let
-        val RepoSectionState {name,url,refresh} = state
+        val RemoteSectionState {name,url,refresh} = state
 
         val refresh =
             case refresh of
@@ -391,31 +391,31 @@ local
               let
                 val err =
                     "multiple " ^
-                    Config.toStringKey {key = refreshRepoKey} ^
+                    Config.toStringKey {key = refreshRemoteKey} ^
                     " keys: " ^ x ^ " and " ^ x'
               in
                 raise Error err
               end
       in
-        RepoSectionState
+        RemoteSectionState
           {name = name,
            url = url,
            refresh = refresh}
       end;
 
-  fun processRepoSectionState (kv,state) =
+  fun processRemoteSectionState (kv,state) =
       let
         val Config.KeyValue {key,value} = kv
       in
-        if key = nameRepoKey then addNameRepoSectionState value state
-        else if key = urlRepoKey then addUrlRepoSectionState value state
-        else if key = refreshRepoKey then addRefreshRepoSectionState value state
+        if key = nameRemoteKey then addNameRemoteSectionState value state
+        else if key = urlRemoteKey then addUrlRemoteSectionState value state
+        else if key = refreshRemoteKey then addRefreshRemoteSectionState value state
         else
           let
             val mesg =
                 "unknown key " ^ Config.toStringKey {key = key} ^
                 " in section " ^
-                Config.toStringSectionName {name = repoSection} ^
+                Config.toStringSectionName {name = remoteSection} ^
                 " of config file"
 
             val () = warn mesg
@@ -424,9 +424,9 @@ local
           end
       end;
 
-  fun finalRepoSectionState state =
+  fun finalRemoteSectionState state =
       let
-        val RepoSectionState {name,url,refresh} = state
+        val RemoteSectionState {name,url,refresh} = state
 
         val name =
             case name of
@@ -434,7 +434,7 @@ local
             | NONE =>
               let
                 val err =
-                    "missing " ^ Config.toStringKey {key = nameRepoKey} ^ " key"
+                    "missing " ^ Config.toStringKey {key = nameRemoteKey} ^ " key"
               in
                 raise Error err
               end
@@ -445,7 +445,7 @@ local
             | NONE =>
               let
                 val err =
-                    "missing " ^ Config.toStringKey {key = urlRepoKey} ^ " key"
+                    "missing " ^ Config.toStringKey {key = urlRemoteKey} ^ " key"
               in
                 raise Error err
               end
@@ -453,48 +453,48 @@ local
         val refresh =
             case refresh of
               SOME x => fromStringInterval x
-            | NONE => defaultRepoRefresh
+            | NONE => defaultRemoteRefresh
       in
-        Repo
+        Remote
           {name = name,
            url = url,
            refresh = refresh}
       end;
 in
-  fun fromSectionRepo kvs =
+  fun fromSectionRemote kvs =
       let
-        val state = initialRepoSectionState
+        val state = initialRemoteSectionState
 
-        val state = List.foldl processRepoSectionState state kvs
+        val state = List.foldl processRemoteSectionState state kvs
       in
-        finalRepoSectionState state
+        finalRemoteSectionState state
       end
       handle Error err =>
         let
           val err =
               "in section " ^
-              Config.toStringSectionName {name = repoSection} ^
+              Config.toStringSectionName {name = remoteSection} ^
               " of config file:\n" ^ err
         in
           raise Error err
         end;
 end;
 
-val defaultRepo =
-    Repo
-      {name = gilithRepoName,
-       url = gilithRepoUrl,
-       refresh = defaultRepoRefresh};
+val defaultRemote =
+    Remote
+      {name = gilithRemoteName,
+       url = gilithRemoteUrl,
+       refresh = defaultRemoteRefresh};
 
-val repoDefaultRepo =
-    Repo
-      {name = gilithRepoName,
-       url = gilithRepoUrl,
-       refresh = repoDefaultRepoRefresh};
+val remoteDefaultRemote =
+    Remote
+      {name = gilithRemoteName,
+       url = gilithRemoteUrl,
+       refresh = remoteDefaultRemoteRefresh};
 
-val defaultRepos = [defaultRepo];
+val defaultRemotes = [defaultRemote];
 
-val repoDefaultRepos = [repoDefaultRepo];
+val remoteDefaultRemotes = [remoteDefaultRemote];
 
 (* ------------------------------------------------------------------------- *)
 (* A type of license configuration data.                                     *)
@@ -687,7 +687,7 @@ val defaultLicenses =
     [mitLicense,
      holLightLicense];
 
-val repoDefaultLicenses = defaultLicenses;
+val remoteDefaultLicenses = defaultLicenses;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of cleanup configuration data.                                     *)
@@ -801,9 +801,9 @@ val defaultCleanup =
     Cleanup
       {auto = defaultCleanupAuto};
 
-val repoDefaultCleanup =
+val remoteDefaultCleanup =
     Cleanup
-      {auto = repoDefaultCleanupAuto};
+      {auto = remoteDefaultCleanupAuto};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of install configuration data.                                     *)
@@ -917,9 +917,9 @@ val defaultInstall =
     Install
       {minimal = defaultInstallMinimal};
 
-val repoDefaultInstall =
+val remoteDefaultInstall =
     Install
-      {minimal = repoDefaultInstallMinimal};
+      {minimal = remoteDefaultInstallMinimal};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of system configuration data.                                      *)
@@ -927,7 +927,7 @@ val repoDefaultInstall =
 
 fun toSectionSystem sys =
     let
-      val {chmod,cp,curl,echo,sha,tar} = DirectorySystem.dest sys
+      val {chmod,cp,curl,echo,sha,tar} = RepositorySystem.dest sys
     in
       Config.Section
         {name = systemSection,
@@ -1167,34 +1167,34 @@ local
         val chmod =
             case chmod of
               SOME x => x
-            | NONE => let val {chmod = x} = DirectorySystem.chmod sys in x end
+            | NONE => let val {chmod = x} = RepositorySystem.chmod sys in x end
 
         val cp =
             case cp of
               SOME x => x
-            | NONE => let val {cp = x} = DirectorySystem.cp sys in x end
+            | NONE => let val {cp = x} = RepositorySystem.cp sys in x end
 
         val curl =
             case curl of
               SOME x => x
-            | NONE => let val {curl = x} = DirectorySystem.curl sys in x end
+            | NONE => let val {curl = x} = RepositorySystem.curl sys in x end
 
         val echo =
             case echo of
               SOME x => x
-            | NONE => let val {echo = x} = DirectorySystem.echo sys in x end
+            | NONE => let val {echo = x} = RepositorySystem.echo sys in x end
 
         val sha =
             case sha of
               SOME x => x
-            | NONE => let val {sha = x} = DirectorySystem.sha sys in x end
+            | NONE => let val {sha = x} = RepositorySystem.sha sys in x end
 
         val tar =
             case tar of
               SOME x => x
-            | NONE => let val {tar = x} = DirectorySystem.tar sys in x end
+            | NONE => let val {tar = x} = RepositorySystem.tar sys in x end
       in
-        DirectorySystem.mk
+        RepositorySystem.mk
           {chmod = chmod,
            cp = cp,
            curl = curl,
@@ -1223,7 +1223,7 @@ in
 end;
 
 val defaultSystem =
-    DirectorySystem.mk
+    RepositorySystem.mk
       {chmod = defaultSystemChmod,
        cp = defaultSystemCp,
        curl = defaultSystemCurl,
@@ -1231,14 +1231,14 @@ val defaultSystem =
        sha = defaultSystemSha,
        tar = defaultSystemTar};
 
-val repoDefaultSystem =
-    DirectorySystem.mk
-      {chmod = repoDefaultSystemChmod,
-       cp = repoDefaultSystemCp,
-       curl = repoDefaultSystemCurl,
-       echo = repoDefaultSystemEcho,
-       sha = repoDefaultSystemSha,
-       tar = repoDefaultSystemTar};
+val remoteDefaultSystem =
+    RepositorySystem.mk
+      {chmod = remoteDefaultSystemChmod,
+       cp = remoteDefaultSystemCp,
+       curl = remoteDefaultSystemCurl,
+       echo = remoteDefaultSystemEcho,
+       sha = remoteDefaultSystemSha,
+       tar = remoteDefaultSystemTar};
 
 (* ------------------------------------------------------------------------- *)
 (* A type of configuration data.                                             *)
@@ -1247,11 +1247,11 @@ val repoDefaultSystem =
 datatype config =
     Config of
       {authors : PackageAuthor.author list,
-       repos : repo list,
+       remotes : remote list,
        licenses : license list,
        cleanup : cleanup,
        install : install,
-       system : DirectorySystem.system};
+       system : RepositorySystem.system};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -1260,7 +1260,7 @@ datatype config =
 val empty =
     let
       val authors = []
-      and repos = []
+      and remotes = []
       and licenses = []
       and cleanup = defaultCleanup
       and install = defaultInstall
@@ -1268,7 +1268,7 @@ val empty =
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1277,7 +1277,7 @@ val empty =
 
 fun authors (Config {authors = x, ...}) = x;
 
-fun repos (Config {repos = x, ...}) = x;
+fun remotes (Config {remotes = x, ...}) = x;
 
 fun licenses (Config {licenses = x, ...}) = x;
 
@@ -1295,7 +1295,7 @@ fun addAuthor cfg auth =
     let
       val Config
             {authors,
-             repos,
+             remotes,
              licenses,
              cleanup,
              install,
@@ -1316,18 +1316,18 @@ fun addAuthor cfg auth =
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
          system = system}
     end;
 
-fun addRepo cfg repo =
+fun addRemote cfg remote =
     let
       val Config
             {authors,
-             repos,
+             remotes,
              licenses,
              cleanup,
              install,
@@ -1335,9 +1335,9 @@ fun addRepo cfg repo =
 
       val () =
           let
-            val name = nameRepo repo
+            val name = nameRemote remote
           in
-            if not (memberRepo repos name) then ()
+            if not (memberRemote remotes name) then ()
             else
               let
                 val err =
@@ -1348,11 +1348,11 @@ fun addRepo cfg repo =
               end
           end
 
-      val repos = repos @ [repo]
+      val remotes = remotes @ [remote]
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1363,7 +1363,7 @@ fun addLicense cfg license =
     let
       val Config
             {authors,
-             repos,
+             remotes,
              licenses,
              cleanup,
              install,
@@ -1388,7 +1388,7 @@ fun addLicense cfg license =
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1399,7 +1399,7 @@ fun replaceCleanup cfg cleanup =
     let
       val Config
             {authors,
-             repos,
+             remotes,
              licenses,
              cleanup = _,
              install,
@@ -1407,7 +1407,7 @@ fun replaceCleanup cfg cleanup =
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1418,7 +1418,7 @@ fun replaceInstall cfg install =
     let
       val Config
             {authors,
-             repos,
+             remotes,
              licenses,
              cleanup,
              install = _,
@@ -1426,7 +1426,7 @@ fun replaceInstall cfg install =
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1437,7 +1437,7 @@ fun replaceSystem cfg system =
     let
       val Config
             {authors,
-             repos,
+             remotes,
              licenses,
              cleanup,
              install,
@@ -1445,7 +1445,7 @@ fun replaceSystem cfg system =
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
@@ -1460,7 +1460,7 @@ fun toSections cfg =
     let
       val Config
             {authors,
-             repos,
+             remotes,
              licenses,
              cleanup,
              install,
@@ -1468,7 +1468,7 @@ fun toSections cfg =
 
       val sections =
           List.map toSectionAuthor authors @
-          List.map toSectionRepo repos @
+          List.map toSectionRemote remotes @
           List.map toSectionLicense licenses @
           [toSectionCleanup cleanup] @
           [toSectionInstall install] @
@@ -1494,11 +1494,11 @@ local
           in
             addAuthor cfg auth
           end
-        else if name = repoSection then
+        else if name = remoteSection then
           let
-            val repo = fromSectionRepo keyValues
+            val remote = fromSectionRemote keyValues
           in
-            addRepo cfg repo
+            addRemote cfg remote
           end
         else if name = licenseSection then
           let
@@ -1558,7 +1558,7 @@ in
         fromSections cfg
       end
 (*OpenTheoryDebug
-      handle Error err => raise Bug ("DirectoryConfig.fromTextFile: " ^ err);
+      handle Error err => raise Bug ("RepositoryConfig.fromTextFile: " ^ err);
 *)
 end;
 
@@ -1576,7 +1576,7 @@ fun toTextFile {config,filename} =
 val default =
     let
       val authors = defaultAuthors
-      and repos = defaultRepos
+      and remotes = defaultRemotes
       and licenses = defaultLicenses
       and cleanup = defaultCleanup
       and install = defaultInstall
@@ -1584,25 +1584,25 @@ val default =
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,
          system = system}
     end;
 
-val repoDefault =
+val remoteDefault =
     let
-      val authors = repoDefaultAuthors
-      and repos = repoDefaultRepos
-      and licenses = repoDefaultLicenses
-      and cleanup = repoDefaultCleanup
-      and install = repoDefaultInstall
-      and system = repoDefaultSystem
+      val authors = remoteDefaultAuthors
+      and remotes = remoteDefaultRemotes
+      and licenses = remoteDefaultLicenses
+      and cleanup = remoteDefaultCleanup
+      and install = remoteDefaultInstall
+      and system = remoteDefaultSystem
     in
       Config
         {authors = authors,
-         repos = repos,
+         remotes = remotes,
          licenses = licenses,
          cleanup = cleanup,
          install = install,

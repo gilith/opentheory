@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* THEORY PACKAGE DIRECTORIES                                                *)
+(* PACKAGE REPOSITORIES                                                      *)
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 

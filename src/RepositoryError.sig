@@ -1,24 +1,24 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY OPERATION ERRORS                                        *)
+(* REPOSITORY ERRORS                                                         *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectoryError =
+signature RepositoryError =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of directory operation errors.                                     *)
+(* A type of repository errors.                                              *)
 (* ------------------------------------------------------------------------- *)
 
 datatype error =
-    AncestorNotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
-  | AncestorWrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
+    AncestorNotOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
+  | AncestorWrongChecksumOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
   | AlreadyInstalled of
       PackageNameVersion.nameVersion
-  | AlreadyOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
+  | AlreadyOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
   | AlreadyStaged of
       PackageNameVersion.nameVersion
   | FilenameClash of
@@ -30,8 +30,8 @@ datatype error =
       (PackageNameVersionSet.set * PackageAuthor.author) list
   | NotInstalled of
       PackageNameVersion.nameVersion
-  | NotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
+  | NotOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
   | NotStaged of
       PackageNameVersion.nameVersion
   | NoVersionInstalled of
@@ -48,8 +48,8 @@ datatype error =
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}
-  | WrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
+  | WrongChecksumOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)

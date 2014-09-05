@@ -228,19 +228,15 @@ val add : packages -> Package.package -> unit
 val delete : packages -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Comparing packages with repos.                                            *)
+(* Comparing a package with a remote repository.                             *)
 (* ------------------------------------------------------------------------- *)
 
-val identicalOnRepo :
-    packages -> RepositoryRemote.repo -> PackageNameVersion.nameVersion ->
+val identicalOnRemote :
+    packages -> RepositoryRemote.remote -> PackageNameVersion.nameVersion ->
     bool
 
-val earlierThanRepo :
-    packages -> RepositoryRemote.repo -> PackageNameVersion.nameVersion ->
-    bool
-
-val laterThanRepo :
-    packages -> RepositoryRemote.repo -> PackageNameVersion.nameVersion ->
+val consistentWithRemote :
+    packages -> RepositoryRemote.remote -> PackageNameVersion.nameVersion ->
     bool
 
 (* ------------------------------------------------------------------------- *)

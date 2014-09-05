@@ -14,8 +14,8 @@ open Useful;
 
 type name = PackageName.name;
 
-datatype repo =
-    Repo of
+datatype remote =
+    Remote of
       {system : RepositorySystem.system,
        name : name,
        rootUrl : string,
@@ -43,28 +43,28 @@ fun mk {system = sys, name, rootDirectory = rootDir, rootUrl, upToDate} =
                updateFrom = updateFrom}
           end
     in
-      Repo
+      Remote
         {system = sys,
          name = name,
          rootUrl = rootUrl,
          checksums = checksums}
     end;
 
-fun system (Repo {system = x, ...}) = x;
+fun system (Remote {system = x, ...}) = x;
 
-fun name (Repo {name = x, ...}) = x;
+fun name (Remote {name = x, ...}) = x;
 
-fun rootUrl (Repo {rootUrl = x, ...}) = {rootUrl = x};
+fun rootUrl (Remote {rootUrl = x, ...}) = {rootUrl = x};
 
-fun checksums (Repo {checksums = x, ...}) = x;
+fun checksums (Remote {checksums = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun pp repo =
+fun pp remote =
     Print.sequence
-      (PackageName.pp (name repo))
+      (PackageName.pp (name remote))
       (Print.ppString " repo");
 
 val toString = Print.toString pp;
@@ -73,69 +73,69 @@ val toString = Print.toString pp;
 (* Paths.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun installedUrl repo =
-    RepositoryPath.mkInstalledUrl (rootUrl repo);
+fun installedUrl remote =
+    RepositoryPath.mkInstalledUrl (rootUrl remote);
 
-fun tarballUrl repo nv =
-    RepositoryPath.mkTarballUrl (rootUrl repo) nv;
+fun tarballUrl remote nv =
+    RepositoryPath.mkTarballUrl (rootUrl remote) nv;
 
-fun uploadUrl repo =
-    RepositoryPath.mkUploadUrl (rootUrl repo);
+fun uploadUrl remote =
+    RepositoryPath.mkUploadUrl (rootUrl remote);
 
-fun startUploadUrl repo =
-    RepositoryPath.mkStartUploadUrl (rootUrl repo);
+fun startUploadUrl remote =
+    RepositoryPath.mkStartUploadUrl (rootUrl remote);
 
-fun installUploadUrl repo =
-    RepositoryPath.mkInstallUploadUrl (rootUrl repo);
+fun installUploadUrl remote =
+    RepositoryPath.mkInstallUploadUrl (rootUrl remote);
 
-fun finishUploadUrl repo =
-    RepositoryPath.mkFinishUploadUrl (rootUrl repo);
+fun finishUploadUrl remote =
+    RepositoryPath.mkFinishUploadUrl (rootUrl remote);
 
-fun deleteUploadUrl repo =
-    RepositoryPath.mkDeleteUploadUrl (rootUrl repo);
+fun deleteUploadUrl remote =
+    RepositoryPath.mkDeleteUploadUrl (rootUrl remote);
 
-fun uploadStatusUrl repo token =
-    RepositoryPath.mkUploadStatusUrl (rootUrl repo) token;
+fun uploadStatusUrl remote token =
+    RepositoryPath.mkUploadStatusUrl (rootUrl remote) token;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun peek repo n = RepositoryChecksums.peek (checksums repo) n;
+fun peek remote n = RepositoryChecksums.peek (checksums remote) n;
 
-fun member n repo = RepositoryChecksums.member n (checksums repo);
+fun member n remote = RepositoryChecksums.member n (checksums remote);
 
-fun first repos n =
+fun first remotes n =
     let
       fun pk r =
           case peek r n of
             SOME c => SOME (r,c)
           | NONE => NONE
     in
-      Useful.first pk repos
+      Useful.first pk remotes
     end;
 
-fun find repos (n,c) =
+fun find remotes (n,c) =
     let
       fun pred r =
           case peek r n of
             SOME c' => Checksum.equal c' c
           | NONE => false
     in
-      List.find pred repos
+      List.find pred remotes
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun previousNameVersion repo nv =
-    RepositoryChecksums.previousNameVersion (checksums repo) nv;
+fun previousNameVersion remote nv =
+    RepositoryChecksums.previousNameVersion (checksums remote) nv;
 
-fun latestNameVersion repo n =
-    RepositoryChecksums.latestNameVersion (checksums repo) n;
+fun latestNameVersion remote n =
+    RepositoryChecksums.latestNameVersion (checksums remote) n;
 
-fun latestNameVersionList repos name chk' =
+fun latestNameVersionList remotes name chk' =
     let
       fun matches chk =
           case chk' of
@@ -156,46 +156,74 @@ fun latestNameVersionList repos name chk' =
               | GREATER => false
             end
 
-      fun latest (repo,acc) =
-          case latestNameVersion repo name of
+      fun latest (remote,acc) =
+          case latestNameVersion remote name of
             NONE => acc
           | SOME (nv,chk) =>
             if not (matches chk andalso later nv acc) then acc
-            else SOME (repo,nv,chk)
+            else SOME (remote,nv,chk)
     in
-      List.foldl latest NONE repos
+      List.foldl latest NONE remotes
+    end;
+
+fun earlierThanLatestNameVersion remote namever =
+    let
+      val PackageNameVersion.NameVersion' {name,version} =
+          PackageNameVersion.dest namever
+    in
+      case latestNameVersion remote name of
+        NONE => false
+      | SOME (nv,_) =>
+        case PackageVersion.compare (version, PackageNameVersion.version nv) of
+          LESS => true
+        | EQUAL => false
+        | GREATER => false
+    end;
+
+fun laterThanLatestNameVersion remote namever =
+    let
+      val PackageNameVersion.NameVersion' {name,version} =
+          PackageNameVersion.dest namever
+    in
+      case latestNameVersion remote name of
+        NONE => false
+      | SOME (nv,_) =>
+        case PackageVersion.compare (version, PackageNameVersion.version nv) of
+          LESS => false
+        | EQUAL => false
+        | GREATER => true
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun update repo =
-    RepositoryChecksums.update (checksums repo) (installedUrl repo);
+fun update remote =
+    RepositoryChecksums.update (checksums remote) (installedUrl remote);
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun download repo pkg =
+fun download remote pkg =
     let
       val nv = Package.nameVersion pkg
 
       val chk =
-          case peek repo nv of
+          case peek remote nv of
             SOME c => c
           | NONE =>
             let
               val err =
                   "package " ^ PackageNameVersion.toString nv ^
-                  " does not exist on " ^ toString repo
+                  " does not exist on " ^ toString remote
             in
               raise Error err
             end
 
       (* Download the tarball *)
 
-      val () = Package.downloadTarball pkg (tarballUrl repo nv)
+      val () = Package.downloadTarball pkg (tarballUrl remote nv)
 
       (* Check the checksum *)
 
@@ -209,7 +237,7 @@ fun download repo pkg =
                 val err =
                     "tarball for package " ^
                     PackageNameVersion.toString nv ^
-                    " downloaded from " ^ toString repo ^
+                    " downloaded from " ^ toString remote ^
                     " has the wrong checksum"
               in
                 raise Error err
@@ -225,9 +253,9 @@ fun download repo pkg =
 
 datatype upload =
     Upload of
-      {repo : repo,
+      {remote : remote,
        token : Checksum.checksum,
-       repoName : name};
+       remoteName : name};
 
 local
   infixr 9 >>++
@@ -237,7 +265,7 @@ local
 
   open Parse;
 
-  val repoNameParser =
+  val remoteNameParser =
       (PackageName.parser ++
        exactString " repo: ") >> fst;
 
@@ -260,23 +288,23 @@ local
       exactString "successfully deleted package upload";
 in
   val parserStartUpload =
-      (repoNameParser ++
+      (remoteNameParser ++
        newUploadParser);
 
   val parserSupportUpload =
-      (repoNameParser ++
+      (remoteNameParser ++
        supportUploadParser);
 
   val parserPackageUpload =
-      (repoNameParser ++
+      (remoteNameParser ++
        packageUploadParser);
 
   val parserFinishUpload =
-      (repoNameParser ++
+      (remoteNameParser ++
        finishUploadParser) >> fst;
 
   val parserDeleteUpload =
-      (repoNameParser ++
+      (remoteNameParser ++
        deleteUploadParser) >> fst;
 end;
 
@@ -300,11 +328,11 @@ fun fromStringDeleteUpload s =
     Parse.fromString parserDeleteUpload s
     handle Parse.NoParse => raise Error "fromStringDeleteUpload";
 
-fun startUpload repo =
+fun startUpload remote =
     let
-      val sys = system repo
+      val sys = system remote
 
-      val {url} = startUploadUrl repo
+      val {url} = startUploadUrl remote
 
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -329,26 +357,26 @@ fun startUpload repo =
       if List.null lines then raise Error "no response from repo"
       else
         let
-          (* Check the repo response *)
+          (* Check the remote repository response *)
 
           val response = chomp (String.concat lines)
         in
           case total fromStringStartUpload response of
             NONE => raise Error ("error response from repo:\n" ^ response)
-          | SOME (repoName,token) =>
-            Upload {repo = repo, token = token, repoName = repoName}
+          | SOME (name,token) =>
+            Upload {remote = remote, token = token, remoteName = name}
         end
     end;
 
 fun supportUpload upl namever chk =
     let
-      val Upload {repo,token,repoName} = upl
+      val Upload {remote,token,remoteName} = upl
 
-      val sys = system repo
+      val sys = system remote
 
       (* Send the install request *)
 
-      val {url} = installUploadUrl repo
+      val {url} = installUploadUrl remote
 
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -377,17 +405,17 @@ fun supportUpload upl namever chk =
       if List.null lines then raise Error "no response from repo"
       else
         let
-          (* Check the repo response *)
+          (* Check the remote repository response *)
 
           val response = chomp (String.concat lines)
         in
           case total fromStringSupportUpload response of
             NONE => raise Error ("error response from repo:\n" ^ response)
-          | SOME (repoName',namever') =>
-            if not (PackageName.equal repoName' repoName) then
+          | SOME (remoteName',namever') =>
+            if not (PackageName.equal remoteName' remoteName) then
               let
                 val err =
-                    "repo name " ^ PackageName.toString repoName ^
+                    "repo name " ^ PackageName.toString remoteName ^
                     " changed since start of upload:\n" ^ response
               in
                 raise Error err
@@ -407,9 +435,9 @@ fun supportUpload upl namever chk =
 
 fun packageUpload upl pkg =
     let
-      val Upload {repo,token,repoName} = upl
+      val Upload {remote,token,remoteName} = upl
 
-      val {url} = uploadUrl repo
+      val {url} = uploadUrl remote
 
       val token = Checksum.toString token
 
@@ -417,17 +445,17 @@ fun packageUpload upl pkg =
 
       val {response} = Package.upload pkg {url = url, token = token}
 
-      (* Check the repo response *)
+      (* Check the remote repository response *)
 
       val namever = Package.nameVersion pkg
     in
       case total fromStringPackageUpload response of
         NONE => raise Error ("error response from repo:\n" ^ response)
-      | SOME (repoName',namever') =>
-        if not (PackageName.equal repoName' repoName) then
+      | SOME (remoteName',namever') =>
+        if not (PackageName.equal remoteName' remoteName) then
           let
             val err =
-                "repo name " ^ PackageName.toString repoName ^
+                "repo name " ^ PackageName.toString remoteName ^
                 " changed since start of upload:\n" ^ response
           in
             raise Error err
@@ -446,13 +474,13 @@ fun packageUpload upl pkg =
 
 fun finishUpload upl =
     let
-      val Upload {repo,token,repoName} = upl
+      val Upload {remote,token,remoteName} = upl
 
-      val sys = system repo
+      val sys = system remote
 
       (* Send the finish request *)
 
-      val {url} = finishUploadUrl repo
+      val {url} = finishUploadUrl remote
 
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -478,17 +506,17 @@ fun finishUpload upl =
       if List.null lines then raise Error "no response from repo"
       else
         let
-          (* Check the repo response *)
+          (* Check the remote repository response *)
 
           val response = chomp (String.concat lines)
         in
           case total fromStringFinishUpload response of
             NONE => raise Error ("error response from repo:\n" ^ response)
-          | SOME repoName' =>
-            if not (PackageName.equal repoName' repoName) then
+          | SOME remoteName' =>
+            if not (PackageName.equal remoteName' remoteName) then
               let
                 val err =
-                    "repo name " ^ PackageName.toString repoName ^
+                    "repo name " ^ PackageName.toString remoteName ^
                     " changed since start of upload:\n" ^ response
               in
                 raise Error err
@@ -500,13 +528,13 @@ fun finishUpload upl =
 
 fun deleteUpload upl =
     let
-      val Upload {repo,token,repoName} = upl
+      val Upload {remote,token,remoteName} = upl
 
-      val sys = system repo
+      val sys = system remote
 
       (* Send the delete request *)
 
-      val {url} = deleteUploadUrl repo
+      val {url} = deleteUploadUrl remote
 
       val tmpFile = OS.FileSys.tmpName ()
 
@@ -532,17 +560,17 @@ fun deleteUpload upl =
       if List.null lines then raise Error "no response from repo"
       else
         let
-          (* Check the repo response *)
+          (* Check the remote repository response *)
 
           val response = chomp (String.concat lines)
         in
           case total fromStringDeleteUpload response of
             NONE => raise Error ("error response from repo:\n" ^ response)
-          | SOME repoName' =>
-            if not (PackageName.equal repoName' repoName) then
+          | SOME remoteName' =>
+            if not (PackageName.equal remoteName' remoteName) then
               let
                 val err =
-                    "repo name " ^ PackageName.toString repoName ^
+                    "repo name " ^ PackageName.toString remoteName ^
                     " changed since start of upload:\n" ^ response
               in
                 raise Error err
@@ -554,9 +582,9 @@ fun deleteUpload upl =
 
 fun urlUpload upl =
     let
-      val Upload {repo,token,...} = upl
+      val Upload {remote,token,...} = upl
     in
-      uploadStatusUrl repo token
+      uploadStatusUrl remote token
     end;
 
 end

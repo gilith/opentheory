@@ -12,7 +12,7 @@ sig
 
 type name = PackageName.name
 
-type repo
+type remote
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -23,55 +23,61 @@ val mk :
      name : name,
      rootDirectory : string,
      rootUrl : string,
-     upToDate : bool} -> repo
+     upToDate : bool} -> remote
 
-val name : repo -> name
+val name : remote -> name
 
-val rootUrl : repo -> {rootUrl : string}
+val rootUrl : remote -> {rootUrl : string}
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-val peek : repo -> PackageNameVersion.nameVersion -> Checksum.checksum option
+val peek : remote -> PackageNameVersion.nameVersion -> Checksum.checksum option
 
-val member : PackageNameVersion.nameVersion -> repo -> bool
+val member : PackageNameVersion.nameVersion -> remote -> bool
 
 val first :
-    repo list -> PackageNameVersion.nameVersion ->
-    (repo * Checksum.checksum) option
+    remote list -> PackageNameVersion.nameVersion ->
+    (remote * Checksum.checksum) option
 
 val find :
-    repo list -> PackageNameVersion.nameVersion * Checksum.checksum ->
-    repo option
+    remote list -> PackageNameVersion.nameVersion * Checksum.checksum ->
+    remote option
 
 (* ------------------------------------------------------------------------- *)
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 val previousNameVersion :
-    repo -> PackageNameVersion.nameVersion ->
+    remote -> PackageNameVersion.nameVersion ->
     (PackageNameVersion.nameVersion * Checksum.checksum) option
 
 val latestNameVersion :
-    repo -> PackageName.name ->
+    remote -> PackageName.name ->
     (PackageNameVersion.nameVersion * Checksum.checksum) option
 
 val latestNameVersionList :
-    repo list -> PackageName.name -> Checksum.checksum option ->
-    (repo * PackageNameVersion.nameVersion * Checksum.checksum) option
+    remote list -> PackageName.name -> Checksum.checksum option ->
+    (remote * PackageNameVersion.nameVersion * Checksum.checksum) option
+
+val earlierThanLatestNameVersion :
+    remote -> PackageNameVersion.nameVersion -> bool
+
+val laterThanLatestNameVersion :
+    remote -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Updating the package list.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val update : repo -> unit
+val update : remote -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val download : repo -> Package.package -> unit
+val download : remote -> Package.package -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Uploading packages.                                                       *)
@@ -79,7 +85,7 @@ val download : repo -> Package.package -> unit
 
 type upload
 
-val startUpload : repo -> upload
+val startUpload : remote -> upload
 
 val supportUpload :
     upload -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
@@ -96,8 +102,8 @@ val urlUpload : upload -> {url : string}
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : repo Print.pp
+val pp : remote Print.pp
 
-val toString : repo -> string
+val toString : remote -> string
 
 end

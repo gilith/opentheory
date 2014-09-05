@@ -229,7 +229,7 @@ val installedChecksums = Name [installedString];
 (* Remote repository names.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val gilithRepository = Name [gilithString];
+val gilithRemote = Name [gilithString];
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell export names.                                                     *)

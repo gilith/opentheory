@@ -159,8 +159,8 @@ fun fromDirectoryPurePackages sys chks =
                 | NONE =>
                   let
                     val err =
-                        "package " ^ PackageNameVersion.toString namever ^
-                        " is installed but has no checksum"
+                        PackageNameVersion.toString namever ^
+                        " seems to be badly installed"
                   in
                     raise Error err
                   end
@@ -984,64 +984,29 @@ fun delete pkgs namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Comparing packages with repos.                                            *)
+(* Comparing a package with a remote repository.                             *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun checkConsistency missing pkgs repo namever =
-      case RepositoryRemote.peek repo namever of
-        NONE => missing
-      | SOME chk =>
-        case checksum pkgs namever of
-          SOME c => Checksum.equal c chk
-        | NONE =>
-          let
-            val err =
-                PackageNameVersion.toString namever ^
-                " seems to be badly installed"
-          in
-            raise Error err
-          end;
+  fun identical missing pkgs remote namever =
+      case peek pkgs namever of
+        NONE => raise Bug "RepositoryPackages.identical"
+      | SOME pkg =>
+        case RepositoryRemote.peek remote namever of
+          NONE => missing
+        | SOME chk => Checksum.equal (Package.checksum pkg) chk;
 in
-  val identicalOnRepo = checkConsistency false;
+  val identicalOnRemote = identical false;
 
-  fun consistentWithRepo pkgs repo namever =
+  fun consistentWithRemote pkgs remote namever =
       let
         val nvs = PackageNameVersionSet.singleton namever
 
         val incs = includesRTC pkgs nvs
       in
-        PackageNameVersionSet.all (checkConsistency true pkgs repo) incs
+        PackageNameVersionSet.all (identical true pkgs remote) incs
       end
 end;
-
-fun earlierThanRepo pkgs repo namever =
-    let
-      val PackageNameVersion.NameVersion' {name,version} =
-          PackageNameVersion.dest namever
-    in
-      case RepositoryRemote.latestNameVersion repo name of
-        NONE => false
-      | SOME (nv,_) =>
-        case PackageVersion.compare (version, PackageNameVersion.version nv) of
-          LESS => true
-        | EQUAL => false
-        | GREATER => false
-    end;
-
-fun laterThanRepo pkgs repo namever =
-    let
-      val PackageNameVersion.NameVersion' {name,version} =
-          PackageNameVersion.dest namever
-    in
-      case RepositoryRemote.latestNameVersion repo name of
-        NONE => false
-      | SOME (nv,_) =>
-        case PackageVersion.compare (version, PackageNameVersion.version nv) of
-          LESS => false
-        | EQUAL => false
-        | GREATER => true
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

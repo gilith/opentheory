@@ -1,24 +1,24 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY CONFIG FILE                                             *)
+(* REPOSITORY CONFIG FILE                                                    *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectoryConfig =
+signature RepositoryConfig =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of repo configuration data.                                        *)
+(* A type of remote repository configuration data.                           *)
 (* ------------------------------------------------------------------------- *)
 
-type repo
+type remote
 
-val nameRepo : repo -> DirectoryRepo.name
+val nameRemote : remote -> RepositoryRemote.name
 
-val urlRepo : repo -> {url : string}
+val urlRemote : remote -> {url : string}
 
-val refreshRepo : repo -> Time.time
+val refreshRemote : remote -> Time.time
 
-val findRepo : repo list -> DirectoryRepo.name -> repo option
+val findRemote : remote list -> RepositoryRemote.name -> remote option
 
 (* ------------------------------------------------------------------------- *)
 (* A type of license configuration data.                                     *)
@@ -56,7 +56,7 @@ type config
 
 val authors : config -> PackageAuthor.author list
 
-val repos : config -> repo list
+val remotes : config -> remote list
 
 val licenses : config -> license list
 
@@ -64,7 +64,7 @@ val cleanup : config -> cleanup
 
 val install : config -> install
 
-val system : config -> DirectorySystem.system
+val system : config -> RepositorySystem.system
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
@@ -86,6 +86,6 @@ val toTextFile : {config : config, filename : string} -> unit
 
 val default : config
 
-val repoDefault : config
+val remoteDefault : config
 
 end

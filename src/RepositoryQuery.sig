@@ -23,10 +23,10 @@ datatype predicate =
   | Acyclic
   | UpToDate
   | OnRepo
-  | IdenticalOnRepo
-  | ConsistentWithRepo
   | EarlierThanRepo
   | LaterThanRepo
+  | IdenticalOnRepo
+  | ConsistentWithRepo
   | Not of predicate
   | And of predicate * predicate
   | Or of predicate * predicate

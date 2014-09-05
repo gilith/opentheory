@@ -1,26 +1,26 @@
 (* ========================================================================= *)
-(* PACKAGE DIRECTORY OPERATION ERRORS                                        *)
+(* REPOSITORY ERRORS                                                         *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectoryError :> DirectoryError =
+structure RepositoryError :> RepositoryError =
 struct
 
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of directory operation errors.                                     *)
+(* A type of repository errors.                                              *)
 (* ------------------------------------------------------------------------- *)
 
 datatype error =
-    AncestorNotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
-  | AncestorWrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
+    AncestorNotOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
+  | AncestorWrongChecksumOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
   | AlreadyInstalled of
       PackageNameVersion.nameVersion
-  | AlreadyOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
+  | AlreadyOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
   | AlreadyStaged of
       PackageNameVersion.nameVersion
   | FilenameClash of
@@ -32,8 +32,8 @@ datatype error =
       (PackageNameVersionSet.set * PackageAuthor.author) list
   | NotInstalled of
       PackageNameVersion.nameVersion
-  | NotOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo
+  | NotOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote
   | NotStaged of
       PackageNameVersion.nameVersion
   | NoVersionInstalled of
@@ -50,8 +50,8 @@ datatype error =
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}
-  | WrongChecksumOnRepo of
-      PackageNameVersion.nameVersion * DirectoryRepo.repo;
+  | WrongChecksumOnRemote of
+      PackageNameVersion.nameVersion * RepositoryRemote.remote;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
@@ -133,24 +133,24 @@ val removeUninstalledInclude =
 
 fun isFatal err =
     case err of
-      AncestorNotOnRepo _ => true
-    | AncestorWrongChecksumOnRepo _ => true
+      AncestorNotOnRemote _ => true
+    | AncestorWrongChecksumOnRemote _ => true
     | AlreadyInstalled _ => true
-    | AlreadyOnRepo _ => true
+    | AlreadyOnRemote _ => true
     | AlreadyStaged _ => true
     | FilenameClash _ => true
     | InstalledUser _ => true
     | MultipleAuthors _ => true
     | ObsoleteAuthors _ => false
     | NotInstalled _ => true
-    | NotOnRepo _ => true
+    | NotOnRemote _ => true
     | NotStaged _ => true
     | NoVersionInstalled _ => true
     | TagError _ => true
     | UninstalledObsolete _ => false
     | UninstalledInclude _ => true
     | WrongChecksumObsolete _ => false
-    | WrongChecksumOnRepo _ => true;
+    | WrongChecksumOnRemote _ => true;
 
 val existsFatal = List.exists isFatal;
 
@@ -170,7 +170,7 @@ local
 
   fun toStringNonEmptySet nvs =
       case PackageNameVersionSet.findl (K true) nvs of
-        NONE => raise Bug "DirectoryError.toStringNonEmptySet: empty"
+        NONE => raise Bug "RepositoryError.toStringNonEmptySet: empty"
       | SOME nv =>
         let
           val s = PackageNameVersion.toString nv
@@ -193,18 +193,18 @@ in
   fun toString err =
       (if isFatal err then "Error" else "Warning") ^ ": " ^
       (case err of
-         AncestorNotOnRepo (namever,repo) =>
+         AncestorNotOnRemote (namever,remote) =>
          "depends on package " ^ PackageNameVersion.toString namever ^
-         " missing on " ^ DirectoryRepo.toString repo
-       | AncestorWrongChecksumOnRepo (namever,repo) =>
+         " missing on " ^ RepositoryRemote.toString remote
+       | AncestorWrongChecksumOnRemote (namever,remote) =>
          "depends on package " ^ PackageNameVersion.toString namever ^
-         " which has different checksum on " ^ DirectoryRepo.toString repo
+         " which has different checksum on " ^ RepositoryRemote.toString remote
        | AlreadyInstalled namever =>
          "package " ^ PackageNameVersion.toString namever ^
          " is already installed"
-       | AlreadyOnRepo (namever,repo) =>
+       | AlreadyOnRemote (namever,remote) =>
          "package " ^ PackageNameVersion.toString namever ^
-         " already exists on " ^ DirectoryRepo.toString repo
+         " already exists on " ^ RepositoryRemote.toString remote
        | AlreadyStaged namever =>
          "package " ^ PackageNameVersion.toString namever ^
          " is already staged for installation"
@@ -221,9 +221,9 @@ in
        | NotInstalled namever =>
          "package " ^ PackageNameVersion.toString namever ^
          " is not installed"
-       | NotOnRepo (namever,repo) =>
+       | NotOnRemote (namever,remote) =>
          "package " ^ PackageNameVersion.toString namever ^
-         " is not on " ^ DirectoryRepo.toString repo
+         " is not on " ^ RepositoryRemote.toString remote
        | NotStaged namever =>
          "package " ^ PackageNameVersion.toString namever ^
          " is not staged for installation"
@@ -247,9 +247,9 @@ in
          "upload package " ^ PackageNameVersion.toString upload ^
          "\n  obsoletes package " ^ PackageNameVersion.toString obsolete ^
          ",\n  which is installed with a different checksum"
-       | WrongChecksumOnRepo (namever,repo) =>
+       | WrongChecksumOnRemote (namever,remote) =>
          "package " ^ PackageNameVersion.toString namever ^
-         " has different checksum on " ^ DirectoryRepo.toString repo);
+         " has different checksum on " ^ RepositoryRemote.toString remote);
 end;
 
 fun toStringList errs = join "\n" (List.map toString errs);
