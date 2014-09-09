@@ -9,6 +9,13 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Helper functions.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun joinDirectoryFilename {directory} {filename} =
+    {filename = OS.Path.concat (directory,filename)};
+
+(* ------------------------------------------------------------------------- *)
 (* A type of theory packages.                                                *)
 (* ------------------------------------------------------------------------- *)
 
@@ -20,6 +27,10 @@ datatype package =
        tarball : PackageTarball.tarball,
        information : PackageInformation.information option ref,
        theorems : PackageTheorems.theorems option ref};
+
+(* ------------------------------------------------------------------------- *)
+(* Destructors.                                                              *)
+(* ------------------------------------------------------------------------- *)
 
 fun invalidateInformation pkg =
     let
@@ -65,12 +76,7 @@ fun version pkg = PackageNameVersion.version (nameVersion pkg);
 
 fun directory (Package {directory = x, ...}) = {directory = x};
 
-fun joinDirectory pkg =
-    let
-      val {directory = dir} = directory pkg
-    in
-      fn {filename} => {filename = OS.Path.concat (dir,filename)}
-    end;
+fun joinDirectory pkg = joinDirectoryFilename (directory pkg);
 
 fun existsDirectory pkg =
     let
@@ -215,6 +221,8 @@ fun emptyTheory pkg = PackageInformation.emptyTheory (information pkg);
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+fun tarballFile pkg = PackageTarball.mkFilename (nameVersion pkg);
+
 fun tarball (Package {tarball = x, ...}) = x;
 
 fun packTarball pkg = PackageTarball.pack (tarball pkg) (allFiles pkg);
@@ -330,14 +338,24 @@ fun writeDocument pkg doc =
       PackageDocument.toHtmlFile {document = doc, filename = filename}
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Constructor.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
 fun mk {system,nameVersion,checksum,directory} =
     let
       val tarball =
-          PackageTarball.mk
-            {system = system,
-             nameVersion = nameVersion,
-             checksum = checksum,
-             directory = directory}
+          let
+            val {filename} =
+                joinDirectoryFilename {directory = directory}
+                  (PackageTarball.mkFilename nameVersion)
+          in
+            PackageTarball.mk
+              {system = system,
+               nameVersion = nameVersion,
+               checksum = checksum,
+               filename = filename}
+          end
 
       val information = ref NONE
       and theorems = ref NONE

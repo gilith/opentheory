@@ -26,7 +26,7 @@ val mk :
     {system : RepositorySystem.system,
      nameVersion : PackageNameVersion.nameVersion,
      checksum : Checksum.checksum option,
-     directory : string} -> tarball
+     filename : string} -> tarball
 
 val filename : tarball -> {filename : string}
 

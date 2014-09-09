@@ -12,6 +12,10 @@ sig
 
 type package
 
+(* ------------------------------------------------------------------------- *)
+(* Constructor.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
 val mk :
     {system : RepositorySystem.system,
      nameVersion : PackageNameVersion.nameVersion,
@@ -117,6 +121,8 @@ val emptyTheory : package -> bool
 (* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
+
+val tarballFile : package -> {filename : string}
 
 val tarball : package -> PackageTarball.tarball
 

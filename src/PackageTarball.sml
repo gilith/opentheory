@@ -380,15 +380,8 @@ fun invalidate tar =
       ()
     end;
 
-fun mk {system,nameVersion,checksum,directory} =
+fun mk {system,nameVersion,checksum,filename} =
     let
-      val filename =
-          let
-            val {filename} = mkFilename nameVersion;
-          in
-            OS.Path.concat (directory,filename)
-          end
-
       val cntr = ref NONE
       and chkr = ref checksum
     in

@@ -575,14 +575,14 @@ local
         let
           val err = RepositoryError.TagError (name,"is missing")
         in
-          (err :: errs, NONE)
+          (RepositoryError.add errs err, NONE)
         end
       | [v] => (errs, SOME v)
       | _ :: _ :: _ =>
         let
           val err = RepositoryError.TagError (name,"is declared multiple times")
         in
-          (err :: errs, NONE)
+          (RepositoryError.add errs err, NONE)
         end;
 
   fun checkNameTag namever tags errs =
@@ -601,7 +601,7 @@ local
 
               val err = RepositoryError.TagError (name,msg)
             in
-              err :: errs
+              RepositoryError.add errs err
             end
           | SOME n =>
             let
@@ -614,7 +614,7 @@ local
 
                   val err = RepositoryError.TagError (name,msg)
                 in
-                  err :: errs
+                  RepositoryError.add errs err
                 end
             end
       end;
@@ -635,7 +635,7 @@ local
 
               val err = RepositoryError.TagError (name,msg)
             in
-              err :: errs
+              RepositoryError.add errs err
             end
           | SOME v =>
             let
@@ -648,7 +648,7 @@ local
 
                   val err = RepositoryError.TagError (name,msg)
                 in
-                  err :: errs
+                  RepositoryError.add errs err
                 end
             end
       end;
@@ -669,7 +669,7 @@ local
 
               val err = RepositoryError.TagError (name,msg)
             in
-              err :: errs
+              RepositoryError.add errs err
             end
       end;
 
@@ -689,7 +689,7 @@ local
 
               val err = RepositoryError.TagError (name,msg)
             in
-              err :: errs
+              RepositoryError.add errs err
             end
       end;
 
@@ -709,13 +709,13 @@ local
 
               val err = RepositoryError.TagError (name,msg)
             in
-              err :: errs
+              RepositoryError.add errs err
             end
       end;
 in
   fun checkTags dir namever tags =
       let
-        val errs = []
+        val errs = RepositoryError.clean
 
         val errs = checkNameTag namever tags errs
 
@@ -755,34 +755,29 @@ fun summary fndr pkg =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Post-stage functions.                                                     *)
+(* Common operations staging packages for installation.                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun postStagePackage dir fndr stageInfo warnSummary {tool} =
+fun postStagePackage repo fndr pkg warnSummary {tool} =
     let
-      (* Check the package tags *)
+      val namever = Package.nameVersion pkg
+      and info = Package.information pkg
 
-      val namever = PackageInfo.nameVersion stageInfo
-      and pkg = PackageInfo.package stageInfo
+      (* Check the package tags *)
 
       val () =
           let
-            val tags = Package.tags pkg
+            val tags = PackageInformation.tags info
 
-            val errs = checkTags dir namever tags
+            val errs = checkTags repo namever tags
           in
-            if not (RepositoryError.existsFatal errs) then ()
-            else raise Error (RepositoryError.toStringList errs)
+            if not (RepositoryError.containsFatal errs) then ()
+            else raise Error (RepositoryError.report errs)
           end
 
       (* Check the package summary *)
 
-      val sum =
-          let
-            val impt = TheoryGraph.fromFinderImporter fndr
-          in
-            summary impt stageInfo
-          end
+      val sum = summary fndr pkg
 
       val () =
           if not warnSummary then ()
@@ -792,7 +787,7 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
               and reqs = Package.requires pkg
 
               val ctxt =
-                  case requiresTheorems dir reqs of
+                  case requiresTheorems repo reqs of
                     NONE => Summary.NoContext
                   | SOME ths => PackageTheorems.packageContext sum ths
 
@@ -811,17 +806,19 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
 
             val thms = PackageTheorems.mk namever seqs
           in
-            PackageInfo.writeTheorems stageInfo thms
+            Package.writeTheorems pkg thms
           end
 
       (* Create the package document *)
 
       val () =
           let
+            val chk = Package.checksum pkg
+
             val files =
                 let
-                  val {filename = theory} = PackageInfo.theoryFile stageInfo
-                  and {filename = tarball} = PackageInfo.tarball stageInfo
+                  val {filename = theory} = Package.theoryFile pkg
+                  and {filename = tarball} = Package.tarballFile pkg
                 in
                   {theory = SOME theory, tarball = SOME tarball}
                 end
@@ -829,39 +826,45 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
             val doc =
                 PackageDocument.mk
                   (PackageDocument.Document'
-                     {package = SOME pkg,
+                     {information = SOME info,
+                      checksum = SOME chk,
                       summary = sum,
                       files = files,
                       tool = tool})
           in
-            PackageInfo.writeDocument stageInfo doc
+            Package.writeDocument pkg doc
           end
     in
       ()
     end;
 
-fun postStageTarball dir fndr stageInfo contents tool =
+fun postStageTarball repo fndr pkg tool =
     let
       val minimal =
           let
-            val cfg = RepositoryConfig.install (config dir)
+            val cfg = RepositoryConfig.install (config repo)
           in
             {minimal = RepositoryConfig.minimalInstall cfg}
           end
 
       (* Unpack the tarball *)
 
-      val () = PackageInfo.unpackTarball stageInfo contents minimal
+      val () = Package.unpackTarball pkg minimal
 
       (* Check the included packages are installed *)
 
-      val incs = PackageInfo.includes stageInfo
+      val () =
+          let
+            fun check (nv,chk) = PackageFinder.check fndr nv chk
 
-      val () = PackageNameVersionSet.app (PackageFinder.check fndr) incs
+            val incs = Package.includes pkg
+          in
+            List.app check incs
+          end
 
       (* Common post-stage operations *)
 
-      val () = postStagePackage dir fndr stageInfo false tool
+      val () = postStagePackage repo fndr pkg false tool
     in
       ()
     end;
