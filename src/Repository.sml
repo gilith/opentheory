@@ -3,7 +3,7 @@
 (* Copyright (c) 2009 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure Directory :> Directory =
+structure Repository :> Repository =
 struct
 
 open Useful;
@@ -28,7 +28,7 @@ fun ageFilename {filename} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Clean up the repo package lists.                                          *)
+(* Clean up the remote repository package lists.                             *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -44,7 +44,7 @@ local
         ()
       end;
 in
-  fun checkReposDirectory cfgs {directory = dir} =
+  fun checkRemotesDirectory cfgs {directory = dir} =
       let
         val dirStrm = OS.FileSys.openDir dir
 
@@ -54,7 +54,7 @@ in
             | SOME file =>
               let
                 val name =
-                    case DirectoryChecksums.destFilename {filename = file} of
+                    case RepositoryChecksums.destFilename {filename = file} of
                       SOME n => n
                     | NONE =>
                       raise Error ("bad filename "^file^" in repos directory")
@@ -62,13 +62,13 @@ in
                 val filename =
                     {filename = OS.Path.joinDirFile {dir = dir, file = file}}
               in
-                case DirectoryConfig.findRepo cfgs name of
+                case RepositoryConfig.findRemote cfgs name of
                   NONE => readAll ((name,filename) :: dels) utds
                 | SOME cfg =>
                   let
                     val age = ageFilename filename
 
-                    val threshold = DirectoryConfig.refreshRepo cfg
+                    val threshold = RepositoryConfig.refreshRemote cfg
 
                     val utds =
                         if Time.> (age,threshold) then utds
@@ -89,18 +89,18 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Creating a new theory package directory.                                  *)
+(* Creating a new package repository.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun createNewDir rootDir cfg =
+  fun createNewRepository rootDir cfg =
       let
         val () = createDirectory {directory = rootDir}
 
         val () =
             let
               val dir =
-                  DirectoryPath.mkPackagesDirectory
+                  RepositoryPath.mkPackagesDirectory
                     {rootDirectory = rootDir}
             in
               createDirectory dir
@@ -109,7 +109,7 @@ local
         val () =
             let
               val dir =
-                  DirectoryPath.mkStagingPackagesDirectory
+                  RepositoryPath.mkStagedPackagesDirectory
                     {rootDirectory = rootDir}
             in
               createDirectory dir
@@ -118,7 +118,7 @@ local
         val () =
             let
               val dir =
-                  DirectoryPath.mkReposDirectory
+                  RepositoryPath.mkRemoteRepositoriesDirectory
                     {rootDirectory = rootDir}
             in
               createDirectory dir
@@ -127,19 +127,19 @@ local
         val () =
             let
               val {filename = file} =
-                  DirectoryPath.mkConfigFilename
+                  RepositoryPath.mkConfigFilename
                     {rootDirectory = rootDir}
             in
-              DirectoryConfig.toTextFile {config = cfg, filename = file}
+              RepositoryConfig.toTextFile {config = cfg, filename = file}
             end
 
         val () =
             let
               val file =
-                  DirectoryPath.mkInstalledFilename
+                  RepositoryPath.mkInstalledFilename
                     {rootDirectory = rootDir}
             in
-              DirectoryChecksums.create file
+              RepositoryChecksums.create file
             end
       in
         ()
@@ -147,11 +147,11 @@ local
       handle OS.SysErr (s,_) => raise Error ("system error: " ^ s);
 in
   fun create {rootDirectory = rootDir, config = cfg} =
-      createNewDir rootDir cfg
+      createNewRepository rootDir cfg
       handle Error err =>
         let
           val err =
-              "couldn't create a new theory directory " ^
+              "couldn't create a new package repository in directory\n  " ^
               rootDir ^ "\n" ^ err
         in
           raise Error err
@@ -159,57 +159,57 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theory package directories.                                     *)
+(* A type of package repositories.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype directory =
-    Directory of
+datatype repository =
+    Repository of
       {rootDirectory : string,
-       config : DirectoryConfig.config,
-       packages : DirectoryPackages.packages,
-       repos : DirectoryRepo.repo list};
+       config : RepositoryConfig.config,
+       packages : RepositoryPackages.packages,
+       remotes : RepositoryRemote.remote list};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun mkDir rootDir =
+  fun initialize rootDir =
       let
         val config =
             let
               val filename =
-                  DirectoryPath.mkConfigFilename {rootDirectory = rootDir}
+                  RepositoryPath.mkConfigFilename {rootDirectory = rootDir}
             in
-              DirectoryConfig.fromTextFile filename
+              RepositoryConfig.fromTextFile filename
             end
 
         val packages =
             let
-              val sys = DirectoryConfig.system config
+              val sys = RepositoryConfig.system config
             in
-              DirectoryPackages.mk
+              RepositoryPackages.mk
                 {system = sys,
                  rootDirectory = rootDir}
             end
 
-        val repos =
+        val remotes =
             let
-              val sys = DirectoryConfig.system config
-              and cfgs = DirectoryConfig.repos config
+              val sys = RepositoryConfig.system config
+              and cfgs = RepositoryConfig.remotes config
 
               val dir =
-                  DirectoryPath.mkReposDirectory
+                  RepositoryPath.mkRemoteRepositoriesDirectory
                     {rootDirectory = rootDir}
 
-              val utds = checkReposDirectory cfgs dir
+              val utds = checkRemotesDirectory cfgs dir
 
-              fun mkRepo cfg =
+              fun mkRemote cfg =
                   let
-                    val name = DirectoryConfig.nameRepo cfg
-                    and {url} = DirectoryConfig.urlRepo cfg
+                    val name = RepositoryConfig.nameRemote cfg
+                    and {url} = RepositoryConfig.urlRemote cfg
                   in
-                    DirectoryRepo.mk
+                    RepositoryRemote.mk
                       {system = sys,
                        name = name,
                        rootUrl = url,
@@ -217,50 +217,54 @@ local
                        upToDate = List.exists (PackageName.equal name) utds}
                   end
             in
-              List.map mkRepo cfgs
+              List.map mkRemote cfgs
             end
       in
-        Directory
+        Repository
           {rootDirectory = rootDir,
            config = config,
            packages = packages,
-           repos = repos}
+           remotes = remotes}
       end
       handle OS.SysErr (s,_) => raise Error ("system error: " ^ s);
 in
   fun mk {rootDirectory = rootDir} =
-      mkDir rootDir
+      initialize rootDir
       handle Error err =>
         let
           val err =
-              "couldn't open the theory directory " ^
+              "couldn't open a package repository in directory\n  " ^
               rootDir ^ "\n" ^ err
         in
           raise Error err
         end;
 end;
 
-fun rootDirectory (Directory {rootDirectory = x, ...}) = {rootDirectory = x};
+fun rootDirectory (Repository {rootDirectory = x, ...}) = {rootDirectory = x};
 
-fun config (Directory {config = x, ...}) = x;
+fun config (Repository {config = x, ...}) = x;
 
-fun authors dir = DirectoryConfig.authors (config dir);
+fun authors dir = RepositoryConfig.authors (config dir);
 
-fun system dir = DirectoryConfig.system (config dir);
+fun system dir = RepositoryConfig.system (config dir);
 
-fun packages (Directory {packages = x, ...}) = x;
+fun packages (Repository {packages = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up repos in the package directory.                                *)
+(* Connected remote repositories.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun repos (Directory {repos = x, ...}) = x;
+fun remotes (Repository {remotes = x, ...}) = x;
 
-fun peekRepo dir n =
-    List.find (PackageName.equal n o DirectoryRepo.name) (repos dir);
+fun peekRemote repo n =
+    let
+      fun pred remote = PackageName.equal (RepositoryRemote.name remote) n
+    in
+      List.find pred (remotes repo)
+    end;
 
-fun getRepo dir n =
-    case peekRepo dir n of
+fun getRemote repo n =
+    case peekRemote repo n of
       SOME r => r
     | NONE =>
       let
@@ -270,17 +274,17 @@ fun getRepo dir n =
       end;
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up acceptable licenses in the package directory.                  *)
+(* Acceptable licenses.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun licenses dir = DirectoryConfig.licenses (config dir);
+fun licenses repo = RepositoryConfig.licenses (config repo);
 
-fun peekLicense dir n = DirectoryConfig.findLicense (licenses dir) n;
+fun peekLicense repo n = RepositoryConfig.findLicense (licenses repo) n;
 
-fun knownLicense dir n = Option.isSome (peekLicense dir n);
+fun knownLicense repo n = Option.isSome (peekLicense repo n);
 
-fun getLicense dir n =
-    case peekLicense dir n of
+fun getLicense repo n =
+    case peekLicense repo n of
       SOME l => l
     | NONE =>
       let
@@ -292,271 +296,268 @@ fun getLicense dir n =
       end;
 
 (* ------------------------------------------------------------------------- *)
-(* Paths.                                                                    *)
+(* Repository paths.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun configFilename dir =
-    DirectoryPath.mkConfigFilename (rootDirectory dir);
+fun configFilename repo =
+    RepositoryPath.mkConfigFilename (rootDirectory repo);
 
-fun installedFilename dir =
-    DirectoryPath.mkInstalledFilename (rootDirectory dir);
+fun installedFilename repo =
+    RepositoryPath.mkInstalledFilename (rootDirectory repo);
 
-fun packagesDirectory dir =
-    DirectoryPath.mkPackagesDirectory (rootDirectory dir);
+fun packagesDirectory repo =
+    RepositoryPath.mkPackagesDirectory (rootDirectory repo);
 
-fun packageDirectory dir name =
-    DirectoryPath.mkPackageDirectory (rootDirectory dir) name;
+fun packageDirectory repo name =
+    RepositoryPath.mkPackageDirectory (rootDirectory repo) name;
 
-fun stagingPackagesDirectory dir =
-    DirectoryPath.mkStagingPackagesDirectory (rootDirectory dir);
+fun stagedPackagesDirectory repo =
+    RepositoryPath.mkStagedPackagesDirectory (rootDirectory repo);
 
-fun stagingPackageDirectory dir name =
-    DirectoryPath.mkStagingPackageDirectory (rootDirectory dir) name;
+fun stagedPackageDirectory repo name =
+    RepositoryPath.mkStagedPackageDirectory (rootDirectory repo) name;
 
-fun reposDirectory dir =
-    DirectoryPath.mkReposDirectory (rootDirectory dir);
+fun remoteRepositoriesDirectory repo =
+    RepositoryPath.mkRemoteRepositoriesDirectory (rootDirectory repo);
 
-fun repoFilename dir repo =
-    DirectoryPath.mkRepoFilename (rootDirectory dir) repo;
+fun remoteRepositoryChecksumsFilename repo remote =
+    RepositoryPath.mkRemoteRepositoryChecksumsFilename
+      (rootDirectory repo) remote;
 
 (* ------------------------------------------------------------------------- *)
-(* Package information.                                                      *)
+(* Repository packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun packageInfo dir namever =
+fun mkPackage repo namever checksum =
     let
-      val sys = system dir
-      and {directory} = packageDirectory dir namever
+      val sys = system repo
+      and {directory} = packageDirectory repo namever
     in
-      PackageInfo.mk
+      Package.mk
         {system = sys,
          nameVersion = namever,
+         checksum = checksum,
          directory = directory}
     end;
 
-fun stagingPackageInfo dir namever =
+fun mkStagedPackage repo namever checksum =
     let
-      val sys = system dir
-      and {directory} = stagingPackageDirectory dir namever
+      val sys = system repo
+      and {directory} = stagedPackageDirectory repo namever
     in
-      PackageInfo.mk
+      Package.mk
         {system = sys,
          nameVersion = namever,
+         checksum = checksum,
          directory = directory}
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Looking up packages in the package directory.                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun peek dir = DirectoryPackages.peek (packages dir);
-
-fun get dir namever =
-    case peek dir namever of
-      SOME info => info
-    | NONE => raise Error "Directory.get";
-
-fun member namever dir = Option.isSome (peek dir namever);
-
-fun checksum dir = DirectoryPackages.checksum (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Installed package sets.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun all dir = DirectoryPackages.all (packages dir);
+fun all repo = RepositoryPackages.all (packages repo);
 
-fun latest dir = DirectoryPackages.latest (packages dir);
+fun latest repo = RepositoryPackages.latest (packages repo);
+
+(* ------------------------------------------------------------------------- *)
+(* Looking up installed packages by name.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun peek repo = RepositoryPackages.peek (packages repo);
+
+fun get repo namever =
+    case peek repo namever of
+      SOME pkg => pkg
+    | NONE => raise Error "Repository.get";
+
+fun member namever repo = Option.isSome (peek repo namever);
 
 (* ------------------------------------------------------------------------- *)
 (* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun nameVersions dir =
-    DirectoryPackages.nameVersions (packages dir);
+fun nameVersions repo =
+    RepositoryPackages.nameVersions (packages repo);
 
-fun latestNameVersion dir =
-    DirectoryPackages.latestNameVersion (packages dir);
+fun latestNameVersion repo =
+    RepositoryPackages.latestNameVersion (packages repo);
 
-fun isLatestNameVersion dir =
-    DirectoryPackages.isLatestNameVersion (packages dir);
+fun isLatestNameVersion repo =
+    RepositoryPackages.isLatestNameVersion (packages repo);
 
-fun getLatestNameVersion dir =
-    DirectoryPackages.getLatestNameVersion (packages dir);
+fun getLatestNameVersion repo =
+    RepositoryPackages.getLatestNameVersion (packages repo);
 
-fun warnLatestNameVersion dir =
-    DirectoryPackages.warnLatestNameVersion (packages dir);
+fun warnLatestNameVersion repo =
+    RepositoryPackages.warnLatestNameVersion (packages repo);
 
-fun warnLatestNameVersionList dir =
-    DirectoryPackages.warnLatestNameVersionList (packages dir);
+fun warnLatestNameVersionList repo =
+    RepositoryPackages.warnLatestNameVersionList (packages repo);
 
-fun previousNameVersion dir =
-    DirectoryPackages.previousNameVersion (packages dir);
+fun previousNameVersion repo =
+    RepositoryPackages.previousNameVersion (packages repo);
 
 (* ------------------------------------------------------------------------- *)
-(* Package authors.                                                          *)
+(* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun knownAuthor dir =
-    DirectoryPackages.knownAuthor (packages dir);
+fun knownAuthor repo = RepositoryPackages.knownAuthor (packages repo);
 
-fun selfAuthor dir =
+fun selfAuthor repo =
     let
-      val self = PackageAuthorSet.fromList (authors dir)
+      val self = PackageAuthorSet.fromList (authors repo)
     in
-      knownAuthor dir self
+      knownAuthor repo self
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* Package theory.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun emptyTheory dir = DirectoryPackages.emptyTheory (packages dir);
+fun emptyTheory repo = RepositoryPackages.emptyTheory (packages repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun requiresInstalled dir =
-    DirectoryPackages.requiresInstalled (packages dir);
+fun requiresInstalled repo =
+    RepositoryPackages.requiresInstalled (packages repo);
 
-fun requiredBy dir =
-    DirectoryPackages.requiredBy (packages dir);
+fun requiredBy repo =
+    RepositoryPackages.requiredBy (packages repo);
 
-fun isRequired dir =
-    DirectoryPackages.isRequired (packages dir);
+fun isRequired repo =
+    RepositoryPackages.isRequired (packages repo);
 
-fun requires dir =
-    DirectoryPackages.requires (packages dir);
+fun requires repo =
+    RepositoryPackages.requires (packages repo);
 
-fun requiresNameVersions dir =
-    DirectoryPackages.requiresNameVersions (packages dir);
+fun requiresNameVersions repo =
+    RepositoryPackages.requiresNameVersions (packages repo);
 
-fun requiresPackages dir =
-    DirectoryPackages.requiresPackages (packages dir);
+fun requiresPackages repo =
+    RepositoryPackages.requiresPackages (packages repo);
 
-fun requiresTheorems dir =
-    DirectoryPackages.requiresTheorems (packages dir);
+fun requiresTheorems repo =
+    RepositoryPackages.requiresTheorems (packages repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Included packages.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun includes dir =
-    DirectoryPackages.includes (packages dir);
+fun includes repo =
+    RepositoryPackages.includes (packages repo);
 
-fun includedBy dir =
-    DirectoryPackages.includedBy (packages dir);
+fun includedBy repo =
+    RepositoryPackages.includedBy (packages repo);
 
-fun isIncluded dir =
-    DirectoryPackages.isIncluded (packages dir);
+fun isIncluded repo =
+    RepositoryPackages.isIncluded (packages repo);
 
-fun includesRTC dir =
-    DirectoryPackages.includesRTC (packages dir);
+fun includesRTC repo =
+    RepositoryPackages.includesRTC (packages repo);
 
-fun includedByRTC dir =
-    DirectoryPackages.includedByRTC (packages dir);
+fun includedByRTC repo =
+    RepositoryPackages.includedByRTC (packages repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Subtheory packages.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun subtheoriesInstalled dir =
-    DirectoryPackages.subtheoriesInstalled (packages dir);
+fun subtheoriesInstalled repo =
+    RepositoryPackages.subtheoriesInstalled (packages repo);
 
-fun subtheoryOf dir =
-    DirectoryPackages.subtheoryOf (packages dir);
+fun subtheoryOf repo =
+    RepositoryPackages.subtheoryOf (packages repo);
 
-fun isSubtheory dir =
-    DirectoryPackages.isSubtheory (packages dir);
+fun isSubtheory repo =
+    RepositoryPackages.isSubtheory (packages repo);
 
-fun subtheoryOfRTC dir =
-    DirectoryPackages.subtheoryOfRTC (packages dir);
+fun subtheoryOfRTC repo =
+    RepositoryPackages.subtheoryOfRTC (packages repo);
 
-fun subtheories dir =
-    DirectoryPackages.subtheories (packages dir);
+fun subtheories repo =
+    RepositoryPackages.subtheories (packages repo);
 
-fun subtheoriesRTC dir =
-    DirectoryPackages.subtheoriesRTC (packages dir);
+fun subtheoriesRTC repo =
+    RepositoryPackages.subtheoriesRTC (packages repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Arranging packages in dependency order.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun includeOrder dir =
-    DirectoryPackages.includeOrder (packages dir);
+fun includeOrder repo =
+    RepositoryPackages.includeOrder (packages repo);
 
-fun includeOrdered dir =
-    DirectoryPackages.includeOrdered (packages dir);
+fun includeOrdered repo =
+    RepositoryPackages.includeOrdered (packages repo);
 
-fun dependencyOrder dir =
-    DirectoryPackages.dependencyOrder (packages dir);
+fun dependencyOrder repo =
+    RepositoryPackages.dependencyOrder (packages repo);
 
-fun dependencyOrdered dir =
-    DirectoryPackages.dependencyOrdered (packages dir);
+fun dependencyOrdered repo =
+    RepositoryPackages.dependencyOrdered (packages repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun closedDependencies dir =
-    DirectoryPackages.closedDependencies (packages dir);
+fun closedDependencies repo =
+    RepositoryPackages.closedDependencies (packages repo);
 
-fun acyclicDependencies dir =
-    DirectoryPackages.acyclicDependencies (packages dir);
+fun acyclicDependencies repo =
+    RepositoryPackages.acyclicDependencies (packages repo);
 
-fun upToDateDependencies dir =
-    DirectoryPackages.upToDateDependencies (packages dir);
+fun upToDateDependencies repo =
+    RepositoryPackages.upToDateDependencies (packages repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Upgrading theory source files.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun upgrade dir pkg =
+fun upgradeTheory repo =
     let
+      fun checksum namever =
+          case peek repo namever of
+            SOME pkg => SOME (Package.checksum pkg)
+          | NONE => raise Bug "Repository.upgradeTheory"
+
       fun latest namever _ =
           let
             val PackageNameVersion.NameVersion' {name,version} =
                 PackageNameVersion.dest namever
           in
-            case warnLatestNameVersion dir name of
+            case warnLatestNameVersion repo name of
               NONE => NONE
             | SOME nv =>
               if PackageNameVersion.equalVersion version nv then NONE
-              else SOME (nv, checksum dir nv)
+              else SOME (nv, checksum nv)
           end
     in
-      Package.updateIncludes latest pkg
+      PackageInformation.updateIncludes latest
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* A package finder and importer.                                            *)
+(* Package finders.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun finder dir = DirectoryPackages.finder (packages dir);
+fun finder repo = RepositoryPackages.finder (packages repo);
 
-fun importer dir = DirectoryPackages.importer (packages dir);
-
-(* ------------------------------------------------------------------------- *)
-(* A package finder for *staged* packages.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun stagedFinder dir =
+fun stagedFinder repo =
     let
       fun stagedPeek namever chko =
           let
-            val info = stagingPackageInfo dir namever
+            val pkg = mkStagedPackage repo namever NONE
           in
-            if not (PackageInfo.existsDirectory info) then NONE else
+            if not (Package.existsDirectory pkg) then NONE else
             let
-              val chk = PackageInfo.checksumTarball info
-
               val match =
                   case chko of
-                    SOME chk' => Checksum.equal chk' chk
+                    SOME chk => Checksum.equal chk (Package.checksum pkg)
                   | NONE => true
             in
-              if match then SOME (info,chk) else NONE
+              if match then SOME pkg else NONE
             end
           end
     in
@@ -572,14 +573,14 @@ local
       case PackageTag.filterName name tags of
         [] =>
         let
-          val err = DirectoryError.TagError (name,"is missing")
+          val err = RepositoryError.TagError (name,"is missing")
         in
           (err :: errs, NONE)
         end
       | [v] => (errs, SOME v)
       | _ :: _ :: _ =>
         let
-          val err = DirectoryError.TagError (name,"is declared multiple times")
+          val err = RepositoryError.TagError (name,"is declared multiple times")
         in
           (err :: errs, NONE)
         end;
@@ -598,7 +599,7 @@ local
             let
               val msg = "is badly formatted: " ^ s
 
-              val err = DirectoryError.TagError (name,msg)
+              val err = RepositoryError.TagError (name,msg)
             in
               err :: errs
             end
@@ -611,7 +612,7 @@ local
                 let
                   val msg = "does not match"
 
-                  val err = DirectoryError.TagError (name,msg)
+                  val err = RepositoryError.TagError (name,msg)
                 in
                   err :: errs
                 end
@@ -632,7 +633,7 @@ local
             let
               val msg = "is badly formatted: " ^ s
 
-              val err = DirectoryError.TagError (name,msg)
+              val err = RepositoryError.TagError (name,msg)
             in
               err :: errs
             end
@@ -645,7 +646,7 @@ local
                 let
                   val msg = "does not match"
 
-                  val err = DirectoryError.TagError (name,msg)
+                  val err = RepositoryError.TagError (name,msg)
                 in
                   err :: errs
                 end
@@ -666,7 +667,7 @@ local
             let
               val msg = "is blank"
 
-              val err = DirectoryError.TagError (name,msg)
+              val err = RepositoryError.TagError (name,msg)
             in
               err :: errs
             end
@@ -686,7 +687,7 @@ local
             let
               val msg = "is blank"
 
-              val err = DirectoryError.TagError (name,msg)
+              val err = RepositoryError.TagError (name,msg)
             in
               err :: errs
             end
@@ -706,7 +707,7 @@ local
             let
               val msg = s ^ " is not acceptable"
 
-              val err = DirectoryError.TagError (name,msg)
+              val err = RepositoryError.TagError (name,msg)
             in
               err :: errs
             end
@@ -734,23 +735,21 @@ end;
 (* Summarizing packages.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryGraph impt info =
+fun theoryGraph fndr pkg =
     let
       val graph = TheoryGraph.empty {savable = false}
-
-      val imps = TheorySet.empty
-
-      val int = Interpretation.natural
+      and imps = TheorySet.empty
+      and int = Interpretation.natural
     in
-      TheoryGraph.importPackageInfo impt graph
+      TheoryGraph.importPackage fndr graph
         {imports = imps,
          interpretation = int,
-         info = info}
+         package = pkg}
     end;
 
-fun summary impt info =
+fun summary fndr pkg =
     let
-      val (_,thy) = theoryGraph impt info
+      val (_,thy) = theoryGraph fndr pkg
     in
       TheoryGraph.summary thy
     end;
@@ -772,8 +771,8 @@ fun postStagePackage dir fndr stageInfo warnSummary {tool} =
 
             val errs = checkTags dir namever tags
           in
-            if not (DirectoryError.existsFatal errs) then ()
-            else raise Error (DirectoryError.toStringList errs)
+            if not (RepositoryError.existsFatal errs) then ()
+            else raise Error (RepositoryError.toStringList errs)
           end
 
       (* Check the package summary *)
@@ -845,9 +844,9 @@ fun postStageTarball dir fndr stageInfo contents tool =
     let
       val minimal =
           let
-            val cfg = DirectoryConfig.install (config dir)
+            val cfg = RepositoryConfig.install (config dir)
           in
-            {minimal = DirectoryConfig.minimalInstall cfg}
+            {minimal = RepositoryConfig.minimalInstall cfg}
           end
 
       (* Unpack the tarball *)
@@ -871,42 +870,42 @@ fun postStageTarball dir fndr stageInfo contents tool =
 (* Staging packages for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkStagePackage dir repo namever chk =
-    if member namever dir then [DirectoryError.AlreadyInstalled namever]
+fun checkStagePackage dir remote namever chk =
+    if member namever dir then [RepositoryError.AlreadyInstalled namever]
     else
       let
         val errs = []
 
         val errs =
             let
-              val stageInfo = stagingPackageInfo dir namever
+              val stageInfo = mkStagedPackage dir namever
             in
               if not (PackageInfo.existsDirectory stageInfo) then errs
-              else DirectoryError.AlreadyStaged namever :: errs
+              else RepositoryError.AlreadyStaged namever :: errs
             end
 
         val errs =
-            case DirectoryRepo.peek repo namever of
+            case RepositoryRemote.peek remote namever of
               NONE =>
-              DirectoryError.NotOnRepo (namever,repo) :: errs
+              RepositoryError.NotOnRemote (namever,remote) :: errs
             | SOME chk' =>
               if Checksum.equal chk' chk then errs
-              else DirectoryError.WrongChecksumOnRepo (namever,repo) :: errs
+              else RepositoryError.WrongChecksumOnRemote (namever,remote) :: errs
       in
         List.rev errs
       end;
 
-fun stagePackage dir fndr repo namever chk tool =
+fun stagePackage dir fndr remote namever chk tool =
     let
 (*OpenTheoryDebug
-      val errs = checkStagePackage dir repo namever chk
+      val errs = checkStagePackage dir remote namever chk
 
-      val _ = not (DirectoryError.existsFatal errs) orelse
-              raise Bug "Directory.stagePackage: fatal error"
+      val _ = not (RepositoryError.existsFatal errs) orelse
+              raise Bug "Repository.stagePackage: fatal error"
 *)
       (* Make a package info for the stage directory *)
 
-      val stageInfo = stagingPackageInfo dir namever
+      val stageInfo = mkStagedPackage dir namever
 
       (* Create the stage directory *)
 
@@ -915,7 +914,7 @@ fun stagePackage dir fndr repo namever chk tool =
       let
         (* Download the package tarball *)
 
-        val () = DirectoryRepo.download repo stageInfo
+        val () = RepositoryRemote.download remote stageInfo
 
         (* List the contents of the tarball *)
 
@@ -943,17 +942,17 @@ fun checkStageTarball dir contents =
     let
       val PackageTarball.Contents {nameVersion = namever, ...} = contents
     in
-      if member namever dir then [DirectoryError.AlreadyInstalled namever]
+      if member namever dir then [RepositoryError.AlreadyInstalled namever]
       else
         let
           val errs = []
 
           val errs =
               let
-                val stageInfo = stagingPackageInfo dir namever
+                val stageInfo = mkStagedPackage dir namever
               in
                 if not (PackageInfo.existsDirectory stageInfo) then errs
-                else DirectoryError.AlreadyStaged namever :: errs
+                else RepositoryError.AlreadyStaged namever :: errs
               end
         in
           errs
@@ -965,14 +964,14 @@ fun stageTarball dir fndr tarFile contents tool =
 (*OpenTheoryDebug
       val errs = checkStageTarball dir contents
 
-      val _ = not (DirectoryError.existsFatal errs) orelse
-              raise Bug "Directory.stageTarball: fatal error"
+      val _ = not (RepositoryError.existsFatal errs) orelse
+              raise Bug "Repository.stageTarball: fatal error"
 *)
       val PackageTarball.Contents {nameVersion = namever, ...} = contents
 
       (* Make a package info for the stage directory *)
 
-      val stageInfo = stagingPackageInfo dir namever
+      val stageInfo = mkStagedPackage dir namever
 
       (* Create the stage directory *)
 
@@ -1004,7 +1003,7 @@ fun stageTarball dir fndr tarFile contents tool =
 local
   fun checkDep dir (namever,errs) =
       if member namever dir then errs
-      else DirectoryError.UninstalledInclude namever :: errs;
+      else RepositoryError.UninstalledInclude namever :: errs;
 
   fun mkFileCopyPlan info pkg =
       let
@@ -1102,7 +1101,7 @@ local
               let
                 val dest = {filename = dest}
               in
-                DirectoryError.FilenameClash {srcs = srcs, dest = dest} :: errs
+                RepositoryError.FilenameClash {srcs = srcs, dest = dest} :: errs
               end
       in
         StringMap.foldl check
@@ -1110,7 +1109,7 @@ local
 
   fun checkRequires dir (name,errs) =
       if Option.isSome (latestNameVersion dir name) then errs
-      else DirectoryError.NoVersionInstalled name :: errs;
+      else RepositoryError.NoVersionInstalled name :: errs;
 in
   fun checkStageTheory dir namever pkg =
       let
@@ -1118,27 +1117,27 @@ in
 
         val errs =
             if not (member namever dir) then errs
-            else DirectoryError.AlreadyInstalled namever :: errs
+            else RepositoryError.AlreadyInstalled namever :: errs
 
         val errs =
             let
-              val stageInfo = stagingPackageInfo dir namever
+              val stageInfo = mkStagedPackage dir namever
             in
               if not (PackageInfo.existsDirectory stageInfo) then errs
-              else DirectoryError.AlreadyStaged namever :: errs
+              else RepositoryError.AlreadyStaged namever :: errs
             end
 
         val errs = checkTags dir namever (Package.tags pkg) @ errs
 
         val errs = List.foldl (checkDep dir) errs (Package.includes pkg)
 
-        val info = packageInfo dir namever
+        val info = mkPackage dir namever
 
         val plan = mkFileCopyPlan info pkg
 
 (*OpenTheoryTrace1
         val () =
-            Print.trace ppFileCopyPlan "Directory.checkStageTheory: plan" plan
+            Print.trace ppFileCopyPlan "Repository.checkStageTheory: plan" plan
 *)
 
         val reqs = Package.requires pkg
@@ -1164,7 +1163,7 @@ local
 (*OpenTheoryTrace1
             val () =
                 Print.trace Print.ppString
-                  "Directory.stageTheory.copyArticle: srcFilename" srcFilename
+                  "Repository.stageTheory.copyArticle: srcFilename" srcFilename
 *)
 
             val art =
@@ -1183,7 +1182,7 @@ local
 (*OpenTheoryTrace1
             val () =
                 Print.trace Print.ppString
-                  "Directory.stageTheory.copyArticle: destFilename" destFilename
+                  "Repository.stageTheory.copyArticle: destFilename" destFilename
 *)
 
             val () =
@@ -1214,7 +1213,7 @@ local
 (*OpenTheoryTrace1
           val () =
               Print.trace Print.ppString
-                "Directory.stageTheory.copyExtraFile: srcFilename" srcFilename
+                "Repository.stageTheory.copyExtraFile: srcFilename" srcFilename
 *)
 
           val srcFilename = OS.Path.concat (srcDir,srcFilename)
@@ -1226,7 +1225,7 @@ local
           val {filename = destFilename} =
               PackageInfo.joinDirectory info {filename = pkgFilename}
 
-          val {cp = cmd} = DirectorySystem.cp sys
+          val {cp = cmd} = RepositorySystem.cp sys
 
           val cmd = cmd ^ " " ^ srcFilename ^ " " ^ destFilename
 
@@ -1262,7 +1261,7 @@ local
   fun checkTheory dir info pkg =
       let
 (*OpenTheoryTrace1
-        val () = trace "Directory.stageTheory.checkTheory\n"
+        val () = trace "Repository.stageTheory.checkTheory\n"
 *)
 
         val Package.Package' {tags,theories} = Package.dest pkg
@@ -1286,7 +1285,7 @@ local
   fun writeTheoryFile stageInfo pkg =
       let
 (*OpenTheoryTrace1
-        val () = trace "Directory.stageTheory.writeTheoryFile\n"
+        val () = trace "Repository.stageTheory.writeTheoryFile\n"
 *)
 
         val file = PackageInfo.theoryFile stageInfo
@@ -1301,14 +1300,14 @@ in
 (*OpenTheoryDebug
         val errs = checkStageTheory dir namever pkg
 
-        val _ = not (DirectoryError.existsFatal errs) orelse
-                raise Bug "Directory.stageTheory: fatal error"
+        val _ = not (RepositoryError.existsFatal errs) orelse
+                raise Bug "Repository.stageTheory: fatal error"
 *)
         val sys = system dir
 
         (* Make a package info for the stage directory *)
 
-        val stageInfo = stagingPackageInfo dir namever
+        val stageInfo = mkStagedPackage dir namever
 
         (* Create the stage directory *)
 
@@ -1358,19 +1357,19 @@ end;
 
 fun checkInstallStaged dir namever chk =
     let
-      val stageInfo = stagingPackageInfo dir namever
+      val stageInfo = mkStagedPackage dir namever
 
-      val pkgInfo = packageInfo dir namever
+      val pkgInfo = mkPackage dir namever
 
       val errs = []
 
       val errs =
           if PackageInfo.existsDirectory stageInfo then errs
-          else DirectoryError.NotStaged namever :: errs
+          else RepositoryError.NotStaged namever :: errs
 
       val errs =
           if not (PackageInfo.existsDirectory pkgInfo) then errs
-          else DirectoryError.AlreadyInstalled namever :: errs
+          else RepositoryError.AlreadyInstalled namever :: errs
 
       val errs =
           if not (List.null errs) then errs
@@ -1378,7 +1377,7 @@ fun checkInstallStaged dir namever chk =
             let
               fun add (dep,acc) =
                   if member dep dir then acc
-                  else DirectoryError.UninstalledInclude dep :: acc
+                  else RepositoryError.UninstalledInclude dep :: acc
 
               val pkg = PackageInfo.package stageInfo
             in
@@ -1390,9 +1389,9 @@ fun checkInstallStaged dir namever chk =
 
 fun installStaged dir namever chk =
     let
-      val stageInfo = stagingPackageInfo dir namever
+      val stageInfo = mkStagedPackage dir namever
 
-      val pkgInfo = packageInfo dir namever
+      val pkgInfo = mkPackage dir namever
 
       val () =
           if PackageInfo.existsDirectory stageInfo then ()
@@ -1413,9 +1412,9 @@ fun installStaged dir namever chk =
 
         (* Update the list of installed packages *)
 
-        val Directory {packages = pkgs, ...} = dir
+        val Repository {packages = pkgs, ...} = dir
 
-        val () = DirectoryPackages.add pkgs pkgInfo chk
+        val () = RepositoryPackages.add pkgs pkgInfo chk
       in
         ()
       end
@@ -1473,7 +1472,7 @@ fun listStaged dir {maxAge} =
 
 fun cleanupStaged dir namever =
     let
-      val stageInfo = stagingPackageInfo dir namever
+      val stageInfo = mkStagedPackage dir namever
 
       val () = PackageInfo.nukeDirectory stageInfo
     in
@@ -1481,11 +1480,11 @@ fun cleanupStaged dir namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Uninstalling packages from the package directory.                         *)
+(* Uninstalling packages from the package repository.                         *)
 (* ------------------------------------------------------------------------- *)
 
 fun checkUninstall dir namever =
-    if not (member namever dir) then [DirectoryError.NotInstalled namever]
+    if not (member namever dir) then [RepositoryError.NotInstalled namever]
     else
       let
         val errs = []
@@ -1496,7 +1495,7 @@ fun checkUninstall dir namever =
             if PackageNameVersionSet.null users then errs
             else
               let
-                fun add (nv,acc) = DirectoryError.InstalledUser nv :: acc
+                fun add (nv,acc) = RepositoryError.InstalledUser nv :: acc
               in
                 PackageNameVersionSet.foldl add errs users
               end
@@ -1509,13 +1508,13 @@ fun uninstall dir namever =
 (*OpenTheoryDebug
       val errs = checkUninstall dir namever
 
-      val _ = not (DirectoryError.existsFatal errs) orelse
-              raise Bug "Directory.uninstall: fatal error"
+      val _ = not (RepositoryError.existsFatal errs) orelse
+              raise Bug "Repository.uninstall: fatal error"
 *)
 
-      val Directory {packages = pkgs, ...} = dir
+      val Repository {packages = pkgs, ...} = dir
 
-      val info = packageInfo dir namever
+      val info = mkPackage dir namever
 
       (* Nuke the package directory *)
 
@@ -1523,389 +1522,20 @@ fun uninstall dir namever =
 
       (* Delete from the list of installed packages *)
 
-      val () = DirectoryPackages.delete pkgs namever
+      val () = RepositoryPackages.delete pkgs namever
     in
       ()
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Uploading packages from the package directory to a repo.                  *)
+(* Comparing packages with remotes.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun collectAuthors dir =
-      let
-        fun add (nv,acc) =
-            let
-              val info = get dir nv
-
-              val pkg = PackageInfo.package info
-
-              val auth = Package.author pkg
-
-              val nvs =
-                  case PackageAuthorMap.peek acc auth of
-                    NONE => PackageNameVersionSet.empty
-                  | SOME s => s
-
-              val nvs = PackageNameVersionSet.add nvs nv
-            in
-              PackageAuthorMap.insert acc (auth,nvs)
-            end
-
-        fun flip (auth,nvs) = (nvs,auth)
-      in
-        fn nvs =>
-           let
-             val auths = List.foldl add (PackageAuthorMap.new ()) nvs
-           in
-             List.map flip (PackageAuthorMap.toList auths)
-           end
-      end;
-
-  fun allInstalled dir nvs = List.all (fn nv => member nv dir) nvs;
-
-  fun checkInstalled dir =
-      let
-        fun isKnown nv = member nv dir
-
-        fun add (nv,acc) = DirectoryError.NotInstalled nv :: acc
-      in
-        fn namevers => fn errs =>
-           let
-             val (namevers,unknown) = List.partition isKnown namevers
-
-             val errs = List.foldl add errs unknown
-           in
-             (namevers,errs)
-           end
-      end;
-
-  fun checkNotOnRepo repo =
-      let
-        fun check (nv,errs) =
-            if not (DirectoryRepo.member nv repo) then errs
-            else DirectoryError.AlreadyOnRepo (nv,repo) :: errs
-      in
-        fn namevers => fn errs => List.foldl check errs namevers
-      end;
-
-  fun checkAncestorsOnRepo dir repo =
-      let
-        fun addMissing anc errs =
-            DirectoryError.AncestorNotOnRepo (anc,repo) :: errs
-
-        fun addDifferent anc errs =
-            DirectoryError.AncestorWrongChecksumOnRepo (anc,repo) :: errs
-
-        fun checkAnc (anc,errs) =
-            let
-              val chk =
-                  case checksum dir anc of
-                    SOME c => c
-                  | NONE =>
-                    let
-                      val err =
-                          "depends on package " ^
-                          PackageNameVersion.toString anc ^
-                          " which seems to be badly installed"
-                    in
-                      raise Error err
-                    end
-            in
-              case DirectoryRepo.peek repo anc of
-                NONE => addMissing anc errs
-              | SOME chk' =>
-                if Checksum.equal chk chk' then errs
-                else addDifferent anc errs
-            end
-      in
-        fn namevers => fn errs =>
-           let
-             val nvs = PackageNameVersionSet.fromList namevers
-
-             val ancs = includesRTC dir nvs
-
-             val ancs = PackageNameVersionSet.difference ancs nvs
-           in
-             PackageNameVersionSet.foldl checkAnc errs ancs
-           end
-      end;
-
-  fun checkSameAuthor dir namevers errs =
-      let
-        val auths = collectAuthors dir (List.rev namevers)
-      in
-        case auths of
-          [] => raise Bug "Directory.checkUpload.checkSameAuthor"
-        | [(_,auth)] => (auth,errs)
-        | (_,auth) :: _ :: _ =>
-          (auth, DirectoryError.MultipleAuthors auths :: errs)
-      end;
-
-  fun checkObsoleteInstalled dir repo =
-      let
-        fun check (nv,(obs,errs)) =
-            case DirectoryRepo.previousNameVersion repo nv of
-              NONE => (obs,errs)
-            | SOME (nv',chk') =>
-              case checksum dir nv' of
-                NONE =>
-                let
-                  val err =
-                      DirectoryError.UninstalledObsolete
-                        {upload = nv,
-                         obsolete = nv'}
-                in
-                  (obs, err :: errs)
-                end
-              | SOME chk =>
-                if Checksum.equal chk chk' then (nv' :: obs, errs)
-                else
-                  let
-                    val err =
-                        DirectoryError.WrongChecksumObsolete
-                          {upload = nv,
-                           obsolete = nv'}
-                  in
-                    (obs, err :: errs)
-                  end
-      in
-        fn namevers => fn errs => List.foldl check ([],errs) namevers
-      end;
-
-  fun checkObsoleteAuthors dir author obsolete errs =
-      let
-        fun notAuthor (_,auth) = not (PackageAuthor.equal auth author)
-
-        val auths = collectAuthors dir obsolete
-
-        val auths = List.filter notAuthor auths
-      in
-        if List.null auths then errs
-        else DirectoryError.ObsoleteAuthors auths :: errs
-      end;
-in
-  fun checkUpload dir {repo, support, packages = namevers} =
-      let
-        val errs = []
-
-        (* Check there exist upload packages *)
-
-        val () =
-            if not (List.null namevers) then ()
-            else raise Bug "Directory.checkUpload: no upload packages"
-
-        (* Check upload packages are installed *)
-
-        val () =
-            if allInstalled dir support then ()
-            else raise Bug "Directory.checkUpload: support not installed"
-
-        val (namevers,errs) = checkInstalled dir namevers errs
-      in
-        if List.null namevers then List.rev errs
-        else
-          let
-            (* Check upload packages are in install order *)
-
-            val () =
-                if dependencyOrdered dir (support @ namevers) then ()
-                else raise Bug "Directory.checkUpload: not in dependency order"
-
-            (* Check upload packages are not installed on the repo *)
-
-            val errs = checkNotOnRepo repo (support @ namevers) errs
-
-            (* Check upload ancestor packages are installed on the repo *)
-
-            val errs = checkAncestorsOnRepo dir repo (support @ namevers) errs
-
-            (* Check upload packages have the same author *)
-
-            val (author,errs) = checkSameAuthor dir namevers errs
-
-            (* Warn if obsolete packages are not installed *)
-
-            val (obsolete,errs) = checkObsoleteInstalled dir repo namevers errs
-
-            (* Warn about obsoleting packages by other authors *)
-
-            val errs = checkObsoleteAuthors dir author obsolete errs
-          in
-            List.rev errs
-          end
-      end;
-end;
-
-fun supportUpload dir upl namever =
-    let
-      val chk =
-          case checksum dir namever of
-            SOME c => c
-          | NONE =>
-            let
-              val err =
-                  "package " ^ PackageNameVersion.toString namever ^
-                  " seems to be badly installed"
-            in
-              raise Error err
-            end
-
-      val () = DirectoryRepo.supportUpload upl namever chk
-    in
-      ()
-    end;
-
-fun packageUpload dir upl namever =
-    let
-      val info = get dir namever
-
-      val chk =
-          case checksum dir namever of
-            SOME c => c
-          | NONE =>
-            let
-              val err =
-                  "package " ^ PackageNameVersion.toString namever ^
-                  " seems to be badly installed"
-            in
-              raise Error err
-            end
-
-      val () = DirectoryRepo.packageUpload upl info chk
-    in
-      ()
-    end;
-
-fun ppUpload dir {repo,support,packages} =
-    let
-      fun ppStep step pps =
-          Print.inconsistentBlock 3
-            (Print.ppInt step ::
-             Print.ppString ". " ::
-             pps)
-
-      val ppNameVer = PackageNameVersion.pp
-
-      fun ppNameVers nv nvs =
-          ppNameVer nv ::
-          List.map (Print.sequence Print.break o ppNameVer) nvs
-
-      val ppAuthor = PackageAuthor.pp
-
-      val step = 0
-
-      val (step,ppSupport) =
-          case support of
-            [] => (step,Print.skip)
-          | nv :: nvs =>
-            let
-              val step = step + 1
-
-              val num = length nvs + 1
-
-              val mesg = "Request installation of "
-
-              val ppNum =
-                  if num = 1 then Print.ppString "a support package:"
-                  else
-                    Print.sequence (Print.ppInt num)
-                      (Print.ppString " support packages:")
-
-              val pp =
-                  ppStep step
-                    (Print.ppString mesg ::
-                     ppNum ::
-                     Print.newline ::
-                     ppNameVers nv nvs)
-            in
-              (step, Print.sequence Print.newline pp)
-            end
-
-      val (author,step,ppPackages) =
-          case packages of
-            [] => raise Bug "Directory.ppUpload: no packages"
-          | nv :: nvs =>
-            let
-              val author =
-                  let
-                    val info = get dir nv
-
-                    val pkg = PackageInfo.package info
-                  in
-                    Package.author pkg
-                  end
-
-              val step = step + 1
-
-              val num = length nvs + 1
-
-              val mesg = "Upload "
-
-              val ppNum =
-                  if num = 1 then Print.ppString "the package:"
-                  else
-                    Print.sequence (Print.ppInt num)
-                      (Print.ppString " packages:")
-
-              val pp =
-                  ppStep step
-                    (Print.ppString mesg ::
-                     ppNum ::
-                     Print.newline ::
-                     ppNameVers nv nvs)
-            in
-              (author,step,pp)
-            end
-
-      val (step,ppAuthorConfirm) =
-          let
-            val step = step + 1
-
-            val mesg = "Send a confirmation email to the package author:"
-
-            val pp =
-                ppStep step
-                  [Print.ppString mesg,
-                   Print.newline,
-                   ppAuthor author]
-          in
-            (step,pp)
-          end
-
-      val ppRepo =
-          Print.inconsistentBlock 2
-            [Print.ppString "About to upload to ",
-             DirectoryRepo.pp repo,
-             Print.ppString " in ",
-             Print.ppInt step,
-             Print.ppString " steps"]
-    in
-      Print.inconsistentBlock 0
-        [ppRepo,
-         ppSupport,
-         Print.newline,
-         ppPackages,
-         Print.newline,
-         ppAuthorConfirm]
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Comparing packages with repos.                                            *)
-(* ------------------------------------------------------------------------- *)
-
-fun identicalOnRepo dir =
-    DirectoryPackages.identicalOnRepo (packages dir);
-
-fun consistentWithRepo dir =
-    DirectoryPackages.consistentWithRepo (packages dir);
-
-fun earlierThanRepo dir =
-    DirectoryPackages.earlierThanRepo (packages dir);
-
-fun laterThanRepo dir =
-    DirectoryPackages.laterThanRepo (packages dir);
+fun identicalOnRemote dir =
+    DirectoryPackages.identicalOnRemote (packages dir);
+
+fun consistentWithRemote dir =
+    DirectoryPackages.consistentWithRemote (packages dir);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

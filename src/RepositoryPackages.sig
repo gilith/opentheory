@@ -76,8 +76,11 @@ val previousNameVersion :
     PackageNameVersion.nameVersion option
 
 (* ------------------------------------------------------------------------- *)
-(* Package authors.                                                          *)
+(* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+val author :
+    packages -> PackageNameVersion.nameVersion -> PackageAuthor.author
 
 val knownAuthor :
     packages -> PackageAuthorSet.set -> PackageNameVersion.nameVersion ->

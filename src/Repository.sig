@@ -7,7 +7,7 @@ signature Repository =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Creating a new theory package directory.                                  *)
+(* Creating a new package repository.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 val create : {rootDirectory : string, config : RepositoryConfig.config} -> unit
@@ -31,37 +31,18 @@ val config : repository -> RepositoryConfig.config
 val system : repository -> RepositorySystem.system
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up packages in the repository.                                    *)
+(* Connected remote repositories.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val peek :
-    repository -> PackageNameVersion.nameVersion -> Package.package option
+val remotes : repository -> RepositoryRemote.remote list
 
-val get : repository -> PackageNameVersion.nameVersion -> Package.package
+val peekRemote :
+    repository -> RepositoryRemote.name -> RepositoryRemote.remote option
 
-val member : PackageNameVersion.nameVersion -> repository -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Installed package sets.                                                   *)
-(* ------------------------------------------------------------------------- *)
-
-val all : repository -> PackageNameVersionSet.set
-
-val latest :  (* ~Empty (Latest - Subtheories) All *)
-    repository -> PackageNameVersionSet.set
+val getRemote : repository -> RepositoryRemote.name -> RepositoryRemote.remote
 
 (* ------------------------------------------------------------------------- *)
-(* Looking up remote repositories known to the repository.                   *)
-(* ------------------------------------------------------------------------- *)
-
-val repos : repository -> RepositoryRepo.repo list
-
-val peekRepo : repository -> RepositoryRepo.name -> RepositoryRepo.repo option
-
-val getRepo : repository -> RepositoryRepo.name -> RepositoryRepo.repo
-
-(* ------------------------------------------------------------------------- *)
-(* Looking up licenses acceptable to the repository.                         *)
+(* Acceptable licenses.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 val licenses : repository -> RepositoryConfig.license list
@@ -74,7 +55,27 @@ val knownLicense : repository -> {name : string} -> bool
 val getLicense : repository -> {name : string} -> RepositoryConfig.license
 
 (* ------------------------------------------------------------------------- *)
-(* Installed package versions.                                               *)
+(* Installed package sets.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val all : repository -> PackageNameVersionSet.set
+
+val latest :  (* ~Empty (Latest - Subtheories) All *)
+    repository -> PackageNameVersionSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Looking up installed packages by name.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+val peek :
+    repository -> PackageNameVersion.nameVersion -> Package.package option
+
+val get : repository -> PackageNameVersion.nameVersion -> Package.package
+
+val member : PackageNameVersion.nameVersion -> repository -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Package versions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
 val nameVersions :
@@ -101,8 +102,11 @@ val previousNameVersion :
     PackageNameVersion.nameVersion option
 
 (* ------------------------------------------------------------------------- *)
-(* Package authors.                                                          *)
+(* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+val author :
+    repository -> PackageNameVersion.nameVersion -> PackageAuthor.author
 
 val knownAuthor :
     repository -> PackageAuthorSet.set -> PackageNameVersion.nameVersion ->
@@ -146,7 +150,7 @@ val requiresNameVersions :
 
 val requiresPackages :
     repository -> PackageName.name list ->
-    PackageInfo.info list option
+    Package.package list option
 
 val requiresTheorems :
     repository -> PackageName.name list ->
@@ -246,20 +250,22 @@ val upToDateDependencies :
 (* Upgrading theory source files.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val upgrade : repository -> Package.package -> Package.package option
+val upgradeTheory :
+    repository -> PackageInformation.information ->
+    PackageInformation.information option
 
 (* ------------------------------------------------------------------------- *)
 (* Staging packages for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 val checkStagePackage :
-    repository ->
-    RepositoryRepo.repo -> PackageNameVersion.nameVersion -> Checksum.checksum ->
+    repository -> RepositoryRemote.remote ->
+    PackageNameVersion.nameVersion -> Checksum.checksum ->
     RepositoryError.error list
 
 val stagePackage :
-    repository -> PackageFinder.finder ->
-    RepositoryRepo.repo -> PackageNameVersion.nameVersion -> Checksum.checksum ->
+    repository -> PackageFinder.finder -> RepositoryRemote.remote ->
+    PackageNameVersion.nameVersion -> Checksum.checksum ->
     {tool : Html.inline list} ->
     unit
 
@@ -279,18 +285,18 @@ val stageTarball :
     unit
 
 (* ------------------------------------------------------------------------- *)
-(* Staging theory files for installation.                                    *)
+(* Staging theory source files for installation.                             *)
 (* ------------------------------------------------------------------------- *)
 
 val checkStageTheory :
     repository ->
-    PackageNameVersion.nameVersion -> Package.package ->
+    PackageNameVersion.nameVersion -> PackageInformation.information ->
     RepositoryError.error list
 
 val stageTheory :
     repository ->
-    PackageNameVersion.nameVersion -> Package.package -> {repository : string} ->
-    {tool : Html.inline list} ->
+    PackageNameVersion.nameVersion -> PackageInformation.information ->
+    {repository : string} -> {tool : Html.inline list} ->
     Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)
@@ -324,75 +330,29 @@ val checkUninstall :
 val uninstall : repository -> PackageNameVersion.nameVersion -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Uploading installed packages to a remote repository.                      *)
+(* Package finders.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type upload
+val finder : repository -> PackageFinder.finder
 
-val mkUpload :
-    {repo : RepositoryRepo.repo,
-     support : PackageNameVersion.nameVersion list,
-     packages : PackageNameVersion.nameVersion list} ->
-
-val checkUpload :
-    repository ->
-    {repo : RepositoryRepo.repo,
-     support : PackageNameVersion.nameVersion list,
-     packages : PackageNameVersion.nameVersion list} ->
-    RepositoryError.error list
-
-val supportUpload :
-    repository -> RepositoryRepo.upload -> PackageNameVersion.nameVersion ->
-    unit
-
-val packageUpload :
-    repository -> RepositoryRepo.upload -> PackageNameVersion.nameVersion ->
-    unit
-
-val ppUpload :
-    repository ->
-    {repo : RepositoryRepo.repo,
-     support : PackageNameVersion.nameVersion list,
-     packages : PackageNameVersion.nameVersion list} Print.pp
+val stagedFinder : repository -> PackageFinder.finder
 
 (* ------------------------------------------------------------------------- *)
-(* A package finder and importer.                                            *)
+(* Comparing a package with a remote repository.                             *)
 (* ------------------------------------------------------------------------- *)
 
-val finder : directory -> PackageFinder.finder
-
-val importer : directory -> TheoryGraph.importer
-
-(* ------------------------------------------------------------------------- *)
-(* A package finder for *staged* packages.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-val stagedFinder : directory -> PackageFinder.finder
-
-(* ------------------------------------------------------------------------- *)
-(* Comparing packages with repos.                                            *)
-(* ------------------------------------------------------------------------- *)
-
-val identicalOnRepo :
-    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+val identicalOnRemote :
+    repository -> RepositoryRemote.remote -> PackageNameVersion.nameVersion ->
     bool
 
-val consistentWithRepo :
-    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
-    bool
-
-val earlierThanRepo :
-    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
-    bool
-
-val laterThanRepo :
-    directory -> DirectoryRepo.repo -> PackageNameVersion.nameVersion ->
+val consistentWithRemote :
+    repository -> RepositoryRemote.remote -> PackageNameVersion.nameVersion ->
     bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : directory Print.pp
+val pp : repository Print.pp
 
 end

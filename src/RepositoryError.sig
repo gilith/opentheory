@@ -51,43 +51,17 @@ datatype error =
   | WrongChecksumOnRemote of
       PackageNameVersion.nameVersion * RepositoryRemote.remote
 
+type errors
+
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-(* AlreadyInstalled *)
+val clean : errors
 
-val destAlreadyInstalled : error -> PackageNameVersion.nameVersion option
+val isClean : errors -> bool
 
-val isAlreadyInstalled : error -> bool
-
-val removeAlreadyInstalled : error list -> bool * error list
-
-(* AlreadyStaged *)
-
-val destAlreadyStaged : error -> PackageNameVersion.nameVersion option
-
-val isAlreadyStaged : error -> bool
-
-val removeAlreadyStaged : error list -> bool * error list
-
-(* InstalledUser *)
-
-val destInstalledUser : error -> PackageNameVersion.nameVersion option
-
-val isInstalledUser : error -> bool
-
-val removeInstalledUser :
-    error list -> PackageNameVersion.nameVersion list * error list
-
-(* UninstalledInclude *)
-
-val destUninstalledInclude : error -> PackageNameVersion.nameVersion option
-
-val isUninstalledInclude : error -> bool
-
-val removeUninstalledInclude :
-    error list -> PackageNameVersion.nameVersion list * error list
+val add : errors -> error -> errors
 
 (* ------------------------------------------------------------------------- *)
 (* Fatal errors.                                                             *)
@@ -95,7 +69,49 @@ val removeUninstalledInclude :
 
 val isFatal : error -> bool
 
-val existsFatal : error list -> bool
+val containsFatal : errors -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* AlreadyInstalled errors.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val destAlreadyInstalled : error -> PackageNameVersion.nameVersion option
+
+val isAlreadyInstalled : error -> bool
+
+val removeAlreadyInstalled : errors -> bool * errors
+
+(* ------------------------------------------------------------------------- *)
+(* AlreadyStaged errors.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val destAlreadyStaged : error -> PackageNameVersion.nameVersion option
+
+val isAlreadyStaged : error -> bool
+
+val removeAlreadyStaged : errors -> bool * errors
+
+(* ------------------------------------------------------------------------- *)
+(* InstalledUser errors.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+val destInstalledUser : error -> PackageNameVersion.nameVersion option
+
+val isInstalledUser : error -> bool
+
+val removeInstalledUser :
+    errors -> PackageNameVersion.nameVersion list * errors
+
+(* ------------------------------------------------------------------------- *)
+(* UninstalledInclude errors.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val destUninstalledInclude : error -> PackageNameVersion.nameVersion option
+
+val isUninstalledInclude : error -> bool
+
+val removeUninstalledInclude :
+    errors -> PackageNameVersion.nameVersion list * errors
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
@@ -103,6 +119,6 @@ val existsFatal : error list -> bool
 
 val toString : error -> string
 
-val toStringList : error list -> string
+val report : errors -> string
 
 end

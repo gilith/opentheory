@@ -156,6 +156,7 @@ SRC = \
   src/RepositoryError.sig src/RepositoryError.sml \
   src/RepositoryConfig.sig src/RepositoryConfig.sml \
   src/Repository.sig src/Repository.sml \
+  src/RepositoryUpload.sig src/RepositoryUpload.sml \
   src/RepositoryQuery.sig src/RepositoryQuery.sml \
   src/Syntax.sig src/Syntax.sml \
   src/Haskell.sig src/Haskell.sml \

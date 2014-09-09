@@ -393,23 +393,17 @@ fun previousNameVersion pkgs namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package authors.                                                          *)
+(* Package author.                                                           *)
 (* ------------------------------------------------------------------------- *)
+
+fun author pkgs namever =
+    case peek pkgs namever of
+      SOME pkg => Package.author pkg
+    | NONE => raise Bug "RepositoryPackages.author: unknown package";
 
 local
   fun authorInSet pkgs auths namever =
-      let
-(*OpenTheoryDebug
-        val () =
-            if member namever pkgs then ()
-            else raise Bug "RepositoryPackages.knownAuthor: unknown package"
-*)
-        val pkg = get pkgs namever
-
-        val auth = Package.author pkg
-      in
-        PackageAuthorSet.member auth auths
-      end;
+      PackageAuthorSet.member (author pkgs namever) auths;
 in
   fun knownAuthor pkgs auths =
       if PackageAuthorSet.null auths then K false

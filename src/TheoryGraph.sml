@@ -649,10 +649,11 @@ and importPackageInformation finder graph data =
 
 and importPackage finder graph data =
     let
-      val {imports,interpretation,package,checksum} = data
+      val {imports,interpretation,package} = data
 
       val {directory} = Package.directory package
       and namever = Package.nameVersion package
+      and chk = Package.checksum package
       and info = Package.information package
 
       val data =
@@ -660,7 +661,7 @@ and importPackage finder graph data =
            imports = imports,
            interpretation = interpretation,
            nameVersion = namever,
-           checksum = checksum,
+           checksum = SOME chk,
            information = info}
     in
       importPackageInformation finder graph data
@@ -681,13 +682,10 @@ and import finder graph spec =
 
           val pkg = PackageFinder.get finder namever chk
 
-          val chk = Package.checksum pkg
-
           val data =
               {imports = imports,
                interpretation = interpretation,
-               package = pkg,
-               checksum = SOME chk}
+               package = pkg}
         in
           importPackage finder graph data
           handle Error err =>

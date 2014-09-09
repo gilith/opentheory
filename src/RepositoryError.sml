@@ -53,78 +53,43 @@ datatype error =
   | WrongChecksumOnRemote of
       PackageNameVersion.nameVersion * RepositoryRemote.remote;
 
+datatype errors = Errors of error list
+
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun destAlreadyInstalled err =
-    case err of
-      AlreadyInstalled nv => SOME nv
-    | _ => NONE;
+val clean = Errors [];
 
-fun isAlreadyInstalled err =
-    Option.isSome (destAlreadyInstalled err);
+fun isClean (Errors errs) = List.null errs;
 
-fun removeAlreadyInstalled errs =
+fun add (Errors errs) err = Errors (err :: errs);
+
+fun destRemove dest =
     let
-      val (xs,errs) = List.partition isAlreadyInstalled errs
-
-      val removed = not (List.null xs)
+      fun remove (err,(xs,errs)) =
+          case dest err of
+            SOME x => (x :: xs, errs)
+          | NONE => (xs, err :: errs)
     in
-      (removed,errs)
+      fn Errors errs =>
+         let
+           val (xs,errs) = List.foldl remove ([],[]) errs
+         in
+           (xs, Errors (List.rev errs))
+         end
     end;
 
-fun destAlreadyStaged err =
-    case err of
-      AlreadyStaged nv => SOME nv
-    | _ => NONE;
-
-fun isAlreadyStaged err =
-    Option.isSome (destAlreadyStaged err);
-
-fun removeAlreadyStaged errs =
+fun canRemove pred =
     let
-      val (xs,errs) = List.partition isAlreadyStaged errs
-
-      val removed = not (List.null xs)
+      fun dest err = if pred err then SOME err else NONE
     in
-      (removed,errs)
-    end;
-
-fun destInstalledUser err =
-    case err of
-      InstalledUser nv => SOME nv
-    | _ => NONE;
-
-fun isInstalledUser err =
-    Option.isSome (destInstalledUser err);
-
-val removeInstalledUser =
-    let
-      fun remove (err,(nvs,errs)) =
-          case destInstalledUser err of
-            SOME nv => (nv :: nvs, errs)
-          | NONE => (nvs, err :: errs)
-    in
-      List.foldr remove ([],[])
-    end;
-
-fun destUninstalledInclude err =
-    case err of
-      UninstalledInclude nv => SOME nv
-    | _ => NONE;
-
-fun isUninstalledInclude err =
-    Option.isSome (destUninstalledInclude err);
-
-val removeUninstalledInclude =
-    let
-      fun remove (err,(nvs,errs)) =
-          case destUninstalledInclude err of
-            SOME nv => (nv :: nvs, errs)
-          | NONE => (nvs, err :: errs)
-    in
-      List.foldr remove ([],[])
+      fn errs =>
+         let
+           val (xs,errs) = destRemove dest errs
+         in
+           (not (List.null xs), errs)
+         end
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -152,7 +117,63 @@ fun isFatal err =
     | WrongChecksumObsolete _ => false
     | WrongChecksumOnRemote _ => true;
 
-val existsFatal = List.exists isFatal;
+fun containsFatal (Errors errs) = List.exists isFatal errs;
+
+(* ------------------------------------------------------------------------- *)
+(* AlreadyInstalled errors.                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun destAlreadyInstalled err =
+    case err of
+      AlreadyInstalled nv => SOME nv
+    | _ => NONE;
+
+fun isAlreadyInstalled err =
+    Option.isSome (destAlreadyInstalled err);
+
+val removeAlreadyInstalled = canRemove isAlreadyInstalled;
+
+(* ------------------------------------------------------------------------- *)
+(* AlreadyStaged errors.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun destAlreadyStaged err =
+    case err of
+      AlreadyStaged nv => SOME nv
+    | _ => NONE;
+
+fun isAlreadyStaged err =
+    Option.isSome (destAlreadyStaged err);
+
+val removeAlreadyStaged = canRemove isAlreadyStaged;
+
+(* ------------------------------------------------------------------------- *)
+(* InstalledUser errors.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun destInstalledUser err =
+    case err of
+      InstalledUser nv => SOME nv
+    | _ => NONE;
+
+fun isInstalledUser err =
+    Option.isSome (destInstalledUser err);
+
+val removeInstalledUser = destRemove destInstalledUser;
+
+(* ------------------------------------------------------------------------- *)
+(* UninstalledInclude errors.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun destUninstalledInclude err =
+    case err of
+      UninstalledInclude nv => SOME nv
+    | _ => NONE;
+
+fun isUninstalledInclude err =
+    Option.isSome (destUninstalledInclude err);
+
+val removeUninstalledInclude = destRemove destUninstalledInclude;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
@@ -252,6 +273,9 @@ in
          " has different checksum on " ^ RepositoryRemote.toString remote);
 end;
 
-fun toStringList errs = join "\n" (List.map toString errs);
+fun report (Errors errs) =
+    case List.rev errs of
+      [] => raise Bug "RepositoryError.report: clean"
+    | errs => join "\n" (List.map toString errs);
 
 end

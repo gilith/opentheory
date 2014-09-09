@@ -130,8 +130,7 @@ val importPackage :
     PackageFinder.finder -> graph ->
     {imports : TheorySet.set,
      interpretation : Interpretation.interpretation,
-     package : Package.package,
-     checksum : Checksum.checksum option} ->
+     package : Package.package} ->
     graph * Theory.theory
 
 val import :
