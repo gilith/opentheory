@@ -873,15 +873,15 @@ fun postStageTarball repo fndr pkg tool =
 (* Staging packages for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkStagePackage dir remote namever chk =
-    if member namever dir then [RepositoryError.AlreadyInstalled namever]
+fun checkStagePackage repo remote namever chk =
+    if member namever repo then [RepositoryError.AlreadyInstalled namever]
     else
       let
         val errs = []
 
         val errs =
             let
-              val stageInfo = mkStagedPackage dir namever
+              val stageInfo = mkStagedPackage repo namever
             in
               if not (PackageInfo.existsDirectory stageInfo) then errs
               else RepositoryError.AlreadyStaged namever :: errs
@@ -898,17 +898,17 @@ fun checkStagePackage dir remote namever chk =
         List.rev errs
       end;
 
-fun stagePackage dir fndr remote namever chk tool =
+fun stagePackage repo fndr remote namever chk tool =
     let
 (*OpenTheoryDebug
-      val errs = checkStagePackage dir remote namever chk
+      val errs = checkStagePackage repo remote namever chk
 
       val _ = not (RepositoryError.existsFatal errs) orelse
               raise Bug "Repository.stagePackage: fatal error"
 *)
       (* Make a package info for the stage directory *)
 
-      val stageInfo = mkStagedPackage dir namever
+      val stageInfo = mkStagedPackage repo namever
 
       (* Create the stage directory *)
 
@@ -925,7 +925,7 @@ fun stagePackage dir fndr remote namever chk tool =
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir fndr stageInfo contents tool
+        val () = postStageTarball repo fndr stageInfo contents tool
       in
         ()
       end
