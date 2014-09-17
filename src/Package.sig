@@ -128,7 +128,7 @@ val tarball : package -> PackageTarball.tarball
 
 val packTarball : package -> unit
 
-val copyTarball : package -> {filename : string} -> unit
+val copyTarball : package -> PackageTarball.tarball -> unit
 
 val downloadTarball : package -> {url : string} -> unit
 

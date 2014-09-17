@@ -222,7 +222,7 @@ fun packTarball sys tar files =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Copying a tarball from a file.                                            *)
+(* Copying a tarball.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 fun copyTarball sys {filename = src} {filename = dest} =
@@ -414,7 +414,7 @@ fun contents tar =
 
           val () =
               if PackageNameVersion.equal nv namever then ()
-              else raise Error "package tarball has unexpected contents"
+              else raise Error "tarball contains unexpected package"
 
           val () = cntr := SOME cnt
         in
@@ -449,13 +449,30 @@ fun pack tar files =
       ()
     end;
 
-fun copy tar {filename = src} =
+fun copy src dest =
     let
-      val Tarball {system = sys, filename = dest, ...} = tar
+      val Tarball
+        {system = _,
+         nameVersion = srcNamever,
+         filename = srcFile,
+         contents = ref srcContents,
+         checksum = ref srcChecksum} = src
 
-      val () = invalidate tar
+      and Tarball
+        {system = sys,
+         nameVersion = destNamever,
+         filename = destFile,
+         contents = destContents,
+         checksum = destChecksum} = dest
 
-      val () = copyTarball sys {filename = src} {filename = dest}
+      val () =
+          if PackageNameVersion.equal srcNamever destNamever then ()
+          else raise Bug "PackageTarball.copy: different package names"
+
+      val () = copyTarball sys {filename = srcFile} {filename = destFile}
+
+      val () = destContents := srcContents
+      and () = destChecksum := srcChecksum
     in
       ()
     end;

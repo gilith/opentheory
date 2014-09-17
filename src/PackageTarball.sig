@@ -55,10 +55,10 @@ val checksum : tarball -> Checksum.checksum
 val pack : tarball -> {filename : string} list -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Copying a tarball from a file.                                            *)
+(* Copying a tarball.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val copy : tarball -> {filename : string} -> unit
+val copy : tarball -> tarball -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Downloading a tarball.                                                    *)
