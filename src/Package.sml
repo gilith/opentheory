@@ -227,7 +227,7 @@ fun tarball (Package {tarball = x, ...}) = x;
 
 fun packTarball pkg = PackageTarball.pack (tarball pkg) (allFiles pkg);
 
-fun copyTarball pkg src = PackageTarball.copy (tarball pkg) src;
+fun copyTarball pkg src = PackageTarball.copy {src = src} {dest = tarball pkg};
 
 fun downloadTarball pkg url = PackageTarball.download (tarball pkg) url;
 
@@ -237,10 +237,16 @@ fun unpackTarball pkg {minimal} =
     let
       val () = invalidate pkg
 
-      val tar = tarball pkg
+      val namever = nameVersion pkg
+      and tar = tarball pkg
 
-      val PackageTarball.Contents {nameVersion = _, theoryFile, otherFiles} =
+      val PackageTarball.Contents
+            {nameVersion = namever', theoryFile, otherFiles} =
           PackageTarball.contents tar
+
+      val () =
+          if PackageNameVersion.equal namever' namever then ()
+          else raise Error "tarball contains unexpected package"
 
       val () = PackageTarball.extract tar [theoryFile]
 
@@ -352,9 +358,8 @@ fun mk {system,nameVersion,checksum,directory} =
           in
             PackageTarball.mk
               {system = system,
-               nameVersion = nameVersion,
-               checksum = checksum,
-               filename = filename}
+               filename = filename,
+               checksum = checksum}
           end
 
       val information = ref NONE

@@ -275,12 +275,12 @@ val stagePackage :
 
 val checkStageTarball :
     repository ->
-    PackageTarball.contents ->
+    PackageTarball.tarball ->
     RepositoryError.error list
 
 val stageTarball :
     repository -> PackageFinder.finder ->
-    {filename : string} -> PackageTarball.contents ->
+    PackageTarball.tarball ->
     {tool : Html.inline list} ->
     unit
 

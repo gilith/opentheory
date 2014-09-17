@@ -65,6 +65,10 @@ fun isClean (Errors errs) = List.null errs;
 
 fun add (Errors errs) err = Errors (err :: errs);
 
+fun addList (Errors errs) errl = Errors (List.revAppend (errl,errs));
+
+val fromList = addList clean;
+
 fun destRemove dest =
     let
       fun remove (err,(xs,errs)) =

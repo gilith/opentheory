@@ -63,6 +63,10 @@ val isClean : errors -> bool
 
 val add : errors -> error -> errors
 
+val addList : errors -> error list -> errors
+
+val fromList : error list -> errors
+
 (* ------------------------------------------------------------------------- *)
 (* Fatal errors.                                                             *)
 (* ------------------------------------------------------------------------- *)

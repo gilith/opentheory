@@ -349,7 +349,6 @@ fun uploadTarball sys {filename} chk {url,token} =
 datatype tarball =
     Tarball of
       {system : RepositorySystem.system,
-       nameVersion : PackageNameVersion.nameVersion,
        filename : string,
        contents : contents option ref,
        checksum : Checksum.checksum option ref};
@@ -380,14 +379,13 @@ fun invalidate tar =
       ()
     end;
 
-fun mk {system,nameVersion,checksum,filename} =
+fun mk {system,filename,checksum} =
     let
       val cntr = ref NONE
       and chkr = ref checksum
     in
       Tarball
         {system = system,
-         nameVersion = nameVersion,
          filename = filename,
          contents = cntr,
          checksum = chkr}
@@ -397,12 +395,7 @@ fun filename (Tarball {filename = x, ...}) = {filename = x};
 
 fun contents tar =
     let
-      val Tarball
-        {system = sys,
-         nameVersion = namever,
-         filename,
-         contents = cntr,
-         ...} = tar
+      val Tarball {system = sys, filename, contents = cntr, ...} = tar
     in
       case !cntr of
         SOME cnt => cnt
@@ -410,16 +403,17 @@ fun contents tar =
         let
           val cnt = listContents sys {filename = filename}
 
-          val Contents {nameVersion = nv, ...} = cnt
-
-          val () =
-              if PackageNameVersion.equal nv namever then ()
-              else raise Error "tarball contains unexpected package"
-
           val () = cntr := SOME cnt
         in
           cnt
         end
+    end;
+
+fun nameVersion tar =
+    let
+      val Contents {nameVersion = namever, ...} = contents tar
+    in
+      namever
     end;
 
 fun checksum tar =
@@ -449,25 +443,19 @@ fun pack tar files =
       ()
     end;
 
-fun copy src dest =
+fun copy {src} {dest} =
     let
       val Tarball
         {system = _,
-         nameVersion = srcNamever,
          filename = srcFile,
          contents = ref srcContents,
          checksum = ref srcChecksum} = src
 
       and Tarball
         {system = sys,
-         nameVersion = destNamever,
          filename = destFile,
          contents = destContents,
          checksum = destChecksum} = dest
-
-      val () =
-          if PackageNameVersion.equal srcNamever destNamever then ()
-          else raise Bug "PackageTarball.copy: different package names"
 
       val () = copyTarball sys {filename = srcFile} {filename = destFile}
 

@@ -874,28 +874,34 @@ fun postStageTarball repo fndr pkg tool =
 (* ------------------------------------------------------------------------- *)
 
 fun checkStagePackage repo remote namever chk =
-    if member namever repo then [RepositoryError.AlreadyInstalled namever]
+    if member namever repo then
+      RepositoryError.fromList [RepositoryError.AlreadyInstalled namever]
     else
       let
-        val errs = []
+        val errs = RepositoryError.clean
 
         val errs =
             let
-              val stageInfo = mkStagedPackage repo namever
+              val pkg = mkStagedPackage repo namever NONE
             in
-              if not (PackageInfo.existsDirectory stageInfo) then errs
-              else RepositoryError.AlreadyStaged namever :: errs
+              if not (Package.existsDirectory pkg) then errs
+              else
+                RepositoryError.add errs
+                  (RepositoryError.AlreadyStaged namever)
             end
 
         val errs =
             case RepositoryRemote.peek remote namever of
               NONE =>
-              RepositoryError.NotOnRemote (namever,remote) :: errs
+              RepositoryError.add errs
+                (RepositoryError.NotOnRemote (namever,remote))
             | SOME chk' =>
               if Checksum.equal chk' chk then errs
-              else RepositoryError.WrongChecksumOnRemote (namever,remote) :: errs
+              else
+                RepositoryError.add errs
+                  (RepositoryError.WrongChecksumOnRemote (namever,remote))
       in
-        List.rev errs
+        errs
       end;
 
 fun stagePackage repo fndr remote namever chk tool =
@@ -903,35 +909,32 @@ fun stagePackage repo fndr remote namever chk tool =
 (*OpenTheoryDebug
       val errs = checkStagePackage repo remote namever chk
 
-      val _ = not (RepositoryError.existsFatal errs) orelse
-              raise Bug "Repository.stagePackage: fatal error"
+      val () =
+          if not (RepositoryError.containsFatal errs) then ()
+          else raise Bug "Repository.stagePackage: fatal error"
 *)
-      (* Make a package info for the stage directory *)
+      (* Make a staged package *)
 
-      val stageInfo = mkStagedPackage repo namever
+      val pkg = mkStagedPackage repo namever NONE
 
-      (* Create the stage directory *)
+      (* Create the staging directory *)
 
-      val () = PackageInfo.createDirectory stageInfo
+      val () = Package.createDirectory pkg
     in
       let
         (* Download the package tarball *)
 
-        val () = RepositoryRemote.download remote stageInfo
-
-        (* List the contents of the tarball *)
-
-        val contents = PackageInfo.contentsTarball stageInfo
+        val () = RepositoryRemote.download remote pkg
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball repo fndr stageInfo contents tool
+        val () = postStageTarball repo fndr pkg tool
       in
         ()
       end
       handle e =>
         let
-          val () = PackageInfo.nukeDirectory stageInfo
+          val () = Package.nukeDirectory pkg
         in
           raise e
         end
@@ -941,59 +944,63 @@ fun stagePackage repo fndr remote namever chk tool =
 (* Staging tarballs for installation.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkStageTarball dir contents =
+fun checkStageTarball repo tar =
     let
-      val PackageTarball.Contents {nameVersion = namever, ...} = contents
+      val namever = PackageTarball.nameVersion tar
     in
-      if member namever dir then [RepositoryError.AlreadyInstalled namever]
+      if member namever repo then
+        RepositoryError.fromList [RepositoryError.AlreadyInstalled namever]
       else
         let
-          val errs = []
+          val errs = RepositoryError.clean
 
           val errs =
               let
-                val stageInfo = mkStagedPackage dir namever
+                val pkg = mkStagedPackage repo namever NONE
               in
-                if not (PackageInfo.existsDirectory stageInfo) then errs
-                else RepositoryError.AlreadyStaged namever :: errs
+                if not (Package.existsDirectory pkg) then errs
+                else
+                  RepositoryError.add errs
+                    (RepositoryError.AlreadyStaged namever)
               end
         in
           errs
         end
     end;
 
-fun stageTarball dir fndr tarFile contents tool =
+fun stageTarball repo fndr tar tool =
     let
 (*OpenTheoryDebug
-      val errs = checkStageTarball dir contents
+      val errs = checkStageTarball repo tar
 
-      val _ = not (RepositoryError.existsFatal errs) orelse
-              raise Bug "Repository.stageTarball: fatal error"
+      val () =
+          if not (RepositoryError.containsFatal errs) then ()
+          else raise Bug "Repository.stageTarball: fatal error"
 *)
-      val PackageTarball.Contents {nameVersion = namever, ...} = contents
+      val namever = PackageTarball.nameVersion tar
 
-      (* Make a package info for the stage directory *)
+      (* Make a staged package *)
 
-      val stageInfo = mkStagedPackage dir namever
+      val pkg = mkStagedPackage repo namever NONE
 
-      (* Create the stage directory *)
+      (* Create the staging directory *)
 
-      val () = PackageInfo.createDirectory stageInfo
+      val () = Package.createDirectory pkg
     in
       let
         (* Copy the package tarball *)
 
-        val () = PackageInfo.copyTarball stageInfo tarFile
+        val () = Package.copyTarball pkg tar
 
         (* Common post-stage operations *)
 
-        val () = postStageTarball dir fndr stageInfo contents tool
+        val () = postStageTarball repo fndr pkg tool
       in
         ()
       end
       handle e =>
         let
-          val () = PackageInfo.nukeDirectory stageInfo
+          val () = Package.nukeDirectory pkg
         in
           raise e
         end
@@ -1006,7 +1013,9 @@ fun stageTarball dir fndr tarFile contents tool =
 local
   fun checkDep dir (namever,errs) =
       if member namever dir then errs
-      else RepositoryError.UninstalledInclude namever :: errs;
+      else
+        RepositoryError.add errs
+          (RepositoryError.UninstalledInclude namever);
 
   fun mkFileCopyPlan info pkg =
       let
@@ -1063,7 +1072,7 @@ local
 
         val plan = List.foldl addReserved plan reserved
 
-        val plan = List.foldl addArticle plan (Package.articles pkg)
+        val plan = List.foldl addArticle plan (Package.articleFiles pkg)
 
         val plan = List.foldl addExtra plan (Package.extraFiles pkg)
       in
