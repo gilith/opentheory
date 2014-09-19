@@ -1141,9 +1141,9 @@ local
             RepositoryError.add errs
               (RepositoryError.WrongChecksumInclude namever);
 in
-  fun checkStageTheory repo info =
+  fun checkStageTheory repo namever info =
       let
-        val errs = checkTags repo NONE (PackageInformation.tags info)
+        val errs = checkTags repo namever (PackageInformation.tags info)
       in
         if RepositoryError.containsFatal errs then errs
         else
@@ -1201,7 +1201,7 @@ in
 end;
 
 local
-  fun copyArticle srcDir info thy =
+  fun copyArticle srcDir pkg thy =
       let
         val PackageTheory.Theory {name,imports,node} = thy
       in
@@ -1215,9 +1215,9 @@ local
 (*OpenTheoryTrace1
             val () =
                 Print.trace Print.ppString
-                  "Repository.stageTheory.copyArticle: srcFilename" srcFilename
+                  "Repository.stageTheory.copyArticle: srcFilename"
+                  srcFilename
 *)
-
             val art =
                 Article.fromTextFile
                   {savable = true,
@@ -1229,14 +1229,14 @@ local
                 Article.normalizeFilename {filename = filename}
 
             val {filename = destFilename} =
-                PackageInfo.joinDirectory info {filename = pkgFilename}
+                Package.joinDirectory pkg {filename = pkgFilename}
 
 (*OpenTheoryTrace1
             val () =
                 Print.trace Print.ppString
-                  "Repository.stageTheory.copyArticle: destFilename" destFilename
+                  "Repository.stageTheory.copyArticle: destFilename"
+                  destFilename
 *)
-
             val () =
                 Article.toTextFile
                   {article = art,
@@ -1255,7 +1255,7 @@ local
         | _ => thy
       end;
 
-  fun copyExtraFile sys srcDir info tag =
+  fun copyExtraFile sys srcDir pkg tag =
       case PackageTag.toExtra tag of
         NONE => tag
       | SOME extra =>
@@ -1265,9 +1265,9 @@ local
 (*OpenTheoryTrace1
           val () =
               Print.trace Print.ppString
-                "Repository.stageTheory.copyExtraFile: srcFilename" srcFilename
+                "Repository.stageTheory.copyExtraFile: srcFilename"
+                srcFilename
 *)
-
           val srcFilename = OS.Path.concat (srcDir,srcFilename)
 
           val extra = PackageExtra.normalize extra
@@ -1275,16 +1275,15 @@ local
           val {filename = pkgFilename} = PackageExtra.filename extra
 
           val {filename = destFilename} =
-              PackageInfo.joinDirectory info {filename = pkgFilename}
+              Package.joinDirectory pkg {filename = pkgFilename}
 
-          val {cp = cmd} = RepositorySystem.cp sys
+          val {cp} = RepositorySystem.cp sys
 
-          val cmd = cmd ^ " " ^ srcFilename ^ " " ^ destFilename
+          val cmd = cp ^ " " ^ srcFilename ^ " " ^ destFilename
 
 (*OpenTheoryTrace1
           val () = trace (cmd ^ "\n")
 *)
-
           val () =
               if OS.Process.isSuccess (OS.Process.system cmd) then ()
               else raise Error "copying extra file failed"
@@ -1292,13 +1291,15 @@ local
           PackageTag.fromExtra extra
         end;
 
-  fun copyArticles srcDir info pkg =
+  fun copyArticles srcDir pkg info =
       let
-        val Package.Package' {tags,theories} = Package.dest pkg
+        val PackageInformation.Information' {tags,theories} =
+            PackageInformation.dest info
 
-        val theories = List.map (copyArticle srcDir info) theories
+        val theories = List.map (copyArticle srcDir pkg) theories
       in
-        Package.mk (Package.Package' {tags = tags, theories = theories})
+        PackageInformation.mk
+          (PackageInformation.Information' {tags = tags, theories = theories})
       end;
 
   fun copyExtraFiles sys srcDir info pkg =
