@@ -44,6 +44,8 @@ datatype error =
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}
   | UninstalledInclude of
+      PackageNameVersion.nameVersion * Checksum.checksum option
+  | WrongChecksumInclude of
       PackageNameVersion.nameVersion
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
@@ -110,12 +112,15 @@ val removeInstalledUser :
 (* UninstalledInclude errors.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val destUninstalledInclude : error -> PackageNameVersion.nameVersion option
+val destUninstalledInclude :
+    error ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) option
 
 val isUninstalledInclude : error -> bool
 
 val removeUninstalledInclude :
-    errors -> PackageNameVersion.nameVersion list * errors
+    errors ->
+    (PackageNameVersion.nameVersion * Checksum.checksum option) list * errors
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

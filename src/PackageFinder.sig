@@ -29,6 +29,11 @@ val find :
     PackageNameVersion.nameVersion -> Checksum.checksum option ->
     Package.package option
 
+val member :
+    finder ->
+    PackageNameVersion.nameVersion -> Checksum.checksum option ->
+    bool
+
 val get :
     finder ->
     PackageNameVersion.nameVersion -> Checksum.checksum option ->

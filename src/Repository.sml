@@ -604,10 +604,10 @@ local
               RepositoryError.add errs err
             end
           | SOME n =>
-            let
-              val n' = PackageNameVersion.name namever
-            in
-              if PackageName.equal n n' then errs
+            case namever of
+              NONE => errs
+            | SOME nv =>
+              if PackageName.equal (PackageNameVersion.name nv) n then errs
               else
                 let
                   val msg = "does not match"
@@ -616,7 +616,6 @@ local
                 in
                   RepositoryError.add errs err
                 end
-            end
       end;
 
   fun checkVersionTag namever tags errs =
@@ -638,10 +637,11 @@ local
               RepositoryError.add errs err
             end
           | SOME v =>
-            let
-              val v' = PackageNameVersion.version namever
-            in
-              if PackageVersion.equal v v' then errs
+            case namever of
+              NONE => errs
+            | SOME nv =>
+              if PackageVersion.equal (PackageNameVersion.version nv) v then
+                errs
               else
                 let
                   val msg = "does not match"
@@ -650,7 +650,6 @@ local
                 in
                   RepositoryError.add errs err
                 end
-            end
       end;
 
   fun checkDescriptionTag tags errs =
@@ -693,7 +692,7 @@ local
             end
       end;
 
-  fun checkLicenseTag dir tags errs =
+  fun checkLicenseTag repo tags errs =
       let
         val name = PackageName.licenseTag
 
@@ -702,7 +701,7 @@ local
         case so of
           NONE => errs
         | SOME s =>
-          if knownLicense dir {name = s} then errs
+          if knownLicense repo {name = s} then errs
           else
             let
               val msg = s ^ " is not acceptable"
@@ -713,7 +712,7 @@ local
             end
       end;
 in
-  fun checkTags dir namever tags =
+  fun checkTags repo namever tags =
       let
         val errs = RepositoryError.clean
 
@@ -725,7 +724,7 @@ in
 
         val errs = checkAuthorTag tags errs
 
-        val errs = checkLicenseTag dir tags errs
+        val errs = checkLicenseTag repo tags errs
       in
         errs
       end;
@@ -769,7 +768,7 @@ fun postStagePackage repo fndr pkg warnSummary {tool} =
           let
             val tags = PackageInformation.tags info
 
-            val errs = checkTags repo namever tags
+            val errs = checkTags repo (SOME namever) tags
           in
             if not (RepositoryError.containsFatal errs) then ()
             else raise Error (RepositoryError.report errs)
@@ -1011,72 +1010,21 @@ fun stageTarball repo fndr tar tool =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun checkDep dir (namever,errs) =
-      if member namever dir then errs
-      else
-        RepositoryError.add errs
-          (RepositoryError.UninstalledInclude namever);
+  datatype fileCopyPlan =
+    FileCopyPlan of
+      {name : string, filename : string option} list StringMap.map;
 
-  fun mkFileCopyPlan info pkg =
+  val emptyFileCopyPlan = FileCopyPlan (StringMap.new ());
+
+  fun addFileCopyPlan (src, {filename = dest}) (FileCopyPlan plan) =
       let
-        fun add (src, {filename = dest}) plan =
-            let
-              val hits = Option.getOpt (StringMap.peek plan dest, [])
+        val hits = Option.getOpt (StringMap.peek plan dest, [])
 
-              val hits = src :: hits
+        val hits = src :: hits
 
-              val plan = StringMap.insert plan (dest,hits)
-            in
-              plan
-            end
-
-        fun addReserved ((name,filename),plan) =
-            let
-              val src = {name = name, filename = NONE}
-              and dest = filename
-            in
-              add (src,dest) plan
-            end
-
-        fun addArticle ({filename},plan) =
-            let
-              val src = {name = "article file", filename = SOME filename}
-
-              val dest = Article.normalizeFilename {filename = filename}
-            in
-              add (src,dest) plan
-            end
-
-        fun addExtra (extra,plan) =
-            let
-              val PackageExtra.Extra {name,filename} = PackageExtra.dest extra
-
-              val src =
-                  {name = "extra " ^ PackageName.toString name ^ " file",
-                   filename = SOME filename}
-
-              val extra = PackageExtra.normalize extra
-
-              val dest = PackageExtra.filename extra
-            in
-              add (src,dest) plan
-            end
-
-        val reserved =
-            [("theory file", PackageInfo.theoryFile info),
-             ("tarball", PackageInfo.tarball info),
-             ("theorems", PackageInfo.theoremsFile info),
-             ("document", PackageInfo.documentFile info)]
-
-        val plan = StringMap.new ()
-
-        val plan = List.foldl addReserved plan reserved
-
-        val plan = List.foldl addArticle plan (Package.articleFiles pkg)
-
-        val plan = List.foldl addExtra plan (Package.extraFiles pkg)
+        val plan = StringMap.insert plan (dest,hits)
       in
-        plan
+        FileCopyPlan plan
       end;
 
 (*OpenTheoryDebug
@@ -1095,7 +1043,7 @@ local
                Print.ppString ":" ::
                List.map (Print.sequence Print.newline o ppSrc) srcs)
       in
-        fn plan =>
+        fn FileCopyPlan plan =>
            case StringMap.toList plan of
              [] => Print.skip
            | cp :: cps =>
@@ -1113,50 +1061,142 @@ local
               let
                 val dest = {filename = dest}
               in
-                RepositoryError.FilenameClash {srcs = srcs, dest = dest} :: errs
+                RepositoryError.add errs
+                  (RepositoryError.FilenameClash {srcs = srcs, dest = dest})
               end
       in
-        StringMap.foldl check
+        fn errs => fn FileCopyPlan plan => StringMap.foldl check errs plan
       end;
 
-  fun checkRequires dir (name,errs) =
-      if Option.isSome (latestNameVersion dir name) then errs
-      else RepositoryError.NoVersionInstalled name :: errs;
-in
-  fun checkStageTheory dir namever pkg =
+  fun mkFileCopyPlan info pkg =
       let
-        val errs = []
-
-        val errs =
-            if not (member namever dir) then errs
-            else RepositoryError.AlreadyInstalled namever :: errs
-
-        val errs =
+        fun addReserved ((name,filename),plan) =
             let
-              val stageInfo = mkStagedPackage dir namever
+              val src = {name = name, filename = NONE}
+              and dest = filename
             in
-              if not (PackageInfo.existsDirectory stageInfo) then errs
-              else RepositoryError.AlreadyStaged namever :: errs
+              addFileCopyPlan (src,dest) plan
             end
 
-        val errs = checkTags dir namever (Package.tags pkg) @ errs
+        fun addArticle ({filename},plan) =
+            let
+              val src = {name = "article file", filename = SOME filename}
 
-        val errs = List.foldl (checkDep dir) errs (Package.includes pkg)
+              val dest = Article.normalizeFilename {filename = filename}
+            in
+              addFileCopyPlan (src,dest) plan
+            end
 
-        val info = mkPackage dir namever
+        fun addExtra (extra,plan) =
+            let
+              val PackageExtra.Extra {name,filename} = PackageExtra.dest extra
 
-        val plan = mkFileCopyPlan info pkg
+              val src =
+                  {name = "extra " ^ PackageName.toString name ^ " file",
+                   filename = SOME filename}
+
+              val extra = PackageExtra.normalize extra
+
+              val dest = PackageExtra.filename extra
+            in
+              addFileCopyPlan (src,dest) plan
+            end
+
+        val reserved =
+            [("theory file", Package.theoryFile pkg),
+             ("tarball", Package.tarballFile pkg),
+             ("theorems", Package.theoremsFile pkg),
+             ("document", Package.documentFile pkg)]
+
+        val plan = emptyFileCopyPlan
+
+        val plan = List.foldl addReserved plan reserved
+
+        val plan =
+            List.foldl addArticle plan (PackageInformation.articleFiles info)
+
+        val plan =
+            List.foldl addExtra plan (PackageInformation.extraFiles info)
+      in
+        plan
+      end;
+
+  fun checkRequires repo (name,errs) =
+      if Option.isSome (latestNameVersion repo name) then errs
+      else
+        RepositoryError.add errs
+          (RepositoryError.NoVersionInstalled name);
+
+  fun checkInclude repo ((namever,chk),errs) =
+      case peek repo namever of
+        NONE =>
+        RepositoryError.add errs
+          (RepositoryError.UninstalledInclude (namever,chk))
+      | SOME pkg =>
+        case chk of
+          NONE => errs
+        | SOME c =>
+          if Checksum.equal c (Package.checksum pkg) then errs
+          else
+            RepositoryError.add errs
+              (RepositoryError.WrongChecksumInclude namever);
+in
+  fun checkStageTheory repo info =
+      let
+        val errs = checkTags repo NONE (PackageInformation.tags info)
+      in
+        if RepositoryError.containsFatal errs then errs
+        else
+          let
+            val namever = PackageInformation.nameVersion info
+
+            val errs =
+                if not (member namever repo) then errs
+                else
+                  RepositoryError.add errs
+                    (RepositoryError.AlreadyInstalled namever)
+
+            val errs =
+                let
+                  val pkg = mkStagedPackage repo namever NONE
+                in
+                  if not (Package.existsDirectory pkg) then errs
+                  else
+                    RepositoryError.add errs
+                      (RepositoryError.AlreadyStaged namever)
+                end
+
+            val errs =
+                let
+                  val reqs = PackageInformation.requires info
+                in
+                  List.foldl (checkRequires repo) errs reqs
+                end
+
+            val errs =
+                let
+                  val incs = PackageInformation.includes info
+                in
+                  List.foldl (checkInclude repo) errs incs
+                end
+
+            val errs =
+                let
+                  val pkg = mkPackage repo namever NONE
+
+                  val plan = mkFileCopyPlan info pkg
 
 (*OpenTheoryTrace1
-        val () =
-            Print.trace ppFileCopyPlan "Repository.checkStageTheory: plan" plan
+                  val () =
+                      Print.trace ppFileCopyPlan
+                        "Repository.checkStageTheory: plan" plan
 *)
-
-        val reqs = Package.requires pkg
-
-        val errs = List.foldl (checkRequires dir) errs reqs
-      in
-        List.rev errs
+                in
+                  checkFileCopyPlan errs plan
+                end
+          in
+            errs
+          end
       end;
 end;
 

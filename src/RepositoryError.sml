@@ -46,6 +46,8 @@ datatype error =
       {upload : PackageNameVersion.nameVersion,
        obsolete : PackageNameVersion.nameVersion}
   | UninstalledInclude of
+      PackageNameVersion.nameVersion * Checksum.checksum option
+  | WrongChecksumInclude of
       PackageNameVersion.nameVersion
   | WrongChecksumObsolete of
       {upload : PackageNameVersion.nameVersion,
@@ -118,6 +120,7 @@ fun isFatal err =
     | TagError _ => true
     | UninstalledObsolete _ => false
     | UninstalledInclude _ => true
+    | WrongChecksumInclude _ => true
     | WrongChecksumObsolete _ => false
     | WrongChecksumOnRemote _ => true;
 
@@ -264,10 +267,14 @@ in
          "upload package " ^ PackageNameVersion.toString upload ^
          "\n  obsoletes package " ^ PackageNameVersion.toString obsolete ^
          ",\n  which is not installed"
-       | UninstalledInclude namever =>
+       | UninstalledInclude (namever,_) =>
          "includes package " ^
          PackageNameVersion.toString namever ^
          " which is not installed"
+       | WrongChecksumInclude namever =>
+         "includes package " ^
+         PackageNameVersion.toString namever ^
+         " which is installed with a different checksum"
        | WrongChecksumObsolete {upload,obsolete} =>
          "upload package " ^ PackageNameVersion.toString upload ^
          "\n  obsoletes package " ^ PackageNameVersion.toString obsolete ^

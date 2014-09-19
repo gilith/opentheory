@@ -29,6 +29,8 @@ val mk = Finder;
 
 fun find (Finder f) nv c = f nv c;
 
+fun member f nv c = Option.isSome (find f nv c);
+
 fun get f nv c =
     case find f nv c of
       SOME p => p
