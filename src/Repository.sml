@@ -412,10 +412,10 @@ fun selfAuthor repo =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun emptyTheory repo = RepositoryPackages.emptyTheory (packages repo);
+fun emptyTheories repo = RepositoryPackages.emptyTheories (packages repo);
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)

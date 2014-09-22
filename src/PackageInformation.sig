@@ -29,7 +29,7 @@ type information
 datatype information' =
     Information' of
       {tags : PackageTag.tag list,
-       theory : PackageTheory.theory list}
+       theories : PackageTheory.theory list}
 
 val mk : information' -> information
 
@@ -91,9 +91,9 @@ val show : information -> Show.show
 (* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val theory : information -> PackageTheory.theory list
+val theories : information -> PackageTheory.theory list
 
-val emptyTheory : information -> bool
+val emptyTheories : information -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package articles.                                                         *)

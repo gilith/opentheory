@@ -48,7 +48,7 @@ fun isFilename file = Option.isSome (destFilename file);
 datatype information' =
     Information' of
       {tags : PackageTag.tag list,
-       theory : PackageTheory.theory list};
+       theories : PackageTheory.theory list};
 
 type information = information';
 
@@ -126,12 +126,12 @@ fun show info = PackageTag.toShow (tags info);
 (* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun theory' (Information' {theory = x, ...}) = x;
+fun theories' (Information' {theories = x, ...}) = x;
 
-fun theory info = theory' (dest info);
+fun theories info = theories' (dest info);
 
-fun emptyTheory info =
-    case theory info of
+fun emptyTheories info =
+    case theories info of
       [thy] => PackageTheory.emptyMain thy
     | _ => false;
 
@@ -139,25 +139,25 @@ fun emptyTheory info =
 (* Package articles.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun articleFiles info = PackageTheory.articles (theory info);
+fun articleFiles info = PackageTheory.articles (theories info);
 
 (* ------------------------------------------------------------------------- *)
 (* Package dependencies.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun includes info = PackageTheory.includes (theory info);
+fun includes info = PackageTheory.includes (theories info);
 
 fun nameVersionIncludes info =
     PackageNameVersionSet.fromList (List.map fst (includes info));
 
 fun updateIncludes f info =
     let
-      val Information' {tags,theory} = dest info
+      val Information' {tags,theories} = dest info
     in
-      case PackageTheory.updateIncludes f theory of
-        SOME theory =>
+      case PackageTheory.updateIncludes f theories of
+        SOME theories =>
         let
-          val info' = Information' {tags = tags, theory = theory}
+          val info' = Information' {tags = tags, theories = theories}
         in
           SOME (mk info')
         end
@@ -177,19 +177,19 @@ local
 in
   fun pp' info =
     let
-      val Information' {tags,theory} = info
+      val Information' {tags,theories} = info
     in
       if List.null tags then
-        case theory of
+        case theories of
           [] => Print.skip
-        | thy :: theory =>
+        | thy :: theories =>
           Print.consistentBlock 0
             (PackageTheory.pp thy ::
-             List.map ppThy theory)
+             List.map ppThy theories)
       else
         Print.consistentBlock 0
           (PackageTag.ppList tags ::
-           List.map ppThy theory)
+           List.map ppThy theories)
     end;
 end;
 
@@ -210,7 +210,7 @@ local
   val informationSpaceParser' =
       (PackageTag.parserList ++
        atLeastOne PackageTheory.parser) >>
-      (fn (ts,ths) => Information' {tags = ts, theory = ths});
+      (fn (tags,theories) => Information' {tags = tags, theories = theories});
 
   val informationSpaceParser = informationSpaceParser' >> mk;
 in

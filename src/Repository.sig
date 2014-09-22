@@ -115,10 +115,10 @@ val knownAuthor :
 val selfAuthor : repository -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val emptyTheory : repository -> PackageNameVersion.nameVersion -> bool
+val emptyTheories : repository -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)
@@ -308,7 +308,8 @@ val checkInstallStaged :
     RepositoryError.error list
 
 val installStaged :
-    repository -> PackageNameVersion.nameVersion -> Checksum.checksum -> unit
+    repository -> PackageNameVersion.nameVersion -> Checksum.checksum ->
+    unit
 
 (* ------------------------------------------------------------------------- *)
 (* Cleaning up staged packages.                                              *)

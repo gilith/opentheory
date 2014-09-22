@@ -87,10 +87,10 @@ val knownAuthor :
     bool
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val emptyTheory : packages -> PackageNameVersion.nameVersion -> bool
+val emptyTheories : packages -> PackageNameVersion.nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package requirements.                                                     *)

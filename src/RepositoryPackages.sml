@@ -411,19 +411,19 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun emptyTheory pkgs namever =
+fun emptyTheories pkgs namever =
     let
 (*OpenTheoryDebug
       val () =
           if member namever pkgs then ()
-          else raise Bug "RepositoryPackages.emptyTheory: unknown package"
+          else raise Bug "RepositoryPackages.emptyTheories: unknown package"
 *)
       val pkg = get pkgs namever
     in
-      Package.emptyTheory pkg
+      Package.emptyTheories pkg
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -577,7 +577,7 @@ local
         else PackageNameVersionSet.foldl addSubsName
       end;
 
-  fun nonEmpty pkgs namever = not (emptyTheory pkgs namever);
+  fun nonEmpty pkgs namever = not (emptyTheories pkgs namever);
 in
   fun latest pkgs =
     let
@@ -622,7 +622,7 @@ val latest = fn pkgs =>
 
             val lats = PackageNameVersionSet.difference lats subs
           in
-            PackageNameVersionSet.filter (not o emptyTheory pkgs) lats
+            PackageNameVersionSet.filter (not o emptyTheories pkgs) lats
           end
 
       val () =

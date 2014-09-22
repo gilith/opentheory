@@ -210,12 +210,12 @@ fun nameVersionIncludes pkg =
 fun show pkg = PackageInformation.show (information pkg);
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun theory pkg = PackageInformation.theory (information pkg);
+fun theories pkg = PackageInformation.theories (information pkg);
 
-fun emptyTheory pkg = PackageInformation.emptyTheory (information pkg);
+fun emptyTheories pkg = PackageInformation.emptyTheories (information pkg);
 
 (* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)

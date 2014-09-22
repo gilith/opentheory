@@ -611,7 +611,7 @@ and importPackageInformation finder graph data =
            checksum = chk,
            information = info} = data
 
-      val theories = PackageInformation.theory info
+      val theories = PackageInformation.theories info
 
       val data =
           {directory = directory,

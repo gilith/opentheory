@@ -111,12 +111,12 @@ val nameVersionIncludes : package -> PackageNameVersionSet.set
 val show : package -> Show.show
 
 (* ------------------------------------------------------------------------- *)
-(* Package theory.                                                           *)
+(* Package theory graph.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val theory : package -> PackageTheory.theory list
+val theories : package -> PackageTheory.theory list
 
-val emptyTheory : package -> bool
+val emptyTheories : package -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Package tarball.                                                          *)
