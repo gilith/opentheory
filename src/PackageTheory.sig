@@ -133,6 +133,10 @@ val sortImports : theory list -> theory list
 
 val sortUnion : theory list -> theory list
 
+val sortedImports : theory list -> bool
+
+val sortedUnion : theory list -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

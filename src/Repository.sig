@@ -296,7 +296,7 @@ val checkStageTheory :
 val stageTheory :
     repository ->
     PackageNameVersion.nameVersion -> PackageInformation.information ->
-    {repository : string} -> {tool : Html.inline list} ->
+    {directory : string} -> {tool : Html.inline list} ->
     Checksum.checksum
 
 (* ------------------------------------------------------------------------- *)

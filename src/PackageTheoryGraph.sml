@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* UNWIND MUTUALLY RECURSIVE PACKAGE THEORY GRAPHS                           *)
+(* PACKAGE THEORY GRAPHS                                                     *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
@@ -95,7 +95,6 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
 (*OpenTheoryTrace2
       val () = Print.trace PackageName.pp "PackageTheoryGraph.addDefinitions.name" name
 *)
-
       val defs = getDefinitions definitions name
 
       val idefs = getListDefinitions definitions imports
@@ -135,7 +134,6 @@ fun addDefinitions vanilla (theory,(changed,definitions)) =
       val _ = ConstSet.subset (SymbolTable.consts defs) (SymbolTable.consts defs')
               orelse raise Bug "PackageTheoryGraph.addDefinitions: shrinking const defs"
 *)
-
       val same =
           (TypeOpSet.size (SymbolTable.typeOps defs) =
            TypeOpSet.size (SymbolTable.typeOps defs')) andalso
@@ -194,7 +192,6 @@ fun addSummary vanilla definitions (theory,summary) =
 (*OpenTheoryTrace2
       val () = Print.trace PackageName.pp "PackageTheoryGraph.addSummary.name" name
 *)
-
       val sum =
           if PackageTheory.isUnion theory then
             let
@@ -220,7 +217,6 @@ fun addSummary vanilla definitions (theory,summary) =
 (*OpenTheoryTrace2
               val () = Print.trace SymbolTable.pp "PackageTheoryGraph.addSummary.idefs" idefs
 *)
-
               val rewr = SymbolTable.inst idefs
             in
               Option.getOpt (Summary.rewrite rewr sum, sum)
@@ -404,52 +400,6 @@ fun removeDeadBlocks outputWarning theories =
     in
       theories
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Remove dead theory imports and blocks.                                    *)
-(* ------------------------------------------------------------------------- *)
-
-datatype theory =
-    Theory of
-      {finder : PackageFinder.finder,
-       directory : string,
-       theory : PackageTheory.theory list,
-       vanilla : vanilla,
-       definitions : definitions};
-
-fun removeDead outputWarning {finder,directory,theory} =
-    let
-      val dir = {directory = directory}
-
-      val theory' = PackageTheory.sortUnion theory
-
-      val vanilla = fromListVanilla finder dir theory
-
-      val definitions = fromListDefinitions vanilla theory'
-
-      val summary = fromListSummary vanilla definitions theory'
-
-      (* Remove redundant imports and theory blocks *)
-
-      val theory =
-          removeDeadImports outputWarning vanilla definitions summary theory
-
-      val theory = removeDeadBlocks outputWarning theory
-    in
-      Theory
-        {finder = finder,
-         directory = directory,
-         theory = theory,
-         vanilla = vanilla,
-         definitions = definitions}
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("PackageTheoryGraph.removeDead: " ^ err);
-*)
-
-val mk = removeDead true;
-
-fun theory (Theory {theory = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Visible primitive theories of theory blocks.                              *)
@@ -1436,59 +1386,127 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Unwind mutually recursive theory packages.                                *)
+(* A type of package theory graphs.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun unwind theoryInfo =
+datatype graph =
+    Graph of
+      {finder : PackageFinder.finder,
+       directory : string,
+       theories : PackageTheory.theory list,
+       vanilla : vanilla,
+       definitions : definitions};
+
+fun theories (Graph {theories = x, ...}) = x;
+
+(* ------------------------------------------------------------------------- *)
+(* The constructor removes dead theory imports and blocks.                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun removeDead outputWarning {finder,directory,theories} =
     let
-      val Theory
-            {finder,
-             directory,
-             theory,
-             vanilla,
-             definitions} = theoryInfo
+      val dir = {directory = directory}
 
-      (* Precisely compute dependencies between theory blocks *)
+      val theories' = PackageTheory.sortUnion theories
 
-      val theory' = PackageTheory.sortUnion theory
+      val vanilla = fromListVanilla finder dir theories
 
-      val visible = fromListVisible vanilla definitions theory'
+      val definitions = fromListDefinitions vanilla theories'
 
-      val generate = fromTheoryListGenerate vanilla theory'
+      val summary = fromListSummary vanilla definitions theories'
 
-      val dependency =
-          fromTheoryListDependency
-            vanilla definitions visible generate theory'
+      (* Remove redundant imports and theory blocks *)
 
-      (* Untangle any theory block cycles *)
+      val theories =
+          removeDeadImports outputWarning vanilla definitions summary theories
 
-      val () =
-          let
-            val dep = transitiveClosureDependency dependency
-          in
-            case findlReflexiveDependency dep of
-              NONE => ()
-            | SOME (nt,_) => reportCycleDependency dependency nt
-          end
-
-      val plan = fromTheoryListPlan vanilla generate dependency theory
-
-      val theory = toTheoryListPlan vanilla generate dependency plan
-
-(*OpenTheoryTrace2
-      val () =
-          Print.trace PackageTheory.ppList "PackageTheoryGraph.unwind.theory" theory
-*)
-
-      val info =
-          {finder = finder,
-           directory = directory,
-           theory = theory}
+      val theories = removeDeadBlocks outputWarning theories
     in
-      removeDead false info
+      Graph
+        {finder = finder,
+         directory = directory,
+         theories = theories,
+         vanilla = vanilla,
+         definitions = definitions}
     end
 (*OpenTheoryDebug
-    handle Error err => raise Error ("PackageTheoryGraph.unwind: " ^ err);
+    handle Error err => raise Error ("PackageTheoryGraph.removeDead: " ^ err);
 *)
+
+val mk = removeDead true;
+
+(* ------------------------------------------------------------------------- *)
+(* Unwind mutually recursive package theory graphs.                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun unwound graph = PackageTheory.sortedImports (theories graph);
+
+local
+  fun unwindGraph graph =
+      let
+        val Graph
+              {finder,
+               directory,
+               theories,
+               vanilla,
+               definitions} = graph
+
+        (* Precisely compute dependencies between theory blocks *)
+
+        val theories' = PackageTheory.sortUnion theories
+
+        val visible = fromListVisible vanilla definitions theories'
+
+        val generate = fromTheoryListGenerate vanilla theories'
+
+        val dependency =
+            fromTheoryListDependency
+              vanilla definitions visible generate theories'
+
+        (* Untangle any theory block cycles *)
+
+        val () =
+            let
+              val dep = transitiveClosureDependency dependency
+            in
+              case findlReflexiveDependency dep of
+                NONE => ()
+              | SOME (nt,_) => reportCycleDependency dependency nt
+            end
+
+        val plan = fromTheoryListPlan vanilla generate dependency theories
+
+        val theories = toTheoryListPlan vanilla generate dependency plan
+
+(*OpenTheoryTrace2
+        val () =
+            Print.trace PackageTheory.ppList "PackageTheoryGraph.unwind.theories" theories
+*)
+        val info =
+            {finder = finder,
+             directory = directory,
+             theories = theories}
+      in
+        removeDead false info
+      end;
+in
+  fun unwind graph =
+      if unwound graph then graph
+      else
+        let
+          val graph = unwindGraph graph
+
+(*OpenTheoryDebug
+          val () =
+              if unwound graph then ()
+              else raise Bug "PackageTheoryGraph.unwind: didn't work"
+*)
+        in
+          graph
+        end
+(*OpenTheoryDebug
+        handle Error err => raise Error ("PackageTheoryGraph.unwind: " ^ err);
+*)
+end
 
 end

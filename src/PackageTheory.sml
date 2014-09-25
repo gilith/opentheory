@@ -288,6 +288,23 @@ fun sortUnion thys =
     handle Error err => raise Error ("PackageTheory.sortUnion: " ^ err);
 *)
 
+local
+  fun sorted {parents} =
+      let
+        fun check seen thys =
+            case thys of
+              [] => true
+            | thy :: thys =>
+              List.all (C PackageNameSet.member seen) (parents thy) andalso
+              check (PackageNameSet.add seen (name thy)) thys
+      in
+        check PackageNameSet.empty
+      end;
+in
+  val sortedImports = sorted {parents = imports}
+  and sortedUnion = sorted {parents = importsUnion};
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Theory constraints.                                                       *)
 (* ------------------------------------------------------------------------- *)

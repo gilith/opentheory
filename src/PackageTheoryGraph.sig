@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* UNWIND MUTUALLY RECURSIVE PACKAGE THEORY GRAPHS                           *)
+(* PACKAGE THEORY GRAPHS                                                     *)
 (* Copyright (c) 2010 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
@@ -7,22 +7,28 @@ signature PackageTheoryGraph =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Remove dead theory imports and blocks.                                    *)
+(* A type of package theory graphs.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-type theory
+type graph
+
+val theories : graph -> PackageTheory.theory list
+
+(* ------------------------------------------------------------------------- *)
+(* The constructor removes dead theory imports and blocks.                   *)
+(* ------------------------------------------------------------------------- *)
 
 val mk :
     {finder : PackageFinder.finder,
      directory : string,
-     theory : PackageTheory.theory list} -> theory
-
-val theory : theory -> PackageTheory.theory list
+     theories : PackageTheory.theory list} -> graph
 
 (* ------------------------------------------------------------------------- *)
-(* Unwind mutually recursive theory packages.                                *)
+(* Unwind mutually recursive package theory graphs.                          *)
 (* ------------------------------------------------------------------------- *)
 
-val unwind : theory -> theory
+val unwind : graph -> graph
+
+val unwound : graph -> bool
 
 end

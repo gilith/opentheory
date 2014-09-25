@@ -75,7 +75,7 @@ val fromList : error list -> errors
 
 val isFatal : error -> bool
 
-val containsFatal : errors -> bool
+val fatal : errors -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* AlreadyInstalled errors.                                                  *)

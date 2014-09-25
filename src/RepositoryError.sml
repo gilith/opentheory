@@ -124,7 +124,7 @@ fun isFatal err =
     | WrongChecksumObsolete _ => false
     | WrongChecksumOnRemote _ => true;
 
-fun containsFatal (Errors errs) = List.exists isFatal errs;
+fun fatal (Errors errs) = List.exists isFatal errs;
 
 (* ------------------------------------------------------------------------- *)
 (* AlreadyInstalled errors.                                                  *)

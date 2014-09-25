@@ -770,7 +770,7 @@ fun postStagePackage repo fndr pkg warnSummary {tool} =
 
             val errs = checkTags repo (SOME namever) tags
           in
-            if not (RepositoryError.containsFatal errs) then ()
+            if not (RepositoryError.fatal errs) then ()
             else raise Error (RepositoryError.report errs)
           end
 
@@ -909,7 +909,7 @@ fun stagePackage repo fndr remote namever chk tool =
       val errs = checkStagePackage repo remote namever chk
 
       val () =
-          if not (RepositoryError.containsFatal errs) then ()
+          if not (RepositoryError.fatal errs) then ()
           else raise Bug "Repository.stagePackage: fatal error"
 *)
       (* Make a staged package *)
@@ -973,7 +973,7 @@ fun stageTarball repo fndr tar tool =
       val errs = checkStageTarball repo tar
 
       val () =
-          if not (RepositoryError.containsFatal errs) then ()
+          if not (RepositoryError.fatal errs) then ()
           else raise Bug "Repository.stageTarball: fatal error"
 *)
       val namever = PackageTarball.nameVersion tar
@@ -1145,7 +1145,7 @@ in
       let
         val errs = checkTags repo namever (PackageInformation.tags info)
       in
-        if RepositoryError.containsFatal errs then errs
+        if RepositoryError.fatal errs then errs
         else
           let
             val namever = PackageInformation.nameVersion info
@@ -1299,72 +1299,78 @@ local
         val theories = List.map (copyArticle srcDir pkg) theories
       in
         PackageInformation.mk
-          (PackageInformation.Information' {tags = tags, theories = theories})
+          (PackageInformation.Information'
+             {tags = tags, theories = theories})
       end;
 
-  fun copyExtraFiles sys srcDir info pkg =
+  fun copyExtraFiles sys srcDir pkg info =
       let
-        val Package.Package' {tags,theories} = Package.dest pkg
+        val PackageInformation.Information' {tags,theories} =
+            PackageInformation.dest info
 
-        val tags = List.map (copyExtraFile sys srcDir info) tags
+        val tags = List.map (copyExtraFile sys srcDir pkg) tags
       in
-        Package.mk (Package.Package' {tags = tags, theories = theories})
+        PackageInformation.mk
+          (PackageInformation.Information'
+             {tags = tags, theories = theories})
       end;
 
-  fun checkTheory dir info pkg =
+  fun checkTheory repo pkg info =
       let
 (*OpenTheoryTrace1
         val () = trace "Repository.stageTheory.checkTheory\n"
 *)
+        val PackageInformation.Information' {tags,theories} =
+            PackageInformation.dest info
 
-        val Package.Package' {tags,theories} = Package.dest pkg
+        val fndr = finder repo
+        and {directory} = Package.directory pkg
 
-        val impt = importer dir
-        and {directory = pdir} = PackageInfo.directory info
-
-        val thys =
-            PackageDag.mk
-              {importer = impt,
-               directory = pdir,
+        val graph =
+            PackageTheoryGraph.mk
+              {finder = fndr,
+               directory = directory,
                theories = theories}
 
-        val thys = PackageDag.unwind thys
+        val graph = PackageTheoryGraph.unwind graph
 
-        val theories = PackageDag.theories thys
+        val theories = PackageTheoryGraph.theories graph
       in
-        Package.mk (Package.Package' {tags = tags, theories = theories})
+        PackageInformation.mk
+          (PackageInformation.Information'
+             {tags = tags, theories = theories})
       end;
 
-  fun writeTheoryFile stageInfo pkg =
+  fun writeTheoryFile pkg info =
       let
 (*OpenTheoryTrace1
         val () = trace "Repository.stageTheory.writeTheoryFile\n"
 *)
-
-        val file = PackageInfo.theoryFile stageInfo
-
-        val {filename} = PackageInfo.joinDirectory stageInfo file
+        val {filename} = Package.joinDirectory pkg (Package.theoryFile pkg)
       in
-        Package.toTextFile {package = pkg, filename = filename}
+        PackageInformation.toTextFile
+          {information = info, filename = filename}
       end;
 in
-  fun stageTheory dir namever pkg {directory = srcDir} tool =
+  fun stageTheory repo namever info {directory = srcDir} tool =
       let
 (*OpenTheoryDebug
-        val errs = checkStageTheory dir namever pkg
+        val errs = checkStageTheory repo namever info
 
-        val _ = not (RepositoryError.existsFatal errs) orelse
-                raise Bug "Repository.stageTheory: fatal error"
+        val () =
+            if not (RepositoryError.fatal errs) then ()
+            else raise Bug "Repository.stageTheory: fatal error"
 *)
-        val sys = system dir
+        val sys = system repo
+        and namever = PackageInformation.nameVersion info
 
-        (* Make a package info for the stage directory *)
+        (* Make a staged package *)
 
-        val stageInfo = mkStagedPackage dir namever
+        val pkg = mkStagedPackage repo namever NONE
 
-        (* Create the stage directory *)
+        (* Create the staging directory *)
 
-        val () = PackageInfo.createDirectory stageInfo
+        val () = Package.createDirectory pkg
       in
         let
           (* Copy the articles over *)
