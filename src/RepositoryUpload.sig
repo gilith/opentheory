@@ -17,7 +17,7 @@ type upload
 (* ------------------------------------------------------------------------- *)
 
 val mk :
-    {local : Repository.repository,
+    {repository : Repository.repository,
      remote : RepositoryRemote.remote,
      support : PackageNameVersion.nameVersion list,
      packages : PackageNameVersion.nameVersion list} -> upload
@@ -26,7 +26,7 @@ val mk :
 (* Perform checks on an upload.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val check : upload -> RepositoryError.error list
+val check : upload -> RepositoryError.errors
 
 (* ------------------------------------------------------------------------- *)
 (* Execute the upload.                                                       *)

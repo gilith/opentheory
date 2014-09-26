@@ -12,14 +12,29 @@ open Useful;
 (* A type of repository uploads.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype upload =
+    Upload of
+      {repository : Repository.repository,
+       remote : RepositoryRemote.remote,
+       support : PackageNameVersion.nameVersion list,
+       packages : PackageNameVersion.nameVersion list};
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val mk = Upload;
+
+(* ------------------------------------------------------------------------- *)
+(* Perform checks on an upload.                                              *)
+(* ------------------------------------------------------------------------- *)
+
 local
-  fun collectAuthors dir =
+  fun collectAuthors repo =
       let
         fun add (nv,acc) =
             let
-              val info = get dir nv
-
-              val pkg = PackageInfo.package info
+              val pkg = Repository.get repo nv
 
               val auth = Package.author pkg
 
@@ -43,13 +58,16 @@ local
            end
       end;
 
-  fun allInstalled dir nvs = List.all (fn nv => member nv dir) nvs;
+  fun allInstalled repo nvs =
+      List.all (fn nv => Repository.member nv repo) nvs;
 
-  fun checkInstalled dir =
+  fun checkInstalled repo =
       let
-        fun isKnown nv = member nv dir
+        fun isKnown nv = Repository.member nv repo
 
-        fun add (nv,acc) = DirectoryError.NotInstalled nv :: acc
+        fun add (nv,errs) =
+            RepositoryError.add errs
+              (RepositoryError.NotInstalled nv)
       in
         fn namevers => fn errs =>
            let
@@ -61,11 +79,13 @@ local
            end
       end;
 
-  fun checkNotOnRepo repo =
+  fun checkNotOnRepo remote =
       let
         fun check (nv,errs) =
-            if not (DirectoryRepo.member nv repo) then errs
-            else DirectoryError.AlreadyOnRepo (nv,repo) :: errs
+            if not (RepositoryRemote.member nv remote) then errs
+            else
+              RepositoryError.add errs
+                (RepositoryError.AlreadyOnRemote (nv,remote))
       in
         fn namevers => fn errs => List.foldl check errs namevers
       end;

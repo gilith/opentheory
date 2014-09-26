@@ -1013,8 +1013,8 @@ fun stageTarball repo fndr tar tool =
 
 local
   datatype fileCopyPlan =
-    FileCopyPlan of
-      {name : string, filename : string option} list StringMap.map;
+      FileCopyPlan of
+        {name : string, filename : string option} list StringMap.map;
 
   val emptyFileCopyPlan = FileCopyPlan (StringMap.new ());
 
