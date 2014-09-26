@@ -261,7 +261,7 @@ val upgradeTheory :
 val checkStagePackage :
     repository -> RepositoryRemote.remote ->
     PackageNameVersion.nameVersion -> Checksum.checksum ->
-    RepositoryError.error list
+    RepositoryError.errors
 
 val stagePackage :
     repository -> PackageFinder.finder -> RepositoryRemote.remote ->
@@ -276,7 +276,7 @@ val stagePackage :
 val checkStageTarball :
     repository ->
     PackageTarball.tarball ->
-    RepositoryError.error list
+    RepositoryError.errors
 
 val stageTarball :
     repository -> PackageFinder.finder ->
@@ -290,12 +290,12 @@ val stageTarball :
 
 val checkStageTheory :
     repository ->
-    PackageNameVersion.nameVersion -> PackageInformation.information ->
-    RepositoryError.error list
+    PackageNameVersion.nameVersion option -> PackageInformation.information ->
+    RepositoryError.errors
 
 val stageTheory :
     repository ->
-    PackageNameVersion.nameVersion -> PackageInformation.information ->
+    PackageNameVersion.nameVersion option -> PackageInformation.information ->
     {directory : string} -> {tool : Html.inline list} ->
     Checksum.checksum
 
@@ -304,8 +304,8 @@ val stageTheory :
 (* ------------------------------------------------------------------------- *)
 
 val checkInstallStaged :
-    repository -> PackageNameVersion.nameVersion -> Checksum.checksum ->
-    RepositoryError.error list
+    repository -> PackageNameVersion.nameVersion ->
+    RepositoryError.errors
 
 val installStaged :
     repository -> PackageNameVersion.nameVersion -> Checksum.checksum ->
@@ -326,7 +326,7 @@ val cleanupStaged : repository -> PackageNameVersion.nameVersion -> unit
 
 val checkUninstall :
     repository -> PackageNameVersion.nameVersion ->
-    RepositoryError.error list
+    RepositoryError.errors
 
 val uninstall : repository -> PackageNameVersion.nameVersion -> unit
 
