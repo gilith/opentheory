@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* GENERATING HASKELL PROJECTS FROM THEORIES                                 *)
+(* GENERATING HASKELL PROJECTS FROM THEORY PACKAGES                          *)
 (* Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 

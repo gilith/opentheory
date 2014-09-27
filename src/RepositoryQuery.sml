@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* QUERYING THEORY PACKAGE DIRECTORIES                                       *)
+(* QUERYING PACKAGE REPOSITORIES                                             *)
 (* Copyright (c) 2012 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-structure DirectoryQuery :> DirectoryQuery =
+structure RepositoryQuery :> RepositoryQuery =
 struct
 
 open Useful;
@@ -16,23 +16,23 @@ val acyclicKeywordString = "Acyclic"
 and allKeywordString = "All"
 and andSymbolString = "/\\"
 and closedKeywordString = "Closed"
-and consistentWithRepoKeywordString = "ConsistentWithRepo"
+and consistentWithRemoteKeywordString = "ConsistentWithRemote"
 and deprecatedKeywordString = "Deprecated"
 and differenceSymbolString = "-"
-and earlierThanRepoKeywordString = "EarlierThanRepo"
+and earlierThanRemoteKeywordString = "EarlierThanRemote"
 and emptyKeywordString = "Empty"
-and identicalOnRepoKeywordString = "IdenticalOnRepo"
+and identicalOnRemoteKeywordString = "IdenticalOnRemote"
 and identityKeywordString = "Identity"
 and includedByKeywordString = "IncludedBy"
 and includesKeywordString = "Includes"
 and intersectSymbolString = "&"
-and laterThanRepoKeywordString = "LaterThanRepo"
+and laterThanRemoteKeywordString = "LaterThanRemote"
 and latestKeywordString = "Latest"
 and mineKeywordString = "Mine"
 and noneKeywordString = "None"
 and notSymbolString = "~"
 and obsoleteKeywordString = "Obsolete"
-and onRepoKeywordString = "OnRepo"
+and onRemoteKeywordString = "OnRemote"
 and optionalSymbolString = "?"
 and orSymbolString = "\\/"
 and reflexiveTransitiveSymbolString = "*"
@@ -63,11 +63,11 @@ datatype predicate =
   | Closed
   | Acyclic
   | UpToDate
-  | OnRepo
-  | IdenticalOnRepo
-  | ConsistentWithRepo
-  | EarlierThanRepo
-  | LaterThanRepo
+  | OnRemote
+  | IdenticalOnRemote
+  | ConsistentWithRemote
+  | EarlierThanRemote
+  | LaterThanRemote
   | Not of predicate
   | And of predicate * predicate
   | Or of predicate * predicate;
@@ -100,21 +100,21 @@ datatype function =
 (* Does the function ignore its input?                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun ignoresRepo pred =
+fun ignoresRemote pred =
     case pred of
       Empty => true
     | Mine => true
     | Closed => true
     | Acyclic => true
     | UpToDate => true
-    | OnRepo => false
-    | IdenticalOnRepo => false
-    | ConsistentWithRepo => false
-    | EarlierThanRepo => false
-    | LaterThanRepo => false
-    | Not pred1 => ignoresRepo pred1
-    | And (pred1,pred2) => ignoresRepo pred1 andalso ignoresRepo pred2
-    | Or (pred1,pred2) => ignoresRepo pred1 andalso ignoresRepo pred2;
+    | OnRemote => false
+    | IdenticalOnRemote => false
+    | ConsistentWithRemote => false
+    | EarlierThanRemote => false
+    | LaterThanRemote => false
+    | Not pred1 => ignoresRemote pred1
+    | And (pred1,pred2) => ignoresRemote pred1 andalso ignoresRemote pred2
+    | Or (pred1,pred2) => ignoresRemote pred1 andalso ignoresRemote pred2;
 
 fun ignoresInput func =
     case func of
@@ -158,97 +158,100 @@ val obsoleteDef =
        ReflexiveTransitive (Union (Requires,Includes)));
 
 val upgradableDef =
-    (* EarlierThanRepo *)
-    Filter EarlierThanRepo;
+    (* EarlierThanRemote *)
+    Filter EarlierThanRemote;
 
 val uploadableDef =
-    (* Mine & (~OnRepo /\ LaterThanRepo /\ ConsistentWithRepo) *)
+    (* Mine & (~OnRemote /\ LaterThanRemote /\ ConsistentWithRemote) *)
     Intersect
       (Filter Mine,
-       Filter (And (Not OnRepo, And (LaterThanRepo,ConsistentWithRepo))));
+       Filter (And (Not OnRemote, And (LaterThanRemote,ConsistentWithRemote))));
 
-fun evaluateSet dir set =
+fun evaluateSet repo set =
     case set of
       Name n =>
-      (case Directory.latestNameVersion dir n of
+      (case Repository.latestNameVersion repo n of
          NONE => PackageNameVersionSet.empty
        | SOME nv => PackageNameVersionSet.singleton nv)
     | NameVersion nv =>
-      if Directory.member nv dir then PackageNameVersionSet.singleton nv
+      if Repository.member nv repo then PackageNameVersionSet.singleton nv
       else PackageNameVersionSet.empty
-    | All => Directory.all dir
+    | All => Repository.all repo
     | None => PackageNameVersionSet.empty;
 
 local
-  fun evalPred dir repo pred namever =
+  fun evalPred repo remote pred namever =
       case pred of
-        Empty => Directory.emptyTheory dir namever
-      | Mine => Directory.selfAuthor dir namever
-      | OnRepo => DirectoryRepo.member namever repo
-      | IdenticalOnRepo => Directory.identicalOnRepo dir repo namever
-      | ConsistentWithRepo => Directory.consistentWithRepo dir repo namever
-      | EarlierThanRepo => Directory.earlierThanRepo dir repo namever
-      | LaterThanRepo => Directory.laterThanRepo dir repo namever
-      | _ => raise Bug "DirectoryQuery.evalPred";
+        Empty => Repository.emptyTheories repo namever
+      | Mine => Repository.selfAuthor repo namever
+      | OnRemote => RepositoryRemote.member namever remote
+      | IdenticalOnRemote => Repository.identicalOnRemote repo remote namever
+      | ConsistentWithRemote =>
+        Repository.consistentWithRemote repo remote namever
+      | EarlierThanRemote =>
+        RepositoryRemote.earlierThanLatestNameVersion remote namever
+      | LaterThanRemote =>
+        RepositoryRemote.laterThanLatestNameVersion remote namever
+      | _ => raise Bug "RepositoryQuery.evalPred";
 
-  fun evalPredSet dir repo pred namevers =
+  fun evalPredSet repo remote pred namevers =
       if PackageNameVersionSet.null namevers then namevers
       else
         case pred of
-          Closed => Directory.closedDependencies dir namevers
-        | Acyclic => Directory.acyclicDependencies dir namevers
-        | UpToDate => Directory.upToDateDependencies dir namevers
+          Closed => Repository.closedDependencies repo namevers
+        | Acyclic => Repository.acyclicDependencies repo namevers
+        | UpToDate => Repository.upToDateDependencies repo namevers
         | Not pred1 =>
           let
-            val result1 = evalPredSet dir repo pred1 namevers
+            val result1 = evalPredSet repo remote pred1 namevers
           in
             PackageNameVersionSet.difference namevers result1
           end
         | And (pred1,pred2) =>
           let
-            val result1 = evalPredSet dir repo pred1 namevers
+            val result1 = evalPredSet repo remote pred1 namevers
 
-            val result2 = evalPredSet dir repo pred2 result1
+            val result2 = evalPredSet repo remote pred2 result1
           in
             result2
           end
         | Or (pred1,pred2) =>
           let
-            val result1 = evalPredSet dir repo pred1 namevers
+            val result1 = evalPredSet repo remote pred1 namevers
 
             val namevers = PackageNameVersionSet.difference namevers result1
 
-            val result2 = evalPredSet dir repo pred2 namevers
+            val result2 = evalPredSet repo remote pred2 namevers
           in
             PackageNameVersionSet.union result1 result2
           end
         | _ =>
-          PackageNameVersionSet.filter (evalPred dir repo pred) namevers;
+          PackageNameVersionSet.filter (evalPred repo remote pred) namevers;
 
-  fun evalPredSetRepo dir pred namevers (repo,result) =
+  fun evalPredSetRemote repo pred namevers (remote,result) =
       let
         val namevers' = PackageNameVersionSet.difference namevers result
 
-        val result' = evalPredSet dir repo pred namevers'
+        val result' = evalPredSet repo remote pred namevers'
       in
         PackageNameVersionSet.union result result'
       end;
 in
-  fun evaluatePredicateSet dir repos pred namevers =
-      case repos of
+  fun evaluatePredicateSet repo remotes pred namevers =
+      case remotes of
         [] => PackageNameVersionSet.empty
-      | repo :: repos =>
+      | remote :: remotes =>
         let
-          val result = evalPredSet dir repo pred namevers
+          val result = evalPredSet repo remote pred namevers
         in
-          if ignoresRepo pred then result
-          else List.foldl (evalPredSetRepo dir pred namevers) result repos
+          if ignoresRemote pred then result
+          else List.foldl (evalPredSetRemote repo pred namevers) result remotes
         end;
 end;
 
 local
-  fun versions dir nv =
-      Directory.nameVersions dir (PackageNameVersion.name nv);
+  fun versions repo nv =
+      Repository.nameVersions repo (PackageNameVersion.name nv);
 
   fun rtc f set =
       let
@@ -260,66 +263,66 @@ local
         if converged then set else rtc f set'
       end;
 in
-  fun evaluate dir repos func =
+  fun evaluate repo remotes func =
       case func of
         Identity => I
-      | Constant set => K (evaluateSet dir set)
-      | Filter pred => evaluatePredicateSet dir repos pred
-      | Requires => PackageNameVersionSet.lift (Directory.requires dir)
-      | RequiredBy => PackageNameVersionSet.lift (Directory.requiredBy dir)
-      | Includes => PackageNameVersionSet.lift (Directory.includes dir)
-      | IncludedBy => PackageNameVersionSet.lift (Directory.includedBy dir)
-      | Subtheories => PackageNameVersionSet.lift (Directory.subtheories dir)
-      | SubtheoryOf => PackageNameVersionSet.lift (Directory.subtheoryOf dir)
-      | Versions => PackageNameVersionSet.lift (versions dir)
+      | Constant set => K (evaluateSet repo set)
+      | Filter pred => evaluatePredicateSet repo remotes pred
+      | Requires => PackageNameVersionSet.lift (Repository.requires repo)
+      | RequiredBy => PackageNameVersionSet.lift (Repository.requiredBy repo)
+      | Includes => PackageNameVersionSet.lift (Repository.includes repo)
+      | IncludedBy => PackageNameVersionSet.lift (Repository.includedBy repo)
+      | Subtheories => PackageNameVersionSet.lift (Repository.subtheories repo)
+      | SubtheoryOf => PackageNameVersionSet.lift (Repository.subtheoryOf repo)
+      | Versions => PackageNameVersionSet.lift (versions repo)
       | Latest => PackageNameVersionSet.latestVersions
-      | Deprecated => evaluate dir repos deprecatedDef
-      | Obsolete => evaluate dir repos obsoleteDef
-      | Upgradable => evaluate dir repos upgradableDef
-      | Uploadable => evaluate dir repos uploadableDef
+      | Deprecated => evaluate repo remotes deprecatedDef
+      | Obsolete => evaluate repo remotes obsoleteDef
+      | Upgradable => evaluate repo remotes upgradableDef
+      | Uploadable => evaluate repo remotes uploadableDef
       | Union (func1,func2) =>
         let
-          val f1 = evaluate dir repos func1
-          and f2 = evaluate dir repos func2
+          val f1 = evaluate repo remotes func1
+          and f2 = evaluate repo remotes func2
         in
           fn s => PackageNameVersionSet.union (f1 s) (f2 s)
         end
       | Intersect (func1,func2) =>
         let
-          val f1 = evaluate dir repos func1
-          and f2 = evaluate dir repos func2
+          val f1 = evaluate repo remotes func1
+          and f2 = evaluate repo remotes func2
         in
           fn s => PackageNameVersionSet.intersect (f1 s) (f2 s)
         end
       | Difference (func1,func2) =>
         let
-          val f1 = evaluate dir repos func1
-          and f2 = evaluate dir repos func2
+          val f1 = evaluate repo remotes func1
+          and f2 = evaluate repo remotes func2
         in
           fn s => PackageNameVersionSet.difference (f1 s) (f2 s)
         end
       | ReflexiveTransitive func =>
         let
-          val f = evaluate dir repos func
+          val f = evaluate repo remotes func
         in
           rtc f
         end
       | Transitive func =>
         let
-          val f = evaluate dir repos func
+          val f = evaluate repo remotes func
         in
           rtc f o f
         end
       | Optional func =>
         let
-          val f = evaluate dir repos func
+          val f = evaluate repo remotes func
         in
           fn s => PackageNameVersionSet.union s (f s)
         end
       | Compose (func1,func2) =>
         let
-          val f1 = evaluate dir repos func1
-          and f2 = evaluate dir repos func2
+          val f1 = evaluate repo remotes func1
+          and f2 = evaluate repo remotes func2
         in
           f1 o f2
         end;
@@ -343,21 +346,21 @@ val infixes =
 val ppAcyclicKeyword = Print.ppString acyclicKeywordString
 and ppAllKeyword = Print.ppString allKeywordString
 and ppClosedKeyword = Print.ppString closedKeywordString
-and ppConsistentWithRepoKeyword = Print.ppString consistentWithRepoKeywordString
+and ppConsistentWithRemoteKeyword = Print.ppString consistentWithRemoteKeywordString
 and ppDeprecatedKeyword = Print.ppString deprecatedKeywordString
-and ppEarlierThanRepoKeyword = Print.ppString earlierThanRepoKeywordString
+and ppEarlierThanRemoteKeyword = Print.ppString earlierThanRemoteKeywordString
 and ppEmptyKeyword = Print.ppString emptyKeywordString
-and ppIdenticalOnRepoKeyword = Print.ppString identicalOnRepoKeywordString
+and ppIdenticalOnRemoteKeyword = Print.ppString identicalOnRemoteKeywordString
 and ppIdentityKeyword = Print.ppString identityKeywordString
 and ppIncludedByKeyword = Print.ppString includedByKeywordString
 and ppIncludesKeyword = Print.ppString includesKeywordString
-and ppLaterThanRepoKeyword = Print.ppString laterThanRepoKeywordString
+and ppLaterThanRemoteKeyword = Print.ppString laterThanRemoteKeywordString
 and ppLatestKeyword = Print.ppString latestKeywordString
 and ppMineKeyword = Print.ppString mineKeywordString
 and ppNoneKeyword = Print.ppString noneKeywordString
 and ppNotSymbol = Print.ppString notSymbolString
 and ppObsoleteKeyword = Print.ppString obsoleteKeywordString
-and ppOnRepoKeyword = Print.ppString onRepoKeywordString
+and ppOnRemoteKeyword = Print.ppString onRemoteKeywordString
 and ppOptionalSymbol = Print.ppString optionalSymbolString
 and ppReflexiveTransitiveSymbol = Print.ppString reflexiveTransitiveSymbolString
 and ppRequiredByKeyword = Print.ppString requiredByKeywordString
@@ -403,11 +406,11 @@ local
       | Closed => ppClosedKeyword
       | Acyclic => ppAcyclicKeyword
       | UpToDate => ppUpToDateKeyword
-      | OnRepo => ppOnRepoKeyword
-      | IdenticalOnRepo => ppIdenticalOnRepoKeyword
-      | ConsistentWithRepo => ppConsistentWithRepoKeyword
-      | EarlierThanRepo => ppEarlierThanRepoKeyword
-      | LaterThanRepo => ppLaterThanRepoKeyword
+      | OnRemote => ppOnRemoteKeyword
+      | IdenticalOnRemote => ppIdenticalOnRemoteKeyword
+      | ConsistentWithRemote => ppConsistentWithRemoteKeyword
+      | EarlierThanRemote => ppEarlierThanRemoteKeyword
+      | LaterThanRemote => ppLaterThanRemoteKeyword
       | _ => ppBracket pred
 
   and ppUnary pred =
@@ -553,15 +556,15 @@ local
   val acyclicKeywordParser = exactString acyclicKeywordString
   and andSymbolParser = exactString andSymbolString
   and closedKeywordParser = exactString closedKeywordString
-  and consistentWithRepoKeywordParser =
-      exactString consistentWithRepoKeywordString
-  and earlierThanRepoKeywordParser = exactString earlierThanRepoKeywordString
+  and consistentWithRemoteKeywordParser =
+      exactString consistentWithRemoteKeywordString
+  and earlierThanRemoteKeywordParser = exactString earlierThanRemoteKeywordString
   and emptyKeywordParser = exactString emptyKeywordString
-  and identicalOnRepoKeywordParser = exactString identicalOnRepoKeywordString
-  and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
+  and identicalOnRemoteKeywordParser = exactString identicalOnRemoteKeywordString
+  and laterThanRemoteKeywordParser = exactString laterThanRemoteKeywordString
   and mineKeywordParser = exactString mineKeywordString
   and notSymbolParser = exactString notSymbolString
-  and onRepoKeywordParser = exactString onRepoKeywordString
+  and onRemoteKeywordParser = exactString onRemoteKeywordString
   and orSymbolParser = exactString orSymbolString
   and upToDateKeywordParser = exactString upToDateKeywordString;
 
@@ -580,11 +583,11 @@ local
       closedKeywordParser >> K Closed ||
       acyclicKeywordParser >> K Acyclic ||
       upToDateKeywordParser >> K UpToDate ||
-      consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
-      earlierThanRepoKeywordParser >> K EarlierThanRepo ||
-      identicalOnRepoKeywordParser >> K IdenticalOnRepo ||
-      laterThanRepoKeywordParser >> K LaterThanRepo ||
-      onRepoKeywordParser >> K OnRepo;
+      consistentWithRemoteKeywordParser >> K ConsistentWithRemote ||
+      earlierThanRemoteKeywordParser >> K EarlierThanRemote ||
+      identicalOnRemoteKeywordParser >> K IdenticalOnRemote ||
+      laterThanRemoteKeywordParser >> K LaterThanRemote ||
+      onRemoteKeywordParser >> K OnRemote;
 
   val basicKeywordSpaceParser =
       basicKeywordParser ++ manySpace >> fst;
@@ -598,7 +601,7 @@ local
   fun mkInfix (s,p1,p2) =
       if s = andSymbolString then And (p1,p2)
       else if s = orSymbolString then Or (p1,p2)
-      else raise Bug "DirectoryQuery.parserPredicate.mkInfix";
+      else raise Bug "RepositoryQuery.parserPredicate.mkInfix";
 
   val infixSymbolParser =
       andSymbolParser >> K andSymbolString ||
@@ -690,7 +693,7 @@ local
       if s = intersectSymbolString then Intersect (f1,f2)
       else if s = differenceSymbolString then Difference (f1,f2)
       else if s = unionSymbolString then Union (f1,f2)
-      else raise Bug "DirectoryQuery.parser.mkInfix";
+      else raise Bug "RepositoryQuery.parser.mkInfix";
 
   val infixSymbolParser =
       differenceSymbolParser >> K differenceSymbolString ||

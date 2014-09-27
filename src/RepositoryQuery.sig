@@ -1,9 +1,9 @@
 (* ========================================================================= *)
-(* QUERYING THEORY PACKAGE DIRECTORIES                                       *)
+(* QUERYING PACKAGE REPOSITORIES                                             *)
 (* Copyright (c) 2012 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
-signature DirectoryQuery =
+signature RepositoryQuery =
 sig
 
 (* ------------------------------------------------------------------------- *)
@@ -22,11 +22,11 @@ datatype predicate =
   | Closed
   | Acyclic
   | UpToDate
-  | OnRepo
-  | EarlierThanRepo
-  | LaterThanRepo
-  | IdenticalOnRepo
-  | ConsistentWithRepo
+  | OnRemote
+  | EarlierThanRemote
+  | LaterThanRemote
+  | IdenticalOnRemote
+  | ConsistentWithRemote
   | Not of predicate
   | And of predicate * predicate
   | Or of predicate * predicate
@@ -59,7 +59,7 @@ datatype function =
 (* Does the function ignore its input?                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val ignoresRepo : predicate -> bool
+val ignoresRemote : predicate -> bool
 
 val ignoresInput : function -> bool
 
@@ -68,7 +68,7 @@ val ignoresInput : function -> bool
 (* ------------------------------------------------------------------------- *)
 
 val evaluate :
-    Directory.directory -> DirectoryRepo.repo list -> function ->
+    Repository.repository -> RepositoryRemote.remote list -> function ->
     PackageNameVersionSet.set -> PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
