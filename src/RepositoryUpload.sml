@@ -260,33 +260,117 @@ end;
 (* Execute the upload.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun supportUpload repo upload namever =
-    let
-      val chk =
-          case Repository.peek repo namever of
-            SOME pkg => Package.checksum pkg
-          | NONE =>
+local
+  fun startUpload remote =
+      let
+        val upload = RepositoryRemote.startUpload remote
+
+        val {url} = RepositoryRemote.urlUpload upload
+
+        val mesg =
+            "started upload to " ^
+            RepositoryRemote.toString remote ^
+            ":\n  " ^ url
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        upload
+      end;
+
+  fun supportUpload repo upload namever =
+      let
+        val chk =
+            case Repository.peek repo namever of
+              SOME pkg => Package.checksum pkg
+            | NONE =>
+              let
+                val err =
+                    "package " ^ PackageNameVersion.toString namever ^
+                    " seems to be badly installed"
+              in
+                raise Error err
+              end
+
+        val () = RepositoryRemote.supportUpload upload namever chk
+      in
+        ()
+      end;
+
+  fun packageUpload repo upload namever =
+      let
+        val pkg = Repository.get repo namever
+
+        val () = RepositoryRemote.packageUpload upload pkg
+      in
+        ()
+      end;
+
+  fun finishUpload remote upload =
+      let
+        val () = RepositoryRemote.finishUpload upload
+
+        val mesg =
+            "finished upload to " ^ RepositoryRemote.toString remote ^
+            ", sent author confirmation email"
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        ()
+      end;
+
+  fun deleteUpload remote upload =
+      let
+        val () = RepositoryRemote.deleteUpload upload
+
+        val mesg =
+            "encountered error, so deleted upload to " ^
+            RepositoryRemote.toString remote
+
+        val () = chat mesg
+
+        val () = TextIO.flushOut TextIO.stdOut
+      in
+        ()
+      end;
+in
+  fun upload info =
+      let
+        val Upload
+              {repository = repo,
+               remote,
+               support,
+               packages} = info
+
+        val upl = startUpload remote
+
+        val () =
             let
-              val err =
-                  "package " ^ PackageNameVersion.toString namever ^
-                  " seems to be badly installed"
+              val () = List.app (supportUpload repo upl) support
+
+              val () = List.app (packageUpload repo upl) packages
+
+              val () = finishUpload remote upl
             in
-              raise Error err
+              ()
             end
-
-      val () = RepositoryRemote.supportUpload upload namever chk
-    in
-      ()
-    end;
-
-fun packageUpload repo upload namever =
-    let
-      val pkg = Repository.get repo namever
-
-      val () = RepositoryRemote.packageUpload upload pkg
-    in
-      ()
-    end;
+            handle Error err =>
+              let
+                val () =
+                    deleteUpload remote upl
+                    handle Error err' => raise Error (err ^ "\n" ^ err')
+              in
+                raise Error err
+              end
+      in
+        ()
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage upload failed");
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Summarize the upload.                                                     *)
