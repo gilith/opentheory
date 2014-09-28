@@ -19,7 +19,7 @@ and rootHomeDir = ".opentheory";
 
 val program = "opentheory";
 
-val version = "1.2";
+val version = "1.3";
 
 val release = " (release 20140721)";
 
@@ -141,7 +141,7 @@ datatype input =
     ArticleInput of {filename : string}
   | PackageInput of PackageNameVersion.nameVersion
   | PackageNameInput of PackageName.name
-  | PackageQueryInput of DirectoryQuery.function
+  | PackageQueryInput of RepositoryQuery.function
   | StagedPackageInput of PackageNameVersion.nameVersion
   | TarballInput of {filename : string}
   | TheoryInput of {filename : string};
@@ -168,7 +168,7 @@ fun fromStringInput inp =
               case total PackageName.fromString inp of
                 SOME name => PackageNameInput name
               | NONE =>
-                case total DirectoryQuery.fromString inp of
+                case total RepositoryQuery.fromString inp of
                   SOME query => PackageQueryInput query
                 | NONE =>
                   let
@@ -176,7 +176,7 @@ fun fromStringInput inp =
                   in
                     if Article.isFilename f then ArticleInput f
                     else if PackageTarball.isFilename f then TarballInput f
-                    else if Package.isFilename f then TheoryInput f
+                    else if PackageInformation.isFilename f then TheoryInput f
                     else raise Error ("unknown type of input: " ^ inp)
                   end;
 
@@ -275,7 +275,7 @@ fun fromStringInfoFormat fmt =
 
 fun cleanupStagedPackage dir nv =
     let
-      val () = Directory.cleanupStaged dir nv
+      val () = Repository.cleanupStaged dir nv
 
       val mesg =
           "cleaned up staged package " ^ PackageNameVersion.toString nv
@@ -286,7 +286,7 @@ fun cleanupStagedPackage dir nv =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package directory.                                                        *)
+(* Root directory of the local package repository.                           *)
 (* ------------------------------------------------------------------------- *)
 
 val rootDirectoryOption : string option ref = ref NONE;
@@ -326,173 +326,163 @@ val rootDirectory =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Initializing a package directory.                                         *)
+(* Initializing a package repository.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val repoInit = ref DirectoryConfig.default;
+val repoInit = ref RepositoryConfig.default;
 
-fun initDirectory {rootDirectory = r} =
+fun initRepository {rootDirectory = r} =
     let
       val c = !repoInit
 
-      val () = Directory.create {rootDirectory = r, config = c}
+      val () = Repository.create {rootDirectory = r, config = c}
     in
       ()
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package directory.                                                        *)
+(* The local package repository.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val directory =
+val repository =
     let
       fun existsDirectory d =
           OS.FileSys.isDir d
           handle OS.SysErr _ => false
 
-      val rdir : Directory.directory option ref = ref NONE
+      val rrepo : Repository.repository option ref = ref NONE
     in
       fn () =>
-         case !rdir of
-           SOME dir => dir
+         case !rrepo of
+           SOME repo => repo
          | NONE =>
            let
-             val dir =
+             val repo =
                  let
                    val {directory = r, autoInit} = rootDirectory ()
                  in
                    if existsDirectory r then
                      let
-                       val dir = Directory.mk {rootDirectory = r}
+                       val repo = Repository.mk {rootDirectory = r}
 
                        val () =
                            let
-                             val cfg = Directory.config dir
+                             val cfg = Repository.config repo
 
-                             val cfg = DirectoryConfig.cleanup cfg
+                             val cfg = RepositoryConfig.cleanup cfg
                            in
-                             case DirectoryConfig.autoCleanup cfg of
+                             case RepositoryConfig.autoCleanup cfg of
                                NONE => ()
                              | SOME t =>
                                let
                                  val maxAge = {maxAge = SOME t}
 
-                                 val nvs = Directory.listStaged dir maxAge
+                                 val nvs = Repository.listStaged repo maxAge
 
                                  val () =
                                      PackageNameVersionSet.app
-                                       (cleanupStagedPackage dir) nvs
+                                       (cleanupStagedPackage repo) nvs
                                in
                                  ()
                                end
                            end
                      in
-                       dir
+                       repo
                      end
                    else if autoInit then
                      let
-                       val () = initDirectory {rootDirectory = r}
+                       val () = initRepository {rootDirectory = r}
 
-                       val () = chat ("auto-initialized package directory " ^ r)
+                       val () = chat ("auto-initialized package repo " ^ r)
                      in
-                       Directory.mk {rootDirectory = r}
+                       Repository.mk {rootDirectory = r}
                      end
                    else
-                     raise Error ("package directory does not exist: " ^ r)
+                     raise Error ("package repo does not exist: " ^ r)
                  end
 
-             val () = rdir := SOME dir
+             val () = rrepo := SOME repo
            in
-             dir
+             repo
            end
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* The directory package finder and importer.                                *)
+(* Package finders for the local repository.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun directoryFinder () = Directory.finder (directory ());
+fun finder () = Repository.finder (repository ());
 
-fun directoryImporter () = Directory.importer (directory ());
+fun stagedFinder () = Repository.stagedFinder (repository ());
 
 (* ------------------------------------------------------------------------- *)
 (* Getting the latest version of packages.                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun latestVersionDirectory name =
+fun latestVersion name =
     let
-      val dir = directory ()
+      val repo = repository ()
     in
-      Directory.latestNameVersion dir name
+      Repository.latestNameVersion repo name
     end;
 
-fun getLatestVersionDirectory name =
+fun getLatestVersion name =
     let
-      val dir = directory ()
+      val repo = repository ()
     in
-      Directory.getLatestNameVersion dir name
+      Repository.getLatestNameVersion repo name
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* The directory staged package finder.                                      *)
+(* Repository configuration and system interface.                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun directoryStagedFinder () = Directory.stagedFinder (directory ());
+fun config () = Repository.config (repository ());
+
+fun system () = RepositoryConfig.system (config ());
 
 (* ------------------------------------------------------------------------- *)
-(* Config file.                                                              *)
-(* ------------------------------------------------------------------------- *)
-
-fun config () = Directory.config (directory ());
-
-(* ------------------------------------------------------------------------- *)
-(* System interface.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun system () = DirectoryConfig.system (config ());
-
-(* ------------------------------------------------------------------------- *)
-(* Package repo.                                                             *)
+(* Remote repositories.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  val repoOption : DirectoryRepo.name list ref = ref [];
+  val remoteOption : RepositoryRemote.name list ref = ref [];
 in
-  fun addRepository s =
+  fun addRemote s =
       let
         val n = PackageName.fromString s
 
-        val () = repoOption := !repoOption @ [n]
+        val () = remoteOption := !remoteOption @ [n]
       in
         ()
       end;
 
-  fun repository () =
+  fun remote () =
       let
-        val dir = directory ()
+        val repo = repository ()
 
-        val repos = Directory.repos dir
+        val remotes = Repository.remotes repo
 
         val () =
-            if not (List.null repos) then ()
+            if not (List.null remotes) then ()
             else raise Error "no repos listed in config file"
       in
-        case !repoOption of
-          [] => hd repos
-        | [n] => Directory.getRepo dir n
-        | _ :: _ :: _ => raise Error "too many repos given on command line"
+        case !remoteOption of
+          [] => hd remotes
+        | [n] => Repository.getRemote repo n
+        | _ :: _ :: _ => raise Error "multiple repos given on command line"
       end;
 
-  fun repositories () =
+  fun remotes () =
       let
-        val dir = directory ()
+        val repo = repository ()
 
-        val repos = Directory.repos dir
+        val remotes = Repository.remotes repo
 
-        val ns = !repoOption
+        val ns = !remoteOption
       in
-        if List.null ns then repos
-        else List.map (Directory.getRepo dir) ns
+        if List.null ns then remotes
+        else List.map (Repository.getRemote repo) ns
       end;
 end;
 
@@ -500,11 +490,11 @@ end;
 (* Getting the latest version of packages on repos.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun latestNameVersionRepositories name chk' =
+fun latestVersionRemotes name chko =
     let
-      val repos = repositories ()
+      val rems = remotes ()
     in
-      DirectoryRepo.latestNameVersionList repos name chk'
+      RepositoryRemote.latestNameVersionList rems name chko
     end;
 
 (* ------------------------------------------------------------------------- *)
