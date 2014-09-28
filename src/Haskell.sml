@@ -295,7 +295,7 @@ datatype test =
 
 datatype haskell =
      Haskell of
-       {package : Package.package,
+       {information : PackageInformation.information,
         depends : depend list,
         source : module,
         tests : test list};
@@ -304,7 +304,7 @@ datatype haskell =
 (* Haskell package dependencies.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkDepends dir pkg thy =
+fun mkDepends repo pkg thy =
     let
       fun checkPrevious oldest ths vs =
           if Queue.null ths then oldest
@@ -314,7 +314,7 @@ fun mkDepends dir pkg thy =
 
               val nv = PackageTheorems.package th
             in
-              case Directory.previousNameVersion dir nv of
+              case Repository.previousNameVersion repo nv of
                 NONE =>
                 let
                   val n = PackageNameVersion.name nv
@@ -326,9 +326,9 @@ fun mkDepends dir pkg thy =
                 end
               | SOME nv' =>
                 let
-                  val info = Directory.get dir nv'
+                  val pkg = Repository.get repo nv'
 
-                  val th = PackageInfo.theorems info
+                  val th = Package.theorems pkg
                 in
                   case total (PackageTheorems.addVersion vs) th of
                     NONE =>
@@ -350,7 +350,7 @@ fun mkDepends dir pkg thy =
             end
 
       val ths =
-          case Directory.requiresTheorems dir (Package.requires pkg) of
+          case Repository.requiresTheorems repo (Package.requires pkg) of
             SOME ths => ths
           | NONE => raise Error "required theories not installed"
 
@@ -1369,7 +1369,7 @@ end;
 
 local
   fun getTheory name thys =
-      case Theory.peekTheory name thys of
+      case Theory.peekNested name thys of
         SOME thy => thy
       | NONE =>
         let
@@ -1382,7 +1382,7 @@ in
       let
         val thys =
             case Theory.node thy of
-              Theory.Package {theories,...} => theories
+              Theory.Package {nested,...} => nested
             | _ => raise Bug "Haskell.theories: not a package theory"
 
         val src = getTheory PackageName.srcHaskellTheory thys
@@ -1423,16 +1423,43 @@ fun destTestTheory show test =
       tests
     end;
 
-fun convert dir pkg thy =
+fun convert repo namever =
     let
+      val pkg =
+          case Repository.peek repo namever of
+            SOME p => p
+          | NONE =>
+            let
+              val err =
+                  "theory " ^ PackageNameVersion.toString namever ^
+                  " is not installed"
+            in
+              raise Error err
+            end
+
+      val finder = Repository.finder repo
+
+      val graph = TheoryGraph.empty {savable = false}
+
+      val imps = TheorySet.empty
+
+      val int = Interpretation.natural
+
+      val (_,thy) =
+          TheoryGraph.importPackage finder graph
+            {imports = imps,
+             interpretation = int,
+             package = pkg}
+
       val {src,test} = splitTheories thy
 
-      val deps = mkDepends dir pkg thy
+      val info = Package.information pkg
+      and deps = mkDepends repo pkg thy
       and source = mkModule (destSourceTheory src)
       and tests = destTestTheory (Package.show pkg) test
     in
       Haskell
-        {package = pkg,
+        {information = info,
          depends = deps,
          source = source,
          tests = tests}
@@ -1640,13 +1667,13 @@ local
           end
       end;
 in
-  fun mkTags pkg =
+  fun mkTags info =
       let
-        val name = Package.name pkg
-        and version = Package.version pkg
-        and {description} = Package.description pkg
-        and author = Package.author pkg
-        and {license} = Package.license pkg
+        val name = PackageInformation.name info
+        and version = PackageInformation.version info
+        and {description} = PackageInformation.description info
+        and author = PackageInformation.author info
+        and {license} = PackageInformation.license info
 
         val tags =
             StringMap.fromList
@@ -1665,7 +1692,7 @@ in
                (synopsisTag,description),
                (versionTag, PackageVersion.toString version)]
 
-        val tags = List.foldl overrideTag tags (Package.tags pkg)
+        val tags = List.foldl overrideTag tags (PackageInformation.tags info)
       in
         Tags tags
       end;
@@ -2659,10 +2686,10 @@ local
           (Print.ppString x ::
            List.map (Print.sequence Print.break o Print.ppString) xs);
 in
-  fun ppCabal (pkg,tags,deps,source) =
+  fun ppCabal (info,tags,deps,source) =
       let
-        val name = Package.name pkg
-        and nameVersion = Package.nameVersion pkg
+        val name = PackageInformation.name info
+        and nameVersion = PackageInformation.nameVersion info
         and desc = getTag tags descriptionTag
         and mods = exposedModule source
 
@@ -2722,13 +2749,13 @@ fun mkSubDirectory {directory = dir} sub =
       {directory = dir}
     end;
 
-fun outputCabal {directory = dir} pkg tags deps source =
+fun outputCabal {directory = dir} info tags deps source =
     let
-      val ss = Print.toStream ppCabal (pkg,tags,deps,source)
+      val ss = Print.toStream ppCabal (info,tags,deps,source)
 
       val file =
           let
-            val base = Print.toLine ppPackageName (Package.name pkg)
+            val base = Print.toLine ppPackageName (PackageInformation.name info)
 
             val f = OS.Path.joinBaseExt {base = base, ext = SOME "cabal"}
           in
@@ -2740,18 +2767,18 @@ fun outputCabal {directory = dir} pkg tags deps source =
       ()
     end;
 
-fun outputLicense dir {directory} pkg tags =
+fun outputLicense repo {directory} info tags =
     let
-      val {license} = Package.license pkg
+      val {license} = PackageInformation.license info
       and licenseFile = getTag tags licenseFileTag
 
-      val license = Directory.getLicense dir {name = license}
+      val license = Repository.getLicense repo {name = license}
 
-      val {url} = DirectoryConfig.urlLicense license
+      val {url} = RepositoryConfig.urlLicense license
 
       val file = OS.Path.joinDirFile {dir = directory, file = licenseFile}
 
-      val {curl = cmd} = DirectorySystem.curl (Directory.system dir)
+      val {curl = cmd} = RepositorySystem.curl (Repository.system repo)
 
       val cmd = cmd ^ " " ^ url ^ " --output " ^ file
 
@@ -2887,24 +2914,28 @@ in
       end;
 end;
 
-fun toPackage dir haskell =
+fun toPackage repo haskell =
     let
-      val Haskell {package,depends,source,tests} = haskell
+      val Haskell
+            {information = info,
+             depends,
+             source,
+             tests} = haskell
 
-      val tags = mkTags package
+      val tags = mkTags info
 
       val directory =
           let
-            val name = Print.toLine ppPackageName (Package.name package)
+            val name = Print.toLine ppPackageName (PackageInformation.name info)
 
             val directory = {directory = OS.FileSys.getDir ()}
           in
             mkSubDirectory directory name
           end
 
-      val () = outputCabal directory package tags depends source
+      val () = outputCabal directory info tags depends source
 
-      val () = outputLicense dir directory package tags
+      val () = outputLicense repo directory info tags
 
       val () = outputSetup directory
 
@@ -2919,39 +2950,11 @@ fun toPackage dir haskell =
 (* Export a theory to a Haskell package.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-fun export dir namever =
+fun export repo namever =
     let
-      val info =
-          case Directory.peek dir namever of
-            SOME i => i
-          | NONE =>
-            let
-              val err =
-                  "theory " ^ PackageNameVersion.toString namever ^
-                  " is not installed"
-            in
-              raise Error err
-            end
+      val haskell = convert repo namever
 
-      val pkg = PackageInfo.package info
-
-      val importer = Directory.importer dir
-
-      val graph = TheoryGraph.empty {savable = false}
-
-      val imps = TheorySet.empty
-
-      val int = Interpretation.natural
-
-      val (_,thy) =
-          TheoryGraph.importPackageInfo importer graph
-            {imports = imps,
-             interpretation = int,
-             info = info}
-
-      val haskell = convert dir pkg thy
-
-      val () = toPackage dir haskell
+      val () = toPackage repo haskell
     in
       ()
     end;

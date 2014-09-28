@@ -17,7 +17,7 @@ type haskell
 (* ------------------------------------------------------------------------- *)
 
 val convert :
-    Repository.repository -> Package.package -> Theory.theory -> haskell
+    Repository.repository -> PackageNameVersion.nameVersion -> haskell
 
 (* ------------------------------------------------------------------------- *)
 (* Writing a Haskell package to disk.                                        *)
