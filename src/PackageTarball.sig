@@ -43,6 +43,12 @@ val contents : tarball -> contents
 
 val nameVersion : tarball -> PackageNameVersion.nameVersion
 
+val theoryFile : tarball -> {filename : string}
+
+val otherFiles : tarball -> {filename : string} list
+
+val allFiles : tarball -> {filename : string} list
+
 (* ------------------------------------------------------------------------- *)
 (* Creating a checksum.                                                      *)
 (* ------------------------------------------------------------------------- *)

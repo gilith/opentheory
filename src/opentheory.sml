@@ -273,9 +273,9 @@ fun fromStringInfoFormat fmt =
 (* Clean up a staged package.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun cleanupStagedPackage dir nv =
+fun cleanupStagedPackage repo nv =
     let
-      val () = Repository.cleanupStaged dir nv
+      val () = Repository.cleanupStaged repo nv
 
       val mesg =
           "cleaned up staged package " ^ PackageNameVersion.toString nv
@@ -329,11 +329,11 @@ val rootDirectory =
 (* Initializing a package repository.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val repoInit = ref RepositoryConfig.default;
+val remoteInit = ref RepositoryConfig.default;
 
 fun initRepository {rootDirectory = r} =
     let
-      val c = !repoInit
+      val c = !remoteInit
 
       val () = Repository.create {rootDirectory = r, config = c}
     in
@@ -407,36 +407,6 @@ val repository =
            end
     end;
 
-(* ------------------------------------------------------------------------- *)
-(* Package finders for the local repository.                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun finder () = Repository.finder (repository ());
-
-fun stagedFinder () = Repository.stagedFinder (repository ());
-
-(* ------------------------------------------------------------------------- *)
-(* Getting the latest version of packages.                                   *)
-(* ------------------------------------------------------------------------- *)
-
-fun latestVersion name =
-    let
-      val repo = repository ()
-    in
-      Repository.latestNameVersion repo name
-    end;
-
-fun getLatestVersion name =
-    let
-      val repo = repository ()
-    in
-      Repository.getLatestNameVersion repo name
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Repository configuration and system interface.                            *)
-(* ------------------------------------------------------------------------- *)
-
 fun config () = Repository.config (repository ());
 
 fun system () = RepositoryConfig.system (config ());
@@ -487,7 +457,40 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Getting the latest version of packages on repos.                          *)
+(* Package finders for the local repository.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun finder () = Repository.finder (repository ());
+
+fun stagedFinder () = Repository.stagedFinder (repository ());
+
+(* ------------------------------------------------------------------------- *)
+(* Getting the latest version of packages.                                   *)
+(* ------------------------------------------------------------------------- *)
+
+fun latestVersion name =
+    let
+      val repo = repository ()
+    in
+      Repository.latestNameVersion repo name
+    end;
+
+fun getLatestVersion name =
+    let
+      val repo = repository ()
+    in
+      Repository.getLatestNameVersion repo name
+    end;
+
+fun previousVersion namever =
+    let
+      val repo = repository ()
+    in
+      Repository.previousNameVersion repo namever
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Getting the latest version of packages on remote repositories.            *)
 (* ------------------------------------------------------------------------- *)
 
 fun latestVersionRemotes name chko =
@@ -682,7 +685,7 @@ in
         description = "output the package document in HTML format",
         processor = beginOpt endOpt (fn _ => addInfoOutput DocumentInfo)},
        {switches = ["--theory-source"], arguments = [],
-        description = "output the package theory source file",
+        description = "output the package theory source",
         processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
        {switches = ["--theorems"], arguments = [],
         description = "output the package theorems in article format",
@@ -705,10 +708,10 @@ in
         description = "show the assumptions/axioms for each theorem",
         processor = beginOpt endOpt (fn _ => showDerivationsInfo := true)},
        {switches = ["--upgrade-theory"], arguments = [],
-        description = "upgrade the theory source file to the latest versions",
+        description = "upgrade theory source to the latest package versions",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
        {switches = ["--preserve-theory"], arguments = [],
-        description = "do not optimize the theory source file",
+        description = "do not optimize the theory source",
         processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)}];
 end;
 
@@ -728,10 +731,10 @@ local
 in
   val initOpts : opt list =
       [{switches = ["--repo"], arguments = [],
-        description = "configure the new package directory as a repo",
+        description = "configure the new package repo to be used remotely",
         processor =
           beginOpt endOpt
-            (fn _ => repoInit := DirectoryConfig.repoDefault)}];
+            (fn _ => remoteInit := RepositoryConfig.remoteDefault)}];
 end;
 
 val initFooter = "";
@@ -872,7 +875,7 @@ val listFooter =
     "If the QUERY argument is missing the default Identity is used instead.\n";
 
 (* ------------------------------------------------------------------------- *)
-(* Options for updating package lists.                                       *)
+(* Options for updating repo package lists.                                  *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -970,15 +973,15 @@ fun commandArgs cmd =
 fun commandDescription cmd =
     case cmd of
       Cleanup => "clean up theory packages staged for installation"
-    | Export => "export an installed theory package from OpenTheory"
+    | Export => "export an installed theory package"
     | Help => "display help on all available commands"
     | Info => "extract information from theory packages and files"
-    | Init => "initialize a new package directory"
+    | Init => "initialize a new package repo"
     | Install => "install a package from a theory file or repo"
     | List => "list installed theory packages"
     | Uninstall => "uninstall an installed theory package"
     | Update => "update repo package lists"
-    | Upload => "upload theory packages to a repo";
+    | Upload => "upload installed theory packages to a repo";
 
 fun commandFooter cmd =
     case cmd of
@@ -1034,15 +1037,15 @@ local
 in
   val globalOpts : opt list =
       [{switches = ["-d","--root-dir"], arguments = ["DIR"],
-        description = "use this theory package directory",
+        description = "set the package repo directory",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => rootDirectoryOption := SOME s)},
        {switches = ["--repo"], arguments = ["REPO"],
-        description = "use these theory package repos",
+        description = "use the given remote package repo",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => addRepository s)}];
+            (fn _ => fn s => addRemote s)}];
 end;
 
 local
@@ -1160,18 +1163,18 @@ local
 in
   fun cleanup nameverl =
       let
-        val dir = directory ()
+        val repo = repository ()
 
         val nameverl =
             if not (List.null nameverl) then List.map cleanupInput nameverl
             else
               let
-                val namevers = Directory.listStaged dir {maxAge = NONE}
+                val namevers = Repository.listStaged repo {maxAge = NONE}
               in
                 PackageNameVersionSet.toList namevers
               end
 
-        val () = List.app (cleanupStagedPackage dir) nameverl
+        val () = List.app (cleanupStagedPackage repo) nameverl
       in
         ()
       end
@@ -1188,7 +1191,7 @@ local
       case inp of
         ArticleInput _ => raise Error "cannot export an article file"
       | PackageInput namever => namever
-      | PackageNameInput name => getLatestVersionDirectory name
+      | PackageNameInput name => getLatestVersion name
       | PackageQueryInput _ => raise Error "cannot export a package query"
       | StagedPackageInput _ => raise Error "cannot export a staged package"
       | TarballInput _ => raise Error "cannot export a tarball"
@@ -1196,17 +1199,17 @@ local
 in
   fun export inp =
       let
-        val dir = directory ()
+        val repo = repository ()
 
         val namever = exportInput inp
 
         val name = PackageNameVersion.name namever
       in
-        if PackageName.isHaskell name then Haskell.export dir namever
+        if PackageName.isHaskell name then Haskell.export repo namever
         else raise Error ("unknown export type: " ^ PackageName.toString name)
       end
       handle Error err =>
-        raise Error (err ^ "\ntheory package export failed");
+        raise Error (err ^ "\npackage export failed");
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1235,40 +1238,22 @@ local
         end;
 
   local
-    val cacheInfo : PackageInfo.info cache = ref NONE;
+    val cacheSavable : bool cache = ref NONE;
 
-    fun computeInfo () = NONE;
+    fun computeSavable () = NONE;
   in
-    fun setInfo info = cacheInfo := SOME (SOME info);
+    fun setSavable sav = cacheSavable := SOME (SOME sav);
 
-    val getInfo = getCached cacheInfo computeInfo;
-  end;
-
-  local
-    val cacheChecksum : Checksum.checksum cache = ref NONE;
-
-    fun computeChecksum () =
-        case getInfo () of
-          NONE => NONE
-        | SOME info =>
-          let
-            val dir = directory ()
-
-            val namever = PackageInfo.nameVersion info
-          in
-            Directory.checksum dir namever
-          end;
-  in
-    val getChecksum = getCached cacheChecksum computeChecksum;
+    fun getSavable () =
+        case getCached cacheSavable computeSavable () of
+          SOME sav => sav
+        | NONE => raise Bug "opentheory.info.getSavable";
   end;
 
   local
     val cachePackage : Package.package cache = ref NONE;
 
-    fun computePackage () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.package info)
-        | NONE => NONE;
+    fun computePackage () = NONE;
   in
     fun setPackage pkg = cachePackage := SOME (SOME pkg);
 
@@ -1276,14 +1261,29 @@ local
   end;
 
   local
-    val cacheRequires : PackageName.name list cache = ref NONE;
+    val cacheTarball : PackageTarball.tarball cache = ref NONE;
 
-    fun computeRequires () =
+    fun computeTarball () =
         case getPackage () of
-          SOME pkg => SOME (Package.requires pkg)
+          SOME pkg => SOME (Package.tarball pkg)
         | NONE => NONE;
   in
-    val getRequires = getCached cacheRequires computeRequires;
+    fun setTarball tar = cacheTarball := SOME (SOME tar);
+
+    val getTarball = getCached cacheTarball computeTarball;
+  end;
+
+  local
+    val cacheInformation : PackageInformation.information cache = ref NONE;
+
+    fun computeInformation () =
+        case getPackage () of
+          SOME pkg => SOME (Package.information pkg)
+        | NONE => NONE;
+  in
+    fun setInformation info = cacheInformation := SOME (SOME info);
+
+    val getInformation = getCached cacheInformation computeInformation;
   end;
 
   local
@@ -1291,12 +1291,15 @@ local
         ref NONE;
 
     fun computeNameVersion () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.nameVersion info)
+        case getPackage () of
+          SOME pkg => SOME (Package.nameVersion pkg)
         | NONE =>
-          case getPackage () of
-            SOME pkg => total Package.nameVersion pkg
-          | NONE => NONE;
+          case getInformation () of
+            SOME info => total PackageInformation.nameVersion info
+          | NONE =>
+            case getTarball () of
+              SOME tar => total PackageTarball.nameVersion tar
+            | NONE => NONE;
   in
     fun setNameVersion namever = cacheNameVersion := SOME (SOME namever);
 
@@ -1304,11 +1307,36 @@ local
   end;
 
   local
+    val cacheChecksum : Checksum.checksum cache = ref NONE;
+
+    fun computeChecksum () =
+        case getPackage () of
+          SOME pkg => SOME (Package.checksum pkg)
+        | NONE =>
+          case getTarball () of
+            SOME tar => SOME (PackageTarball.checksum tar)
+          | NONE => NONE;
+  in
+    val getChecksum = getCached cacheChecksum computeChecksum;
+  end;
+
+  local
+    val cacheRequires : PackageName.name list cache = ref NONE;
+
+    fun computeRequires () =
+        case getInformation () of
+          SOME info => SOME (PackageInformation.requires info)
+        | NONE => NONE;
+  in
+    val getRequires = getCached cacheRequires computeRequires;
+  end;
+
+  local
     val cacheTags : PackageTag.tag list cache = ref NONE;
 
     fun computeTags () =
-        case getPackage () of
-          SOME pkg => SOME (Package.tags pkg)
+        case getInformation () of
+          SOME info => SOME (PackageInformation.tags info)
         | NONE => NONE;
   in
     val getTags = getCached cacheTags computeTags;
@@ -1318,8 +1346,8 @@ local
     val cacheDirectory : {directory : string} cache = ref NONE;
 
     fun computeDirectory () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.directory info)
+        case getPackage () of
+          SOME pkg => SOME (Package.directory pkg)
         | NONE => NONE;
   in
     fun setDirectory dir = cacheDirectory := SOME (SOME dir);
@@ -1328,93 +1356,11 @@ local
   end;
 
   local
-    val cacheTheories : PackageTheory.theory list cache =
-        ref NONE;
-
-    fun upgradeTheories pkg =
-        let
-          val dir = directory ()
-
-          val pkg =
-              case Directory.upgrade dir pkg of
-                SOME p => p
-              | NONE => raise Error "no theory source file upgrade possible"
-        in
-          Package.theory pkg
-        end;
-
-    fun unwindTheories theories =
-        if !preserveTheoryInfo then SOME theories
-        else
-          case getDirectory () of
-            NONE => NONE
-          | SOME {directory = dir} =>
-            let
-              val importer = directoryImporter ()
-
-              val thys =
-                  PackageDag.mk
-                    {importer = importer,
-                     directory = dir,
-                     theories = theories}
-
-              val thys = PackageDag.unwind thys
-            in
-              SOME (PackageDag.theories thys)
-            end;
-
-    fun computeTheories () =
-        case getInfo () of
-          SOME info =>
-          let
-            val pkg = PackageInfo.package info
-          in
-            if not (!upgradeTheoryInfo) then SOME (Package.theory pkg)
-            else unwindTheories (upgradeTheories pkg)
-          end
-        | NONE =>
-          case getPackage () of
-            NONE => NONE
-          | SOME pkg =>
-            let
-              val theories =
-                  if not (!upgradeTheoryInfo) then Package.theory pkg
-                  else upgradeTheories pkg
-            in
-              unwindTheories theories
-            end;
-  in
-    fun setTheories thys = cacheTheories := SOME (SOME thys);
-
-    val getTheories = getCached cacheTheories computeTheories;
-  end;
-
-  local
-    val cacheFiles : {filename : string} list cache = ref NONE;
-
-    fun computeFiles () =
-        case getInfo () of
-          SOME info =>
-          let
-            val files = PackageInfo.allFiles info
-
-            val files = List.map (PackageInfo.joinDirectory info) files
-          in
-            SOME files
-          end
-        | NONE => NONE;
-  in
-    fun setFiles files = cacheFiles := SOME (SOME files);
-
-    val getFiles = getCached cacheFiles computeFiles;
-  end;
-
-  local
     val cacheTheoryFile : {filename : string} cache = ref NONE;
 
     fun computeTheoryFile () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.theoryFile info)
+        case getPackage () of
+          SOME pkg => SOME (Package.theoryFile pkg)
         | NONE => NONE;
   in
     fun setTheoryFile file = cacheTheoryFile := SOME (SOME file);
@@ -1423,26 +1369,99 @@ local
   end;
 
   local
-    val cacheTarball : {filename : string} cache = ref NONE;
+    val cacheFiles : {filename : string} list cache = ref NONE;
 
-    fun computeTarball () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.tarball info)
-        | NONE => NONE;
+    fun computeFiles () =
+        case getPackage () of
+          SOME pkg => SOME (Package.allFiles pkg)
+        | NONE =>
+          case getTarball () of
+            SOME tar => SOME (PackageTarball.allFiles tar)
+          | NONE =>
+            case getTheoryFile () of
+              NONE => NONE
+            | SOME thy =>
+              case getInformation () of
+                NONE => NONE
+              | SOME info =>
+                let
+                  val arts = PackageInformation.articleFiles info
+                  and extras = PackageInformation.extraFiles info
+                in
+                  SOME (thy :: arts @ List.map PackageExtra.filename extras)
+                end;
   in
-    fun setTarball file = cacheTarball := SOME (SOME file);
-
-    val getTarball = getCached cacheTarball computeTarball;
+    val getFiles = getCached cacheFiles computeFiles;
   end;
 
   local
-    val cacheSavable : bool cache = ref NONE;
+    val cacheTheories : PackageTheory.theory list cache =
+        ref NONE;
 
-    fun computeSavable () = NONE;
+    fun upgradeTheories info =
+        if not (!upgradeTheoryInfo) then info
+        else
+          let
+            val repo = repository ()
+
+            val info =
+                case Repository.upgradeTheory repo info of
+                  SOME i => i
+                | NONE =>
+                  let
+                    val err = "no upgrade possible: theory source is up to date"
+                  in
+                    raise Error err
+                  end
+          in
+            info
+          end;
+
+    fun optimizeTheories thys =
+        if !preserveTheoryInfo then SOME thys
+        else
+          case getDirectory () of
+            NONE => NONE
+          | SOME {directory = dir} =>
+            let
+              val fndr = finder ()
+
+              val graph =
+                  PackageTheoryGraph.mk
+                    {finder = fndr,
+                     directory = dir,
+                     theories = thys}
+
+              val graph = PackageTheoryGraph.unwind graph
+            in
+              SOME (PackageTheoryGraph.theories graph)
+            end;
+
+    fun computeTheories () =
+        case getPackage () of
+          SOME pkg =>
+          let
+            val info = Package.information pkg
+
+            val info = upgradeTheories info
+
+            val thys = PackageInformation.theories info
+          in
+            SOME thys
+          end
+        | NONE =>
+          case getInformation () of
+            SOME info =>
+            let
+              val info = upgradeTheories info
+
+              val thys = PackageInformation.theories info
+            in
+              optimizeTheories thys
+            end
+          | NONE => NONE;
   in
-    fun setSavable sav = cacheSavable := SOME (SOME sav);
-
-    val getSavable = getCached cacheSavable computeSavable;
+    val getTheories = getCached cacheTheories computeTheories;
   end;
 
   local
@@ -1455,12 +1474,11 @@ local
         | SOME {directory = dir} =>
           case getTheories () of
             NONE => NONE
-          | SOME theories =>
-            case getSavable () of
-              NONE => NONE
-            | SOME sav =>
+          | SOME thys =>
               let
-                val importer = directoryImporter ()
+                val sav = getSavable ()
+
+                val fndr = finder ()
 
                 val graph = TheoryGraph.empty {savable = sav}
 
@@ -1469,11 +1487,11 @@ local
                 val int = Interpretation.natural
 
                 val (graph,env) =
-                    TheoryGraph.importTheories importer graph
+                    TheoryGraph.importTheories fndr graph
                       {directory = dir,
                        imports = imps,
                        interpretation = int,
-                       theories = theories}
+                       theories = thys}
 
                 val thy = TheoryGraph.mainEnvironment env
               in
@@ -1511,8 +1529,8 @@ local
     val cacheTheorems : PackageTheorems.theorems cache = ref NONE;
 
     fun computeTheorems () =
-        case getInfo () of
-          SOME info => SOME (PackageInfo.theorems info)
+        case getPackage () of
+          SOME pkg => SOME (Package.theorems pkg)
         | NONE =>
           case getNameVersion () of
             NONE => NONE
@@ -1549,9 +1567,9 @@ local
           NONE => NONE
         | SOME reqs =>
           let
-            val dir = directory ()
+            val repo = repository ()
           in
-            Directory.requiresTheorems dir reqs
+            Repository.requiresTheorems repo reqs
           end;
   in
     val getRequiresTheorems =
@@ -1642,23 +1660,23 @@ local
               end
             | DescriptionItem =>
               let
-                val pkg =
-                    case getPackage () of
-                      SOME p => p
+                val info =
+                    case getInformation () of
+                      SOME i => i
                     | NONE => raise Error "no package information available"
 
-                val {description} = Package.description pkg
+                val {description} = PackageInformation.description info
               in
                 description
               end
             | EmptyItem =>
               let
-                val pkg =
-                    case getPackage () of
-                      SOME p => p
+                val info =
+                    case getInformation () of
+                      SOME i => i
                     | NONE => raise Error "no package information available"
 
-                val empty = Package.emptyTheory pkg
+                val empty = PackageInformation.emptyTheories info
               in
                 emptyToString empty
               end
@@ -1726,7 +1744,9 @@ local
         end
       | DocumentInfo =>
         let
-          val pkg = getPackage ()
+          val info = getInformation ()
+
+          val chk = getChecksum ()
 
           val sum =
               case getTheory () of
@@ -1749,20 +1769,35 @@ local
 
           val files =
               let
-                fun unwrap file =
-                    case file of
-                      SOME {filename} => SOME filename
-                    | NONE => NONE
+                val theory =
+                    case getDirectory () of
+                      NONE => NONE
+                    | SOME {directory = dir} =>
+                      case getTheoryFile () of
+                        NONE => NONE
+                      | SOME {filename = file} =>
+                        SOME (OS.Path.joinDirFile {dir = dir, file = file})
+
+                val tarball =
+                    case getTarball () of
+                      NONE => NONE
+                    | SOME tar =>
+                      let
+                        val {filename} = PackageTarball.filename tar
+                      in
+                        SOME filename
+                      end
               in
-                {theory = unwrap (getTheoryFile ()),
-                 tarball = unwrap (getTarball ())}
+                {theory = theory,
+                 tarball = theory}
               end
 
           val tool = versionHtml
 
           val doc =
               PackageDocument.Document'
-                {package = pkg,
+                {information = info,
+                 checksum = chk,
                  summary = sum,
                  files = files,
                  tool = tool}
@@ -1798,14 +1833,14 @@ local
         end
       | IncludesInfo =>
         let
-          fun mk nv = PackageNameVersion.toString nv ^ "\n"
+          fun mk (nv,_) = PackageNameVersion.toString nv ^ "\n"
 
-          val pkg =
-              case getPackage () of
-                SOME p => p
+          val info =
+              case getInformation () of
+                SOME i => i
               | NONE => raise Error "no includes information available"
 
-          val incs = Package.includes pkg
+          val incs = PackageInformation.includes info
 
           val strm = Stream.map mk (Stream.fromList incs)
         in
@@ -1832,7 +1867,7 @@ local
 
                   val nv = PackageTheorems.package th
                 in
-                  case Directory.previousNameVersion (directory ()) nv of
+                  case previousVersion nv of
                     NONE =>
                     let
                       val n = PackageNameVersion.name nv
@@ -1844,9 +1879,11 @@ local
                     end
                   | SOME nv' =>
                     let
-                      val info = Directory.get (directory ()) nv'
+                      val repo = repository ()
 
-                      val th = PackageInfo.theorems info
+                      val pkg = Repository.get repo nv'
+
+                      val th = Package.theorems pkg
                     in
                       case total (PackageTheorems.addVersion vs) th of
                         NONE =>
@@ -1923,8 +1960,8 @@ local
                 | SOME ths => PackageTheorems.context sum ths
 
           val show =
-              case getPackage () of
-                SOME pkg => Package.show pkg
+              case getInformation () of
+                SOME info => PackageInformation.show info
               | NONE => Show.default
 
           val {filename} = file
@@ -1959,35 +1996,18 @@ local
         end
       | TheoryInfo =>
         let
-          val tags =
-              case getTags () of
-                SOME t => t
-              | NONE => raise Error "no package information available"
-
-          val theories =
+          val thys =
               case getTheories () of
                 SOME t => t
-              | NONE => raise Error "no theory source file information available"
+              | NONE => raise Error "no theory source information available"
 
-          val package =
-              Package.mk
-                (Package.Package'
-                   {tags = tags,
-                    theories = theories})
-
-          val {filename} = file
+          val strm = Print.toStream PackageTheory.ppList thys
         in
-          Package.toTextFile
-            {package = package,
-             filename = filename}
+          Stream.toTextFile file strm
         end;
 
   fun processInfoOutputList infs =
       let
-        val sav = List.exists (savableInfo o fst) infs
-
-        val () = setSavable sav
-
         val () = List.app processInfoOutput infs
       in
         ()
@@ -1995,13 +2015,9 @@ local
 
   fun infoArticle {filename} infs =
       let
-        val dir = OS.Path.dir filename
-
-        val sav = List.exists (savableInfo o fst) infs
-
-        val imp = Article.empty
-
-        val int = Interpretation.natural
+        val sav = getSavable ()
+        and imp = Article.empty
+        and int = Interpretation.natural
 
         val art =
             Article.fromTextFile
@@ -2010,8 +2026,6 @@ local
                interpretation = int,
                filename = filename}
 
-        val () = setDirectory {directory = dir}
-
         val () = setArticle art
       in
         processInfoOutputList infs
@@ -2019,19 +2033,20 @@ local
 
   fun infoPackage namever infs =
       let
-        val finder = directoryFinder ()
+        val fndr = finder ()
       in
-        case PackageFinder.find finder namever of
+        case PackageFinder.find fndr namever NONE of
           NONE =>
           let
             val err =
-                "can't find package " ^ PackageNameVersion.toString namever
+                "package " ^ PackageNameVersion.toString namever ^
+                " is not installed"
           in
             raise Error err
           end
-        | SOME info =>
+        | SOME pkg =>
           let
-            val () = setInfo info
+            val () = setPackage pkg
           in
             processInfoOutputList infs
           end
@@ -2039,71 +2054,56 @@ local
 
   fun infoPackageName name infs =
       let
-        val namever = getLatestVersionDirectory name
+        val namever = getLatestVersion name
       in
         infoPackage namever infs
       end;
 
   fun infoStagedPackage namever infs =
       let
-        val finder = directoryStagedFinder ()
+        val fndr = stagedFinder ()
       in
-        case PackageFinder.find finder namever of
+        case PackageFinder.find fndr namever NONE of
           NONE =>
           let
             val err =
-                "can't find staged package " ^
-                PackageNameVersion.toString namever
+                "package " ^ PackageNameVersion.toString namever ^
+                " is not staged for installation"
           in
             raise Error err
           end
-        | SOME info =>
+        | SOME pkg =>
           let
-            val () = setInfo info
+            val () = setPackage pkg
           in
             processInfoOutputList infs
           end
       end;
 
-  fun infoTarball {filename} infs =
+  fun infoTarball {filename = tarFile} infs =
       let
         val sys = system ()
 
-        val PackageTarball.Contents {nameVersion,theoryFile,otherFiles} =
-            PackageTarball.contents sys {filename = filename}
+        val tar =
+            PackageTarball.mk
+              {system = sys,
+               filename = tarFile,
+               checksum = NONE}
 
-        val () = setTarball {filename = filename}
-
-        val () = setNameVersion nameVersion
-
-        val () = setTheoryFile theoryFile
-
-        val () = setFiles (theoryFile :: otherFiles)
+        val () = setTarball tar
       in
         processInfoOutputList infs
       end;
 
-  fun infoTheory {filename} infs =
+  fun infoTheory {filename = thyFile} infs =
       let
-        val dir = OS.Path.dir filename
+        val info = PackageInformation.fromTextFile {filename = thyFile}
+        and dir = OS.Path.dir thyFile
+        and file = OS.Path.file thyFile
 
-        fun joinDir {filename} =
-            {filename = OS.Path.concat (dir,filename)}
-
-        val pkg = Package.fromTextFile {filename = filename}
-
-        val files =
-            {filename = filename} ::
-            List.map joinDir (Package.articles pkg) @
-            List.map (joinDir o PackageExtra.filename) (Package.extraFiles pkg)
-
-        val () = setDirectory {directory = dir}
-
-        val () = setTheoryFile {filename = filename}
-
-        val () = setPackage pkg
-
-        val () = setFiles files
+        val () = setInformation info
+        and () = setDirectory {directory = dir}
+        and () = setTheoryFile {filename = file}
       in
         processInfoOutputList infs
       end;
@@ -2111,6 +2111,10 @@ in
   fun info inp =
       let
         val infs = readInfoOutputList inp
+
+        val sav = List.exists (savableInfo o fst) infs
+
+        val () = setSavable sav
       in
         case inp of
           ArticleInput file => infoArticle file infs
@@ -2132,9 +2136,9 @@ fun init () =
     let
       val {directory = d, autoInit = _} = rootDirectory ()
 
-      val () = initDirectory {rootDirectory = d}
+      val () = initRepository {rootDirectory = d}
 
-      val () = chat ("initialized package directory " ^ d)
+      val () = chat ("initialized new package repo " ^ d)
     in
       ()
     end;

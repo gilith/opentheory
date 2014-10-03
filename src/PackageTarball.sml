@@ -416,6 +416,22 @@ fun nameVersion tar =
       namever
     end;
 
+fun theoryFile tar =
+    let
+      val Contents {theoryFile = file, ...} = contents tar
+    in
+      file
+    end;
+
+fun otherFiles tar =
+    let
+      val Contents {otherFiles = files, ...} = contents tar
+    in
+      files
+    end;
+
+fun allFiles tar = theoryFile tar :: otherFiles tar;
+
 fun checksum tar =
     let
       val Tarball {system = sys, filename, checksum = chkr, ...} = tar

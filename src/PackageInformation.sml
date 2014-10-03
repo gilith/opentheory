@@ -168,30 +168,19 @@ fun updateIncludes f info =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun ppThy thy =
-      Print.program
-        [Print.newline,
-         Print.newline,
-         PackageTheory.pp thy];
-in
-  fun pp' info =
+fun pp' info =
     let
       val Information' {tags,theories} = info
     in
-      if List.null tags then
-        case theories of
-          [] => Print.skip
-        | thy :: theories =>
-          Print.consistentBlock 0
-            (PackageTheory.pp thy ::
-             List.map ppThy theories)
+      if List.null tags then PackageTheory.ppList theories
+      else if List.null theories then PackageTag.ppList tags
       else
         Print.consistentBlock 0
-          (PackageTag.ppList tags ::
-           List.map ppThy theories)
+          [PackageTag.ppList tags,
+           Print.newline,
+           Print.newline,
+           PackageTheory.ppList theories]
     end;
-end;
 
 val pp = Print.ppMap dest pp';
 
