@@ -74,7 +74,7 @@ val describeVersionFormat =
     "VERSION is any package version (e.g., 1.0)";
 
 val describeQueryFormat =
-    "QUERY represents a subset S of the installed theory packages P, as follows:\n" ^
+    "QUERY represents a subset S of the installed packages P, as follows:\n" ^
     "  1. A FUNCTION expression in the grammar below is parsed from the command\n" ^
     "     line, which represents a function f of type S -> S\n" ^
     "  2. Another function g of type S -> S is computed, which may be represented\n" ^
@@ -118,9 +118,9 @@ val describeQueryFormat =
     "  || Closed       // are all the required theories installed?\n" ^
     "  || Acyclic      // is the required theory graph free of cycles?\n" ^
     "  || UpToDate     // are all assumptions satisfied and inputs grounded?\n" ^
-    "  || OnRepo       // is there a theory package with the same name on the repo?\n" ^
+    "  || OnRepo       // is there a package with the same name on the repo?\n" ^
     "  || IdenticalOnRepo\n" ^
-    "                  // is this exact same theory package on the repo?\n" ^
+    "                  // is this exact same package on the repo?\n" ^
     "  || ConsistentWithRepo\n" ^
     "                  // are all the included packages consistent with the repo?\n" ^
     "  || EarlierThanRepo\n" ^
@@ -182,11 +182,11 @@ fun fromStringInput inp =
 
 val describeInputFormat =
     "INPUT is one of the following forms:\n" ^
-    "  1. A theory package: NAME-VERSION or NAME (for the latest version)\n" ^
+    "  1. A package: NAME-VERSION or NAME (for the latest version)\n" ^
     "  2. A theory source file: FILE.thy or theory:FILE\n" ^
     "  3. A proof article file: FILE.art or article:FILE\n" ^
-    "  4. A theory package tarball: FILE.tgz or tarball:FILE\n" ^
-    "  5. A theory package staged for installation: staged:NAME-VERSION";
+    "  4. A package tarball: FILE.tgz or tarball:FILE\n" ^
+    "  5. A package staged for installation: staged:NAME-VERSION";
 
 (* ------------------------------------------------------------------------- *)
 (* Output format for basic package information.                              *)
@@ -513,10 +513,10 @@ end;
 val cleanupFooter =
     describeNameFormat ^ ".\n" ^
     describeVersionFormat ^ ".\n" ^
-    "Given no arguments this command will clean up all staged theory packages.\n";
+    "Given no arguments this command will clean up all staged packages.\n";
 
 (* ------------------------------------------------------------------------- *)
-(* Options for exporting installed theory packages.                          *)
+(* Options for exporting installed packages.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -673,7 +673,7 @@ in
         description = "output the package theory in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
        {switches = ["--requires"], arguments = [],
-        description = "list satisfying required theory packages",
+        description = "list satisfying required packages",
         processor = beginOpt endOpt (fn _ => addInfoOutput RequiresInfo)},
        {switches = ["--inference"], arguments = [],
         description = "display the number of primitive inferences",
@@ -694,7 +694,7 @@ in
         description = "output the package assumptions in article format",
         processor = beginOpt endOpt (fn _ => addInfoOutput AssumptionsInfo)},
        {switches = ["--includes"], arguments = [],
-        description = "list the included theory packages",
+        description = "list the included packages",
         processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
         description = "write previous package information to FILE",
@@ -740,7 +740,7 @@ end;
 val initFooter = "";
 
 (* ------------------------------------------------------------------------- *)
-(* Options for uninstalling theory packages.                                 *)
+(* Options for uninstalling packages.                                        *)
 (* ------------------------------------------------------------------------- *)
 
 val autoUninstall = ref false;
@@ -759,7 +759,7 @@ val uninstallFooter =
     describeVersionFormat ^ ".\n";
 
 (* ------------------------------------------------------------------------- *)
-(* Options for installing theory packages.                                   *)
+(* Options for installing packages.                                          *)
 (* ------------------------------------------------------------------------- *)
 
 val reinstall = ref false;
@@ -888,7 +888,7 @@ end;
 val updateFooter = "";
 
 (* ------------------------------------------------------------------------- *)
-(* Options for uploading packages.                                           *)
+(* Options for uploading installed packages to a repo.                       *)
 (* ------------------------------------------------------------------------- *)
 
 datatype setUpload =
@@ -972,16 +972,16 @@ fun commandArgs cmd =
 
 fun commandDescription cmd =
     case cmd of
-      Cleanup => "clean up theory packages staged for installation"
-    | Export => "export an installed theory package"
+      Cleanup => "clean up packages staged for installation"
+    | Export => "export an installed package"
     | Help => "display help on all available commands"
-    | Info => "extract information from theory packages and files"
+    | Info => "extract information from packages and files"
     | Init => "initialize a new package repo"
     | Install => "install a package from a theory file or repo"
-    | List => "list installed theory packages"
-    | Uninstall => "uninstall an installed theory package"
+    | List => "list installed packages"
+    | Uninstall => "uninstall an installed package"
     | Update => "update repo package lists"
-    | Upload => "upload installed theory packages to a repo";
+    | Upload => "upload installed packages to a repo";
 
 fun commandFooter cmd =
     case cmd of
@@ -1183,7 +1183,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Exporting installed theory packages.                                      *)
+(* Exporting installed packages.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -2144,7 +2144,7 @@ fun init () =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Uninstalling theory packages.                                             *)
+(* Uninstalling packages.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -2164,39 +2164,44 @@ local
       | TheoryInput _ => raise Error "cannot uninstall a theory source file";
 
   fun complain errs =
-      if List.null errs then ()
+      if RepositoryError.isClean errs then ()
       else
         let
-          val s = DirectoryError.toStringList errs
+          val s = RepositoryError.report errs
         in
-          if DirectoryError.existsFatal errs then raise Error s
+          if RepositoryError.fatal errs then raise Error s
           else chat ("package uninstall warnings:\n" ^ s)
         end;
 
-  fun uninstallPackage auto dir namever =
+  fun uninstallPackage auto repo namever =
       let
-        val errs = Directory.checkUninstall dir namever
+        val errs = Repository.checkUninstall repo namever
 
         val () = complain errs
 
-        val () = Directory.uninstall dir namever
+        val () = Repository.uninstall repo namever
 
         val () =
-            chat ((if auto then "auto-" else "") ^
-                  "uninstalled package " ^ PackageNameVersion.toString namever)
+            let
+              val msg =
+                  (if auto then "auto-" else "") ^
+                  "uninstalled package " ^ PackageNameVersion.toString namever
+            in
+              chat msg
+            end
       in
         ()
       end;
 in
-  fun uninstallAuto dir namever =
+  fun uninstallAuto repo namever =
       let
-        val errs = Directory.checkUninstall dir namever
+        val errs = Repository.checkUninstall repo namever
 
         val errs =
             if not (!autoUninstall) then errs
             else
               let
-                val (_,errs) = DirectoryError.removeInstalledUser errs
+                val (_,errs) = RepositoryError.removeInstalledUser errs
               in
                 errs
               end
@@ -2207,34 +2212,34 @@ in
             if not (!autoUninstall) then ()
             else
               let
-                val desc =
-                    Directory.includedByRTC dir
-                      (Directory.includedBy dir namever)
+                val pkgs =
+                    Repository.includedByRTC repo
+                      (Repository.includedBy repo namever)
 
-                val desc = List.rev (Directory.includeOrder dir desc)
+                val pkgs = List.rev (Repository.includeOrder dir pkgs)
               in
-                List.app (uninstallPackage true dir) desc
+                List.app (uninstallPackage true dir) pkgs
               end
 
-        val () = uninstallPackage false dir namever
+        val () = uninstallPackage false repo namever
       in
         ()
       end;
 
   fun uninstall inp =
       let
-        val dir = directory ()
+        val repo = repository ()
 
         val namever = uninstallInput inp
       in
-        uninstallAuto dir namever
+        uninstallAuto repo namever
       end
       handle Error err =>
-        raise Error (err ^ "\ntheory package uninstall failed");
+        raise Error (err ^ "\npackage uninstall failed");
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Installing theory packages.                                               *)
+(* Installing packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -2908,7 +2913,7 @@ fun update () =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Upload a theory package to a repo.                                        *)
+(* Upload installed packages to a repo.                                      *)
 (* ------------------------------------------------------------------------- *)
 
 local
