@@ -464,6 +464,9 @@ fun finder () = Repository.finder (repository ());
 
 fun stagedFinder () = Repository.stagedFinder (repository ());
 
+fun possiblyStagedFinder () =
+    PackageFinder.orelsef (finder ()) (stagedFinder ());
+
 (* ------------------------------------------------------------------------- *)
 (* Getting the latest version of packages.                                   *)
 (* ------------------------------------------------------------------------- *)
@@ -490,7 +493,7 @@ fun previousVersion namever =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Getting the latest version of packages on remote repositories.            *)
+(* Finding packages on remote repositories.                                  *)
 (* ------------------------------------------------------------------------- *)
 
 fun latestVersionRemotes name chko =
@@ -498,6 +501,37 @@ fun latestVersionRemotes name chko =
       val rems = remotes ()
     in
       RepositoryRemote.latestNameVersionList rems name chko
+    end;
+
+fun firstRemote namever chko =
+    let
+      val rems = remotes ()
+    in
+      case chko of
+        NONE =>
+        (case RepositoryRemote.first rems namever of
+           SOME rc => rc
+         | NONE =>
+           let
+             val err =
+                 "can't find package " ^
+                 PackageNameVersion.toString namever ^
+                 " in any repo"
+           in
+             raise Error err
+           end)
+      | SOME chk =>
+        (case RepositoryRemote.find rems (namever,chk) of
+           SOME rem => (rem,chk)
+         | NONE =>
+           let
+             val err =
+                 "can't find package " ^
+                 PackageNameVersion.toString namever ^
+                 " with specified checksum in any repo"
+           in
+             raise Error err
+           end)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2243,154 +2277,65 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun installAuto master namever =
-      case RepositoryRemote.peek master namever of
-        NONE =>
-        let
-          val err =
-              "package " ^ PackageNameVersion.toString namever ^
-              " not found on " ^ RepositoryRemote.toString master
-        in
-          raise Error err
-        end
-      | SOME chk =>
-        let
-          val () = installAutoFind master namever chk
-        in
-          ()
-        end
-
-  and installAutoFind master namever chk =
+  fun installAuto fndr namever chko =
       let
-        val dir = repository ()
-      in
-        case Repository.checksum dir namever of
-          SOME chk' =>
-          if Checksum.equal chk' chk then ()
-          else
-            let
-              val err =
-                  "a package called " ^ PackageNameVersion.toString namever ^
-                  " with a different checksum is already installed"
-            in
-              raise Error err
-            end
-        | NONE =>
-          let
-            val remotes = remotes ()
-          in
-            case RepositoryRemote.find remotes (namever,chk) of
-              NONE =>
-              let
-                val err =
-                    "package " ^ PackageNameVersion.toString namever ^
-                    " with specific checksum not found on any repo"
-              in
-                raise Error err
-              end
-            | SOME remote => installAutoRemote master remote namever chk
-          end
-      end
+        val repo = repository ()
 
-  and installAutoRemote master remote namever chk =
-      let
-        val dir = repository ()
+        val (rem,chk) = firstRemote namever chko
 
-        val errs = Repository.checkStagePackage dir remote namever chk
+        val errs = Repository.checkStagePackage repo rem namever chk
 
         val () =
-            if List.null errs then ()
+            if RepositoryError.isClean errs then ()
             else
               let
-                val s = RepositoryError.toStringList errs
+                val s = RepositoryError.report errs
               in
-                if RepositoryError.existsFatal errs then raise Error s
-                else chat ("package auto-install warnings:\n" ^ s)
+                if RepositoryError.fatal errs then raise Error s
+                else chat ("included package " ^
+                           PackageNameVersion.toString namever ^
+                           " install warnings:\n" ^ s)
               end
-
-        val finder = installAutoFinder master
 
         val tool = {tool = versionHtml}
 
-        val () = Repository.stagePackage dir finder remote namever chk tool
+        val () = Repository.stagePackage repo fndr rem namever chk tool
 
-        val () = Repository.installStaged dir namever chk
+        val () = Repository.installStaged repo namever chk
 
         val () = chat ("auto-installed package " ^
                        PackageNameVersion.toString namever)
       in
         ()
-      end
-
-  and installAutoFinder master =
-      let
-        val dir = repository ()
-
-        fun finder namever =
-            let
-              val () = installAuto master namever
-            in
-              Repository.peek dir namever
-            end
-      in
-        PackageFinder.mk finder
       end;
-in
-  fun installAuto namever chk =
+
+  fun installAutoFinder fndr =
       let
-        val repo = repository ()
-      in
-        if Repository.member namever dir then ()
-        else
-          let
-            val remotes = remotes ()
-          in
-            case RepositoryRemote.first remotes namever of
-              SOME (remote,chk) => installAutoRemote remote remote namever chk
+        fun findOrInstall namever chko =
+            case PackageFinder.find fndr namever chko of
+              SOME pkg => SOME pkg
             | NONE =>
               let
-                val err =
-                    "can't find package " ^
-                    PackageNameVersion.toString namever ^
-                    " in any repo"
+                val inst = installAutoFinder fndr
+
+                val () = installAuto inst namever chko
+
+                val repo = repository ()
               in
-                raise Error err
+                Repository.peek repo namever
               end
-          end
-      end;
-
-  fun installAutoFinderFree () =
-      let
-        val dir = repository ()
-
-        fun finder namever =
-            let
-              val () = installAutoFree namever
-            in
-              Repository.peek dir namever
-            end
       in
-        PackageFinder.mk finder
+        PackageFinder.mk findOrInstall
       end;
-
-  fun installFinder master =
-      if not (!autoInstall) then repositoryFinder ()
-      else installAutoFinder master;
-
-  fun installFinderFree () =
-      if not (!autoInstall) then repositoryFinder ()
-      else installAutoFinderFree ();
-
-  fun installStagedFinderFree () =
-      if not (!stageInstall) then installFinderFree ()
-      else
-        let
-          val stagedFinder = repositoryStagedFinder ()
-
-          val finder = installFinderFree ()
-        in
-          PackageFinder.orelsef stagedFinder finder
-        end;
+in
+  fun installFinder () =
+      let
+        val fndr =
+            if not (!stageInstall) then finder ()
+            else possiblyStagedFinder ()
+      in
+        if not (!autoInstall) then fndr else installAutoFinder fndr
+      end;
 end;
 
 local
@@ -2404,42 +2349,40 @@ local
             if not (!stageInstall) then ()
             else raise Error "can't stage a staged package install"
 
-        val dir = repository ()
+        val repo = repository ()
 
-        val info =
-            case PackageFinder.find (repositoryStagedFinder ()) namever of
-              SOME info => info
-            | NONE =>
-              let
-                val err =
-                    "can't find staged package " ^
-                    PackageNameVersion.toString namever
-              in
-                raise Error err
-              end
+        val pkg =
+            let
+              val fndr = stagedFinder ()
+              and chko = !checksumInstall
+            in
+              case PackageFinder.find fndr namever chko of
+                SOME p => p
+              | NONE =>
+                let
+                  val err =
+                      "can't find staged package " ^
+                      PackageNameVersion.toString namever
+                in
+                  raise Error err
+                end
+            end
 
-        val chk = PackageInfo.checksumTarball info
-
-        val () =
-            case !checksumInstall of
-              NONE => ()
-            | SOME chk' =>
-              if Checksum.equal chk' chk then ()
-              else raise Error "package checksum does not match"
-
-        val errs = Repository.checkInstallStaged dir namever chk
+        val errs = Repository.checkInstallStaged repo namever
 
         val () =
-            if List.null errs then ()
+            if RepositoryError.isClean errs then ()
             else
               let
-                val s = RepositoryError.toStringList errs
+                val s = RepositoryError.report errs
               in
-                if RepositoryError.existsFatal errs then raise Error s
-                else chat ("package install warnings:\n" ^ s)
+                if RepositoryError.fatal errs then raise Error s
+                else chat ("staged package install warnings:\n" ^ s)
               end
 
-        val () = Repository.installStaged dir namever chk
+        val chk = Package.checksum pkg
+
+        val () = Repository.installStaged repo namever chk
 
         val () =
             chat ("installed staged package " ^
@@ -2460,38 +2403,11 @@ local
             if not (!stageInstall) then ()
             else raise Error "can't stage a package install"
 
-        val dir = repository ()
+        val repo = repository ()
 
-        val remotes = remotes ()
+        val (rem,chk) = firstRemote namever (!checksumInstall)
 
-        val (remote,chk) =
-            case !checksumInstall of
-              SOME chk =>
-              (case RepositoryRemote.find remotes (namever,chk) of
-                 SOME remote => (remote,chk)
-               | NONE =>
-                 let
-                   val err =
-                       "can't find package " ^
-                       PackageNameVersion.toString namever ^
-                       " with specified checksum in any repo"
-                 in
-                   raise Error err
-                 end)
-            | NONE =>
-              (case RepositoryRemote.first remotes namever of
-                 NONE =>
-                 let
-                   val err =
-                       "can't find package " ^
-                       PackageNameVersion.toString namever ^
-                       " in any repo package list"
-                 in
-                   raise Error err
-                 end
-               | SOME remote_chk => remote_chk)
-
-        val errs = Repository.checkStagePackage dir remote namever chk
+        val errs = Repository.checkStagePackage repo rem namever chk
 
         val errs =
             if not (!reinstall) then errs
@@ -2500,7 +2416,8 @@ local
                 val (staged,errs) = RepositoryError.removeAlreadyStaged errs
 
                 val () =
-                    if staged then Repository.cleanupStaged dir namever else ()
+                    if not staged then ()
+                    else Repository.cleanupStaged repo namever
               in
                 errs
               end
@@ -2510,24 +2427,26 @@ local
             else RepositoryError.removeAlreadyInstalled errs
 
         val () =
-            if List.null errs then ()
+            if RepositoryError.isClean errs then ()
             else
               let
-                val s = RepositoryError.toStringList errs
+                val s = RepositoryError.report errs
               in
-                if RepositoryError.existsFatal errs then raise Error s
+                if RepositoryError.fatal errs then raise Error s
                 else chat ("package install warnings:\n" ^ s)
               end
 
-        val () = if replace then uninstallAuto dir namever else ()
+        val () =
+            if not replace then ()
+            else uninstallAuto repo namever
 
-        val finder = installFinder remote
+        val fndr = installFinder ()
 
         val tool = {tool = versionHtml}
 
-        val () = Repository.stagePackage dir finder remote namever chk tool
+        val () = Repository.stagePackage repo fndr rem namever chk tool
 
-        val () = Repository.installStaged dir namever chk
+        val () = Repository.installStaged repo namever chk
 
         val () =
             chat ((if replace then "re" else "") ^ "installed package " ^
