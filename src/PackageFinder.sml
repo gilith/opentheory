@@ -36,7 +36,9 @@ fun get f nv c =
       SOME p => p
     | NONE =>
       let
-        val err = "couldn't find package " ^ PackageNameVersion.toString nv
+        val err =
+            "couldn't find package " ^ PackageNameVersion.toString nv ^
+            (if Option.isSome c then " with specified checksum" else "")
       in
         raise Error err
       end;

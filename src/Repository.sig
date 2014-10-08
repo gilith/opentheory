@@ -294,8 +294,8 @@ val checkStageTheory :
     RepositoryError.errors
 
 val stageTheory :
-    repository ->
-    PackageNameVersion.nameVersion option -> PackageInformation.information ->
+    repository -> PackageFinder.finder ->
+    PackageNameVersion.nameVersion -> PackageInformation.information ->
     {directory : string} -> {tool : Html.inline list} ->
     Checksum.checksum
 

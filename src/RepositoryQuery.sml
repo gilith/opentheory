@@ -16,23 +16,23 @@ val acyclicKeywordString = "Acyclic"
 and allKeywordString = "All"
 and andSymbolString = "/\\"
 and closedKeywordString = "Closed"
-and consistentWithRemoteKeywordString = "ConsistentWithRemote"
+and consistentWithRepoKeywordString = "ConsistentWithRepo"
 and deprecatedKeywordString = "Deprecated"
 and differenceSymbolString = "-"
-and earlierThanRemoteKeywordString = "EarlierThanRemote"
+and earlierThanRepoKeywordString = "EarlierThanRepo"
 and emptyKeywordString = "Empty"
-and identicalOnRemoteKeywordString = "IdenticalOnRemote"
+and identicalOnRepoKeywordString = "IdenticalOnRepo"
 and identityKeywordString = "Identity"
 and includedByKeywordString = "IncludedBy"
 and includesKeywordString = "Includes"
 and intersectSymbolString = "&"
-and laterThanRemoteKeywordString = "LaterThanRemote"
+and laterThanRepoKeywordString = "LaterThanRepo"
 and latestKeywordString = "Latest"
 and mineKeywordString = "Mine"
 and noneKeywordString = "None"
 and notSymbolString = "~"
 and obsoleteKeywordString = "Obsolete"
-and onRemoteKeywordString = "OnRemote"
+and onRepoKeywordString = "OnRepo"
 and optionalSymbolString = "?"
 and orSymbolString = "\\/"
 and reflexiveTransitiveSymbolString = "*"
@@ -63,11 +63,11 @@ datatype predicate =
   | Closed
   | Acyclic
   | UpToDate
-  | OnRemote
-  | IdenticalOnRemote
-  | ConsistentWithRemote
-  | EarlierThanRemote
-  | LaterThanRemote
+  | OnRepo
+  | IdenticalOnRepo
+  | ConsistentWithRepo
+  | EarlierThanRepo
+  | LaterThanRepo
   | Not of predicate
   | And of predicate * predicate
   | Or of predicate * predicate;
@@ -107,11 +107,11 @@ fun ignoresRemote pred =
     | Closed => true
     | Acyclic => true
     | UpToDate => true
-    | OnRemote => false
-    | IdenticalOnRemote => false
-    | ConsistentWithRemote => false
-    | EarlierThanRemote => false
-    | LaterThanRemote => false
+    | OnRepo => false
+    | IdenticalOnRepo => false
+    | ConsistentWithRepo => false
+    | EarlierThanRepo => false
+    | LaterThanRepo => false
     | Not pred1 => ignoresRemote pred1
     | And (pred1,pred2) => ignoresRemote pred1 andalso ignoresRemote pred2
     | Or (pred1,pred2) => ignoresRemote pred1 andalso ignoresRemote pred2;
@@ -158,14 +158,14 @@ val obsoleteDef =
        ReflexiveTransitive (Union (Requires,Includes)));
 
 val upgradableDef =
-    (* EarlierThanRemote *)
-    Filter EarlierThanRemote;
+    (* EarlierThanRepo *)
+    Filter EarlierThanRepo;
 
 val uploadableDef =
-    (* Mine & (~OnRemote /\ LaterThanRemote /\ ConsistentWithRemote) *)
+    (* Mine & (~OnRepo /\ LaterThanRepo /\ ConsistentWithRepo) *)
     Intersect
       (Filter Mine,
-       Filter (And (Not OnRemote, And (LaterThanRemote,ConsistentWithRemote))));
+       Filter (And (Not OnRepo, And (LaterThanRepo,ConsistentWithRepo))));
 
 fun evaluateSet repo set =
     case set of
@@ -180,21 +180,21 @@ fun evaluateSet repo set =
     | None => PackageNameVersionSet.empty;
 
 local
-  fun evalPred repo remote pred namever =
+  fun evalPred repo rem pred namever =
       case pred of
         Empty => Repository.emptyTheories repo namever
       | Mine => Repository.selfAuthor repo namever
-      | OnRemote => RepositoryRemote.member namever remote
-      | IdenticalOnRemote => Repository.identicalOnRemote repo remote namever
-      | ConsistentWithRemote =>
-        Repository.consistentWithRemote repo remote namever
-      | EarlierThanRemote =>
-        RepositoryRemote.earlierThanLatestNameVersion remote namever
-      | LaterThanRemote =>
-        RepositoryRemote.laterThanLatestNameVersion remote namever
+      | OnRepo => RepositoryRemote.member namever rem
+      | IdenticalOnRepo => Repository.identicalOnRemote repo rem namever
+      | ConsistentWithRepo =>
+        Repository.consistentWithRemote repo rem namever
+      | EarlierThanRepo =>
+        RepositoryRemote.earlierThanLatestNameVersion rem namever
+      | LaterThanRepo =>
+        RepositoryRemote.laterThanLatestNameVersion rem namever
       | _ => raise Bug "RepositoryQuery.evalPred";
 
-  fun evalPredSet repo remote pred namevers =
+  fun evalPredSet repo rem pred namevers =
       if PackageNameVersionSet.null namevers then namevers
       else
         case pred of
@@ -203,51 +203,73 @@ local
         | UpToDate => Repository.upToDateDependencies repo namevers
         | Not pred1 =>
           let
-            val result1 = evalPredSet repo remote pred1 namevers
+            val result1 = evalPredSet repo rem pred1 namevers
           in
             PackageNameVersionSet.difference namevers result1
           end
         | And (pred1,pred2) =>
           let
-            val result1 = evalPredSet repo remote pred1 namevers
+            val result1 = evalPredSet repo rem pred1 namevers
 
-            val result2 = evalPredSet repo remote pred2 result1
+            val result2 = evalPredSet repo rem pred2 result1
           in
             result2
           end
         | Or (pred1,pred2) =>
           let
-            val result1 = evalPredSet repo remote pred1 namevers
+            val result1 = evalPredSet repo rem pred1 namevers
 
             val namevers = PackageNameVersionSet.difference namevers result1
 
-            val result2 = evalPredSet repo remote pred2 namevers
+            val result2 = evalPredSet repo rem pred2 namevers
           in
             PackageNameVersionSet.union result1 result2
           end
         | _ =>
-          PackageNameVersionSet.filter (evalPred repo remote pred) namevers;
+          PackageNameVersionSet.filter (evalPred repo rem pred) namevers;
 
-  fun evalPredSetRemote repo pred namevers (remote,result) =
+(*OpenTheoryDebug
+  val evalPredSet = fn repo => fn rem => fn pred => fn namevers =>
+      let
+        val result = evalPredSet repo rem pred namevers
+
+        val () =
+            if PackageNameVersionSet.subset result namevers then ()
+            else raise Bug "RepositoryQuery.evalPredSet: not a subset"
+      in
+        result
+      end;
+*)
+
+  fun evalPredSetRemote repo pred namevers (rem,result) =
       let
         val namevers' = PackageNameVersionSet.difference namevers result
 
-        val result' = evalPredSet repo remote pred namevers'
+        val result' = evalPredSet repo rem pred namevers'
       in
         PackageNameVersionSet.union result result'
       end;
 in
-  fun evaluatePredicateSet repo remotes pred namevers =
-      case remotes of
+  fun evaluatePredicateSet repo rems pred namevers =
+      case rems of
         [] => PackageNameVersionSet.empty
-      | remote :: remotes =>
+      | rem :: rems =>
         let
-          val result = evalPredSet repo remote pred namevers
+          val result = evalPredSet repo rem pred namevers
         in
           if ignoresRemote pred then result
-          else List.foldl (evalPredSetRemote repo pred namevers) result remotes
+          else List.foldl (evalPredSetRemote repo pred namevers) result rems
         end;
 end;
+
+fun evaluatePredicate repo rems pred namever =
+    let
+      val namevers = PackageNameVersionSet.singleton namever
+
+      val result = evaluatePredicateSet repo rems pred namevers
+    in
+      not (PackageNameVersionSet.null result)
+    end;
 
 local
   fun versions repo nv =
@@ -263,11 +285,11 @@ local
         if converged then set else rtc f set'
       end;
 in
-  fun evaluate repo remotes func =
+  fun evaluateFunction repo rems func =
       case func of
         Identity => I
       | Constant set => K (evaluateSet repo set)
-      | Filter pred => evaluatePredicateSet repo remotes pred
+      | Filter pred => evaluatePredicateSet repo rems pred
       | Requires => PackageNameVersionSet.lift (Repository.requires repo)
       | RequiredBy => PackageNameVersionSet.lift (Repository.requiredBy repo)
       | Includes => PackageNameVersionSet.lift (Repository.includes repo)
@@ -276,57 +298,66 @@ in
       | SubtheoryOf => PackageNameVersionSet.lift (Repository.subtheoryOf repo)
       | Versions => PackageNameVersionSet.lift (versions repo)
       | Latest => PackageNameVersionSet.latestVersions
-      | Deprecated => evaluate repo remotes deprecatedDef
-      | Obsolete => evaluate repo remotes obsoleteDef
-      | Upgradable => evaluate repo remotes upgradableDef
-      | Uploadable => evaluate repo remotes uploadableDef
+      | Deprecated => evaluateFunction repo rems deprecatedDef
+      | Obsolete => evaluateFunction repo rems obsoleteDef
+      | Upgradable => evaluateFunction repo rems upgradableDef
+      | Uploadable => evaluateFunction repo rems uploadableDef
       | Union (func1,func2) =>
         let
-          val f1 = evaluate repo remotes func1
-          and f2 = evaluate repo remotes func2
+          val f1 = evaluateFunction repo rems func1
+          and f2 = evaluateFunction repo rems func2
         in
           fn s => PackageNameVersionSet.union (f1 s) (f2 s)
         end
       | Intersect (func1,func2) =>
         let
-          val f1 = evaluate repo remotes func1
-          and f2 = evaluate repo remotes func2
+          val f1 = evaluateFunction repo rems func1
+          and f2 = evaluateFunction repo rems func2
         in
           fn s => PackageNameVersionSet.intersect (f1 s) (f2 s)
         end
       | Difference (func1,func2) =>
         let
-          val f1 = evaluate repo remotes func1
-          and f2 = evaluate repo remotes func2
+          val f1 = evaluateFunction repo rems func1
+          and f2 = evaluateFunction repo rems func2
         in
           fn s => PackageNameVersionSet.difference (f1 s) (f2 s)
         end
       | ReflexiveTransitive func =>
         let
-          val f = evaluate repo remotes func
+          val f = evaluateFunction repo rems func
         in
           rtc f
         end
       | Transitive func =>
         let
-          val f = evaluate repo remotes func
+          val f = evaluateFunction repo rems func
         in
-          rtc f o f
+          fn s => rtc f (f s)
         end
       | Optional func =>
         let
-          val f = evaluate repo remotes func
+          val f = evaluateFunction repo rems func
         in
           fn s => PackageNameVersionSet.union s (f s)
         end
       | Compose (func1,func2) =>
         let
-          val f1 = evaluate repo remotes func1
-          and f2 = evaluate repo remotes func2
+          val f1 = evaluateFunction repo rems func1
+          and f2 = evaluateFunction repo rems func2
         in
-          f1 o f2
+          fn s => f1 (f2 s)
         end;
 end;
+
+fun evaluate repo rems func =
+    let
+      val namevers =
+          if ignoresInput func then PackageNameVersionSet.empty
+          else Repository.latest repo
+    in
+      evaluateFunction repo rems func namevers
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -346,21 +377,21 @@ val infixes =
 val ppAcyclicKeyword = Print.ppString acyclicKeywordString
 and ppAllKeyword = Print.ppString allKeywordString
 and ppClosedKeyword = Print.ppString closedKeywordString
-and ppConsistentWithRemoteKeyword = Print.ppString consistentWithRemoteKeywordString
+and ppConsistentWithRepoKeyword = Print.ppString consistentWithRepoKeywordString
 and ppDeprecatedKeyword = Print.ppString deprecatedKeywordString
-and ppEarlierThanRemoteKeyword = Print.ppString earlierThanRemoteKeywordString
+and ppEarlierThanRepoKeyword = Print.ppString earlierThanRepoKeywordString
 and ppEmptyKeyword = Print.ppString emptyKeywordString
-and ppIdenticalOnRemoteKeyword = Print.ppString identicalOnRemoteKeywordString
+and ppIdenticalOnRepoKeyword = Print.ppString identicalOnRepoKeywordString
 and ppIdentityKeyword = Print.ppString identityKeywordString
 and ppIncludedByKeyword = Print.ppString includedByKeywordString
 and ppIncludesKeyword = Print.ppString includesKeywordString
-and ppLaterThanRemoteKeyword = Print.ppString laterThanRemoteKeywordString
+and ppLaterThanRepoKeyword = Print.ppString laterThanRepoKeywordString
 and ppLatestKeyword = Print.ppString latestKeywordString
 and ppMineKeyword = Print.ppString mineKeywordString
 and ppNoneKeyword = Print.ppString noneKeywordString
 and ppNotSymbol = Print.ppString notSymbolString
 and ppObsoleteKeyword = Print.ppString obsoleteKeywordString
-and ppOnRemoteKeyword = Print.ppString onRemoteKeywordString
+and ppOnRepoKeyword = Print.ppString onRepoKeywordString
 and ppOptionalSymbol = Print.ppString optionalSymbolString
 and ppReflexiveTransitiveSymbol = Print.ppString reflexiveTransitiveSymbolString
 and ppRequiredByKeyword = Print.ppString requiredByKeywordString
@@ -406,11 +437,11 @@ local
       | Closed => ppClosedKeyword
       | Acyclic => ppAcyclicKeyword
       | UpToDate => ppUpToDateKeyword
-      | OnRemote => ppOnRemoteKeyword
-      | IdenticalOnRemote => ppIdenticalOnRemoteKeyword
-      | ConsistentWithRemote => ppConsistentWithRemoteKeyword
-      | EarlierThanRemote => ppEarlierThanRemoteKeyword
-      | LaterThanRemote => ppLaterThanRemoteKeyword
+      | OnRepo => ppOnRepoKeyword
+      | IdenticalOnRepo => ppIdenticalOnRepoKeyword
+      | ConsistentWithRepo => ppConsistentWithRepoKeyword
+      | EarlierThanRepo => ppEarlierThanRepoKeyword
+      | LaterThanRepo => ppLaterThanRepoKeyword
       | _ => ppBracket pred
 
   and ppUnary pred =
@@ -556,15 +587,15 @@ local
   val acyclicKeywordParser = exactString acyclicKeywordString
   and andSymbolParser = exactString andSymbolString
   and closedKeywordParser = exactString closedKeywordString
-  and consistentWithRemoteKeywordParser =
-      exactString consistentWithRemoteKeywordString
-  and earlierThanRemoteKeywordParser = exactString earlierThanRemoteKeywordString
+  and consistentWithRepoKeywordParser =
+      exactString consistentWithRepoKeywordString
+  and earlierThanRepoKeywordParser = exactString earlierThanRepoKeywordString
   and emptyKeywordParser = exactString emptyKeywordString
-  and identicalOnRemoteKeywordParser = exactString identicalOnRemoteKeywordString
-  and laterThanRemoteKeywordParser = exactString laterThanRemoteKeywordString
+  and identicalOnRepoKeywordParser = exactString identicalOnRepoKeywordString
+  and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
   and mineKeywordParser = exactString mineKeywordString
   and notSymbolParser = exactString notSymbolString
-  and onRemoteKeywordParser = exactString onRemoteKeywordString
+  and onRepoKeywordParser = exactString onRepoKeywordString
   and orSymbolParser = exactString orSymbolString
   and upToDateKeywordParser = exactString upToDateKeywordString;
 
@@ -583,11 +614,11 @@ local
       closedKeywordParser >> K Closed ||
       acyclicKeywordParser >> K Acyclic ||
       upToDateKeywordParser >> K UpToDate ||
-      consistentWithRemoteKeywordParser >> K ConsistentWithRemote ||
-      earlierThanRemoteKeywordParser >> K EarlierThanRemote ||
-      identicalOnRemoteKeywordParser >> K IdenticalOnRemote ||
-      laterThanRemoteKeywordParser >> K LaterThanRemote ||
-      onRemoteKeywordParser >> K OnRemote;
+      consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
+      earlierThanRepoKeywordParser >> K EarlierThanRepo ||
+      identicalOnRepoKeywordParser >> K IdenticalOnRepo ||
+      laterThanRepoKeywordParser >> K LaterThanRepo ||
+      onRepoKeywordParser >> K OnRepo;
 
   val basicKeywordSpaceParser =
       basicKeywordParser ++ manySpace >> fst;

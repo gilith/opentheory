@@ -22,11 +22,11 @@ datatype predicate =
   | Closed
   | Acyclic
   | UpToDate
-  | OnRemote
-  | EarlierThanRemote
-  | LaterThanRemote
-  | IdenticalOnRemote
-  | ConsistentWithRemote
+  | OnRepo
+  | EarlierThanRepo
+  | LaterThanRepo
+  | IdenticalOnRepo
+  | ConsistentWithRepo
   | Not of predicate
   | And of predicate * predicate
   | Or of predicate * predicate
@@ -67,9 +67,20 @@ val ignoresInput : function -> bool
 (* Evaluating queries.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val evaluate :
+val evaluateSet :
+    Repository.repository -> set -> PackageNameVersionSet.set
+
+val evaluatePredicate :
+    Repository.repository -> RepositoryRemote.remote list -> predicate ->
+    PackageNameVersion.nameVersion -> bool
+
+val evaluateFunction :
     Repository.repository -> RepositoryRemote.remote list -> function ->
     PackageNameVersionSet.set -> PackageNameVersionSet.set
+
+val evaluate :
+    Repository.repository -> RepositoryRemote.remote list -> function ->
+    PackageNameVersionSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

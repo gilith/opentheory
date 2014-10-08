@@ -269,6 +269,67 @@ fun fromStringInfoFormat fmt =
         raise Error err
       end;
 
+local
+  fun mkItem repo namever item =
+      case item of
+        ChecksumItem =>
+        let
+          val chk =
+              case Repository.peek repo namever of
+                SOME pkg => Package.checksum pkg
+              | NONE => raise Error "corrupt installation"
+        in
+          Checksum.toString chk
+        end
+      | DescriptionItem =>
+        let
+          val info =
+              case Repository.peek repo namever of
+                SOME pkg => Package.information pkg
+              | NONE => raise Error "corrupt installation"
+
+          val {description} = PackageInformation.description info
+        in
+          description
+        end
+      | EmptyItem =>
+        let
+          val empty =
+              case Repository.peek repo namever of
+                SOME pkg => Package.emptyTheories pkg
+              | NONE => raise Error "corrupt installation"
+        in
+          emptyToString empty
+        end
+      | NameItem =>
+        let
+          val name = PackageNameVersion.name namever
+        in
+          PackageName.toString name
+        end
+      | SeparatorItem s => s
+      | VersionItem =>
+        let
+          val version = PackageNameVersion.version namever
+        in
+          PackageVersion.toString version
+        end;
+in
+  fun packageToStringInfoFormat repo fmt namever =
+      let
+        val InfoFormat items = fmt
+      in
+        String.concat (List.map (mkItem repo namever) items @ ["\n"])
+      end
+      handle Error err =>
+        let
+          val err =
+              "package " ^ PackageNameVersion.toString namever ^ ": " ^ err
+        in
+          raise Error err
+        end;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Clean up a staged package.                                                *)
 (* ------------------------------------------------------------------------- *)
@@ -2349,6 +2410,10 @@ local
             if not (!stageInstall) then ()
             else raise Error "can't stage a staged package install"
 
+        val () =
+            if not (!reinstall) then ()
+            else raise Error "can't reinstall a staged package install"
+
         val repo = repository ()
 
         val pkg =
@@ -2467,69 +2532,48 @@ local
             if not (!stageInstall) then ()
             else raise Error "can't stage a package name install"
       in
-        case latestNameVersionRemotes name (!checksumInstall) of
-          NONE =>
+        case latestVersion name of
+          SOME nv =>
           let
             val err =
-                "can't find a version of package " ^
-                PackageName.toString name
-
-            val err =
-                if not (Option.isSome (!checksumInstall)) then err
-                else err ^ " with specified checksum"
-
-            val err = err ^ " in any remote"
+                "package " ^ PackageNameVersion.toString nv ^
+                " is already installed"
           in
             raise Error err
           end
-        | SOME (_,namever,chk) =>
-          case latestVersionRepository name of
-            NONE => installPackage namever
-          | SOME namever' =>
+        | NONE =>
+          case latestVersionRemotes name (!checksumInstall) of
+            NONE =>
             let
-              val v = PackageNameVersion.version namever
-              and v' = PackageNameVersion.version namever'
+              val err =
+                  "can't find a version of package " ^
+                  PackageName.toString name
 
-              val proceed =
-                  case PackageVersion.compare (v,v') of
-                    LESS => false
-                  | EQUAL =>
-                    let
-                      val dir = repository ()
+              val err =
+                  if not (Option.isSome (!checksumInstall)) then err
+                  else err ^ " with specified checksum"
 
-                      val chk' =
-                          case Repository.checksum dir namever' of
-                            SOME c => c
-                          | NONE => raise Bug "installPackageName"
-                    in
-                      not (Checksum.equal chk' chk)
-                    end
-                  | GREATER => true
+              val err = err ^ " in any repo"
             in
-              if proceed then installPackage namever
-              else
-                let
-                  val msg =
-                      "installed package " ^
-                      PackageNameVersion.toString namever' ^
-                      " is up to date"
-
-                  val () = chat msg
-                in
-                  ()
-                end
+              raise Error err
             end
+          | SOME (_,namever,_) => installPackage namever
       end
       handle Error err =>
         raise Error (err ^ "\npackage name install failed");
 
-  fun installTarball tarFile =
+  fun installTarball {filename = tarFile} =
       let
-        val dir = repository ()
+        val repo = repository ()
+        and sys = system ()
 
-        val sys = Repository.system dir
+        val tar =
+            PackageTarball.mk
+              {system = sys,
+               filename = tarFile,
+               checksum = NONE}
 
-        val chk = PackageTarball.checksum sys tarFile
+        val chk = PackageTarball.checksum tar
 
         val () =
             case !checksumInstall of
@@ -2538,9 +2582,7 @@ local
               if Checksum.equal chk' chk then ()
               else raise Error "tarball checksum does not match"
 
-        val contents = PackageTarball.contents sys tarFile
-
-        val PackageTarball.Contents {nameVersion = namever, ...} = contents
+        val namever = PackageTarball.nameVersion tar
 
         val () =
             case !nameInstall of
@@ -2549,7 +2591,7 @@ local
               if PackageNameVersion.equal namever' namever then ()
               else raise Error "tarball name does not match"
 
-        val errs = Repository.checkStageTarball dir contents
+        val errs = Repository.checkStageTarball repo tar
 
         val errs =
             if not (!reinstall) then errs
@@ -2558,7 +2600,8 @@ local
                 val (staged,errs) = RepositoryError.removeAlreadyStaged errs
 
                 val () =
-                    if staged then Repository.cleanupStaged dir namever else ()
+                    if not staged then ()
+                    else Repository.cleanupStaged repo namever
               in
                 errs
               end
@@ -2568,26 +2611,28 @@ local
             else RepositoryError.removeAlreadyInstalled errs
 
         val () =
-            if List.null errs then ()
+            if RepositoryError.isClean errs then ()
             else
               let
-                val s = RepositoryError.toStringList errs
+                val s = RepositoryError.report errs
               in
-                if RepositoryError.existsFatal errs then raise Error s
+                if RepositoryError.fatal errs then raise Error s
                 else chat ("package install warnings:\n" ^ s)
               end
 
-        val () = if replace then uninstallAuto dir namever else ()
+        val () =
+            if not replace then ()
+            else uninstallAuto repo namever
 
-        val finder = installStagedFinderFree ()
+        val fndr = installFinder ()
 
         val tool = {tool = versionHtml}
 
-        val () = Repository.stageTarball dir finder tarFile contents tool
+        val () = Repository.stageTarball repo fndr tar tool
 
         val () =
             if !stageInstall then ()
-            else Repository.installStaged dir namever chk
+            else Repository.installStaged repo namever chk
 
         val () =
             let
@@ -2597,11 +2642,11 @@ local
                   else
                     (if replace then "reinstalled" else "installed")
 
-              val mesg =
+              val msg =
                   verb ^ " package " ^ PackageNameVersion.toString namever ^
                   " from tarball"
             in
-              chat mesg
+              chat msg
             end
       in
         ()
@@ -2609,81 +2654,85 @@ local
       handle Error err =>
         raise Error (err ^ "\npackage install from tarball failed");
 
-  fun installTheory filename =
+  fun installTheory thyFile =
       let
         val () =
             if not (Option.isSome (!checksumInstall)) then ()
-            else raise Error "can't specify checksum for a theory source file install"
+            else
+              let
+                val err =
+                    "can't specify checksum for a theory source file install"
+              in
+                raise Error err
+              end
 
         val () =
             if not (!stageInstall) then ()
-            else raise Error "can't stage a package install from theory source file"
-
-        val dir = repository ()
-
-        val pkg = Package.fromTextFile filename
-
-        val namever = Package.nameVersion pkg
-
-        val () =
-            case !nameInstall of
-              NONE => ()
-            | SOME namever' =>
-              if PackageNameVersion.equal namever' namever then ()
-              else raise Error "theory name does not match"
-
-        val srcDir =
-            let
-              val {filename = thyFile} = filename
-            in
-              {repository = OS.Path.dir thyFile}
-            end
-
-        val errs = Repository.checkStageTheory dir namever pkg
-
-        val errs =
-            if not (!reinstall) then errs
             else
               let
-                val (staged,errs) = RepositoryError.removeAlreadyStaged errs
-
-                val () =
-                    if staged then Repository.cleanupStaged dir namever else ()
+                val err = "can't stage a theory source file install"
               in
-                errs
+                raise Error err
               end
+
+        val repo = repository ()
+
+        val info = PackageInformation.fromTextFile thyFile
+
+        val errs = Repository.checkStageTheory repo (!nameInstall) info
+
+        val (cleanup,errs) =
+            if not (!reinstall) then (false,errs)
+            else RepositoryError.removeAlreadyStaged errs
 
         val (replace,errs) =
             if not (!reinstall) then (false,errs)
             else RepositoryError.removeAlreadyInstalled errs
 
-        val (pars,errs) =
-            if not (!autoInstall) then ([],errs)
-            else RepositoryError.removeUninstalledInclude errs
+        val errs =
+            if not (!autoInstall) then errs
+            else snd (RepositoryError.removeUninstalledInclude errs)
 
         val () =
-            if List.null errs then ()
+            if RepositoryError.isClean errs then ()
             else
               let
-                val s = RepositoryError.toStringList errs
+                val s = RepositoryError.report errs
               in
-                if RepositoryError.existsFatal errs then raise Error s
+                if RepositoryError.fatal errs then raise Error s
                 else chat ("package install warnings:\n" ^ s)
               end
 
-        val () = if replace then uninstallAuto dir namever else ()
+        val namever = PackageInformation.nameVersion info
 
-        val () = List.app installAutoFree pars
+        val () = if cleanup then Repository.cleanupStaged repo namever else ()
+
+        val () = if replace then uninstallAuto repo namever else ()
+
+        val fndr = installFinder ()
+
+        val srcDir =
+            let
+              val {filename} = thyFile
+            in
+              {directory = OS.Path.dir filename}
+            end
 
         val tool = {tool = versionHtml}
 
-        val chk = Repository.stageTheory dir namever pkg srcDir tool
+        val chk = Repository.stageTheory repo fndr namever info srcDir tool
 
-        val () = Repository.installStaged dir namever chk
+        val () = Repository.installStaged repo namever chk
 
         val () =
-            chat ((if replace then "re" else "") ^ "installed package " ^
-                  PackageNameVersion.toString namever ^ " from theory source file")
+            let
+              val msg =
+                  (if replace then "re" else "") ^ "installed package " ^
+                  PackageNameVersion.toString namever ^
+                  " from theory source file"
+            in
+              chat msg
+            end
       in
         ()
       end
@@ -2695,7 +2744,7 @@ in
         ArticleInput _ => raise Error "cannot install an article file"
       | PackageInput namever => installPackage namever
       | PackageNameInput name => installPackageName name
-      | PackageQueryInput name => raise Error "cannot install a package query"
+      | PackageQueryInput _ => raise Error "cannot install a package query"
       | StagedPackageInput namever => installStagedPackage namever
       | TarballInput file => installTarball file
       | TheoryInput file => installTheory file;
@@ -2705,12 +2754,12 @@ end;
 (* Listing installed packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun sortList dir pkgs ord =
+fun sortList repo pkgs ord =
     case ord of
       AlphabeticalList => PackageNameVersionSet.toList pkgs
-    | IncludeList => Repository.includeOrder dir pkgs
-    | DependencyList => Repository.dependencyOrder dir pkgs
-    | ReverseList ord => List.rev (sortList dir pkgs ord);
+    | IncludeList => Repository.includeOrder repo pkgs
+    | DependencyList => Repository.dependencyOrder repo pkgs
+    | ReverseList ord => List.rev (sortList repo pkgs ord);
 
 fun list query =
     let
@@ -2730,78 +2779,22 @@ fun list query =
             | TarballInput _ => raise Error "cannot list a tarball"
             | TheoryInput _ => raise Error "cannot list a theory source file"
 
-      val dir = repository ()
+      val repo = repository ()
 
-      val remotes = remotes ()
+      val rems = remotes ()
 
-      val pkgs =
-          if RepositoryQuery.ignoresInput query then PackageNameVersionSet.empty
-          else Repository.latest dir
+      val namevers = RepositoryQuery.evaluate repo rems query
 
-      val pkgs = RepositoryQuery.evaluate dir remotes query pkgs
+      val namevers = sortList repo namevers (orderList ());
 
-      val pkgs = sortList dir pkgs (orderList ());
+      val fmt = getFormatList ()
 
-      val InfoFormat items = getFormatList ()
-
-      fun mk namever =
+      val strm =
           let
-            fun mkItem item =
-                case item of
-                  ChecksumItem =>
-                  let
-                    val chk =
-                        case Repository.checksum dir namever of
-                          SOME c => c
-                        | NONE => raise Error "corrupt checksum"
-                  in
-                    Checksum.toString chk
-                  end
-                | DescriptionItem =>
-                  let
-                    val info =
-                        case Repository.peek dir namever of
-                          SOME i => i
-                        | NONE => raise Error "corrupt installation"
-
-                    val pkg = PackageInfo.package info
-
-                    val {description} = Package.description pkg
-                  in
-                    description
-                  end
-                | EmptyItem =>
-                  let
-                    val info =
-                        case Repository.peek dir namever of
-                          SOME i => i
-                        | NONE => raise Error "corrupt installation"
-
-                    val empty = PackageInfo.emptyTheory info
-                  in
-                    emptyToString empty
-                  end
-                | NameItem =>
-                  let
-                    val name = PackageNameVersion.name namever
-                  in
-                    PackageName.toString name
-                  end
-                | SeparatorItem s => s
-                | VersionItem =>
-                  let
-                    val version = PackageNameVersion.version namever
-                  in
-                    PackageVersion.toString version
-                  end
+            fun mk namever = packageToStringInfoFormat repo fmt namever ^ "\n"
           in
-            String.concat (List.map mkItem items @ ["\n"])
+            Stream.map mk (Stream.fromList namevers)
           end
-          handle Error err =>
-            raise Error ("package " ^ PackageNameVersion.toString namever ^
-                         ": " ^ err)
-
-      val strm = Stream.map mk (Stream.fromList pkgs)
 
       val ref f = outputList
     in
@@ -2845,61 +2838,55 @@ local
       case inp of
         ArticleInput _ => raise Error "cannot upload an article file"
       | PackageInput namever => namever
-      | PackageNameInput name => getLatestVersionDirectory name
+      | PackageNameInput name => getLatestVersion name
       | PackageQueryInput _ => raise Error "cannot upload a package query"
       | StagedPackageInput _ => raise Error "cannot upload a staged package"
       | TarballInput _ => raise Error "cannot upload a tarball"
       | TheoryInput _ => raise Error "cannot upload a theory source file";
 
-  fun computeSupport dir repo namevers =
+  fun computeSupport repo rem namevers =
       let
-        fun notInDir nv = not (Directory.member nv dir)
+        fun notInRepo nv = not (Repository.member nv repo)
 
-        fun notInRepo nv = not (DirectoryRepo.member nv repo)
+        fun notInRemote nv = not (RepositoryRemote.member nv rem)
 
-        val (unknown,namevers) = List.partition notInDir namevers
+        val (unknown,namevers) = List.partition notInRepo namevers
 
         val namevers = PackageNameVersionSet.fromList namevers
 
         val namevers =
             let
-              val ancs =
+              val subs =
                   case !setUpload of
-                    ManualUpload =>
-                    PackageNameVersionSet.empty
-                  | SubtheoryUpload =>
-                    Directory.subtheoriesRTC dir namevers
+                    ManualUpload => PackageNameVersionSet.empty
+                  | SubtheoryUpload => Repository.subtheoriesRTC repo namevers
 
-              val ancs = PackageNameVersionSet.filter notInRepo ancs
+              val subs = PackageNameVersionSet.filter notInRemote subs
             in
-              PackageNameVersionSet.union ancs namevers
+              PackageNameVersionSet.union subs namevers
             end
 
         val support =
             let
-              val ancs = Directory.includesRTC dir namevers
+              val incs = Repository.includesRTC repo namevers
 
-              val ancs = PackageNameVersionSet.filter notInRepo ancs
+              val incs = PackageNameVersionSet.filter notInRemote incs
 
-              val ancs = PackageNameVersionSet.difference ancs namevers
+              val incs = PackageNameVersionSet.difference incs namevers
             in
-              Directory.dependencyOrder dir ancs
+              Repository.dependencyOrder repo incs
             end
 
-        val namevers = unknown @ Directory.dependencyOrder dir namevers
+        val namevers = unknown @ Repository.dependencyOrder repo namevers
       in
         (support,namevers)
       end;
 
-  fun summarizeUpload dir repo support packages =
+  fun summarizeUpload upl =
       let
-        val mesg =
-            Print.toString (Directory.ppUpload dir)
-              {repo = repo,
-               support = support,
-               packages = packages}
+        val msg = Print.toString RepositoryUpload.pp upl
 
-        val () = chat mesg
+        val () = chat msg
 
         val () = TextIO.flushOut TextIO.stdOut
       in
@@ -2922,6 +2909,7 @@ local
         else askToConfirmUpload ()
       end;
 
+(***
   fun startUpload repo =
       let
         val upl = DirectoryRepo.startUpload repo
@@ -3001,65 +2989,44 @@ local
       in
         ()
       end;
+***)
 in
   fun upload inps =
       let
-        val dir = directory ()
-
         val repo = repository ()
+
+        val rem = remote ()
 
         val namevers = List.map uploadInput inps
 
-        val () = DirectoryRepo.update repo
+        val () = RepositoryRemote.update rem
 
-        val (support,namevers) = computeSupport dir repo namevers
+        val (support,namevers) = computeSupport repo rem namevers
 
-        val errs =
-            Directory.checkUpload dir
-              {repo = repo,
+        val upl =
+            RepositoryUpload.mk
+              {repository = repo,
+               remote = rem,
                support = support,
                packages = namevers}
 
+        val errs = RepositoryUpload.check upl
+
         val () =
-            if List.null errs then ()
+            if RepositoryError.isClean errs then ()
             else
               let
-                val s = DirectoryError.toStringList errs
+                val s = RepositoryError.report errs
               in
-                if DirectoryError.existsFatal errs then raise Error s
+                if RepositoryError.fatal errs then raise Error s
                 else chat ("package upload warnings:\n" ^ s)
               end
 
-        val () = summarizeUpload dir repo support namevers
+        val () = summarizeUpload upl
 
         val proceed = not (!confirmUpload) orelse askToConfirmUpload ()
       in
-        if not proceed then ()
-        else
-          let
-            val upl = startUpload repo
-
-            val () =
-                let
-                  val () = List.app (supportUpload dir repo upl) support
-
-                  val () = List.app (packageUpload dir repo upl) namevers
-
-                  val () = finishUpload repo upl
-                in
-                  ()
-                end
-                handle Error err =>
-                  let
-                    val () =
-                        deleteUpload repo upl
-                        handle Error err' => raise Error (err ^ "\n" ^ err')
-                  in
-                    raise Error err
-                  end
-          in
-            ()
-          end
+        if proceed then RepositoryUpload.upload upl else ()
       end
       handle Error err =>
         raise Error (err ^ "\npackage upload failed");

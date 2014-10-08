@@ -1317,7 +1317,7 @@ local
              {tags = tags, theories = theories})
       end;
 
-  fun checkTheory repo pkg info =
+  fun checkTheory fndr pkg info =
       let
 (*OpenTheoryTrace1
         val () = trace "Repository.stageTheory.checkTheory\n"
@@ -1325,8 +1325,7 @@ local
         val PackageInformation.Information' {tags,theories} =
             PackageInformation.dest info
 
-        val fndr = finder repo
-        and {directory} = Package.directory pkg
+        val {directory} = Package.directory pkg
 
         val graph =
             PackageTheoryGraph.mk
@@ -1354,17 +1353,16 @@ local
           {information = info, filename = filename}
       end;
 in
-  fun stageTheory repo namever info {directory = srcDir} tool =
+  fun stageTheory repo fndr namever info {directory = srcDir} tool =
       let
 (*OpenTheoryDebug
-        val errs = checkStageTheory repo namever info
+        val errs = checkStageTheory repo (SOME namever) info
 
         val () =
             if not (RepositoryError.fatal errs) then ()
             else raise Bug "Repository.stageTheory: fatal error"
 *)
         val sys = system repo
-        and namever = PackageInformation.nameVersion info
 
         (* Make a staged package *)
 
@@ -1385,7 +1383,7 @@ in
 
           (* Check the package theory *)
 
-          val info = checkTheory repo pkg info
+          val info = checkTheory fndr pkg info
 
           (* Write the new theory file *)
 
@@ -1396,8 +1394,6 @@ in
           val () = Package.packTarball pkg
 
           (* Common post-stage operations *)
-
-          val fndr = finder repo
 
           val () = postStagePackage repo fndr pkg true tool
         in

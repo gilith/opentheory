@@ -257,9 +257,9 @@ Summarizing compressed article "bool-true-thm"
   |- T
 
 --------------------------------------------------------------------------
-Theory package directories
+Package repositories
 
-<directory>
+<repo>
 
 --------------------------------------------------------------------------
 Config files

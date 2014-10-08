@@ -428,19 +428,19 @@ val () = summarize "bool-true-def";
 val () = summarize "bool-true-thm";
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Theory package directories";
+val () = SAY "Package repositories";
 (* ------------------------------------------------------------------------- *)
 
-val DIRECTORY_DIR = "directory";
+val REPOSITORY_DIR = "repo";
 
-val directory =
-    printval Directory.pp (Directory.mk {rootDirectory = DIRECTORY_DIR});
+val repo =
+    printval Repository.pp (Repository.mk {rootDirectory = REPOSITORY_DIR});
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Config files";
 (* ------------------------------------------------------------------------- *)
 
-val config = printval DirectoryConfig.pp (Directory.config directory);
+val config = printval RepositoryConfig.pp (Repository.config repo);
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Importing theory packages";
@@ -450,7 +450,7 @@ fun import namever =
     let
       val () = TextIO.print ("Importing theory package \"" ^ namever ^ "\"\n")
 
-      val finder = Directory.finder directory
+      val fndr = Repository.finder repo
 
       val graph = TheoryGraph.empty {savable = false}
 
@@ -458,9 +458,10 @@ fun import namever =
           TheoryGraph.Specification
             {imports = TheorySet.empty,
              interpretation = Interpretation.natural,
-             nameVersion = PackageNameVersion.fromString namever}
+             nameVersion = PackageNameVersion.fromString namever,
+             checksum = NONE}
 
-      val (_,thy) = TheoryGraph.importPackageName finder graph spec
+      val (_,thy) = TheoryGraph.import fndr graph spec
 
       val art = Theory.article thy
 
@@ -503,13 +504,11 @@ val () = import "bool-true-axiom-1.0";
 val () = SAY "Package queries";
 (* ------------------------------------------------------------------------- *)
 
-val latest = Directory.latest directory;
-
 fun query s =
     let
-      val q = DirectoryQuery.fromString s
+      val q = RepositoryQuery.fromString s
 
-      val s' = DirectoryQuery.toString q
+      val s' = RepositoryQuery.toString q
 
       val () =
           if s = s' then ()
@@ -523,7 +522,7 @@ fun query s =
               raise Bug bug
             end
 
-      val namevers = DirectoryQuery.evaluate directory [] q latest
+      val namevers = RepositoryQuery.evaluate repo [] q
     in
       (s,namevers)
     end;

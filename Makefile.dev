@@ -19,8 +19,8 @@ TEMP += \
 ###############################################################################
 
 #MLPP_OPTS += -r 'OpenTheoryDebug'
-#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
-MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
+MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug'
+#MLPP_OPTS += -r 'BasicDebug|MetisDebug|OpenTheoryDebug|OpenTheoryTrace[0-9]'
 
 ###############################################################################
 # The Moscow ML compiler.
@@ -205,23 +205,23 @@ haskell:
 	$(MAKE) haskell-install
 
 ###############################################################################
-# Create the test OpenTheory directory.
+# Create the test package repo.
 ###############################################################################
 
 TEST_THEORY_DIR = test/theories
 
-TEST_DIRECTORY_DIR = test/directory
+TEST_REPOSITORY_DIR = test/repo
 
-TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_DIRECTORY_DIR)
+TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_REPOSITORY_DIR)
 
 TEST_OPENTHEORY_INIT = $(TEST_OPENTHEORY) init
 
 TEST_OPENTHEORY_INSTALL = $(TEST_OPENTHEORY) install --manual
 
-.PHONY: test-directory
-test-directory:
+.PHONY: test-repository
+test-repository:
 	$(MAKE) $(OPENTHEORY)
-	rm -rf $(TEST_DIRECTORY_DIR)
+	rm -rf $(TEST_REPOSITORY_DIR)
 	$(TEST_OPENTHEORY_INIT)
 	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/empty/empty.thy
 	$(TEST_OPENTHEORY_INSTALL) $(TEST_THEORY_DIR)/bool-true-def/bool-true-def.thy
@@ -242,7 +242,7 @@ init:
 	@echo '| Initialize this development snapshot of opentheory |'
 	@echo '+----------------------------------------------------+'
 	@echo
-	$(MAKE) test-directory
+	$(MAKE) test-repository
 
 ###############################################################################
 # Counting the number of lines of code.
