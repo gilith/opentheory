@@ -259,7 +259,7 @@ Summarizing compressed article "bool-true-thm"
 --------------------------------------------------------------------------
 Package repositories
 
-<repo>
+{repos/test}
 
 --------------------------------------------------------------------------
 Config files
@@ -420,4 +420,45 @@ package query "Uploadable" resulted in
 
 package query "Upgradable" resulted in
   {}
+
+--------------------------------------------------------------------------
+rm -rf repos/repo
+
+
+--------------------------------------------------------------------------
+rm -rf repos/upstream
+
+
+--------------------------------------------------------------------------
+opentheory --help
+
+opentheory: displaying option information
+usage: opentheory [global options] command [command options] INPUT ...
+where the available commands are:
+  opentheory cleanup ..... clean up packages staged for installation
+  opentheory export ...... export an installed package
+  opentheory help ........ display help on all available commands
+  opentheory info ........ extract information from packages and files
+  opentheory init ........ initialize a new package repo
+  opentheory install ..... install a package from a theory file or repo
+  opentheory list ........ list installed packages
+  opentheory uninstall ... uninstall an installed package
+  opentheory update ...... update repo package lists
+  opentheory upload ...... upload installed packages to a repo
+Displaying global options:
+  -d, --root-dir DIR ... set the package repo directory
+  --repo REPO .......... use the given remote package repo
+  -- ................... no more options
+  -?, -h, --help ....... display option information and exit
+  -v, --version ........ display version information
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo init
+
+initialized new package repo {repos/repo}
+
+--------------------------------------------------------------------------
+opentheory -d repos/upstream init --repo
+
+initialized new package repo {repos/upstream} for remote use
 

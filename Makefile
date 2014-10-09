@@ -23,7 +23,7 @@ TEMP = \
   $(MLTON_TARGETS) \
   bin/mlton/*.sml bin/mlton/*.mlb \
   $(POLYML_TARGETS) \
-  bin/polyml/*.sml bin/polyml/*.o
+  bin/polyml/*.sml bin/polyml/*.log
 
 .PHONY: clean
 clean:
@@ -265,7 +265,7 @@ bin/polyml/%.sml: src/%.sml $(POLYML_SRC)
 	@$(MLPP) $(MLPP_OPTS) -c polyml $(POLYML_SRC) > $@
 	@echo 'fun main () = let' >> $@
 	@$(MLPP) $(MLPP_OPTS) -c polyml $< >> $@
-	@echo "in () end handle e => (TextIO.output (TextIO.stdErr, \"FATAL EXCEPTION:\\\\n\"^ exnMessage e); OS.Process.exit OS.Process.failure); PolyML.export(\"$(basename $(notdir $<))\", main);" >> $@
+	@echo "in () end handle e => (TextIO.output (TextIO.stdErr, \"FATAL EXCEPTION:\\\\n\"^ exnMessage e); OS.Process.exit OS.Process.failure);" >> $@
 
 bin/polyml/%: bin/polyml/%.sml
 	@echo

@@ -390,15 +390,17 @@ val rootDirectory =
 (* Initializing a package repository.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val remoteInit = ref RepositoryConfig.default;
+val remoteInit = ref false;
 
 fun initRepository {rootDirectory = r} =
     let
-      val c = !remoteInit
+      val c =
+          if !remoteInit then RepositoryConfig.remoteDefault
+          else RepositoryConfig.default
 
       val () = Repository.create {rootDirectory = r, config = c}
     in
-      ()
+      Repository.mk {rootDirectory = r}
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -452,11 +454,15 @@ val repository =
                      end
                    else if autoInit then
                      let
-                       val () = initRepository {rootDirectory = r}
+                       val x = initRepository {rootDirectory = r}
 
-                       val () = chat ("auto-initialized package repo " ^ r)
+                       val msg =
+                           "auto-initialized package repo " ^
+                           Print.toString Repository.pp x
+
+                       val () = chat msg
                      in
-                       Repository.mk {rootDirectory = r}
+                       x
                      end
                    else
                      raise Error ("package repo does not exist: " ^ r)
@@ -829,7 +835,7 @@ in
         description = "configure the new package repo to be used remotely",
         processor =
           beginOpt endOpt
-            (fn _ => remoteInit := RepositoryConfig.remoteDefault)}];
+            (fn _ => remoteInit := true)}];
 end;
 
 val initFooter = "";
@@ -2229,11 +2235,16 @@ end;
 
 fun init () =
     let
-      val {directory = d, autoInit = _} = rootDirectory ()
+      val {directory = r, autoInit = _} = rootDirectory ()
 
-      val () = initRepository {rootDirectory = d}
+      val x = initRepository {rootDirectory = r}
 
-      val () = chat ("initialized new package repo " ^ d)
+      val msg =
+          "initialized new package repo " ^
+          Print.toString Repository.pp x ^
+          (if !remoteInit then " for remote use" else "")
+
+      val () = chat msg
     in
       ()
     end;

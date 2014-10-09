@@ -431,7 +431,7 @@ val () = summarize "bool-true-thm";
 val () = SAY "Package repositories";
 (* ------------------------------------------------------------------------- *)
 
-val REPOSITORY_DIR = "repo";
+val REPOSITORY_DIR = "repos/test";
 
 val repo =
     printval Repository.pp (Repository.mk {rootDirectory = REPOSITORY_DIR});

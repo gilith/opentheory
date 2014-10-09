@@ -210,7 +210,7 @@ haskell:
 
 TEST_THEORY_DIR = test/theories
 
-TEST_REPOSITORY_DIR = test/repo
+TEST_REPOSITORY_DIR = test/repos/test
 
 TEST_OPENTHEORY = $(OPENTHEORY) -d $(TEST_REPOSITORY_DIR)
 

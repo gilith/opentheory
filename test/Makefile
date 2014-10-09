@@ -7,6 +7,8 @@ IGNORE = '^User: '
 
 REFERENCE_FILE = result.ok
 
+TOOL_TEST = ../scripts/tool-test
+
 ###############################################################################
 # The default action
 ###############################################################################
@@ -57,9 +59,10 @@ mosml-diff:
 	@diff -c $(TMPFILE1) $(TMPFILE2)
 	@rm -f $(TMPFILE1) $(TMPFILE2)
 
-mosml-result: test.sml ../bin/mosml/Options.uo $(REFERENCE_FILE)
+mosml-result: test.sml ../bin/mosml/Options.uo ../bin/mosml/opentheory $(TOOL_TEST) $(REFERENCE_FILE)
 	rm -f $@
 	echo "quit();" | $(MOSML) $< 2>&1 | tee $@
+	$(TOOL_TEST) -d ../bin/mosml 2>&1 | tee -a $@
 
 ###############################################################################
 # The MLton self-test
@@ -75,9 +78,10 @@ mlton-diff:
 	@diff -c $(TMPFILE1) $(TMPFILE2)
 	@rm -f $(TMPFILE1) $(TMPFILE2)
 
-mlton-result: ../bin/mlton/selftest $(REFERENCE_FILE)
+mlton-result: ../bin/mlton/selftest ../bin/mlton/opentheory $(TOOL_TEST) $(REFERENCE_FILE)
 	rm -f $@
 	$< 2>&1 | tee $@
+	$(TOOL_TEST) -d ../bin/mlton 2>&1 | tee -a $@
 
 ###############################################################################
 # The Poly/ML self-test
@@ -93,6 +97,7 @@ polyml-diff:
 	@diff -c $(TMPFILE1) $(TMPFILE2)
 	@rm -f $(TMPFILE1) $(TMPFILE2)
 
-polyml-result: ../bin/polyml/selftest $(REFERENCE_FILE)
+polyml-result: ../bin/polyml/selftest ../bin/polyml/opentheory $(TOOL_TEST) $(REFERENCE_FILE)
 	rm -f $@
 	$< 2>&1 | tee $@
+	$(TOOL_TEST) -d ../bin/polyml 2>&1 | tee -a $@

@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h $opt_d);
+
+getopts('hd:');
+
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $program = "tool-test";
+
+sub execute_command {
+    (scalar @_ == 1) or die;
+    my $cmd = shift @_;
+
+    my $cmd_text = $cmd;
+    $cmd_text =~ s%^[.][.]/bin/(mosml|mlton|polyml)/%%;
+
+    print STDOUT "--------------------------------------------------------------------------\n$cmd_text\n\n";
+
+    return system("$cmd 2>&1");
+}
+
+sub passing_command {
+    (scalar @_ == 1) or die;
+    my $cmd = shift @_;
+
+    my $result = execute_command($cmd);
+
+    print STDOUT "\n";
+
+    if ($result != 0) {
+        die "$program: this command should have succeeded, but returned error code $result."
+    }
+}
+
+my $opentheory = "opentheory";
+if ($opt_d) { $opentheory = "$opt_d/$opentheory"; }
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
+
+my $repo_dir = "repos";
+[ -d $repo_dir ] or die "$program: $repo_dir not a directory";
+
+my $repo = "$repo_dir/repo";
+
+my $upstream = "$repo_dir/upstream";
+
+passing_command "rm -rf $repo";
+passing_command "rm -rf $upstream";
+passing_command "$opentheory --help";
+passing_command "$opentheory -d $repo init";
+passing_command "$opentheory -d $upstream init --repo";
+
+__END__
+
+=pod
+
+=head1 NAME
+
+tool-test - test the opentheory tool
+
+=head1 SYNOPSIS
+
+tool-test [-h] [-d DIR]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=item B<-d DIR>
+
+Set the path to the opentheory executable to be DIR.
+
+=back
+
+=head1 DESCRIPTION
+
+Tests the opentheory tool.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

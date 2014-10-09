@@ -1601,7 +1601,7 @@ fun pp repo =
     let
       val {rootDirectory = rootDir} = rootDirectory repo
     in
-      Print.ppBracket "<" ">" Print.ppString rootDir
+      Print.ppBracket "{" "}" Print.ppString rootDir
     end;
 
 end
