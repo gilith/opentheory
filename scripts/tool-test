@@ -9,6 +9,10 @@ use Getopt::Std;
 
 use vars qw($opt_h $opt_d);
 
+###############################################################################
+# Process options.
+###############################################################################
+
 getopts('hd:');
 
 if ($opt_h or scalar @ARGV != 0)
@@ -22,6 +26,25 @@ $|++;
 
 my $program = "tool-test";
 
+my $opentheory = "opentheory";
+if ($opt_d) { $opentheory = "$opt_d/$opentheory"; }
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
+
+my $repo_dir = "repos";
+[ -d $repo_dir ] or die "$program: $repo_dir not a directory";
+
+my $repo = "$repo_dir/repo";
+
+my $upstream = "$repo_dir/upstream";
+
+my $opentheory_repo = "$opentheory -d $repo";
+
+my $opentheory_upstream = "$opentheory -d $upstream";
+
+###############################################################################
+# Execute commands.
+###############################################################################
+
 sub execute_command {
     (scalar @_ == 1) or die;
     my $cmd = shift @_;
@@ -34,7 +57,7 @@ sub execute_command {
     return system("$cmd 2>&1");
 }
 
-sub passing_command {
+sub pass_test {
     (scalar @_ == 1) or die;
     my $cmd = shift @_;
 
@@ -47,22 +70,15 @@ sub passing_command {
     }
 }
 
-my $opentheory = "opentheory";
-if ($opt_d) { $opentheory = "$opt_d/$opentheory"; }
-[ -x $opentheory ] or die "$program: $opentheory not an executable";
+###############################################################################
+# Execute test cases.
+###############################################################################
 
-my $repo_dir = "repos";
-[ -d $repo_dir ] or die "$program: $repo_dir not a directory";
-
-my $repo = "$repo_dir/repo";
-
-my $upstream = "$repo_dir/upstream";
-
-passing_command "rm -rf $repo";
-passing_command "rm -rf $upstream";
-passing_command "$opentheory --help";
-passing_command "$opentheory -d $repo init";
-passing_command "$opentheory -d $upstream init --repo";
+pass_test "rm -rf $repo";
+pass_test "rm -rf $upstream";
+pass_test "$opentheory --help";
+pass_test "$opentheory_repo init";
+pass_test "$opentheory_upstream init --repo";
 
 __END__
 
