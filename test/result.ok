@@ -422,7 +422,7 @@ package query "Upgradable" resulted in
   {}
 
 ==========================================================================
-Basic functionality
+Test the opentheory tool
 --------------------------------------------------------------------------
 opentheory --help
 
@@ -490,9 +490,9 @@ installed package bool-true-1.0
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-true-1.0 28e439bc7405b98b3deaf3150abb05c6574ecba1
-bool-true-def-1.0 f984ba08c200a74df85fef5e83302bf3cc59f70f
-bool-true-thm-1.0 5ce9617aafe613bd8dad3f0d6168d07318b55cb3
+bool-true-1.0 ee6135af0f38685a1a064be463c00e47667f3a4d
+bool-true-def-1.0 134fe3b72488bb1c7f0fc7cf247127d440290d12
+bool-true-thm-1.0 abc1a501f012071ed7214327ff832e6f40eb4011
 ==========================================================================
 Show package information
 --------------------------------------------------------------------------
@@ -509,13 +509,13 @@ opentheory -d repos/repo info --theory-source bool-true
 
 def {
   package: bool-true-def-1.0
-  checksum: f984ba08c200a74df85fef5e83302bf3cc59f70f
+  checksum: 134fe3b72488bb1c7f0fc7cf247127d440290d12
 }
 
 thm {
   import: def
   package: bool-true-thm-1.0
-  checksum: 5ce9617aafe613bd8dad3f0d6168d07318b55cb3
+  checksum: abc1a501f012071ed7214327ff832e6f40eb4011
 }
 
 main {

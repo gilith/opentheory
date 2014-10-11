@@ -79,7 +79,7 @@ sub test_passing {
 # Execute test cases.
 ###############################################################################
 
-test_section "Basic functionality";
+test_section "Test the opentheory tool";
 test_passing "$opentheory --help";
 
 test_section "Initialize upstream";
