@@ -421,14 +421,8 @@ package query "Uploadable" resulted in
 package query "Upgradable" resulted in
   {}
 
---------------------------------------------------------------------------
-rm -rf repos/repo
-
-
---------------------------------------------------------------------------
-rm -rf repos/upstream
-
-
+==========================================================================
+Basic functionality
 --------------------------------------------------------------------------
 opentheory --help
 
@@ -451,14 +445,133 @@ Displaying global options:
   -- ................... no more options
   -?, -h, --help ....... display option information and exit
   -v, --version ........ display version information
+==========================================================================
+Initialize upstream
+--------------------------------------------------------------------------
+rm -rf repos/upstream
+
+--------------------------------------------------------------------------
+mkdir repos/upstream
+
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory init --repo
+
+initialized new package repo {repos/upstream/opentheory} for remote use
+--------------------------------------------------------------------------
+tail -n +6 < repos/upstream/opentheory/config > repos/upstream/opentheory/config.new
+
+--------------------------------------------------------------------------
+mv repos/upstream/opentheory/config.new repos/upstream/opentheory/config
+
+==========================================================================
+Populate upstream
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory list
+
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-true-def/bool-true-def.thy
+
+installed package bool-true-def-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-true-thm/bool-true-thm.thy
+
+installed package bool-true-thm-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-true/bool-true.thy
+
+installed package bool-true-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory list
+
+bool-true-1.0
+==========================================================================
+Initialize repo
+--------------------------------------------------------------------------
+rm -rf repos/repo
 
 --------------------------------------------------------------------------
 opentheory -d repos/repo init
 
 initialized new package repo {repos/repo}
+--------------------------------------------------------------------------
+echo '[author]' > repos/repo/config.new
 
 --------------------------------------------------------------------------
-opentheory -d repos/upstream init --repo
+echo 'name = Joe Leslie-Hurd' >> repos/repo/config.new
 
-initialized new package repo {repos/upstream} for remote use
+--------------------------------------------------------------------------
+echo 'email = joe@gilith.com' >> repos/repo/config.new
 
+--------------------------------------------------------------------------
+echo >> repos/repo/config.new
+
+--------------------------------------------------------------------------
+echo '[repo]' >> repos/repo/config.new
+
+--------------------------------------------------------------------------
+echo 'name = upstream' >> repos/repo/config.new
+
+--------------------------------------------------------------------------
+echo 'url = file:///Users/joe/dev/opentheory/test/repos/upstream/' >> repos/repo/config.new
+
+--------------------------------------------------------------------------
+tail -n +4 < repos/repo/config >> repos/repo/config.new
+
+--------------------------------------------------------------------------
+mv repos/repo/config.new repos/repo/config
+
+==========================================================================
+Install to repo
+--------------------------------------------------------------------------
+opentheory -d repos/repo list
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo install tarball:repos/upstream/opentheory/packages/bool-true-thm-1.0/bool-true-thm-1.0.tgz
+
+installed package bool-true-thm-1.0 from tarball
+--------------------------------------------------------------------------
+opentheory -d repos/repo install bool-true
+
+auto-installed package bool-true-def-1.0
+installed package bool-true-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
+
+bool-true-1.0 f6a69ce29788c2612985e80ddb900a8948a9e1fb
+bool-true-def-1.0 17dfd508d922088192bd239d6b1cf3bcd4bef2c9
+bool-true-thm-1.0 ebab4fddac58bd425fb898d7645a93f434757d26
+==========================================================================
+Package information
+--------------------------------------------------------------------------
+opentheory -d repos/repo info bool-true
+
+name: bool-true
+version: 1.0
+description: Definition and theorem about the boolean true constant
+author: Joe Leslie-Hurd <joe@gilith.com>
+license: MIT
+show: "Data.Bool"
+--------------------------------------------------------------------------
+opentheory -d repos/repo info --theory-source bool-true
+
+def {
+  package: bool-true-def-1.0
+  checksum: 17dfd508d922088192bd239d6b1cf3bcd4bef2c9
+}
+
+thm {
+  import: def
+  package: bool-true-thm-1.0
+  checksum: ebab4fddac58bd425fb898d7645a93f434757d26
+}
+
+main {
+  import: def
+  import: thm
+}
+==========================================================================
+Listing packages
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Mine
+
+bool-true-1.0

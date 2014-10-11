@@ -71,7 +71,7 @@ val defaultSystemChmod = "chmod"
 and defaultSystemCp = "cp"
 and defaultSystemCurl = "curl --silent --show-error --user-agent opentheory"
 and defaultSystemEcho = "echo"
-and defaultSystemSha = "sha1sum --binary"
+and defaultSystemSha = "shasum --binary"
 and defaultSystemTar = "tar";
 
 val remoteDefaultSystemChmod = defaultSystemChmod

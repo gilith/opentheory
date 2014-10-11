@@ -1386,6 +1386,25 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Add checksums to theories that include packages.                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun addChecksums finder =
+    let
+      fun add namever chko =
+          if Option.isSome chko then NONE
+          else
+            case PackageFinder.find finder namever NONE of
+              SOME pkg => SOME (namever, SOME (Package.checksum pkg))
+            | NONE => raise Bug "PackageTheoryGraph.addChecksums"
+    in
+      fn thys =>
+         case PackageTheory.updateIncludes add thys of
+           SOME thys => thys
+         | NONE => thys
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of package theory graphs.                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1421,6 +1440,8 @@ fun removeDead outputWarning {finder,directory,theories} =
           removeDeadImports outputWarning vanilla definitions summary theories
 
       val theories = removeDeadBlocks outputWarning theories
+
+      val theories = addChecksums finder theories
     in
       Graph
         {finder = finder,

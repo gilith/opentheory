@@ -319,7 +319,7 @@ in
       let
         val InfoFormat items = fmt
       in
-        String.concat (List.map (mkItem repo namever) items @ ["\n"])
+        String.concat (List.map (mkItem repo namever) items)
       end
       handle Error err =>
         let

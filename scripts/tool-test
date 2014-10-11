@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Std;
+use Cwd 'realpath';
 
 use vars qw($opt_h $opt_d);
 
@@ -34,16 +35,22 @@ my $repo_dir = "repos";
 [ -d $repo_dir ] or die "$program: $repo_dir not a directory";
 
 my $repo = "$repo_dir/repo";
-
-my $upstream = "$repo_dir/upstream";
-
 my $opentheory_repo = "$opentheory -d $repo";
 
-my $opentheory_upstream = "$opentheory -d $upstream";
+my $upstream = "$repo_dir/upstream";
+my $upstream_realpath = realpath($upstream);
+my $opentheory_upstream = "$opentheory -d $upstream/opentheory";
 
 ###############################################################################
 # Execute commands.
 ###############################################################################
+
+sub test_section {
+    (scalar @_ == 1) or die;
+    my $title = shift @_;
+
+    print STDOUT "==========================================================================\n$title\n";
+}
 
 sub execute_command {
     (scalar @_ == 1) or die;
@@ -57,13 +64,11 @@ sub execute_command {
     return system("$cmd 2>&1");
 }
 
-sub pass_test {
+sub test_passing {
     (scalar @_ == 1) or die;
     my $cmd = shift @_;
 
     my $result = execute_command($cmd);
-
-    print STDOUT "\n";
 
     if ($result != 0) {
         die "$program: this command should have succeeded, but returned error code $result."
@@ -74,11 +79,48 @@ sub pass_test {
 # Execute test cases.
 ###############################################################################
 
-pass_test "rm -rf $repo";
-pass_test "rm -rf $upstream";
-pass_test "$opentheory --help";
-pass_test "$opentheory_repo init";
-pass_test "$opentheory_upstream init --repo";
+test_section "Basic functionality";
+test_passing "$opentheory --help";
+
+test_section "Initialize upstream";
+test_passing "rm -rf $upstream";
+test_passing "mkdir $upstream";
+test_passing "$opentheory_upstream init --repo";
+test_passing "tail -n +6 < $upstream/opentheory/config > $upstream/opentheory/config.new";
+test_passing "mv $upstream/opentheory/config.new $upstream/opentheory/config";
+
+test_section "Populate upstream";
+test_passing "$opentheory_upstream list";
+test_passing "$opentheory_upstream install theories/bool-true-def/bool-true-def.thy";
+test_passing "$opentheory_upstream install theories/bool-true-thm/bool-true-thm.thy";
+test_passing "$opentheory_upstream install theories/bool-true/bool-true.thy";
+test_passing "$opentheory_upstream list";
+
+test_section "Initialize repo";
+test_passing "rm -rf $repo";
+test_passing "$opentheory_repo init";
+test_passing "echo '[author]' > $repo/config.new";
+test_passing "echo 'name = Joe Leslie-Hurd' >> $repo/config.new";
+test_passing "echo 'email = joe\@gilith.com' >> $repo/config.new";
+test_passing "echo >> $repo/config.new";
+test_passing "echo '[repo]' >> $repo/config.new";
+test_passing "echo 'name = upstream' >> $repo/config.new";
+test_passing "echo 'url = file://$upstream_realpath/' >> $repo/config.new";
+test_passing "tail -n +4 < $repo/config >> $repo/config.new";
+test_passing "mv $repo/config.new $repo/config";
+
+test_section "Install to repo";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo install tarball:$upstream/opentheory/packages/bool-true-thm-1.0/bool-true-thm-1.0.tgz";
+test_passing "$opentheory_repo install bool-true";
+test_passing "$opentheory_repo list --format 'NAME-VERSION CHECKSUM' All";
+
+test_section "Package information";
+test_passing "$opentheory_repo info bool-true";
+test_passing "$opentheory_repo info --theory-source bool-true";
+
+test_section "Listing packages";
+test_passing "$opentheory_repo list Mine";
 
 __END__
 
