@@ -57,9 +57,9 @@ sub execute_command {
     my $cmd = shift @_;
 
     my $cmd_text = $cmd;
-    $cmd_text =~ s%^[.][.]/bin/(mosml|mlton|polyml)/%%;
-
-    print STDOUT "--------------------------------------------------------------------------\n$cmd_text\n\n";
+    if ($cmd_text =~ s%^[.][.]/bin/(mosml|mlton|polyml)/opentheory%opentheory%) {
+      print STDOUT "--------------------------------------------------------------------------\n$cmd_text\n\n";
+    }
 
     return system("$cmd 2>&1");
 }
@@ -88,9 +88,6 @@ test_passing "mkdir $upstream";
 test_passing "$opentheory_upstream init --repo";
 test_passing "tail -n +6 < $upstream/opentheory/config > $upstream/opentheory/config.new";
 test_passing "mv $upstream/opentheory/config.new $upstream/opentheory/config";
-
-test_section "Populate upstream";
-test_passing "$opentheory_upstream list";
 test_passing "$opentheory_upstream install theories/bool-true-def/bool-true-def.thy";
 test_passing "$opentheory_upstream install theories/bool-true-thm/bool-true-thm.thy";
 test_passing "$opentheory_upstream install theories/bool-true/bool-true.thy";
@@ -109,17 +106,17 @@ test_passing "echo 'url = file://$upstream_realpath/' >> $repo/config.new";
 test_passing "tail -n +4 < $repo/config >> $repo/config.new";
 test_passing "mv $repo/config.new $repo/config";
 
-test_section "Install to repo";
+test_section "Install packages";
 test_passing "$opentheory_repo list";
 test_passing "$opentheory_repo install tarball:$upstream/opentheory/packages/bool-true-thm-1.0/bool-true-thm-1.0.tgz";
 test_passing "$opentheory_repo install bool-true";
 test_passing "$opentheory_repo list --format 'NAME-VERSION CHECKSUM' All";
 
-test_section "Package information";
+test_section "Show package information";
 test_passing "$opentheory_repo info bool-true";
 test_passing "$opentheory_repo info --theory-source bool-true";
 
-test_section "Listing packages";
+test_section "List packages";
 test_passing "$opentheory_repo list Mine";
 
 __END__

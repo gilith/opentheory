@@ -448,26 +448,9 @@ Displaying global options:
 ==========================================================================
 Initialize upstream
 --------------------------------------------------------------------------
-rm -rf repos/upstream
-
---------------------------------------------------------------------------
-mkdir repos/upstream
-
---------------------------------------------------------------------------
 opentheory -d repos/upstream/opentheory init --repo
 
 initialized new package repo {repos/upstream/opentheory} for remote use
---------------------------------------------------------------------------
-tail -n +6 < repos/upstream/opentheory/config > repos/upstream/opentheory/config.new
-
---------------------------------------------------------------------------
-mv repos/upstream/opentheory/config.new repos/upstream/opentheory/config
-
-==========================================================================
-Populate upstream
---------------------------------------------------------------------------
-opentheory -d repos/upstream/opentheory list
-
 --------------------------------------------------------------------------
 opentheory -d repos/upstream/opentheory install theories/bool-true-def/bool-true-def.thy
 
@@ -487,41 +470,11 @@ bool-true-1.0
 ==========================================================================
 Initialize repo
 --------------------------------------------------------------------------
-rm -rf repos/repo
-
---------------------------------------------------------------------------
 opentheory -d repos/repo init
 
 initialized new package repo {repos/repo}
---------------------------------------------------------------------------
-echo '[author]' > repos/repo/config.new
-
---------------------------------------------------------------------------
-echo 'name = Joe Leslie-Hurd' >> repos/repo/config.new
-
---------------------------------------------------------------------------
-echo 'email = joe@gilith.com' >> repos/repo/config.new
-
---------------------------------------------------------------------------
-echo >> repos/repo/config.new
-
---------------------------------------------------------------------------
-echo '[repo]' >> repos/repo/config.new
-
---------------------------------------------------------------------------
-echo 'name = upstream' >> repos/repo/config.new
-
---------------------------------------------------------------------------
-echo 'url = file:///Users/joe/dev/opentheory/test/repos/upstream/' >> repos/repo/config.new
-
---------------------------------------------------------------------------
-tail -n +4 < repos/repo/config >> repos/repo/config.new
-
---------------------------------------------------------------------------
-mv repos/repo/config.new repos/repo/config
-
 ==========================================================================
-Install to repo
+Install packages
 --------------------------------------------------------------------------
 opentheory -d repos/repo list
 
@@ -537,11 +490,11 @@ installed package bool-true-1.0
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-true-1.0 f6a69ce29788c2612985e80ddb900a8948a9e1fb
-bool-true-def-1.0 17dfd508d922088192bd239d6b1cf3bcd4bef2c9
-bool-true-thm-1.0 ebab4fddac58bd425fb898d7645a93f434757d26
+bool-true-1.0 28e439bc7405b98b3deaf3150abb05c6574ecba1
+bool-true-def-1.0 f984ba08c200a74df85fef5e83302bf3cc59f70f
+bool-true-thm-1.0 5ce9617aafe613bd8dad3f0d6168d07318b55cb3
 ==========================================================================
-Package information
+Show package information
 --------------------------------------------------------------------------
 opentheory -d repos/repo info bool-true
 
@@ -556,13 +509,13 @@ opentheory -d repos/repo info --theory-source bool-true
 
 def {
   package: bool-true-def-1.0
-  checksum: 17dfd508d922088192bd239d6b1cf3bcd4bef2c9
+  checksum: f984ba08c200a74df85fef5e83302bf3cc59f70f
 }
 
 thm {
   import: def
   package: bool-true-thm-1.0
-  checksum: ebab4fddac58bd425fb898d7645a93f434757d26
+  checksum: 5ce9617aafe613bd8dad3f0d6168d07318b55cb3
 }
 
 main {
@@ -570,7 +523,7 @@ main {
   import: thm
 }
 ==========================================================================
-Listing packages
+List packages
 --------------------------------------------------------------------------
 opentheory -d repos/repo list Mine
 
