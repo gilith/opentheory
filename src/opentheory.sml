@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.3";
 
-val release = " (release 20140721)";
+val release = " (release 20141012)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -2919,88 +2919,6 @@ local
         else if s = "n\n" orelse s = "\n" then false
         else askToConfirmUpload ()
       end;
-
-(***
-  fun startUpload repo =
-      let
-        val upl = DirectoryRepo.startUpload repo
-
-        val {url} = DirectoryRepo.urlUpload upl
-
-        val mesg =
-            "started upload to " ^
-            DirectoryRepo.toString repo ^
-            ":\n  " ^ url
-
-        val () = chat mesg
-
-        val () = TextIO.flushOut TextIO.stdOut
-      in
-        upl
-      end;
-
-  fun supportUpload dir repo upl namever =
-      let
-        val () = Directory.supportUpload dir upl namever
-
-        val mesg =
-            "installed support package " ^
-            PackageNameVersion.toString namever ^
-            " on " ^ DirectoryRepo.toString repo
-
-        val () = chat mesg
-
-        val () = TextIO.flushOut TextIO.stdOut
-      in
-        ()
-      end;
-
-  fun packageUpload dir repo upl namever =
-      let
-        val () = Directory.packageUpload dir upl namever
-
-        val mesg =
-            "uploaded package " ^
-            PackageNameVersion.toString namever ^
-            " to " ^ DirectoryRepo.toString repo
-
-        val () = chat mesg
-
-        val () = TextIO.flushOut TextIO.stdOut
-      in
-        ()
-      end;
-
-  fun finishUpload repo upl =
-      let
-        val () = DirectoryRepo.finishUpload upl
-
-        val mesg =
-            "finished upload to " ^ DirectoryRepo.toString repo ^
-            ", sent author confirmation email"
-
-        val () = chat mesg
-
-        val () = TextIO.flushOut TextIO.stdOut
-      in
-        ()
-      end;
-
-  fun deleteUpload repo upl =
-      let
-        val () = DirectoryRepo.deleteUpload upl
-
-        val mesg =
-            "encountered error, so deleted upload to " ^
-            DirectoryRepo.toString repo
-
-        val () = chat mesg
-
-        val () = TextIO.flushOut TextIO.stdOut
-      in
-        ()
-      end;
-***)
 in
   fun upload inps =
       let

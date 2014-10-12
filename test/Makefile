@@ -5,7 +5,7 @@
 
 TOOL_TEST = ../scripts/tool-test
 
-POSTPROCESS = perl -ne 'BEGIN { my %checksums = {}; } my $$line = $$_; chomp $$line; if ($$line =~ /^User: /) { $$line = "*** This line of the test output contained timings ***"; } elsif ($$line =~ /^(.*)([0-9a-f]{40})(.*)$$/) { my $$prefix = $$1; my $$checksum = $$2; my $$suffix = $$3; my $$index; if (defined($$checksums{$$checksum})) { $$index = $$checksums{$$checksum}; } else { $$index = scalar(keys %checksums); $$checksums{$$checksum} = $$index; } $$line = "$$prefix" . "CHECKSUM[$$index]" . "$$suffix"; } print STDOUT "$$line\n";'
+POSTPROCESS = perl -ne 'BEGIN { my %checksums = {}; } my $$line = $$_; chomp $$line; if ($$line =~ /^User: /) { $$line = "[This line of the test output contained timings]"; } elsif ($$line =~ /^(.*)([0-9a-f]{40})(.*)$$/) { my $$prefix = $$1; my $$checksum = $$2; my $$suffix = $$3; my $$index; if (defined($$checksums{$$checksum})) { $$index = $$checksums{$$checksum}; } else { $$index = scalar(keys %checksums); $$checksums{$$checksum} = $$index; } $$line = "$$prefix" . "CHECKSUM[$$index]" . "$$suffix"; } print STDOUT "$$line\n";'
 
 REFERENCE_FILE = result.ok
 
