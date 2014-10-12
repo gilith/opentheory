@@ -9,6 +9,10 @@ use Getopt::Std;
 
 use vars qw($opt_h $opt_a $opt_l $opt_p $opt_u);
 
+###############################################################################
+# Process options.
+###############################################################################
+
 getopts('ha:l:p:u');
 
 if ($opt_h or scalar @ARGV != 1)
@@ -43,6 +47,25 @@ if ($source ne '/' && $source =~ m{^(.*)/$}) { $source = $1; }
 
 my $target = "data/theories";
 [ -d $target ] or die "$program: $target not a directory";
+
+###############################################################################
+# Execute commands.
+###############################################################################
+
+sub execute_command {
+    (scalar @_ == 1) or die;
+    my $cmd = shift @_;
+
+#    print STDOUT "$cmd\n";
+
+    my $result = system($cmd);
+
+    return $result;
+}
+
+###############################################################################
+# Import theories.
+###############################################################################
 
 my $cmd = "ls $source";
 
@@ -90,11 +113,11 @@ while (my $thy = <THEORIES>) {
     }
 
     $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
-    (system ($cmd) == 0) or
+    (execute_command ($cmd) == 0) or
       die "$program: couldn't execute $cmd: $!\n";
 
     $cmd = "grep 'Unwanted' $tartnew";
-    (system ($cmd) != 0) or
+    (execute_command ($cmd) != 0) or
       die "$program: Unwanted symbols found in $base\n";
 
     if ($opt_u && defined( -e $tart )) {
@@ -102,7 +125,7 @@ while (my $thy = <THEORIES>) {
 
       if ($replace) {
         $cmd = "diff $tart $tartnew >/dev/null";
-        if (system ($cmd) == 0) {
+        if (execute_command ($cmd) == 0) {
           $replace = 0;
         }
       }
@@ -110,25 +133,25 @@ while (my $thy = <THEORIES>) {
       if ($replace) {
         if (( -s $tart ) <= ( -s $tartnew )) {
           $cmd = "$opentheory info --theorems -o $tart.thms article:$tart";
-          (system ($cmd) == 0) or
+          (execute_command ($cmd) == 0) or
             die "$program: couldn't execute $cmd: $!\n";
 
           $cmd = "$opentheory info --theorems -o $tartnew.thms article:$tartnew";
-          (system ($cmd) == 0) or
+          (execute_command ($cmd) == 0) or
             die "$program: couldn't execute $cmd: $!\n";
 
           $cmd = "diff $tart.thms $tartnew.thms >/dev/null";
-          if (system ($cmd) == 0) {
+          if (execute_command ($cmd) == 0) {
             $cmd = "$opentheory info --assumptions -o $tart.asms article:$tart";
-            (system ($cmd) == 0) or
+            (execute_command ($cmd) == 0) or
               die "$program: couldn't execute $cmd: $!\n";
 
             $cmd = "$opentheory info --assumptions -o $tartnew.asms article:$tartnew";
-            (system ($cmd) == 0) or
+            (execute_command ($cmd) == 0) or
               die "$program: couldn't execute $cmd: $!\n";
 
             $cmd = "diff $tart.asms $tartnew.asms >/dev/null";
-            if (system ($cmd) == 0) {
+            if (execute_command ($cmd) == 0) {
               $replace = 0;
             }
 
@@ -149,7 +172,7 @@ while (my $thy = <THEORIES>) {
 
       if ($replace) {
         $cmd = "$bumpver -p $tthy > $tthynew";
-        (system ($cmd) == 0) or
+        (execute_command ($cmd) == 0) or
           die "$program: couldn't execute $cmd: $!\n";
 
         rename($tthynew,$tthy) or

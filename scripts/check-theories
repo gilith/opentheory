@@ -227,7 +227,7 @@ while (my $thy = <THEORIES>) {
 
   my $files1 = `$opentheory info --files $thydir/$thy.thy | sort`;
 
-  my $files2 = `find $thydir/*`;
+  my $files2 = `ls $thydir`;
 
   if ($files1 ne $files2) {
     print STDOUT "$program: different files in theory $thy\n";
