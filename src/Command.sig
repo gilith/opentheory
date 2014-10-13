@@ -33,6 +33,7 @@ datatype command =
   | Nil
   | OpType
   | Pop
+  | Pragma
   | Ref
   | Refl
   | Remove

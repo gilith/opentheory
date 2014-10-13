@@ -119,7 +119,22 @@ fun rewrite rewr (TypeTerm.Var (n,ty)) =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Print.ppMap name Name.pp;
+val showTypes = ref false;
+
+fun pp var =
+    let
+      val (name,ty) = dest var
+    in
+      if not (!showTypes) then Name.pp name
+      else
+        Print.inconsistentBlock 1
+          [Print.ppString "(",
+           Name.pp name,
+           Print.ppString " :",
+           Print.break,
+           Type.pp ty,
+           Print.ppString ")"]
+    end;
 
 val toString = Print.toString pp;
 

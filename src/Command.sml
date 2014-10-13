@@ -31,6 +31,7 @@ and negationChar = #"-"
 and nilCommandString = "nil"
 and opTypeCommandString = "opType"
 and popCommandString = "pop"
+and pragmaCommandString = "pragma"
 and refCommandString = "ref"
 and reflCommandString = "refl"
 and removeCommandString = "remove"
@@ -69,6 +70,7 @@ datatype command =
   | Nil
   | OpType
   | Pop
+  | Pragma
   | Ref
   | Refl
   | Remove
@@ -160,6 +162,9 @@ fun compare cmd1_cmd2 =
     | (Pop,Pop) => EQUAL
     | (Pop,_) => LESS
     | (_,Pop) => GREATER
+    | (Pragma,Pragma) => EQUAL
+    | (Pragma,_) => LESS
+    | (_,Pragma) => GREATER
     | (Ref,Ref) => EQUAL
     | (Ref,_) => LESS
     | (_,Ref) => GREATER
@@ -208,6 +213,7 @@ and ppEqMpCommand = Print.ppString eqMpCommandString
 and ppNilCommand = Print.ppString nilCommandString
 and ppOpTypeCommand = Print.ppString opTypeCommandString
 and ppPopCommand = Print.ppString popCommandString
+and ppPragmaCommand = Print.ppString pragmaCommandString
 and ppRefCommand = Print.ppString refCommandString
 and ppReflCommand = Print.ppString reflCommandString
 and ppRemoveCommand = Print.ppString removeCommandString
@@ -250,6 +256,7 @@ fun pp cmd =
     | Nil => ppNilCommand
     | OpType => ppOpTypeCommand
     | Pop => ppPopCommand
+    | Pragma => ppPragmaCommand
     | Ref => ppRefCommand
     | Refl => ppReflCommand
     | Remove => ppRemoveCommand
@@ -322,6 +329,7 @@ local
   and nilCommandParser = exactString nilCommandString
   and opTypeCommandParser = exactString opTypeCommandString
   and popCommandParser = exactString popCommandString
+  and pragmaCommandParser = exactString pragmaCommandString
   and refCommandParser = exactString refCommandString
   and reflCommandParser = exactString reflCommandString
   and removeCommandParser = exactString removeCommandString
@@ -357,6 +365,7 @@ in
       appThmCommandParser >> K AppThm ||
       assumeCommandParser >> K Assume ||
       opTypeCommandParser >> K OpType ||
+      pragmaCommandParser >> K Pragma ||
       removeCommandParser >> K Remove ||
       typeOpCommandParser >> K TypeOp ||
       (* Commands of length 5 *)

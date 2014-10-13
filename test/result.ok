@@ -442,6 +442,7 @@ where the available commands are:
 Displaying global options:
   -d, --root-dir DIR ... set the package repo directory
   --repo REPO .......... use the given remote package repo
+  --show-var-types ..... annotate every term variable with its type
   -- ................... no more options
   -?, -h, --help ....... display option information and exit
   -v, --version ........ display version information
@@ -490,9 +491,9 @@ installed package bool-true-1.0
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-true-1.0 69afeae6bbf2ebc8c6b2426a4b3bfbb01f6d039f
-bool-true-def-1.0 dbe1e895188806ed0a94e0faf839f16de42f8939
-bool-true-thm-1.0 60b5ab391a9ff18fc60b8e992d5ad9b377014648
+bool-true-1.0 27a7d5d03c09a69f88ddaa233d0bdf2373356b83
+bool-true-def-1.0 19d9ce79ea0578fdee97c142ea9c2968979e1d19
+bool-true-thm-1.0 5e30d13e70b2beb040dfd333229ae44efd7053fa
 ==========================================================================
 Show package information
 --------------------------------------------------------------------------
@@ -509,13 +510,13 @@ opentheory -d repos/repo info --theory-source bool-true
 
 def {
   package: bool-true-def-1.0
-  checksum: dbe1e895188806ed0a94e0faf839f16de42f8939
+  checksum: 19d9ce79ea0578fdee97c142ea9c2968979e1d19
 }
 
 thm {
   import: def
   package: bool-true-thm-1.0
-  checksum: 60b5ab391a9ff18fc60b8e992d5ad9b377014648
+  checksum: 5e30d13e70b2beb040dfd333229ae44efd7053fa
 }
 
 main {
@@ -528,3 +529,5 @@ List packages
 opentheory -d repos/repo list Mine
 
 bool-true-1.0
+==========================================================================
+End of self-test

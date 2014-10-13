@@ -119,6 +119,8 @@ test_passing "$opentheory_repo info --theory-source bool-true";
 test_section "List packages";
 test_passing "$opentheory_repo list Mine";
 
+test_section "End of self-test";
+
 __END__
 
 =pod

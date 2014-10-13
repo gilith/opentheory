@@ -177,6 +177,20 @@ fun pop5 stack =
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Print.ppMap objects (Print.ppList Object.pp);
+local
+  val ppX = Object.pp;
+
+  val ppSep = Print.ppOp ",";
+
+  fun ppSepX x = Print.sequence ppSep (ppX x);
+
+  val ppSeqX =
+      fn [] => Print.skip
+       | x :: xs => Print.consistentBlock 0 (ppX x :: List.map ppSepX xs);
+
+  val ppListX = Print.ppBracket "[" "]" ppSeqX;
+in
+  val pp = Print.ppMap objects ppListX;
+end;
 
 end

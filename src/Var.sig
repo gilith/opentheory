@@ -83,6 +83,8 @@ val rewrite : TypeRewrite.rewrite -> var -> var option
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val showTypes : bool ref
+
 val pp : var Print.pp
 
 val toString : var -> string

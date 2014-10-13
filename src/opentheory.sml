@@ -1146,7 +1146,12 @@ in
         description = "use the given remote package repo",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => addRemote s)}];
+            (fn _ => fn s => addRemote s)},
+       {switches = ["--show-var-types"], arguments = [],
+        description = "annotate every term variable with its type",
+        processor =
+          beginOpt endOpt
+            (fn _ => Var.showTypes := true)}];
 end;
 
 local

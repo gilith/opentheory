@@ -60,6 +60,12 @@ fun inference (State {inference = x, ...}) = x;
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
+fun ppState (State {stack,...}) =
+    Print.consistentBlock 4
+      [Print.ppString "  stack =",
+       Print.break,
+       ObjectStack.pp stack];
+
 fun execute cmd state =
     let
       val State {parameters,stack,dict,export,inference} = state
@@ -468,6 +474,44 @@ fun execute cmd state =
              inference = inference}
         end
 
+      (* Reader-dependent operations *)
+
+      | Command.Pragma =>
+        let
+          val (stack,objX) = ObjectStack.pop stack
+
+          val pragma =
+              case Object.data objX of
+                ObjectData.Name name =>
+                if not (Name.isGlobal name) then NONE
+                else SOME (Name.destGlobal name, [])
+              | ObjectData.List (ObjectData.Name name :: args) =>
+                if not (Name.isGlobal name) then NONE
+                else SOME (Name.destGlobal name, args)
+              | _ => NONE
+
+          val state =
+              State
+                {parameters = parameters,
+                 stack = stack,
+                 dict = dict,
+                 export = export,
+                 inference = inference}
+        in
+          case pragma of
+            SOME ("debug",[]) =>
+            let
+              val msg =
+                  "debug pragma:\n" ^
+                  Print.toString ppState state
+
+              val () = chat msg
+            in
+              state
+            end
+          | _ => state
+        end
+
       (* Dictionary lookups *)
 
       | Command.Ref =>
@@ -648,12 +692,6 @@ fun execute cmd state =
     handle Error err =>
       let
 (*OpenTheoryDebug
-        fun ppState (State {stack,...}) =
-            Print.consistentBlock 4
-              [Print.ppString "  stack =",
-               Print.break,
-               ObjectStack.pp stack]
-
         val err = Print.toString ppState state ^ "\n" ^ err
 *)
         val err =
