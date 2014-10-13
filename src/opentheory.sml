@@ -59,19 +59,25 @@ fun annotateOptions s =
 (* ------------------------------------------------------------------------- *)
 
 val describeDirFormat =
-    "DIR is any directory on the file system";
+    "DIR is a directory on the file system";
 
 val describeFileFormat =
-    "FILE is any filename; use - to read from stdin or write to stdout";
+    "FILE is a filename; use - to read from stdin or write to stdout";
 
 val describeRepoFormat =
-    "REPO is the name of any repo in the config file (e.g., gilith)";
+    "REPO is the name of a repo in the config file (e.g., gilith)";
 
 val describeNameFormat =
-    "NAME is any package name (e.g., base)";
+    "NAME is a package name (e.g., base)";
 
 val describeVersionFormat =
-    "VERSION is any package version (e.g., 1.0)";
+    "VERSION is a package version (e.g., 1.0)";
+
+val describeListQueryFormat =
+    "QUERY is a package query (e.g., UpToDate, Upgradable or Obsolete)";
+
+val describeUninstallQueryFormat =
+    "QUERY is a package query (e.g., NAME-VERSION or Obsolete).";
 
 val describeQueryFormat =
     "QUERY represents a subset S of the installed packages P, as follows:\n" ^
@@ -180,13 +186,17 @@ fun fromStringInput inp =
                     else raise Error ("unknown type of input: " ^ inp)
                   end;
 
+val describeInfoInputFormat =
+    "INPUT is one of the following:\n" ^
+    "  - A package: NAME-VERSION or NAME (for the latest version)\n" ^
+    "  - A theory source file: FILE.thy or theory:FILE\n" ^
+    "  - A proof article file: FILE.art or article:FILE\n" ^
+    "  - A package tarball: FILE.tgz or tarball:FILE\n" ^
+    "  - A package staged for installation: staged:NAME-VERSION";
+
 val describeInputFormat =
-    "INPUT is one of the following forms:\n" ^
-    "  1. A package: NAME-VERSION or NAME (for the latest version)\n" ^
-    "  2. A theory source file: FILE.thy or theory:FILE\n" ^
-    "  3. A proof article file: FILE.art or article:FILE\n" ^
-    "  4. A package tarball: FILE.tgz or tarball:FILE\n" ^
-    "  5. A package staged for installation: staged:NAME-VERSION";
+    describeInfoInputFormat ^ "\n" ^
+    "  - A subset of the installed packages: QUERY";
 
 (* ------------------------------------------------------------------------- *)
 (* Output format for basic package information.                              *)
@@ -524,7 +534,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Package finders for the local repository.                                 *)
+(* Finding packages on the local repository.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 fun finder () = Repository.finder (repository ());
@@ -533,10 +543,6 @@ fun stagedFinder () = Repository.stagedFinder (repository ());
 
 fun possiblyStagedFinder () =
     PackageFinder.orelsef (finder ()) (stagedFinder ());
-
-(* ------------------------------------------------------------------------- *)
-(* Getting the latest version of packages.                                   *)
-(* ------------------------------------------------------------------------- *)
 
 fun latestVersion name =
     let
@@ -557,6 +563,15 @@ fun previousVersion namever =
       val repo = repository ()
     in
       Repository.previousNameVersion repo namever
+    end;
+
+fun evaluateQuery query =
+    let
+      val repo = repository ()
+
+      val rems = remotes ()
+    in
+      RepositoryQuery.evaluate repo rems query
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -817,7 +832,7 @@ in
 end;
 
 val infoFooter =
-    describeInputFormat ^ "\n" ^
+    describeInfoInputFormat ^ "\n" ^
     describeNameFormat ^ ".\n" ^
     describeVersionFormat ^ ".\n" ^
     describeFileFormat ^ ".\n" ^
@@ -969,11 +984,9 @@ in
 end;
 
 val listFooter =
-    describeQueryFormat ^
-    describeNameFormat ^ ".\n" ^
-    describeVersionFormat ^ ".\n" ^
+    describeListQueryFormat ^ ".\n" ^
     describeInfoFormat ^ ".\n" ^
-    "If the QUERY argument is missing the default Identity is used instead.\n";
+    "If the QUERY argument is missing the latest installed packages are listed.\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Options for updating remote repository package lists.                     *)
@@ -1067,7 +1080,7 @@ fun commandArgs cmd =
     | Init => ""
     | Install => " NAME|NAME-VERSION|FILE.thy"
     | List => " QUERY"
-    | Uninstall => " NAME-VERSION"
+    | Uninstall => " QUERY"
     | Update => ""
     | Upload => " NAME|NAME-VERSION ...";
 
@@ -1080,7 +1093,7 @@ fun commandDescription cmd =
     | Init => "initialize a new package repo"
     | Install => "install a package from a theory file or repo"
     | List => "list installed packages"
-    | Uninstall => "uninstall an installed package"
+    | Uninstall => "uninstall packages"
     | Update => "update repo package lists"
     | Upload => "upload installed packages to a repo";
 
@@ -1185,14 +1198,13 @@ local
 
   val allFormatsFooter =
     describeInputFormat ^ "\n" ^
-    "The list command takes a special QUERY input:\n" ^
-    describeQueryFormat ^
     describeNameFormat ^ ".\n" ^
     describeVersionFormat ^ ".\n" ^
     describeFileFormat ^ ".\n" ^
     describeInfoFormat ^ ".\n" ^
     describeDirFormat ^ ".\n" ^
-    describeRepoFormat ^ ".\n";
+    describeRepoFormat ^ ".\n" ^
+    describeQueryFormat;
 in
   val globalOptions =
       mkProgramOptions
@@ -2777,45 +2789,47 @@ fun sortList repo pkgs ord =
     | DependencyList => Repository.dependencyOrder repo pkgs
     | ReverseList ord => List.rev (sortList repo pkgs ord);
 
-fun list query =
-    let
-      val query =
-          case query of
-            NONE => RepositoryQuery.Identity
-          | SOME inp =>
-            case inp of
-              ArticleInput _ => raise Error "cannot list an article file"
-            | PackageInput namever =>
-              RepositoryQuery.Constant (RepositoryQuery.NameVersion namever)
-            | PackageNameInput name =>
-              RepositoryQuery.Constant (RepositoryQuery.Name name)
-            | PackageQueryInput query => query
-            | StagedPackageInput _ =>
-              raise Error "cannot list a staged package"
-            | TarballInput _ => raise Error "cannot list a tarball"
-            | TheoryInput _ => raise Error "cannot list a theory source file"
+local
+  fun listInput inp =
+      case inp of
+        NONE => RepositoryQuery.Identity
+      | SOME inp =>
+        case inp of
+          ArticleInput _ => raise Error "cannot list an article file"
+        | PackageInput namever =>
+          RepositoryQuery.Constant (RepositoryQuery.NameVersion namever)
+        | PackageNameInput name =>
+          RepositoryQuery.Constant (RepositoryQuery.Name name)
+        | PackageQueryInput query => query
+        | StagedPackageInput _ =>
+          raise Error "cannot list a staged package"
+        | TarballInput _ => raise Error "cannot list a tarball"
+        | TheoryInput _ => raise Error "cannot list a theory source file";
+in
+  fun list inp =
+      let
+        val query = listInput inp
 
-      val repo = repository ()
+        val namevers = evaluateQuery query
 
-      val rems = remotes ()
+        val repo = repository ()
 
-      val namevers = RepositoryQuery.evaluate repo rems query
+        val namevers = sortList repo namevers (orderList ());
 
-      val namevers = sortList repo namevers (orderList ());
+        val fmt = getFormatList ()
 
-      val fmt = getFormatList ()
+        val strm =
+            let
+              fun mk namever = packageToStringInfoFormat repo fmt namever ^ "\n"
+            in
+              Stream.map mk (Stream.fromList namevers)
+            end
 
-      val strm =
-          let
-            fun mk namever = packageToStringInfoFormat repo fmt namever ^ "\n"
-          in
-            Stream.map mk (Stream.fromList namevers)
-          end
-
-      val ref f = outputList
-    in
-      Stream.toTextFile {filename = f} strm
-    end;
+        val ref f = outputList
+      in
+        Stream.toTextFile {filename = f} strm
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Update remote repository package lists.                                   *)

@@ -64,7 +64,7 @@ while (my $name = <THEORIES>) {
     if ($opt_u) {
         my $thynew = $thy . '.upgrading';
 
-        $cmd = "$opentheory info --theory-source --upgrade-theory --preserve-theory $thy >$thynew 2>/dev/null";
+        $cmd = "$opentheory info --upgrade-theory --information --format '' --theory-source $thy >$thynew 2>/dev/null";
         # print STDOUT "cmd = $cmd\n";
         if (system ($cmd) == 0) {
             if ($opt_d) { print STDOUT "auto-upgraded theory file.\n"; }
