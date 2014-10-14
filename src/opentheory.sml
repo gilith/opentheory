@@ -2326,29 +2326,24 @@ local
           else chat ("package uninstall warnings:\n" ^ s)
         end;
 
-  fun uninstallPackage repo auto namever =
+  fun uninstallPackages repo namevers =
       let
-        val () = Repository.uninstall repo namever
-
-        val () =
-            let
-              val msg =
-                  (if auto then "auto-" else "") ^
-                  "uninstalled package " ^ PackageNameVersion.toString namever
-            in
-              chat msg
-            end
-      in
-        ()
-      end;
-
-  fun uninstallAutoSet repo namevers =
-      let
-        fun uninstall namever =
+        fun uninstall1 namever =
             let
               val auto = not (PackageNameVersionSet.member namever namevers)
+
+              val () = Repository.uninstall repo namever
+
+              val () =
+                  let
+                    val msg =
+                        (if auto then "auto-" else "") ^
+                        "uninstalled package " ^ PackageNameVersion.toString namever
+                  in
+                    chat msg
+                  end
             in
-              uninstallPackage repo auto namever
+              ()
             end
 
         val errs = Repository.checkUninstall repo namevers
@@ -2370,13 +2365,17 @@ local
 
         val namevers = List.rev (Repository.includeOrder repo namevers)
 
-        val () = List.app uninstall namevers
+        val () = List.app uninstall1 namevers
       in
         ()
       end;
 in
-  fun uninstallAuto repo namever =
-      uninstallAutoSet repo (PackageNameVersionSet.singleton namever);
+  fun uninstallPackage namever =
+      let
+        val repo = repository ()
+      in
+        uninstallPackages repo (PackageNameVersionSet.singleton namever)
+      end;
 
   fun uninstall inp =
       let
@@ -2389,7 +2388,7 @@ in
         if PackageNameVersionSet.null namevers then
           raise Error "no matching installed packages"
         else
-          uninstallAutoSet repo namevers
+          uninstallPackages repo namevers
       end
       handle Error err =>
         raise Error (err ^ "\npackage uninstall failed");
@@ -2461,6 +2460,58 @@ in
       end;
 end;
 
+fun installPackage rem namever chk =
+    let
+      val repo = repository ()
+
+      val errs = Repository.checkStagePackage repo rem namever chk
+
+      val errs =
+          if not (!reinstall) then errs
+          else
+            let
+              val (staged,errs) = RepositoryError.removeAlreadyStaged errs
+
+              val () =
+                  if not staged then ()
+                  else Repository.cleanupStaged repo namever
+            in
+              errs
+            end
+
+      val (replace,errs) =
+          if not (!reinstall) then (false,errs)
+          else RepositoryError.removeAlreadyInstalled errs
+
+      val () =
+          if RepositoryError.isClean errs then ()
+          else
+            let
+              val s = RepositoryError.report errs
+            in
+              if RepositoryError.fatal errs then raise Error s
+              else chat ("package install warnings:\n" ^ s)
+            end
+
+      val () =
+          if not replace then ()
+          else uninstallPackage namever
+
+      val fndr = installFinder ()
+
+      val tool = {tool = versionHtml}
+
+      val () = Repository.stagePackage repo fndr rem namever chk tool
+
+      val () = Repository.installStaged repo namever chk
+
+      val () =
+          chat ((if replace then "re" else "") ^ "installed package " ^
+                PackageNameVersion.toString namever)
+    in
+      ()
+    end;
+
 local
   fun installStagedPackage namever =
       let
@@ -2520,7 +2571,7 @@ local
       handle Error err =>
         raise Error (err ^ "\nstaged package install failed");
 
-  fun installPackage namever =
+  fun installPackageNameVersion namever =
       let
         val () =
             if not (Option.isSome (!nameInstall)) then ()
@@ -2530,54 +2581,9 @@ local
             if not (!stageInstall) then ()
             else raise Error "can't stage a package install"
 
-        val repo = repository ()
-
         val (rem,chk) = firstRemote namever (!checksumInstall)
 
-        val errs = Repository.checkStagePackage repo rem namever chk
-
-        val errs =
-            if not (!reinstall) then errs
-            else
-              let
-                val (staged,errs) = RepositoryError.removeAlreadyStaged errs
-
-                val () =
-                    if not staged then ()
-                    else Repository.cleanupStaged repo namever
-              in
-                errs
-              end
-
-        val (replace,errs) =
-            if not (!reinstall) then (false,errs)
-            else RepositoryError.removeAlreadyInstalled errs
-
-        val () =
-            if RepositoryError.isClean errs then ()
-            else
-              let
-                val s = RepositoryError.report errs
-              in
-                if RepositoryError.fatal errs then raise Error s
-                else chat ("package install warnings:\n" ^ s)
-              end
-
-        val () =
-            if not replace then ()
-            else uninstallAuto repo namever
-
-        val fndr = installFinder ()
-
-        val tool = {tool = versionHtml}
-
-        val () = Repository.stagePackage repo fndr rem namever chk tool
-
-        val () = Repository.installStaged repo namever chk
-
-        val () =
-            chat ((if replace then "re" else "") ^ "installed package " ^
-                  PackageNameVersion.toString namever)
+        val () = installPackage rem namever chk
       in
         ()
       end
@@ -2593,33 +2599,35 @@ local
         val () =
             if not (!stageInstall) then ()
             else raise Error "can't stage a package name install"
+
+        val () =
+            case latestVersion name of
+              SOME nv =>
+              let
+                val err =
+                    "package " ^ PackageNameVersion.toString nv ^
+                    " is already installed"
+              in
+                raise Error err
+              end
+            | NONE => ()
       in
-        case latestVersion name of
-          SOME nv =>
+        case latestVersionRemotes name (!checksumInstall) of
+          NONE =>
           let
             val err =
-                "package " ^ PackageNameVersion.toString nv ^
-                " is already installed"
+                "can't find a version of package " ^
+                PackageName.toString name
+
+            val err =
+                if not (Option.isSome (!checksumInstall)) then err
+                else err ^ " with specified checksum"
+
+            val err = err ^ " in any repo"
           in
             raise Error err
           end
-        | NONE =>
-          case latestVersionRemotes name (!checksumInstall) of
-            NONE =>
-            let
-              val err =
-                  "can't find a version of package " ^
-                  PackageName.toString name
-
-              val err =
-                  if not (Option.isSome (!checksumInstall)) then err
-                  else err ^ " with specified checksum"
-
-              val err = err ^ " in any repo"
-            in
-              raise Error err
-            end
-          | SOME (_,namever,_) => installPackage namever
+        | SOME (rem,nv,chk) => installPackage rem nv chk
       end
       handle Error err =>
         raise Error (err ^ "\npackage name install failed");
@@ -2684,7 +2692,7 @@ local
 
         val () =
             if not replace then ()
-            else uninstallAuto repo namever
+            else uninstallPackage namever
 
         val fndr = installFinder ()
 
@@ -2769,7 +2777,7 @@ local
 
         val () = if cleanup then Repository.cleanupStaged repo namever else ()
 
-        val () = if replace then uninstallAuto repo namever else ()
+        val () = if replace then uninstallPackage namever else ()
 
         val fndr = installFinder ()
 
@@ -2804,7 +2812,7 @@ in
   fun install inp =
       case inp of
         ArticleInput _ => raise Error "cannot install an article file"
-      | PackageInput namever => installPackage namever
+      | PackageInput namever => installPackageNameVersion namever
       | PackageNameInput name => installPackageName name
       | PackageQueryInput _ => raise Error "cannot install a package query"
       | StagedPackageInput namever => installStagedPackage namever
@@ -2913,67 +2921,40 @@ local
         | TarballInput _ => raise Error "cannot upgrade a tarball"
         | TheoryInput _ => raise Error "cannot upgrade a theory source file";
 
-  fun complain errs =
-      if RepositoryError.isClean errs then ()
-      else
-        let
-          val s = RepositoryError.report errs
-        in
-          if RepositoryError.fatal errs then raise Error s
-          else chat ("package uninstall warnings:\n" ^ s)
-        end;
-
-  fun uninstallPackage repo auto namever =
+  fun upgradeList namevers =
       let
-        val () = Repository.uninstall repo namever
+        fun upgradeName name =
+            case latestVersionRemotes name NONE of
+              NONE => ()
+            | SOME (rem,nvr,chk) =>
+              let
+                val nvl =
+                    case latestVersion name of
+                      SOME nv => nv
+                    | NONE => raise Bug "opentheory.upgrade: not found"
 
-        val () =
-            let
-              val msg =
-                  (if auto then "auto-" else "") ^
-                  "uninstalled package " ^ PackageNameVersion.toString namever
-            in
-              chat msg
-            end
-      in
-        ()
-      end;
+                val vl = PackageNameVersion.version nvl
+                and vr = PackageNameVersion.version nvr
+              in
+                case PackageVersion.compare (vl,vr) of
+                  LESS => installPackage rem nvr chk
+                | _ => ()
+              end
 
-  fun upgradeList repo namevers =
-      let
-        fun upgrade (namever,names) =
+        fun upgrade1 (namever,names) =
             let
               val name = PackageNameVersion.name namever
             in
               if PackageNameSet.member name names then names
               else
                 let
-                  val names = PackageNameSet.add names name
+                  val () = upgradeName name
                 in
-
-              uninstallPackage repo auto namever
+                  PackageNameSet.add names name
+                end
             end
 
-        val errs = Repository.checkUninstall repo namevers
-
-        val errs =
-            if not (!autoUninstall) then errs
-            else
-              let
-                val (_,errs) = RepositoryError.removeInstalledUser errs
-              in
-                errs
-              end
-
-        val () = complain errs
-
-        val namevers =
-            if not (!autoUninstall) then namevers
-            else Repository.includedByRTC repo namevers
-
-        val namevers = List.rev (Repository.includeOrder repo namevers)
-
-        val () = List.app uninstall namevers
+        val _ = List.foldl upgrade1 PackageNameSet.empty namevers
       in
         ()
       end;
@@ -2988,7 +2969,7 @@ in
       in
         case Repository.includeOrder repo namevers of
           [] => raise Error "no matching installed packages"
-        | namevers => upgradeList repo namevers
+        | namevers => upgradeList namevers
       end
       handle Error err =>
         raise Error (err ^ "\npackage upgrade failed");
