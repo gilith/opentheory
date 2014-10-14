@@ -438,6 +438,7 @@ where the available commands are:
   opentheory list ........ list installed packages
   opentheory uninstall ... uninstall packages
   opentheory update ...... update repo package lists
+  opentheory upgrade ..... upgrade packages with later versions on a repo
   opentheory upload ...... upload installed packages to a repo
 Displaying global options:
   -d, --root-dir DIR ... set the package repo directory
@@ -491,9 +492,9 @@ installed package bool-true-1.0
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-true-1.0 8bf7e26d9a4fb55f8a04573b6d3e5b74d453a7d3
-bool-true-def-1.0 37344eaac5d54961efb2a3f02889c4440e955053
-bool-true-thm-1.0 f66004137fb8240b43a0e7ad2beb999b13c9a54d
+bool-true-1.0 5a1cdf6dbf081393e903c315bd6526c10d5bd07f
+bool-true-def-1.0 93d098b8445d35f905ae2c6d33f6ed3776847c94
+bool-true-thm-1.0 bc15c707b4276bf6613049614be96f4c023a81a1
 ==========================================================================
 Show package information
 --------------------------------------------------------------------------
@@ -510,13 +511,13 @@ opentheory -d repos/repo info --theory-source bool-true
 
 def {
   package: bool-true-def-1.0
-  checksum: 37344eaac5d54961efb2a3f02889c4440e955053
+  checksum: 93d098b8445d35f905ae2c6d33f6ed3776847c94
 }
 
 thm {
   import: def
   package: bool-true-thm-1.0
-  checksum: f66004137fb8240b43a0e7ad2beb999b13c9a54d
+  checksum: bc15c707b4276bf6613049614be96f4c023a81a1
 }
 
 main {

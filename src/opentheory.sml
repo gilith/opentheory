@@ -79,6 +79,9 @@ val describeListQueryFormat =
 val describeUninstallQueryFormat =
     "QUERY is a package query (e.g., NAME-VERSION or Obsolete)";
 
+val describeUpgradeQueryFormat =
+    "QUERY is a package query (e.g., NAME or Upgradable)";
+
 val describeQueryFormat =
     "QUERY represents a subset S of the installed packages P, as follows:\n" ^
     "  1. A FUNCTION expression in the grammar below is parsed from the command\n" ^
@@ -534,7 +537,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Finding packages on the local repository.                                 *)
+(* Finding packages in the local repository.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 fun finder () = Repository.finder (repository ());
@@ -1003,6 +1006,23 @@ end;
 val updateFooter = "";
 
 (* ------------------------------------------------------------------------- *)
+(* Options for upgrading installed packages with later versions on a remote  *)
+(* repository.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  open Useful Options;
+in
+  val upgradeOpts : opt list =
+      [];
+end;
+
+val upgradeFooter =
+    describeUpgradeQueryFormat ^ ".\n" ^
+    describeNameFormat ^ ".\n" ^
+    "If the QUERY argument is missing all installed packages are upgraded.\n";
+
+(* ------------------------------------------------------------------------- *)
 (* Options for uploading installed packages to a remote repository.          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -1045,6 +1065,7 @@ datatype command =
   | List
   | Uninstall
   | Update
+  | Upgrade
   | Upload;
 
 val allCommands =
@@ -1057,6 +1078,7 @@ val allCommands =
      List,
      Uninstall,
      Update,
+     Upgrade,
      Upload];
 
 fun commandString cmd =
@@ -1070,6 +1092,7 @@ fun commandString cmd =
     | List => "list"
     | Uninstall => "uninstall"
     | Update => "update"
+    | Upgrade => "upgrade"
     | Upload => "upload";
 
 fun commandArgs cmd =
@@ -1083,6 +1106,7 @@ fun commandArgs cmd =
     | List => " QUERY"
     | Uninstall => " QUERY"
     | Update => ""
+    | Upgrade => " QUERY"
     | Upload => " NAME|NAME-VERSION ...";
 
 fun commandDescription cmd =
@@ -1096,6 +1120,7 @@ fun commandDescription cmd =
     | List => "list installed packages"
     | Uninstall => "uninstall packages"
     | Update => "update repo package lists"
+    | Upgrade => "upgrade packages with later versions on a repo"
     | Upload => "upload installed packages to a repo";
 
 fun commandFooter cmd =
@@ -1109,6 +1134,7 @@ fun commandFooter cmd =
     | List => listFooter
     | Uninstall => uninstallFooter
     | Update => updateFooter
+    | Upgrade => upgradeFooter
     | Upload => uploadFooter;
 
 fun commandOpts cmd =
@@ -1122,6 +1148,7 @@ fun commandOpts cmd =
     | List => listOpts
     | Uninstall => uninstallOpts
     | Update => updateOpts
+    | Upgrade => upgradeOpts
     | Upload => uploadOpts;
 
 val allCommandStrings = List.map commandString allCommands;
@@ -2359,7 +2386,10 @@ in
 
         val namevers = evaluateQuery query
       in
-        uninstallAutoSet repo namevers
+        if PackageNameVersionSet.null namevers then
+          raise Error "no matching installed packages"
+        else
+          uninstallAutoSet repo namevers
       end
       handle Error err =>
         raise Error (err ^ "\npackage uninstall failed");
@@ -2794,8 +2824,8 @@ fun sortList repo pkgs ord =
     | ReverseList ord => List.rev (sortList repo pkgs ord);
 
 local
-  fun listInput inp =
-      case inp of
+  fun listInput inpo =
+      case inpo of
         NONE => RepositoryQuery.Identity
       | SOME inp =>
         case inp of
@@ -2862,6 +2892,107 @@ fun update () =
     in
       List.app updateRemote rems
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Upgrade installed packages with later versions on a remote repository.    *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun upgradeInput inpo =
+      case inpo of
+        NONE => RepositoryQuery.Upgradable
+      | SOME inp =>
+        case inp of
+          ArticleInput _ => raise Error "cannot upgrade an article file"
+        | PackageInput namever =>
+          RepositoryQuery.Constant (RepositoryQuery.NameVersion namever)
+        | PackageNameInput name =>
+          RepositoryQuery.Constant (RepositoryQuery.Name name)
+        | PackageQueryInput query => query
+        | StagedPackageInput _ => raise Error "cannot upgrade a staged package"
+        | TarballInput _ => raise Error "cannot upgrade a tarball"
+        | TheoryInput _ => raise Error "cannot upgrade a theory source file";
+
+  fun complain errs =
+      if RepositoryError.isClean errs then ()
+      else
+        let
+          val s = RepositoryError.report errs
+        in
+          if RepositoryError.fatal errs then raise Error s
+          else chat ("package uninstall warnings:\n" ^ s)
+        end;
+
+  fun uninstallPackage repo auto namever =
+      let
+        val () = Repository.uninstall repo namever
+
+        val () =
+            let
+              val msg =
+                  (if auto then "auto-" else "") ^
+                  "uninstalled package " ^ PackageNameVersion.toString namever
+            in
+              chat msg
+            end
+      in
+        ()
+      end;
+
+  fun upgradeList repo namevers =
+      let
+        fun upgrade (namever,names) =
+            let
+              val name = PackageNameVersion.name namever
+            in
+              if PackageNameSet.member name names then names
+              else
+                let
+                  val names = PackageNameSet.add names name
+                in
+
+              uninstallPackage repo auto namever
+            end
+
+        val errs = Repository.checkUninstall repo namevers
+
+        val errs =
+            if not (!autoUninstall) then errs
+            else
+              let
+                val (_,errs) = RepositoryError.removeInstalledUser errs
+              in
+                errs
+              end
+
+        val () = complain errs
+
+        val namevers =
+            if not (!autoUninstall) then namevers
+            else Repository.includedByRTC repo namevers
+
+        val namevers = List.rev (Repository.includeOrder repo namevers)
+
+        val () = List.app uninstall namevers
+      in
+        ()
+      end;
+in
+  fun upgrade inp =
+      let
+        val repo = repository ()
+
+        val query = upgradeInput inp
+
+        val namevers = evaluateQuery query
+      in
+        case Repository.includeOrder repo namevers of
+          [] => raise Error "no matching installed packages"
+        | namevers => upgradeList repo namevers
+      end
+      handle Error err =>
+        raise Error (err ^ "\npackage upgrade failed");
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Upload installed packages to a remote repository.                         *)
@@ -3028,6 +3159,8 @@ let
       | (List,[inp]) => list (SOME inp)
       | (Uninstall,[inp]) => uninstall inp
       | (Update,[]) => update ()
+      | (Upgrade,[]) => upgrade NONE
+      | (Upgrade,[inp]) => upgrade (SOME inp)
       | (Upload, pkgs as _ :: _) => upload pkgs
       | _ =>
         let
