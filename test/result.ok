@@ -436,7 +436,7 @@ where the available commands are:
   opentheory init ........ initialize a new package repo
   opentheory install ..... install a package from a theory file or repo
   opentheory list ........ list installed packages
-  opentheory uninstall ... uninstall an installed package
+  opentheory uninstall ... uninstall packages
   opentheory update ...... update repo package lists
   opentheory upload ...... upload installed packages to a repo
 Displaying global options:
@@ -491,9 +491,9 @@ installed package bool-true-1.0
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-true-1.0 27a7d5d03c09a69f88ddaa233d0bdf2373356b83
-bool-true-def-1.0 19d9ce79ea0578fdee97c142ea9c2968979e1d19
-bool-true-thm-1.0 5e30d13e70b2beb040dfd333229ae44efd7053fa
+bool-true-1.0 8bf7e26d9a4fb55f8a04573b6d3e5b74d453a7d3
+bool-true-def-1.0 37344eaac5d54961efb2a3f02889c4440e955053
+bool-true-thm-1.0 f66004137fb8240b43a0e7ad2beb999b13c9a54d
 ==========================================================================
 Show package information
 --------------------------------------------------------------------------
@@ -510,13 +510,13 @@ opentheory -d repos/repo info --theory-source bool-true
 
 def {
   package: bool-true-def-1.0
-  checksum: 19d9ce79ea0578fdee97c142ea9c2968979e1d19
+  checksum: 37344eaac5d54961efb2a3f02889c4440e955053
 }
 
 thm {
   import: def
   package: bool-true-thm-1.0
-  checksum: 5e30d13e70b2beb040dfd333229ae44efd7053fa
+  checksum: f66004137fb8240b43a0e7ad2beb999b13c9a54d
 }
 
 main {

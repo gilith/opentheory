@@ -325,7 +325,7 @@ val cleanupStaged : repository -> PackageNameVersion.nameVersion -> unit
 (* ------------------------------------------------------------------------- *)
 
 val checkUninstall :
-    repository -> PackageNameVersion.nameVersion ->
+    repository -> PackageNameVersionSet.set ->
     RepositoryError.errors
 
 val uninstall : repository -> PackageNameVersion.nameVersion -> unit

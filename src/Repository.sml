@@ -1540,48 +1540,69 @@ fun cleanupStaged repo namever =
 (* Uninstalling packages from the repository.                                *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkUninstall repo namever =
-    if not (member namever repo) then
-      RepositoryError.fromList [RepositoryError.NotInstalled namever]
-    else
-      let
-        val errs = RepositoryError.clean
-
-        val users = includedByRTC repo (includedBy repo namever)
-
-        val errs =
-            if PackageNameVersionSet.null users then errs
-            else
-              let
-                fun add (nv,acc) =
-                    RepositoryError.add acc
-                      (RepositoryError.InstalledUser nv)
-              in
-                PackageNameVersionSet.foldl add errs users
-              end
-      in
-        errs
-      end;
-
-fun uninstall repo namever =
+fun checkUninstall repo namevers =
     let
-(*OpenTheoryDebug
-      val errs = checkUninstall repo namever
+      val errs = RepositoryError.clean
 
-      val () =
-          if not (RepositoryError.fatal errs) then ()
-          else raise Bug "Repository.uninstall: fatal error"
-*)
-      (* Delete from the list of installed packages *)
+      val (namevers,unknown) =
+          let
+            fun known nv = member nv repo
+          in
+            PackageNameVersionSet.partition known namevers
+          end
 
-      val () = RepositoryPackages.delete (packages repo) namever
+      val errs =
+          let
+            fun add (nv,acc) =
+                RepositoryError.add acc
+                  (RepositoryError.NotInstalled nv)
+          in
+            PackageNameVersionSet.foldl add errs unknown
+          end
 
-      (* Nuke the package directory *)
+      val users =
+          let
+            val incs = includedByRTC repo namevers
+          in
+            PackageNameVersionSet.difference incs namevers
+          end
 
-      val () = Package.nukeDirectory (mkPackage repo namever NONE)
+      val errs =
+          let
+            fun add (nv,acc) =
+                RepositoryError.add acc
+                  (RepositoryError.InstalledUser nv)
+          in
+            PackageNameVersionSet.foldl add errs users
+          end
     in
-      ()
+      errs
     end;
+
+local
+  fun check repo namever =
+      checkUninstall repo (PackageNameVersionSet.singleton namever);
+in
+  fun uninstall repo namever =
+      let
+(*OpenTheoryDebug
+        val errs = check repo namever
+
+        val () =
+            if not (RepositoryError.fatal errs) then ()
+            else raise Bug "Repository.uninstall: fatal error"
+*)
+        (* Delete from the list of installed packages *)
+
+        val () = RepositoryPackages.delete (packages repo) namever
+
+        (* Nuke the package directory *)
+
+        val () = Package.nukeDirectory (mkPackage repo namever NONE)
+      in
+        ()
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Comparing a package with a remote repository.                             *)

@@ -77,7 +77,7 @@ val describeListQueryFormat =
     "QUERY is a package query (e.g., UpToDate, Upgradable or Obsolete)";
 
 val describeUninstallQueryFormat =
-    "QUERY is a package query (e.g., NAME-VERSION or Obsolete).";
+    "QUERY is a package query (e.g., NAME-VERSION or Obsolete)";
 
 val describeQueryFormat =
     "QUERY represents a subset S of the installed packages P, as follows:\n" ^
@@ -265,7 +265,7 @@ in
 end;
 
 val describeInfoFormat =
-    "FORMAT is any string containing " ^
+    "FORMAT is a string containing " ^
     "{NAME,VERSION,DESCRIPTION,CHECKSUM,EMPTY}";
 
 fun fromStringInfoFormat fmt =
@@ -866,11 +866,12 @@ local
 in
   val uninstallOpts : opt list =
       [{switches = ["--auto"], arguments = [],
-        description = "also uninstall included packages",
+        description = "also uninstall including packages",
         processor = beginOpt endOpt (fn _ => autoUninstall := true)}];
 end;
 
 val uninstallFooter =
+    describeUninstallQueryFormat ^ ".\n" ^
     describeNameFormat ^ ".\n" ^
     describeVersionFormat ^ ".\n";
 
@@ -2274,9 +2275,11 @@ local
   fun uninstallInput inp =
       case inp of
         ArticleInput _ => raise Error "cannot uninstall an article file"
-      | PackageInput namever => namever
-      | PackageNameInput _ => raise Error "cannot uninstall a package name"
-      | PackageQueryInput _ => raise Error "cannot uninstall a package query"
+      | PackageInput namever =>
+        RepositoryQuery.Constant (RepositoryQuery.NameVersion namever)
+      | PackageNameInput name =>
+        RepositoryQuery.Constant (RepositoryQuery.Name name)
+      | PackageQueryInput query => query
       | StagedPackageInput _ =>
         let
           val err = "cannot uninstall a staged package (use cleanup instead)"
@@ -2296,12 +2299,8 @@ local
           else chat ("package uninstall warnings:\n" ^ s)
         end;
 
-  fun uninstallPackage auto repo namever =
+  fun uninstallPackage repo auto namever =
       let
-        val errs = Repository.checkUninstall repo namever
-
-        val () = complain errs
-
         val () = Repository.uninstall repo namever
 
         val () =
@@ -2315,10 +2314,17 @@ local
       in
         ()
       end;
-in
-  fun uninstallAuto repo namever =
+
+  fun uninstallAutoSet repo namevers =
       let
-        val errs = Repository.checkUninstall repo namever
+        fun uninstall namever =
+            let
+              val auto = not (PackageNameVersionSet.member namever namevers)
+            in
+              uninstallPackage repo auto namever
+            end
+
+        val errs = Repository.checkUninstall repo namevers
 
         val errs =
             if not (!autoUninstall) then errs
@@ -2331,31 +2337,29 @@ in
 
         val () = complain errs
 
-        val () =
-            if not (!autoUninstall) then ()
-            else
-              let
-                val pkgs =
-                    Repository.includedByRTC repo
-                      (Repository.includedBy repo namever)
+        val namevers =
+            if not (!autoUninstall) then namevers
+            else Repository.includedByRTC repo namevers
 
-                val pkgs = List.rev (Repository.includeOrder repo pkgs)
-              in
-                List.app (uninstallPackage true repo) pkgs
-              end
+        val namevers = List.rev (Repository.includeOrder repo namevers)
 
-        val () = uninstallPackage false repo namever
+        val () = List.app uninstall namevers
       in
         ()
       end;
+in
+  fun uninstallAuto repo namever =
+      uninstallAutoSet repo (PackageNameVersionSet.singleton namever);
 
   fun uninstall inp =
       let
         val repo = repository ()
 
-        val namever = uninstallInput inp
+        val query = uninstallInput inp
+
+        val namevers = evaluateQuery query
       in
-        uninstallAuto repo namever
+        uninstallAutoSet repo namevers
       end
       handle Error err =>
         raise Error (err ^ "\npackage uninstall failed");
@@ -3022,7 +3026,7 @@ let
       | (Install,[inp]) => install inp
       | (List,[]) => list NONE
       | (List,[inp]) => list (SOME inp)
-      | (Uninstall,[pkg]) => uninstall pkg
+      | (Uninstall,[inp]) => uninstall inp
       | (Update,[]) => update ()
       | (Upload, pkgs as _ :: _) => upload pkgs
       | _ =>
