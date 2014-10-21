@@ -91,6 +91,12 @@ test_passing "mv $upstream/opentheory/config.new $upstream/opentheory/config";
 test_passing "$opentheory_upstream install theories/bool-true-def/bool-true-def.thy";
 test_passing "$opentheory_upstream install theories/bool-true-thm/bool-true-thm.thy";
 test_passing "$opentheory_upstream install theories/bool-true/bool-true.thy";
+test_passing "$opentheory_upstream install theories/bool-forall-def/bool-forall-def.thy";
+test_passing "$opentheory_upstream install theories/bool-forall-thm/bool-forall-thm.thy";
+test_passing "$opentheory_upstream install theories/bool-forall/bool-forall.thy";
+test_passing "$opentheory_upstream install theories/bool-and-def/bool-and-def.thy";
+test_passing "$opentheory_upstream install theories/bool-and-thm/bool-and-thm.thy";
+test_passing "$opentheory_upstream install theories/bool-and/bool-and.thy";
 test_passing "$opentheory_upstream list";
 
 test_section "Initialize repo";

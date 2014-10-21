@@ -1,17 +1,18 @@
-name: bool-true
+name: bool-forall
 version: 1.0
-description: The Boolean true constant
+description: The universal quantifier
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+requires: bool-true
 show: "Data.Bool"
 
 def {
-  package: bool-true-def-1.0
+  package: bool-forall-def-1.0
 }
 
 thm {
   import: def
-  package: bool-true-thm-1.0
+  package: bool-forall-thm-1.0
 }
 
 main {

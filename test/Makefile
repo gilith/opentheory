@@ -25,6 +25,14 @@ TMPFILE2 = /tmp/test-output
 
 TEMP = \
   $(TMPFILE1) $(TMPFILE2) mosml-result mlton-result polyml-result \
+  articles/bool-and-def.art summaries/bool-and-def.sum \
+  articles/bool-and-thm.art summaries/bool-and-thm.sum \
+  articles/bool-and-thm-new.art summaries/bool-and-thm-new.sum \
+  articles/bool-forall-def.art summaries/bool-forall-def.sum \
+  articles/bool-forall-thm.art summaries/bool-forall-thm.sum \
+  articles/bool-implies-def.art summaries/bool-implies-def.sum \
+  articles/bool-implies-thm.art summaries/bool-implies-thm.sum \
+  articles/bool-implies-thm-new.art summaries/bool-implies-thm-new.sum \
   articles/bool-true-def.art summaries/bool-true-def.sum \
   articles/bool-true-thm.art summaries/bool-true-thm.sum \
   articles/empty.art summaries/empty.sum \

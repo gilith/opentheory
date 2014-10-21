@@ -121,6 +121,9 @@ Reading interpretations
 type "HOLLight.fun" as "->"
 type "HOLLight.bool" as "bool"
 const "HOLLight.=" as "="
+const "HOLLight.!" as "Data.Bool.!"
+const "HOLLight./\\" as "Data.Bool./\\"
+const "HOLLight.==>" as "Data.Bool.==>"
 const "HOLLight.T" as "Data.Bool.T"
 
 --------------------------------------------------------------------------
@@ -149,10 +152,24 @@ Compressing article "example9"
 Compressing article "example10"
 
 Compressing article "bool-true-def"
-WARNING: 15 objects left in the dictionary by articles/hol-light/bool-true-def.art
 
 Compressing article "bool-true-thm"
-WARNING: 22 objects left in the dictionary by articles/hol-light/bool-true-thm.art
+
+Compressing article "bool-forall-def"
+
+Compressing article "bool-forall-thm"
+
+Compressing article "bool-and-def"
+
+Compressing article "bool-and-thm"
+
+Compressing article "bool-and-thm-new"
+
+Compressing article "bool-implies-def"
+
+Compressing article "bool-implies-thm"
+
+Compressing article "bool-implies-thm-new"
 
 --------------------------------------------------------------------------
 Summarizing articles
@@ -255,6 +272,88 @@ Summarizing compressed article "bool-true-thm"
   |- T <=> (\p. p) = \p. p
 1 theorem:
   |- T
+
+Summarizing compressed article "bool-forall-def"
+2 external type operators: -> bool
+2 external constants: = T
+1 defined constant: !
+1 theorem:
+  |- (!) = \p. p = \x. T
+
+Summarizing compressed article "bool-forall-thm"
+2 external type operators: -> bool
+3 external constants: = ! T
+2 assumptions:
+  |- T
+  |- (!) = \p. p = \x. T
+1 theorem:
+  |- !x. T
+
+Summarizing compressed article "bool-and-def"
+2 external type operators: -> bool
+2 external constants: = T
+1 defined constant: /\
+1 theorem:
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+
+Summarizing compressed article "bool-and-thm"
+2 external type operators: -> bool
+4 external constants: = ! /\ T
+3 assumptions:
+  |- T
+  |- (!) = \p. p = \x. T
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+2 theorems:
+  |- !x. x /\ T <=> x
+  |- !x. x /\ x <=> x
+
+Summarizing compressed article "bool-and-thm-new"
+2 external type operators: -> bool
+4 external constants: = ! /\ T
+3 assumptions:
+  |- T
+  |- (!) = \p. p = \x. T
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+3 theorems:
+  |- !x. T /\ x <=> x
+  |- !x. x /\ x <=> x
+  |- !x y. y /\ x <=> x /\ y
+
+Summarizing compressed article "bool-implies-def"
+2 external type operators: -> bool
+2 external constants: = /\
+1 defined constant: ==>
+1 theorem:
+  |- (==>) = \p q. p /\ q <=> p
+
+Summarizing compressed article "bool-implies-thm"
+2 external type operators: -> bool
+5 external constants: = ! /\ ==> T
+6 assumptions:
+  |- T
+  |- (!) = \p. p = \x. T
+  |- !x. x /\ T <=> x
+  |- !x. x /\ x <=> x
+  |- (==>) = \p q. p /\ q <=> p
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+2 theorems:
+  |- !x. x ==> T
+  |- !x. x ==> x
+
+Summarizing compressed article "bool-implies-thm-new"
+2 external type operators: -> bool
+5 external constants: = ! /\ ==> T
+7 assumptions:
+  |- T
+  |- (!) = \p. p = \x. T
+  |- !x. T /\ x <=> x
+  |- !x. x /\ x <=> x
+  |- (==>) = \p q. p /\ q <=> p
+  |- !x y. y /\ x <=> x /\ y
+  |- (/\) = \p q. (\f. f p q) = \f. f T T
+2 theorems:
+  |- !x. x ==> T
+  |- !x. x ==> x
 
 --------------------------------------------------------------------------
 Package repositories
@@ -466,8 +565,34 @@ opentheory -d repos/upstream/opentheory install theories/bool-true/bool-true.thy
 
 installed package bool-true-1.0 from theory source file
 --------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-forall-def/bool-forall-def.thy
+
+installed package bool-forall-def-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-forall-thm/bool-forall-thm.thy
+
+installed package bool-forall-thm-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-forall/bool-forall.thy
+
+installed package bool-forall-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-and-def/bool-and-def.thy
+
+installed package bool-and-def-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-and-thm/bool-and-thm.thy
+
+installed package bool-and-thm-1.0 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/upstream/opentheory install theories/bool-and/bool-and.thy
+
+installed package bool-and-1.0 from theory source file
+--------------------------------------------------------------------------
 opentheory -d repos/upstream/opentheory list
 
+bool-and-1.0
+bool-forall-1.0
 bool-true-1.0
 ==========================================================================
 Initialize repo
@@ -492,9 +617,9 @@ installed package bool-true-1.0
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-true-1.0 5a1cdf6dbf081393e903c315bd6526c10d5bd07f
-bool-true-def-1.0 93d098b8445d35f905ae2c6d33f6ed3776847c94
-bool-true-thm-1.0 bc15c707b4276bf6613049614be96f4c023a81a1
+bool-true-1.0 0133041715aced81e386529459af8beb835e76ea
+bool-true-def-1.0 f48bde0a9beb76f6f1ac3f3dcd8a8a1654a04077
+bool-true-thm-1.0 c511da5b72563970cf0e4dbe12a96de8a874c974
 ==========================================================================
 Show package information
 --------------------------------------------------------------------------
@@ -502,7 +627,7 @@ opentheory -d repos/repo info bool-true
 
 name: bool-true
 version: 1.0
-description: Definition and theorem about the boolean true constant
+description: The Boolean true constant
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
@@ -511,13 +636,13 @@ opentheory -d repos/repo info --theory-source bool-true
 
 def {
   package: bool-true-def-1.0
-  checksum: 93d098b8445d35f905ae2c6d33f6ed3776847c94
+  checksum: f48bde0a9beb76f6f1ac3f3dcd8a8a1654a04077
 }
 
 thm {
   import: def
   package: bool-true-thm-1.0
-  checksum: bc15c707b4276bf6613049614be96f4c023a81a1
+  checksum: c511da5b72563970cf0e4dbe12a96de8a874c974
 }
 
 main {

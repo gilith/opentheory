@@ -274,8 +274,8 @@ val holLightInt = mkInterpretation "hol-light";
 val _ = printval Interpretation.pp holLightInt;
 
 fun getInt s =
-    if s = "hol-light" then holLightInt
-    else if s = "natural" then Interpretation.natural
+    if s = "natural" then Interpretation.natural
+    else if s = "hol-light" then holLightInt
     else raise Error ("unknown interpretation: " ^ s);
 
 (* ------------------------------------------------------------------------- *)
@@ -283,6 +283,23 @@ val () = SAY "Compressing articles";
 (* ------------------------------------------------------------------------- *)
 
 val ARTICLE_DIR = "articles";
+
+val TEST_ARTICLES =
+    (List.concat o map (fn (s,l) => map (fn a => (s,a)) l))
+    [("natural",
+      ("empty" ::
+       map (fn i => "example" ^ Int.toString i) (interval 1 10))),
+     ("hol-light",
+      ["bool-true-def",
+       "bool-true-thm",
+       "bool-forall-def",
+       "bool-forall-thm",
+       "bool-and-def",
+       "bool-and-thm",
+       "bool-and-thm-new",
+       "bool-implies-def",
+       "bool-implies-thm",
+       "bool-implies-thm-new"])];;
 
 fun mkSystemArticleFilename system name =
     let
@@ -327,31 +344,7 @@ fun compress system name =
       ()
     end;
 
-val () = compress "natural" "empty";
-
-val () = compress "natural" "example1";
-
-val () = compress "natural" "example2";
-
-val () = compress "natural" "example3";
-
-val () = compress "natural" "example4";
-
-val () = compress "natural" "example5";
-
-val () = compress "natural" "example6";
-
-val () = compress "natural" "example7";
-
-val () = compress "natural" "example8";
-
-val () = compress "natural" "example9";
-
-val () = compress "natural" "example10";
-
-val () = compress "hol-light" "bool-true-def";
-
-val () = compress "hol-light" "bool-true-thm";
+val () = List.app (fn (s,a) => compress s a) TEST_ARTICLES;
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Summarizing articles";
@@ -401,31 +394,7 @@ fun summarize name =
       ()
     end;
 
-val () = summarize "empty";
-
-val () = summarize "example1";
-
-val () = summarize "example2";
-
-val () = summarize "example3";
-
-val () = summarize "example4";
-
-val () = summarize "example5";
-
-val () = summarize "example6";
-
-val () = summarize "example7";
-
-val () = summarize "example8";
-
-val () = summarize "example9";
-
-val () = summarize "example10";
-
-val () = summarize "bool-true-def";
-
-val () = summarize "bool-true-thm";
+val () = List.app (fn (_,a) => summarize a) TEST_ARTICLES;
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Package repositories";

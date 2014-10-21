@@ -1,3 +1,11 @@
+bool-and-def.sum
+bool-and-thm.sum
+bool-and-thm-new.sum
+bool-forall-def.sum
+bool-forall-thm.sum
+bool-implies-def.sum
+bool-implies-thm.sum
+bool-implies-thm-new.sum
 bool-true-def.sum
 bool-true-thm.sum
 empty.sum

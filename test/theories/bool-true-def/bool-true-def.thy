@@ -1,6 +1,6 @@
 name: bool-true-def
 version: 1.0
-description: Definition of the boolean true constant
+description: Definition of the Boolean true constant
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"

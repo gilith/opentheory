@@ -12,4 +12,7 @@ const "HOLLight.=" as "="
 
 # Data.Bool
 
+const "HOLLight.!" as "Data.Bool.!"
+const "HOLLight./\\" as "Data.Bool./\\"
+const "HOLLight.==>" as "Data.Bool.==>"
 const "HOLLight.T" as "Data.Bool.T"

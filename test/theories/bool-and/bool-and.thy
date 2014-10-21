@@ -1,17 +1,19 @@
-name: bool-true
+name: bool-and
 version: 1.0
-description: The Boolean true constant
+description: Boolean conjunction
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+requires: bool-forall
+requires: bool-true
 show: "Data.Bool"
 
 def {
-  package: bool-true-def-1.0
+  package: bool-and-def-1.0
 }
 
 thm {
   import: def
-  package: bool-true-thm-1.0
+  package: bool-and-thm-1.0
 }
 
 main {
