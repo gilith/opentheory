@@ -150,50 +150,6 @@ src/selftest.sml: test/test.sml $(COPY) ; @$(COPY) $< $@
 src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 ###############################################################################
-# Import and install theories.
-###############################################################################
-
-HOL_LIGHT_DIR = ../hol-light
-
-THEORY_DIR = data/theories
-
-OPENTHEORY_INIT = $(OPENTHEORY) init
-
-IMPORT_THEORIES = scripts/import-theories -p "HOL Light theory" -u
-
-INSTALL_THEORIES = scripts/install-theories -u
-
-CHECK_THEORIES = scripts/check-theories
-
-.PHONY: reset-directory
-reset-directory: $(OPENTHEORY)
-	rm -rf $(HOME)/.opentheory
-	$(OPENTHEORY_INIT)
-
-.PHONY: theories
-theories: $(OPENTHEORY)
-	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory theories
-	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
-	$(INSTALL_THEORIES)
-	$(CHECK_THEORIES)
-
-.PHONY: tiny-theories
-tiny-theories:
-	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory tiny-theories
-	cp $(HOL_LIGHT_DIR)/opentheory/articles/*.art test/articles/hol-light
-	$(MAKE) clean mlton
-	cp test/articles/bool-true-def.art test/theories/bool-true-def/bool-true-def.art
-	cp test/articles/bool-true-thm.art test/theories/bool-true-thm/bool-true-thm.art
-	cp test/articles/bool-forall-def.art test/theories/bool-forall-def/bool-forall-def.art
-	cp test/articles/bool-forall-thm.art test/theories/bool-forall-thm/bool-forall-thm.art
-	cp test/articles/bool-and-def.art test/theories/bool-and-def/bool-and-def.art
-	cp test/articles/bool-and-thm.art test/theories/bool-and-thm/bool-and-thm.art
-	cp test/articles/bool-and-thm-new.art test/theories/bool-and-thm-1.1/bool-and-thm.art
-	cp test/articles/bool-implies-def.art test/theories/bool-implies-def/bool-implies-def.art
-	cp test/articles/bool-implies-thm.art test/theories/bool-implies-thm/bool-implies-thm.art
-	cp test/articles/bool-implies-thm-new.art test/theories/bool-implies-thm-1.1/bool-implies-thm.art
-
-###############################################################################
 # Export the Haskell theories.
 ###############################################################################
 
@@ -259,6 +215,54 @@ init:
 	@echo '+----------------------------------------------------+'
 	@echo
 	$(MAKE) test-repository
+
+###############################################################################
+# Import and install HOL Light theories.
+###############################################################################
+
+HOL_LIGHT_DIR = ../hol-light
+
+TEST_ARTICLE_DIR = test/articles
+
+THEORY_DIR = data/theories
+
+OPENTHEORY_INIT = $(OPENTHEORY) init
+
+IMPORT_THEORIES = scripts/import-theories -p "HOL Light theory" -u
+
+INSTALL_THEORIES = scripts/install-theories -u
+
+CHECK_THEORIES = scripts/check-theories
+
+.PHONY: reset-directory
+reset-directory: $(OPENTHEORY)
+	rm -rf $(HOME)/.opentheory
+	$(OPENTHEORY_INIT)
+
+.PHONY: theories
+theories: $(OPENTHEORY)
+	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory theories
+	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
+	$(INSTALL_THEORIES)
+	$(CHECK_THEORIES)
+
+.PHONY: tiny-theories
+tiny-theories:
+	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory tiny-theories
+	cp $(HOL_LIGHT_DIR)/opentheory/articles/*.art $(TEST_ARTICLE_DIR)/hol-light
+	$(MAKE) clean
+	$(MAKE) mlton
+	cp $(TEST_ARTICLE_DIR)/bool-true-def.art $(TEST_THEORY_DIR)/bool-true-def/bool-true-def.art
+	cp $(TEST_ARTICLE_DIR)/bool-true-thm.art $(TEST_THEORY_DIR)/bool-true-thm/bool-true-thm.art
+	cp $(TEST_ARTICLE_DIR)/bool-forall-def.art $(TEST_THEORY_DIR)/bool-forall-def/bool-forall-def.art
+	cp $(TEST_ARTICLE_DIR)/bool-forall-thm.art $(TEST_THEORY_DIR)/bool-forall-thm/bool-forall-thm.art
+	cp $(TEST_ARTICLE_DIR)/bool-and-def.art $(TEST_THEORY_DIR)/bool-and-def/bool-and-def.art
+	cp $(TEST_ARTICLE_DIR)/bool-and-thm.art $(TEST_THEORY_DIR)/bool-and-thm/bool-and-thm.art
+	cp $(TEST_ARTICLE_DIR)/bool-and-thm-new.art $(TEST_THEORY_DIR)/bool-and-thm-1.1/bool-and-thm.art
+	cp $(TEST_ARTICLE_DIR)/bool-implies-def.art $(TEST_THEORY_DIR)/bool-implies-def/bool-implies-def.art
+	cp $(TEST_ARTICLE_DIR)/bool-implies-thm.art $(TEST_THEORY_DIR)/bool-implies-thm/bool-implies-thm.art
+	cp $(TEST_ARTICLE_DIR)/bool-implies-thm-new.art $(TEST_THEORY_DIR)/bool-implies-thm-1.1/bool-implies-thm.art
+	$(MAKE) init
 
 ###############################################################################
 # Counting the number of lines of code.
