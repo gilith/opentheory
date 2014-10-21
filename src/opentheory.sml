@@ -115,7 +115,7 @@ val describeQueryFormat =
     "  || Deprecated   // (Identity - Latest) (Requires | Includes)*\n" ^
     "  || Obsolete     // All - (Requires | Includes)*\n" ^
     "  || Upgradable   // EarlierThanRepo\n" ^
-    "  || Uploadable   // Mine /\\ ~OnRepo /\\ LaterThanRepo /\\ ConsistentWithRepo\n" ^
+    "  || Uploadable   // Mine /\\ ~OnRepo /\\ ~EarlierThanRepo /\\ ConsistentWithRepo\n" ^
     "PREDICATE         // represents a predicate with type P -> bool\n" ^
     "  <- PREDICATE \\/ PREDICATE\n" ^
     "                  // \\f g p. f(p) \\/ g(p)\n" ^

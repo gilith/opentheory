@@ -57,7 +57,7 @@ sub execute_command {
     my $cmd = shift @_;
 
     my $cmd_text = $cmd;
-    if ($cmd_text =~ s%^[.][.]/bin/(mosml|mlton|polyml)/opentheory%opentheory%) {
+    if ($cmd_text =~ s%^[[:alnum:]./]*opentheory%opentheory%) {
       print STDOUT "--------------------------------------------------------------------------\n$cmd_text\n\n";
     }
 
@@ -79,7 +79,7 @@ sub test_passing {
 # Execute test cases.
 ###############################################################################
 
-test_section "Test the opentheory tool";
+test_section "Check the opentheory tool is alive";
 test_passing "$opentheory --help";
 
 test_section "Initialize upstream";
@@ -99,11 +99,11 @@ test_passing "$opentheory_upstream install theories/bool-and-thm/bool-and-thm.th
 test_passing "$opentheory_upstream install theories/bool-and/bool-and.thy";
 test_passing "$opentheory_upstream list";
 
-test_section "Initialize repo";
+test_section "Simulate user initializing repo and updating config file";
 test_passing "rm -rf $repo";
 test_passing "$opentheory_repo init";
 test_passing "echo '[author]' > $repo/config.new";
-test_passing "echo 'name = Joe Leslie-Hurd' >> $repo/config.new";
+test_passing "echo 'name = Joe Programmer' >> $repo/config.new";
 test_passing "echo 'email = joe\@gilith.com' >> $repo/config.new";
 test_passing "echo >> $repo/config.new";
 test_passing "echo '[repo]' >> $repo/config.new";
@@ -112,20 +112,58 @@ test_passing "echo 'url = file://$upstream_realpath/' >> $repo/config.new";
 test_passing "tail -n +4 < $repo/config >> $repo/config.new";
 test_passing "mv $repo/config.new $repo/config";
 
-test_section "Install packages";
+test_section "Simulate user installing packages";
 test_passing "$opentheory_repo list";
-test_passing "$opentheory_repo install tarball:$upstream/opentheory/packages/bool-true-thm-1.0/bool-true-thm-1.0.tgz";
 test_passing "$opentheory_repo install bool-true";
-test_passing "$opentheory_repo list --format 'NAME-VERSION CHECKSUM' All";
+test_passing "$opentheory_repo install bool-and";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo list ~UpToDate";
+test_passing "$opentheory_repo info --theory bool-and";
+test_passing "$opentheory_repo install bool-forall";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo list ~UpToDate";
 
-test_section "Show package information";
-test_passing "$opentheory_repo info bool-true";
-test_passing "$opentheory_repo info --theory-source bool-true";
-
-test_section "List packages";
+test_section "Simulate user developing a theory package";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo install theories/bool-implies-def/bool-implies-def.thy";
+test_passing "$opentheory_repo install theories/bool-implies-thm/bool-implies-thm.thy";
+test_passing "$opentheory_repo install theories/bool-implies/bool-implies.thy";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo list ~UpToDate";
 test_passing "$opentheory_repo list Mine";
 
-test_section "End of self-test";
+test_section "Simulate user uploading a theory package";
+test_passing "$opentheory_repo list Uploadable";
+test_passing "$opentheory_upstream install --stage tarball:$repo/packages/bool-implies-def-1.0/bool-implies-def-1.0.tgz";
+test_passing "$opentheory_upstream install --stage tarball:$repo/packages/bool-implies-thm-1.0/bool-implies-thm-1.0.tgz";
+test_passing "$opentheory_upstream install --stage tarball:$repo/packages/bool-implies-1.0/bool-implies-1.0.tgz";
+test_passing "$opentheory_upstream install staged:bool-implies-def-1.0";
+test_passing "$opentheory_upstream install staged:bool-implies-thm-1.0";
+test_passing "$opentheory_upstream install staged:bool-implies-1.0";
+test_passing "$opentheory_repo update";
+test_passing "$opentheory_repo list Uploadable";
+
+test_section "Simulate user upgrading theory packages";
+test_passing "$opentheory_repo list Upgradable";
+test_passing "$opentheory_upstream install theories/bool-and-thm-1.1/bool-and-thm.thy";
+test_passing "$opentheory_upstream install theories/bool-and-1.1/bool-and.thy";
+test_passing "$opentheory_repo list Upgradable";
+test_passing "$opentheory_repo update";
+test_passing "$opentheory_repo list Upgradable";
+test_passing "$opentheory_repo upgrade";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo list Upgradable";
+
+test_section "Check the package checksums are consistent";
+test_passing "$opentheory_upstream list --format 'NAME-VERSION CHECKSUM' All";
+test_passing "$opentheory_repo list --format 'NAME-VERSION CHECKSUM' All";
+#test_passing "$opentheory_repo info bool-true";
+#test_passing "$opentheory_repo info --theory-source bool-true";
+
+#test_section "List packages";
+#test_passing "$opentheory_repo list Mine";
+
+#test_section "End of self-test";
 
 __END__
 

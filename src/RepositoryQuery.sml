@@ -162,10 +162,10 @@ val upgradableDef =
     Filter EarlierThanRepo;
 
 val uploadableDef =
-    (* Mine & (~OnRepo /\ LaterThanRepo /\ ConsistentWithRepo) *)
+    (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
     Intersect
       (Filter Mine,
-       Filter (And (Not OnRepo, And (LaterThanRepo,ConsistentWithRepo))));
+       Filter (And (Not OnRepo, And (Not EarlierThanRepo, ConsistentWithRepo))));
 
 fun evaluateSet repo set =
     case set of
