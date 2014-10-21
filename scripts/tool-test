@@ -134,9 +134,9 @@ test_passing "$opentheory_repo list Mine";
 
 test_section "Simulate user uploading a theory package";
 test_passing "$opentheory_repo list Uploadable";
-test_passing "$opentheory_upstream install --stage tarball:$repo/packages/bool-implies-def-1.0/bool-implies-def-1.0.tgz";
-test_passing "$opentheory_upstream install --stage tarball:$repo/packages/bool-implies-thm-1.0/bool-implies-thm-1.0.tgz";
-test_passing "$opentheory_upstream install --stage tarball:$repo/packages/bool-implies-1.0/bool-implies-1.0.tgz";
+test_passing "$opentheory_upstream install --name bool-implies-def-1.0 --stage tarball:$repo/packages/bool-implies-def-1.0/bool-implies-def-1.0.tgz";
+test_passing "$opentheory_upstream install --name bool-implies-thm-1.0 --stage tarball:$repo/packages/bool-implies-thm-1.0/bool-implies-thm-1.0.tgz";
+test_passing "$opentheory_upstream install --name bool-implies-1.0 --stage tarball:$repo/packages/bool-implies-1.0/bool-implies-1.0.tgz";
 test_passing "$opentheory_upstream install staged:bool-implies-def-1.0";
 test_passing "$opentheory_upstream install staged:bool-implies-thm-1.0";
 test_passing "$opentheory_upstream install staged:bool-implies-1.0";
@@ -153,17 +153,38 @@ test_passing "$opentheory_repo list Upgradable";
 test_passing "$opentheory_repo upgrade";
 test_passing "$opentheory_repo list";
 test_passing "$opentheory_repo list Upgradable";
+test_passing "$opentheory_repo list Obsolete";
+test_passing "$opentheory_repo uninstall Obsolete";
 
 test_section "Check the package checksums are consistent";
 test_passing "$opentheory_upstream list --format 'NAME-VERSION CHECKSUM' All";
 test_passing "$opentheory_repo list --format 'NAME-VERSION CHECKSUM' All";
-#test_passing "$opentheory_repo info bool-true";
-#test_passing "$opentheory_repo info --theory-source bool-true";
+test_passing "$opentheory_repo info --theory-source bool-implies";
 
-#test_section "List packages";
-#test_passing "$opentheory_repo list Mine";
+test_section "Simulate user updating theory packages";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo list ~UpToDate";
+test_passing "$opentheory_repo list Deprecated";
+test_passing "$opentheory_repo list Obsolete";
+test_passing "$opentheory_repo list Upgradable";
+test_passing "$opentheory_repo install theories/bool-implies-thm-1.1/bool-implies-thm.thy";
+test_passing "$opentheory_repo info --format 'NAME-VERSION CHECKSUM' bool-implies-thm";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo list ~UpToDate";
+test_passing "$opentheory_repo list Deprecated";
+test_passing "$opentheory_repo list Obsolete";
+test_passing "$opentheory_repo list Upgradable";
+test_passing "$opentheory_repo info --upgrade-theory --theory-source bool-implies";
+test_passing "$opentheory_repo install theories/bool-implies-1.1/bool-implies.thy";
+test_passing "$opentheory_repo list";
+test_passing "$opentheory_repo list ~UpToDate";
+test_passing "$opentheory_repo list Deprecated";
+test_passing "$opentheory_repo list Obsolete";
+test_passing "$opentheory_repo list Upgradable";
+test_passing "$opentheory_repo uninstall Obsolete";
+test_passing "$opentheory_repo list Uploadable";
 
-#test_section "End of self-test";
+test_section "End of self-test";
 
 __END__
 

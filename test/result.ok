@@ -696,15 +696,15 @@ opentheory -d repos/repo list Uploadable
 
 bool-implies-1.0
 --------------------------------------------------------------------------
-opentheory -d repos/upstream/opentheory install --stage tarball:repos/repo/packages/bool-implies-def-1.0/bool-implies-def-1.0.tgz
+opentheory -d repos/upstream/opentheory install --name bool-implies-def-1.0 --stage tarball:repos/repo/packages/bool-implies-def-1.0/bool-implies-def-1.0.tgz
 
 staged package bool-implies-def-1.0 from tarball
 --------------------------------------------------------------------------
-opentheory -d repos/upstream/opentheory install --stage tarball:repos/repo/packages/bool-implies-thm-1.0/bool-implies-thm-1.0.tgz
+opentheory -d repos/upstream/opentheory install --name bool-implies-thm-1.0 --stage tarball:repos/repo/packages/bool-implies-thm-1.0/bool-implies-thm-1.0.tgz
 
 staged package bool-implies-thm-1.0 from tarball
 --------------------------------------------------------------------------
-opentheory -d repos/upstream/opentheory install --stage tarball:repos/repo/packages/bool-implies-1.0/bool-implies-1.0.tgz
+opentheory -d repos/upstream/opentheory install --name bool-implies-1.0 --stage tarball:repos/repo/packages/bool-implies-1.0/bool-implies-1.0.tgz
 
 staged package bool-implies-1.0 from tarball
 --------------------------------------------------------------------------
@@ -765,39 +765,171 @@ bool-true-1.0
 --------------------------------------------------------------------------
 opentheory -d repos/repo list Upgradable
 
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Obsolete
+
+bool-and-1.0
+bool-and-thm-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo uninstall Obsolete
+
+uninstalled package bool-and-1.0
+uninstalled package bool-and-thm-1.0
 ==========================================================================
 Check the package checksums are consistent
 --------------------------------------------------------------------------
 opentheory -d repos/upstream/opentheory list --format 'NAME-VERSION CHECKSUM' All
 
-bool-and-1.0 bf61e06721c072f3f94b53bb745f569d3ef60b1d
-bool-and-1.1 b7217ae26f539e5e4e2519c75b7338c977758a32
-bool-and-def-1.0 e0e55697789a8f311a09b70a667292336ccb648d
-bool-and-thm-1.0 15a2f541fa14df93c4747392dab3c92fb326078a
-bool-and-thm-1.1 ced1eaba8a76eaa1ddc0add5d59655421d1168bc
-bool-forall-1.0 32781b428a7156f24685db2c87f6008124ecf274
-bool-forall-def-1.0 918622817153ce11de23a6392fcc13393b0d06fb
-bool-forall-thm-1.0 ffd0416116d4080b0b109af01a86caa018c02bbc
-bool-implies-1.0 3774063efad9d456533e9e23aa9a4d1de5ad9f00
-bool-implies-def-1.0 7ae06f3390855f64d96671b683d9782196de24dc
-bool-implies-thm-1.0 c721f6f458c6db9371641d1695d2b01b63c1196f
-bool-true-1.0 21faa83930043fcdc2d9afef97b596cbd62e0a0a
-bool-true-def-1.0 c7731c77b90af56dbacaf45915e33066d96b0988
-bool-true-thm-1.0 817bb65daa09aeb678b35554870246116a75c2cb
+bool-and-1.0 b9fd4cd77d8ac2a2cdc19fd2082a5ea39ed5f960
+bool-and-1.1 4e2a4c97edf2e9147fa2cae0c949fad574c89c83
+bool-and-def-1.0 dc26f76bef9498572484cc08cebfd1e36280e49b
+bool-and-thm-1.0 0c1bdd3e611b82453f2832e18f21ca42831ef2d5
+bool-and-thm-1.1 94a7c63864d07ed47295dfef3ae2e431e2eb17ce
+bool-forall-1.0 09c9af120a084cacdc2ab9199df3243c315cf419
+bool-forall-def-1.0 780fc4a78efe9e9f98a1f94e5c783e51d9de2386
+bool-forall-thm-1.0 0424e45839c6cbd1341338caf5431104c2b24530
+bool-implies-1.0 4a19d01dea26b73773e1d5b31d05d1ac9d61da90
+bool-implies-def-1.0 c7858898746726f2d269ad988cbf4f47afbbffdc
+bool-implies-thm-1.0 6f9a794a8ac038ac1bdfa9c2115b44e650c6982e
+bool-true-1.0 cc289399f8f800da043132ef3cd6eedaf9aa1d9d
+bool-true-def-1.0 3c8db17b7a9b316c79373699ca7f5a7e108f56b9
+bool-true-thm-1.0 86c2e2940726223a9e1575630f45fd078a782349
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-and-1.0 bf61e06721c072f3f94b53bb745f569d3ef60b1d
-bool-and-1.1 b7217ae26f539e5e4e2519c75b7338c977758a32
-bool-and-def-1.0 e0e55697789a8f311a09b70a667292336ccb648d
-bool-and-thm-1.0 15a2f541fa14df93c4747392dab3c92fb326078a
-bool-and-thm-1.1 ced1eaba8a76eaa1ddc0add5d59655421d1168bc
-bool-forall-1.0 32781b428a7156f24685db2c87f6008124ecf274
-bool-forall-def-1.0 918622817153ce11de23a6392fcc13393b0d06fb
-bool-forall-thm-1.0 ffd0416116d4080b0b109af01a86caa018c02bbc
-bool-implies-1.0 3774063efad9d456533e9e23aa9a4d1de5ad9f00
-bool-implies-def-1.0 7ae06f3390855f64d96671b683d9782196de24dc
-bool-implies-thm-1.0 c721f6f458c6db9371641d1695d2b01b63c1196f
-bool-true-1.0 21faa83930043fcdc2d9afef97b596cbd62e0a0a
-bool-true-def-1.0 c7731c77b90af56dbacaf45915e33066d96b0988
-bool-true-thm-1.0 817bb65daa09aeb678b35554870246116a75c2cb
+bool-and-1.1 4e2a4c97edf2e9147fa2cae0c949fad574c89c83
+bool-and-def-1.0 dc26f76bef9498572484cc08cebfd1e36280e49b
+bool-and-thm-1.1 94a7c63864d07ed47295dfef3ae2e431e2eb17ce
+bool-forall-1.0 09c9af120a084cacdc2ab9199df3243c315cf419
+bool-forall-def-1.0 780fc4a78efe9e9f98a1f94e5c783e51d9de2386
+bool-forall-thm-1.0 0424e45839c6cbd1341338caf5431104c2b24530
+bool-implies-1.0 4a19d01dea26b73773e1d5b31d05d1ac9d61da90
+bool-implies-def-1.0 c7858898746726f2d269ad988cbf4f47afbbffdc
+bool-implies-thm-1.0 6f9a794a8ac038ac1bdfa9c2115b44e650c6982e
+bool-true-1.0 cc289399f8f800da043132ef3cd6eedaf9aa1d9d
+bool-true-def-1.0 3c8db17b7a9b316c79373699ca7f5a7e108f56b9
+bool-true-thm-1.0 86c2e2940726223a9e1575630f45fd078a782349
+--------------------------------------------------------------------------
+opentheory -d repos/repo info --theory-source bool-implies
+
+def {
+  package: bool-implies-def-1.0
+  checksum: c7858898746726f2d269ad988cbf4f47afbbffdc
+}
+
+thm {
+  import: def
+  package: bool-implies-thm-1.0
+  checksum: 6f9a794a8ac038ac1bdfa9c2115b44e650c6982e
+}
+
+main {
+  import: def
+  import: thm
+}
+==========================================================================
+Simulate user updating theory packages
+--------------------------------------------------------------------------
+opentheory -d repos/repo list
+
+bool-and-1.1
+bool-forall-1.0
+bool-implies-1.0
+bool-true-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list ~UpToDate
+
+bool-implies-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Deprecated
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Obsolete
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Upgradable
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo install theories/bool-implies-thm-1.1/bool-implies-thm.thy
+
+installed package bool-implies-thm-1.1 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/repo info --format 'NAME-VERSION CHECKSUM' bool-implies-thm
+
+bool-implies-thm-1.1 e8d48555ebd634efc228ef750e5fe15fd67534e3
+--------------------------------------------------------------------------
+opentheory -d repos/repo list
+
+bool-and-1.1
+bool-forall-1.0
+bool-implies-1.0
+bool-implies-thm-1.1
+bool-true-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list ~UpToDate
+
+bool-implies-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Deprecated
+
+bool-implies-thm-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Obsolete
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Upgradable
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo info --upgrade-theory --theory-source bool-implies
+
+def {
+  package: bool-implies-def-1.0
+  checksum: c7858898746726f2d269ad988cbf4f47afbbffdc
+}
+
+thm {
+  import: def
+  package: bool-implies-thm-1.1
+  checksum: e8d48555ebd634efc228ef750e5fe15fd67534e3
+}
+
+main {
+  import: def
+  import: thm
+}
+--------------------------------------------------------------------------
+opentheory -d repos/repo install theories/bool-implies-1.1/bool-implies.thy
+
+installed package bool-implies-1.1 from theory source file
+--------------------------------------------------------------------------
+opentheory -d repos/repo list
+
+bool-and-1.1
+bool-forall-1.0
+bool-implies-1.1
+bool-true-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list ~UpToDate
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Deprecated
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Obsolete
+
+bool-implies-1.0
+bool-implies-thm-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Upgradable
+
+--------------------------------------------------------------------------
+opentheory -d repos/repo uninstall Obsolete
+
+uninstalled package bool-implies-1.0
+uninstalled package bool-implies-thm-1.0
+--------------------------------------------------------------------------
+opentheory -d repos/repo list Uploadable
+
+bool-implies-1.1
+==========================================================================
+End of self-test
