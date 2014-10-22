@@ -3090,7 +3090,15 @@ in
 
         val proceed = not (!confirmUpload) orelse askToConfirmUpload ()
       in
-        if proceed then RepositoryUpload.upload upl else ()
+        if not proceed then ()
+        else
+          let
+            val () = RepositoryUpload.upload upl
+
+            val () = RepositoryRemote.update rem
+          in
+            ()
+          end
       end
       handle Error err =>
         raise Error (err ^ "\npackage upload failed");
