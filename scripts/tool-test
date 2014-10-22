@@ -184,7 +184,7 @@ test_passing "$opentheory_repo list Upgradable";
 test_passing "$opentheory_repo uninstall Obsolete";
 test_passing "$opentheory_repo list Uploadable";
 
-test_section "End of self-test";
+test_section "Completed opentheory tool test";
 
 __END__
 
