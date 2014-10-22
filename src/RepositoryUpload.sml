@@ -279,7 +279,7 @@ local
         upload
       end;
 
-  fun supportUpload repo upload namever =
+  fun supportUpload repo rem upload namever =
       let
         val chk =
             case Repository.peek repo namever of
@@ -294,15 +294,33 @@ local
               end
 
         val () = RepositoryRemote.supportUpload upload namever chk
+
+        val msg =
+            "installed support package " ^
+            PackageNameVersion.toString namever ^
+            " on " ^ RepositoryRemote.toString rem
+
+        val () = chat msg
+
+        val () = TextIO.flushOut TextIO.stdOut
       in
         ()
       end;
 
-  fun packageUpload repo upload namever =
+  fun packageUpload repo rem upload namever =
       let
         val pkg = Repository.get repo namever
 
         val () = RepositoryRemote.packageUpload upload pkg
+
+        val msg =
+            "uploaded package " ^
+            PackageNameVersion.toString namever ^
+            " to " ^ RepositoryRemote.toString rem
+
+        val () = chat msg
+
+        val () = TextIO.flushOut TextIO.stdOut
       in
         ()
       end;
@@ -341,26 +359,26 @@ in
       let
         val Upload
               {repository = repo,
-               remote,
+               remote = rem,
                support,
                packages} = info
 
-        val upl = startUpload remote
+        val upl = startUpload rem
 
         val () =
             let
-              val () = List.app (supportUpload repo upl) support
+              val () = List.app (supportUpload repo rem upl) support
 
-              val () = List.app (packageUpload repo upl) packages
+              val () = List.app (packageUpload repo rem upl) packages
 
-              val () = finishUpload remote upl
+              val () = finishUpload rem upl
             in
               ()
             end
             handle Error err =>
               let
                 val () =
-                    deleteUpload remote upl
+                    deleteUpload rem upl
                     handle Error err' => raise Error (err ^ "\n" ^ err')
               in
                 raise Error err
