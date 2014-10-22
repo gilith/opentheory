@@ -152,7 +152,7 @@ function opentheory_complete($name_version) {
 function opentheory_cleanup($name_version) {
   isset($name_version) or trigger_error('bad name_version');
 
-  $args = ' ' . $name_version->to_string();
+  $args = ' ' . $name_version->staged_to_string();
 
   $error = opentheory_action('cleanup',$args);
 

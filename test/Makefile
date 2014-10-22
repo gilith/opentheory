@@ -50,6 +50,7 @@ TEMP = \
 .PHONY: clean
 clean:
 	rm -f $(TEMP)
+	rm -rf repos/upstream repos/repo
 
 ###############################################################################
 # The Moscow ML self-test
