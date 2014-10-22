@@ -123,7 +123,7 @@ test_passing "$opentheory_repo install bool-forall";
 test_passing "$opentheory_repo list";
 test_passing "$opentheory_repo list ~UpToDate";
 
-test_section "Simulate user developing a theory package";
+test_section "Simulate user developing own theory package";
 test_passing "$opentheory_repo list";
 test_passing "$opentheory_repo install theories/bool-implies-def/bool-implies-def.thy";
 test_passing "$opentheory_repo install theories/bool-implies-thm/bool-implies-thm.thy";
@@ -132,11 +132,11 @@ test_passing "$opentheory_repo list";
 test_passing "$opentheory_repo list ~UpToDate";
 test_passing "$opentheory_repo list Mine";
 
-test_section "Simulate user uploading a theory package";
+test_section "Simulate user uploading own theory package";
 test_passing "$opentheory_repo list Uploadable";
-test_passing "$opentheory_upstream install --name bool-implies-def-1.0 --stage tarball:$repo/packages/bool-implies-def-1.0/bool-implies-def-1.0.tgz";
-test_passing "$opentheory_upstream install --name bool-implies-thm-1.0 --stage tarball:$repo/packages/bool-implies-thm-1.0/bool-implies-thm-1.0.tgz";
-test_passing "$opentheory_upstream install --name bool-implies-1.0 --stage tarball:$repo/packages/bool-implies-1.0/bool-implies-1.0.tgz";
+test_passing "$opentheory_upstream install --stage --manual --name bool-implies-def-1.0 tarball:$repo/packages/bool-implies-def-1.0/bool-implies-def-1.0.tgz";
+test_passing "$opentheory_upstream install --stage --manual --name bool-implies-thm-1.0 tarball:$repo/packages/bool-implies-thm-1.0/bool-implies-thm-1.0.tgz";
+test_passing "$opentheory_upstream install --stage --manual --name bool-implies-1.0 tarball:$repo/packages/bool-implies-1.0/bool-implies-1.0.tgz";
 test_passing "$opentheory_upstream install staged:bool-implies-def-1.0";
 test_passing "$opentheory_upstream install staged:bool-implies-thm-1.0";
 test_passing "$opentheory_upstream install staged:bool-implies-1.0";
@@ -161,7 +161,7 @@ test_passing "$opentheory_upstream list --format 'NAME-VERSION CHECKSUM' All";
 test_passing "$opentheory_repo list --format 'NAME-VERSION CHECKSUM' All";
 test_passing "$opentheory_repo info --theory-source bool-implies";
 
-test_section "Simulate user updating theory packages";
+test_section "Simulate user updating own theory package";
 test_passing "$opentheory_repo list";
 test_passing "$opentheory_repo list ~UpToDate";
 test_passing "$opentheory_repo list Deprecated";

@@ -338,13 +338,22 @@ fun compress system name =
           Article.toTextFile
             {article = article,
              filename = outputFilename}
+    in
+      ()
+    end;
+
+fun compressList sas =
+    let
+      fun comp (s,a) = compress s a
+
+      val () = List.app comp sas
 
       val () = TextIO.print "\n"
     in
       ()
     end;
 
-val () = List.app (fn (s,a) => compress s a) TEST_ARTICLES;
+val () = compressList TEST_ARTICLES;
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Summarizing articles";
