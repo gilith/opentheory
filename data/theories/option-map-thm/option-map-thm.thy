@@ -1,9 +1,9 @@
 name: option-map-thm
-version: 1.11
+version: 1.12
 description: Properties of the option map function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: function
 requires: option-map-def

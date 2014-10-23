@@ -1,9 +1,9 @@
 name: set-fold-def
-version: 1.49
+version: 1.50
 description: Definition of a fold operation on finite sets
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: natural
 requires: set-finite

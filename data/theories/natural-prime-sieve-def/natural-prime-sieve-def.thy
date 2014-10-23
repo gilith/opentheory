@@ -1,9 +1,9 @@
 name: natural-prime-sieve-def
-version: 1.26
+version: 1.28
 description: Definition of the sieve of Eratosthenes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-01-13
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: list
 requires: natural

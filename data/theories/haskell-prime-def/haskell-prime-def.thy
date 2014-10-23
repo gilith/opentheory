@@ -1,9 +1,9 @@
 name: haskell-prime-def
-version: 1.11
+version: 1.13
 description: Definition of prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: base
 requires: haskell
 requires: natural-prime

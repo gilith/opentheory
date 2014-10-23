@@ -1,9 +1,9 @@
 name: modular-def
-version: 1.76
+version: 1.77
 description: Definition of modular arithmetic
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: modular-witness
 requires: natural

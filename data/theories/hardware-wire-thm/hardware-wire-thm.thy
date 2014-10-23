@@ -1,9 +1,9 @@
 name: hardware-wire-thm
-version: 1.22
+version: 1.23
 description: Properties of hardware wire devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-06-28
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: hardware-thm
 requires: hardware-wire-def

@@ -1,5 +1,5 @@
 name: base
-version: 1.160
+version: 1.162
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,33 +16,33 @@ show: "Relation"
 show: "Set"
 
 bool {
-  package: bool-1.32
-  checksum: 2ef4bff11ab94e83afafeb63f1ae983d36d9e4c4
+  package: bool-1.33
+  checksum: 8e90d684f12d754ac62d7d6792e629e4b34666d0
 }
 
 unit {
   import: bool
-  package: unit-1.16
-  checksum: 0b9171d4319b0b91bdc6e29817fe36a5af8e8735
+  package: unit-1.18
+  checksum: 04580e1eb846efe713d9b36aa46c56df05cc815f
 }
 
 function {
   import: bool
-  package: function-1.50
-  checksum: dac02c3228b08fc555da591d2bcb661ec4c22dd4
+  package: function-1.51
+  checksum: acedcfba50acfdafabc1eae7226cbb12f369ac6e
 }
 
 pair {
   import: bool
-  package: pair-1.24
-  checksum: 6f77be5a72a2c8b7a595569ceb187495e6125754
+  package: pair-1.25
+  checksum: fb5669fd0f6ceda21875409d97a00b5e3ee6fe41
 }
 
 natural {
   import: bool
   import: function
-  package: natural-1.95
-  checksum: 5b583748d64c3446fb267d7cc946a6bf89ba6950
+  package: natural-1.97
+  checksum: 3e3b100e45fd6fff7b5b27ceeaa543c1f345fcf6
 }
 
 set {
@@ -50,8 +50,8 @@ set {
   import: function
   import: pair
   import: natural
-  package: set-1.64
-  checksum: fc02e9afc85d6ced9ab503fa87c0ce4de549f8ca
+  package: set-1.66
+  checksum: 4f2c72b0856af0fed7e4d7e4bf1720701f7cc648
 }
 
 relation {
@@ -60,24 +60,24 @@ relation {
   import: pair
   import: natural
   import: set
-  package: relation-1.55
-  checksum: 218f49cf25b673ddb2a149b47038f46492f2fcd6
+  package: relation-1.56
+  checksum: 4ddd58b58368916ac4afca45a8b3b9e362af4fab
 }
 
 sum {
   import: bool
   import: pair
   import: natural
-  package: sum-1.52
-  checksum: 561149dcb14357cc7ba0c159e016786b34c3c5e0
+  package: sum-1.53
+  checksum: 02718c365cf68761bc062e2d8e744205e46565d8
 }
 
 option {
   import: bool
   import: function
   import: natural
-  package: option-1.65
-  checksum: 936fba710e3b6a3ecf46fa6f0788214aa0be381e
+  package: option-1.67
+  checksum: 4e287c0d93bfaa8ffb209e6c23eabcf830ae91e0
 }
 
 list {
@@ -86,8 +86,8 @@ list {
   import: pair
   import: natural
   import: set
-  package: list-1.93
-  checksum: 710da2bacf80753f1d374289d68b4d017d5b1a85
+  package: list-1.95
+  checksum: 3a282ab898b102f43d8ba356f105d4f235ee90d6
 }
 
 real {
@@ -96,8 +96,8 @@ real {
   import: pair
   import: natural
   import: set
-  package: real-1.56
-  checksum: c4d2077331ceaedb4120f573c9a9c19359e59559
+  package: real-1.58
+  checksum: 7fc923734303f15302325772908739b21b0adf0b
 }
 
 main {

@@ -1,9 +1,9 @@
 name: parser-comb-def
-version: 1.78
+version: 1.80
 description: Definition of stream parser combinators
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-01-13
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: option
 requires: parser-stream

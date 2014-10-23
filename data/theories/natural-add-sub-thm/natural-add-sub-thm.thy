@@ -1,9 +1,9 @@
 name: natural-add-sub-thm
-version: 1.5
+version: 1.6
 description: Properties of natural number subtraction
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: natural-add-def
 requires: natural-add-sub-def

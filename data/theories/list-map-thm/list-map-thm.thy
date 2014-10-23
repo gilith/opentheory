@@ -1,9 +1,9 @@
 name: list-map-thm
-version: 1.55
+version: 1.56
 description: Properties of the list map function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: function
 requires: list-append

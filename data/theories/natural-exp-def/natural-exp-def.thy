@@ -1,9 +1,9 @@
 name: natural-exp-def
-version: 1.30
+version: 1.32
 description: Definition of natural number exponentiation
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: natural-mult
 requires: natural-thm

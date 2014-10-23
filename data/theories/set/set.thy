@@ -1,5 +1,5 @@
 name: set
-version: 1.64
+version: 1.66
 description: Set types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,28 +14,28 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-def-1.47
-  checksum: 9ca8385e3cae829767c09e97962a08ff6474fbaf
+  package: set-def-1.49
+  checksum: deacc7ee162788c1bbf3db90455adabe7e6ac7d9
 }
 
 thm {
   import: def
-  package: set-thm-1.61
-  checksum: 06ffd9ac483e46b181bb3251b1bf2ecf242f485f
+  package: set-thm-1.62
+  checksum: e26809a2d80b1c8e6b6b45ac1f18f97977a40957
 }
 
 finite {
   import: def
   import: thm
-  package: set-finite-1.51
-  checksum: 319bffb0c102a8bacf86370b031c7171a1a3af06
+  package: set-finite-1.52
+  checksum: f7591a684bc307947834918486b1adca2a431efd
 }
 
 fold {
   import: thm
   import: finite
-  package: set-fold-1.42
-  checksum: 0fb9780a00619b59740bc1134054f182e60f3dd6
+  package: set-fold-1.43
+  checksum: da46384cb6a58593674f9abe782bdf10635ff41c
 }
 
 size {
@@ -43,8 +43,8 @@ size {
   import: thm
   import: finite
   import: fold
-  package: set-size-1.53
-  checksum: 9dcd589bc8d4596f8cebdfd2047f0a65abb5ff61
+  package: set-size-1.54
+  checksum: 3cdd22bd87dc93caf7753d07a1538d83d2b84a01
 }
 
 main {

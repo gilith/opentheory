@@ -1,9 +1,9 @@
 name: natural-exp-log-thm
-version: 1.9
+version: 1.10
 description: Properties of natural number logarithm
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-06-12
+provenance: HOL Light theory extracted on 2014-10-22
 requires: bool
 requires: natural-add
 requires: natural-def
