@@ -96,35 +96,19 @@ end;
 (* Mapping over exported theorem objects.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  fun addThm f (th,(unchanged,ths,acc)) =
-      let
-        val (th',acc) = f th acc
+fun maps f exp acc =
+    let
+      val Export {thms,savable} = exp
 
-        val (unchanged,th) =
-            case th' of
-              NONE => (unchanged,th)
-            | SOME x => (false,x)
+      val (thms',acc) = ObjectThmSet.maps f thms acc
 
-        val ths = ObjectThmSet.add ths th
-      in
-        (unchanged,ths,acc)
-      end;
-in
-  fun maps f exp acc =
-      let
-        val Export {thms,savable} = exp
-
-        val (thms',acc) = ObjectThmSet.maps f thms acc
-
-        val exp' =
-            case thms' of
-              NONE => NONE
-            | SOME thms => SOME (Export {thms = thms, savable = savable})
-      in
-        (exp',acc)
-      end;
-end;
+      val exp' =
+          case thms' of
+            NONE => NONE
+          | SOME thms => SOME (Export {thms = thms, savable = savable})
+    in
+      (exp',acc)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Symbols.                                                                  *)
