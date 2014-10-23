@@ -207,17 +207,17 @@ val isTypeSubst : data -> bool
 
 (* Term substitution data *)
 
-val mkTermSubst : TermSubst.termSubstMap -> data
+val mkTermSubst : TermSubst.substMap -> data
 
-val destTermSubst : data -> TermSubst.termSubstMap
+val destTermSubst : data -> TermSubst.substMap
 
 val isTermSubst : data -> bool
 
 (* Substitution data *)
 
-val mkSubst : TermSubst.substMap -> data
+val mkSubst : TypeSubst.substMap * TermSubst.substMap -> data
 
-val destSubst : data -> TermSubst.substMap
+val destSubst : data -> TypeSubst.substMap * TermSubst.substMap
 
 val isSubst : data -> bool
 

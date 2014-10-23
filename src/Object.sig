@@ -132,7 +132,7 @@ val isThm : object -> bool
 
 (* Substitution objects *)
 
-val destSubst : object -> TermSubst.substMap
+val destSubst : object -> TypeSubst.substMap * TermSubst.substMap
 
 val isSubst : object -> bool
 

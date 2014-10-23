@@ -12,27 +12,26 @@ open Useful;
 (* Term substitution maps.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-type termSubstMap = Term.term VarMap.map;
+type substMap = Term.term VarMap.map;
 
-val emptyTermMap : termSubstMap = VarMap.new ();
+val emptyMap : substMap = VarMap.new ();
 
-val nullTermMap : termSubstMap -> bool = VarMap.null;
+val nullMap : substMap -> bool = VarMap.null;
 
-val singletonTermMap : Var.var * Term.term -> termSubstMap = VarMap.singleton;
+val singletonMap : Var.var * Term.term -> substMap = VarMap.singleton;
 
-val fromListTermMap : (Var.var * Term.term) list -> termSubstMap =
+val normalizeMap =
+    let
+      fun pred (v,tm) = not (Term.equalVar v tm)
+    in
+      VarMap.filter pred
+    end;
+
+val fromListMap : (Var.var * Term.term) list -> substMap =
     VarMap.fromList;
 
-val ppTermMap =
+val ppMap =
     Print.ppMap VarMap.toList (Print.ppList (Print.ppPair Var.pp Term.pp));
-
-(* ------------------------------------------------------------------------- *)
-(* Type and term substitution maps.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-type substMap = TypeSubst.substMap * termSubstMap;
-
-val emptyMap : substMap = (TypeSubst.emptyMap, emptyTermMap);
 
 (* ------------------------------------------------------------------------- *)
 (* A capture-avoiding substitution function that preserves sharing.          *)
@@ -309,7 +308,7 @@ fun rawSharingSubst stm tm tySub seen fvShare =
           if Term.alphaEqual tm' tm'' then ()
           else
             let
-              val () = Print.trace ppTermMap "TermSubst.rawSharingSubst: stm" stm
+              val () = Print.trace ppMap "TermSubst.rawSharingSubst: stm" stm
               val () = Print.trace Term.pp "TermSubst.rawSharingSubst: tm" tm
               val () = Print.trace TypeSubst.pp
                          "TermSubst.rawSharingSubst: tySub" tySub
@@ -428,77 +427,39 @@ and rawSharingSubst' stm tm tySub seen fvShare =
 datatype subst =
     Subst of
       {tySub : TypeSubst.subst,
-       stm : termSubstMap,
+       stm : substMap,
        seen : Term.term option IntMap.map};
 
-val emptySeen : Term.term option IntMap.map = IntMap.new ();
-
-val empty =
+fun mk sty stm =
     let
-      val tySub = TypeSubst.empty
-      val stm = emptyTermMap
-      val seen = emptySeen
+      val stm = normalizeMap stm
+      and seen = IntMap.new ()
     in
       Subst
-        {tySub = tySub,
+        {tySub = sty,
          stm = stm,
          seen = seen}
     end;
 
+val mkMono = mk TypeSubst.empty;
+
+fun dest (Subst {tySub, stm, seen = _}) = (tySub,stm);
+
+val empty = mkMono emptyMap;
+
 fun null (Subst {tySub,stm,...}) =
-    TypeSubst.null tySub andalso nullTermMap stm;
+    TypeSubst.null tySub andalso nullMap stm;
 
-local
-  fun add (v,tm,(stm,tySub,seen,fvShare)) =
-      let
-        val (v',tySub) = Var.sharingSubst v tySub
-
-        val (tm',tySub,seen,fvShare) =
-            rawSharingSubst emptyTermMap tm tySub seen fvShare
-
-        val v = Option.getOpt (v',v)
-
-        val tm = Option.getOpt (tm',tm)
-
-        val stm =
-            if Term.equalVar v tm then stm
-            else if VarMap.inDomain v stm then
-              raise Error "TermSubst.newSharingSubst: bad subst"
-            else VarMap.insert stm (v,tm)
-      in
-        (stm,tySub,seen,fvShare)
-      end;
-in
-  fun mk (sty,stm) =
-      let
-        val tySub = TypeSubst.mk sty
-
-        val seen = emptySeen
-
-        val fvShare = Term.newSharingFreeVars
-
-        val (stm,tySub,_,_) =
-            VarMap.foldl add (emptyTermMap,tySub,seen,fvShare) stm
-      in
-        Subst
-          {tySub = tySub,
-           stm = stm,
-           seen = seen}
-      end;
-end;
+fun typeSubst (Subst {tySub,...}) = tySub;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val toStringTermMap = Print.toString ppTermMap;
-
-val ppMap = Print.ppPair TypeSubst.ppMap ppTermMap;
-
 val toStringMap = Print.toString ppMap;
 
 fun pp (Subst {tySub,stm,...}) =
-    Print.ppPair TypeSubst.pp ppTermMap (tySub,stm);
+    Print.ppPair TypeSubst.pp ppMap (tySub,stm);
 
 val toString = Print.toString pp;
 
@@ -591,6 +552,50 @@ fun substAlphaSet sub set =
       val (set',_) = sharingSubstAlphaSet set sub
     in
       set'
+    end;
+
+(* Term substitution maps *)
+
+local
+  fun add (v,tm,(stm,unchanged,sub)) =
+      let
+        val (v',sub) = sharingSubstVar v sub
+
+        val v = Option.getOpt (v',v)
+
+        val () =
+            if not (VarMap.inDomain v stm) then ()
+            else raise Error "TermSubst.sharingSubstSubstMap: var collision"
+
+        val (tm',sub) = sharingSubst tm sub
+
+        val tm = Option.getOpt (tm',tm)
+
+        val stm = VarMap.insert stm (v,tm)
+
+        val unchanged =
+            unchanged andalso
+            not (Option.isSome v') andalso
+            not (Option.isSome tm')
+      in
+        (stm,unchanged,sub)
+      end;
+in
+  fun sharingSubstSubstMap stm sub =
+      let
+        val (stm,unchanged,sub) = VarMap.foldl add (emptyMap,true,sub) stm
+
+        val stm' = if unchanged then NONE else SOME stm
+      in
+        (stm',sub)
+      end;
+end;
+
+fun substSubstMap sub stm =
+    let
+      val (stm',_) = sharingSubstSubstMap stm sub
+    in
+      stm'
     end;
 
 end

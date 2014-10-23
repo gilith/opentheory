@@ -604,10 +604,12 @@ fun mkSubst {savable} objS objT =
     let
       val d =
           let
-            val s = destSubst objS
+            val (sty,stm) = destSubst objS
             and th = destThm objT
+
+            val sub = TermSubst.mk (TypeSubst.mk sty) stm
           in
-            ObjectData.Thm (Thm.subst (TermSubst.mk s) th)
+            ObjectData.Thm (Thm.subst sub th)
           end
 
 (*OpenTheoryTrace2

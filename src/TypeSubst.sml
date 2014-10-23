@@ -18,18 +18,20 @@ val emptyMap : substMap = NameMap.new ();
 
 val nullMap : substMap -> bool = NameMap.null;
 
+val singletonMap : Name.name * Type.ty -> substMap = NameMap.singleton;
+
 val peekMap : substMap -> Name.name -> Type.ty option = NameMap.peek;
 
 val insertMap : substMap -> Name.name * Type.ty -> substMap = NameMap.insert;
 
-val fromListMap : (Name.name * Type.ty) list -> substMap = NameMap.fromList;
-
-val normMap =
+val normalizeMap =
     let
       fun pred (n,ty) = not (Type.equalVar n ty)
     in
       NameMap.filter pred
     end;
+
+val fromListMap : (Name.name * Type.ty) list -> substMap = NameMap.fromList;
 
 (* ------------------------------------------------------------------------- *)
 (* Type substitutions.                                                       *)
@@ -42,7 +44,7 @@ datatype subst =
 
 fun mk subMap =
     let
-      val subMap = normMap subMap
+      val subMap = normalizeMap subMap
       val seen = IntMap.new ()
     in
       Subst
@@ -50,9 +52,11 @@ fun mk subMap =
          seen = seen}
     end;
 
+fun dest (Subst {subMap,...}) = subMap;
+
 val empty = mk emptyMap;
 
-fun null (Subst {subMap,...}) = nullMap subMap;
+fun null sub = nullMap (dest sub);
 
 (* ------------------------------------------------------------------------- *)
 (* Applying substitutions: returns NONE for unchanged.                       *)
@@ -115,7 +119,9 @@ fun substMap subMap =
 fun sharingSubst ty sub =
     let
       val Subst {subMap,seen} = sub
+
       val (ty',seen) = substMap subMap ty seen
+
       val sub = Subst {subMap = subMap, seen = seen}
     in
       (ty',sub)
@@ -124,10 +130,41 @@ fun sharingSubst ty sub =
 fun subst sub ty =
     let
       val Subst {subMap,seen} = sub
+
       val (ty',_) = substMap subMap ty seen
     in
       ty'
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Composing.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun add (v,ty,(sub2,acc)) =
+      let
+        val (ty',sub2) = sharingSubst ty sub2
+
+        val ty = Option.getOpt (ty',ty)
+
+        val acc = NameMap.insert acc (v,ty)
+      in
+        (sub2,acc)
+      end;
+in
+  fun compose sub1 sub2 =
+      if null sub1 then sub2
+      else if null sub2 then sub1
+      else
+        let
+          val map1 = dest sub1
+          and map2 = dest sub2
+
+          val (_,acc) = NameMap.foldl add (sub2,map2) map1
+        in
+          mk acc
+        end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Matching.                                                                 *)

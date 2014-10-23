@@ -54,10 +54,9 @@ in
            let
              val vl = VarSet.toList (Term.freeVars pat)
 
-             val tySub = TypeSubst.emptyMap
-             and tmSub = TermSubst.fromListTermMap (List.mapPartial anonVar vl)
+             val tmMap = TermSubst.fromListMap (List.mapPartial anonVar vl)
 
-             val sub = TermSubst.mk (tySub,tmSub)
+             val sub = TermSubst.mkMono tmMap
            in
              Option.getOpt (TermSubst.subst sub pat, pat)
            end

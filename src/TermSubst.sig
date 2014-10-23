@@ -10,23 +10,17 @@ sig
 (* Term substitution maps.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-type termSubstMap = Term.term VarMap.map
-
-val emptyTermMap : termSubstMap
-
-val nullTermMap : termSubstMap -> bool
-
-val singletonTermMap : Var.var * Term.term -> termSubstMap
-
-val fromListTermMap : (Var.var * Term.term) list -> termSubstMap
-
-(* ------------------------------------------------------------------------- *)
-(* Type and term substitution maps.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-type substMap = TypeSubst.substMap * termSubstMap
+type substMap = Term.term VarMap.map
 
 val emptyMap : substMap
+
+val nullMap : substMap -> bool
+
+val singletonMap : Var.var * Term.term -> substMap
+
+val normalizeMap : substMap -> substMap
+
+val fromListMap : (Var.var * Term.term) list -> substMap
 
 (* ------------------------------------------------------------------------- *)
 (* Capture-avoiding substitutions of type and term variables.                *)
@@ -38,7 +32,13 @@ val empty : subst
 
 val null : subst -> bool
 
-val mk : substMap -> subst
+val mk : TypeSubst.subst -> substMap -> subst
+
+val mkMono : substMap -> subst
+
+val dest : subst -> TypeSubst.subst * substMap
+
+val typeSubst : subst -> TypeSubst.subst
 
 (* ------------------------------------------------------------------------- *)
 (* Applying substitutions: returns NONE for unchanged.                       *)
@@ -69,13 +69,15 @@ val sharingSubstAlphaSet :
 
 val substAlphaSet : subst -> TermAlphaSet.set -> TermAlphaSet.set option
 
+(* Term substitution maps *)
+
+val sharingSubstSubstMap : substMap -> subst -> substMap option * subst
+
+val substSubstMap : subst -> substMap -> substMap option
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
-
-val ppTermMap : termSubstMap Print.pp
-
-val toStringTermMap : termSubstMap -> string
 
 val ppMap : substMap Print.pp
 

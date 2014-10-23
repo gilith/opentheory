@@ -14,6 +14,16 @@ type substMap = Type.ty NameMap.map
 
 val emptyMap : substMap
 
+val nullMap : substMap -> bool
+
+val singletonMap : Name.name * Type.ty -> substMap
+
+val peekMap : substMap -> Name.name -> Type.ty option
+
+val insertMap : substMap -> Name.name * Type.ty -> substMap
+
+val normalizeMap : substMap -> substMap
+
 val fromListMap : (Name.name * Type.ty) list -> substMap
 
 (* ------------------------------------------------------------------------- *)
@@ -28,6 +38,8 @@ val null : subst -> bool
 
 val mk : substMap -> subst
 
+val dest : subst -> substMap
+
 (* ------------------------------------------------------------------------- *)
 (* Applying substitutions: returns NONE for unchanged.                       *)
 (* ------------------------------------------------------------------------- *)
@@ -35,6 +47,12 @@ val mk : substMap -> subst
 val sharingSubst : Type.ty -> subst -> Type.ty option * subst
 
 val subst : subst -> Type.ty -> Type.ty option
+
+(* ------------------------------------------------------------------------- *)
+(* Composing.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val compose : subst -> subst -> subst
 
 (* ------------------------------------------------------------------------- *)
 (* Matching.                                                                 *)

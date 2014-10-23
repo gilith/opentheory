@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.3";
 
-val release = " (release 20141021)";
+val release = " (release 20141022)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -1188,7 +1188,7 @@ in
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => addRemote s)},
-       {switches = ["--show-var-types"], arguments = [],
+       {switches = ["--show-types"], arguments = [],
         description = "annotate every term variable with its type",
         processor =
           beginOpt endOpt

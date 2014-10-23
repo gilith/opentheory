@@ -64,6 +64,30 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+val () = SAY "Types";
+(* ------------------------------------------------------------------------- *)
+
+val (sub1,sub2) =
+    let
+      val a = Type.destVar Type.alpha
+
+      val ty1 = Type.mkFun (Type.bool,Type.alpha)
+      and ty2 = Type.mkFun (Type.alpha,Type.bool)
+
+      val sub1 = TypeSubst.mk (TypeSubst.singletonMap (a,ty1))
+      and sub2 = TypeSubst.mk (TypeSubst.singletonMap (a,ty2))
+    in
+      (sub1,sub2)
+    end;
+
+val _ = printval TypeSubst.pp sub1;
+val _ = printval TypeSubst.pp sub2;
+
+val sub12 = TypeSubst.compose sub1 sub2;
+
+val _ = printval TypeSubst.pp sub12;
+
+(* ------------------------------------------------------------------------- *)
 val () = SAY "Terms";
 (* ------------------------------------------------------------------------- *)
 
@@ -176,9 +200,8 @@ val (tm,sub) =
       val t1 = mkImp (Term.mkVar q, Term.mkVar p)
       val tm = Term.mkAbs (q,t1)
 
-      val tySub = TypeSubst.emptyMap
-      val tmSub = TermSubst.singletonTermMap (p, Term.mkVar q)
-      val sub = TermSubst.mk (tySub,tmSub)
+      val tmMap = TermSubst.singletonMap (p, Term.mkVar q)
+      val sub = TermSubst.mkMono tmMap
     in
       (tm,sub)
     end;
@@ -201,9 +224,8 @@ val (tm,sub) =
       val t1 = mkConj (t0,ty)
       val tm = Term.mkAbs (x,t1)
 
-      val tySub = TypeSubst.emptyMap
-      val tmSub = TermSubst.singletonTermMap (y,tx)
-      val sub = TermSubst.mk (tySub,tmSub)
+      val tmMap = TermSubst.singletonMap (y,tx)
+      val sub = TermSubst.mkMono tmMap
     in
       (tm,sub)
     end;
@@ -239,9 +261,8 @@ val (tm,sub) =
       val t4 = mkConj (mkConj (t0,t1), mkConj (t2,t3))
       val tm = Term.mkAbs (x',t4)
 
-      val tySub = TypeSubst.emptyMap
-      val tmSub = TermSubst.singletonTermMap (x, Term.mkVar x')
-      val sub = TermSubst.mk (tySub,tmSub)
+      val tmMap = TermSubst.singletonMap (x, Term.mkVar x')
+      val sub = TermSubst.mkMono tmMap
     in
       (tm,sub)
     end;

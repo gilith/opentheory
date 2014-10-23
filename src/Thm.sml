@@ -173,11 +173,9 @@ fun betaConv t =
           if Term.equalVar v t2 then t1
           else
             let
-              val tmSubMap = TermSubst.singletonTermMap (v,t2)
+              val tmMap = TermSubst.singletonMap (v,t2)
 
-              val subMap = (TypeSubst.emptyMap,tmSubMap)
-
-              val sub = TermSubst.mk subMap
+              val sub = TermSubst.mkMono tmMap
             in
               Option.getOpt (TermSubst.subst sub t1, t1)
             end

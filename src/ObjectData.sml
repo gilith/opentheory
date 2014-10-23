@@ -314,7 +314,7 @@ in
       let
         val ms = List.map destMaplet (destList d)
       in
-        TermSubst.fromListTermMap ms
+        TermSubst.fromListMap ms
       end;
 end;
 
