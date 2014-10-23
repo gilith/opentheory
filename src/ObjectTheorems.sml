@@ -56,13 +56,15 @@ fun allDefined ths = Sequents.allDefined (sequents ths);
 
 fun fromTextFile {filename} =
     let
-      val state =
-          ObjectRead.initial
-            {import = ObjectThms.new {savable = true},
-             interpretation = Interpretation.natural,
-             savable = true}
+      val parameters =
+          {import = ObjectThms.new {savable = true},
+           interpretation = Interpretation.natural,
+           savable = true}
 
-      val state = ObjectRead.executeTextFile {filename = filename} state
+      val state =
+          ObjectRead.executeTextFile
+            {parameters = parameters,
+             filename = filename}
 
       val ths = ObjectRead.thms state
 

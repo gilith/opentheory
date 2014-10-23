@@ -43,6 +43,7 @@ datatype command =
   | Var
   | VarTerm
   | VarType
+  | Version
 
 val isInference : command -> bool
 

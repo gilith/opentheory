@@ -9,6 +9,14 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val minArticleVersion = 5;
+val maxArticleVersion = 6;
+val defaultArticleVersion = minArticleVersion;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -24,12 +32,13 @@ type parameters =
 datatype state =
     State of
       {parameters : parameters,
+       version : int,
        stack : ObjectStack.stack,
        dict : ObjectDict.dict,
        export : ObjectExport.export,
        inference : Inference.inference};
 
-fun initial parameters =
+fun initial parameters {version} =
     let
       val {savable,...} = parameters
 
@@ -40,6 +49,7 @@ fun initial parameters =
     in
       State
         {parameters = parameters,
+         version = version,
          stack = stack,
          dict = dict,
          export = export,
@@ -47,6 +57,8 @@ fun initial parameters =
     end;
 
 fun parameters (State {parameters = x, ...}) = x;
+
+fun version (State {version = x, ...}) = x;
 
 fun stack (State {stack = x, ...}) = x;
 
@@ -68,7 +80,7 @@ fun ppState (State {stack,...}) =
 
 fun execute cmd state =
     let
-      val State {parameters,stack,dict,export,inference} = state
+      val State {parameters,version,stack,dict,export,inference} = state
 
       val {import,interpretation,savable} = parameters
 
@@ -92,6 +104,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -108,6 +121,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -128,6 +142,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -146,6 +161,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -168,6 +184,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -190,6 +207,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -208,6 +226,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -231,6 +250,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -249,6 +269,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -267,6 +288,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -292,6 +314,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -310,6 +333,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -328,6 +352,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -348,6 +373,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -371,6 +397,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -402,6 +429,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -420,6 +448,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -436,6 +465,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -454,6 +484,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -468,6 +499,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -478,6 +510,17 @@ fun execute cmd state =
 
       | Command.Pragma =>
         let
+          val () =
+              if version >= 6 then ()
+              else
+                let
+                  val msg =
+                      "the " ^ Command.toString cmd ^
+                      " command is only supported from version 6"
+                in
+                  warn msg
+                end
+
           val (stack,objX) = ObjectStack.pop stack
 
           val pragma =
@@ -493,6 +536,7 @@ fun execute cmd state =
           val state =
               State
                 {parameters = parameters,
+                 version = version,
                  stack = stack,
                  dict = dict,
                  export = export,
@@ -526,6 +570,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -546,6 +591,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -564,6 +610,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -586,6 +633,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -604,6 +652,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -629,6 +678,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -647,6 +697,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -665,6 +716,7 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
@@ -683,10 +735,22 @@ fun execute cmd state =
         in
           State
             {parameters = parameters,
+             version = version,
              stack = stack,
              dict = dict,
              export = export,
              inference = inference}
+        end
+
+      (* Type variable types *)
+
+      | Command.Version =>
+        let
+          val err =
+              "misplaced " ^ Command.toString cmd ^
+              " command"
+        in
+          raise Error err
         end
     end
     handle Error err =>
@@ -701,9 +765,59 @@ fun execute cmd state =
       end;
 
 local
+  fun getVersion cmds =
+      case cmds of
+        Stream.Cons (Command.Num v, cmds') =>
+        (case cmds' () of
+           Stream.Cons (Command.Version,cmds'') =>
+           let
+             val () =
+                 if v = defaultArticleVersion then
+                   let
+                     val msg =
+                         "article version is set to " ^
+                         Int.toString v ^
+                         ", but this is the default version"
+                   in
+                     warn msg
+                   end
+                 else if v < minArticleVersion then
+                   let
+                     val err =
+                         "article version is set to " ^
+                         Int.toString v ^
+                         ", but must be greater than " ^
+                         Int.toString minArticleVersion
+                   in
+                     raise Error err
+                   end
+                 else if v > maxArticleVersion then
+                   let
+                     val msg =
+                         "article version is set to " ^
+                         Int.toString v ^
+                         ", but the latest supported version is " ^
+                         Int.toString maxArticleVersion
+                   in
+                     warn msg
+                   end
+                 else ()
+           in
+             (v, cmds'' ())
+           end
+         | _ => (defaultArticleVersion,cmds))
+      | _ => (defaultArticleVersion,cmds);
+
   fun process (cmd,state) = execute cmd state;
 in
-  fun executeStream strm state = Stream.foldl process state strm;
+  fun executeStream parm cmds =
+      let
+        val (v,cmds) = getVersion cmds
+
+        val state = initial parm {version = v}
+      in
+        Stream.foldl process state cmds
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -719,7 +833,7 @@ local
       | SOME #"#" => true
       | _ => false;
 in
-  fun executeTextFile {filename} state =
+  fun executeTextFile {parameters,filename} =
       let
         (* Estimating parse error line numbers *)
 
@@ -736,9 +850,9 @@ in
 
            (* The command stream *)
 
-           val commands = Parse.everything Command.spacedParser chars
+           val cmds = Parse.everything Command.spacedParser chars
          in
-           executeStream commands state
+           executeStream parameters cmds
          end
          handle Parse.NoParse => raise Error "parse error")
         handle Error err =>

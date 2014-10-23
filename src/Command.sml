@@ -41,7 +41,8 @@ and typeVarCommandString = "typeVar"
 and typeOpCommandString = "typeOp"
 and varCommandString = "var"
 and varTermCommandString = "varTerm"
-and varTypeCommandString = "varType";
+and varTypeCommandString = "varType"
+and versionCommandString = "version";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of commands.                                                       *)
@@ -79,7 +80,8 @@ datatype command =
   | TypeOp
   | Var
   | VarTerm
-  | VarType;
+  | VarType
+  | Version;
 
 fun isInference cmd =
     case cmd of
@@ -189,7 +191,10 @@ fun compare cmd1_cmd2 =
     | (VarTerm,VarTerm) => EQUAL
     | (VarTerm,_) => LESS
     | (_,VarTerm) => GREATER
-    | (VarType,VarType) => EQUAL;
+    | (VarType,VarType) => EQUAL
+    | (VarType,_) => LESS
+    | (_,VarType) => GREATER
+    | (Version,Version) => EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -222,7 +227,8 @@ and ppThmCommand = Print.ppString thmCommandString
 and ppTypeOpCommand = Print.ppString typeOpCommandString
 and ppVarCommand = Print.ppString varCommandString
 and ppVarTermCommand = Print.ppString varTermCommandString
-and ppVarTypeCommand = Print.ppString varTypeCommandString;
+and ppVarTypeCommand = Print.ppString varTypeCommandString
+and ppVersionCommand = Print.ppString versionCommandString;
 
 local
   fun ppPos n = Print.ppInt n;
@@ -265,7 +271,8 @@ fun pp cmd =
     | TypeOp => ppTypeOpCommand
     | Var => ppVarCommand
     | VarTerm => ppVarTermCommand
-    | VarType => ppVarTypeCommand;
+    | VarType => ppVarTypeCommand
+    | Version => ppVersionCommand;
 
 val toString = Print.toString pp;
 
@@ -338,7 +345,8 @@ local
   and typeOpCommandParser = exactString typeOpCommandString
   and varCommandParser = exactString varCommandString
   and varTermCommandParser = exactString varTermCommandString
-  and varTypeCommandParser = exactString varTypeCommandString;
+  and varTypeCommandParser = exactString varTypeCommandString
+  and versionCommandParser = exactString versionCommandString;
 in
   val parser =
       (* Special command parsers *)
@@ -360,6 +368,7 @@ in
       appTermCommandParser >> K AppTerm ||
       varTermCommandParser >> K VarTerm ||
       varTypeCommandParser >> K VarType ||
+      versionCommandParser >> K Version ||
       (* Commands of length 6 *)
       absThmCommandParser >> K AbsThm ||
       appThmCommandParser >> K AppThm ||

@@ -129,9 +129,10 @@ fun fromTextFile {savable,import,interpretation,filename} =
            interpretation = interpretation,
            savable = savable}
 
-      val state = ObjectRead.initial parameters
-
-      val state = ObjectRead.executeTextFile {filename = filename} state
+      val state =
+          ObjectRead.executeTextFile
+            {parameters = parameters,
+             filename = filename}
 
       val stack = ObjectRead.stack state
       and dict = ObjectRead.dict state

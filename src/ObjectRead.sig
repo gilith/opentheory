@@ -21,9 +21,11 @@ type parameters =
 
 type state
 
-val initial : parameters -> state
+val initial : parameters -> {version : int} -> state
 
 val parameters : state -> parameters
+
+val version : state -> int
 
 val stack : state -> ObjectStack.stack
 
@@ -39,13 +41,13 @@ val inference : state -> Inference.inference
 
 val execute : Command.command -> state -> state
 
-val executeStream : Command.command Stream.stream -> state -> state
+val executeStream : parameters -> Command.command Stream.stream -> state
 
 (* ------------------------------------------------------------------------- *)
 (* Executing text files.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val executeTextFile : {filename : string} -> state -> state
+val executeTextFile : {parameters : parameters, filename : string} -> state
 
 (* ------------------------------------------------------------------------- *)
 (* The exported theorems.                                                    *)
