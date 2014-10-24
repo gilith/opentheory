@@ -29,6 +29,7 @@ datatype command =
   | Def
   | DefineConst
   | DefineTypeOp
+  | DefineTypeOpLegacy
   | EqMp
   | Nil
   | OpType

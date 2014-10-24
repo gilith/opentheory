@@ -9,6 +9,46 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* The legacy (a.k.a. HOL Light) version of defineTypeOp.                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun defineTypeOpLegacy name abs rep tyVars existenceTh =
+    let
+      val (ot,absC,repC,absRepTh,repAbsTh) =
+          Thm.defineTypeOp name abs rep tyVars existenceTh
+
+      val absRepTh' =
+          let
+            val (_,aTm) = Term.destAbs (Term.rhs (Thm.concl absRepTh))
+
+            val th0 = Thm.app absRepTh (Thm.refl aTm)
+          in
+            th0
+          end
+
+      val repAbsTh' =
+          let
+            val (_,tm) = Term.destAbs (Term.rhs (Thm.concl repAbsTh))
+
+            val rTm = Term.rhs tm
+
+            val th0 = Thm.app repAbsTh (Thm.refl rTm)
+          in
+            th0
+          end
+    in
+      (ot,absC,repC,absRepTh',repAbsTh')
+    end
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "Rule.defineTypeOpLegacy: " ^ err
+      in
+        raise Error err
+      end;
+*)
+
+(* ------------------------------------------------------------------------- *)
 (* Transitivity of equality.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
@@ -19,7 +59,15 @@ fun trans th1 th2 =
       val th3 = Thm.app (Thm.refl tm) th2
     in
       Thm.eqMp th3 th1
-    end;
+    end
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "Rule.trans: " ^ err
+      in
+        raise Error err
+      end;
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Alpha conversion.                                                         *)

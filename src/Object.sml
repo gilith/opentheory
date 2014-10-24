@@ -538,6 +538,66 @@ fun mkDefineTypeOp {savable} n a r objV objT =
     handle Error err => raise Error ("in Object.mkDefineTypeOp:\n" ^ err);
 *)
 
+fun mkDefineTypeOpLegacy {savable} n a r objV objT =
+    let
+      val (d0,d1,d2,d3,d4) =
+          let
+            val v = destNames objV
+            and t = destThm objT
+
+            val (ot,{abs},{rep},ar,ra) =
+                Thm.defineTypeOp n {abs = a} {rep = r} v t
+          in
+            (ObjectData.TypeOp ot,
+             ObjectData.Const abs,
+             ObjectData.Const rep,
+             ObjectData.Thm ar,
+             ObjectData.Thm ra)
+          end
+
+(*OpenTheoryTrace2
+      val () = Print.trace ObjectData.pp "Object.mkDefineTypeOpLegacy.absRep" d3
+
+      val () = Print.trace ObjectData.pp "Object.mkDefineTypeOpLegacy.repAbs" d4
+*)
+    in
+      if not savable then
+        let
+          val obj0 = mkDefault d0
+          and obj1 = mkDefault d1
+          and obj2 = mkDefault d2
+          and obj3 = mkDefault d3
+          and obj4 = mkDefault d4
+        in
+          (obj0,obj1,obj2,obj3,obj4)
+        end
+      else
+        let
+          val cmd = Command.DefineTypeOpLegacy
+          and args = [mkName n, mkName a, mkName r, objV, objT]
+          and gen = [d0,d1,d2,d3,d4]
+
+          val defs = []
+
+          val obj0 = mkSpecial d0 cmd args defs gen 0
+
+          val defs = obj0 :: defs
+
+          val obj1 = mkSpecial d1 cmd args defs gen 1
+          and obj2 = mkSpecial d2 cmd args defs gen 2
+
+          val defs = obj2 :: obj1 :: defs
+
+          val obj3 = mkSpecial d3 cmd args defs gen 3
+          and obj4 = mkSpecial d4 cmd args defs gen 4
+        in
+          (obj0,obj1,obj2,obj3,obj4)
+        end
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Object.mkDefineTypeOpLegacy:\n" ^ err);
+*)
+
 fun mkEqMp {savable} objA objB =
     let
       val d =

@@ -67,6 +67,7 @@ datatype command =
   | Def
   | DefineConst
   | DefineTypeOp
+  | DefineTypeOpLegacy
   | EqMp
   | Nil
   | OpType
@@ -93,6 +94,7 @@ fun isInference cmd =
     | DeductAntisym => true
     | DefineConst => true
     | DefineTypeOp => true
+    | DefineTypeOpLegacy => true
     | EqMp => true
     | Refl => true
     | Subst => true
@@ -152,6 +154,9 @@ fun compare cmd1_cmd2 =
     | (DefineTypeOp,DefineTypeOp) => EQUAL
     | (DefineTypeOp,_) => LESS
     | (_,DefineTypeOp) => GREATER
+    | (DefineTypeOpLegacy,DefineTypeOpLegacy) => EQUAL
+    | (DefineTypeOpLegacy,_) => LESS
+    | (_,DefineTypeOpLegacy) => GREATER
     | (EqMp,EqMp) => EQUAL
     | (EqMp,_) => LESS
     | (_,EqMp) => GREATER
@@ -258,6 +263,7 @@ fun pp cmd =
     | Def => ppDefCommand
     | DefineConst => ppDefineConstCommand
     | DefineTypeOp => ppDefineTypeOpCommand
+    | DefineTypeOpLegacy => ppDefineTypeOpCommand
     | EqMp => ppEqMpCommand
     | Nil => ppNilCommand
     | OpType => ppOpTypeCommand

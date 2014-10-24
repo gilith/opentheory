@@ -7,6 +7,16 @@ signature Rule =
 sig
 
 (* ------------------------------------------------------------------------- *)
+(* The legacy (a.k.a. HOL Light) version of defineTypeOp.                    *)
+(* ------------------------------------------------------------------------- *)
+
+val defineTypeOpLegacy :
+    Name.name -> {abs : Name.name} -> {rep : Name.name} -> Name.name list ->
+    Thm.thm ->
+    TypeOp.typeOp * {abs : Const.const} * {rep : Const.const} *
+    Thm.thm * Thm.thm
+
+(* ------------------------------------------------------------------------- *)
 (* Transitivity of equality.                                                 *)
 (* ------------------------------------------------------------------------- *)
 

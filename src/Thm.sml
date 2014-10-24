@@ -358,8 +358,16 @@ fun defineTypeOp name {abs} {rep} tyVars existenceTh =
 
             val aTm = Term.mkVar aVar
 
-            val concl =
-                Term.mkEq (Term.mkApp (absTm, Term.mkApp (repTm,aTm)), aTm)
+            val lhs =
+                let
+                  val absRepTm = Term.mkApp (absTm, Term.mkApp (repTm,aTm))
+                in
+                  Term.mkAbs (aVar,absRepTm)
+                end
+
+            val rhs = Term.mkAbs (aVar,aTm)
+
+            val concl = Term.mkEq (lhs,rhs)
 
             val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
           in
@@ -372,10 +380,16 @@ fun defineTypeOp name {abs} {rep} tyVars existenceTh =
 
             val rTm = Term.mkVar rVar
 
-            val concl =
-                Term.mkEq
-                  (Term.mkApp (pTm,rTm),
-                   Term.mkEq (Term.mkApp (repTm, Term.mkApp (absTm,rTm)), rTm))
+            val lhs = pTm
+
+            val rhs =
+                let
+                  val repAbsTm = Term.mkApp (repTm, Term.mkApp (absTm,rTm))
+                in
+                  Term.mkAbs (rVar, Term.mkEq (repAbsTm,rTm))
+                end
+
+            val concl = Term.mkEq (lhs,rhs)
 
             val sequent = Sequent.Sequent {hyp = hyp, concl = concl}
           in

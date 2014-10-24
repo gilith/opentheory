@@ -177,6 +177,11 @@ val mkDefineTypeOp :
     Name.name -> Name.name -> Name.name -> object -> object ->
     object * object * object * object * object
 
+val mkDefineTypeOpLegacy :
+    {savable : bool} ->
+    Name.name -> Name.name -> Name.name -> object -> object ->
+    object * object * object * object * object
+
 val mkEqMp : {savable : bool} -> object -> object -> object
 
 val mkNil : object

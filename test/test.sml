@@ -274,6 +274,53 @@ val _ = printval TermSubst.pp sub;
 val tm' = printval (Print.ppOption Term.pp) (TermSubst.subst sub tm);
 
 (* ------------------------------------------------------------------------- *)
+val () = SAY "Theorems";
+(* ------------------------------------------------------------------------- *)
+
+val idRefl =
+    let
+      val x = Var.mk (Name.mkGlobal "x", Type.bool)
+    in
+      Thm.refl (Term.mkAbs (x, Term.mkVar x))
+    end;
+
+val _ = printval Thm.pp idRefl;
+
+val (unit,{abs},{rep},absRep,repAbs) =
+    let
+      val n = Name.mkGlobal "unit"
+      and a = {abs = Name.mkGlobal "mkUnit"}
+      and r = {rep = Name.mkGlobal "destUnit"}
+      and vs = []
+      and th = idRefl
+    in
+      Thm.defineTypeOp n a r vs th
+    end;
+
+val _ = printval TypeOp.pp unit;
+val _ = printval Const.pp abs;
+val _ = printval Const.pp rep;
+val _ = printval Thm.pp absRep;
+val _ = printval Thm.pp repAbs;
+
+val (unit,{abs},{rep},absRep,repAbs) =
+    let
+      val n = Name.mkGlobal "unit"
+      and a = {abs = Name.mkGlobal "mkUnit"}
+      and r = {rep = Name.mkGlobal "destUnit"}
+      and vs = []
+      and th = idRefl
+    in
+      Rule.defineTypeOpLegacy n a r vs th
+    end;
+
+val _ = printval TypeOp.pp unit;
+val _ = printval Const.pp abs;
+val _ = printval Const.pp rep;
+val _ = printval Thm.pp absRep;
+val _ = printval Thm.pp repAbs;
+
+(* ------------------------------------------------------------------------- *)
 val () = SAY "Reading interpretations";
 (* ------------------------------------------------------------------------- *)
 

@@ -423,7 +423,10 @@ fun execute cmd state =
           val r = Interpretation.interpretConst interpretation r
 
           val (obj0,obj1,obj2,obj3,obj4) =
-              Object.mkDefineTypeOp {savable = savable} n a r objV objT
+              if version = 5 then
+                Object.mkDefineTypeOpLegacy {savable = savable} n a r objV objT
+              else
+                Object.mkDefineTypeOp {savable = savable} n a r objV objT
 
           val stack = ObjectStack.push5 stack obj0 obj1 obj2 obj3 obj4
         in
@@ -435,6 +438,9 @@ fun execute cmd state =
              export = export,
              inference = inference}
         end
+
+      | Command.DefineTypeOpLegacy =>
+        raise Bug "ObjectRead.execute: DefineTypeOpLegacy"
 
       (* The eqMp primitive inference *)
 
