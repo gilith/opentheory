@@ -546,7 +546,7 @@ fun mkDefineTypeOpLegacy {savable} n a r objV objT =
             and t = destThm objT
 
             val (ot,{abs},{rep},ar,ra) =
-                Thm.defineTypeOp n {abs = a} {rep = r} v t
+                Rule.defineTypeOpLegacy n {abs = a} {rep = r} v t
           in
             (ObjectData.TypeOp ot,
              ObjectData.Const abs,

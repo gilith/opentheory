@@ -9,40 +9,26 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* The legacy (a.k.a. HOL Light) version of defineTypeOp.                    *)
+(* Applying equalities at subterms.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun defineTypeOpLegacy name abs rep tyVars existenceTh =
-    let
-      val (ot,absC,repC,absRepTh,repAbsTh) =
-          Thm.defineTypeOp name abs rep tyVars existenceTh
-
-      val absRepTh' =
-          let
-            val (_,aTm) = Term.destAbs (Term.rhs (Thm.concl absRepTh))
-
-            val th0 = Thm.app absRepTh (Thm.refl aTm)
-          in
-            th0
-          end
-
-      val repAbsTh' =
-          let
-            val (_,tm) = Term.destAbs (Term.rhs (Thm.concl repAbsTh))
-
-            val rTm = Term.rhs tm
-
-            val th0 = Thm.app repAbsTh (Thm.refl rTm)
-          in
-            th0
-          end
-    in
-      (ot,absC,repC,absRepTh',repAbsTh')
-    end
+fun rator th tm =
+    Thm.app th (Thm.refl tm)
 (*OpenTheoryDebug
     handle Error err =>
       let
-        val err = "Rule.defineTypeOpLegacy: " ^ err
+        val err = "Rule.rator: " ^ err
+      in
+        raise Error err
+      end;
+*)
+
+fun rand tm th =
+    Thm.app (Thm.refl tm) th
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "Rule.rand: " ^ err
       in
         raise Error err
       end;
@@ -56,7 +42,7 @@ fun trans th1 th2 =
     let
       val tm = Term.rator (Thm.concl th1)
 
-      val th3 = Thm.app (Thm.refl tm) th2
+      val th3 = rand tm th2
     in
       Thm.eqMp th3 th1
     end
@@ -119,5 +105,57 @@ fun findAlpha set seq =
     case ThmSet.peek set (Thm.axiom seq) of
       SOME th => SOME (alpha seq th)
     | NONE => NONE;
+
+(* ------------------------------------------------------------------------- *)
+(* The legacy (a.k.a. HOL Light) version of defineTypeOp.                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun defineTypeOpLegacy name abs rep tyVars existenceTh =
+    let
+      val (ot,absC,repC,absRepTh,repAbsTh) =
+          Thm.defineTypeOp name abs rep tyVars existenceTh
+
+      val absRepTh' =
+          let
+            val (_,aTm) = Term.destAbs (Term.rhs (Thm.concl absRepTh))
+
+            val th0 = rator absRepTh aTm
+
+            val (tm0,rhsTm) = Term.destApp (Thm.concl th0)
+
+            val (eqTm,lhsTm) = Term.destApp tm0
+
+            val th1 = rand eqTm (Thm.betaConv lhsTm)
+
+            val th2 = Thm.app th1 (Thm.betaConv rhsTm)
+          in
+            Thm.eqMp th2 th0
+          end
+
+      val repAbsTh' =
+          let
+            val (_,tm0) = Term.destAbs (Term.rhs (Thm.concl repAbsTh))
+
+            val rTm = Term.rhs tm0
+
+            val th0 = rator repAbsTh rTm
+
+            val (guardTm,letTm) = Term.destApp (Thm.concl th0)
+
+            val th1 = rand guardTm (Thm.betaConv letTm)
+          in
+            Thm.eqMp th1 th0
+          end
+    in
+      (ot,absC,repC,absRepTh',repAbsTh')
+    end
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "Rule.defineTypeOpLegacy: " ^ err
+      in
+        raise Error err
+      end;
+*)
 
 end
