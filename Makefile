@@ -113,6 +113,7 @@ SRC = \
   src/Summary.sig src/Summary.sml \
   src/Interpretation.sig src/Interpretation.sml \
   src/Command.sig src/Command.sml \
+  src/ArticleVersion.sig src/ArticleVersion.sml \
   src/Inference.sig src/Inference.sml \
   src/ObjectData.sig src/ObjectData.sml \
   src/Object.sig src/Object.sml \

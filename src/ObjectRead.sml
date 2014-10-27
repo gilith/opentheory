@@ -9,14 +9,6 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Constants.                                                                *)
-(* ------------------------------------------------------------------------- *)
-
-val minArticleVersion = 5;
-val maxArticleVersion = 6;
-val defaultArticleVersion = minArticleVersion;
-
-(* ------------------------------------------------------------------------- *)
 (* A type of parameters for reading objects from commands.                   *)
 (* ------------------------------------------------------------------------- *)
 
@@ -32,13 +24,13 @@ type parameters =
 datatype state =
     State of
       {parameters : parameters,
-       version : int,
+       version : ArticleVersion.version,
        stack : ObjectStack.stack,
        dict : ObjectDict.dict,
        export : ObjectExport.export,
        inference : Inference.inference};
 
-fun initial parameters {version} =
+fun initial parameters version =
     let
       val {savable,...} = parameters
 
@@ -423,7 +415,7 @@ fun execute cmd state =
           val r = Interpretation.interpretConst interpretation r
 
           val (obj0,obj1,obj2,obj3,obj4) =
-              if version = 5 then
+              if ArticleVersion.toInt version = 5 then
                 Object.mkDefineTypeOpLegacy {savable = savable} n a r objV objT
               else
                 Object.mkDefineTypeOp {savable = savable} n a r objV objT
@@ -517,7 +509,7 @@ fun execute cmd state =
       | Command.Pragma =>
         let
           val () =
-              if version >= 6 then ()
+              if ArticleVersion.toInt version >= 6 then ()
               else
                 let
                   val msg =
@@ -773,37 +765,19 @@ fun execute cmd state =
 local
   fun getVersion cmds =
       case cmds of
-        Stream.Cons (Command.Num v, cmds') =>
+        Stream.Cons (Command.Num n, cmds') =>
         (case cmds' () of
            Stream.Cons (Command.Version,cmds'') =>
            let
+             val v = ArticleVersion.fromInt n
+
              val () =
-                 if v = defaultArticleVersion then
+                 if ArticleVersion.equal v ArticleVersion.readDefault then
                    let
                      val msg =
                          "article version is set to " ^
-                         Int.toString v ^
+                         ArticleVersion.toString v ^
                          ", but this is the default version"
-                   in
-                     warn msg
-                   end
-                 else if v < minArticleVersion then
-                   let
-                     val err =
-                         "article version is set to " ^
-                         Int.toString v ^
-                         ", but must be greater than " ^
-                         Int.toString minArticleVersion
-                   in
-                     raise Error err
-                   end
-                 else if v > maxArticleVersion then
-                   let
-                     val msg =
-                         "article version is set to " ^
-                         Int.toString v ^
-                         ", but the latest supported version is " ^
-                         Int.toString maxArticleVersion
                    in
                      warn msg
                    end
@@ -811,8 +785,8 @@ local
            in
              (v, cmds'' ())
            end
-         | _ => (defaultArticleVersion,cmds))
-      | _ => (defaultArticleVersion,cmds);
+         | _ => (ArticleVersion.readDefault,cmds))
+      | _ => (ArticleVersion.readDefault,cmds);
 
   fun process (cmd,state) = execute cmd state;
 in
@@ -820,7 +794,7 @@ in
       let
         val (v,cmds) = getVersion cmds
 
-        val state = initial parm {version = v}
+        val state = initial parm v
       in
         Stream.foldl process state cmds
       end;

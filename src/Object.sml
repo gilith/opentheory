@@ -785,6 +785,17 @@ fun mkCommand sav cmd args =
        in
          [obj0,obj1,obj2,obj3,obj4]
        end
+     | (Command.DefineTypeOpLegacy,[objN,objA,objR,objV,objT]) =>
+       let
+         val n = destName objN
+         and a = destName objA
+         and r = destName objR
+
+         val (obj0,obj1,obj2,obj3,obj4) =
+             mkDefineTypeOpLegacy sav n a r objV objT
+       in
+         [obj0,obj1,obj2,obj3,obj4]
+       end
      | (Command.EqMp,[objA,objB]) => [mkEqMp sav objA objB]
      | (Command.Nil,[]) => [mkNil]
      | (Command.OpType,[objO,objL]) => [mkOpType sav objO objL]

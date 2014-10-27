@@ -21,11 +21,11 @@ type parameters =
 
 type state
 
-val initial : parameters -> {version : int} -> state
+val initial : parameters -> ArticleVersion.version -> state
 
 val parameters : state -> parameters
 
-val version : state -> int
+val version : state -> ArticleVersion.version
 
 val stack : state -> ObjectStack.stack
 

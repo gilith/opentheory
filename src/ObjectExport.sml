@@ -534,8 +534,8 @@ local
                 val objV = Object.mkList savable (List.map Object.mkName vars)
 
                 val (objT,objA,objR,_,_) =
-                    Object.mkDefineTypeOp savable (TypeOp.name ot) abs rep
-                      objV objX
+                    Object.mkDefineTypeOpLegacy savable
+                      (TypeOp.name ot) abs rep objV objX
               in
                 (objT,objA,objR,store)
               end
