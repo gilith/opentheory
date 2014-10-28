@@ -65,6 +65,12 @@ val symbol : export -> ObjectSymbol.symbol
 val eliminateUnwanted : export -> export option
 
 (* ------------------------------------------------------------------------- *)
+(* Convert to a given article version.                                       *)
+(* ------------------------------------------------------------------------- *)
+
+val setVersion : ArticleVersion.version -> export -> export option
+
+(* ------------------------------------------------------------------------- *)
 (* Compression.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
