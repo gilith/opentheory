@@ -86,7 +86,11 @@ fun toTextFile {theorems,filename} =
             NONE => exp
           | SOME exp => exp
 
-      val () = ObjectWrite.toTextFile {export = exp, filename = filename}
+      val () =
+          ObjectWrite.toTextFile
+            {version = ArticleVersion.readDefault,
+             export = exp,
+             filename = filename}
     in
       ()
     end;

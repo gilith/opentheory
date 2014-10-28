@@ -85,7 +85,7 @@ test_passing "$opentheory --help";
 test_section "Initialize upstream";
 test_passing "rm -rf $upstream";
 test_passing "mkdir $upstream";
-test_passing "$opentheory_upstream init --repo";
+test_passing "$opentheory_upstream init --remote";
 test_passing "tail -n +6 < $upstream/opentheory/config > $upstream/opentheory/config.new";
 test_passing "mv $upstream/opentheory/config.new $upstream/opentheory/config";
 test_passing "$opentheory_upstream install theories/bool-true-def/bool-true-def.thy";

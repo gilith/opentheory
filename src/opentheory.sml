@@ -666,7 +666,7 @@ val helpFooter = "";
 (* ------------------------------------------------------------------------- *)
 
 datatype info =
-    ArticleInfo
+    ArticleInfo of ArticleVersion.version option
   | AssumptionsInfo
   | DocumentInfo
   | FilesInfo
@@ -681,22 +681,34 @@ datatype info =
 
 fun savableInfo info =
     case info of
-      ArticleInfo => true
+      ArticleInfo _ => true
     | _ => false;
 
-fun mkInfoOutput info = (info,NONE);
+datatype packageInfo =
+    PackageInfo of string * info * {filename : string} option;
 
-fun defaultInfoOutputList inp =
-    case inp of
-      ArticleInput _ => [mkInfoOutput SummaryInfo]
-    | PackageInput _ => [mkInfoOutput TagsInfo]
-    | PackageNameInput _ => [mkInfoOutput TagsInfo]
-    | PackageQueryInput _ => [mkInfoOutput TagsInfo]
-    | StagedPackageInput _ => [mkInfoOutput TagsInfo]
-    | TarballInput _ => [mkInfoOutput FilesInfo]
-    | TheoryInput _ => [mkInfoOutput SummaryInfo];
+fun mkInfoOutput flag info = PackageInfo (flag,info,NONE);
 
-val outputListInfo : (info * {filename : string} option) list ref = ref [];
+local
+  fun mkDefaultInfoOutput info = [mkInfoOutput "default" info];
+in
+  fun defaultInfoOutputList inp =
+      let
+        val info =
+            case inp of
+              ArticleInput _ => SummaryInfo
+            | PackageInput _ => TagsInfo
+            | PackageNameInput _ => TagsInfo
+            | PackageQueryInput _ => TagsInfo
+            | StagedPackageInput _ => TagsInfo
+            | TarballInput _ => FilesInfo
+            | TheoryInput _ => SummaryInfo
+      in
+        mkDefaultInfoOutput info
+      end;
+end;
+
+val outputListInfo : packageInfo list ref = ref [];
 
 val upgradeTheoryInfo = ref false;
 
@@ -727,11 +739,11 @@ fun infoSummaryGrammar () =
          showTheoremAssumptions = showTheoremAssumptions}
     end;
 
-fun addInfoOutput info =
+fun addInfoOutput flag info =
     let
       val ref l = outputListInfo
 
-      val () = outputListInfo := mkInfoOutput info :: l
+      val () = outputListInfo := mkInfoOutput flag info :: l
     in
       ()
     end;
@@ -745,12 +757,58 @@ fun setInfoOutputFilename flag filename =
             [] =>
             raise Error ("no package information specified before " ^
                          flag ^ " argument")
-          | (i,f) :: l =>
+          | PackageInfo (x,i,f) :: l =>
             case f of
               SOME {filename = f} =>
-              raise Error ("multiple " ^ flag ^ " arguments:\n" ^
-                           "  " ^ f ^ " and\n  " ^ filename)
-            | NONE => (i, SOME {filename = filename}) :: l
+              let
+                val err =
+                    "multiple " ^ flag ^ " arguments:\n" ^
+                    "  " ^ f ^ " and\n  " ^ filename
+              in
+                raise Error err
+              end
+            | NONE => PackageInfo (x, i, SOME {filename = filename}) :: l
+
+      val () = outputListInfo := l
+    in
+      ()
+    end;
+
+fun setInfoOutputVersion flag version =
+    let
+      val ref l = outputListInfo
+
+      val l =
+          case l of
+            [] =>
+            raise Error ("no package information specified before " ^
+                         flag ^ " argument")
+          | PackageInfo (x,i,f) :: l =>
+            case i of
+              ArticleInfo vo =>
+              (case vo of
+                 SOME v =>
+                 let
+                   val err =
+                       "multiple " ^ flag ^ " arguments: " ^
+                       ArticleVersion.toString v ^ " and " ^ version
+                 in
+                   raise Error err
+                 end
+               | NONE =>
+                 let
+                   val v = ArticleVersion.fromString version
+                 in
+                   PackageInfo (x, ArticleInfo (SOME v), f) :: l
+                 end)
+            | _ =>
+              let
+                val err =
+                    "cannot specify output version for " ^ x ^
+                    " package information"
+              in
+                raise Error err
+              end
 
       val () = outputListInfo := l
     in
@@ -767,7 +825,8 @@ local
 
   val defaultInfoOutputFilename = {filename = "-"};
 
-  fun defaultize (i,f) = (i, Option.getOpt (f,defaultInfoOutputFilename));
+  fun defaultize (PackageInfo (_,i,f)) =
+      (i, Option.getOpt (f,defaultInfoOutputFilename));
 in
   fun readInfoOutputList inp = List.map defaultize (readList inp);
 end;
@@ -780,57 +839,64 @@ in
         description = "format package information",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s =>
-              addInfoOutput (FormatInfo (fromStringInfoFormat s)))},
+            (fn f => fn s =>
+              addInfoOutput f (FormatInfo (fromStringInfoFormat s)))},
        {switches = ["--information"], arguments = [],
         description = "display all package information",
-        processor = beginOpt endOpt (fn _ => addInfoOutput TagsInfo)},
+        processor = beginOpt endOpt (fn f => addInfoOutput f TagsInfo)},
        {switches = ["--theory"], arguments = [],
         description = "display the package theory",
-        processor = beginOpt endOpt (fn _ => addInfoOutput SummaryInfo)},
+        processor = beginOpt endOpt (fn f => addInfoOutput f SummaryInfo)},
        {switches = ["--article"], arguments = [],
         description = "output the package theory in article format",
-        processor = beginOpt endOpt (fn _ => addInfoOutput ArticleInfo)},
+        processor =
+          beginOpt endOpt
+            (fn f => addInfoOutput f (ArticleInfo NONE))},
        {switches = ["--requires"], arguments = [],
         description = "list satisfying required packages",
-        processor = beginOpt endOpt (fn _ => addInfoOutput RequiresInfo)},
+        processor = beginOpt endOpt (fn f => addInfoOutput f RequiresInfo)},
        {switches = ["--inference"], arguments = [],
-        description = "display the number of primitive inferences",
-        processor = beginOpt endOpt (fn _ => addInfoOutput InferenceInfo)},
+        description = "display count of inference rules",
+        processor = beginOpt endOpt (fn f => addInfoOutput f InferenceInfo)},
        {switches = ["--files"], arguments = [],
-        description = "list the package files",
-        processor = beginOpt endOpt (fn _ => addInfoOutput FilesInfo)},
+        description = "list package files",
+        processor = beginOpt endOpt (fn f => addInfoOutput f FilesInfo)},
        {switches = ["--document"], arguments = [],
-        description = "output the package document in HTML format",
-        processor = beginOpt endOpt (fn _ => addInfoOutput DocumentInfo)},
+        description = "output package document in HTML format",
+        processor = beginOpt endOpt (fn f => addInfoOutput f DocumentInfo)},
        {switches = ["--theory-source"], arguments = [],
-        description = "output the package theory source",
-        processor = beginOpt endOpt (fn _ => addInfoOutput TheoryInfo)},
+        description = "output package theory source",
+        processor = beginOpt endOpt (fn f => addInfoOutput f TheoryInfo)},
        {switches = ["--theorems"], arguments = [],
-        description = "output the package theorems in article format",
-        processor = beginOpt endOpt (fn _ => addInfoOutput TheoremsInfo)},
+        description = "output package theorems in article format",
+        processor = beginOpt endOpt (fn f => addInfoOutput f TheoremsInfo)},
        {switches = ["--assumptions"], arguments = [],
-        description = "output the package assumptions in article format",
-        processor = beginOpt endOpt (fn _ => addInfoOutput AssumptionsInfo)},
+        description = "output package assumptions in article format",
+        processor = beginOpt endOpt (fn f => addInfoOutput f AssumptionsInfo)},
        {switches = ["--includes"], arguments = [],
-        description = "list the included packages",
-        processor = beginOpt endOpt (fn _ => addInfoOutput IncludesInfo)},
+        description = "list included packages",
+        processor = beginOpt endOpt (fn f => addInfoOutput f IncludesInfo)},
        {switches = ["-o","--output"], arguments = ["FILE"],
-        description = "write previous package information to FILE",
+        description = "write previous information to FILE",
         processor =
           beginOpt (stringOpt endOpt)
             (fn f => fn s => setInfoOutputFilename f s)},
+       {switches = ["--output-version"], arguments = ["N"],
+        description = "set previous information output version",
+        processor =
+          beginOpt (stringOpt endOpt)
+            (fn f => fn s => setInfoOutputVersion f s)},
        {switches = ["--show-assumptions"], arguments = [],
         description = "do not omit satisfied assumptions",
         processor = beginOpt endOpt (fn _ => showAssumptionsInfo := true)},
        {switches = ["--show-derivations"], arguments = [],
-        description = "show the assumptions/axioms for each theorem",
+        description = "show assumptions and axioms for each theorem",
         processor = beginOpt endOpt (fn _ => showDerivationsInfo := true)},
        {switches = ["--upgrade-theory"], arguments = [],
-        description = "upgrade theory source to the latest package versions",
+        description = "upgrade theory source to latest versions",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
        {switches = ["--preserve-theory"], arguments = [],
-        description = "do not optimize the theory source",
+        description = "do not optimize theory source",
         processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)}];
 end;
 
@@ -849,8 +915,8 @@ local
   open Useful Options;
 in
   val initOpts : opt list =
-      [{switches = ["--repo"], arguments = [],
-        description = "configure the new package repo to be used remotely",
+      [{switches = ["--remote"], arguments = [],
+        description = "configure new package repo for remote use",
         processor =
           beginOpt endOpt
             (fn _ => remoteInit := true)}];
@@ -903,25 +969,25 @@ local
 in
   val installOpts : opt list =
       [{switches = ["--reinstall"], arguments = [],
-        description = "uninstall the package if it exists",
+        description = "uninstall package if it already exists",
         processor = beginOpt endOpt (fn _ => reinstall := true)}] @
       List.map (addSuffix "-uninstall") uninstallOpts @
       [{switches = ["--manual"], arguments = [],
         description = "do not also install included packages",
         processor = beginOpt endOpt (fn _ => autoInstall := false)},
        {switches = ["--name"], arguments = ["NAME-VERSION"],
-        description = "confirm the package name",
+        description = "confirm package name",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s =>
                 nameInstall := SOME (PackageNameVersion.fromString s))},
        {switches = ["--checksum"], arguments = ["CHECKSUM"],
-        description = "confirm the package checksum",
+        description = "confirm package checksum",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => checksumInstall := SOME (Checksum.fromString s))},
        {switches = ["--stage"], arguments = [],
-        description = "stage the package for installation",
+        description = "stage package for installation",
         processor = beginOpt endOpt (fn _ => stageInstall := true)}];
 end;
 
@@ -981,7 +1047,7 @@ in
         description = "reverse the order",
         processor = beginOpt endOpt (fn _ => reverseOrderList ())},
        {switches = ["--format"], arguments = ["FORMAT"],
-        description = "set the output format",
+        description = "set output format",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => setFormatList (fromStringInfoFormat s))}];
@@ -1179,12 +1245,12 @@ local
 in
   val globalOpts : opt list =
       [{switches = ["-d","--root-dir"], arguments = ["DIR"],
-        description = "set the package repo directory",
+        description = "set package repo directory",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => rootDirectoryOption := SOME s)},
        {switches = ["--repo"], arguments = ["REPO"],
-        description = "use the given remote package repo",
+        description = "use given remote package repo",
         processor =
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => addRemote s)},
@@ -1866,16 +1932,21 @@ local
 
   fun processInfoOutput (inf,file) =
       case inf of
-        ArticleInfo =>
+        ArticleInfo vo =>
         let
           val art =
               case getArticle () of
                 SOME a => a
               | NONE => raise Error "no article information available"
 
+          val version = Option.getOpt (vo,ArticleVersion.writeDefault)
+
           val {filename} = file
         in
-          Article.toTextFile {article = art, filename = filename}
+          Article.toTextFile
+            {article = art,
+             version = version,
+             filename = filename}
         end
       | AssumptionsInfo =>
         let

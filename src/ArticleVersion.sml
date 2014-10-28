@@ -33,13 +33,36 @@ val latest = 6;
 (* ------------------------------------------------------------------------- *)
 
 fun supported version cmd =
-    raise Bug "ArticleVersion.supported: not implemented";
+    case cmd of
+      Command.DefineTypeOp => version >= 6
+    | Command.DefineTypeOpLegacy => version = 5
+    | Command.Pragma => version >= 6
+    | Command.Version => version >= 6
+    | _ => true;
 
 (* ------------------------------------------------------------------------- *)
-(* The default version for reading articles.                                 *)
+(* The default version used when reading articles with no version specified. *)
 (* ------------------------------------------------------------------------- *)
 
 val readDefault = earliest;
+
+(* ------------------------------------------------------------------------- *)
+(* The default version used to write articles.                               *)
+(* ------------------------------------------------------------------------- *)
+
+val writeDefault = latest;
+
+(* ------------------------------------------------------------------------- *)
+(* The version used for articles when installing packages from theory files. *)
+(* ------------------------------------------------------------------------- *)
+
+val install = writeDefault;
+
+(* ------------------------------------------------------------------------- *)
+(* The version used for caching package theorems.                            *)
+(* ------------------------------------------------------------------------- *)
+
+val theorems = readDefault;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -72,5 +95,20 @@ fun fromInt n =
       end
     else
       n;
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun fromString s =
+    case Int.fromString s of
+      NONE =>
+      let
+        val err =
+            "article version is set to " ^ s ^ ", but must be an integer"
+      in
+        raise Error err
+      end
+    | SOME n => fromInt n;
 
 end

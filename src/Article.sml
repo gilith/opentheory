@@ -171,7 +171,7 @@ fun fromTextFile {savable,import,interpretation,filename} =
     handle Error err => raise Error ("in Article.fromTextFile:\n" ^ err);
 *)
 
-fun toTextFile {article,filename} =
+fun toTextFile {article,version,filename} =
     let
       val Article {savable, thms, inference = _} = article
 
@@ -190,8 +190,14 @@ fun toTextFile {article,filename} =
           case ObjectExport.compress exp of
             NONE => exp
           | SOME exp => exp
+
+      val () =
+          ObjectWrite.toTextFile
+            {version = version,
+             export = exp,
+             filename = filename}
     in
-      ObjectWrite.toTextFile {export = exp, filename = filename}
+      ()
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in Article.toTextFile:\n" ^ err);

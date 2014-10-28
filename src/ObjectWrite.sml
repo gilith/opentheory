@@ -377,7 +377,7 @@ local
         NONE => Stream.Nil
       | SOME (cmds,dict_work) => Stream.Cons (cmds, generateStream dict_work);
 in
-  fun toCommandStream exp =
+  fun toCommandStream vers exp =
       let
 (*OpenTheoryTrace4
         val () = Print.trace ObjectExport.pp
@@ -391,8 +391,40 @@ in
                    "ObjectWrite.toCommandStream: work" work
 *)
         val strm = generateStream (dict,work) ()
+
+        val strm =
+            if ArticleVersion.equal vers ArticleVersion.readDefault then strm
+            else
+              let
+                val cmds =
+                    [Command.Num (ArticleVersion.toInt vers),
+                     Command.Version]
+              in
+                Stream.cons cmds (K strm)
+              end
+
+        val strm = Stream.listConcat strm
+
+(*OpenTheoryDebug
+        val strm =
+            let
+              fun check cmd =
+                  if ArticleVersion.supported vers cmd then cmd
+                  else
+                    let
+                      val bug =
+                          "command " ^ Command.toString cmd ^
+                          " is not supported in article version " ^
+                          ArticleVersion.toString vers
+                    in
+                      raise Bug bug
+                    end
+            in
+              Stream.map check strm
+            end
+*)
       in
-        Stream.listConcat strm
+        strm
       end
 (*OpenTheoryDebug
       handle Error err =>
@@ -404,9 +436,9 @@ end;
 (* Writing objects to text files.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun toTextFile {export,filename} =
+fun toTextFile {version,export,filename} =
     let
-      val commands = toCommandStream export
+      val commands = toCommandStream version export
 
       val lines = Stream.map (fn c => Command.toString c ^ "\n") commands
     in

@@ -10,12 +10,17 @@ sig
 (* Writing objects to a stream of commands.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val toCommandStream : ObjectExport.export -> Command.command Stream.stream
+val toCommandStream :
+    ArticleVersion.version -> ObjectExport.export ->
+    Command.command Stream.stream
 
 (* ------------------------------------------------------------------------- *)
 (* Writing objects to text files.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val toTextFile : {export : ObjectExport.export, filename : string} -> unit
+val toTextFile :
+    {version : ArticleVersion.version,
+     export : ObjectExport.export,
+     filename : string} -> unit
 
 end

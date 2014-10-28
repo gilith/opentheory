@@ -35,10 +35,34 @@ val latest : version
 val supported : version -> Command.command -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* The default version for reading articles.                                 *)
+(* The default version used when reading articles with no version specified. *)
 (* ------------------------------------------------------------------------- *)
 
 val readDefault : version
+
+(* ------------------------------------------------------------------------- *)
+(* The default version used to write articles.                               *)
+(* ------------------------------------------------------------------------- *)
+
+val writeDefault : version
+
+(* ------------------------------------------------------------------------- *)
+(* The version used for articles when installing packages from theory files. *)
+(* ------------------------------------------------------------------------- *)
+
+val install : version
+
+(* ------------------------------------------------------------------------- *)
+(* The version used for caching package theorems.                            *)
+(* ------------------------------------------------------------------------- *)
+
+val theorems : version
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+val fromString : string -> version
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

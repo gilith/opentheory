@@ -405,6 +405,7 @@ fun compress system name =
       val () =
           Article.toTextFile
             {article = article,
+             version = ArticleVersion.writeDefault,
              filename = outputFilename}
     in
       ()
