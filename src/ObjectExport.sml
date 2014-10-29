@@ -151,140 +151,16 @@ fun eliminateUnwanted exp =
 (* ------------------------------------------------------------------------- *)
 
 local
-  datatype state =
-      State of
-        {cache : Object.object IntMap.map};
-
-  val initialState =
-      let
-        val cache = IntMap.new ()
-      in
-        State
-          {cache = cache}
-      end;
-
-  fun peekState (State {cache,...}) = IntMap.peek cache;
-
-  fun insertState acc i_obj =
-      let
-        val State {cache} = acc
-
-        val cache = IntMap.insert cache i_obj
-      in
-        State
-          {cache = cache}
-      end;
-
-  fun ppState acc =
-      let
-        val State {cache} = acc
-      in
-        Print.consistentBlock 0
-          [Print.ppString "State {",
-           Print.ppBreak (Print.Break {size = 0, extraIndent = 2}),
-           Print.inconsistentBlock 2
-             [Print.ppString "cache =",
-              Print.break,
-              Print.ppPrettyInt (IntMap.size cache)],
-           Print.breaks 0,
-           Print.ppString "}"]
-      end;
-
-  val mkStore =
-      let
-        fun add (th,store) = ObjectThm.addStore store th;
-      in
-        foldl add ObjectStore.emptyDictionary
-      end;
-
-  fun preDescent store objI acc =
-      let
-        val i = Object.id objI
-
-        val objI' = peekState acc i
-      in
-        case objI' of
-          SOME objR =>
-          let
-            val objR' = if Object.equalId i objR then NONE else objI'
-          in
-            {descend = false, result = (objR',acc)}
-          end
-        | NONE =>
-          let
-            val (objJ,_) = ObjectStore.build (Object.data objI) store
-
-            val j = Object.id objJ
-          in
-            if j = i then {descend = true, result = (NONE,acc)}
-            else
-              let
-                val objR' = peekState acc j
-              in
-                case objR' of
-                  NONE =>
-                  let
-                    val acc = insertState acc (i,objJ)
-                  in
-                    {descend = true, result = (SOME objJ, acc)}
-                  end
-                | SOME objR =>
-                  let
-                    val acc = insertState acc (i,objR)
-                  in
-                    {descend = false, result = (objR',acc)}
-                  end
-              end
-          end
-      end;
-
-  fun postDescent objI objR' (acc : state) =
-      let
-        val i = Object.id objI
-      in
-        case objR' of
-          NONE =>
-          let
-            val acc = insertState acc (i,objI)
-          in
-            (objR',acc)
-          end
-        | SOME objR =>
-          let
-            val acc =
-                case peekState acc i of
-                  NONE => acc
-                | SOME objJ => insertState acc (Object.id objJ, objR)
-
-            val acc = insertState acc (i,objR)
-          in
-            (objR',acc)
-          end
-      end;
-
-  fun compressObj store =
-      Object.maps
-        {preDescent = preDescent store,
-         postDescent = postDescent,
-         savable = true};
-
-  fun compressThm store = ObjectThm.maps (compressObj store);
+  val setVersionThm = ObjectThm.maps Object.sharedMap;
 in
   fun setVersion version exp =
       let
-        val store = mkStore exp
+        val acc =
+            Object.newMapping
+              {function = Object.setVersion version,
+               savable = true}
 
-        val acc = initialState
-
-        val (exp',acc) = maps (compressThm store) exp acc
-
-(*OpenTheoryTrace4
-        val () = Print.trace ObjectStore.pp
-                   "ObjectExport.compress: refs" store
-
-        val () = Print.trace ppState
-                   "ObjectExport.compress: final state" acc
-*)
+        val (exp',_) = maps setVersionThm exp acc
       in
         exp'
       end;

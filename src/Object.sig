@@ -222,6 +222,12 @@ val unMkAxiom : object -> object * object
 val unMkVar : object -> object * object
 
 (* ------------------------------------------------------------------------- *)
+(* Convert to a given article version: return NONE for unchanged.            *)
+(* ------------------------------------------------------------------------- *)
+
+val setVersion : ArticleVersion.version -> object -> object option
+
+(* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -239,6 +245,18 @@ val maps :
      postDescent : object -> object option -> 's -> object option * 's,
      savable : bool} ->
     object -> 's -> object option * 's
+
+(* ------------------------------------------------------------------------- *)
+(* Bottom-up mapping of objects: return NONE for unchanged.                  *)
+(* ------------------------------------------------------------------------- *)
+
+type mapping
+
+val newMapping :
+    {function : object -> object option,
+     savable : bool} -> mapping
+
+val sharedMap : object -> mapping -> object option * mapping
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

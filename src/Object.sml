@@ -855,6 +855,29 @@ fun unMkVar obj =
     | _ => raise Error "Object.unMkVar";
 
 (* ------------------------------------------------------------------------- *)
+(* Convert to a given article version: return NONE for unchanged.            *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun setVersion5 command arguments result =
+      raise Bug "Object.setVersion5: not implemented";
+
+  fun setVersion6 command arguments result =
+      raise Bug "Object.setVersion6: not implemented";
+in
+  fun setVersion version obj =
+      case provenance obj of
+        Default => NONE
+      | Special {command,arguments,result,...} =>
+        if ArticleVersion.supported version command then NONE
+        else
+          case ArticleVersion.toInt version of
+            5 => setVersion5 command arguments result
+          | 6 => setVersion5 command arguments result
+          | _ => raise Bug "Object.setVersion: bad article version";
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
@@ -972,6 +995,90 @@ fun maps {preDescent,postDescent,savable} =
     in
       mapsObj
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Bottom-up mapping of objects: return NONE for unchanged.                  *)
+(* ------------------------------------------------------------------------- *)
+
+datatype mapping =
+    Mapping of
+      {function : object -> object option,
+       savable : bool,
+       cache : object option IntMap.map};
+
+fun newMapping {function,savable} =
+    let
+      val cache = IntMap.new ()
+    in
+      Mapping
+        {function = function,
+         savable = savable,
+         cache = cache}
+    end;
+
+fun ppMapping mpg =
+    let
+      val Mapping {cache,...} = mpg
+    in
+      Print.consistentBlock 0
+        [Print.ppString "Mapping {",
+         Print.ppBreak (Print.Break {size = 0, extraIndent = 2}),
+         Print.inconsistentBlock 2
+           [Print.ppString "cache =",
+            Print.break,
+            Print.ppPrettyInt (IntMap.size cache)],
+         Print.breaks 0,
+         Print.ppString "}"]
+    end;
+
+local
+  fun peek (Mapping {cache,...}) objI =
+      IntMap.peek cache (id objI);
+
+  fun insert mpg (objI,objR') =
+      let
+        val Mapping {function,savable,cache} = mpg
+
+        val cache = IntMap.insert cache (id objI, objR')
+      in
+        Mapping
+          {function = function,
+           savable = savable,
+           cache = cache}
+      end;
+
+  fun preDescent objI mpg =
+      case peek mpg objI of
+        SOME objR' => {descend = false, result = (objR',mpg)}
+      | NONE => {descend = true, result = (NONE,mpg)};
+
+  fun postDescent objI objR' mpg =
+      let
+        val Mapping {function,...} = mpg
+
+        val objR = Option.getOpt (objR',objI)
+
+        val objS' =
+            case function objR of
+              NONE => objR'
+            | s => s
+
+        val mpg = insert mpg (objI,objS')
+      in
+        (objS',mpg)
+      end;
+
+  fun mapsInfo mpg =
+      let
+        val Mapping {savable,...} = mpg
+      in
+        {preDescent = preDescent,
+         postDescent = postDescent,
+         savable = savable}
+      end;
+in
+  fun sharedMap objI mpg = maps (mapsInfo mpg) objI mpg;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Constructing unsavable objects.                                           *)

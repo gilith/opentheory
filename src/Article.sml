@@ -187,6 +187,11 @@ fun toTextFile {article,version,filename} =
           | SOME exp => exp
 
       val exp =
+          case ObjectExport.setVersion version exp of
+            NONE => exp
+          | SOME exp => exp
+
+      val exp =
           case ObjectExport.compress exp of
             NONE => exp
           | SOME exp => exp
