@@ -252,9 +252,7 @@ val maps :
 
 type mapping
 
-val newMapping :
-    {function : object -> object option,
-     savable : bool} -> mapping
+val newMapping : (object -> object option) -> mapping
 
 val sharedMap : object -> mapping -> object option * mapping
 

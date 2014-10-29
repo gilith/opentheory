@@ -859,11 +859,58 @@ fun unMkVar obj =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun setVersion5 command arguments result =
+  fun setVersion5 cmd args res =
       raise Bug "Object.setVersion5: not implemented";
 
-  fun setVersion6 command arguments result =
-      raise Bug "Object.setVersion6: not implemented";
+  fun setVersion6 cmd args res =
+      case (cmd,args) of
+        (Command.DefineTypeOpLegacy,[objN,objA,objR,objV,objT]) =>
+        let
+          val n = destName objN
+          and a = destName objA
+          and r = destName objR
+
+          val (objT,objA,objR,objAR,objRA) =
+              mkDefineTypeOp n a r objV objT
+        in
+          case res of
+            0 => objT
+          | 1 => objA
+          | 2 => objR
+          | 3 =>
+            let
+              val (_,aTm) = Term.destAbs (Term.rhs (Thm.concl absRepTh))
+
+              val th0 = rator absRepTh aTm
+
+              val (tm0,rhsTm) = Term.destApp (Thm.concl th0)
+
+              val (eqTm,lhsTm) = Term.destApp tm0
+
+              val th1 = rand eqTm (Thm.betaConv lhsTm)
+
+              val th2 = Thm.app th1 (Thm.betaConv rhsTm)
+            in
+              Thm.eqMp th2 th0
+            end
+          | 4 =>
+            let
+              val (_,tm0) = Term.destAbs (Term.rhs (Thm.concl repAbsTh))
+
+              val rTm = Term.rhs tm0
+
+              val th0 = rator repAbsTh rTm
+
+              val (guardTm,letTm) = Term.destApp (Thm.concl th0)
+
+              val th1 = rand guardTm (Thm.betaConv letTm)
+            in
+              Thm.eqMp th1 th0
+            end
+          | _ => raise Bug "Object.setVersion6.DefineTypeOpLegacy"
+        end
+      | _ =>
+        raise Bug "Object.setVersion6: not implemented";
 in
   fun setVersion version obj =
       case provenance obj of
@@ -872,8 +919,8 @@ in
         if ArticleVersion.supported version command then NONE
         else
           case ArticleVersion.toInt version of
-            5 => setVersion5 command arguments result
-          | 6 => setVersion5 command arguments result
+            5 => SOME (setVersion5 command arguments result)
+          | 6 => SOME (setVersion6 command arguments result)
           | _ => raise Bug "Object.setVersion: bad article version";
 end;
 
@@ -1003,16 +1050,14 @@ fun maps {preDescent,postDescent,savable} =
 datatype mapping =
     Mapping of
       {function : object -> object option,
-       savable : bool,
        cache : object option IntMap.map};
 
-fun newMapping {function,savable} =
+fun newMapping function =
     let
       val cache = IntMap.new ()
     in
       Mapping
         {function = function,
-         savable = savable,
          cache = cache}
     end;
 
@@ -1037,13 +1082,12 @@ local
 
   fun insert mpg (objI,objR') =
       let
-        val Mapping {function,savable,cache} = mpg
+        val Mapping {function,cache} = mpg
 
         val cache = IntMap.insert cache (id objI, objR')
       in
         Mapping
           {function = function,
-           savable = savable,
            cache = cache}
       end;
 
@@ -1067,17 +1111,16 @@ local
       in
         (objS',mpg)
       end;
-
-  fun mapsInfo mpg =
-      let
-        val Mapping {savable,...} = mpg
-      in
-        {preDescent = preDescent,
-         postDescent = postDescent,
-         savable = savable}
-      end;
 in
-  fun sharedMap objI mpg = maps (mapsInfo mpg) objI mpg;
+  val sharedMap =
+      let
+        val info =
+            {preDescent = preDescent,
+             postDescent = postDescent,
+             savable = true}
+      in
+        maps info
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)

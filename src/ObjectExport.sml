@@ -155,10 +155,7 @@ local
 in
   fun setVersion version exp =
       let
-        val acc =
-            Object.newMapping
-              {function = Object.setVersion version,
-               savable = true}
+        val acc = Object.newMapping (Object.setVersion version)
 
         val (exp',_) = maps setVersionThm exp acc
       in
