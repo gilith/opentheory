@@ -28,6 +28,8 @@ val emptyTermBuilder : store
 
 val add : store -> Object.object -> store
 
+val addList : store -> Object.object list -> store
+
 (* ------------------------------------------------------------------------- *)
 (* Looking up objects.                                                       *)
 (* ------------------------------------------------------------------------- *)

@@ -222,12 +222,6 @@ val unMkAxiom : object -> object * object
 val unMkVar : object -> object * object
 
 (* ------------------------------------------------------------------------- *)
-(* Convert to a given article version: return NONE for unchanged.            *)
-(* ------------------------------------------------------------------------- *)
-
-val setVersion : ArticleVersion.version -> object -> object option
-
-(* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
 

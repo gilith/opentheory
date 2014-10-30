@@ -115,6 +115,13 @@ in
          postDescent = postDescent};
 end;
 
+val addList =
+    let
+      fun add1 (obj,store) = add store obj
+    in
+      List.foldl add1
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Looking up objects.                                                       *)
 (* ------------------------------------------------------------------------- *)

@@ -151,11 +151,11 @@ fun eliminateUnwanted exp =
 (* ------------------------------------------------------------------------- *)
 
 local
-  val setVersionThm = ObjectThm.maps Object.sharedMap;
+  val setVersionThm = ObjectThm.maps ObjectVersion.sharingConvert;
 in
   fun setVersion version exp =
       let
-        val acc = Object.newMapping (Object.setVersion version)
+        val acc = ObjectVersion.new version
 
         val (exp',_) = maps setVersionThm exp acc
       in
