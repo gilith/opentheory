@@ -86,7 +86,14 @@ fun buildTermStore tm = buildStore (ObjectData.Term tm);
 (* ------------------------------------------------------------------------- *)
 
 fun convert5 cmd args res cvt =
-    raise Bug "ObjectVersion.convert5: not implemented";
+      let
+        val bug =
+            "ObjectVersion.convert5: command " ^
+            Command.toString cmd ^ "/" ^ Int.toString (length args) ^
+            " not supported"
+      in
+        raise Bug bug
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Convert a command to article version 6.                                   *)
@@ -151,7 +158,7 @@ fun convert6 cmd args res cvt =
 
             val repAbsTh = Object.destThm objRA
 
-            val (_,tm0) = Term.destAbs (Term.rhs (Thm.concl repAbsTh))
+            val (_,tm0) = Term.destAbs (Term.lhs (Thm.concl repAbsTh))
 
             val rTm = Term.rhs tm0
 
@@ -163,24 +170,41 @@ fun convert6 cmd args res cvt =
 
             val th0 = Object.destThm obj0
 
-            val (guardTm,letTm) = Term.destApp (Thm.concl th0)
+            val (tm1,rhsTm) = Term.destApp (Thm.concl th0)
 
-            val (objGuard,cvt) = buildTermStore guardTm cvt
+            val (iffTm,lhsTm) = Term.destApp tm1
 
-            val (objLet,cvt) = buildTermStore letTm cvt
+            val (objIff,cvt) = buildTermStore iffTm cvt
 
-            val objGuard = Object.mkRefl savable objGuard
+            val (objLhs,cvt) = buildTermStore lhsTm cvt
 
-            val objLet = Object.mkBetaConv savable objLet
+            val (objRhs,cvt) = buildTermStore rhsTm cvt
 
-            val obj1 = Object.mkAppThm savable objGuard objLet
+            val objIff = Object.mkRefl savable objIff
+
+            val objLhs = Object.mkBetaConv savable objLhs
+
+            val objRhs = Object.mkBetaConv savable objRhs
+
+            val obj1 = Object.mkAppThm savable objIff objLhs
+
+            val obj2 = Object.mkAppThm savable obj1 objRhs
+
+            val obj3 = Object.mkEqMp savable obj2 obj0
           in
-            (Object.mkEqMp savable obj1 obj0, cvt)
+            (Object.mkSym savable obj3, cvt)
           end
         | _ => raise Bug "ObjectVersion.convert6.DefineTypeOpLegacy"
       end
     | _ =>
-      raise Bug "ObjectVersion.convert6: not implemented";
+      let
+        val bug =
+            "ObjectVersion.convert6: command " ^
+            Command.toString cmd ^ "/" ^ Int.toString (length args) ^
+            " not supported"
+      in
+        raise Bug bug
+      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Convert to a given article version: return NONE for unchanged.            *)

@@ -37,6 +37,7 @@ fun supported version cmd =
       Command.DefineTypeOp => version >= 6
     | Command.DefineTypeOpLegacy => version = 5
     | Command.Pragma => version >= 6
+    | Command.Sym => version >= 6
     | Command.Version => version >= 6
     | _ => true;
 

@@ -163,13 +163,13 @@ fun defineTypeOpLegacy name abs rep tyVars existenceTh =
 
             val th0 = rator repAbsTh rTm
 
-            val (tm1,guardTm) = Term.destApp (Thm.concl th0)
+            val (tm1,rhsTm) = Term.destApp (Thm.concl th0)
 
-            val (eqTm,letTm) = Term.destApp tm1
+            val (iffTm,lhsTm) = Term.destApp tm1
 
-            val th1 = rand eqTm (Thm.betaConv letTm)
+            val th1 = rand iffTm (Thm.betaConv lhsTm)
 
-            val th2 = Thm.app th1 (Thm.betaConv guardTm)
+            val th2 = Thm.app th1 (Thm.betaConv rhsTm)
           in
             sym (Thm.eqMp th2 th0)
           end

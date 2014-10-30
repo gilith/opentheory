@@ -137,7 +137,7 @@ destUnit
 
 |- (\a. mkUnit (destUnit a)) = \a. a
 
-|- (=) (\x. x) = \r. destUnit (mkUnit r) = r
+|- (\r. destUnit (mkUnit r) = r) = \r. (\x. x) = r
 
 unit
 
@@ -148,6 +148,8 @@ destUnit
 |- mkUnit (destUnit a) = a
 
 |- (\x. x) = r <=> destUnit (mkUnit r) = r
+
+|- destUnit (mkUnit r) = r <=> (\x. x) = r
 
 --------------------------------------------------------------------------
 Reading interpretations
@@ -794,47 +796,47 @@ Check the package checksums are consistent
 --------------------------------------------------------------------------
 opentheory -d repos/upstream/opentheory list --format 'NAME-VERSION CHECKSUM' All
 
-bool-and-1.0 b3cd8ce4f6784353d4bf8110a704fe6e5b7b684f
-bool-and-1.1 b4ea5a129aa6a1024b4f467173ad5c7fffb8d6f7
-bool-and-def-1.0 00db4a6942cd027f6ed157062fb59bdfb278fc75
-bool-and-thm-1.0 028dab71a090297b554416e0d841c1ee718c1467
-bool-and-thm-1.1 105b7413446269f9bcea40f6862001a3cac389f4
-bool-forall-1.0 415beaf5fc0b2ea758bf8309374351d656c9e003
-bool-forall-def-1.0 2ce211f46246d683bb3f543f2b6e7df69603d3ac
-bool-forall-thm-1.0 0c0aab36bf0644661259455242b3f8a3ab0e01a5
-bool-implies-1.0 d524fa3d16facc4d211bef75ff0865fcc5def8a6
-bool-implies-def-1.0 f3c49ab8e3935edbe80b0566d353f584451b153c
-bool-implies-thm-1.0 9d42392a0307336d30c1bb6de27322eeb20a3bc2
-bool-true-1.0 b6c02a141bb86bf53017d3feca89149588a380de
-bool-true-def-1.0 dd36c4601ef35d79d104536f946cb3516fb399e6
-bool-true-thm-1.0 cf7acfe04db02e3ea6529d79feab412d929efd52
+bool-and-1.0 efb6dc6c1a302c07b9ec6c2a8770b220fea15814
+bool-and-1.1 ce6826b39399a9c966e21c47829e6b02c93d9934
+bool-and-def-1.0 b6a678359754c42d8dcfbe02f236a590c0497deb
+bool-and-thm-1.0 f7a4b67f9a999392ce8d8f5f53dd2832e2c2b5d9
+bool-and-thm-1.1 81504335af528d9896a5acb793c0d3cb146e3a6f
+bool-forall-1.0 6776a7e621945a5f9696a6851845281a811eeafa
+bool-forall-def-1.0 c2d4e063f550a1bf988442f516fb3ce65201fbf5
+bool-forall-thm-1.0 8399399d837eb34157dd2a8f50fc3a09c90d87d0
+bool-implies-1.0 bf273985686a0072e7094c76e96ca6ba7094abf4
+bool-implies-def-1.0 e6a50d67d3c9f78eda8ecf287a79d7bc35b653d9
+bool-implies-thm-1.0 0577e12ceadaeb5929e9bf95b25fc9798415462f
+bool-true-1.0 4f83f49ed2ecee9d2b26c93653b7006157db194c
+bool-true-def-1.0 927f2e2e2e5c3e4c9e900c69fb99412b1b543ecf
+bool-true-thm-1.0 766544f8d6c77b71fe3c6c68c4ae04826664703e
 --------------------------------------------------------------------------
 opentheory -d repos/repo list --format 'NAME-VERSION CHECKSUM' All
 
-bool-and-1.1 b4ea5a129aa6a1024b4f467173ad5c7fffb8d6f7
-bool-and-def-1.0 00db4a6942cd027f6ed157062fb59bdfb278fc75
-bool-and-thm-1.1 105b7413446269f9bcea40f6862001a3cac389f4
-bool-forall-1.0 415beaf5fc0b2ea758bf8309374351d656c9e003
-bool-forall-def-1.0 2ce211f46246d683bb3f543f2b6e7df69603d3ac
-bool-forall-thm-1.0 0c0aab36bf0644661259455242b3f8a3ab0e01a5
-bool-implies-1.0 d524fa3d16facc4d211bef75ff0865fcc5def8a6
-bool-implies-def-1.0 f3c49ab8e3935edbe80b0566d353f584451b153c
-bool-implies-thm-1.0 9d42392a0307336d30c1bb6de27322eeb20a3bc2
-bool-true-1.0 b6c02a141bb86bf53017d3feca89149588a380de
-bool-true-def-1.0 dd36c4601ef35d79d104536f946cb3516fb399e6
-bool-true-thm-1.0 cf7acfe04db02e3ea6529d79feab412d929efd52
+bool-and-1.1 ce6826b39399a9c966e21c47829e6b02c93d9934
+bool-and-def-1.0 b6a678359754c42d8dcfbe02f236a590c0497deb
+bool-and-thm-1.1 81504335af528d9896a5acb793c0d3cb146e3a6f
+bool-forall-1.0 6776a7e621945a5f9696a6851845281a811eeafa
+bool-forall-def-1.0 c2d4e063f550a1bf988442f516fb3ce65201fbf5
+bool-forall-thm-1.0 8399399d837eb34157dd2a8f50fc3a09c90d87d0
+bool-implies-1.0 bf273985686a0072e7094c76e96ca6ba7094abf4
+bool-implies-def-1.0 e6a50d67d3c9f78eda8ecf287a79d7bc35b653d9
+bool-implies-thm-1.0 0577e12ceadaeb5929e9bf95b25fc9798415462f
+bool-true-1.0 4f83f49ed2ecee9d2b26c93653b7006157db194c
+bool-true-def-1.0 927f2e2e2e5c3e4c9e900c69fb99412b1b543ecf
+bool-true-thm-1.0 766544f8d6c77b71fe3c6c68c4ae04826664703e
 --------------------------------------------------------------------------
 opentheory -d repos/repo info --theory-source bool-implies
 
 def {
   package: bool-implies-def-1.0
-  checksum: f3c49ab8e3935edbe80b0566d353f584451b153c
+  checksum: e6a50d67d3c9f78eda8ecf287a79d7bc35b653d9
 }
 
 thm {
   import: def
   package: bool-implies-thm-1.0
-  checksum: 9d42392a0307336d30c1bb6de27322eeb20a3bc2
+  checksum: 0577e12ceadaeb5929e9bf95b25fc9798415462f
 }
 
 main {
@@ -870,7 +872,7 @@ installed package bool-implies-thm-1.1 from theory source file
 --------------------------------------------------------------------------
 opentheory -d repos/repo info --format 'NAME-VERSION CHECKSUM' bool-implies-thm
 
-bool-implies-thm-1.1 be0c02e7ee482e12bef4a8a01983f383bdac8577
+bool-implies-thm-1.1 50391f423410cbed1a884e8bf25f4ab389385d2b
 --------------------------------------------------------------------------
 opentheory -d repos/repo list
 
@@ -898,13 +900,13 @@ opentheory -d repos/repo info --upgrade-theory --theory-source bool-implies
 
 def {
   package: bool-implies-def-1.0
-  checksum: f3c49ab8e3935edbe80b0566d353f584451b153c
+  checksum: e6a50d67d3c9f78eda8ecf287a79d7bc35b653d9
 }
 
 thm {
   import: def
   package: bool-implies-thm-1.1
-  checksum: be0c02e7ee482e12bef4a8a01983f383bdac8577
+  checksum: 50391f423410cbed1a884e8bf25f4ab389385d2b
 }
 
 main {

@@ -39,6 +39,7 @@ datatype command =
   | Refl
   | Remove
   | Subst
+  | Sym
   | Thm
   | TypeOp
   | Var

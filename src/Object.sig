@@ -192,6 +192,8 @@ val mkRefl : {savable : bool} -> object -> object
 
 val mkSubst : {savable : bool} -> object -> object -> object
 
+val mkSym : {savable : bool} -> object -> object
+
 val mkTypeOp : Name.name -> object
 
 val mkVar : {savable : bool} -> object -> object -> object

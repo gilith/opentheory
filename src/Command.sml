@@ -36,6 +36,7 @@ and refCommandString = "ref"
 and reflCommandString = "refl"
 and removeCommandString = "remove"
 and substCommandString = "subst"
+and symCommandString = "sym"
 and thmCommandString = "thm"
 and typeVarCommandString = "typeVar"
 and typeOpCommandString = "typeOp"
@@ -77,6 +78,7 @@ datatype command =
   | Refl
   | Remove
   | Subst
+  | Sym
   | Thm
   | TypeOp
   | Var
@@ -98,6 +100,7 @@ fun isInference cmd =
     | EqMp => true
     | Refl => true
     | Subst => true
+    | Sym => true
     | _ => false;
 
 (* ------------------------------------------------------------------------- *)
@@ -184,6 +187,9 @@ fun compare cmd1_cmd2 =
     | (Subst,Subst) => EQUAL
     | (Subst,_) => LESS
     | (_,Subst) => GREATER
+    | (Sym,Sym) => EQUAL
+    | (Sym,_) => LESS
+    | (_,Sym) => GREATER
     | (Thm,Thm) => EQUAL
     | (Thm,_) => LESS
     | (_,Thm) => GREATER
@@ -228,6 +234,7 @@ and ppRefCommand = Print.ppString refCommandString
 and ppReflCommand = Print.ppString reflCommandString
 and ppRemoveCommand = Print.ppString removeCommandString
 and ppSubstCommand = Print.ppString substCommandString
+and ppSymCommand = Print.ppString symCommandString
 and ppThmCommand = Print.ppString thmCommandString
 and ppTypeOpCommand = Print.ppString typeOpCommandString
 and ppVarCommand = Print.ppString varCommandString
@@ -273,6 +280,7 @@ fun pp cmd =
     | Refl => ppReflCommand
     | Remove => ppRemoveCommand
     | Subst => ppSubstCommand
+    | Sym => ppSymCommand
     | Thm => ppThmCommand
     | TypeOp => ppTypeOpCommand
     | Var => ppVarCommand
@@ -347,6 +355,7 @@ local
   and reflCommandParser = exactString reflCommandString
   and removeCommandParser = exactString removeCommandString
   and substCommandParser = exactString substCommandString
+  and symCommandParser = exactString symCommandString
   and thmCommandParser = exactString thmCommandString
   and typeOpCommandParser = exactString typeOpCommandString
   and varCommandParser = exactString varCommandString
@@ -396,6 +405,7 @@ in
       nilCommandParser >> K Nil ||
       popCommandParser >> K Pop ||
       refCommandParser >> K Ref ||
+      symCommandParser >> K Sym ||
       thmCommandParser >> K Thm ||
       varCommandParser >> K Var;
 

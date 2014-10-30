@@ -638,6 +638,25 @@ fun execute cmd state =
              inference = inference}
         end
 
+      (* The sym inference *)
+
+      | Command.Sym =>
+        let
+          val (stack,objT) = ObjectStack.pop stack
+
+          val obj = Object.mkSym {savable = savable} objT
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             version = version,
+             stack = stack,
+             dict = dict,
+             export = export,
+             inference = inference}
+        end
+
       (* Saving theorems *)
 
       | Command.Thm =>
