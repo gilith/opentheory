@@ -380,14 +380,14 @@ fun defineTypeOp name {abs} {rep} tyVars existenceTh =
 
             val rTm = Term.mkVar rVar
 
-            val lhs = pTm
-
-            val rhs =
+            val lhs =
                 let
                   val repAbsTm = Term.mkApp (repTm, Term.mkApp (absTm,rTm))
                 in
                   Term.mkAbs (rVar, Term.mkEq (repAbsTm,rTm))
                 end
+
+            val rhs = Term.mkAbs (rVar, Term.mkApp (pTm,rTm))
 
             val concl = Term.mkEq (lhs,rhs)
 

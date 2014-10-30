@@ -35,6 +35,29 @@ fun rand tm th =
 *)
 
 (* ------------------------------------------------------------------------- *)
+(* Symmetry of equality.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun sym th =
+    let
+      val (eqTm,lTm) = Term.destApp (Term.rator (Thm.concl th))
+
+      val th0 = Thm.refl lTm
+
+      val th1 = Thm.app (rand eqTm th) th0
+    in
+      Thm.eqMp th1 th0
+    end
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "Rule.sym: " ^ err
+      in
+        raise Error err
+      end;
+*)
+
+(* ------------------------------------------------------------------------- *)
 (* Transitivity of equality.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
@@ -134,17 +157,21 @@ fun defineTypeOpLegacy name abs rep tyVars existenceTh =
 
       val repAbsTh' =
           let
-            val (_,tm0) = Term.destAbs (Term.rhs (Thm.concl repAbsTh))
+            val (_,tm0) = Term.destAbs (Term.lhs (Thm.concl repAbsTh))
 
             val rTm = Term.rhs tm0
 
             val th0 = rator repAbsTh rTm
 
-            val (guardTm,letTm) = Term.destApp (Thm.concl th0)
+            val (tm1,guardTm) = Term.destApp (Thm.concl th0)
 
-            val th1 = rand guardTm (Thm.betaConv letTm)
+            val (eqTm,letTm) = Term.destApp tm1
+
+            val th1 = rand eqTm (Thm.betaConv letTm)
+
+            val th2 = Thm.app th1 (Thm.betaConv guardTm)
           in
-            Thm.eqMp th1 th0
+            sym (Thm.eqMp th2 th0)
           end
     in
       (ot,absC,repC,absRepTh',repAbsTh')

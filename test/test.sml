@@ -320,6 +320,10 @@ val _ = printval Const.pp rep;
 val _ = printval Thm.pp absRep;
 val _ = printval Thm.pp repAbs;
 
+val repAbsSym = Rule.sym repAbs;
+
+val _ = printval Thm.pp repAbsSym;
+
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Reading interpretations";
 (* ------------------------------------------------------------------------- *)
