@@ -415,10 +415,7 @@ fun execute cmd state =
           val r = Interpretation.interpretConst interpretation r
 
           val (obj0,obj1,obj2,obj3,obj4) =
-              if ArticleVersion.toInt version = 5 then
-                Object.mkDefineTypeOpLegacy {savable = savable} n a r objV objT
-              else
-                Object.mkDefineTypeOp {savable = savable} n a r objV objT
+              Object.mkDefineTypeOp {savable = savable} n a r objV objT
 
           val stack = ObjectStack.push5 stack obj0 obj1 obj2 obj3 obj4
         in
@@ -431,8 +428,37 @@ fun execute cmd state =
              inference = inference}
         end
 
+      (* The legacy defineTypeOp principle of definition *)
+
       | Command.DefineTypeOpLegacy =>
-        raise Bug "ObjectRead.execute: DefineTypeOpLegacy"
+        let
+          val (stack,objN,objA,objR,objV,objT) = ObjectStack.pop5 stack
+
+          val n = Object.destName objN
+
+          val n = Interpretation.interpretTypeOp interpretation n
+
+          val a = Object.destName objA
+
+          val a = Interpretation.interpretConst interpretation a
+
+          val r = Object.destName objR
+
+          val r = Interpretation.interpretConst interpretation r
+
+          val (obj0,obj1,obj2,obj3,obj4) =
+              Object.mkDefineTypeOpLegacy {savable = savable} n a r objV objT
+
+          val stack = ObjectStack.push5 stack obj0 obj1 obj2 obj3 obj4
+        in
+          State
+            {parameters = parameters,
+             version = version,
+             stack = stack,
+             dict = dict,
+             export = export,
+             inference = inference}
+        end
 
       (* The eqMp primitive inference *)
 
@@ -807,11 +833,30 @@ local
          | _ => (ArticleVersion.readDefault,cmds))
       | _ => (ArticleVersion.readDefault,cmds);
 
+  fun interpret5 cmd =
+      case cmd of
+        Command.DefineTypeOp => Command.DefineTypeOpLegacy
+      | _ => cmd;
+in
+  fun versionStream cmds =
+      let
+        val (v,cmds) = getVersion cmds
+
+        val cmds =
+            case ArticleVersion.toInt v of
+              5 => Stream.map interpret5 cmds
+            | _ => cmds
+      in
+        (v,cmds)
+      end;
+end;
+
+local
   fun process (cmd,state) = execute cmd state;
 in
   fun executeStream parm cmds =
       let
-        val (v,cmds) = getVersion cmds
+        val (v,cmds) = versionStream cmds
 
         val state = initial parm v
       in
