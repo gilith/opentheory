@@ -152,6 +152,20 @@ fun convert5 cmd args res cvt =
       in
         (Object.mkEqMp savable obj1 lhsObj, cvt)
       end
+    | (Command.Trans,[objA,objB]) =>
+      let
+        val cvt = addStore cvt [objA]
+
+        val tm0 = Term.rator (Thm.concl (Object.destThm objA))
+
+        val (obj0,cvt) = buildTermStore tm0 cvt
+
+        val obj1 = Object.mkRefl savable obj0
+
+        val obj2 = Object.mkAppThm savable obj1 objB
+      in
+        (Object.mkEqMp savable obj2 objA, cvt)
+      end
     | _ =>
       let
         val bug =

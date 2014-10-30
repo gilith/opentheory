@@ -81,6 +81,18 @@ fun execute cmd state =
 
       val () = Print.trace ObjectStack.pp "ObjectRead.execute: stack" stack
 *)
+      val () =
+          if ArticleVersion.supported version cmd then ()
+          else
+            let
+              val msg =
+                  "the " ^ Command.toString cmd ^
+                  " command is not supported in article version " ^
+                  ArticleVersion.toString version
+            in
+              warn msg
+            end
+
       val inference = Inference.add inference cmd
     in
       case cmd of
@@ -534,17 +546,6 @@ fun execute cmd state =
 
       | Command.Pragma =>
         let
-          val () =
-              if ArticleVersion.toInt version >= 6 then ()
-              else
-                let
-                  val msg =
-                      "the " ^ Command.toString cmd ^
-                      " command is only supported from version 6"
-                in
-                  warn msg
-                end
-
           val (stack,objX) = ObjectStack.pop stack
 
           val pragma =
