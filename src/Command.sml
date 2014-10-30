@@ -38,6 +38,7 @@ and removeCommandString = "remove"
 and substCommandString = "subst"
 and symCommandString = "sym"
 and thmCommandString = "thm"
+and transCommandString = "trans"
 and typeVarCommandString = "typeVar"
 and typeOpCommandString = "typeOp"
 and varCommandString = "var"
@@ -80,6 +81,7 @@ datatype command =
   | Subst
   | Sym
   | Thm
+  | Trans
   | TypeOp
   | Var
   | VarTerm
@@ -101,6 +103,7 @@ fun isInference cmd =
     | Refl => true
     | Subst => true
     | Sym => true
+    | Trans => true
     | _ => false;
 
 (* ------------------------------------------------------------------------- *)
@@ -193,6 +196,9 @@ fun compare cmd1_cmd2 =
     | (Thm,Thm) => EQUAL
     | (Thm,_) => LESS
     | (_,Thm) => GREATER
+    | (Trans,Trans) => EQUAL
+    | (Trans,_) => LESS
+    | (_,Trans) => GREATER
     | (TypeOp,TypeOp) => EQUAL
     | (TypeOp,_) => LESS
     | (_,TypeOp) => GREATER
@@ -236,6 +242,7 @@ and ppRemoveCommand = Print.ppString removeCommandString
 and ppSubstCommand = Print.ppString substCommandString
 and ppSymCommand = Print.ppString symCommandString
 and ppThmCommand = Print.ppString thmCommandString
+and ppTransCommand = Print.ppString transCommandString
 and ppTypeOpCommand = Print.ppString typeOpCommandString
 and ppVarCommand = Print.ppString varCommandString
 and ppVarTermCommand = Print.ppString varTermCommandString
@@ -282,6 +289,7 @@ fun pp cmd =
     | Subst => ppSubstCommand
     | Sym => ppSymCommand
     | Thm => ppThmCommand
+    | Trans => ppTransCommand
     | TypeOp => ppTypeOpCommand
     | Var => ppVarCommand
     | VarTerm => ppVarTermCommand
@@ -357,6 +365,7 @@ local
   and substCommandParser = exactString substCommandString
   and symCommandParser = exactString symCommandString
   and thmCommandParser = exactString thmCommandString
+  and transCommandParser = exactString transCommandString
   and typeOpCommandParser = exactString typeOpCommandString
   and varCommandParser = exactString varCommandString
   and varTermCommandParser = exactString varTermCommandString
@@ -396,6 +405,7 @@ in
       axiomCommandParser >> K Axiom ||
       constCommandParser >> K Const ||
       substCommandParser >> K Subst ||
+      transCommandParser >> K Trans ||
       (* Commands of length 4 *)
       consCommandParser >> K Cons ||
       eqMpCommandParser >> K EqMp ||

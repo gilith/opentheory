@@ -702,6 +702,25 @@ fun execute cmd state =
              inference = inference}
         end
 
+      (* The trans inference *)
+
+      | Command.Trans =>
+        let
+          val (stack,objA,objB) = ObjectStack.pop2 stack
+
+          val obj = Object.mkTrans {savable = savable} objA objB
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             version = version,
+             stack = stack,
+             dict = dict,
+             export = export,
+             inference = inference}
+        end
+
       (* Type operators *)
 
       | Command.TypeOp =>

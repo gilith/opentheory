@@ -41,6 +41,7 @@ datatype command =
   | Subst
   | Sym
   | Thm
+  | Trans
   | TypeOp
   | Var
   | VarTerm

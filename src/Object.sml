@@ -703,6 +703,27 @@ fun mkSym {savable} objT =
     handle Error err => raise Error ("in Object.mkSym:\n" ^ err);
 *)
 
+fun mkTrans {savable} objA objB =
+    let
+      val d =
+          let
+            val aTh = destThm objA
+            and bTh = destThm objB
+          in
+            ObjectData.Thm (Rule.trans aTh bTh)
+          end
+
+(*OpenTheoryTrace2
+      val () = Print.trace ObjectData.pp "Object.mkTrans" d
+*)
+    in
+      if not savable then mkDefault d
+      else mkSimple d Command.Trans [objA,objB]
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Object.mkTrans:\n" ^ err);
+*)
+
 fun mkTypeOp n = mkDefault (ObjectData.TypeOp (TypeOp.mkUndef n));
 
 fun mkVar {savable} objN objT =
@@ -822,6 +843,7 @@ fun mkCommand sav cmd args =
      | (Command.Refl,[objT]) => [mkRefl sav objT]
      | (Command.Subst,[objS,objT]) => [mkSubst sav objS objT]
      | (Command.Sym,[objT]) => [mkSym sav objT]
+     | (Command.Trans,[objA,objB]) => [mkTrans sav objA objB]
      | (Command.TypeOp,[objN]) => [mkTypeOp (destName objN)]
      | (Command.Var,[objN,objT]) => [mkVar sav objN objT]
      | (Command.VarTerm,[objV]) => [mkVarTerm sav objV]
