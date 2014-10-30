@@ -58,6 +58,11 @@ end;
 (* Pretty-printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+fun toStringCommand cmd =
+    case cmd of
+      Command.DefineTypeOpLegacy => Command.toString cmd ^ " (legacy)"
+    | _ => Command.toString cmd;
+
 local
   val alignment : columnAlignment list =
       [{leftAlign = true, padChar = #"."},
@@ -67,7 +72,7 @@ local
 
   fun mkRow (s,i) = [s ^ " ...", " " ^ countToString i];
 
-  fun mkInfRow (n,i) = mkRow (Command.toString n, i);
+  fun mkInfRow (c,i) = mkRow (toStringCommand c, i);
 
   fun mkTotalRow i = mkRow ("Total",i);
 in

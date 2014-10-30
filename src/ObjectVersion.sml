@@ -79,6 +79,8 @@ fun buildStore data cvt =
       (obj,cvt)
     end;
 
+fun buildVarStore v = buildStore (ObjectData.Var v);
+
 fun buildTermStore tm = buildStore (ObjectData.Term tm);
 
 (* ------------------------------------------------------------------------- *)
@@ -86,6 +88,71 @@ fun buildTermStore tm = buildStore (ObjectData.Term tm);
 (* ------------------------------------------------------------------------- *)
 
 fun convert5 cmd args res cvt =
+    case (cmd,args) of
+      (Command.DefineTypeOp,[objN,objA,objR,objV,objTh]) =>
+      let
+        val n = Object.destName objN
+        and a = Object.destName objA
+        and r = Object.destName objR
+
+        val (objT,objA,objR,objAR,objRA) =
+            Object.mkDefineTypeOpLegacy savable n a r objV objTh
+      in
+        case res of
+          0 => (objT,cvt)
+        | 1 => (objA,cvt)
+        | 2 => (objR,cvt)
+        | 3 =>
+          let
+            val cvt = addStore cvt [objTh,objT,objA,objR]
+
+            val absRepTh = Object.destThm objAR
+
+            val aVar = Term.destVar (Term.rhs (Thm.concl absRepTh))
+
+            val (objA,cvt) = buildVarStore aVar cvt
+          in
+            (Object.mkAbsThm savable objA objAR, cvt)
+          end
+        | 4 =>
+          let
+            val cvt = addStore cvt [objTh,objT,objA,objR]
+
+            val (obj0,cvt) = convert5 Command.Sym [objRA] 0 cvt
+
+            val th0 = Object.destThm obj0
+
+            val rVar = Term.destVar (Term.rand (Term.rhs (Thm.concl th0)))
+
+            val (objR,cvt) = buildVarStore rVar cvt
+          in
+            (Object.mkAbsThm savable objR obj0, cvt)
+          end
+        | _ => raise Bug "ObjectVersion.convert5.DefineTypeOp"
+      end
+    | (Command.Sym,[objT]) =>
+      let
+        val cvt = addStore cvt [objT]
+
+        val th0 = Object.destThm objT
+
+        val (eqTm,lhsTm) = Term.destApp (Term.rator (Thm.concl th0))
+
+        val (eqObj,cvt) = buildTermStore eqTm cvt
+
+        val (lhsObj,cvt) = buildTermStore lhsTm cvt
+
+        val eqObj = Object.mkRefl savable eqObj
+
+        val lhsObj = Object.mkRefl savable lhsObj
+
+        val obj0 = Object.mkAppThm savable eqObj objT
+
+        val obj1 = Object.mkAppThm savable obj0 lhsObj
+      in
+        (Object.mkEqMp savable obj1 lhsObj, cvt)
+      end
+    | _ =>
       let
         val bug =
             "ObjectVersion.convert5: command " ^
