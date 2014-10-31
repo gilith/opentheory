@@ -36,6 +36,7 @@ fun supported version cmd =
     case cmd of
       Command.DefineTypeOp => version >= 6
     | Command.DefineTypeOpLegacy => version = 5
+    | Command.HdTl => version >= 6
     | Command.Pragma => version >= 6
     | Command.ProveHyp => version >= 6
     | Command.Sym => version >= 6

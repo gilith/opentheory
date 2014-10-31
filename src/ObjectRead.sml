@@ -491,6 +491,27 @@ fun execute cmd state =
              inference = inference}
         end
 
+      (* Destructing lists *)
+
+      | Command.HdTl =>
+        let
+          val (stack,objL) = ObjectStack.pop stack
+
+          val (objH,objT) = Object.mkHdTl {savable = savable} objL
+
+          val stack = ObjectStack.push stack objH
+
+          val stack = ObjectStack.push stack objT
+        in
+          State
+            {parameters = parameters,
+             version = version,
+             stack = stack,
+             dict = dict,
+             export = export,
+             inference = inference}
+        end
+
       (* Empty lists *)
 
       | Command.Nil =>

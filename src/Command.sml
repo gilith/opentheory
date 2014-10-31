@@ -27,6 +27,7 @@ and defCommandString = "def"
 and defineConstCommandString = "defineConst"
 and defineTypeOpCommandString = "defineTypeOp"
 and eqMpCommandString = "eqMp"
+and hdTlCommandString = "hdTl"
 and negationChar = #"-"
 and nilCommandString = "nil"
 and opTypeCommandString = "opType"
@@ -72,6 +73,7 @@ datatype command =
   | DefineTypeOp
   | DefineTypeOpLegacy
   | EqMp
+  | HdTl
   | Nil
   | OpType
   | Pop
@@ -102,6 +104,7 @@ fun isInference cmd =
     | DefineTypeOp => true
     | DefineTypeOpLegacy => true
     | EqMp => true
+    | ProveHyp => true
     | Refl => true
     | Subst => true
     | Sym => true
@@ -168,6 +171,9 @@ fun compare cmd1_cmd2 =
     | (EqMp,EqMp) => EQUAL
     | (EqMp,_) => LESS
     | (_,EqMp) => GREATER
+    | (HdTl,HdTl) => EQUAL
+    | (HdTl,_) => LESS
+    | (_,HdTl) => GREATER
     | (Nil,Nil) => EQUAL
     | (Nil,_) => LESS
     | (_,Nil) => GREATER
@@ -237,6 +243,7 @@ and ppDefCommand = Print.ppString defCommandString
 and ppDefineConstCommand = Print.ppString defineConstCommandString
 and ppDefineTypeOpCommand = Print.ppString defineTypeOpCommandString
 and ppEqMpCommand = Print.ppString eqMpCommandString
+and ppHdTlCommand = Print.ppString hdTlCommandString
 and ppNilCommand = Print.ppString nilCommandString
 and ppOpTypeCommand = Print.ppString opTypeCommandString
 and ppPopCommand = Print.ppString popCommandString
@@ -285,6 +292,7 @@ fun pp cmd =
     | DefineTypeOp => ppDefineTypeOpCommand
     | DefineTypeOpLegacy => ppDefineTypeOpCommand
     | EqMp => ppEqMpCommand
+    | HdTl => ppHdTlCommand
     | Nil => ppNilCommand
     | OpType => ppOpTypeCommand
     | Pop => ppPopCommand
@@ -362,6 +370,7 @@ local
   and defineConstCommandParser = exactString defineConstCommandString
   and defineTypeOpCommandParser = exactString defineTypeOpCommandString
   and eqMpCommandParser = exactString eqMpCommandString
+  and hdTlCommandParser = exactString hdTlCommandString
   and nilCommandParser = exactString nilCommandString
   and opTypeCommandParser = exactString opTypeCommandString
   and popCommandParser = exactString popCommandString
@@ -418,6 +427,7 @@ in
       (* Commands of length 4 *)
       consCommandParser >> K Cons ||
       eqMpCommandParser >> K EqMp ||
+      hdTlCommandParser >> K HdTl ||
       reflCommandParser >> K Refl ||
       (* Commands of length 3 *)
       defCommandParser >> K Def ||

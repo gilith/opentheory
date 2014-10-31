@@ -184,6 +184,8 @@ val mkDefineTypeOpLegacy :
 
 val mkEqMp : {savable : bool} -> object -> object -> object
 
+val mkHdTl : {savable : bool} -> object -> object * object
+
 val mkNil : object
 
 val mkOpType : {savable : bool} -> object -> object -> object
@@ -224,6 +226,8 @@ val unMkAbsTerm : object -> object * object
 val unMkAppTerm : object -> object * object
 
 val unMkAxiom : object -> object * object
+
+val unMkCons : object -> object * object
 
 val unMkVar : object -> object * object
 

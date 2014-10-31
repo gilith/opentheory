@@ -130,6 +130,15 @@ fun convert5 cmd args res cvt =
           end
         | _ => raise Bug "ObjectVersion.convert5.DefineTypeOp"
       end
+    | (Command.HdTl,[objL]) =>
+      let
+        val (objH,objT) = Object.unMkCons objL
+      in
+        case res of
+          0 => (objH,cvt)
+        | 1 => (objT,cvt)
+        | _ => raise Bug "ObjectVersion.convert5.HdTl"
+      end
     | (Command.ProveHyp,[objA,objB]) =>
       let
         val obj0 = Object.mkDeductAntisym savable objA objB

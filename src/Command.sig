@@ -31,6 +31,7 @@ datatype command =
   | DefineTypeOp
   | DefineTypeOpLegacy
   | EqMp
+  | HdTl
   | Nil
   | OpType
   | Pop

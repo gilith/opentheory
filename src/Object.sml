@@ -619,6 +619,38 @@ fun mkEqMp {savable} objA objB =
     handle Error err => raise Error ("in Object.mkEqMp:\n" ^ err);
 *)
 
+fun mkHdTl {savable} objL =
+    let
+      val (d0,d1) =
+          case destList objL of
+            [] => raise Error "nil list"
+          | h :: t => (h, ObjectData.List t)
+    in
+      if not savable then
+        let
+          val obj0 = mkDefault d0
+          and obj1 = mkDefault d1
+        in
+          (obj0,obj1)
+        end
+      else
+        let
+          val cmd = Command.HdTl
+          and args = [objL]
+          and gen = [d0,d1]
+
+          val defs = []
+
+          val obj0 = mkSpecial d0 cmd args defs gen 0
+          and obj1 = mkSpecial d1 cmd args defs gen 1
+        in
+          (obj0,obj1)
+        end
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Object.mkHdTl:\n" ^ err);
+*)
+
 val mkNil = mkDefault (ObjectData.mkNil);
 
 fun mkOpType {savable} objO objL =
@@ -913,6 +945,11 @@ fun unMkAxiom obj =
     case unMkCommand obj of
       (Command.Axiom,[objH,objC]) => (objH,objC)
     | _ => raise Error "Object.unMkAxiom";
+
+fun unMkCons obj =
+    case unMkCommand obj of
+      (Command.Cons,[objH,objT]) => (objH,objT)
+    | _ => raise Error "Object.unMkCons";
 
 fun unMkVar obj =
     case unMkCommand obj of
