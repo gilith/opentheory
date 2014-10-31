@@ -32,6 +32,7 @@ and nilCommandString = "nil"
 and opTypeCommandString = "opType"
 and popCommandString = "pop"
 and pragmaCommandString = "pragma"
+and proveHypCommandString = "proveHyp"
 and refCommandString = "ref"
 and reflCommandString = "refl"
 and removeCommandString = "remove"
@@ -75,6 +76,7 @@ datatype command =
   | OpType
   | Pop
   | Pragma
+  | ProveHyp
   | Ref
   | Refl
   | Remove
@@ -178,6 +180,9 @@ fun compare cmd1_cmd2 =
     | (Pragma,Pragma) => EQUAL
     | (Pragma,_) => LESS
     | (_,Pragma) => GREATER
+    | (ProveHyp,ProveHyp) => EQUAL
+    | (ProveHyp,_) => LESS
+    | (_,ProveHyp) => GREATER
     | (Ref,Ref) => EQUAL
     | (Ref,_) => LESS
     | (_,Ref) => GREATER
@@ -236,6 +241,7 @@ and ppNilCommand = Print.ppString nilCommandString
 and ppOpTypeCommand = Print.ppString opTypeCommandString
 and ppPopCommand = Print.ppString popCommandString
 and ppPragmaCommand = Print.ppString pragmaCommandString
+and ppProveHypCommand = Print.ppString proveHypCommandString
 and ppRefCommand = Print.ppString refCommandString
 and ppReflCommand = Print.ppString reflCommandString
 and ppRemoveCommand = Print.ppString removeCommandString
@@ -283,6 +289,7 @@ fun pp cmd =
     | OpType => ppOpTypeCommand
     | Pop => ppPopCommand
     | Pragma => ppPragmaCommand
+    | ProveHyp => ppProveHypCommand
     | Ref => ppRefCommand
     | Refl => ppReflCommand
     | Remove => ppRemoveCommand
@@ -359,6 +366,7 @@ local
   and opTypeCommandParser = exactString opTypeCommandString
   and popCommandParser = exactString popCommandString
   and pragmaCommandParser = exactString pragmaCommandString
+  and proveHypCommandParser = exactString proveHypCommandString
   and refCommandParser = exactString refCommandString
   and reflCommandParser = exactString reflCommandString
   and removeCommandParser = exactString removeCommandString
@@ -387,6 +395,7 @@ in
       constTermCommandParser >> K ConstTerm ||
       (* Commands of length 8 *)
       betaConvCommandParser >> K BetaConv ||
+      proveHypCommandParser >> K ProveHyp ||
       (* Commands of length 7 *)
       absTermCommandParser >> K AbsTerm ||
       appTermCommandParser >> K AppTerm ||

@@ -188,6 +188,8 @@ val mkNil : object
 
 val mkOpType : {savable : bool} -> object -> object -> object
 
+val mkProveHyp : {savable : bool} -> object -> object -> object
+
 val mkRefl : {savable : bool} -> object -> object
 
 val mkSubst : {savable : bool} -> object -> object -> object

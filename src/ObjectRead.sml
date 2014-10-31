@@ -581,6 +581,25 @@ fun execute cmd state =
           | _ => state
         end
 
+      (* The proveHyp inference *)
+
+      | Command.ProveHyp =>
+        let
+          val (stack,objA,objB) = ObjectStack.pop2 stack
+
+          val obj = Object.mkProveHyp {savable = savable} objA objB
+
+          val stack = ObjectStack.push stack obj
+        in
+          State
+            {parameters = parameters,
+             version = version,
+             stack = stack,
+             dict = dict,
+             export = export,
+             inference = inference}
+        end
+
       (* Dictionary lookups *)
 
       | Command.Ref =>

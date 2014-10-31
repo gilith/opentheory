@@ -35,6 +35,7 @@ datatype command =
   | OpType
   | Pop
   | Pragma
+  | ProveHyp
   | Ref
   | Refl
   | Remove

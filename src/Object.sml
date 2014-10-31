@@ -640,6 +640,27 @@ fun mkOpType {savable} objO objL =
     handle Error err => raise Error ("in Object.mkOpType:\n" ^ err);
 *)
 
+fun mkProveHyp {savable} objA objB =
+    let
+      val d =
+          let
+            val a = destThm objA
+            and b = destThm objB
+          in
+            ObjectData.Thm (Rule.proveHyp a b)
+          end
+
+(*OpenTheoryTrace2
+      val () = Print.trace ObjectData.pp "Object.mkProveHyp" d
+*)
+    in
+      if not savable then mkDefault d
+      else mkSimple d Command.ProveHyp [objA,objB]
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Object.mkProveHyp:\n" ^ err);
+*)
+
 fun mkRefl {savable} objT =
     let
       val d =
@@ -840,6 +861,7 @@ fun mkCommand sav cmd args =
      | (Command.EqMp,[objA,objB]) => [mkEqMp sav objA objB]
      | (Command.Nil,[]) => [mkNil]
      | (Command.OpType,[objO,objL]) => [mkOpType sav objO objL]
+     | (Command.ProveHyp,[objA,objB]) => [mkProveHyp sav objA objB]
      | (Command.Refl,[objT]) => [mkRefl sav objT]
      | (Command.Subst,[objS,objT]) => [mkSubst sav objS objT]
      | (Command.Sym,[objT]) => [mkSym sav objT]

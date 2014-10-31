@@ -79,6 +79,25 @@ fun trans th1 th2 =
 *)
 
 (* ------------------------------------------------------------------------- *)
+(* Proving hypotheses.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun proveHyp th1 th2 =
+    let
+      val th3 = Thm.deductAntisym th1 th2
+    in
+      Thm.eqMp th3 th1
+    end
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "Rule.proveHyp: " ^ err
+      in
+        raise Error err
+      end;
+*)
+
+(* ------------------------------------------------------------------------- *)
 (* Alpha conversion.                                                         *)
 (* ------------------------------------------------------------------------- *)
 

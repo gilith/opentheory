@@ -130,6 +130,12 @@ fun convert5 cmd args res cvt =
           end
         | _ => raise Bug "ObjectVersion.convert5.DefineTypeOp"
       end
+    | (Command.ProveHyp,[objA,objB]) =>
+      let
+        val obj0 = Object.mkDeductAntisym savable objA objB
+      in
+        (Object.mkEqMp savable obj0 objA, cvt)
+      end
     | (Command.Sym,[objT]) =>
       let
         val cvt = addStore cvt [objT]
