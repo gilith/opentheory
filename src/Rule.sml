@@ -149,6 +149,13 @@ fun findAlpha set seq =
     | NONE => NONE;
 
 (* ------------------------------------------------------------------------- *)
+(* The new principle of constant definition.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun defineConstList nvs th =
+    raise Bug "Rule.defineConstList: not implemented";
+
+(* ------------------------------------------------------------------------- *)
 (* The legacy (a.k.a. HOL Light) version of defineTypeOp.                    *)
 (* ------------------------------------------------------------------------- *)
 

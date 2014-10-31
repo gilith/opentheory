@@ -41,6 +41,13 @@ val alpha : Sequent.sequent -> Thm.thm -> Thm.thm
 val findAlpha : ThmSet.set -> Sequent.sequent -> Thm.thm option
 
 (* ------------------------------------------------------------------------- *)
+(* The new principle of constant definition.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val defineConstList :
+    (Name.name * Var.var) list -> Thm.thm -> Const.const list * Thm.thm
+
+(* ------------------------------------------------------------------------- *)
 (* The legacy (a.k.a. HOL Light) version of defineTypeOp.                    *)
 (* ------------------------------------------------------------------------- *)
 
