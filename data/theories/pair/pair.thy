@@ -1,5 +1,5 @@
 name: pair
-version: 1.25
+version: 1.27
 description: Product types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,14 +8,14 @@ show: "Data.Bool"
 show: "Data.Pair"
 
 def {
-  package: pair-def-1.22
-  checksum: 1158034ec61f4e7d04fc234c27f8eb0965d33710
+  package: pair-def-1.24
+  checksum: 0b8284a82166c2c2a0228c493c551fc3c497d43c
 }
 
 thm {
   import: def
-  package: pair-thm-1.26
-  checksum: 0fb1f10dda9d57a53eceac2196ec9397f3dd3d39
+  package: pair-thm-1.28
+  checksum: 562680355d163ab56fa99d9488bf201e07bb09fb
 }
 
 main {

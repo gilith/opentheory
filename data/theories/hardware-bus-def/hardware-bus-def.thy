@@ -1,9 +1,9 @@
 name: hardware-bus-def
-version: 1.24
+version: 1.25
 description: Definition of hardware bus devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-10-22
+provenance: HOL Light theory extracted on 2014-10-30
 requires: bool
 requires: hardware-thm
 requires: hardware-wire

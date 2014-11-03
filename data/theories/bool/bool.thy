@@ -1,5 +1,5 @@
 name: bool
-version: 1.33
+version: 1.35
 description: Boolean operators and quantifiers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -18,22 +18,22 @@ int {
 
 axiom-extensionality {
   import: def
-  package: axiom-extensionality-1.8
-  checksum: a03fa11c985e29adbd28e95405b3fe8c47c0bad5
+  package: axiom-extensionality-1.9
+  checksum: 6e9a7c8e10c21e54d5f3285cb11e65de99c9542d
 }
 
 ext {
   import: def
   import: int
   import: axiom-extensionality
-  package: bool-ext-1.10
-  checksum: 077e7b77524fad6295bd1c0ff445be4274d0826c
+  package: bool-ext-1.12
+  checksum: cb4c404d1f0ba4bf11042416a15861eebc4e45cf
 }
 
 axiom-choice {
   import: def
-  package: axiom-choice-1.7
-  checksum: 8b3cfcf9cc420a78142dae227f28d1497cc8e76d
+  package: axiom-choice-1.8
+  checksum: 2178247da99e65a9a2e0a1093adbff512d1539d9
 }
 
 class {
@@ -42,8 +42,8 @@ class {
   import: axiom-extensionality
   import: ext
   import: axiom-choice
-  package: bool-class-1.23
-  checksum: f31ee9a471d9461bfd5bdc3fb399682cf8eb7ebf
+  package: bool-class-1.25
+  checksum: 67a0d94c7ba1b96c98f5775db1d69fc1a3581651
 }
 
 main {

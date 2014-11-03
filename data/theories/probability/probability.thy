@@ -1,5 +1,5 @@
 name: probability
-version: 1.34
+version: 1.36
 description: Probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,14 +17,14 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: probability-def-1.35
-  checksum: 69195ad08f08e39b067103feabd5b098eb5890eb
+  package: probability-def-1.37
+  checksum: b8aa1de2b30e2594999672175ff7101aa508c608
 }
 
 thm {
   import: def
-  package: probability-thm-1.12
-  checksum: 680ac3e63cc05d77ce9af596b42416efa770a48e
+  package: probability-thm-1.14
+  checksum: ffb4e4b94ab99181a453960396f4a7d929a69f52
 }
 
 main {

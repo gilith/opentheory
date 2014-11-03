@@ -1,9 +1,9 @@
 name: natural-exp-thm
-version: 1.43
+version: 1.45
 description: Properties of natural number exponentiation
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-10-22
+provenance: HOL Light theory extracted on 2014-11-01
 requires: bool
 requires: natural-add
 requires: natural-def

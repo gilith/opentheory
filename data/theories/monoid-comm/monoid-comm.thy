@@ -1,5 +1,5 @@
 name: monoid-comm
-version: 1.9
+version: 1.11
 description: Commutative monoids
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,27 +15,27 @@ show: "Data.List"
 show: "Number.Natural"
 
 monoid-witness {
-  package: monoid-witness-1.6
-  checksum: 217b6f5c01439c3f9f11e282efa4007a572d38ef
+  package: monoid-witness-1.8
+  checksum: 23d0bd412c5cf41727742881d3a258ec821ed75d
 }
 
 monoid-thm {
   import: monoid-witness
-  package: monoid-thm-1.3
-  checksum: a721e52a24b71755a3b10d43fdf54e6b70708e89
+  package: monoid-thm-1.5
+  checksum: 924f849f6b2395479b31ede8e6b1061c60dd0d57
 }
 
 monoid-mult {
   import: monoid-witness
   import: monoid-thm
-  package: monoid-mult-1.8
-  checksum: 47c9f7650790fbac3af20d89d2959bc12b553374
+  package: monoid-mult-1.10
+  checksum: 095939df761e652ca257f92a090d22d3ee66575c
 }
 
 thm {
   import: monoid-witness
-  package: monoid-comm-thm-1.5
-  checksum: fd30fd08153b66def2a3b70dfee21f9ea2395122
+  package: monoid-comm-thm-1.7
+  checksum: f37cbe5d981f18bb4ec0949540b58fbe8b6b1fdd
 }
 
 mult {

@@ -1,5 +1,5 @@
 name: monoid
-version: 1.8
+version: 1.10
 description: Parametric theory of monoids
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,14 +14,14 @@ show: "Data.List"
 show: "Number.Natural"
 
 thm {
-  package: monoid-thm-1.3
-  checksum: a721e52a24b71755a3b10d43fdf54e6b70708e89
+  package: monoid-thm-1.5
+  checksum: 924f849f6b2395479b31ede8e6b1061c60dd0d57
 }
 
 mult {
   import: thm
-  package: monoid-mult-1.8
-  checksum: 47c9f7650790fbac3af20d89d2959bc12b553374
+  package: monoid-mult-1.10
+  checksum: 095939df761e652ca257f92a090d22d3ee66575c
 }
 
 main {

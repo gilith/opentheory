@@ -1,9 +1,9 @@
 name: montgomery-hardware-thm
-version: 1.2
+version: 1.4
 description: Properties of hardware Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-10-22
+provenance: HOL Light theory extracted on 2014-11-01
 requires: bool
 requires: hardware
 requires: montgomery-hardware-def

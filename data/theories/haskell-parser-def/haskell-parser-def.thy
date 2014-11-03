@@ -1,9 +1,9 @@
 name: haskell-parser-def
-version: 1.51
+version: 1.53
 description: Definition of stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-10-22
+provenance: HOL Light theory extracted on 2014-11-01
 requires: base
 requires: haskell
 requires: parser

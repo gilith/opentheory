@@ -1,5 +1,5 @@
 name: natural-dest
-version: 1.15
+version: 1.17
 description: Natural number destructors
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -9,8 +9,8 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-dest-def-1.2
-  checksum: 628e44fe67a62d8e09dd7a468391bdafe92873d6
+  package: natural-dest-def-1.4
+  checksum: cc67b94403ec945fd39d69bfaad7039d6d121f50
 }
 
 main {

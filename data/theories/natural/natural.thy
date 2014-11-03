@@ -1,5 +1,5 @@
 name: natural
-version: 1.97
+version: 1.99
 description: The natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,39 +10,39 @@ show: "Function"
 show: "Number.Natural"
 
 axiom-infinity {
-  package: axiom-infinity-1.10
-  checksum: 3e38e591a4adc6637b654bedc8fc2b81b1f0dacc
+  package: axiom-infinity-1.12
+  checksum: 53e364be097eb2d2284001aa97935dcee31a969c
 }
 
 def {
   import: axiom-infinity
-  package: natural-def-1.27
-  checksum: d3e2381787945539647c508788c023d9b8268f9f
+  package: natural-def-1.29
+  checksum: 881d4b54385e84df7360d40052b061eb8bc67893
 }
 
 thm {
   import: def
-  package: natural-thm-1.19
-  checksum: d28e45201e6cee3214118610e368cf0ab786d88f
+  package: natural-thm-1.21
+  checksum: 7fe40861708e2c0e88f9ef8d31239946a31c7547
 }
 
 dest {
   import: thm
-  package: natural-dest-1.15
-  checksum: 983c1f920adaa46ee710c7e14fb45d3467258565
+  package: natural-dest-1.17
+  checksum: 68253235212a4d211fb2bbb0ddcf4d6cece86e00
 }
 
 numeral {
   import: thm
-  package: natural-numeral-1.18
-  checksum: 6bdd224125db2dbb3a4f42753c1699c918baa235
+  package: natural-numeral-1.20
+  checksum: d60228fe9c6d0bfacfeb3e1ce8eb00022e67b883
 }
 
 order {
   import: def
   import: thm
-  package: natural-order-1.47
-  checksum: ebfbf32b6db524140f48d40226fc760a75742030
+  package: natural-order-1.49
+  checksum: e79662bd41ff1d43761c6f7819d5b0af0208d081
 }
 
 add {
@@ -51,8 +51,8 @@ add {
   import: dest
   import: numeral
   import: order
-  package: natural-add-1.60
-  checksum: 5a6edb08336754d717ab1ef284d4092c1b91572b
+  package: natural-add-1.62
+  checksum: bd223f65bcddfbfc995ceed7e07f6ae63f505438
 }
 
 mult {
@@ -61,8 +61,8 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.57
-  checksum: e8b1e4a9838a9915612aa46d1aae844fe0819615
+  package: natural-mult-1.59
+  checksum: dead9de8fb52831cc851563d537a14bfa92f2108
 }
 
 div {
@@ -72,8 +72,8 @@ div {
   import: order
   import: add
   import: mult
-  package: natural-div-1.47
-  checksum: 1a10b1f6092f3bc5c906f017cebd4a4377c552e0
+  package: natural-div-1.49
+  checksum: 5bc16c27229d3cb6268de0c574952e1c93896240
 }
 
 exp {
@@ -84,8 +84,8 @@ exp {
   import: add
   import: mult
   import: div
-  package: natural-exp-1.48
-  checksum: 94a0e1924fee44053e5fe971d8d199d5f1af6d32
+  package: natural-exp-1.50
+  checksum: e24892c69d5ad1240eecb057c9e100d31f384859
 }
 
 factorial {
@@ -95,8 +95,8 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.35
-  checksum: e5107f4e1804247b2fc8feef719fa4aa5a892793
+  package: natural-factorial-1.37
+  checksum: 26303fc8c605c9adb6448d2b67224da01b1a6760
 }
 
 distance {
@@ -105,8 +105,8 @@ distance {
   import: order
   import: add
   import: mult
-  package: natural-distance-1.50
-  checksum: 2cb847a6ab3b9b56afe57f916857bf4c8a526dc2
+  package: natural-distance-1.52
+  checksum: ead8b0b469ebabd24b83f8f6356f412e8710f607
 }
 
 funpow {
@@ -115,8 +115,8 @@ funpow {
   import: numeral
   import: add
   import: mult
-  package: natural-funpow-1.14
-  checksum: 778630a3d457d23e91e4db11b741daf1e316970a
+  package: natural-funpow-1.16
+  checksum: e693a60a55e6ed9abbf44145116acc7b60957946
 }
 
 main {

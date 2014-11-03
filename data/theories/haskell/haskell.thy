@@ -1,5 +1,5 @@
 name: haskell
-version: 1.91
+version: 1.93
 description: The Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -31,26 +31,26 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: haskell-def-1.80
-  checksum: a1b53bdc91c61b38c172a8a720abd6401b790fa7
+  package: haskell-def-1.82
+  checksum: 573a8fadc512936dfccf791cc02b9e2542086374
 }
 
 thm {
   import: def
-  package: haskell-thm-1.60
-  checksum: 7cbd917b2865fddd58a20227dfc5433893be83d1
+  package: haskell-thm-1.62
+  checksum: ba119ae7e89a12d9d3d4c556d79840504aeb321f
 }
 
 src {
   import: def
-  package: haskell-src-1.63
-  checksum: c9d10300949089787a0be214b6059c56d7e836f9
+  package: haskell-src-1.65
+  checksum: 66971f023339bf4738991cf9c28e01eeb8e0fb66
 }
 
 test {
   import: def
-  package: haskell-test-1.43
-  checksum: aaac7b2f366e2d13042df858ace20cd392116f6e
+  package: haskell-test-1.45
+  checksum: 5ead9b7b717c13ba3b827b781e9529f0ca0ac528
 }
 
 main {

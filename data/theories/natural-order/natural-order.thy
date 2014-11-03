@@ -1,5 +1,5 @@
 name: natural-order
-version: 1.47
+version: 1.49
 description: Natural number orderings
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,21 +10,21 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-order-def-1.29
-  checksum: e0da1143628a7397250cbc23d21bb6b2d5b44adb
+  package: natural-order-def-1.31
+  checksum: 9122370469ef878e758aead736bdd76d7ddd5e6a
 }
 
 thm {
   import: def
-  package: natural-order-thm-1.39
-  checksum: 05b467096ac74cc1b8f230a1c5f50a56c6a06ee4
+  package: natural-order-thm-1.41
+  checksum: 5d29867a5506bb2cf58c3530644e21d00f6f5256
 }
 
 min-max {
   import: def
   import: thm
-  package: natural-order-min-max-1.36
-  checksum: 425e855850a8cf4b1f4f9ab8d3cc4d5c17c6999c
+  package: natural-order-min-max-1.38
+  checksum: 76b24a07fa1f49b520adcea86f437494d3cd114e
 }
 
 main {

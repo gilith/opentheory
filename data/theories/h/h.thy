@@ -1,5 +1,5 @@
 name: h
-version: 1.114
+version: 1.116
 description: Memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,14 +20,14 @@ show: "Set"
 show: "System.H"
 
 def {
-  package: h-def-1.114
-  checksum: 488d2abce8f87fe0ce6b23225954f68946208738
+  package: h-def-1.116
+  checksum: efe6f80641cd459b3156e9f020181206d1e0ada6
 }
 
 thm {
   import: def
-  package: h-thm-1.112
-  checksum: cb697aba918dcd2311d788a46a58192c2e1a6749
+  package: h-thm-1.114
+  checksum: 87f8b3b546970ee3516be161da3026b8c044f744
 }
 
 main {

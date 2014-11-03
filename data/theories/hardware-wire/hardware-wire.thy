@@ -1,5 +1,5 @@
 name: hardware-wire
-version: 1.19
+version: 1.21
 description: Hardware wire devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -13,14 +13,14 @@ show: "Hardware"
 show: "Number.Natural"
 
 def {
-  package: hardware-wire-def-1.9
-  checksum: 51c03e3d03bce3dc49a5ba8c0cab74f84422b4b5
+  package: hardware-wire-def-1.10
+  checksum: d488ae5b76416941067d5675e1c57ccb0a7adf9a
 }
 
 thm {
   import: def
-  package: hardware-wire-thm-1.23
-  checksum: 7814e085be5482e3590d1d305457708bec6e3cfe
+  package: hardware-wire-thm-1.25
+  checksum: 068f01491161e70689a5ff69673f4bf45bce6046
 }
 
 main {

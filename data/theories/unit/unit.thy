@@ -1,5 +1,5 @@
 name: unit
-version: 1.18
+version: 1.20
 description: The unit type
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,14 +8,14 @@ show: "Data.Bool"
 show: "Data.Unit"
 
 def {
-  package: unit-def-1.11
-  checksum: f26ed294f87998199389098ac823afcc12ab0b87
+  package: unit-def-1.13
+  checksum: 5f6feb4c479325bbb29dd41bcf726dc252ee0910
 }
 
 thm {
   import: def
-  package: unit-thm-1.14
-  checksum: c01774171295282d870e064854c3f7881a88b158
+  package: unit-thm-1.16
+  checksum: 88c4527cf282b08a176d6b9d9444f91a09053c20
 }
 
 main {

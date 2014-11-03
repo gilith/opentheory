@@ -1,5 +1,5 @@
 name: list
-version: 1.95
+version: 1.97
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,37 +16,37 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-def-1.60
-  checksum: 54dc33bd918fa2997ab8afada7965e3a7467c81c
+  package: list-def-1.62
+  checksum: 7705f76224bf958085e6f50b25444a401386631d
 }
 
 thm {
   import: def
-  package: list-thm-1.52
-  checksum: 2c03a2bd40b7ed62cbd9da55ac8f96238dd164e8
+  package: list-thm-1.54
+  checksum: 6b679e8c60feaa38c7c85887716b299bd5888234
 }
 
 dest {
   import: def
   import: thm
-  package: list-dest-1.46
-  checksum: 1da4f4bf9c6666f00b972abe1b083c4d4d060603
+  package: list-dest-1.48
+  checksum: 24dcaa169f5cb1781e03cade96641ea2490243ac
 }
 
 length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.48
-  checksum: 17f637299ed8cea29b54fa4dbf99fc8122b6b343
+  package: list-length-1.50
+  checksum: 25baeab9406a9e7a1482a9f9c68be176a48253c8
 }
 
 set {
   import: def
   import: dest
   import: length
-  package: list-set-1.51
-  checksum: dace57c307b7613bce8edc198b89b90824b80c5b
+  package: list-set-1.53
+  checksum: b14faf1cd37a22a862fac056cfc76d31a935f37c
 }
 
 append {
@@ -55,8 +55,8 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.55
-  checksum: 9f6bbf5c4a0fd9993eac38cc9458c0997e5ffe6a
+  package: list-append-1.57
+  checksum: c804ed730ec9eae19e37f35a0eb7d246cd9851d4
 }
 
 map {
@@ -66,8 +66,8 @@ map {
   import: length
   import: set
   import: append
-  package: list-map-1.51
-  checksum: c8082106d4519ad96e1090a028edb6e591b0396d
+  package: list-map-1.53
+  checksum: c1e62333caf77fca43f93acc9192408444152fc0
 }
 
 filter {
@@ -76,15 +76,15 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.51
-  checksum: 1452b8c6e124dd017866bff1dbfce57fd9e0a66d
+  package: list-filter-1.53
+  checksum: e5df8b3000b5e1ac7582c2ae2cf9f0b0115358ce
 }
 
 last {
   import: def
   import: dest
-  package: list-last-1.49
-  checksum: bcb25034b0e6662645e3504090c3f66cb06e042c
+  package: list-last-1.51
+  checksum: 7f8c2eae211ac676c0210f811eb30366b8995c99
 }
 
 reverse {
@@ -93,8 +93,8 @@ reverse {
   import: set
   import: append
   import: map
-  package: list-reverse-1.46
-  checksum: 36791d115c569cb282912e8aa6c3d357639d1bd9
+  package: list-reverse-1.48
+  checksum: 42c6c6b3cb38d1882711cc89b3e7394b9b67836f
 }
 
 fold {
@@ -102,8 +102,8 @@ fold {
   import: length
   import: append
   import: reverse
-  package: list-fold-1.25
-  checksum: d76c942cfcf73d2ab3db5f79c65f68ef07541e4e
+  package: list-fold-1.27
+  checksum: 5d205c895bc58793254c588cd3ce4dcb3688355e
 }
 
 nth {
@@ -115,8 +115,8 @@ nth {
   import: append
   import: map
   import: last
-  package: list-nth-1.58
-  checksum: 5c6a400eff4bb344b49bc4e35e1fce6113bb8eec
+  package: list-nth-1.60
+  checksum: c7c9a4f8b9123cb1cb8d3f262a30d40e08b2913a
 }
 
 replicate {
@@ -127,8 +127,8 @@ replicate {
   import: append
   import: map
   import: nth
-  package: list-replicate-1.59
-  checksum: f844e7ce6759d1360d56ba6562473dc77897603e
+  package: list-replicate-1.61
+  checksum: ae3be78e5f6669d68b8d8756f15569b1e1e0489c
 }
 
 take-drop {
@@ -139,16 +139,16 @@ take-drop {
   import: append
   import: nth
   import: replicate
-  package: list-take-drop-1.59
-  checksum: 4fd78981e767dea9a5fb15d9cec21a6cfcce8a74
+  package: list-take-drop-1.61
+  checksum: 9dac544a2c4a45be708fd64506a9749ab63b2530
 }
 
 interval {
   import: length
   import: map
   import: nth
-  package: list-interval-1.58
-  checksum: ab627be8cf87f3837691a13e9f5fe4a563507a2a
+  package: list-interval-1.60
+  checksum: fc070996542cb994277a58adad645ec20770537c
 }
 
 zip {
@@ -157,8 +157,8 @@ zip {
   import: length
   import: append
   import: nth
-  package: list-zip-1.24
-  checksum: 12e6525796fa8663b603b04f166024c8c851d581
+  package: list-zip-1.26
+  checksum: dc0c419fefb26b237fb661ff1702f08663e2c819
 }
 
 nub {
@@ -166,8 +166,8 @@ nub {
   import: length
   import: reverse
   import: set
-  package: list-nub-1.54
-  checksum: 9369c0f364d133bee692cb667a082da5887a612e
+  package: list-nub-1.56
+  checksum: 58cd25730ee1d69aebd72619b91e100f00cdf56d
 }
 
 main {

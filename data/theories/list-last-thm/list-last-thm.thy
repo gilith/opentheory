@@ -1,9 +1,9 @@
 name: list-last-thm
-version: 1.38
+version: 1.40
 description: Properties of the last list function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2012-03-24
+provenance: HOL Light theory extracted on 2014-11-01
 requires: bool
 requires: list-dest
 requires: list-last-def

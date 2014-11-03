@@ -1,5 +1,5 @@
 name: list-zip
-version: 1.24
+version: 1.26
 description: The list zip function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,14 +17,14 @@ show: "Data.Pair"
 show: "Number.Natural"
 
 def {
-  package: list-zip-def-1.18
-  checksum: 52f5a4bbad584863e117f6a5ba8c0b770e5582a0
+  package: list-zip-def-1.20
+  checksum: 649839ccfcb06809c77304641e91cbf5f6ffdefe
 }
 
 thm {
   import: def
-  package: list-zip-thm-1.22
-  checksum: 51bcb0e4bcaa09fd8f4c50708f42ecdc2d29ef6a
+  package: list-zip-thm-1.24
+  checksum: 3ddb3d183f8b466e3e5ddc8b3bbd1db16254a73a
 }
 
 main {

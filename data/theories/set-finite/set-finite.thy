@@ -1,5 +1,5 @@
 name: set-finite
-version: 1.52
+version: 1.54
 description: Finite sets
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,14 +16,14 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-finite-def-1.34
-  checksum: bc90f0133f4266131e9d4e6d708c723e0e7d9a39
+  package: set-finite-def-1.36
+  checksum: ab81ab3629b48e3fab01487bff018fb65c537ee9
 }
 
 thm {
   import: def
-  package: set-finite-thm-1.58
-  checksum: abb5aa77c2bcfd3c091d2b10735f31c1d413ab10
+  package: set-finite-thm-1.60
+  checksum: 3ad1fdcca80061971223c84d872fb5c9afe37330
 }
 
 main {

@@ -1,5 +1,5 @@
 name: montgomery-hardware
-version: 1.1
+version: 1.3
 description: Hardware Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,14 +16,14 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: montgomery-hardware-def-1.2
-  checksum: 93a3cd3448017913feb8e28e6f08b3c1cc3f796f
+  package: montgomery-hardware-def-1.3
+  checksum: 65d833d288692d8f32f4cebc21e0f1250f213845
 }
 
 thm {
   import: def
-  package: montgomery-hardware-thm-1.2
-  checksum: d0e1f4e619b5ceb6951b6eb754535e5d250bcb2b
+  package: montgomery-hardware-thm-1.4
+  checksum: f7c67eb9babb672060af10a5dc1da7d13e3c64e8
 }
 
 main {

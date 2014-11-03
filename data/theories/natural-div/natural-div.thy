@@ -1,5 +1,5 @@
 name: natural-div
-version: 1.47
+version: 1.49
 description: Natural number division
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,14 +14,14 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-div-def-1.38
-  checksum: 4c3a6a9c85695f749c724a2f1a73f04adadd0a85
+  package: natural-div-def-1.40
+  checksum: f18696bccf5013ec5ab621f9dc3db481b9a950d2
 }
 
 thm {
   import: def
-  package: natural-div-thm-1.51
-  checksum: bfd5c3868bef324d83cc4baa03470c11adb9fca3
+  package: natural-div-thm-1.53
+  checksum: 0dfdb1cb42ece034df502dc53cefd48c3e9bfe07
 }
 
 main {

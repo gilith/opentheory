@@ -1,5 +1,5 @@
 name: char
-version: 1.108
+version: 1.110
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,21 +26,21 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: char-def-1.95
-  checksum: 135bae13c6d1bb8b77a78a42667a968f830a0412
+  package: char-def-1.97
+  checksum: 0acd7e7943b55293a906158425430f9d5d8bbf82
 }
 
 thm {
   import: def
-  package: char-thm-1.15
-  checksum: 063dbc6c539b0feacad1e307c66bc18cc00476e5
+  package: char-thm-1.17
+  checksum: c42ad7b2ea4a581bd21ea5559ab740922febd8fd
 }
 
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.99
-  checksum: 94163239fcc183b1a375d2340f7c164a52e0cb9b
+  package: char-utf8-1.101
+  checksum: 55a0a2bdde6a28d62a526316149ec204df28c59f
 }
 
 main {

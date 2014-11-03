@@ -1,9 +1,9 @@
 name: natural-prime-thm
-version: 1.50
+version: 1.52
 description: Properties of prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-10-22
+provenance: HOL Light theory extracted on 2014-11-01
 requires: bool
 requires: natural
 requires: natural-divides

@@ -1,9 +1,9 @@
 name: pair-thm
-version: 1.26
+version: 1.28
 description: Properties of product types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-10-22
+provenance: HOL Light theory extracted on 2014-11-01
 requires: bool
 requires: pair-def
 show: "Data.Bool"

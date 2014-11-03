@@ -1,5 +1,5 @@
 name: natural-exp-log
-version: 1.8
+version: 1.10
 description: Natural number logarithm
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,14 +17,14 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-exp-log-def-1.11
-  checksum: da02d8b50b4d09b5876ab30b278b2f1da143999c
+  package: natural-exp-log-def-1.13
+  checksum: 4b0771b751d95b14328530b53c43044a6b51aba0
 }
 
 thm {
   import: def
-  package: natural-exp-log-thm-1.10
-  checksum: 33ecd80e4aaef33deeba4a945f2a35584786720d
+  package: natural-exp-log-thm-1.12
+  checksum: 9674a0608e9c3dee442680330f83d3db4a8e8aab
 }
 
 main {

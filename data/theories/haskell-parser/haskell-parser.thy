@@ -1,5 +1,5 @@
 name: haskell-parser
-version: 1.125
+version: 1.127
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,20 +21,20 @@ show: "Parser"
 show: "Probability.Random"
 
 def {
-  package: haskell-parser-def-1.51
-  checksum: 9aa2b6fb6f2fb5f6cae19dd9631090f738125922
+  package: haskell-parser-def-1.53
+  checksum: cc84276a6f720708a1837d3f8a2a5cdb280bc120
 }
 
 src {
   import: def
-  package: haskell-parser-src-1.93
-  checksum: e2f6b5fff5d8f7291473ae9bfc6ce2f35651d26b
+  package: haskell-parser-src-1.95
+  checksum: 8d0cf3a0faddf325122ae20a6fd6fb901c3d2613
 }
 
 test {
   import: def
-  package: haskell-parser-test-1.55
-  checksum: acdeef97454ae99a288e02f9800b84522239cd34
+  package: haskell-parser-test-1.57
+  checksum: 551a1755ae31f10d06e326325144ba821662dce0
 }
 
 main {

@@ -1,5 +1,5 @@
 name: set-size
-version: 1.54
+version: 1.56
 description: Finite set cardinality
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,14 +16,14 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-size-def-1.32
-  checksum: c1410ac51e7a0a94777268decd6a7fd65bb0662e
+  package: set-size-def-1.33
+  checksum: 2db12e8f076e243552f308ccdb3fe545d2d876c6
 }
 
 thm {
   import: def
-  package: set-size-thm-1.60
-  checksum: 5250642b52a23c2688c897d85b1ea5d7bc18f390
+  package: set-size-thm-1.62
+  checksum: 991eeb63589e6778f7794277e2205194afe11ae8
 }
 
 main {

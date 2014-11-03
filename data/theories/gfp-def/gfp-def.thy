@@ -1,9 +1,9 @@
 name: gfp-def
-version: 1.62
+version: 1.64
 description: Definition of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-10-22
+provenance: HOL Light theory extracted on 2014-11-01
 requires: bool
 requires: gfp-witness
 requires: natural
@@ -34,8 +34,8 @@ modular {
   interpret: const "Number.Modular.fromRandom" as "Number.GF(p).fromRandom"
   interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
   interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
-  package: modular-1.80
-  checksum: 1d27090fafec1f052e4617967cc3cf6c927875aa
+  package: modular-1.82
+  checksum: 837cd01c6b724308f783f59f202036eaa75e5e84
 }
 
 main {

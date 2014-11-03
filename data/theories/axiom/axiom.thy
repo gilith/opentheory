@@ -1,5 +1,5 @@
 name: axiom
-version: 1.14
+version: 1.16
 description: Standard axioms
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -9,18 +9,18 @@ show: "Data.Bool"
 show: "Function"
 
 extensionality {
-  package: axiom-extensionality-1.8
-  checksum: a03fa11c985e29adbd28e95405b3fe8c47c0bad5
+  package: axiom-extensionality-1.9
+  checksum: 6e9a7c8e10c21e54d5f3285cb11e65de99c9542d
 }
 
 choice {
-  package: axiom-choice-1.7
-  checksum: 8b3cfcf9cc420a78142dae227f28d1497cc8e76d
+  package: axiom-choice-1.8
+  checksum: 2178247da99e65a9a2e0a1093adbff512d1539d9
 }
 
 infinity {
-  package: axiom-infinity-1.10
-  checksum: 3e38e591a4adc6637b654bedc8fc2b81b1f0dacc
+  package: axiom-infinity-1.12
+  checksum: 53e364be097eb2d2284001aa97935dcee31a969c
 }
 
 main {
