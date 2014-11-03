@@ -28,6 +28,7 @@ datatype command =
   | DeductAntisym
   | Def
   | DefineConst
+  | DefineConstList
   | DefineTypeOp
   | DefineTypeOpLegacy
   | EqMp

@@ -408,6 +408,45 @@ fun execute cmd state =
              inference = inference}
         end
 
+      (* The defineConstList principle of definition *)
+
+      | Command.DefineConstList =>
+        let
+          val (stack,objL,objT) = ObjectStack.pop2 stack
+
+          val nvs = Object.destList objL
+
+          val nvs =
+              let
+                fun f obNV =
+                    let
+                      val (obN,obV) = ObjectData.destPair obNV
+
+                      val n = ObjectData.destName obN
+                      and v = ObjectData.destVar obV
+
+                      val n = Interpretation.interpretConst interpretation n
+                    in
+                      (n,v)
+                    end
+              in
+                List.map f nvs
+              end
+
+          val (obj0,obj1) =
+              Object.mkDefineConstList {savable = savable} nvs objT
+
+          val stack = ObjectStack.push2 stack obj0 obj1
+        in
+          State
+            {parameters = parameters,
+             version = version,
+             stack = stack,
+             dict = dict,
+             export = export,
+             inference = inference}
+        end
+
       (* The defineTypeOp principle of definition *)
 
       | Command.DefineTypeOp =>

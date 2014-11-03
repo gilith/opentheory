@@ -25,6 +25,7 @@ and constTermCommandString = "constTerm"
 and deductAntisymCommandString = "deductAntisym"
 and defCommandString = "def"
 and defineConstCommandString = "defineConst"
+and defineConstListCommandString = "defineConstList"
 and defineTypeOpCommandString = "defineTypeOp"
 and eqMpCommandString = "eqMp"
 and hdTlCommandString = "hdTl"
@@ -70,6 +71,7 @@ datatype command =
   | DeductAntisym
   | Def
   | DefineConst
+  | DefineConstList
   | DefineTypeOp
   | DefineTypeOpLegacy
   | EqMp
@@ -101,6 +103,7 @@ fun isInference cmd =
     | BetaConv => true
     | DeductAntisym => true
     | DefineConst => true
+    | DefineConstList => true
     | DefineTypeOp => true
     | DefineTypeOpLegacy => true
     | EqMp => true
@@ -162,6 +165,9 @@ fun compare cmd1_cmd2 =
     | (DefineConst,DefineConst) => EQUAL
     | (DefineConst,_) => LESS
     | (_,DefineConst) => GREATER
+    | (DefineConstList,DefineConstList) => EQUAL
+    | (DefineConstList,_) => LESS
+    | (_,DefineConstList) => GREATER
     | (DefineTypeOp,DefineTypeOp) => EQUAL
     | (DefineTypeOp,_) => LESS
     | (_,DefineTypeOp) => GREATER
@@ -241,6 +247,7 @@ and ppConstTermCommand = Print.ppString constTermCommandString
 and ppDeductAntisymCommand = Print.ppString deductAntisymCommandString
 and ppDefCommand = Print.ppString defCommandString
 and ppDefineConstCommand = Print.ppString defineConstCommandString
+and ppDefineConstListCommand = Print.ppString defineConstListCommandString
 and ppDefineTypeOpCommand = Print.ppString defineTypeOpCommandString
 and ppEqMpCommand = Print.ppString eqMpCommandString
 and ppHdTlCommand = Print.ppString hdTlCommandString
@@ -289,6 +296,7 @@ fun pp cmd =
     | DeductAntisym => ppDeductAntisymCommand
     | Def => ppDefCommand
     | DefineConst => ppDefineConstCommand
+    | DefineConstList => ppDefineConstListCommand
     | DefineTypeOp => ppDefineTypeOpCommand
     | DefineTypeOpLegacy => ppDefineTypeOpCommand
     | EqMp => ppEqMpCommand
@@ -368,6 +376,7 @@ local
   and deductAntisymCommandParser = exactString deductAntisymCommandString
   and defCommandParser = exactString defCommandString
   and defineConstCommandParser = exactString defineConstCommandString
+  and defineConstListCommandParser = exactString defineConstListCommandString
   and defineTypeOpCommandParser = exactString defineTypeOpCommandString
   and eqMpCommandParser = exactString eqMpCommandString
   and hdTlCommandParser = exactString hdTlCommandString
@@ -393,7 +402,9 @@ in
       (* Special command parsers *)
       numParser >> Num ||
       nameParser >> Name ||
-      (* Regular command parsers are sorted by length to avoid prefix matching *)
+      (* Regular command parsers sorted by length to avoid prefix matching *)
+      (* Commands of length 15 *)
+      defineConstListCommandParser >> K DefineConstList ||
       (* Commands of length 13 *)
       deductAntisymCommandParser >> K DeductAntisym ||
       (* Commands of length 12 *)

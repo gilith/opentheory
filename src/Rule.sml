@@ -153,7 +153,77 @@ fun findAlpha set seq =
 (* ------------------------------------------------------------------------- *)
 
 fun defineConstList nvs th =
-    raise Bug "Rule.defineConstList: not implemented";
+    let
+      fun add (tm,vm) =
+          let
+            val (v,tm) = Term.destEq tm
+
+            val v = Term.destVar v
+
+            val () =
+                if not (VarMap.inDomain v vm) then ()
+                else raise Error "repeated vars in assumptions"
+          in
+            VarMap.insert vm (v,tm)
+          end
+
+      fun del (n,v) vm =
+          let
+            val tm =
+                case VarMap.peek vm v of
+                  SOME tm => tm
+                | NONE => raise Error "given var not in assumptions"
+
+            val vm = VarMap.delete vm v
+
+            val (c,def) = Thm.defineConst n tm
+
+            val vc = (v, Term.mkConst (c, Var.typeOf v))
+          in
+            ((c,(vc,def)),vm)
+          end
+
+      val vm = TermAlphaSet.foldl add (VarMap.new ()) (Thm.hyp th)
+
+      val () =
+          let
+            val vs = Term.freeVars (Thm.concl th)
+          in
+            if VarSet.subset vs (VarSet.domain vm) then ()
+            else raise Error "additional free vars in definition theorem"
+          end
+
+      val (cs,sub,defs,vm) =
+          let
+            val (cs_vcs_defs,vm) = maps del nvs vm
+
+            val (cs,vcs_defs) = unzip cs_vcs_defs
+
+            val (vcs,defs) = unzip vcs_defs
+
+            val sub = TermSubst.mkMono (TermSubst.fromListMap vcs)
+          in
+            (cs,sub,defs,vm)
+          end
+
+      val () =
+          if VarMap.null vm then ()
+          else raise Error "additional assumptions in definition theorem"
+
+      val th = Thm.subst sub th
+
+      val th = List.foldl (uncurry proveHyp) th defs
+    in
+      (cs,th)
+    end
+(*OpenTheoryDebug
+    handle Error err =>
+      let
+        val err = "Rule.defineConstList: " ^ err
+      in
+        raise Error err
+      end;
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* The legacy (a.k.a. HOL Light) version of defineTypeOp.                    *)

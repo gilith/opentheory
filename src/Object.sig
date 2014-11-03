@@ -172,6 +172,11 @@ val mkDeductAntisym : {savable : bool} -> object -> object -> object
 
 val mkDefineConst : {savable : bool} -> Name.name -> object -> object * object
 
+val mkDefineConstList :
+    {savable : bool} ->
+    (Name.name * Var.var) list -> object ->
+    object * object
+
 val mkDefineTypeOp :
     {savable : bool} ->
     Name.name -> Name.name -> Name.name -> object -> object ->

@@ -478,6 +478,39 @@ fun mkDefineConst {savable} n objT =
     handle Error err => raise Error ("in Object.mkDefineConst:\n" ^ err);
 *)
 
+fun mkDefineConstList {savable} nvs objT =
+    let
+      val (d0,d1) =
+          let
+            val th = destThm objT
+
+            val (cs,th) = Rule.defineConstList nvs th
+          in
+            (ObjectData.List (List.map ObjectData.Const cs), ObjectData.Thm th)
+          end
+    in
+      if not savable then (mkDefault d0, mkDefault d1)
+      else
+        let
+          val cmd = Command.DefineConstList
+          and args = [mkName n, objT]
+          and gen = [d0,d1]
+
+          val defs = []
+
+          val obj0 = mkSpecial d0 cmd args defs gen 0
+
+          val defs = obj0 :: defs
+
+          val obj1 = mkSpecial d1 cmd args defs gen 1
+        in
+          (obj0,obj1)
+        end
+    end
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Object.mkDefineConst:\n" ^ err);
+*)
+
 fun mkDefineTypeOp {savable} n a r objV objT =
     let
       val (d0,d1,d2,d3,d4) =
