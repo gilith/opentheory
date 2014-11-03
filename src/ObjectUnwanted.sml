@@ -195,18 +195,30 @@ fun insertRewrIdx elim tm_obj =
 local
   fun replaceAxiomId obj =
       let
-        val (_,objC) = Object.unMkAxiom obj
+        val (_,objC) =
+            case Object.unMkAxiom obj of
+              SOME x => x
+            | NONE => raise Error "ObjectUnwanted.replaceAxiomId.unMkAxiom"
 
-        val (_,objI) = Object.unMkAppTerm objC
+        val (_,objI) =
+            case Object.unMkAppTerm objC of
+              SOME x => x
+            | NONE => raise Error "ObjectUnwanted.replaceAxiomId.unMkAppTerm"
 
-        val (objV,_) = Object.unMkAbsTerm objI
+        val (objV,_) =
+            case Object.unMkAbsTerm objI of
+              SOME x => x
+            | NONE => raise Error "ObjectUnwanted.replaceAxiomId.unMkAbsTerm"
 
-        val (_,objT) = Object.unMkVar objV
+        val (_,objT) =
+            case Object.unMkVar objV of
+              SOME x => x
+            | NONE => raise Error "ObjectUnwanted.replaceAxiomId.unMkVar"
 
         val obj' = mkIdDefObject objT
       in
         if Thm.equal (Object.destThm obj') (Object.destThm obj) then obj'
-        else raise Error "ObjectUnwanted.replaceAxiomId"
+        else raise Error "ObjectUnwanted.replaceAxiomId: bad result"
       end;
 
   fun cleanRemoveIdx obj =

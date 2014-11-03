@@ -201,7 +201,7 @@ fun destSubst obj = ObjectData.destSubst (data obj);
 fun isSubst obj = ObjectData.isSubst (data obj);
 
 (* ------------------------------------------------------------------------- *)
-(* Constructing objects from commands.                                       *)
+(* Constructing objects.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 fun mkProv' d prov =
@@ -234,6 +234,52 @@ fun mkSimple d cmd args =
     in
       mkSpecial d cmd args defs gen res
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Reconstructing the command and arguments used to construct an object.     *)
+(* ------------------------------------------------------------------------- *)
+
+fun unMkCommand obj =
+    case provenance obj of
+      Default =>
+      let
+        val (cmd,args) = ObjectData.command (data obj)
+
+        val args = List.map mkDefault args
+      in
+        (cmd,args)
+      end
+    | Special {command,arguments,...} =>
+      (command,arguments);
+
+fun unMkAbsTerm obj =
+    case unMkCommand obj of
+      (Command.AbsTerm,[objV,objB]) => SOME (objV,objB)
+    | _ => NONE;
+
+fun unMkAppTerm obj =
+    case unMkCommand obj of
+      (Command.AppTerm,[objF,objA]) => SOME (objF,objA)
+    | _ => NONE;
+
+fun unMkAxiom obj =
+    case unMkCommand obj of
+      (Command.Axiom,[objH,objC]) => SOME (objH,objC)
+    | _ => NONE;
+
+fun unMkCons obj =
+    case unMkCommand obj of
+      (Command.Cons,[objH,objT]) => SOME (objH,objT)
+    | _ => NONE;
+
+fun unMkVar obj =
+    case unMkCommand obj of
+      (Command.Var,[objN,objT]) => SOME (objN,objT)
+    | _ => NONE;
+
+(* ------------------------------------------------------------------------- *)
+(* Constructing objects from commands.                                       *)
+(* ------------------------------------------------------------------------- *)
 
 (* Special commands *)
 
@@ -478,22 +524,33 @@ fun mkDefineConst {savable} n objT =
     handle Error err => raise Error ("in Object.mkDefineConst:\n" ^ err);
 *)
 
-fun mkDefineConstList {savable} nvs objT =
+fun mkDefineConstList {savable} objL objT =
     let
       val (d0,d1) =
           let
-            val th = destThm objT
+            fun destNV dNV =
+                let
+                  val (dN,dV) = ObjectData.destPair dNV
+                in
+                  (ObjectData.destName dN, ObjectData.destVar dV)
+                end
+
+            val nvs = map destNV (destList objL)
+            and th = destThm objT
 
             val (cs,th) = Rule.defineConstList nvs th
+
+            val d0 = ObjectData.List (List.map ObjectData.Const cs)
+            and d1 = ObjectData.Thm th
           in
-            (ObjectData.List (List.map ObjectData.Const cs), ObjectData.Thm th)
+            (d0,d1)
           end
     in
       if not savable then (mkDefault d0, mkDefault d1)
       else
         let
           val cmd = Command.DefineConstList
-          and args = [mkName n, objT]
+          and args = [objL,objT]
           and gen = [d0,d1]
 
           val defs = []
@@ -653,35 +710,33 @@ fun mkEqMp {savable} objA objB =
 *)
 
 fun mkHdTl {savable} objL =
-    let
-      val (d0,d1) =
-          case destList objL of
-            [] => raise Error "nil list"
-          | h :: t => (h, ObjectData.List t)
-    in
-      if not savable then
-        let
-          val obj0 = mkDefault d0
-          and obj1 = mkDefault d1
-        in
-          (obj0,obj1)
-        end
-      else
-        let
-          val cmd = Command.HdTl
-          and args = [objL]
-          and gen = [d0,d1]
-
-          val defs = []
-
-          val obj0 = mkSpecial d0 cmd args defs gen 0
-          and obj1 = mkSpecial d1 cmd args defs gen 1
-        in
-          (obj0,obj1)
-        end
-    end
+    case unMkCons objL of
+      SOME objH_objT => objH_objT
+    | NONE =>
+      let
 (*OpenTheoryDebug
-    handle Error err => raise Error ("in Object.mkHdTl:\n" ^ err);
+        val () =
+            if savable then ()
+            else raise Bug "Object.mkHdTl: unsavable but not a cons"
+*)
+        val (d0,d1) =
+            case destList objL of
+              [] => raise Error "nil list"
+            | h :: t => (h, ObjectData.List t)
+
+        val cmd = Command.HdTl
+        and args = [objL]
+        and gen = [d0,d1]
+
+        val defs = []
+
+        val obj0 = mkSpecial d0 cmd args defs gen 0
+        and obj1 = mkSpecial d1 cmd args defs gen 1
+      in
+        (obj0,obj1)
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("in Object.mkHdTl:\n" ^ err);
 *)
 
 val mkNil = mkDefault (ObjectData.mkNil);
@@ -902,6 +957,12 @@ fun mkCommand sav cmd args =
        in
          [obj0,obj1]
        end
+     | (Command.DefineConstList,[objL,objT]) =>
+       let
+         val (obj0,obj1) = mkDefineConstList sav objL objT
+       in
+         [obj0,obj1]
+       end
      | (Command.DefineTypeOp,[objN,objA,objR,objV,objT]) =>
        let
          val n = destName objN
@@ -946,48 +1007,6 @@ fun mkList sav objs =
     case objs of
       [] => mkNil
     | obj :: objs => mkCons sav obj (mkList sav objs);
-
-(* ------------------------------------------------------------------------- *)
-(* Reconstructing the command and arguments used to make an object.          *)
-(* ------------------------------------------------------------------------- *)
-
-fun unMkCommand obj =
-    case provenance obj of
-      Default =>
-      let
-        val (cmd,args) = ObjectData.command (data obj)
-
-        val args = List.map mkDefault args
-      in
-        (cmd,args)
-      end
-    | Special {command,arguments,...} =>
-      (command,arguments);
-
-fun unMkAbsTerm obj =
-    case unMkCommand obj of
-      (Command.AbsTerm,[objV,objB]) => (objV,objB)
-    | _ => raise Error "Object.unMkAbsTerm";
-
-fun unMkAppTerm obj =
-    case unMkCommand obj of
-      (Command.AppTerm,[objF,objA]) => (objF,objA)
-    | _ => raise Error "Object.unMkAppTerm";
-
-fun unMkAxiom obj =
-    case unMkCommand obj of
-      (Command.Axiom,[objH,objC]) => (objH,objC)
-    | _ => raise Error "Object.unMkAxiom";
-
-fun unMkCons obj =
-    case unMkCommand obj of
-      (Command.Cons,[objH,objT]) => (objH,objT)
-    | _ => raise Error "Object.unMkCons";
-
-fun unMkVar obj =
-    case unMkCommand obj of
-      (Command.Var,[objN,objT]) => (objN,objT)
-    | _ => raise Error "Object.unMkVar";
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)

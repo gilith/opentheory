@@ -159,6 +159,11 @@ in
                 [x] => x
               | _ => raise Bug "ObjectStore.build: not a simple object"
 
+(*OpenTheoryDebug
+          val () =
+              if ObjectData.equal (Object.data obj) d then ()
+              else raise Bug "ObjectStore.build: bad result data"
+*)
           val store = add store obj
         in
           (obj,store)

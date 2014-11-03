@@ -132,12 +132,15 @@ fun convert5 cmd args res cvt =
       end
     | (Command.HdTl,[objL]) =>
       let
-        val (objH,objT) = Object.unMkCons objL
+        val (objH,objT) =
+            case Object.unMkCons objL of
+              SOME x => x
+            | NONE => raise Bug "ObjectVersion.convert5.HdTl: not a cons"
       in
         case res of
           0 => (objH,cvt)
         | 1 => (objT,cvt)
-        | _ => raise Bug "ObjectVersion.convert5.HdTl"
+        | _ => raise Bug "ObjectVersion.convert5.HdTl: bad index"
       end
     | (Command.ProveHyp,[objA,objB]) =>
       let

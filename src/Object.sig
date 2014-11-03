@@ -137,6 +137,20 @@ val destSubst : object -> TypeSubst.substMap * TermSubst.substMap
 val isSubst : object -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Reconstructing the command and arguments used to make an object.          *)
+(* ------------------------------------------------------------------------- *)
+
+val unMkAbsTerm : object -> (object * object) option
+
+val unMkAppTerm : object -> (object * object) option
+
+val unMkAxiom : object -> (object * object) option
+
+val unMkCons : object -> (object * object) option
+
+val unMkVar : object -> (object * object) option
+
+(* ------------------------------------------------------------------------- *)
 (* Constructing objects from commands.                                       *)
 (* ------------------------------------------------------------------------- *)
 
@@ -172,10 +186,7 @@ val mkDeductAntisym : {savable : bool} -> object -> object -> object
 
 val mkDefineConst : {savable : bool} -> Name.name -> object -> object * object
 
-val mkDefineConstList :
-    {savable : bool} ->
-    (Name.name * Var.var) list -> object ->
-    object * object
+val mkDefineConstList : {savable : bool} -> object -> object -> object * object
 
 val mkDefineTypeOp :
     {savable : bool} ->
@@ -221,20 +232,6 @@ val mkCommand :
 (* Derived commands *)
 
 val mkList : {savable : bool} -> object list -> object
-
-(* ------------------------------------------------------------------------- *)
-(* Reconstructing the command and arguments used to make an object.          *)
-(* ------------------------------------------------------------------------- *)
-
-val unMkAbsTerm : object -> object * object
-
-val unMkAppTerm : object -> object * object
-
-val unMkAxiom : object -> object * object
-
-val unMkCons : object -> object * object
-
-val unMkVar : object -> object * object
 
 (* ------------------------------------------------------------------------- *)
 (* Folding over objects.                                                     *)
