@@ -124,6 +124,8 @@ fun destList obj = ObjectData.destList (data obj);
 
 fun isList obj = ObjectData.isList (data obj);
 
+fun isNil obj = ObjectData.isNil (data obj);
+
 (* Num objects *)
 
 fun destNum obj = ObjectData.destNum (data obj);
@@ -524,50 +526,6 @@ fun mkDefineConst {savable} n objT =
     handle Error err => raise Error ("in Object.mkDefineConst:\n" ^ err);
 *)
 
-fun mkDefineConstList {savable} objL objT =
-    let
-      val (d0,d1) =
-          let
-            fun destNV dNV =
-                let
-                  val (dN,dV) = ObjectData.destPair dNV
-                in
-                  (ObjectData.destName dN, ObjectData.destVar dV)
-                end
-
-            val nvs = map destNV (destList objL)
-            and th = destThm objT
-
-            val (cs,th) = Rule.defineConstList nvs th
-
-            val d0 = ObjectData.List (List.map ObjectData.Const cs)
-            and d1 = ObjectData.Thm th
-          in
-            (d0,d1)
-          end
-    in
-      if not savable then (mkDefault d0, mkDefault d1)
-      else
-        let
-          val cmd = Command.DefineConstList
-          and args = [objL,objT]
-          and gen = [d0,d1]
-
-          val defs = []
-
-          val obj0 = mkSpecial d0 cmd args defs gen 0
-
-          val defs = obj0 :: defs
-
-          val obj1 = mkSpecial d1 cmd args defs gen 1
-        in
-          (obj0,obj1)
-        end
-    end
-(*OpenTheoryDebug
-    handle Error err => raise Error ("in Object.mkDefineConst:\n" ^ err);
-*)
-
 fun mkDefineTypeOp {savable} n a r objV objT =
     let
       val (d0,d1,d2,d3,d4) =
@@ -926,6 +884,61 @@ fun mkVarType objN =
 (*OpenTheoryDebug
     handle Error err => raise Error ("in Object.mkVarType:\n" ^ err);
 *)
+
+local
+  fun appendDefs objL defs =
+      if isNil objL then defs
+      else
+        let
+          val (objH,objT) = mkHdTl {savable = true} objL
+        in
+          objH :: appendDefs objT defs
+        end
+in
+  fun mkDefineConstList {savable} objL objT =
+      let
+        val (d0,d1) =
+            let
+              fun destNV dNV =
+                  let
+                    val (dN,dV) = ObjectData.destPair dNV
+                  in
+                    (ObjectData.destName dN, ObjectData.destVar dV)
+                  end
+
+              val nvs = map destNV (destList objL)
+              and th = destThm objT
+
+              val (cs,th) = Rule.defineConstList nvs th
+
+              val d0 = ObjectData.List (List.map ObjectData.Const cs)
+              and d1 = ObjectData.Thm th
+            in
+              (d0,d1)
+            end
+      in
+        if not savable then (mkDefault d0, mkDefault d1)
+        else
+          let
+            val cmd = Command.DefineConstList
+            and args = [objL,objT]
+            and gen = [d0,d1]
+
+            val defs = []
+
+            val obj0 = mkSpecial d0 cmd args defs gen 0
+
+            val defs = appendDefs obj0 defs
+
+            val obj1 = mkSpecial d1 cmd args defs gen 1
+          in
+            (obj0,obj1)
+          end
+      end
+(*OpenTheoryDebug
+      handle Error err => raise Error ("in Object.mkDefineConst:\n" ^ err);
+*)
+end;
 
 (* General commands *)
 

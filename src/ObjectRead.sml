@@ -412,29 +412,33 @@ fun execute cmd state =
 
       | Command.DefineConstList =>
         let
+          fun interpret objL =
+              if Object.isNil objL then objL
+              else
+                let
+                  val (objNV,objL) = Object.mkHdTl {savable = savable} objL
+
+                  val (objN,objV) = Object.mkHdTl {savable = savable} objNV
+
+                  val n = Object.destName objN
+
+                  val n = Interpretation.interpretConst interpretation n
+
+                  val objN = Object.mkName n
+
+                  val objNV = Object.mkCons {savable = savable} objN objV
+
+                  val objL = interpret objL
+                in
+                  Object.mkCons {savable = savable} objNV objL
+                end
+
           val (stack,objL,objT) = ObjectStack.pop2 stack
 
-          val nvs = Object.destList objL
-
-          val nvs =
-              let
-                fun f obNV =
-                    let
-                      val (obN,obV) = ObjectData.destPair obNV
-
-                      val n = ObjectData.destName obN
-                      and v = ObjectData.destVar obV
-
-                      val n = Interpretation.interpretConst interpretation n
-                    in
-                      (n,v)
-                    end
-              in
-                List.map f nvs
-              end
+          val objL = interpret objL
 
           val (obj0,obj1) =
-              Object.mkDefineConstList {savable = savable} nvs objT
+              Object.mkDefineConstList {savable = savable} objL objT
 
           val stack = ObjectStack.push2 stack obj0 obj1
         in

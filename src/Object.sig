@@ -60,6 +60,8 @@ val destList : object -> ObjectData.data list
 
 val isList : object -> bool
 
+val isNil : object -> bool
+
 (* Num objects *)
 
 val destNum : object -> int
