@@ -1051,15 +1051,23 @@ fun foldl {preDescent,postDescent} =
             if not descend then acc
             else
               let
-                val acc =
-                    case provenance obj of
-                      Default => acc
-                    | Special {arguments = args, ...} =>
-                      List.foldl foldlObj acc args
+                val acc = foldlProv (provenance obj) acc
               in
                 postDescent obj acc
               end
           end
+
+      and foldlProv prov acc =
+          case prov of
+            Default => acc
+          | Special {arguments = args, definitions = defs, ...} =>
+            let
+              val acc = List.foldl foldlObj acc args
+
+              val acc = List.foldl foldlObj acc defs
+            in
+              acc
+            end
     in
       fn acc => fn obj => foldlObj (obj,acc)
     end;

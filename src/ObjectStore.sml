@@ -100,14 +100,7 @@ local
         NONE => store
       | SOME store => addObj obj store;
 
-  fun postDescent obj store =
-      let
-        val store = List.foldl addUnseenObj store (Object.definitions obj)
-
-        val store = addObj obj store
-      in
-        store
-      end;
+  fun postDescent obj store = addObj obj store;
 in
   val add =
       Object.foldl

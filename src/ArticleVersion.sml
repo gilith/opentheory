@@ -34,7 +34,8 @@ val latest = 6;
 
 fun supported version cmd =
     case cmd of
-      Command.DefineTypeOp => version >= 6
+      Command.DefineConstList => version >= 6
+    | Command.DefineTypeOp => version >= 6
     | Command.DefineTypeOpLegacy => version = 5
     | Command.HdTl => version >= 6
     | Command.Pragma => version >= 6

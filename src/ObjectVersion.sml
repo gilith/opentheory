@@ -140,8 +140,13 @@ fun convert5 cmd args res cvt =
                 val objTySub = Object.mkNil
 
                 val objTmSub =
-                    Object.mkCons savable objV
-                      (Object.mkCons savable objCT Object.mkNil)
+                    let
+                      val objVCT =
+                          Object.mkCons savable objV
+                            (Object.mkCons savable objCT Object.mkNil)
+                    in
+                      Object.mkCons savable objVCT Object.mkNil
+                    end
 
                 val objSub =
                     Object.mkCons savable objTySub
