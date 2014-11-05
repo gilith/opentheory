@@ -1,5 +1,5 @@
 name: parser-all
-version: 1.91
+version: 1.92
 description: The whole stream parser
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,8 +21,8 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-all-def-1.89
-  checksum: 7741b46661705d5a321da96b9279e8afcb642763
+  package: parser-all-def-1.90
+  checksum: 3658f9e60de4a861dbcba7a2f59bee1960633787
 }
 
 thm {

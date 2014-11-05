@@ -1,5 +1,5 @@
 name: list-map
-version: 1.53
+version: 1.54
 description: The list map function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,8 +19,8 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-map-def-1.47
-  checksum: 3b84099d1068797a5232896a4a318ae97a4a90d6
+  package: list-map-def-1.48
+  checksum: d77d7b0a2a18aef6471919aa059b4727c2ea41db
 }
 
 thm {

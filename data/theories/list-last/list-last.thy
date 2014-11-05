@@ -1,5 +1,5 @@
 name: list-last
-version: 1.51
+version: 1.52
 description: The last list function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,8 +10,8 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-last-def-1.46
-  checksum: 114e851917e379dcc9df012d7e8140ef3ff0f62d
+  package: list-last-def-1.47
+  checksum: 063834272449def434a9b7e136fcd1ca34b70eb4
 }
 
 thm {

@@ -1,5 +1,5 @@
 name: natural-gcd
-version: 1.50
+version: 1.51
 description: Natural number greatest common divisor
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,8 +10,8 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-gcd-def-1.40
-  checksum: 5dfa439d94de76b8c69f68297d710a037b1e129a
+  package: natural-gcd-def-1.41
+  checksum: 3f5fc2ffabaf8ac84d6100fb288641ccfb88e5a9
 }
 
 thm {

@@ -1,5 +1,5 @@
 name: set-fold
-version: 1.45
+version: 1.46
 description: A fold operation on finite sets
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -12,8 +12,8 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-fold-def-1.52
-  checksum: 21e9e460b1c78e6db7cb01ef6e9c8e5bd3c5f68e
+  package: set-fold-def-1.53
+  checksum: 9fe7a20d5ee3c524740cac61f2deb1f380403d9a
 }
 
 thm {

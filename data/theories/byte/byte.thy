@@ -1,5 +1,5 @@
 name: byte
-version: 1.105
+version: 1.106
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,8 +19,8 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: byte-def-1.78
-  checksum: a8e9a267d0bf7cf1fd21bbacb4267f078f7c8498
+  package: byte-def-1.79
+  checksum: 5fb3169acb9d0818667082f205eec182226f87c7
 }
 
 bits {

@@ -1,9 +1,9 @@
 name: natural-div-def
-version: 1.40
+version: 1.41
 description: Definition of natural number division
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2014-11-04
 requires: bool
 requires: natural-add
 requires: natural-mult

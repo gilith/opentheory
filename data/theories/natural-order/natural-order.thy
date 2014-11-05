@@ -1,5 +1,5 @@
 name: natural-order
-version: 1.49
+version: 1.50
 description: Natural number orderings
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,8 +10,8 @@ show: "Data.Bool"
 show: "Number.Natural"
 
 def {
-  package: natural-order-def-1.31
-  checksum: 9122370469ef878e758aead736bdd76d7ddd5e6a
+  package: natural-order-def-1.32
+  checksum: 4ee129a48c7a7b59da6b370cb89d033f4ade04f9
 }
 
 thm {

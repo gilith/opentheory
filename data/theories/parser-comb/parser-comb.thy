@@ -1,5 +1,5 @@
 name: parser-comb
-version: 1.87
+version: 1.88
 description: Stream parser combinators
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,8 +15,8 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-comb-def-1.82
-  checksum: f2cac01e005a067185502f5cbaea69c7c62f25bf
+  package: parser-comb-def-1.83
+  checksum: fcd38ea1bffc7be4eb681d09fa66b22ef4a97266
 }
 
 thm {

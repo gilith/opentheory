@@ -1,5 +1,5 @@
 name: monoid-mult-add
-version: 1.11
+version: 1.12
 description: Monoid multiplication by repeated addition
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,8 +16,8 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: monoid-mult-add-def-1.7
-  checksum: 86da989f3c67caa8f72a14281a67becd92011d53
+  package: monoid-mult-add-def-1.8
+  checksum: 28ae32b6949c8c5e109501f0cfd9b98ce171b31a
 }
 
 thm {

@@ -1,5 +1,5 @@
 name: stream
-version: 1.37
+version: 1.38
 description: Stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -18,8 +18,8 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: stream-def-1.33
-  checksum: 43289b6f1da7f334e42ecee31bce1daac5a7dbf4
+  package: stream-def-1.34
+  checksum: d377adcba0edfa929947b0219c307834dc75128c
 }
 
 thm {

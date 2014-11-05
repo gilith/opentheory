@@ -1,5 +1,5 @@
 name: set
-version: 1.68
+version: 1.69
 description: Set types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -34,8 +34,8 @@ finite {
 fold {
   import: thm
   import: finite
-  package: set-fold-1.45
-  checksum: 93e9e924a08dbb64d34ca43a207a9c02c39d0a36
+  package: set-fold-1.46
+  checksum: 24c4f848d83eec4cebfaa91096efe5bdb3015b6e
 }
 
 size {

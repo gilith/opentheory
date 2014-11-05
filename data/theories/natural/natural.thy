@@ -1,5 +1,5 @@
 name: natural
-version: 1.99
+version: 1.100
 description: The natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -28,8 +28,8 @@ thm {
 
 dest {
   import: thm
-  package: natural-dest-1.17
-  checksum: 68253235212a4d211fb2bbb0ddcf4d6cece86e00
+  package: natural-dest-1.18
+  checksum: b2e09315a88f198b20aa98e636c5828d3aeec233
 }
 
 numeral {
@@ -41,8 +41,8 @@ numeral {
 order {
   import: def
   import: thm
-  package: natural-order-1.49
-  checksum: e79662bd41ff1d43761c6f7819d5b0af0208d081
+  package: natural-order-1.50
+  checksum: bfdc3e3c0b5a5a44ba49f38d7cade908e7bd0fba
 }
 
 add {
@@ -51,8 +51,8 @@ add {
   import: dest
   import: numeral
   import: order
-  package: natural-add-1.62
-  checksum: bd223f65bcddfbfc995ceed7e07f6ae63f505438
+  package: natural-add-1.63
+  checksum: 736e27b82c3af2c8c7624a77fa9f4e900a05abda
 }
 
 mult {
@@ -61,8 +61,8 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.59
-  checksum: dead9de8fb52831cc851563d537a14bfa92f2108
+  package: natural-mult-1.60
+  checksum: ceea5c6888044c22c464a8eb2126506892cbb1b8
 }
 
 div {
@@ -72,8 +72,8 @@ div {
   import: order
   import: add
   import: mult
-  package: natural-div-1.49
-  checksum: 5bc16c27229d3cb6268de0c574952e1c93896240
+  package: natural-div-1.50
+  checksum: 1beeb5553671eff75816959b7f1d2146f4fc28fd
 }
 
 exp {
@@ -84,8 +84,8 @@ exp {
   import: add
   import: mult
   import: div
-  package: natural-exp-1.50
-  checksum: e24892c69d5ad1240eecb057c9e100d31f384859
+  package: natural-exp-1.51
+  checksum: 7e34ceeac37372ab795af12d98a8c70999237e45
 }
 
 factorial {
@@ -95,8 +95,8 @@ factorial {
   import: order
   import: add
   import: mult
-  package: natural-factorial-1.37
-  checksum: 26303fc8c605c9adb6448d2b67224da01b1a6760
+  package: natural-factorial-1.38
+  checksum: a58d1fa7b1e82217c934dbc0e86c06b570513c3d
 }
 
 distance {
@@ -115,8 +115,8 @@ funpow {
   import: numeral
   import: add
   import: mult
-  package: natural-funpow-1.16
-  checksum: e693a60a55e6ed9abbf44145116acc7b60957946
+  package: natural-funpow-1.17
+  checksum: 06b3d82f505ad5c709d22cb2693e99cb9e5704a9
 }
 
 main {

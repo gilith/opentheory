@@ -1,5 +1,5 @@
 name: monoid-mult
-version: 1.10
+version: 1.11
 description: Monoid multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,8 +15,8 @@ show: "Data.List"
 show: "Number.Natural"
 
 def {
-  package: monoid-mult-def-1.8
-  checksum: 2c4a85035ecb4601745968e54231bcb921f532f8
+  package: monoid-mult-def-1.9
+  checksum: f458d6973fdf3216542ffec5db0914741a79cf5d
 }
 
 thm {
@@ -28,8 +28,8 @@ thm {
 add {
   import: def
   import: thm
-  package: monoid-mult-add-1.11
-  checksum: 1ddfbae2ab2fc77c5619b1ba527e7e5cc3485a60
+  package: monoid-mult-add-1.12
+  checksum: 5ca75be5777937ab3cbee3f69bdbed84aff98d54
 }
 
 main {

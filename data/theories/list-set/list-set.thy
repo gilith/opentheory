@@ -1,5 +1,5 @@
 name: list-set
-version: 1.53
+version: 1.54
 description: List to set conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,8 +15,8 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-set-def-1.52
-  checksum: 35a44f8ef26cd30a43629e8502af91924f28dccd
+  package: list-set-def-1.53
+  checksum: eb885d37d937fc38d799e7360fc407504130d7da
 }
 
 thm {

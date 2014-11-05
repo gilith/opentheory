@@ -1,5 +1,5 @@
 name: natural-prime
-version: 1.64
+version: 1.65
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -33,14 +33,14 @@ thm {
 
 stream {
   import: thm
-  package: natural-prime-stream-1.26
-  checksum: 5f5cc646c370df07c7ff579c40c267c3d33cce55
+  package: natural-prime-stream-1.27
+  checksum: 1cc62f61ce664cc172f976a4d14fe4c075bac5a5
 }
 
 sieve {
   import: stream
-  package: natural-prime-sieve-1.27
-  checksum: 0064e6614701ead006193590fde833dc8d933f85
+  package: natural-prime-sieve-1.28
+  checksum: 5b9eb6c2050125ff81e13e8ebbb238f673ed6cab
 }
 
 main {

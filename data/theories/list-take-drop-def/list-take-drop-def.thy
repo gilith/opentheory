@@ -1,9 +1,9 @@
 name: list-take-drop-def
-version: 1.55
+version: 1.56
 description: Definition of the list take and drop functions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2014-11-04
 requires: bool
 requires: list-dest
 requires: list-length

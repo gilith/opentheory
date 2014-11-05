@@ -1,9 +1,9 @@
 name: monoid-mult-def
-version: 1.8
+version: 1.9
 description: Definition of monoid multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2014-11-04
 requires: bool
 requires: monoid-witness
 requires: natural

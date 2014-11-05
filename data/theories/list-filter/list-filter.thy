@@ -1,5 +1,5 @@
 name: list-filter
-version: 1.53
+version: 1.54
 description: The list filter function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,8 +19,8 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: list-filter-def-1.48
-  checksum: b167c0a690d0ef82aa5708016c3fca230fa2483b
+  package: list-filter-def-1.49
+  checksum: 70424e8f374cede0700e1b6b36fd0f3edff73d75
 }
 
 thm {
