@@ -79,6 +79,8 @@ fun buildStore data cvt =
       (obj,cvt)
     end;
 
+fun buildTypeStore ty = buildStore (ObjectData.Type ty);
+
 fun buildVarStore v = buildStore (ObjectData.Var v);
 
 fun buildTermStore tm = buildStore (ObjectData.Term tm);
@@ -89,7 +91,85 @@ fun buildTermStore tm = buildStore (ObjectData.Term tm);
 
 fun convert5 cmd args res cvt =
     case (cmd,args) of
-      (Command.DefineTypeOp,[objN,objA,objR,objV,objTh]) =>
+      (Command.DefineConstList,[objL,objT]) =>
+      let
+        val vtm =
+            let
+              fun mk asm =
+                  let
+                    val (v,tm) = Term.destEq asm
+
+                    val v = Term.destVar v
+                  in
+                    (v,tm)
+                  end
+
+              val th = Object.destThm objT
+
+              val asms = TermAlphaSet.toList (Thm.hyp th)
+            in
+              VarMap.fromList (map mk asms)
+            end
+
+        fun simulate objL objT cvt =
+            if Object.isNil objL then (objL,objT,cvt)
+            else
+              let
+                val (objNV,cvt) = convert5 Command.HdTl [objL] 0 cvt
+
+                val (objN,cvt) = convert5 Command.HdTl [objNV] 0 cvt
+
+                val (objV,cvt) = convert5 Command.HdTl [objNV] 1 cvt
+
+                val (objV,cvt) = convert5 Command.HdTl [objV] 0 cvt
+
+                val n = Object.destName objN
+                and v = Object.destVar objV
+
+                val (objTm,cvt) =
+                    case VarMap.peek vtm v of
+                      SOME tm => buildTermStore tm cvt
+                    | NONE => raise Bug "ObjectVersion.convert5.DefineConstList"
+
+                val (objC,objD) = Object.mkDefineConst savable n objTm
+
+                val (objTy,cvt) = buildTypeStore (Var.typeOf v) cvt
+
+                val objCT = Object.mkConstTerm savable objC objTy
+
+                val objTySub = Object.mkNil
+
+                val objTmSub =
+                    Object.mkCons savable objV
+                      (Object.mkCons savable objCT Object.mkNil)
+
+                val objSub =
+                    Object.mkCons savable objTySub
+                      (Object.mkCons savable objTmSub Object.mkNil)
+
+                val objT = Object.mkSubst savable objSub objT
+
+                val (objT,cvt) = convert5 Command.ProveHyp [objD,objT] 0 cvt
+
+                val (objL,cvt) = convert5 Command.HdTl [objL] 1 cvt
+
+                val (objCL,objT,cvt) = simulate objL objT cvt
+
+                val objCL = Object.mkCons savable objC objCL
+              in
+                (objCL,objT,cvt)
+              end
+
+        val cvt = addStore cvt [objL,objT]
+
+        val (objC,objD,cvt) = simulate objL objT cvt
+      in
+        case res of
+          0 => (objC,cvt)
+        | 1 => (objD,cvt)
+        | _ => raise Bug "ObjectVersion.convert5.DefineConstList"
+      end
+    | (Command.DefineTypeOp,[objN,objA,objR,objV,objTh]) =>
       let
         val n = Object.destName objN
         and a = Object.destName objA
@@ -135,7 +215,22 @@ fun convert5 cmd args res cvt =
         val (objH,objT) =
             case Object.unMkCons objL of
               SOME x => x
-            | NONE => raise Bug "ObjectVersion.convert5.HdTl: not a cons"
+            | NONE =>
+              let
+                val bug = "ObjectVersion.convert5.HdTl: not a cons command"
+
+(*OpenTheoryDebug
+                val prov = Object.provenance objL
+
+                val bug =
+                    bug ^ ", but rather\n  " ^
+                    Print.toString Object.ppProvenance prov ^
+                    "\nthat resulted in\n  " ^
+                    Print.toString Object.pp objL
+*)
+              in
+                raise Bug bug
+              end
       in
         case res of
           0 => (objH,cvt)

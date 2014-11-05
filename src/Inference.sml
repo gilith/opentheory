@@ -91,7 +91,7 @@ in
           val rows = alignTable alignment table
         in
           Print.consistentBlock 0
-            (Print.ppString "Primitive inferences:" ::
+            (Print.ppString "Inference rules:" ::
              List.map (Print.sequence Print.newline o Print.ppString) rows)
         end;
 end;

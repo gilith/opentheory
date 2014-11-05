@@ -998,6 +998,12 @@ fun mkCommand sav cmd args =
          [obj0,obj1,obj2,obj3,obj4]
        end
      | (Command.EqMp,[objA,objB]) => [mkEqMp sav objA objB]
+     | (Command.HdTl,[objL]) =>
+       let
+         val (obj0,obj1) = mkHdTl sav objL
+       in
+         [obj0,obj1]
+       end
      | (Command.Nil,[]) => [mkNil]
      | (Command.OpType,[objO,objL]) => [mkOpType sav objO objL]
      | (Command.ProveHyp,[objA,objB]) => [mkProveHyp sav objA objB]
