@@ -893,7 +893,7 @@ local
           val (objH,objT) = mkHdTl {savable = true} objL
         in
           objH :: appendDefs objT defs
-        end
+        end;
 in
   fun mkDefineConstList {savable} objL objT =
       let
