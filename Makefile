@@ -67,6 +67,7 @@ SRC = \
   src/Checksum.sig src/Checksum.sml \
   src/Namespace.sig src/Namespace.sml \
   src/Name.sig src/Name.sml \
+  src/Metadata.sig src/Metadata.sml \
   src/Show.sig src/Show.sml \
   src/MetisNameArity.sig src/MetisNameArity.sml \
   src/MetisTerm.sig src/MetisTerm.sml \

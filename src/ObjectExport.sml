@@ -23,8 +23,7 @@ datatype export =
 
 fun new {savable} =
     let
-      val size = 0
-      and thms = ObjectThmSet.empty
+      val thms = ObjectThmSet.empty
     in
       Export
         {thms = thms,
