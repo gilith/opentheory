@@ -10,11 +10,27 @@ sig
 (* A type of theorem objects.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-datatype thm =
+type thm
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors and destructors.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype thm' =
     Thm of
       {proof : Object.object,
        hyp : Object.object,
        concl : Object.object}
+
+val mk : thm' -> thm
+
+val dest : thm -> thm'
+
+val proof : thm -> Object.object
+
+val hyp : thm -> Object.object
+
+val concl : thm -> Object.object
 
 (* ------------------------------------------------------------------------- *)
 (* Converting to a real theorem.                                             *)

@@ -116,7 +116,8 @@ fun maps f exp acc =
 local
   fun addThm (th,sym) =
       let
-        val ObjectThm.Thm {proof = _, hyp, concl} = th
+        val hyp = ObjectThm.hyp th
+        and concl = ObjectThm.concl th
 
         val sym = ObjectSymbol.addObject sym hyp
 
@@ -605,7 +606,9 @@ local
 
         val proof = Object.mkAxiom savable hyp concl seq
 
-        val th = ObjectThm.Thm {proof = proof, hyp = hyp, concl = concl}
+        val th =
+            ObjectThm.mk
+              (ObjectThm.Thm {proof = proof, hyp = hyp, concl = concl})
       in
         (th,store)
       end;

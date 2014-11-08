@@ -27,7 +27,7 @@ local
   and unionl (Metadata md1) (Metadata md2) =
       Metadata (NameMap.union union1 md1 md2);
 in
-  val union = merge;
+  val union = unionl;
 end;
 
 fun add md n_md = union md (singleton n_md);

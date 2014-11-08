@@ -12,11 +12,23 @@ open Useful;
 (* A type of theorem objects.                                                *)
 (* ------------------------------------------------------------------------- *)
 
-datatype thm =
+datatype thm' =
     Thm of
       {proof : Object.object,
        hyp : Object.object,
        concl : Object.object};
+
+type thm = thm';
+
+fun mk (th : thm') : thm = th;
+
+fun dest (th : thm) : thm' = th;
+
+fun proof (Thm {proof = x, ...}) = x;
+
+fun hyp (Thm {hyp = x, ...}) = x;
+
+fun concl (Thm {concl = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Converting to a real theorem.                                             *)
