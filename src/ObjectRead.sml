@@ -773,7 +773,9 @@ fun execute cmd state =
         let
           val (stack,objT,objH,objC) = ObjectStack.pop3 stack
 
-          val th = ObjectThm.Thm {proof = objT, hyp = objH, concl = objC}
+          val th =
+              ObjectThm.mk
+                (ObjectThm.Thm {proof = objT, hyp = objH, concl = objC})
 
           val export = ObjectExport.add export th
         in

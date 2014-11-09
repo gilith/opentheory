@@ -31,7 +31,7 @@ fun toExport (Thms {export = x, ...}) = x;
 local
   fun split (th,(ths,seqs)) =
       let
-        val ObjectThm.Thm {proof = obj, ...} = th
+        val obj = ObjectThm.proof th
 
         val th = ObjectThm.thm th
 

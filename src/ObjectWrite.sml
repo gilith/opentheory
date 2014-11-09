@@ -94,7 +94,7 @@ local
 
   fun registerThm (th,refs) =
       let
-        val ObjectThm.Thm {proof,hyp,concl} = th
+        val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
 
         val refs = registerSpecial (proof,refs)
 
@@ -240,7 +240,7 @@ local
       case task of
         ExpTask th =>
         let
-          val ObjectThm.Thm {proof,hyp,concl} = th
+          val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
 
           val work =
               ObjTask proof ::
