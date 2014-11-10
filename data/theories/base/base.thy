@@ -1,5 +1,5 @@
 name: base
-version: 1.165
+version: 1.167
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -28,8 +28,8 @@ unit {
 
 function {
   import: bool
-  package: function-1.53
-  checksum: 25afeaae64dad247be18236b405a8c0a8e90c7ce
+  package: function-1.54
+  checksum: 3d0e53f12ce723733d48ef0fb5c8b93eee22d1ac
 }
 
 pair {
@@ -68,8 +68,8 @@ sum {
   import: bool
   import: pair
   import: natural
-  package: sum-1.56
-  checksum: fd390cf30ef9601bfd178fd8fbce7bd3a4b640f9
+  package: sum-1.58
+  checksum: 9c66c8a4b210a82f404fb108990b94b74be0a553
 }
 
 option {
@@ -86,8 +86,8 @@ list {
   import: pair
   import: natural
   import: set
-  package: list-1.98
-  checksum: 924a7e424a77ddab6fdbef9129e98c17d5db097d
+  package: list-1.99
+  checksum: a2e9043d51539df9825f50729b9bd3f0316d9005
 }
 
 real {

@@ -3994,7 +3994,7 @@ cons
 cons
 opType
 constTerm
-"Function.K"
+"Function.const"
 const
 322
 ref
@@ -4177,7 +4177,7 @@ cons
 cons
 opType
 constTerm
-"Function.S"
+"Function.Combinator.s"
 const
 336
 def
@@ -4431,7 +4431,7 @@ cons
 cons
 opType
 constTerm
-"Function.C"
+"Function.flip"
 const
 355
 def
@@ -4650,7 +4650,7 @@ cons
 cons
 opType
 constTerm
-"Function.W"
+"Function.Combinator.w"
 const
 366
 remove
@@ -6070,7 +6070,7 @@ subst
 def
 61
 ref
-"_10953"
+"_10939"
 2
 ref
 var
@@ -6892,7 +6892,7 @@ ref
 ref
 321
 ref
-"_10959"
+"_10945"
 3
 ref
 var
@@ -7475,7 +7475,7 @@ remove
 remove
 61
 ref
-"_10961"
+"_10947"
 2
 ref
 var
@@ -9164,7 +9164,7 @@ ref
 subst
 61
 ref
-"_10967"
+"_10953"
 3
 remove
 var
@@ -10951,7 +10951,7 @@ ref
 ref
 25
 ref
-"_10975"
+"_10961"
 2
 ref
 var
@@ -12071,7 +12071,7 @@ ref
 subst
 61
 ref
-"_10977"
+"_10963"
 2
 remove
 var
@@ -14603,7 +14603,7 @@ ref
 subst
 61
 ref
-"_10983"
+"_10969"
 6
 ref
 var
@@ -15121,7 +15121,7 @@ remove
 subst
 895
 remove
-"_10981"
+"_10967"
 6
 ref
 var

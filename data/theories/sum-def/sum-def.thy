@@ -1,9 +1,9 @@
 name: sum-def
-version: 1.65
+version: 1.66
 description: Definition of sum types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-11-04
+provenance: HOL Light theory extracted on 2014-11-09
 requires: bool
 requires: natural
 requires: pair

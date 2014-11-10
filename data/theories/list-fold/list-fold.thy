@@ -1,5 +1,5 @@
 name: list-fold
-version: 1.28
+version: 1.29
 description: List fold operations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,14 +16,14 @@ show: "Function"
 show: "Number.Natural"
 
 def {
-  package: list-fold-def-1.27
-  checksum: 1f1346632202a5fcc19bc921f922092992d48e79
+  package: list-fold-def-1.28
+  checksum: 1471a660db60f3f31036a5cf24cc37ff2a46414a
 }
 
 thm {
   import: def
-  package: list-fold-thm-1.27
-  checksum: 76c9102db325d02371fa4f360fde6da7d52ed109
+  package: list-fold-thm-1.28
+  checksum: 08a9f9a00b9c1628747f68117ad5b0ef4e824558
 }
 
 main {

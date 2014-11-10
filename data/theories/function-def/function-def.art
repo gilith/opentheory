@@ -203,7 +203,7 @@ appTerm
 remove
 appTerm
 thm
-"Function.K"
+"Function.const"
 8
 ref
 "y"
@@ -273,7 +273,7 @@ appTerm
 remove
 appTerm
 thm
-"Function.S"
+"Function.Combinator.s"
 "f"
 0
 ref
@@ -357,7 +357,7 @@ appTerm
 remove
 appTerm
 thm
-"Function.C"
+"Function.flip"
 31
 remove
 "x"
@@ -442,7 +442,7 @@ appTerm
 remove
 appTerm
 thm
-"Function.W"
+"Function.Combinator.w"
 "f"
 0
 ref

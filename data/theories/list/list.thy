@@ -1,5 +1,5 @@
 name: list
-version: 1.98
+version: 1.99
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -102,8 +102,8 @@ fold {
   import: length
   import: append
   import: reverse
-  package: list-fold-1.28
-  checksum: bfc16b9693e0e3c35a7806737e79874fda083251
+  package: list-fold-1.29
+  checksum: f04fe88c3ef8354213008ace7189e37390c8840a
 }
 
 nth {
