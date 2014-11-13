@@ -29,21 +29,24 @@ fun toExport (Thms {export = x, ...}) = x;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun split (th,(ths,seqs)) =
+  fun addThm (oth,(ths,seqs,exp)) =
       let
-        val obj = ObjectThm.proof th
-
-        val th = ObjectThm.thm th
+        val th = ObjectThm.thm oth
 
         val seq = Thm.sequent th
-
-        val ths = Thms.add ths th
-        and seqs = SequentMap.insert seqs (seq,obj)
       in
-        (ths,seqs)
+        if SequentMap.inDomain seq seqs then (ths,seqs,exp)
+        else
+          let
+            val ths = Thms.add ths th
+            and seqs = SequentMap.insert seqs (seq, ObjectThm.proof oth)
+            and exp = ObjectExport.add exp oth
+          in
+            (ths,seqs,exp)
+          end
       end;
 
-  fun mkTypeOp savable sym (ot,otO) =
+  fun addTypeOp savable sym (ot,otO) =
       let
         val n = TypeOp.name ot
 
@@ -56,12 +59,12 @@ local
               else if not savable then
                 Object.mkUnsavable (ObjectData.TypeOp ot)
               else
-                raise Bug "ObjectThms.fromExport.mkTypeOp"
+                raise Bug "ObjectThms.fromExport.addTypeOp"
       in
         NameMap.insert otO (n,obj)
       end;
 
-  fun mkConst savable sym (c,conO) =
+  fun addConst savable sym (c,conO) =
       let
         val n = Const.name c
 
@@ -74,17 +77,29 @@ local
               else if not savable then
                 Object.mkUnsavable (ObjectData.Const c)
               else
-                raise Bug "ObjectThms.fromExport.mkConst"
+                raise Bug "ObjectThms.fromExport.addConst"
       in
         NameMap.insert conO (n,obj)
       end;
 in
-  fun fromExport exp =
+  fun fromExport exp0 =
       let
+        val savable = ObjectExport.savable exp0
+
         val ths = Thms.empty
         and seqs = SequentMap.new ()
+        and exp = ObjectExport.new {savable = savable}
 
-        val (ths,seqs) = ObjectExport.foldr split (ths,seqs) exp
+        val (ths,seqs,exp) = ObjectExport.foldl addThm (ths,seqs,exp) exp0
+
+        val () =
+            if ObjectExport.size exp = ObjectExport.size exp0 then ()
+            else
+              let
+                val msg = "alpha-equivalent theorems exported from article"
+              in
+                warn msg
+              end
 
         val sym = Thms.symbol ths
 
@@ -94,14 +109,12 @@ in
         val otO = NameMap.new ()
         and conO = NameMap.new ()
 
-        val savable = ObjectExport.savable exp
-
         val sym =
             if savable then ObjectExport.symbol exp
             else ObjectSymbol.empty
 
-        val otO = TypeOpSet.foldl (mkTypeOp savable sym) otO ots
-        and conO = ConstSet.foldl (mkConst savable sym) conO cons
+        val otO = TypeOpSet.foldl (addTypeOp savable sym) otO ots
+        and conO = ConstSet.foldl (addConst savable sym) conO cons
       in
         Thms
           {thms = ths,
