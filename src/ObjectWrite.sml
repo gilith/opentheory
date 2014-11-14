@@ -109,7 +109,7 @@ in
       let
         val refs = ObjectDataMap.new ()
 
-        val refs = ObjectExport.foldl registerThm refs exp
+        val refs = ObjectExport.fold registerThm refs exp
 
         val refs = ObjectDataMap.filter (fn (_,n) => n >= 1) refs
 

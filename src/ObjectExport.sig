@@ -16,7 +16,9 @@ type export
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-val new : {savable : bool} -> export
+val empty : {savable : bool} -> export
+
+val singleton : {savable : bool} -> ObjectThm.thm -> export
 
 val savable : export -> bool
 
@@ -24,17 +26,15 @@ val null : export -> bool
 
 val size : export -> int
 
-val add : export -> ObjectThm.thm -> export
-
-val foldl : (ObjectThm.thm * 's -> 's) -> 's -> export -> 's
-
-val foldr : (ObjectThm.thm * 's -> 's) -> 's -> export -> 's
-
-val toSet : export -> ObjectThmSet.set
-
 val toList : export -> ObjectThm.thm list
 
 val toThms : export -> Thms.thms
+
+(* ------------------------------------------------------------------------- *)
+(* Adding theorem objects.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+val add : export -> ObjectThm.thm -> export
 
 (* ------------------------------------------------------------------------- *)
 (* Merging.                                                                  *)
@@ -45,8 +45,18 @@ val union : export -> export -> export
 val unionList : export list -> export
 
 (* ------------------------------------------------------------------------- *)
+(* Looking up theorem objects.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+val peek : export -> Sequent.sequent -> ObjectThm.thm option
+
+val member : Sequent.sequent -> export -> bool
+
+(* ------------------------------------------------------------------------- *)
 (* Mapping over export sets of theorem objects                               *)
 (* ------------------------------------------------------------------------- *)
+
+val fold : (ObjectThm.thm * 's -> 's) -> 's -> export -> 's
 
 val maps :
     (ObjectThm.thm -> 's -> ObjectThm.thm option * 's) ->

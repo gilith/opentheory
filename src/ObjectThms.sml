@@ -88,7 +88,7 @@ in
         val ths = Thms.empty
         and seqs = SequentMap.new ()
 
-        val (ths,seqs) = ObjectExport.foldl addThm (ths,seqs) exp
+        val (ths,seqs) = ObjectExport.fold addThm (ths,seqs) exp
 
         val sym = Thms.symbol ths
 

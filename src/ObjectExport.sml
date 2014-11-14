@@ -9,53 +9,74 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Combining alpha-equivalent theorem objects.                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun mergeEq th1 th2 =
+    let
+      val ObjectThm.Thm {proof = p1, hyp = h1, concl = c1} = ObjectThm.dest th1
+      and ObjectThm.Thm {proof = p2, hyp = h2, concl = c2} = ObjectThm.dest th2
+
+      val pb = Object.id p1 <= Object.id p2
+      and hb = Object.id h1 <= Object.id h2
+      and cb = Object.id c1 <= Object.id c2
+    in
+      if pb andalso hb andalso cb then th1
+      else if not pb andalso not hb andalso not cb then th2
+      else
+        ObjectThm.mk
+          (ObjectThm.Thm
+             {proof = if pb then p1 else p2,
+              hyp = if hb then h1 else h2,
+              concl = if cb then c1 else c2})
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* A type of export sets of theorem objects.                                 *)
 (* ------------------------------------------------------------------------- *)
 
 datatype export =
     Export of
-      {thms : ObjectThmSet.set,
-       savable : bool};
+      {savable : bool,
+       thms : ObjectThm.thm SequentMap.map};
 
 (* ------------------------------------------------------------------------- *)
 (* Constructors and destructors.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun new {savable} =
+fun empty {savable} =
     let
-      val thms = ObjectThmSet.empty
+      val thms = SequentMap.new ()
     in
       Export
-        {thms = thms,
-         savable = savable}
+        {savable = savable,
+         thms = thms}
     end;
 
-val empty = new {savable = true};
+fun singleton {savable} th =
+    let
+      val seq = Thm.sequent (ObjectThm.thm th)
+
+      val thms = SequentMap.singleton (seq,th)
+    in
+      Export
+        {savable = savable,
+         thms = thms}
+    end;
 
 fun savable (Export {savable = x, ...}) = x;
 
-fun toSet (Export {thms = x, ...}) = x;
+fun toMap (Export {thms = x, ...}) = x;
 
-fun null exp = ObjectThmSet.null (toSet exp);
+fun null exp = SequentMap.null (toMap exp);
 
-fun size exp = ObjectThmSet.size (toSet exp);
+fun size exp = SequentMap.size (toMap exp);
 
-fun add exp th =
-    let
-      val Export {thms,savable} = exp
-
-      val thms = ObjectThmSet.add thms th
-    in
-      Export
-        {thms = thms,
-         savable = savable}
-    end;
-
-fun foldl f b exp = ObjectThmSet.foldl f b (toSet exp);
-
-fun foldr f b exp = ObjectThmSet.foldr f b (toSet exp);
-
-fun toList exp = ObjectThmSet.toList (toSet exp);
+local
+  fun inc ((_ : Sequent.sequent), (th : ObjectThm.thm), ths) = th :: ths;
+in
+  fun toList exp = SequentMap.foldr inc [] (toMap exp);
+end;
 
 fun toThms exp =
     let
@@ -68,46 +89,90 @@ fun toThms exp =
 (* Merging.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun union exp1 exp2 =
-    let
-      val Export {thms = ths1, savable = sav1} = exp1
-      and Export {thms = ths2, savable = sav2} = exp2
+local
+  fun merge ((_,th1),(_,th2)) = SOME (mergeEq th1 th2);
+in
+  fun union exp1 exp2 =
+      let
+        val Export {savable = sav1, thms = ths1} = exp1
+        and Export {savable = sav2, thms = ths2} = exp2
 
-      val sav = sav1 andalso sav2
+        val sav = sav1 andalso sav2
 
-      val ths = ObjectThmSet.union ths1 ths2
-    in
-      Export
-        {thms = ths,
-         savable = sav}
-    end;
+        val ths = SequentMap.union merge ths1 ths2
+      in
+        Export
+          {savable = sav,
+           thms = ths}
+      end;
+end;
 
 local
+  val emptySavable = empty {savable = true};
+
   fun uncurriedUnion (thms1,thms2) = union thms1 thms2;
 in
   fun unionList thmsl =
       case thmsl of
-        [] => empty
+        [] => emptySavable
       | thms :: thmsl => List.foldl uncurriedUnion thms thmsl;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Adding theorem objects.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  val singletonSavable = singleton {savable = true};
+in
+  fun add exp th = union exp ( th);
+
+(* ------------------------------------------------------------------------- *)
+(* Looking up theorem objects.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun peek exp = SequentMap.peek (toMap exp);
+
+fun member seq exp = SequentMap.inDomain seq (toMap exp);
 
 (* ------------------------------------------------------------------------- *)
 (* Mapping over exported theorem objects.                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun maps f exp acc =
+fun fold f b exp =
     let
-      val Export {thms,savable} = exp
-
-      val (thms',acc) = ObjectThmSet.maps f thms acc
-
-      val exp' =
-          case thms' of
-            NONE => NONE
-          | SOME thms => SOME (Export {thms = thms, savable = savable})
+      fun f' (_,th,acc) = f (th,acc)
     in
-      (exp',acc)
+      SequentMap.foldl f' b (toMap exp)
     end;
+
+local
+  fun mapsThm f (seq,th,(unchanged,exp,acc)) =
+      let
+        val (th',acc) = f th acc
+
+        val (unchanged,th) =
+            case th' of
+              NONE => (unchanged,th)
+            | SOME th => (false,th)
+
+        val exp = add exp x
+      in
+        (unchanged,exp,acc)
+      end;
+in
+  fun maps f exp0 acc =
+      let
+        val unchanged = true
+        and exp = new {savable = savable exp0}
+
+        val (unchanged,exp,acc) = fold (mapsThm f) (unchanged,exp,acc) exp0
+
+        val exp' = if unchanged then NONE else SOME exp
+      in
+        (exp',acc)
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Symbols.                                                                  *)
@@ -126,7 +191,7 @@ local
         sym
       end;
 in
-  val symbol = foldl addThm ObjectSymbol.empty;
+  val symbol = fold addThm ObjectSymbol.empty;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -211,7 +276,7 @@ local
       let
         fun add (th,store) = ObjectThm.addStore store th;
       in
-        foldl add ObjectStore.emptyDictionary
+        fold add ObjectStore.emptyDictionary
       end;
 
   fun preDescent store objI acc =
