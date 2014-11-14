@@ -121,9 +121,18 @@ fun fromTextFile {savable,import,interpretation,filename} =
              thms = importThms,
              inference = _} = import
 
-      val _ = not savable orelse importSavable orelse
-              raise Error "savable article cannot use unsavable import"
-
+(*OpenTheoryDebug
+      val () =
+          if not savable orelse importSavable then ()
+          else
+            let
+              val bug =
+                  "Article.fromTextFile: " ^
+                  "savable article cannot use unsavable import"
+            in
+              raise Bug bug
+            end
+*)
       val parameters =
           {import = importThms,
            interpretation = interpretation,
@@ -143,9 +152,14 @@ fun fromTextFile {savable,import,interpretation,filename} =
           in
             if n = 0 then ()
             else
-              warn (Print.toString Print.ppPrettyInt n ^ " object" ^
+              let
+                val msg =
+                    Print.toString Print.ppPrettyInt n ^ " object" ^
                     (if n = 1 then "" else "s") ^
-                    " left on the stack by " ^ filename)
+                    " left on the stack by " ^ filename
+              in
+                warn msg
+              end
           end
 
       val () =
@@ -154,18 +168,44 @@ fun fromTextFile {savable,import,interpretation,filename} =
           in
             if n = 0 then ()
             else
-              warn (Print.toString Print.ppPrettyInt n ^ " object" ^
+              let
+                val msg =
+                    Print.toString Print.ppPrettyInt n ^ " object" ^
                     (if n = 1 then "" else "s") ^
-                    " left in the dictionary by " ^ filename)
+                    " left in the dictionary by " ^ filename
+              in
+                warn msg
+              end
           end
 
-      val inference = ObjectRead.inference state
-      and thms = ObjectRead.thms state
+      val inf = ObjectRead.inference state
+      and exp = ObjectRead.export state
+
+      val ths = ObjectThms.fromExport exp
+
+      val () =
+          let
+            val n = ObjectExport.size exp - ObjectThms.size ths
+          in
+            if n = 0 then ()
+            else
+              let
+                val msg =
+                    Print.toString Print.ppPrettyInt n ^
+                    " redundant theorem" ^ (if n = 1 then "" else "s") ^
+                    " in " ^ filename ^
+                    " that " ^ (if n = 1 then "is" else "are") ^
+                    " alpha-equivalent to " ^
+                    (if n = 1 then "another" else "others")
+              in
+                warn msg
+              end
+          end
     in
       Article
         {savable = savable,
-         thms = thms,
-         inference = inference}
+         thms = ths,
+         inference = inf}
     end
 (*OpenTheoryDebug
     handle Error err => raise Error ("in Article.fromTextFile:\n" ^ err);
@@ -175,10 +215,11 @@ fun toTextFile {article,version,filename} =
     let
       val Article {savable, thms, inference = _} = article
 
+(*OpenTheoryDebug
       val () =
           if savable then ()
-          else raise Error "unsavable"
-
+          else raise Error "Article.toTextFile: unsavable"
+*)
       val exp = ObjectThms.toExport thms
 
       val exp =

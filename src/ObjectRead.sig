@@ -31,7 +31,7 @@ val stack : state -> ObjectStack.stack
 
 val dict : state -> ObjectDict.dict
 
-val thms : state -> ObjectThms.thms
+val export : state -> ObjectExport.export
 
 val inference : state -> Inference.inference
 

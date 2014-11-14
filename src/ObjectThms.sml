@@ -22,6 +22,8 @@ datatype thms =
 
 fun thms (Thms {thms = x, ...}) = x;
 
+fun size ths = Thms.size (thms ths);
+
 fun toExport (Thms {export = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
@@ -29,20 +31,19 @@ fun toExport (Thms {export = x, ...}) = x;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun addThm (oth,(ths,seqs,exp)) =
+  fun addThm (oth,(ths,seqs)) =
       let
         val th = ObjectThm.thm oth
 
         val seq = Thm.sequent th
       in
-        if SequentMap.inDomain seq seqs then (ths,seqs,exp)
+        if SequentMap.inDomain seq seqs then (ths,seqs)
         else
           let
             val ths = Thms.add ths th
             and seqs = SequentMap.insert seqs (seq, ObjectThm.proof oth)
-            and exp = ObjectExport.add exp oth
           in
-            (ths,seqs,exp)
+            (ths,seqs)
           end
       end;
 
@@ -82,24 +83,12 @@ local
         NameMap.insert conO (n,obj)
       end;
 in
-  fun fromExport exp0 =
+  fun fromExport exp =
       let
-        val savable = ObjectExport.savable exp0
-
         val ths = Thms.empty
         and seqs = SequentMap.new ()
-        and exp = ObjectExport.new {savable = savable}
 
-        val (ths,seqs,exp) = ObjectExport.foldl addThm (ths,seqs,exp) exp0
-
-        val () =
-            if ObjectExport.size exp = ObjectExport.size exp0 then ()
-            else
-              let
-                val msg = "alpha-equivalent theorems exported from article"
-              in
-                warn msg
-              end
+        val (ths,seqs) = ObjectExport.foldl addThm (ths,seqs) exp
 
         val sym = Thms.symbol ths
 
@@ -108,6 +97,8 @@ in
 
         val otO = NameMap.new ()
         and conO = NameMap.new ()
+
+        val savable = ObjectExport.savable exp
 
         val sym =
             if savable then ObjectExport.symbol exp

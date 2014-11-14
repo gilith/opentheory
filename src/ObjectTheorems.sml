@@ -66,10 +66,16 @@ fun fromTextFile {filename} =
             {parameters = parameters,
              filename = filename}
 
-      val ths = ObjectRead.thms state
+      val exp = ObjectRead.export state
 
-      val exp = ObjectThms.toExport ths
+      val ths = ObjectThms.fromExport exp
 
+(*OpenTheoryDebug
+      val () =
+          if ObjectThms.size ths = ObjectExport.size exp then ()
+          else
+            raise Bug "ObjectTheorems.fromTextFile: alpha-equivalent theorems"
+*)
       val seqs = Sequents.fromThms (ObjectThms.thms ths)
     in
       Theorems

@@ -18,6 +18,8 @@ type thms
 
 val new : {savable : bool} -> thms
 
+val size : thms -> int
+
 val thms : thms -> Thms.thms
 
 (* ------------------------------------------------------------------------- *)
