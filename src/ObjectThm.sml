@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of theorem objects.                                                *)
+(* A type of theorem object information.                                     *)
 (* ------------------------------------------------------------------------- *)
 
 datatype thm' =
@@ -18,25 +18,19 @@ datatype thm' =
        hyp : Object.object,
        concl : Object.object};
 
-type thm = thm';
+fun proof' (Thm {proof = x, ...}) = x;
 
-fun mk (th : thm') : thm = th;
+fun hyp' (Thm {hyp = x, ...}) = x;
 
-fun dest (th : thm) : thm' = th;
-
-fun proof (Thm {proof = x, ...}) = x;
-
-fun hyp (Thm {hyp = x, ...}) = x;
-
-fun concl (Thm {concl = x, ...}) = x;
+fun concl' (Thm {concl = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Converting to a real theorem.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun thm th =
+fun thm' inf =
     let
-      val Thm {proof,hyp,concl} = th
+      val Thm {proof,hyp,concl} = inf
 
       val t = Object.destThm proof
       and seq = Object.destSequent (hyp,concl)
@@ -45,12 +39,40 @@ fun thm th =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* A type of theorem objects.                                                *)
+(* ------------------------------------------------------------------------- *)
+
+datatype thm =
+    ThmInf of
+      {info : thm',
+       thm : Thm.thm};
+
+fun mk inf =
+    let
+      val th = thm' inf
+    in
+      ThmInf
+        {info = inf,
+         thm = th}
+    end;
+
+fun dest (ThmInf {info = x, ...}) = x;
+
+fun thm (ThmInf {thm = x, ...}) = x;
+
+fun proof th = proof' (dest th);
+
+fun hyp th = hyp' (dest th);
+
+fun concl th = concl' (dest th);
+
+(* ------------------------------------------------------------------------- *)
 (* Mapping over theorems.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun maps f th acc =
+fun maps' f inf acc =
     let
-      val Thm {proof,hyp,concl} = th
+      val Thm {proof,hyp,concl} = inf
 
       val (proof',acc) = f proof acc
 
@@ -75,9 +97,23 @@ fun maps f th acc =
             NONE => (unchanged,concl)
           | SOME obj => (false,obj)
 
-      val th' =
+      val inf' =
           if unchanged then NONE
           else SOME (Thm {proof = proof, hyp = hyp, concl = concl})
+    in
+      (inf',acc)
+    end;
+
+fun maps f th acc =
+    let
+      val inf = dest th
+
+      val (inf',acc) = maps' f inf acc
+
+      val th' =
+          case inf' of
+            NONE => NONE
+          | SOME inf => SOME (mk inf)
     in
       (th',acc)
     end;
@@ -92,9 +128,9 @@ val sharingEliminateUnwanted = maps ObjectUnwanted.sharingEliminate;
 (* Adding to a store.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun addStore store th =
+fun addStore' store inf =
     let
-      val Thm {proof,hyp,concl} = th
+      val Thm {proof,hyp,concl} = inf
 
       val store = ObjectStore.add store proof
 
@@ -104,6 +140,8 @@ fun addStore store th =
     in
       store
     end;
+
+fun addStore store th = addStore' store (dest th);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
@@ -115,10 +153,10 @@ val pp = Print.ppMap thm Thm.pp;
 (* A total order.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare (th1,th2) =
+fun compare' (inf1,inf2) =
     let
-      val Thm {proof = p1, hyp = h1, concl = c1} = th1
-      and Thm {proof = p2, hyp = h2, concl = c2} = th2
+      val Thm {proof = p1, hyp = h1, concl = c1} = inf1
+      and Thm {proof = p2, hyp = h2, concl = c2} = inf2
     in
       case Object.compare (p1,p2) of
         LESS => LESS
@@ -129,6 +167,8 @@ fun compare (th1,th2) =
         | GREATER => GREATER
         | EQUAL => Object.compare (c1,c2)
     end;
+
+fun compare (th1,th2) = compare' (dest th1, dest th2);
 
 end
 
