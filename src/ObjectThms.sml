@@ -17,7 +17,6 @@ datatype thms =
       {thms : Thms.thms,
        typeOps : Object.object NameMap.map,
        consts : Object.object NameMap.map,
-       seqs : Object.object SequentMap.map,
        export : ObjectExport.export};
 
 fun thms (Thms {thms = x, ...}) = x;
@@ -31,22 +30,6 @@ fun toExport (Thms {export = x, ...}) = x;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun addThm (oth,(ths,seqs)) =
-      let
-        val th = ObjectThm.thm oth
-
-        val seq = Thm.sequent th
-      in
-        if SequentMap.inDomain seq seqs then (ths,seqs)
-        else
-          let
-            val ths = Thms.add ths th
-            and seqs = SequentMap.insert seqs (seq, ObjectThm.proof oth)
-          in
-            (ths,seqs)
-          end
-      end;
-
   fun addTypeOp savable sym (ot,otO) =
       let
         val n = TypeOp.name ot
@@ -85,10 +68,7 @@ local
 in
   fun fromExport exp =
       let
-        val ths = Thms.empty
-        and seqs = SequentMap.new ()
-
-        val (ths,seqs) = ObjectExport.fold addThm (ths,seqs) exp
+        val ths = ObjectExport.toThms exp
 
         val sym = Thms.symbol ths
 
@@ -111,12 +91,11 @@ in
           {thms = ths,
            typeOps = otO,
            consts = conO,
-           seqs = seqs,
            export = exp}
       end
 end;
 
-fun new sav = fromExport (ObjectExport.new sav);
+fun new sav = fromExport (ObjectExport.empty sav);
 
 val empty = new {savable = true};
 
@@ -124,7 +103,10 @@ val empty = new {savable = true};
 (* Looking up symbols and theorems.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun peekThm (Thms {seqs,...}) seq = SequentMap.peek seqs seq;
+fun peekThm (Thms {export,...}) seq =
+    case ObjectExport.peek export seq of
+      NONE => NONE
+    | SOME th => SOME (ObjectThm.proof th);
 
 fun peekTypeOp (Thms {typeOps,...}) n = NameMap.peek typeOps n;
 
@@ -153,27 +135,23 @@ in
               {thms = ths1,
                typeOps = ots1,
                consts = cons1,
-               seqs = seqs1,
                export = exp1} = thms1
 
         and Thms
               {thms = ths2,
                typeOps = ots2,
                consts = cons2,
-               seqs = seqs2,
                export = exp2} = thms2
 
         val ths = Thms.union ths1 ths2
         and ots = NameMap.union pickSnd ots1 ots2
         and cons = NameMap.union pickSnd cons1 cons2
-        and seqs = SequentMap.union pickSnd seqs1 seqs2
         and exp = ObjectExport.union exp1 exp2
       in
         Thms
           {thms = ths,
            typeOps = ots,
            consts = cons,
-           seqs = seqs,
            export = exp}
       end;
 end;

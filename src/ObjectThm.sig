@@ -65,10 +65,4 @@ val addStore : ObjectStore.store -> thm -> ObjectStore.store
 
 val pp : thm Print.pp
 
-(* ------------------------------------------------------------------------- *)
-(* A total order.                                                            *)
-(* ------------------------------------------------------------------------- *)
-
-val compare : thm * thm -> order
-
 end

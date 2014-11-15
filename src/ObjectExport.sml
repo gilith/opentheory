@@ -125,7 +125,8 @@ end;
 local
   val singletonSavable = singleton {savable = true};
 in
-  fun add exp th = union exp ( th);
+  fun add exp th = union exp (singletonSavable th);
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Looking up theorem objects.                                               *)
@@ -147,7 +148,7 @@ fun fold f b exp =
     end;
 
 local
-  fun mapsThm f (seq,th,(unchanged,exp,acc)) =
+  fun mapsThm f (th,(unchanged,exp,acc)) =
       let
         val (th',acc) = f th acc
 
@@ -156,7 +157,7 @@ local
               NONE => (unchanged,th)
             | SOME th => (false,th)
 
-        val exp = add exp x
+        val exp = add exp th
       in
         (unchanged,exp,acc)
       end;
@@ -164,7 +165,7 @@ in
   fun maps f exp0 acc =
       let
         val unchanged = true
-        and exp = new {savable = savable exp0}
+        and exp = empty {savable = savable exp0}
 
         val (unchanged,exp,acc) = fold (mapsThm f) (unchanged,exp,acc) exp0
 
@@ -371,12 +372,6 @@ in
         exp'
       end;
 end;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty printing.                                                          *)
-(* ------------------------------------------------------------------------- *)
-
-val pp = Print.ppMap size (Print.ppBracket "export{" "}" Print.ppInt);
 
 (* ------------------------------------------------------------------------- *)
 (* Branding theorems.                                                        *)
@@ -695,7 +690,7 @@ in
         val abs_rep = ConstSet.foldl addAbsRep abs_rep cs
 
         val store = emptyStore
-        and exp = new savable
+        and exp = empty savable
         and sqs = Sequents.sequents seqs
 
         val (_,exp) = SequentSet.foldl (addThm n abs_rep) (store,exp) sqs
@@ -707,5 +702,11 @@ in
         exp
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp = Print.ppMap size (Print.ppBracket "export{" "}" Print.ppPrettyInt);
 
 end

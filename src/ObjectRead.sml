@@ -36,7 +36,7 @@ fun initial parameters version =
 
       val stack = ObjectStack.empty
       and dict = ObjectDict.empty
-      and export = ObjectExport.new {savable = savable}
+      and export = ObjectExport.empty {savable = savable}
       and inference = Inference.empty
     in
       State
