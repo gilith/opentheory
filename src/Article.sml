@@ -182,25 +182,6 @@ fun fromTextFile {savable,import,interpretation,filename} =
       and exp = ObjectRead.export state
 
       val ths = ObjectThms.fromExport exp
-
-      val () =
-          let
-            val n = ObjectExport.size exp - ObjectThms.size ths
-          in
-            if n = 0 then ()
-            else
-              let
-                val msg =
-                    Print.toString Print.ppPrettyInt n ^
-                    " redundant theorem" ^ (if n = 1 then "" else "s") ^
-                    " in " ^ filename ^
-                    " that " ^ (if n = 1 then "is" else "are") ^
-                    " alpha-equivalent to " ^
-                    (if n = 1 then "another" else "others")
-              in
-                warn msg
-              end
-          end
     in
       Article
         {savable = savable,

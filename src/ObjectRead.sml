@@ -777,6 +777,28 @@ fun execute cmd state =
               ObjectThm.mk
                 (ObjectThm.Thm {proof = objT, hyp = objH, concl = objC})
 
+          val () =
+              let
+                val seq = Thm.sequent (ObjectThm.thm th)
+              in
+                if not (ObjectExport.member seq export) then ()
+                else
+                  let
+                    fun pp () =
+                        Print.consistentBlock 2
+                          [Command.pp cmd,
+                           Print.ppString
+                             (" command exports redundant" ^
+                              " alpha-equivalent theorem:"),
+                           Print.newline,
+                           Sequent.pp seq]
+
+                    val msg = Print.toString pp ()
+                  in
+                    warn msg
+                  end
+              end
+
           val export = ObjectExport.add export th
         in
           State
