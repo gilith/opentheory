@@ -182,8 +182,7 @@ end;
 local
   fun addThm (th,sym) =
       let
-        val hyp = ObjectThm.hyp th
-        and concl = ObjectThm.concl th
+        val ObjectThm.Thm {proof = _, hyp, concl} = ObjectThm.dest th
 
         val sym = ObjectSymbol.addObject sym hyp
 
@@ -192,7 +191,24 @@ local
         sym
       end;
 in
-  val symbol = fold addThm ObjectSymbol.empty;
+  val thmSymbol = fold addThm ObjectSymbol.empty;
+end;
+
+local
+  fun addThm (th,sym) =
+      let
+        val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
+
+        val sym = ObjectSymbol.addObject sym proof
+
+        val sym = ObjectSymbol.addObject sym hyp
+
+        val sym = ObjectSymbol.addObject sym concl
+      in
+        sym
+      end;
+in
+  val proofSymbol = fold addThm ObjectSymbol.empty;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -372,6 +388,17 @@ in
         exp'
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Check for symbol definitions with clashing names.                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun checkClash exp =
+    let
+      val sym = proofSymbol exp
+    in
+      ()
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Branding theorems.                                                        *)

@@ -66,7 +66,9 @@ val maps :
 (* Symbols.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val symbol : export -> ObjectSymbol.symbol
+val thmSymbol : export -> ObjectSymbol.symbol
+
+val proofSymbol : export -> ObjectSymbol.symbol
 
 (* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)
@@ -85,6 +87,12 @@ val setVersion : ArticleVersion.version -> export -> export option
 (* ------------------------------------------------------------------------- *)
 
 val compress : export -> export option
+
+(* ------------------------------------------------------------------------- *)
+(* Check for symbol definitions with clashing names.                         *)
+(* ------------------------------------------------------------------------- *)
+
+val checkClash : export -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Branding theorems.                                                        *)

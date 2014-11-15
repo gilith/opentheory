@@ -81,7 +81,7 @@ in
         val savable = ObjectExport.savable exp
 
         val sym =
-            if savable then ObjectExport.symbol exp
+            if savable then ObjectExport.thmSymbol exp
             else ObjectSymbol.empty
 
         val otO = TypeOpSet.foldl (addTypeOp savable sym) otO ots
