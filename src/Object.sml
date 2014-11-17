@@ -1073,7 +1073,7 @@ fun foldl {preDescent,postDescent} =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Mapping with state over objects.                                          *)
+(* Mapping with state over objects: return NONE for unchanged.               *)
 (* ------------------------------------------------------------------------- *)
 
 fun maps {preDescent,postDescent,savable} =

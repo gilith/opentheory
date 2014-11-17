@@ -299,4 +299,29 @@ struct type t = TypeOp.typeOp val compare = TypeOp.compare end
 
 structure TypeOpMap = KeyMap (TypeOpOrdered)
 
-structure TypeOpSet = ElementSet (TypeOpMap)
+structure TypeOpSet =
+struct
+
+local
+  structure S = ElementSet (TypeOpMap);
+in
+  open S;
+end;
+
+val categorize =
+    let
+      fun inc (t,nm) =
+          let
+            val n = TypeOp.name t
+
+            val ts = Option.getOpt (NameMap.peek nm n, empty)
+          in
+            NameMap.insert nm (n, add ts t)
+          end
+    in
+      foldl inc (NameMap.new ())
+    end;
+
+val pp = Print.ppBracket "{" "}" (Print.ppMap size Print.ppInt);
+
+end

@@ -89,10 +89,10 @@ val setVersion : ArticleVersion.version -> export -> export option
 val compress : export -> export option
 
 (* ------------------------------------------------------------------------- *)
-(* Check for symbol definitions with clashing names.                         *)
+(* Warn about symbol definitions with clashing names.                        *)
 (* ------------------------------------------------------------------------- *)
 
-val checkClash : export -> unit
+val warnClashingSymbols : export -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Branding theorems.                                                        *)

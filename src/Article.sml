@@ -218,7 +218,7 @@ fun toTextFile {article,version,filename} =
             NONE => exp
           | SOME exp => exp
 
-      val () = ObjectExport.checkClash exp
+      val () = ObjectExport.warnClashingSymbols exp
 
       val () =
           ObjectWrite.toTextFile

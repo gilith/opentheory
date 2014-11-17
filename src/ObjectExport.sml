@@ -390,7 +390,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Check for symbol definitions with clashing names.                         *)
+(* Warn about symbol definitions with clashing names.                        *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -455,32 +455,34 @@ local
         state
       end;
 
-  fun addSymObj nm (n,obj) =
+  fun finalizeState state =
       let
-        val objs = Option.getOpt (NameMap.peek nm n, ObjectSet.empty)
+        val State {typeOps,consts,...} = state
+
+        val ts = Term.toSetSharingTypeOps typeOps
+        and cs = Term.toSetSharingConsts consts
       in
-        NameMap.insert nm (n, ObjectSet.add objs obj)
+        (ts,cs)
       end;
 
-  fun addSymbol (obj,(tm,cm)) =
-      case total Object.destTypeOp obj of
-        SOME t => (addSymObj tm (TypeOp.name t, obj), cm)
-      | NONE =>
-        case total Object.destConst obj of
-          SOME c => (tm, addSymObj cm (Const.name c, obj))
-        | NONE =>
-          raise Bug "ObjectExport.checkClash.categorize";
+  fun check xstr xsize (n,xs) =
+      if xsize xs = 1 then ()
+      else
+        let
+          val msg = "multiple " ^ xstr ^ "s called " ^ Name.toString n
+        in
+          warn msg
+        end;
+
+  val checkTypeOp = check "type operator" TypeOpSet.size
+  and checkConst = check "constant" ConstSet.size;
 in
-  fun checkClash exp =
+  fun warnClashingSymbols exp =
       let
-        val state = fold addThm initialState exp
+        val (ts,cs) = finalizeState (fold addThm initialState exp)
 
-        val sym = proofSymbol exp
-
-        val ts = NameMap.new ()
-        and cs = NameMap.new ()
-
-        val (ts,cs) = ObjectSymbol.fold addSymbol (ts,cs) sym
+        val () = NameMap.app checkTypeOp (TypeOpSet.categorize ts)
+        and () = NameMap.app checkConst (ConstSet.categorize cs)
       in
         ()
       end;

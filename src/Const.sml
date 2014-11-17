@@ -368,4 +368,29 @@ struct type t = Const.const val compare = Const.compare end
 
 structure ConstMap = KeyMap (ConstOrdered)
 
-structure ConstSet = ElementSet (ConstMap)
+structure ConstSet =
+struct
+
+local
+  structure S = ElementSet (ConstMap);
+in
+  open S;
+end;
+
+val categorize =
+    let
+      fun inc (c,nm) =
+          let
+            val n = Const.name c
+
+            val cs = Option.getOpt (NameMap.peek nm n, empty)
+          in
+            NameMap.insert nm (n, add cs c)
+          end
+    in
+      foldl inc (NameMap.new ())
+    end;
+
+val pp = Print.ppBracket "{" "}" (Print.ppMap size Print.ppInt);
+
+end
