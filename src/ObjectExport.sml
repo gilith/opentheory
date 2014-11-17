@@ -393,12 +393,98 @@ end;
 (* Check for symbol definitions with clashing names.                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun checkClash exp =
-    let
-      val sym = proofSymbol exp
-    in
-      ()
-    end;
+local
+  datatype state =
+      State of
+        {typeOps : Term.sharingTypeOps,
+         consts : Term.sharingConsts,
+         seen : IntSet.set};
+
+  val initialState =
+      let
+        val typeOps = Term.emptySharingTypeOps
+        and consts = Term.emptySharingConsts
+        and seen = IntSet.empty
+      in
+        State
+          {typeOps = typeOps,
+           consts = consts,
+           seen = seen}
+      end;
+
+  fun preDescent obj state =
+      let
+        val State {seen,...} = state
+
+        val unseen = not (IntSet.member (Object.id obj) seen)
+      in
+        {descend = unseen, result = state}
+      end;
+
+  fun postDescent obj state =
+      let
+        val State {typeOps,consts,seen} = state
+
+        val d = Object.data obj
+
+        val typeOps = ObjectData.addSharingTypeOps d typeOps
+        and consts = ObjectData.addSharingConsts d consts
+        and seen = IntSet.add seen (Object.id obj)
+      in
+        State
+          {typeOps = typeOps,
+           consts = consts,
+           seen = seen}
+      end;
+
+  val addObject =
+      Object.foldl
+        {preDescent = preDescent,
+         postDescent = postDescent};
+
+  fun addThm (th,state) =
+      let
+        val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
+
+        val state = addObject state proof
+
+        val state = addObject state hyp
+
+        val state = addObject state concl
+      in
+        state
+      end;
+
+  fun addSymObj nm (n,obj) =
+      let
+        val objs = Option.getOpt (NameMap.peek nm n, ObjectSet.empty)
+      in
+        NameMap.insert nm (n, ObjectSet.add objs obj)
+      end;
+
+  fun addSymbol (obj,(tm,cm)) =
+      case total Object.destTypeOp obj of
+        SOME t => (addSymObj tm (TypeOp.name t, obj), cm)
+      | NONE =>
+        case total Object.destConst obj of
+          SOME c => (tm, addSymObj cm (Const.name c, obj))
+        | NONE =>
+          raise Bug "ObjectExport.checkClash.categorize";
+in
+  fun checkClash exp =
+      let
+        val state = fold addThm initialState exp
+
+        val sym = proofSymbol exp
+
+        val ts = NameMap.new ()
+        and cs = NameMap.new ()
+
+        val (ts,cs) = ObjectSymbol.fold addSymbol (ts,cs) sym
+      in
+        ()
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Branding theorems.                                                        *)

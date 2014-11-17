@@ -41,4 +41,10 @@ fun peekConst sym c = ObjectStore.peek sym (ObjectData.Const c);
 
 val addObject = ObjectStore.add;
 
+(* ------------------------------------------------------------------------- *)
+(* Iterating over symbol objects.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val fold = ObjectStore.fold;
+
 end

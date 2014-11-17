@@ -95,11 +95,6 @@ local
           end
       end;
 
-  fun addUnseenObj (obj,store) =
-      case addUnseen store obj of
-        NONE => store
-      | SOME store => addObj obj store;
-
   fun postDescent obj store = addObj obj store;
 in
   val add =
@@ -162,6 +157,19 @@ in
           (obj,store)
         end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Iterating over objects in the store.                                      *)
+(* ------------------------------------------------------------------------- *)
+
+fun fold f b store =
+    let
+      val Store {data,...} = store
+
+      fun f' (_,obj,acc) = f (obj,acc)
+    in
+      ObjectDataMap.foldl f' b data
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)

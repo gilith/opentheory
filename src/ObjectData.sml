@@ -513,6 +513,64 @@ fun command d =
        | h :: t => (Command.Cons, [h, List t]));
 
 (* ------------------------------------------------------------------------- *)
+(* Type operators.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun add (d,share) =
+      case d of
+        Num _ => share
+      | Name _ => share
+      | TypeOp t => Term.addTypeOpSharingTypeOps t share
+      | Type ty => Term.addTypeSharingTypeOps ty share
+      | Const _ => share
+      | Var v => Term.addTypeSharingTypeOps (Var.typeOf v) share
+      | Term tm => Term.addSharingTypeOps tm share
+      | Thm th => Sequent.addSharingTypeOps (Thm.sequent th) share
+      | List ds => List.foldl add share ds;
+in
+  fun addSharingTypeOps d share = add (d,share);
+end;
+
+fun typeOps d =
+    let
+      val share = Term.emptySharingTypeOps
+
+      val share = addSharingTypeOps d share
+    in
+      Term.toSetSharingTypeOps share
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun add (d,share) =
+      case d of
+        Num _ => share
+      | Name _ => share
+      | TypeOp _ => share
+      | Type _ => share
+      | Const c => Term.addConstSharingConsts c share
+      | Var _ => share
+      | Term tm => Term.addSharingConsts tm share
+      | Thm th => Sequent.addSharingConsts (Thm.sequent th) share
+      | List ds => List.foldl add share ds;
+in
+  fun addSharingConsts d share = add (d,share);
+end;
+
+fun consts d =
+    let
+      val share = Term.emptySharingConsts
+
+      val share = addSharingConsts d share
+    in
+      Term.toSetSharingConsts share
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Searching for subterms.                                                   *)
 (* ------------------------------------------------------------------------- *)
 

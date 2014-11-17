@@ -32,4 +32,10 @@ val peekConst : symbol -> Const.const -> Object.object option
 
 val addObject : symbol -> Object.object -> symbol
 
+(* ------------------------------------------------------------------------- *)
+(* Iterating over symbol objects.                                            *)
+(* ------------------------------------------------------------------------- *)
+
+val fold : (Object.object * 's -> 's) -> 's -> symbol -> 's
+
 end

@@ -260,6 +260,22 @@ val symbolAddList : SymbolTable.table -> data list -> SymbolTable.table
 val command : data -> Command.command * data list
 
 (* ------------------------------------------------------------------------- *)
+(* Type operators.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val addSharingTypeOps : data -> Term.sharingTypeOps -> Term.sharingTypeOps
+
+val typeOps : data -> TypeOpSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val addSharingConsts : data -> Term.sharingConsts -> Term.sharingConsts
+
+val consts : data -> ConstSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Searching for subterms.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
