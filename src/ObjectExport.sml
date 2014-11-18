@@ -469,7 +469,7 @@ local
       if xsize xs = 1 then ()
       else
         let
-          val msg = "multiple " ^ xstr ^ "s called " ^ Name.toString n
+          val msg = "different " ^ xstr ^ "s called " ^ Name.toString n
         in
           warn msg
         end;
