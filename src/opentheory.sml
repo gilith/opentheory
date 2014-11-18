@@ -887,7 +887,7 @@ in
           beginOpt (stringOpt endOpt)
             (fn f => fn s => setInfoOutputVersion f s)},
        {switches = ["--show-assumptions"], arguments = [],
-        description = "do not omit satisfied assumptions",
+        description = "do not hide satisfied assumptions",
         processor = beginOpt endOpt (fn _ => showAssumptionsInfo := true)},
        {switches = ["--show-derivations"], arguments = [],
         description = "show assumptions and axioms for each theorem",

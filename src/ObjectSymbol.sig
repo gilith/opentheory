@@ -26,6 +26,8 @@ val peekTypeOp : symbol -> TypeOp.typeOp -> Object.object option
 
 val peekConst : symbol -> Const.const -> Object.object option
 
+val peekSymbol : symbol -> Symbol.symbol -> Object.object option
+
 (* ------------------------------------------------------------------------- *)
 (* Harvesting symbols from objects (and their provenances).                  *)
 (* ------------------------------------------------------------------------- *)

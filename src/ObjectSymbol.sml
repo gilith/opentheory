@@ -35,6 +35,11 @@ fun peekTypeOp sym ot = ObjectStore.peek sym (ObjectData.TypeOp ot);
 
 fun peekConst sym c = ObjectStore.peek sym (ObjectData.Const c);
 
+fun peekSymbol sym s =
+    case s of
+      Symbol.TypeOp t => peekTypeOp sym t
+    | Symbol.Const c => peekConst sym c;
+
 (* ------------------------------------------------------------------------- *)
 (* Harvesting symbols from objects (and their provenances).                  *)
 (* ------------------------------------------------------------------------- *)

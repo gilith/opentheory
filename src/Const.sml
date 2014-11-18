@@ -377,7 +377,7 @@ in
   open S;
 end;
 
-val categorize =
+val alphabetize =
     let
       fun inc (c,nm) =
           let

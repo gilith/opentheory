@@ -481,8 +481,8 @@ in
       let
         val (ts,cs) = finalizeState (fold addThm initialState exp)
 
-        val () = NameMap.app checkTypeOp (TypeOpSet.categorize ts)
-        and () = NameMap.app checkConst (ConstSet.categorize cs)
+        val () = NameMap.app checkTypeOp (TypeOpSet.alphabetize ts)
+        and () = NameMap.app checkConst (ConstSet.alphabetize cs)
       in
         ()
       end;
