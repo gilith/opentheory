@@ -183,7 +183,6 @@ fun execute cmd state =
 (*OpenTheoryTrace2
           val () = Print.trace Object.pp "ObjectRead.execute appTerm" obj
 *)
-
           val stack = ObjectStack.push stack obj
         in
           State
@@ -206,7 +205,6 @@ fun execute cmd state =
 (*OpenTheoryTrace2
           val () = Print.trace Object.pp "ObjectRead.execute appThm" obj
 *)
-
           val stack = ObjectStack.push stack obj
         in
           State
@@ -394,6 +392,9 @@ fun execute cmd state =
 
           val n = Interpretation.interpretConst interpretation n
 
+(*OpenTheoryTrace1
+          val () = chat ("Defining constant " ^ Name.toString n)
+*)
           val (obj0,obj1) =
               Object.mkDefineConst {savable = savable} n objT
 
@@ -424,6 +425,9 @@ fun execute cmd state =
 
                   val n = Interpretation.interpretConst interpretation n
 
+(*OpenTheoryTrace1
+                  val () = chat ("Defining constant " ^ Name.toString n)
+*)
                   val objN = Object.mkName n
 
                   val objNV = Object.mkCons {savable = savable} objN objV
@@ -469,6 +473,11 @@ fun execute cmd state =
 
           val r = Interpretation.interpretConst interpretation r
 
+(*OpenTheoryTrace1
+          val () = chat ("Defining type operator " ^ Name.toString n)
+          and () = chat ("Defining constant " ^ Name.toString a)
+          and () = chat ("Defining constant " ^ Name.toString r)
+*)
           val (obj0,obj1,obj2,obj3,obj4) =
               Object.mkDefineTypeOp {savable = savable} n a r objV objT
 
@@ -736,7 +745,6 @@ fun execute cmd state =
 (*OpenTheoryTrace4
           val () = Print.trace Object.pp "subst objS" objS
 *)
-
           val stack = ObjectStack.push stack obj
         in
           State
