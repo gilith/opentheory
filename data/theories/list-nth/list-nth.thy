@@ -1,5 +1,5 @@
 name: list-nth
-version: 1.61
+version: 1.62
 description: The list nth function
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,8 +26,8 @@ def {
 
 thm {
   import: def
-  package: list-nth-thm-1.61
-  checksum: 53fb2b098005ee45ece7b9545e0776529d594756
+  package: list-nth-thm-1.62
+  checksum: 138b667c7c954983a3c8527ef07eb4fcc1fcb231
 }
 
 main {

@@ -1,5 +1,5 @@
 name: natural-bits
-version: 1.44
+version: 1.45
 description: Natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -24,8 +24,8 @@ def {
 
 thm {
   import: def
-  package: natural-bits-thm-1.40
-  checksum: 10baeb43c13e701962d4d64b6700463611a101a9
+  package: natural-bits-thm-1.41
+  checksum: 7447544bbf0d514f14e8217af7ddcc6888cdfb1d
 }
 
 main {

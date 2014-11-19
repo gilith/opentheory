@@ -1,5 +1,5 @@
 name: list-dest
-version: 1.49
+version: 1.50
 description: List type destructors
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,8 +10,8 @@ show: "Data.Bool"
 show: "Data.List"
 
 def {
-  package: list-dest-def-1.53
-  checksum: 103d4a9c481f3c19ba6147342de1b63d3aa80e07
+  package: list-dest-def-1.54
+  checksum: 193ec44f143c1d17f56d97181251c2b5b9a19b42
 }
 
 thm {

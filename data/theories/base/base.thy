@@ -1,5 +1,5 @@
 name: base
-version: 1.167
+version: 1.169
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,8 +16,8 @@ show: "Relation"
 show: "Set"
 
 bool {
-  package: bool-1.35
-  checksum: 52603957fbfe8dcca42a251a3bc5bda57325538c
+  package: bool-1.36
+  checksum: e32a8773b452a57dd074d284f71d77234e1f9fbf
 }
 
 unit {
@@ -28,8 +28,8 @@ unit {
 
 function {
   import: bool
-  package: function-1.54
-  checksum: 3d0e53f12ce723733d48ef0fb5c8b93eee22d1ac
+  package: function-1.55
+  checksum: 35d4e6c28baaee5cee8c39751d651af7d7cfe5dc
 }
 
 pair {
@@ -41,8 +41,8 @@ pair {
 natural {
   import: bool
   import: function
-  package: natural-1.100
-  checksum: 2b47244652012ec91797e0100128d6597bcbde59
+  package: natural-1.102
+  checksum: 33de6bc92a8edc786e08a89f9c2273fde00a7817
 }
 
 set {
@@ -50,8 +50,8 @@ set {
   import: function
   import: pair
   import: natural
-  package: set-1.69
-  checksum: a85efa494254af9077aacbd76fddccaf6939acf0
+  package: set-1.70
+  checksum: 97ad851e12492552c60989607e0cd134c66771ae
 }
 
 relation {
@@ -60,24 +60,24 @@ relation {
   import: pair
   import: natural
   import: set
-  package: relation-1.58
-  checksum: 8eca653b801a207bb028a4ffc027be0f769dc9e7
+  package: relation-1.59
+  checksum: 887c60d783b8861514b89fd1671807063cbaf131
 }
 
 sum {
   import: bool
   import: pair
   import: natural
-  package: sum-1.58
-  checksum: 9c66c8a4b210a82f404fb108990b94b74be0a553
+  package: sum-1.59
+  checksum: 18095ea5fe7725e0df71ed5a3496c5b0910b91b4
 }
 
 option {
   import: bool
   import: function
   import: natural
-  package: option-1.70
-  checksum: 0112985521bfdc30803733a96ba5de08c96f330d
+  package: option-1.71
+  checksum: ce900f8898c12b26c8e92ef737fde9304c610dfb
 }
 
 list {
@@ -86,8 +86,8 @@ list {
   import: pair
   import: natural
   import: set
-  package: list-1.99
-  checksum: a2e9043d51539df9825f50729b9bd3f0316d9005
+  package: list-1.100
+  checksum: 8e9126c985067e98b50643cbf9b1e92d0390597e
 }
 
 real {

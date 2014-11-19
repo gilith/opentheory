@@ -1,5 +1,5 @@
 name: natural-prime-stream
-version: 1.27
+version: 1.28
 description: The ordered stream of all prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,8 +21,8 @@ def {
 
 thm {
   import: def
-  package: natural-prime-stream-thm-1.25
-  checksum: 33eb28dc95baa039073a41d5a0327cebb2a2374c
+  package: natural-prime-stream-thm-1.26
+  checksum: 7784e3c3d1560fb535219447c78cd1fcb40c367c
 }
 
 main {

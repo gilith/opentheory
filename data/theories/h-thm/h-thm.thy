@@ -1,9 +1,9 @@
 name: h-thm
-version: 1.115
+version: 1.116
 description: Proof of memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-09
+provenance: HOL Light theory extracted on 2014-11-17
 requires: base
 requires: h-def
 requires: word10

@@ -1,5 +1,5 @@
 name: natural
-version: 1.100
+version: 1.102
 description: The natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,8 +22,8 @@ def {
 
 thm {
   import: def
-  package: natural-thm-1.21
-  checksum: 7fe40861708e2c0e88f9ef8d31239946a31c7547
+  package: natural-thm-1.22
+  checksum: 5c21d070b2f254a88335be15c935de8808de25b6
 }
 
 dest {
@@ -41,8 +41,8 @@ numeral {
 order {
   import: def
   import: thm
-  package: natural-order-1.50
-  checksum: bfdc3e3c0b5a5a44ba49f38d7cade908e7bd0fba
+  package: natural-order-1.51
+  checksum: b7a83b40e6b31c86ffcda7d342507136de8b7365
 }
 
 add {
@@ -51,8 +51,8 @@ add {
   import: dest
   import: numeral
   import: order
-  package: natural-add-1.63
-  checksum: 736e27b82c3af2c8c7624a77fa9f4e900a05abda
+  package: natural-add-1.65
+  checksum: 0cdb8b389a4da2c26c7d544006acc579454f0e86
 }
 
 mult {
@@ -61,8 +61,8 @@ mult {
   import: numeral
   import: order
   import: add
-  package: natural-mult-1.60
-  checksum: ceea5c6888044c22c464a8eb2126506892cbb1b8
+  package: natural-mult-1.61
+  checksum: 9c28888dd90df611c9be94870701eb5d4713d069
 }
 
 div {
@@ -72,8 +72,8 @@ div {
   import: order
   import: add
   import: mult
-  package: natural-div-1.50
-  checksum: 1beeb5553671eff75816959b7f1d2146f4fc28fd
+  package: natural-div-1.51
+  checksum: 4f89e0853a2442bbe65cdea73e708ce31692889a
 }
 
 exp {
@@ -84,8 +84,8 @@ exp {
   import: add
   import: mult
   import: div
-  package: natural-exp-1.51
-  checksum: 7e34ceeac37372ab795af12d98a8c70999237e45
+  package: natural-exp-1.52
+  checksum: 5f50d2adce79514bea5aa57911259a2067f23c15
 }
 
 factorial {

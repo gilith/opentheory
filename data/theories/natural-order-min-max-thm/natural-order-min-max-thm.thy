@@ -1,9 +1,9 @@
 name: natural-order-min-max-thm
-version: 1.33
+version: 1.34
 description: Properties of natural number min and max functions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: HOLLight
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2014-11-17
 requires: bool
 requires: natural-order-def
 requires: natural-order-min-max-def

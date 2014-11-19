@@ -1,5 +1,5 @@
 name: parser-stream
-version: 1.97
+version: 1.98
 description: Parse streams
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -28,8 +28,8 @@ def {
 
 thm {
   import: def
-  package: parser-stream-thm-1.95
-  checksum: ac50cde509f3f4d1cc3b4dc6d22657d8e20b450a
+  package: parser-stream-thm-1.96
+  checksum: 437d6bbb749b753568a4be5ce7558d071d360cc0
 }
 
 main {

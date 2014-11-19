@@ -1,13 +1,13 @@
 name: bool
-version: 1.35
+version: 1.36
 description: Boolean operators and quantifiers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 show: "Data.Bool"
 
 def {
-  package: bool-def-1.10
-  checksum: 1eeee88a839070b8f3f6adfbdeb61911bd140360
+  package: bool-def-1.11
+  checksum: 0a4ed62119c317adca068ae0550c03a7c636698c
 }
 
 int {
@@ -42,8 +42,8 @@ class {
   import: axiom-extensionality
   import: ext
   import: axiom-choice
-  package: bool-class-1.25
-  checksum: 67a0d94c7ba1b96c98f5775db1d69fc1a3581651
+  package: bool-class-1.26
+  checksum: fb920a4b2e4781662abded394cbcd9b3ece5b21b
 }
 
 main {

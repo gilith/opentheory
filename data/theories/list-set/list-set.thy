@@ -1,5 +1,5 @@
 name: list-set
-version: 1.54
+version: 1.55
 description: List to set conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,8 +21,8 @@ def {
 
 thm {
   import: def
-  package: list-set-thm-1.50
-  checksum: 79b0a5fbf1423de0767387fbbe042b15c1742415
+  package: list-set-thm-1.51
+  checksum: dfce74d73076ed1b5b4ad160cb1b1ef3873c5861
 }
 
 main {

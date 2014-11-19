@@ -1,5 +1,5 @@
 name: list
-version: 1.99
+version: 1.100
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,15 +22,15 @@ def {
 
 thm {
   import: def
-  package: list-thm-1.54
-  checksum: 6b679e8c60feaa38c7c85887716b299bd5888234
+  package: list-thm-1.55
+  checksum: ad4e20d2a7cc4abcd7553428a7b248f548475f36
 }
 
 dest {
   import: def
   import: thm
-  package: list-dest-1.49
-  checksum: 2cc5c045741b3cefd3de25229ea3742ff12f626c
+  package: list-dest-1.50
+  checksum: 8ddb9caa57e83c2d898166ef9c114a5d4dfcfd0a
 }
 
 length {
@@ -45,8 +45,8 @@ set {
   import: def
   import: dest
   import: length
-  package: list-set-1.54
-  checksum: 20b2942b2b9641365f92d0dabee146ec1f4be9f7
+  package: list-set-1.55
+  checksum: 1970bbccbd9e1ea742df1b79249b2a6ecd6174c2
 }
 
 append {
@@ -55,8 +55,8 @@ append {
   import: dest
   import: length
   import: set
-  package: list-append-1.58
-  checksum: cb776d9276ea7a4f791a98db414fedc55adbde00
+  package: list-append-1.59
+  checksum: 6e0d26ce66604917635099b9147448640a708170
 }
 
 map {
@@ -76,8 +76,8 @@ filter {
   import: set
   import: append
   import: map
-  package: list-filter-1.54
-  checksum: b94b28a3f965671cb7077d216175c99ccbc584af
+  package: list-filter-1.55
+  checksum: 12c55193f9ba7cb378c318b174bd6aab7c32c8a1
 }
 
 last {
@@ -115,8 +115,8 @@ nth {
   import: append
   import: map
   import: last
-  package: list-nth-1.61
-  checksum: 35fdd28af7d3bc96c4c4f9ec6b04a46780c3e3a3
+  package: list-nth-1.62
+  checksum: 9ecb1d7d4d3a567ec08f4034a9fbf00be1617bd5
 }
 
 replicate {
@@ -139,8 +139,8 @@ take-drop {
   import: append
   import: nth
   import: replicate
-  package: list-take-drop-1.62
-  checksum: 5207642d41b4d0434e0245c8953838ce801aa38c
+  package: list-take-drop-1.63
+  checksum: a8d0f2a72e094d860531d9c8b76c38997eebf6b2
 }
 
 interval {

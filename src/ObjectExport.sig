@@ -70,6 +70,16 @@ val thmDefinitions : export -> ObjectSymbol.symbol
 
 val proofDefinitions : export -> ObjectSymbol.symbol
 
+val thmSymbols : export -> {typeOps : TypeOpSet.set, consts : ConstSet.set}
+
+val proofSymbols : export -> {typeOps : TypeOpSet.set, consts : ConstSet.set}
+
+val warnClashingSymbols :
+    {typeOps : TypeOpSet.set, consts : ConstSet.set} -> unit
+
+val ppSymbols :
+    {typeOps : TypeOpSet.set, consts : ConstSet.set} Print.pp
+
 (* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)
 (* ------------------------------------------------------------------------- *)
@@ -87,12 +97,6 @@ val setVersion : ArticleVersion.version -> export -> export option
 (* ------------------------------------------------------------------------- *)
 
 val compress : export -> export option
-
-(* ------------------------------------------------------------------------- *)
-(* Warn about symbol definitions with clashing names.                        *)
-(* ------------------------------------------------------------------------- *)
-
-val warnClashingSymbols : export -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Branding theorems.                                                        *)

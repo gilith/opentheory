@@ -1,5 +1,5 @@
 name: haskell
-version: 1.94
+version: 1.95
 description: The Haskell base
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -37,8 +37,8 @@ def {
 
 thm {
   import: def
-  package: haskell-thm-1.62
-  checksum: ba119ae7e89a12d9d3d4c556d79840504aeb321f
+  package: haskell-thm-1.63
+  checksum: fe3253a55a2e711e4851683be5975c3d4f1dd003
 }
 
 src {

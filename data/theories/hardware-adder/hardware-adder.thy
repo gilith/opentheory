@@ -1,5 +1,5 @@
 name: hardware-adder
-version: 1.15
+version: 1.16
 description: Hardware adder devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,14 +14,14 @@ show: "Hardware"
 show: "Number.Natural"
 
 def {
-  package: hardware-adder-def-1.12
-  checksum: ad64c40400339d50b57ea1b3e66d9974ed74192a
+  package: hardware-adder-def-1.13
+  checksum: 3fa234c2ae9489fbfa28baa1a521910edc5cb91d
 }
 
 thm {
   import: def
-  package: hardware-adder-thm-1.18
-  checksum: 13f877448595c9ffe62091926ae96deb9b4c5571
+  package: hardware-adder-thm-1.19
+  checksum: b639a961443b18baf7bb9ab17c75237a86fc3034
 }
 
 main {

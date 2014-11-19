@@ -1,5 +1,5 @@
 name: option
-version: 1.70
+version: 1.71
 description: Option types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -25,8 +25,8 @@ thm {
 dest {
   import: def
   import: thm
-  package: option-dest-1.55
-  checksum: 21433634bc61793fff3366a1331ccf656379d259
+  package: option-dest-1.56
+  checksum: f23e3a6032268fd3c5e1525ee665f42defcfd83d
 }
 
 map {

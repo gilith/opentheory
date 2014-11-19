@@ -1,5 +1,5 @@
 name: word16
-version: 1.112
+version: 1.113
 description: 16-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,8 +22,8 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word16-def-1.79
-  checksum: 06980fe22c91d15bdcb84f955e791fb68f3871d3
+  package: word16-def-1.80
+  checksum: cda99deb09259ed27544a09f75face4e3a394677
 }
 
 bits {

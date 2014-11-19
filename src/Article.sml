@@ -111,6 +111,19 @@ end;
 fun summary art = Summary.fromThms (thms art);
 
 (* ------------------------------------------------------------------------- *)
+(* Article symbols.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun symbols art =
+    let
+      val ths = objects art
+
+      val exp = ObjectThms.toExport ths
+    in
+      ObjectExport.proofSymbols exp
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -218,7 +231,12 @@ fun toTextFile {article,version,filename} =
             NONE => exp
           | SOME exp => exp
 
-      val () = ObjectExport.warnClashingSymbols exp
+      val () =
+          let
+            val sym = ObjectExport.proofSymbols exp
+          in
+            ObjectExport.warnClashingSymbols sym
+          end
 
       val () =
           ObjectWrite.toTextFile

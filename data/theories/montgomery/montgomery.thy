@@ -1,5 +1,5 @@
 name: montgomery
-version: 1.21
+version: 1.22
 description: Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -23,14 +23,14 @@ def {
 
 thm {
   import: def
-  package: montgomery-thm-1.20
-  checksum: 345a31c5b821a265ec6a51fe132452846fd58d16
+  package: montgomery-thm-1.21
+  checksum: 0ff60cc84e2d7ba23cf384cf0dbd3cbac2564f94
 }
 
 hardware {
   import: thm
-  package: montgomery-hardware-1.3
-  checksum: 28dde5c6138584a371f03b5cce8b5f02d7abf353
+  package: montgomery-hardware-1.4
+  checksum: d7ba08b9599c3ebdb1dabdd22844c3acdd2265c0
 }
 
 main {

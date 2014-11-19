@@ -1,5 +1,5 @@
 name: hardware-multiplier
-version: 1.14
+version: 1.15
 description: Hardware multiplier devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,8 +16,8 @@ show: "Hardware"
 show: "Number.Natural"
 
 def {
-  package: hardware-multiplier-def-1.10
-  checksum: a2ff4a6b536de4d9c1f5ae2e60ccbb14c9c6f336
+  package: hardware-multiplier-def-1.11
+  checksum: 49a5687ae2bff4f6b9217c7d2cf1794656857b8c
 }
 
 thm {

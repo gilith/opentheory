@@ -1,5 +1,5 @@
 name: natural-add-sub
-version: 1.9
+version: 1.10
 description: Natural number subtraction
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,8 +20,8 @@ def {
 
 thm {
   import: def
-  package: natural-add-sub-thm-1.8
-  checksum: 1b078ad09c7cd1ccd023338accae550632e05ffd
+  package: natural-add-sub-thm-1.9
+  checksum: b2996afedade167ad7e4779748d63df24153b522
 }
 
 main {

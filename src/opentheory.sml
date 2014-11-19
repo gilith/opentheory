@@ -675,6 +675,7 @@ datatype info =
   | InferenceInfo
   | RequiresInfo
   | SummaryInfo
+  | SymbolsInfo
   | TagsInfo
   | TheoremsInfo
   | TheoryInfo;
@@ -682,6 +683,7 @@ datatype info =
 fun savableInfo info =
     case info of
       ArticleInfo _ => true
+    | SymbolsInfo => true
     | _ => false;
 
 datatype packageInfo =
@@ -873,6 +875,9 @@ in
        {switches = ["--assumptions"], arguments = [],
         description = "output package assumptions in article format",
         processor = beginOpt endOpt (fn f => addInfoOutput f AssumptionsInfo)},
+       {switches = ["--symbols"], arguments = [],
+        description = "list all symbols in the package",
+        processor = beginOpt endOpt (fn f => addInfoOutput f SymbolsInfo)},
        {switches = ["--includes"], arguments = [],
         description = "list included packages",
         processor = beginOpt endOpt (fn f => addInfoOutput f IncludesInfo)},
@@ -1291,14 +1296,14 @@ local
   val globalFooter = "";
 
   val allFormatsFooter =
-    describeInputFormat ^ "\n" ^
-    describeNameFormat ^ ".\n" ^
-    describeVersionFormat ^ ".\n" ^
-    describeFileFormat ^ ".\n" ^
-    describeInfoFormat ^ ".\n" ^
-    describeDirFormat ^ ".\n" ^
-    describeRepoFormat ^ ".\n" ^
-    describeQueryFormat;
+      describeInputFormat ^ "\n" ^
+      describeNameFormat ^ ".\n" ^
+      describeVersionFormat ^ ".\n" ^
+      describeFileFormat ^ ".\n" ^
+      describeInfoFormat ^ ".\n" ^
+      describeDirFormat ^ ".\n" ^
+      describeRepoFormat ^ ".\n" ^
+      describeQueryFormat;
 in
   val globalOptions =
       mkProgramOptions
@@ -2188,6 +2193,21 @@ local
              show = show,
              summary = sum,
              filename = filename}
+        end
+      | SymbolsInfo =>
+        let
+          val art =
+              case getArticle () of
+                SOME a => a
+              | NONE => raise Error "no article information available"
+
+          val sym = Article.symbols art
+
+          val () = ObjectExport.warnClashingSymbols sym
+
+          val strm = Print.toStream ObjectExport.ppSymbols sym
+        in
+          Stream.toTextFile file strm
         end
       | TagsInfo =>
         let

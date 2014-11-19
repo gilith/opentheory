@@ -1,5 +1,5 @@
 name: hardware-bus
-version: 1.43
+version: 1.44
 description: Hardware bus devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,8 +21,8 @@ def {
 
 thm {
   import: def
-  package: hardware-bus-thm-1.42
-  checksum: 02193452a8b2a0b51718235fa465672d52f6de12
+  package: hardware-bus-thm-1.43
+  checksum: e6c3c594a06f8f3bd4255757d233e0340ac2b0dc
 }
 
 main {

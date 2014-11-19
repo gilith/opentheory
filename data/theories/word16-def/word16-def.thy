@@ -1,5 +1,5 @@
 name: word16-def
-version: 1.79
+version: 1.80
 description: Definition of 16-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -48,8 +48,8 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word16.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word16.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word16.Bits.toWord"
-  package: word-1.103
-  checksum: 1ac1057bfd12cf346b4abe9857745c4bf8f566ff
+  package: word-1.104
+  checksum: 229cd9aba3fbbf3bc27d841f97a6f7d3ec671247
 }
 
 main {

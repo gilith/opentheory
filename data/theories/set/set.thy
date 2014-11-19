@@ -1,5 +1,5 @@
 name: set
-version: 1.69
+version: 1.70
 description: Set types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,8 +14,8 @@ show: "Number.Natural"
 show: "Set"
 
 def {
-  package: set-def-1.51
-  checksum: 0ec28d6a978c3306f3c7f413b53bcbae3d938a16
+  package: set-def-1.52
+  checksum: a130d0c53fa5eb070f40b36d2fe74d500eab3a65
 }
 
 thm {
@@ -27,8 +27,8 @@ thm {
 finite {
   import: def
   import: thm
-  package: set-finite-1.54
-  checksum: 6d5c255fcc24cef363627553425f98088e7dae5d
+  package: set-finite-1.55
+  checksum: a51bdda5ba233b4d9213b70114c601d27f39d41c
 }
 
 fold {

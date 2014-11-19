@@ -179,36 +179,213 @@ end;
 (* Symbols.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+val thmDefinitions =
+    let
+      fun add (th,sym) =
+          let
+            val ObjectThm.Thm {proof = _, hyp, concl} = ObjectThm.dest th
+
+            val sym = ObjectSymbol.addObject sym hyp
+
+            val sym = ObjectSymbol.addObject sym concl
+          in
+            sym
+          end
+    in
+      fold add ObjectSymbol.empty
+    end;
+
+val proofDefinitions =
+    let
+      fun addThm (th,sym) =
+          let
+            val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
+
+            val sym = ObjectSymbol.addObject sym proof
+
+            val sym = ObjectSymbol.addObject sym hyp
+
+            val sym = ObjectSymbol.addObject sym concl
+          in
+            sym
+          end
+    in
+      fold addThm ObjectSymbol.empty
+    end;
+
 local
-  fun addThm (th,sym) =
+  datatype state =
+      State of
+        {typeOps : Term.sharingTypeOps,
+         consts : Term.sharingConsts,
+         seen : IntSet.set};
+
+  val initialState =
       let
-        val ObjectThm.Thm {proof = _, hyp, concl} = ObjectThm.dest th
-
-        val sym = ObjectSymbol.addObject sym hyp
-
-        val sym = ObjectSymbol.addObject sym concl
+        val typeOps = Term.emptySharingTypeOps
+        and consts = Term.emptySharingConsts
+        and seen = IntSet.empty
       in
-        sym
+        State
+          {typeOps = typeOps,
+           consts = consts,
+           seen = seen}
+      end;
+
+  fun preDescent obj state =
+      let
+        val State {seen,...} = state
+
+        val unseen = not (IntSet.member (Object.id obj) seen)
+      in
+        {descend = unseen, result = state}
+      end;
+
+  fun postDescent obj state =
+      let
+        val State {typeOps,consts,seen} = state
+
+        val d = Object.data obj
+
+        val typeOps = ObjectData.addSharingTypeOps d typeOps
+        and consts = ObjectData.addSharingConsts d consts
+        and seen = IntSet.add seen (Object.id obj)
+      in
+        State
+          {typeOps = typeOps,
+           consts = consts,
+           seen = seen}
+      end;
+
+  val addObject =
+      Object.foldl
+        {preDescent = preDescent,
+         postDescent = postDescent};
+
+  fun finalizeState state =
+      let
+        val State {typeOps,consts,...} = state
+
+        val ts = Term.toSetSharingTypeOps typeOps
+        and cs = Term.toSetSharingConsts consts
+      in
+        {typeOps = ts, consts = cs}
       end;
 in
-  val thmDefinitions = fold addThm ObjectSymbol.empty;
+  val thmSymbols =
+      let
+        fun add (th,state) =
+            let
+              val ObjectThm.Thm {proof = _, hyp, concl} = ObjectThm.dest th
+
+              val state = addObject state hyp
+
+              val state = addObject state concl
+            in
+              state
+            end
+      in
+        fn exp => finalizeState (fold add initialState exp)
+      end;
+
+  val proofSymbols =
+      let
+        fun add (th,state) =
+            let
+              val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
+
+              val state = addObject state proof
+
+              val state = addObject state hyp
+
+              val state = addObject state concl
+            in
+              state
+            end
+      in
+        fn exp => finalizeState (fold add initialState exp)
+      end;
 end;
 
 local
-  fun addThm (th,sym) =
+  fun check xstr xsize (n,xs) =
       let
-        val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
-
-        val sym = ObjectSymbol.addObject sym proof
-
-        val sym = ObjectSymbol.addObject sym hyp
-
-        val sym = ObjectSymbol.addObject sym concl
+        val k = xsize xs
       in
-        sym
+        if k = 1 then ()
+        else
+          let
+            val msg =
+                Int.toString k ^ " different " ^ xstr ^ "s named " ^
+                Name.toString n
+          in
+            warn msg
+          end
       end;
+
+  val checkTypeOp = check "type operator" TypeOpSet.size
+  and checkConst = check "constant" ConstSet.size;
 in
-  val proofDefinitions = fold addThm ObjectSymbol.empty;
+  fun warnClashingSymbols {typeOps = ts, consts = cs} =
+      let
+        val () = NameMap.app checkTypeOp (TypeOpSet.alphabetize ts)
+        and () = NameMap.app checkConst (ConstSet.alphabetize cs)
+      in
+        ()
+      end;
+end;
+
+local
+  fun intersperse x =
+      let
+        fun f h t =
+            case t of
+              [] => [h]
+            | h' :: t => h :: x :: f h' t
+      in
+        fn [] => []
+         | h :: t => f h t
+      end;
+
+  fun ppList ppX prefix name xs =
+      let
+        val n = List.length xs
+      in
+        if n = 0 then []
+        else
+          [Print.inconsistentBlock 2
+             (Print.ppPrettyInt n ::
+              Print.space ::
+              Print.ppString prefix ::
+              Print.space ::
+              Print.ppString name ::
+              (if n = 1 then Print.skip else Print.ppString "s") ::
+              Print.ppString ":" ::
+              List.map (Print.sequence Print.break o ppX) xs)]
+      end;
+
+  fun ppTypeOps prefix ts =
+      ppList TypeOp.pp prefix "type operator" (TypeOpSet.toList ts);
+
+  fun ppConsts prefix cs =
+      ppList Const.pp prefix "constant" (ConstSet.toList cs);
+in
+  fun ppSymbols {typeOps = ts, consts = cs} =
+      let
+        val (xts,dts) = TypeOpSet.partition TypeOp.isUndef ts
+        and (xcs,dcs) = ConstSet.partition Const.isUndef cs
+
+        val blocks =
+            ppTypeOps "external" xts @
+            ppConsts "external" xcs @
+            ppTypeOps "defined" dts @
+            ppConsts "defined" dcs
+      in
+        if List.null blocks then Print.skip
+        else
+          Print.consistentBlock 0
+            (intersperse Print.newline blocks)
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -386,105 +563,6 @@ in
 *)
       in
         exp'
-      end;
-end;
-
-(* ------------------------------------------------------------------------- *)
-(* Warn about symbol definitions with clashing names.                        *)
-(* ------------------------------------------------------------------------- *)
-
-local
-  datatype state =
-      State of
-        {typeOps : Term.sharingTypeOps,
-         consts : Term.sharingConsts,
-         seen : IntSet.set};
-
-  val initialState =
-      let
-        val typeOps = Term.emptySharingTypeOps
-        and consts = Term.emptySharingConsts
-        and seen = IntSet.empty
-      in
-        State
-          {typeOps = typeOps,
-           consts = consts,
-           seen = seen}
-      end;
-
-  fun preDescent obj state =
-      let
-        val State {seen,...} = state
-
-        val unseen = not (IntSet.member (Object.id obj) seen)
-      in
-        {descend = unseen, result = state}
-      end;
-
-  fun postDescent obj state =
-      let
-        val State {typeOps,consts,seen} = state
-
-        val d = Object.data obj
-
-        val typeOps = ObjectData.addSharingTypeOps d typeOps
-        and consts = ObjectData.addSharingConsts d consts
-        and seen = IntSet.add seen (Object.id obj)
-      in
-        State
-          {typeOps = typeOps,
-           consts = consts,
-           seen = seen}
-      end;
-
-  val addObject =
-      Object.foldl
-        {preDescent = preDescent,
-         postDescent = postDescent};
-
-  fun addThm (th,state) =
-      let
-        val ObjectThm.Thm {proof,hyp,concl} = ObjectThm.dest th
-
-        val state = addObject state proof
-
-        val state = addObject state hyp
-
-        val state = addObject state concl
-      in
-        state
-      end;
-
-  fun finalizeState state =
-      let
-        val State {typeOps,consts,...} = state
-
-        val ts = Term.toSetSharingTypeOps typeOps
-        and cs = Term.toSetSharingConsts consts
-      in
-        (ts,cs)
-      end;
-
-  fun check xstr xsize (n,xs) =
-      if xsize xs = 1 then ()
-      else
-        let
-          val msg = "different " ^ xstr ^ "s called " ^ Name.toString n
-        in
-          warn msg
-        end;
-
-  val checkTypeOp = check "type operator" TypeOpSet.size
-  and checkConst = check "constant" ConstSet.size;
-in
-  fun warnClashingSymbols exp =
-      let
-        val (ts,cs) = finalizeState (fold addThm initialState exp)
-
-        val () = NameMap.app checkTypeOp (TypeOpSet.alphabetize ts)
-        and () = NameMap.app checkConst (ConstSet.alphabetize cs)
-      in
-        ()
       end;
 end;
 

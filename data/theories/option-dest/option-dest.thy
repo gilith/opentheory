@@ -1,5 +1,5 @@
 name: option-dest
-version: 1.55
+version: 1.56
 description: Option type destructors
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,8 +10,8 @@ show: "Data.Bool"
 show: "Data.Option"
 
 def {
-  package: option-dest-def-1.60
-  checksum: 320c42ccb9cf0e6c6681e5e9da3f5cb8fe2c8b78
+  package: option-dest-def-1.61
+  checksum: e188551ac0339cac419cb13ebfc102dc6b876402
 }
 
 thm {

@@ -1,5 +1,5 @@
 name: parser-comb
-version: 1.88
+version: 1.89
 description: Stream parser combinators
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,8 +21,8 @@ def {
 
 thm {
   import: def
-  package: parser-comb-thm-1.90
-  checksum: 7e1643dcfb9933f2d59e4de6e442f8eb8126ec77
+  package: parser-comb-thm-1.91
+  checksum: 6a85ae033ae9e7572facc4b6ef63ab11585d0cfc
 }
 
 main {

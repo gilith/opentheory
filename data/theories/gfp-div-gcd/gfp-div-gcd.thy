@@ -1,5 +1,5 @@
 name: gfp-div-gcd
-version: 1.63
+version: 1.64
 description: A GF(p) division algorithm based on gcd
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,8 +26,8 @@ def {
 
 thm {
   import: def
-  package: gfp-div-gcd-thm-1.62
-  checksum: 28492f78178668df21335fbc042bca3b457f86e5
+  package: gfp-div-gcd-thm-1.63
+  checksum: 253bd5ba3ceffb455c08a364e7b626cf6deb2706
 }
 
 main {

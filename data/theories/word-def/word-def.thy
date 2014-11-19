@@ -1,9 +1,9 @@
 name: word-def
-version: 1.69
+version: 1.70
 description: Definition of word operations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2014-11-17
 requires: bool
 requires: natural
 requires: natural-bits
@@ -35,8 +35,8 @@ modular {
   interpret: const "Number.Modular.fromRandom" as "Data.Word.fromRandom"
   interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
   interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
-  package: modular-1.83
-  checksum: 97bd4cdd379ab999b10c773ff3a258afc1a76973
+  package: modular-1.84
+  checksum: 6d6b63d3d5139ad4c6b4fffd50307c223b35d872
 }
 
 main {

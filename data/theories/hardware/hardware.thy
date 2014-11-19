@@ -1,5 +1,5 @@
 name: hardware
-version: 1.75
+version: 1.76
 description: Hardware devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -27,29 +27,29 @@ def {
 
 thm {
   import: def
-  package: hardware-thm-1.30
-  checksum: f7df20db276cdf89bc70160c34bd8f17cb8bdd71
+  package: hardware-thm-1.31
+  checksum: f1c3cab1316f4b9f2cbf6f0cf0fef15df51ada65
 }
 
 wire {
   import: thm
-  package: hardware-wire-1.21
-  checksum: dd4ef4594477fd865efead5135e3252576a3ac0e
+  package: hardware-wire-1.22
+  checksum: fb92094e3fd3c0f7a56ed1270787584b4eb284b9
 }
 
 bus {
   import: thm
   import: wire
-  package: hardware-bus-1.43
-  checksum: a2d6dc11290bc13e7c7bcb2c5a80dcdf0ffce512
+  package: hardware-bus-1.44
+  checksum: 4b6f52f33706482a9d4e5c1ad42762b56120cfd6
 }
 
 adder {
   import: thm
   import: wire
   import: bus
-  package: hardware-adder-1.15
-  checksum: c7d4fdc1bf50d04661ac25e3def050c5ee5a67f1
+  package: hardware-adder-1.16
+  checksum: 6a1c673de2ad025b3edb25e324bf83bde1c8db65
 }
 
 counter {
@@ -58,8 +58,8 @@ counter {
   import: wire
   import: bus
   import: adder
-  package: hardware-counter-1.18
-  checksum: 99aa849545ff47bb45d5371e0f81e176bb9b1b34
+  package: hardware-counter-1.19
+  checksum: 7ed4b42c3d0ac538f3ae8292703a235ca3fde75f
 }
 
 multiplier {
@@ -67,8 +67,8 @@ multiplier {
   import: bus
   import: counter
   import: adder
-  package: hardware-multiplier-1.14
-  checksum: 02a7057c803595de4b395765f7f0ec4110f38ba5
+  package: hardware-multiplier-1.15
+  checksum: a768e1cf79c2d64a485d7db5aaefe0a3a3df4e6c
 }
 
 main {
