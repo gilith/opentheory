@@ -81,7 +81,7 @@ in
         val savable = ObjectExport.savable exp
 
         val sym =
-            if savable then ObjectExport.thmSymbol exp
+            if savable then ObjectExport.thmDefinitions exp
             else ObjectSymbol.empty
 
         val otO = TypeOpSet.foldl (addTypeOp savable sym) otO ots
@@ -127,7 +127,12 @@ fun peekSpecificConst ths c =
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun pickSnd (_,(_,x)) = SOME x;
+  fun pickEarliest ((_,obj1),(_,obj2)) =
+      let
+        val obj = if Object.id obj1 <= Object.id obj2 then obj1 else obj2
+      in
+        SOME obj
+      end;
 in
   fun union thms1 thms2 =
       let
@@ -144,8 +149,8 @@ in
                export = exp2} = thms2
 
         val ths = Thms.union ths1 ths2
-        and ots = NameMap.union pickSnd ots1 ots2
-        and cons = NameMap.union pickSnd cons1 cons2
+        and ots = NameMap.union pickEarliest ots1 ots2
+        and cons = NameMap.union pickEarliest cons1 cons2
         and exp = ObjectExport.union exp1 exp2
       in
         Thms

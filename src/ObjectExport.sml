@@ -191,7 +191,7 @@ local
         sym
       end;
 in
-  val thmSymbol = fold addThm ObjectSymbol.empty;
+  val thmDefinitions = fold addThm ObjectSymbol.empty;
 end;
 
 local
@@ -208,7 +208,7 @@ local
         sym
       end;
 in
-  val proofSymbol = fold addThm ObjectSymbol.empty;
+  val proofDefinitions = fold addThm ObjectSymbol.empty;
 end;
 
 (* ------------------------------------------------------------------------- *)

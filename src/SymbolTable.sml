@@ -83,7 +83,8 @@ local
               else
                 let
                   val err =
-                      "duplicate type operator name " ^ Name.quotedToString n
+                      "different type operators named " ^
+                       Name.quotedToString n
                 in
                   raise Error err
                 end
@@ -105,7 +106,8 @@ local
               else
                 let
                   val err =
-                      "duplicate constant name " ^ Name.quotedToString n
+                      "different constants named " ^
+                       Name.quotedToString n
                 in
                   raise Error err
                 end

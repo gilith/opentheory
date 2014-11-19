@@ -66,9 +66,9 @@ val maps :
 (* Symbols.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val thmSymbol : export -> ObjectSymbol.symbol
+val thmDefinitions : export -> ObjectSymbol.symbol
 
-val proofSymbol : export -> ObjectSymbol.symbol
+val proofDefinitions : export -> ObjectSymbol.symbol
 
 (* ------------------------------------------------------------------------- *)
 (* Eliminate unwanted subterms.                                              *)
