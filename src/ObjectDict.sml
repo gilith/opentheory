@@ -34,4 +34,15 @@ fun remove (Dict dict) key =
     | NONE =>
       raise Error ("ObjectDict.remove: no entry for key " ^ Int.toString key);
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun pp dict =
+    let
+      val n = size dict
+    in
+      Print.ppBracket "[" "]" Print.ppInt n
+    end;
+
 end

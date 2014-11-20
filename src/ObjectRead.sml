@@ -64,11 +64,24 @@ fun inference (State {inference = x, ...}) = x;
 (* Executing commands.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun ppState (State {stack,...}) =
-    Print.consistentBlock 4
-      [Print.ppString "  stack =",
-       Print.break,
-       ObjectStack.pp stack];
+fun ppState (State {stack,dict,...}) =
+    Print.consistentBlock 0
+      [Print.consistentBlock 2
+         [Print.ppString "stack =",
+          Print.break,
+          ObjectStack.pp stack],
+       Print.newline,
+       Print.consistentBlock 2
+         [Print.ppString "dictionary =",
+          Print.break,
+          ObjectDict.pp dict]];
+
+fun ppTitleState (title,state) =
+    Print.consistentBlock 2
+      [Print.ppString title,
+       Print.ppString ":",
+       Print.newline,
+       ppState state];
 
 fun execute cmd state =
     let
@@ -643,9 +656,7 @@ fun execute cmd state =
           case pragma of
             SOME ("debug",[]) =>
             let
-              val msg =
-                  "debug pragma:\n" ^
-                  Print.toString ppState state
+              val msg = Print.toString ppTitleState ("debug pragma",state)
 
               val () = chat msg
             in

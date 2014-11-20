@@ -24,4 +24,10 @@ val refer : dict -> key -> Object.object
 
 val remove : dict -> key -> dict * Object.object
 
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : dict Print.pp
+
 end
