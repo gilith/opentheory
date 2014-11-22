@@ -638,10 +638,30 @@ val cleanupFooter =
 (* Options for exporting installed packages.                                 *)
 (* ------------------------------------------------------------------------- *)
 
+datatype export =
+    HaskellExport;
+
+local
+  val exportType : export option ref = ref NONE;
+in
+  fun getExport () =
+      case !exportType of
+        SOME exp => exp
+      | NONE => raise Error "no export type specified";
+
+  fun setExport exp =
+      case !exportType of
+        SOME _ => raise Error "multiple export types specified"
+      | NONE => exportType := SOME exp;
+end;
+
 local
   open Useful Options;
 in
-  val exportOpts : opt list = [];
+  val exportOpts : opt list =
+      [{switches = ["--haskell"], arguments = [],
+        description = "export as a Haskell project",
+        processor = beginOpt endOpt (fn _ => setExport HaskellExport)}];
 end;
 
 val exportFooter =
