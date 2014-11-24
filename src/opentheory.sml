@@ -1439,11 +1439,9 @@ in
         val repo = repository ()
 
         val namever = exportInput inp
-
-        val name = PackageNameVersion.name namever
       in
-        if PackageName.isHaskell name then Haskell.export repo namever
-        else raise Error ("unknown export type: " ^ PackageName.toString name)
+        case getExport () of
+          HaskellExport => Haskell.export repo namever
       end
       handle Error err =>
         raise Error (err ^ "\npackage export failed");

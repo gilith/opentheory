@@ -23,7 +23,7 @@ val convert :
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val toPackage : Repository.repository -> haskell -> unit
+val toPackage : haskell -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Export a theory to a Haskell package.                                     *)

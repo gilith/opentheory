@@ -155,7 +155,7 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 HASKELL_DIR = data/haskell
 
-HASKELL_OPENTHEORY_EXPORT = ../../$(OPENTHEORY) export
+HASKELL_OPENTHEORY_EXPORT = ../../$(OPENTHEORY) export --haskell
 
 HASKELL_OPENTHEORY_INFO = ../../$(OPENTHEORY) info
 

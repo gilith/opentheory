@@ -1,5 +1,5 @@
 name: opentheory
-version: 1.78
+version: 1.95
 category: Formal Methods
 synopsis: The Haskell base
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   The Haskell base - automatically generated from the opentheory package
-  haskell-1.78
+  haskell-1.95
 
 library
   build-depends:

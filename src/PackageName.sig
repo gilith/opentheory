@@ -126,20 +126,14 @@ val gilithRemote : name
 (* Haskell export names.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val haskell : name
+val mkHaskellName : name -> name
 
-val srcHaskellTheory : name
+val destHaskellTag : name -> name option
 
-val testHaskellTheory : name
+val intExtraTag : name
 
-val exportHaskell : name -> name option
+val srcExtraTag : name
 
-val isHaskell : name -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Export names.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-val isExport : name -> bool
+val testExtraTag : name
 
 end

@@ -15,5 +15,5 @@ import qualified OpenTheory.Primitive.Byte as Primitive.Byte
 toByte :: [Bool] -> Primitive.Byte.Byte
 toByte [] = 0
 toByte (h : t) =
-  if h then Primitive.Byte.shiftLeft (toByte t) 1 + 1
+  if h then 1 + Primitive.Byte.shiftLeft (toByte t) 1
   else Primitive.Byte.shiftLeft (toByte t) 1

@@ -16,6 +16,9 @@ import qualified OpenTheory.Primitive.Random as Primitive.Random
 divides :: Primitive.Natural.Natural -> Primitive.Natural.Natural -> Bool
 divides m n = if m == 0 then n == 0 else n `mod` m == 0
 
+fromBool :: Bool -> Primitive.Natural.Natural
+fromBool b = if b then 1 else 0
+
 fromRandom ::
   Primitive.Random.Random ->
     (Primitive.Natural.Natural, Primitive.Random.Random)
