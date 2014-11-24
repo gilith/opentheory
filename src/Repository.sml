@@ -792,9 +792,7 @@ fun postStagePackage repo fndr pkg warnSummary {tool} =
                     NONE => Summary.NoContext
                   | SOME ths => PackageTheorems.packageContext sum ths
 
-              val chkThms = not (PackageName.isExport name)
-
-              val chks = {checkTheorems = chkThms}
+              val chks = {checkTheorems = true}
             in
               PackageSummary.check chks ctxt (Package.show pkg) sum
             end

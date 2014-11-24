@@ -67,15 +67,7 @@ end;
 (* Exporting various OpenTheory names to Haskell.                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun exportPackageName name =
-    case PackageName.exportHaskell name of
-      SOME n => n
-    | NONE =>
-      let
-        val err = "non-Haskell package name: " ^ PackageName.toString name
-      in
-        raise Error err
-      end;
+val exportPackageName = PackageName.mkHaskellName;
 
 val opentheoryNamespace = Namespace.fromList ["OpenTheory"];
 
