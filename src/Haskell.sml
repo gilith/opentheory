@@ -69,8 +69,7 @@ end;
 
 val exportPackageName = PackageName.mkHaskellName;
 
-val opentheoryNamespace = Namespace.fromList ["OpenTheory"];
-
+(***
 local
   val haskellNamespace = Namespace.fromList ["Haskell"];
 in
@@ -81,13 +80,14 @@ in
         SOME ns => ns
       | NONE => raise Error ("non-Haskell namespace: " ^ Namespace.toString ns);
 end;
+***)
 
 local
   local
     fun mkName root ns =
         curry Name.mk (Namespace.append root (Namespace.fromList ns));
 
-    val primitiveRoot = Namespace.mkNested (opentheoryNamespace,"Primitive");
+    val primitiveRoot = Namespace.fromList ["OpenTheory"];
 
     val mkPrimitive = mkName primitiveRoot;
   in
@@ -100,7 +100,7 @@ local
   end;
 
   val typeOpMapping =
-      NameMap.fromList
+      List.map Interpretation.TypeOpRewrite
         [(* Native types *)
          (Name.boolTypeOp, mkNative "Bool"),
          (Name.funTypeOp, mkNative "->"),
@@ -115,7 +115,7 @@ local
          (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
 
   val constMapping =
-      NameMap.fromList
+      List.map Interpretation.ConstRewrite
         [(* Native constants *)
          (Name.addConst, mkNative "+"),
          (Name.addByteConst, mkNative "+"),
@@ -178,50 +178,10 @@ local
          (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
          (Name.splitConst, mkPrimitiveRandom "split"),
          (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
-
-  fun exportName n =
-      let
-        val (ns,n) = Name.dest n
-
-        val ns = exportNamespace ns
-      in
-        Name.mk (ns,n)
-      end;
 in
-  fun exportTypeOpName n =
-      case NameMap.peek typeOpMapping n of
-        SOME n => n
-      | NONE =>
-        exportName n
-        handle Error err =>
-          let
-            val err = "bad type operator name: " ^ Name.toString n ^ "\n" ^ err
-          in
-            raise Error err
-          end;
-
-  fun exportConstName n =
-      let
-        val () =
-            if not (Name.isCase n) then ()
-            else
-              let
-                val err = "case constant name: " ^ Name.toString n
-              in
-                raise Error err
-              end
-      in
-        case NameMap.peek constMapping n of
-          SOME n => n
-        | NONE =>
-          exportName n
-          handle Error err =>
-            let
-              val err = "bad constant name: " ^ Name.toString n ^ "\n" ^ err
-            in
-              raise Error err
-            end
-      end;
+  val primitiveInt =
+      Interpretation.fromRewriteList
+        (typeOpMapping @ constMapping);
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -295,6 +255,7 @@ datatype haskell =
 (* Haskell package dependencies.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+(***
 fun mkDepends repo pkg thy =
     let
       fun checkPrevious oldest ths vs =
@@ -384,6 +345,7 @@ fun mkDepends repo pkg thy =
     in
       List.map mk ths
     end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Symbols in Haskell declarations.                                          *)
@@ -845,6 +807,7 @@ fun destSource th =
         end
     end;
 
+(***
 fun destTests show =
     let
       fun ppTest (kind,n,test) =
@@ -940,6 +903,7 @@ fun destTests show =
     in
       dest [] []
     end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Sorting Haskell declarations into a module hierarchy.                     *)
@@ -1358,6 +1322,7 @@ end;
 (* Converting a theory to a Haskell package.                                 *)
 (* ------------------------------------------------------------------------- *)
 
+(***
 local
   fun getTheory name thys =
       case Theory.peekNested name thys of
@@ -1383,6 +1348,7 @@ in
          test = test}
       end;
 end;
+***)
 
 fun destSourceTheory src =
     let
@@ -1399,6 +1365,7 @@ fun destSourceTheory src =
       src
     end;
 
+(***
 fun destTestTheory show test =
     let
       val art = Theory.article test
@@ -1413,8 +1380,9 @@ fun destTestTheory show test =
     in
       tests
     end;
+***)
 
-fun convert repo namever =
+fun fromPackage repo namever =
     let
       val pkg =
           case Repository.peek repo namever of
@@ -1422,32 +1390,51 @@ fun convert repo namever =
           | NONE =>
             let
               val err =
-                  "theory " ^ PackageNameVersion.toString namever ^
+                  "package " ^ PackageNameVersion.toString namever ^
                   " is not installed"
             in
               raise Error err
             end
 
-      val finder = Repository.finder repo
+      val info = Package.information pkg
 
-      val graph = TheoryGraph.empty {savable = false}
-
-      val imps = TheorySet.empty
-
-      val int = Interpretation.natural
 
       val (_,thy) =
-          TheoryGraph.importPackage finder graph
-            {imports = imps,
-             interpretation = int,
-             package = pkg}
+          let
+            val sav = false
 
-      val {src,test} = splitTheories thy
+            val fndr = Repository.finder repo
 
-      val info = Package.information pkg
+            val graph = TheoryGraph.empty {savable = sav}
+
+            val imps = TheorySet.empty
+
+            val int = Interpretation.natural
+          in
+            TheoryGraph.importPackage fndr graph
+              {imports = imps,
+               interpretation = int,
+               package = pkg}
+          end
+
+      val src =
+          let
+            val sav = false
+
+            val imp = Theory.article thy
+
+            val int = Interpretation.natural
+          in
+            Article.fromTextFile
+              {savable = sav,
+               import = imp,
+               interpretation = int,
+               filename = filename}
+          end
+
       and deps = mkDepends repo pkg thy
       and source = mkModule (destSourceTheory src)
-      and tests = destTestTheory (Package.show pkg) test
+      and tests = []  (*** destTestTheory (Package.show pkg) test ***)
     in
       Haskell
         {information = info,

@@ -660,7 +660,7 @@ local
 in
   val exportOpts : opt list =
       [{switches = ["--haskell"], arguments = [],
-        description = "export as a Haskell project",
+        description = "export as a Haskell package",
         processor = beginOpt endOpt (fn _ => setExport HaskellExport)}];
 end;
 

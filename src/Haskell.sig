@@ -16,14 +16,14 @@ type haskell
 (* Converting a theory to a Haskell package.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val convert :
+val fromPackage :
     Repository.repository -> PackageNameVersion.nameVersion -> haskell
 
 (* ------------------------------------------------------------------------- *)
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val toPackage : haskell -> unit
+val writeHaskellPackage : haskell -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Export a theory to a Haskell package.                                     *)

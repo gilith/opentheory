@@ -180,8 +180,10 @@ local
   fun addName m x_y =
       let
         val (x,_) = x_y
-        val _ = not (NameMap.inDomain x m) orelse
-                raise Error "Interpretation.add: duplicate"
+
+        val () =
+            if not (NameMap.inDomain x m) then ()
+            else raise Error "Interpretation.add: duplicate"
       in
         NameMap.insert m x_y
       end;
