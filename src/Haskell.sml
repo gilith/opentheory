@@ -1632,6 +1632,7 @@ fun importSymbolTableSource s =
 fun importSymbolTableSourceList sl =
     SymbolTable.unionList (List.map importSymbolTableSource sl);
 
+(***
 local
   val targetNamespaces =
       let
@@ -1703,6 +1704,7 @@ in
            exportConsts = cs}
       end;
 end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell tags.                                                             *)
@@ -1733,6 +1735,7 @@ fun getTag (Tags m) n =
       SOME v => v
     | NONE => raise Bug "Haskell.getTag: not found";
 
+(***
 local
   fun overrideTag (tag,tags) =
       let
@@ -1778,6 +1781,7 @@ in
         Tags tags
       end;
 end;
+***)
 
 fun ppTag (n,v) =
     Print.inconsistentBlock 2
@@ -1815,7 +1819,7 @@ fun ppPackageTestName name =
       (PackageName.pp (exportPackageName name))
       (Print.ppString "-test");
 
-fun ppNamespace ns = Namespace.pp (exportNamespace ns);
+fun ppNamespace ns = Namespace.pp ( (*** exportNamespace ***) ns);
 
 local
   fun shortenNamespace namespace ns =
