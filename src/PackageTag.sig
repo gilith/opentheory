@@ -39,6 +39,8 @@ val destName : name -> tag -> value option
 
 val filterName : name -> tag list -> value list
 
+val partitionName : name -> tag list -> value list * tag list
+
 val getName : name -> tag list -> value  (* raises Error if non-unique *)
 
 (* ------------------------------------------------------------------------- *)

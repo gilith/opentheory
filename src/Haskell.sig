@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* GENERATING HASKELL PROJECTS FROM THEORY PACKAGES                          *)
+(* EXPORTING THEORY PACKAGES AS HASKELL PACKAGES                             *)
 (* Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
@@ -13,7 +13,7 @@ sig
 type haskell
 
 (* ------------------------------------------------------------------------- *)
-(* Converting a theory to a Haskell package.                                 *)
+(* Converting a theory package to a Haskell package.                         *)
 (* ------------------------------------------------------------------------- *)
 
 val fromPackage :
@@ -23,12 +23,13 @@ val fromPackage :
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val writeHaskellPackage : haskell -> unit
+val writePackage : haskell -> unit
 
 (* ------------------------------------------------------------------------- *)
-(* Export a theory to a Haskell package.                                     *)
+(* Exporting a theory package as a Haskell package.                          *)
 (* ------------------------------------------------------------------------- *)
 
-val export : Repository.repository -> PackageNameVersion.nameVersion -> unit
+val exportPackage :
+    Repository.repository -> PackageNameVersion.nameVersion -> unit
 
 end

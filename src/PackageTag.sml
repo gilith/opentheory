@@ -76,6 +76,16 @@ fun destName n tag =
 
 fun filterName name = List.mapPartial (destName name);
 
+fun partitionName name =
+    let
+      fun inc (t,(vs,ts)) =
+          case destName name t of
+            SOME v => (v :: vs, ts)
+          | NONE => (vs, t :: ts)
+    in
+      List.foldr inc ([],[])
+    end;
+
 fun peekName name tags =
     case filterName name tags of
       [] => NONE

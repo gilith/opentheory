@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* GENERATING HASKELL PROJECTS FROM THEORY PACKAGES                          *)
+(* EXPORTING THEORY PACKAGES AS HASKELL PACKAGES                             *)
 (* Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
@@ -188,6 +188,15 @@ end;
 (* A type of Haskell packages.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+datatype information =
+    Information of
+      {name : PackageName.name,
+       version : PackageVersion.version,
+       description : string,
+       author : PackageAuthor.author,
+       license : string,
+       tags : PackageTag.tag list};
+
 datatype depend =
     Depend of
       {name : PackageName.name,
@@ -246,10 +255,100 @@ datatype test =
 
 datatype haskell =
      Haskell of
-       {information : PackageInformation.information,
+       {information : information,
         depends : depend list,
         source : module,
         tests : test list};
+
+(* ------------------------------------------------------------------------- *)
+(* Haskell package information.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun destTag tag =
+      let
+        val PackageTag.Tag' {name = n, value = v} = PackageTag.dest tag
+      in
+        case PackageName.destHaskellTag n of
+          NONE => NONE
+        | SOME n =>
+          SOME (PackageTag.mk (PackageTag.Tag' {name = n, value = v}))
+      end;
+
+  fun peekTag name htags =
+      case PackageTag.partitionName name htags of
+        ([],_) => NONE
+      | ([v],htags) => SOME (v,htags)
+      | (_ :: _ :: _, _) =>
+        let
+          val err = "multiple haskell-" ^ PackageName.toString name ^ " tags"
+        in
+          raise Error err
+        end;
+
+  fun getTag name htags =
+      case peekTag name htags of
+        SOME v_htags => v_htags
+      | NONE =>
+        let
+          val err = "no haskell-" ^ PackageName.toString name ^ " tag"
+        in
+          raise Error err
+        end;
+in
+  fun mkInformation tags =
+      let
+        val htags = List.mapPartial destTag tags
+
+        val (name,htags) =
+            case peekTag PackageName.nameTag htags of
+              SOME (v,htags) => (PackageName.fromString v, htags)
+            | NONE =>
+              let
+                val n = PackageTag.findName tags
+              in
+                (exportPackageName n, htags)
+              end
+
+        val version = PackageTag.findVersion tags
+
+        val (description,htags) =
+            case peekTag PackageName.descriptionTag htags of
+              SOME (v,htags) => (v,htags)
+            | NONE =>
+              let
+                val {description} = PackageTag.findDescription tags
+              in
+                (description,htags)
+              end
+
+        val author = PackageTag.findAuthor tags
+
+        val (license,htags) =
+            case peekTag PackageName.licenseTag htags of
+              SOME (v,htags) => (v,htags)
+            | NONE =>
+              let
+                val {license} = PackageTag.findLicense tags
+              in
+                (license,htags)
+              end
+
+        val (srcFile,htags) = getTag PackageName.srcExtraTag htags
+
+        val info =
+            Information
+              {name = name,
+               version = version,
+               description = description,
+               author = author,
+               license = license,
+               tags = htags}
+      in
+        {information = info,
+         srcFilename = srcFile}
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell package dependencies.                                             *)
@@ -1303,6 +1402,19 @@ in
       end;
 end;
 
+fun mkSource art =
+    let
+      val ths = ThmSet.toList (Thms.thms (Article.thms art))
+
+      val src = List.map destSource ths
+
+      val src = groupSource src
+
+      val src = sortSource src
+    in
+      mkModule src
+    end;
+
 local
   fun exposed (module,acc) =
       let
@@ -1319,7 +1431,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Converting a theory to a Haskell package.                                 *)
+(* Converting a theory package to a Haskell package.                         *)
 (* ------------------------------------------------------------------------- *)
 
 (***
@@ -1349,21 +1461,6 @@ in
       end;
 end;
 ***)
-
-fun destSourceTheory src =
-    let
-      val art = Theory.article src
-
-      val ths = ThmSet.toList (Thms.thms (Article.thms art))
-
-      val src = List.map destSource ths
-
-      val src = groupSource src
-
-      val src = sortSource src
-    in
-      src
-    end;
 
 (***
 fun destTestTheory show test =
@@ -1396,8 +1493,12 @@ fun fromPackage repo namever =
               raise Error err
             end
 
-      val info = Package.information pkg
-
+      val {information = info, srcFilename} =
+          let
+            val info = Package.information pkg
+          in
+            mkInformation (PackageInformation.tags info)
+          end
 
       val (_,thy) =
           let
@@ -1424,6 +1525,8 @@ fun fromPackage repo namever =
             val imp = Theory.article thy
 
             val int = Interpretation.natural
+
+            val {filename} = Package.joinDirectory pkg {filename = srcFilename}
           in
             Article.fromTextFile
               {savable = sav,
@@ -1432,8 +1535,8 @@ fun fromPackage repo namever =
                filename = filename}
           end
 
-      and deps = mkDepends repo pkg thy
-      and source = mkModule (destSourceTheory src)
+      val deps = []  (*** mkDepends repo pkg thy ***)
+      and source = mkSource src
       and tests = []  (*** destTestTheory (Package.show pkg) test ***)
     in
       Haskell
@@ -2925,7 +3028,7 @@ fun toPackage repo haskell =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Export a theory to a Haskell package.                                     *)
+(* Exporting a theory package as a Haskell package.                          *)
 (* ------------------------------------------------------------------------- *)
 
 fun export repo namever =
