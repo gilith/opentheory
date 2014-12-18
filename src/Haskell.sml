@@ -82,6 +82,12 @@ in
 end;
 ***)
 
+fun exportNamespace ns = ns;
+
+fun exportTypeOpName n = n;
+
+fun exportConstName n = n;
+
 local
   local
     fun mkName root ns =
@@ -1632,7 +1638,6 @@ fun importSymbolTableSource s =
 fun importSymbolTableSourceList sl =
     SymbolTable.unionList (List.map importSymbolTableSource sl);
 
-(***
 local
   val targetNamespaces =
       let
@@ -1704,7 +1709,6 @@ in
            exportConsts = cs}
       end;
 end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell tags.                                                             *)
@@ -1819,23 +1823,13 @@ fun ppPackageTestName name =
       (PackageName.pp (exportPackageName name))
       (Print.ppString "-test");
 
-fun ppNamespace ns = Namespace.pp ( (*** exportNamespace ***) ns);
+fun ppNamespace ns = Namespace.pp (exportNamespace ns);
 
 local
   fun shortenNamespace namespace ns =
       case Namespace.rewrite (namespace,Namespace.global) ns of
         SOME ns => ns
-      | NONE =>
-        case Namespace.rewrite (opentheoryNamespace,Namespace.global) ns of
-          SOME ns => ns
-        | NONE =>
-          let
-            val bug =
-                "Haskell.shortenNamespace: " ^
-                Print.toString Namespace.pp ns
-          in
-            raise Bug bug
-          end;
+      | NONE => ns;
 
   fun shortenName namespace n =
       let
@@ -2631,6 +2625,7 @@ fun ppModule (tags,namespace,source) =
          ppSourceList exp source]
     end;
 
+(***
 local
   fun mkTestsSymbolExport tests =
       let
@@ -2708,6 +2703,7 @@ in
            ppMain tests]
       end;
 end;
+***)
 
 (* Cabal *)
 
@@ -2974,6 +2970,7 @@ in
       end;
 end;
 
+(***
 local
   fun outputMain tags {directory = dir} tests =
       let
@@ -2998,6 +2995,7 @@ in
         outputMain tags dir tests
       end;
 end;
+***)
 
 fun toPackage repo haskell =
     let
