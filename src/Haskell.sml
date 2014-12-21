@@ -9,6 +9,27 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val authorTag = "author"
+and buildTypeTag = "build-type"
+and cabalVersionTag = "cabal-version"
+and categoryTag = "category"
+and descriptionTag = "description"
+and ghcOptionsTag = "ghc-options"
+and licenseTag = "license"
+and licenseFileTag = "license-file"
+and maintainerTag = "maintainer"
+and moduleTag = "module"
+and nameTag = "name"
+and portabilityTag = "portability"
+and provenanceTag = "provenance"
+and stabilityTag = "stability"
+and synopsisTag = "synopsis"
+and versionTag = "version";
+
+(* ------------------------------------------------------------------------- *)
 (* Escaping strings.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -201,6 +222,7 @@ datatype information =
        description : string,
        author : PackageAuthor.author,
        license : string,
+       provenance : PackageNameVersion.nameVersion,
        tags : PackageTag.tag list};
 
 datatype depend =
@@ -281,6 +303,16 @@ local
           SOME (PackageTag.mk (PackageTag.Tag' {name = n, value = v}))
       end;
 
+  fun checkTag name htags =
+      case PackageTag.filterName name htags of
+        [] => ()
+      | _ :: _ =>
+        let
+          val err = "bad haskell-" ^ PackageName.toString name ^ " tag"
+        in
+          raise Error err
+        end;
+
   fun peekTag name htags =
       case PackageTag.partitionName name htags of
         ([],_) => NONE
@@ -307,38 +339,76 @@ in
         val htags = List.mapPartial destTag tags
 
         val (name,htags) =
-            case peekTag PackageName.nameTag htags of
-              SOME (v,htags) => (PackageName.fromString v, htags)
-            | NONE =>
-              let
-                val n = PackageTag.findName tags
-              in
-                (exportPackageName n, htags)
-              end
+            let
+              val tag = PackageName.fromString nameTag
+            in
+              case peekTag tag htags of
+                SOME (v,htags) => (PackageName.fromString v, htags)
+              | NONE =>
+                let
+                  val n = PackageTag.findName tags
+                in
+                  (exportPackageName n, htags)
+                end
+            end
 
-        val version = PackageTag.findVersion tags
+        val version =
+            let
+              val tag = PackageName.fromString versionTag
+
+              val () = checkTag tag htags
+            in
+              PackageTag.findVersion tags
+            end
 
         val (description,htags) =
-            case peekTag PackageName.descriptionTag htags of
-              SOME (v,htags) => (v,htags)
-            | NONE =>
-              let
-                val {description} = PackageTag.findDescription tags
-              in
-                (description,htags)
-              end
+            let
+              val tag = PackageName.fromString descriptionTag
+            in
+              case peekTag tag htags of
+                SOME (v,htags) => (v,htags)
+              | NONE =>
+                let
+                  val {description} = PackageTag.findDescription tags
+                in
+                  (description,htags)
+                end
+            end
 
-        val author = PackageTag.findAuthor tags
+        val author =
+            let
+              val tag = PackageName.fromString authorTag
 
-        val (license,htags) =
-            case peekTag PackageName.licenseTag htags of
-              SOME (v,htags) => (v,htags)
-            | NONE =>
-              let
-                val {license} = PackageTag.findLicense tags
-              in
-                (license,htags)
-              end
+              val () = checkTag tag htags
+            in
+              PackageTag.findAuthor tags
+            end
+
+        val license =
+            let
+              val tag = PackageName.fromString licenseTag
+
+              val () = checkTag tag htags
+
+              val {license} = PackageTag.findLicense tags
+            in
+              license
+            end
+
+        val provenance =
+            let
+              val tag = PackageName.fromString provenanceTag
+
+              val () = checkTag tag htags
+
+              val name = PackageTag.findName tags
+              and version = PackageTag.findVersion tags
+            in
+              PackageNameVersion.mk
+                (PackageNameVersion.NameVersion'
+                   {name = name,
+                    version = version})
+            end
 
         val (srcFile,htags) = getTag PackageName.srcExtraTag htags
 
@@ -349,12 +419,15 @@ in
                description = description,
                author = author,
                license = license,
+               provenance = provenance,
                tags = htags}
       in
         {information = info,
          srcFilename = srcFile}
       end;
 end;
+
+fun nameInformation (Information {name = x, ...}) = x;
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell package dependencies.                                             *)
@@ -1716,22 +1789,6 @@ end;
 
 datatype tags = Tags of string StringMap.map;
 
-val authorTag = "author"
-and buildTypeTag = "build-type"
-and cabalVersionTag = "cabal-version"
-and categoryTag = "category"
-and descriptionTag = "description"
-and ghcOptionsTag = "ghc-options"
-and licenseTag = "license"
-and licenseFileTag = "license-file"
-and maintainerTag = "maintainer"
-and moduleTag = "module"
-and nameTag = "name"
-and portabilityTag = "portability"
-and stabilityTag = "stability"
-and synopsisTag = "synopsis"
-and versionTag = "version";
-
 fun allTags (Tags m) = StringSet.domain m;
 
 fun getTag (Tags m) n =
@@ -1739,33 +1796,45 @@ fun getTag (Tags m) n =
       SOME v => v
     | NONE => raise Bug "Haskell.getTag: not found";
 
-(***
+fun nameTags tags = getTag tags nameTag;
+
+fun versionTags tags = getTag tags versionTag;
+
+fun nameVersionTags tags = nameTags tags ^ "-" ^ versionTags tags;
+
+fun descriptionTags tags = getTag tags descriptionTag;
+
 local
   fun overrideTag (tag,tags) =
       let
         val PackageTag.Tag' {name,value} = PackageTag.dest tag
+
+        val name = PackageName.toString name
       in
-        case PackageName.destStrictPrefix PackageName.haskell name of
-          NONE => tags
-        | SOME name =>
-          let
-            val name = PackageName.toString name
-          in
-            StringMap.insert tags (name,value)
-          end
+        StringMap.insert tags (name,value)
       end;
 in
   fun mkTags info =
       let
-        val name = PackageInformation.name info
-        and version = PackageInformation.version info
-        and {description} = PackageInformation.description info
-        and author = PackageInformation.author info
-        and {license} = PackageInformation.license info
+        val Information
+              {name,
+               version,
+               description,
+               author,
+               license,
+               provenance,
+               tags = otags} = info
+
+        val name = PackageName.toString name
+        and version = PackageVersion.toString version
+        and author = PackageAuthor.toString author
+        and provenance =
+            "automatically generated from the OpenTheory package " ^
+            PackageNameVersion.toString provenance
 
         val tags =
             StringMap.fromList
-              [(authorTag, PackageAuthor.toString author),
+              [(authorTag,author),
                (buildTypeTag,"Simple"),
                (cabalVersionTag,">= 1.8.0.2"),
                (categoryTag,"Formal Methods"),
@@ -1773,19 +1842,19 @@ in
                (ghcOptionsTag,"-Wall"),
                (licenseTag,license),
                (licenseFileTag,"LICENSE"),
-               (maintainerTag, PackageAuthor.toString author),
-               (nameTag, PackageName.toString (exportPackageName name)),
+               (maintainerTag,author),
+               (nameTag,name),
                (portabilityTag,"portable"),
+               (provenanceTag,provenance),
                (stabilityTag,"provisional"),
                (synopsisTag,description),
-               (versionTag, PackageVersion.toString version)]
+               (versionTag,version)]
 
-        val tags = List.foldl overrideTag tags (PackageInformation.tags info)
+        val tags = List.foldl overrideTag tags otags
       in
         Tags tags
       end;
 end;
-***)
 
 fun ppTag (n,v) =
     Print.inconsistentBlock 2
@@ -1816,11 +1885,11 @@ end;
 
 (* Names *)
 
-fun ppPackageName name = PackageName.pp (exportPackageName name);
+val ppPackageName = PackageName.pp;
 
 fun ppPackageTestName name =
     Print.sequence
-      (PackageName.pp (exportPackageName name))
+      (ppPackageName name)
       (Print.ppString "-test");
 
 fun ppNamespace ns = Namespace.pp (exportNamespace ns);
@@ -2767,11 +2836,11 @@ local
           (Print.ppString x ::
            List.map (Print.sequence Print.break o Print.ppString) xs);
 in
-  fun ppCabal (info,tags,deps,source) =
+  fun ppCabal (tags,deps,source) =
       let
-        val name = PackageInformation.name info
-        and nameVersion = PackageInformation.nameVersion info
-        and desc = getTag tags descriptionTag
+        val name = nameTags tags
+        and nameVersion = nameVersionTags tags
+        and desc = descriptionTags tags
         and mods = exposedModule source
 
         val extraTags = StringSet.difference (allTags tags) nonExtraTags
@@ -2783,11 +2852,7 @@ in
              [Print.ppString descriptionTag,
               Print.ppString ":",
               Print.newline,
-              ppText
-                (desc ^
-                 " - automatically generated from the opentheory package"),
-              Print.break,
-              PackageNameVersion.pp nameVersion],
+              ppText desc],
            Print.newline,
            Print.newline,
            ppSection "library"
@@ -2830,9 +2895,9 @@ fun mkSubDirectory {directory = dir} sub =
       {directory = dir}
     end;
 
-fun outputCabal {directory = dir} info tags deps source =
+fun outputCabal {directory = dir} tags deps source =
     let
-      val ss = Print.toStream ppCabal (info,tags,deps,source)
+      val ss = Print.toStream ppCabal (tags,deps,source)
 
       val file =
           let
@@ -3007,24 +3072,24 @@ fun toPackage repo haskell =
 
       val tags = mkTags info
 
-      val directory =
+      val dir =
           let
-            val name = Print.toLine ppPackageName (PackageInformation.name info)
+            val name = Print.toLine ppPackageName (nameInformation info)
 
-            val directory = {directory = OS.FileSys.getDir ()}
+            val dir = {directory = OS.FileSys.getDir ()}
           in
-            mkSubDirectory directory name
+            mkSubDirectory dir name
           end
 
-      val () = outputCabal directory info tags depends source
+      val () = outputCabal dir tags depends source
 
-      val () = outputLicense repo directory info tags
+      val () = outputLicense repo dir tags
 
-      val () = outputSetup directory
+      val () = outputSetup dir
 
-      val () = outputSource directory tags source
+      val () = outputSource dir tags source
 
-      val () = outputTests directory tags tests
+      val () = outputTests dir tags tests
     in
       ()
     end;
