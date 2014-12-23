@@ -222,6 +222,7 @@ datatype information =
        description : string,
        author : PackageAuthor.author,
        license : string,
+       licenseUrl : string,
        provenance : PackageNameVersion.nameVersion,
        tags : PackageTag.tag list};
 
@@ -283,7 +284,8 @@ datatype test =
 
 datatype haskell =
      Haskell of
-       {information : information,
+       {system : RepositorySystem.system,
+        information : information,
         depends : depend list,
         source : module,
         tests : test list};
@@ -334,7 +336,7 @@ local
           raise Error err
         end;
 in
-  fun mkInformation tags =
+  fun mkInformation repo tags =
       let
         val htags = List.mapPartial destTag tags
 
@@ -395,6 +397,15 @@ in
               license
             end
 
+        val licenseUrl =
+            let
+              val license = Repository.getLicense repo {name = license}
+
+              val {url} = RepositoryConfig.urlLicense license
+            in
+              url
+            end
+
         val provenance =
             let
               val tag = PackageName.fromString provenanceTag
@@ -419,6 +430,7 @@ in
                description = description,
                author = author,
                license = license,
+               licenseUrl = licenseUrl,
                provenance = provenance,
                tags = htags}
       in
@@ -428,6 +440,8 @@ in
 end;
 
 fun nameInformation (Information {name = x, ...}) = x;
+
+fun licenseUrlInformation (Information {licenseUrl = x, ...}) = {url = x};
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell package dependencies.                                             *)
@@ -1572,11 +1586,13 @@ fun fromPackage repo namever =
               raise Error err
             end
 
+      val sys = Repository.system repo
+
       val {information = info, srcFilename} =
           let
             val info = Package.information pkg
           in
-            mkInformation (PackageInformation.tags info)
+            mkInformation repo (PackageInformation.tags info)
           end
 
       val (_,thy) =
@@ -1619,7 +1635,8 @@ fun fromPackage repo namever =
       and tests = []  (*** destTestTheory (Package.show pkg) test ***)
     in
       Haskell
-        {information = info,
+        {system = sys,
+         information = info,
          depends = deps,
          source = source,
          tests = tests}
@@ -1804,6 +1821,10 @@ fun nameVersionTags tags = nameTags tags ^ "-" ^ versionTags tags;
 
 fun descriptionTags tags = getTag tags descriptionTag;
 
+fun licenseTags tags = getTag tags licenseTag;
+
+fun licenseFileTags tags = getTag tags licenseFileTag;
+
 local
   fun overrideTag (tag,tags) =
       let
@@ -1822,6 +1843,7 @@ in
                description,
                author,
                license,
+               licenseUrl = _,
                provenance,
                tags = otags} = info
 
@@ -2865,7 +2887,7 @@ in
               ppTags tags [ghcOptionsTag],
               Print.newline,
               Print.newline,
-              ppSection "exposed-modules:" (ppExposedModules mods)],
+              ppSection "exposed-modules:" (ppExposedModules mods)] (***,
            Print.newline,
            Print.newline,
            ppSection ("executable " ^ Print.toString ppPackageTestName name)
@@ -2878,7 +2900,7 @@ in
               ppTags tags [ghcOptionsTag],
               Print.newline,
               Print.newline,
-              ppTag ("main-is","Test.hs")]]
+              ppTag ("main-is","Test.hs")] ***) ]
       end;
 end;
 
@@ -2901,7 +2923,9 @@ fun outputCabal {directory = dir} tags deps source =
 
       val file =
           let
-            val base = Print.toLine ppPackageName (PackageInformation.name info)
+            val name = PackageName.fromString (nameTags tags)
+
+            val base = Print.toLine ppPackageName name
 
             val f = OS.Path.joinBaseExt {base = base, ext = SOME "cabal"}
           in
@@ -2913,18 +2937,13 @@ fun outputCabal {directory = dir} tags deps source =
       ()
     end;
 
-fun outputLicense repo {directory} info tags =
+fun outputLicense sys {url} {directory} tags =
     let
-      val {license} = PackageInformation.license info
-      and licenseFile = getTag tags licenseFileTag
-
-      val license = Repository.getLicense repo {name = license}
-
-      val {url} = RepositoryConfig.urlLicense license
+      val licenseFile = licenseFileTags tags
 
       val file = OS.Path.joinDirFile {dir = directory, file = licenseFile}
 
-      val {curl = cmd} = RepositorySystem.curl (Repository.system repo)
+      val {curl = cmd} = RepositorySystem.curl sys
 
       val cmd = cmd ^ " " ^ url ^ " --output " ^ file
 
@@ -3062,13 +3081,14 @@ in
 end;
 ***)
 
-fun toPackage repo haskell =
+fun writePackage haskell =
     let
       val Haskell
-            {information = info,
-             depends,
-             source,
-             tests} = haskell
+            {system = sys,
+             information = info,
+             depends = deps,
+             source = src,
+             tests = _} = haskell
 
       val tags = mkTags info
 
@@ -3081,15 +3101,21 @@ fun toPackage repo haskell =
             mkSubDirectory dir name
           end
 
-      val () = outputCabal dir tags depends source
+      val () = outputCabal dir tags deps src
 
-      val () = outputLicense repo dir tags
+      val () =
+          let
+            val url = licenseUrlInformation info
+          in
+            outputLicense sys url dir tags
+          end
 
       val () = outputSetup dir
 
-      val () = outputSource dir tags source
-
+      val () = outputSource dir tags src
+(***
       val () = outputTests dir tags tests
+***)
     in
       ()
     end;
@@ -3098,11 +3124,11 @@ fun toPackage repo haskell =
 (* Exporting a theory package as a Haskell package.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun export repo namever =
+fun exportPackage repo namever =
     let
-      val haskell = convert repo namever
+      val haskell = fromPackage repo namever
 
-      val () = toPackage repo haskell
+      val () = writePackage haskell
     in
       ()
     end;

@@ -1441,7 +1441,7 @@ in
         val namever = exportInput inp
       in
         case getExport () of
-          HaskellExport => Haskell.export repo namever
+          HaskellExport => Haskell.exportPackage repo namever
       end
       handle Error err =>
         raise Error (err ^ "\npackage export failed");
