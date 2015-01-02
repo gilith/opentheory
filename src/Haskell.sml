@@ -423,6 +423,11 @@ in
 
         val (srcFile,htags) = getTag PackageName.srcExtraTag htags
 
+        val (intFile,htags) =
+            case peekTag PackageName.intExtraTag htags of
+              NONE => (NONE,htags)
+            | SOME (v,htags) => (SOME v, htags)
+
         val info =
             Information
               {name = name,
@@ -435,7 +440,8 @@ in
                tags = htags}
       in
         {information = info,
-         srcFilename = srcFile}
+         srcFilename = srcFile,
+         intFilename = intFile}
       end;
 end;
 
@@ -1588,12 +1594,22 @@ fun fromPackage repo namever =
 
       val sys = Repository.system repo
 
-      val {information = info, srcFilename} =
+      val {information = info, srcFilename, intFilename} =
           let
             val info = Package.information pkg
           in
             mkInformation repo (PackageInformation.tags info)
           end
+
+      val int =
+          case intFilename of
+            NONE => Interpretation.natural
+          | SOME filename =>
+            let
+              val file = Package.joinDirectory pkg {filename = filename}
+            in
+              Interpretation.fromTextFile file
+            end
 
       val (_,thy) =
           let
@@ -1604,8 +1620,6 @@ fun fromPackage repo namever =
             val graph = TheoryGraph.empty {savable = sav}
 
             val imps = TheorySet.empty
-
-            val int = Interpretation.natural
           in
             TheoryGraph.importPackage fndr graph
               {imports = imps,
@@ -1618,8 +1632,6 @@ fun fromPackage repo namever =
             val sav = false
 
             val imp = Theory.article thy
-
-            val int = Interpretation.natural
 
             val {filename} = Package.joinDirectory pkg {filename = srcFilename}
           in

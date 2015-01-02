@@ -239,12 +239,28 @@ reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
-.PHONY: theories
-theories: $(OPENTHEORY)
+.PHONY: capture-theories
+capture-theories:
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory theories
+
+.PHONY: import-theories
+import-theories: $(OPENTHEORY)
 	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
+
+.PHONY: install-theories
+install-theories: $(OPENTHEORY)
 	$(INSTALL_THEORIES)
+
+.PHONY: check-theories
+check-theories: $(OPENTHEORY)
 	$(CHECK_THEORIES)
+
+.PHONY: theories
+theories:
+	$(MAKE) capture-theories
+	$(MAKE) import-theories
+	$(MAKE) install-theories
+	$(MAKE) check-theories
 
 .PHONY: tiny-theories
 tiny-theories:

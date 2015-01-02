@@ -1,0 +1,20 @@
+###############################################################################
+# INTERPRETATIONS FOR PRIME NUMBERS
+# Joe Leslie-Hurd
+###############################################################################
+
+# Number
+
+# Number.Natural
+
+# Number.Natural.Prime
+
+const "Number.Natural.Prime.all" as "Number.Natural.Prime.all"
+
+# Number.Natural.Prime.Sieve
+
+type "Number.Natural.Prime.Sieve.sieve" as "Number.Natural.Prime.Sieve.Sieve"
+
+const "Number.Natural.Prime.Sieve.mk" as "Number.Natural.Prime.Sieve.Sieve"
+const "Number.Natural.Prime.Sieve.max" as "Number.Natural.Prime.Sieve.perimeter"
+const "Number.Natural.Prime.Sieve.dest" as "Number.Natural.Prime.Sieve.unSieve"

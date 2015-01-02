@@ -1,5 +1,5 @@
 name: natural-prime-sieve
-version: 1.29
+version: 1.30
 description: The sieve of Eratosthenes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -27,8 +27,8 @@ def {
 
 thm {
   import: def
-  package: natural-prime-sieve-thm-1.29
-  checksum: b438b6df388ec9bda1759df7e0afbb0169089f41
+  package: natural-prime-sieve-thm-1.30
+  checksum: a818b5617f2ea9ccbf274059107711cbbc34913a
 }
 
 main {

@@ -253,9 +253,21 @@ fun mkSequent seq =
     end;
 
 fun destSequent (h,c) =
-    Sequent.Sequent
-      {hyp = TermAlphaSet.fromList (destTerms h),
-       concl = destTerm c};
+    let
+      val h =
+          let
+            val l = destTerms h
+
+            val s = TermAlphaSet.fromList l
+          in
+            if TermAlphaSet.size s = length l then s
+            else raise Error "alpha-equivalent hypotheses in sequent"
+          end
+
+      val c = destTerm c
+    in
+      Sequent.Sequent {hyp = h, concl = c}
+    end;
 
 val isSequent = can destSequent;
 
