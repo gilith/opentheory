@@ -286,6 +286,7 @@ datatype haskell =
      Haskell of
        {system : RepositorySystem.system,
         information : information,
+        interpretation : Interpretation.interpretation,
         depends : depend list,
         source : module,
         tests : test list};
