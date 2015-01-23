@@ -1644,10 +1644,64 @@ fun fromPackage repo namever =
 
 datatype symbolExport =
     SymbolExport of
-      {namespace : Namespace.namespace,
-       importNamespaces : NamespaceSet.set,
+      {interpretation : Interpretation.interpretation,
+       namespace : Namespace.namespace,
+       importNamespaces : Namespace.namespace option NamespaceMap.map,
        exportTypeOps : Name.name NameMap.map,
        exportConsts : Name.name NameMap.map};
+
+fun namespaceSymbolExport (SymbolExport {namespace = ns, ...}) = ns;
+
+fun importNamespacesSymbolExport exp =
+    let
+      val SymbolExport {importNamespaces,...} = exp
+    in
+      NamespaceMap.toList importNamespaces
+    end;
+
+local
+  fun shortenName imp n =
+      let
+        val (ns,c) = Name.dest n
+      in
+        case NamespaceMap.peek imp ns of
+          NONE => n
+        | SOME NONE => n
+        | SOME (SOME ns) => Name.mk (ns,c)
+      end;
+in
+  fun typeOpNameSymbolExport exp n =
+      let
+        val SymbolExport
+              {interpretation = int,
+               importNamespaces = imp,
+               exportTypeOps,
+               ...} = exp
+
+        val n =
+            case NameMap.peek exportTypeOps n of
+              SOME n => n
+            | NONE => exportTypeOpName int n
+      in
+        shortenName imp n
+      end;
+
+  fun constNameSymbolExport exp n =
+      let
+        val SymbolExport
+              {interpretation = int,
+               importNamespaces = imp,
+               exportConsts,
+               ...} = exp
+
+        val n =
+            case NameMap.peek exportConsts n of
+              SOME n => n
+            | NONE => exportConstName int n
+      in
+        shortenName imp n
+      end;
+end;
 
 val importSymbolTableData = symbolTableData;
 
@@ -1765,6 +1819,13 @@ local
       in
         NameSet.map (exportConstName int) ns
       end;
+
+  fun shortenNamespaces namespace =
+      let
+        val shorten = Namespace.rewrite (namespace,Namespace.global)
+      in
+        NamespaceSet.map shorten
+      end;
 in
   fun mkSymbolExport int namespace source =
       let
@@ -1784,10 +1845,12 @@ in
               (targetNamespaces (mkConstMap int defTable))
               Namespace.global
 
-        val ns = NamespaceSet.difference white black
+        val ns =
+            shortenNamespaces namespace (NamespaceSet.difference white black)
       in
         SymbolExport
-          {namespace = namespace,
+          {interpretation = int,
+           namespace = namespace,
            importNamespaces = ns,
            exportTypeOps = ts,
            exportConsts = cs}
@@ -1899,6 +1962,8 @@ end;
 (* Printing Haskell source code.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+val ppSyntax = Print.ppString;
+
 (* Names *)
 
 val ppPackageName = PackageName.pp;
@@ -1911,91 +1976,51 @@ fun ppPackageTestName name =
 fun ppNamespace ns = Namespace.pp ns;
 
 local
-  fun shortenNamespace namespace ns =
-      case Namespace.rewrite (namespace,Namespace.global) ns of
-        SOME ns => ns
-      | NONE => ns;
-
-  fun shortenName namespace n =
+  fun ppImportNamespace (ns,ns') =
       let
-        val (ns,c) = Name.dest n
-      in
-        if Namespace.isGlobal ns then n
-        else Name.mk (shortenNamespace namespace ns, c)
-      end;
-
-  fun ppImportNamespace namespace ns =
-      let
-        val ns' = shortenNamespace namespace ns
-
         val ppImportAs =
             Print.inconsistentBlock 2
-              [Print.ppString "import",
-               Print.space,
-               Print.ppString "qualified",
-               Print.space,
-               Namespace.pp ns,
-               Print.break,
-               Print.ppString "as",
-               Print.space,
-               Namespace.pp ns']
+              ([ppSyntax "import",
+                Print.space,
+                ppSyntax "qualified",
+                Print.space,
+                ppNamespace ns] @
+               (case ns' of
+                  NONE => []
+                | SOME ns =>
+                  [Print.break,
+                   ppSyntax "as",
+                   Print.space,
+                   ppNamespace ns]))
       in
         Print.sequence ppImportAs Print.newline
       end;
 in
   fun ppModuleDeclaration exp =
       let
-        val SymbolExport {namespace,exportTypeOps,...} = exp
+        val ns = namespaceSymbolExport exp
       in
         Print.inconsistentBlock 0
-          [Print.ppString "module ",
-           Namespace.pp namespace,
+          [ppSyntax "module ",
+           ppNamespace ns,
            Print.newline,
-           Print.ppString "where"]
+           ppSyntax "where"]
       end;
 
   fun ppModuleImport exp =
       let
-        val SymbolExport {namespace,importNamespaces,...} = exp
-
-        val import = NamespaceSet.toList importNamespaces
+        val import = importNamespacesSymbolExport exp
       in
         Print.inconsistentBlock 0
-          (List.map (ppImportNamespace namespace) import)
+          (List.map ppImportNamespace import)
       end;
 
   fun ppTypeOpName exp n =
-      let
-        val SymbolExport {namespace,exportTypeOps,...} = exp
-
-        val n =
-            case NameMap.peek exportTypeOps n of
-              SOME n => n
-            | NONE =>
-              let
-                val bug = "Haskell.ppTypeOpName: " ^ Name.toString n
-              in
-                raise Bug bug
-              end
-      in
-        Name.pp (shortenName namespace n)
-      end;
+      Name.pp (typeOpNameSymbolExport exp n);
 
   fun ppConstName exp infx n =
       let
-        val SymbolExport {namespace,exportConsts,...} = exp
-
-        val n =
-            case NameMap.peek exportConsts n of
-              SOME n => n
-            | NONE =>
-              let
-                val bug = "Haskell.ppConstName: " ^ Name.toString n
-              in
-                raise Bug bug
-              end
-
-        val n = shortenName namespace n
+        val n = constNameSymbolExport exp n
       in
         if isSymbolName n then
           if infx then Name.pp n
@@ -2018,9 +2043,7 @@ val ppTypeVar = Name.pp;
 
 val ppTypeVarList =
     let
-      val ppSpace = Print.ppString " "
-
-      fun ppSpaceTypeVar v = Print.sequence ppSpace (ppTypeVar v)
+      fun ppSpaceTypeVar v = Print.sequence Print.space (ppTypeVar v)
     in
       fn vl => Print.program (List.map ppSpaceTypeVar vl)
     end;
@@ -2152,10 +2175,10 @@ local
          {token = "**", precedence = 8, assoc = Print.RightAssoc},
          {token = "/", precedence = 7, assoc = Print.LeftAssoc},
          {token = "*", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "`quot`", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "`rem`", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "`div`", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "`mod`", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "quot", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "rem", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "div", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
          {token = "+", precedence = 6, assoc = Print.LeftAssoc},
          {token = "-", precedence = 6, assoc = Print.LeftAssoc},
          {token = ":", precedence = 5, assoc = Print.RightAssoc},
@@ -2166,8 +2189,8 @@ local
          {token = "<=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">", precedence = 4, assoc = Print.NonAssoc},
-         {token = "`elem`", precedence = 4, assoc = Print.NonAssoc},
-         {token = "`notElem`", precedence = 4, assoc = Print.NonAssoc},
+         {token = "elem", precedence = 4, assoc = Print.NonAssoc},
+         {token = "notElem", precedence = 4, assoc = Print.NonAssoc},
          {token = "&&", precedence = 3, assoc = Print.RightAssoc},
          {token = "||", precedence = 2, assoc = Print.RightAssoc},
          {token = ">>", precedence = 1, assoc = Print.LeftAssoc},
@@ -2175,7 +2198,7 @@ local
          (*{token = "=<<", precedence = 1, assoc = Print.RightAssoc},*)
          {token = "$", precedence = 0, assoc = Print.RightAssoc},
          {token = "$!", precedence = 0, assoc = Print.RightAssoc},
-         {token = "`seq`", precedence = 0, assoc = Print.RightAssoc}];
+         {token = "seq", precedence = 0, assoc = Print.RightAssoc}];
 
   val infixTokens = Print.tokensInfixes infixes;
 
@@ -2205,8 +2228,6 @@ local
 
   fun isLetCondCase tm =
       Term.isLet tm orelse Term.isCond tm orelse Term.isCase tm;
-
-  val ppSyntax = Print.ppString;
 in
   fun ppTerm exp =
       let
@@ -2220,10 +2241,15 @@ in
 
               val n = Const.name c
 
+              val (_,s) = Name.dest (constNameSymbolExport exp n)
+
+              val () =
+                  if StringSet.member s infixTokens then ()
+                  else raise Error "Haskell.ppTerm.destInfix"
+
               val s = Print.toString (ppConstName exp true) n
             in
-              if StringSet.member s infixTokens then (s,a,b)
-              else raise Error "Haskell.ppTerm.destInfix"
+              (s,a,b)
             end
 
         val isInfix = can destInfix
