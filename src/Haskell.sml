@@ -90,24 +90,9 @@ end;
 
 val exportPackageName = PackageName.mkHaskellName;
 
-(***
-local
-  val haskellNamespace = Namespace.fromList ["Haskell"];
-in
-  val haskellTestNamespace = Namespace.mkNested (haskellNamespace,"Test");
+fun exportTypeOpName int n = Interpretation.interpretTypeOp int n;
 
-  fun exportNamespace ns =
-      case Namespace.rewrite (haskellNamespace,opentheoryNamespace) ns of
-        SOME ns => ns
-      | NONE => raise Error ("non-Haskell namespace: " ^ Namespace.toString ns);
-end;
-***)
-
-fun exportNamespace ns = ns;
-
-fun exportTypeOpName n = n;
-
-fun exportConstName n = n;
+fun exportConstName int n = Interpretation.interpretConst int n;
 
 local
   local
@@ -212,7 +197,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of Haskell packages.                                               *)
+(* Haskell package information.                                              *)
 (* ------------------------------------------------------------------------- *)
 
 datatype information =
@@ -225,75 +210,6 @@ datatype information =
        licenseUrl : string,
        provenance : PackageNameVersion.nameVersion,
        tags : PackageTag.tag list};
-
-datatype depend =
-    Depend of
-      {name : PackageName.name,
-       oldest : PackageVersion.version,
-       newest : PackageVersion.version};
-
-datatype data =
-    Data of
-      {name : TypeOp.typeOp,
-       parameters : Name.name list,
-       constructors : (Const.const * Type.ty list) list,
-       caseConst : Const.const};
-
-datatype newtype =
-    Newtype of
-      {name : TypeOp.typeOp,
-       parameters : Name.name list,
-       repType : Type.ty,
-       abs : Const.const,
-       rep : Const.const};
-
-datatype whereValue =
-    WhereValue of
-      {name : Var.var,
-       equations : equation list}
-
-and equation =
-    Equation of
-      {arguments : Term.term list,
-       body : Term.term,
-       whereValues : whereValue list}
-
-datatype value =
-    Value of
-      {name : Const.const,
-       ty : Type.ty,
-       equations : equation list};
-
-datatype source =
-    DataSource of data
-  | NewtypeSource of newtype
-  | ValueSource of value;
-
-datatype module =
-    Module of
-      {namespace : Namespace.namespace,
-       source : source list,
-       submodules : module list};
-
-datatype test =
-    Test of
-      {name : string,
-       description : string,
-       value : value,
-       invocation : string};
-
-datatype haskell =
-     Haskell of
-       {system : RepositorySystem.system,
-        information : information,
-        interpretation : Interpretation.interpretation,
-        depends : depend list,
-        source : module,
-        tests : test list};
-
-(* ------------------------------------------------------------------------- *)
-(* Haskell package information.                                              *)
-(* ------------------------------------------------------------------------- *)
 
 local
   fun destTag tag =
@@ -454,6 +370,12 @@ fun licenseUrlInformation (Information {licenseUrl = x, ...}) = {url = x};
 (* Haskell package dependencies.                                             *)
 (* ------------------------------------------------------------------------- *)
 
+datatype depend =
+    Depend of
+      {name : PackageName.name,
+       oldest : PackageVersion.version,
+       newest : PackageVersion.version};
+
 (***
 fun mkDepends repo pkg thy =
     let
@@ -545,6 +467,69 @@ fun mkDepends repo pkg thy =
       List.map mk ths
     end;
 ***)
+
+(* ------------------------------------------------------------------------- *)
+(* A type of Haskell packages.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+datatype data =
+    Data of
+      {name : TypeOp.typeOp,
+       parameters : Name.name list,
+       constructors : (Const.const * Type.ty list) list,
+       caseConst : Const.const};
+
+datatype newtype =
+    Newtype of
+      {name : TypeOp.typeOp,
+       parameters : Name.name list,
+       repType : Type.ty,
+       abs : Const.const,
+       rep : Const.const};
+
+datatype whereValue =
+    WhereValue of
+      {name : Var.var,
+       equations : equation list}
+
+and equation =
+    Equation of
+      {arguments : Term.term list,
+       body : Term.term,
+       whereValues : whereValue list}
+
+datatype value =
+    Value of
+      {name : Const.const,
+       ty : Type.ty,
+       equations : equation list};
+
+datatype source =
+    DataSource of data
+  | NewtypeSource of newtype
+  | ValueSource of value;
+
+datatype module =
+    Module of
+      {namespace : Namespace.namespace,
+       source : source list,
+       submodules : module list};
+
+datatype test =
+    Test of
+      {name : string,
+       description : string,
+       value : value,
+       invocation : string};
+
+datatype haskell =
+     Haskell of
+       {system : RepositorySystem.system,
+        information : information,
+        depends : depend list,
+        interpretation : Interpretation.interpretation,
+        source : module,
+        tests : test list};
 
 (* ------------------------------------------------------------------------- *)
 (* Symbols in Haskell declarations.                                          *)
@@ -937,13 +922,6 @@ in
         val () =
             if not (Name.isCase (Const.name name)) then ()
             else raise Error "case constant"
-
-        val () =
-            case total (Type.destOp o Type.rangeFun) ty of
-              NONE => ()
-            | SOME (ot,_) =>
-              if not (Name.equal (Const.name name) (TypeOp.name ot)) then ()
-              else raise Error "newtype constructor constant"
       in
         Value
           {name = name,
@@ -970,7 +948,7 @@ fun destSource th =
     in
       case (dataResult,newtypeResult,valueResult) of
         (Left x, Right _, Right _) => DataSource x
-      | (Right _, Left x, Right _) => NewtypeSource x
+      | (Right _, Left x, _) => NewtypeSource x
       | (Right _, Right _, Left x) => ValueSource x
       | (Right e1, Right e2, Right e3) =>
         let
@@ -1602,16 +1580,6 @@ fun fromPackage repo namever =
             mkInformation repo (PackageInformation.tags info)
           end
 
-      val int =
-          case intFilename of
-            NONE => Interpretation.natural
-          | SOME filename =>
-            let
-              val file = Package.joinDirectory pkg {filename = filename}
-            in
-              Interpretation.fromTextFile file
-            end
-
       val (_,thy) =
           let
             val sav = false
@@ -1621,6 +1589,8 @@ fun fromPackage repo namever =
             val graph = TheoryGraph.empty {savable = sav}
 
             val imps = TheorySet.empty
+
+            val int = Interpretation.natural
           in
             TheoryGraph.importPackage fndr graph
               {imports = imps,
@@ -1634,6 +1604,8 @@ fun fromPackage repo namever =
 
             val imp = Theory.article thy
 
+            val int = Interpretation.natural
+
             val {filename} = Package.joinDirectory pkg {filename = srcFilename}
           in
             Article.fromTextFile
@@ -1643,6 +1615,16 @@ fun fromPackage repo namever =
                filename = filename}
           end
 
+      val int =
+          case intFilename of
+            NONE => Interpretation.natural
+          | SOME filename =>
+            let
+              val file = Package.joinDirectory pkg {filename = filename}
+            in
+              Interpretation.fromTextFile file
+            end
+
       val deps = []  (*** mkDepends repo pkg thy ***)
       and source = mkSource src
       and tests = []  (*** destTestTheory (Package.show pkg) test ***)
@@ -1651,6 +1633,7 @@ fun fromPackage repo namever =
         {system = sys,
          information = info,
          depends = deps,
+         interpretation = int,
          source = source,
          tests = tests}
     end;
@@ -1756,13 +1739,13 @@ local
         NameSet.add ns n
       end;
 
-  fun mkTypeOpMap table =
+  fun mkTypeOpMap int table =
       let
         val ts = SymbolTable.typeOps table
 
         val ns = TypeOpSet.foldl addTypeOp NameSet.empty ts
       in
-        NameSet.map exportTypeOpName ns
+        NameSet.map (exportTypeOpName int) ns
       end;
 
   fun addConst (c,ns) =
@@ -1774,24 +1757,22 @@ local
         | NONE => NameSet.add ns n
       end;
 
-  fun mkConstMap table =
+  fun mkConstMap int table =
       let
         val cs = SymbolTable.consts table
 
         val ns = ConstSet.foldl addConst NameSet.empty cs
       in
-        NameSet.map exportConstName ns
+        NameSet.map (exportConstName int) ns
       end;
 in
-  fun mkSymbolExport namespace source =
+  fun mkSymbolExport int namespace source =
       let
-        val namespace = exportNamespace namespace
-
         val impTable = importSymbolTableSourceList source
         and defTable = definedSymbolTableSourceList source
 
-        val ts = mkTypeOpMap impTable
-        and cs = mkConstMap impTable
+        val ts = mkTypeOpMap int impTable
+        and cs = mkConstMap int impTable
 
         val white =
             NamespaceSet.union
@@ -1800,7 +1781,7 @@ in
 
         val black =
             NamespaceSet.add
-              (targetNamespaces (mkConstMap defTable))
+              (targetNamespaces (mkConstMap int defTable))
               Namespace.global
 
         val ns = NamespaceSet.difference white black
@@ -1927,7 +1908,7 @@ fun ppPackageTestName name =
       (ppPackageName name)
       (Print.ppString "-test");
 
-fun ppNamespace ns = Namespace.pp (exportNamespace ns);
+fun ppNamespace ns = Namespace.pp ns;
 
 local
   fun shortenNamespace namespace ns =
@@ -1991,14 +1972,16 @@ in
             case NameMap.peek exportTypeOps n of
               SOME n => n
             | NONE =>
-              (* This "cache-miss" should only happen for commented-out *)
-              (* types annotating nested declarations *)
-              exportTypeOpName n
+              let
+                val bug = "Haskell.ppTypeOpName: " ^ Name.toString n
+              in
+                raise Bug bug
+              end
       in
         Name.pp (shortenName namespace n)
       end;
 
-  fun ppConstName exp n =
+  fun ppConstName exp infx n =
       let
         val SymbolExport {namespace,exportConsts,...} = exp
 
@@ -2011,8 +1994,15 @@ in
               in
                 raise Bug bug
               end
+
+        val n = shortenName namespace n
       in
-        Name.pp (shortenName namespace n)
+        if isSymbolName n then
+          if infx then Name.pp n
+          else Print.ppBracket "(" ")" Name.pp n
+        else
+          if not infx then Name.pp n
+          else Print.ppBracket "`" "`" Name.pp n
       end;
 end;
 
@@ -2022,7 +2012,7 @@ fun ppVarName n =
 
 (* Types *)
 
-fun ppTypeOp ns ot = ppTypeOpName ns (TypeOp.name ot);
+fun ppTypeOp exp ot = ppTypeOpName exp (TypeOp.name ot);
 
 val ppTypeVar = Name.pp;
 
@@ -2128,17 +2118,11 @@ end;
 
 (* Terms *)
 
-fun ppConst ns c =
+fun ppConst exp c =
     let
       val n = Const.name c
-
-      val p = ppConstName ns
-
-      val p =
-          if not (isSymbolName (exportConstName n)) then p
-          else Print.ppBracket "(" ")" p
     in
-      p n
+      ppConstName exp false n
     end;
 
 local
@@ -2168,10 +2152,10 @@ local
          {token = "**", precedence = 8, assoc = Print.RightAssoc},
          {token = "/", precedence = 7, assoc = Print.LeftAssoc},
          {token = "*", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "quot", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "rem", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "div", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "`quot`", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "`rem`", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "`div`", precedence = 7, assoc = Print.LeftAssoc},
+         {token = "`mod`", precedence = 7, assoc = Print.LeftAssoc},
          {token = "+", precedence = 6, assoc = Print.LeftAssoc},
          {token = "-", precedence = 6, assoc = Print.LeftAssoc},
          {token = ":", precedence = 5, assoc = Print.RightAssoc},
@@ -2182,8 +2166,8 @@ local
          {token = "<=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">=", precedence = 4, assoc = Print.NonAssoc},
          {token = ">", precedence = 4, assoc = Print.NonAssoc},
-         {token = "elem", precedence = 4, assoc = Print.NonAssoc},
-         {token = "notElem", precedence = 4, assoc = Print.NonAssoc},
+         {token = "`elem`", precedence = 4, assoc = Print.NonAssoc},
+         {token = "`notElem`", precedence = 4, assoc = Print.NonAssoc},
          {token = "&&", precedence = 3, assoc = Print.RightAssoc},
          {token = "||", precedence = 2, assoc = Print.RightAssoc},
          {token = ">>", precedence = 1, assoc = Print.LeftAssoc},
@@ -2191,49 +2175,15 @@ local
          (*{token = "=<<", precedence = 1, assoc = Print.RightAssoc},*)
          {token = "$", precedence = 0, assoc = Print.RightAssoc},
          {token = "$!", precedence = 0, assoc = Print.RightAssoc},
-         {token = "seq", precedence = 0, assoc = Print.RightAssoc}];
+         {token = "`seq`", precedence = 0, assoc = Print.RightAssoc}];
 
   val infixTokens = Print.tokensInfixes infixes;
 
-  fun destInfixTerm tm =
-      let
-        val (t,b) = Term.destApp tm
-
-        val (t,a) = Term.destApp t
-
-        val (c,_) = Term.destConst t
-
-        val n = exportConstName (Const.name c)
-      in
-        (n,a,b)
-      end;
-
-  fun destInfix tm =
-      let
-        val (n,a,b) = destInfixTerm tm
-
-        val (_,s) = Name.dest n
-      in
-        if StringSet.member s infixTokens then (s,a,b)
-        else raise Error "Haskell.ppTerm.destInfix"
-      end;
-
-  val isInfix = can destInfix;
-
   fun ppInfixToken (_,s) =
-      let
-        val l = [Print.ppString s]
-
-        val l =
-            if isSymbolString s then l
-            else [Print.ppString "`"] @ l @ [Print.ppString "`"]
-
-        val l = [Print.space] @ l @ [Print.break]
-      in
-        Print.program l
-      end;
-
-  val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken;
+      Print.program
+        [Print.space,
+         Print.ppString s,
+         Print.break];
 
   fun casePatterns (a,bs) =
       let
@@ -2253,41 +2203,61 @@ local
         (a, List.map mkBranch bs)
       end;
 
-  fun destGenApp tm =
-      if Term.isNumeral tm then
-        raise Error "Haskell.ppTerm.destGenApp: numeral"
-      else if Term.isCond tm then
-        raise Error "Haskell.ppTerm.destGenApp: cond"
-      else if Term.isPair tm then
-        raise Error "Haskell.ppTerm.destGenApp: pair"
-      else if Term.isLet tm then
-        raise Error "Haskell.ppTerm.destGenApp: let"
-      else if isInfix tm then
-        raise Error "Haskell.ppTerm.destGenApp: infix"
-      else if Term.isGenAbs tm then
-        raise Error "Haskell.ppTerm.destGenApp: abstraction"
-      else if Term.isCase tm then
-        raise Error "Haskell.ppTerm.destGenApp: case"
-      else
-        Term.destApp tm;
-
-  val stripGenApp =
-      let
-        fun strip acc tm =
-            case total destGenApp tm of
-              NONE => (tm,acc)
-            | SOME (f,x) => strip (x :: acc) f
-      in
-        strip []
-      end;
-
   fun isLetCondCase tm =
       Term.isLet tm orelse Term.isCond tm orelse Term.isCase tm;
 
   val ppSyntax = Print.ppString;
 in
-  fun ppTerm namespace =
+  fun ppTerm exp =
       let
+        fun destInfix tm =
+            let
+              val (t,b) = Term.destApp tm
+
+              val (t,a) = Term.destApp t
+
+              val (c,_) = Term.destConst t
+
+              val n = Const.name c
+
+              val s = Print.toString (ppConstName exp true) n
+            in
+              if StringSet.member s infixTokens then (s,a,b)
+              else raise Error "Haskell.ppTerm.destInfix"
+            end
+
+        val isInfix = can destInfix
+
+        val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken
+
+        fun destGenApp tm =
+            if Term.isNumeral tm then
+              raise Error "Haskell.ppTerm.destGenApp: numeral"
+            else if Term.isCond tm then
+              raise Error "Haskell.ppTerm.destGenApp: cond"
+            else if Term.isPair tm then
+              raise Error "Haskell.ppTerm.destGenApp: pair"
+            else if Term.isLet tm then
+              raise Error "Haskell.ppTerm.destGenApp: let"
+            else if isInfix tm then
+              raise Error "Haskell.ppTerm.destGenApp: infix"
+            else if Term.isGenAbs tm then
+              raise Error "Haskell.ppTerm.destGenApp: abstraction"
+            else if Term.isCase tm then
+              raise Error "Haskell.ppTerm.destGenApp: case"
+            else
+              Term.destApp tm
+
+        val stripGenApp =
+            let
+              fun strip acc tm =
+                  case total destGenApp tm of
+                    NONE => (tm,acc)
+                  | SOME (f,x) => strip (x :: acc) f
+            in
+              strip []
+            end
+
         fun ppBasicTerm tm =
             case total Term.destNumeral tm of
               SOME i => Print.ppInt i
@@ -2297,7 +2267,7 @@ in
               | NONE =>
                 case Term.dest tm of
                   TypeTerm.Var' v => ppVar v
-                | TypeTerm.Const' (c,_) => ppConst namespace c
+                | TypeTerm.Const' (c,_) => ppConst exp c
                 | TypeTerm.App' _ => ppBracketTerm tm
                 | TypeTerm.Abs' _ => ppBracketTerm tm
 
@@ -2498,6 +2468,23 @@ in
       end;
 end;
 
+(*OpenTheoryDebug
+val ppTerm = fn exp => fn tm =>
+    let
+      val result = ppTerm exp tm
+    in
+      result
+    end
+    handle Bug bug =>
+      let
+        val bug =
+            "failed to print the following term in Haskell syntax:\n" ^
+            Print.toString Term.pp tm ^ "\n" ^ bug
+      in
+        raise Bug bug
+      end;
+*)
+
 (* Haskell *)
 
 fun ppDepend dep =
@@ -2517,28 +2504,28 @@ fun ppDepend dep =
     end;
 
 local
-  fun ppDecl ns (name,parms) =
+  fun ppDecl exp (name,parms) =
       Print.inconsistentBlock 2
         [Print.ppString "data ",
-         ppTypeOp ns name,
+         ppTypeOp exp name,
          ppTypeVarList parms,
          Print.ppString " ="];
 
-  fun ppCon ns prefix (c,tys) =
+  fun ppCon exp prefix (c,tys) =
       Print.program
         [Print.newline,
          Print.ppString prefix,
          Print.inconsistentBlock 4
-           [ppConst ns c,
-            ppTypeList ns tys]];
+           [ppConst exp c,
+            ppTypeList exp tys]];
 
-  fun ppCons ns cs =
+  fun ppCons exp cs =
       case cs of
         [] => raise Error "datatype has no constructors"
       | c :: cs =>
-        Print.program (ppCon ns "  " c :: List.map (ppCon ns "| ") cs);
+        Print.program (ppCon exp "  " c :: List.map (ppCon exp "| ") cs);
 in
-  fun ppData ns data =
+  fun ppData exp data =
       let
         val Data
               {name,
@@ -2547,38 +2534,38 @@ in
                caseConst = _} = data
       in
         Print.inconsistentBlock 2
-          [ppDecl ns (name,parms),
-           ppCons ns cons]
+          [ppDecl exp (name,parms),
+           ppCons exp cons]
     end;
 end;
 
 local
-  fun ppDecl ns (name,parms) =
+  fun ppDecl exp (name,parms) =
       Print.inconsistentBlock 2
         [Print.ppString "newtype ",
-         ppTypeOp ns name,
+         ppTypeOp exp name,
          ppTypeVarList parms,
          Print.ppString " ="];
 
-  fun ppRep ns (rep,repType) =
+  fun ppRep exp (rep,repType) =
       Print.inconsistentBlock 2
-        [ppConst ns rep,
+        [ppConst exp rep,
          Print.space,
          Print.ppString "::",
          Print.break,
-         ppType ns repType];
+         ppType exp repType];
 
-  fun ppIso ns (abs,rep) =
+  fun ppIso exp (abs,rep) =
       Print.consistentBlock 0
-        [ppConst ns abs,
+        [ppConst exp abs,
          Print.space,
          Print.ppString "{",
          Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
-         ppRep ns rep,
+         ppRep exp rep,
          Print.break,
          Print.ppString "}"];
 in
-  fun ppNewtype ns newtype =
+  fun ppNewtype exp newtype =
       let
         val Newtype
               {name,
@@ -2588,9 +2575,9 @@ in
                rep} = newtype
       in
         Print.inconsistentBlock 2
-          [ppDecl ns (name,parms),
+          [ppDecl exp (name,parms),
            Print.break,
-           ppIso ns (abs,(rep,repType))]
+           ppIso exp (abs,(rep,repType))]
       end;
 end;
 
@@ -2701,10 +2688,9 @@ in
         Print.program (ppSource ns s :: List.map (ppSpaceSource ns) sl);
 end;
 
-fun ppModule (tags,namespace,source) =
+fun ppModule int (tags,namespace,source) =
     let
-      val desc = getTag tags descriptionTag
-      and exp = mkSymbolExport namespace source
+      val exp = mkSymbolExport int namespace source
     in
       Print.inconsistentBlock 0
         [Print.ppString "{- |",
@@ -2994,26 +2980,20 @@ in
 end;
 
 local
-  fun exportSubNamespace parent ns =
+  fun subNamespace parent ns =
       let
-        val xparent =
-            if Namespace.isGlobal parent then parent
-            else exportNamespace parent
-
-        val xns = exportNamespace ns
-
-        val (xns_nested,xns_sub) = Namespace.destNested xns
+        val (nested,sub) = Namespace.destNested ns
 
         val () =
-            if Namespace.equal xparent xns_nested then ()
-            else raise Bug "Haskell.exportSubNamespace"
+            if Namespace.equal parent nested then ()
+            else raise Bug "Haskell.subNamespace"
       in
-        xns_sub
+        sub
       end;
 
-  fun outputSrc tags {directory = dir} sub namespace source =
+  fun outputSrc int tags {directory = dir} sub namespace source =
       let
-        val ss = Print.toStream ppModule (tags,namespace,source)
+        val ss = Print.toStream (ppModule int) (tags,namespace,source)
 
         val file =
             let
@@ -3027,15 +3007,15 @@ local
         ()
       end;
 
-  fun outputMod tags dir parent module =
+  fun outputMod int tags dir parent module =
       let
         val Module {namespace,source,submodules} = module
 
-        val sub = exportSubNamespace parent namespace
+        val sub = subNamespace parent namespace
 
         val () =
             if List.null source then ()
-            else outputSrc tags dir sub namespace source
+            else outputSrc int tags dir sub namespace source
 
         val () =
             if List.null submodules then ()
@@ -3043,13 +3023,13 @@ local
               let
                 val dir = mkSubDirectory dir sub
               in
-                List.app (outputMod tags dir namespace) submodules
+                List.app (outputMod int tags dir namespace) submodules
               end
       in
         ()
       end;
 in
-  fun outputSource dir tags module =
+  fun outputSource int dir tags module =
       let
         val Module {namespace,source,submodules} = module
 
@@ -3063,7 +3043,7 @@ in
 
         val dir = mkSubDirectory dir "src"
       in
-        List.app (outputMod tags dir namespace) submodules
+        List.app (outputMod int tags dir namespace) submodules
       end;
 end;
 
@@ -3100,6 +3080,7 @@ fun writePackage haskell =
             {system = sys,
              information = info,
              depends = deps,
+             interpretation = int,
              source = src,
              tests = _} = haskell
 
@@ -3125,7 +3106,7 @@ fun writePackage haskell =
 
       val () = outputSetup dir
 
-      val () = outputSource dir tags src
+      val () = outputSource int dir tags src
 (***
       val () = outputTests dir tags tests
 ***)
