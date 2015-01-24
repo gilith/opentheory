@@ -376,6 +376,7 @@ datatype depend =
        oldest : PackageVersion.version,
        newest : PackageVersion.version};
 
+(***
 fun mkDepends repo pkg thy =
     let
       fun recordOldest oldest nv =
@@ -467,6 +468,7 @@ fun mkDepends repo pkg thy =
     in
       List.map mk ths
     end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* A type of Haskell packages.                                               *)
@@ -895,7 +897,7 @@ local
         ((f,arity),eqn)
       end;
 in
-  fun destValue th =
+  fun destValue int th =
       let
         val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -922,6 +924,18 @@ in
         val () =
             if not (Name.isCase (Const.name name)) then ()
             else raise Error "case constant"
+
+        val () =
+            case total (Type.destOp o Type.rangeFun) ty of
+              NONE => ()
+            | SOME (ot,_) =>
+              let
+                val tn = exportTypeOpName int (TypeOp.name ot)
+                and cn = exportConstName int (Const.name name)
+              in
+                if not (Name.equal cn tn) then ()
+                else raise Error "newtype constructor constant"
+              end
       in
         Value
           {name = name,
@@ -932,7 +946,7 @@ in
         raise Error ("bad value theorem: " ^ err);
 end;
 
-fun destSource th =
+fun destSource int th =
     let
       val dataResult =
           Left (destData th)
@@ -943,12 +957,12 @@ fun destSource th =
           handle Error err => Right err
 
       val valueResult =
-          Left (destValue th)
+          Left (destValue int th)
           handle Error err => Right err
     in
       case (dataResult,newtypeResult,valueResult) of
         (Left x, Right _, Right _) => DataSource x
-      | (Right _, Left x, _) => NewtypeSource x
+      | (Right _, Left x, Right _) => NewtypeSource x
       | (Right _, Right _, Left x) => ValueSource x
       | (Right e1, Right e2, Right e3) =>
         let
@@ -1374,7 +1388,7 @@ local
           end
       end;
 in
-  fun groupSource src =
+  fun groupSource int src =
       let
         val values = NameMap.new ()
 
@@ -1607,12 +1621,15 @@ fun fromPackage repo namever =
             val int = Interpretation.natural
 
             val {filename} = Package.joinDirectory pkg {filename = srcFilename}
+
+            val art =
+                Article.fromTextFile
+                  {savable = sav,
+                   import = imp,
+                   interpretation = int,
+                   filename = filename}
           in
-            Article.fromTextFile
-              {savable = sav,
-               import = imp,
-               interpretation = int,
-               filename = filename}
+            Article.thms art
           end
 
       val int =
@@ -1626,7 +1643,7 @@ fun fromPackage repo namever =
             end
 
       val deps = []  (*** mkDepends repo pkg thy ***)
-      and source = mkSource src
+      and source = mkSource int src
       and tests = []  (*** destTestTheory (Package.show pkg) test ***)
     in
       Haskell

@@ -1,20 +1,20 @@
 ###############################################################################
-# INTERPRETATIONS FOR PRIME NUMBERS
+# HASKELL INTERPRETATIONS FOR PRIME NUMBERS
 # Joe Leslie-Hurd
 ###############################################################################
 
-# Number
+# Opentheory
 
-# Number.Natural
+# Opentheory.Natural
 
-# Number.Natural.Prime
+# Opentheory.Natural.Prime
 
-const "Number.Natural.Prime.all" as "Number.Natural.Prime.all"
+const "Number.Natural.Prime.all" as "Opentheory.Natural.Prime.all"
 
-# Number.Natural.Prime.Sieve
+# Opentheory.Natural.Prime.Sieve
 
-type "Number.Natural.Prime.Sieve.sieve" as "Number.Natural.Prime.Sieve.Sieve"
+type "Number.Natural.Prime.Sieve.sieve" as "Opentheory.Natural.Prime.Sieve.Sieve"
 
-const "Number.Natural.Prime.Sieve.mk" as "Number.Natural.Prime.Sieve.Sieve"
-const "Number.Natural.Prime.Sieve.max" as "Number.Natural.Prime.Sieve.perimeter"
-const "Number.Natural.Prime.Sieve.dest" as "Number.Natural.Prime.Sieve.unSieve"
+const "Number.Natural.Prime.Sieve.mk" as "Opentheory.Natural.Prime.Sieve.Sieve"
+const "Number.Natural.Prime.Sieve.max" as "Opentheory.Natural.Prime.Sieve.perimeter"
+const "Number.Natural.Prime.Sieve.dest" as "Opentheory.Natural.Prime.Sieve.unSieve"
