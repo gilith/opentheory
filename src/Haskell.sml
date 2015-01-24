@@ -2018,16 +2018,12 @@ in
   fun ppTypeOpName exp n =
       Name.pp (typeOpNameSymbolExport exp n);
 
-  fun ppConstName exp infx n =
+  fun ppConstName exp n =
       let
         val n = constNameSymbolExport exp n
       in
-        if isSymbolName n then
-          if infx then Name.pp n
-          else Print.ppBracket "(" ")" Name.pp n
-        else
-          if not infx then Name.pp n
-          else Print.ppBracket "`" "`" Name.pp n
+        if not (isSymbolName n) then Name.pp n
+        else Print.ppBracket "(" ")" Name.pp n
       end;
 end;
 
@@ -2145,7 +2141,7 @@ fun ppConst exp c =
     let
       val n = Const.name c
     in
-      ppConstName exp false n
+      ppConstName exp n
     end;
 
 local
@@ -2203,10 +2199,15 @@ local
   val infixTokens = Print.tokensInfixes infixes;
 
   fun ppInfixToken (_,s) =
-      Print.program
-        [Print.space,
-         Print.ppString s,
-         Print.break];
+      let
+        val ps = [Print.ppString s]
+
+        val ps =
+            if isSymbolString s then ps
+            else let val p = Print.ppChar #"`" in p :: ps @ [p] end
+      in
+        Print.program (Print.space :: ps @ [Print.break])
+      end
 
   fun casePatterns (a,bs) =
       let
@@ -2239,15 +2240,17 @@ in
 
               val (c,_) = Term.destConst t
 
-              val n = Const.name c
+              val n = constNameSymbolExport exp (Const.name c)
 
-              val (_,s) = Name.dest (constNameSymbolExport exp n)
+              val (ns,s) = Name.dest n
+
+              val () =
+                  if Namespace.isGlobal ns then ()
+                  else raise Error "Haskell.ppTerm.destInfix: not global"
 
               val () =
                   if StringSet.member s infixTokens then ()
-                  else raise Error "Haskell.ppTerm.destInfix"
-
-              val s = Print.toString (ppConstName exp true) n
+                  else raise Error "Haskell.ppTerm.destInfix: not infix"
             in
               (s,a,b)
             end
@@ -2486,7 +2489,15 @@ in
 
         and ppInfixTerm tm_r = ppInfix ppLetCondCaseTerm tm_r
 
-        and ppNormalTerm tm = ppInfixTerm (tm,false)
+        and ppNormalTerm tm =
+            let
+(*OpenTheoryTrace5
+              val () = Print.trace Term.pp
+                         "Haskell.ppTerm.ppNormalTerm: tm" tm
+*)
+            in
+              ppInfixTerm (tm,false)
+            end
 
         and ppBracketTerm tm = Print.ppBracket "(" ")" ppNormalTerm tm
       in
