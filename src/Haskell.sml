@@ -376,9 +376,16 @@ datatype depend =
        oldest : PackageVersion.version,
        newest : PackageVersion.version};
 
-(***
 fun mkDepends repo pkg thy =
     let
+      fun recordOldest oldest nv =
+          let
+            val n = PackageNameVersion.name nv
+            and v = PackageNameVersion.version nv
+          in
+            PackageNameMap.insert oldest (n,v)
+          end
+
       fun checkPrevious oldest ths vs =
           if Queue.null ths then oldest
           else
@@ -390,10 +397,7 @@ fun mkDepends repo pkg thy =
               case Repository.previousNameVersion repo nv of
                 NONE =>
                 let
-                  val n = PackageNameVersion.name nv
-                  and v = PackageNameVersion.version nv
-
-                  val oldest = PackageNameMap.insert oldest (n,v)
+                  val oldest = recordOldest oldest nv
                 in
                   checkPrevious oldest ths vs
                 end
@@ -406,10 +410,7 @@ fun mkDepends repo pkg thy =
                   case total (PackageTheorems.addVersion vs) th of
                     NONE =>
                     let
-                      val n = PackageNameVersion.name nv
-                      and v = PackageNameVersion.version nv
-
-                      val oldest = PackageNameMap.insert oldest (n,v)
+                      val oldest = recordOldest oldest nv
                     in
                       checkPrevious oldest ths vs
                     end
@@ -466,7 +467,6 @@ fun mkDepends repo pkg thy =
     in
       List.map mk ths
     end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* A type of Haskell packages.                                               *)
@@ -1480,11 +1480,11 @@ in
       end;
 end;
 
-fun mkSource art =
+fun mkSource int src =
     let
-      val ths = ThmSet.toList (Thms.thms (Article.thms art))
+      val ths = ThmSet.toList (Thms.thms src)
 
-      val src = List.map destSource ths
+      val src = List.map (destSource int) ths
 
       val src = groupSource src
 
@@ -1660,20 +1660,23 @@ fun importNamespacesSymbolExport exp =
     end;
 
 local
-  fun shortenName imp n =
+  fun shortenName namespace imp n =
       let
         val (ns,c) = Name.dest n
       in
-        case NamespaceMap.peek imp ns of
-          NONE => n
-        | SOME NONE => n
-        | SOME (SOME ns) => Name.mk (ns,c)
+        if Namespace.equal ns namespace then Name.mkGlobal c
+        else
+          case NamespaceMap.peek imp ns of
+            NONE => n
+          | SOME NONE => n
+          | SOME (SOME ns) => Name.mk (ns,c)
       end;
 in
   fun typeOpNameSymbolExport exp n =
       let
         val SymbolExport
               {interpretation = int,
+               namespace = ns,
                importNamespaces = imp,
                exportTypeOps,
                ...} = exp
@@ -1683,13 +1686,14 @@ in
               SOME n => n
             | NONE => exportTypeOpName int n
       in
-        shortenName imp n
+        shortenName ns imp n
       end;
 
   fun constNameSymbolExport exp n =
       let
         val SymbolExport
               {interpretation = int,
+               namespace = ns,
                importNamespaces = imp,
                exportConsts,
                ...} = exp
@@ -1699,7 +1703,7 @@ in
               SOME n => n
             | NONE => exportConstName int n
       in
-        shortenName imp n
+        shortenName ns imp n
       end;
 end;
 
