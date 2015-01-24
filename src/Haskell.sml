@@ -1500,7 +1500,7 @@ fun mkSource int src =
 
       val src = List.map (destSource int) ths
 
-      val src = groupSource src
+      val src = groupSource int src
 
       val src = sortSource src
     in
