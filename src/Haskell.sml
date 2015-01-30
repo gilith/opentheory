@@ -222,7 +222,17 @@ local
           SOME (PackageTag.mk (PackageTag.Tag' {name = n, value = v}))
       end;
 
-  fun checkTag name htags =
+  val partitionTags =
+      let
+        fun add (tag,(htags,tags)) =
+            case destTag tag of
+              NONE => (htags, tag :: tags)
+            | SOME htag => (htag :: htags, tags)
+      in
+        fn tags => List.foldl add ([],[]) (List.rev tags)
+      end
+
+  fun checkNoTag name htags =
       case PackageTag.filterName name htags of
         [] => ()
       | _ :: _ =>
@@ -243,20 +253,8 @@ local
           raise Error err
         end;
 
-  fun getTag name htags =
-      case peekTag name htags of
-        SOME v_htags => v_htags
-      | NONE =>
-        let
-          val err = "no haskell-" ^ PackageName.toString name ^ " tag"
-        in
-          raise Error err
-        end;
-in
-  fun mkInformation repo tags =
+  fun mkInfo repo pkg tags srcFile htags =
       let
-        val htags = List.mapPartial destTag tags
-
         val (name,htags) =
             let
               val tag = PackageName.fromString nameTag
@@ -275,7 +273,7 @@ in
             let
               val tag = PackageName.fromString versionTag
 
-              val () = checkTag tag htags
+              val () = checkNoTag tag htags
             in
               PackageTag.findVersion tags
             end
@@ -298,7 +296,7 @@ in
             let
               val tag = PackageName.fromString authorTag
 
-              val () = checkTag tag htags
+              val () = checkNoTag tag htags
             in
               PackageTag.findAuthor tags
             end
@@ -307,7 +305,7 @@ in
             let
               val tag = PackageName.fromString licenseTag
 
-              val () = checkTag tag htags
+              val () = checkNoTag tag htags
 
               val {license} = PackageTag.findLicense tags
             in
@@ -327,7 +325,7 @@ in
             let
               val tag = PackageName.fromString provenanceTag
 
-              val () = checkTag tag htags
+              val () = checkNoTag tag htags
 
               val name = PackageTag.findName tags
               and version = PackageTag.findVersion tags
@@ -338,12 +336,15 @@ in
                     version = version})
             end
 
-        val (srcFile,htags) = getTag PackageName.srcExtraTag htags
-
-        val (intFile,htags) =
+        val (interpretation,htags) =
             case peekTag PackageName.intExtraTag htags of
-              NONE => (NONE,htags)
-            | SOME (v,htags) => (SOME v, htags)
+              NONE => (Interpretation.natural,htags)
+            | SOME (filename,htags) =>
+              let
+                val file = Package.joinDirectory pkg {filename = filename}
+              in
+                (Interpretation.fromTextFile file, htags)
+              end
 
         val info =
             Information
@@ -358,7 +359,20 @@ in
       in
         {information = info,
          srcFilename = srcFile,
-         intFilename = intFile}
+         interpretation = interpretation}
+      end;
+in
+  fun mkInformation repo pkg =
+      let
+        val info = Package.information pkg
+
+        val tags = PackageInformation.tags info
+
+        val (htags,tags) = partitionTags tags
+      in
+        case peekTag PackageName.srcExtraTag htags of
+          NONE => NONE
+        | SOME (srcFile,htags) => SOME (mkInfo repo pkg tags srcFile htags)
       end;
 end;
 
@@ -376,8 +390,8 @@ datatype depend =
        oldest : PackageVersion.version,
        newest : PackageVersion.version};
 
+fun mkDepends repo reqs thy = ([],Interpretation.natural)
 (***
-fun mkDepends repo pkg thy =
     let
       fun recordOldest oldest nv =
           let
@@ -425,7 +439,7 @@ fun mkDepends repo pkg thy =
             end
 
       val ths =
-          case Repository.requiresTheorems repo (Package.requires pkg) of
+          case Repository.requiresTheorems repo reqs of
             SOME ths => ths
           | NONE => raise Error "required theories not installed"
 
@@ -471,7 +485,7 @@ fun mkDepends repo pkg thy =
 ***)
 
 (* ------------------------------------------------------------------------- *)
-(* A type of Haskell packages.                                               *)
+(* A type of source declarations.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 datatype data =
@@ -511,33 +525,99 @@ datatype source =
   | NewtypeSource of newtype
   | ValueSource of value;
 
-datatype module =
-    Module of
-      {namespace : Namespace.namespace,
-       source : source list,
-       submodules : module list};
-
-datatype test =
-    Test of
-      {name : string,
-       description : string,
-       value : value,
-       invocation : string};
-
-datatype haskell =
-     Haskell of
-       {system : RepositorySystem.system,
-        information : information,
-        depends : depend list,
-        interpretation : Interpretation.interpretation,
-        source : module,
-        tests : test list};
-
 (* ------------------------------------------------------------------------- *)
-(* Symbols in Haskell declarations.                                          *)
+(* Symbols in source declarations.                                           *)
 (* ------------------------------------------------------------------------- *)
+
+(* The primary defined symbol in a source declaration *)
 
 fun symbolData (Data {name,...}) = Symbol.TypeOp name;
+
+fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
+
+fun symbolValue (Value {name,...}) = Symbol.Const name;
+
+fun symbolSource s =
+    case s of
+      DataSource x => symbolData x
+    | NewtypeSource x => symbolNewtype x
+    | ValueSource x => symbolValue x;
+
+fun nameSource s = Symbol.name (symbolSource s);
+
+fun namespaceSource s = Name.namespace (nameSource s);
+
+(* All defined symbols in source declarations *)
+
+local
+  fun addConstructor ((c,tys),sym) =
+      let
+        val sym = SymbolTable.addConst sym c
+      in
+        sym
+      end;
+in
+  fun definedSymbolTableData data =
+      let
+        val Data
+              {name,
+               parameters = _,
+               constructors = cons,
+               caseConst} = data
+
+        val sym = SymbolTable.empty
+
+        val sym = SymbolTable.addTypeOp sym name
+
+        val sym = List.foldl addConstructor sym cons
+
+        val sym = SymbolTable.addConst sym caseConst
+      in
+        sym
+      end;
+end;
+
+fun definedSymbolTableNewtype newtype =
+    let
+      val Newtype
+            {name,
+             parameters = _,
+             repType = _,
+             abs,
+             rep} = newtype
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addTypeOp sym name
+
+      val sym = SymbolTable.addConst sym abs
+
+      val sym = SymbolTable.addConst sym rep
+    in
+      sym
+    end;
+
+fun definedSymbolTableValue value =
+    let
+      val Value {name,...} = value
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addConst sym name
+    in
+      sym
+    end;
+
+fun definedSymbolTableSource s =
+    case s of
+      DataSource x => definedSymbolTableData x
+    | NewtypeSource x => definedSymbolTableNewtype x
+    | ValueSource x => definedSymbolTableValue x;
+
+fun definedSymbolTableSourceList sl =
+    SymbolTable.unionList (List.map definedSymbolTableSource sl);
+
+(* All symbols in source declarations *)
 
 local
   fun addConstructor ((c,tys),sym) =
@@ -569,36 +649,6 @@ in
       end;
 end;
 
-local
-  fun addConstructor ((c,tys),sym) =
-      let
-        val sym = SymbolTable.addConst sym c
-      in
-        sym
-      end;
-in
-  fun definedSymbolTableData data =
-      let
-        val Data
-              {name,
-               parameters = _,
-               constructors = cons,
-               caseConst} = data
-
-        val sym = SymbolTable.empty
-
-        val sym = SymbolTable.addTypeOp sym name
-
-        val sym = List.foldl addConstructor sym cons
-
-        val sym = SymbolTable.addConst sym caseConst
-      in
-        sym
-      end;
-end;
-
-fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
-
 fun symbolTableNewtype newtype =
     let
       val Newtype
@@ -620,28 +670,6 @@ fun symbolTableNewtype newtype =
     in
       sym
     end;
-
-fun definedSymbolTableNewtype newtype =
-    let
-      val Newtype
-            {name,
-             parameters = _,
-             repType = _,
-             abs,
-             rep} = newtype
-
-      val sym = SymbolTable.empty
-
-      val sym = SymbolTable.addTypeOp sym name
-
-      val sym = SymbolTable.addConst sym abs
-
-      val sym = SymbolTable.addConst sym rep
-    in
-      sym
-    end;
-
-fun symbolValue (Value {name,...}) = Symbol.Const name;
 
 local
   fun addValue (value,sym) =
@@ -692,47 +720,92 @@ val symbolTableEquation = addSymbolTableEquation SymbolTable.empty;
 
 val symbolTableValue = addSymbolTableValue SymbolTable.empty;
 
-fun definedSymbolTableValue value =
-    let
-      val Value {name,...} = value
-
-      val sym = SymbolTable.empty
-
-      val sym = SymbolTable.addConst sym name
-    in
-      sym
-    end;
-
-fun symbolSource s =
-    case s of
-      DataSource x => symbolData x
-    | NewtypeSource x => symbolNewtype x
-    | ValueSource x => symbolValue x;
-
-fun nameSource s = Symbol.name (symbolSource s);
-
-fun namespaceSource s = Name.namespace (nameSource s);
-
-fun namespaceSourceList sl =
-    NamespaceSet.fromList (List.map namespaceSource sl);
-
 fun symbolTableSource s =
     case s of
       DataSource x => symbolTableData x
     | NewtypeSource x => symbolTableNewtype x
     | ValueSource x => symbolTableValue x;
 
-fun definedSymbolTableSource s =
-    case s of
-      DataSource x => definedSymbolTableData x
-    | NewtypeSource x => definedSymbolTableNewtype x
-    | ValueSource x => definedSymbolTableValue x;
-
 fun symbolTableSourceList sl =
     SymbolTable.unionList (List.map symbolTableSource sl);
 
-fun definedSymbolTableSourceList sl =
-    SymbolTable.unionList (List.map definedSymbolTableSource sl);
+(* All symbols in uncommented-out source declarations, which means skipping *)
+(* symbols that appear only in the types of where declarations. *)
+
+val uncommentedSymbolTableData = symbolTableData;
+
+val uncommentedSymbolTableNewtype = symbolTableNewtype;
+
+local
+  fun destSpecialTerm tm =
+      if Term.isNumeral tm then SOME []
+      else
+        case total Term.destCond tm of
+          SOME (c,a,b) => SOME [c,a,b]
+        | NONE =>
+          case total Term.destLet tm of
+            SOME (v,x,y) => SOME [v,x,y]
+          | NONE =>
+            case total Term.destGenAbs tm of
+              SOME (v,x) => SOME [v,x]
+            | NONE => NONE;
+
+  fun addTerm (tm,sym) =
+      case destSpecialTerm tm of
+        SOME tms => List.foldl addTerm sym tms
+      | NONE =>
+        case Term.dest tm of
+          TypeTerm.Const' (c,_) => SymbolTable.addConst sym c
+        | TypeTerm.Var' _ => sym
+        | TypeTerm.App' (f,x) => addTerm (f, addTerm (x,sym))
+        | TypeTerm.Abs' (_,b) => addTerm (b,sym);
+
+  fun addValue (value,sym) =
+      let
+        val WhereValue {name = _, equations = eqns} = value
+
+        val sym = List.foldl addEquation sym eqns
+      in
+        sym
+      end
+
+  and addEquation (eqn,sym) =
+      let
+        val Equation {arguments = args, body, whereValues = values} = eqn
+
+        val sym = List.foldl addTerm sym args
+
+        val sym = addTerm (body,sym)
+
+        val sym = List.foldl addValue sym values
+      in
+        sym
+      end;
+in
+  fun uncommentedSymbolTableValue value =
+      let
+        val Value {name, ty, equations = eqns} = value
+
+        val sym = SymbolTable.empty
+
+        val sym = SymbolTable.addConst sym name
+
+        val sym = SymbolTable.addType sym ty
+
+        val sym = List.foldl addEquation sym eqns
+      in
+        sym
+      end;
+end;
+
+fun uncommentedSymbolTableSource s =
+    case s of
+      DataSource x => uncommentedSymbolTableData x
+    | NewtypeSource x => uncommentedSymbolTableNewtype x
+    | ValueSource x => uncommentedSymbolTableValue x;
+
+fun uncommentedSymbolTableSourceList sl =
+    SymbolTable.unionList (List.map uncommentedSymbolTableSource sl);
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting Haskell declarations.                                           *)
@@ -803,7 +876,7 @@ and sharingRewriteWhereValueList values rewr =
     TermRewrite.sharingRewriteList sharingRewriteWhereValue values rewr;
 
 (* ------------------------------------------------------------------------- *)
-(* Converting theorems into Haskell declarations.                            *)
+(* Converting theorems into source declarations.                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun destData th =
@@ -998,107 +1071,15 @@ fun destSource th =
         end
     end;
 
-(***
-fun destTests show =
-    let
-      fun ppTest (kind,n,test) =
-          Print.inconsistentBlock 2
-            [Print.ppString (capitalize kind),
-             Print.ppString " ",
-             Print.ppInt n,
-             Print.ppString ":",
-             Print.newline,
-             Term.ppWithShow show test]
-
-      fun destTest al pl th =
-          let
-            val Sequent.Sequent {hyp,concl} = Thm.sequent th
-
-            val () =
-                if TermAlphaSet.null hyp then ()
-                else raise Error "hypotheses"
-
-            val () =
-                if VarSet.null (Term.freeVars concl) then ()
-                else raise Error "free variables"
-
-            val isAssert = not (Term.isForall concl)
-
-            val (args,body) =
-                if isAssert then ([],concl)
-                else
-                  let
-                    val (v,body) = Term.destForall concl
-
-                    val () =
-                        if Type.isRandom (Var.typeOf v) then ()
-                        else raise Error "bad quantified variable type"
-
-                    val arg = Term.mkVar v
-                  in
-                    ([arg],body)
-                  end
-
-            val eqn =
-                Equation
-                  {arguments = args,
-                   body = body,
-                   whereValues = []}
-
-            val n = length (if isAssert then al else pl)
-
-            val kind = if isAssert then "assertion" else "proposition"
-
-            val name = kind ^ Int.toString n
-
-            val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
-
-            val ty =
-                let
-                  fun addArg (arg,acc) = Type.mkFun (Term.typeOf arg, acc)
-                in
-                  List.foldr addArg (Term.typeOf body) args
-                end
-
-            val value =
-                Value
-                  {name = const,
-                   ty = ty,
-                   equations = [eqn]}
-
-            val desc = Print.toString ppTest (kind,n,concl)
-
-            val invoke = if isAssert then "assert" else "check"
-
-            val test =
-                Test
-                  {name = name,
-                   description = desc,
-                   value = value,
-                   invocation = invoke}
-          in
-            if isAssert then (test :: al, pl) else (al, test :: pl)
-          end
-          handle Error err =>
-            raise Error ("bad test theorem: " ^ err)
-
-      fun dest al pl ths =
-          case ths of
-            [] => List.revAppend (al, List.rev pl)
-          | th :: ths =>
-            let
-              val (al,pl) = destTest al pl th
-            in
-              dest al pl ths
-            end
-    in
-      dest [] []
-    end;
-***)
-
 (* ------------------------------------------------------------------------- *)
-(* Sorting Haskell declarations into a module hierarchy.                     *)
+(* Sorting source declarations into a module hierarchy.                      *)
 (* ------------------------------------------------------------------------- *)
+
+datatype module =
+    Module of
+      {namespace : Namespace.namespace,
+       source : source list,
+       submodules : module list};
 
 local
   val rightToLeftVars =
@@ -1523,36 +1504,126 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Converting theorems into test declarations.                               *)
+(* ------------------------------------------------------------------------- *)
+
+datatype test =
+    Test of
+      {name : string,
+       description : string,
+       value : value,
+       invocation : string};
+
+(***
+fun destTests show =
+    let
+      fun ppTest (kind,n,test) =
+          Print.inconsistentBlock 2
+            [Print.ppString (capitalize kind),
+             Print.ppString " ",
+             Print.ppInt n,
+             Print.ppString ":",
+             Print.newline,
+             Term.ppWithShow show test]
+
+      fun destTest al pl th =
+          let
+            val Sequent.Sequent {hyp,concl} = Thm.sequent th
+
+            val () =
+                if TermAlphaSet.null hyp then ()
+                else raise Error "hypotheses"
+
+            val () =
+                if VarSet.null (Term.freeVars concl) then ()
+                else raise Error "free variables"
+
+            val isAssert = not (Term.isForall concl)
+
+            val (args,body) =
+                if isAssert then ([],concl)
+                else
+                  let
+                    val (v,body) = Term.destForall concl
+
+                    val () =
+                        if Type.isRandom (Var.typeOf v) then ()
+                        else raise Error "bad quantified variable type"
+
+                    val arg = Term.mkVar v
+                  in
+                    ([arg],body)
+                  end
+
+            val eqn =
+                Equation
+                  {arguments = args,
+                   body = body,
+                   whereValues = []}
+
+            val n = length (if isAssert then al else pl)
+
+            val kind = if isAssert then "assertion" else "proposition"
+
+            val name = kind ^ Int.toString n
+
+            val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
+
+            val ty =
+                let
+                  fun addArg (arg,acc) = Type.mkFun (Term.typeOf arg, acc)
+                in
+                  List.foldr addArg (Term.typeOf body) args
+                end
+
+            val value =
+                Value
+                  {name = const,
+                   ty = ty,
+                   equations = [eqn]}
+
+            val desc = Print.toString ppTest (kind,n,concl)
+
+            val invoke = if isAssert then "assert" else "check"
+
+            val test =
+                Test
+                  {name = name,
+                   description = desc,
+                   value = value,
+                   invocation = invoke}
+          in
+            if isAssert then (test :: al, pl) else (al, test :: pl)
+          end
+          handle Error err =>
+            raise Error ("bad test theorem: " ^ err)
+
+      fun dest al pl ths =
+          case ths of
+            [] => List.revAppend (al, List.rev pl)
+          | th :: ths =>
+            let
+              val (al,pl) = destTest al pl th
+            in
+              dest al pl ths
+            end
+    in
+      dest [] []
+    end;
+***)
+
+(* ------------------------------------------------------------------------- *)
 (* Converting a theory package to a Haskell package.                         *)
 (* ------------------------------------------------------------------------- *)
 
-(***
-local
-  fun getTheory name thys =
-      case Theory.peekNested name thys of
-        SOME thy => thy
-      | NONE =>
-        let
-          val err = "missing " ^ PackageName.toString name ^ " block in theory"
-        in
-          raise Error err
-        end;
-in
-  fun splitTheories thy =
-      let
-        val thys =
-            case Theory.node thy of
-              Theory.Package {nested,...} => nested
-            | _ => raise Bug "Haskell.theories: not a package theory"
-
-        val src = getTheory PackageName.srcHaskellTheory thys
-        and test = getTheory PackageName.testHaskellTheory thys
-      in
-        {src = src,
-         test = test}
-      end;
-end;
-***)
+datatype haskell =
+     Haskell of
+       {system : RepositorySystem.system,
+        information : information,
+        depends : depend list,
+        interpretation : Interpretation.interpretation,
+        source : module,
+        tests : test list};
 
 (***
 fun destTestTheory show test =
@@ -1587,21 +1658,14 @@ fun fromPackage repo namever =
 
       val sys = Repository.system repo
 
-      val {information = info, srcFilename, intFilename} =
-          let
-            val info = Package.information pkg
-          in
-            mkInformation repo (PackageInformation.tags info)
-          end
-
-      val int =
-          case intFilename of
-            NONE => Interpretation.natural
-          | SOME filename =>
+      val {information = info, srcFilename, interpretation = int} =
+          case mkInformation repo pkg of
+            SOME x => x
+          | NONE =>
             let
-              val file = Package.joinDirectory pkg {filename = filename}
+              val err = "no haskell-src-file information"
             in
-              Interpretation.fromTextFile file
+              raise Error err
             end
 
       val (_,thy) =
@@ -1634,20 +1698,32 @@ fun fromPackage repo namever =
                    import = imp,
                    interpretation = int,
                    filename = filename}
+
+            val ths = Article.thms art
           in
-            Article.thms art
+            mkSource ths
           end
 
-      val (deps,int) = ([],Interpretation.natural)  (*** mkDepends repo pkg thy ***)
-      and source = mkSource src
-      and tests = []  (*** destTestTheory (Package.show pkg) test ***)
+      val tests = []  (*** destTestTheory (Package.show pkg) test ***)
+
+      val (deps,int) =
+          let
+            val reqs = Package.requires pkg
+(***
+            val sym = symbolTableSourceList src
+
+            val sym = SymbolTable.undefined sym
+***)
+          in
+            mkDepends repo reqs thy
+          end
     in
       Haskell
         {system = sys,
          information = info,
          depends = deps,
          interpretation = int,
-         source = source,
+         source = src,
          tests = tests}
     end;
 
@@ -1720,81 +1796,6 @@ in
       end;
 end;
 
-val importSymbolTableData = symbolTableData;
-
-val importSymbolTableNewtype = symbolTableNewtype;
-
-local
-  fun destSpecialTerm tm =
-      if Term.isNumeral tm then SOME []
-      else
-        case total Term.destCond tm of
-          SOME (c,a,b) => SOME [c,a,b]
-        | NONE =>
-          case total Term.destLet tm of
-            SOME (v,x,y) => SOME [v,x,y]
-          | NONE =>
-            case total Term.destGenAbs tm of
-              SOME (v,x) => SOME [v,x]
-            | NONE => NONE;
-
-  fun addTerm (tm,sym) =
-      case destSpecialTerm tm of
-        SOME tms => List.foldl addTerm sym tms
-      | NONE =>
-        case Term.dest tm of
-          TypeTerm.Const' (c,_) => SymbolTable.addConst sym c
-        | TypeTerm.Var' _ => sym
-        | TypeTerm.App' (f,x) => addTerm (f, addTerm (x,sym))
-        | TypeTerm.Abs' (_,b) => addTerm (b,sym);
-
-  fun addValue (value,sym) =
-      let
-        val WhereValue {name = _, equations = eqns} = value
-
-        val sym = List.foldl addEquation sym eqns
-      in
-        sym
-      end
-
-  and addEquation (eqn,sym) =
-      let
-        val Equation {arguments = args, body, whereValues = values} = eqn
-
-        val sym = List.foldl addTerm sym args
-
-        val sym = addTerm (body,sym)
-
-        val sym = List.foldl addValue sym values
-      in
-        sym
-      end;
-in
-  fun importSymbolTableValue value =
-      let
-        val Value {name, ty, equations = eqns} = value
-
-        val sym = SymbolTable.empty
-
-        val sym = SymbolTable.addConst sym name
-
-        val sym = SymbolTable.addType sym ty
-
-        val sym = List.foldl addEquation sym eqns
-      in
-        sym
-      end;
-end;
-
-fun importSymbolTableSource s =
-    case s of
-      DataSource x => importSymbolTableData x
-    | NewtypeSource x => importSymbolTableNewtype x
-    | ValueSource x => importSymbolTableValue x;
-
-fun importSymbolTableSourceList sl =
-    SymbolTable.unionList (List.map importSymbolTableSource sl);
-
 local
   val targetNamespaces =
       let
@@ -1846,11 +1847,11 @@ local
 in
   fun mkSymbolExport int namespace source =
       let
-        val impTable = importSymbolTableSourceList source
+        val liveTable = uncommentedSymbolTableSourceList source
         and defTable = definedSymbolTableSourceList source
 
-        val ts = mkTypeOpMap int impTable
-        and cs = mkConstMap int impTable
+        val ts = mkTypeOpMap int liveTable
+        and cs = mkConstMap int liveTable
 
         val white =
             NamespaceSet.union
