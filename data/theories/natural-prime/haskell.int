@@ -3,18 +3,20 @@
 # Joe Leslie-Hurd
 ###############################################################################
 
-# Opentheory
+# OpenTheory
 
-# Opentheory.Natural
+# OpenTheory.Prime
 
-# Opentheory.Natural.Prime
+const "Number.Natural.Prime.all" as "OpenTheory.Prime.all"
 
-const "Number.Natural.Prime.all" as "Opentheory.Natural.Prime.all"
+# OpenTheory.Prime.Sieve
 
-# Opentheory.Natural.Prime.Sieve
+type "Number.Natural.Prime.Sieve.sieve" as "OpenTheory.Prime.Sieve.Sieve"
 
-type "Number.Natural.Prime.Sieve.sieve" as "Opentheory.Natural.Prime.Sieve.Sieve"
-
-const "Number.Natural.Prime.Sieve.mk" as "Opentheory.Natural.Prime.Sieve.Sieve"
-const "Number.Natural.Prime.Sieve.max" as "Opentheory.Natural.Prime.Sieve.perimeter"
-const "Number.Natural.Prime.Sieve.dest" as "Opentheory.Natural.Prime.Sieve.unSieve"
+const "Number.Natural.Prime.Sieve.mk" as "OpenTheory.Prime.Sieve.Sieve"
+const "Number.Natural.Prime.Sieve.increment" as "OpenTheory.Prime.Sieve.increment"
+const "Number.Natural.Prime.Sieve.increment.inc" as "OpenTheory.Prime.Sieve.increment.inc"
+const "Number.Natural.Prime.Sieve.initial" as "OpenTheory.Prime.Sieve.initial"
+const "Number.Natural.Prime.Sieve.next" as "OpenTheory.Prime.Sieve.next"
+const "Number.Natural.Prime.Sieve.max" as "OpenTheory.Prime.Sieve.perimeter"
+const "Number.Natural.Prime.Sieve.dest" as "OpenTheory.Prime.Sieve.unSieve"

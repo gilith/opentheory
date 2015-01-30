@@ -897,7 +897,7 @@ local
         ((f,arity),eqn)
       end;
 in
-  fun destValue int th =
+  fun destValue th =
       let
         val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -930,8 +930,8 @@ in
               NONE => ()
             | SOME (ot,_) =>
               let
-                val tn = exportTypeOpName int (TypeOp.name ot)
-                and cn = exportConstName int (Const.name name)
+                val tn = TypeOp.name ot
+                and cn = Const.name name
               in
                 if not (Name.equal cn tn) then ()
                 else raise Error "newtype constructor constant"
@@ -946,7 +946,7 @@ in
         raise Error ("bad value theorem: " ^ err);
 end;
 
-fun destSource int th =
+fun destSource th =
     let
       val dataResult =
           Left (destData th)
@@ -957,7 +957,7 @@ fun destSource int th =
           handle Error err => Right err
 
       val valueResult =
-          Left (destValue int th)
+          Left (destValue th)
           handle Error err => Right err
     in
       case (dataResult,newtypeResult,valueResult) of
@@ -1388,7 +1388,7 @@ local
           end
       end;
 in
-  fun groupSource int src =
+  fun groupSource src =
       let
         val values = NameMap.new ()
 
@@ -1494,13 +1494,13 @@ in
       end;
 end;
 
-fun mkSource int src =
+fun mkSource src =
     let
       val ths = ThmSet.toList (Thms.thms src)
 
-      val src = List.map (destSource int) ths
+      val src = List.map destSource ths
 
-      val src = groupSource int src
+      val src = groupSource src
 
       val src = sortSource src
     in
@@ -1594,6 +1594,16 @@ fun fromPackage repo namever =
             mkInformation repo (PackageInformation.tags info)
           end
 
+      val int =
+          case intFilename of
+            NONE => Interpretation.natural
+          | SOME filename =>
+            let
+              val file = Package.joinDirectory pkg {filename = filename}
+            in
+              Interpretation.fromTextFile file
+            end
+
       val (_,thy) =
           let
             val sav = false
@@ -1603,8 +1613,6 @@ fun fromPackage repo namever =
             val graph = TheoryGraph.empty {savable = sav}
 
             val imps = TheorySet.empty
-
-            val int = Interpretation.natural
           in
             TheoryGraph.importPackage fndr graph
               {imports = imps,
@@ -1618,8 +1626,6 @@ fun fromPackage repo namever =
 
             val imp = Theory.article thy
 
-            val int = Interpretation.natural
-
             val {filename} = Package.joinDirectory pkg {filename = srcFilename}
 
             val art =
@@ -1632,18 +1638,8 @@ fun fromPackage repo namever =
             Article.thms art
           end
 
-      val int =
-          case intFilename of
-            NONE => Interpretation.natural
-          | SOME filename =>
-            let
-              val file = Package.joinDirectory pkg {filename = filename}
-            in
-              Interpretation.fromTextFile file
-            end
-
-      val deps = []  (*** mkDepends repo pkg thy ***)
-      and source = mkSource int src
+      val (deps,int) = ([],Interpretation.natural)  (*** mkDepends repo pkg thy ***)
+      and source = mkSource src
       and tests = []  (*** destTestTheory (Package.show pkg) test ***)
     in
       Haskell
