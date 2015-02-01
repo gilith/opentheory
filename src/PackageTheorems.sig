@@ -28,7 +28,7 @@ type theorems
 
 val mk : PackageNameVersion.nameVersion -> Sequents.sequents -> theorems
 
-val package : theorems -> PackageNameVersion.nameVersion
+val nameVersion : theorems -> PackageNameVersion.nameVersion
 
 val theorems : theorems -> ObjectTheorems.theorems
 

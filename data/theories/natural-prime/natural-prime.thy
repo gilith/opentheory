@@ -1,5 +1,5 @@
 name: natural-prime
-version: 1.72
+version: 1.73
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

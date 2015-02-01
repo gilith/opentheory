@@ -390,99 +390,295 @@ datatype depend =
        oldest : PackageVersion.version,
        newest : PackageVersion.version};
 
-fun mkDepends repo reqs thy = ([],Interpretation.natural)
-(***
-    let
-      fun recordOldest oldest nv =
+local
+  fun definesSymbol s th =
+      let
+        val tab = PackageTheorems.symbol th
+      in
+        case s of
+          Symbol.TypeOp t =>
           let
-            val n = PackageNameVersion.name nv
-            and v = PackageNameVersion.version nv
+            val n = TypeOp.name t
           in
-            PackageNameMap.insert oldest (n,v)
+            case SymbolTable.peekTypeOp tab n of
+              NONE => false
+            | SOME t => not (TypeOp.isUndef t)
           end
+        | Symbol.Const c =>
+          let
+            val n = Const.name c
+          in
+            case SymbolTable.peekConst tab n of
+              NONE => false
+            | SOME c => not (Const.isUndef c)
+          end
+      end;
 
-      fun checkPrevious oldest ths vs =
-          if Queue.null ths then oldest
-          else
+  fun addSymbol ths (s,sm) =
+      let
+        val th =
+            case List.filter (definesSymbol s) ths of
+              [] =>
+              let
+                val (k,n) =
+                    case s of
+                      Symbol.TypeOp t => ("type operator", TypeOp.name t)
+                    | Symbol.Const c => ("constant", Const.name c)
+
+                val err =
+                    "no required theory defines " ^ k ^ " with name " ^
+                    Name.toString n
+              in
+                raise Error err
+              end
+            | [th] => th
+            | _ :: _ :: _ =>
+              raise Bug "Haskell.mkDepends.findSymbol: multiple definitions";
+
+        val n = PackageNameVersion.name (PackageTheorems.nameVersion th)
+
+        val ss = Option.getOpt (PackageNameMap.peek sm n, SymbolSet.empty)
+
+        val ss = SymbolSet.add ss s
+      in
+        PackageNameMap.insert sm (n,ss)
+      end;
+
+  fun interpretSymbol repo sm (th,(ths,syms)) =
+      let
+        val nv = PackageTheorems.nameVersion th
+
+        val n = PackageNameVersion.name nv
+      in
+        case PackageNameMap.peek sm n of
+          NONE => (ths,syms)
+        | SOME ss =>
+          let
+            val pkg =
+                case Repository.peek repo nv of
+                  SOME p => p
+                | NONE => raise Bug "Haskell.mkDepends.interpretSymbol.pkg"
+
+            val {information = _, srcFilename = _, interpretation = int} =
+                case mkInformation repo pkg of
+                  SOME x => x
+                | NONE =>
+                  let
+                    val err =
+                        "no haskell-src-file information in required theory " ^
+                        PackageNameVersion.toString nv
+                  in
+                    raise Error err
+                  end
+
+            fun interpret s =
+                case s of
+                  Symbol.TypeOp t =>
+                  let
+                    val n = TypeOp.name t
+                  in
+                    Interpretation.interpretTypeOp int n
+                  end
+                | Symbol.Const c =>
+                  let
+                    val n = Const.name c
+                  in
+                    Interpretation.interpretConst int n
+                  end
+
+            val sm = SymbolSet.map interpret ss
+          in
+            (th :: ths, PackageNameMap.insert syms (n,sm))
+          end
+      end;
+
+  fun checkSymbol sym th int =
+      let
+        val tab = PackageTheorems.symbol th
+
+        fun defTypeOp n =
+            case SymbolTable.peekTypeOp tab n of
+              NONE => NONE
+            | SOME t =>
+              if TypeOp.isUndef t then NONE
+              else SOME (Interpretation.interpretTypeOp int (TypeOp.name t))
+
+        fun defConst n =
+            case SymbolTable.peekConst tab n of
+              NONE => NONE
+            | SOME c =>
+              if Const.isUndef c then NONE
+              else SOME (Interpretation.interpretConst int (Const.name c))
+
+        fun check (s,n) =
             let
-              val (th,ths) = Queue.hdTl ths
-
-              val nv = PackageTheorems.package th
+              val no =
+                  case s of
+                    Symbol.TypeOp t => defTypeOp (TypeOp.name t)
+                  | Symbol.Const c => defConst (Const.name c)
             in
-              case Repository.previousNameVersion repo nv of
-                NONE =>
-                let
-                  val oldest = recordOldest oldest nv
-                in
-                  checkPrevious oldest ths vs
-                end
-              | SOME nv' =>
-                let
-                  val pkg = Repository.get repo nv'
-
-                  val th = Package.theorems pkg
-                in
-                  case total (PackageTheorems.addVersion vs) th of
-                    NONE =>
-                    let
-                      val oldest = recordOldest oldest nv
-                    in
-                      checkPrevious oldest ths vs
-                    end
-                  | SOME vs =>
-                    let
-                      val ths = Queue.add th ths
-                    in
-                      checkPrevious oldest ths vs
-                    end
-                end
+              case no of
+                NONE => false
+              | SOME n' => Name.equal n' n
             end
 
-      val ths =
-          case Repository.requiresTheorems repo reqs of
-            SOME ths => ths
-          | NONE => raise Error "required theories not installed"
+        val nv = PackageTheorems.nameVersion th
 
-      val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
+        val n = PackageNameVersion.name nv
 
-      val ths =
-          let
-            fun isHaskell th =
-                let
-                  val nv = PackageTheorems.package th
+        val sm =
+            case PackageNameMap.peek sym n of
+              NONE => raise Bug "Haskell.mkDepends.checkSymbol"
+            | SOME x => x
+      in
+        SymbolMap.all check sm
+      end;
 
-                  val n = PackageNameVersion.name nv
-                in
-                  PackageName.isHaskell n
-                end
-          in
-            List.filter isHaskell ths
-          end
+  fun mkSymbol repo ths sym =
+      let
+        val sym = SymbolTable.symbols (SymbolTable.undefined sym)
 
-      val oldest =
-          checkPrevious (PackageNameMap.new ()) (Queue.fromList ths) vs
+        val sm = PackageNameMap.new ()
 
-      fun mk th =
-          let
-            val nv = PackageTheorems.package th
+        val sm = SymbolSet.foldl (addSymbol ths) sm sym
 
-            val n = PackageNameVersion.name nv
-            and new = PackageNameVersion.version nv
+        val syms = PackageNameMap.new ()
+      in
+        List.foldl (interpretSymbol repo sm) ([],syms) (List.rev ths)
+      end;
 
-            val old =
-                case PackageNameMap.peek oldest n of
-                  SOME v => v
-                | NONE => raise Bug "Haskell.mkDepends.mk"
-          in
-            Depend
-              {name = n,
-               oldest = old,
-               newest = new}
-          end
-    in
-      List.map mk ths
-    end;
-***)
+  fun destSymbol sym =
+      let
+        fun addSym (s,n,rws) =
+            let
+              val rw =
+                  case s of
+                    Symbol.TypeOp t =>
+                    Interpretation.TypeOpRewrite (TypeOp.name t, n)
+                  | Symbol.Const c =>
+                    Interpretation.ConstRewrite (Const.name c, n)
+            in
+              rw :: rws
+            end
+
+        fun addName (_,sm,rws) = SymbolMap.foldr addSym rws sm
+
+        val rws = PackageNameMap.foldr addName [] sym
+      in
+        Interpretation.fromRewriteList rws
+      end;
+
+  fun recordOldest oldest nv =
+      let
+        val n = PackageNameVersion.name nv
+        and v = PackageNameVersion.version nv
+
+(*OpenTheoryDebug
+        val () =
+            if not (PackageNameMap.inDomain n oldest) then ()
+            else raise Bug "Haskell.mkDepends.recordOldest"
+*)
+      in
+        PackageNameMap.insert oldest (n,v)
+      end;
+
+  fun mkOldest repo sym =
+      let
+        fun check nv vs =
+            case Repository.previousNameVersion repo nv of
+              NONE => NONE
+            | SOME nv =>
+              let
+                val pkg = Repository.get repo nv
+
+                val th = Package.theorems pkg
+              in
+                (* If the Haskell export was not set up for this version then *)
+                (* we don't need to check the theory constraints *)
+                case mkInformation repo pkg of
+                  NONE => SOME (th,vs)
+                | SOME info =>
+                  let
+                    val {information = _,
+                         srcFilename = _,
+                         interpretation = int} = info
+                  in
+                    case total (PackageTheorems.addVersion vs) th of
+                      NONE => NONE
+                    | SOME vs =>
+                      if not (checkSymbol sym th int) then NONE
+                      else SOME (th,vs)
+                  end
+              end
+
+        fun push oldest ths vs =
+            if Queue.null ths then oldest
+            else
+              let
+                val (th,ths) = Queue.hdTl ths
+
+                val nv = PackageTheorems.nameVersion th
+              in
+                case check nv vs of
+                  NONE =>
+                  let
+                    val oldest = recordOldest oldest nv
+                  in
+                    push oldest ths vs
+                  end
+                | SOME (th,vs) =>
+                  let
+                    val ths = Queue.add th ths
+                  in
+                    push oldest ths vs
+                  end
+              end
+      in
+        push (PackageNameMap.new ())
+      end;
+
+  fun destOldest oldest =
+      let
+        fun mk th =
+            let
+              val nv = PackageTheorems.nameVersion th
+
+              val n = PackageNameVersion.name nv
+              and new = PackageNameVersion.version nv
+
+              val old =
+                  case PackageNameMap.peek oldest n of
+                    SOME v => v
+                  | NONE => raise Bug "Haskell.mkDepends.mk"
+            in
+              Depend
+                {name = n,
+                 oldest = old,
+                 newest = new}
+            end
+      in
+        List.map mk
+      end;
+in
+  fun mkDepends repo reqs thy sym =
+      let
+        val ths =
+            case Repository.requiresTheorems repo reqs of
+              SOME ths => ths
+            | NONE => raise Error "required theories not installed"
+
+        val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
+
+        val (ths,sym) = mkSymbol repo ths sym
+
+        val oldest = mkOldest repo sym (Queue.fromList ths) vs
+
+        val deps = destOldest oldest ths
+        and int = destSymbol sym
+      in
+        (deps,int)
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of source declarations.                                            *)
@@ -1503,6 +1699,17 @@ in
   fun exposedModule source = exposed (source,NamespaceSet.empty);
 end;
 
+fun symbolTableModule module =
+    let
+      val Module {namespace = _, source, submodules} = module
+
+      val sym = symbolTableSourceList source
+
+      val syml = List.map symbolTableModule submodules
+    in
+      SymbolTable.unionList (sym :: syml)
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Converting theorems into test declarations.                               *)
 (* ------------------------------------------------------------------------- *)
@@ -1709,13 +1916,10 @@ fun fromPackage repo namever =
       val (deps,int) =
           let
             val reqs = Package.requires pkg
-(***
-            val sym = symbolTableSourceList src
 
-            val sym = SymbolTable.undefined sym
-***)
+            val sym = symbolTableModule src
           in
-            mkDepends repo reqs thy
+            mkDepends repo reqs thy sym
           end
     in
       Haskell

@@ -2105,7 +2105,7 @@ local
                 let
                   val (th,ths) = Queue.hdTl ths
 
-                  val nv = PackageTheorems.package th
+                  val nv = PackageTheorems.nameVersion th
                 in
                   case previousVersion nv of
                     NONE =>
@@ -2161,7 +2161,7 @@ local
 
           fun mk th =
               let
-                val nv = PackageTheorems.package th
+                val nv = PackageTheorems.nameVersion th
 
                 val n = PackageNameVersion.name nv
                 and new = PackageNameVersion.version nv

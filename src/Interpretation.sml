@@ -153,8 +153,7 @@ in
         val Interpretation {typeOps,consts} = int
 
         val typeOps = normalizeName typeOps
-
-        val consts = normalizeName consts
+        and consts = normalizeName consts
       in
         Interpretation
           {typeOps = typeOps,
@@ -169,7 +168,7 @@ end;
 val natural =
     let
       val typeOps = NameMap.new ()
-      val consts = NameMap.new ()
+      and consts = NameMap.new ()
     in
       Interpretation
         {typeOps = typeOps,

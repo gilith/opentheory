@@ -46,7 +46,7 @@ fun mk pkg seqs =
          theorems = ths}
     end;
 
-fun package (Theorems {package = x, ...}) = x;
+fun nameVersion (Theorems {package = x, ...}) = x;
 
 fun theorems (Theorems {theorems = x, ...}) = x;
 
@@ -150,7 +150,7 @@ local
             end
           else
             let
-              val seqsl = (package th, undef, seq) :: seqsl
+              val seqsl = (nameVersion th, undef, seq) :: seqsl
             in
               (undefs,seqs,seqsl,rewr)
             end
@@ -240,10 +240,10 @@ local
 
   fun destTheorems th =
       let
-        val pkg = package th
+        val nv = nameVersion th
         and seqs = sequents th
 
-        val n = PackageNameVersion.name pkg
+        val n = PackageNameVersion.name nv
         and (sym,seqs) = destSequents seqs
       in
         (n,sym,seqs)
