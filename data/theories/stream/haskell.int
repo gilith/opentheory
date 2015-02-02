@@ -1,0 +1,20 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR STREAM TYPES
+# Joe Leslie-Hurd
+###############################################################################
+
+type "Data.Stream.stream" as "List"
+
+const "Data.Stream.::" as ":"
+const "Data.Stream.@" as "++"
+const "Data.Stream.head" as "head"
+const "Data.Stream.map" as "map"
+const "Data.Stream.tail" as "tail"
+
+# OpenTheory
+
+# OpenTheory.Stream
+
+const "Data.Stream.nth" as "OpenTheory.Stream.nth"
+const "Data.Stream.take" as "OpenTheory.Stream.take'"
+const "Data.Stream.unfold" as "OpenTheory.Stream.unfold"

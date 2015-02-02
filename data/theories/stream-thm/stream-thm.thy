@@ -1,9 +1,9 @@
 name: stream-thm
-version: 1.35
+version: 1.36
 description: Properties of stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2015-02-01
 requires: bool
 requires: function
 requires: list

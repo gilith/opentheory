@@ -1,0 +1,19 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR THE STANDARD THEORY LIBRARY
+# Joe Leslie-Hurd
+###############################################################################
+
+type "Data.List.list" as "List"
+
+const "Data.List.::" as ":"
+const "Data.List.@" as "++"
+const "Data.List.[]" as "[]"
+const "Data.List.head" as "head"
+const "Data.List.map" as "map"
+const "Data.List.tail" as "tail"
+
+# OpenTheory
+
+# OpenTheory.List
+
+const "Data.List.length" as "OpenTheory.List.length'"

@@ -1,5 +1,5 @@
 name: base
-version: 1.170
+version: 1.171
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,6 +14,8 @@ show: "Number.Natural"
 show: "Number.Real"
 show: "Relation"
 show: "Set"
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
 
 bool {
   package: bool-1.36
@@ -86,8 +88,8 @@ list {
   import: pair
   import: natural
   import: set
-  package: list-1.100
-  checksum: 8e9126c985067e98b50643cbf9b1e92d0390597e
+  package: list-1.101
+  checksum: 174591571afbec1347ef07d570492e9f9347c2ad
 }
 
 real {
