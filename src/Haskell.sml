@@ -459,7 +459,7 @@ local
                   SOME p => p
                 | NONE => raise Bug "Haskell.mkDepends.interpretSymbol.pkg"
 
-            val {information = _, srcFilename = _, interpretation = int} =
+            val {information = info, srcFilename = _, interpretation = int} =
                 case mkInformation repo pkg of
                   SOME x => x
                 | NONE =>
@@ -470,6 +470,8 @@ local
                   in
                     raise Error err
                   end
+
+            val hn = nameInformation info
 
             fun interpret s =
                 case s of
@@ -488,11 +490,11 @@ local
 
             val sm = SymbolSet.map interpret ss
           in
-            (th :: ths, PackageNameMap.insert syms (n,sm))
+            (th :: ths, PackageNameMap.insert syms (n,(hn,sm)))
           end
       end;
 
-  fun checkSymbol sym th int =
+  fun checkSymbol sym th info int =
       let
         val tab = PackageTheorems.symbol th
 
@@ -526,11 +528,12 @@ local
 
         val n = PackageNameVersion.name nv
 
-        val sm =
+        val (hn,sm) =
             case PackageNameMap.peek sym n of
               NONE => raise Bug "Haskell.mkDepends.checkSymbol"
             | SOME x => x
       in
+        PackageName.equal (nameInformation info) hn andalso
         SymbolMap.all check sm
       end;
 
@@ -564,7 +567,7 @@ local
               rw :: rws
             end
 
-        fun addName (_,sm,rws) = SymbolMap.foldr addSym rws sm
+        fun addName (_,(_,sm),rws) = SymbolMap.foldr addSym rws sm
 
         val rws = PackageNameMap.foldr addName [] sym
       in
@@ -600,16 +603,16 @@ local
                 (* we don't need to check the theory constraints *)
                 case mkInformation repo pkg of
                   NONE => SOME (th,vs)
-                | SOME info =>
+                | SOME info_int =>
                   let
-                    val {information = _,
+                    val {information = info,
                          srcFilename = _,
-                         interpretation = int} = info
+                         interpretation = int} = info_int
                   in
                     case total (PackageTheorems.addVersion vs) th of
                       NONE => NONE
                     | SOME vs =>
-                      if not (checkSymbol sym th int) then NONE
+                      if not (checkSymbol sym th info int) then NONE
                       else SOME (th,vs)
                   end
               end
@@ -640,7 +643,7 @@ local
         push (PackageNameMap.new ())
       end;
 
-  fun destOldest oldest =
+  fun destOldest sym oldest =
       let
         fun mk th =
             let
@@ -649,13 +652,18 @@ local
               val n = PackageNameVersion.name nv
               and new = PackageNameVersion.version nv
 
+              val hn =
+                  case PackageNameMap.peek sym n of
+                    SOME (x,_) => x
+                  | NONE => raise Bug "Haskell.mkDepends.destOldest.mk: sym"
+
               val old =
                   case PackageNameMap.peek oldest n of
-                    SOME v => v
-                  | NONE => raise Bug "Haskell.mkDepends.mk"
+                    SOME x => x
+                  | NONE => raise Bug "Haskell.mkDepends.destOldest.mk: old"
             in
               Depend
-                {name = n,
+                {name = hn,
                  oldest = old,
                  newest = new}
             end
@@ -676,7 +684,7 @@ in
 
         val oldest = mkOldest repo sym (Queue.fromList ths) vs
 
-        val deps = destOldest oldest ths
+        val deps = destOldest sym oldest ths
         and int = destSymbol sym
       in
         (deps,int)
