@@ -444,14 +444,14 @@ local
         PackageNameMap.insert sm (n,ss)
       end;
 
-  fun interpretSymbol repo sm (th,(ths,syms)) =
+  fun interpretSymbol repo sm (th,(nvs,syms)) =
       let
         val nv = PackageTheorems.nameVersion th
 
         val n = PackageNameVersion.name nv
       in
         case PackageNameMap.peek sm n of
-          NONE => (ths,syms)
+          NONE => (nvs,syms)
         | SOME ss =>
           let
             val pkg =
@@ -490,7 +490,7 @@ local
 
             val sm = SymbolSet.map interpret ss
           in
-            (th :: ths, PackageNameMap.insert syms (n,(hn,sm)))
+            (nv :: nvs, PackageNameMap.insert syms (n,(hn,sm)))
           end
       end;
 
@@ -599,10 +599,10 @@ local
 
                 val th = Package.theorems pkg
               in
-                (* If the Haskell export was not set up for this version then *)
-                (* we don't need to check the theory constraints *)
+                (* If Haskell export was not set up for this version *)
+                (* then we don't need to check the dependencies *)
                 case mkInformation repo pkg of
-                  NONE => SOME (th,vs)
+                  NONE => SOME (nv,vs)
                 | SOME info_int =>
                   let
                     val {information = info,
@@ -613,30 +613,28 @@ local
                       NONE => NONE
                     | SOME vs =>
                       if not (checkSymbol sym th info int) then NONE
-                      else SOME (th,vs)
+                      else SOME (nv,vs)
                   end
               end
 
-        fun push oldest ths vs =
-            if Queue.null ths then oldest
+        fun push oldest nvs vs =
+            if Queue.null nvs then oldest
             else
               let
-                val (th,ths) = Queue.hdTl ths
-
-                val nv = PackageTheorems.nameVersion th
+                val (nv,nvs) = Queue.hdTl nvs
               in
                 case check nv vs of
                   NONE =>
                   let
                     val oldest = recordOldest oldest nv
                   in
-                    push oldest ths vs
+                    push oldest nvs vs
                   end
-                | SOME (th,vs) =>
+                | SOME (nv,vs) =>
                   let
-                    val ths = Queue.add th ths
+                    val nvs = Queue.add nv nvs
                   in
-                    push oldest ths vs
+                    push oldest nvs vs
                   end
               end
       in
@@ -645,10 +643,8 @@ local
 
   fun destOldest sym oldest =
       let
-        fun mk th =
+        fun mk nv =
             let
-              val nv = PackageTheorems.nameVersion th
-
               val n = PackageNameVersion.name nv
               and new = PackageNameVersion.version nv
 
@@ -680,11 +676,11 @@ in
 
         val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
 
-        val (ths,sym) = mkSymbol repo ths sym
+        val (nvs,sym) = mkSymbol repo ths sym
 
-        val oldest = mkOldest repo sym (Queue.fromList ths) vs
+        val oldest = mkOldest repo sym (Queue.fromList nvs) vs
 
-        val deps = destOldest sym oldest ths
+        val deps = destOldest sym oldest nvs
         and int = destSymbol sym
       in
         (deps,int)
