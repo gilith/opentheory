@@ -1,16 +1,11 @@
 name: natural-prime
-version: 1.73
+version: 1.74
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
-requires: list
-requires: natural
+requires: base
 requires: natural-divides
 requires: natural-gcd
-requires: pair
-requires: relation
 requires: stream
 show: "Data.Bool"
 show: "Data.List"

@@ -536,7 +536,10 @@ local
 
   fun mkSymbol repo ths sym =
       let
-        val sym = SymbolTable.symbols (SymbolTable.undefined sym)
+        val sym =
+            SymbolSet.difference
+              (SymbolTable.symbols (SymbolTable.undefined sym))
+              SymbolSet.primitives
 
         val sm = PackageNameMap.new ()
 
