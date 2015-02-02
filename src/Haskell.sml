@@ -2049,11 +2049,48 @@ local
         NameSet.map (exportConstName int) ns
       end;
 
-  fun shortenNamespaces namespace =
+  fun lengthNamespace ns = length (Namespace.toList ns);
+
+  fun abbreviateNamespace ns =
       let
-        val shorten = Namespace.rewrite (namespace,Namespace.global)
+        fun abbreviate l =
+            case abbreviateTail l of
+              SOME n => SOME n
+            | NONE =>
+              let
+                val n = Namespace.fromList l
+              in
+                if NamespaceSet.member n ns then NONE
+                else SOME n
+              end
+
+        and abbreviateTail l =
+            case l of
+              [] => NONE
+            | _ :: t => abbreviate t
       in
-        NamespaceSet.map shorten
+        fn n => abbreviateTail (Namespace.toList n)
+      end;
+
+  fun addNamespace (n,(ns,nm)) =
+      let
+        val n' = abbreviateNamespace ns n
+
+        val ns = NamespaceSet.add ns (Option.getOpt (n',n))
+        and nm = NamespaceMap.insert nm (n,n')
+      in
+        (ns,nm)
+      end;
+
+  fun abbreviateNamespaces ns =
+      let
+        val ns = sortMap lengthNamespace Int.compare (NamespaceSet.toList ns)
+
+        val (_,nm) =
+            List.foldl addNamespace
+              (NamespaceSet.empty, NamespaceMap.new ()) ns
+      in
+        nm
       end;
 in
   fun mkSymbolExport int namespace source =
@@ -2074,8 +2111,7 @@ in
               (targetNamespaces (mkConstMap int defTable))
               Namespace.global
 
-        val ns =
-            shortenNamespaces namespace (NamespaceSet.difference white black)
+        val ns = abbreviateNamespaces (NamespaceSet.difference white black)
       in
         SymbolExport
           {interpretation = int,
