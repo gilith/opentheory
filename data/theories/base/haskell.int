@@ -3,9 +3,8 @@
 # Joe Leslie-Hurd
 ###############################################################################
 
-type "Data.List.list" as "List"
-
 const "Data.List.::" as ":"
+const "Number.Natural.+" as "+"
 const "Data.List.@" as "++"
 const "Data.List.[]" as "[]"
 const "Data.List.head" as "head"
@@ -17,3 +16,9 @@ const "Data.List.tail" as "tail"
 # OpenTheory.List
 
 const "Data.List.length" as "OpenTheory.List.length'"
+
+# OpenTheory.Primitive
+
+# OpenTheory.Primitive.Natural
+
+type "Number.Natural.natural" as "OpenTheory.Primitive.Natural.Natural"

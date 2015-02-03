@@ -2067,6 +2067,7 @@ local
         and abbreviateTail l =
             case l of
               [] => NONE
+            | [_] => NONE
             | _ :: t => abbreviate t
       in
         fn n => abbreviateTail (Namespace.toList n)
@@ -2300,7 +2301,27 @@ fun ppVarName n =
 
 fun ppTypeOp exp ot = ppTypeOpName exp (TypeOp.name ot);
 
-val ppTypeVar = Name.pp;
+fun ppTypeVar v =
+    let
+      val s = Name.destGlobal v
+    in
+      case explode s of
+        [] => raise Error "type variable is empty string"
+      | c :: cs =>
+        let
+          val () =
+              if Char.isUpper c then ()
+              else
+                let
+                  val err =
+                      "type variable " ^ s ^ " does not begin with upper case"
+                in
+                  raise Error err
+                end
+        in
+          Print.program (map Print.ppChar (Char.toLower c :: cs))
+        end
+    end;
 
 val ppTypeVarList =
     let
@@ -3009,7 +3030,7 @@ fun ppModule int (tags,namespace,source) =
             portabilityTag],
          Print.newline,
          Print.ppString "-}",
-         Print.newline,
+         Print.newlines 2,
          ppModuleDeclaration exp,
          Print.newlines 2,
          ppModuleImport exp,

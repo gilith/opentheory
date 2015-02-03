@@ -1,5 +1,5 @@
 name: base
-version: 1.171
+version: 1.174
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,6 +14,7 @@ show: "Number.Natural"
 show: "Number.Real"
 show: "Relation"
 show: "Set"
+haskell-name: opentheory
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 
