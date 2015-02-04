@@ -85,118 +85,6 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Exporting various OpenTheory names to Haskell.                            *)
-(* ------------------------------------------------------------------------- *)
-
-val exportPackageName = PackageName.mkHaskellName;
-
-fun exportTypeOpName int n = Interpretation.interpretTypeOp int n;
-
-fun exportConstName int n = Interpretation.interpretConst int n;
-
-local
-  local
-    fun mkName root ns =
-        curry Name.mk (Namespace.append root (Namespace.fromList ns));
-
-    val primitiveRoot = Namespace.fromList ["OpenTheory"];
-
-    val mkPrimitive = mkName primitiveRoot;
-  in
-    val mkNative = mkName Namespace.global [];
-
-    val mkPrimitiveByte = mkPrimitive ["Byte"]
-    and mkPrimitiveNatural = mkPrimitive ["Natural"]
-    and mkPrimitiveRandom = mkPrimitive ["Random"]
-    and mkPrimitiveWord16 = mkPrimitive ["Word16"];
-  end;
-
-  val typeOpMapping =
-      List.map Interpretation.TypeOpRewrite
-        [(* Native types *)
-         (Name.boolTypeOp, mkNative "Bool"),
-         (Name.funTypeOp, mkNative "->"),
-         (Name.listTypeOp, mkNative "List"),
-         (Name.optionTypeOp, mkNative "Maybe"),
-         (Name.pairTypeOp, mkNative "Pair"),
-         (Name.streamTypeOp, mkNative "List"),
-         (* Primitive types *)
-         (Name.byteTypeOp, mkPrimitiveByte "Byte"),
-         (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
-         (Name.randomTypeOp, mkPrimitiveRandom "Random"),
-         (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
-
-  val constMapping =
-      List.map Interpretation.ConstRewrite
-        [(* Native constants *)
-         (Name.addConst, mkNative "+"),
-         (Name.addByteConst, mkNative "+"),
-         (Name.addWord16Const, mkNative "+"),
-         (Name.allConst, mkNative "all"),
-         (Name.anyConst, mkNative "any"),
-         (Name.appendConst, mkNative "++"),
-         (Name.appendStreamConst, mkNative "++"),
-         (Name.concatConst, mkNative "concat"),
-         (Name.conjConst, mkNative "&&"),
-         (Name.consConst, mkNative ":"),
-         (Name.consStreamConst, mkNative ":"),
-         (Name.disjConst, mkNative "||"),
-         (Name.divConst, mkNative "div"),
-         (Name.eqConst, mkNative "=="),
-         (Name.falseConst, mkNative "False"),
-         (Name.fstConst, mkNative "fst"),
-         (Name.headConst, mkNative "head"),
-         (Name.headStreamConst, mkNative "head"),
-         (Name.leConst, mkNative "<="),
-         (Name.leByteConst, mkNative "<="),
-         (Name.leWord16Const, mkNative "<="),
-         (Name.ltConst, mkNative "<"),
-         (Name.ltByteConst, mkNative "<"),
-         (Name.ltWord16Const, mkNative "<"),
-         (Name.mapConst, mkNative "map"),
-         (Name.mapStreamConst, mkNative "map"),
-         (Name.modConst, mkNative "mod"),
-         (Name.multiplyConst, mkNative "*"),
-         (Name.multiplyByteConst, mkNative "*"),
-         (Name.multiplyWord16Const, mkNative "*"),
-         (Name.negConst, mkNative "not"),
-         (Name.nilConst, mkNative "[]"),
-         (Name.noneConst, mkNative "Nothing"),
-         (Name.pairConst, mkNative ","),
-         (Name.sndConst, mkNative "snd"),
-         (Name.someConst, mkNative "Just"),
-         (Name.subtractConst, mkNative "-"),
-         (Name.subtractByteConst, mkNative "-"),
-         (Name.subtractWord16Const, mkNative "-"),
-         (Name.tailConst, mkNative "tail"),
-         (Name.tailStreamConst, mkNative "tail"),
-         (Name.trueConst, mkNative "True"),
-         (* Primitive constants *)
-         (Name.andByteConst, mkPrimitiveByte "and"),
-         (Name.andWord16Const, mkPrimitiveWord16 "and"),
-         (Name.bitConst, mkPrimitiveRandom "bit"),
-         (Name.bitByteConst, mkPrimitiveByte "bit"),
-         (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
-         (Name.fromBytesWord16Const, mkPrimitiveWord16 "fromBytes"),
-         (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
-         (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
-         (Name.notByteConst, mkPrimitiveByte "not"),
-         (Name.notWord16Const, mkPrimitiveWord16 "not"),
-         (Name.orByteConst, mkPrimitiveByte "or"),
-         (Name.orWord16Const, mkPrimitiveWord16 "or"),
-         (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
-         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft"),
-         (Name.shiftRightByteConst, mkPrimitiveByte "shiftRight"),
-         (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
-         (Name.splitConst, mkPrimitiveRandom "split"),
-         (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
-in
-  val primitiveInt =
-      Interpretation.fromRewriteList
-        (typeOpMapping @ constMapping);
-end;
-
-(* ------------------------------------------------------------------------- *)
 (* Haskell package information.                                              *)
 (* ------------------------------------------------------------------------- *)
 
@@ -265,7 +153,7 @@ local
                 let
                   val n = PackageTag.findName tags
                 in
-                  (exportPackageName n, htags)
+                  (PackageName.mkHaskellName n, htags)
                 end
             end
 
@@ -1946,9 +1834,7 @@ datatype symbolExport =
     SymbolExport of
       {interpretation : Interpretation.interpretation,
        namespace : Namespace.namespace,
-       importNamespaces : Namespace.namespace option NamespaceMap.map,
-       exportTypeOps : Name.name NameMap.map,
-       exportConsts : Name.name NameMap.map};
+       importNamespaces : Namespace.namespace option NamespaceMap.map};
 
 fun namespaceSymbolExport (SymbolExport {namespace = ns, ...}) = ns;
 
@@ -1960,7 +1846,7 @@ fun importNamespacesSymbolExport exp =
     end;
 
 local
-  fun shortenName namespace imp n =
+  fun abbreviateName namespace imp n =
       let
         val (ns,c) = Name.dest n
       in
@@ -1977,16 +1863,11 @@ in
         val SymbolExport
               {interpretation = int,
                namespace = ns,
-               importNamespaces = imp,
-               exportTypeOps,
-               ...} = exp
+               importNamespaces = imp} = exp
 
-        val n =
-            case NameMap.peek exportTypeOps n of
-              SOME n => n
-            | NONE => exportTypeOpName int n
+        val n = Interpretation.interpretTypeOp int n
       in
-        shortenName ns imp n
+        abbreviateName ns imp n
       end;
 
   fun constNameSymbolExport exp n =
@@ -1994,134 +1875,239 @@ in
         val SymbolExport
               {interpretation = int,
                namespace = ns,
-               importNamespaces = imp,
-               exportConsts,
-               ...} = exp
+               importNamespaces = imp} = exp
 
-        val n =
-            case NameMap.peek exportConsts n of
-              SOME n => n
-            | NONE => exportConstName int n
+        val n = Interpretation.interpretConst int n
       in
-        shortenName ns imp n
+        abbreviateName ns imp n
       end;
 end;
 
 local
-  val targetNamespaces =
+  fun symbolTableNamespaces int =
       let
-        fun add (_,t,s) = NamespaceSet.add s (Name.namespace t)
+        fun typeOpNamespace t =
+            let
+              val n = TypeOp.name t
+
+              val n = Interpretation.interpretTypeOp int n
+            in
+              Name.namespace n
+            end
+
+        fun constNamespace c =
+            let
+              val n = Const.name c
+
+              val n = Interpretation.interpretConst int n
+
+              val n =
+                  case total Name.destCase n of
+                    SOME (n,_) => n
+                  | NONE => n
+            in
+              Name.namespace n
+            end
+
+        fun symbolNamespace s =
+            case s of
+              Symbol.TypeOp t => typeOpNamespace t
+            | Symbol.Const c => constNamespace c
+
+        fun addSymbolNamespace (s,ns) =
+            NamespaceSet.add ns (symbolNamespace s)
+
+        fun tableNamespaces tab =
+            let
+              val ss = SymbolTable.symbols tab
+            in
+              SymbolSet.foldl add NamespaceSet.empty ss
+            end
       in
-        NameMap.foldl add NamespaceSet.empty
+        tableNamespaces
       end;
 
-  fun addTypeOp (t,ns) =
+  val abbreviateNamespaces =
       let
-        val n = TypeOp.name t
+        fun lengthN ns = List.length (Namespace.toList ns)
+
+        fun abbrevN ns =
+            let
+              fun abbrevList h t =
+                  case abbrevTail t of
+                    SOME n => SOME n
+                  | NONE =>
+                    let
+                      val n = Namespace.fromList (h :: t)
+                    in
+                      if NamespaceSet.member n ns then NONE else SOME n
+                    end
+
+              and abbrevTail l =
+                  case t of
+                    [] => NONE
+                  | h :: t => abbrevList h t
+
+              fun abbrev n =
+                  case Namespace.toList n of
+                    [] => NONE
+                  | _ :: l => abbrevTail l
+            in
+              abbrev
+            end
+
+        fun addAbbrevN (n,(ns,nm)) =
+            let
+              val n' = abbrevN ns n
+
+              val ns = NamespaceSet.add ns (Option.getOpt (n',n))
+              and nm = NamespaceMap.insert nm (n,n')
+            in
+              (ns,nm)
+            end
+
+        fun abbrevNS ns =
+            let
+              val ns = sortMap lengthN Int.compare (NamespaceSet.toList ns)
+
+              val (_,nm) =
+                  List.foldl addAbbrevN
+                    (NamespaceSet.empty, NamespaceMap.new ()) ns
+            in
+              nm
+            end
       in
-        NameSet.add ns n
-      end;
-
-  fun mkTypeOpMap int table =
-      let
-        val ts = SymbolTable.typeOps table
-
-        val ns = TypeOpSet.foldl addTypeOp NameSet.empty ts
-      in
-        NameSet.map (exportTypeOpName int) ns
-      end;
-
-  fun addConst (c,ns) =
-      let
-        val n = Const.name c
-      in
-        case total Name.destCase n of
-          SOME (_,nl) => NameSet.addList ns nl
-        | NONE => NameSet.add ns n
-      end;
-
-  fun mkConstMap int table =
-      let
-        val cs = SymbolTable.consts table
-
-        val ns = ConstSet.foldl addConst NameSet.empty cs
-      in
-        NameSet.map (exportConstName int) ns
-      end;
-
-  fun lengthNamespace ns = length (Namespace.toList ns);
-
-  fun abbreviateNamespace ns =
-      let
-        fun abbreviate l =
-            case abbreviateTail l of
-              SOME n => SOME n
-            | NONE =>
-              let
-                val n = Namespace.fromList l
-              in
-                if NamespaceSet.member n ns then NONE
-                else SOME n
-              end
-
-        and abbreviateTail l =
-            case l of
-              [] => NONE
-            | [_] => NONE
-            | _ :: t => abbreviate t
-      in
-        fn n => abbreviateTail (Namespace.toList n)
-      end;
-
-  fun addNamespace (n,(ns,nm)) =
-      let
-        val n' = abbreviateNamespace ns n
-
-        val ns = NamespaceSet.add ns (Option.getOpt (n',n))
-        and nm = NamespaceMap.insert nm (n,n')
-      in
-        (ns,nm)
-      end;
-
-  fun abbreviateNamespaces ns =
-      let
-        val ns = sortMap lengthNamespace Int.compare (NamespaceSet.toList ns)
-
-        val (_,nm) =
-            List.foldl addNamespace
-              (NamespaceSet.empty, NamespaceMap.new ()) ns
-      in
-        nm
+        abbrevNS
       end;
 in
-  fun mkSymbolExport int namespace source =
+  fun mkSymbolExport int ns src =
       let
-        val liveTable = uncommentedSymbolTableSourceList source
-        and defTable = definedSymbolTableSourceList source
+        val sym = uncommentedSymbolTableSourceList src
+        and def = definedSymbolTableSourceList src
 
-        val ts = mkTypeOpMap int liveTable
-        and cs = mkConstMap int liveTable
-
-        val white =
-            NamespaceSet.union
-              (targetNamespaces ts)
-              (targetNamespaces cs)
+        val white = symbolTableNamespaces sym
 
         val black =
             NamespaceSet.add
-              (targetNamespaces (mkConstMap int defTable))
+              (symbolTableNamespaces def)
               Namespace.global
 
-        val ns = abbreviateNamespaces (NamespaceSet.difference white black)
+        val imp = abbreviateNamespaces (NamespaceSet.difference white black)
       in
         SymbolExport
           {interpretation = int,
-           namespace = namespace,
-           importNamespaces = ns,
-           exportTypeOps = ts,
-           exportConsts = cs}
+           namespace = ns,
+           importNamespaces = imp}
       end;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Haskell syntax.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+(***
+local
+  local
+    fun mkName root ns =
+        curry Name.mk (Namespace.append root (Namespace.fromList ns));
+
+    val primitiveRoot = Namespace.fromList ["OpenTheory"];
+
+    val mkPrimitive = mkName primitiveRoot;
+  in
+    val mkNative = mkName Namespace.global [];
+
+    val mkPrimitiveByte = mkPrimitive ["Byte"]
+    and mkPrimitiveNatural = mkPrimitive ["Natural"]
+    and mkPrimitiveRandom = mkPrimitive ["Random"]
+    and mkPrimitiveWord16 = mkPrimitive ["Word16"];
+  end;
+
+  val typeOpMapping =
+      List.map Interpretation.TypeOpRewrite
+        [(* Native types *)
+         (Name.boolTypeOp, mkNative "Bool"),
+         (Name.funTypeOp, mkNative "->"),
+         (Name.listTypeOp, mkNative "List"),
+         (Name.optionTypeOp, mkNative "Maybe"),
+         (Name.pairTypeOp, mkNative "Pair"),
+         (Name.streamTypeOp, mkNative "List"),
+         (* Primitive types *)
+         (Name.byteTypeOp, mkPrimitiveByte "Byte"),
+         (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
+         (Name.randomTypeOp, mkPrimitiveRandom "Random"),
+         (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
+
+  val constMapping =
+      List.map Interpretation.ConstRewrite
+        [(* Native constants *)
+         (Name.addConst, mkNative "+"),
+         (Name.addByteConst, mkNative "+"),
+         (Name.addWord16Const, mkNative "+"),
+         (Name.allConst, mkNative "all"),
+         (Name.anyConst, mkNative "any"),
+         (Name.appendConst, mkNative "++"),
+         (Name.appendStreamConst, mkNative "++"),
+         (Name.concatConst, mkNative "concat"),
+         (Name.conjConst, mkNative "&&"),
+         (Name.consConst, mkNative ":"),
+         (Name.consStreamConst, mkNative ":"),
+         (Name.disjConst, mkNative "||"),
+         (Name.divConst, mkNative "div"),
+         (Name.eqConst, mkNative "=="),
+         (Name.falseConst, mkNative "False"),
+         (Name.fstConst, mkNative "fst"),
+         (Name.headConst, mkNative "head"),
+         (Name.headStreamConst, mkNative "head"),
+         (Name.leConst, mkNative "<="),
+         (Name.leByteConst, mkNative "<="),
+         (Name.leWord16Const, mkNative "<="),
+         (Name.ltConst, mkNative "<"),
+         (Name.ltByteConst, mkNative "<"),
+         (Name.ltWord16Const, mkNative "<"),
+         (Name.mapConst, mkNative "map"),
+         (Name.mapStreamConst, mkNative "map"),
+         (Name.modConst, mkNative "mod"),
+         (Name.multiplyConst, mkNative "*"),
+         (Name.multiplyByteConst, mkNative "*"),
+         (Name.multiplyWord16Const, mkNative "*"),
+         (Name.negConst, mkNative "not"),
+         (Name.nilConst, mkNative "[]"),
+         (Name.noneConst, mkNative "Nothing"),
+         (Name.pairConst, mkNative ","),
+         (Name.sndConst, mkNative "snd"),
+         (Name.someConst, mkNative "Just"),
+         (Name.subtractConst, mkNative "-"),
+         (Name.subtractByteConst, mkNative "-"),
+         (Name.subtractWord16Const, mkNative "-"),
+         (Name.tailConst, mkNative "tail"),
+         (Name.tailStreamConst, mkNative "tail"),
+         (Name.trueConst, mkNative "True"),
+         (* Primitive constants *)
+         (Name.andByteConst, mkPrimitiveByte "and"),
+         (Name.andWord16Const, mkPrimitiveWord16 "and"),
+         (Name.bitConst, mkPrimitiveRandom "bit"),
+         (Name.bitByteConst, mkPrimitiveByte "bit"),
+         (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
+         (Name.fromBytesWord16Const, mkPrimitiveWord16 "fromBytes"),
+         (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
+         (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
+         (Name.notByteConst, mkPrimitiveByte "not"),
+         (Name.notWord16Const, mkPrimitiveWord16 "not"),
+         (Name.orByteConst, mkPrimitiveByte "or"),
+         (Name.orWord16Const, mkPrimitiveWord16 "or"),
+         (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
+         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft"),
+         (Name.shiftRightByteConst, mkPrimitiveByte "shiftRight"),
+         (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
+         (Name.splitConst, mkPrimitiveRandom "split"),
+         (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
+in
+  val primitiveInt =
+      Interpretation.fromRewriteList
+        (typeOpMapping @ constMapping);
+end;
+***)
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell tags.                                                             *)
@@ -2241,72 +2227,29 @@ fun ppPackageTestName name =
 
 fun ppNamespace ns = Namespace.pp ns;
 
-local
-  fun ppImportNamespace (ns,ns') =
-      let
-        val ppImportAs =
-            Print.inconsistentBlock 2
-              ([ppSyntax "import",
-                Print.space,
-                ppSyntax "qualified",
-                Print.space,
-                ppNamespace ns] @
-               (case ns' of
-                  NONE => []
-                | SOME ns =>
-                  [Print.break,
-                   ppSyntax "as",
-                   Print.space,
-                   ppNamespace ns]))
-      in
-        Print.sequence ppImportAs Print.newline
-      end;
-in
-  fun ppModuleDeclaration exp =
-      let
-        val ns = namespaceSymbolExport exp
-      in
-        Print.inconsistentBlock 0
-          [ppSyntax "module ",
-           ppNamespace ns,
-           Print.newline,
-           ppSyntax "where"]
-      end;
+fun ppTypeOpName exp n =
+    Name.pp (typeOpNameSymbolExport exp n);
 
-  fun ppModuleImport exp =
-      let
-        val import = importNamespacesSymbolExport exp
-      in
-        Print.inconsistentBlock 0
-          (List.map ppImportNamespace import)
-      end;
-
-  fun ppTypeOpName exp n =
-      Name.pp (typeOpNameSymbolExport exp n);
-
-  fun ppConstName exp n =
-      let
-        val n = constNameSymbolExport exp n
-      in
-        if not (isSymbolName n) then Name.pp n
-        else Print.ppBracket "(" ")" Name.pp n
-      end;
-end;
-
-fun ppVarName n =
-    if Name.isGlobal n then Name.pp n
-    else raise Error "non-global variable name";
-
-(* Types *)
-
-fun ppTypeOp exp ot = ppTypeOpName exp (TypeOp.name ot);
-
-fun ppTypeVar v =
+fun ppConstName exp n =
     let
-      val s = Name.destGlobal v
+      val n = constNameSymbolExport exp n
     in
-      case explode s of
-        [] => raise Error "type variable is empty string"
+      if not (isSymbolName n) then Name.pp n
+      else Print.ppBracket "(" ")" Name.pp n
+    end;
+
+fun ppTypeVarName n =
+    if not (Name.isGlobal n) then
+      let
+        val err =
+            "type variable name " ^ Name.toString n ^
+            " is not global"
+      in
+        raise Error err
+      end
+    else
+      case explode (Name.destGlobal n) of
+        [] => raise Error "type variable name is empty string"
       | c :: cs =>
         let
           val () =
@@ -2314,14 +2257,31 @@ fun ppTypeVar v =
               else
                 let
                   val err =
-                      "type variable " ^ s ^ " does not begin with upper case"
+                      "type variable name " ^ Name.toString n ^
+                      " does not begin with upper case"
                 in
                   raise Error err
                 end
         in
           Print.program (map Print.ppChar (Char.toLower c :: cs))
-        end
-    end;
+        end;
+
+fun ppVarName n =
+    if Name.isGlobal n then Name.pp n
+    else
+      let
+        val err =
+            "variable name " ^ Name.toString n ^
+            " is not global"
+      in
+        raise Error err
+      end;
+
+(* Types *)
+
+fun ppTypeOp exp ot = ppTypeOpName exp (TypeOp.name ot);
+
+val ppTypeVar = ppTypeVarName;
 
 val ppTypeVarList =
     let
@@ -3009,6 +2969,47 @@ in
         [] => Print.skip
       | s :: sl =>
         Print.program (ppSource ns s :: List.map (ppSpaceSource ns) sl);
+end;
+
+fun ppModuleDeclaration exp =
+    let
+      val ns = namespaceSymbolExport exp
+    in
+      Print.inconsistentBlock 0
+        [ppSyntax "module ",
+         ppNamespace ns,
+         Print.newline,
+         ppSyntax "where"]
+    end;
+
+local
+  fun ppImportNamespace (ns,ns') =
+      let
+        val ppImportAs =
+            Print.inconsistentBlock 2
+              ([ppSyntax "import",
+                Print.space,
+                ppSyntax "qualified",
+                Print.space,
+                ppNamespace ns] @
+               (case ns' of
+                  NONE => []
+                | SOME ns =>
+                  [Print.break,
+                   ppSyntax "as",
+                   Print.space,
+                   ppNamespace ns]))
+      in
+        Print.sequence ppImportAs Print.newline
+      end;
+in
+  fun ppModuleImport exp =
+      let
+        val import = importNamespacesSymbolExport exp
+      in
+        Print.inconsistentBlock 0
+          (List.map ppImportNamespace import)
+      end;
 end;
 
 fun ppModule int (tags,namespace,source) =
