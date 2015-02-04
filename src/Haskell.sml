@@ -1921,7 +1921,7 @@ local
             let
               val ss = SymbolTable.symbols tab
             in
-              SymbolSet.foldl add NamespaceSet.empty ss
+              SymbolSet.foldl addSymbolNamespace NamespaceSet.empty ss
             end
       in
         tableNamespaces
@@ -1944,7 +1944,7 @@ local
                     end
 
               and abbrevTail l =
-                  case t of
+                  case l of
                     [] => NONE
                   | h :: t => abbrevList h t
 
@@ -1985,11 +1985,11 @@ in
         val sym = uncommentedSymbolTableSourceList src
         and def = definedSymbolTableSourceList src
 
-        val white = symbolTableNamespaces sym
+        val white = symbolTableNamespaces int sym
 
         val black =
             NamespaceSet.add
-              (symbolTableNamespaces def)
+              (symbolTableNamespaces int def)
               Namespace.global
 
         val imp = abbreviateNamespaces (NamespaceSet.difference white black)
