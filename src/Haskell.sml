@@ -57,6 +57,126 @@ val isSymbolString = CharVector.all isSymbolChar;
 fun isSymbolName n = isSymbolString (Name.component n);
 
 (* ------------------------------------------------------------------------- *)
+(* Haskell syntax.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+(***
+local
+  local
+    fun mkName root ns =
+        curry Name.mk (Namespace.append root (Namespace.fromList ns));
+
+    val primitiveRoot = Namespace.fromList ["OpenTheory"];
+
+    val mkPrimitive = mkName primitiveRoot;
+  in
+    val mkNative = mkName Namespace.global [];
+
+    val mkPrimitiveByte = mkPrimitive ["Byte"]
+    and mkPrimitiveNatural = mkPrimitive ["Natural"]
+    and mkPrimitiveRandom = mkPrimitive ["Random"]
+    and mkPrimitiveWord16 = mkPrimitive ["Word16"];
+  end;
+
+  val typeOpMapping =
+      List.map Interpretation.TypeOpRewrite
+        [(* Native types *)
+         (Name.boolTypeOp, mkNative "Bool"),
+         (Name.funTypeOp, mkNative "->"),
+         (Name.listTypeOp, mkNative "List"),
+         (Name.optionTypeOp, mkNative "Maybe"),
+         (Name.pairTypeOp, mkNative "Pair"),
+         (Name.streamTypeOp, mkNative "List"),
+         (* Primitive types *)
+         (Name.byteTypeOp, mkPrimitiveByte "Byte"),
+         (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
+         (Name.randomTypeOp, mkPrimitiveRandom "Random"),
+         (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
+
+  val constMapping =
+      List.map Interpretation.ConstRewrite
+        [(* Native constants *)
+         (Name.addConst, mkNative "+"),
+         (Name.addByteConst, mkNative "+"),
+         (Name.addWord16Const, mkNative "+"),
+         (Name.allConst, mkNative "all"),
+         (Name.anyConst, mkNative "any"),
+         (Name.appendConst, mkNative "++"),
+         (Name.appendStreamConst, mkNative "++"),
+         (Name.concatConst, mkNative "concat"),
+         (Name.conjConst, mkNative "&&"),
+         (Name.consConst, mkNative ":"),
+         (Name.consStreamConst, mkNative ":"),
+         (Name.disjConst, mkNative "||"),
+         (Name.divConst, mkNative "div"),
+         (Name.eqConst, mkNative "=="),
+         (Name.falseConst, mkNative "False"),
+         (Name.fstConst, mkNative "fst"),
+         (Name.headConst, mkNative "head"),
+         (Name.headStreamConst, mkNative "head"),
+         (Name.leConst, mkNative "<="),
+         (Name.leByteConst, mkNative "<="),
+         (Name.leWord16Const, mkNative "<="),
+         (Name.ltConst, mkNative "<"),
+         (Name.ltByteConst, mkNative "<"),
+         (Name.ltWord16Const, mkNative "<"),
+         (Name.mapConst, mkNative "map"),
+         (Name.mapStreamConst, mkNative "map"),
+         (Name.modConst, mkNative "mod"),
+         (Name.multiplyConst, mkNative "*"),
+         (Name.multiplyByteConst, mkNative "*"),
+         (Name.multiplyWord16Const, mkNative "*"),
+         (Name.negConst, mkNative "not"),
+         (Name.nilConst, mkNative "[]"),
+         (Name.noneConst, mkNative "Nothing"),
+         (Name.pairConst, mkNative ","),
+         (Name.sndConst, mkNative "snd"),
+         (Name.someConst, mkNative "Just"),
+         (Name.subtractConst, mkNative "-"),
+         (Name.subtractByteConst, mkNative "-"),
+         (Name.subtractWord16Const, mkNative "-"),
+         (Name.tailConst, mkNative "tail"),
+         (Name.tailStreamConst, mkNative "tail"),
+         (Name.trueConst, mkNative "True"),
+         (* Primitive constants *)
+         (Name.andByteConst, mkPrimitiveByte "and"),
+         (Name.andWord16Const, mkPrimitiveWord16 "and"),
+         (Name.bitConst, mkPrimitiveRandom "bit"),
+         (Name.bitByteConst, mkPrimitiveByte "bit"),
+         (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
+         (Name.fromBytesWord16Const, mkPrimitiveWord16 "fromBytes"),
+         (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
+         (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
+         (Name.notByteConst, mkPrimitiveByte "not"),
+         (Name.notWord16Const, mkPrimitiveWord16 "not"),
+         (Name.orByteConst, mkPrimitiveByte "or"),
+         (Name.orWord16Const, mkPrimitiveWord16 "or"),
+         (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
+         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft"),
+         (Name.shiftRightByteConst, mkPrimitiveByte "shiftRight"),
+         (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
+         (Name.splitConst, mkPrimitiveRandom "split"),
+         (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
+in
+  val primitiveInt =
+      Interpretation.fromRewriteList
+        (typeOpMapping @ constMapping);
+end;
+***)
+
+(* Type syntax *)
+
+(* Term syntax *)
+
+val isNumeral = Term.isNumeral;
+
+val destCond = total Term.destCond;
+
+val destLet = total Term.destLet;
+
+val destGenAbs = total Term.destGenAbs;
+
+(* ------------------------------------------------------------------------- *)
 (* Anonymizing unused variables.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -820,24 +940,25 @@ fun symbolTableSource s =
 fun symbolTableSourceList sl =
     SymbolTable.unionList (List.map symbolTableSource sl);
 
-(* All symbols in uncommented-out source declarations, which means skipping *)
-(* symbols that appear only in the types of where declarations. *)
+(* All symbols that explicitly appear in source declarations (type *)
+(* signatures of "where" values are not included in this, because *)
+(* they are commented out in the generated Haskell code). *)
 
-val uncommentedSymbolTableData = symbolTableData;
+val explicitSymbolTableData = symbolTableData;
 
-val uncommentedSymbolTableNewtype = symbolTableNewtype;
+val explicitSymbolTableNewtype = symbolTableNewtype;
 
 local
   fun destSpecialTerm tm =
-      if Term.isNumeral tm then SOME []
+      if isNumeral tm then SOME []
       else
-        case total Term.destCond tm of
+        case destCond tm of
           SOME (c,a,b) => SOME [c,a,b]
         | NONE =>
-          case total Term.destLet tm of
+          case destLet tm of
             SOME (v,x,y) => SOME [v,x,y]
           | NONE =>
-            case total Term.destGenAbs tm of
+            case destGenAbs tm of
               SOME (v,x) => SOME [v,x]
             | NONE => NONE;
 
@@ -873,7 +994,7 @@ local
         sym
       end;
 in
-  fun uncommentedSymbolTableValue value =
+  fun explicitSymbolTableValue value =
       let
         val Value {name, ty, equations = eqns} = value
 
@@ -889,14 +1010,14 @@ in
       end;
 end;
 
-fun uncommentedSymbolTableSource s =
+fun explicitSymbolTableSource s =
     case s of
-      DataSource x => uncommentedSymbolTableData x
-    | NewtypeSource x => uncommentedSymbolTableNewtype x
-    | ValueSource x => uncommentedSymbolTableValue x;
+      DataSource x => explicitSymbolTableData x
+    | NewtypeSource x => explicitSymbolTableNewtype x
+    | ValueSource x => explicitSymbolTableValue x;
 
-fun uncommentedSymbolTableSourceList sl =
-    SymbolTable.unionList (List.map uncommentedSymbolTableSource sl);
+fun explicitSymbolTableSourceList sl =
+    SymbolTable.unionList (List.map explicitSymbolTableSource sl);
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting Haskell declarations.                                           *)
@@ -993,7 +1114,7 @@ fun destData th =
     handle Error err =>
       raise Error ("bad data theorem: " ^ err);
 
-fun destNewtype th =
+fun destNewtype int th =
     let
       val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1030,6 +1151,15 @@ fun destNewtype th =
       val (name,parms) = Type.destOp absTy
 
       val parms = List.map Type.destVar parms
+
+      val () =
+          let
+            val tn = Interpretation.interpretTypeOp int (TypeOp.name name)
+            and cn = Interpretation.interpretConst int (Const.name abs)
+          in
+            if not (Name.equal cn tn) then ()
+            else raise Error "constructor name does not match type"
+          end
     in
       Newtype
         {name = name,
@@ -1084,22 +1214,6 @@ in
               in
                 Term.destConst f
               end
-
-        val () =
-            if not (Name.isCase (Const.name name)) then ()
-            else raise Error "case constant"
-
-        val () =
-            case total (Type.destOp o Type.rangeFun) ty of
-              NONE => ()
-            | SOME (ot,_) =>
-              let
-                val tn = TypeOp.name ot
-                and cn = Const.name name
-              in
-                if not (Name.equal cn tn) then ()
-                else raise Error "newtype constructor constant"
-              end
       in
         Value
           {name = name,
@@ -1110,14 +1224,14 @@ in
         raise Error ("bad value theorem: " ^ err);
 end;
 
-fun destSource th =
+fun destSource int th =
     let
       val dataResult =
           Left (destData th)
           handle Error err => Right err
 
       val newtypeResult =
-          Left (destNewtype th)
+          Left (destNewtype int th)
           handle Error err => Right err
 
       val valueResult =
@@ -1125,8 +1239,8 @@ fun destSource th =
           handle Error err => Right err
     in
       case (dataResult,newtypeResult,valueResult) of
-        (Left x, Right _, Right _) => DataSource x
-      | (Right _, Left x, Right _) => NewtypeSource x
+        (Left x, _, _) => DataSource x
+      | (Right _, Left x, _) => NewtypeSource x
       | (Right _, Right _, Left x) => ValueSource x
       | (Right e1, Right e2, Right e3) =>
         let
@@ -1135,30 +1249,6 @@ fun destSource th =
               "\n" ^ Print.toString Thm.pp th
         in
           raise Error err
-        end
-      | (x1,x2,x3) =>
-        let
-          val bug =
-              "ambiguous source theorem:\n"
-
-          val bug =
-              case x1 of
-                Left _ => bug
-              | Right e => bug ^ "  " ^ e ^ "\n"
-
-          val bug =
-              case x2 of
-                Left _ => bug
-              | Right e => bug ^ "  " ^ e ^ "\n"
-
-          val bug =
-              case x3 of
-                Left _ => bug
-              | Right e => bug ^ "  " ^ e ^ "\n"
-
-          val bug = bug ^ Print.toString Thm.pp th
-        in
-          raise Bug bug
         end
     end;
 
@@ -1171,6 +1261,17 @@ datatype module =
       {namespace : Namespace.namespace,
        source : source list,
        submodules : module list};
+
+fun symbolTableModule module =
+    let
+      val Module {namespace = _, source, submodules} = module
+
+      val sym = symbolTableSourceList source
+
+      val syml = List.map symbolTableModule submodules
+    in
+      SymbolTable.unionList (sym :: syml)
+    end;
 
 local
   val rightToLeftVars =
@@ -1460,7 +1561,7 @@ local
           end
       end;
 in
-  fun groupSource src =
+  fun groupSource int src =
       let
         val values = NameMap.new ()
 
@@ -1566,13 +1667,13 @@ in
       end;
 end;
 
-fun mkSource src =
+fun mkSource int src =
     let
       val ths = ThmSet.toList (Thms.thms src)
 
-      val src = List.map destSource ths
+      val src = List.map (destSource int) ths
 
-      val src = groupSource src
+      val src = groupSource int src
 
       val src = sortSource src
     in
@@ -1593,17 +1694,6 @@ local
 in
   fun exposedModule source = exposed (source,NamespaceSet.empty);
 end;
-
-fun symbolTableModule module =
-    let
-      val Module {namespace = _, source, submodules} = module
-
-      val sym = symbolTableSourceList source
-
-      val syml = List.map symbolTableModule submodules
-    in
-      SymbolTable.unionList (sym :: syml)
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Converting theorems into test declarations.                               *)
@@ -1760,7 +1850,7 @@ fun fromPackage repo namever =
 
       val sys = Repository.system repo
 
-      val {information = info, srcFilename, interpretation = int} =
+      val {information = info, srcFilename, interpretation = thyInt} =
           case mkInformation repo pkg of
             SOME x => x
           | NONE =>
@@ -1779,6 +1869,8 @@ fun fromPackage repo namever =
             val graph = TheoryGraph.empty {savable = sav}
 
             val imps = TheorySet.empty
+
+            val int = Interpretation.natural
           in
             TheoryGraph.importPackage fndr graph
               {imports = imps,
@@ -1792,6 +1884,8 @@ fun fromPackage repo namever =
 
             val imp = Theory.article thy
 
+            val int = Interpretation.natural
+
             val {filename} = Package.joinDirectory pkg {filename = srcFilename}
 
             val art =
@@ -1803,12 +1897,12 @@ fun fromPackage repo namever =
 
             val ths = Article.thms art
           in
-            mkSource ths
+            mkSource thyInt ths
           end
 
       val tests = []  (*** destTestTheory (Package.show pkg) test ***)
 
-      val (deps,int) =
+      val (deps,depInt) =
           let
             val reqs = Package.requires pkg
 
@@ -1816,6 +1910,11 @@ fun fromPackage repo namever =
           in
             mkDepends repo reqs thy sym
           end
+
+      val int =
+          Interpretation.fromRewriteList
+            (Interpretation.toRewriteList depInt @
+             Interpretation.toRewriteList thyInt)
     in
       Haskell
         {system = sys,
@@ -1982,17 +2081,15 @@ local
 in
   fun mkSymbolExport int ns src =
       let
-        val sym = uncommentedSymbolTableSourceList src
-        and def = definedSymbolTableSourceList src
+        val sym = explicitSymbolTableSourceList src
 
-        val white = symbolTableNamespaces int sym
-
-        val black =
-            NamespaceSet.add
-              (symbolTableNamespaces int def)
-              Namespace.global
-
-        val imp = abbreviateNamespaces (NamespaceSet.difference white black)
+        val imp =
+            let
+              val white = symbolTableNamespaces int sym
+              and black = NamespaceSet.fromList [ns,Namespace.global]
+            in
+              abbreviateNamespaces (NamespaceSet.difference white black)
+            end
       in
         SymbolExport
           {interpretation = int,
@@ -2000,114 +2097,6 @@ in
            importNamespaces = imp}
       end;
 end;
-
-(* ------------------------------------------------------------------------- *)
-(* Haskell syntax.                                                           *)
-(* ------------------------------------------------------------------------- *)
-
-(***
-local
-  local
-    fun mkName root ns =
-        curry Name.mk (Namespace.append root (Namespace.fromList ns));
-
-    val primitiveRoot = Namespace.fromList ["OpenTheory"];
-
-    val mkPrimitive = mkName primitiveRoot;
-  in
-    val mkNative = mkName Namespace.global [];
-
-    val mkPrimitiveByte = mkPrimitive ["Byte"]
-    and mkPrimitiveNatural = mkPrimitive ["Natural"]
-    and mkPrimitiveRandom = mkPrimitive ["Random"]
-    and mkPrimitiveWord16 = mkPrimitive ["Word16"];
-  end;
-
-  val typeOpMapping =
-      List.map Interpretation.TypeOpRewrite
-        [(* Native types *)
-         (Name.boolTypeOp, mkNative "Bool"),
-         (Name.funTypeOp, mkNative "->"),
-         (Name.listTypeOp, mkNative "List"),
-         (Name.optionTypeOp, mkNative "Maybe"),
-         (Name.pairTypeOp, mkNative "Pair"),
-         (Name.streamTypeOp, mkNative "List"),
-         (* Primitive types *)
-         (Name.byteTypeOp, mkPrimitiveByte "Byte"),
-         (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
-         (Name.randomTypeOp, mkPrimitiveRandom "Random"),
-         (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
-
-  val constMapping =
-      List.map Interpretation.ConstRewrite
-        [(* Native constants *)
-         (Name.addConst, mkNative "+"),
-         (Name.addByteConst, mkNative "+"),
-         (Name.addWord16Const, mkNative "+"),
-         (Name.allConst, mkNative "all"),
-         (Name.anyConst, mkNative "any"),
-         (Name.appendConst, mkNative "++"),
-         (Name.appendStreamConst, mkNative "++"),
-         (Name.concatConst, mkNative "concat"),
-         (Name.conjConst, mkNative "&&"),
-         (Name.consConst, mkNative ":"),
-         (Name.consStreamConst, mkNative ":"),
-         (Name.disjConst, mkNative "||"),
-         (Name.divConst, mkNative "div"),
-         (Name.eqConst, mkNative "=="),
-         (Name.falseConst, mkNative "False"),
-         (Name.fstConst, mkNative "fst"),
-         (Name.headConst, mkNative "head"),
-         (Name.headStreamConst, mkNative "head"),
-         (Name.leConst, mkNative "<="),
-         (Name.leByteConst, mkNative "<="),
-         (Name.leWord16Const, mkNative "<="),
-         (Name.ltConst, mkNative "<"),
-         (Name.ltByteConst, mkNative "<"),
-         (Name.ltWord16Const, mkNative "<"),
-         (Name.mapConst, mkNative "map"),
-         (Name.mapStreamConst, mkNative "map"),
-         (Name.modConst, mkNative "mod"),
-         (Name.multiplyConst, mkNative "*"),
-         (Name.multiplyByteConst, mkNative "*"),
-         (Name.multiplyWord16Const, mkNative "*"),
-         (Name.negConst, mkNative "not"),
-         (Name.nilConst, mkNative "[]"),
-         (Name.noneConst, mkNative "Nothing"),
-         (Name.pairConst, mkNative ","),
-         (Name.sndConst, mkNative "snd"),
-         (Name.someConst, mkNative "Just"),
-         (Name.subtractConst, mkNative "-"),
-         (Name.subtractByteConst, mkNative "-"),
-         (Name.subtractWord16Const, mkNative "-"),
-         (Name.tailConst, mkNative "tail"),
-         (Name.tailStreamConst, mkNative "tail"),
-         (Name.trueConst, mkNative "True"),
-         (* Primitive constants *)
-         (Name.andByteConst, mkPrimitiveByte "and"),
-         (Name.andWord16Const, mkPrimitiveWord16 "and"),
-         (Name.bitConst, mkPrimitiveRandom "bit"),
-         (Name.bitByteConst, mkPrimitiveByte "bit"),
-         (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
-         (Name.fromBytesWord16Const, mkPrimitiveWord16 "fromBytes"),
-         (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
-         (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
-         (Name.notByteConst, mkPrimitiveByte "not"),
-         (Name.notWord16Const, mkPrimitiveWord16 "not"),
-         (Name.orByteConst, mkPrimitiveByte "or"),
-         (Name.orWord16Const, mkPrimitiveWord16 "or"),
-         (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
-         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft"),
-         (Name.shiftRightByteConst, mkPrimitiveByte "shiftRight"),
-         (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
-         (Name.splitConst, mkPrimitiveRandom "split"),
-         (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
-in
-  val primitiveInt =
-      Interpretation.fromRewriteList
-        (typeOpMapping @ constMapping);
-end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell tags.                                                             *)
@@ -2506,7 +2495,7 @@ in
         val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken
 
         fun destGenApp tm =
-            if Term.isNumeral tm then
+            if isNumeral tm then
               raise Error "Haskell.ppTerm.destGenApp: numeral"
             else if Term.isCond tm then
               raise Error "Haskell.ppTerm.destGenApp: cond"
@@ -2622,7 +2611,7 @@ in
                      ppSyntax "in"]
 
               val ppLetBody =
-                  case total Term.destLet b of
+                  case destLet b of
                     NONE => [ppLetCondCaseNestedTerm (b,r)]
                   | SOME (v,t,b) => ppLetTerm (v,t,b,r)
             in
@@ -2662,7 +2651,7 @@ in
                      ppLetCondCaseNestedTerm (a,true)]
 
               val ppElseBranch =
-                  case total Term.destCond b of
+                  case destCond b of
                     SOME (c,a,b) => ppCondTerm (false,c,a,b,r)
                   | NONE =>
                     [Print.inconsistentBlock 2
@@ -2716,11 +2705,11 @@ in
             end
 
         and ppLetCondCaseNestedTerm (tm,r) =
-            case total Term.destLet tm of
+            case destLet tm of
               SOME (v,t,b) =>
                 Print.consistentBlock 0 (ppLetTerm (v,t,b,r))
             | NONE =>
-              case total Term.destCond tm of
+              case destCond tm of
                 SOME (c,a,b) =>
                 Print.consistentBlock 0 (ppCondTerm (true,c,a,b,r))
               | NONE =>
