@@ -756,8 +756,6 @@ fun symbolSource s =
 
 fun nameSource s = Symbol.name (symbolSource s);
 
-fun namespaceSource s = Name.namespace (nameSource s);
-
 (* All defined symbols in source declarations *)
 
 local
@@ -1305,7 +1303,7 @@ local
 
         val argVars = List.rev revArgVars
 
-        fun addRewrite (value,(values,rewr)) =
+        fun addRewrite ((wherename,value),(values,rewr)) =
             let
               val Value {name, ty, equations = eqns} = value
 
@@ -1321,9 +1319,7 @@ local
                        Term.equalVar v x andalso isValue vs (Term.dest f)
                      | _ => false)
 
-              val name = Name.mkGlobal (Name.component (Const.name name))
-
-              fun mkVar t = Var.mk (name,t)
+              fun mkVar t = Var.mk (wherename,t)
 
               val rewr =
                   fn tm =>
@@ -1417,19 +1413,19 @@ local
 
   fun addEqn value (sym,eqn,subs) =
       let
-        val sym = addSymbolTableValue sym value
+        val sym = addSymbolTableValue sym (snd value)
         and subs = subs @ [value]
       in
         (sym,eqn,subs)
       end;
 
-  fun pullValues (src,(values,others)) =
+  fun pullValues int (src,(values,others)) =
       case src of
         ValueSource value =>
         let
           val Value {name,...} = value
 
-          val name = Const.name name
+          val name = Interpretation.interpretConst int (Const.name name)
 
           val values = NameMap.insert values (name,(value,[]))
         in
@@ -1442,7 +1438,7 @@ local
           (values,others)
         end;
 
-  fun checkValue eqns value =
+  fun checkValue eqns (_,value) =
       let
         val Value {name, ty = _, equations = _} = value
 
@@ -1461,7 +1457,7 @@ local
 
   fun addValue value =
       let
-        val Value {name, ty = _, equations = _} = value
+        val (_, Value {name, ty = _, equations = _}) = value
 
         val name = Const.name name
 
@@ -1496,7 +1492,7 @@ local
             in
               case values' of
                 [] => eqns
-              | value :: _ =>
+              | (_,value) :: _ =>
                 if List.length values' < List.length values then
                   repeat values' eqns
                 else
@@ -1525,10 +1521,8 @@ local
         repeatCheck
       end;
 
-  fun mergeSubvalues values name =
+  fun mergeSubvalues (value,subvalues) =
       let
-        val (value,subvalues) = NameMap.get values name
-
         val Value {name, ty, equations = eqns} = value
 
         val eqns = addValues subvalues eqns
@@ -1540,7 +1534,7 @@ local
 
   fun groupValues (name,_,(values,acc)) =
       let
-        val value = mergeSubvalues values name
+        val value = mergeSubvalues (NameMap.get values name)
 
         val name' = Name.fromNamespace (Name.namespace name)
       in
@@ -1553,7 +1547,9 @@ local
           end
         | SOME (value',subvalues') =>
           let
-            val subvalues' = value :: subvalues'
+            val wherename = Name.mkGlobal (Name.component name)
+
+            val subvalues' = (wherename,value) :: subvalues'
 
             val values = NameMap.insert values (name',(value',subvalues'))
           in
@@ -1565,7 +1561,8 @@ in
       let
         val values = NameMap.new ()
 
-        val (values,src) = List.foldl pullValues (values,[]) (List.rev src)
+        val (values,src) =
+            List.foldl (pullValues int) (values,[]) (List.rev src)
 
         val (_,values) = NameMap.foldr groupValues (values,[]) values
       in
@@ -1622,7 +1619,19 @@ in
 end;
 
 local
-  fun init src = (Namespace.toList (namespaceSource src), src);
+  fun init int src =
+      let
+        val n =
+            case symbolSource src of
+              Symbol.TypeOp t =>
+              Interpretation.interpretTypeOp int (TypeOp.name t)
+            | Symbol.Const c =>
+              Interpretation.interpretConst int (Const.name c)
+
+        val ns = Namespace.toList (Name.namespace n)
+      in
+        (ns,src)
+      end;
 
   fun split ((ns,src),(acc,nsubs)) =
       case ns of
@@ -1658,10 +1667,10 @@ local
         mkTree namespace nsource
       end;
 in
-  fun mkModule source =
+  fun mkModule int source =
       let
         val namespace = Namespace.global
-        and source = List.map init source
+        and source = List.map (init int) source
       in
         mkTree namespace source
       end;
@@ -1677,7 +1686,7 @@ fun mkSource int src =
 
       val src = sortSource src
     in
-      mkModule src
+      mkModule int src
     end;
 
 local
