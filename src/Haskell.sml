@@ -2108,6 +2108,178 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
+(* Haskell syntax using a symbol mapping.                                    *)
+(* ------------------------------------------------------------------------- *)
+
+(***
+local
+  local
+    fun mkName root ns =
+        curry Name.mk (Namespace.append root (Namespace.fromList ns));
+
+    val primitiveRoot = Namespace.fromList ["OpenTheory"];
+
+    val mkPrimitive = mkName primitiveRoot;
+  in
+    val mkNative = mkName Namespace.global [];
+
+    val mkPrimitiveByte = mkPrimitive ["Byte"]
+    and mkPrimitiveNatural = mkPrimitive ["Natural"]
+    and mkPrimitiveRandom = mkPrimitive ["Random"]
+    and mkPrimitiveWord16 = mkPrimitive ["Word16"];
+  end;
+
+  val typeOpMapping =
+      List.map Interpretation.TypeOpRewrite
+        [(* Native types *)
+         (Name.boolTypeOp, mkNative "Bool"),
+         (Name.funTypeOp, mkNative "->"),
+         (Name.listTypeOp, mkNative "List"),
+         (Name.optionTypeOp, mkNative "Maybe"),
+         (Name.pairTypeOp, mkNative "Pair"),
+         (Name.streamTypeOp, mkNative "List"),
+         (* Primitive types *)
+         (Name.byteTypeOp, mkPrimitiveByte "Byte"),
+         (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
+         (Name.randomTypeOp, mkPrimitiveRandom "Random"),
+         (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
+
+  val constMapping =
+      List.map Interpretation.ConstRewrite
+        [(* Native constants *)
+         (Name.addConst, mkNative "+"),
+         (Name.addByteConst, mkNative "+"),
+         (Name.addWord16Const, mkNative "+"),
+         (Name.allConst, mkNative "all"),
+         (Name.anyConst, mkNative "any"),
+         (Name.appendConst, mkNative "++"),
+         (Name.appendStreamConst, mkNative "++"),
+         (Name.concatConst, mkNative "concat"),
+         (Name.conjConst, mkNative "&&"),
+         (Name.consConst, mkNative ":"),
+         (Name.consStreamConst, mkNative ":"),
+         (Name.disjConst, mkNative "||"),
+         (Name.divConst, mkNative "div"),
+         (Name.eqConst, mkNative "=="),
+         (Name.falseConst, mkNative "False"),
+         (Name.fstConst, mkNative "fst"),
+         (Name.headConst, mkNative "head"),
+         (Name.headStreamConst, mkNative "head"),
+         (Name.leConst, mkNative "<="),
+         (Name.leByteConst, mkNative "<="),
+         (Name.leWord16Const, mkNative "<="),
+         (Name.ltConst, mkNative "<"),
+         (Name.ltByteConst, mkNative "<"),
+         (Name.ltWord16Const, mkNative "<"),
+         (Name.mapConst, mkNative "map"),
+         (Name.mapStreamConst, mkNative "map"),
+         (Name.modConst, mkNative "mod"),
+         (Name.multiplyConst, mkNative "*"),
+         (Name.multiplyByteConst, mkNative "*"),
+         (Name.multiplyWord16Const, mkNative "*"),
+         (Name.negConst, mkNative "not"),
+         (Name.nilConst, mkNative "[]"),
+         (Name.noneConst, mkNative "Nothing"),
+         (Name.pairConst, mkNative ","),
+         (Name.sndConst, mkNative "snd"),
+         (Name.someConst, mkNative "Just"),
+         (Name.subtractConst, mkNative "-"),
+         (Name.subtractByteConst, mkNative "-"),
+         (Name.subtractWord16Const, mkNative "-"),
+         (Name.tailConst, mkNative "tail"),
+         (Name.tailStreamConst, mkNative "tail"),
+         (Name.trueConst, mkNative "True"),
+         (* Primitive constants *)
+         (Name.andByteConst, mkPrimitiveByte "and"),
+         (Name.andWord16Const, mkPrimitiveWord16 "and"),
+         (Name.bitConst, mkPrimitiveRandom "bit"),
+         (Name.bitByteConst, mkPrimitiveByte "bit"),
+         (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
+         (Name.fromBytesWord16Const, mkPrimitiveWord16 "fromBytes"),
+         (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
+         (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
+         (Name.notByteConst, mkPrimitiveByte "not"),
+         (Name.notWord16Const, mkPrimitiveWord16 "not"),
+         (Name.orByteConst, mkPrimitiveByte "or"),
+         (Name.orWord16Const, mkPrimitiveWord16 "or"),
+         (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
+         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft"),
+         (Name.shiftRightByteConst, mkPrimitiveByte "shiftRight"),
+         (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
+         (Name.splitConst, mkPrimitiveRandom "split"),
+         (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
+in
+  val primitiveInt =
+      Interpretation.fromRewriteList
+        (typeOpMapping @ constMapping);
+end;
+***)
+
+(* Type syntax *)
+
+local
+  fun dest ty =
+      let
+        val (t,tys) = Type.destOp ty
+
+        val a =
+            case tys of
+              [a] => a
+            | _ => raise Error "Haskell.destUnaryType"
+      in
+        (t,a)
+      end;
+in
+  val destUnaryType = total dest;
+end;
+
+local
+  fun dest ty =
+      let
+        val (t,tys) = Type.destOp ty
+
+        val (a,b) =
+            case tys of
+              [a,b] => (a,b)
+            | _ => raise Error "Haskell.destBinaryType"
+      in
+        (t,a,b)
+      end;
+in
+  val destBinaryType = total dest;
+end;
+
+val listTypeName = Name.mkGlobal "[]";
+
+fun destListType exp ty =
+    case destUnaryType ty of
+      NONE => NONE
+    | SOME (t,a) =>
+      let
+        val n = typeOpNameSymbolExport exp (TypeOp.name t)
+      in
+        if Name.equal n listTypeName then SOME a else NONE
+      end;
+
+fun isListType exp ty = Option.isSome (destListType exp ty);
+
+val pairTypeName = Name.mkGlobal ",";
+
+fun destPairType exp ty =
+    case destBinaryType ty of
+      NONE => NONE
+    | SOME (t,a,b) =>
+      let
+        val n = typeOpNameSymbolExport exp (TypeOp.name t)
+      in
+        if Name.equal n pairTypeName then SOME (a,b) else NONE
+      end;
+
+fun isPairType exp ty = Option.isSome (destPairType exp ty);
+
+(* Term syntax *)
+
+(* ------------------------------------------------------------------------- *)
 (* Haskell tags.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -2225,16 +2397,15 @@ fun ppPackageTestName name =
 
 fun ppNamespace ns = Namespace.pp ns;
 
+fun ppName n =
+    if not (isSymbolName n) then Name.pp n
+    else Print.ppBracket "(" ")" Name.pp n;
+
 fun ppTypeOpName exp n =
-    Name.pp (typeOpNameSymbolExport exp n);
+    ppName (typeOpNameSymbolExport exp n);
 
 fun ppConstName exp n =
-    let
-      val n = constNameSymbolExport exp n
-    in
-      if not (isSymbolName n) then Name.pp n
-      else Print.ppBracket "(" ")" Name.pp n
-    end;
+    ppName (constNameSymbolExport exp n);
 
 fun ppTypeVarName n =
     if not (Name.isGlobal n) then
@@ -2289,90 +2460,80 @@ val ppTypeVarList =
     end;
 
 local
-  fun destList ty =
-      Type.destList ty
-      handle Error _ => Type.destStream ty;
-
-  val isList = can destList;
-
-  fun destApp ty =
-      if Type.isFun ty then raise Error "Haskell.destApp: fun"
-      else if isList ty then raise Error "Haskell.destApp: list"
-      else if Type.isPair ty then raise Error "Haskell.destApp: pair"
+  fun destApp exp ty =
+      if Type.isFun ty then NONE
+      else if isListType exp ty then NONE
+      else if isPairType exp ty then NONE
       else
         case Type.dest ty of
-          TypeTerm.VarTy' _ => raise Error "Haskell.destApp: variable"
+          TypeTerm.VarTy' _ => NONE
         | TypeTerm.OpTy' (ot,tys) =>
-          if List.null tys then raise Error "Haskell.destApp: nullary"
-          else (ot,tys);
+          if List.null tys then NONE else SOME (ot,tys);
 
-  fun ppBasic ns ty =
+  fun ppBasic exp ty =
       case Type.dest ty of
         TypeTerm.VarTy' n => ppTypeVar n
       | TypeTerm.OpTy' (ot,tys) =>
-        if List.null tys then ppTypeOp ns ot
-        else Print.ppBracket "(" ")" (ppGen ns) ty
+        if List.null tys then ppTypeOp exp ot
+        else Print.ppBracket "(" ")" (ppGen exp) ty
 
-  and ppList ns ty =
-      case total destList ty of
-        NONE => ppBasic ns ty
+  and ppList exp ty =
+      case destListType exp ty of
+        NONE => ppBasic exp ty
       | SOME a =>
         Print.inconsistentBlock 1
-          [Print.ppString "[",
-           ppGen ns a,
-           Print.ppString "]"]
+          [ppSyntax "[",
+           ppGen exp a,
+           ppSyntax "]"]
 
-  and ppPair ns ty =
-      if not (Type.isPair ty) then ppList ns ty
-      else
-        let
-          val (a,b) = Type.destPair ty
-        in
-          Print.inconsistentBlock 1
-            [Print.ppString "(",
-             ppApp ns a,
-             Print.ppString ",",
-             Print.break,
-             ppFun ns b,
-             Print.ppString ")"]
-        end
+  and ppPair exp ty =
+      case destPairType exp ty of
+        NONE => ppList exp ty
+      | SOME (a,b) =>
+        Print.inconsistentBlock 1
+          [ppSyntax "(",
+           ppApp exp a,
+           ppSyntax ",",
+           Print.break,
+           ppFun exp b,
+           ppSyntax ")"]
 
-  and ppArguments ns tys =
+  and ppArguments exp tys =
       let
         val brk = Print.ppBreak (Print.Break {size = 1, extraIndent = 2})
 
-        fun ppArg ty = Print.sequence brk (ppPair ns ty)
+        fun ppArg ty = Print.sequence brk (ppPair exp ty)
       in
         Print.program (List.map ppArg tys)
       end
 
-  and ppApp ns ty =
-      case total destApp ty of
-        NONE => ppPair ns ty
+  and ppApp exp ty =
+      case destApp exp ty of
+        NONE => ppPair exp ty
       | SOME (ot,tys) =>
         Print.inconsistentBlock 0
-          [ppTypeOp ns ot,
-           ppArguments ns tys]
+          [ppTypeOp exp ot,
+           ppArguments exp tys]
 
-  and ppFun ns ty =
-      if not (Type.isFun ty) then ppApp ns ty
+  and ppFun exp ty =
+      if not (Type.isFun ty) then ppApp exp ty
       else
         let
           fun ppDom d =
               Print.program
-                [ppApp ns d,
+                [ppApp exp d,
                  Print.space,
-                 Print.ppString "->",
+                 ppSyntax "->",
                  Print.ppBreak (Print.Break {size = 1, extraIndent = 2})]
 
           val (ds,r) = Type.stripFun ty
         in
           Print.inconsistentBlock 0
             [Print.program (List.map ppDom ds),
-             ppApp ns r]
+             ppApp exp r]
         end
 
-  and ppGen ns ty = ppFun ns ty;
+  and ppGen exp ty = ppFun exp ty;
 in
   val ppType = ppGen;
 
@@ -2444,7 +2605,7 @@ local
 
   fun ppInfixToken (_,s) =
       let
-        val ps = [Print.ppString s]
+        val ps = [ppSyntax s]
 
         val ps =
             if isSymbolString s then ps
@@ -2775,27 +2936,27 @@ fun ppDepend dep =
       Print.program
         (ppPackageName name ::
          (if PackageVersion.equal newest oldest then
-            [Print.ppString " == ",
+            [ppSyntax " == ",
              PackageVersion.pp newest]
           else
-            [Print.ppString " >= ",
+            [ppSyntax " >= ",
              PackageVersion.pp oldest,
-             Print.ppString " && <= ",
+             ppSyntax " && <= ",
              PackageVersion.pp newest]))
     end;
 
 local
   fun ppDecl exp (name,parms) =
       Print.inconsistentBlock 2
-        [Print.ppString "data ",
+        [ppSyntax "data ",
          ppTypeOp exp name,
          ppTypeVarList parms,
-         Print.ppString " ="];
+         ppSyntax " ="];
 
   fun ppCon exp prefix (c,tys) =
       Print.program
         [Print.newline,
-         Print.ppString prefix,
+         ppSyntax prefix,
          Print.inconsistentBlock 4
            [ppConst exp c,
             ppTypeList exp tys]];
@@ -2823,16 +2984,16 @@ end;
 local
   fun ppDecl exp (name,parms) =
       Print.inconsistentBlock 2
-        [Print.ppString "newtype ",
+        [ppSyntax "newtype ",
          ppTypeOp exp name,
          ppTypeVarList parms,
-         Print.ppString " ="];
+         ppSyntax " ="];
 
   fun ppRep exp (rep,repType) =
       Print.inconsistentBlock 2
         [ppConst exp rep,
          Print.space,
-         Print.ppString "::",
+         ppSyntax "::",
          Print.break,
          ppType exp repType];
 
@@ -2840,11 +3001,11 @@ local
       Print.consistentBlock 0
         [ppConst exp abs,
          Print.space,
-         Print.ppString "{",
+         ppSyntax "{",
          Print.ppBreak (Print.Break {size = 1, extraIndent = 2}),
          ppRep exp rep,
          Print.break,
-         Print.ppString "}"];
+         ppSyntax "}"];
 in
   fun ppNewtype exp newtype =
       let
@@ -2890,7 +3051,7 @@ local
   fun ppDecl ns (tm,ty) =
       Print.inconsistentBlock 2
         [ppTerm ns tm,
-         Print.ppString " ::",
+         ppSyntax " ::",
          Print.break,
          ppType ns ty];
 
@@ -2904,7 +3065,7 @@ local
       in
         Print.consistentBlock 2
           (ppTerm ns ltm ::
-           Print.ppString " =" ::
+           ppSyntax " =" ::
            Print.break ::
            ppTerm ns rtm ::
            ppWherevalues ns values)
@@ -2920,7 +3081,7 @@ local
         | value :: values =>
           [Print.newline,
            Print.consistentBlock 0
-             (Print.ppString "where" ::
+             (ppSyntax "where" ::
               Print.newline ::
               ppWhereValue ns value ::
               List.map ppSpaceVal values)]
@@ -3015,7 +3176,7 @@ fun ppModule int (tags,namespace,source) =
       val exp = mkSymbolExport int namespace source
     in
       Print.inconsistentBlock 0
-        [Print.ppString "{- |",
+        [ppSyntax "{- |",
          Print.newline,
          ppTag (moduleTag,"$Header$"),
          Print.newline,
@@ -3028,7 +3189,7 @@ fun ppModule int (tags,namespace,source) =
             stabilityTag,
             portabilityTag],
          Print.newline,
-         Print.ppString "-}",
+         ppSyntax "-}",
          Print.newlines 2,
          ppModuleDeclaration exp,
          Print.newlines 2,
@@ -3059,26 +3220,26 @@ local
         val Test {name, description = desc, invocation = invoke, ...} = test
       in
         Print.program
-          [Print.ppString "Primitive.Test.",
-           Print.ppString invoke,
-           Print.ppString " \"",
-           Print.ppString (escapeString desc),
-           Print.ppString "\\n  \" ",
-           Print.ppString name,
+          [ppSyntax "Primitive.Test.",
+           ppSyntax invoke,
+           ppSyntax " \"",
+           ppSyntax (escapeString desc),
+           ppSyntax "\\n  \" ",
+           ppSyntax name,
            Print.newline]
       end;
 
   fun ppMain tests =
       Print.inconsistentBlock 0
-        [Print.ppString "main :: IO ()",
+        [ppSyntax "main :: IO ()",
          Print.newline,
          Print.inconsistentBlock 4
-           [Print.ppString "main =",
+           [ppSyntax "main =",
             Print.newline,
             Print.consistentBlock 3
-              [Print.ppString "do ",
+              [ppSyntax "do ",
                Print.program (List.map ppInvokeTest tests),
-               Print.ppString "return ()"]]];
+               ppSyntax "return ()"]]];
 in
   fun ppTests (tags,tests) =
       let
@@ -3086,7 +3247,7 @@ in
         and exp = mkTestsSymbolExport tests
       in
         Print.inconsistentBlock 0
-          [Print.ppString "{- |",
+          [ppSyntax "{- |",
            Print.newline,
            ppTag (moduleTag,"Main"),
            Print.newline,
@@ -3099,16 +3260,16 @@ in
               stabilityTag,
               portabilityTag],
            Print.newline,
-           Print.ppString "-}",
+           ppSyntax "-}",
            Print.newline,
-           Print.ppString "module Main",
+           ppSyntax "module Main",
            Print.newline,
-           Print.ppString "  ( main )",
+           ppSyntax "  ( main )",
            Print.newline,
-           Print.ppString "where",
+           ppSyntax "where",
            Print.newlines 2,
            ppModuleImport exp,
-           Print.ppString "import qualified OpenTheory.Primitive.Test as Primitive.Test",
+           ppSyntax "import qualified OpenTheory.Primitive.Test as Primitive.Test",
            Print.newline,
            Print.newline,
            Print.program (List.map (ppTestSpace exp) tests),
@@ -3142,25 +3303,25 @@ local
 
   fun ppSection s pps =
       Print.inconsistentBlock 2
-        [Print.ppString s,
+        [ppSyntax s,
          Print.newline,
          Print.program pps];
 
   local
     fun ppExtraDepend dep =
         Print.program
-          [Print.ppString ",",
+          [ppSyntax ",",
            Print.newline,
            ppDepend dep];
   in
     fun ppBuildDepends deps =
-        Print.ppString "base >= 4.0 && < 5.0," ::
+        ppSyntax "base >= 4.0 && < 5.0," ::
         Print.newline ::
-        Print.ppString "random >= 1.0.1.1 && < 2.0," ::
+        ppSyntax "random >= 1.0.1.1 && < 2.0," ::
         Print.newline ::
-        Print.ppString "QuickCheck >= 2.4.0.1 && < 3.0," ::
+        ppSyntax "QuickCheck >= 2.4.0.1 && < 3.0," ::
         Print.newline ::
-        Print.ppString "opentheory-primitive >= 1.0 && < 2.0" ::
+        ppSyntax "opentheory-primitive >= 1.0 && < 2.0" ::
         List.map ppExtraDepend deps;
   end;
 
@@ -3176,8 +3337,8 @@ local
         [] => Print.skip
       | x :: xs =>
         Print.program
-          (Print.ppString x ::
-           List.map (Print.sequence Print.break o Print.ppString) xs);
+          (ppSyntax x ::
+           List.map (Print.sequence Print.break o ppSyntax) xs);
 in
   fun ppCabal (tags,deps,source) =
       let
@@ -3192,8 +3353,8 @@ in
           [ppTags tags (initialTags @ StringSet.toList extraTags),
            Print.newline,
            Print.inconsistentBlock 2
-             [Print.ppString descriptionTag,
-              Print.ppString ":",
+             [ppSyntax descriptionTag,
+              ppSyntax ":",
               Print.newline,
               ppText desc],
            Print.newline,
