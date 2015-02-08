@@ -57,6 +57,47 @@ val isSymbolString = CharVector.all isSymbolChar;
 fun isSymbolName n = isSymbolString (Name.component n);
 
 (* ------------------------------------------------------------------------- *)
+(* Haskell infix tokens.                                                     *)
+(* See: http://zvon.org/other/haskell/Outputprelude/index.html               *)
+(* ------------------------------------------------------------------------- *)
+
+val infixes =
+    Print.Infixes
+      [{token = ".", precedence = 9, assoc = Print.RightAssoc},
+       (*{token = "!!", precedence = 9, assoc = Print.LeftAssoc},*)
+       {token = "^", precedence = 8, assoc = Print.RightAssoc},
+       {token = "^^", precedence = 8, assoc = Print.RightAssoc},
+       {token = "**", precedence = 8, assoc = Print.RightAssoc},
+       {token = "/", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "*", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "quot", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "rem", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "div", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "+", precedence = 6, assoc = Print.LeftAssoc},
+       {token = "-", precedence = 6, assoc = Print.LeftAssoc},
+       {token = ":", precedence = 5, assoc = Print.RightAssoc},
+       {token = "++", precedence = 5, assoc = Print.RightAssoc},
+       {token = "==", precedence = 4, assoc = Print.NonAssoc},
+       {token = "/=", precedence = 4, assoc = Print.NonAssoc},
+       {token = "<", precedence = 4, assoc = Print.NonAssoc},
+       {token = "<=", precedence = 4, assoc = Print.NonAssoc},
+       {token = ">=", precedence = 4, assoc = Print.NonAssoc},
+       {token = ">", precedence = 4, assoc = Print.NonAssoc},
+       {token = "elem", precedence = 4, assoc = Print.NonAssoc},
+       {token = "notElem", precedence = 4, assoc = Print.NonAssoc},
+       {token = "&&", precedence = 3, assoc = Print.RightAssoc},
+       {token = "||", precedence = 2, assoc = Print.RightAssoc},
+       {token = ">>", precedence = 1, assoc = Print.LeftAssoc},
+       {token = ">>=", precedence = 1, assoc = Print.LeftAssoc},
+       (*{token = "=<<", precedence = 1, assoc = Print.RightAssoc},*)
+       {token = "$", precedence = 0, assoc = Print.RightAssoc},
+       {token = "$!", precedence = 0, assoc = Print.RightAssoc},
+       {token = "seq", precedence = 0, assoc = Print.RightAssoc}];
+
+val infixTokens = Print.tokensInfixes infixes;
+
+(* ------------------------------------------------------------------------- *)
 (* Haskell syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -164,17 +205,80 @@ in
 end;
 ***)
 
-(* Type syntax *)
+(* Interpreting primitive symbols *)
 
-(* Term syntax *)
+local
+  val typeOpRewrites =
+      List.map Interpretation.TypeOpRewrite
+        [(Name.boolTypeOp, Name.mkGlobal "Bool"),
+         (Name.funTypeOp, Name.mkGlobal "->")];
 
-val isNumeral = Term.isNumeral;
+  val constRewrites =
+      List.map Interpretation.ConstRewrite
+        [(Name.eqConst, Name.mkGlobal "==")];
+in
+  val primitiveRewrites = typeOpRewrites @ constRewrites;
 
-val destCond = total Term.destCond;
+  val primitiveInterpretation =
+      Interpretation.fromRewriteList primitiveRewrites;
+end;
+
+(* Generalized abstractions *)
+
+val destGenAbs = total Term.destGenAbs;
+
+fun isGenAbs tm = Option.isSome (destGenAbs tm);
+
+local
+  fun strip acc tm =
+      case destGenAbs tm of
+        NONE => (List.rev acc, tm)
+      | SOME (v,tm) => strip (v :: acc) tm;
+in
+  val stripGenAbs = strip [];
+end;
+
+(* Lets *)
 
 val destLet = total Term.destLet;
 
-val destGenAbs = total Term.destGenAbs;
+fun isLet tm = Option.isSome (destLet tm);
+
+(* Conditionals *)
+
+val destCond = total Term.destCond;
+
+fun isCond tm = Option.isSome (destCond tm);
+
+(* Numerals *)
+
+val destNumeral = total Term.destNumeral;
+
+fun isNumeral tm = Option.isSome (destNumeral tm);
+
+(* Case expressions *)
+
+val destCase = total Term.destCase;
+
+fun isCase tm = Option.isSome (destCase tm);
+
+fun casePatterns (a,bs) =
+    let
+      val ty = Term.typeOf a
+
+      fun mkBranch (n,xs,t) =
+          let
+            val c = Const.mkUndef n
+
+            val ty = Type.listMkFun (List.map Term.typeOf xs, ty)
+
+            val pat = Term.listMkApp (Term.mkConst (c,ty), xs)
+          in
+            (pat,t)
+          end
+    in
+      (a, List.map mkBranch bs)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Anonymizing unused variables.                                             *)
@@ -1921,9 +2025,14 @@ fun fromPackage repo namever =
           end
 
       val int =
-          Interpretation.fromRewriteList
-            (Interpretation.toRewriteList depInt @
-             Interpretation.toRewriteList thyInt)
+          let
+            val rewrs =
+                primitiveRewrites @
+                Interpretation.toRewriteList depInt @
+                Interpretation.toRewriteList thyInt
+          in
+            Interpretation.fromRewriteList rewrs
+          end
     in
       Haskell
         {system = sys,
@@ -2215,69 +2324,132 @@ in
 end;
 ***)
 
-(* Type syntax *)
-
-local
-  fun dest ty =
-      let
-        val (t,tys) = Type.destOp ty
-
-        val a =
-            case tys of
-              [a] => a
-            | _ => raise Error "Haskell.destUnaryType"
-      in
-        (t,a)
-      end;
-in
-  val destUnaryType = total dest;
-end;
-
-local
-  fun dest ty =
-      let
-        val (t,tys) = Type.destOp ty
-
-        val (a,b) =
-            case tys of
-              [a,b] => (a,b)
-            | _ => raise Error "Haskell.destBinaryType"
-      in
-        (t,a,b)
-      end;
-in
-  val destBinaryType = total dest;
-end;
+(* List types *)
 
 val listTypeName = Name.mkGlobal "[]";
 
-fun destListType exp ty =
-    case destUnaryType ty of
-      NONE => NONE
-    | SOME (t,a) =>
-      let
-        val n = typeOpNameSymbolExport exp (TypeOp.name t)
-      in
-        if Name.equal n listTypeName then SOME a else NONE
-      end;
+fun destListType exp =
+    let
+      fun pred t =
+          let
+            val n = typeOpNameSymbolExport exp (TypeOp.name t)
+          in
+            Name.equal n listTypeName
+          end
+
+      val dest = Type.destUnaryOp pred
+    in
+      total dest
+    end;
 
 fun isListType exp ty = Option.isSome (destListType exp ty);
 
+(* Pair types *)
+
 val pairTypeName = Name.mkGlobal ",";
 
-fun destPairType exp ty =
-    case destBinaryType ty of
-      NONE => NONE
-    | SOME (t,a,b) =>
-      let
-        val n = typeOpNameSymbolExport exp (TypeOp.name t)
-      in
-        if Name.equal n pairTypeName then SOME (a,b) else NONE
-      end;
+fun destPairType exp =
+    let
+      fun pred t =
+          let
+            val n = typeOpNameSymbolExport exp (TypeOp.name t)
+          in
+            Name.equal n pairTypeName
+          end
+
+      val dest = Type.destBinaryOp pred
+    in
+      total dest
+    end;
 
 fun isPairType exp ty = Option.isSome (destPairType exp ty);
 
-(* Term syntax *)
+(* Pair terms *)
+
+val pairName = Name.mkGlobal ",";
+
+fun destPair exp =
+    let
+      fun pred c =
+          let
+            val n = constNameSymbolExport exp (Const.name c)
+          in
+            Name.equal n pairName
+          end
+
+      val dest = Term.destBinaryOp pred
+    in
+      total dest
+    end;
+
+fun isPair exp tm = Option.isSome (destPair exp tm);
+
+(* Infix terms *)
+
+fun destInfix exp =
+    let
+      fun dest tm =
+          let
+            val (t,b) = Term.destApp tm
+
+            val (t,a) = Term.destApp t
+
+            val (c,_) = Term.destConst t
+
+            val n = constNameSymbolExport exp (Const.name c)
+
+            val (ns,s) = Name.dest n
+
+            val () =
+                if Namespace.isGlobal ns then ()
+                else raise Error "Haskell.destInfix: not global"
+
+            val () =
+                if StringSet.member s infixTokens then ()
+                else raise Error "Haskell.destInfix: not infix"
+          in
+            (s,a,b)
+          end
+    in
+      total dest
+    end;
+
+fun isInfix exp tm = Option.isSome (destInfix exp tm);
+
+(* Generalized applications *)
+
+fun destGenApp exp =
+    let
+      fun dest tm =
+          if isNumeral tm then
+            raise Error "Haskell.destGenApp: numeral"
+          else if isCond tm then
+            raise Error "Haskell.destGenApp: cond"
+          else if isLet tm then
+            raise Error "Haskell.destGenApp: let"
+          else if isGenAbs tm then
+            raise Error "Haskell.destGenApp: abstraction"
+          else if isCase tm then
+            raise Error "Haskell.destGenApp: case"
+          else if isPair exp tm then
+            raise Error "Haskell.destGenApp: pair"
+          else if isInfix exp tm then
+            raise Error "Haskell.destGenApp: infix"
+          else
+            Term.destApp tm
+    in
+      total dest
+    end;
+
+fun stripGenApp exp =
+    let
+      fun strip acc tm =
+          case destGenApp exp tm of
+            NONE => (tm,acc)
+          | SOME (f,x) => strip (x :: acc) f
+    in
+      strip []
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell tags.                                                             *)
@@ -2385,6 +2557,10 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 val ppSyntax = Print.ppString;
+
+fun ppInfixToken s =
+    if isSymbolString s then ppSyntax s
+    else Print.ppBracket "`" "`" ppSyntax s;
 
 (* Names *)
 
@@ -2566,137 +2742,20 @@ in
 end;
 
 local
-  val infixes =
-      Print.Infixes
-        [(* http://zvon.org/other/haskell/Outputprelude/index.html *)
-         {token = ".", precedence = 9, assoc = Print.RightAssoc},
-         (*{token = "!!", precedence = 9, assoc = Print.LeftAssoc},*)
-         {token = "^", precedence = 8, assoc = Print.RightAssoc},
-         {token = "^^", precedence = 8, assoc = Print.RightAssoc},
-         {token = "**", precedence = 8, assoc = Print.RightAssoc},
-         {token = "/", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "*", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "quot", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "rem", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "div", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
-         {token = "+", precedence = 6, assoc = Print.LeftAssoc},
-         {token = "-", precedence = 6, assoc = Print.LeftAssoc},
-         {token = ":", precedence = 5, assoc = Print.RightAssoc},
-         {token = "++", precedence = 5, assoc = Print.RightAssoc},
-         {token = "==", precedence = 4, assoc = Print.NonAssoc},
-         {token = "/=", precedence = 4, assoc = Print.NonAssoc},
-         {token = "<", precedence = 4, assoc = Print.NonAssoc},
-         {token = "<=", precedence = 4, assoc = Print.NonAssoc},
-         {token = ">=", precedence = 4, assoc = Print.NonAssoc},
-         {token = ">", precedence = 4, assoc = Print.NonAssoc},
-         {token = "elem", precedence = 4, assoc = Print.NonAssoc},
-         {token = "notElem", precedence = 4, assoc = Print.NonAssoc},
-         {token = "&&", precedence = 3, assoc = Print.RightAssoc},
-         {token = "||", precedence = 2, assoc = Print.RightAssoc},
-         {token = ">>", precedence = 1, assoc = Print.LeftAssoc},
-         {token = ">>=", precedence = 1, assoc = Print.LeftAssoc},
-         (*{token = "=<<", precedence = 1, assoc = Print.RightAssoc},*)
-         {token = "$", precedence = 0, assoc = Print.RightAssoc},
-         {token = "$!", precedence = 0, assoc = Print.RightAssoc},
-         {token = "seq", precedence = 0, assoc = Print.RightAssoc}];
+  fun isLetCondCase tm = isLet tm orelse isCond tm orelse isCase tm;
 
-  val infixTokens = Print.tokensInfixes infixes;
-
-  fun ppInfixToken (_,s) =
-      let
-        val ps = [ppSyntax s]
-
-        val ps =
-            if isSymbolString s then ps
-            else let val p = Print.ppChar #"`" in p :: ps @ [p] end
-      in
-        Print.program (Print.space :: ps @ [Print.break])
-      end
-
-  fun casePatterns (a,bs) =
-      let
-        val ty = Term.typeOf a
-
-        fun mkBranch (n,xs,t) =
-            let
-              val c = Const.mkUndef n
-
-              val ty = Type.listMkFun (List.map Term.typeOf xs, ty)
-
-              val pat = Term.listMkApp (Term.mkConst (c,ty), xs)
-            in
-              (pat,t)
-            end
-      in
-        (a, List.map mkBranch bs)
-      end;
-
-  fun isLetCondCase tm =
-      Term.isLet tm orelse Term.isCond tm orelse Term.isCase tm;
+  fun ppInfixTokenSpace (_,s) =
+      Print.program [Print.space, ppInfixToken s, Print.break];
 in
   fun ppTerm exp =
       let
-        fun destInfix tm =
-            let
-              val (t,b) = Term.destApp tm
-
-              val (t,a) = Term.destApp t
-
-              val (c,_) = Term.destConst t
-
-              val n = constNameSymbolExport exp (Const.name c)
-
-              val (ns,s) = Name.dest n
-
-              val () =
-                  if Namespace.isGlobal ns then ()
-                  else raise Error "Haskell.ppTerm.destInfix: not global"
-
-              val () =
-                  if StringSet.member s infixTokens then ()
-                  else raise Error "Haskell.ppTerm.destInfix: not infix"
-            in
-              (s,a,b)
-            end
-
-        val isInfix = can destInfix
-
-        val ppInfix = Print.ppInfixes infixes (total destInfix) ppInfixToken
-
-        fun destGenApp tm =
-            if isNumeral tm then
-              raise Error "Haskell.ppTerm.destGenApp: numeral"
-            else if Term.isCond tm then
-              raise Error "Haskell.ppTerm.destGenApp: cond"
-            else if Term.isPair tm then
-              raise Error "Haskell.ppTerm.destGenApp: pair"
-            else if Term.isLet tm then
-              raise Error "Haskell.ppTerm.destGenApp: let"
-            else if isInfix tm then
-              raise Error "Haskell.ppTerm.destGenApp: infix"
-            else if Term.isGenAbs tm then
-              raise Error "Haskell.ppTerm.destGenApp: abstraction"
-            else if Term.isCase tm then
-              raise Error "Haskell.ppTerm.destGenApp: case"
-            else
-              Term.destApp tm
-
-        val stripGenApp =
-            let
-              fun strip acc tm =
-                  case total destGenApp tm of
-                    NONE => (tm,acc)
-                  | SOME (f,x) => strip (x :: acc) f
-            in
-              strip []
-            end
+        val ppInfix = Print.ppInfixes infixes (destInfix exp) ppInfixTokenSpace
 
         fun ppBasicTerm tm =
-            case total Term.destNumeral tm of
+            case destNumeral tm of
               SOME i => Print.ppInt i
             | NONE =>
-              case total Term.destPair tm of
+              case destPair exp tm of
                 SOME x_y => ppPair x_y
               | NONE =>
                 case Term.dest tm of
@@ -2711,7 +2770,7 @@ in
 
               fun ppArg x = Print.sequence (Print.ppBreak b) (ppBasicTerm x)
 
-              val (tm,xs) = stripGenApp tm
+              val (tm,xs) = stripGenApp exp tm
             in
               if List.null xs then ppBasicTerm tm
               else
@@ -2755,7 +2814,7 @@ in
 
         and ppBinderTerm (tm,r) =
             let
-              val (vs,body) = Term.stripGenAbs tm
+              val (vs,body) = stripGenAbs tm
             in
               case vs of
                 [] => ppApplicationTerm tm
@@ -2883,7 +2942,7 @@ in
                 SOME (c,a,b) =>
                 Print.consistentBlock 0 (ppCondTerm (true,c,a,b,r))
               | NONE =>
-                case total Term.destCase tm of
+                case destCase tm of
                   SOME a_bs => ppCaseTerm (casePatterns a_bs, r)
                 | NONE => ppInfixTerm (tm,r)
 

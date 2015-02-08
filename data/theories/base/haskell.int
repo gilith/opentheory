@@ -3,11 +3,14 @@
 # Joe Leslie-Hurd
 ###############################################################################
 
+type "Data.Pair.*" as ","
 type "Data.List.list" as "[]"
 
+const "Data.Pair.," as ","
 const "Data.List.::" as ":"
 const "Number.Natural.+" as "+"
 const "Data.List.@" as "++"
+const "Number.Natural.-" as "-"
 const "Data.List.[]" as "[]"
 const "Data.List.head" as "head"
 const "Data.List.map" as "map"

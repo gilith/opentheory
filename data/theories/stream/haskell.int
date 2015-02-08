@@ -3,7 +3,7 @@
 # Joe Leslie-Hurd
 ###############################################################################
 
-type "Data.Stream.stream" as "List"
+type "Data.Stream.stream" as "[]"
 
 const "Data.Stream.::" as ":"
 const "Data.Stream.@" as "++"
