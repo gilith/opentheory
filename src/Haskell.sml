@@ -101,110 +101,6 @@ val infixTokens = Print.tokensInfixes infixes;
 (* Haskell syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(***
-local
-  local
-    fun mkName root ns =
-        curry Name.mk (Namespace.append root (Namespace.fromList ns));
-
-    val primitiveRoot = Namespace.fromList ["OpenTheory"];
-
-    val mkPrimitive = mkName primitiveRoot;
-  in
-    val mkNative = mkName Namespace.global [];
-
-    val mkPrimitiveByte = mkPrimitive ["Byte"]
-    and mkPrimitiveNatural = mkPrimitive ["Natural"]
-    and mkPrimitiveRandom = mkPrimitive ["Random"]
-    and mkPrimitiveWord16 = mkPrimitive ["Word16"];
-  end;
-
-  val typeOpMapping =
-      List.map Interpretation.TypeOpRewrite
-        [(* Native types *)
-         (Name.boolTypeOp, mkNative "Bool"),
-         (Name.funTypeOp, mkNative "->"),
-         (Name.listTypeOp, mkNative "List"),
-         (Name.optionTypeOp, mkNative "Maybe"),
-         (Name.pairTypeOp, mkNative "Pair"),
-         (Name.streamTypeOp, mkNative "List"),
-         (* Primitive types *)
-         (Name.byteTypeOp, mkPrimitiveByte "Byte"),
-         (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
-         (Name.randomTypeOp, mkPrimitiveRandom "Random"),
-         (Name.word16TypeOp, mkPrimitiveWord16 "Word16")];
-
-  val constMapping =
-      List.map Interpretation.ConstRewrite
-        [(* Native constants *)
-         (Name.addConst, mkNative "+"),
-         (Name.addByteConst, mkNative "+"),
-         (Name.addWord16Const, mkNative "+"),
-         (Name.allConst, mkNative "all"),
-         (Name.anyConst, mkNative "any"),
-         (Name.appendConst, mkNative "++"),
-         (Name.appendStreamConst, mkNative "++"),
-         (Name.concatConst, mkNative "concat"),
-         (Name.conjConst, mkNative "&&"),
-         (Name.consConst, mkNative ":"),
-         (Name.consStreamConst, mkNative ":"),
-         (Name.disjConst, mkNative "||"),
-         (Name.divConst, mkNative "div"),
-         (Name.eqConst, mkNative "=="),
-         (Name.falseConst, mkNative "False"),
-         (Name.fstConst, mkNative "fst"),
-         (Name.headConst, mkNative "head"),
-         (Name.headStreamConst, mkNative "head"),
-         (Name.leConst, mkNative "<="),
-         (Name.leByteConst, mkNative "<="),
-         (Name.leWord16Const, mkNative "<="),
-         (Name.ltConst, mkNative "<"),
-         (Name.ltByteConst, mkNative "<"),
-         (Name.ltWord16Const, mkNative "<"),
-         (Name.mapConst, mkNative "map"),
-         (Name.mapStreamConst, mkNative "map"),
-         (Name.modConst, mkNative "mod"),
-         (Name.multiplyConst, mkNative "*"),
-         (Name.multiplyByteConst, mkNative "*"),
-         (Name.multiplyWord16Const, mkNative "*"),
-         (Name.negConst, mkNative "not"),
-         (Name.nilConst, mkNative "[]"),
-         (Name.noneConst, mkNative "Nothing"),
-         (Name.pairConst, mkNative ","),
-         (Name.sndConst, mkNative "snd"),
-         (Name.someConst, mkNative "Just"),
-         (Name.subtractConst, mkNative "-"),
-         (Name.subtractByteConst, mkNative "-"),
-         (Name.subtractWord16Const, mkNative "-"),
-         (Name.tailConst, mkNative "tail"),
-         (Name.tailStreamConst, mkNative "tail"),
-         (Name.trueConst, mkNative "True"),
-         (* Primitive constants *)
-         (Name.andByteConst, mkPrimitiveByte "and"),
-         (Name.andWord16Const, mkPrimitiveWord16 "and"),
-         (Name.bitConst, mkPrimitiveRandom "bit"),
-         (Name.bitByteConst, mkPrimitiveByte "bit"),
-         (Name.bitWord16Const, mkPrimitiveWord16 "bit"),
-         (Name.fromBytesWord16Const, mkPrimitiveWord16 "fromBytes"),
-         (Name.fromNaturalByteConst, mkPrimitiveByte "fromNatural"),
-         (Name.fromNaturalWord16Const, mkPrimitiveWord16 "fromNatural"),
-         (Name.notByteConst, mkPrimitiveByte "not"),
-         (Name.notWord16Const, mkPrimitiveWord16 "not"),
-         (Name.orByteConst, mkPrimitiveByte "or"),
-         (Name.orWord16Const, mkPrimitiveWord16 "or"),
-         (Name.shiftLeftByteConst, mkPrimitiveByte "shiftLeft"),
-         (Name.shiftLeftWord16Const, mkPrimitiveWord16 "shiftLeft"),
-         (Name.shiftRightByteConst, mkPrimitiveByte "shiftRight"),
-         (Name.shiftRightWord16Const, mkPrimitiveWord16 "shiftRight"),
-         (Name.splitConst, mkPrimitiveRandom "split"),
-         (Name.toBytesWord16Const, mkPrimitiveWord16 "toBytes")];
-in
-  val primitiveInt =
-      Interpretation.fromRewriteList
-        (typeOpMapping @ constMapping);
-end;
-***)
-
 (* Interpreting primitive symbols *)
 
 local
@@ -1259,7 +1155,7 @@ fun destNewtype int th =
             val tn = Interpretation.interpretTypeOp int (TypeOp.name name)
             and cn = Interpretation.interpretConst int (Const.name abs)
           in
-            if not (Name.equal cn tn) then ()
+            if Name.equal cn tn then ()
             else raise Error "constructor name does not match type"
           end
     in
@@ -2241,12 +2137,7 @@ local
   val typeOpMapping =
       List.map Interpretation.TypeOpRewrite
         [(* Native types *)
-         (Name.boolTypeOp, mkNative "Bool"),
-         (Name.funTypeOp, mkNative "->"),
-         (Name.listTypeOp, mkNative "List"),
          (Name.optionTypeOp, mkNative "Maybe"),
-         (Name.pairTypeOp, mkNative "Pair"),
-         (Name.streamTypeOp, mkNative "List"),
          (* Primitive types *)
          (Name.byteTypeOp, mkPrimitiveByte "Byte"),
          (Name.naturalTypeOp, mkPrimitiveNatural "Natural"),
@@ -2256,7 +2147,6 @@ local
   val constMapping =
       List.map Interpretation.ConstRewrite
         [(* Native constants *)
-         (Name.addConst, mkNative "+"),
          (Name.addByteConst, mkNative "+"),
          (Name.addWord16Const, mkNative "+"),
          (Name.allConst, mkNative "all"),
@@ -2265,14 +2155,8 @@ local
          (Name.appendStreamConst, mkNative "++"),
          (Name.concatConst, mkNative "concat"),
          (Name.conjConst, mkNative "&&"),
-         (Name.consConst, mkNative ":"),
          (Name.consStreamConst, mkNative ":"),
          (Name.disjConst, mkNative "||"),
-         (Name.divConst, mkNative "div"),
-         (Name.eqConst, mkNative "=="),
-         (Name.falseConst, mkNative "False"),
-         (Name.fstConst, mkNative "fst"),
-         (Name.headConst, mkNative "head"),
          (Name.headStreamConst, mkNative "head"),
          (Name.leConst, mkNative "<="),
          (Name.leByteConst, mkNative "<="),
@@ -2280,24 +2164,16 @@ local
          (Name.ltConst, mkNative "<"),
          (Name.ltByteConst, mkNative "<"),
          (Name.ltWord16Const, mkNative "<"),
-         (Name.mapConst, mkNative "map"),
          (Name.mapStreamConst, mkNative "map"),
-         (Name.modConst, mkNative "mod"),
          (Name.multiplyConst, mkNative "*"),
          (Name.multiplyByteConst, mkNative "*"),
          (Name.multiplyWord16Const, mkNative "*"),
          (Name.negConst, mkNative "not"),
-         (Name.nilConst, mkNative "[]"),
          (Name.noneConst, mkNative "Nothing"),
-         (Name.pairConst, mkNative ","),
-         (Name.sndConst, mkNative "snd"),
          (Name.someConst, mkNative "Just"),
-         (Name.subtractConst, mkNative "-"),
          (Name.subtractByteConst, mkNative "-"),
          (Name.subtractWord16Const, mkNative "-"),
-         (Name.tailConst, mkNative "tail"),
          (Name.tailStreamConst, mkNative "tail"),
-         (Name.trueConst, mkNative "True"),
          (* Primitive constants *)
          (Name.andByteConst, mkPrimitiveByte "and"),
          (Name.andWord16Const, mkPrimitiveWord16 "and"),
