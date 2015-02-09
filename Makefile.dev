@@ -157,24 +157,20 @@ HASKELL_DIR = data/haskell
 
 HASKELL_EXPORTING_DIR = exporting
 
-HASKELL_OPENTHEORY_EXPORT = ../../$(OPENTHEORY) export --haskell
+HASKELL_OPENTHEORY_EXPORT = ../../../$(OPENTHEORY) export --haskell
 
-HASKELL_OPENTHEORY_LIST = ../../$(OPENTHEORY) list --dependency-order ExportHaskell
+HASKELL_OPENTHEORY_LIST = ../../../$(OPENTHEORY) list --dependency-order ExportHaskell
 
-.PHONY: haskell-export
-haskell-export: $(OPENTHEORY)
-	cd $(HASKELL_DIR) && rm -rf $(HASKELL_EXPORTING_DIR) && mkdir $(HASKELL_EXPORTING_DIR) && cd $(HASKELL_EXPORTING_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; my $$n = `ls`; chomp $$n; if ( -d ../$$n ) { (system("rm -r ../$$n") == 0) or die; (system ("mv $$n ..") == 0) or die; (system("find $$n") == 0) or die;')
-
-.PHONY: haskell-install
-haskell-install: $(OPENTHEORY)
-	cd $(HASKELL_DIR)/opentheory-primitive && cabal clean && cabal install && dist/build/opentheory-primitive-test/opentheory-primitive-test && cabal check && cabal sdist
-	cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne '$$nv = $$_; chomp $$nv; if ($$nv =~ /^haskell-/) { $$n = `$(HASKELL_OPENTHEORY_INFO) --format NAME $$nv`; chomp $$n; $$n =~ s/^haskell/opentheory/; (system("cd $$n && cabal clean && cabal install && dist/build/$$n-test/$$n-test && cabal check && cabal sdist") == 0) or die; }')
-	cd $(HASKELL_DIR)/opentheory-test && cabal clean && cabal install && dist/build/opentheory-test/opentheory-test
+.PHONY: haskell-theories
+haskell-theories: $(OPENTHEORY)
+#	cd $(HASKELL_DIR) && rm -rf $(HASKELL_EXPORTING_DIR) && mkdir $(HASKELL_EXPORTING_DIR) && cd $(HASKELL_EXPORTING_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; my $$n = `ls`; chomp $$n; my $$d = "../$$n"; if ( -d $$d ) { (system("rm -r $$d") == 0) or die; } (system ("mv $$n ..") == 0) or die; (system("cd $$d && cabal clean && cabal install && dist/build/$$n-test/$$n-test && cabal check && cabal sdist") == 0) or die;') && cd .. && rmdir $(HASKELL_EXPORTING_DIR)
+	cd $(HASKELL_DIR) && rm -rf $(HASKELL_EXPORTING_DIR) && mkdir $(HASKELL_EXPORTING_DIR) && cd $(HASKELL_EXPORTING_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; my $$n = `ls`; chomp $$n; my $$d = "../$$n"; if ( -d $$d ) { (system("rm -r $$d") == 0) or die; } (system ("mv $$n ..") == 0) or die; (system("cd $$d && cabal clean && cabal install && cabal check && cabal sdist") == 0) or die;') && cd .. && rmdir $(HASKELL_EXPORTING_DIR)
 
 .PHONY: haskell
 haskell:
-	$(MAKE) haskell-export
-	$(MAKE) haskell-install
+	cd $(HASKELL_DIR)/opentheory-primitive && cabal clean && cabal install && dist/build/opentheory-primitive-test/opentheory-primitive-test && cabal check && cabal sdist
+	$(MAKE) haskell-theories
+	cd $(HASKELL_DIR)/opentheory-test && cabal clean && cabal install && dist/build/opentheory-test/opentheory-test
 
 ###############################################################################
 # Create the test package repo.

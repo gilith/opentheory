@@ -95,21 +95,30 @@ sub import_article {
 
 sub bump_theory_version {
   (scalar @_ == 2) or die;
-  my $base = shift @_;
+  my $name = shift @_;
   my $thy = shift @_;
 
-  if (!$opt_u) {
-    die "$program: need to upgrade $base theory but no -u flag specified\n";
+  my $cmd = "$opentheory info --format VERSION $thy";
+  my $version = `$cmd`;
+  chomp $version;
+
+  $cmd = "$opentheory info --format CHECKSUM $name-$version >/dev/null 2>&1";
+  my $installed = (system ($cmd) == 0);
+
+  if ($installed) {
+    if (!$opt_u) {
+      die "$program: need to upgrade $name theory but no -u flag specified\n";
+    }
+
+    my $thynew = "$thy.bumping";
+
+    $cmd = "$bumpver -p $thy > $thynew";
+    (execute_command ($cmd) == 0) or
+      die "$program: couldn't execute $cmd: $!\n";
+
+    rename($thynew,$thy) or
+      die "$program: couldn't rename $thynew to $thy: $!\n";
   }
-
-  my $thynew = "$thy.bumping";
-
-  my $cmd = "$bumpver -p $thy > $thynew";
-  (execute_command ($cmd) == 0) or
-    die "$program: couldn't execute $cmd: $!\n";
-
-  rename($thynew,$thy) or
-    die "$program: couldn't rename $thynew to $thy: $!\n";
 }
 
 ###############################################################################

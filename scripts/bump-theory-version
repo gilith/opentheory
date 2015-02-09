@@ -39,7 +39,7 @@ while (my $line = <THEORY>) {
         print STDOUT "version: $b$v\n";
 
         if ($bumped) {
-            die "bump-theory-version: found two version: tags";
+            die "bump-theory-version: found two 'version' tags";
         }
         else {
             $bumped = 1;

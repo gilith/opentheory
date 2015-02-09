@@ -1,21 +1,22 @@
 {- |
 module: $Header$
-description: The Haskell base
+description: Stream types
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module OpenTheory.Data.Stream
+
+module OpenTheory.Stream
 where
 
-import qualified OpenTheory.Primitive.Natural as Primitive.Natural
+import qualified OpenTheory.Primitive.Natural as Natural
 
-nth :: [a] -> Primitive.Natural.Natural -> a
+nth :: [a] -> Natural.Natural -> a
 nth s n = if n == 0 then head s else nth (tail s) (n - 1)
 
-take' :: [a] -> Primitive.Natural.Natural -> [a]
+take' :: [a] -> Natural.Natural -> [a]
 take' s n = if n == 0 then [] else head s : take' (tail s) (n - 1)
 
 unfold :: (b -> (a, b)) -> b -> [a]
