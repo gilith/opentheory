@@ -3148,14 +3148,15 @@ end;
 
 fun ppModule int (tags,namespace,source) =
     let
-      val exp = mkSymbolExport int namespace source
+      val desc = getTag tags synopsisTag
+      and exp = mkSymbolExport int namespace source
     in
       Print.inconsistentBlock 0
         [ppSyntax "{- |",
          Print.newline,
          ppTag (moduleTag,"$Header$"),
          Print.newline,
-         ppTag (descriptionTag, getTag tags synopsisTag),
+         ppTag (descriptionTag,desc),
          Print.newline,
          ppTags tags [licenseTag],
          Print.newlines 2,
@@ -3218,7 +3219,7 @@ local
 in
   fun ppTests (tags,tests) =
       let
-        val desc = getTag tags descriptionTag
+        val desc = getTag tags synopsisTag
         and exp = mkTestsSymbolExport tests
       in
         Print.inconsistentBlock 0

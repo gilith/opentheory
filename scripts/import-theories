@@ -135,11 +135,15 @@ open THEORIES, "$cmd |" or
 while (my $thy = <THEORIES>) {
   chomp $thy;
 
-  if ($thy =~ m{^([[:alnum:]-]+)-haskell-src[.]thy$}) {
+  if ($thy =~ m{^([[:alnum:]-]+)-haskell-(src|test)[.]thy$}) {
     my $base = $1;
+    my $kind = $2;
     my $tdir = "$target/$base";
     my $tthy = "$tdir/$base.thy";
-    my $tart = "$tdir/haskell.art";
+
+    my $tart = "$tdir/haskell";
+    if ($kind ne "src") { $tart .= "-" . $kind; }
+    $tart .= ".art";
     my $tartnew = "$tart.importing";
 
     [ -d $tdir ] or
@@ -156,7 +160,7 @@ while (my $thy = <THEORIES>) {
         rename($tartnew,$tart) or
           die "$program: couldn't rename $tartnew to $tart: $!\n";
 
-        print STDOUT "re-imported Haskell source for $base\n";
+        print STDOUT "re-imported Haskell $kind for $base\n";
       }
       else {
         unlink $tartnew or
@@ -167,7 +171,7 @@ while (my $thy = <THEORIES>) {
       rename($tartnew,$tart) or
         die "$program: couldn't rename $tartnew to $tart: $!\n";
 
-      print STDOUT "imported Haskell source for $base\n";
+      print STDOUT "imported Haskell $kind for $base\n";
     }
   }
   elsif ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {
