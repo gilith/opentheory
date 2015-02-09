@@ -27,6 +27,7 @@ datatype predicate =
   | LaterThanRepo
   | IdenticalOnRepo
   | ConsistentWithRepo
+  | ExportHaskell
   | Not of predicate
   | And of predicate * predicate
   | Or of predicate * predicate

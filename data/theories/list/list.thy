@@ -1,5 +1,5 @@
 name: list
-version: 1.101
+version: 1.102
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -37,8 +37,8 @@ length {
   import: def
   import: thm
   import: dest
-  package: list-length-1.52
-  checksum: 71265994fc820172d2a596a422d997bf6e6d0d7b
+  package: list-length-1.53
+  checksum: 2d525f962af99dbb7d028b81f5e8322da9f6053c
 }
 
 set {

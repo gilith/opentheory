@@ -388,6 +388,16 @@ fun nameInformation (Information {name = x, ...}) = x;
 
 fun licenseUrlInformation (Information {licenseUrl = x, ...}) = {url = x};
 
+fun exportable repo nv =
+    let
+      val pkg =
+          case Repository.peek repo nv of
+            SOME p => p
+          | NONE => raise Bug "Haskell.exportable"
+    in
+      Option.isSome (mkInformation repo pkg)
+    end;
+
 (* ------------------------------------------------------------------------- *)
 (* Haskell package dependencies.                                             *)
 (* ------------------------------------------------------------------------- *)
@@ -1825,6 +1835,10 @@ datatype haskell =
         interpretation : Interpretation.interpretation,
         source : module,
         tests : test list};
+
+fun information (Haskell {information = x, ...}) = x;
+
+fun name haskell = nameInformation (information haskell);
 
 (***
 fun destTestTheory show test =
@@ -3542,7 +3556,7 @@ fun exportPackage repo namever =
 
       val () = writePackage haskell
     in
-      ()
+      name haskell
     end;
 
 end

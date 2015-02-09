@@ -21,6 +21,7 @@ and deprecatedKeywordString = "Deprecated"
 and differenceSymbolString = "-"
 and earlierThanRepoKeywordString = "EarlierThanRepo"
 and emptyKeywordString = "Empty"
+and exportHaskellKeywordString = "ExportHaskell"
 and identicalOnRepoKeywordString = "IdenticalOnRepo"
 and identityKeywordString = "Identity"
 and includedByKeywordString = "IncludedBy"
@@ -68,6 +69,7 @@ datatype predicate =
   | ConsistentWithRepo
   | EarlierThanRepo
   | LaterThanRepo
+  | ExportHaskell
   | Not of predicate
   | And of predicate * predicate
   | Or of predicate * predicate;
@@ -112,6 +114,7 @@ fun ignoresRemote pred =
     | ConsistentWithRepo => false
     | EarlierThanRepo => false
     | LaterThanRepo => false
+    | ExportHaskell => true
     | Not pred1 => ignoresRemote pred1
     | And (pred1,pred2) => ignoresRemote pred1 andalso ignoresRemote pred2
     | Or (pred1,pred2) => ignoresRemote pred1 andalso ignoresRemote pred2;
@@ -165,7 +168,8 @@ val uploadableDef =
     (* Mine & (~OnRepo /\ ~EarlierThanRepo /\ ConsistentWithRepo) *)
     Intersect
       (Filter Mine,
-       Filter (And (Not OnRepo, And (Not EarlierThanRepo, ConsistentWithRepo))));
+       Filter
+         (And (Not OnRepo, And (Not EarlierThanRepo, ConsistentWithRepo))));
 
 fun evaluateSet repo set =
     case set of
@@ -192,6 +196,7 @@ local
         RepositoryRemote.earlierThanLatestNameVersion rem namever
       | LaterThanRepo =>
         RepositoryRemote.laterThanLatestNameVersion rem namever
+      | ExportHaskell => Haskell.exportable repo namever
       | _ => raise Bug "RepositoryQuery.evalPred";
 
   fun evalPredSet repo rem pred namevers =
@@ -381,6 +386,7 @@ and ppConsistentWithRepoKeyword = Print.ppString consistentWithRepoKeywordString
 and ppDeprecatedKeyword = Print.ppString deprecatedKeywordString
 and ppEarlierThanRepoKeyword = Print.ppString earlierThanRepoKeywordString
 and ppEmptyKeyword = Print.ppString emptyKeywordString
+and ppExportHaskellKeyword = Print.ppString exportHaskellKeywordString
 and ppIdenticalOnRepoKeyword = Print.ppString identicalOnRepoKeywordString
 and ppIdentityKeyword = Print.ppString identityKeywordString
 and ppIncludedByKeyword = Print.ppString includedByKeywordString
@@ -442,6 +448,7 @@ local
       | ConsistentWithRepo => ppConsistentWithRepoKeyword
       | EarlierThanRepo => ppEarlierThanRepoKeyword
       | LaterThanRepo => ppLaterThanRepoKeyword
+      | ExportHaskell => ppExportHaskellKeyword
       | _ => ppBracket pred
 
   and ppUnary pred =
@@ -591,6 +598,7 @@ local
       exactString consistentWithRepoKeywordString
   and earlierThanRepoKeywordParser = exactString earlierThanRepoKeywordString
   and emptyKeywordParser = exactString emptyKeywordString
+  and exportHaskellKeywordParser = exactString exportHaskellKeywordString
   and identicalOnRepoKeywordParser = exactString identicalOnRepoKeywordString
   and laterThanRepoKeywordParser = exactString laterThanRepoKeywordString
   and mineKeywordParser = exactString mineKeywordString
@@ -609,16 +617,18 @@ local
       end;
 
   val basicKeywordParser =
-      emptyKeywordParser >> K Empty ||
-      mineKeywordParser >> K Mine ||
-      closedKeywordParser >> K Closed ||
-      acyclicKeywordParser >> K Acyclic ||
-      upToDateKeywordParser >> K UpToDate ||
+      (* In descending length order *)
       consistentWithRepoKeywordParser >> K ConsistentWithRepo ||
       earlierThanRepoKeywordParser >> K EarlierThanRepo ||
       identicalOnRepoKeywordParser >> K IdenticalOnRepo ||
       laterThanRepoKeywordParser >> K LaterThanRepo ||
-      onRepoKeywordParser >> K OnRepo;
+      exportHaskellKeywordParser >> K ExportHaskell ||
+      upToDateKeywordParser >> K UpToDate ||
+      acyclicKeywordParser >> K Acyclic ||
+      closedKeywordParser >> K Closed ||
+      onRepoKeywordParser >> K OnRepo ||
+      emptyKeywordParser >> K Empty ||
+      mineKeywordParser >> K Mine;
 
   val basicKeywordSpaceParser =
       basicKeywordParser ++ manySpace >> fst;
@@ -695,19 +705,20 @@ local
       end;
 
   val basicKeywordParser =
-      identityKeywordParser >> K Identity ||
-      requiresKeywordParser >> K Requires ||
-      requiredByKeywordParser >> K RequiredBy ||
-      includesKeywordParser >> K Includes ||
-      includedByKeywordParser >> K IncludedBy ||
+      (* In descending length order *)
       subtheoriesKeywordParser >> K Subtheories ||
       subtheoryOfKeywordParser >> K SubtheoryOf ||
-      versionsKeywordParser >> K Versions ||
-      latestKeywordParser >> K Latest ||
       deprecatedKeywordParser >> K Deprecated ||
-      obsoleteKeywordParser >> K Obsolete ||
+      includedByKeywordParser >> K IncludedBy ||
+      requiredByKeywordParser >> K RequiredBy ||
       upgradableKeywordParser >> K Upgradable ||
-      uploadableKeywordParser >> K Uploadable;
+      uploadableKeywordParser >> K Uploadable ||
+      identityKeywordParser >> K Identity ||
+      includesKeywordParser >> K Includes ||
+      obsoleteKeywordParser >> K Obsolete ||
+      requiresKeywordParser >> K Requires ||
+      versionsKeywordParser >> K Versions ||
+      latestKeywordParser >> K Latest;
 
   val basicKeywordSpaceParser =
       basicKeywordParser ++ manySpace >> fst;

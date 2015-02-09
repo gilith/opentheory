@@ -1,5 +1,5 @@
 name: stream
-version: 1.39
+version: 1.40
 description: Stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

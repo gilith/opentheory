@@ -12,9 +12,14 @@ sig
 
 type haskell
 
+val name : haskell -> PackageName.name
+
 (* ------------------------------------------------------------------------- *)
 (* Converting a theory package to a Haskell package.                         *)
 (* ------------------------------------------------------------------------- *)
+
+val exportable :
+    Repository.repository -> PackageNameVersion.nameVersion -> bool
 
 val fromPackage :
     Repository.repository -> PackageNameVersion.nameVersion -> haskell
@@ -30,6 +35,7 @@ val writePackage : haskell -> unit
 (* ------------------------------------------------------------------------- *)
 
 val exportPackage :
-    Repository.repository -> PackageNameVersion.nameVersion -> unit
+    Repository.repository -> PackageNameVersion.nameVersion ->
+    PackageName.name
 
 end

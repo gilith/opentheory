@@ -87,19 +87,15 @@ val describeQueryFormat =
     "  1. A FUNCTION expression in the grammar below is parsed from the command\n" ^
     "     line, which represents a function f of type S -> S\n" ^
     "  2. Another function g of type S -> S is computed, which may be represented\n" ^
-    "     by the FUNCTION expression ~Empty (Latest - Subtheories) All\n" ^
-    "  3. The set f(g({})) is evaluated as the result, where {} is the empty set\n" ^
+    "     by the FUNCTION expression ~Empty (Latest - Subtheories)\n" ^
+    "  3. The set f(g(P)) is evaluated as the result of the query\n" ^
     "FUNCTION          // represents a function with type S -> S\n" ^
     "  <- SET          // the constant function with return value SET\n" ^
     "  || PREDICATE    // the filter function with predicate PREDICATE\n" ^
-    "  || FUNCTION FUNCTION\n" ^
-    "                  // \\f g s. f (g s)\n" ^
-    "  || FUNCTION | FUNCTION\n" ^
-    "                  // \\f g s. { p in P | p in f(s) \\/ p in g(s) }\n" ^
-    "  || FUNCTION & FUNCTION\n" ^
-    "                  // \\f g s. { p in P | p in f(s) /\\ p in g(s) }\n" ^
-    "  || FUNCTION - FUNCTION\n" ^
-    "                  // \\f g s. { p in P | p in f(s) /\\ ~p in g(s) }\n" ^
+    "  || FUNCTION FUNCTION   // \\f g s. f (g s)\n" ^
+    "  || FUNCTION | FUNCTION // \\f g s. { p in P | p in f(s) \\/ p in g(s) }\n" ^
+    "  || FUNCTION & FUNCTION // \\f g s. { p in P | p in f(s) /\\ p in g(s) }\n" ^
+    "  || FUNCTION - FUNCTION // \\f g s. { p in P | p in f(s) /\\ ~p in g(s) }\n" ^
     "  || FUNCTION?    // \\f. Identity | f\n" ^
     "  || FUNCTION*    // \\f. Identity | f | f f | f f f | ...\n" ^
     "  || FUNCTION+    // \\f. f | f f | f f f | ...\n" ^
@@ -117,10 +113,8 @@ val describeQueryFormat =
     "  || Upgradable   // EarlierThanRepo\n" ^
     "  || Uploadable   // Mine /\\ ~OnRepo /\\ ~EarlierThanRepo /\\ ConsistentWithRepo\n" ^
     "PREDICATE         // represents a predicate with type P -> bool\n" ^
-    "  <- PREDICATE \\/ PREDICATE\n" ^
-    "                  // \\f g p. f(p) \\/ g(p)\n" ^
-    "  || PREDICATE /\\ PREDICATE\n" ^
-    "                  // \\f g p. f(p) /\\ g(p)\n" ^
+    "  <- PREDICATE \\/ PREDICATE // \\f g p. f(p) \\/ g(p)\n" ^
+    "  || PREDICATE /\\ PREDICATE // \\f g p. f(p) /\\ g(p)\n" ^
     "  || ~PREDICATE   // \\f p. ~f(p)\n" ^
     "  || Empty        // does the package have an empty theory (i.e., main { })?\n" ^
     "  || Mine         // does the package author match a name in the config file?\n" ^
@@ -128,14 +122,11 @@ val describeQueryFormat =
     "  || Acyclic      // is the required theory graph free of cycles?\n" ^
     "  || UpToDate     // are all assumptions satisfied and inputs grounded?\n" ^
     "  || OnRepo       // is there a package with the same name on the repo?\n" ^
-    "  || IdenticalOnRepo\n" ^
-    "                  // is this exact same package on the repo?\n" ^
-    "  || ConsistentWithRepo\n" ^
-    "                  // are all the included packages consistent with the repo?\n" ^
-    "  || EarlierThanRepo\n" ^
-    "                  // is there a later version of this package on the repo?\n" ^
-    "  || LaterThanRepo\n" ^
-    "                  // is this package later than all versions on the repo?\n" ^
+    "  || IdenticalOnRepo    // is this exact same package on the repo?\n" ^
+    "  || ConsistentWithRepo // are all included packages consistent with the repo?\n" ^
+    "  || EarlierThanRepo    // is there a later version on the repo?\n" ^
+    "  || LaterThanRepo      // is the package later than all versions on the repo?\n" ^
+    "  || ExportHaskell      // can the package be exported as a Haskell package?\n" ^
     "SET               // represents a set with type S\n" ^
     "  <- All          // P\n" ^
     "  || None         // {}\n" ^
@@ -1439,9 +1430,23 @@ in
         val repo = repository ()
 
         val namever = exportInput inp
+
+        val res =
+            case getExport () of
+              HaskellExport =>
+              let
+                val n = Haskell.exportPackage repo namever
+              in
+                "Haskell package " ^ PackageName.toString n
+              end
+
+        val msg =
+            "exported package " ^ PackageNameVersion.toString namever ^
+            " as " ^ res
+
+        val () = chat msg
       in
-        case getExport () of
-          HaskellExport => Haskell.exportPackage repo namever
+        ()
       end
       handle Error err =>
         raise Error (err ^ "\npackage export failed");
