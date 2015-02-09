@@ -3037,9 +3037,9 @@ local
 
   fun upgradeList namevers =
       let
-        fun upgradeName name =
+        fun upgradeName name upgraded =
             case latestVersionRemotes name NONE of
-              NONE => ()
+              NONE => upgraded
             | SOME (rem,nvr,chk) =>
               let
                 val nvl =
@@ -3051,26 +3051,34 @@ local
                 and vr = PackageNameVersion.version nvr
               in
                 case PackageVersion.compare (vl,vr) of
-                  LESS => installPackage rem nvr chk
-                | _ => ()
+                  LESS =>
+                  let
+                    val () = installPackage rem nvr chk
+                  in
+                    true
+                  end
+                | _ => upgraded
               end
 
-        fun upgrade1 (namever,names) =
+        fun upgrade1 (namever,(names,upgraded)) =
             let
               val name = PackageNameVersion.name namever
             in
-              if PackageNameSet.member name names then names
+              if PackageNameSet.member name names then (names,upgraded)
               else
                 let
-                  val () = upgradeName name
+                  val names = PackageNameSet.add names name
+
+                  val upgraded = upgradeName name upgraded
                 in
-                  PackageNameSet.add names name
+                  (names,upgraded)
                 end
             end
 
-        val _ = List.foldl upgrade1 PackageNameSet.empty namevers
+        val (_,upgraded) =
+            List.foldl upgrade1 (PackageNameSet.empty,false) namevers
       in
-        ()
+        upgraded
       end;
 in
   fun upgrade inp =
@@ -3080,10 +3088,14 @@ in
         val query = upgradeInput inp
 
         val namevers = evaluateQuery query
+
+        val upgraded = upgradeList (Repository.includeOrder repo namevers)
+
+        val () =
+            if upgraded then ()
+            else chat "everything up-to-date"
       in
-        case Repository.includeOrder repo namevers of
-          [] => raise Error "no matching installed packages"
-        | namevers => upgradeList namevers
+        ()
       end
       handle Error err =>
         raise Error (err ^ "\npackage upgrade failed");
