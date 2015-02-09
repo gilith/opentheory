@@ -1857,101 +1857,132 @@ fun destTestTheory show test =
     end;
 ***)
 
-fun fromPackage repo namever =
-    let
-      val pkg =
-          case Repository.peek repo namever of
-            SOME p => p
-          | NONE =>
-            let
-              val err =
-                  "package " ^ PackageNameVersion.toString namever ^
-                  " is not installed"
-            in
-              raise Error err
-            end
+local
+  fun packageTheory repo pkg =
+      let
+        val sav = false
 
-      val sys = Repository.system repo
+        val fndr = Repository.finder repo
 
-      val {information = info, srcFilename, interpretation = thyInt} =
-          case mkInformation repo pkg of
-            SOME x => x
-          | NONE =>
-            let
-              val err = "no haskell-src-file information"
-            in
-              raise Error err
-            end
+        val graph = TheoryGraph.empty {savable = sav}
 
-      val (_,thy) =
-          let
-            val sav = false
+        val imps = TheorySet.empty
 
-            val fndr = Repository.finder repo
+        val int = Interpretation.natural
 
-            val graph = TheoryGraph.empty {savable = sav}
-
-            val imps = TheorySet.empty
-
-            val int = Interpretation.natural
-          in
+        val (_,thy) =
             TheoryGraph.importPackage fndr graph
               {imports = imps,
                interpretation = int,
                package = pkg}
-          end
+      in
+        thy
+      end;
 
-      val src =
-          let
-            val sav = false
+  fun articleAssumptions art =
+      let
+        val sum = Article.summary art
 
-            val imp = Theory.article thy
+        val req = Summary.requires sum
+      in
+        Sequents.sequents req
+      end;
 
-            val int = Interpretation.natural
+  fun derivedTheorems thy {filename} =
+      let
+        val sav = false
 
-            val {filename} = Package.joinDirectory pkg {filename = srcFilename}
+        val imp = Theory.article thy
 
-            val art =
-                Article.fromTextFile
-                  {savable = sav,
-                   import = imp,
-                   interpretation = int,
-                   filename = filename}
+        val int = Interpretation.natural
 
-            val ths = Article.thms art
-          in
-            mkSource thyInt ths
-          end
+        val art =
+            Article.fromTextFile
+              {savable = sav,
+               import = imp,
+               interpretation = int,
+               filename = filename}
 
-      val tests = []  (*** destTestTheory (Package.show pkg) test ***)
+        (* Ensure the article did not make any extra assumptions *)
+        val () =
+            let
+              val thyAsms = articleAssumptions imp
+              and artAsms = articleAssumptions art
+            in
+              if SequentSet.subset artAsms thyAsms then ()
+              else raise Error ("extra assumption made in " ^ filename)
+            end
+      in
+        Article.thms art
+      end;
+in
+  fun fromPackage repo namever =
+      let
+        val pkg =
+            case Repository.peek repo namever of
+              SOME p => p
+            | NONE =>
+              let
+                val err =
+                    "package " ^ PackageNameVersion.toString namever ^
+                    " is not installed"
+              in
+                raise Error err
+              end
 
-      val (deps,depInt) =
-          let
-            val reqs = Package.requires pkg
+        val sys = Repository.system repo
 
-            val sym = symbolTableModule src
-          in
-            mkDepends repo reqs thy sym
-          end
+        val {information = info, srcFilename, interpretation = thyInt} =
+            case mkInformation repo pkg of
+              SOME x => x
+            | NONE =>
+              let
+                val err = "no haskell-src-file information"
+              in
+                raise Error err
+              end
 
-      val int =
-          let
-            val rewrs =
-                primitiveRewrites @
-                Interpretation.toRewriteList depInt @
-                Interpretation.toRewriteList thyInt
-          in
-            Interpretation.fromRewriteList rewrs
-          end
-    in
-      Haskell
-        {system = sys,
-         information = info,
-         depends = deps,
-         interpretation = int,
-         source = src,
-         tests = tests}
-    end;
+        val thy = packageTheory repo pkg
+
+        val src =
+            let
+              val file = Package.joinDirectory pkg {filename = srcFilename}
+
+              val ths = derivedTheorems thy file
+            in
+              mkSource thyInt ths
+            end
+
+        val tests = []  (*** destTestTheory (Package.show pkg) test ***)
+
+        val (deps,depInt) =
+            let
+              val reqs = Package.requires pkg
+
+              val sym = symbolTableModule src
+            in
+              mkDepends repo reqs thy sym
+            end
+
+        val int =
+            let
+              val rewrs =
+                  primitiveRewrites @
+                  Interpretation.toRewriteList depInt @
+                  Interpretation.toRewriteList thyInt
+            in
+              Interpretation.fromRewriteList rewrs
+            end
+      in
+        Haskell
+          {system = sys,
+           information = info,
+           depends = deps,
+           interpretation = int,
+           source = src,
+           tests = tests}
+      end;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Creating the symbol name mapping in preparation for printing.             *)
