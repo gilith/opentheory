@@ -1,6 +1,6 @@
-name: opentheory-test
+name: opentheory-demo
 version: 1.0
-synopsis: Testing packages exported from OpenTheory
+synopsis: Demonstrating packages exported from OpenTheory
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.2
@@ -8,7 +8,7 @@ build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
-  This package consists of different tests of the Haskell packages
+  This package consists of demonstrations and tests of the Haskell packages
   exported from formally verified OpenTheory packages.
 
 Library
