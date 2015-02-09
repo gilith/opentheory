@@ -1,6 +1,7 @@
-name: opentheory-demo
-version: 1.0
-synopsis: Demonstrating packages exported from OpenTheory
+name: test-opentheory
+version: 1.1
+category: Formal Methods
+synopsis: Testing packages exported from OpenTheory
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.2
@@ -8,7 +9,7 @@ build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
-  This package consists of demonstrations and tests of the Haskell packages
+  This package consists of various tests of the Haskell packages
   exported from formally verified OpenTheory packages.
 
 Library
@@ -23,7 +24,7 @@ Library
 
   hs-source-dirs: src
 
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
 
   exposed-modules:
     OpenTheory.Test.Prime
@@ -40,11 +41,11 @@ executable nth-prime
 
   hs-source-dirs: src, testsrc
 
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
 
   main-is: NthPrime.hs
 
-executable opentheory-test
+executable test-opentheory
   build-depends:
     base >= 4.0 && < 5.0,
     bytestring >= 0.9 && < 1.0,
@@ -56,6 +57,6 @@ executable opentheory-test
 
   hs-source-dirs: src, testsrc
 
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
 
   main-is: Test.hs

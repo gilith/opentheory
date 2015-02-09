@@ -157,20 +157,22 @@ HASKELL_DIR = data/haskell
 
 HASKELL_EXPORTING_DIR = exporting
 
+HASKELL_INSTALL = ../../../scripts/install-haskell
+
 HASKELL_OPENTHEORY_EXPORT = ../../../$(OPENTHEORY) export --haskell
 
 HASKELL_OPENTHEORY_LIST = ../../../$(OPENTHEORY) list --dependency-order ExportHaskell
 
 .PHONY: haskell-theories
 haskell-theories: $(OPENTHEORY)
-#TODO	cd $(HASKELL_DIR) && rm -rf $(HASKELL_EXPORTING_DIR) && mkdir $(HASKELL_EXPORTING_DIR) && cd $(HASKELL_EXPORTING_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; my $$n = `ls`; chomp $$n; my $$d = "../$$n"; if ( -d $$d ) { (system("rm -r $$d") == 0) or die; } (system ("mv $$n ..") == 0) or die; (system("cd $$d && cabal clean && cabal install && dist/build/$$n-test/$$n-test && cabal check && cabal sdist") == 0) or die;') && cd .. && rmdir $(HASKELL_EXPORTING_DIR)
-	@cd $(HASKELL_DIR) && rm -rf $(HASKELL_EXPORTING_DIR) && mkdir $(HASKELL_EXPORTING_DIR) && cd $(HASKELL_EXPORTING_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; my $$n = `ls`; chomp $$n; my $$v = `grep ^version: $$n/$$n.cabal`; chomp $$v; $$v =~ s/^version:[[:space:]]+//; $$v =~ s/[[:space:]]*$$//; my $$nv = "$$n-$$v"; my $$ins = `ghc-pkg list $$nv | grep $$nv`; if ($$ins eq "") { print STDOUT "Installing Haskell package $$nv\n"; my $$d = "../$$n"; if ( -d $$d ) { (system("rm -r $$d") == 0) or die; } (system ("mv $$n ..") == 0) or die; (system("cd $$d && cabal clean && cabal install && cabal check && cabal sdist") == 0) or die; } else { (system ("rm -r $$n") == 0) or die; }') && cd .. && rmdir $(HASKELL_EXPORTING_DIR)
+	@cd $(HASKELL_DIR) && rm -rf $(HASKELL_EXPORTING_DIR) && mkdir $(HASKELL_EXPORTING_DIR) && cd $(HASKELL_EXPORTING_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; my $$n = `ls`; chomp $$n; my $$d = "../$$n"; if ( -d $$d ) { (system("rm -r $$d") == 0) or die; } (system ("mv $$n ..") == 0) or die; (system("cd $$d && $(HASKELL_INSTALL)") == 0) or die;') && cd .. && rmdir $(HASKELL_EXPORTING_DIR)
 
 .PHONY: haskell
 haskell:
-	@cd $(HASKELL_DIR)/opentheory-primitive && perl -e 'my $$n = "opentheory-primitive"; my $$v = `grep ^version: $$n.cabal`; chomp $$v; $$v =~ s/^version:[[:space:]]+//; $$v =~ s/[[:space:]]*$$//; my $$nv = "$$n-$$v"; my $$ins = `ghc-pkg list $$nv | grep $$nv`; if ($$ins eq "") { print STDOUT "Installing Haskell package $$nv\n"; (system("cabal clean && cabal install && cabal check && cabal sdist") == 0) or die; }'
+	@cd $(HASKELL_DIR)/opentheory-primitive && $(HASKELL_INSTALL)
 	$(MAKE) haskell-theories
-	@cd $(HASKELL_DIR)/opentheory-test && perl -e 'my $$n = "opentheory-test"; my $$v = `grep ^version: $$n.cabal`; chomp $$v; $$v =~ s/^version:[[:space:]]+//; $$v =~ s/[[:space:]]*$$//; my $$nv = "$$n-$$v"; my $$ins = `ghc-pkg list $$nv | grep $$nv`; if ($$ins eq "") { print STDOUT "Installing Haskell package $$nv\n"; (system("cabal clean && cabal install && cabal check && cabal sdist") == 0) or die; }'
+	@echo ======================
+	@cd $(HASKELL_DIR)/test-opentheory && $(HASKELL_INSTALL)
 
 ###############################################################################
 # Create the test package repo.

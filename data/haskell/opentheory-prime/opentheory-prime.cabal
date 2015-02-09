@@ -8,9 +8,9 @@ cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
-provenance: automatically generated from the OpenTheory package natural-prime-1.74
 description:
-  Prime natural numbers
+  Prime natural numbers - this package was automatically generated from the
+  OpenTheory package natural-prime-1.74
 
 library
   build-depends:
@@ -18,7 +18,7 @@ library
     random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.175 && <= 1.176,
+    opentheory == 1.176,
     opentheory-stream == 1.40
 
   hs-source-dirs: src

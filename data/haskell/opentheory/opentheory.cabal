@@ -8,9 +8,9 @@ cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
-provenance: automatically generated from the OpenTheory package base-1.176
 description:
-  The standard theory library
+  The standard theory library - this package was automatically generated
+  from the OpenTheory package base-1.176
 
 library
   build-depends:

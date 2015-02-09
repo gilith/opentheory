@@ -24,7 +24,6 @@ and maintainerTag = "maintainer"
 and moduleTag = "module"
 and nameTag = "name"
 and portabilityTag = "portability"
-and provenanceTag = "provenance"
 and stabilityTag = "stability"
 and synopsisTag = "synopsis"
 and versionTag = "version";
@@ -331,10 +330,6 @@ local
 
         val provenance =
             let
-              val tag = PackageName.fromString provenanceTag
-
-              val () = checkNoTag tag htags
-
               val name = PackageTag.findName tags
               and version = PackageTag.findVersion tags
             in
@@ -2412,7 +2407,7 @@ in
         val Information
               {name,
                version,
-               description,
+               description = synopsis,
                author,
                license,
                licenseUrl = _,
@@ -2422,8 +2417,9 @@ in
         val name = PackageName.toString name
         and version = PackageVersion.toString version
         and author = PackageAuthor.toString author
-        and provenance =
-            "automatically generated from the OpenTheory package " ^
+        and description =
+            synopsis ^ " - this package was automatically generated " ^
+            "from the OpenTheory package " ^
             PackageNameVersion.toString provenance
 
         val tags =
@@ -2439,9 +2435,8 @@ in
                (maintainerTag,author),
                (nameTag,name),
                (portabilityTag,"portable"),
-               (provenanceTag,provenance),
                (stabilityTag,"provisional"),
-               (synopsisTag,description),
+               (synopsisTag,synopsis),
                (versionTag,version)]
 
         val tags = List.foldl overrideTag tags otags
@@ -3160,9 +3155,9 @@ fun ppModule int (tags,namespace,source) =
          Print.newline,
          ppTag (moduleTag,"$Header$"),
          Print.newline,
-         ppTags tags
-           [descriptionTag,
-            licenseTag],
+         ppTag (descriptionTag, getTag tags synopsisTag),
+         Print.newline,
+         ppTags tags [licenseTag],
          Print.newlines 2,
          ppTags tags
            [maintainerTag,
