@@ -349,6 +349,11 @@ local
                 (Interpretation.fromTextFile file, htags)
               end
 
+        val (testFile,htags) =
+            case peekTag PackageName.testExtraTag htags of
+              NONE => (NONE,htags)
+            | SOME (file,htags) => (SOME file, htags)
+
         val info =
             Information
               {name = name,
@@ -362,7 +367,8 @@ local
       in
         {information = info,
          srcFilename = srcFile,
-         interpretation = interpretation}
+         interpretation = interpretation,
+         testFilename = testFile}
       end;
 in
   fun mkInformation repo pkg =
@@ -472,7 +478,10 @@ local
                   SOME p => p
                 | NONE => raise Bug "Haskell.mkDepends.interpretSymbol.pkg"
 
-            val {information = info, srcFilename = _, interpretation = int} =
+            val {information = info,
+                 srcFilename = _,
+                 interpretation = int,
+                 testFilename = _} =
                 case mkInformation repo pkg of
                   SOME x => x
                 | NONE =>
@@ -620,7 +629,8 @@ local
                   let
                     val {information = info,
                          srcFilename = _,
-                         interpretation = int} = info_int
+                         interpretation = int,
+                         testFilename = _} = info_int
                   in
                     case total (PackageTheorems.addVersion vs) th of
                       NONE => NONE
@@ -1720,7 +1730,6 @@ datatype test =
        value : value,
        invocation : string};
 
-(***
 fun destTests show =
     let
       fun ppTest (kind,n,test) =
@@ -1773,7 +1782,7 @@ fun destTests show =
 
             val name = kind ^ Int.toString n
 
-            val const = Const.mkUndef (Name.mk (haskellTestNamespace,name))
+            val const = Const.mkUndef (Name.mkGlobal name)
 
             val ty =
                 let
@@ -1816,7 +1825,6 @@ fun destTests show =
     in
       dest [] []
     end;
-***)
 
 (* ------------------------------------------------------------------------- *)
 (* Converting a theory package to a Haskell package.                         *)
@@ -1927,7 +1935,10 @@ in
 
         val sys = Repository.system repo
 
-        val {information = info, srcFilename, interpretation = thyInt} =
+        val {information = info,
+             srcFilename = srcFile,
+             interpretation = thyInt,
+             testFilename = testFile} =
             case mkInformation repo pkg of
               SOME x => x
             | NONE =>
@@ -1941,14 +1952,30 @@ in
 
         val src =
             let
-              val file = Package.joinDirectory pkg {filename = srcFilename}
+              val file = Package.joinDirectory pkg {filename = srcFile}
 
               val ths = derivedTheorems thy file
             in
               mkSource thyInt ths
             end
 
-        val tests = []  (*** destTestTheory (Package.show pkg) test ***)
+        val tests =
+            case testFile of
+              NONE => []
+            | SOME file =>
+              let
+                val file = Package.joinDirectory pkg {filename = file}
+
+                val ths = Thms.thms (derivedTheorems thy file)
+
+                val tests = destTests (Package.show pkg) (ThmSet.toList ths)
+
+                val () =
+                    if not (List.null tests) then ()
+                    else raise Error "no tests defined"
+              in
+                tests
+              end
 
         val (deps,depInt) =
             let

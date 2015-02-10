@@ -1,5 +1,5 @@
 name: natural-prime
-version: 1.74
+version: 1.75
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,6 +17,7 @@ show: "Number.Natural.Prime.Sieve" as "Sieve"
 haskell-name: opentheory-prime
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
 
 def {
   package: natural-prime-def-1.43
@@ -31,8 +32,8 @@ thm {
 
 stream {
   import: thm
-  package: natural-prime-stream-1.28
-  checksum: f4b892609c1374dfeee147fd5b2eb2e247d774e9
+  package: natural-prime-stream-1.29
+  checksum: dec3b6670ec7226d53ec743052ace7648cc8c0d2
 }
 
 sieve {
