@@ -97,6 +97,30 @@ val infixes =
 val infixTokens = Print.tokensInfixes infixes;
 
 (* ------------------------------------------------------------------------- *)
+(* Haskell names.                                                            *)
+(* ------------------------------------------------------------------------- *)
+
+(* Namespaces *)
+
+val mainNamespace = Namespace.fromList ["Main"];
+
+(* Types *)
+
+val boolTypeName = Name.mkGlobal "Bool"
+and funTypeName = Name.mkGlobal "->"
+and listTypeName = Name.mkGlobal "[]"
+and pairTypeName = Name.mkGlobal ",";
+
+(* Constants *)
+
+val eqName = Name.mkGlobal "=="
+and pairName = Name.mkGlobal ",";
+
+(* Variables *)
+
+val anonymousName = Name.mkGlobal "_";
+
+(* ------------------------------------------------------------------------- *)
 (* Haskell syntax.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -105,12 +129,12 @@ val infixTokens = Print.tokensInfixes infixes;
 local
   val typeOpRewrites =
       List.map Interpretation.TypeOpRewrite
-        [(Name.boolTypeOp, Name.mkGlobal "Bool"),
-         (Name.funTypeOp, Name.mkGlobal "->")];
+        [(Name.boolTypeOp,boolTypeName),
+         (Name.funTypeOp,funTypeName)];
 
   val constRewrites =
       List.map Interpretation.ConstRewrite
-        [(Name.eqConst, Name.mkGlobal "==")];
+        [(Name.eqConst,eqName)];
 in
   val primitiveRewrites = typeOpRewrites @ constRewrites;
 
@@ -179,29 +203,25 @@ fun casePatterns (a,bs) =
 (* Anonymizing unused variables.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-local
-  val anonymous = Name.mkGlobal "_";
-in
-  fun anonymize tms =
-      let
-        val fvs = Term.freeVarsList tms
+fun anonymize tms =
+    let
+      val fvs = Term.freeVarsList tms
 
-        fun anonVar v =
-            if VarSet.member v fvs then NONE
-            else SOME (v, Term.mkVar (Var.mk (anonymous, Var.typeOf v)))
-      in
-        fn pat =>
-           let
-             val vl = VarSet.toList (Term.freeVars pat)
+      fun anonVar v =
+          if VarSet.member v fvs then NONE
+          else SOME (v, Term.mkVar (Var.mk (anonymousName, Var.typeOf v)))
+    in
+      fn pat =>
+         let
+           val vl = VarSet.toList (Term.freeVars pat)
 
-             val tmMap = TermSubst.fromListMap (List.mapPartial anonVar vl)
+           val tmMap = TermSubst.fromListMap (List.mapPartial anonVar vl)
 
-             val sub = TermSubst.mkMono tmMap
-           in
-             Option.getOpt (TermSubst.subst sub pat, pat)
-           end
-      end;
-end;
+           val sub = TermSubst.mkMono tmMap
+         in
+           Option.getOpt (TermSubst.subst sub pat, pat)
+         end
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell package information.                                              *)
@@ -1730,6 +1750,15 @@ datatype test =
        value : value,
        invocation : string};
 
+val sourceTests =
+    let
+      fun mk (Test {value,...}) = ValueSource value
+    in
+      List.map mk
+    end;
+
+fun symbolTableTests tests = symbolTableSourceList (sourceTests tests);
+
 fun destTests show =
     let
       fun ppTest (kind,n,test) =
@@ -1753,14 +1782,9 @@ fun destTests show =
                 if VarSet.null (Term.freeVars concl) then ()
                 else raise Error "free variables"
 
-            val (args,body) =
-                let
-                  val (vs,body) = Term.stripForall concl
+            val (vs,body) = Term.stripForall concl
 
-                  val args = map Term.mkVar vs
-                in
-                  (args,body)
-                end
+            val args = map Term.mkVar vs
 
             val isAssert = List.null args
 
@@ -1776,7 +1800,16 @@ fun destTests show =
 
             val name = kind ^ Int.toString n
 
-            val const = Const.mkUndef (Name.mkGlobal name)
+            val const =
+                let
+                  val n = Name.mk (mainNamespace,name)
+
+                  val tm = Term.listMkAbs (vs,body)
+
+                  val (c,_) = Thm.defineConst n tm
+                in
+                  c
+                end
 
             val ty =
                 let
@@ -1958,7 +1991,10 @@ in
             let
               val reqs = Package.requires pkg
 
-              val sym = symbolTableModule src
+              val sym =
+                  SymbolTable.union
+                    (symbolTableModule src)
+                    (symbolTableTests tests)
             in
               mkDepends repo reqs thy sym
             end
@@ -2246,8 +2282,6 @@ end;
 
 (* List types *)
 
-val listTypeName = Name.mkGlobal "[]";
-
 fun destListType exp =
     let
       fun pred t =
@@ -2266,8 +2300,6 @@ fun isListType exp ty = Option.isSome (destListType exp ty);
 
 (* Pair types *)
 
-val pairTypeName = Name.mkGlobal ",";
-
 fun destPairType exp =
     let
       fun pred t =
@@ -2285,8 +2317,6 @@ fun destPairType exp =
 fun isPairType exp ty = Option.isSome (destPairType exp ty);
 
 (* Pair terms *)
-
-val pairName = Name.mkGlobal ",";
 
 fun destPair exp =
     let
@@ -2485,11 +2515,6 @@ fun ppInfixToken s =
 (* Names *)
 
 val ppPackageName = PackageName.pp;
-
-fun ppPackageTestName name =
-    Print.sequence
-      (ppPackageName name)
-      (Print.ppString "-test");
 
 fun ppNamespace ns = Namespace.pp ns;
 
@@ -3178,14 +3203,13 @@ fun ppModule int (tags,namespace,source) =
          ppSourceList exp source]
     end;
 
-(***
 local
-  fun mkTestsSymbolExport tests =
+  fun mkTestSymbolExport int tests =
       let
-        val namespace = haskellTestNamespace
-        and source = List.map (fn Test {value,...} => ValueSource value) tests
+        val ns = mainNamespace
+        and src = sourceTests tests
       in
-        mkSymbolExport namespace source
+        mkSymbolExport int ns src
       end;
 
   fun ppTestSpace exp test =
@@ -3200,8 +3224,7 @@ local
         val Test {name, description = desc, invocation = invoke, ...} = test
       in
         Print.program
-          [ppSyntax "Primitive.Test.",
-           ppSyntax invoke,
+          [ppSyntax invoke,
            ppSyntax " \"",
            ppSyntax (escapeString desc),
            ppSyntax "\\n  \" ",
@@ -3221,10 +3244,10 @@ local
                Print.program (List.map ppInvokeTest tests),
                ppSyntax "return ()"]]];
 in
-  fun ppTests (tags,tests) =
+  fun ppTests int (tags,tests) =
       let
         val desc = getTag tags synopsisTag
-        and exp = mkTestsSymbolExport tests
+        and exp = mkTestSymbolExport int tests
       in
         Print.inconsistentBlock 0
           [ppSyntax "{- |",
@@ -3249,14 +3272,13 @@ in
            ppSyntax "where",
            Print.newlines 2,
            ppModuleImport exp,
-           ppSyntax "import qualified OpenTheory.Primitive.Test as Primitive.Test",
+           ppSyntax "import OpenTheory.Primitive.Test",
            Print.newline,
            Print.newline,
            Print.program (List.map (ppTestSpace exp) tests),
            ppMain tests]
       end;
 end;
-***)
 
 (* Cabal *)
 
@@ -3320,49 +3342,51 @@ local
           (ppSyntax x ::
            List.map (Print.sequence Print.break o ppSyntax) xs);
 in
-  fun ppCabal (tags,deps,source) =
+  fun ppCabal (tags,deps,src,tests) =
       let
         val name = nameTags tags
         and nameVersion = nameVersionTags tags
         and desc = descriptionTags tags
-        and mods = exposedModule source
+        and mods = exposedModule src
 
         val extraTags = StringSet.difference (allTags tags) nonExtraTags
       in
         Print.inconsistentBlock 0
-          [ppTags tags (initialTags @ StringSet.toList extraTags),
-           Print.newline,
-           Print.inconsistentBlock 2
-             [ppSyntax descriptionTag,
-              ppSyntax ":",
-              Print.newline,
-              ppText desc],
-           Print.newline,
-           Print.newline,
-           ppSection "library"
-             [ppSection "build-depends:" (ppBuildDepends deps),
-              Print.newline,
-              Print.newline,
-              ppTag ("hs-source-dirs","src"),
-              Print.newline,
-              Print.newline,
-              ppTags tags [ghcOptionsTag],
-              Print.newline,
-              Print.newline,
-              ppSection "exposed-modules:" (ppExposedModules mods)] (***,
-           Print.newline,
-           Print.newline,
-           ppSection ("executable " ^ Print.toString ppPackageTestName name)
-             [ppSection "build-depends:" (ppBuildDepends deps),
-              Print.newline,
-              Print.newline,
-              ppTag ("hs-source-dirs","src, testsrc"),
-              Print.newline,
-              Print.newline,
-              ppTags tags [ghcOptionsTag],
-              Print.newline,
-              Print.newline,
-              ppTag ("main-is","Test.hs")] ***) ]
+          ([ppTags tags (initialTags @ StringSet.toList extraTags),
+            Print.newline,
+            Print.inconsistentBlock 2
+              [ppSyntax descriptionTag,
+               ppSyntax ":",
+               Print.newline,
+               ppText desc],
+            Print.newline,
+            Print.newline,
+            ppSection "library"
+              [ppSection "build-depends:" (ppBuildDepends deps),
+               Print.newline,
+               Print.newline,
+               ppTag ("hs-source-dirs","src"),
+               Print.newline,
+               Print.newline,
+               ppTags tags [ghcOptionsTag],
+               Print.newline,
+               Print.newline,
+               ppSection "exposed-modules:" (ppExposedModules mods)]] @
+           (if List.null tests then []
+            else
+              [Print.newline,
+               Print.newline,
+               ppSection ("executable " ^ name ^ "-test")
+                 [ppSection "build-depends:" (ppBuildDepends deps),
+                  Print.newline,
+                  Print.newline,
+                  ppTag ("hs-source-dirs","src, testsrc"),
+                  Print.newline,
+                  Print.newline,
+                  ppTags tags [ghcOptionsTag],
+                  Print.newline,
+                  Print.newline,
+                  ppTag ("main-is","Test.hs")]]))
       end;
 end;
 
@@ -3379,9 +3403,9 @@ fun mkSubDirectory {directory = dir} sub =
       {directory = dir}
     end;
 
-fun outputCabal {directory = dir} tags deps source =
+fun outputCabal {directory = dir} tags deps src tests =
     let
-      val ss = Print.toStream ppCabal (tags,deps,source)
+      val ss = Print.toStream ppCabal (tags,deps,src,tests)
 
       val file =
           let
@@ -3454,9 +3478,9 @@ local
         sub
       end;
 
-  fun outputSrc int tags {directory = dir} sub namespace source =
+  fun outputSrc int tags {directory = dir} sub namespace src =
       let
-        val ss = Print.toStream (ppModule int) (tags,namespace,source)
+        val ss = Print.toStream (ppModule int) (tags,namespace,src)
 
         val file =
             let
@@ -3510,11 +3534,10 @@ in
       end;
 end;
 
-(***
 local
-  fun outputMain tags {directory = dir} tests =
+  fun outputMain int tags {directory = dir} tests =
       let
-        val ss = Print.toStream ppTests (tags,tests)
+        val ss = Print.toStream (ppTests int) (tags,tests)
 
         val file =
             let
@@ -3528,14 +3551,15 @@ local
         ()
       end;
 in
-  fun outputTests dir tags tests =
-      let
-        val dir = mkSubDirectory dir "testsrc"
-      in
-        outputMain tags dir tests
-      end;
+  fun outputTests int dir tags tests =
+      if List.null tests then ()
+      else
+        let
+          val dir = mkSubDirectory dir "testsrc"
+        in
+          outputMain int tags dir tests
+        end;
 end;
-***)
 
 fun writePackage haskell =
     let
@@ -3545,7 +3569,7 @@ fun writePackage haskell =
              depends = deps,
              interpretation = int,
              source = src,
-             tests = _} = haskell
+             tests} = haskell
 
       val tags = mkTags info
 
@@ -3558,7 +3582,7 @@ fun writePackage haskell =
             mkSubDirectory dir name
           end
 
-      val () = outputCabal dir tags deps src
+      val () = outputCabal dir tags deps src tests
 
       val () =
           let
@@ -3570,9 +3594,8 @@ fun writePackage haskell =
       val () = outputSetup dir
 
       val () = outputSource int dir tags src
-(***
-      val () = outputTests dir tags tests
-***)
+
+      val () = outputTests int dir tags tests
     in
       ()
     end;
