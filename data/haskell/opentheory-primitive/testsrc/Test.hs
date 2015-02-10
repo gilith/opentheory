@@ -24,8 +24,13 @@ proposition0 r =
   let (p,_) = Primitive.Random.bit r in
   p || not p
 
+proposition1 :: Integer -> Integer -> Bool
+proposition1 m n =
+  m + n == n + m
+
 main :: IO ()
 main =
     do Primitive.Test.assert "Assertion 0:\n  T\n  " assertion0
        Primitive.Test.check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
+       Primitive.Test.check "Proposition 1:\n  !m n. m + n = n + m\n  " proposition1
        return ()
