@@ -1753,22 +1753,16 @@ fun destTests show =
                 if VarSet.null (Term.freeVars concl) then ()
                 else raise Error "free variables"
 
-            val isAssert = not (Term.isForall concl)
-
             val (args,body) =
-                if isAssert then ([],concl)
-                else
-                  let
-                    val (v,body) = Term.destForall concl
+                let
+                  val (vs,body) = Term.stripForall concl
 
-                    val () =
-                        if Type.isRandom (Var.typeOf v) then ()
-                        else raise Error "bad quantified variable type"
+                  val args = map Term.mkVar vs
+                in
+                  (args,body)
+                end
 
-                    val arg = Term.mkVar v
-                  in
-                    ([arg],body)
-                  end
+            val isAssert = List.null args
 
             val eqn =
                 Equation
@@ -1842,23 +1836,6 @@ datatype haskell =
 fun information (Haskell {information = x, ...}) = x;
 
 fun name haskell = nameInformation (information haskell);
-
-(***
-fun destTestTheory show test =
-    let
-      val art = Theory.article test
-
-      val ths = ThmSet.toList (Thms.thms (Article.thms art))
-
-      val tests = destTests show ths
-
-      val () =
-          if not (List.null tests) then ()
-          else raise Error "no tests defined"
-    in
-      tests
-    end;
-***)
 
 local
   fun packageTheory repo pkg =
@@ -1962,9 +1939,9 @@ in
         val tests =
             case testFile of
               NONE => []
-            | SOME file =>
+            | SOME filename =>
               let
-                val file = Package.joinDirectory pkg {filename = file}
+                val file = Package.joinDirectory pkg {filename = filename}
 
                 val ths = Thms.thms (derivedTheorems thy file)
 
@@ -1972,7 +1949,7 @@ in
 
                 val () =
                     if not (List.null tests) then ()
-                    else raise Error "no tests defined"
+                    else raise Error ("no tests defined in " ^ filename)
               in
                 tests
               end
