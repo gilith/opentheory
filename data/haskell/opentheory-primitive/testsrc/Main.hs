@@ -13,6 +13,7 @@ module Main
   ( main )
 where
 
+import qualified OpenTheory.Primitive.Natural as Natural
 import OpenTheory.Primitive.Test
 
 assertion0 :: Bool
@@ -22,13 +23,13 @@ proposition0 :: Bool -> Bool
 proposition0 p =
   p || not p
 
-proposition1 :: Natural -> Natural -> Bool
+proposition1 :: Natural.Natural -> Natural.Natural -> Bool
 proposition1 m n =
   m + n == n + m
 
 main :: IO ()
 main =
-    do Primitive.Test.assert "Assertion 0:\n  T\n  " assertion0
-       Primitive.Test.check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
-       Primitive.Test.check "Proposition 1:\n  !m n. m + n = n + m\n  " proposition1
+    do assert "Assertion 0:\n  T\n  " assertion0
+       check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
+       check "Proposition 1:\n  !m n. m + n = n + m\n  " proposition1
        return ()

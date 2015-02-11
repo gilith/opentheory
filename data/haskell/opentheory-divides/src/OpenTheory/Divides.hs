@@ -14,4 +14,4 @@ where
 import qualified OpenTheory.Primitive.Natural as Natural
 
 divides :: Natural.Natural -> Natural.Natural -> Bool
-divides m n = if m == 0 then n == 0 else n `mod` m == 0
+divides a b = if a == 0 then b == 0 else b `mod` a == 0

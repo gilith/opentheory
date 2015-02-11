@@ -36,7 +36,7 @@ opType
 constTerm
 5
 def
-"m"
+"a"
 1
 ref
 var
@@ -44,7 +44,7 @@ var
 def
 5
 remove
-"n"
+"b"
 1
 ref
 var
