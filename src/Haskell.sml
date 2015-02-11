@@ -2229,26 +2229,16 @@ local
         [(* Native constants *)
          (Name.addByteConst, mkNative "+"),
          (Name.addWord16Const, mkNative "+"),
-         (Name.allConst, mkNative "all"),
-         (Name.anyConst, mkNative "any"),
-         (Name.appendConst, mkNative "++"),
          (Name.appendStreamConst, mkNative "++"),
-         (Name.concatConst, mkNative "concat"),
-         (Name.conjConst, mkNative "&&"),
          (Name.consStreamConst, mkNative ":"),
-         (Name.disjConst, mkNative "||"),
          (Name.headStreamConst, mkNative "head"),
-         (Name.leConst, mkNative "<="),
          (Name.leByteConst, mkNative "<="),
          (Name.leWord16Const, mkNative "<="),
-         (Name.ltConst, mkNative "<"),
          (Name.ltByteConst, mkNative "<"),
          (Name.ltWord16Const, mkNative "<"),
          (Name.mapStreamConst, mkNative "map"),
-         (Name.multiplyConst, mkNative "*"),
          (Name.multiplyByteConst, mkNative "*"),
          (Name.multiplyWord16Const, mkNative "*"),
-         (Name.negConst, mkNative "not"),
          (Name.noneConst, mkNative "Nothing"),
          (Name.someConst, mkNative "Just"),
          (Name.subtractByteConst, mkNative "-"),
@@ -3386,7 +3376,7 @@ in
                   ppTags tags [ghcOptionsTag],
                   Print.newline,
                   Print.newline,
-                  ppTag ("main-is","Test.hs")]]))
+                  ppTag ("main-is","Main.hs")]]))
       end;
 end;
 
@@ -3541,7 +3531,7 @@ local
 
         val file =
             let
-              val f = OS.Path.joinBaseExt {base = "Test", ext = SOME "hs"}
+              val f = OS.Path.joinBaseExt {base = "Main", ext = SOME "hs"}
             in
               OS.Path.joinDirFile {dir = dir, file = f}
             end

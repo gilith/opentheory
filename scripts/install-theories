@@ -9,6 +9,10 @@ use Getopt::Std;
 
 use vars qw($opt_h $opt_u $opt_d);
 
+###############################################################################
+# Process options.
+###############################################################################
+
 getopts('hud');
 
 if ($opt_h or scalar @ARGV != 0)
@@ -20,24 +24,28 @@ if ($opt_h or scalar @ARGV != 0)
 # Autoflush STDIN
 $|++;
 
+my $program = "install-theories";
+
 my $orderthys = "scripts/order-theories";
-[ -x $orderthys ] or die "install-theories: $orderthys not an executable";
+[ -x $orderthys ] or die "$program: $orderthys not an executable";
 
 my $opentheory = "bin/mlton/opentheory";
-[ -x $opentheory ] or die "install-theories: $opentheory not an executable";
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
 
 my $bumpver = "scripts/bump-theory-version";
-[ -x $bumpver ] or die "install-theories: $bumpver not an executable";
+[ -x $bumpver ] or die "$program: $bumpver not an executable";
 
 my $source = "data/theories";
-[ -d $source ] or die "install-theories: $source not a directory";
+[ -d $source ] or die "$program: $source not a directory";
+
+###############################################################################
+# Install theories.
+###############################################################################
 
 my $cmd = "$orderthys";
-
 # print STDOUT "cmd = $cmd\n";
-
 open THEORIES, "$cmd |" or
-    die "install-theories: couldn't execute $cmd: $!\n";
+    die "$program: couldn't execute $cmd: $!\n";
 
 while (my $name = <THEORIES>) {
     chomp $name;
@@ -71,29 +79,29 @@ while (my $name = <THEORIES>) {
             if ($installed) {
                 $cmd = "$bumpver $thynew > $thy";
                 (system ($cmd) == 0) or
-                    die "install-theories: couldn't execute $cmd: $!\n";
+                    die "$program: couldn't execute $cmd: $!\n";
                 if ($opt_d) { print STDOUT "bumped version number.\n"; }
 
                 unlink $thynew or
-                    die "install-theories: couldn't remove $thynew: $!\n";
+                    die "$program: couldn't remove $thynew: $!\n";
 
                 $installed = 0;
             }
             else {
                 rename($thynew,$thy) or
-                    die "install-theories: couldn't rename $thynew to $thy: $!\n";
+                    die "$program: couldn't rename $thynew to $thy: $!\n";
             }
         }
         else {
             unlink $thynew or
-                die "install-theories: couldn't remove $thynew: $!\n";
+                die "$program: couldn't remove $thynew: $!\n";
         }
     }
 
     if (!$installed) {
-        $cmd = "$opentheory install --manual --reinstall --auto-uninstall $thy";
+        $cmd = "$opentheory install --manual $thy";
         (system ($cmd) == 0) or
-            die "install-theories: couldn't execute $cmd: $!\n";
+            die "$program: couldn't execute $cmd: $!\n";
     }
     else {
         if ($opt_d) { print STDOUT "skipping installation.\n"; }

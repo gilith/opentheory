@@ -1,0 +1,10 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR THE DIVIDES RELATION
+# Joe Leslie-Hurd
+###############################################################################
+
+# OpenTheory
+
+# OpenTheory.Divides
+
+const "Number.Natural.divides" as "OpenTheory.Divides.divides"
