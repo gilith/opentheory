@@ -731,6 +731,8 @@ val showAssumptionsInfo = ref false;
 
 val showDerivationsInfo = ref false;
 
+val showChecksumsInfo = ref false;
+
 fun infoSummaryGrammar () =
     let
       val Summary.Grammar
@@ -908,6 +910,9 @@ in
        {switches = ["--show-derivations"], arguments = [],
         description = "show assumptions and axioms for each theorem",
         processor = beginOpt endOpt (fn _ => showDerivationsInfo := true)},
+       {switches = ["--show-checksums"], arguments = [],
+        description = "show package checksums in theory source",
+        processor = beginOpt endOpt (fn _ => showChecksumsInfo := true)},
        {switches = ["--upgrade-theory"], arguments = [],
         description = "upgrade theory source to latest versions",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
@@ -2260,6 +2265,18 @@ local
               case getTheories () of
                 SOME t => t
               | NONE => raise Error "no theory source information available"
+
+          val thys =
+              if !showChecksumsInfo then thys
+              else
+                let
+                  fun del nv chko =
+                      case chko of
+                        NONE => NONE
+                      | SOME _ => SOME (nv,NONE)
+                in
+                  Option.getOpt (PackageTheory.updateIncludes del thys, thys)
+                end
 
           val strm = Print.toStream PackageTheory.ppList thys
         in
