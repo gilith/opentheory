@@ -59,4 +59,4 @@ executable test-opentheory
 
   ghc-options: -Wall
 
-  main-is: Test.hs
+  main-is: Main.hs

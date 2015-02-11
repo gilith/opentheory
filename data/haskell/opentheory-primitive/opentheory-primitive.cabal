@@ -40,4 +40,4 @@ Executable opentheory-primitive-test
 
   ghc-options: -Wall
 
-  main-is: Test.hs
+  main-is: Main.hs
