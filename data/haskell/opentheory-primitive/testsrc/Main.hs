@@ -13,18 +13,16 @@ module Main
   ( main )
 where
 
-import qualified OpenTheory.Primitive.Random as Primitive.Random
-import qualified OpenTheory.Primitive.Test as Primitive.Test
+import OpenTheory.Primitive.Test
 
 assertion0 :: Bool
 assertion0 = True
 
-proposition0 :: Primitive.Random.Random -> Bool
-proposition0 r =
-  let (p,_) = Primitive.Random.bit r in
+proposition0 :: Bool -> Bool
+proposition0 p =
   p || not p
 
-proposition1 :: Integer -> Integer -> Bool
+proposition1 :: Natural -> Natural -> Bool
 proposition1 m n =
   m + n == n + m
 

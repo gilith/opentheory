@@ -11,6 +11,8 @@ module OpenTheory.Primitive.Natural
   ( Natural )
 where
 
+import qualified Test.QuickCheck
+
 newtype Natural =
     Natural { unNatural :: Integer }
   deriving Eq
@@ -67,3 +69,9 @@ instance Integral Natural where
           in (Natural q, Natural r)
 
   toInteger = unNatural
+
+instance Test.QuickCheck.Arbitrary Natural where
+  arbitrary = fmap fromRandomInteger Test.QuickCheck.arbitrary
+      where
+    fromRandomInteger x =
+      Natural (if x < 0 then -(x + 1) else x)
