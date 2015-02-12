@@ -28,7 +28,7 @@ val fromPackage :
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val writePackage : haskell -> PackageNameVersion.nameVersion option
+val writePackage : haskell -> PackageName.name * PackageVersion.version option
 
 (* ------------------------------------------------------------------------- *)
 (* Exporting a theory package as a Haskell package.                          *)
@@ -36,6 +36,6 @@ val writePackage : haskell -> PackageNameVersion.nameVersion option
 
 val exportPackage :
     Repository.repository -> PackageNameVersion.nameVersion ->
-    PackageNameVersion.nameVersion option
+    PackageName.name * PackageVersion.version option
 
 end

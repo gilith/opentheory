@@ -3565,15 +3565,9 @@ in
 
                 val () = output dir name cabal
 
-                val nv =
-                    PackageNameVersion.mk
-                      (PackageNameVersion.NameVersion'
-                         {name = name,
-                          version = version})
-
                 val tags = updateVersionTag tags version
               in
-                SOME (nv,tags)
+                SOME (version,tags)
               end
           end
         else
@@ -3581,14 +3575,8 @@ in
             val () = output dir name cabal
 
             val version = versionInformation info
-
-            val nv =
-                PackageNameVersion.mk
-                  (PackageNameVersion.NameVersion'
-                     {name = name,
-                      version = version})
           in
-            SOME (nv,tags)
+            SOME (version,tags)
           end
       end;
 end;
@@ -3741,18 +3729,20 @@ fun writePackage haskell =
              source = src,
              tests} = haskell
 
+      val name = nameInformation info
+
       val dir =
           let
             val dir = {directory = OS.FileSys.getDir ()}
 
-            val name = Print.toLine ppPackageName (nameInformation info)
+            val n = Print.toLine ppPackageName name
           in
-            subDirectory dir name
+            subDirectory dir n
           end
     in
       case outputCabal dir info deps src tests of
-        NONE => NONE
-      | SOME (nv,tags) =>
+        NONE => (name,NONE)
+      | SOME (version,tags) =>
         let
           val () =
               let
@@ -3767,7 +3757,7 @@ fun writePackage haskell =
 
           val () = outputTests int dir tags tests
         in
-          SOME nv
+          (name, SOME version)
         end
     end;
 

@@ -1439,15 +1439,29 @@ in
         val msg =
             case getExport () of
               HaskellExport =>
-              case Haskell.exportPackage repo namever of
-                NONE =>
-                "skipping Haskell export of package " ^
-                PackageNameVersion.toString namever
-              | SOME nv =>
-                "exported package " ^
-                PackageNameVersion.toString namever ^
-                " as Haskell package " ^
-                PackageNameVersion.toString nv
+              let
+                val (n,vo) = Haskell.exportPackage repo namever
+              in
+                case vo of
+                  NONE =>
+                  "skipped export of package " ^
+                  PackageNameVersion.toString namever ^
+                  " as Haskell package " ^
+                  PackageName.toString n
+                | SOME v =>
+                  let
+                    val nv =
+                        PackageNameVersion.mk
+                          (PackageNameVersion.NameVersion'
+                             {name = n,
+                              version = v})
+                  in
+                    "exported package " ^
+                    PackageNameVersion.toString namever ^
+                    " as Haskell package " ^
+                    PackageNameVersion.toString nv
+                  end
+              end
 
         val () = chat msg
       in
