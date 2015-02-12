@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Helper functions.                                                         *)
+(* File system helper functions.                                             *)
 (* ------------------------------------------------------------------------- *)
 
 fun joinDirectoryFilename {directory} {filename} =

@@ -29,6 +29,51 @@ and synopsisTag = "synopsis"
 and versionTag = "version";
 
 (* ------------------------------------------------------------------------- *)
+(* File system helper functions.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun existsDirectory {directory = dir} =
+    OS.FileSys.isDir dir
+    handle OS.SysErr _ => false;
+
+fun createDirectory {directory = dir} = OS.FileSys.mkDir dir;
+
+fun subDirectory {directory = dir} sub =
+    let
+      val dir = OS.Path.concat (dir,sub)
+    in
+      {directory = dir}
+    end;
+
+fun mkSubDirectory dir sub =
+    let
+      val dir = subDirectory dir sub
+
+      val () = createDirectory dir
+    in
+      dir
+    end;
+
+local
+  fun nukeFile {filename = file} =
+      if OS.FileSys.isDir file then nukeDir {directory = file}
+      else OS.FileSys.remove file
+
+  and nukeDir {directory = dir} =
+      let
+        val filenames = readDirectory {directory = dir}
+
+        val () = app nukeFile filenames
+
+        val () = OS.FileSys.rmDir dir
+      in
+        ()
+      end;
+in
+  val nukeDirectory = nukeDir;
+end;
+
+(* ------------------------------------------------------------------------- *)
 (* Escaping strings.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
@@ -406,6 +451,8 @@ in
 end;
 
 fun nameInformation (Information {name = x, ...}) = x;
+
+fun versionInformation (Information {version = x, ...}) = x;
 
 fun licenseUrlInformation (Information {licenseUrl = x, ...}) = {url = x};
 
@@ -2926,17 +2973,15 @@ val ppTerm = fn exp => fn tm =>
 fun ppDepend dep =
     let
       val Depend {name,oldest,newest} = dep
+
+      val next = PackageVersion.increment newest
     in
       Print.program
-        (ppPackageName name ::
-         (if PackageVersion.equal newest oldest then
-            [ppSyntax " == ",
-             PackageVersion.pp newest]
-          else
-            [ppSyntax " >= ",
-             PackageVersion.pp oldest,
-             ppSyntax " && <= ",
-             PackageVersion.pp newest]))
+        [ppPackageName name,
+         ppSyntax " >= ",
+         PackageVersion.pp oldest,
+         ppSyntax " && < ",
+         PackageVersion.pp next]
     end;
 
 local
@@ -3384,34 +3429,56 @@ end;
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkSubDirectory {directory = dir} sub =
-    let
-      val dir = OS.Path.concat (dir,sub)
+local
+  fun cabalFilename {directory = dir} name =
+      let
+        val base = Print.toLine ppPackageName name
 
-      val () = OS.FileSys.mkDir dir
-    in
-      {directory = dir}
-    end;
+        val file = OS.Path.joinBaseExt {base = base, ext = SOME "cabal"}
 
-fun outputCabal {directory = dir} tags deps src tests =
-    let
-      val ss = Print.toStream ppCabal (tags,deps,src,tests)
+        val filename = OS.Path.joinDirFile {dir = dir, file = file}
+      in
+        {filename = filename}
+      end;
 
-      val file =
+  fun output dir name cabal =
+      let
+        val file = cabalFilename dir name
+
+        val () = Stream.toTextFile file cabal
+      in
+        ()
+      end;
+in
+  fun outputCabal dir info deps src tests =
+      let
+        val name = nameInformation info
+        and tags = mkTags info
+
+        val cabal = Print.toStream ppCabal (tags,deps,src,tests)
+      in
+        if existsDirectory dir then
           let
-            val name = PackageName.fromString (nameTags tags)
-
-            val base = Print.toLine ppPackageName name
-
-            val f = OS.Path.joinBaseExt {base = base, ext = SOME "cabal"}
+            val cabal' = Stream.fromTextFile (cabalFilename dir name)
           in
-            OS.Path.joinDirFile {dir = dir, file = f}
+            NONE
           end
+        else
+          let
+            val () = output dir name cabal
 
-      val () = Stream.toTextFile {filename = file} ss
-    in
-      ()
-    end;
+            val version = versionInformation info
+
+            val nv =
+                PackageNameVersion.mk
+                  (PackageNameVersion.NameVersion'
+                     {name = name,
+                      version = version})
+          in
+            SOME (nv,tags)
+          end
+      end;
+end;
 
 fun outputLicense sys {url} {directory} tags =
     let
@@ -3561,33 +3628,34 @@ fun writePackage haskell =
              source = src,
              tests} = haskell
 
-      val tags = mkTags info
-
       val dir =
           let
-            val name = Print.toLine ppPackageName (nameInformation info)
-
             val dir = {directory = OS.FileSys.getDir ()}
+
+            val name = Print.toLine ppPackageName (nameInformation info)
           in
-            mkSubDirectory dir name
+            subDirectory dir name
           end
-
-      val () = outputCabal dir tags deps src tests
-
-      val () =
-          let
-            val url = licenseUrlInformation info
-          in
-            outputLicense sys url dir tags
-          end
-
-      val () = outputSetup dir
-
-      val () = outputSource int dir tags src
-
-      val () = outputTests int dir tags tests
     in
-      ()
+      case outputCabal dir info deps src tests of
+        NONE => NONE
+      | SOME (nv,tags) =>
+        let
+          val () =
+              let
+                val url = licenseUrlInformation info
+              in
+                outputLicense sys url dir tags
+              end
+
+          val () = outputSetup dir
+
+          val () = outputSource int dir tags src
+
+          val () = outputTests int dir tags tests
+        in
+          SOME nv
+        end
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -3597,10 +3665,8 @@ fun writePackage haskell =
 fun exportPackage repo namever =
     let
       val haskell = fromPackage repo namever
-
-      val () = writePackage haskell
     in
-      name haskell
+      writePackage haskell
     end;
 
 end
