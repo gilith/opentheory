@@ -16,5 +16,5 @@ const "Data.Stream.tail" as "tail"
 # OpenTheory.Stream
 
 const "Data.Stream.nth" as "OpenTheory.Stream.nth"
-const "Data.Stream.take" as "OpenTheory.Stream.take'"
+const "Data.Stream.take" as "OpenTheory.Stream.naturalTake"
 const "Data.Stream.unfold" as "OpenTheory.Stream.unfold"

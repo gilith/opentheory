@@ -3366,8 +3366,6 @@ local
     fun ppBuildDepends deps =
         ppSyntax "base >= 4.0 && < 5.0," ::
         Print.newline ::
-        ppSyntax "random >= 1.0.1.1 && < 2.0," ::
-        Print.newline ::
         ppSyntax "QuickCheck >= 2.4.0.1 && < 3.0," ::
         Print.newline ::
         ppSyntax "opentheory-primitive >= 1.0 && < 2.0" ::
