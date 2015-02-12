@@ -21,6 +21,17 @@ val separatorString = ".";
 datatype version = Version of int * int list;
 
 (* ------------------------------------------------------------------------- *)
+(* Converting between integer lists.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun toList (Version (i,l)) = i :: l;
+
+fun fromList l =
+    case l of
+      [] => raise Bug "PackageVersion.fromList: null"
+    | h :: t => Version (h,t);
+
+(* ------------------------------------------------------------------------- *)
 (* Incrementing versions.                                                    *)
 (* ------------------------------------------------------------------------- *)
 

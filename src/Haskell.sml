@@ -38,6 +38,8 @@ fun existsDirectory {directory = dir} =
 
 fun createDirectory {directory = dir} = OS.FileSys.mkDir dir;
 
+fun removeDirectory {directory = dir} = OS.FileSys.rmDir dir;
+
 fun subDirectory {directory = dir} sub =
     let
       val dir = OS.Path.concat (dir,sub)
@@ -59,18 +61,25 @@ local
       if OS.FileSys.isDir file then nukeDir {directory = file}
       else OS.FileSys.remove file
 
-  and nukeDir {directory = dir} =
+  and nukeDirFiles dir =
       let
-        val filenames = readDirectory {directory = dir}
+        val filenames = readDirectory dir
 
         val () = app nukeFile filenames
+      in
+        ()
+      end
 
-        val () = OS.FileSys.rmDir dir
+  and nukeDir dir =
+      let
+        val () = nukeDirFiles dir
+
+        val () = removeDirectory dir
       in
         ()
       end;
 in
-  val nukeDirectory = nukeDir;
+  val nukeDirectoryFiles = nukeDirFiles;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2463,6 +2472,9 @@ fun licenseTags tags = getTag tags licenseTag;
 
 fun licenseFileTags tags = getTag tags licenseFileTag;
 
+fun updateVersionTag (Tags m) v =
+    Tags (StringMap.insert m (versionTag, PackageVersion.toString v));
+
 local
   fun overrideTag (tag,tags) =
       let
@@ -3449,6 +3461,36 @@ local
       in
         ()
       end;
+
+  fun mkCabal (p,v,s) =
+      let
+        val l = "version: " ^ PackageVersion.toString v ^ "\n"
+      in
+        Stream.fromList (p @ l :: s)
+      end;
+
+  val destCabal =
+      let
+        fun findVersion p l =
+            case l of
+              [] => raise Error "no version found"
+            | h :: t =>
+              let
+                val vo =
+                    case total (destPrefix "version: ") h of
+                      NONE => NONE
+                    | SOME s =>
+                      case total (destSuffix "\n") s of
+                        NONE => NONE
+                      | SOME v => total PackageVersion.fromString v
+              in
+                case vo of
+                  NONE => findVersion (h :: p) t
+                | SOME v => (p,v,t)
+              end
+      in
+        fn cabal => findVersion [] (Stream.toList cabal)
+      end;
 in
   fun outputCabal dir info deps src tests =
       let
@@ -3460,8 +3502,79 @@ in
         if existsDirectory dir then
           let
             val cabal' = Stream.fromTextFile (cabalFilename dir name)
+
+            val (p,v,s) = destCabal cabal
+            and (p',v',s') = destCabal cabal'
+
+(*OpenTheoryTrace
+            val () = Print.trace PackageVersion.pp "Haskell.outputCabal.v" v
+            and () = Print.trace PackageVersion.pp "Haskell.outputCabal.v'" v'
+
+            val () = Print.trace (Print.ppList Print.ppString)
+                       "Haskell.outputCabal.p" p
+            and () = Print.trace (Print.ppList Print.ppString)
+                       "Haskell.outputCabal.p'" p'
+
+            val () = Print.trace (Print.ppList Print.ppString)
+                       "Haskell.outputCabal.s" s
+            and () = Print.trace (Print.ppList Print.ppString)
+                       "Haskell.outputCabal.s'" s'
+*)
+
+(*OpenTheoryDebug
+            val () =
+                if PackageVersion.equal v (versionInformation info) then ()
+                else raise Bug "Haskell.outputCabal: bad version"
+*)
+            val vo =
+                case PackageVersion.compare (v',v) of
+                  LESS => SOME v
+                | EQUAL =>
+                  if p = p' andalso s = s' then NONE
+                  else
+                    let
+                      val l = PackageVersion.toList v @ [1]
+                    in
+                      SOME (PackageVersion.fromList l)
+                    end
+                | GREATER =>
+                  let
+                    val l = PackageVersion.toList v
+                    and l' = PackageVersion.toList v'
+
+                    val n = List.length l
+                  in
+                    if List.length l' <= n then NONE
+                    else if List.take (l',n) <> l then NONE
+                    else if p = p' andalso s = s' then NONE
+                    else
+                      let
+                        val k = List.nth (l',n) + 1
+                      in
+                        SOME (PackageVersion.fromList (l @ [k]))
+                      end
+                  end
           in
-            NONE
+            case vo of
+              NONE => NONE
+            | SOME version =>
+              let
+                val cabal = mkCabal (p,version,s)
+
+                val () = nukeDirectoryFiles dir
+
+                val () = output dir name cabal
+
+                val nv =
+                    PackageNameVersion.mk
+                      (PackageNameVersion.NameVersion'
+                         {name = name,
+                          version = version})
+
+                val tags = updateVersionTag tags version
+              in
+                SOME (nv,tags)
+              end
           end
         else
           let

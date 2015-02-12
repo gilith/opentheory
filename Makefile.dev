@@ -155,8 +155,6 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 HASKELL_DIR = data/haskell
 
-HASKELL_EXPORTING_DIR = exporting
-
 HASKELL_INSTALL = ../../../scripts/install-haskell
 
 HASKELL_OPENTHEORY_EXPORT = ../../../$(OPENTHEORY) export --haskell
@@ -165,7 +163,7 @@ HASKELL_OPENTHEORY_LIST = ../../../$(OPENTHEORY) list --dependency-order ExportH
 
 .PHONY: haskell-theories
 haskell-theories: $(OPENTHEORY)
-	@cd $(HASKELL_DIR) && rm -rf $(HASKELL_EXPORTING_DIR) && mkdir $(HASKELL_EXPORTING_DIR) && cd $(HASKELL_EXPORTING_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; my $$n = `ls`; chomp $$n; my $$d = "../$$n"; if ( -d $$d ) { (system("rm -r $$d") == 0) or die; } (system ("mv $$n ..") == 0) or die; (system("cd $$d && $(HASKELL_INSTALL)") == 0) or die;') && cd .. && rmdir $(HASKELL_EXPORTING_DIR)
+	@cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; my $$r = `$(HASKELL_OPENTHEORY_EXPORT) $$nv`; chomp $$r; if ($$r =~ /^exported package [[:alnum:]-]+ as Haskell package ([[:alnum:]-]+)-[[:digit:].]+$$/) { my $$n = $$1; (system("cd $$n && $(HASKELL_INSTALL)") == 0) or die; } else { die; }')
 
 .PHONY: haskell
 haskell:
