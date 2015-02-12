@@ -16,13 +16,11 @@ haskell-src-file: haskell.art
 
 def {
   package: stream-def-1.34
-  checksum: d377adcba0edfa929947b0219c307834dc75128c
 }
 
 thm {
   import: def
   package: stream-thm-1.36
-  checksum: 8d10919971d393658269820281e86c8d8afcc41a
 }
 
 main {

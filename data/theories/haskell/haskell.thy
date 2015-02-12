@@ -32,25 +32,21 @@ show: "Probability.Random"
 
 def {
   package: haskell-def-1.83
-  checksum: ee729aa95c7f275cd9f2eb570e0a18af9c72b180
 }
 
 thm {
   import: def
   package: haskell-thm-1.63
-  checksum: fe3253a55a2e711e4851683be5975c3d4f1dd003
 }
 
 src {
   import: def
   package: haskell-src-1.65
-  checksum: 66971f023339bf4738991cf9c28e01eeb8e0fb66
 }
 
 test {
   import: def
   package: haskell-test-1.45
-  checksum: 5ead9b7b717c13ba3b827b781e9529f0ca0ac528
 }
 
 main {

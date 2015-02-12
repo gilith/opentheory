@@ -22,13 +22,11 @@ show: "Number.Natural.Prime.Sieve"
 
 def {
   package: natural-prime-sieve-def-1.31
-  checksum: acbb74379f13f269f25dc7541bba50542d8f9ab9
 }
 
 thm {
   import: def
   package: natural-prime-sieve-thm-1.30
-  checksum: a818b5617f2ea9ccbf274059107711cbbc34913a
 }
 
 main {

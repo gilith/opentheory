@@ -14,13 +14,11 @@ show: "Number.Natural"
 
 def {
   package: list-length-def-1.47
-  checksum: caa3601213368924beca9a89f305cadb705aafad
 }
 
 thm {
   import: def
   package: list-length-thm-1.43
-  checksum: 03ba104ff9b948a94dbdb2b93d17233aa2134df7
 }
 
 main {

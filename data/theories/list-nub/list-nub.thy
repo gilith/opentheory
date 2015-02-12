@@ -17,13 +17,11 @@ show: "Set"
 
 def {
   package: list-nub-def-1.54
-  checksum: 735f102133e15de34e7dc5e79ef39fd8f06518ee
 }
 
 thm {
   import: def
   package: list-nub-thm-1.57
-  checksum: 2d9c503e0eb2de348abda0002853088472fa8963
 }
 
 main {

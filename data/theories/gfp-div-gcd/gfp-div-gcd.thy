@@ -21,13 +21,11 @@ show: "Number.Natural"
 
 def {
   package: gfp-div-gcd-def-1.59
-  checksum: f50ab28705a56bd10993881082605755ab6e445a
 }
 
 thm {
   import: def
   package: gfp-div-gcd-thm-1.63
-  checksum: 253bd5ba3ceffb455c08a364e7b626cf6deb2706
 }
 
 main {

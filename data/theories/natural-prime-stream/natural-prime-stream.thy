@@ -16,13 +16,11 @@ show: "Number.Natural"
 
 def {
   package: natural-prime-stream-def-1.22
-  checksum: c0bfa33424ba1e4ed8e054b75972429903f73294
 }
 
 thm {
   import: def
   package: natural-prime-stream-thm-1.27
-  checksum: 388a64dbad94560172cbe00b3b71c957e1afeee8
 }
 
 main {

@@ -15,13 +15,11 @@ show: "Number.Natural"
 
 def {
   package: natural-add-sub-def-1.11
-  checksum: 31a5d467574e7d50e407274c6f6ad5f3902e97ea
 }
 
 thm {
   import: def
   package: natural-add-sub-thm-1.9
-  checksum: b2996afedade167ad7e4779748d63df24153b522
 }
 
 main {

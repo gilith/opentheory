@@ -22,19 +22,16 @@ show: "Probability.Random"
 
 def {
   package: haskell-parser-def-1.53
-  checksum: cc84276a6f720708a1837d3f8a2a5cdb280bc120
 }
 
 src {
   import: def
   package: haskell-parser-src-1.95
-  checksum: 8d0cf3a0faddf325122ae20a6fd6fb901c3d2613
 }
 
 test {
   import: def
   package: haskell-parser-test-1.57
-  checksum: 551a1755ae31f10d06e326325144ba821662dce0
 }
 
 main {

@@ -17,13 +17,11 @@ show: "Set"
 
 def {
   package: real-def-1.72
-  checksum: 97223c45e4035fa0a3f9f4f2f3196ab9bfacd2be
 }
 
 thm {
   import: def
   package: real-thm-1.48
-  checksum: 8ff5b43d117ac361ecf6d8fc19378d621fe7935a
 }
 
 main {

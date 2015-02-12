@@ -18,13 +18,11 @@ show: "Number.Natural"
 
 def {
   package: list-zip-def-1.21
-  checksum: 9bb1de13519908519e77c1927557860689c44294
 }
 
 thm {
   import: def
   package: list-zip-thm-1.24
-  checksum: 3ddb3d183f8b466e3e5ddc8b3bbd1db16254a73a
 }
 
 main {

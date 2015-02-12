@@ -17,13 +17,11 @@ show: "Number.Natural.Fibonacci"
 
 def {
   package: gfp-div-exp-def-1.45
-  checksum: 1b2f693d364c2fda423a01b20fd9013fd4b87e65
 }
 
 thm {
   import: def
   package: gfp-div-exp-thm-1.42
-  checksum: 9967eafcf4549f1925f60727741f5b186d777d26
 }
 
 main {

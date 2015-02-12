@@ -21,13 +21,11 @@ show: "Number.Natural"
 
 def {
   package: word16-bytes-def-1.74
-  checksum: df32e886d4c543527951ff4eb4052c47c160ad4e
 }
 
 thm {
   import: def
   package: word16-bytes-thm-1.91
-  checksum: 74ea2aa911a7e87133d0bdc8d16f6cc8ffd6ea10
 }
 
 main {

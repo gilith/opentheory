@@ -17,13 +17,11 @@ show: "Number.Natural"
 
 def {
   package: monoid-mult-add-def-1.8
-  checksum: 28ae32b6949c8c5e109501f0cfd9b98ce171b31a
 }
 
 thm {
   import: def
   package: monoid-mult-add-thm-1.9
-  checksum: b82f5e4ff123d5c2b1c156fc6f35a6eac8e5bc7b
 }
 
 main {

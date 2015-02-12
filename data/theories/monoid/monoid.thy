@@ -15,13 +15,11 @@ show: "Number.Natural"
 
 thm {
   package: monoid-thm-1.5
-  checksum: 924f849f6b2395479b31ede8e6b1061c60dd0d57
 }
 
 mult {
   import: thm
   package: monoid-mult-1.11
-  checksum: 89697b3f8856155097d9f25ca4db351a8fa25dc6
 }
 
 main {

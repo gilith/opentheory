@@ -17,13 +17,11 @@ show: "Set"
 
 def {
   package: set-finite-def-1.37
-  checksum: 5ea93dfad7fc9a0d9031fe5f50c09ab0778e31c4
 }
 
 thm {
   import: def
   package: set-finite-thm-1.62
-  checksum: f9b9b21b288e231cfebcf5ef56bc3f0428e65245
 }
 
 main {

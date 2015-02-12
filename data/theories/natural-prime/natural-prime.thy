@@ -21,25 +21,21 @@ haskell-test-file: haskell-test.art
 
 def {
   package: natural-prime-def-1.43
-  checksum: 7d7f0fefae5f3712431fdb6bd9689503b4102de5
 }
 
 thm {
   import: def
   package: natural-prime-thm-1.52
-  checksum: c5aed1ace2f77d1cadd247f42960ee5b01f81736
 }
 
 stream {
   import: thm
   package: natural-prime-stream-1.29
-  checksum: dec3b6670ec7226d53ec743052ace7648cc8c0d2
 }
 
 sieve {
   import: stream
   package: natural-prime-sieve-1.30
-  checksum: 306fb29112c9aec542e4af319072ea7f14e295b9
 }
 
 main {

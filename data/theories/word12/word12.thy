@@ -20,13 +20,11 @@ show: "Probability.Random"
 
 def {
   package: word12-def-1.80
-  checksum: b9a749870a8972e6931374c5928c152ed6789927
 }
 
 bits {
   import: def
   package: word12-bits-1.76
-  checksum: 61dad1702f10c8414cc3c39f8ca540beb94bb48f
 }
 
 main {

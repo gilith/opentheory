@@ -18,13 +18,11 @@ show: "Number.Natural"
 
 def {
   package: list-take-drop-def-1.56
-  checksum: f26a31693c829c949307b3874ff5c37247a42a83
 }
 
 thm {
   import: def
   package: list-take-drop-thm-1.63
-  checksum: 2794d22825a8eae64574baa98f3233940596a6ad
 }
 
 main {

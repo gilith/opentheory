@@ -16,13 +16,11 @@ show: "Number.Natural"
 
 def {
   package: hardware-bus-def-1.25
-  checksum: d4921f168ad7d633de4d5e08f48adf7f0232fc1a
 }
 
 thm {
   import: def
   package: hardware-bus-thm-1.43
-  checksum: e6c3c594a06f8f3bd4255757d233e0340ac2b0dc
 }
 
 main {

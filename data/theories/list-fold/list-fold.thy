@@ -17,13 +17,11 @@ show: "Number.Natural"
 
 def {
   package: list-fold-def-1.28
-  checksum: 1471a660db60f3f31036a5cf24cc37ff2a46414a
 }
 
 thm {
   import: def
   package: list-fold-thm-1.28
-  checksum: 08a9f9a00b9c1628747f68117ad5b0ef4e824558
 }
 
 main {

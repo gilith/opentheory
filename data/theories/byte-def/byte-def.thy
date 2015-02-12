@@ -49,7 +49,6 @@ word {
   interpret: const "Data.Word.Bits.normal" as "Data.Byte.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Byte.Bits.toByte"
   package: word-1.104
-  checksum: 229cd9aba3fbbf3bc27d841f97a6f7d3ec671247
 }
 
 main {

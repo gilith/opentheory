@@ -19,13 +19,11 @@ show: "Probability.Random"
 
 def {
   package: natural-bits-def-1.24
-  checksum: 9d2141cdf3d83b0933709b76a4c3e41124fd7173
 }
 
 thm {
   import: def
   package: natural-bits-thm-1.41
-  checksum: 7447544bbf0d514f14e8217af7ddcc6888cdfb1d
 }
 
 main {

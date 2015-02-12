@@ -15,13 +15,11 @@ show: "Number.Natural"
 
 def {
   package: hardware-adder-def-1.13
-  checksum: 3fa234c2ae9489fbfa28baa1a521910edc5cb91d
 }
 
 thm {
   import: def
   package: hardware-adder-thm-1.19
-  checksum: b639a961443b18baf7bb9ab17c75237a86fc3034
 }
 
 main {

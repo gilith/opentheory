@@ -18,13 +18,11 @@ show: "Probability.Random"
 
 def {
   package: probability-def-1.39
-  checksum: 806ffc9ca97de285a6f6a20d2b214277b647426c
 }
 
 thm {
   import: def
   package: probability-thm-1.14
-  checksum: ffb4e4b94ab99181a453960396f4a7d929a69f52
 }
 
 main {

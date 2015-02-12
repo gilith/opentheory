@@ -29,13 +29,11 @@ show: "Parser.Stream"
 
 def {
   package: char-utf8-def-1.89
-  checksum: b302193541b4a0e41c039f8d2e20fac75fd9d2ca
 }
 
 thm {
   import: def
   package: char-utf8-thm-1.108
-  checksum: 2f138180e8d82c4d54f32128158b0c7cee753547
 }
 
 main {

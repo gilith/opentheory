@@ -21,13 +21,11 @@ show: "System.H"
 
 def {
   package: h-def-1.117
-  checksum: c3c3c2a880726002909bf9d3b2d8444996fcd700
 }
 
 thm {
   import: def
   package: h-thm-1.116
-  checksum: 39fe962adb17acdd93691f94e42c81f632e63c59
 }
 
 main {

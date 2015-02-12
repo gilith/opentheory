@@ -23,19 +23,16 @@ show: "Probability.Random"
 
 def {
   package: haskell-prime-def-1.15
-  checksum: 2976ec5203b6773f7e228dc76f1e65d8cafcff99
 }
 
 src {
   import: def
   package: haskell-prime-src-1.29
-  checksum: dde96c422c5ae5bb91b33fd89eac7c6a64495898
 }
 
 test {
   import: def
   package: haskell-prime-test-1.33
-  checksum: 29e7b21a5244d1082c6089ff6f283151f1e4c417
 }
 
 main {

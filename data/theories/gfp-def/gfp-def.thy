@@ -35,7 +35,6 @@ modular {
   interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
   interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
   package: modular-1.84
-  checksum: 6d6b63d3d5139ad4c6b4fffd50307c223b35d872
 }
 
 main {

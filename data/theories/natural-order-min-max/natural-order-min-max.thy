@@ -11,13 +11,11 @@ show: "Number.Natural"
 
 def {
   package: natural-order-min-max-def-1.29
-  checksum: 756975b4923e6b7b8bca33930309ae17e5864a39
 }
 
 thm {
   import: def
   package: natural-order-min-max-thm-1.34
-  checksum: ae5f32725c3af0e13f2b26dc48637ae48c30a530
 }
 
 main {
