@@ -656,7 +656,7 @@ in
         description = "export as a Haskell package",
         processor = beginOpt endOpt (fn _ => setExport HaskellExport)},
        {switches = ["--reexport"], arguments = [],
-        description = "re-export the package if the target already exists",
+        description = "re-export package if target already exists",
         processor = beginOpt endOpt (fn _ => reexport := true)}];
 end;
 
