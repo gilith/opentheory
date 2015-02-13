@@ -1,5 +1,5 @@
 name: parser
-version: 1.128
+version: 1.129
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -25,18 +25,18 @@ haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 
 stream {
-  package: parser-stream-1.99
+  package: parser-stream-1.100
 }
 
 comb {
   import: stream
-  package: parser-comb-1.90
+  package: parser-comb-1.91
 }
 
 all {
   import: stream
   import: comb
-  package: parser-all-1.94
+  package: parser-all-1.95
 }
 
 main {

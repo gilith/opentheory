@@ -130,7 +130,7 @@ opType
 constTerm
 22
 def
-"Parser.parseStream"
+"Parser.parse"
 "f"
 1
 ref
@@ -574,7 +574,7 @@ appTerm
 absTerm
 appTerm
 appTerm
-"Parser.destParser"
+"Parser.dest"
 const
 1
 ref
@@ -7528,7 +7528,7 @@ ref
 ref
 65
 ref
-"_32004"
+"_31938"
 57
 ref
 var
@@ -7608,7 +7608,7 @@ def
 betaConv
 634
 ref
-"_32002"
+"_31936"
 56
 ref
 var
@@ -7857,7 +7857,7 @@ remove
 betaConv
 22
 ref
-"_31999"
+"_31933"
 24
 ref
 var
@@ -7942,7 +7942,7 @@ opType
 constTerm
 662
 def
-"_31998"
+"_31932"
 10
 ref
 var
@@ -11151,7 +11151,7 @@ betaConv
 689
 remove
 appThm
-"_31994"
+"_31928"
 10
 ref
 var
@@ -11599,7 +11599,7 @@ ref
 ref
 65
 ref
-"_32016"
+"_31950"
 57
 remove
 var
@@ -11679,7 +11679,7 @@ def
 betaConv
 855
 ref
-"_32014"
+"_31948"
 56
 remove
 var
@@ -11810,7 +11810,7 @@ remove
 betaConv
 22
 ref
-"_32011"
+"_31945"
 24
 ref
 var
@@ -11869,7 +11869,7 @@ appThm
 trans
 662
 remove
-"_32010"
+"_31944"
 10
 ref
 var
