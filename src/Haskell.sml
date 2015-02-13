@@ -3491,16 +3491,16 @@ local
         fn cabal => findVersion [] (Stream.toList cabal)
       end;
 in
-  fun outputCabal dir info deps src tests =
+  fun outputCabal {reexport} dir info deps src tests =
       let
         val name = nameInformation info
         and tags = mkTags info
 
         val cabal = Print.toStream ppCabal (tags,deps,src,tests)
 
-        val reexport = existsDirectory dir
+        val rex = existsDirectory dir
       in
-        if reexport then
+        if rex then
           let
             val cabal' = Stream.fromTextFile (cabalFilename dir name)
 
@@ -3553,11 +3553,12 @@ in
                             "existing Haskell package with version " ^
                             PackageVersion.toString v'
 
-                        val () = warn msg
+                        val () = if reexport then die msg else warn msg
                       in
                         NONE
                       end
-                    else if p = p' andalso s = s' then NONE
+                    else if not reexport andalso p = p' andalso s = s' then
+                      NONE
                     else
                       let
                         val k = List.nth (l',n) + 1
@@ -3578,7 +3579,7 @@ in
 
                 val tags = updateVersionTag tags version
               in
-                SOME (reexport,version,tags)
+                SOME (rex,version,tags)
               end
           end
         else
@@ -3587,7 +3588,7 @@ in
 
             val version = versionInformation info
           in
-            SOME (reexport,version,tags)
+            SOME (rex,version,tags)
           end
       end;
 end;
@@ -3730,7 +3731,7 @@ in
         end;
 end;
 
-fun writePackage haskell =
+fun writePackage rex haskell =
     let
       val Haskell
             {system = sys,
@@ -3751,7 +3752,7 @@ fun writePackage haskell =
             subDirectory dir n
           end
     in
-      case outputCabal dir info deps src tests of
+      case outputCabal rex dir info deps src tests of
         NONE => (name,NONE)
       | SOME (reexport,version,tags) =>
         let
@@ -3776,11 +3777,11 @@ fun writePackage haskell =
 (* Exporting a theory package as a Haskell package.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun exportPackage repo namever =
+fun exportPackage rex repo namever =
     let
       val haskell = fromPackage repo namever
     in
-      writePackage haskell
+      writePackage rex haskell
     end;
 
 end

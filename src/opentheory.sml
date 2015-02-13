@@ -646,13 +646,18 @@ in
       | NONE => exportType := SOME exp;
 end;
 
+val reexport = ref false;
+
 local
   open Useful Options;
 in
   val exportOpts : opt list =
       [{switches = ["--haskell"], arguments = [],
         description = "export as a Haskell package",
-        processor = beginOpt endOpt (fn _ => setExport HaskellExport)}];
+        processor = beginOpt endOpt (fn _ => setExport HaskellExport)},
+       {switches = ["--reexport"], arguments = [],
+        description = "re-export the package if the target already exists",
+        processor = beginOpt endOpt (fn _ => reexport := true)}];
 end;
 
 val exportFooter =
@@ -1440,7 +1445,9 @@ in
             case getExport () of
               HaskellExport =>
               let
-                val (n,rvo) = Haskell.exportPackage repo namever
+                val rex = {reexport = !reexport}
+
+                val (n,rvo) = Haskell.exportPackage rex repo namever
               in
                 case rvo of
                   NONE =>

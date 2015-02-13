@@ -29,7 +29,7 @@ val fromPackage :
 (* ------------------------------------------------------------------------- *)
 
 val writePackage :
-    haskell ->
+    {reexport : bool} -> haskell ->
     PackageName.name * ({reexport : bool} * PackageVersion.version) option
 
 (* ------------------------------------------------------------------------- *)
@@ -37,6 +37,7 @@ val writePackage :
 (* ------------------------------------------------------------------------- *)
 
 val exportPackage :
+    {reexport : bool} ->
     Repository.repository -> PackageNameVersion.nameVersion ->
     PackageName.name * ({reexport : bool} * PackageVersion.version) option
 
