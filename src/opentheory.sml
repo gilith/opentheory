@@ -1440,15 +1440,15 @@ in
             case getExport () of
               HaskellExport =>
               let
-                val (n,vo) = Haskell.exportPackage repo namever
+                val (n,rvo) = Haskell.exportPackage repo namever
               in
-                case vo of
+                case rvo of
                   NONE =>
-                  "skipped export of package " ^
+                  "skipped re-export of package " ^
                   PackageNameVersion.toString namever ^
                   " as Haskell package " ^
                   PackageName.toString n
-                | SOME v =>
+                | SOME ({reexport = r}, v) =>
                   let
                     val nv =
                         PackageNameVersion.mk
@@ -1456,6 +1456,7 @@ in
                              {name = n,
                               version = v})
                   in
+                    (if r then "re-" else "") ^
                     "exported package " ^
                     PackageNameVersion.toString namever ^
                     " as Haskell package " ^

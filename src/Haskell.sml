@@ -3497,8 +3497,10 @@ in
         and tags = mkTags info
 
         val cabal = Print.toStream ppCabal (tags,deps,src,tests)
+
+        val reexport = existsDirectory dir
       in
-        if existsDirectory dir then
+        if reexport then
           let
             val cabal' = Stream.fromTextFile (cabalFilename dir name)
 
@@ -3542,9 +3544,19 @@ in
                     and l' = PackageVersion.toList v'
 
                     val n = List.length l
+
+                    val ok = n < List.length l' andalso List.take (l',n) = l
                   in
-                    if List.length l' <= n then NONE
-                    else if List.take (l',n) <> l then NONE
+                    if not ok then
+                      let
+                        val msg =
+                            "existing Haskell package with version " ^
+                            PackageVersion.toString v'
+
+                        val () = warn msg
+                      in
+                        NONE
+                      end
                     else if p = p' andalso s = s' then NONE
                     else
                       let
@@ -3566,7 +3578,7 @@ in
 
                 val tags = updateVersionTag tags version
               in
-                SOME (version,tags)
+                SOME (reexport,version,tags)
               end
           end
         else
@@ -3575,7 +3587,7 @@ in
 
             val version = versionInformation info
           in
-            SOME (version,tags)
+            SOME (reexport,version,tags)
           end
       end;
 end;
@@ -3741,7 +3753,7 @@ fun writePackage haskell =
     in
       case outputCabal dir info deps src tests of
         NONE => (name,NONE)
-      | SOME (version,tags) =>
+      | SOME (reexport,version,tags) =>
         let
           val () =
               let
@@ -3756,7 +3768,7 @@ fun writePackage haskell =
 
           val () = outputTests int dir tags tests
         in
-          (name, SOME version)
+          (name, SOME ({reexport = reexport}, version))
         end
     end;
 
