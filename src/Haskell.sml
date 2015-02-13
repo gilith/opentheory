@@ -1029,9 +1029,10 @@ fun symbolTableSource s =
 fun symbolTableSourceList sl =
     SymbolTable.unionList (List.map symbolTableSource sl);
 
-(* All symbols that explicitly appear in source declarations (type *)
-(* signatures of "where" values are not included in this, because *)
-(* they are commented out in the generated Haskell code). *)
+(* All symbols that explicitly appear in source declarations. This excludes *)
+(* type signatures of "where" values (these are commented out in the *)
+(* generated Haskell code), but includes case constants (these are *)
+(* transformed into constructors later). *)
 
 val explicitSymbolTableData = symbolTableData;
 
@@ -2148,12 +2149,12 @@ local
             let
               val n = Const.name c
 
-              val n = Interpretation.interpretConst int n
-
               val n =
                   case total Name.destCase n of
-                    SOME (n,_) => n
-                  | NONE => n
+                    NONE => n
+                  | SOME (_,l) => hd l
+
+              val n = Interpretation.interpretConst int n
             in
               Name.namespace n
             end

@@ -160,7 +160,7 @@ while (my $thy = <THEORIES>) {
         rename($tartnew,$tart) or
           die "$program: couldn't rename $tartnew to $tart: $!\n";
 
-        print STDOUT "re-imported Haskell $kind for $base\n";
+        print STDOUT "re-imported $base haskell-$kind\n";
       }
       else {
         unlink $tartnew or
@@ -171,7 +171,7 @@ while (my $thy = <THEORIES>) {
       rename($tartnew,$tart) or
         die "$program: couldn't rename $tartnew to $tart: $!\n";
 
-      print STDOUT "imported Haskell $kind for $base\n";
+      print STDOUT "imported $base haskell-$kind\n";
     }
   }
   elsif ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {

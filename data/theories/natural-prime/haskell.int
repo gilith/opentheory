@@ -5,18 +5,20 @@
 
 # OpenTheory
 
-# OpenTheory.Prime
+# OpenTheory.Natural
 
-const "Number.Natural.Prime.all" as "OpenTheory.Prime.all"
+# OpenTheory.Natural.Prime
 
-# OpenTheory.Prime.Sieve
+const "Number.Natural.Prime.all" as "OpenTheory.Natural.Prime.all"
 
-type "Number.Natural.Prime.Sieve.sieve" as "OpenTheory.Prime.Sieve.Sieve"
+# OpenTheory.Natural.Prime.Sieve
 
-const "Number.Natural.Prime.Sieve.mk" as "OpenTheory.Prime.Sieve.Sieve"
-const "Number.Natural.Prime.Sieve.increment" as "OpenTheory.Prime.Sieve.increment"
-const "Number.Natural.Prime.Sieve.increment.inc" as "OpenTheory.Prime.Sieve.increment.inc"
-const "Number.Natural.Prime.Sieve.initial" as "OpenTheory.Prime.Sieve.initial"
-const "Number.Natural.Prime.Sieve.next" as "OpenTheory.Prime.Sieve.next"
-const "Number.Natural.Prime.Sieve.max" as "OpenTheory.Prime.Sieve.perimeter"
-const "Number.Natural.Prime.Sieve.dest" as "OpenTheory.Prime.Sieve.unSieve"
+type "Number.Natural.Prime.Sieve.sieve" as "OpenTheory.Natural.Prime.Sieve.Sieve"
+
+const "Number.Natural.Prime.Sieve.mk" as "OpenTheory.Natural.Prime.Sieve.Sieve"
+const "Number.Natural.Prime.Sieve.increment" as "OpenTheory.Natural.Prime.Sieve.increment"
+const "Number.Natural.Prime.Sieve.increment.inc" as "OpenTheory.Natural.Prime.Sieve.increment.inc"
+const "Number.Natural.Prime.Sieve.initial" as "OpenTheory.Natural.Prime.Sieve.initial"
+const "Number.Natural.Prime.Sieve.next" as "OpenTheory.Natural.Prime.Sieve.next"
+const "Number.Natural.Prime.Sieve.max" as "OpenTheory.Natural.Prime.Sieve.perimeter"
+const "Number.Natural.Prime.Sieve.dest" as "OpenTheory.Natural.Prime.Sieve.unSieve"

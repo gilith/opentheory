@@ -1,0 +1,16 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR STREAM PARSERS
+# Joe Leslie-Hurd
+###############################################################################
+
+# OpenTheory
+
+# OpenTheory.Parser
+
+# OpenTheory.Parser.Stream
+
+type "Parser.Stream.stream" as "OpenTheory.Parser.Stream.Stream"
+
+const "Parser.Stream.cons" as "OpenTheory.Parser.Stream.Cons"
+const "Parser.Stream.eof" as "OpenTheory.Parser.Stream.Eof"
+const "Parser.Stream.error" as "OpenTheory.Parser.Stream.Error"
