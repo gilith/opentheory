@@ -161,18 +161,18 @@ HASKELL_OPENTHEORY_EXPORT = ../../$(OPENTHEORY) export --haskell $(HASKELL_OPENT
 
 HASKELL_OPENTHEORY_LIST = ../../$(OPENTHEORY) list --dependency-order ExportHaskell
 
-.PHONY: haskell-theories
-haskell-theories: $(OPENTHEORY)
-	@cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; my $$n = `$(HASKELL_OPENTHEORY_EXPORT) $$nv`; print STDOUT "$$n"; chomp $$n; if ($$n =~ /^(?:re-)exported package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)-[[:digit:].]+$$/) { $$n = $$1; } elsif ($$n =~ /^skipped re-export of package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)$$/) { $$n = $$1; } else { die "bad export output |$$n|"; } (system("cd $$n && $(HASKELL_INSTALL)") == 0) or die;')
+.PHONY: export-haskell
+export-haskell: $(OPENTHEORY)
+	@cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; my $$cmd = "$(HASKELL_OPENTHEORY_EXPORT) $$nv"; print STDOUT "$$cmd\n"; my $$n = `$$cmd`; print STDOUT "$$n"; chomp $$n; if ($$n =~ /^(?:re-)exported package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)-[[:digit:].]+$$/) { $$n = $$1; } elsif ($$n =~ /^skipped re-export of package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)$$/) { $$n = $$1; } else { die "bad export output |$$n|"; } (system("cd $$n && $(HASKELL_INSTALL)") == 0) or die;')
 
-.PHONY: reexport-haskell-theories
-reexport-haskell-theories:
-	@HASKELL_OPENTHEORY_EXPORT_OPTS=" --reexport" $(MAKE) haskell-theories
+.PHONY: reexport-haskell
+reexport-haskell:
+	@HASKELL_OPENTHEORY_EXPORT_OPTS="--reexport" $(MAKE) export-haskell
 
 .PHONY: haskell
 haskell:
 	@cd $(HASKELL_DIR)/opentheory-primitive && $(HASKELL_INSTALL)
-	$(MAKE) haskell-theories
+	$(MAKE) export-haskell
 	@echo ======================
 	@cd $(HASKELL_DIR)/test-opentheory && $(HASKELL_INSTALL)
 

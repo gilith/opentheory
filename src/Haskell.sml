@@ -3531,7 +3531,7 @@ in
                 case PackageVersion.compare (v',v) of
                   LESS => SOME v
                 | EQUAL =>
-                  if p = p' andalso s = s' then NONE
+                  if not reexport andalso p = p' andalso s = s' then NONE
                   else
                     let
                       val l = PackageVersion.toList v @ [1]

@@ -11,7 +11,6 @@ portability: portable
 module OpenTheory.Parser.Stream
 where
 
-import qualified Parser.Stream as Stream
 
 data Stream a =
     Error
