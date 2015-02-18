@@ -2314,7 +2314,7 @@ def
 cons
 opType
 constTerm
-"Parser.any.p"
+"Parser.any.prs"
 "_31522"
 1
 ref
@@ -2462,7 +2462,7 @@ opType
 constTerm
 233
 def
-"Parser.none.p"
+"Parser.none.prs"
 "_31510"
 1
 ref
@@ -5991,7 +5991,7 @@ opType
 constTerm
 467
 def
-"Parser.mapPartial.p"
+"Parser.mapPartial.prs"
 "_31534"
 456
 ref
@@ -6975,7 +6975,7 @@ thm
 nil
 245
 ref
-"pb"
+"p0"
 231
 ref
 var
@@ -7002,7 +7002,7 @@ opType
 constTerm
 532
 def
-"pc"
+"p1"
 465
 ref
 var
@@ -7118,7 +7118,7 @@ opType
 constTerm
 547
 def
-"Parser.pair.p"
+"Parser.pair.prs"
 "_31590"
 231
 ref

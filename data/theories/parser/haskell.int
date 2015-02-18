@@ -7,6 +7,24 @@
 
 # OpenTheory.Parser
 
+type "Parser.parser" as "OpenTheory.Parser.Parser"
+
+const "Parser.mk" as "OpenTheory.Parser.Parser"
+const "Parser.any" as "OpenTheory.Parser.anyToken"
+const "Parser.any.prs" as "OpenTheory.Parser.anyToken.prs"
+const "Parser.apply" as "OpenTheory.Parser.apply"
+const "Parser.map" as "OpenTheory.Parser.mapParser"
+const "Parser.mapPartial" as "OpenTheory.Parser.mapPartial"
+const "Parser.mapPartial.prs" as "OpenTheory.Parser.mapPartial.prs"
+const "Parser.none" as "OpenTheory.Parser.none"
+const "Parser.none.prs" as "OpenTheory.Parser.none.prs"
+const "Parser.option" as "OpenTheory.Parser.option"
+const "Parser.pair" as "OpenTheory.Parser.pair"
+const "Parser.pair.prs" as "OpenTheory.Parser.pair.prs"
+const "Parser.parse" as "OpenTheory.Parser.parse"
+const "Parser.some" as "OpenTheory.Parser.some"
+const "Parser.dest" as "OpenTheory.Parser.unParser"
+
 # OpenTheory.Parser.Stream
 
 type "Parser.Stream.stream" as "OpenTheory.Parser.Stream.Stream"
@@ -16,6 +34,6 @@ const "Parser.Stream.eof" as "OpenTheory.Parser.Stream.Eof"
 const "Parser.Stream.error" as "OpenTheory.Parser.Stream.Error"
 const "Parser.Stream.append" as "OpenTheory.Parser.Stream.append"
 const "Parser.Stream.fromList" as "OpenTheory.Parser.Stream.fromList"
-const "Parser.Stream.length" as "OpenTheory.Parser.Stream.length'"
-const "Parser.Stream.map" as "OpenTheory.Parser.Stream.map'"
+const "Parser.Stream.length" as "OpenTheory.Parser.Stream.lengthStream"
+const "Parser.Stream.map" as "OpenTheory.Parser.Stream.mapStream"
 const "Parser.Stream.toList" as "OpenTheory.Parser.Stream.toList"

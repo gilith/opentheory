@@ -1,5 +1,5 @@
 name: opentheory-parser
-version: 1.128.1
+version: 1.135
 category: Formal Methods
 synopsis: Stream parsers
 license: MIT
@@ -10,17 +10,19 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Stream parsers - this package was automatically generated from the
-  OpenTheory package parser-1.128
+  OpenTheory package parser-1.135
 
 library
   build-depends:
     base >= 4.0 && < 5.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
-    opentheory-primitive >= 1.0 && < 2.0
+    opentheory-primitive >= 1.0 && < 2.0,
+    opentheory >= 1.178 && < 1.179
 
   hs-source-dirs: src
 
   ghc-options: -Wall
 
   exposed-modules:
+    OpenTheory.Parser
     OpenTheory.Parser.Stream

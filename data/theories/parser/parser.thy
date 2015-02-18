@@ -1,16 +1,10 @@
 name: parser
-version: 1.129
+version: 1.135
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
-requires: list
-requires: natural
-requires: option
-requires: pair
+requires: base
 requires: probability
-requires: relation
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
@@ -25,18 +19,18 @@ haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 
 stream {
-  package: parser-stream-1.100
+  package: parser-stream-1.101
 }
 
 comb {
   import: stream
-  package: parser-comb-1.91
+  package: parser-comb-1.94
 }
 
 all {
   import: stream
   import: comb
-  package: parser-all-1.95
+  package: parser-all-1.98
 }
 
 main {
