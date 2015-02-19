@@ -1,7 +1,7 @@
-name: opentheory-stream
-version: 1.40.9
+name: opentheory-probability
+version: 1.41.1
 category: Formal Methods
-synopsis: Stream types
+synopsis: Probability
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.2
@@ -9,8 +9,8 @@ build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
-  Stream types - this package was automatically generated from the
-  OpenTheory package stream-1.40
+  Probability - this package was automatically generated from the
+  OpenTheory package probability-1.41
 
 library
   build-depends:
@@ -24,4 +24,6 @@ library
   ghc-options: -Wall
 
   exposed-modules:
-    OpenTheory.Stream
+    OpenTheory.List.Geometric
+    OpenTheory.Natural.Geometric
+    OpenTheory.Random

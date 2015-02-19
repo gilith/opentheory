@@ -3584,6 +3584,8 @@ in
           end
         else
           let
+            val () = createDirectory dir
+
             val () = output dir name cabal
 
             val version = versionInformation info
