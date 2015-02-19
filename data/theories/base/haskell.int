@@ -40,6 +40,10 @@ const "Data.List.tail" as "tail"
 
 const "Data.List.length" as "OpenTheory.List.naturalLength"
 
+# OpenTheory.Natural
+
+const "Number.Natural.odd" as "OpenTheory.Natural.odd"
+
 # OpenTheory.Primitive
 
 # OpenTheory.Primitive.Natural

@@ -1,0 +1,28 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR NATURAL NUMBER TO BIT-LIST CONVERSIONS
+# Joe Leslie-Hurd
+###############################################################################
+
+# OpenTheory
+
+# OpenTheory.Natural
+
+# OpenTheory.Natural.Bits
+
+const "Number.Natural.Bits.append" as "OpenTheory.Natural.Bits.append"
+const "Number.Natural.Bits.bit" as "OpenTheory.Natural.Bits.bit"
+const "Number.Natural.Bits.bound" as "OpenTheory.Natural.Bits.bound"
+const "Number.Natural.Bits.cons" as "OpenTheory.Natural.Bits.cons"
+const "Number.Natural.Bits.fromList" as "OpenTheory.Natural.Bits.fromList"
+const "Number.Natural.Bits.head" as "OpenTheory.Natural.Bits.headBits"
+const "Number.Natural.Bits.shiftLeft" as "OpenTheory.Natural.Bits.shiftLeft"
+const "Number.Natural.Bits.shiftRight" as "OpenTheory.Natural.Bits.shiftRight"
+const "Number.Natural.fromBool" as "OpenTheory.Natural.Bits.singleton"
+const "Number.Natural.Bits.tail" as "OpenTheory.Natural.Bits.tailBits"
+const "Number.Natural.Bits.toList" as "OpenTheory.Natural.Bits.toList"
+const "Number.Natural.Bits.width" as "OpenTheory.Natural.Bits.width"
+
+# OpenTheory.Natural.Uniform
+
+const "Number.Natural.Uniform.fromRandom" as "OpenTheory.Natural.Uniform.fromRandom"
+const "Number.Natural.Uniform.fromRandom.loop" as "OpenTheory.Natural.Uniform.fromRandom.loop"

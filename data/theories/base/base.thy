@@ -1,5 +1,5 @@
 name: base
-version: 1.178
+version: 1.179
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

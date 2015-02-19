@@ -1,9 +1,9 @@
 name: natural-bits-def
-version: 1.24
+version: 1.25
 description: Definition of natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-04
+provenance: HOL Light theory extracted on 2015-02-19
 requires: bool
 requires: list
 requires: natural
