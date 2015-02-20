@@ -1,9 +1,9 @@
 name: hardware-multiplier-thm
-version: 1.13
+version: 1.14
 description: Properties of hardware multiplier devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2015-02-20
 requires: bool
 requires: hardware-adder
 requires: hardware-bus

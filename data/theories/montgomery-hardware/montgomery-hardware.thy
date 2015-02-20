@@ -1,5 +1,5 @@
 name: montgomery-hardware
-version: 1.4
+version: 1.5
 description: Hardware Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: montgomery-hardware-thm-1.4
+  package: montgomery-hardware-thm-1.5
 }
 
 main {

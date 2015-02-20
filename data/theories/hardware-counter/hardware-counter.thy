@@ -1,5 +1,5 @@
 name: hardware-counter
-version: 1.19
+version: 1.20
 description: Hardware counter devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -31,7 +31,7 @@ def {
 
 thm {
   import: def
-  package: hardware-counter-thm-1.19
+  package: hardware-counter-thm-1.20
 }
 
 main {

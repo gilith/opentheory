@@ -1,9 +1,9 @@
 name: word-bits-thm
-version: 1.93
+version: 1.94
 description: Properties of word to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2015-02-20
 requires: bool
 requires: list
 requires: natural

@@ -1,5 +1,5 @@
 name: hardware-adder
-version: 1.16
+version: 1.17
 description: Hardware adder devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ def {
 
 thm {
   import: def
-  package: hardware-adder-thm-1.19
+  package: hardware-adder-thm-1.20
 }
 
 main {

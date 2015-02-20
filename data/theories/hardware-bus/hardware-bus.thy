@@ -1,5 +1,5 @@
 name: hardware-bus
-version: 1.44
+version: 1.45
 description: Hardware bus devices
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,7 +20,7 @@ def {
 
 thm {
   import: def
-  package: hardware-bus-thm-1.43
+  package: hardware-bus-thm-1.44
 }
 
 main {
