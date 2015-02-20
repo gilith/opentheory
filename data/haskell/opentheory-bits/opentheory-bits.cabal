@@ -1,5 +1,5 @@
-name: opentheory-natural-bits
-version: 1.47
+name: opentheory-bits
+version: 1.48
 category: Formal Methods
 synopsis: Natural number to bit-list conversions
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Natural number to bit-list conversions - this package was automatically
-  generated from the OpenTheory package natural-bits-1.47
+  generated from the OpenTheory package natural-bits-1.48
 
 library
   build-depends:
