@@ -423,7 +423,7 @@ def
 constTerm
 58
 def
-"Number.Natural.Bits.toNatural"
+"Number.Natural.Bits.fromList"
 "_28580"
 53
 ref
@@ -1069,7 +1069,7 @@ ref
 ref
 10
 ref
-"Number.Natural.Bits.normal"
+"Number.Natural.Bits.normalList"
 "_28590"
 53
 ref
@@ -1646,7 +1646,7 @@ opType
 constTerm
 166
 def
-"Number.Natural.Bits.fromNatural"
+"Number.Natural.Bits.toList"
 "_28585"
 1
 ref
