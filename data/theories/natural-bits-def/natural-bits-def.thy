@@ -1,5 +1,5 @@
 name: natural-bits-def
-version: 1.26
+version: 1.27
 description: Definition of natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

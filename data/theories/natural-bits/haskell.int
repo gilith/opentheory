@@ -20,6 +20,7 @@ const "Number.Natural.Bits.shiftRight" as "OpenTheory.Natural.Bits.shiftRight"
 const "Number.Natural.fromBool" as "OpenTheory.Natural.Bits.singleton"
 const "Number.Natural.Bits.tail" as "OpenTheory.Natural.Bits.tailBits"
 const "Number.Natural.Bits.toList" as "OpenTheory.Natural.Bits.toList"
+const "Number.Natural.Bits.toVector" as "OpenTheory.Natural.Bits.toVector"
 const "Number.Natural.Bits.width" as "OpenTheory.Natural.Bits.width"
 
 # OpenTheory.Natural.Uniform

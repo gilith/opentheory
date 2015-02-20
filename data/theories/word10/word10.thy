@@ -1,5 +1,5 @@
 name: word10
-version: 1.104
+version: 1.105
 description: 10-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -19,7 +19,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word10-def-1.80
+  package: word10-def-1.81
 }
 
 bits {

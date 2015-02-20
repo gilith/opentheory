@@ -1,5 +1,5 @@
 name: monoid-comm
-version: 1.12
+version: 1.13
 description: Commutative monoids
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,7 +26,7 @@ monoid-thm {
 monoid-mult {
   import: monoid-witness
   import: monoid-thm
-  package: monoid-mult-1.11
+  package: monoid-mult-1.12
 }
 
 thm {
@@ -36,7 +36,7 @@ thm {
 
 mult {
   import: monoid-mult
-  package: monoid-comm-mult-1.3
+  package: monoid-comm-mult-1.4
 }
 
 main {

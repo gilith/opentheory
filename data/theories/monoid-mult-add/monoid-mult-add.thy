@@ -1,5 +1,5 @@
 name: monoid-mult-add
-version: 1.12
+version: 1.13
 description: Monoid multiplication by repeated addition
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: monoid-mult-add-thm-1.9
+  package: monoid-mult-add-thm-1.10
 }
 
 main {

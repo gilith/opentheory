@@ -1,5 +1,5 @@
 name: monoid-mult
-version: 1.11
+version: 1.12
 description: Monoid multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,7 +26,7 @@ thm {
 add {
   import: def
   import: thm
-  package: monoid-mult-add-1.12
+  package: monoid-mult-add-1.13
 }
 
 main {
