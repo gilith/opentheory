@@ -11,7 +11,7 @@ module Main
   ( main )
 where
 
-import qualified OpenTheory.Divides as Divides
+import qualified OpenTheory.Natural.Divides as Divides
 import qualified OpenTheory.Prime as Prime
 import qualified OpenTheory.Primitive.Natural as Natural
 import qualified OpenTheory.Stream as Stream
