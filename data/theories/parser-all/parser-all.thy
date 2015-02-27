@@ -1,32 +1,26 @@
 name: parser-all
-version: 1.98
+version: 1.101
 description: The whole stream parser
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
-requires: list
-requires: natural
-requires: option
-requires: pair
+requires: base
 requires: parser-comb
 requires: parser-stream
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
-show: "Function"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-all-def-1.92
+  package: parser-all-def-1.94
 }
 
 thm {
   import: def
-  package: parser-all-thm-1.100
+  package: parser-all-thm-1.103
 }
 
 main {

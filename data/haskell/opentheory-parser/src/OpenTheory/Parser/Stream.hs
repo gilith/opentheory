@@ -19,8 +19,8 @@ data Stream a =
   | Cons a (Stream a)
 
 append :: [a] -> Stream a -> Stream a
-append [] s = s
-append (h : t) s = Cons h (append t s)
+append [] xs = xs
+append (h : t) xs = Cons h (append t xs)
 
 fromList :: [a] -> Stream a
 fromList l = append l Eof
@@ -28,17 +28,14 @@ fromList l = append l Eof
 lengthStream :: Stream a -> Natural.Natural
 lengthStream Error = 0
 lengthStream Eof = 0
-lengthStream (Cons _ s) = lengthStream s + 1
+lengthStream (Cons _ xs) = lengthStream xs + 1
 
 mapStream :: (a -> b) -> Stream a -> Stream b
 mapStream _ Error = Error
 mapStream _ Eof = Eof
-mapStream f (Cons a s) = Cons (f a) (mapStream f s)
+mapStream f (Cons x xs) = Cons (f x) (mapStream f xs)
 
-toList :: Stream a -> Maybe [a]
-toList Error = Nothing
-toList Eof = Just []
-toList (Cons a s) =
-  case toList s of
-    Nothing -> Nothing
-    Just l -> Just (a : l)
+toList :: Stream a -> ([a], Bool)
+toList Error = ([], True)
+toList Eof = ([], False)
+toList (Cons x xs) = let (l, e) = toList xs in (x : l, e)

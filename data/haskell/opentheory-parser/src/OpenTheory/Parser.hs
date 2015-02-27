@@ -16,64 +16,74 @@ import qualified OpenTheory.Parser.Stream as Stream
 newtype Parser a b =
   Parser { unParser :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a) }
 
-anyToken :: Parser a a
-anyToken =
+token :: (a -> Maybe b) -> Parser a b
+token f =
   Parser prs
   where
-  {-prs :: a -> Stream.Stream a -> Maybe (a, Stream.Stream a)-}
-    prs a s = Just (a, s)
+  {-prs :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
+    prs x xs =
+      case f x of
+        Nothing -> Nothing
+        Just y -> Just (y, xs)
+
+some :: (a -> Bool) -> Parser a a
+some p = token (\x -> if p x then Just x else Nothing)
+
+anyToken :: Parser a a
+anyToken = some (const True)
 
 apply :: Parser a b -> Stream.Stream a -> Maybe (b, Stream.Stream a)
 apply _ Stream.Error = Nothing
 apply _ Stream.Eof = Nothing
-apply p (Stream.Cons a s) = unParser p a s
+apply p (Stream.Cons x xs) = unParser p x xs
 
-mapPartial :: (b -> Maybe c) -> Parser a b -> Parser a c
-mapPartial f p =
+mapPartial :: Parser a b -> (b -> Maybe c) -> Parser a c
+mapPartial p f =
   Parser prs
   where
   {-prs :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)-}
-    prs a s =
-      case unParser p a s of
+    prs x xs =
+      case unParser p x xs of
         Nothing -> Nothing
-        Just (b, s') ->
-          case f b of
+        Just (y, ys) ->
+          case f y of
             Nothing -> Nothing
-            Just c -> Just (c, s')
+            Just z -> Just (z, ys)
 
-mapParser :: (b -> c) -> Parser a b -> Parser a c
-mapParser f p = mapPartial (\b -> Just (f b)) p
+mapParser :: Parser a b -> (b -> c) -> Parser a c
+mapParser p f = mapPartial p (\x -> Just (f x))
 
 none :: Parser a b
-none =
+none = token (const Nothing)
+
+orelse :: Parser a b -> Parser a b -> Parser a b
+orelse p1 p2 =
   Parser prs
   where
   {-prs :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
-    prs _ _ = Nothing
+    prs x xs =
+      case unParser p1 x xs of
+        Nothing -> unParser p2 x xs
+        Just yys -> Just yys
 
-option :: (a -> Maybe b) -> Parser a b
-option f = mapPartial f anyToken
-
-pair :: Parser a b -> Parser a c -> Parser a (b, c)
-pair p0 p1 =
+sequenceParser :: Parser a (Parser a b) -> Parser a b
+sequenceParser p =
   Parser prs
   where
-  {-prs :: a -> Stream.Stream a -> Maybe ((b, c), Stream.Stream a)-}
-    prs a s =
-      case unParser p0 a s of
+  {-prs :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
+    prs x xs =
+      case unParser p x xs of
         Nothing -> Nothing
-        Just (b, s') ->
-          case apply p1 s' of
-            Nothing -> Nothing
-            Just (c, s'') -> Just ((b, c), s'')
+        Just (q, ys) -> apply q ys
+
+pair :: Parser a b -> Parser a c -> Parser a (b, c)
+pair p1 p2 =
+  sequenceParser (mapParser p1 (\x -> mapParser p2 (\y -> (x, y))))
 
 parse :: Parser a b -> Stream.Stream a -> Stream.Stream b
 parse _ Stream.Error = Stream.Error
 parse _ Stream.Eof = Stream.Eof
-parse p (Stream.Cons a s) =
-  case unParser p a s of
+parse p (Stream.Cons x xs) =
+  case unParser p x xs of
     Nothing -> Stream.Error
-    Just (b, s') -> Stream.Cons b (parse p s')
-
-some :: (a -> Bool) -> Parser a a
-some p = option (\a -> if p a then Just a else Nothing)
+    Just (y, ys) -> Stream.Cons y (parse p ys)

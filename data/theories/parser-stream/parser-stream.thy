@@ -1,19 +1,13 @@
 name: parser-stream
-version: 1.101
+version: 1.104
 description: Parse streams
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
-requires: list
-requires: natural
-requires: option
-requires: pair
+requires: base
+requires: natural-fibonacci
 requires: probability
-requires: relation
 show: "Data.Bool"
 show: "Data.List"
-show: "Data.Option"
 show: "Data.Pair"
 show: "Function"
 show: "Number.Natural"
@@ -22,12 +16,12 @@ show: "Probability.Random"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.95
+  package: parser-stream-def-1.98
 }
 
 thm {
   import: def
-  package: parser-stream-thm-1.99
+  package: parser-stream-thm-1.102
 }
 
 main {

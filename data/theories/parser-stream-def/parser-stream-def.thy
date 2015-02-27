@@ -1,17 +1,14 @@
 name: parser-stream-def
-version: 1.95
+version: 1.98
 description: Definition of parse streams
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-04
-requires: bool
-requires: list
-requires: natural
-requires: option
+provenance: HOL Light theory extracted on 2015-02-26
+requires: base
+requires: natural-fibonacci
 requires: probability
 show: "Data.Bool"
 show: "Data.List"
-show: "Data.Option"
 show: "Data.Pair"
 show: "Number.Natural"
 show: "Parser.Stream"
