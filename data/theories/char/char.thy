@@ -1,16 +1,11 @@
 name: char
-version: 1.112
+version: 1.114
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
+requires: base
 requires: byte
-requires: list
-requires: natural
-requires: option
-requires: pair
 requires: parser
-requires: word16
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.Byte.Bits"
@@ -24,18 +19,19 @@ show: "Data.Word16.Bits"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
 
 def {
-  package: char-def-1.98
+  package: char-def-1.99
 }
 
 thm {
   import: def
-  package: char-thm-1.17
+  package: char-thm-1.18
 }
 
 utf8 {
-  import: def
   import: thm
   package: char-utf8-1.103
 }

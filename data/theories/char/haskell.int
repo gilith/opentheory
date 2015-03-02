@@ -1,0 +1,17 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR UNICODE CHARACTERS
+# Joe Leslie-Hurd
+###############################################################################
+
+# OpenTheory
+
+# OpenTheory.Char
+
+type "Data.Char.char" as "OpenTheory.Char.char"
+
+const "Data.Char.mk" as "OpenTheory.Char.Char"
+const "Data.Char.plane" as "OpenTheory.Char.plane"
+const "Data.Char.plane.dest" as "OpenTheory.Char.plane.dest"
+const "Data.Char.position" as "OpenTheory.Char.position"
+const "Data.Char.position.dest" as "OpenTheory.Char.position.dest"
+const "Data.Char.dest" as "OpenTheory.Char.unChar"
