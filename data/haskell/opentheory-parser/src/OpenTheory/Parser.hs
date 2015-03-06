@@ -12,6 +12,7 @@ module OpenTheory.Parser
 where
 
 import qualified OpenTheory.Parser.Stream as Stream
+import qualified OpenTheory.Primitive.Natural as Natural
 
 newtype Parser a b =
   Parser { unParser :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a) }
@@ -36,6 +37,30 @@ apply :: Parser a b -> Stream.Stream a -> Maybe (b, Stream.Stream a)
 apply _ Stream.Error = Nothing
 apply _ Stream.Eof = Nothing
 apply p (Stream.Cons x xs) = unParser p x xs
+
+fold :: (a -> c -> Maybe (Either b c)) -> c -> Parser a b
+fold f =
+  \s -> Parser (prs s)
+  where
+  {-prs :: c -> a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
+    prs s x xs =
+      case f x s of
+        Nothing -> Nothing
+        Just y ->
+          case y of
+            Left z -> Just (z, xs)
+            Right t ->
+              case xs of
+                Stream.Error -> Nothing
+                Stream.Eof -> Nothing
+                Stream.Cons z zs -> prs t z zs
+
+foldN :: (a -> b -> Maybe b) -> Natural.Natural -> b -> Parser a b
+foldN f n s =
+  fold
+    (\x (m, t) ->
+       fmap (\u -> if m == 0 then Left u else Right (m - 1, u)) (f x t))
+    (n, s)
 
 mapPartial :: Parser a b -> (b -> Maybe c) -> Parser a c
 mapPartial p f =

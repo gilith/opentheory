@@ -1,24 +1,26 @@
-name: parser-comb
-version: 1.97
-description: Stream parser combinators
+name: parser-fold
+version: 1.1
+description: The fold parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: base
+requires: parser-comb
 requires: parser-stream
 show: "Data.Bool"
-show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
+show: "Data.Sum"
+show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-comb-def-1.90
+  package: parser-fold-def-1.1
 }
 
 thm {
   import: def
-  package: parser-comb-thm-1.98
+  package: parser-fold-thm-1.2
 }
 
 main {

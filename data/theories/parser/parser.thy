@@ -1,5 +1,5 @@
 name: parser
-version: 1.140
+version: 1.144
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -10,6 +10,7 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
+show: "Data.Sum"
 show: "Function"
 show: "Number.Natural"
 show: "Parser"
@@ -25,7 +26,13 @@ stream {
 
 comb {
   import: stream
-  package: parser-comb-1.96
+  package: parser-comb-1.97
+}
+
+fold {
+  import: stream
+  import: comb
+  package: parser-fold-1.1
 }
 
 all {
@@ -37,5 +44,6 @@ all {
 main {
   import: stream
   import: comb
+  import: fold
   import: all
 }
