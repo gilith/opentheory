@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   This package consists of various tests of the Haskell packages
-  exported from formally verified OpenTheory packages.
+  exported from OpenTheory packages.
 
 Library
   build-depends:
@@ -19,7 +19,7 @@ Library
     directory >= 1.0 && < 1.2,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.0 && < 2.0,
-    opentheory-char >= 1.0 && < 2.0,
+    opentheory-unicode >= 1.0 && < 2.0,
     opentheory-prime >= 1.0 && < 2.0
 
   hs-source-dirs: src
