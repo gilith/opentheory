@@ -1,5 +1,5 @@
-name: opentheory-char
-version: 1.122
+name: opentheory-unicode
+version: 1.123
 category: Formal Methods
 synopsis: Unicode characters
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Unicode characters - this package was automatically generated from the
-  OpenTheory package char-1.122
+  OpenTheory package char-1.123
 
 library
   build-depends:
@@ -26,4 +26,4 @@ library
   ghc-options: -Wall
 
   exposed-modules:
-    OpenTheory.Char
+    OpenTheory.Unicode

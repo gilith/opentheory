@@ -1,38 +1,31 @@
 name: char-utf8
-version: 1.104
+version: 1.105
 description: The UTF-8 encoding of Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
+requires: base
 requires: byte
 requires: char-def
-requires: char-thm
-requires: list
-requires: natural
-requires: option
-requires: pair
 requires: parser
-requires: word16
 show: "Data.Bool"
 show: "Data.Byte"
-show: "Data.Byte.Bits"
 show: "Data.Char"
 show: "Data.Char.UTF8"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
-show: "Data.Word16"
-show: "Data.Word16.Bits"
+show: "Data.Sum"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: char-utf8-def-1.90
+  package: char-utf8-def-1.94
 }
 
 thm {
-  package: char-utf8-thm-1.109
+  import: def
+  package: char-utf8-thm-1.112
 }
 
 main {

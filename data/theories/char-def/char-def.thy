@@ -1,19 +1,13 @@
 name: char-def
-version: 1.100
+version: 1.104
 description: Definition of Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2015-03-05
-requires: bool
-requires: byte
-requires: natural
-requires: pair
-requires: word16
+provenance: HOL Light theory extracted on 2015-03-07
+requires: base
+requires: natural-bits
 show: "Data.Bool"
-show: "Data.Byte"
 show: "Data.Char"
-show: "Data.Pair"
-show: "Data.Word16"
 show: "Number.Natural"
 show: "Probability.Random"
 
