@@ -1,5 +1,5 @@
 name: parser-fold
-version: 1.1
+version: 1.2
 description: The fold parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ show: "Parser"
 show: "Parser.Stream"
 
 def {
-  package: parser-fold-def-1.1
+  package: parser-fold-def-1.2
 }
 
 thm {
   import: def
-  package: parser-fold-thm-1.2
+  package: parser-fold-thm-1.3
 }
 
 main {

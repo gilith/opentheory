@@ -1,9 +1,9 @@
 name: parser-fold-thm
-version: 1.2
+version: 1.3
 description: Properties of the fold parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2015-03-05
+provenance: HOL Light theory extracted on 2015-03-06
 requires: base
 requires: parser-comb
 requires: parser-fold-def

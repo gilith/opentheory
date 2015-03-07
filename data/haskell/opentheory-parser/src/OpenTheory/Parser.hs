@@ -38,9 +38,25 @@ apply _ Stream.Error = Nothing
 apply _ Stream.Eof = Nothing
 apply p (Stream.Cons x xs) = unParser p x xs
 
+mapPartial :: Parser a b -> (b -> Maybe c) -> Parser a c
+mapPartial p f =
+  Parser prs
+  where
+  {-prs :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)-}
+    prs x xs =
+      case unParser p x xs of
+        Nothing -> Nothing
+        Just (y, ys) ->
+          case f y of
+            Nothing -> Nothing
+            Just z -> Just (z, ys)
+
+filterParser :: Parser a b -> (b -> Bool) -> Parser a b
+filterParser p f = mapPartial p (\x -> if f x then Just x else Nothing)
+
 fold :: (a -> c -> Maybe (Either b c)) -> c -> Parser a b
 fold f =
-  \s -> Parser (prs s)
+  Parser . prs
   where
   {-prs :: c -> a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
     prs s x xs =
@@ -61,19 +77,6 @@ foldN f n s =
     (\x (m, t) ->
        fmap (\u -> if m == 0 then Left u else Right (m - 1, u)) (f x t))
     (n, s)
-
-mapPartial :: Parser a b -> (b -> Maybe c) -> Parser a c
-mapPartial p f =
-  Parser prs
-  where
-  {-prs :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)-}
-    prs x xs =
-      case unParser p x xs of
-        Nothing -> Nothing
-        Just (y, ys) ->
-          case f y of
-            Nothing -> Nothing
-            Just z -> Just (z, ys)
 
 mapParser :: Parser a b -> (b -> c) -> Parser a c
 mapParser p f = mapPartial p (\x -> Just (f x))

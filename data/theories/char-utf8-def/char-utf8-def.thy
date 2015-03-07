@@ -1,9 +1,9 @@
 name: char-utf8-def
-version: 1.89
+version: 1.90
 description: Definition of the UTF-8 encoding of Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
+provenance: HOL Light theory extracted on 2015-03-06
 requires: bool
 requires: byte
 requires: char-def
