@@ -263,7 +263,7 @@ while (my $thy = <THEORIES>) {
 
   # Check the theorems
 
-  $cmd = "$opentheory info --symbols $thy | tr ' ' '\\n' | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
+  $cmd = "$opentheory info --symbols $thy | tr ' ' '\\n' | grep '^\\(HOLLight\\|Unwanted\\)[.]'";
 
   if (system ($cmd) == 0) {
     print STDOUT "$program: unwanted/system names in theory $thy\n";
@@ -277,6 +277,8 @@ while (my $thy = <THEORIES>) {
     $cmd = "$opentheory info --theory $thy | grep '^[[:digit:]]\\+ defined ' > /dev/null";
 
     my $defthy = ($thy =~ /-def$/ or $thy =~ /-witness$/);
+
+    #print STDOUT "$cmd\n";
 
     if (system ($cmd) == 0) {
       if (!$defthy) {
