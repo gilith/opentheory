@@ -1,5 +1,5 @@
 name: natural-prime
-version: 1.75
+version: 1.76
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,6 +15,7 @@ show: "Function"
 show: "Number.Natural"
 show: "Number.Natural.Prime.Sieve" as "Sieve"
 haskell-name: opentheory-prime
+haskell-category: Number Theory
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 haskell-test-file: haskell-test.art

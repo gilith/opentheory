@@ -1,6 +1,6 @@
 name: opentheory-prime
-version: 1.75.17
-category: Formal Methods
+version: 1.76
+category: Number Theory
 synopsis: Prime natural numbers
 license: MIT
 license-file: LICENSE
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Prime natural numbers - this package was automatically generated from the
-  OpenTheory package natural-prime-1.75
+  OpenTheory package natural-prime-1.76
 
 library
   build-depends:
@@ -18,7 +18,7 @@ library
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.178 && < 1.186,
-    opentheory-divides >= 1.50 && < 1.51,
+    opentheory-divides >= 1.50 && < 1.52,
     opentheory-stream >= 1.40 && < 1.41
 
   hs-source-dirs: src
@@ -26,8 +26,8 @@ library
   ghc-options: -Wall
 
   exposed-modules:
-    OpenTheory.Prime
-    OpenTheory.Prime.Sieve
+    OpenTheory.Natural.Prime
+    OpenTheory.Natural.Prime.Sieve
 
 executable opentheory-prime-test
   build-depends:
@@ -35,7 +35,7 @@ executable opentheory-prime-test
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.178 && < 1.186,
-    opentheory-divides >= 1.50 && < 1.51,
+    opentheory-divides >= 1.50 && < 1.52,
     opentheory-stream >= 1.40 && < 1.41
 
   hs-source-dirs: src, testsrc

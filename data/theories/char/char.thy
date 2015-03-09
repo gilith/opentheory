@@ -1,5 +1,5 @@
 name: char
-version: 1.123
+version: 1.125
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -37,7 +37,7 @@ thm {
 
 utf8 {
   import: def
-  package: char-utf8-1.105
+  package: char-utf8-1.106
 }
 
 main {

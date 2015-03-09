@@ -8,7 +8,7 @@ stability: provisional
 portability: portable
 -}
 
-module OpenTheory.Prime.Sieve
+module OpenTheory.Natural.Prime.Sieve
 where
 
 import qualified OpenTheory.Primitive.Natural as Natural

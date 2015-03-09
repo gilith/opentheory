@@ -1,7 +1,7 @@
-name: opentheory-parser
-version: 1.145.3
+name: opentheory-byte
+version: 1.113.1
 category: Formal Methods
-synopsis: Stream parsers
+synopsis: Bytes
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.2
@@ -9,20 +9,21 @@ build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
-  Stream parsers - this package was automatically generated from the
-  OpenTheory package parser-1.145
+  Bytes - this package was automatically generated from the OpenTheory
+  package byte-1.113
 
 library
   build-depends:
     base >= 4.0 && < 5.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
-    opentheory >= 1.185 && < 1.186
+    opentheory >= 1.180 && < 1.186,
+    opentheory-bits >= 1.49 && < 1.54,
+    opentheory-probability >= 1.11 && < 1.42
 
   hs-source-dirs: src
 
   ghc-options: -Wall
 
   exposed-modules:
-    OpenTheory.Parser
-    OpenTheory.Parser.Stream
+    OpenTheory.Byte

@@ -12,7 +12,7 @@ module Main
 where
 
 import qualified OpenTheory.Natural.Divides as Divides
-import qualified OpenTheory.Prime as Prime
+import qualified OpenTheory.Natural.Prime as Prime
 import qualified OpenTheory.Primitive.Natural as Natural
 import qualified OpenTheory.Stream as Stream
 import OpenTheory.Primitive.Test

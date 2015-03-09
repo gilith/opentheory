@@ -8,10 +8,10 @@ stability: provisional
 portability: portable
 -}
 
-module OpenTheory.Prime
+module OpenTheory.Natural.Prime
 where
 
-import qualified OpenTheory.Prime.Sieve as Sieve
+import qualified OpenTheory.Natural.Prime.Sieve as Sieve
 import qualified OpenTheory.Primitive.Natural as Natural
 import qualified OpenTheory.Stream as Stream
 

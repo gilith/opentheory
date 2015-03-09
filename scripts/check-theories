@@ -263,7 +263,7 @@ while (my $thy = <THEORIES>) {
 
   # Check the theorems
 
-  $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
+  $cmd = "$opentheory info --symbols $thy | tr ' ' '\\n' | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
 
   if (system ($cmd) == 0) {
     print STDOUT "$program: unwanted/system names in theory $thy\n";
