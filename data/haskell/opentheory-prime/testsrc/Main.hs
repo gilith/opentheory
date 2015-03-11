@@ -18,22 +18,23 @@ import qualified OpenTheory.Stream as Stream
 import OpenTheory.Primitive.Test
 
 assertion0 :: Bool
-assertion0 = not (Stream.nth Prime.all 0 == 0)
+assertion0 = not (Stream.nth Prime.primes 0 == 0)
 
 proposition0 :: Natural.Natural -> Natural.Natural -> Bool
 proposition0 i j =
-  (Stream.nth Prime.all i <= Stream.nth Prime.all j) == (i <= j)
+  (Stream.nth Prime.primes i <= Stream.nth Prime.primes j) == (i <= j)
 
 proposition1 :: Natural.Natural -> Natural.Natural -> Bool
 proposition1 i j =
   not
-    (Divides.divides (Stream.nth Prime.all i)
-       (Stream.nth Prime.all (i + (j + 1))))
+    (Divides.divides (Stream.nth Prime.primes i)
+       (Stream.nth Prime.primes (i + (j + 1))))
 
 proposition2 :: Natural.Natural -> Natural.Natural -> Bool
 proposition2 n i =
-  any (\p -> Divides.divides p (n + 2)) (Stream.take' Prime.all i) ||
-  Stream.nth Prime.all i <= n + 2
+  any (\p -> Divides.divides p (n + 2))
+    (Stream.naturalTake Prime.primes i) ||
+  Stream.nth Prime.primes i <= n + 2
 
 main :: IO ()
 main =

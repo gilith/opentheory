@@ -1,6 +1,6 @@
 name: stream-thm
-version: 1.36
-description: Properties of stream types
+version: 1.37
+description: Properties of infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2015-02-01

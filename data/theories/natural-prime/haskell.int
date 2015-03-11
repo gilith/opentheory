@@ -9,7 +9,7 @@
 
 # OpenTheory.Natural.Prime
 
-const "Number.Natural.Prime.all" as "OpenTheory.Natural.Prime.all"
+const "Number.Natural.Prime.all" as "OpenTheory.Natural.Prime.primes"
 
 # OpenTheory.Natural.Prime.Sieve
 

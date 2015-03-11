@@ -15,5 +15,5 @@ import qualified OpenTheory.Natural.Prime.Sieve as Sieve
 import qualified OpenTheory.Primitive.Natural as Natural
 import qualified OpenTheory.Stream as Stream
 
-all :: [Natural.Natural]
-all = Stream.unfold Sieve.next Sieve.initial
+primes :: [Natural.Natural]
+primes = Stream.unfold Sieve.next Sieve.initial

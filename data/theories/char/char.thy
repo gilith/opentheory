@@ -1,5 +1,5 @@
 name: char
-version: 1.125
+version: 1.126
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -23,6 +23,7 @@ show: "Parser.Stream"
 show: "Probability.Random"
 show: "Set"
 haskell-name: opentheory-unicode
+haskell-category: Text
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 

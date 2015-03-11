@@ -1,5 +1,5 @@
 name: parser
-version: 1.145
+version: 1.146
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,6 +17,7 @@ show: "Parser"
 show: "Parser.Stream"
 show: "Probability.Random"
 show: "Relation"
+haskell-category: Parsing
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 

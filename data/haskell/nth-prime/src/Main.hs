@@ -1,6 +1,6 @@
 {- |
 module: Main
-description: Timing simple sieve computation of the nth prime
+description: Computing the nth prime
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
@@ -30,6 +30,6 @@ main :: IO ()
 main =
     do args <- System.Environment.getArgs
        let (s,k) = parseArgs args
-       let p = Prime.all !! k
-       putStrLn $ "  " ++ show k ++ "th prime is " ++ show p
+       let p = Prime.primes !! k
+       putStrLn $ "  prime[" ++ show k ++ "] is " ++ show p
        return ()

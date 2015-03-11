@@ -1,7 +1,7 @@
 name: opentheory-stream
-version: 1.40.21
-category: Formal Methods
-synopsis: Stream types
+version: 1.41
+category: List
+synopsis: Infinite stream types
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.2
@@ -9,8 +9,8 @@ build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
-  Stream types - this package was automatically generated from the
-  OpenTheory package stream-1.40
+  Infinite stream types - this package was automatically generated from the
+  OpenTheory package stream-1.41
 
 library
   build-depends:
