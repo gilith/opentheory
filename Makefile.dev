@@ -176,7 +176,7 @@ haskell:
 	@echo ======================
 	@cd $(HASKELL_DIR)/nth-prime && $(HASKELL_INSTALL)
 	@echo ----------------------
-	@cd $(HASKELL_DIR)/test-opentheory && $(HASKELL_INSTALL)
+	@cd $(HASKELL_DIR)/api-opentheory-unicode && $(HASKELL_INSTALL)
 
 ###############################################################################
 # Create the test package repo.

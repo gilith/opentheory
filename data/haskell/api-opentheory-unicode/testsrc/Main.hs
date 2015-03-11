@@ -1,6 +1,6 @@
 {- |
 module: Main
-description: Testing packages exported from OpenTheory
+description: Testing the Unicode character library and API
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
@@ -11,20 +11,19 @@ module Main
   ( main )
 where
 
-import qualified Data.ByteString.Lazy
-import qualified Data.List
-import qualified Data.Maybe
-import qualified Data.Word
-import qualified System.Directory
+import qualified Data.ByteString.Lazy as ByteString
+import qualified Data.List as List
+import qualified Data.Either as Either
+import qualified Data.Word as Word
+import qualified System.Directory as Directory
 
-import qualified OpenTheory.Data.Unicode.UTF8
-import qualified OpenTheory.Test.Prime
+import Unicode
+import qualified OpenTheory.Unicode.UTF8 as UTF8
 
 readTestCharFile :: Bool -> FilePath -> IO ()
 readTestCharFile x f =
-    do b <- Data.ByteString.Lazy.readFile ("test/char/" ++ f ++ ".txt")
-       let bs = Data.ByteString.Lazy.unpack b
-       let a = Data.Maybe.isJust (OpenTheory.Data.Unicode.UTF8.decode bs)
+    do l <- decodeFile ("test/" ++ f ++ ".txt")
+       let a = all Either.isRight l
        if a == x
          then return ()
          else
@@ -40,52 +39,50 @@ readInvalidCharFile = readTestCharFile False
 
 partitionTestCharFile :: IO ()
 partitionTestCharFile =
-    do skip <- System.Directory.doesFileExist "test/char/valid/test0.txt"
+    do skip <- Directory.doesFileExist "test/valid/test0.txt"
        if skip
          then return ()
          else
            do putStrLn "\n(splitting UTF8 test file into valid and invalid lines)"
-              bytestr <- Data.ByteString.Lazy.readFile "test/char/test.txt"
-              let bs = Data.ByteString.Lazy.unpack bytestr
-              let ls = Data.List.drop 51 (readLines [] bs)
+              bytestr <- ByteString.readFile "test/test.txt"
+              let bs = ByteString.unpack bytestr
+              let ls = List.drop 51 (readLines [] bs)
               outputLine 0 0 ls
   where
-    readLines :: [[Data.Word.Word8]] -> [Data.Word.Word8] -> [[Data.Word.Word8]]
+    readLines :: [[Word.Word8]] -> [Word.Word8] -> [[Word.Word8]]
     readLines acc [] = reverse acc
     readLines acc inp =
-      let (line,inp') = Data.List.span (not . isNewline) inp in
-      let inp'' = Data.List.dropWhile isNewline inp' in
+      let (line,inp') = List.span (not . isNewline) inp in
+      let inp'' = List.dropWhile isNewline inp' in
       let acc' = if null line then acc else line : acc in
       readLines acc' inp''
 
-    isNewline :: Data.Word.Word8 -> Bool
+    isNewline :: Word.Word8 -> Bool
     isNewline b = b == 10 || b == 13
 
-    outputLine :: Int -> Int -> [[Data.Word.Word8]] -> IO ()
+    outputLine :: Int -> Int -> [[Word.Word8]] -> IO ()
     outputLine _ _ [] = return ()
     outputLine ex err (line : rest) =
-       let res = OpenTheory.Data.Unicode.UTF8.decode line in
+       let res = UTF8.decode line in
+       let cs = Either.rights res in
        let (f,ex',err') =
-               case res of
-                 Just cs ->
-                     if length cs == 79
-                       then ("valid/test" ++ show ex, ex + 1, err)
-                       else error $ "bad line length: " ++ show (length cs)
-                 Nothing -> ("invalid/test" ++ show err, ex, err + 1) in
-       let bs = Data.ByteString.Lazy.pack line in
-       do Data.ByteString.Lazy.writeFile ("test/char/" ++ f ++ ".txt") bs
+             if length res == length cs
+               then
+                 if length cs == 79
+                   then ("valid/test" ++ show ex, ex + 1, err)
+                   else error $ "bad line length: " ++ show (length cs)
+               else ("invalid/test" ++ show err, ex, err + 1) in
+       let bs = ByteString.pack line in
+       do ByteString.writeFile ("test/" ++ f ++ ".txt") bs
           outputLine ex' err' rest
 
 main :: IO ()
 main =
-    do putStr "Testing opentheory-char: "
-       partitionTestCharFile
+    do partitionTestCharFile
        readValidCharFile "demo"
        mapM_ (\i -> readValidCharFile $ "valid/test" ++ show i)
          ([0..139] :: [Int])
        mapM_ (\i -> readInvalidCharFile $ "invalid/test" ++ show i)
          ([0..70] :: [Int])
        putStrLn "ok"
-       putStrLn "Testing opentheory-prime:"
-       OpenTheory.Test.Prime.tests
        return ()

@@ -16,8 +16,7 @@ Library
   build-depends:
     base >= 4.0 && < 5.0,
     bytestring >= 0.9 && < 1.0,
-    directory >= 1.0 && < 1.2,
-    opentheory-unicode >= 1.0 && < 2.0,
+    opentheory-unicode >= 1.0 && < 2.0
 
   hs-source-dirs: src
 
@@ -30,8 +29,8 @@ executable api-opentheory-unicode-test
   build-depends:
     base >= 4.0 && < 5.0,
     bytestring >= 0.9 && < 1.0,
-    directory >= 1.0 && < 1.2,
-    opentheory-unicode >= 1.0 && < 2.0,
+    directory >= 1.0 && < 2.0,
+    opentheory-unicode >= 1.0 && < 2.0
 
   hs-source-dirs: src, testsrc
 

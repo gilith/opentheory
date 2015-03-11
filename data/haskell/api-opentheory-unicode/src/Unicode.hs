@@ -13,14 +13,15 @@ where
 
 import qualified Data.ByteString.Lazy as ByteString
 import qualified Data.Char as Char
+import qualified Data.Word as Word
 
-import qualified OpenTheory.Data.Unicode.UTF8 as UTF8
-import OpenTheory.Data.Unicode
+import qualified OpenTheory.Unicode.UTF8 as UTF8
+import OpenTheory.Unicode
 
 instance Show Unicode where
-  show = show . Char.chr . unUnicode
+  show = show . Char.chr . fromIntegral . unUnicode
 
-decodeFile :: FilePath -> IO [Either Data.Word.Word8 Unicode]
+decodeFile :: FilePath -> IO [Either Word.Word8 Unicode]
 decodeFile f =
     do b <- ByteString.readFile f
-       return (UTF8.decode b)
+       return (UTF8.decode (ByteString.unpack b))
