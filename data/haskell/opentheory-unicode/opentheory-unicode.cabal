@@ -1,5 +1,5 @@
 name: opentheory-unicode
-version: 1.126.1
+version: 1.127
 category: Text
 synopsis: Unicode characters
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Unicode characters - this package was automatically generated from the
-  OpenTheory package char-1.126
+  OpenTheory package char-1.127
 
 library
   build-depends:

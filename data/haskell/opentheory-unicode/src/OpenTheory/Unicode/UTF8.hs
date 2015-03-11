@@ -21,7 +21,7 @@ import qualified OpenTheory.Unicode as Unicode
 parseAscii :: Parser.Parser Byte.Byte Natural.Natural
 parseAscii =
   Parser.token
-    (\b -> if Byte.bit b 7 then Just (Byte.toNatural b) else Nothing)
+    (\b -> if Byte.bit b 7 then Nothing else Just (Byte.toNatural b))
 
 isContinuationByte :: Byte.Byte -> Bool
 isContinuationByte b = Byte.bit b 7 && not (Byte.bit b 6)
