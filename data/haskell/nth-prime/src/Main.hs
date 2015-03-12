@@ -12,24 +12,18 @@ module Main
 where
 
 import qualified System.Environment
+import OpenTheory.Natural.Prime
 
-import OpenTheory.Primitive.Natural
-import qualified OpenTheory.Natural.Prime as Prime
-
-parseArgs :: [String] -> (Bool,Int)
+parseArgs :: [String] -> Int
 parseArgs a =
-    let (b,a') =
-          case a of
-            "-O0" : l -> (True,l)
-            _ -> (False,a) in
-    case a' of
-      [n] -> (b, fromIntegral (read n :: Integer))
-      _ -> error "bad arguments"
+    case a of
+      [n] -> read n
+      _ -> error "usage: nth-prime N"
 
 main :: IO ()
 main =
     do args <- System.Environment.getArgs
-       let (s,k) = parseArgs args
-       let p = Prime.primes !! k
+       let k = parseArgs args
+       let p = primes !! k
        putStrLn $ "  prime[" ++ show k ++ "] is " ++ show p
        return ()

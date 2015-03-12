@@ -13,7 +13,6 @@ where
 
 import qualified Data.List as List
 import OpenTheory.Primitive.Natural
-import qualified OpenTheory.Natural.Prime as Prime
 
 newtype Sieve =
   Sieve { unSieve :: (Natural,[(Natural,Natural)]) }
