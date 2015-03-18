@@ -104,5 +104,5 @@ main =
        invalidTestFiles <- getTestFiles "test/invalid"
        mapM_ (readValidCharFile testLength) validTestFiles
        mapM_ readInvalidCharFile invalidTestFiles
-       putStrLn "all tests pass"
+       putStrLn "  all tests pass"
        return ()
