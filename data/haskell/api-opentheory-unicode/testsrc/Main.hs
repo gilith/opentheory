@@ -18,71 +18,91 @@ import qualified Data.Word as Word
 import qualified System.Directory as Directory
 
 import Unicode
+import qualified OpenTheory.Unicode as Unicode
 import qualified OpenTheory.Unicode.UTF8 as UTF8
 
-readTestCharFile :: Bool -> FilePath -> IO ()
-readTestCharFile x f =
-    do l <- decodeFile ("test/" ++ f ++ ".txt")
-       let a = all Either.isRight l
-       if a == x
-         then return ()
-         else
-           if a
-             then error $ "invalid file " ++ f ++ " was successfully decoded"
-             else error $ "valid file " ++ f ++ " could not be decoded"
+demoLength :: Int
+demoLength = 7621
 
-readValidCharFile :: FilePath -> IO ()
-readValidCharFile = readTestCharFile True
+testLength :: Int
+testLength = 79
+
+getTestFiles :: FilePath -> IO [FilePath]
+getTestFiles d =
+    do fs <- Directory.getDirectoryContents d
+       let fs' = filter (List.isPrefixOf "test") fs
+       return (map (\f -> d ++ "/" ++ f) fs')
+
+readTestCharFile :: Maybe Int -> FilePath -> IO ()
+readTestCharFile x f =
+    do l <- decodeFile f
+       let a = all Either.isRight l
+       case x of
+         Nothing ->
+             if a
+               then error $ "invalid file " ++ f ++ " was successfully decoded"
+               else return ()
+         Just n ->
+             if not a
+               then error $ "valid file " ++ f ++ " could not be decoded"
+               else
+                 if length l == n
+                   then return ()
+                   else
+                     error $ "valid file " ++ f ++ " has bad line length: " ++
+                             show (length l)
+
+readValidCharFile :: Int -> FilePath -> IO ()
+readValidCharFile n = readTestCharFile (Just n)
 
 readInvalidCharFile :: FilePath -> IO ()
-readInvalidCharFile = readTestCharFile False
+readInvalidCharFile = readTestCharFile Nothing
 
 partitionTestCharFile :: IO ()
 partitionTestCharFile =
-    do skip <- Directory.doesFileExist "test/valid/test0.txt"
+    do skip <- Directory.doesFileExist "test/valid/test061.txt"
        if skip
          then return ()
          else
-           do putStrLn "\n(splitting UTF8 test file into valid and invalid lines)"
-              bytestr <- ByteString.readFile "test/test.txt"
-              let bs = ByteString.unpack bytestr
-              let ls = List.drop 51 (readLines [] bs)
-              outputLine 0 0 ls
+           do putStrLn "\nsplitting UTF8 test file into valid and invalid lines"
+              cs <- decodeFile "test/test.txt"
+              mapM_ outputLine (filter testLine (readLines 1 cs))
   where
-    readLines :: [[Word.Word8]] -> [Word.Word8] -> [[Word.Word8]]
-    readLines acc [] = reverse acc
-    readLines acc inp =
-      let (line,inp') = List.span (not . isNewline) inp in
-      let inp'' = List.dropWhile isNewline inp' in
-      let acc' = if null line then acc else line : acc in
-      readLines acc' inp''
+    isNewline :: Either Word.Word8 Unicode.Unicode -> Bool
+    isNewline (Left _) = False
+    isNewline (Right c) = let n = Unicode.unUnicode c in n == 10 || n == 13
 
-    isNewline :: Word.Word8 -> Bool
-    isNewline b = b == 10 || b == 13
+    chopNewline :: [Either Word.Word8 Unicode.Unicode] ->
+                   [Either Word.Word8 Unicode.Unicode]
+    chopNewline [] = []
+    chopNewline (_ : cs) = cs
 
-    outputLine :: Int -> Int -> [[Word.Word8]] -> IO ()
-    outputLine _ _ [] = return ()
-    outputLine ex err (line : rest) =
-       let res = UTF8.decode line in
-       let cs = Either.rights res in
-       let (f,ex',err') =
-             if length res == length cs
-               then
-                 if length cs == 79
-                   then ("valid/test" ++ show ex, ex + 1, err)
-                   else error $ "bad line length: " ++ show (length cs)
-               else ("invalid/test" ++ show err, ex, err + 1) in
-       let bs = ByteString.pack line in
-       do ByteString.writeFile ("test/" ++ f ++ ".txt") bs
-          outputLine ex' err' rest
+    readLines :: Int -> [Either Word.Word8 Unicode.Unicode] ->
+                 [(Int,[Either Word.Word8 Unicode.Unicode])]
+    readLines _ [] = []
+    readLines lineno inp =
+        let (line,inp') = List.span (not . isNewline) inp in
+        let inp'' = chopNewline inp' in
+        (lineno,line) : readLines (lineno + 1) inp''
+
+    testLine :: (Int,[Either Word.Word8 Unicode.Unicode]) -> Bool
+    testLine (lineno,line) = not (lineno < 61 || null line)
+
+    outputLine :: (Int,[Either Word.Word8 Unicode.Unicode]) -> IO ()
+    outputLine (lineno,line) =
+        let valid = all Either.isRight line in
+        let n = show lineno in
+        let f = "test/" ++ (if valid then "valid" else "invalid") ++
+                "/test" ++ replicate (3 - length n) '0' ++ n ++ ".txt" in
+        reencodeFile f line
 
 main :: IO ()
 main =
     do partitionTestCharFile
-       readValidCharFile "demo"
-       mapM_ (\i -> readValidCharFile $ "valid/test" ++ show i)
-         ([0..139] :: [Int])
-       mapM_ (\i -> readInvalidCharFile $ "invalid/test" ++ show i)
-         ([0..70] :: [Int])
-       putStrLn "ok"
+       readValidCharFile demoLength "test/demo.txt"
+       validTestFiles <- getTestFiles "test/valid"
+       invalidTestFiles <- getTestFiles "test/invalid"
+       mapM_ (readValidCharFile testLength) validTestFiles
+       mapM_ readInvalidCharFile invalidTestFiles
+       putStrLn "all tests pass"
        return ()

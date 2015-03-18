@@ -1,1 +1,1 @@
-is a boundary test for safe UTF-8 decoders. All five characters should        |
+3.1.9  Sequence of all 64 possible continuation bytes (0x80-0xbf):            |

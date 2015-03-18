@@ -1,1 +1,1 @@
-comparable to overlong UTF-8 sequences.                                       |
+       each followed by a space character:                                    |

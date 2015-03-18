@@ -1,0 +1,1 @@
+be rejected like malformed UTF-8 sequences.                                   |

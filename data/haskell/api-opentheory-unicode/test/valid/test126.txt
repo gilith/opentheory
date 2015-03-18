@@ -1,1 +1,1 @@
-sequences, because they never represent valid ISO 10646 characters and        |
+                                                                              |

@@ -8,7 +8,8 @@ stability: provisional
 portability: portable
 -}
 module Unicode
-  ( decodeFile )
+  ( decodeFile,
+    reencodeFile )
 where
 
 import qualified Data.ByteString.Lazy as ByteString
@@ -25,3 +26,8 @@ decodeFile :: FilePath -> IO [Either Word.Word8 Unicode]
 decodeFile f =
     do b <- ByteString.readFile f
        return (UTF8.decode (ByteString.unpack b))
+
+reencodeFile :: FilePath -> [Either Word.Word8 Unicode] -> IO ()
+reencodeFile f c =
+    let b = ByteString.pack (UTF8.reencode c) in
+    ByteString.writeFile f b

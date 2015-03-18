@@ -1,1 +1,1 @@
-UTF-8 sequences and should not be treated like the ASCII NUL                  |
+3.2  Lonely start characters                                                  |
