@@ -11,7 +11,6 @@ module Main
   ( main )
 where
 
-import qualified Data.ByteString.Lazy as ByteString
 import qualified Data.List as List
 import qualified Data.Either as Either
 import qualified Data.Word as Word
@@ -19,7 +18,6 @@ import qualified System.Directory as Directory
 
 import Unicode
 import qualified OpenTheory.Unicode as Unicode
-import qualified OpenTheory.Unicode.UTF8 as UTF8
 
 demoLength :: Int
 demoLength = 7621
@@ -67,7 +65,7 @@ partitionTestCharFile =
        if skip
          then return ()
          else
-           do putStrLn "\nsplitting UTF8 test file into valid and invalid lines"
+           do putStrLn "\nsplitting UTF-8 test file into valid and invalid lines"
               cs <- decodeFile "test/test.txt"
               mapM_ outputLine (filter testLine (readLines 1 cs))
   where
