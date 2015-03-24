@@ -12,19 +12,36 @@ module Main
 where
 
 import qualified System.Environment as Environment
+import System.Console.GetOpt
 
 import qualified Unicode
 import qualified Chess
 
-parseArgs :: [String] -> String
-parseArgs a =
-    case a of
-      [f] -> f
-      _ -> error "usage: fen2s FEN"
+data Options = Options
+    {optEdge :: Chess.Edge}
+  deriving Show
+
+defaultOptions =
+  Options
+    {optEdge = Chess.SingleEdge}
+
+options :: [OptDescr (Options -> Options)]
+options =
+    [Option ['e'] ["edge"]
+       (ReqArg (\ n opts -> opts {optEdge = Chess.stringToEdge n}) "{0,1,2}")
+       "board edge width"]
+
+processOptions :: [String] -> (Options,String)
+processOptions args =
+    case getOpt Permute options args of
+      (o,[f],[]) -> (foldl (flip id) defaultOptions o, f)
+      (_,_,errs) -> error $ concat errs ++ usageInfo header options
+  where
+    header = "Usage: fen2s [OPTION...] FEN"
 
 main :: IO ()
 main =
     do args <- Environment.getArgs
-       let fen = parseArgs args
-       let edge = Chess.DoubleEdge
+       let (opts,fen) = processOptions args
+       let edge = optEdge opts
        Unicode.encode (Chess.fenToUnicode fen edge ++ Unicode.newline)

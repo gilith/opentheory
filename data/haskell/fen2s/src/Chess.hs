@@ -70,6 +70,12 @@ fenToBoard =
         then (replicate (Char.digitToInt c) Nothing ++ r, rs)
         else (Just (fenToSidePiece c) : r, rs)
 
+stringToEdge :: String -> Edge
+stringToEdge "0" = NoEdge
+stringToEdge "1" = SingleEdge
+stringToEdge "2" = DoubleEdge
+stringToEdge _ = error "edge must be one of {0,1,2}"
+
 -- http://en.wikipedia.org/wiki/Chess_symbols_in_Unicode
 sidePieceToUnicode :: (Side,Piece) -> Unicode
 sidePieceToUnicode p =
