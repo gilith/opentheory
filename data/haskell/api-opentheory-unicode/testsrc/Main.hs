@@ -27,6 +27,9 @@ demoLength = 7621
 testLength :: Int
 testLength = 79
 
+noInvalid :: [Either Word.Word8 Unicode.Unicode] -> Bool
+noInvalid = all (Either.either (const False) (const True))
+
 getTestFiles :: FilePath -> IO [FilePath]
 getTestFiles d =
     do fs <- Directory.getDirectoryContents d
@@ -36,7 +39,7 @@ getTestFiles d =
 readTestCharFile :: Maybe Int -> FilePath -> IO ()
 readTestCharFile x f =
     do l <- decodeFile f
-       let a = all Either.isRight l
+       let a = noInvalid l
        case x of
          Nothing ->
              if a
@@ -90,7 +93,7 @@ partitionTestCharFile =
 
     outputLine :: (Int,[Either Word.Word8 Unicode.Unicode]) -> IO ()
     outputLine (lineno,line) =
-        let valid = all Either.isRight line in
+        let valid = noInvalid line in
         let n = show lineno in
         let f = "test/" ++ (if valid then "valid" else "invalid") ++
                 "/test" ++ replicate (3 - length n) '0' ++ n ++ ".txt" in
