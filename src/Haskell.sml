@@ -2955,7 +2955,9 @@ in
       in
         Print.inconsistentBlock 2
           [ppDecl exp (name,parms),
-           ppCons exp cons]
+           ppCons exp cons,
+           Print.break,
+           ppSyntax "deriving (Eq,Ord)"]
     end;
 end;
 
@@ -2997,7 +2999,9 @@ in
         Print.inconsistentBlock 2
           [ppDecl exp (name,parms),
            Print.break,
-           ppIso exp (abs,(rep,repType))]
+           ppIso exp (abs,(rep,repType)),
+           Print.break,
+           ppSyntax "deriving (Eq,Ord)"]
       end;
 end;
 
