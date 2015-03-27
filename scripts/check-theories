@@ -295,6 +295,8 @@ while (my $thy = <THEORIES>) {
 
 close THEORIES;
 
+# Check all theories are up-to-date
+
 $cmd = "$opentheory list --dependency-order '~UpToDate (Requires|Includes)* Mine'";
 
 # print STDOUT "cmd = $cmd\n";
@@ -315,6 +317,10 @@ close THEORIES;
 if ($notuptodate ne '') {
   print STDOUT ("$program: not-up-to-date theories:\n" . $notuptodate);
 }
+
+# Check subtheories do not import extra theories
+
+# for f in $(opentheory list Mine) ; do t=$(opentheory list "(Requires Subtheories* - (Subtheories* | Requires)) $f") ; if test "$t" == "" ; then echo $f is ok ; else echo $f has problems: ; echo $t ; fi ; done
 
 __END__
 

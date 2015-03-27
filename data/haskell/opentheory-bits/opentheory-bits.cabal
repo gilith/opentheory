@@ -1,5 +1,5 @@
 name: opentheory-bits
-version: 1.53.7
+version: 1.53.8
 category: Formal Methods
 synopsis: Natural number to bit-list conversions
 license: MIT
@@ -18,7 +18,7 @@ library
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.181 && < 1.186,
-    opentheory-probability >= 1.11 && < 1.42
+    opentheory-probability >= 1.40 && < 1.42
 
   hs-source-dirs: src
 
