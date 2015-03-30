@@ -36,12 +36,16 @@ my $source = "data/theories";
 [ -d $source ] or die "$program: $source not a directory";
 
 ###############################################################################
-# Helper functions.
+# Global variables.
 ###############################################################################
 
 my %toplevel = ();
 my %installed = ();
 my %version = ();
+
+###############################################################################
+# Helper functions.
+###############################################################################
 
 sub is_name {
   (scalar @_ == 1) or die;
@@ -143,8 +147,6 @@ sub add_dependent {
 
 my $cmd = "$opentheory list Mine";
 
-# print STDOUT "cmd = $cmd\n";
-
 open THEORIES, "$cmd |" or
   die "$program: couldn't list installed theories: $!\n";
 
@@ -193,7 +195,9 @@ while (my $thy = <THEORIES>) {
   is_name($thy) or
     die "$program: bad theory name: $thy";
 
-  # Check this theory is useful and up to date
+###############################################################################
+# Check this theory is useful and up to date
+###############################################################################
 
   my $thydir = "$source/$thy";
 
@@ -235,7 +239,9 @@ while (my $thy = <THEORIES>) {
     }
   }
 
-  # Check the theory files
+###############################################################################
+# Check the theory files
+###############################################################################
 
   my $files1 = `$opentheory info --files $thydir/$thy.thy | sort`;
 
@@ -245,7 +251,9 @@ while (my $thy = <THEORIES>) {
     print STDOUT "$program: different files in theory $thy\n";
   }
 
-  # Check the requires: list in theory files
+###############################################################################
+# Check the requires: list in theory files
+###############################################################################
 
   $cmd = "grep '^requires: ' $thydir/$thy.thy | sort -c 2> /dev/null";
 
@@ -253,7 +261,9 @@ while (my $thy = <THEORIES>) {
     print STDOUT "$program: unsorted requires: list in theory $thy\n";
   }
 
-  # Check the show: list in theory files
+###############################################################################
+# Check the show: list in theory files
+###############################################################################
 
   $cmd = "grep '^show: ' $thydir/$thy.thy | sed 's/^show: .* as /show: /' | sort -c 2> /dev/null";
 
@@ -261,7 +271,9 @@ while (my $thy = <THEORIES>) {
     print STDOUT "$program: unsorted show: list in theory $thy\n";
   }
 
-  # Check the theorems
+###############################################################################
+# Check the theorems
+###############################################################################
 
   $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
 
@@ -269,7 +281,9 @@ while (my $thy = <THEORIES>) {
     print STDOUT "$program: unwanted/system names in theory $thy\n";
   }
 
-  # Check definitions occur only in *-def leaf theories
+###############################################################################
+# Check definitions occur only in *-def leaf theories
+###############################################################################
 
   $cmd = "$opentheory info --includes $thy | grep '^' > /dev/null";
 
@@ -277,8 +291,6 @@ while (my $thy = <THEORIES>) {
     $cmd = "$opentheory info --theory $thy | grep '^[[:digit:]]\\+ defined ' > /dev/null";
 
     my $defthy = ($thy =~ /-def$/ or $thy =~ /-witness$/);
-
-    #print STDOUT "$cmd\n";
 
     if (system ($cmd) == 0) {
       if (!$defthy) {
@@ -295,32 +307,72 @@ while (my $thy = <THEORIES>) {
 
 close THEORIES;
 
+###############################################################################
 # Check all theories are up-to-date
+###############################################################################
 
 $cmd = "$opentheory list --dependency-order '~UpToDate (Requires|Includes)* Mine'";
 
-# print STDOUT "cmd = $cmd\n";
-
 open THEORIES, "$cmd |" or
-  die "$program: couldn't list not-up-to-date theories: $!\n";
+  die "$program: couldn't list my not-up-to-date theories: $!\n";
 
-my $notuptodate = '';
+my $notuptodatetext = '';
+my %notuptodate = ();
 
 while (my $thy = <THEORIES>) {
   chomp $thy;
 
-  $notuptodate .= "  " . $thy . "\n";
+  $notuptodatetext .= "  " . $thy . "\n";
+  $notuptodate{$thy} = 1;
 }
 
 close THEORIES;
 
-if ($notuptodate ne '') {
-  print STDOUT ("$program: not-up-to-date theories:\n" . $notuptodate);
+if ($notuptodatetext ne '') {
+  print STDOUT ("$program: not-up-to-date theories:\n" . $notuptodatetext);
 }
 
-# Check subtheories do not import extra theories
+###############################################################################
+# Check subtheories do not require extra theories
+###############################################################################
 
-# for f in $(opentheory list Mine) ; do t=$(opentheory list "(Requires Subtheories* - (Subtheories* | Requires)) $f") ; if test "$t" == "" ; then echo $f is ok ; else echo $f has problems: ; echo $t ; fi ; done
+$cmd = "$opentheory list 'Mine - axiom'";
+
+open THEORIES, "$cmd |" or
+  die "$program: couldn't list my theories: $!\n";
+
+my $extrathys = "";
+
+while (my $thy = <THEORIES>) {
+  chomp $thy;
+
+  if (!exists $notuptodate{$thy}) {
+    $cmd = "$opentheory list '(Requires Subtheories* - (Subtheories* | Requires | Subtheories axiom)) $thy'";
+
+    open REQUIRED, "$cmd |" or
+      die "$program: couldn't list required theories: $!\n";
+
+    my $extra = '';
+
+    while (my $req = <REQUIRED>) {
+      chomp $req;
+
+      $extra .= "\n    " . $req;
+    }
+
+    close REQUIRED;
+
+    if ($extra ne "") {
+      $extrathys .= "  $thy has subtheories that require these extra theories:" . $extra . "\n";
+    }
+  }
+}
+
+close THEORIES;
+
+if ($extrathys ne "") {
+  print STDOUT "$program: subtheories that require more:\n" . $extrathys;
+}
 
 __END__
 
