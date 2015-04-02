@@ -1,5 +1,5 @@
 name: byte
-version: 1.113
+version: 1.118
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,12 +17,12 @@ haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 
 def {
-  package: byte-def-1.82
+  package: byte-def-1.88
 }
 
 bits {
   import: def
-  package: byte-bits-1.82
+  package: byte-bits-1.83
 }
 
 main {

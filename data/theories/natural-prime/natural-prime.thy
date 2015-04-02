@@ -1,5 +1,5 @@
 name: natural-prime
-version: 1.77
+version: 1.78
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,22 +21,22 @@ haskell-src-file: haskell.art
 haskell-test-file: haskell-test.art
 
 def {
-  package: natural-prime-def-1.43
+  package: natural-prime-def-1.44
 }
 
 thm {
   import: def
-  package: natural-prime-thm-1.52
+  package: natural-prime-thm-1.53
 }
 
 stream {
   import: thm
-  package: natural-prime-stream-1.29
+  package: natural-prime-stream-1.30
 }
 
 sieve {
   import: stream
-  package: natural-prime-sieve-1.30
+  package: natural-prime-sieve-1.31
 }
 
 main {

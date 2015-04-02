@@ -1,30 +1,26 @@
 name: word12
-version: 1.105
+version: 1.111
 description: 12-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: list
-requires: natural
+requires: base
 requires: natural-bits
 requires: natural-divides
-requires: pair
 requires: probability
 show: "Data.Bool"
 show: "Data.List"
-show: "Data.Pair"
 show: "Data.Word12"
 show: "Data.Word12.Bits"
 show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word12-def-1.82
+  package: word12-def-1.88
 }
 
 bits {
   import: def
-  package: word12-bits-1.76
+  package: word12-bits-1.77
 }
 
 main {

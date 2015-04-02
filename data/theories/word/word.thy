@@ -1,31 +1,27 @@
 name: word
-version: 1.106
+version: 1.111
 description: Parametric theory of words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: list
-requires: natural
+requires: base
 requires: natural-bits
 requires: natural-divides
-requires: pair
 requires: probability
 requires: word-witness
 show: "Data.Bool"
 show: "Data.List"
-show: "Data.Pair"
 show: "Data.Word"
 show: "Data.Word.Bits"
 show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word-def-1.71
+  package: word-def-1.74
 }
 
 bits {
   import: def
-  package: word-bits-1.94
+  package: word-bits-1.98
 }
 
 main {

@@ -1,16 +1,11 @@
 name: natural-prime-sieve
-version: 1.30
+version: 1.31
 description: The sieve of Eratosthenes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
-requires: list
-requires: natural
+requires: base
 requires: natural-divides
 requires: natural-prime-stream
-requires: pair
-requires: relation
 requires: stream
 show: "Data.Bool"
 show: "Data.List"
@@ -21,12 +16,12 @@ show: "Number.Natural"
 show: "Number.Natural.Prime.Sieve"
 
 def {
-  package: natural-prime-sieve-def-1.31
+  package: natural-prime-sieve-def-1.32
 }
 
 thm {
   import: def
-  package: natural-prime-sieve-thm-1.30
+  package: natural-prime-sieve-thm-1.31
 }
 
 main {

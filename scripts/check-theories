@@ -7,13 +7,13 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h);
+use vars qw($opt_h $opt_v);
 
 ###############################################################################
 # Process options.
 ###############################################################################
 
-getopts('h');
+getopts('hv');
 
 if ($opt_h or scalar @ARGV != 0)
 {
@@ -147,6 +147,8 @@ sub add_dependent {
 
 my $cmd = "$opentheory list Mine";
 
+if ($opt_v) { print STDOUT "$cmd\n"; }
+
 open THEORIES, "$cmd |" or
   die "$program: couldn't list installed theories: $!\n";
 
@@ -162,6 +164,8 @@ while (my $thy = <THEORIES>) {
     add_toplevel($thy);
 
     $cmd = "$opentheory list '(Requires | Includes)* $thy'";
+
+    if ($opt_v) { print STDOUT "$cmd\n"; }
 
     open SUBTHEORIES, "$cmd |" or
       die "$program: couldn't list dependent theories of $thy: $!\n";
@@ -185,6 +189,8 @@ while (my $thy = <THEORIES>) {
 close THEORIES;
 
 $cmd = "$orderthys";
+
+if ($opt_v) { print STDOUT "$cmd\n"; }
 
 open THEORIES, "$cmd |" or
   die "$program: couldn't order theories in source directory: $!\n";
@@ -257,6 +263,8 @@ while (my $thy = <THEORIES>) {
 
   $cmd = "grep '^requires: ' $thydir/$thy.thy | sort -c 2> /dev/null";
 
+  if ($opt_v) { print STDOUT "$cmd\n"; }
+
   if (system($cmd) != 0) {
     print STDOUT "$program: unsorted requires: list in theory $thy\n";
   }
@@ -266,6 +274,8 @@ while (my $thy = <THEORIES>) {
 ###############################################################################
 
   $cmd = "grep '^show: ' $thydir/$thy.thy | sed 's/^show: .* as /show: /' | sort -c 2> /dev/null";
+
+  if ($opt_v) { print STDOUT "$cmd\n"; }
 
   if (system($cmd) != 0) {
     print STDOUT "$program: unsorted show: list in theory $thy\n";
@@ -277,6 +287,8 @@ while (my $thy = <THEORIES>) {
 
   $cmd = "$opentheory info --theorems $thy | grep '^[\"]\\(HOLLight\\|Unwanted\\)[.]'";
 
+  if ($opt_v) { print STDOUT "$cmd\n"; }
+
   if (system ($cmd) == 0) {
     print STDOUT "$program: unwanted/system names in theory $thy\n";
   }
@@ -287,10 +299,14 @@ while (my $thy = <THEORIES>) {
 
   $cmd = "$opentheory info --includes $thy | grep '^' > /dev/null";
 
+  if ($opt_v) { print STDOUT "$cmd\n"; }
+
   if (system ($cmd) != 0) {
+    my $defthy = ($thy =~ /-def$/ or $thy =~ /-witness$/);
+
     $cmd = "$opentheory info --theory $thy | grep '^[[:digit:]]\\+ defined ' > /dev/null";
 
-    my $defthy = ($thy =~ /-def$/ or $thy =~ /-witness$/);
+    if ($opt_v) { print STDOUT "$cmd\n"; }
 
     if (system ($cmd) == 0) {
       if (!$defthy) {
@@ -312,6 +328,8 @@ close THEORIES;
 ###############################################################################
 
 $cmd = "$opentheory list --dependency-order '~UpToDate (Requires|Includes)* Mine'";
+
+if ($opt_v) { print STDOUT "$cmd\n"; }
 
 open THEORIES, "$cmd |" or
   die "$program: couldn't list my not-up-to-date theories: $!\n";
@@ -338,6 +356,8 @@ if ($notuptodatetext ne '') {
 
 $cmd = "$opentheory list 'Mine - axiom'";
 
+if ($opt_v) { print STDOUT "$cmd\n"; }
+
 open THEORIES, "$cmd |" or
   die "$program: couldn't list my theories: $!\n";
 
@@ -348,6 +368,8 @@ while (my $thy = <THEORIES>) {
 
   if (!exists $notuptodate{$thy}) {
     $cmd = "$opentheory list '(Requires Subtheories* - (Subtheories* | Requires | Subtheories axiom)) $thy'";
+
+    if ($opt_v) { print STDOUT "$cmd\n"; }
 
     open REQUIRED, "$cmd |" or
       die "$program: couldn't list required theories: $!\n";
@@ -384,7 +406,7 @@ check-theories - check theories against installed versions
 
 =head1 SYNOPSIS
 
-check-theories [-h]
+check-theories [-hv]
 
 =head1 ARGUMENTS
 
@@ -395,6 +417,10 @@ The recognized flags are described below:
 =item B<-h>
 
 Produce this documentation.
+
+=item B<-v>
+
+Verbose output.
 
 =back
 

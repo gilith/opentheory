@@ -1,5 +1,5 @@
 name: gfp-div-exp
-version: 1.42
+version: 1.43
 description: A GF(p) exponentiation algorithm based on division
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 
 def {
-  package: gfp-div-exp-def-1.45
+  package: gfp-div-exp-def-1.46
 }
 
 thm {
   import: def
-  package: gfp-div-exp-thm-1.42
+  package: gfp-div-exp-thm-1.43
 }
 
 main {

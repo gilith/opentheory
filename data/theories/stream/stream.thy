@@ -1,5 +1,5 @@
 name: stream
-version: 1.41
+version: 1.42
 description: Infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 
 def {
-  package: stream-def-1.35
+  package: stream-def-1.36
 }
 
 thm {
   import: def
-  package: stream-thm-1.37
+  package: stream-thm-1.38
 }
 
 main {

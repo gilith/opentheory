@@ -1,12 +1,10 @@
 name: natural-prime-stream-thm
-version: 1.27
+version: 1.28
 description: Properties of the ordered stream of all prime numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2015-02-09
-requires: bool
-requires: list
-requires: natural
+requires: base
 requires: natural-divides
 requires: natural-prime-stream-def
 requires: natural-prime-thm

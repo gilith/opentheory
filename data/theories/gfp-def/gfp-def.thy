@@ -1,17 +1,15 @@
 name: gfp-def
-version: 1.67
+version: 1.70
 description: Definition of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2014-11-01
-requires: bool
+requires: base
 requires: gfp-witness
-requires: natural
 requires: natural-bits
 requires: natural-divides
 requires: natural-prime
 show: "Data.Bool"
-show: "Data.Pair"
 show: "Number.GF(p)"
 show: "Number.Natural"
 show: "Probability.Random"
@@ -34,7 +32,7 @@ modular {
   interpret: const "Number.Modular.fromRandom" as "Number.GF(p).fromRandom"
   interpret: const "Number.Modular.modulus" as "Number.GF(p).oddprime"
   interpret: const "Number.Modular.toNatural" as "Number.GF(p).toNatural"
-  package: modular-1.85
+  package: modular-1.87
 }
 
 main {
