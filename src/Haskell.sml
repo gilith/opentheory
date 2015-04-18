@@ -1211,7 +1211,7 @@ and sharingRewriteWhereValueList values rewr =
 (* Converting theorems into source declarations.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun destData eqs th =
+fun mkData eqs th =
     let
       val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1237,7 +1237,7 @@ fun destData eqs th =
     handle Error err =>
       raise Error ("bad data theorem: " ^ err);
 
-fun destNewtype eqs int th =
+fun mkNewtype eqs int th =
     let
       val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1298,7 +1298,7 @@ fun destNewtype eqs int th =
       raise Error ("bad newtype theorem: " ^ err);
 
 local
-  fun destEqn tm =
+  fun mkEqn tm =
       let
         val (_,tm) = Term.stripForall tm
 
@@ -1317,7 +1317,7 @@ local
         ((f,arity),eqn)
       end;
 in
-  fun destValue th =
+  fun mkValue th =
       let
         val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1325,7 +1325,7 @@ in
             if TermAlphaSet.null hyp then ()
             else raise Error "hypotheses"
 
-        val (fns,eqns) = unzip (List.map destEqn (Term.stripConj concl))
+        val (fns,eqns) = unzip (List.map mkEqn (Term.stripConj concl))
 
         val (name,ty) =
             case fns of
@@ -1350,18 +1350,18 @@ in
         raise Error ("bad value theorem: " ^ err);
 end;
 
-fun destSource eqs int th =
+fun mkSource eqs int th =
     let
       val dataResult =
-          Left (destData eqs th)
+          Left (mkData eqs th)
           handle Error err => Right err
 
       val newtypeResult =
-          Left (destNewtype eqs int th)
+          Left (mkNewtype eqs int th)
           handle Error err => Right err
 
       val valueResult =
-          Left (destValue th)
+          Left (mkValue th)
           handle Error err => Right err
     in
       case (dataResult,newtypeResult,valueResult) of
@@ -1804,11 +1804,11 @@ in
       end;
 end;
 
-fun mkSource eqs int src =
+fun mkSourceModule eqs int src =
     let
       val ths = ThmSet.toList (Thms.thms src)
 
-      val src = List.map (destSource eqs int) ths
+      val src = List.map (mkSource eqs int) ths
 
       val src = groupSource int src
 
@@ -2061,7 +2061,7 @@ in
 
               val ths = derivedTheorems thy file
             in
-              mkSource eqs thyInt ths
+              mkSourceModule eqs thyInt ths
             end
 
         val tests =
