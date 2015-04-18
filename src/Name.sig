@@ -265,4 +265,6 @@ val quotedToString : name -> string
 
 val quotedParser : (char,name) Parse.parser
 
+val quotedFromString : string -> name
+
 end

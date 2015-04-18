@@ -17,6 +17,7 @@ and buildTypeTag = "build-type"
 and cabalVersionTag = "cabal-version"
 and categoryTag = "category"
 and descriptionTag = "description"
+and equalityTypeTag = "equality-type"
 and ghcOptionsTag = "ghc-options"
 and licenseTag = "license"
 and licenseFileTag = "license-file"
@@ -290,6 +291,7 @@ datatype information =
        license : string,
        licenseUrl : string,
        provenance : PackageNameVersion.nameVersion,
+       equalityTypes : NameSet.set,
        tags : PackageTag.tag list};
 
 local
@@ -303,7 +305,7 @@ local
           SOME (PackageTag.mk (PackageTag.Tag' {name = n, value = v}))
       end;
 
-  val partitionTags =
+  val partitionHaskellTags =
       let
         fun add (tag,(htags,tags)) =
             case destTag tag of
@@ -333,6 +335,8 @@ local
         in
           raise Error err
         end;
+
+  val partitionTags = PackageTag.partitionName;
 
   fun mkInfo repo pkg tags srcFile htags =
       let
@@ -413,6 +417,23 @@ local
                     version = version})
             end
 
+        val (equalityTypes,htags) =
+            let
+              val tag = PackageName.fromString equalityTypeTag
+
+              val (tyl,htags) = partitionTags tag htags
+
+              val tyl = List.map Name.quotedFromString tyl
+
+              val tys = NameSet.fromList tyl
+
+              val () =
+                  if NameSet.size tys = length tyl then ()
+                  else raise Error "duplicate haskell-equality-type information"
+            in
+              (tys,htags)
+            end
+
         val (interpretation,htags) =
             case peekTag PackageName.intExtraTag htags of
               NONE => (Interpretation.natural,htags)
@@ -437,6 +458,7 @@ local
                license = license,
                licenseUrl = licenseUrl,
                provenance = provenance,
+               equalityTypes = equalityTypes,
                tags = htags}
       in
         {information = info,
@@ -451,7 +473,7 @@ in
 
         val tags = PackageInformation.tags info
 
-        val (htags,tags) = partitionTags tags
+        val (htags,tags) = partitionHaskellTags tags
       in
         case peekTag PackageName.srcExtraTag htags of
           NONE => NONE
@@ -464,6 +486,8 @@ fun nameInformation (Information {name = x, ...}) = x;
 fun versionInformation (Information {version = x, ...}) = x;
 
 fun licenseUrlInformation (Information {licenseUrl = x, ...}) = {url = x};
+
+fun equalityTypesInformation (Information {equalityTypes = x, ...}) = x;
 
 fun exportable repo nv =
     let
@@ -795,7 +819,8 @@ datatype data =
       {name : TypeOp.typeOp,
        parameters : Name.name list,
        constructors : (Const.const * Type.ty list) list,
-       caseConst : Const.const};
+       caseConst : Const.const,
+       equalityType : bool};
 
 datatype newtype =
     Newtype of
@@ -803,7 +828,8 @@ datatype newtype =
        parameters : Name.name list,
        repType : Type.ty,
        abs : Const.const,
-       rep : Const.const};
+       rep : Const.const,
+       equalityType : bool};
 
 datatype whereValue =
     WhereValue of
@@ -863,7 +889,8 @@ in
               {name,
                parameters = _,
                constructors = cons,
-               caseConst} = data
+               caseConst,
+               equalityType = _} = data
 
         val sym = SymbolTable.empty
 
@@ -884,7 +911,8 @@ fun definedSymbolTableNewtype newtype =
              parameters = _,
              repType = _,
              abs,
-             rep} = newtype
+             rep,
+             equalityType = _} = newtype
 
       val sym = SymbolTable.empty
 
@@ -935,7 +963,8 @@ in
               {name,
                parameters = _,
                constructors = cons,
-               caseConst} = data
+               caseConst,
+               equalityType = _} = data
 
         val sym = SymbolTable.empty
 
@@ -956,7 +985,8 @@ fun symbolTableNewtype newtype =
              parameters = _,
              repType,
              abs,
-             rep} = newtype
+             rep,
+             equalityType = _} = newtype
 
       val sym = SymbolTable.empty
 
@@ -1181,7 +1211,7 @@ and sharingRewriteWhereValueList values rewr =
 (* Converting theorems into source declarations.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun destData th =
+fun destData eqs th =
     let
       val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1194,17 +1224,20 @@ fun destData th =
       val (name,parms) = Type.destOp dataType
 
       val parms = List.map Type.destVar parms
+
+      val equalityType = NameSet.member (TypeOp.name name) eqs
     in
       Data
         {name = name,
          parameters = parms,
          constructors = constructors,
-         caseConst = caseConst}
+         caseConst = caseConst,
+         equalityType = equalityType}
     end
     handle Error err =>
       raise Error ("bad data theorem: " ^ err);
 
-fun destNewtype int th =
+fun destNewtype eqs int th =
     let
       val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1250,13 +1283,16 @@ fun destNewtype int th =
             if Name.equal cn tn then ()
             else raise Error "constructor name does not match type"
           end
+
+      val equalityType = NameSet.member (TypeOp.name name) eqs
     in
       Newtype
         {name = name,
          parameters = parms,
          repType = repTy,
          abs = abs,
-         rep = rep}
+         rep = rep,
+         equalityType = equalityType}
     end
     handle Error err =>
       raise Error ("bad newtype theorem: " ^ err);
@@ -1314,14 +1350,14 @@ in
         raise Error ("bad value theorem: " ^ err);
 end;
 
-fun destSource int th =
+fun destSource eqs int th =
     let
       val dataResult =
-          Left (destData th)
+          Left (destData eqs th)
           handle Error err => Right err
 
       val newtypeResult =
-          Left (destNewtype int th)
+          Left (destNewtype eqs int th)
           handle Error err => Right err
 
       val valueResult =
@@ -1768,11 +1804,11 @@ in
       end;
 end;
 
-fun mkSource int src =
+fun mkSource eqs int src =
     let
       val ths = ThmSet.toList (Thms.thms src)
 
-      val src = List.map (destSource int) ths
+      val src = List.map (destSource eqs int) ths
 
       val src = groupSource int src
 
@@ -2021,9 +2057,11 @@ in
             let
               val file = Package.joinDirectory pkg {filename = srcFile}
 
+              val eqs = equalityTypesInformation info
+
               val ths = derivedTheorems thy file
             in
-              mkSource thyInt ths
+              mkSource eqs thyInt ths
             end
 
         val tests =
@@ -2422,6 +2460,7 @@ in
                license,
                licenseUrl = _,
                provenance,
+               equalityTypes = _,
                tags = otags} = info
 
         val name = PackageName.toString name
@@ -2944,6 +2983,13 @@ local
         [] => raise Error "datatype has no constructors"
       | c :: cs =>
         Print.program (ppCon exp "  " c :: List.map (ppCon exp "| ") cs);
+
+  fun ppEq eq =
+      Print.program
+        (if not eq then []
+         else
+           [Print.newline,
+            ppSyntax "deriving (Eq,Ord)"])
 in
   fun ppData exp data =
       let
@@ -2951,13 +2997,13 @@ in
               {name,
                parameters = parms,
                constructors = cons,
-               caseConst = _} = data
+               caseConst = _,
+               equalityType} = data
       in
         Print.inconsistentBlock 2
           [ppDecl exp (name,parms),
            ppCons exp cons,
-           Print.break,
-           ppSyntax "deriving (Eq,Ord)"]
+           ppEq equalityType]
     end;
 end;
 
@@ -2986,6 +3032,13 @@ local
          ppRep exp rep,
          Print.break,
          ppSyntax "}"];
+
+  fun ppEq eq =
+      Print.program
+        (if not eq then []
+         else
+           [Print.newline,
+            ppSyntax "deriving (Eq,Ord)"])
 in
   fun ppNewtype exp newtype =
       let
@@ -2994,14 +3047,14 @@ in
                parameters = parms,
                repType,
                abs,
-               rep} = newtype
+               rep,
+               equalityType} = newtype
       in
         Print.inconsistentBlock 2
           [ppDecl exp (name,parms),
            Print.break,
            ppIso exp (abs,(rep,repType)),
-           Print.break,
-           ppSyntax "deriving (Eq,Ord)"]
+           ppEq equalityType]
       end;
 end;
 

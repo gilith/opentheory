@@ -473,6 +473,8 @@ in
   val quotedParser = Namespace.quotedParser >> process;
 end;
 
+val quotedFromString = Parse.fromString quotedParser;
+
 val pp = Print.ppMap toNamespace Namespace.pp;
 
 val ppQuoted = Print.ppMap toNamespace Namespace.ppQuoted;
