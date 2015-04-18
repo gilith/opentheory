@@ -1,5 +1,5 @@
 name: char
-version: 1.127
+version: 1.133
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -11,7 +11,6 @@ requires: probability
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.Char"
-show: "Data.Char.UTF8"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
@@ -26,6 +25,7 @@ haskell-name: opentheory-unicode
 haskell-category: Text
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
 
 def {
   package: char-def-1.104
@@ -33,12 +33,13 @@ def {
 
 thm {
   import: def
-  package: char-thm-1.21
+  package: char-thm-1.22
 }
 
 utf8 {
   import: def
-  package: char-utf8-1.107
+  import: thm
+  package: char-utf8-1.114
 }
 
 main {

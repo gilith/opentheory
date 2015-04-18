@@ -1,5 +1,5 @@
 name: natural-order-min-max
-version: 1.39
+version: 1.40
 description: Natural number min and max functions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,7 +15,7 @@ def {
 
 thm {
   import: def
-  package: natural-order-min-max-thm-1.34
+  package: natural-order-min-max-thm-1.35
 }
 
 main {

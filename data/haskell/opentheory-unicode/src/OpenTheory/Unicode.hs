@@ -17,6 +17,7 @@ import qualified OpenTheory.Primitive.Natural as Natural
 import qualified OpenTheory.Primitive.Random as Random
 
 newtype Unicode = Unicode { unUnicode :: Natural.Natural }
+  deriving (Eq,Ord)
 
 destPlane :: Natural.Natural -> Natural.Natural
 destPlane n = Bits.shiftRight n 16
