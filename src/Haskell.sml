@@ -533,7 +533,7 @@ local
           end
       end;
 
-  fun addSymbol ths (s,sm) =
+  fun addSymbol ths (s,pm) =
       let
         val th =
             case List.filter (definesSymbol s) ths of
@@ -552,24 +552,24 @@ local
               end
             | [th] => th
             | _ :: _ :: _ =>
-              raise Bug "Haskell.mkDepends.findSymbol: multiple definitions";
+              raise Bug "Haskell.mkDepends.addSymbol: multiple definitions";
 
         val n = PackageNameVersion.name (PackageTheorems.nameVersion th)
 
-        val ss = Option.getOpt (PackageNameMap.peek sm n, SymbolSet.empty)
+        val ss = Option.getOpt (PackageNameMap.peek pm n, SymbolSet.empty)
 
         val ss = SymbolSet.add ss s
       in
-        PackageNameMap.insert sm (n,ss)
+        PackageNameMap.insert pm (n,ss)
       end;
 
-  fun interpretSymbol repo sm (th,(nvs,syms)) =
+  fun interpretSymbol repo eqs pm (th,(nvs,syms)) =
       let
         val nv = PackageTheorems.nameVersion th
 
         val n = PackageNameVersion.name nv
       in
-        case PackageNameMap.peek sm n of
+        case PackageNameMap.peek pm n of
           NONE => (nvs,syms)
         | SOME ss =>
           let
@@ -593,8 +593,6 @@ local
                     raise Error err
                   end
 
-            val hn = nameInformation info
-
             fun interpret s =
                 case s of
                   Symbol.TypeOp t =>
@@ -610,9 +608,44 @@ local
                     Interpretation.interpretConst int n
                   end
 
+            fun addEq (s,ns) =
+                case s of
+                  Symbol.Const c => ns
+                | Symbol.TypeOp t =>
+                  let
+                    val n = TypeOp.name t
+                  in
+                    if NameSet.member n eqs then NameSet.add ns n else ns
+                  end
+
+            val hn = nameInformation info
+
             val sm = SymbolSet.map interpret ss
+
+            val ns = SymbolSet.foldl addEq NameSet.empty ss
+
+            val () =
+                let
+                  val heqs = equalityTypesInformation info
+                in
+                  case NameSet.toList (NameSet.difference ns heqs) of
+                    [] => ()
+                  | nl =>
+                    let
+                      fun n2s n = "\n  " ^ Name.quotedToString n
+
+                      val err =
+                          "in required theory " ^
+                          PackageNameVersion.toString nv ^
+                          " the following types need to be declared as " ^
+                          "haskell-" ^ equalityTypeTag ^
+                          String.concat (List.map n2s nl)
+                    in
+                      raise Error err
+                    end
+                end
           in
-            (nv :: nvs, PackageNameMap.insert syms (n,(hn,sm)))
+            (nv :: nvs, PackageNameMap.insert syms (n,(hn,sm,ns)))
           end
       end;
 
@@ -650,29 +683,30 @@ local
 
         val n = PackageNameVersion.name nv
 
-        val (hn,sm) =
+        val (hn,sm,ns) =
             case PackageNameMap.peek sym n of
               NONE => raise Bug "Haskell.mkDepends.checkSymbol"
             | SOME x => x
       in
         PackageName.equal (nameInformation info) hn andalso
-        SymbolMap.all check sm
+        SymbolMap.all check sm andalso
+        NameSet.subset ns (equalityTypesInformation info)
       end;
 
-  fun mkSymbol repo ths sym =
+  fun mkSymbol repo ths sym eqs =
       let
         val sym =
             SymbolSet.difference
               (SymbolTable.symbols (SymbolTable.undefined sym))
               SymbolSet.primitives
 
-        val sm = PackageNameMap.new ()
+        val pm = PackageNameMap.new ()
 
-        val sm = SymbolSet.foldl (addSymbol ths) sm sym
+        val pm = SymbolSet.foldl (addSymbol ths) pm sym
 
         val syms = PackageNameMap.new ()
       in
-        List.foldl (interpretSymbol repo sm) ([],syms) (List.rev ths)
+        List.foldl (interpretSymbol repo eqs pm) ([],syms) (List.rev ths)
       end;
 
   fun destSymbol sym =
@@ -689,7 +723,7 @@ local
               rw :: rws
             end
 
-        fun addName (_,(_,sm),rws) = SymbolMap.foldr addSym rws sm
+        fun addName (_,(_,sm,_),rws) = SymbolMap.foldr addSym rws sm
 
         val rws = PackageNameMap.foldr addName [] sym
       in
@@ -773,7 +807,7 @@ local
 
               val hn =
                   case PackageNameMap.peek sym n of
-                    SOME (x,_) => x
+                    SOME (x,_,_) => x
                   | NONE => raise Bug "Haskell.mkDepends.destOldest.mk: sym"
 
               val old =
@@ -790,7 +824,7 @@ local
         List.map mk
       end;
 in
-  fun mkDepends repo reqs thy sym =
+  fun mkDepends repo reqs thy sym eqs =
       let
         val ths =
             case Repository.requiresTheorems repo reqs of
@@ -799,7 +833,7 @@ in
 
         val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
 
-        val (nvs,sym) = mkSymbol repo ths sym
+        val (nvs,sym) = mkSymbol repo ths sym eqs
 
         val oldest = mkOldest repo sym (Queue.fromList nvs) vs
 
@@ -872,6 +906,22 @@ fun symbolSource s =
     | ValueSource x => symbolValue x;
 
 fun nameSource s = Symbol.name (symbolSource s);
+
+fun typeOpSource s =
+    case s of
+      DataSource (Data {name,...}) => SOME name
+    | NewtypeSource (Newtype {name,...}) => SOME name
+    | ValueSource _ => NONE;
+
+fun findTypeOpSourceList n =
+    let
+      fun find s =
+          case typeOpSource s of
+            NONE => NONE
+          | SOME t => if Name.equal (TypeOp.name t) n then SOME s else NONE
+    in
+      first find
+    end;
 
 (* All defined symbols in source declarations *)
 
@@ -1397,6 +1447,20 @@ fun symbolTableModule module =
       val syml = List.map symbolTableModule submodules
     in
       SymbolTable.unionList (sym :: syml)
+    end;
+
+fun findTypeDeclarationModule module n =
+    let
+      fun find m =
+          let
+            val Module {namespace = _, source = sl, submodules = ml} = m
+          in
+            case findTypeOpSourceList n sl of
+              NONE => first find ml
+            | s => s
+          end
+    in
+      find module
     end;
 
 local
@@ -2021,6 +2085,76 @@ local
       in
         Article.thms art
       end;
+
+  fun requiredEqualityTypes thy src eqs =
+      let
+        val sym = Thms.symbol (Article.thms (Theory.article thy))
+
+        fun add (n,ts) =
+            let
+              val () =
+                  case SymbolTable.peekTypeOp sym n of
+                    NONE =>
+                    let
+                      val err =
+                          "unknown type operator " ^ Name.toString n ^
+                          " cannot be declared as a haskell-" ^ equalityTypeTag
+                    in
+                      raise Error err
+                    end
+                  | SOME t =>
+                    if not (TypeOp.isUndef t) then ()
+                    else
+                      let
+                        val err =
+                            "external type operator " ^ Name.toString n ^
+                            " cannot be declared as a haskell-" ^
+                            equalityTypeTag
+                      in
+                        raise Error err
+                      end
+            in
+              case findTypeDeclarationModule src n of
+                NONE => ts
+              | SOME s =>
+                let
+                  val tab = symbolTableSource s
+                in
+                  TypeOpSet.union (SymbolTable.typeOps tab) ts
+                end
+            end
+
+        fun diff (t,ns) =
+            let
+              val n = TypeOp.name t
+            in
+              if TypeOp.isUndef t then
+                if not (TypeOpSet.member t TypeOpSet.primitives) then
+                  NameSet.add ns n
+                else if TypeOp.isBool t then ns
+                else
+                  let
+                    val err =
+                        "primitive type operator " ^ Name.toString n ^
+                        " is not haskell-" ^ equalityTypeTag
+                  in
+                    raise Error err
+                  end
+              else if NameSet.member n eqs then ns
+              else
+                let
+                  val err =
+                      "defined type operator " ^ Name.toString n ^
+                      " must be declared as haskell-" ^ equalityTypeTag
+                in
+                  raise Error err
+                end
+            end
+
+        val ts = NameSet.foldl add TypeOpSet.empty eqs
+      in
+        TypeOpSet.foldl diff NameSet.empty ts
+      end;
 in
   fun fromPackage repo namever =
       let
@@ -2053,15 +2187,15 @@ in
 
         val thy = packageTheory repo pkg
 
+        val eqTys = equalityTypesInformation info
+
         val src =
             let
               val file = Package.joinDirectory pkg {filename = srcFile}
 
-              val eqs = equalityTypesInformation info
-
               val ths = derivedTheorems thy file
             in
-              mkSourceModule eqs thyInt ths
+              mkSourceModule eqTys thyInt ths
             end
 
         val tests =
@@ -2086,12 +2220,14 @@ in
             let
               val reqs = Package.requires pkg
 
+              val eqs = requiredEqualityTypes thy src eqTys
+
               val sym =
                   SymbolTable.union
                     (symbolTableModule src)
                     (symbolTableTests tests)
             in
-              mkDepends repo reqs thy sym
+              mkDepends repo reqs thy sym eqs
             end
 
         val int =
