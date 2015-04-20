@@ -539,6 +539,12 @@ datatype depend =
        oldest : PackageVersion.version,
        newest : PackageVersion.version};
 
+datatype packageDependencyRequirements =
+    PackageDependencyRequirements of
+      {haskellName : PackageName.name,
+       definedSymbolNames : Name.name SymbolMap.map,
+       equalityTypes : NameSet.set};
+
 local
   fun definesSymbol s th =
       let
@@ -702,7 +708,10 @@ local
                       raise Error err
                     end
             in
-              (n,sm,ns)
+              PackageDependencyRequirements
+                {haskellName = n,
+                 definedSymbolNames = sm,
+                 equalityTypes = ns}
             end
       in
         PackageNameMap.transform mkEq
@@ -767,14 +776,17 @@ local
 
         val n = PackageNameVersion.name nv
 
-        val (hn,sm,ns) =
+        val PackageDependencyRequirements
+              {haskellName,
+               definedSymbolNames,
+               equalityTypes} =
             case PackageNameMap.peek sym n of
               NONE => raise Bug "Haskell.mkDepends.checkSymbol"
             | SOME x => x
       in
-        PackageName.equal (nameInformation info) hn andalso
-        SymbolMap.all check sm andalso
-        NameSet.subset ns (equalityTypesInformation info)
+        PackageName.equal (nameInformation info) haskellName andalso
+        SymbolMap.all check definedSymbolNames andalso
+        NameSet.subset equalityTypes (equalityTypesInformation info)
       end;
 
   fun recordOldest oldest nv =
@@ -852,9 +864,9 @@ local
               val n = PackageNameVersion.name nv
               and new = PackageNameVersion.version nv
 
-              val hn =
+              val PackageDependencyRequirements {haskellName,...} =
                   case PackageNameMap.peek sym n of
-                    SOME (x,_,_) => x
+                    SOME x => x
                   | NONE => raise Bug "Haskell.mkDepends.destOldest.mk: sym"
 
               val old =
@@ -863,7 +875,7 @@ local
                   | NONE => raise Bug "Haskell.mkDepends.destOldest.mk: old"
             in
               Depend
-                {name = hn,
+                {name = haskellName,
                  oldest = old,
                  newest = new}
             end
