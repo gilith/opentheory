@@ -510,6 +510,103 @@ datatype depend =
        newest : PackageVersion.version};
 
 local
+  fun checkEqualityTypes sym =
+      let
+        fun check n =
+            case SymbolTable.peekTypeOp sym n of
+              NONE =>
+              let
+                val err =
+                    "unknown type operator " ^ Name.toString n ^
+                    " cannot be declared as a haskell-" ^ equalityTypeTag
+              in
+                raise Error err
+              end
+            | SOME t =>
+              if not (TypeOp.isUndef t) then ()
+              else
+                let
+                  val err =
+                      "external type operator " ^ Name.toString n ^
+                      " cannot be declared as a haskell-" ^
+                      equalityTypeTag
+                in
+                  raise Error err
+                end
+      in
+        List.app check
+      end;
+
+  fun requiredEqualityTypes thy src eqs =
+      let
+        val sym = Thms.symbol (Article.thms (Theory.article thy))
+
+        fun add (n,ts) =
+            let
+              val () =
+                  case SymbolTable.peekTypeOp sym n of
+                    NONE =>
+                    let
+                      val err =
+                          "unknown type operator " ^ Name.toString n ^
+                          " cannot be declared as a haskell-" ^ equalityTypeTag
+                    in
+                      raise Error err
+                    end
+                  | SOME t =>
+                    if not (TypeOp.isUndef t) then ()
+                    else
+                      let
+                        val err =
+                            "external type operator " ^ Name.toString n ^
+                            " cannot be declared as a haskell-" ^
+                            equalityTypeTag
+                      in
+                        raise Error err
+                      end
+            in
+              case findTypeDeclarationModule src n of
+                NONE => ts
+              | SOME s =>
+                let
+                  val tab = symbolTableSource s
+                in
+                  TypeOpSet.union (SymbolTable.typeOps tab) ts
+                end
+            end
+
+        fun diff (t,ns) =
+            let
+              val n = TypeOp.name t
+            in
+              if TypeOp.isUndef t then
+                if not (TypeOpSet.member t TypeOpSet.primitives) then
+                  NameSet.add ns n
+                else if TypeOp.isBool t then ns
+                else
+                  let
+                    val err =
+                        "primitive type operator " ^ Name.toString n ^
+                        " is not haskell-" ^ equalityTypeTag
+                  in
+                    raise Error err
+                  end
+              else if NameSet.member n eqs then ns
+              else
+                let
+                  val err =
+                      "defined type operator " ^ Name.toString n ^
+                      " must be declared as haskell-" ^ equalityTypeTag
+                in
+                  raise Error err
+                end
+            end
+
+        val ts = NameSet.foldl add TypeOpSet.empty eqs
+      in
+        TypeOpSet.foldl diff NameSet.empty ts
+      end;
+
   fun definesSymbol s th =
       let
         val tab = PackageTheorems.symbol th
@@ -649,6 +746,182 @@ local
           end
       end;
 
+  fun interpretationSymbol sym =
+      let
+        fun addSym (s,n,rws) =
+            let
+              val rw =
+                  case s of
+                    Symbol.TypeOp t =>
+                    Interpretation.TypeOpRewrite (TypeOp.name t, n)
+                  | Symbol.Const c =>
+                    Interpretation.ConstRewrite (Const.name c, n)
+            in
+              rw :: rws
+            end
+
+        fun addName (_,(_,sm,_),rws) = SymbolMap.foldr addSym rws sm
+
+        val rws = PackageNameMap.foldr addName [] sym
+      in
+        Interpretation.fromRewriteList rws
+      end;
+
+  fun equalitySymbol eqs =
+      let
+        fun addEq (s,ns) =
+            case s of
+              Symbol.Const c => ns
+            | Symbol.TypeOp t =>
+              let
+                val n = TypeOp.name t
+              in
+                if NameSet.member n eqs then NameSet.add ns n else ns
+              end
+
+        fun mkEq (n,sm,neqs) =
+            let
+              val ns = SymbolSet.foldl addEq NameSet.empty sm
+
+              val () =
+                  let
+                    val heqs = equalityTypesInformation info
+                in
+                  case NameSet.toList (NameSet.difference ns heqs) of
+                    [] => ()
+                  | nl =>
+                    let
+                      fun n2s n = "\n  " ^ Name.quotedToString n
+
+                      val err =
+                          "in required theory " ^
+                          PackageNameVersion.toString nv ^
+                          " the following types need to be declared as " ^
+                          "haskell-" ^ equalityTypeTag ^
+                          String.concat (List.map n2s nl)
+                    in
+                      raise Error err
+                    end
+                end
+
+        val nv = PackageTheorems.nameVersion th
+
+        val n = PackageNameVersion.name nv
+      in
+        case PackageNameMap.peek pm n of
+          NONE => (nvs,syms)
+        | SOME ss =>
+          let
+            val pkg =
+                case Repository.peek repo nv of
+                  SOME p => p
+                | NONE => raise Bug "Haskell.mkDepends.interpretSymbol.pkg"
+
+            val {information = info,
+                 srcFilename = _,
+                 interpretation = int,
+                 testFilename = _} =
+                case mkInformation repo pkg of
+                  SOME x => x
+                | NONE =>
+                  let
+                    val err =
+                        "no haskell-src-file information in required theory " ^
+                        PackageNameVersion.toString nv
+                  in
+                    raise Error err
+                  end
+
+            fun interpret s =
+                case s of
+                  Symbol.TypeOp t =>
+                  let
+                    val n = TypeOp.name t
+                  in
+                    Interpretation.interpretTypeOp int n
+                  end
+                | Symbol.Const c =>
+                  let
+                    val n = Const.name c
+                  in
+                    Interpretation.interpretConst int n
+                  end
+
+            fun addEq (s,ns) =
+                case s of
+                  Symbol.Const c => ns
+                | Symbol.TypeOp t =>
+                  let
+                    val n = TypeOp.name t
+                  in
+                    if NameSet.member n eqs then NameSet.add ns n else ns
+                  end
+
+            val hn = nameInformation info
+
+            val sm = SymbolSet.map interpret ss
+
+            val ns = SymbolSet.foldl addEq NameSet.empty ss
+
+            val () =
+                let
+                  val heqs = equalityTypesInformation info
+                in
+                  case NameSet.toList (NameSet.difference ns heqs) of
+                    [] => ()
+                  | nl =>
+                    let
+                      fun n2s n = "\n  " ^ Name.quotedToString n
+
+                      val err =
+                          "in required theory " ^
+                          PackageNameVersion.toString nv ^
+                          " the following types need to be declared as " ^
+                          "haskell-" ^ equalityTypeTag ^
+                          String.concat (List.map n2s nl)
+                    in
+                      raise Error err
+                    end
+                end
+          in
+            (nv :: nvs, PackageNameMap.insert syms (n,(hn,sm,ns)))
+          end
+      in
+        PackageNameMap.transform mkEq
+      end;
+
+  fun mkSymbol repo ths eqs src tests =
+      let
+        val sym =
+            SymbolTable.union
+              (symbolTableModule src)
+              (symbolTableTests tests)
+
+        val () = checkEqualityTypes sym eqs
+
+        val sym =
+            SymbolSet.difference
+              (SymbolTable.symbols (SymbolTable.undefined sym))
+              SymbolSet.primitives
+
+        val pm = PackageNameMap.new ()
+
+        val pm = SymbolSet.foldl (addSymbol ths) pm sym
+
+        val syms = PackageNameMap.new ()
+
+        val (nvs,syms) =
+            List.foldl (interpretSymbol repo pm) ([],syms) (List.rev ths)
+
+        val int = interpretationSymbol syms
+
+        val eqs = requiredEqualityTypes eqs src tests int
+
+        val syms = equalitySymbol eqs syms
+      in
+        (nvs,syms,int)
+      end;
+
   fun checkSymbol sym th info int =
       let
         val tab = PackageTheorems.symbol th
@@ -691,43 +964,6 @@ local
         PackageName.equal (nameInformation info) hn andalso
         SymbolMap.all check sm andalso
         NameSet.subset ns (equalityTypesInformation info)
-      end;
-
-  fun mkSymbol repo ths sym eqs =
-      let
-        val sym =
-            SymbolSet.difference
-              (SymbolTable.symbols (SymbolTable.undefined sym))
-              SymbolSet.primitives
-
-        val pm = PackageNameMap.new ()
-
-        val pm = SymbolSet.foldl (addSymbol ths) pm sym
-
-        val syms = PackageNameMap.new ()
-      in
-        List.foldl (interpretSymbol repo eqs pm) ([],syms) (List.rev ths)
-      end;
-
-  fun destSymbol sym =
-      let
-        fun addSym (s,n,rws) =
-            let
-              val rw =
-                  case s of
-                    Symbol.TypeOp t =>
-                    Interpretation.TypeOpRewrite (TypeOp.name t, n)
-                  | Symbol.Const c =>
-                    Interpretation.ConstRewrite (Const.name c, n)
-            in
-              rw :: rws
-            end
-
-        fun addName (_,(_,sm,_),rws) = SymbolMap.foldr addSym rws sm
-
-        val rws = PackageNameMap.foldr addName [] sym
-      in
-        Interpretation.fromRewriteList rws
       end;
 
   fun recordOldest oldest nv =
@@ -824,7 +1060,7 @@ local
         List.map mk
       end;
 in
-  fun mkDepends repo reqs thy sym eqs =
+  fun mkDepends repo reqs thy eqs src tests =
       let
         val ths =
             case Repository.requiresTheorems repo reqs of
@@ -833,12 +1069,11 @@ in
 
         val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
 
-        val (nvs,sym) = mkSymbol repo ths sym eqs
+        val (nvs,sym,int) = mkSymbol repo ths eqs src tests
 
         val oldest = mkOldest repo sym (Queue.fromList nvs) vs
 
         val deps = destOldest sym oldest nvs
-        and int = destSymbol sym
       in
         (deps,int)
       end;
@@ -2085,76 +2320,6 @@ local
       in
         Article.thms art
       end;
-
-  fun requiredEqualityTypes thy src eqs =
-      let
-        val sym = Thms.symbol (Article.thms (Theory.article thy))
-
-        fun add (n,ts) =
-            let
-              val () =
-                  case SymbolTable.peekTypeOp sym n of
-                    NONE =>
-                    let
-                      val err =
-                          "unknown type operator " ^ Name.toString n ^
-                          " cannot be declared as a haskell-" ^ equalityTypeTag
-                    in
-                      raise Error err
-                    end
-                  | SOME t =>
-                    if not (TypeOp.isUndef t) then ()
-                    else
-                      let
-                        val err =
-                            "external type operator " ^ Name.toString n ^
-                            " cannot be declared as a haskell-" ^
-                            equalityTypeTag
-                      in
-                        raise Error err
-                      end
-            in
-              case findTypeDeclarationModule src n of
-                NONE => ts
-              | SOME s =>
-                let
-                  val tab = symbolTableSource s
-                in
-                  TypeOpSet.union (SymbolTable.typeOps tab) ts
-                end
-            end
-
-        fun diff (t,ns) =
-            let
-              val n = TypeOp.name t
-            in
-              if TypeOp.isUndef t then
-                if not (TypeOpSet.member t TypeOpSet.primitives) then
-                  NameSet.add ns n
-                else if TypeOp.isBool t then ns
-                else
-                  let
-                    val err =
-                        "primitive type operator " ^ Name.toString n ^
-                        " is not haskell-" ^ equalityTypeTag
-                  in
-                    raise Error err
-                  end
-              else if NameSet.member n eqs then ns
-              else
-                let
-                  val err =
-                      "defined type operator " ^ Name.toString n ^
-                      " must be declared as haskell-" ^ equalityTypeTag
-                in
-                  raise Error err
-                end
-            end
-
-        val ts = NameSet.foldl add TypeOpSet.empty eqs
-      in
-        TypeOpSet.foldl diff NameSet.empty ts
-      end;
 in
   fun fromPackage repo namever =
       let
@@ -2187,7 +2352,7 @@ in
 
         val thy = packageTheory repo pkg
 
-        val eqTys = equalityTypesInformation info
+        val eqs = equalityTypesInformation info
 
         val src =
             let
@@ -2195,7 +2360,7 @@ in
 
               val ths = derivedTheorems thy file
             in
-              mkSourceModule eqTys thyInt ths
+              mkSourceModule eqs thyInt ths
             end
 
         val tests =
@@ -2219,15 +2384,8 @@ in
         val (deps,depInt) =
             let
               val reqs = Package.requires pkg
-
-              val eqs = requiredEqualityTypes thy src eqTys
-
-              val sym =
-                  SymbolTable.union
-                    (symbolTableModule src)
-                    (symbolTableTests tests)
             in
-              mkDepends repo reqs thy sym eqs
+              mkDepends repo reqs thy eqs src tests
             end
 
         val int =
