@@ -1,5 +1,5 @@
 name: byte-def
-version: 1.90
+version: 1.91
 description: Definition of bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -32,10 +32,10 @@ word {
   interpret: const "Data.Word.and" as "Data.Byte.and"
   interpret: const "Data.Word.bit" as "Data.Byte.bit"
   interpret: const "Data.Word.fromNatural" as "Data.Byte.fromNatural"
-  interpret: const "Data.Word.fromRandom" as "Data.Byte.fromRandom"
   interpret: const "Data.Word.modulus" as "Data.Byte.modulus"
   interpret: const "Data.Word.not" as "Data.Byte.not"
   interpret: const "Data.Word.or" as "Data.Byte.or"
+  interpret: const "Data.Word.random" as "Data.Byte.random"
   interpret: const "Data.Word.shiftLeft" as "Data.Byte.shiftLeft"
   interpret: const "Data.Word.shiftRight" as "Data.Byte.shiftRight"
   interpret: const "Data.Word.toNatural" as "Data.Byte.toNatural"
@@ -44,7 +44,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Byte.Bits.fromByte"
   interpret: const "Data.Word.Bits.normal" as "Data.Byte.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Byte.Bits.toByte"
-  package: word-1.113
+  package: word-1.114
 }
 
 main {

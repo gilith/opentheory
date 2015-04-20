@@ -1,9 +1,9 @@
 name: probability-thm
-version: 1.17
+version: 1.18
 description: Properties of probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2015-02-19
+provenance: HOL Light theory extracted on 2015-04-18
 requires: base
 requires: probability-def
 show: "Data.Bool"

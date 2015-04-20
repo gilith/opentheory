@@ -16,7 +16,6 @@ import qualified OpenTheory.Primitive.Natural as Natural
 
 newtype Parser a b =
   Parser { unParser :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a) }
-  deriving (Eq,Ord)
 
 token :: (a -> Maybe b) -> Parser a b
 token f =

@@ -1,5 +1,5 @@
 name: parser
-version: 1.147
+version: 1.149
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -20,9 +20,10 @@ show: "Relation"
 haskell-category: Parsing
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
+haskell-equality-type: "Parser.Stream.stream"
 
 stream {
-  package: parser-stream-1.106
+  package: parser-stream-1.107
 }
 
 comb {

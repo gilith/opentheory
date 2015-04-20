@@ -25,5 +25,5 @@ const "Number.Natural.Bits.width" as "OpenTheory.Natural.Bits.width"
 
 # OpenTheory.Natural.Uniform
 
-const "Number.Natural.Uniform.fromRandom" as "OpenTheory.Natural.Uniform.fromRandom"
-const "Number.Natural.Uniform.fromRandom.loop" as "OpenTheory.Natural.Uniform.fromRandom.loop"
+const "Number.Natural.Uniform.random" as "OpenTheory.Natural.Uniform.random"
+const "Number.Natural.Uniform.random.loop" as "OpenTheory.Natural.Uniform.random.loop"

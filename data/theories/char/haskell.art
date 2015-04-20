@@ -2816,7 +2816,7 @@ var
 def
 30
 remove
-"Data.Char.fromRandom"
+"Data.Char.random"
 const
 1
 ref
@@ -3022,7 +3022,7 @@ appTerm
 appTerm
 appTerm
 absTerm
-"Number.Natural.Uniform.fromRandom"
+"Number.Natural.Uniform.random"
 const
 1
 ref

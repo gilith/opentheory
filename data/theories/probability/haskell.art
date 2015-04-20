@@ -52,7 +52,7 @@ cons
 cons
 opType
 constTerm
-"Number.Natural.Geometric.fromRandom"
+"Number.Natural.Geometric.random"
 const
 5
 ref
@@ -60,7 +60,7 @@ constTerm
 8
 def
 appTerm
-"Number.Natural.Geometric.fromRandom.loop"
+"Number.Natural.Geometric.random.loop"
 const
 1
 ref
@@ -140,7 +140,7 @@ const
 ref
 constTerm
 appTerm
-"Data.List.fromRandom"
+"Data.List.random"
 const
 14
 def
@@ -266,7 +266,7 @@ opType
 constTerm
 27
 def
-"Data.List.Geometric.fromRandom"
+"Data.List.Geometric.random"
 const
 1
 ref

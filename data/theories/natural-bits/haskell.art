@@ -680,7 +680,7 @@ cons
 cons
 opType
 constTerm
-"Number.Natural.Uniform.fromRandom"
+"Number.Natural.Uniform.random"
 const
 1
 ref
@@ -711,7 +711,7 @@ ref
 var
 61
 def
-"Number.Natural.Uniform.fromRandom.loop"
+"Number.Natural.Uniform.random.loop"
 const
 1
 ref

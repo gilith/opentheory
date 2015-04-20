@@ -179,7 +179,7 @@ constTerm
 26
 def
 appTerm
-"Data.List.fromRandom"
+"Data.List.random"
 const
 27
 def
@@ -9722,7 +9722,7 @@ ref
 ref
 18
 ref
-"Number.Natural.Geometric.fromRandom.loop"
+"Number.Natural.Geometric.random.loop"
 const
 1
 ref

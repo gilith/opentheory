@@ -14,7 +14,7 @@ const "Data.Byte.<" as "<"
 
 # OpenTheory.Byte
 
-const "Data.Byte.fromRandom" as "OpenTheory.Byte.fromRandom"
+const "Data.Byte.random" as "OpenTheory.Byte.random"
 const "Data.Byte.modulus" as "OpenTheory.Byte.modulus"
 const "Data.Byte.width" as "OpenTheory.Byte.width"
 

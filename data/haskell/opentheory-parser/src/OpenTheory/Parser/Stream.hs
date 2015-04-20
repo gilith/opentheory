@@ -16,7 +16,8 @@ import qualified OpenTheory.Primitive.Natural as Natural
 data Stream a =
     Error
   | Eof
-  | Cons a (Stream a) deriving (Eq,Ord)
+  | Cons a (Stream a)
+  deriving (Eq,Ord)
 
 append :: [a] -> Stream a -> Stream a
 append [] xs = xs

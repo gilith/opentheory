@@ -1,5 +1,5 @@
 name: natural-bits
-version: 1.59
+version: 1.60
 description: Natural number to bit-list conversions
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,12 +16,12 @@ haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 
 def {
-  package: natural-bits-def-1.30
+  package: natural-bits-def-1.31
 }
 
 thm {
   import: def
-  package: natural-bits-thm-1.51
+  package: natural-bits-thm-1.52
 }
 
 main {

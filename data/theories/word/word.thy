@@ -1,5 +1,5 @@
 name: word
-version: 1.113
+version: 1.114
 description: Parametric theory of words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 
 def {
-  package: word-def-1.74
+  package: word-def-1.75
 }
 
 bits {

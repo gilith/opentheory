@@ -1,5 +1,5 @@
 name: word16-def
-version: 1.90
+version: 1.91
 description: Definition of 16-bit words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -32,10 +32,10 @@ word {
   interpret: const "Data.Word.and" as "Data.Word16.and"
   interpret: const "Data.Word.bit" as "Data.Word16.bit"
   interpret: const "Data.Word.fromNatural" as "Data.Word16.fromNatural"
-  interpret: const "Data.Word.fromRandom" as "Data.Word16.fromRandom"
   interpret: const "Data.Word.modulus" as "Data.Word16.modulus"
   interpret: const "Data.Word.not" as "Data.Word16.not"
   interpret: const "Data.Word.or" as "Data.Word16.or"
+  interpret: const "Data.Word.random" as "Data.Word16.random"
   interpret: const "Data.Word.shiftLeft" as "Data.Word16.shiftLeft"
   interpret: const "Data.Word.shiftRight" as "Data.Word16.shiftRight"
   interpret: const "Data.Word.toNatural" as "Data.Word16.toNatural"
@@ -44,7 +44,7 @@ word {
   interpret: const "Data.Word.Bits.fromWord" as "Data.Word16.Bits.fromWord"
   interpret: const "Data.Word.Bits.normal" as "Data.Word16.Bits.normal"
   interpret: const "Data.Word.Bits.toWord" as "Data.Word16.Bits.toWord"
-  package: word-1.113
+  package: word-1.114
 }
 
 main {

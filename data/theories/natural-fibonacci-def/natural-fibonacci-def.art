@@ -522,7 +522,7 @@ refl
 ref
 25
 ref
-"_29858"
+"_30069"
 1
 ref
 var
@@ -2983,7 +2983,7 @@ refl
 ref
 25
 ref
-"_29711"
+"_29922"
 216
 ref
 var
@@ -3129,7 +3129,7 @@ nil
 ref
 271
 ref
-"_29710"
+"_29921"
 268
 ref
 var
@@ -4997,19 +4997,19 @@ remove
 178
 ref
 subst
-"_29707"
+"_29918"
 201
 ref
 var
 415
 def
-"_29708"
+"_29919"
 201
 ref
 var
 416
 def
-"_29709"
+"_29920"
 10
 ref
 var
@@ -5625,7 +5625,7 @@ constTerm
 441
 def
 "Number.Natural.Fibonacci.encode"
-"_29853"
+"_30064"
 201
 ref
 var
@@ -7928,7 +7928,7 @@ ref
 ref
 503
 remove
-"_29747"
+"_29958"
 495
 remove
 var
@@ -8056,7 +8056,7 @@ def
 betaConv
 625
 ref
-"_29745"
+"_29956"
 488
 ref
 var
@@ -8580,7 +8580,7 @@ remove
 betaConv
 14
 ref
-"_29740"
+"_29951"
 201
 ref
 var
@@ -8660,7 +8660,7 @@ refl
 def
 208
 ref
-"_29735"
+"_29946"
 486
 ref
 var
@@ -12604,7 +12604,7 @@ appThm
 ref
 208
 ref
-"_29729"
+"_29940"
 483
 ref
 var
@@ -13087,7 +13087,7 @@ ref
 ref
 521
 remove
-"_29777"
+"_29988"
 518
 remove
 var
@@ -13215,7 +13215,7 @@ def
 betaConv
 926
 ref
-"_29775"
+"_29986"
 488
 ref
 var
@@ -13630,7 +13630,7 @@ remove
 betaConv
 523
 ref
-"_29770"
+"_29981"
 201
 ref
 var
@@ -13853,7 +13853,7 @@ opType
 constTerm
 983
 def
-"_29769"
+"_29980"
 201
 ref
 var
@@ -14009,7 +14009,7 @@ opType
 constTerm
 991
 def
-"_29768"
+"_29979"
 201
 ref
 var
@@ -14149,7 +14149,7 @@ opType
 constTerm
 1000
 def
-"_29767"
+"_29978"
 10
 ref
 var
@@ -14618,7 +14618,7 @@ refl
 def
 208
 ref
-"_29731"
+"_29942"
 486
 ref
 var
@@ -14687,7 +14687,7 @@ refl
 def
 208
 ref
-"_29733"
+"_29944"
 486
 remove
 var
@@ -14742,7 +14742,7 @@ appThm
 ref
 208
 ref
-"_29727"
+"_29938"
 483
 ref
 var
@@ -15100,7 +15100,7 @@ ref
 ref
 540
 remove
-"_29807"
+"_30018"
 489
 remove
 var
@@ -15228,7 +15228,7 @@ def
 betaConv
 1038
 ref
-"_29805"
+"_30016"
 488
 ref
 var
@@ -15783,7 +15783,7 @@ ref
 subst
 14
 ref
-"_29811"
+"_30022"
 1
 ref
 var
@@ -16770,7 +16770,7 @@ ref
 subst
 1074
 remove
-"_29809"
+"_30020"
 1
 ref
 var
@@ -19217,7 +19217,7 @@ ref
 ref
 1208
 remove
-"_29823"
+"_30034"
 651
 remove
 var
@@ -19297,7 +19297,7 @@ def
 betaConv
 1276
 ref
-"_29821"
+"_30032"
 483
 ref
 var
@@ -19431,7 +19431,7 @@ remove
 betaConv
 14
 ref
-"_29818"
+"_30029"
 201
 ref
 var
@@ -19532,7 +19532,7 @@ opType
 constTerm
 1299
 def
-"_29817"
+"_30028"
 201
 ref
 var
@@ -19791,7 +19791,7 @@ ref
 ref
 1217
 remove
-"_29835"
+"_30046"
 1214
 remove
 var
@@ -19871,7 +19871,7 @@ def
 betaConv
 1305
 ref
-"_29833"
+"_30044"
 483
 ref
 var
@@ -20007,7 +20007,7 @@ remove
 betaConv
 656
 ref
-"_29830"
+"_30041"
 201
 ref
 var
@@ -20095,7 +20095,7 @@ opType
 constTerm
 1325
 def
-"_29829"
+"_30040"
 201
 ref
 var
@@ -20354,7 +20354,7 @@ ref
 ref
 1226
 remove
-"_29847"
+"_30058"
 1198
 remove
 var
@@ -20434,7 +20434,7 @@ def
 betaConv
 1332
 ref
-"_29845"
+"_30056"
 483
 remove
 var
@@ -20562,7 +20562,7 @@ remove
 betaConv
 441
 ref
-"_29842"
+"_30053"
 201
 ref
 var
@@ -20639,7 +20639,7 @@ opType
 constTerm
 1352
 def
-"_29841"
+"_30052"
 201
 ref
 var
@@ -20961,7 +20961,7 @@ ref
 subst
 14
 ref
-"_29851"
+"_30062"
 1
 ref
 var
@@ -21209,7 +21209,7 @@ ref
 subst
 1368
 remove
-"_29849"
+"_30060"
 1
 ref
 var
@@ -21718,7 +21718,7 @@ ref
 208
 ref
 "Number.Natural.Fibonacci.decode"
-"_29714"
+"_29925"
 10
 remove
 var
@@ -21855,8 +21855,8 @@ var
 def
 208
 ref
-"Number.Natural.Fibonacci.fromRandom"
-"_30029"
+"Number.Natural.Fibonacci.random"
+"_30240"
 1403
 ref
 var
@@ -21864,7 +21864,7 @@ var
 def
 466
 ref
-"Number.Natural.Fibonacci.fromRandom.dest"
+"Number.Natural.Fibonacci.random.dest"
 "dest"
 0
 ref
@@ -24322,7 +24322,7 @@ ref
 ref
 1472
 ref
-"_29901"
+"_30112"
 1464
 ref
 var
@@ -24474,7 +24474,7 @@ def
 betaConv
 1591
 ref
-"_29899"
+"_30110"
 1457
 ref
 var
@@ -25218,7 +25218,7 @@ remove
 betaConv
 14
 ref
-"_29893"
+"_30104"
 1403
 ref
 var
@@ -25354,7 +25354,7 @@ opType
 constTerm
 1669
 def
-"_29892"
+"_30103"
 201
 ref
 var
@@ -25491,7 +25491,7 @@ opType
 constTerm
 1680
 def
-"_29891"
+"_30102"
 201
 ref
 var
@@ -25628,7 +25628,7 @@ opType
 constTerm
 1690
 def
-"_29890"
+"_30101"
 201
 ref
 var
@@ -25763,7 +25763,7 @@ opType
 constTerm
 1699
 def
-"_29889"
+"_30100"
 1
 ref
 var
@@ -25897,7 +25897,7 @@ eqMp
 remove
 208
 ref
-"_29881"
+"_30092"
 1455
 ref
 var
@@ -25996,7 +25996,7 @@ eqMp
 ref
 208
 ref
-"_29883"
+"_30094"
 1455
 ref
 var
@@ -26051,7 +26051,7 @@ appThm
 remove
 208
 ref
-"_29875"
+"_30086"
 1453
 ref
 var
@@ -26159,7 +26159,7 @@ eqMp
 ref
 208
 ref
-"_29885"
+"_30096"
 1455
 ref
 var
@@ -26217,7 +26217,7 @@ appThm
 ref
 208
 ref
-"_29877"
+"_30088"
 1453
 ref
 var
@@ -26280,7 +26280,7 @@ appThm
 remove
 208
 ref
-"_29871"
+"_30082"
 1451
 ref
 var
@@ -26404,7 +26404,7 @@ refl
 def
 1623
 ref
-"_29887"
+"_30098"
 1455
 remove
 var
@@ -26465,7 +26465,7 @@ appThm
 ref
 1623
 ref
-"_29879"
+"_30090"
 1453
 remove
 var
@@ -26523,7 +26523,7 @@ appThm
 remove
 1623
 ref
-"_29873"
+"_30084"
 1451
 remove
 var
@@ -26971,7 +26971,7 @@ ref
 ref
 1497
 remove
-"_29943"
+"_30154"
 1494
 remove
 var
@@ -27123,7 +27123,7 @@ def
 betaConv
 1757
 ref
-"_29941"
+"_30152"
 1457
 ref
 var
@@ -27472,7 +27472,7 @@ remove
 betaConv
 1499
 ref
-"_29935"
+"_30146"
 1403
 ref
 var
@@ -27632,7 +27632,7 @@ opType
 constTerm
 1801
 def
-"_29934"
+"_30145"
 201
 ref
 var
@@ -27786,7 +27786,7 @@ opType
 constTerm
 1808
 def
-"_29933"
+"_30144"
 201
 ref
 var
@@ -27975,7 +27975,7 @@ opType
 constTerm
 1816
 def
-"_29932"
+"_30143"
 201
 ref
 var
@@ -28501,7 +28501,7 @@ ref
 ref
 1523
 remove
-"_29985"
+"_30196"
 1458
 remove
 var
@@ -28653,7 +28653,7 @@ def
 betaConv
 1826
 ref
-"_29983"
+"_30194"
 1457
 remove
 var
@@ -29935,7 +29935,7 @@ ref
 subst
 14
 ref
-"_29987"
+"_30198"
 1416
 ref
 var
@@ -30047,7 +30047,7 @@ ref
 ref
 1486
 remove
-"_29999"
+"_30210"
 1483
 ref
 var
@@ -30127,7 +30127,7 @@ def
 betaConv
 1903
 ref
-"_29997"
+"_30208"
 1416
 ref
 var
@@ -30319,7 +30319,7 @@ remove
 betaConv
 14
 ref
-"_29994"
+"_30205"
 1403
 ref
 var
@@ -30411,7 +30411,7 @@ appThm
 trans
 1669
 remove
-"_29993"
+"_30204"
 1403
 ref
 var
@@ -30739,7 +30739,7 @@ ref
 ref
 1503
 remove
-"_30011"
+"_30222"
 1500
 ref
 var
@@ -30819,7 +30819,7 @@ def
 betaConv
 1944
 ref
-"_30009"
+"_30220"
 1416
 ref
 var
@@ -30973,7 +30973,7 @@ remove
 betaConv
 1499
 remove
-"_30006"
+"_30217"
 1403
 ref
 var
@@ -31068,7 +31068,7 @@ appThm
 trans
 1801
 remove
-"_30005"
+"_30216"
 1403
 ref
 var
@@ -31358,7 +31358,7 @@ ref
 ref
 1420
 ref
-"_30023"
+"_30234"
 1417
 ref
 var
@@ -31438,7 +31438,7 @@ def
 betaConv
 1974
 ref
-"_30021"
+"_30232"
 1416
 ref
 var
@@ -31610,7 +31610,7 @@ remove
 betaConv
 208
 ref
-"_30018"
+"_30229"
 1403
 ref
 var
@@ -31717,7 +31717,7 @@ opType
 constTerm
 1995
 def
-"_30017"
+"_30228"
 1403
 ref
 var
@@ -32080,7 +32080,7 @@ ref
 subst
 14
 remove
-"_30027"
+"_30238"
 1
 ref
 var
@@ -32353,7 +32353,7 @@ remove
 subst
 2012
 remove
-"_30025"
+"_30236"
 1
 remove
 var
@@ -33144,14 +33144,14 @@ opType
 constTerm
 2047
 def
-"Data.List.Fibonacci.fromRandom"
-"_30034"
+"Data.List.Fibonacci.random"
+"_30245"
 2044
 ref
 var
 2048
 def
-"_30035"
+"_30246"
 1403
 ref
 var
@@ -33211,7 +33211,7 @@ appTerm
 appTerm
 2053
 def
-"Data.List.fromRandom"
+"Data.List.random"
 const
 0
 ref

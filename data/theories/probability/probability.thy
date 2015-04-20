@@ -1,5 +1,5 @@
 name: probability
-version: 1.42
+version: 1.43
 description: Probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,12 +15,12 @@ haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 
 def {
-  package: probability-def-1.41
+  package: probability-def-1.42
 }
 
 thm {
   import: def
-  package: probability-thm-1.17
+  package: probability-thm-1.18
 }
 
 main {

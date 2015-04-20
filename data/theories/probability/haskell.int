@@ -9,14 +9,14 @@
 
 # OpenTheory.List.Geometric
 
-const "Data.List.Geometric.fromRandom" as "OpenTheory.List.Geometric.fromRandom"
+const "Data.List.Geometric.random" as "OpenTheory.List.Geometric.random"
 
 # OpenTheory.Natural
 
 # OpenTheory.Natural.Geometric
 
-const "Number.Natural.Geometric.fromRandom" as "OpenTheory.Natural.Geometric.fromRandom"
-const "Number.Natural.Geometric.fromRandom.loop" as "OpenTheory.Natural.Geometric.fromRandom.loop"
+const "Number.Natural.Geometric.random" as "OpenTheory.Natural.Geometric.random"
+const "Number.Natural.Geometric.random.loop" as "OpenTheory.Natural.Geometric.random.loop"
 
 # OpenTheory.Primitive
 
@@ -30,4 +30,4 @@ const "Probability.Random.split" as "OpenTheory.Primitive.Random.split"
 # OpenTheory.Random
 
 const "Probability.Random.bits" as "OpenTheory.Random.bits"
-const "Data.List.fromRandom" as "OpenTheory.Random.vector"
+const "Data.List.random" as "OpenTheory.Random.vector"

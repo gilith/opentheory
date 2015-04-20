@@ -180,7 +180,7 @@ cons
 cons
 opType
 constTerm
-"Data.Byte.fromRandom"
+"Data.Byte.random"
 const
 1
 ref
@@ -213,7 +213,7 @@ remove
 cons
 opType
 constTerm
-"Number.Natural.Uniform.fromRandom"
+"Number.Natural.Uniform.random"
 const
 1
 ref

@@ -1,5 +1,5 @@
 name: parser-stream
-version: 1.106
+version: 1.107
 description: Parse streams
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -16,7 +16,7 @@ show: "Probability.Random"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.98
+  package: parser-stream-def-1.99
 }
 
 thm {

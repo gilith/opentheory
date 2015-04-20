@@ -111756,7 +111756,7 @@ ref
 var
 6057
 def
-"Number.Natural.Uniform.fromRandom.loop"
+"Number.Natural.Uniform.random.loop"
 const
 10
 ref
@@ -111821,7 +111821,7 @@ cons
 6055
 ref
 var
-"Number.Natural.Uniform.fromRandom"
+"Number.Natural.Uniform.random"
 const
 6058
 remove

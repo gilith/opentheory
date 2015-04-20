@@ -1,7 +1,7 @@
 6
 version
-"Number.Natural.Geometric.fromRandom"
-"Number.Natural.Geometric.fromRandom.loop"
+"Number.Natural.Geometric.random"
+"Number.Natural.Geometric.random.loop"
 "loop"
 "->"
 typeOp
@@ -13851,7 +13851,7 @@ remove
 appTerm
 thm
 "Probability.Random.bits"
-"Data.List.fromRandom"
+"Data.List.random"
 "random_vector"
 0
 ref
@@ -17539,7 +17539,7 @@ ref
 ref
 918
 ref
-"Data.List.Geometric.fromRandom"
+"Data.List.Geometric.random"
 "_28448"
 907
 remove

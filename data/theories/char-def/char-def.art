@@ -141,7 +141,7 @@ var
 21
 def
 "Data.Char.invariant"
-"_32353"
+"_32488"
 1
 ref
 var
@@ -595,7 +595,7 @@ absTerm
 75
 def
 "Data.Char.destPosition"
-"_32348"
+"_32483"
 1
 ref
 var
@@ -655,7 +655,7 @@ appTerm
 appTerm
 absTerm
 "Data.Char.destPlane"
-"_32343"
+"_32478"
 1
 ref
 var
@@ -18985,7 +18985,7 @@ def
 51
 ref
 "Data.Char.plane"
-"_32358"
+"_32493"
 1046
 ref
 var
@@ -19106,7 +19106,7 @@ remove
 51
 ref
 "Data.Char.position"
-"_32363"
+"_32498"
 1046
 remove
 var
@@ -19523,8 +19523,8 @@ var
 def
 1050
 ref
-"Data.Char.fromRandom"
-"_32368"
+"Data.Char.random"
+"_32503"
 1088
 ref
 var
@@ -19669,7 +19669,7 @@ appTerm
 absTerm
 1097
 def
-"Number.Natural.Uniform.fromRandom"
+"Number.Natural.Uniform.random"
 const
 0
 ref
