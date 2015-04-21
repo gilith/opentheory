@@ -906,7 +906,7 @@ in
                     (ObjectData.destName dN, ObjectData.destVar dV)
                   end
 
-              val nvs = map destNV (destList objL)
+              val nvs = List.map destNV (destList objL)
               and th = destThm objT
 
               val (cs,th) = Rule.defineConstList nvs th

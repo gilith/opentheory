@@ -1974,8 +1974,22 @@ val sourceTests =
 
 fun symbolTableTests tests = symbolTableSourceList (sourceTests tests);
 
-fun destTests show =
+fun mkTests show =
     let
+      fun substVar v sub =
+          let
+            val (v',sub) = TermSubst.sharingSubstVar v sub
+          in
+            (Option.getOpt (v',v), sub)
+          end;
+
+      fun substTerm tm sub =
+          let
+            val (tm',sub) = TermSubst.sharingSubst tm sub
+          in
+            (Option.getOpt (tm',tm), sub)
+          end;
+
       fun ppTest (kind,n,test) =
           Print.inconsistentBlock 2
             [Print.ppString (capitalize kind),
@@ -1985,7 +1999,7 @@ fun destTests show =
              Print.newline,
              Term.ppWithShow show test]
 
-      fun destTest al pl th =
+      fun mkTest al pl th =
           let
             val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1999,7 +2013,24 @@ fun destTests show =
 
             val (vs,body) = Term.stripForall concl
 
-            val args = map Term.mkVar vs
+            val sub =
+                let
+                  fun addTy (n,s) = TypeSubst.insertMap s (n,Type.bool)
+
+                  val tys = Var.typeVarsList vs
+
+                  val tyMap = NameSet.foldl addTy TypeSubst.emptyMap tys
+
+                  val tySub = TypeSubst.mk tyMap
+                in
+                  TermSubst.mk tySub TermSubst.emptyMap
+                end
+
+            val (vs,sub) = maps substVar vs sub
+
+            val (body,sub) = substTerm body sub
+
+            val args = List.map Term.mkVar vs
 
             val isAssert = List.null args
 
@@ -2055,17 +2086,17 @@ fun destTests show =
           handle Error err =>
             raise Error ("bad test theorem: " ^ err)
 
-      fun dest al pl ths =
+      fun mk al pl ths =
           case ths of
             [] => List.revAppend (al, List.rev pl)
           | th :: ths =>
             let
-              val (al,pl) = destTest al pl th
+              val (al,pl) = mkTest al pl th
             in
-              dest al pl ths
+              mk al pl ths
             end
     in
-      dest [] []
+      mk [] []
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2496,7 +2527,7 @@ in
 
                 val ths = Thms.thms (derivedTheorems thy file)
 
-                val tests = destTests (Package.show pkg) (ThmSet.toList ths)
+                val tests = mkTests (Package.show pkg) (ThmSet.toList ths)
 
                 val () =
                     if not (List.null tests) then ()
@@ -2980,7 +3011,7 @@ fun ppTypeVarName n =
         raise Error err
       end
     else
-      case explode (Name.destGlobal n) of
+      case String.explode (Name.destGlobal n) of
         [] => raise Error "type variable name is empty string"
       | c :: cs =>
         let
@@ -2995,7 +3026,7 @@ fun ppTypeVarName n =
                   raise Error err
                 end
         in
-          Print.program (map Print.ppChar (Char.toLower c :: cs))
+          Print.program (List.map Print.ppChar (Char.toLower c :: cs))
         end;
 
 fun ppVarName n =

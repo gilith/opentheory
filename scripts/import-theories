@@ -168,6 +168,8 @@ while (my $thy = <THEORIES>) {
       }
     }
     else {
+      bump_theory_version ($base, $tthy);
+
       rename($tartnew,$tart) or
         die "$program: couldn't rename $tartnew to $tart: $!\n";
 

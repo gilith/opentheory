@@ -46,7 +46,12 @@ val checkEqual : (TypeTerm.term -> TypeTerm.term -> unit) -> var -> var -> unit
 
 val addSharingTypeVars : var -> Type.sharingTypeVars -> Type.sharingTypeVars
 
+val addListSharingTypeVars :
+    var list -> Type.sharingTypeVars -> Type.sharingTypeVars
+
 val typeVars : var -> NameSet.set
+
+val typeVarsList : var list -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)

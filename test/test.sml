@@ -357,10 +357,10 @@ val () = SAY "Compressing articles";
 val ARTICLE_DIR = "articles";
 
 val TEST_ARTICLES =
-    (List.concat o map (fn (s,l) => map (fn a => (s,a)) l))
+    (List.concat o List.map (fn (s,l) => List.map (fn a => (s,a)) l))
     [("natural",
       ("empty" ::
-       map (fn i => "example" ^ Int.toString i) (interval 1 11))),
+       List.map (fn i => "example" ^ Int.toString i) (interval 1 11))),
      ("hol-light",
       ["bool-true-def",
        "bool-true-thm",

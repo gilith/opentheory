@@ -108,7 +108,7 @@ fun convert5 cmd args res cvt =
 
               val asms = TermAlphaSet.toList (Thm.hyp th)
             in
-              VarMap.fromList (map mk asms)
+              VarMap.fromList (List.map mk asms)
             end
 
         fun simulate objL objT cvt =
