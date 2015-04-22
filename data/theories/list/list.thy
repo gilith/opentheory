@@ -1,5 +1,5 @@
 name: list
-version: 1.102
+version: 1.103
 description: List types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -139,10 +139,12 @@ interval {
 zip {
   import: def
   import: dest
+  import: fold
   import: length
   import: append
   import: nth
-  package: list-zip-1.27
+  import: thm
+  package: list-zip-1.30
 }
 
 nub {

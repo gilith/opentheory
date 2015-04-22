@@ -42,6 +42,9 @@ const "Number.Natural.mod" as "mod"
 const "Data.Bool.~" as "not"
 const "Data.Pair.snd" as "snd"
 const "Data.List.tail" as "tail"
+const "Data.List.unzip" as "unzip"
+const "Data.List.zip" as "zip"
+const "Data.List.zipWith" as "zipWith"
 
 # Data
 

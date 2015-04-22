@@ -2472,6 +2472,8 @@ local
         val ret = addTestsInferredEqualityTypes ret tests
 
         val ts = inferredEqualityTypes ret
+
+        val () = Print.trace (Print.ppList TypeOp.pp) "Haskell.fromPackage.requiredEqualityTypes.ts" (TypeOpSet.toList ts)
       in
         TypeOpSet.foldl diff NameSet.empty ts
       end;

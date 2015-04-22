@@ -1,5 +1,5 @@
 name: sum
-version: 1.60
+version: 1.61
 description: Sum types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: sum-thm-1.2
+  package: sum-thm-1.3
 }
 
 main {
