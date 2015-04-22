@@ -14,8 +14,8 @@ where
 import qualified OpenTheory.Primitive.Natural as Natural
 import qualified OpenTheory.Primitive.Random as Random
 
-fromRandom :: Random.Random -> Natural.Natural
-fromRandom =
+random :: Random.Random -> Natural.Natural
+random =
   loop 0
   where
   {-loop :: Natural.Natural -> Random.Random -> Natural.Natural-}

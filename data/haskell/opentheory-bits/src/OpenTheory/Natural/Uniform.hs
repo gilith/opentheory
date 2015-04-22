@@ -16,8 +16,8 @@ import qualified OpenTheory.Primitive.Natural as Natural
 import qualified OpenTheory.Primitive.Random as Primitive.Random
 import qualified OpenTheory.Random as Random
 
-fromRandom :: Natural.Natural -> Primitive.Random.Random -> Natural.Natural
-fromRandom n =
+random :: Natural.Natural -> Primitive.Random.Random -> Natural.Natural
+random n =
   \r -> let w = Bits.width (n - 1) in loop w r
   where
   {-loop :: Natural.Natural -> Primitive.Random.Random -> Natural.Natural-}

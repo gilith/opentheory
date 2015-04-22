@@ -43,6 +43,13 @@ const "Data.Bool.~" as "not"
 const "Data.Pair.snd" as "snd"
 const "Data.List.tail" as "tail"
 
+# Data
+
+# Data.Maybe
+
+const "Data.Option.isSome" as "Data.Maybe.isJust"
+const "Data.Option.isNone" as "Data.Maybe.isNothing"
+
 # OpenTheory
 
 # OpenTheory.List

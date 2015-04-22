@@ -1,5 +1,5 @@
 name: h
-version: 1.121
+version: 1.122
 description: Memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -26,7 +26,7 @@ def {
 
 thm {
   import: def
-  package: h-thm-1.118
+  package: h-thm-1.119
 }
 
 main {

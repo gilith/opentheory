@@ -22,5 +22,5 @@ width = 8
 modulus :: Natural.Natural
 modulus = 2 ^ width
 
-fromRandom :: Random.Random -> Byte.Byte
-fromRandom r = Byte.fromNatural (Uniform.fromRandom modulus r)
+random :: Random.Random -> Byte.Byte
+random r = Byte.fromNatural (Uniform.random modulus r)

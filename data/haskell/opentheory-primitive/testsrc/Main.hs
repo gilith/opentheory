@@ -19,6 +19,9 @@ import OpenTheory.Primitive.Test
 assertion0 :: Bool
 assertion0 = True
 
+assertion1 :: Bool
+assertion1 = 2 + 2 == 4
+
 proposition0 :: Bool -> Bool
 proposition0 p =
   p || not p
@@ -30,6 +33,7 @@ proposition1 m n =
 main :: IO ()
 main =
     do assert "Assertion 0:\n  T\n  " assertion0
+       assert "Assertion 1:\n  2 + 2 = 4\n  " assertion1
        check "Proposition 0:\n  !p. p \\/ ~p\n  " proposition0
        check "Proposition 1:\n  !m n. m + n = n + m\n  " proposition1
        return ()

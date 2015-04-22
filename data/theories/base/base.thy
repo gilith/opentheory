@@ -1,5 +1,5 @@
 name: base
-version: 1.188
+version: 1.191
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,6 +17,7 @@ show: "Set"
 haskell-name: opentheory
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
 haskell-equality-type: "Data.List.list"
 haskell-equality-type: "Data.Option.option"
 haskell-equality-type: "Data.Pair.*"
@@ -69,14 +70,14 @@ sum {
   import: bool
   import: pair
   import: natural
-  package: sum-1.59
+  package: sum-1.60
 }
 
 option {
   import: bool
   import: function
   import: natural
-  package: option-1.71
+  package: option-1.72
 }
 
 list {

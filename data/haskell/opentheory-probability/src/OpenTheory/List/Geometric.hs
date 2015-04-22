@@ -15,8 +15,7 @@ import qualified OpenTheory.Natural.Geometric as Geometric
 import qualified OpenTheory.Primitive.Random as Primitive.Random
 import qualified OpenTheory.Random as Random
 
-fromRandom ::
-  (Primitive.Random.Random -> a) -> Primitive.Random.Random -> [a]
-fromRandom f r =
+random :: (Primitive.Random.Random -> a) -> Primitive.Random.Random -> [a]
+random f r =
   let (r1, r2) = Primitive.Random.split r in
-  Random.vector f (Geometric.fromRandom r1) r2
+  Random.vector f (Geometric.random r1) r2

@@ -25,15 +25,6 @@ destPlane n = Bits.shiftRight n 16
 destPosition :: Natural.Natural -> Natural.Natural
 destPosition n = Bits.bound n 16
 
-fromRandom :: Random.Random -> Unicode
-fromRandom r =
-  let n0 = Uniform.fromRandom 1111998 r in
-  let n1 = if n0 < 55296 then n0 else n0 + 2048 in
-  let pl = n1 `div` 65534 in
-  let pos = n1 `mod` 65534 in
-  let n2 = pos + Bits.shiftLeft pl 16 in
-  Unicode n2
-
 invariant :: Natural.Natural -> Bool
 invariant n =
   let pl = destPlane n in
@@ -48,3 +39,12 @@ plane = destPlane . unUnicode
 
 position :: Unicode -> Natural.Natural
 position = destPosition . unUnicode
+
+random :: Random.Random -> Unicode
+random r =
+  let n0 = Uniform.random 1111998 r in
+  let n1 = if n0 < 55296 then n0 else n0 + 2048 in
+  let pl = n1 `div` 65534 in
+  let pos = n1 `mod` 65534 in
+  let n2 = pos + Bits.shiftLeft pl 16 in
+  Unicode n2
