@@ -2210,16 +2210,19 @@ local
       case registerTerm ret tm of
         NONE => addTerms ret tms
       | SOME ret =>
-        case Term.dest tm of
-          TypeTerm.Const' (c,ty) =>
-          let
-            val ret = addConstInferredEqualityTypes ret c ty
-          in
-            addTerms ret tms
-          end
-        | TypeTerm.Var' _ => addTerms ret tms
-        | TypeTerm.App' (f,x) => addTerm ret f (x :: tms)
-        | TypeTerm.Abs' (_,b) => addTerm ret b tms;
+        case destGenAbs tm of
+          SOME (_,b) => addTerm ret b tms
+        | NONE =>
+          case Term.dest tm of
+            TypeTerm.Const' (c,ty) =>
+            let
+              val ret = addConstInferredEqualityTypes ret c ty
+            in
+              addTerms ret tms
+            end
+          | TypeTerm.Var' _ => addTerms ret tms
+          | TypeTerm.App' (f,x) => addTerm ret f (x :: tms)
+          | TypeTerm.Abs' _ => raise Bug "Haskell.addTermInferredEqualityTypes.addTerm.Abs";
 in
   fun addTermInferredEqualityTypes ret tm = addTerm ret tm [];
 end;
@@ -2488,11 +2491,11 @@ local
         val ts = inferredEqualityTypes ret
 
 (*OpenTheoryTrace3
-*)
         val () =
             Print.trace (Print.ppList TypeOp.pp)
               "Haskell.fromPackage.requiredEqualityTypes.ts"
               (TypeOpSet.toList ts)
+*)
       in
         TypeOpSet.foldl diff NameSet.empty ts
       end;

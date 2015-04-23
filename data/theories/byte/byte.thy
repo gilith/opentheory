@@ -1,5 +1,5 @@
 name: byte
-version: 1.121
+version: 1.122
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -15,6 +15,7 @@ show: "Number.Natural"
 show: "Probability.Random"
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
+haskell-equality-type: "Data.Byte.byte"
 
 def {
   package: byte-def-1.91

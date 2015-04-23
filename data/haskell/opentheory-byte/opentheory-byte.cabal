@@ -1,5 +1,5 @@
 name: opentheory-byte
-version: 1.121.2
+version: 1.122
 category: Formal Methods
 synopsis: Bytes
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Bytes - this package was automatically generated from the OpenTheory
-  package byte-1.121
+  package byte-1.122
 
 library
   build-depends:
