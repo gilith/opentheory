@@ -654,7 +654,7 @@ local
           end
       end;
 
-  fun interpretationSymbol sym =
+  fun interpretationSymbol thyInt sym =
       let
         fun addSym (s,n,rws) =
             let
@@ -670,9 +670,12 @@ local
 
         fun addName (_,(_,sm,_),rws) = SymbolMap.foldr addSym rws sm
 
-        val rws = PackageNameMap.foldr addName [] sym
+        val rewrs =
+            primitiveRewrites @
+            PackageNameMap.foldr addName [] sym @
+            Interpretation.toRewriteList thyInt
       in
-        Interpretation.fromRewriteList rws
+        Interpretation.fromRewriteList rewrs
       end;
 
   fun equalitySymbol eqs =
@@ -717,7 +720,7 @@ local
         PackageNameMap.transform mkEq
       end;
 
-  fun mkSymbol repo ths sym getEqs =
+  fun mkSymbol repo thyInt ths sym getEqs =
       let
         val sym =
             SymbolSet.difference
@@ -733,7 +736,7 @@ local
         val (nvs,sym) =
             List.foldl (interpretSymbol repo pm) ([],sym) (List.rev ths)
 
-        val int = interpretationSymbol sym
+        val int = interpretationSymbol thyInt sym
 
         val eqs = getEqs int
 
@@ -883,7 +886,7 @@ local
         List.map mk
       end;
 in
-  fun mkDepends repo reqs thy sym getEqs =
+  fun mkDepends repo reqs thyInt thy sym getEqs =
       let
         val ths =
             case Repository.requiresTheorems repo reqs of
@@ -892,7 +895,7 @@ in
 
         val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
 
-        val (nvs,sym,int) = mkSymbol repo ths sym getEqs
+        val (nvs,sym,int) = mkSymbol repo thyInt ths sym getEqs
 
         val oldest = mkOldest repo sym (Queue.fromList nvs) vs
 
@@ -2113,6 +2116,12 @@ fun newInferredEqualityTypes int =
     let
       val equalityTypes = Type.emptySharingTypeOps
       and seenTerms = IntSet.empty
+
+(*OpenTheoryTrace3
+      val () =
+          Print.trace Interpretation.pp
+            "Haskell.newInferredEqualityTypes.int" int
+*)
     in
       InferredEqualityTypes
         {interpretation = int,
@@ -2177,6 +2186,11 @@ local
           let
             val seenTerms = IntSet.add seenTerms i
 
+(*OpenTheoryTrace5
+            val () =
+                Print.trace Term.pp
+                  "Haskell.addTermInferredEqualityTypes.registerTerm.tm" tm
+*)
             val ret =
                 InferredEqualityTypes
                   {interpretation = interpretation,
@@ -2473,7 +2487,12 @@ local
 
         val ts = inferredEqualityTypes ret
 
-        val () = Print.trace (Print.ppList TypeOp.pp) "Haskell.fromPackage.requiredEqualityTypes.ts" (TypeOpSet.toList ts)
+(*OpenTheoryTrace3
+*)
+        val () =
+            Print.trace (Print.ppList TypeOp.pp)
+              "Haskell.fromPackage.requiredEqualityTypes.ts"
+              (TypeOpSet.toList ts)
       in
         TypeOpSet.foldl diff NameSet.empty ts
       end;
@@ -2538,7 +2557,7 @@ in
                 tests
               end
 
-        val (deps,depInt) =
+        val (deps,int) =
             let
               val reqs = Package.requires pkg
 
@@ -2551,17 +2570,7 @@ in
 
               val getEqs = requiredEqualityTypes eqs src tests
             in
-              mkDepends repo reqs thy sym getEqs
-            end
-
-        val int =
-            let
-              val rewrs =
-                  primitiveRewrites @
-                  Interpretation.toRewriteList depInt @
-                  Interpretation.toRewriteList thyInt
-            in
-              Interpretation.fromRewriteList rewrs
+              mkDepends repo reqs thyInt thy sym getEqs
             end
       in
         Haskell
