@@ -29,8 +29,8 @@ executable nth-prime-test
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory-prime >= 1.0 && < 2.0
 
-  hs-source-dirs: testsrc
+  hs-source-dirs: src
 
   ghc-options: -Wall
 
-  main-is: Main.hs
+  main-is: Test.hs

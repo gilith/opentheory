@@ -1,13 +1,13 @@
 {- |
-module: Main
-description: A simple sieve computation to compute the nth prime
+module: NaiveSieve
+description: A straightforward implementation of the naive sieve algorithm
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Prime
+module NaiveSieve
   ( primes )
 where
 

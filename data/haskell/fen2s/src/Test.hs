@@ -1,5 +1,5 @@
 {- |
-module: Test
+module: Main
 description: Testing the FEN to Unicode conversion
 license: MIT
 
