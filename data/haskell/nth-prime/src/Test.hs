@@ -11,9 +11,9 @@ module Main
   ( main )
 where
 
+import qualified OpenTheory.Primitive.Natural as Natural
 import qualified NaiveSieve
 import qualified OpenTheory.Natural.Prime as OptimizedNaiveSieve
-import qualified OpenTheory.Primitive.Natural as Natural
 
 sieves :: [[Natural.Natural]]
 sieves = [NaiveSieve.primes,OptimizedNaiveSieve.primes]
