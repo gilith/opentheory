@@ -26,8 +26,8 @@ sub get_real_time {
   (scalar @_ == 1) or die;
   my $n = shift @_;
 
-  if ($n =~ /real[[:space:]]+([[:digit:]]+)m([[:digit:]]+[.][[:digit:]]+)s/s) {
-    return $1 * 60.0 + $2;
+  if ($n =~ /real[[:space:]]+([[:digit:]]+[.][[:digit:]]+)/s) {
+    return $1;
   }
   else {
     die "$program: bad time format:\n$n";
@@ -55,7 +55,7 @@ sub get_results {
     else {
       print STDOUT "<td>";
 
-      my $r = `(time $cmd $i) 2>&1 >/dev/null`;
+      my $r = `(time -p $cmd $i) 2>&1 >/dev/null`;
 
       my $t = get_real_time $r;
 
@@ -74,7 +74,9 @@ my $nth_prime = "dist/build/nth-prime/nth-prime";
 [ -x $nth_prime ] or die "$program: $nth_prime not an executable";
 
 get_results ("<em>n</em>", "header");
-get_results ("Time (s)", "$nth_prime");
+get_results ("Naive", "$nth_prime -s naive");
+get_results ("Optimized Naive", "$nth_prime -s optimizedNaive");
+get_results ("Genuine", "$nth_prime -s genuine");
 
 __END__
 

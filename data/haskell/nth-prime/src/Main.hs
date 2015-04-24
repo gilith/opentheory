@@ -18,6 +18,7 @@ import System.Console.GetOpt
 import qualified OpenTheory.Primitive.Natural as Natural
 import qualified NaiveSieve
 import qualified OpenTheory.Natural.Prime as OptimizedNaiveSieve
+import qualified GenuineSieve
 
 type Sieve = [Natural.Natural]
 
@@ -28,7 +29,8 @@ sieves :: [(String,Sieve)]
 sieves =
   [verifiedSieve,
    ("naive",NaiveSieve.primes),
-   ("optimizedNaive",OptimizedNaiveSieve.primes)]
+   ("optimizedNaive",OptimizedNaiveSieve.primes),
+   ("genuine",GenuineSieve.primes)]
 
 stringToSieve :: String -> (String,Sieve)
 stringToSieve s =

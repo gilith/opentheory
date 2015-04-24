@@ -14,9 +14,13 @@ where
 import qualified OpenTheory.Primitive.Natural as Natural
 import qualified NaiveSieve
 import qualified OpenTheory.Natural.Prime as OptimizedNaiveSieve
+import qualified GenuineSieve
 
 sieves :: [[Natural.Natural]]
-sieves = [NaiveSieve.primes,OptimizedNaiveSieve.primes]
+sieves =
+  [NaiveSieve.primes,
+   OptimizedNaiveSieve.primes,
+   GenuineSieve.primes]
 
 checkInitialPrimes :: Int -> IO ()
 checkInitialPrimes k =
