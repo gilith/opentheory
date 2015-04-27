@@ -158,7 +158,8 @@ val infixTokens = Print.tokensInfixes infixes;
 
 (* Namespaces *)
 
-val mainNamespace = Namespace.fromList ["Main"];
+val mainNamespace = Namespace.fromList ["Main"]
+and testNamespace = Namespace.fromList ["Test","QuickCheck"];
 
 (* Types *)
 
@@ -177,6 +178,11 @@ and pairName = Name.mkGlobal ",";
 (* Variables *)
 
 val anonymousName = Name.mkGlobal "_";
+
+(* Tests *)
+
+val arbitraryConstName = Name.mk (testNamespace,"arbitrary")
+and arbitraryClassName = Name.mk (testNamespace,"Arbitrary");
 
 (* ------------------------------------------------------------------------- *)
 (* Haskell syntax.                                                           *)
@@ -1002,6 +1008,13 @@ fun symbolSource s =
 
 fun nameSource s = Symbol.name (symbolSource s);
 ***)
+
+fun destArbitrarySource src =
+    case src of
+      ArbitrarySource x => SOME x
+    | _ => NONE;
+
+fun isArbitrarySource src = Option.isSome (destArbitrarySource src);
 
 fun typeOpSource s =
     case s of
@@ -2034,9 +2047,52 @@ local
           (n, sub :: List.map snd ns) :: group nsubs
         end;
 
+  fun check srcl =
+      let
+        fun checkSrc src =
+            case src of
+              ArbitrarySource arbitrary =>
+              let
+                val Arbitrary {name,parameters,...} = arbitrary
+              in
+                case findTypeOpSourceList (TypeOp.name name) srcl of
+                  NONE =>
+                  let
+                    val err =
+                        "arbitrary instance for undefined type " ^
+                        TypeOp.toString name
+                  in
+                    raise Error err
+                  end
+                | SOME def =>
+                  let
+                    val parm =
+                        case def of
+                          DataSource (Data {parameters = x, ...}) => x
+                        | NewtypeSource (Newtype {parameters = x, ...}) => x
+                        | _ => raise Bug "Haskell.mkModule.check"
+                  in
+                    if listEqual Name.equal parameters parm then ()
+                    else
+                      let
+                        val err =
+                            "arbitrary instance has different parameters " ^
+                            "for type " ^ TypeOp.toString name
+                      in
+                        raise Error err
+                      end
+                  end
+              end
+            | _ => ()
+      in
+        List.app checkSrc srcl
+      end;
+
   fun mkTree namespace nsource =
       let
         val (source,nsubs) = List.foldl split ([],[]) (List.rev nsource)
+
+        val () = check source
 
         val nsubs = group nsubs
       in
@@ -2900,8 +2956,14 @@ in
             let
               val white = symbolTableNamespaces int sym
               and black = NamespaceSet.fromList [ns,Namespace.global]
+
+              val ns = NamespaceSet.difference white black
+
+              val ns =
+                  if not (List.exists isArbitrarySource src) then ns
+                  else NamespaceSet.add ns testNamespace
             in
-              abbreviateNamespaces (NamespaceSet.difference white black)
+              abbreviateNamespaces ns
             end
       in
         SymbolExport
@@ -3791,7 +3853,7 @@ local
 
   fun ppArb exp ty =
       Print.inconsistentBlock 2
-        [ppSyntax "Test.QuickCheck.Arbitrary",
+        [ppTypeOpName exp arbitraryClassName,
          Print.break,
          ppBasicType exp ty];
 
@@ -3829,14 +3891,15 @@ local
 
   fun ppLift exp lift =
       Print.inconsistentBlock 2
-        [ppSyntax "arbitrary =",
+        [ppSyntax (Name.component arbitraryConstName),
+         ppSyntax " =",
          Print.break,
          Print.inconsistentBlock 2
            [ppSyntax "fmap",
             Print.break,
             ppBasicTerm exp lift,
             Print.break,
-            ppSyntax "Test.QuickCheck.arbitrary"]];
+            ppConstName exp arbitraryConstName]];
 in
   fun ppArbitrary exp arbitrary =
       let
