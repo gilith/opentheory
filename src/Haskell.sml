@@ -467,7 +467,14 @@ local
 
               val () =
                   if NameSet.size tys = length tyl then ()
-                  else raise Error "duplicate haskell-equality-type information"
+                  else
+                    let
+                      val err =
+                          "duplicate haskell-" ^ equalityTypeTag ^
+                          " information"
+                    in
+                      raise Error err
+                    end
             in
               (tys,htags)
             end
@@ -485,7 +492,13 @@ local
               val () =
                   if NameSet.size tys = length tyl then ()
                   else
-                    raise Error "duplicate haskell-arbitrary-type information"
+                    let
+                      val err =
+                          "duplicate haskell-" ^ arbitraryTypeTag ^
+                          " information"
+                    in
+                      raise Error err
+                    end
             in
               (tys,htags)
             end
@@ -2741,7 +2754,22 @@ local
                 end
               else ()
 
+        fun checkArbitrary n =
+            if not (NameMap.inDomain n dm) then ()
+            else if NameMap.inDomain n im then ()
+            else
+              let
+                val err =
+                    "no arbitrary instance declared for " ^
+                    "haskell-" ^ arbitraryTypeTag ^ ": " ^
+                    Name.toString n
+              in
+                raise Error err
+              end
+
         val () = NameMap.app checkInstance im
+
+        val () = NameSet.app checkArbitrary arbs
       in
         ()
       end;
