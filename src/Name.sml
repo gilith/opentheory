@@ -297,7 +297,8 @@ local
   fun mkFunction c = mk (Namespace.function,c);
 in
   val composeConst = mkFunction Namespace.composeConstComponent
-  and idConst = mkFunction Namespace.idConstComponent;
+  and idConst = mkFunction Namespace.idConstComponent
+  and surjectiveConst = mkFunction Namespace.surjectiveConstComponent;
 end;
 
 (* Lists *)

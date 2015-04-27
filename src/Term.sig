@@ -417,6 +417,14 @@ val destCaseDef :
 
 val isCaseDef : term -> bool
 
+(* Surjectivity *)
+
+val isSurjectiveConst : term -> bool
+
+val destSurjective : term -> term
+
+val isSurjective : term -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

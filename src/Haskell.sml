@@ -12,7 +12,8 @@ open Useful;
 (* Constants.                                                                *)
 (* ------------------------------------------------------------------------- *)
 
-val authorTag = "author"
+val arbitraryTypeTag = "arbitrary-type"
+and authorTag = "author"
 and buildTypeTag = "build-type"
 and cabalVersionTag = "cabal-version"
 and categoryTag = "category"
@@ -322,6 +323,7 @@ datatype information =
        licenseUrl : string,
        provenance : PackageNameVersion.nameVersion,
        equalityTypes : NameSet.set,
+       arbitraryTypes : NameSet.set,
        tags : PackageTag.tag list};
 
 local
@@ -464,6 +466,24 @@ local
               (tys,htags)
             end
 
+        val (arbitraryTypes,htags) =
+            let
+              val tag = PackageName.fromString arbitraryTypeTag
+
+              val (tyl,htags) = partitionTags tag htags
+
+              val tyl = List.map Name.quotedFromString tyl
+
+              val tys = NameSet.fromList tyl
+
+              val () =
+                  if NameSet.size tys = length tyl then ()
+                  else
+                    raise Error "duplicate haskell-arbitrary-type information"
+            in
+              (tys,htags)
+            end
+
         val (interpretation,htags) =
             case peekTag PackageName.intExtraTag htags of
               NONE => (Interpretation.natural,htags)
@@ -489,6 +509,7 @@ local
                licenseUrl = licenseUrl,
                provenance = provenance,
                equalityTypes = equalityTypes,
+               arbitraryTypes = arbitraryTypes,
                tags = htags}
       in
         {information = info,
@@ -518,6 +539,8 @@ fun versionInformation (Information {version = x, ...}) = x;
 fun licenseUrlInformation (Information {licenseUrl = x, ...}) = {url = x};
 
 fun equalityTypesInformation (Information {equalityTypes = x, ...}) = x;
+
+fun arbitraryTypesInformation (Information {arbitraryTypes = x, ...}) = x;
 
 fun exportable repo nv =
     let
@@ -943,16 +966,24 @@ datatype value =
        ty : Type.ty,
        equations : equation list};
 
+datatype arbitrary =
+    Arbitrary of
+      {name : TypeOp.typeOp,
+       parameters : Name.name list,
+       lift : Term.term};
+
 datatype source =
     DataSource of data
   | NewtypeSource of newtype
-  | ValueSource of value;
+  | ValueSource of value
+  | ArbitrarySource of arbitrary;
 
 (* ------------------------------------------------------------------------- *)
 (* Symbols in source declarations.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(* The primary defined symbol in a source declaration *)
+(***
+(* The primary symbol in a source declaration *)
 
 fun symbolData (Data {name,...}) = Symbol.TypeOp name;
 
@@ -960,19 +991,24 @@ fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
 
 fun symbolValue (Value {name,...}) = Symbol.Const name;
 
+fun symbolArbitrary (Arbitrary {name,...}) = Symbol.TypeOp name;
+
 fun symbolSource s =
     case s of
       DataSource x => symbolData x
     | NewtypeSource x => symbolNewtype x
-    | ValueSource x => symbolValue x;
+    | ValueSource x => symbolValue x
+    | ArbitrarySource x => symbolArbitrary x;
 
 fun nameSource s = Symbol.name (symbolSource s);
+***)
 
 fun typeOpSource s =
     case s of
       DataSource (Data {name,...}) => SOME name
     | NewtypeSource (Newtype {name,...}) => SOME name
-    | ValueSource _ => NONE;
+    | ValueSource _ => NONE
+    | ArbitrarySource _ => NONE;
 
 fun findTypeOpSourceList n =
     let
@@ -1047,11 +1083,19 @@ fun definedSymbolTableValue value =
       sym
     end;
 
+fun definedSymbolTableArbitrary (_ : arbitrary) =
+    let
+      val sym = SymbolTable.empty
+    in
+      sym
+    end;
+
 fun definedSymbolTableSource s =
     case s of
       DataSource x => definedSymbolTableData x
     | NewtypeSource x => definedSymbolTableNewtype x
-    | ValueSource x => definedSymbolTableValue x;
+    | ValueSource x => definedSymbolTableValue x
+    | ArbitrarySource x => definedSymbolTableArbitrary x;
 
 fun definedSymbolTableSourceList sl =
     SymbolTable.unionList (List.map definedSymbolTableSource sl);
@@ -1161,11 +1205,23 @@ val symbolTableEquation = addSymbolTableEquation SymbolTable.empty;
 
 val symbolTableValue = addSymbolTableValue SymbolTable.empty;
 
+fun symbolTableArbitrary arbitrary =
+    let
+      val Arbitrary {name = _, parameters = _, lift} = arbitrary
+
+      val sym = SymbolTable.empty
+
+      val sym = SymbolTable.addTerm sym lift
+    in
+      sym
+    end;
+
 fun symbolTableSource s =
     case s of
       DataSource x => symbolTableData x
     | NewtypeSource x => symbolTableNewtype x
-    | ValueSource x => symbolTableValue x;
+    | ValueSource x => symbolTableValue x
+    | ArbitrarySource x => symbolTableArbitrary x;
 
 fun symbolTableSourceList sl =
     SymbolTable.unionList (List.map symbolTableSource sl);
@@ -1239,13 +1295,25 @@ in
       in
         sym
       end;
+
+  fun explicitSymbolTableArbitrary arbitrary =
+      let
+        val Arbitrary {name, parameters = _, lift} = arbitrary
+
+        val sym = SymbolTable.empty
+
+        val sym = addTerm (lift,sym)
+      in
+        sym
+      end;
 end;
 
 fun explicitSymbolTableSource s =
     case s of
       DataSource x => explicitSymbolTableData x
     | NewtypeSource x => explicitSymbolTableNewtype x
-    | ValueSource x => explicitSymbolTableValue x;
+    | ValueSource x => explicitSymbolTableValue x
+    | ArbitrarySource x => explicitSymbolTableArbitrary x;
 
 fun explicitSymbolTableSourceList sl =
     SymbolTable.unionList (List.map explicitSymbolTableSource sl);
@@ -1461,6 +1529,51 @@ in
         raise Error ("bad value theorem: " ^ err);
 end;
 
+local
+  fun mkEqn tm =
+      let
+        val (_,tm) = Term.stripForall tm
+
+        val (l,r) = Term.destEq tm
+
+        val (f,a) = Term.stripApp l
+
+        val arity = length a
+
+        val eqn =
+            Equation
+              {arguments = a,
+               body = r,
+               whereValues = []}
+      in
+        ((f,arity),eqn)
+      end;
+in
+  fun mkArbitrary th =
+      let
+        val Sequent.Sequent {hyp,concl} = Thm.sequent th
+
+        val () =
+            if TermAlphaSet.null hyp then ()
+            else raise Error "hypotheses"
+
+        val lift = Term.destSurjective concl
+
+        val ty = Type.rangeFun (Term.typeOf lift)
+
+        val (name,tys) = Type.destOp ty
+
+        val parameters = List.map Type.destVar tys
+      in
+        Arbitrary
+          {name = name,
+           parameters = parameters,
+           lift = lift}
+      end
+      handle Error err =>
+        raise Error ("bad arbitrary theorem: " ^ err);
+end;
+
 fun mkSource eqs int th =
     let
       val dataResult =
@@ -1474,16 +1587,22 @@ fun mkSource eqs int th =
       val valueResult =
           Left (mkValue th)
           handle Error err => Right err
+
+      val arbitraryResult =
+          Left (mkArbitrary th)
+          handle Error err => Right err
     in
-      case (dataResult,newtypeResult,valueResult) of
-        (Left x, _, _) => DataSource x
-      | (Right _, Left x, _) => NewtypeSource x
-      | (Right _, Right _, Left x) => ValueSource x
-      | (Right e1, Right e2, Right e3) =>
+      case (dataResult,newtypeResult,valueResult,arbitraryResult) of
+        (Left x, _, _, _) => DataSource x
+      | (Right _, Left x, _, _) => NewtypeSource x
+      | (Right _, Right _, Left x, _) => ValueSource x
+      | (Right _, Right _, Right _, Left x) => ArbitrarySource x
+      | (Right e1, Right e2, Right e3, Right e4) =>
         let
           val err =
-              "bad source theorem:\n  " ^ e1 ^ "\n  " ^ e2 ^ "\n  " ^ e3 ^
-              "\n" ^ Print.toString Thm.pp th
+              "bad source theorem:\n  " ^
+              e1 ^ "\n  " ^ e2 ^ "\n  " ^ e3 ^ "\n  " ^ e4 ^ "\n" ^
+              Print.toString Thm.pp th
         in
           raise Error err
         end
@@ -1824,11 +1943,21 @@ in
 end;
 
 local
-  val mkSymSrc =
+  val mkSyms =
       let
-        fun mk src = (symbolSource src, src)
+        fun addT t src symsrc = SymbolMap.insert symsrc (Symbol.TypeOp t, src);
+
+        fun addC c src symsrc = SymbolMap.insert symsrc (Symbol.Const c, src);
+
+        fun inc (src,(defs,arbs)) =
+            case src of
+              DataSource (Data {name,...}) => (addT name src defs, arbs)
+            | NewtypeSource (Newtype {name,...}) => (addT name src defs, arbs)
+            | ValueSource (Value {name,...}) => (addC name src defs, arbs)
+            | ArbitrarySource (Arbitrary {name,...}) =>
+              (defs, addT name src arbs);
       in
-        fn srcl => SymbolMap.fromList (List.map mk srcl)
+        List.foldl inc (SymbolMap.new (), SymbolMap.new ())
       end;
 
   fun mkGraph syms =
@@ -1853,13 +1982,6 @@ local
             | NONE => raise Bug "Haskell.sortSource.linearize.addSym"
 
         fun addScc (scc,acc) = SymbolSet.foldr addSym acc scc
-      in
-        List.foldl addScc []
-      end;
-in
-  fun sortSource srcl =
-      let
-        val symSrc = mkSymSrc srcl
 
         val syms = SymbolSet.domain symSrc
 
@@ -1867,19 +1989,30 @@ in
 
         val sccl = SymbolGraph.preOrderSCC graph (SymbolGraph.vertices graph)
       in
-        linearize symSrc sccl
+        List.foldl addScc [] sccl
+      end;
+in
+  fun sortSource srcl =
+      let
+        val (defs,arbs) = mkSyms srcl
+      in
+        linearize defs @ linearize arbs
       end;
 end;
 
 local
   fun init int src =
       let
+        fun intT t = Interpretation.interpretTypeOp int (TypeOp.name t)
+
+        fun intC c = Interpretation.interpretConst int (Const.name c)
+
         val n =
-            case symbolSource src of
-              Symbol.TypeOp t =>
-              Interpretation.interpretTypeOp int (TypeOp.name t)
-            | Symbol.Const c =>
-              Interpretation.interpretConst int (Const.name c)
+            case src of
+              DataSource (Data {name,...}) => intT name
+            | NewtypeSource (Newtype {name,...}) => intT name
+            | ValueSource (Value {name,...}) => intC name
+            | ArbitrarySource (Arbitrary {name,...}) => intT name
 
         val ns = Namespace.toList (Name.namespace n)
       in
@@ -2298,12 +2431,25 @@ in
       end;
 end;
 
+fun addArbitraryInferredEqualityTypes ret arbitrary =
+    let
+      val Arbitrary
+            {name = _,
+             parameters = _,
+             lift} = arbitrary
+
+      val ret = addTermInferredEqualityTypes ret lift
+    in
+      ret
+    end;
+
 local
   fun addSource (src,ret) =
       case src of
-        DataSource d => addDataInferredEqualityTypes ret d
-      | NewtypeSource n => addNewtypeInferredEqualityTypes ret n
-      | ValueSource v => addValueInferredEqualityTypes ret v;
+        DataSource x => addDataInferredEqualityTypes ret x
+      | NewtypeSource x => addNewtypeInferredEqualityTypes ret x
+      | ValueSource x => addValueInferredEqualityTypes ret x
+      | ArbitrarySource x => addArbitraryInferredEqualityTypes ret x;
 in
   fun addSourceInferredEqualityTypes ret src = addSource (src,ret);
 
@@ -2423,7 +2569,7 @@ local
         Article.thms art
       end;
 
-  fun checkEqualityTypes sym =
+  fun checkAttributeTypes tag sym =
       let
         fun check n =
             let
@@ -2444,7 +2590,7 @@ local
                 let
                   val err =
                       k ^ " type operator " ^ Name.toString n ^
-                      " cannot be declared as a haskell-" ^ equalityTypeTag
+                      " cannot be declared as a haskell-" ^ tag
                 in
                   raise Error err
                 end
@@ -2452,6 +2598,8 @@ local
       in
         NameSet.app check
       end;
+
+  val checkEqualityTypes = checkAttributeTypes equalityTypeTag;
 
   fun requiredEqualityTypes eqs src tests int =
       let
@@ -2499,6 +2647,8 @@ local
       in
         TypeOpSet.foldl diff NameSet.empty ts
       end;
+
+  val checkArbitraryTypes = checkAttributeTypes arbitraryTypeTag;
 in
   fun fromPackage repo namever =
       let
@@ -2532,6 +2682,7 @@ in
         val thy = packageTheory repo pkg
 
         val eqs = equalityTypesInformation info
+        and arbs = arbitraryTypesInformation info
 
         val src =
             let
@@ -2570,6 +2721,7 @@ in
                     (symbolTableTests tests)
 
               val () = checkEqualityTypes sym eqs
+              and () = checkArbitraryTypes sym arbs
 
               val getEqs = requiredEqualityTypes eqs src tests
             in
@@ -2933,6 +3085,7 @@ in
                licenseUrl = _,
                provenance,
                equalityTypes = _,
+               arbitraryTypes = _,
                tags = otags} = info
 
         val name = PackageName.toString name
@@ -3555,14 +3708,14 @@ local
         [] => []
       | eqn :: eqns => bodiesEquation eqn @ bodiesEquations eqns;
 
-  fun ppDecl ns (tm,ty) =
+  fun ppDecl exp (tm,ty) =
       Print.inconsistentBlock 2
-        [ppTerm ns tm,
+        [ppTerm exp tm,
          ppSyntax " ::",
          Print.break,
-         ppType ns ty];
+         ppType exp ty];
 
-  fun ppEquation ns tm eqn =
+  fun ppEquation exp tm eqn =
       let
         val Equation {arguments = args, body = rtm, whereValues = values} = eqn
 
@@ -3571,17 +3724,17 @@ local
         val ltm = Term.listMkApp (tm,args)
       in
         Print.consistentBlock 2
-          (ppTerm ns ltm ::
+          (ppTerm exp ltm ::
            ppSyntax " =" ::
            Print.break ::
-           ppTerm ns rtm ::
-           ppWherevalues ns values)
+           ppTerm exp rtm ::
+           ppWherevalues exp values)
       end
 
-  and ppWherevalues ns values =
+  and ppWherevalues exp values =
       let
         fun ppSpaceVal value =
-            Print.sequence (Print.newlines 2) (ppWhereValue ns value)
+            Print.sequence (Print.newlines 2) (ppWhereValue exp value)
       in
         case values of
           [] => []
@@ -3590,11 +3743,11 @@ local
            Print.consistentBlock 0
              (ppSyntax "where" ::
               Print.newline ::
-              ppWhereValue ns value ::
+              ppWhereValue exp value ::
               List.map ppSpaceVal values)]
       end
 
-  and ppWhereValue ns value =
+  and ppWhereValue exp value =
       let
         val WhereValue {name, equations = eqns} = value
 
@@ -3602,39 +3755,118 @@ local
         and ty = Var.typeOf name
       in
         Print.inconsistentBlock 2
-          (Print.ppBracket "{-" "-}" (ppDecl ns) (tm,ty) ::
-           List.map (Print.sequence Print.newline o ppEquation ns tm) eqns)
+          (Print.ppBracket "{-" "-}" (ppDecl exp) (tm,ty) ::
+           List.map (Print.sequence Print.newline o ppEquation exp tm) eqns)
       end;
 in
-  fun ppValue ns value =
+  fun ppValue exp value =
       let
         val Value {name, ty, equations = eqns} = value
 
         val tm = Term.mkConst (name,ty)
       in
         Print.inconsistentBlock 0
-          (ppDecl ns (tm,ty) ::
-           List.map (Print.sequence Print.newline o ppEquation ns tm) eqns)
+          (ppDecl exp (tm,ty) ::
+           List.map (Print.sequence Print.newline o ppEquation exp tm) eqns)
     end;
 end;
 
-fun ppSource ns s =
+local
+  fun isBasicType ty =
+      case Type.dest ty of
+        TypeTerm.VarTy' _ => true
+      | TypeTerm.OpTy' (_,tys) => List.null tys;
+
+  fun isBasicTerm tm =
+      Term.isVar tm orelse
+      Term.isConst tm;
+
+  fun ppBasicType exp ty =
+      if isBasicType ty then ppType exp ty
+      else Print.ppBracket "(" ")" (ppType exp) ty;
+
+  fun ppBasicTerm exp tm =
+      if isBasicTerm tm then ppTerm exp tm
+      else Print.ppBracket "(" ")" (ppTerm exp) tm;
+
+  fun ppArb exp ty =
+      Print.inconsistentBlock 2
+        [ppSyntax "Test.QuickCheck.Arbitrary",
+         Print.break,
+         ppBasicType exp ty];
+
+  fun ppCommaPrem exp v =
+      Print.program
+        [ppSyntax ",",
+         Print.break,
+         ppArb exp v];
+
+  fun ppPrem1 exp v vs =
+      if List.null vs then ppArb exp v
+      else
+        Print.consistentBlock 1
+          ([ppSyntax "(",
+            ppArb exp v] @
+           List.map (ppCommaPrem exp) vs @
+           [ppSyntax ")"]);
+
+  fun ppPrems exp vs =
+      case List.map Type.mkVar vs of
+        [] => Print.skip
+      | v :: vs => Print.sequence (ppPrem1 exp v vs) (ppSyntax " =>");
+
+  fun ppDecl exp (t,vs) =
+      let
+        val ty = Type.mkOp (t, List.map Type.mkVar vs)
+      in
+        Print.consistentBlock 7
+          [ppSyntax "instance ",
+           ppPrems exp vs,
+           Print.break,
+           ppArb exp ty,
+           ppSyntax " where"]
+      end;
+
+  fun ppLift exp lift =
+      Print.inconsistentBlock 2
+        [ppSyntax "arbitrary =",
+         Print.break,
+         Print.inconsistentBlock 2
+           [ppSyntax "fmap",
+            Print.break,
+            ppBasicTerm exp lift,
+            Print.break,
+            ppSyntax "Test.QuickCheck.arbitrary"]];
+in
+  fun ppArbitrary exp arbitrary =
+      let
+        val Arbitrary {name,parameters,lift} = arbitrary
+      in
+        Print.inconsistentBlock 2
+          [ppDecl exp (name,parameters),
+           Print.newline,
+           ppLift exp lift]
+      end;
+end;
+
+fun ppSource exp s =
     case s of
-      DataSource x => ppData ns x
-    | NewtypeSource x => ppNewtype ns x
-    | ValueSource x => ppValue ns x;
+      DataSource x => ppData exp x
+    | NewtypeSource x => ppNewtype exp x
+    | ValueSource x => ppValue exp x
+    | ArbitrarySource x => ppArbitrary exp x;
 
 local
-  fun ppSpaceSource ns s =
+  fun ppSpaceSource exp s =
       Print.sequence
         (Print.sequence Print.newline Print.newline)
-        (ppSource ns s);
+        (ppSource exp s);
 in
-  fun ppSourceList ns sl =
+  fun ppSourceList exp sl =
       case sl of
         [] => Print.skip
       | s :: sl =>
-        Print.program (ppSource ns s :: List.map (ppSpaceSource ns) sl);
+        Print.program (ppSource exp s :: List.map (ppSpaceSource exp) sl);
 end;
 
 fun ppModuleDeclaration exp =

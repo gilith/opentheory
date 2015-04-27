@@ -153,6 +153,7 @@ val subtractByteConst : name
 
 val composeConst : name
 val idConst : name
+val surjectiveConst : name
 
 (* Lists *)
 
