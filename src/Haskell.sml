@@ -1631,6 +1631,24 @@ datatype module =
        source : source list,
        submodules : module list};
 
+fun foldModule f =
+    let
+      fun g ns (s,acc) = f (ns,s,acc)
+
+      fun foldM (module,acc) =
+          let
+            val Module {namespace,source,submodules} = module
+
+            val acc = List.foldl foldM acc submodules
+
+            val acc = List.foldl (g namespace) acc source
+          in
+            acc
+          end
+    in
+      fn acc => fn module => foldM (module,acc)
+    end;
+
 fun symbolTableModule module =
     let
       val Module {namespace = _, source, submodules} = module
@@ -2047,52 +2065,9 @@ local
           (n, sub :: List.map snd ns) :: group nsubs
         end;
 
-  fun check srcl =
-      let
-        fun checkSrc src =
-            case src of
-              ArbitrarySource arbitrary =>
-              let
-                val Arbitrary {name,parameters,...} = arbitrary
-              in
-                case findTypeOpSourceList (TypeOp.name name) srcl of
-                  NONE =>
-                  let
-                    val err =
-                        "arbitrary instance for undefined type " ^
-                        TypeOp.toString name
-                  in
-                    raise Error err
-                  end
-                | SOME def =>
-                  let
-                    val parm =
-                        case def of
-                          DataSource (Data {parameters = x, ...}) => x
-                        | NewtypeSource (Newtype {parameters = x, ...}) => x
-                        | _ => raise Bug "Haskell.mkModule.check"
-                  in
-                    if listEqual Name.equal parameters parm then ()
-                    else
-                      let
-                        val err =
-                            "arbitrary instance has different parameters " ^
-                            "for type " ^ TypeOp.toString name
-                      in
-                        raise Error err
-                      end
-                  end
-              end
-            | _ => ()
-      in
-        List.app checkSrc srcl
-      end;
-
   fun mkTree namespace nsource =
       let
         val (source,nsubs) = List.foldl split ([],[]) (List.rev nsource)
-
-        val () = check source
 
         val nsubs = group nsubs
       in
@@ -2705,6 +2680,71 @@ local
       end;
 
   val checkArbitraryTypes = checkAttributeTypes arbitraryTypeTag;
+
+  fun checkArbitraryInstances arbs src =
+      let
+        fun add m t p =
+            let
+              val n = TypeOp.name t
+
+              val () =
+                  if not (NameMap.inDomain n m) then ()
+                  else
+                    let
+                      val err =
+                          "duplicate declaration for type " ^ Name.toString n
+                    in
+                      raise Error err
+                    end
+            in
+              NameMap.insert m (n,p)
+            end
+
+        fun inc (_,s,(dm,im)) =
+            case s of
+              DataSource (Data {name,parameters,...}) =>
+              (add dm name parameters, im)
+            | NewtypeSource (Newtype {name,parameters,...}) =>
+              (add dm name parameters, im)
+            | ValueSource _ => (dm,im)
+            | ArbitrarySource (Arbitrary {name,parameters,...}) =>
+              (dm, add im name parameters)
+
+        val (dm,im) = foldModule inc (NameMap.new (), NameMap.new ()) src
+
+        fun checkInstance (n,p) =
+            case NameMap.peek dm n of
+              NONE =>
+              let
+                val err =
+                    "arbitrary instance for undefined type " ^
+                    Name.toString n
+              in
+                raise Error err
+              end
+            | SOME p' =>
+              if not (listEqual Name.equal p' p) then
+                let
+                  val err =
+                      "arbitrary instance has different parameters " ^
+                      "for type " ^ Name.toString n
+                in
+                  raise Error err
+                end
+              else if not (NameSet.member n arbs) then
+                let
+                  val err =
+                      "arbitrary instance undeclared in theory file " ^
+                      "for type " ^ Name.toString n
+                in
+                  raise Error err
+                end
+              else ()
+
+        val () = NameMap.app checkInstance im
+      in
+        ()
+      end;
 in
   fun fromPackage repo namever =
       let
@@ -2748,6 +2788,8 @@ in
             in
               mkSourceModule eqs thyInt ths
             end
+
+        val () = checkArbitraryInstances arbs src
 
         val tests =
             case testFile of
