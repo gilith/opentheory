@@ -12,6 +12,7 @@ module OpenTheory.Parser.Stream
 where
 
 import qualified OpenTheory.Primitive.Natural as Natural
+import qualified Test.QuickCheck as QuickCheck
 
 data Stream a =
     Error
@@ -40,3 +41,8 @@ toList :: Stream a -> ([a], Bool)
 toList Error = ([], True)
 toList Eof = ([], False)
 toList (Cons x xs) = let (l, e) = toList xs in (x : l, e)
+
+instance QuickCheck.Arbitrary a => QuickCheck.Arbitrary (Stream a) where
+  arbitrary =
+    fmap (\(l, b) -> append l (if b then Error else Eof))
+      QuickCheck.arbitrary

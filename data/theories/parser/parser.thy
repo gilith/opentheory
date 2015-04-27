@@ -1,11 +1,9 @@
 name: parser
-version: 1.150
+version: 1.152
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: base
-requires: natural-fibonacci
-requires: probability
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
@@ -15,15 +13,16 @@ show: "Function"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
-show: "Probability.Random"
 show: "Relation"
 haskell-category: Parsing
 haskell-int-file: haskell.int
 haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
 haskell-equality-type: "Parser.Stream.stream"
+haskell-arbitrary-type: "Parser.Stream.stream"
 
 stream {
-  package: parser-stream-1.107
+  package: parser-stream-1.108
 }
 
 comb {

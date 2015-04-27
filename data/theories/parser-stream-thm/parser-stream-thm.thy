@@ -1,9 +1,9 @@
 name: parser-stream-thm
-version: 1.104
+version: 1.105
 description: Properties of parse streams
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2015-04-17
+provenance: HOL Light theory extracted on 2015-04-25
 requires: base
 requires: parser-stream-def
 show: "Data.Bool"
