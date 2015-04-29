@@ -1,5 +1,5 @@
 name: opentheory-unicode
-version: 1.137
+version: 1.137.1
 category: Text
 synopsis: Unicode characters
 license: MIT
@@ -19,8 +19,8 @@ library
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.193 && < 1.194,
     opentheory-byte >= 1.123 && < 1.124,
-    opentheory-bits >= 1.61 && < 1.64,
-    opentheory-parser >= 1.147 && < 1.155,
+    opentheory-bits >= 1.63 && < 1.64,
+    opentheory-parser >= 1.150 && < 1.155,
     opentheory-probability >= 1.46 && < 1.47
 
   hs-source-dirs: src
@@ -38,8 +38,8 @@ executable opentheory-unicode-test
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.193 && < 1.194,
     opentheory-byte >= 1.123 && < 1.124,
-    opentheory-bits >= 1.61 && < 1.64,
-    opentheory-parser >= 1.147 && < 1.155,
+    opentheory-bits >= 1.63 && < 1.64,
+    opentheory-parser >= 1.150 && < 1.155,
     opentheory-probability >= 1.46 && < 1.47
 
   hs-source-dirs: src, testsrc
