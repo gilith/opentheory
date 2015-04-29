@@ -13,7 +13,7 @@ show: "Parser.Stream"
 show: "Relation"
 
 def {
-  package: parser-stream-def-1.100
+  package: parser-stream-def-1.101
 }
 
 thm {

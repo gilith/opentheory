@@ -1,5 +1,5 @@
 name: opentheory-probability
-version: 1.43.12
+version: 1.46
 category: Formal Methods
 synopsis: Probability
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   Probability - this package was automatically generated from the
-  OpenTheory package probability-1.43
+  OpenTheory package probability-1.46
 
 library
   build-depends:
