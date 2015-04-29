@@ -585,7 +585,8 @@ datatype packageDependencyRequirements =
     PackageDependencyRequirements of
       {haskellName : PackageName.name,
        definedSymbolNames : Name.name SymbolMap.map,
-       equalityTypes : NameSet.set};
+       equalityTypes : NameSet.set,
+       arbitraryTypes : NameSet.set};
 
 local
   fun definesSymbol s th =
@@ -691,8 +692,9 @@ local
             val sm = SymbolSet.map interpret ss
 
             val eqs = equalityTypesInformation info
+            and arbs = arbitraryTypesInformation info
           in
-            (nv :: nvs, PackageNameMap.insert sym (n,(hn,sm,(nv,eqs))))
+            (nv :: nvs, PackageNameMap.insert sym (n,(hn,sm,(nv,eqs,arbs))))
           end
       end;
 
@@ -720,24 +722,24 @@ local
         Interpretation.fromRewriteList rewrs
       end;
 
-  fun equalitySymbol eqs =
+  val classSymbol =
       let
-        fun addEq (s,_,ns) =
+        fun addClass req (s,_,ns) =
             case s of
               Symbol.Const c => ns
             | Symbol.TypeOp t =>
               let
                 val n = TypeOp.name t
               in
-                if NameSet.member n eqs then NameSet.add ns n else ns
+                if NameSet.member n req then NameSet.add ns n else ns
               end
 
-        fun mkEq (n,sm,(nv,nveqs)) =
+        fun mkClass tag req sm nv decl =
             let
-              val ns = SymbolMap.foldl addEq NameSet.empty sm
+              val nvreq = SymbolMap.foldl (addClass req) NameSet.empty sm
 
               val () =
-                  case NameSet.toList (NameSet.difference ns nveqs) of
+                  case NameSet.toList (NameSet.difference nvreq decl) of
                     [] => ()
                   | nl =>
                     let
@@ -747,22 +749,31 @@ local
                           "in required theory " ^
                           PackageNameVersion.toString nv ^
                           " the following types need to be declared as " ^
-                          "haskell-" ^ equalityTypeTag ^
-                          String.concat (List.map n2s nl)
+                          "haskell-" ^ tag ^ String.concat (List.map n2s nl)
                     in
                       raise Error err
                     end
             in
+              nvreq
+            end
+
+        fun mkClasses reqEqs reqArbs (n,sm,(nv,nveqs,nvarbs)) =
+            let
+              val eqs = mkClass equalityTypeTag reqEqs sm nv nveqs
+              and arbs = mkClass arbitraryTypeTag reqArbs sm nv nvarbs
+            in
               PackageDependencyRequirements
                 {haskellName = n,
                  definedSymbolNames = sm,
-                 equalityTypes = ns}
+                 equalityTypes = eqs,
+                 arbitraryTypes = arbs}
             end
       in
-        PackageNameMap.transform mkEq
+        fn reqEqs => fn reqArbs =>
+        PackageNameMap.transform (mkClasses reqEqs reqArbs)
       end;
 
-  fun mkSymbol repo thyInt ths sym getEqs =
+  fun mkSymbol repo thyInt ths sym reqEqs reqArbs =
       let
         val sym =
             SymbolSet.difference
@@ -780,9 +791,7 @@ local
 
         val int = interpretationSymbol thyInt sym
 
-        val eqs = getEqs int
-
-        val sym = equalitySymbol eqs sym
+        val sym = classSymbol (reqEqs int) reqArbs sym
       in
         (nvs,sym,int)
       end;
@@ -824,14 +833,16 @@ local
         val PackageDependencyRequirements
               {haskellName,
                definedSymbolNames,
-               equalityTypes} =
+               equalityTypes,
+               arbitraryTypes} =
             case PackageNameMap.peek sym n of
               NONE => raise Bug "Haskell.mkDepends.checkSymbol"
             | SOME x => x
       in
         PackageName.equal (nameInformation info) haskellName andalso
         SymbolMap.all check definedSymbolNames andalso
-        NameSet.subset equalityTypes (equalityTypesInformation info)
+        NameSet.subset equalityTypes (equalityTypesInformation info) andalso
+        NameSet.subset arbitraryTypes (arbitraryTypesInformation info)
       end;
 
   fun recordOldest oldest nv =
@@ -928,7 +939,7 @@ local
         List.map mk
       end;
 in
-  fun mkDepends repo reqs thyInt thy sym getEqs =
+  fun mkDepends repo reqs thyInt thy sym reqEqs reqArbs =
       let
         val ths =
             case Repository.requiresTheorems repo reqs of
@@ -937,7 +948,7 @@ in
 
         val vs = PackageTheorems.mkVersions (Theory.summary thy) ths
 
-        val (nvs,sym,int) = mkSymbol repo thyInt ths sym getEqs
+        val (nvs,sym,int) = mkSymbol repo thyInt ths sym reqEqs reqArbs
 
         val oldest = mkOldest repo sym (Queue.fromList nvs) vs
 
@@ -957,7 +968,8 @@ datatype data =
        parameters : Name.name list,
        constructors : (Const.const * Type.ty list) list,
        caseConst : Const.const,
-       equalityType : bool};
+       equalityType : bool,
+       arbitraryType : bool};
 
 datatype newtype =
     Newtype of
@@ -966,7 +978,8 @@ datatype newtype =
        repType : Type.ty,
        abs : Const.const,
        rep : Const.const,
-       equalityType : bool};
+       equalityType : bool,
+       arbitraryType : bool};
 
 datatype whereValue =
     WhereValue of
@@ -1063,7 +1076,8 @@ in
                parameters = _,
                constructors = cons,
                caseConst,
-               equalityType = _} = data
+               equalityType = _,
+               arbitraryType = _} = data
 
         val sym = SymbolTable.empty
 
@@ -1085,7 +1099,8 @@ fun definedSymbolTableNewtype newtype =
              repType = _,
              abs,
              rep,
-             equalityType = _} = newtype
+             equalityType = _,
+             arbitraryType = _} = newtype
 
       val sym = SymbolTable.empty
 
@@ -1145,7 +1160,8 @@ in
                parameters = _,
                constructors = cons,
                caseConst,
-               equalityType = _} = data
+               equalityType = _,
+               arbitraryType = _} = data
 
         val sym = SymbolTable.empty
 
@@ -1167,7 +1183,8 @@ fun symbolTableNewtype newtype =
              repType,
              abs,
              rep,
-             equalityType = _} = newtype
+             equalityType = _,
+             arbitraryType = _} = newtype
 
       val sym = SymbolTable.empty
 
@@ -1416,7 +1433,7 @@ and sharingRewriteWhereValueList values rewr =
 (* Converting theorems into source declarations.                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkData eqs th =
+fun mkData eqs arbs th =
     let
       val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1431,18 +1448,20 @@ fun mkData eqs th =
       val parms = List.map Type.destVar parms
 
       val equalityType = NameSet.member (TypeOp.name name) eqs
+      and arbitraryType = NameSet.member (TypeOp.name name) arbs
     in
       Data
         {name = name,
          parameters = parms,
          constructors = constructors,
          caseConst = caseConst,
-         equalityType = equalityType}
+         equalityType = equalityType,
+         arbitraryType = arbitraryType}
     end
     handle Error err =>
       raise Error ("bad data theorem: " ^ err);
 
-fun mkNewtype eqs int th =
+fun mkNewtype eqs arbs int th =
     let
       val Sequent.Sequent {hyp,concl} = Thm.sequent th
 
@@ -1490,6 +1509,7 @@ fun mkNewtype eqs int th =
           end
 
       val equalityType = NameSet.member (TypeOp.name name) eqs
+      and arbitraryType = NameSet.member (TypeOp.name name) arbs
     in
       Newtype
         {name = name,
@@ -1497,7 +1517,8 @@ fun mkNewtype eqs int th =
          repType = repTy,
          abs = abs,
          rep = rep,
-         equalityType = equalityType}
+         equalityType = equalityType,
+         arbitraryType = arbitraryType}
     end
     handle Error err =>
       raise Error ("bad newtype theorem: " ^ err);
@@ -1600,14 +1621,14 @@ in
         raise Error ("bad arbitrary theorem: " ^ err);
 end;
 
-fun mkSource eqs int th =
+fun mkSource eqs arbs int th =
     let
       val dataResult =
-          Left (mkData eqs th)
+          Left (mkData eqs arbs th)
           handle Error err => Right err
 
       val newtypeResult =
-          Left (mkNewtype eqs int th)
+          Left (mkNewtype eqs arbs int th)
           handle Error err => Right err
 
       val valueResult =
@@ -2106,11 +2127,11 @@ in
       end;
 end;
 
-fun mkSourceModule eqs int src =
+fun mkSourceModule eqs arbs int src =
     let
       val ths = ThmSet.toList (Thms.thms src)
 
-      val src = List.map (mkSource eqs int) ths
+      val src = List.map (mkSource eqs arbs int) ths
 
       val src = groupSource int src
 
@@ -2415,7 +2436,8 @@ in
                parameters = _,
                constructors,
                caseConst = _,
-               equalityType} = data
+               equalityType,
+               arbitraryType = _} = data
       in
         if not equalityType then ret
         else List.foldl addConstructor ret constructors
@@ -2430,7 +2452,8 @@ fun addNewtypeInferredEqualityTypes ret newtype =
              repType,
              abs = _,
              rep = _,
-             equalityType} = newtype
+             equalityType,
+             arbitraryType = _} = newtype
     in
       if not equalityType then ret
       else addTypeInferredEqualityTypes ret repType
@@ -2535,6 +2558,164 @@ in
   fun addTestInferredEqualityTypes ret test = addTest (test,ret);
 
   val addTestsInferredEqualityTypes = List.foldl addTest;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Inferring the set of type operators that must support arbitrary/show.     *)
+(* ------------------------------------------------------------------------- *)
+
+datatype inferredArbitraryTypes =
+    InferredArbitraryTypes of Term.sharingTypeOps;
+
+val emptyInferredArbitraryTypes =
+    InferredArbitraryTypes Term.emptySharingTypeOps;
+
+fun inferredArbitraryTypes (InferredArbitraryTypes ts) =
+    Term.toSetSharingTypeOps ts;
+
+local
+  fun addType (ty,ret) =
+      let
+        val InferredArbitraryTypes ts = ret
+
+        val ts = Term.addTypeSharingTypeOps ty ts
+      in
+        InferredArbitraryTypes ts
+      end;
+in
+  fun addTypeInferredArbitraryTypes ret ty = addType (ty,ret);
+
+  val addTypesInferredArbitraryTypes = List.foldl addType;
+end;
+
+local
+  fun addTerm (tm,ret) =
+      let
+        val InferredArbitraryTypes ts = ret
+
+        val ts = Term.addSharingTypeOps tm ts
+      in
+        InferredArbitraryTypes ts
+      end;
+in
+  fun addTermInferredArbitraryTypes ret tm = addTerm (tm,ret);
+
+  val addTermsInferredArbitraryTypes = List.foldl addTerm;
+end;
+
+local
+  fun addConstructor ((_,tys),ret) =
+      addTypesInferredArbitraryTypes ret tys;
+in
+  fun addDataInferredArbitraryTypes ret data =
+      let
+        val Data
+              {name = _,
+               parameters = _,
+               constructors,
+               caseConst = _,
+               equalityType = _,
+               arbitraryType} = data
+      in
+        if not arbitraryType then ret
+        else List.foldl addConstructor ret constructors
+      end;
+end;
+
+fun addNewtypeInferredArbitraryTypes ret newtype =
+    let
+      val Newtype
+            {name = _,
+             parameters = _,
+             repType,
+             abs = _,
+             rep = _,
+             equalityType = _,
+             arbitraryType} = newtype
+    in
+      if not arbitraryType then ret
+      else addTypeInferredArbitraryTypes ret repType
+    end;
+
+fun addValueInferredArbitraryTypes ret (_ : value) = ret;
+
+fun addArbitraryInferredArbitraryTypes ret arbitrary =
+    let
+      val Arbitrary
+            {name = _,
+             parameters = _,
+             lift} = arbitrary
+
+      val ty = Type.domainFun (Term.typeOf lift)
+
+      val ret = addTypeInferredArbitraryTypes ret ty
+    in
+      ret
+    end;
+
+local
+  fun addSource (src,ret) =
+      case src of
+        DataSource x => addDataInferredArbitraryTypes ret x
+      | NewtypeSource x => addNewtypeInferredArbitraryTypes ret x
+      | ValueSource x => addValueInferredArbitraryTypes ret x
+      | ArbitrarySource x => addArbitraryInferredArbitraryTypes ret x;
+in
+  fun addSourceInferredArbitraryTypes ret src = addSource (src,ret);
+
+  val addSourcesInferredArbitraryTypes = List.foldl addSource;
+end;
+
+local
+  fun addModule (module,ret) =
+      let
+        val Module
+              {namespace = _,
+               source,
+               submodules} = module
+
+        val ret = addSourcesInferredArbitraryTypes ret source
+
+        val ret = List.foldl addModule ret submodules
+      in
+        ret
+      end;
+in
+  fun addModuleInferredArbitraryTypes ret module = addModule (module,ret);
+end;
+
+local
+  fun addTest (test,ret) =
+      let
+        val Test
+              {name = _,
+               description = _,
+               value,
+               invocation = _} = test
+
+        val eqn =
+            case value of
+              Value
+                {name = _,
+                 ty = _,
+                 equations = [eqn]} => eqn
+            | _ => raise Bug "Haskell.addTestInferredArbitraryTypes.eqn"
+
+        val args =
+            case eqn of
+              Equation
+                {arguments,
+                 body = _,
+                 whereValues = _} => arguments
+
+        val ret = addTermsInferredArbitraryTypes ret args
+      in
+        ret
+      end;
+in
+  fun addTestInferredArbitraryTypes ret test = addTest (test,ret);
+
+  val addTestsInferredArbitraryTypes = List.foldl addTest;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2773,6 +2954,53 @@ local
       in
         ()
       end;
+
+  fun requiredArbitraryTypes arbs src tests =
+      let
+        fun diff (t,ns) =
+            let
+              val n = TypeOp.name t
+            in
+              if TypeOp.isUndef t then
+                if not (TypeOpSet.member t TypeOpSet.primitives) then
+                  NameSet.add ns n
+                else if TypeOp.isBool t then ns
+                else
+                  let
+                    val err =
+                        "primitive type operator " ^ Name.toString n ^
+                        " is not haskell-" ^ arbitraryTypeTag
+                  in
+                    raise Error err
+                  end
+              else if NameSet.member n arbs then ns
+              else
+                let
+                  val err =
+                      "defined type operator " ^ Name.toString n ^
+                      " must be declared as haskell-" ^ arbitraryTypeTag
+                in
+                  raise Error err
+                end
+            end
+
+        val ret = emptyInferredArbitraryTypes
+
+        val ret = addModuleInferredArbitraryTypes ret src
+
+        val ret = addTestsInferredArbitraryTypes ret tests
+
+        val ts = inferredArbitraryTypes ret
+
+(*OpenTheoryTrace3
+        val () =
+            Print.trace (Print.ppList TypeOp.pp)
+              "Haskell.fromPackage.requiredArbitraryTypes.ts"
+              (TypeOpSet.toList ts)
+*)
+      in
+        TypeOpSet.foldl diff NameSet.empty ts
+      end;
 in
   fun fromPackage repo namever =
       let
@@ -2814,7 +3042,7 @@ in
 
               val ths = derivedTheorems thy file
             in
-              mkSourceModule eqs thyInt ths
+              mkSourceModule eqs arbs thyInt ths
             end
 
         val () = checkArbitraryInstances arbs src
@@ -2849,9 +3077,11 @@ in
               val () = checkEqualityTypes sym eqs
               and () = checkArbitraryTypes sym arbs
 
-              val getEqs = requiredEqualityTypes eqs src tests
+              val reqEqs = requiredEqualityTypes eqs src tests
+
+              val reqArbs = requiredArbitraryTypes arbs src tests
             in
-              mkDepends repo reqs thyInt thy sym getEqs
+              mkDepends repo reqs thyInt thy sym reqEqs reqArbs
             end
       in
         Haskell
@@ -3719,6 +3949,22 @@ fun ppDepend dep =
          PackageVersion.pp next]
     end;
 
+fun ppDeriving {equalityType,arbitraryType} =
+    let
+      val classes =
+          (if equalityType then ["Eq","Ord"] else []) @
+          (if arbitraryType then ["Show"] else [])
+    in
+      if List.null classes then Print.skip
+      else
+        Print.sequence
+          Print.newline
+          (Print.inconsistentBlock 2
+             [ppSyntax "deriving (",
+              Print.ppOpList "," ppSyntax classes,
+              ppSyntax ")"])
+    end;
+
 local
   fun ppDecl exp (name,parms) =
       Print.inconsistentBlock 2
@@ -3740,13 +3986,6 @@ local
         [] => raise Error "datatype has no constructors"
       | c :: cs =>
         Print.program (ppCon exp "  " c :: List.map (ppCon exp "| ") cs);
-
-  fun ppEq eq =
-      Print.program
-        (if not eq then []
-         else
-           [Print.newline,
-            ppSyntax "deriving (Eq,Ord)"])
 in
   fun ppData exp data =
       let
@@ -3755,12 +3994,13 @@ in
                parameters = parms,
                constructors = cons,
                caseConst = _,
-               equalityType} = data
+               equalityType = eq,
+               arbitraryType = arb} = data
       in
         Print.inconsistentBlock 2
           [ppDecl exp (name,parms),
            ppCons exp cons,
-           ppEq equalityType]
+           ppDeriving {equalityType = eq, arbitraryType = arb}]
     end;
 end;
 
@@ -3789,13 +4029,6 @@ local
          ppRep exp rep,
          Print.break,
          ppSyntax "}"];
-
-  fun ppEq eq =
-      Print.program
-        (if not eq then []
-         else
-           [Print.newline,
-            ppSyntax "deriving (Eq,Ord)"])
 in
   fun ppNewtype exp newtype =
       let
@@ -3805,13 +4038,14 @@ in
                repType,
                abs,
                rep,
-               equalityType} = newtype
+               equalityType = eq,
+               arbitraryType = arb} = newtype
       in
         Print.inconsistentBlock 2
           [ppDecl exp (name,parms),
            Print.break,
            ppIso exp (abs,(rep,repType)),
-           ppEq equalityType]
+           ppDeriving {equalityType = eq, arbitraryType = arb}]
       end;
 end;
 

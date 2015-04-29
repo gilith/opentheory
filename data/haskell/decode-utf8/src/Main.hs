@@ -19,7 +19,8 @@ import qualified Unicode
 info :: Either Word.Word8 Unicode -> String
 info (Left b) = "invalid byte " ++ show b
 info (Right c) =
-    "valid unicode character " ++ show (unUnicode c) ++ " " ++ show c
+    "valid unicode character " ++ show (unUnicode c) ++ " " ++
+    Unicode.toString c
 
 display :: Either Word.Word8 Unicode -> IO ()
 display c = putStrLn (info c)

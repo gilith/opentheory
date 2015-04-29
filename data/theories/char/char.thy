@@ -1,5 +1,5 @@
 name: char
-version: 1.136
+version: 1.137
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -27,14 +27,15 @@ haskell-int-file: haskell.int
 haskell-src-file: haskell.art
 haskell-test-file: haskell-test.art
 haskell-equality-type: "Data.Char.char"
+haskell-arbitrary-type: "Data.Char.char"
 
 def {
-  package: char-def-1.105
+  package: char-def-1.106
 }
 
 thm {
   import: def
-  package: char-thm-1.22
+  package: char-thm-1.23
 }
 
 utf8 {

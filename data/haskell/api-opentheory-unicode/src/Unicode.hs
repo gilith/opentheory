@@ -8,7 +8,8 @@ stability: provisional
 portability: portable
 -}
 module Unicode
-  ( newline,
+  ( toString,
+    newline,
     decode,
     encode,
     reencode,
@@ -28,8 +29,8 @@ import qualified System.IO as IO
 import qualified OpenTheory.Unicode.UTF8 as UTF8
 import OpenTheory.Unicode
 
-instance Show Unicode where
-  show = show . Char.chr . fromIntegral . unUnicode
+toString :: Unicode -> String
+toString = show . Char.chr . fromIntegral . unUnicode
 
 newline :: [Unicode]
 newline = [Unicode 10]

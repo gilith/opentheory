@@ -18,7 +18,7 @@ data Stream a =
     Error
   | Eof
   | Cons a (Stream a)
-  deriving (Eq,Ord)
+  deriving (Eq, Ord, Show)
 
 append :: [a] -> Stream a -> Stream a
 append [] xs = xs

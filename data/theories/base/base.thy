@@ -1,5 +1,5 @@
 name: base
-version: 1.192
+version: 1.193
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -23,6 +23,11 @@ haskell-equality-type: "Data.Option.option"
 haskell-equality-type: "Data.Pair.*"
 haskell-equality-type: "Data.Sum.+"
 haskell-equality-type: "Number.Natural.natural"
+haskell-arbitrary-type: "Data.List.list"
+haskell-arbitrary-type: "Data.Option.option"
+haskell-arbitrary-type: "Data.Pair.*"
+haskell-arbitrary-type: "Data.Sum.+"
+haskell-arbitrary-type: "Number.Natural.natural"
 
 bool {
   package: bool-1.36
