@@ -1014,27 +1014,6 @@ datatype source =
 (* Symbols in source declarations.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(***
-(* The primary symbol in a source declaration *)
-
-fun symbolData (Data {name,...}) = Symbol.TypeOp name;
-
-fun symbolNewtype (Newtype {name,...}) = Symbol.TypeOp name;
-
-fun symbolValue (Value {name,...}) = Symbol.Const name;
-
-fun symbolArbitrary (Arbitrary {name,...}) = Symbol.TypeOp name;
-
-fun symbolSource s =
-    case s of
-      DataSource x => symbolData x
-    | NewtypeSource x => symbolNewtype x
-    | ValueSource x => symbolValue x
-    | ArbitrarySource x => symbolArbitrary x;
-
-fun nameSource s = Symbol.name (symbolSource s);
-***)
-
 fun destArbitrarySource src =
     case src of
       ArbitrarySource x => SOME x
