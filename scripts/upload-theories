@@ -28,7 +28,7 @@ my $cmd = "$opentheory --repo $repo update";
 
 (system ($cmd) == 0) or die;
 
-$cmd = "$opentheory --repo $repo list '" . 'Mine & (LaterThanRepo /\ ConsistentWithRepo)' . "'";
+$cmd = "$opentheory --repo $repo list '" . '(Mine & (LaterThanRepo /\ ConsistentWithRepo) & UpToDate) (Latest - Subtheories) All' . "'";
 
 my @thys = split (/[[:space:]]+/, `$cmd`);
 
