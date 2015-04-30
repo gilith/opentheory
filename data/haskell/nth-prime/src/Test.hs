@@ -12,14 +12,16 @@ module Main
 where
 
 import qualified OpenTheory.Primitive.Natural as Natural
+import qualified OpenTheory.Natural.Prime as VerifiedSieve
 import qualified NaiveSieve
-import qualified OpenTheory.Natural.Prime as OptimizedNaiveSieve
+import qualified OptimizedSieve
 import qualified GenuineSieve
 
 sieves :: [[Natural.Natural]]
 sieves =
-  [NaiveSieve.primes,
-   OptimizedNaiveSieve.primes,
+  [VerifiedSieve.primes,
+   NaiveSieve.primes,
+   OptimizedSieve.primes,
    GenuineSieve.primes]
 
 checkInitialPrimes :: Int -> IO ()
@@ -28,7 +30,8 @@ checkInitialPrimes k =
       [] -> error "no sieves defined"
       l : ls ->
         if all ((==) l) ls
-          then putStrLn $ "  checked initial " ++ show k ++ " primes are " ++ show l
+          then putStrLn $ "  checked initial " ++ show k ++
+                          " primes are " ++ show l
           else error $ "wrong initial " ++ show k ++ " primes"
 
 checkNthPrime :: Int -> IO ()

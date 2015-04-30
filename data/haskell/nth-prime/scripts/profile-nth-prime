@@ -74,8 +74,9 @@ my $nth_prime = "dist/build/nth-prime/nth-prime";
 [ -x $nth_prime ] or die "$program: $nth_prime not an executable";
 
 get_results ("<em>n</em>", "header");
+get_results ("Verified", "$nth_prime -s verified");
 get_results ("Naive", "$nth_prime -s naive");
-get_results ("Optimized Naive", "$nth_prime -s optimizedNaive");
+get_results ("Optimized", "$nth_prime -s optimized");
 get_results ("Genuine", "$nth_prime -s genuine");
 
 __END__
