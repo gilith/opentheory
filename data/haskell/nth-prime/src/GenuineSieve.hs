@@ -22,33 +22,29 @@ instance Show Sieve where
   show s = show (unSieve s)
 
 perimeter :: Sieve -> Natural
-perimeter s = fst (unSieve s)
+perimeter (Sieve (n,_)) = n
 
 initial :: Sieve
 initial =
-    Sieve (1, Heap.empty lep)
+    Sieve (9, Heap.empty lep)
   where
     lep (p1,_) (p2,_) = p1 <= p2
 
-next :: Sieve -> (Natural,Sieve)
-next s =
-    let (b, s') = increment s in
-    if b then (perimeter s', s') else next s'
+add :: Natural -> Sieve -> Sieve
+add p (Sieve (n,ps)) = Sieve (n, Heap.add (p * p, 2 * p) ps)
 
-increment :: Sieve -> (Bool,Sieve)
-increment =
-    \s ->
-      let (n,ps) = unSieve s in
-      let n' = n + 2 in
-      let (m,ps') = bump ps in
-      if m <= n'
-        then (False, Sieve (m,ps'))
-        else (True, Sieve (n', Heap.add (n' * n', 2 * n') ps))
-  where
-    bump ps =
-      case Heap.remove ps of
-        Nothing -> (5,ps)
-        Just ((kp,p),ps') -> (kp, Heap.add (kp + p, p) ps')
+bump :: Sieve -> Sieve
+bump (Sieve (_,ps)) =
+    case Heap.remove ps of
+      Nothing -> error "GenuineSieve.bump"
+      Just ((kp,p),ps') -> Sieve (kp, Heap.add (kp + p, p) ps')
+
+advance :: Natural -> Sieve -> [Natural]
+advance m s =
+    let n = perimeter s in
+    if m < n
+      then m : advance (m + 2) (add m s)
+      else advance (if m == n then m + 2 else m) (bump s)
 
 primes :: [Natural]
-primes = 2 : List.unfoldr (Just . next) initial
+primes = 2 : advance 3 initial
