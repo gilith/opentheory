@@ -6370,7 +6370,7 @@ ref
 ref
 450
 ref
-"Number.Natural.Bits.toNatural"
+"Number.Natural.Bits.fromList"
 const
 1
 ref
@@ -7457,7 +7457,7 @@ ref
 subst
 41
 ref
-"_33516"
+"_31143"
 2
 ref
 var
@@ -10250,7 +10250,7 @@ ref
 subst
 41
 ref
-"_33518"
+"_31145"
 22
 ref
 var
@@ -17517,7 +17517,7 @@ ref
 subst
 41
 ref
-"_33512"
+"_31139"
 241
 remove
 var
@@ -17679,7 +17679,7 @@ ref
 subst
 41
 ref
-"_33514"
+"_31141"
 20
 remove
 var
@@ -18237,7 +18237,7 @@ ref
 subst
 41
 ref
-"_33522"
+"_31149"
 2
 ref
 var
@@ -19936,7 +19936,7 @@ ref
 subst
 41
 ref
-"_33526"
+"_31153"
 9
 ref
 var
@@ -24074,7 +24074,7 @@ ref
 subst
 41
 ref
-"_33549"
+"_31176"
 22
 ref
 var
@@ -25113,7 +25113,7 @@ ref
 subst
 41
 ref
-"_33555"
+"_31182"
 3
 ref
 var
@@ -29612,7 +29612,7 @@ ref
 subst
 41
 ref
-"_33599"
+"_31226"
 9
 ref
 var
@@ -30720,7 +30720,7 @@ ref
 subst
 41
 ref
-"_33601"
+"_31228"
 3
 ref
 var
@@ -31919,7 +31919,7 @@ ref
 subst
 41
 ref
-"_33603"
+"_31230"
 9
 ref
 var
@@ -32819,7 +32819,7 @@ ref
 subst
 41
 ref
-"_33605"
+"_31232"
 3
 remove
 var
@@ -35097,7 +35097,7 @@ ref
 subst
 41
 ref
-"_33547"
+"_31174"
 22
 ref
 var
@@ -38887,7 +38887,7 @@ ref
 subst
 41
 ref
-"_33529"
+"_31156"
 2
 ref
 var
@@ -38959,7 +38959,7 @@ eqMp
 sym
 41
 ref
-"_33537"
+"_31164"
 2
 ref
 var
@@ -39682,7 +39682,7 @@ ref
 subst
 41
 ref
-"_33543"
+"_31170"
 9
 ref
 var
@@ -39953,7 +39953,7 @@ ref
 subst
 41
 ref
-"_33545"
+"_31172"
 22
 remove
 var
@@ -43546,7 +43546,7 @@ eqMp
 eqMp
 41
 ref
-"_33559"
+"_31186"
 9
 ref
 var
@@ -45201,7 +45201,7 @@ ref
 subst
 41
 ref
-"_33561"
+"_31188"
 9
 ref
 var
@@ -48107,7 +48107,7 @@ remove
 eqMp
 41
 ref
-"_33551"
+"_31178"
 9
 ref
 var
@@ -48410,7 +48410,7 @@ subst
 eqMp
 41
 ref
-"_33553"
+"_31180"
 9
 ref
 var
@@ -50733,7 +50733,7 @@ ref
 subst
 41
 ref
-"_33557"
+"_31184"
 9
 ref
 var
@@ -56525,7 +56525,7 @@ remove
 subst
 41
 remove
-"_33595"
+"_31222"
 9
 remove
 var

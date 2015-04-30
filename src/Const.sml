@@ -166,6 +166,10 @@ fun isZero c = Name.equal Name.zeroConst (name c);
 
 fun isFromPredicate c = Name.equal Name.fromPredicateConst (name c);
 
+(* Surjectivity *)
+
+fun isSurjective c = Name.equal Name.surjectiveConst (name c);
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

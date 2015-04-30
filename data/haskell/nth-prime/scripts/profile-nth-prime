@@ -1,0 +1,121 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h);
+
+getopts('h');
+
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $program = "profile-nth-prime";
+
+sub get_real_time {
+  (scalar @_ == 1) or die;
+  my $n = shift @_;
+
+  if ($n =~ /real[[:space:]]+([[:digit:]]+[.][[:digit:]]+)/s) {
+    return $1;
+  }
+  else {
+    die "$program: bad time format:\n$n";
+  }
+}
+
+sub get_results {
+  (scalar @_ == 2) or die;
+  my $name = shift @_;
+  my $cmd = shift @_;
+
+  print STDOUT "<tr>";
+
+  print STDOUT "<td><b>";
+  print STDOUT $name;
+  print STDOUT "</b></td>";
+
+  my $i = 100;
+  while ($i <= 5000) {
+    if ($cmd eq "header") {
+      print STDOUT "<td><b>";
+      print STDOUT $i;
+      print STDOUT "</b></td>";
+    }
+    else {
+      print STDOUT "<td>";
+
+      my $r = `(time -p $cmd $i) 2>&1 >/dev/null`;
+
+      my $t = get_real_time $r;
+
+      print STDOUT $t;
+
+      print STDOUT "s</td>";
+    }
+
+    $i *= 2;
+  }
+
+  print STDOUT "</tr>\n";
+}
+
+my $nth_prime = "dist/build/nth-prime/nth-prime";
+[ -x $nth_prime ] or die "$program: $nth_prime not an executable";
+
+get_results ("<em>n</em>", "header");
+get_results ("Naive", "$nth_prime -s naive");
+get_results ("Optimized Naive", "$nth_prime -s optimizedNaive");
+get_results ("Genuine", "$nth_prime -s genuine");
+
+__END__
+
+=pod
+
+=head1 NAME
+
+profile-nth-prime - profile the nth-prime program
+
+=head1 SYNOPSIS
+
+profile-nth-prime [-h]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+Profile the nth-prime program.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

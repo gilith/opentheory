@@ -308,6 +308,8 @@ in
   open S;
 end;
 
+val primitives = fromList TypeOp.primitives;
+
 val alphabetize =
     let
       fun inc (t,nm) =
@@ -321,6 +323,8 @@ val alphabetize =
     in
       foldl inc (NameMap.new ())
     end;
+
+fun names ts = NameSet.domain (alphabetize ts);
 
 val pp = Print.ppBracket "{" "}" (Print.ppMap size Print.ppInt);
 

@@ -1,17 +1,18 @@
 name: char-thm
-version: 1.17
+version: 1.23
 description: Properties of Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-01
-requires: bool
+provenance: HOL Light theory extracted on 2015-04-28
+requires: base
 requires: char-def
-requires: pair
+requires: natural-bits
 show: "Data.Bool"
-show: "Data.Byte"
 show: "Data.Char"
 show: "Data.Pair"
-show: "Data.Word16"
+show: "Function"
+show: "Number.Natural"
+show: "Set"
 
 main {
   article: "char-thm.art"

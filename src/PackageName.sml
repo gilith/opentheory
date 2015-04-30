@@ -20,6 +20,7 @@ and extraSuffixString = "file"
 and gilithString = "gilith"
 and haskellString = "haskell"
 and installedString = "installed"
+and intString = "int"
 and licenseString = "license"
 and mainString = "main"
 and nameString = "name"
@@ -235,28 +236,13 @@ val gilithRemote = Name [gilithString];
 (* Haskell export names.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-val haskell = Name [haskellString]
-and srcHaskellTheory = Name [srcString]
-and testHaskellTheory = Name [testString];
+val mkHaskellName = append (Name [opentheoryString]);
 
-local
-  val opentheory = Name [opentheoryString];
-in
-  fun exportHaskell hn =
-      if equal hn haskell then SOME opentheory
-      else
-        case destStrictPrefix haskell hn of
-          SOME n => SOME (append opentheory n)
-        | NONE => NONE;
-end;
+val destHaskellTag = destStrictPrefix (Name [haskellString]);
 
-fun isHaskell hn = Option.isSome (exportHaskell hn);
-
-(* ------------------------------------------------------------------------- *)
-(* Export names.                                                             *)
-(* ------------------------------------------------------------------------- *)
-
-fun isExport n = isHaskell n;
+val intExtraTag = append (Name [intString]) extraSuffixTag
+and srcExtraTag = append (Name [srcString]) extraSuffixTag
+and testExtraTag = append (Name [testString]) extraSuffixTag;
 
 end
 

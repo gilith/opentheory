@@ -1,0 +1,36 @@
+name: nth-prime
+version: 1.0
+category: Number Theory
+synopsis: Computing the nth prime
+license: MIT
+license-file: LICENSE
+cabal-version: >= 1.8.0.2
+build-type: Simple
+author: Joe Leslie-Hurd <joe@gilith.com>
+maintainer: Joe Leslie-Hurd <joe@gilith.com>
+description:
+  This package implements a simple utility to compute the nth prime.
+
+executable nth-prime
+  build-depends:
+    base >= 4.0 && < 5.0,
+    opentheory-primitive >= 1.0 && < 2.0,
+    opentheory-prime >= 1.0 && < 2.0
+
+  hs-source-dirs: src
+
+  ghc-options: -Wall
+
+  main-is: Main.hs
+
+executable nth-prime-test
+  build-depends:
+    base >= 4.0 && < 5.0,
+    opentheory-primitive >= 1.0 && < 2.0,
+    opentheory-prime >= 1.0 && < 2.0
+
+  hs-source-dirs: src
+
+  ghc-options: -Wall
+
+  main-is: Test.hs

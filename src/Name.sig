@@ -153,6 +153,7 @@ val subtractByteConst : name
 
 val composeConst : name
 val idConst : name
+val surjectiveConst : name
 
 (* Lists *)
 
@@ -264,5 +265,7 @@ val ppQuoted : name Print.pp
 val quotedToString : name -> string
 
 val quotedParser : (char,name) Parse.parser
+
+val quotedFromString : string -> name
 
 end

@@ -1,18 +1,15 @@
 name: word-def
-version: 1.70
+version: 1.75
 description: Definition of word operations
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2014-11-17
-requires: bool
-requires: natural
+requires: base
 requires: natural-bits
 requires: natural-divides
-requires: pair
 requires: probability
 requires: word-witness
 show: "Data.Bool"
-show: "Data.Pair"
 show: "Data.Word"
 show: "Number.Natural"
 show: "Probability.Random"
@@ -32,11 +29,10 @@ modular {
   interpret: const "Number.Modular.^" as "Data.Word.^"
   interpret: const "Number.Modular.~" as "Data.Word.~"
   interpret: const "Number.Modular.fromNatural" as "Data.Word.fromNatural"
-  interpret: const "Number.Modular.fromRandom" as "Data.Word.fromRandom"
   interpret: const "Number.Modular.modulus" as "Data.Word.modulus"
+  interpret: const "Number.Modular.random" as "Data.Word.random"
   interpret: const "Number.Modular.toNatural" as "Data.Word.toNatural"
-  package: modular-1.84
-  checksum: 6d6b63d3d5139ad4c6b4fffd50307c223b35d872
+  package: modular-1.88
 }
 
 main {

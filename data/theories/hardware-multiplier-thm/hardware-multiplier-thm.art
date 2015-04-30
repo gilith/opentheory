@@ -10628,7 +10628,7 @@ def
 ref
 52
 ref
-"Number.Natural.Bits.toNatural"
+"Number.Natural.Bits.fromList"
 const
 0
 ref
@@ -15145,7 +15145,7 @@ ref
 subst
 83
 ref
-"_42766"
+"_40317"
 896
 ref
 var
@@ -15563,7 +15563,7 @@ ref
 subst
 83
 ref
-"_42768"
+"_40319"
 896
 ref
 var
@@ -17888,7 +17888,7 @@ eqMp
 eqMp
 83
 ref
-"_42770"
+"_40321"
 11
 ref
 var
@@ -18208,7 +18208,7 @@ eqMp
 eqMp
 83
 ref
-"_42772"
+"_40323"
 11
 ref
 var
@@ -22860,7 +22860,7 @@ eqMp
 eqMp
 83
 ref
-"_42774"
+"_40325"
 37
 ref
 var
@@ -23895,7 +23895,7 @@ ref
 subst
 83
 ref
-"_42776"
+"_40327"
 37
 ref
 var
@@ -24871,7 +24871,7 @@ ref
 subst
 83
 ref
-"_42778"
+"_40329"
 37
 ref
 var
@@ -25592,7 +25592,7 @@ eqMp
 eqMp
 83
 ref
-"_42780"
+"_40331"
 37
 ref
 var
@@ -25894,7 +25894,7 @@ eqMp
 eqMp
 83
 ref
-"_42784"
+"_40335"
 11
 ref
 var
@@ -26160,7 +26160,7 @@ subst
 eqMp
 83
 ref
-"_42786"
+"_40337"
 37
 ref
 var
@@ -26245,7 +26245,7 @@ eqMp
 proveHyp
 83
 ref
-"_42782"
+"_40333"
 37
 ref
 var
@@ -26552,7 +26552,7 @@ eqMp
 eqMp
 83
 ref
-"_42790"
+"_40341"
 11
 ref
 var
@@ -26818,7 +26818,7 @@ subst
 eqMp
 83
 ref
-"_42792"
+"_40343"
 37
 ref
 var
@@ -26903,7 +26903,7 @@ eqMp
 proveHyp
 83
 ref
-"_42788"
+"_40339"
 37
 ref
 var
@@ -27286,7 +27286,7 @@ eqMp
 eqMp
 83
 ref
-"_42796"
+"_40347"
 11
 ref
 var
@@ -28086,7 +28086,7 @@ eqMp
 proveHyp
 83
 ref
-"_42794"
+"_40345"
 37
 ref
 var
@@ -28593,7 +28593,7 @@ eqMp
 eqMp
 83
 ref
-"_42798"
+"_40349"
 37
 ref
 var
@@ -29382,7 +29382,7 @@ ref
 subst
 83
 ref
-"_42800"
+"_40351"
 37
 ref
 var
@@ -29771,7 +29771,7 @@ eqMp
 eqMp
 83
 ref
-"_42802"
+"_40353"
 37
 ref
 var
@@ -30065,7 +30065,7 @@ eqMp
 eqMp
 83
 ref
-"_42806"
+"_40357"
 11
 ref
 var
@@ -30332,7 +30332,7 @@ subst
 eqMp
 83
 ref
-"_42808"
+"_40359"
 37
 ref
 var
@@ -30415,7 +30415,7 @@ eqMp
 proveHyp
 83
 ref
-"_42804"
+"_40355"
 37
 ref
 var
@@ -31728,7 +31728,7 @@ ref
 subst
 83
 ref
-"_42810"
+"_40361"
 37
 ref
 var
@@ -32502,7 +32502,7 @@ eqMp
 eqMp
 83
 ref
-"_42812"
+"_40363"
 37
 ref
 var
@@ -32821,7 +32821,7 @@ eqMp
 eqMp
 83
 ref
-"_42816"
+"_40367"
 11
 ref
 var
@@ -32990,7 +32990,7 @@ eqMp
 proveHyp
 83
 ref
-"_42814"
+"_40365"
 37
 ref
 var
@@ -33311,7 +33311,7 @@ eqMp
 eqMp
 83
 ref
-"_42820"
+"_40371"
 11
 ref
 var
@@ -33480,7 +33480,7 @@ eqMp
 proveHyp
 83
 ref
-"_42818"
+"_40369"
 37
 ref
 var
@@ -34970,7 +34970,7 @@ ref
 subst
 83
 ref
-"_42822"
+"_40373"
 37
 ref
 var
@@ -36141,7 +36141,7 @@ ref
 subst
 83
 ref
-"_42824"
+"_40375"
 896
 ref
 var
@@ -36600,7 +36600,7 @@ ref
 subst
 83
 ref
-"_42826"
+"_40377"
 896
 ref
 var
@@ -37556,7 +37556,7 @@ ref
 subst
 83
 ref
-"_42828"
+"_40379"
 896
 ref
 var
@@ -38077,7 +38077,7 @@ ref
 subst
 83
 ref
-"_42830"
+"_40381"
 896
 ref
 var
@@ -38181,7 +38181,7 @@ ref
 subst
 426
 ref
-"_42832"
+"_40383"
 896
 ref
 var
@@ -38769,7 +38769,7 @@ ref
 subst
 83
 ref
-"_42834"
+"_40385"
 2
 ref
 var
@@ -39309,7 +39309,7 @@ ref
 subst
 83
 ref
-"_42836"
+"_40387"
 2
 ref
 var
@@ -42677,7 +42677,7 @@ ref
 subst
 83
 ref
-"_42838"
+"_40389"
 37
 ref
 var
@@ -43103,7 +43103,7 @@ ref
 subst
 83
 ref
-"_42840"
+"_40391"
 896
 ref
 var
@@ -43370,7 +43370,7 @@ ref
 subst
 83
 ref
-"_42842"
+"_40393"
 896
 ref
 var
@@ -43644,7 +43644,7 @@ ref
 subst
 83
 ref
-"_42844"
+"_40395"
 896
 ref
 var
@@ -43908,7 +43908,7 @@ ref
 subst
 83
 ref
-"_42846"
+"_40397"
 896
 ref
 var
@@ -44920,7 +44920,7 @@ ref
 subst
 83
 ref
-"_42848"
+"_40399"
 896
 ref
 var
@@ -45317,7 +45317,7 @@ ref
 subst
 83
 ref
-"_42850"
+"_40401"
 896
 ref
 var
@@ -45446,7 +45446,7 @@ ref
 subst
 426
 ref
-"_42854"
+"_40405"
 896
 ref
 var
@@ -45636,7 +45636,7 @@ ref
 subst
 83
 ref
-"_42856"
+"_40407"
 2
 ref
 var
@@ -46175,7 +46175,7 @@ ref
 subst
 83
 ref
-"_42858"
+"_40409"
 2
 ref
 var
@@ -46465,7 +46465,7 @@ eqMp
 eqMp
 83
 ref
-"_42852"
+"_40403"
 37
 ref
 var
@@ -47232,7 +47232,7 @@ eqMp
 eqMp
 83
 ref
-"_42860"
+"_40411"
 37
 ref
 var
@@ -48131,7 +48131,7 @@ appThm
 sym
 426
 ref
-"_42862"
+"_40413"
 37
 ref
 var
@@ -48305,7 +48305,7 @@ ref
 subst
 83
 ref
-"_42864"
+"_40415"
 2
 ref
 var
@@ -49560,7 +49560,7 @@ ref
 subst
 83
 ref
-"_42866"
+"_40417"
 2
 ref
 var
@@ -56323,7 +56323,7 @@ ref
 subst
 83
 ref
-"_42868"
+"_40419"
 2
 ref
 var
@@ -56915,7 +56915,7 @@ ref
 subst
 83
 ref
-"_42870"
+"_40421"
 2
 remove
 var
@@ -60762,7 +60762,7 @@ subst
 proveHyp
 83
 ref
-"_42872"
+"_40423"
 37
 remove
 var

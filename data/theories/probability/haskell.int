@@ -1,0 +1,33 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR PROBABILITY
+# Joe Leslie-Hurd
+###############################################################################
+
+# OpenTheory
+
+# OpenTheory.List
+
+# OpenTheory.List.Geometric
+
+const "Data.List.Geometric.random" as "OpenTheory.List.Geometric.random"
+
+# OpenTheory.Natural
+
+# OpenTheory.Natural.Geometric
+
+const "Number.Natural.Geometric.random" as "OpenTheory.Natural.Geometric.random"
+const "Number.Natural.Geometric.random.loop" as "OpenTheory.Natural.Geometric.random.loop"
+
+# OpenTheory.Primitive
+
+# OpenTheory.Primitive.Random
+
+type "Probability.Random.random" as "OpenTheory.Primitive.Random.Random"
+
+const "Probability.Random.bit" as "OpenTheory.Primitive.Random.bit"
+const "Probability.Random.split" as "OpenTheory.Primitive.Random.split"
+
+# OpenTheory.Random
+
+const "Probability.Random.bits" as "OpenTheory.Random.bits"
+const "Data.List.random" as "OpenTheory.Random.vector"

@@ -14,13 +14,11 @@ show: "Number.Natural"
 
 def {
   package: hardware-wire-def-1.11
-  checksum: e9eff1c5ea6b86c9ba7c4ba7b4c0846c4ee67c99
 }
 
 thm {
   import: def
   package: hardware-wire-thm-1.25
-  checksum: 068f01491161e70689a5ff69673f4bf45bce6046
 }
 
 main {

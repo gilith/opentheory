@@ -28,10 +28,8 @@ instance Test.QuickCheck.Arbitrary Random where
 instance Show Random where
   show r = "Random<" ++ show (seed r) ++ ">"
 
-bit :: Random -> (Bool,Random)
-bit r =
-  let (b,g) = System.Random.random (gen r) in
-  (b, r {gen = g})
+bit :: Random -> Bool
+bit r = fst (System.Random.random (gen r))
 
 split :: Random -> (Random,Random)
 split r =

@@ -20,13 +20,11 @@ show: "Set"
 
 def {
   package: list-filter-def-1.49
-  checksum: 70424e8f374cede0700e1b6b36fd0f3edff73d75
 }
 
 thm {
   import: def
   package: list-filter-thm-1.55
-  checksum: 60bbdab1218139b3e12b93a9f13adb2f62028339
 }
 
 main {

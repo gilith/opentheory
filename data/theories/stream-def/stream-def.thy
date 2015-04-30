@@ -1,14 +1,10 @@
 name: stream-def
-version: 1.34
-description: Definition of stream types
+version: 1.36
+description: Definition of infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2014-11-04
-requires: bool
-requires: function
-requires: list
-requires: natural
-requires: pair
+requires: base
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Pair"

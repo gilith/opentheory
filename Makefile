@@ -160,9 +160,9 @@ SRC = \
   src/RepositoryConfig.sig src/RepositoryConfig.sml \
   src/Repository.sig src/Repository.sml \
   src/RepositoryUpload.sig src/RepositoryUpload.sml \
+  src/Haskell.sig src/Haskell.sml \
   src/RepositoryQuery.sig src/RepositoryQuery.sml \
   src/Syntax.sig src/Syntax.sml \
-  src/Haskell.sig src/Haskell.sml \
   src/Options.sig src/Options.sml
 
 EXTRA_SRC =

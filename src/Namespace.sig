@@ -128,6 +128,7 @@ val splitConstComponent : component
 val subsetConstComponent : component
 val subtractConstComponent : component
 val sucConstComponent : component
+val surjectiveConstComponent : component
 val tailConstComponent : component
 val toBytesConstComponent : component
 val trueConstComponent : component

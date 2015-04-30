@@ -53,14 +53,72 @@ my $target = "data/theories";
 ###############################################################################
 
 sub execute_command {
-    (scalar @_ == 1) or die;
-    my $cmd = shift @_;
+  (scalar @_ == 1) or die;
+  my $cmd = shift @_;
 
-#    print STDOUT "$cmd\n";
+#  print STDOUT "$cmd\n";
 
-    my $result = system($cmd);
+  my $result = system($cmd);
 
-    return $result;
+  return $result;
+}
+
+sub same_file_contents {
+  (scalar @_ == 2) or die;
+  my $file1 = shift @_;
+  my $file2 = shift @_;
+
+  [ -e $file1 ] or die "$program: file $file1 doesn't exist\n";
+  [ -e $file2 ] or die "$program: file $file2 doesn't exist\n";
+
+  my $cmd = "diff $file1 $file2 >/dev/null";
+
+  return (execute_command ($cmd) == 0);
+}
+
+sub import_article {
+  (scalar @_ == 3) or die;
+  my $base = shift @_;
+  my $thy = shift @_;
+  my $art = shift @_;
+
+  my $cmd;
+
+  $cmd = "$opentheory info --preserve-theory --article -o $art $source/$thy";
+  (execute_command ($cmd) == 0) or
+    die "$program: couldn't execute $cmd: $!\n";
+
+  $cmd = "grep 'Unwanted' $art";
+  (execute_command ($cmd) != 0) or
+    die "$program: Unwanted symbols found in $base\n";
+}
+
+sub bump_theory_version {
+  (scalar @_ == 2) or die;
+  my $name = shift @_;
+  my $thy = shift @_;
+
+  my $cmd = "$opentheory info --format VERSION $thy";
+  my $version = `$cmd`;
+  chomp $version;
+
+  $cmd = "$opentheory info --format CHECKSUM $name-$version >/dev/null 2>&1";
+  my $installed = (system ($cmd) == 0);
+
+  if ($installed) {
+    if (!$opt_u) {
+      die "$program: need to upgrade $name theory but no -u flag specified\n";
+    }
+
+    my $thynew = "$thy.bumping";
+
+    $cmd = "$bumpver -p $thy > $thynew";
+    (execute_command ($cmd) == 0) or
+      die "$program: couldn't execute $cmd: $!\n";
+
+    rename($thynew,$thy) or
+      die "$program: couldn't rename $thynew to $thy: $!\n";
+  }
 }
 
 ###############################################################################
@@ -77,15 +135,53 @@ open THEORIES, "$cmd |" or
 while (my $thy = <THEORIES>) {
   chomp $thy;
 
-  if ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {
+  if ($thy =~ m{^([[:alnum:]-]+)-haskell-(src|test)[.]thy$}) {
+    my $base = $1;
+    my $kind = $2;
+    my $tdir = "$target/$base";
+    my $tthy = "$tdir/$base.thy";
+
+    my $tart = "$tdir/haskell";
+    if ($kind ne "src") { $tart .= "-" . $kind; }
+    $tart .= ".art";
+    my $tartnew = "$tart.importing";
+
+    [ -d $tdir ] or
+      die "$program: directory $tdir doesn't exist: $!\n";
+
+    import_article ($base, $thy, $tartnew);
+
+    if (defined( -e $tart )) {
+      my $replace = !same_file_contents($tartnew,$tart);
+
+      if ($replace) {
+        bump_theory_version ($base, $tthy);
+
+        rename($tartnew,$tart) or
+          die "$program: couldn't rename $tartnew to $tart: $!\n";
+
+        print STDOUT "re-imported $base haskell-$kind\n";
+      }
+      else {
+        unlink $tartnew or
+          die "$program: couldn't remove $tartnew: $!\n";
+      }
+    }
+    else {
+      bump_theory_version ($base, $tthy);
+
+      rename($tartnew,$tart) or
+        die "$program: couldn't rename $tartnew to $tart: $!\n";
+
+      print STDOUT "imported $base haskell-$kind\n";
+    }
+  }
+  elsif ($thy =~ m{^([[:alnum:]-]+)[.]thy$}) {
     my $base = $1;
     my $tdir = "$target/$base";
     my $tthy = "$tdir/$base.thy";
     my $tart = "$tdir/$base.art";
-    my $tthynew = "$tthy.importing";
-    my $tthynewtmp = "$tthynew.thy";
     my $tartnew = "$tart.importing";
-    my $tartnewtmp = "$tartnew.art";
 
     if (!(-d $tdir)) {
       mkdir $tdir or
@@ -112,23 +208,10 @@ while (my $thy = <THEORIES>) {
       close THEORY;
     }
 
-    $cmd = "$opentheory info --preserve-theory --article -o $tartnew $source/$thy";
-    (execute_command ($cmd) == 0) or
-      die "$program: couldn't execute $cmd: $!\n";
+    import_article ($base, $thy, $tartnew);
 
-    $cmd = "grep 'Unwanted' $tartnew";
-    (execute_command ($cmd) != 0) or
-      die "$program: Unwanted symbols found in $base\n";
-
-    if ($opt_u && defined( -e $tart )) {
-      my $replace = 1;
-
-      if ($replace) {
-        $cmd = "diff $tart $tartnew >/dev/null";
-        if (execute_command ($cmd) == 0) {
-          $replace = 0;
-        }
-      }
+    if (defined( -e $tart )) {
+      my $replace = !same_file_contents ($tartnew,$tart);
 
       if ($replace) {
         if (( -s $tart ) <= ( -s $tartnew )) {
@@ -171,12 +254,7 @@ while (my $thy = <THEORIES>) {
       }
 
       if ($replace) {
-        $cmd = "$bumpver -p $tthy > $tthynew";
-        (execute_command ($cmd) == 0) or
-          die "$program: couldn't execute $cmd: $!\n";
-
-        rename($tthynew,$tthy) or
-          die "$program: couldn't rename $tthynew to $tthy: $!\n";
+        bump_theory_version ($base, $tthy);
 
         rename($tartnew,$tart) or
           die "$program: couldn't rename $tartnew to $tart: $!\n";

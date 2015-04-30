@@ -20,13 +20,11 @@ show: "Set"
 
 def {
   package: list-replicate-def-1.53
-  checksum: ff13a038473f08517db64148ff98d1e34b8bfe02
 }
 
 thm {
   import: def
   package: list-replicate-thm-1.61
-  checksum: f16767711414ce88b2ac2439eeefb31637810f30
 }
 
 main {

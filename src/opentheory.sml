@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.3";
 
-val release = " (release 20141201)";
+val release = " (release 20150102)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -87,19 +87,15 @@ val describeQueryFormat =
     "  1. A FUNCTION expression in the grammar below is parsed from the command\n" ^
     "     line, which represents a function f of type S -> S\n" ^
     "  2. Another function g of type S -> S is computed, which may be represented\n" ^
-    "     by the FUNCTION expression ~Empty (Latest - Subtheories) All\n" ^
-    "  3. The set f(g({})) is evaluated as the result, where {} is the empty set\n" ^
+    "     by the FUNCTION expression ~Empty (Latest - Subtheories)\n" ^
+    "  3. The set f(g(P)) is evaluated as the result of the query\n" ^
     "FUNCTION          // represents a function with type S -> S\n" ^
     "  <- SET          // the constant function with return value SET\n" ^
     "  || PREDICATE    // the filter function with predicate PREDICATE\n" ^
-    "  || FUNCTION FUNCTION\n" ^
-    "                  // \\f g s. f (g s)\n" ^
-    "  || FUNCTION | FUNCTION\n" ^
-    "                  // \\f g s. { p in P | p in f(s) \\/ p in g(s) }\n" ^
-    "  || FUNCTION & FUNCTION\n" ^
-    "                  // \\f g s. { p in P | p in f(s) /\\ p in g(s) }\n" ^
-    "  || FUNCTION - FUNCTION\n" ^
-    "                  // \\f g s. { p in P | p in f(s) /\\ ~p in g(s) }\n" ^
+    "  || FUNCTION FUNCTION   // \\f g s. f (g s)\n" ^
+    "  || FUNCTION | FUNCTION // \\f g s. { p in P | p in f(s) \\/ p in g(s) }\n" ^
+    "  || FUNCTION & FUNCTION // \\f g s. { p in P | p in f(s) /\\ p in g(s) }\n" ^
+    "  || FUNCTION - FUNCTION // \\f g s. { p in P | p in f(s) /\\ ~p in g(s) }\n" ^
     "  || FUNCTION?    // \\f. Identity | f\n" ^
     "  || FUNCTION*    // \\f. Identity | f | f f | f f f | ...\n" ^
     "  || FUNCTION+    // \\f. f | f f | f f f | ...\n" ^
@@ -117,10 +113,8 @@ val describeQueryFormat =
     "  || Upgradable   // EarlierThanRepo\n" ^
     "  || Uploadable   // Mine /\\ ~OnRepo /\\ ~EarlierThanRepo /\\ ConsistentWithRepo\n" ^
     "PREDICATE         // represents a predicate with type P -> bool\n" ^
-    "  <- PREDICATE \\/ PREDICATE\n" ^
-    "                  // \\f g p. f(p) \\/ g(p)\n" ^
-    "  || PREDICATE /\\ PREDICATE\n" ^
-    "                  // \\f g p. f(p) /\\ g(p)\n" ^
+    "  <- PREDICATE \\/ PREDICATE // \\f g p. f(p) \\/ g(p)\n" ^
+    "  || PREDICATE /\\ PREDICATE // \\f g p. f(p) /\\ g(p)\n" ^
     "  || ~PREDICATE   // \\f p. ~f(p)\n" ^
     "  || Empty        // does the package have an empty theory (i.e., main { })?\n" ^
     "  || Mine         // does the package author match a name in the config file?\n" ^
@@ -128,14 +122,11 @@ val describeQueryFormat =
     "  || Acyclic      // is the required theory graph free of cycles?\n" ^
     "  || UpToDate     // are all assumptions satisfied and inputs grounded?\n" ^
     "  || OnRepo       // is there a package with the same name on the repo?\n" ^
-    "  || IdenticalOnRepo\n" ^
-    "                  // is this exact same package on the repo?\n" ^
-    "  || ConsistentWithRepo\n" ^
-    "                  // are all the included packages consistent with the repo?\n" ^
-    "  || EarlierThanRepo\n" ^
-    "                  // is there a later version of this package on the repo?\n" ^
-    "  || LaterThanRepo\n" ^
-    "                  // is this package later than all versions on the repo?\n" ^
+    "  || IdenticalOnRepo    // is this exact same package on the repo?\n" ^
+    "  || ConsistentWithRepo // are all included packages consistent with the repo?\n" ^
+    "  || EarlierThanRepo    // is there a later version on the repo?\n" ^
+    "  || LaterThanRepo      // is the package later than all versions on the repo?\n" ^
+    "  || ExportHaskell      // can the package be exported as a Haskell package?\n" ^
     "SET               // represents a set with type S\n" ^
     "  <- All          // P\n" ^
     "  || None         // {}\n" ^
@@ -638,10 +629,35 @@ val cleanupFooter =
 (* Options for exporting installed packages.                                 *)
 (* ------------------------------------------------------------------------- *)
 
+datatype export =
+    HaskellExport;
+
+local
+  val exportType : export option ref = ref NONE;
+in
+  fun getExport () =
+      case !exportType of
+        SOME exp => exp
+      | NONE => raise Error "no export type specified";
+
+  fun setExport exp =
+      case !exportType of
+        SOME _ => raise Error "multiple export types specified"
+      | NONE => exportType := SOME exp;
+end;
+
+val reexport = ref false;
+
 local
   open Useful Options;
 in
-  val exportOpts : opt list = [];
+  val exportOpts : opt list =
+      [{switches = ["--haskell"], arguments = [],
+        description = "export as a Haskell package",
+        processor = beginOpt endOpt (fn _ => setExport HaskellExport)},
+       {switches = ["--reexport"], arguments = [],
+        description = "re-export package if target already exists",
+        processor = beginOpt endOpt (fn _ => reexport := true)}];
 end;
 
 val exportFooter =
@@ -719,6 +735,8 @@ val preserveTheoryInfo = ref false;
 val showAssumptionsInfo = ref false;
 
 val showDerivationsInfo = ref false;
+
+val showChecksumsInfo = ref false;
 
 fun infoSummaryGrammar () =
     let
@@ -897,6 +915,9 @@ in
        {switches = ["--show-derivations"], arguments = [],
         description = "show assumptions and axioms for each theorem",
         processor = beginOpt endOpt (fn _ => showDerivationsInfo := true)},
+       {switches = ["--show-checksums"], arguments = [],
+        description = "show package checksums in theory source",
+        processor = beginOpt endOpt (fn _ => showChecksumsInfo := true)},
        {switches = ["--upgrade-theory"], arguments = [],
         description = "upgrade theory source to latest versions",
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
@@ -1420,10 +1441,39 @@ in
 
         val namever = exportInput inp
 
-        val name = PackageNameVersion.name namever
+        val msg =
+            case getExport () of
+              HaskellExport =>
+              let
+                val rex = {reexport = !reexport}
+
+                val (n,rvo) = Haskell.exportPackage rex repo namever
+              in
+                case rvo of
+                  NONE =>
+                  "skipped re-export of package " ^
+                  PackageNameVersion.toString namever ^
+                  " as Haskell package " ^
+                  PackageName.toString n
+                | SOME ({reexport = r}, v) =>
+                  let
+                    val nv =
+                        PackageNameVersion.mk
+                          (PackageNameVersion.NameVersion'
+                             {name = n,
+                              version = v})
+                  in
+                    (if r then "re-" else "") ^
+                    "exported package " ^
+                    PackageNameVersion.toString namever ^
+                    " as Haskell package " ^
+                    PackageNameVersion.toString nv
+                  end
+              end
+
+        val () = chat msg
       in
-        if PackageName.isHaskell name then Haskell.export repo namever
-        else raise Error ("unknown export type: " ^ PackageName.toString name)
+        ()
       end
       handle Error err =>
         raise Error (err ^ "\npackage export failed");
@@ -2087,7 +2137,7 @@ local
                 let
                   val (th,ths) = Queue.hdTl ths
 
-                  val nv = PackageTheorems.package th
+                  val nv = PackageTheorems.nameVersion th
                 in
                   case previousVersion nv of
                     NONE =>
@@ -2143,7 +2193,7 @@ local
 
           fun mk th =
               let
-                val nv = PackageTheorems.package th
+                val nv = PackageTheorems.nameVersion th
 
                 val n = PackageNameVersion.name nv
                 and new = PackageNameVersion.version nv
@@ -2237,6 +2287,18 @@ local
               case getTheories () of
                 SOME t => t
               | NONE => raise Error "no theory source information available"
+
+          val thys =
+              if !showChecksumsInfo then thys
+              else
+                let
+                  fun del nv chko =
+                      case chko of
+                        NONE => NONE
+                      | SOME _ => SOME (nv,NONE)
+                in
+                  Option.getOpt (PackageTheory.updateIncludes del thys, thys)
+                end
 
           val strm = Print.toStream PackageTheory.ppList thys
         in
@@ -3014,9 +3076,9 @@ local
 
   fun upgradeList namevers =
       let
-        fun upgradeName name =
+        fun upgradeName name upgraded =
             case latestVersionRemotes name NONE of
-              NONE => ()
+              NONE => upgraded
             | SOME (rem,nvr,chk) =>
               let
                 val nvl =
@@ -3028,26 +3090,34 @@ local
                 and vr = PackageNameVersion.version nvr
               in
                 case PackageVersion.compare (vl,vr) of
-                  LESS => installPackage rem nvr chk
-                | _ => ()
+                  LESS =>
+                  let
+                    val () = installPackage rem nvr chk
+                  in
+                    true
+                  end
+                | _ => upgraded
               end
 
-        fun upgrade1 (namever,names) =
+        fun upgrade1 (namever,(names,upgraded)) =
             let
               val name = PackageNameVersion.name namever
             in
-              if PackageNameSet.member name names then names
+              if PackageNameSet.member name names then (names,upgraded)
               else
                 let
-                  val () = upgradeName name
+                  val names = PackageNameSet.add names name
+
+                  val upgraded = upgradeName name upgraded
                 in
-                  PackageNameSet.add names name
+                  (names,upgraded)
                 end
             end
 
-        val _ = List.foldl upgrade1 PackageNameSet.empty namevers
+        val (_,upgraded) =
+            List.foldl upgrade1 (PackageNameSet.empty,false) namevers
       in
-        ()
+        upgraded
       end;
 in
   fun upgrade inp =
@@ -3057,10 +3127,14 @@ in
         val query = upgradeInput inp
 
         val namevers = evaluateQuery query
+
+        val upgraded = upgradeList (Repository.includeOrder repo namevers)
+
+        val () =
+            if upgraded then ()
+            else chat "everything up-to-date"
       in
-        case Repository.includeOrder repo namevers of
-          [] => raise Error "no matching installed packages"
-        | namevers => upgradeList namevers
+        ()
       end
       handle Error err =>
         raise Error (err ^ "\npackage upgrade failed");

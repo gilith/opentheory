@@ -1,14 +1,10 @@
 name: probability-def
-version: 1.39
+version: 1.42
 description: Definition of probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-17
-requires: bool
-requires: list
-requires: natural
-requires: pair
-requires: relation
+provenance: HOL Light theory extracted on 2015-04-18
+requires: base
 requires: stream
 show: "Data.Bool"
 show: "Data.List"

@@ -17,13 +17,11 @@ show: "Set"
 
 def {
   package: set-size-def-1.33
-  checksum: 2db12e8f076e243552f308ccdb3fe545d2d876c6
 }
 
 thm {
   import: def
   package: set-size-thm-1.62
-  checksum: 991eeb63589e6778f7794277e2205194afe11ae8
 }
 
 main {

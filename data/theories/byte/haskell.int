@@ -1,0 +1,34 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR BYTES
+# Joe Leslie-Hurd
+###############################################################################
+
+const "Data.Byte.+" as "+"
+const "Data.Byte.-" as "-"
+const "Data.Byte.*" as "*"
+const "Data.Byte.^" as "^"
+const "Data.Byte.<=" as "<="
+const "Data.Byte.<" as "<"
+
+# OpenTheory
+
+# OpenTheory.Byte
+
+const "Data.Byte.random" as "OpenTheory.Byte.random"
+const "Data.Byte.modulus" as "OpenTheory.Byte.modulus"
+const "Data.Byte.width" as "OpenTheory.Byte.width"
+
+# OpenTheory.Primitive
+
+# OpenTheory.Primitive.Byte
+
+type "Data.Byte.byte" as "OpenTheory.Primitive.Byte.Byte"
+
+const "Data.Byte.and" as "OpenTheory.Primitive.Byte.and"
+const "Data.Byte.bit" as "OpenTheory.Primitive.Byte.bit"
+const "Data.Byte.fromNatural" as "OpenTheory.Primitive.Byte.fromNatural"
+const "Data.Byte.not" as "OpenTheory.Primitive.Byte.not"
+const "Data.Byte.or" as "OpenTheory.Primitive.Byte.or"
+const "Data.Byte.shiftLeft" as "OpenTheory.Primitive.Byte.shiftLeft"
+const "Data.Byte.shiftRight" as "OpenTheory.Primitive.Byte.shiftRight"
+const "Data.Byte.toNatural" as "OpenTheory.Primitive.Byte.toNatural"

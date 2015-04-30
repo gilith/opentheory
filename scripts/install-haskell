@@ -1,0 +1,92 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2015 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h);
+
+getopts('h');
+
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $s = `grep -H '^version:' *.cabal`;
+my @l = split /^/, $s;
+(scalar @l == 1) or die;
+$l[0] =~ /^([[:alnum:]-]+)[.]cabal:version:[[:space:]]([[:digit:].]+)$/ or die;
+my $n = $1;
+my $v = $2;
+my $nv = "$n-$v";
+
+my $i = `ghc-pkg list $nv | grep $nv`;
+if ($i eq "") {
+    print STDOUT "Installing Haskell package $nv\n";
+    (system("cabal clean") == 0) or die;
+    (system("cabal install") == 0) or die;
+}
+else {
+    print STDOUT "Haskell package $nv is already installed\n";
+}
+
+my $x = $n;
+if ($n !~ /^test/) { $x .= "-test"; }
+my $t = "dist/build/$x/$x";
+if ( -x $t ) {
+    (system("$t") == 0) or die;
+}
+
+(system("cabal check") == 0) or die;
+(system("cabal configure") == 0) or die;
+(system("cabal sdist") == 0) or die;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+install-haskell - install a Haskell package if it is not already installed
+
+=head1 SYNOPSIS
+
+install-haskell [-h]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+Install the Haskell package in the current directory.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

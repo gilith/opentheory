@@ -1,0 +1,45 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR STREAM PARSERS
+# Joe Leslie-Hurd
+###############################################################################
+
+# OpenTheory
+
+# OpenTheory.Parser
+
+type "Parser.parser" as "OpenTheory.Parser.Parser"
+
+const "Parser.mk" as "OpenTheory.Parser.Parser"
+const "Parser.any" as "OpenTheory.Parser.anyToken"
+const "Parser.apply" as "OpenTheory.Parser.apply"
+const "Parser.filter" as "OpenTheory.Parser.filterParser"
+const "Parser.fold" as "OpenTheory.Parser.fold"
+const "Parser.fold.prs" as "OpenTheory.Parser.fold.prs"
+const "Parser.foldN" as "OpenTheory.Parser.foldN"
+const "Parser.map" as "OpenTheory.Parser.mapParser"
+const "Parser.mapPartial" as "OpenTheory.Parser.mapPartial"
+const "Parser.mapPartial.prs" as "OpenTheory.Parser.mapPartial.prs"
+const "Parser.none" as "OpenTheory.Parser.none"
+const "Parser.orelse" as "OpenTheory.Parser.orelse"
+const "Parser.orelse.prs" as "OpenTheory.Parser.orelse.prs"
+const "Parser.pair" as "OpenTheory.Parser.pair"
+const "Parser.parse" as "OpenTheory.Parser.parse"
+const "Parser.sequence" as "OpenTheory.Parser.sequenceParser"
+const "Parser.sequence.prs" as "OpenTheory.Parser.sequenceParser.prs"
+const "Parser.some" as "OpenTheory.Parser.some"
+const "Parser.token" as "OpenTheory.Parser.token"
+const "Parser.token.prs" as "OpenTheory.Parser.token.prs"
+const "Parser.dest" as "OpenTheory.Parser.unParser"
+
+# OpenTheory.Parser.Stream
+
+type "Parser.Stream.stream" as "OpenTheory.Parser.Stream.Stream"
+
+const "Parser.Stream.cons" as "OpenTheory.Parser.Stream.Cons"
+const "Parser.Stream.eof" as "OpenTheory.Parser.Stream.Eof"
+const "Parser.Stream.error" as "OpenTheory.Parser.Stream.Error"
+const "Parser.Stream.append" as "OpenTheory.Parser.Stream.append"
+const "Parser.Stream.fromList" as "OpenTheory.Parser.Stream.fromList"
+const "Parser.Stream.length" as "OpenTheory.Parser.Stream.lengthStream"
+const "Parser.Stream.map" as "OpenTheory.Parser.Stream.mapStream"
+const "Parser.Stream.toList" as "OpenTheory.Parser.Stream.toList"

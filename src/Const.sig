@@ -113,6 +113,10 @@ val isZero : const -> bool
 
 val isFromPredicate : const -> bool
 
+(* Surjectivity *)
+
+val isSurjective : const -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

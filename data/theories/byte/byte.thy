@@ -1,32 +1,30 @@
 name: byte
-version: 1.107
+version: 1.123
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: list
-requires: natural
+requires: base
 requires: natural-bits
 requires: natural-divides
-requires: pair
 requires: probability
 show: "Data.Bool"
 show: "Data.Byte"
 show: "Data.Byte.Bits"
 show: "Data.List"
-show: "Data.Pair"
 show: "Number.Natural"
 show: "Probability.Random"
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
+haskell-equality-type: "Data.Byte.byte"
+haskell-arbitrary-type: "Data.Byte.byte"
 
 def {
-  package: byte-def-1.80
-  checksum: 0e7624282e593c56c06b996eb007f341d5975ccf
+  package: byte-def-1.91
 }
 
 bits {
   import: def
-  package: byte-bits-1.82
-  checksum: 24ae0712164eca3dfc8cfeff7c5781c986372730
+  package: byte-bits-1.83
 }
 
 main {

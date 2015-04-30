@@ -47,7 +47,22 @@ val equalList = Useful.listEqual equal;
 fun addSharingTypeVars v tyShare =
     Type.addSharingTypeVars (typeOf v) tyShare;
 
-fun typeVars v = Type.typeVars (typeOf v);
+local
+  fun add (v,tyShare) = addSharingTypeVars v tyShare;
+in
+  fun addListSharingTypeVars vs tyShare = List.foldl add tyShare vs;
+end;
+
+fun typeVarsList vs =
+    let
+      val share = Type.emptySharingTypeVars
+
+      val share = addListSharingTypeVars vs share
+    in
+      Type.toSetSharingTypeVars share
+    end;
+
+fun typeVars v = typeVarsList [v];
 
 (* ------------------------------------------------------------------------- *)
 (* Type operators.                                                           *)

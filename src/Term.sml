@@ -1590,6 +1590,18 @@ end;
 
 val isCase = can destCase;
 
+(* Surjectivity *)
+
+val isSurjectiveConst = isNullaryOp Const.isSurjective;
+
+fun destSurjective tm =
+    destUnaryOp Const.isSurjective tm
+(*OpenTheoryDebug
+    handle Error err => raise Error ("in Term.destSurjective:\n" ^ err);
+*)
+
+val isSurjective = can destSurjective;
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)

@@ -1,10 +1,11 @@
 name: h
-version: 1.119
+version: 1.122
 description: Memory safety for the H interface
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: base
 requires: byte
+requires: natural-bits
 requires: word10
 requires: word12
 show: "Data.Bool"
@@ -21,13 +22,11 @@ show: "System.H"
 
 def {
   package: h-def-1.117
-  checksum: c3c3c2a880726002909bf9d3b2d8444996fcd700
 }
 
 thm {
   import: def
-  package: h-thm-1.116
-  checksum: 39fe962adb17acdd93691f94e42c81f632e63c59
+  package: h-thm-1.119
 }
 
 main {

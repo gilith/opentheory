@@ -13,13 +13,11 @@ show: "Set"
 
 def {
   package: set-fold-def-1.53
-  checksum: 9fe7a20d5ee3c524740cac61f2deb1f380403d9a
 }
 
 thm {
   import: def
   package: set-fold-thm-1.41
-  checksum: ff1d6518ab3afb86a52b15a408eada0b79d574e6
 }
 
 main {

@@ -1,7 +1,7 @@
 name: opentheory
-version: 1.78
+version: 1.193.4
 category: Formal Methods
-synopsis: The Haskell base
+synopsis: The standard theory library
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.2
@@ -9,13 +9,12 @@ build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
-  The Haskell base - automatically generated from the opentheory package
-  haskell-1.78
+  The standard theory library - this package was automatically generated
+  from the OpenTheory package base-1.193
 
 library
   build-depends:
     base >= 4.0 && < 5.0,
-    random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0
 
@@ -24,24 +23,12 @@ library
   ghc-options: -Wall
 
   exposed-modules:
-    OpenTheory.Data.Byte
-    OpenTheory.Data.Byte.Bits
-    OpenTheory.Data.List
-    OpenTheory.Data.List.Geometric
-    OpenTheory.Data.Option
-    OpenTheory.Data.Stream
-    OpenTheory.Data.Word16
-    OpenTheory.Data.Word16.Bits
-    OpenTheory.Number.Natural
-    OpenTheory.Number.Natural.Bits
-    OpenTheory.Number.Natural.Geometric
-    OpenTheory.Number.Natural.Uniform
-    OpenTheory.Probability.Random
+    OpenTheory.List
+    OpenTheory.Natural
 
 executable opentheory-test
   build-depends:
     base >= 4.0 && < 5.0,
-    random >= 1.0.1.1 && < 2.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0
 
@@ -49,4 +36,4 @@ executable opentheory-test
 
   ghc-options: -Wall
 
-  main-is: Test.hs
+  main-is: Main.hs

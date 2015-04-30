@@ -1,5 +1,5 @@
 name: monoid-comm-mult
-version: 1.3
+version: 1.4
 description: Commutative monoid multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -21,7 +21,7 @@ thm {
 }
 
 add {
-  package: monoid-comm-mult-add-1.2
+  package: monoid-comm-mult-add-1.3
 }
 
 main {

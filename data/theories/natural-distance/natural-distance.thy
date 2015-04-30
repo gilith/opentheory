@@ -14,13 +14,11 @@ show: "Number.Natural"
 
 def {
   package: natural-distance-def-1.41
-  checksum: df1b5116f557dfdff8a045727476cd3d4acd62a3
 }
 
 thm {
   import: def
   package: natural-distance-thm-1.59
-  checksum: 58ae1e3461ae7358e92803981f68dbb713388cba
 }
 
 main {

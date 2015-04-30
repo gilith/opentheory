@@ -1,30 +1,28 @@
 name: probability
-version: 1.38
+version: 1.46
 description: Probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: list
-requires: natural
-requires: pair
-requires: relation
+requires: base
 requires: stream
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Pair"
 show: "Data.Stream"
+show: "Function"
 show: "Number.Natural"
 show: "Probability.Random"
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
+haskell-arbitrary-type: "Probability.Random.random"
 
 def {
-  package: probability-def-1.39
-  checksum: 806ffc9ca97de285a6f6a20d2b214277b647426c
+  package: probability-def-1.42
 }
 
 thm {
   import: def
-  package: probability-thm-1.14
-  checksum: ffb4e4b94ab99181a453960396f4a7d929a69f52
+  package: probability-thm-1.20
 }
 
 main {

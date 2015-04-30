@@ -1,46 +1,47 @@
 name: char
-version: 1.111
+version: 1.137
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
+requires: base
 requires: byte
-requires: list
-requires: natural
-requires: option
-requires: pair
+requires: natural-bits
 requires: parser
-requires: word16
+requires: probability
 show: "Data.Bool"
 show: "Data.Byte"
-show: "Data.Byte.Bits"
 show: "Data.Char"
-show: "Data.Char.UTF8"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
-show: "Data.Word16"
-show: "Data.Word16.Bits"
+show: "Data.Sum"
+show: "Function"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
+show: "Probability.Random"
+show: "Set"
+haskell-name: opentheory-unicode
+haskell-category: Text
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
+haskell-equality-type: "Data.Char.char"
+haskell-arbitrary-type: "Data.Char.char"
 
 def {
-  package: char-def-1.98
-  checksum: edcc12c6c0579822d2d462c18848d542615a88a2
+  package: char-def-1.106
 }
 
 thm {
   import: def
-  package: char-thm-1.17
-  checksum: c42ad7b2ea4a581bd21ea5559ab740922febd8fd
+  package: char-thm-1.23
 }
 
 utf8 {
   import: def
   import: thm
-  package: char-utf8-1.102
-  checksum: 6aee14374a31e6472b0a852d07f50689d29b6e13
+  package: char-utf8-1.115
 }
 
 main {

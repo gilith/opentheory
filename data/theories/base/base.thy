@@ -1,5 +1,5 @@
 name: base
-version: 1.169
+version: 1.193
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -14,35 +14,44 @@ show: "Number.Natural"
 show: "Number.Real"
 show: "Relation"
 show: "Set"
+haskell-name: opentheory
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
+haskell-equality-type: "Data.List.list"
+haskell-equality-type: "Data.Option.option"
+haskell-equality-type: "Data.Pair.*"
+haskell-equality-type: "Data.Sum.+"
+haskell-equality-type: "Number.Natural.natural"
+haskell-arbitrary-type: "Data.List.list"
+haskell-arbitrary-type: "Data.Option.option"
+haskell-arbitrary-type: "Data.Pair.*"
+haskell-arbitrary-type: "Data.Sum.+"
+haskell-arbitrary-type: "Number.Natural.natural"
 
 bool {
   package: bool-1.36
-  checksum: e32a8773b452a57dd074d284f71d77234e1f9fbf
 }
 
 unit {
   import: bool
   package: unit-1.20
-  checksum: 5b2b994769e08238aa28f615334e67c6b1088a83
 }
 
 function {
   import: bool
   package: function-1.55
-  checksum: 35d4e6c28baaee5cee8c39751d651af7d7cfe5dc
 }
 
 pair {
   import: bool
   package: pair-1.27
-  checksum: f8df648f6ee40dfb722100bee9a9c8d10b64f078
 }
 
 natural {
   import: bool
   import: function
-  package: natural-1.102
-  checksum: 33de6bc92a8edc786e08a89f9c2273fde00a7817
+  package: natural-1.104
 }
 
 set {
@@ -50,8 +59,7 @@ set {
   import: function
   import: pair
   import: natural
-  package: set-1.70
-  checksum: 97ad851e12492552c60989607e0cd134c66771ae
+  package: set-1.71
 }
 
 relation {
@@ -61,23 +69,20 @@ relation {
   import: natural
   import: set
   package: relation-1.59
-  checksum: 887c60d783b8861514b89fd1671807063cbaf131
 }
 
 sum {
   import: bool
   import: pair
   import: natural
-  package: sum-1.59
-  checksum: 18095ea5fe7725e0df71ed5a3496c5b0910b91b4
+  package: sum-1.61
 }
 
 option {
   import: bool
   import: function
   import: natural
-  package: option-1.71
-  checksum: ce900f8898c12b26c8e92ef737fde9304c610dfb
+  package: option-1.72
 }
 
 list {
@@ -86,8 +91,7 @@ list {
   import: pair
   import: natural
   import: set
-  package: list-1.100
-  checksum: 8e9126c985067e98b50643cbf9b1e92d0390597e
+  package: list-1.103
 }
 
 real {
@@ -97,7 +101,6 @@ real {
   import: natural
   import: set
   package: real-1.61
-  checksum: 4eb38ef27f905a03c025066f45722bb05fc6eda9
 }
 
 main {

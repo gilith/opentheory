@@ -7,42 +7,42 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
+
 module OpenTheory.Parser.Stream
 where
 
-import qualified OpenTheory.Data.List.Geometric as Data.List.Geometric
-import qualified OpenTheory.Primitive.Natural as Primitive.Natural
-import qualified OpenTheory.Primitive.Random as Primitive.Random
+import qualified OpenTheory.Primitive.Natural as Natural
+import qualified Test.QuickCheck as QuickCheck
 
 data Stream a =
     Error
   | Eof
   | Cons a (Stream a)
+  deriving (Eq, Ord, Show)
 
 append :: [a] -> Stream a -> Stream a
-append [] s = s
-append (h : t) s = Cons h (append t s)
+append [] xs = xs
+append (h : t) xs = Cons h (append t xs)
 
 fromList :: [a] -> Stream a
 fromList l = append l Eof
 
-fromRandom ::
-  (Primitive.Random.Random -> (a, Primitive.Random.Random)) ->
-    Primitive.Random.Random -> (Stream a, Primitive.Random.Random)
-fromRandom d r =
-  let (l, r') = Data.List.Geometric.fromRandom d r in
-  let (b, r'') = Primitive.Random.bit r' in
-  (append l (if b then Error else Eof), r'')
+lengthStream :: Stream a -> Natural.Natural
+lengthStream Error = 0
+lengthStream Eof = 0
+lengthStream (Cons _ xs) = lengthStream xs + 1
 
-size :: Stream a -> Primitive.Natural.Natural
-size Error = 0
-size Eof = 0
-size (Cons _ s) = size s + 1
+mapStream :: (a -> b) -> Stream a -> Stream b
+mapStream _ Error = Error
+mapStream _ Eof = Eof
+mapStream f (Cons x xs) = Cons (f x) (mapStream f xs)
 
-toList :: Stream a -> Maybe [a]
-toList Error = Nothing
-toList Eof = Just []
-toList (Cons a s) =
-  case toList s of
-    Nothing -> Nothing
-    Just l -> Just (a : l)
+toList :: Stream a -> ([a], Bool)
+toList Error = ([], True)
+toList Eof = ([], False)
+toList (Cons x xs) = let (l, e) = toList xs in (x : l, e)
+
+instance QuickCheck.Arbitrary a => QuickCheck.Arbitrary (Stream a) where
+  arbitrary =
+    fmap (\(l, b) -> append l (if b then Error else Eof))
+      QuickCheck.arbitrary

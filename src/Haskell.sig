@@ -1,5 +1,5 @@
 (* ========================================================================= *)
-(* GENERATING HASKELL PROJECTS FROM THEORY PACKAGES                          *)
+(* EXPORTING THEORY PACKAGES AS HASKELL PACKAGES                             *)
 (* Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license     *)
 (* ========================================================================= *)
 
@@ -12,23 +12,33 @@ sig
 
 type haskell
 
+val name : haskell -> PackageName.name
+
 (* ------------------------------------------------------------------------- *)
-(* Converting a theory to a Haskell package.                                 *)
+(* Converting a theory package to a Haskell package.                         *)
 (* ------------------------------------------------------------------------- *)
 
-val convert :
+val exportable :
+    Repository.repository -> PackageNameVersion.nameVersion -> bool
+
+val fromPackage :
     Repository.repository -> PackageNameVersion.nameVersion -> haskell
 
 (* ------------------------------------------------------------------------- *)
 (* Writing a Haskell package to disk.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val toPackage : Repository.repository -> haskell -> unit
+val writePackage :
+    {reexport : bool} -> haskell ->
+    PackageName.name * ({reexport : bool} * PackageVersion.version) option
 
 (* ------------------------------------------------------------------------- *)
-(* Export a theory to a Haskell package.                                     *)
+(* Exporting a theory package as a Haskell package.                          *)
 (* ------------------------------------------------------------------------- *)
 
-val export : Repository.repository -> PackageNameVersion.nameVersion -> unit
+val exportPackage :
+    {reexport : bool} ->
+    Repository.repository -> PackageNameVersion.nameVersion ->
+    PackageName.name * ({reexport : bool} * PackageVersion.version) option
 
 end

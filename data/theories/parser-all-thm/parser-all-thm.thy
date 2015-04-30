@@ -1,15 +1,10 @@
 name: parser-all-thm
-version: 1.96
+version: 1.105
 description: Properties of the whole stream parser
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-17
-requires: bool
-requires: function
-requires: list
-requires: natural
-requires: option
-requires: pair
+provenance: HOL Light theory extracted on 2015-04-21
+requires: base
 requires: parser-all-def
 requires: parser-comb
 requires: parser-stream
@@ -17,7 +12,6 @@ show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
-show: "Function"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"

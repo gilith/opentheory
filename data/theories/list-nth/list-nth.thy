@@ -21,13 +21,11 @@ show: "Set"
 
 def {
   package: list-nth-def-1.55
-  checksum: b83b07173d8b3b723a252013c00bafbbc2a3b702
 }
 
 thm {
   import: def
   package: list-nth-thm-1.62
-  checksum: 138b667c7c954983a3c8527ef07eb4fcc1fcb231
 }
 
 main {

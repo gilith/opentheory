@@ -7,72 +7,111 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
+
 module OpenTheory.Parser
 where
 
 import qualified OpenTheory.Parser.Stream as Stream
+import qualified OpenTheory.Primitive.Natural as Natural
 
 newtype Parser a b =
   Parser { unParser :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a) }
 
-partialMap :: (b -> Maybe c) -> Parser a b -> Parser a c
-partialMap f p =
-  Parser pf
+token :: (a -> Maybe b) -> Parser a b
+token f =
+  Parser prs
   where
-  {-pf :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)-}
-    pf a s =
-      case unParser p a s of
+  {-prs :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
+    prs x xs =
+      case f x of
         Nothing -> Nothing
-        Just (b, s') ->
-          case f b of
-            Nothing -> Nothing
-            Just c -> Just (c, s')
+        Just y -> Just (y, xs)
 
-map :: (b -> c) -> Parser a b -> Parser a c
-map f p = partialMap (\b -> Just (f b)) p
+some :: (a -> Bool) -> Parser a a
+some p = token (\x -> if p x then Just x else Nothing)
 
-parse :: Parser a b -> Stream.Stream a -> Maybe (b, Stream.Stream a)
-parse _ Stream.Error = Nothing
-parse _ Stream.Eof = Nothing
-parse p (Stream.Cons a s) = unParser p a s
+anyToken :: Parser a a
+anyToken = some (const True)
 
-parseAll :: Parser a a
-parseAll =
-  Parser pa
+apply :: Parser a b -> Stream.Stream a -> Maybe (b, Stream.Stream a)
+apply _ Stream.Error = Nothing
+apply _ Stream.Eof = Nothing
+apply p (Stream.Cons x xs) = unParser p x xs
+
+mapPartial :: Parser a b -> (b -> Maybe c) -> Parser a c
+mapPartial p f =
+  Parser prs
   where
-  {-pa :: a -> Stream.Stream a -> Maybe (a, Stream.Stream a)-}
-    pa a s = Just (a, s)
-
-parseNone :: Parser a b
-parseNone =
-  Parser pn
-  where
-  {-pn :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
-    pn _ _ = Nothing
-
-parseOption :: (a -> Maybe b) -> Parser a b
-parseOption f = partialMap f parseAll
-
-parsePair :: Parser a b -> Parser a c -> Parser a (b, c)
-parsePair pb pc =
-  Parser pbc
-  where
-  {-pbc :: a -> Stream.Stream a -> Maybe ((b, c), Stream.Stream a)-}
-    pbc a s =
-      case unParser pb a s of
+  {-prs :: a -> Stream.Stream a -> Maybe (c, Stream.Stream a)-}
+    prs x xs =
+      case unParser p x xs of
         Nothing -> Nothing
-        Just (b, s') ->
-          case parse pc s' of
+        Just (y, ys) ->
+          case f y of
             Nothing -> Nothing
-            Just (c, s'') -> Just ((b, c), s'')
+            Just z -> Just (z, ys)
 
-parseSome :: (a -> Bool) -> Parser a a
-parseSome p = parseOption (\a -> if p a then Just a else Nothing)
+filterParser :: Parser a b -> (b -> Bool) -> Parser a b
+filterParser p f = mapPartial p (\x -> if f x then Just x else Nothing)
 
-parseStream :: Parser a b -> Stream.Stream a -> Stream.Stream b
-parseStream _ Stream.Error = Stream.Error
-parseStream _ Stream.Eof = Stream.Eof
-parseStream p (Stream.Cons a s) =
-  case unParser p a s of
+fold :: (a -> c -> Maybe (Either b c)) -> c -> Parser a b
+fold f =
+  Parser . prs
+  where
+  {-prs :: c -> a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
+    prs s x xs =
+      case f x s of
+        Nothing -> Nothing
+        Just y ->
+          case y of
+            Left z -> Just (z, xs)
+            Right t ->
+              case xs of
+                Stream.Error -> Nothing
+                Stream.Eof -> Nothing
+                Stream.Cons z zs -> prs t z zs
+
+foldN :: (a -> b -> Maybe b) -> Natural.Natural -> b -> Parser a b
+foldN f n s =
+  fold
+    (\x (m, t) ->
+       fmap (\u -> if m == 0 then Left u else Right (m - 1, u)) (f x t))
+    (n, s)
+
+mapParser :: Parser a b -> (b -> c) -> Parser a c
+mapParser p f = mapPartial p (\x -> Just (f x))
+
+none :: Parser a b
+none = token (const Nothing)
+
+orelse :: Parser a b -> Parser a b -> Parser a b
+orelse p1 p2 =
+  Parser prs
+  where
+  {-prs :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
+    prs x xs =
+      case unParser p1 x xs of
+        Nothing -> unParser p2 x xs
+        Just yys -> Just yys
+
+sequenceParser :: Parser a (Parser a b) -> Parser a b
+sequenceParser p =
+  Parser prs
+  where
+  {-prs :: a -> Stream.Stream a -> Maybe (b, Stream.Stream a)-}
+    prs x xs =
+      case unParser p x xs of
+        Nothing -> Nothing
+        Just (q, ys) -> apply q ys
+
+pair :: Parser a b -> Parser a c -> Parser a (b, c)
+pair p1 p2 =
+  sequenceParser (mapParser p1 (\x -> mapParser p2 (\y -> (x, y))))
+
+parse :: Parser a b -> Stream.Stream a -> Stream.Stream b
+parse _ Stream.Error = Stream.Error
+parse _ Stream.Eof = Stream.Eof
+parse p (Stream.Cons x xs) =
+  case unParser p x xs of
     Nothing -> Stream.Error
-    Just (b, s') -> Stream.Cons b (parseStream p s')
+    Just (y, ys) -> Stream.Cons y (parse p ys)

@@ -13,13 +13,11 @@ show: "Number.Natural"
 
 def {
   package: natural-gcd-lcm-def-1.34
-  checksum: bded699af99e34a9ace0c3aecab4092792a33b00
 }
 
 thm {
   import: def
   package: natural-gcd-lcm-thm-1.39
-  checksum: f63c5fc8ba2620de5c4f67a7c761ef07ca68bca3
 }
 
 main {

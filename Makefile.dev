@@ -155,26 +155,32 @@ src/benchmark.sml: src/opentheory.sml $(COPY) ; @$(COPY) $< $@
 
 HASKELL_DIR = data/haskell
 
-HASKELL_OPENTHEORY_EXPORT = ../../$(OPENTHEORY) export
+HASKELL_INSTALL = ../../../scripts/install-haskell
 
-HASKELL_OPENTHEORY_INFO = ../../$(OPENTHEORY) info
+HASKELL_OPENTHEORY_EXPORT = ../../$(OPENTHEORY) export --haskell $(HASKELL_OPENTHEORY_EXPORT_OPTS)
 
-HASKELL_OPENTHEORY_LIST = ../../$(OPENTHEORY) list --dependency-order
+HASKELL_OPENTHEORY_LIST = ../../$(OPENTHEORY) list --dependency-order ExportHaskell
 
-.PHONY: haskell-export
-haskell-export: $(OPENTHEORY)
-	cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne '$$nv = $$_; chomp $$nv; if ($$nv =~ /^haskell-/) { $$n = `$(HASKELL_OPENTHEORY_INFO) --format NAME $$nv`; chomp $$n; $$n =~ s/^haskell/opentheory/; if ( -d $$n ) { (system("rm -r $$n") == 0) or die; print STDOUT "Re-exporting $$nv\n"; } else { print STDOUT "Exporting $$nv\n"; } (system("$(HASKELL_OPENTHEORY_EXPORT) $$nv") == 0) or die; (system("echo dist > $$n/.gitignore") == 0) or die; (system("find $$n") == 0) or die; }')
+.PHONY: export-haskell
+export-haskell: $(OPENTHEORY)
+	@cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; my $$cmd = "$(HASKELL_OPENTHEORY_EXPORT) $$nv"; print STDOUT "$$cmd\n"; my $$n = `$$cmd`; print STDOUT "$$n"; chomp $$n; if ($$n =~ /^(?:re-)?exported package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)-[[:digit:].]+$$/) { $$n = $$1; } elsif ($$n =~ /^skipped re-export of package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)$$/) { $$n = $$1; } else { die "bad export output |$$n|"; } (system("cd $$n && $(HASKELL_INSTALL)") == 0) or die;')
 
-.PHONY: haskell-install
-haskell-install: $(OPENTHEORY)
-	cd $(HASKELL_DIR)/opentheory-primitive && cabal clean && cabal install && dist/build/opentheory-primitive-test/opentheory-primitive-test && cabal check && cabal sdist
-	cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne '$$nv = $$_; chomp $$nv; if ($$nv =~ /^haskell-/) { $$n = `$(HASKELL_OPENTHEORY_INFO) --format NAME $$nv`; chomp $$n; $$n =~ s/^haskell/opentheory/; (system("cd $$n && cabal clean && cabal install && dist/build/$$n-test/$$n-test && cabal check && cabal sdist") == 0) or die; }')
-	cd $(HASKELL_DIR)/opentheory-test && cabal clean && cabal install && dist/build/opentheory-test/opentheory-test
+.PHONY: reexport-haskell
+reexport-haskell:
+	@HASKELL_OPENTHEORY_EXPORT_OPTS="--reexport" $(MAKE) export-haskell
 
 .PHONY: haskell
 haskell:
-	$(MAKE) haskell-export
-	$(MAKE) haskell-install
+	@cd $(HASKELL_DIR)/opentheory-primitive && $(HASKELL_INSTALL)
+	$(MAKE) export-haskell
+	@echo ======================
+	@cd $(HASKELL_DIR)/nth-prime && $(HASKELL_INSTALL)
+	@echo ----------------------
+	@cd $(HASKELL_DIR)/api-opentheory-unicode && $(HASKELL_INSTALL)
+	@echo ----------------------
+	@cd $(HASKELL_DIR)/decode-utf8 && $(HASKELL_INSTALL)
+	@echo ----------------------
+	@cd $(HASKELL_DIR)/fen2s && $(HASKELL_INSTALL)
 
 ###############################################################################
 # Create the test package repo.
@@ -239,12 +245,28 @@ reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
-.PHONY: theories
-theories: $(OPENTHEORY)
+.PHONY: capture-theories
+capture-theories:
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory theories
+
+.PHONY: import-theories
+import-theories: $(OPENTHEORY)
 	$(IMPORT_THEORIES) $(HOL_LIGHT_DIR)/opentheory/articles
+
+.PHONY: install-theories
+install-theories: $(OPENTHEORY)
 	$(INSTALL_THEORIES)
+
+.PHONY: check-theories
+check-theories: $(OPENTHEORY)
 	$(CHECK_THEORIES)
+
+.PHONY: theories
+theories:
+	$(MAKE) capture-theories
+	$(MAKE) import-theories
+	$(MAKE) install-theories
+	$(MAKE) check-theories
 
 .PHONY: tiny-theories
 tiny-theories:

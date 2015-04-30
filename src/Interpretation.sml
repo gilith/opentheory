@@ -153,8 +153,7 @@ in
         val Interpretation {typeOps,consts} = int
 
         val typeOps = normalizeName typeOps
-
-        val consts = normalizeName consts
+        and consts = normalizeName consts
       in
         Interpretation
           {typeOps = typeOps,
@@ -169,7 +168,7 @@ end;
 val natural =
     let
       val typeOps = NameMap.new ()
-      val consts = NameMap.new ()
+      and consts = NameMap.new ()
     in
       Interpretation
         {typeOps = typeOps,
@@ -180,8 +179,10 @@ local
   fun addName m x_y =
       let
         val (x,_) = x_y
-        val _ = not (NameMap.inDomain x m) orelse
-                raise Error "Interpretation.add: duplicate"
+
+        val () =
+            if not (NameMap.inDomain x m) then ()
+            else raise Error "Interpretation.add: duplicate"
       in
         NameMap.insert m x_y
       end;

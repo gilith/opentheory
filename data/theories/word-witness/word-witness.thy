@@ -1,10 +1,10 @@
 name: word-witness
-version: 1.1
+version: 1.2
 description: Parametric theory witness for words
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2012-09-11
-requires: natural
+requires: base
 show: "Data.Word"
 show: "Number.Natural"
 

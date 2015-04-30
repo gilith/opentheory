@@ -10,7 +10,6 @@ show: "Number.Natural"
 
 def {
   package: natural-dest-def-1.5
-  checksum: ef7bcbfef7de54a863dca183454ca916d21a4050
 }
 
 main {

@@ -1,47 +1,50 @@
 name: parser
-version: 1.108
+version: 1.154
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-requires: bool
-requires: function
-requires: list
-requires: natural
-requires: option
-requires: pair
-requires: probability
-requires: relation
+requires: base
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Option"
 show: "Data.Pair"
+show: "Data.Sum"
 show: "Function"
 show: "Number.Natural"
 show: "Parser"
 show: "Parser.Stream"
-show: "Probability.Random"
 show: "Relation"
+haskell-category: Parsing
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
+haskell-equality-type: "Parser.Stream.stream"
+haskell-arbitrary-type: "Parser.Stream.stream"
 
 stream {
-  package: parser-stream-1.98
-  checksum: b505fcdfc804f13476a100b017a3cc78fded4748
+  package: parser-stream-1.110
 }
 
 comb {
   import: stream
-  package: parser-comb-1.89
-  checksum: f65d0ecefdb39ec1924618ac88b76fa13a03595e
+  package: parser-comb-1.99
+}
+
+fold {
+  import: stream
+  import: comb
+  package: parser-fold-1.2
 }
 
 all {
   import: stream
   import: comb
-  package: parser-all-1.93
-  checksum: e5b13d3d5e25f8bbfb63c84dbc3437e54f8ca56f
+  package: parser-all-1.103
 }
 
 main {
   import: stream
   import: comb
+  import: fold
   import: all
 }

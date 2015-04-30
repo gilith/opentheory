@@ -1,13 +1,12 @@
 name: gfp-thm
-version: 1.57
+version: 1.58
 description: Properties of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 provenance: HOL Light theory extracted on 2014-11-01
-requires: bool
+requires: base
 requires: gfp-def
 requires: gfp-witness
-requires: natural
 requires: natural-divides
 requires: natural-prime
 show: "Data.Bool"

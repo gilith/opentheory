@@ -16,13 +16,11 @@ show: "Set"
 
 def {
   package: list-set-def-1.53
-  checksum: eb885d37d937fc38d799e7360fc407504130d7da
 }
 
 thm {
   import: def
   package: list-set-thm-1.51
-  checksum: dfce74d73076ed1b5b4ad160cb1b1ef3873c5861
 }
 
 main {
