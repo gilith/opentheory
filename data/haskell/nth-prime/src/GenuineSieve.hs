@@ -11,40 +11,43 @@ module GenuineSieve
   ( primes )
 where
 
-import qualified Heap
-import qualified Data.List as List
 import OpenTheory.Primitive.Natural
+import qualified Heap
 
-newtype Sieve =
-    Sieve { unSieve :: (Natural, Heap.Heap (Natural,Natural)) }
+newtype Sieve = Sieve { unSieve :: Heap.Heap (Natural,Natural) }
 
 instance Show Sieve where
   show s = show (unSieve s)
 
-perimeter :: Sieve -> Natural
-perimeter (Sieve (n,_)) = n
-
 initial :: Sieve
 initial =
-    Sieve (9, Heap.empty lep)
+    Sieve (Heap.empty lep)
   where
-    lep (p1,_) (p2,_) = p1 <= p2
+    lep (kp1,_) (kp2,_) = kp1 <= kp2
 
-add :: Natural -> Sieve -> Sieve
-add p (Sieve (n,ps)) = Sieve (n, Heap.add (p * p, 2 * p) ps)
+-- let p = 2 * m + 1
+-- 2m' + 1 = p * p = (2m + 1) * (2m + 1) = 2(((2m + 1) + 1) * m) + 1
+-- Therefore, m' = ((2m + 1) + 1) * m = (p + 1) * m
+add :: Natural -> Sieve -> (Natural,Sieve)
+add m (Sieve ps) =
+    (p, Sieve (Heap.add (m',p) ps))
+  where
+    p = 2 * m + 1
+    m' = (p + 1) * m
 
-bump :: Sieve -> Sieve
-bump (Sieve (_,ps)) =
+bump :: Sieve -> (Natural,Sieve)
+bump (Sieve ps) =
     case Heap.remove ps of
       Nothing -> error "GenuineSieve.bump"
-      Just ((kp,p),ps') -> Sieve (kp, Heap.add (kp + p, p) ps')
+      Just ((kp,p),ps') -> (kp, Sieve (Heap.add (kp + p, p) ps'))
 
-advance :: Natural -> Sieve -> [Natural]
-advance m s =
-    let n = perimeter s in
+advance :: Natural -> Natural -> Sieve -> [Natural]
+advance m n s =
     if m < n
-      then m : advance (m + 2) (add m s)
-      else advance (if m == n then m + 2 else m) (bump s)
+      then let (p,s') = add m s in p : advance m' n s'
+      else let (n',s') = bump s in advance (if m == n then m' else m) n' s'
+  where
+    m' = m + 1
 
 primes :: [Natural]
-primes = 2 : advance 3 initial
+primes = 2 : advance 1 4 initial
