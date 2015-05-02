@@ -859,10 +859,10 @@ local
         PackageNameMap.insert oldest (n,v)
       end;
 
-  fun mkOldest repo sym =
+  fun mkOldest repo {previousVersion} sym =
       let
         fun check nv vs =
-            case Repository.previousNameVersion repo nv of
+            case previousVersion nv of
               NONE => NONE
             | SOME nv =>
               let
@@ -939,7 +939,7 @@ local
         List.map mk
       end;
 in
-  fun mkDepends repo reqs thyInt thy sym reqEqs reqArbs =
+  fun mkDepends repo prev reqs thyInt thy sym reqEqs reqArbs =
       let
         val ths =
             case Repository.requiresTheorems repo reqs of
@@ -950,7 +950,7 @@ in
 
         val (nvs,sym,int) = mkSymbol repo thyInt ths sym reqEqs reqArbs
 
-        val oldest = mkOldest repo sym (Queue.fromList nvs) vs
+        val oldest = mkOldest repo prev sym (Queue.fromList nvs) vs
 
         val deps = destOldest sym oldest nvs
       in
@@ -2981,7 +2981,7 @@ local
         TypeOpSet.foldl diff NameSet.empty ts
       end;
 in
-  fun fromPackage repo namever =
+  fun fromPackage repo prev namever =
       let
         val pkg =
             case Repository.peek repo namever of
@@ -3060,7 +3060,7 @@ in
 
               val reqArbs = requiredArbitraryTypes arbs src tests
             in
-              mkDepends repo reqs thyInt thy sym reqEqs reqArbs
+              mkDepends repo prev reqs thyInt thy sym reqEqs reqArbs
             end
       in
         Haskell
@@ -4812,9 +4812,9 @@ fun writePackage rex haskell =
 (* Exporting a theory package as a Haskell package.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun exportPackage rex repo namever =
+fun exportPackage rex repo prev namever =
     let
-      val haskell = fromPackage repo namever
+      val haskell = fromPackage repo prev namever
     in
       writePackage rex haskell
     end;

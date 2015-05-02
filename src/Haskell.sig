@@ -22,7 +22,12 @@ val exportable :
     Repository.repository -> PackageNameVersion.nameVersion -> bool
 
 val fromPackage :
-    Repository.repository -> PackageNameVersion.nameVersion -> haskell
+    Repository.repository ->
+    {previousVersion :
+       PackageNameVersion.nameVersion ->
+       PackageNameVersion.nameVersion option} ->
+    PackageNameVersion.nameVersion ->
+    haskell
 
 (* ------------------------------------------------------------------------- *)
 (* Writing a Haskell package to disk.                                        *)
@@ -38,7 +43,11 @@ val writePackage :
 
 val exportPackage :
     {reexport : bool} ->
-    Repository.repository -> PackageNameVersion.nameVersion ->
+    Repository.repository ->
+    {previousVersion :
+       PackageNameVersion.nameVersion ->
+       PackageNameVersion.nameVersion option} ->
+    PackageNameVersion.nameVersion ->
     PackageName.name * ({reexport : bool} * PackageVersion.version) option
 
 end

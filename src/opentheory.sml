@@ -770,7 +770,10 @@ in
         processor = beginOpt endOpt (fn _ => setExport HaskellExport)},
        {switches = ["--reexport"], arguments = [],
         description = "re-export package if target already exists",
-        processor = beginOpt endOpt (fn _ => reexport := true)}];
+        processor = beginOpt endOpt (fn _ => reexport := true)},
+       {switches = ["--manual-install"], arguments = [],
+        description = "do not auto-install packages",
+        processor = beginOpt endOpt (fn _ => autoInstall := false)}];
 end;
 
 val exportFooter =
@@ -1036,7 +1039,10 @@ in
         processor = beginOpt endOpt (fn _ => upgradeTheoryInfo := true)},
        {switches = ["--preserve-theory"], arguments = [],
         description = "do not optimize theory source",
-        processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)}];
+        processor = beginOpt endOpt (fn _ => preserveTheoryInfo := true)},
+       {switches = ["--manual-install"], arguments = [],
+        description = "do not auto-install packages",
+        processor = beginOpt endOpt (fn _ => autoInstall := false)}];
 end;
 
 val infoFooter =
@@ -1555,8 +1561,9 @@ in
               HaskellExport =>
               let
                 val rex = {reexport = !reexport}
+                and prev = {previousVersion = installPreviousVersion}
 
-                val (n,rvo) = Haskell.exportPackage rex repo namever
+                val (n,rvo) = Haskell.exportPackage rex repo prev namever
               in
                 case rvo of
                   NONE =>
