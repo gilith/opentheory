@@ -1,0 +1,97 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2006 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h $opt_n);
+
+getopts('hn');
+
+if ($opt_h) {
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $program = "reinstall-theories";
+
+my $opentheory = "bin/mlton/opentheory";
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
+
+my $cmd = "$opentheory list --dependency-order '(Identity - (OnRepo /\\ ConsistentWithRepo)) All'";
+
+my @thys = `$cmd`;
+chomp @thys;
+
+$cmd = "$opentheory uninstall '" . join ("|",@thys) . "'";
+
+if ($opt_n) {
+  print STDOUT "$cmd\n";
+}
+else {
+  (system($cmd) == 0) or die "$program: couldn't execute $cmd: $!\n";
+}
+
+foreach my $thy (@thys) {
+  $cmd = "$opentheory install $thy";
+
+  if ($opt_n) {
+    print STDOUT "$cmd\n";
+  }
+  else {
+    (system($cmd) == 0) or die "$program: couldn't execute $cmd: $!\n";
+  }
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+reinstall-theories - Reinstall theories that are inconsistent with all known repos
+
+=head1 SYNOPSIS
+
+reinstall-theories [-h] [-l] [-n]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=item B<-n>
+
+Do nothing, just echo the commands that would be used.
+
+=back
+
+=head1 DESCRIPTION
+
+Reinstall every theory that is inconsistent with all repos declared in the
+OpenTheory config file.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut
