@@ -50,6 +50,14 @@ val isPrefixName : nameVersion -> nameVersion -> bool
 val isStrictPrefixName : nameVersion -> nameVersion -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Comparing package versions.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+(* Raises an error if the packages have different names *)
+
+val compareVersion : nameVersion * nameVersion -> order
+
+(* ------------------------------------------------------------------------- *)
 (* Converting to a logic name.                                               *)
 (* ------------------------------------------------------------------------- *)
 

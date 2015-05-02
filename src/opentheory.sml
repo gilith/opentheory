@@ -610,6 +610,119 @@ fun firstRemote namever chko =
            end)
     end;
 
+fun previousVersionRemotes nv =
+    let
+      val rems = remotes ()
+    in
+      RepositoryRemote.previousNameVersionList rems nv
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Auto-installing packages from remote repositories.                        *)
+(* ------------------------------------------------------------------------- *)
+
+val stageInstall = ref false;
+
+val autoInstall = ref true;
+
+local
+  fun installAuto fndr namever chko =
+      let
+        val repo = repository ()
+
+        val (rem,chk) = firstRemote namever chko
+
+        val errs = Repository.checkStagePackage repo rem namever chk
+
+        val () =
+            if RepositoryError.isClean errs then ()
+            else
+              let
+                val s = RepositoryError.report errs
+              in
+                if RepositoryError.fatal errs then raise Error s
+                else chat ("included package " ^
+                           PackageNameVersion.toString namever ^
+                           " install warnings:\n" ^ s)
+              end
+
+        val tool = {tool = versionHtml}
+
+        val () = Repository.stagePackage repo fndr rem namever chk tool
+
+        val () = Repository.installStaged repo namever chk
+
+        val () = chat ("auto-installed package " ^
+                       PackageNameVersion.toString namever)
+      in
+        ()
+      end;
+
+  fun installAutoFinder fndr =
+      let
+        fun findOrInstall namever chko =
+            case PackageFinder.find fndr namever chko of
+              SOME pkg => SOME pkg
+            | NONE =>
+              let
+                val inst = installAutoFinder fndr
+
+                val () = installAuto inst namever chko
+
+                val repo = repository ()
+              in
+                Repository.peek repo namever
+              end
+      in
+        PackageFinder.mk findOrInstall
+      end;
+in
+  fun installFinder () =
+      let
+        val fndr =
+            if not (!stageInstall) then finder ()
+            else possiblyStagedFinder ()
+      in
+        if not (!autoInstall) then fndr else installAutoFinder fndr
+      end;
+end;
+
+local
+  fun remoteLater nvl nvr =
+      case nvr of
+        NONE => NONE
+      | SOME (_,nv,chk) =>
+        let
+          val later =
+              case nvl of
+                NONE => true
+              | SOME nv' =>
+                case PackageNameVersion.compareVersion (nv',nv) of
+                  LESS => true
+                | _ => false
+        in
+          if later then SOME (nv,chk) else NONE
+        end;
+in
+  fun installPreviousVersion nv =
+      let
+        val nvl = previousVersion nv
+
+        val nvr = if !autoInstall then previousVersionRemotes nv else NONE
+      in
+        case remoteLater nvl nvr of
+          NONE => nvl
+        | SOME (nvp,chk) =>
+          let
+            val fndr = installFinder ()
+
+            val () = PackageFinder.check fndr nvp (SOME chk)
+          in
+            SOME nvp
+          end
+      end;
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* Options for cleaning up staged packages.                                  *)
 (* ------------------------------------------------------------------------- *)
@@ -976,13 +1089,9 @@ val uninstallFooter =
 
 val reinstall = ref false;
 
-val autoInstall = ref true;
-
 val nameInstall : PackageNameVersion.nameVersion option ref = ref NONE;
 
 val checksumInstall : Checksum.checksum option ref = ref NONE;
-
-val stageInstall = ref false;
 
 local
   open Useful Options;
@@ -2139,7 +2248,7 @@ local
 
                   val nv = PackageTheorems.nameVersion th
                 in
-                  case previousVersion nv of
+                  case installPreviousVersion nv of
                     NONE =>
                     let
                       val n = PackageNameVersion.name nv
@@ -2491,7 +2600,8 @@ local
                   let
                     val msg =
                         (if auto then "auto-" else "") ^
-                        "uninstalled package " ^ PackageNameVersion.toString namever
+                        "uninstalled package " ^
+                        PackageNameVersion.toString namever
                   in
                     chat msg
                   end
@@ -2550,68 +2660,6 @@ end;
 (* ------------------------------------------------------------------------- *)
 (* Installing packages.                                                      *)
 (* ------------------------------------------------------------------------- *)
-
-local
-  fun installAuto fndr namever chko =
-      let
-        val repo = repository ()
-
-        val (rem,chk) = firstRemote namever chko
-
-        val errs = Repository.checkStagePackage repo rem namever chk
-
-        val () =
-            if RepositoryError.isClean errs then ()
-            else
-              let
-                val s = RepositoryError.report errs
-              in
-                if RepositoryError.fatal errs then raise Error s
-                else chat ("included package " ^
-                           PackageNameVersion.toString namever ^
-                           " install warnings:\n" ^ s)
-              end
-
-        val tool = {tool = versionHtml}
-
-        val () = Repository.stagePackage repo fndr rem namever chk tool
-
-        val () = Repository.installStaged repo namever chk
-
-        val () = chat ("auto-installed package " ^
-                       PackageNameVersion.toString namever)
-      in
-        ()
-      end;
-
-  fun installAutoFinder fndr =
-      let
-        fun findOrInstall namever chko =
-            case PackageFinder.find fndr namever chko of
-              SOME pkg => SOME pkg
-            | NONE =>
-              let
-                val inst = installAutoFinder fndr
-
-                val () = installAuto inst namever chko
-
-                val repo = repository ()
-              in
-                Repository.peek repo namever
-              end
-      in
-        PackageFinder.mk findOrInstall
-      end;
-in
-  fun installFinder () =
-      let
-        val fndr =
-            if not (!stageInstall) then finder ()
-            else possiblyStagedFinder ()
-      in
-        if not (!autoInstall) then fndr else installAutoFinder fndr
-      end;
-end;
 
 fun installPackage rem namever chk =
     let

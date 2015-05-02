@@ -53,6 +53,10 @@ val previousNameVersion :
     remote -> PackageNameVersion.nameVersion ->
     (PackageNameVersion.nameVersion * Checksum.checksum) option
 
+val previousNameVersionList :
+    remote list -> PackageNameVersion.nameVersion ->
+    (remote * PackageNameVersion.nameVersion * Checksum.checksum) option
+
 val latestNameVersion :
     remote -> PackageName.name ->
     (PackageNameVersion.nameVersion * Checksum.checksum) option

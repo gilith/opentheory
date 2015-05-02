@@ -132,6 +132,28 @@ fun find remotes (n,c) =
 fun previousNameVersion remote nv =
     RepositoryChecksums.previousNameVersion (checksums remote) nv;
 
+local
+  fun previous nv remote =
+      case previousNameVersion remote nv of
+        NONE => NONE
+      | SOME (nv,chk) => SOME (remote,nv,chk);
+
+  fun latest (p2,p1) =
+      let
+        val (_,nv1,_) = p1
+        and (_,nv2,_) = p2
+      in
+        case PackageNameVersion.compareVersion (nv1,nv2) of
+          LESS => p2
+        | _ => p1
+      end;
+in
+  fun previousNameVersionList remotes nv =
+      case List.mapPartial (previous nv) remotes of
+        [] => NONE
+      | h :: t => SOME (List.foldl latest h t);
+end;
+
 fun latestNameVersion remote n =
     RepositoryChecksums.latestNameVersion (checksums remote) n;
 

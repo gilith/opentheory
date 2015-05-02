@@ -80,6 +80,24 @@ fun isStrictPrefixName nv1 nv2 =
     PackageName.isStrictPrefix (name nv1) (name nv2);
 
 (* ------------------------------------------------------------------------- *)
+(* Comparing package versions.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun compareVersion (nv1,nv2) =
+    let
+      val NameVersion' {name = n1, version = v1} = dest nv1
+      and NameVersion' {name = n2, version = v2} = dest nv2
+
+(*OpenTheoryDebug
+      val () =
+          if PackageName.equal n1 n2 then ()
+          else raise Bug "PackageNameVersion.compareVersion: different names"
+*)
+    in
+      PackageVersion.compare (v1,v2)
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
