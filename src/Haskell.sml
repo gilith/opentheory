@@ -871,9 +871,9 @@ local
                 val th = Package.theorems pkg
               in
                 (* If Haskell export was not set up for this version *)
-                (* then we don't need to check the dependencies *)
+                (* then we stop checking this package *)
                 case mkInformation repo pkg of
-                  NONE => SOME (nv,vs)
+                  NONE => NONE
                 | SOME info_int =>
                   let
                     val {information = info,
