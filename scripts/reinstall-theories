@@ -24,28 +24,33 @@ my $program = "reinstall-theories";
 my $opentheory = "bin/mlton/opentheory";
 [ -x $opentheory ] or die "$program: $opentheory not an executable";
 
-my $cmd = "$opentheory list --dependency-order '(Identity - (OnRepo /\\ ConsistentWithRepo)) All'";
+my $cmd = "$opentheory list --dependency-order '(OnRepo - (OnRepo /\\ ConsistentWithRepo)) All'";
 
 my @thys = `$cmd`;
 chomp @thys;
 
-$cmd = "$opentheory uninstall '" . join ("|",@thys) . "'";
-
-if ($opt_n) {
-  print STDOUT "$cmd\n";
+if (scalar @thys == 0) {
+  print STDOUT "all installed theories are consistent with the repos\n";
 }
 else {
-  (system($cmd) == 0) or die "$program: couldn't execute $cmd: $!\n";
-}
-
-foreach my $thy (@thys) {
-  $cmd = "$opentheory install $thy";
+  $cmd = "$opentheory uninstall '" . join ("|",@thys) . "'";
 
   if ($opt_n) {
     print STDOUT "$cmd\n";
   }
   else {
     (system($cmd) == 0) or die "$program: couldn't execute $cmd: $!\n";
+  }
+
+  foreach my $thy (@thys) {
+    $cmd = "$opentheory install $thy";
+
+    if ($opt_n) {
+      print STDOUT "$cmd\n";
+    }
+    else {
+      (system($cmd) == 0) or die "$program: couldn't execute $cmd: $!\n";
+    }
   }
 }
 
