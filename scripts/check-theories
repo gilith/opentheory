@@ -222,7 +222,8 @@ while (my $thy = <THEORIES>) {
           if ($info1 !~ /^requires: /m &&
               $thy ne "base" &&
               $thy ne "bool" &&
-              $thy ne "bool-def")
+              $thy ne "bool-def" &&
+              $thy ne "empty")
           {
             print STDOUT "$program: theory $thy has no requires information\n";
           }
