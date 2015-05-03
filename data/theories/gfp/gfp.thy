@@ -1,5 +1,5 @@
 name: gfp
-version: 1.90
+version: 1.91
 description: Parametric theory of GF(p) finite fields
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,6 @@ requires: gfp-witness
 requires: natural-bits
 requires: natural-divides
 requires: natural-fibonacci
-requires: natural-gcd
 requires: natural-prime
 show: "Data.Bool"
 show: "Data.List"
@@ -30,7 +29,7 @@ thm {
 div {
   import: def
   import: thm
-  package: gfp-div-1.76
+  package: gfp-div-1.77
 }
 
 main {

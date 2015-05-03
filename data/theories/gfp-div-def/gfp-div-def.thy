@@ -1,5 +1,5 @@
 name: gfp-div-def
-version: 1.66
+version: 1.67
 description: Definition of GF(p) field division
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,6 @@ requires: base
 requires: gfp-def
 requires: gfp-witness
 requires: natural-divides
-requires: natural-gcd
 requires: natural-prime
 show: "Data.Bool"
 show: "Number.GF(p)"

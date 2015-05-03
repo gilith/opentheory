@@ -1,11 +1,10 @@
 name: natural-prime
-version: 1.78
+version: 1.79
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: base
 requires: natural-divides
-requires: natural-gcd
 requires: stream
 show: "Data.Bool"
 show: "Data.List"
@@ -26,7 +25,7 @@ def {
 
 thm {
   import: def
-  package: natural-prime-thm-1.53
+  package: natural-prime-thm-1.54
 }
 
 stream {

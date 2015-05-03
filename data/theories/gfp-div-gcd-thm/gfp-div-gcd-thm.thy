@@ -1,5 +1,5 @@
 name: gfp-div-gcd-thm
-version: 1.64
+version: 1.65
 description: Correctness of a GF(p) division algorithm based on gcd
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -11,7 +11,7 @@ requires: gfp-div-gcd-def
 requires: gfp-div-thm
 requires: gfp-thm
 requires: gfp-witness
-requires: natural-gcd
+requires: natural-divides
 requires: natural-prime
 show: "Data.Bool"
 show: "Number.GF(p)"

@@ -1,5 +1,5 @@
 name: gfp-div-gcd
-version: 1.65
+version: 1.66
 description: A GF(p) division algorithm based on gcd
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -9,7 +9,7 @@ requires: gfp-div-def
 requires: gfp-div-thm
 requires: gfp-thm
 requires: gfp-witness
-requires: natural-gcd
+requires: natural-divides
 requires: natural-prime
 show: "Data.Bool"
 show: "Data.Pair"
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: gfp-div-gcd-thm-1.64
+  package: gfp-div-gcd-thm-1.65
 }
 
 main {
