@@ -10,3 +10,4 @@
 # OpenTheory.Natural.Divides
 
 const "Number.Natural.divides" as "OpenTheory.Natural.Divides.divides"
+const "Number.Natural.egcd" as "OpenTheory.Natural.Divides.egcd"
