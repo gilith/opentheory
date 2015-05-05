@@ -61,6 +61,7 @@ const "Data.List.length" as "OpenTheory.List.naturalLength"
 
 # OpenTheory.Natural
 
+const "Number.Natural.even" as "OpenTheory.Natural.even"
 const "Number.Natural.odd" as "OpenTheory.Natural.odd"
 
 # OpenTheory.Primitive
