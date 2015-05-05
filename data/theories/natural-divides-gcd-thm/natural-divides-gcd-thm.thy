@@ -1,9 +1,9 @@
 name: natural-divides-gcd-thm
-version: 1.0
+version: 1.1
 description: Properties of natural number greatest common divisor
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-17
+provenance: HOL Light theory extracted on 2015-05-05
 requires: base
 requires: natural-divides-def
 requires: natural-divides-gcd-def

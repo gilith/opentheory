@@ -1,5 +1,5 @@
 name: parser
-version: 1.154
+version: 1.155
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ haskell-equality-type: "Parser.Stream.stream"
 haskell-arbitrary-type: "Parser.Stream.stream"
 
 stream {
-  package: parser-stream-1.110
+  package: parser-stream-1.111
 }
 
 comb {

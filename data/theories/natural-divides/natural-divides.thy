@@ -24,7 +24,7 @@ thm {
 gcd {
   import: def
   import: thm
-  package: natural-divides-gcd-1.0
+  package: natural-divides-gcd-1.1
 }
 
 lcm {

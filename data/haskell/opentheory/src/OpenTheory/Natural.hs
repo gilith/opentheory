@@ -13,5 +13,8 @@ where
 
 import qualified OpenTheory.Primitive.Natural as Natural
 
-odd :: Natural.Natural -> Bool
-odd n = n `mod` 2 == 1
+naturalEven :: Natural.Natural -> Bool
+naturalEven n = n `mod` 2 == 0
+
+naturalOdd :: Natural.Natural -> Bool
+naturalOdd n = not (naturalEven n)
