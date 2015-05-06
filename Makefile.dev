@@ -174,13 +174,15 @@ haskell:
 	@cd $(HASKELL_DIR)/opentheory-primitive && $(HASKELL_INSTALL)
 	$(MAKE) export-haskell
 	@echo ======================
-	@cd $(HASKELL_DIR)/nth-prime && $(HASKELL_INSTALL)
-	@echo ----------------------
 	@cd $(HASKELL_DIR)/api-opentheory-unicode && $(HASKELL_INSTALL)
 	@echo ----------------------
 	@cd $(HASKELL_DIR)/decode-utf8 && $(HASKELL_INSTALL)
 	@echo ----------------------
+	@cd $(HASKELL_DIR)/nth-prime && $(HASKELL_INSTALL)
+	@echo ----------------------
 	@cd $(HASKELL_DIR)/fen2s && $(HASKELL_INSTALL)
+	@echo ----------------------
+	@cd $(HASKELL_DIR)/modexp && $(HASKELL_INSTALL)
 
 ###############################################################################
 # Create the test package repo.

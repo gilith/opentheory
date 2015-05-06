@@ -7,9 +7,9 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
-use vars qw($opt_h $opt_m $opt_s $opt_l $opt_n);
+use vars qw($opt_h $opt_n);
 
-getopts('hmsln');
+getopts('hn');
 
 if ($opt_h) {
     pod2usage({-exitval => 2,
@@ -39,6 +39,86 @@ sub name_version_to_name {
   }
 }
 
+sub name_version_to_version {
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
+
+  if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+    return $2;
+  }
+  else {
+    die "$program: not a valid NAME-VERSION: $nv";
+  }
+}
+
+sub name_version_to_haskell_name {
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
+
+  my $name = '';
+
+  my $cmd = "$opentheory info --information $nv";
+
+  open INFO, "$cmd |" or
+    die "$program: couldn't get information for theory $nv: $!\n";
+
+  while (my $info = <INFO>) {
+    chomp $info;
+
+    if ($info =~ /^haskell-name:[[:space:]]+([[:alnum:]-]+)$/) {
+      if ($name eq '') {
+        $name = $1;
+      }
+      else {
+        die ("$program: multiple haskell-name information in theory $nv:\n" .
+             "  $name and $2\n");
+      }
+    }
+  }
+
+  close INFO;
+
+  if ($name eq '') {
+    $name = 'opentheory-' . name_version_to_name($nv);
+  }
+
+  return $name;
+}
+
+sub haskell_name_to_version {
+  (scalar @_ == 1) or die;
+  my $name = shift @_;
+
+  my $version = '';
+
+  my $cabal = "$source/$name/$name.cabal";
+
+  open INFO, "$cabal" or
+    die "$program: couldn't open cabal file $cabal: $!\n";
+
+  while (my $info = <INFO>) {
+    chomp $info;
+
+    if ($info =~ /^version:[[:space:]]+([[:digit:].]+)$/) {
+      if ($version eq '') {
+        $version = $1;
+      }
+      else {
+        die ("$program: multiple version tags in cabal file $cabal:\n" .
+             "  $version and $1\n");
+      }
+    }
+  }
+
+  close INFO;
+
+  if ($version eq '') {
+    die "$program: no version information found in cabal file $cabal\n";
+  }
+
+  return $version;
+}
+
 my $cmd = "cabal update";
 if (system($cmd) != 0) { die "$program: couldn't run $cmd"; }
 
@@ -46,52 +126,49 @@ my $skipping = '';
 my $staging = '';
 my $upload_cmd = 'cabal upload';
 
-$cmd = "$opentheory list --dependency-order Mine";
+$cmd = "$opentheory list --dependency-order 'Mine /\\ ExportHaskell /\\ UpToDate'";
 
 # print STDOUT "cmd = $cmd\n";
 
 open THEORIES, "$cmd |" or
   die "$program: couldn't list installed theories: $!\n";
 
-while (my $name_ver = <THEORIES>) {
-  chomp $name_ver;
+while (my $thy = <THEORIES>) {
+  chomp $thy;
 
-  if ($name_ver =~ s/^haskell/opentheory/) {
-    my $name = name_version_to_name($name_ver);
+  my $name = name_version_to_haskell_name($thy);
+  my $version = haskell_name_to_version($name);
+  my $name_version = $name . '-' . $version;
 
-    my $tar = "$source/$name/dist/$name_ver.tar.gz";
+  my $tar = "$source/$name/dist/$name_version.tar.gz";
+  [ -f $tar ] or die "$program: couldn't find source for $name\n";
 
-    if ( -f $tar ) {
-      print STDOUT "Checking $tar\n";
+  $cmd = "cabal upload $tar";
 
-      $cmd = "cabal upload -c $tar";
+    my $upload_ok = 0;
 
-      my $upload_ok = 0;
+    open UPLOAD_CHECK, "$cmd |" or
+      die "$program: couldn't check package for uploading: $!\n";
 
-      open UPLOAD_CHECK, "$cmd |" or
-        die "$program: couldn't check package for uploading: $!\n";
+    while (my $upload_check = <UPLOAD_CHECK>) {
+      chomp $upload_check;
 
-      while (my $upload_check = <UPLOAD_CHECK>) {
-        chomp $upload_check;
+      if ($upload_check eq "Ok") { $upload_ok = 1; }
+    }
 
-        if ($upload_check eq "Ok") { $upload_ok = 1; }
-      }
+    close UPLOAD_CHECK;
 
-      close UPLOAD_CHECK;
-
-      if ($upload_ok) {
-        print STDOUT "Staging $name_ver\n";
-        $staging .= "\n  $name_ver";
-        $upload_cmd .= " $tar";
-      }
-      else {
-        print STDOUT "Skipping $name_ver\n";
-        $skipping .= "\n  $name_ver";
-      }
+    if ($upload_ok) {
+      print STDOUT "Staging $name_version\n";
+      $staging .= "\n  $name_version";
+      $upload_cmd .= " $tar";
     }
     else {
-      die "$program: couldn't find source for $name\n";
+      print STDOUT "Skipping $name_version\n";
+      $skipping .= "\n  $name_version";
     }
+  }
+  else {
   }
 }
 
@@ -104,8 +181,13 @@ if ($skipping ne '') {
 if ($staging ne '') {
   print STDOUT "\nUploading the following Haskell packages:$staging\n\n";
 
-  if (system($upload_cmd) != 0) {
-    die "$program: couldn't execute $upload_cmd: $!\n";
+  if ($opt_n) {
+    print STDOUT "$upload_cmd\n";
+  }
+  else {
+    if (system($upload_cmd) != 0) {
+      die "$program: couldn't execute $upload_cmd: $!\n";
+    }
   }
 }
 
@@ -119,7 +201,7 @@ upload-haskell - Upload the auto-generated Haskell packages
 
 =head1 SYNOPSIS
 
-upload-haskell [-h]
+upload-haskell [-h] [-n]
 
 =head1 ARGUMENTS
 
@@ -130,6 +212,10 @@ The recognized flags are described below:
 =item B<-h>
 
 Produce this documentation.
+
+=item B<-n>
+
+Don't upload anything, just print the command that would be used.
 
 =back
 

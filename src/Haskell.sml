@@ -4402,7 +4402,7 @@ local
         Print.newline ::
         ppSyntax "QuickCheck >= 2.4.0.1 && < 3.0," ::
         Print.newline ::
-        ppSyntax "opentheory-primitive >= 1.0 && < 2.0" ::
+        ppSyntax "opentheory-primitive >= 1.3 && < 2.0" ::
         List.map ppExtraDepend deps;
   end;
 
