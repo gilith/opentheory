@@ -1,5 +1,5 @@
 name: natural-fibonacci
-version: 1.62
+version: 1.63
 description: Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,6 @@ requires: probability
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Pair"
-show: "Function"
 show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 show: "Probability.Random"

@@ -1,5 +1,5 @@
 name: natural-divides-gcd-def
-version: 1.1
+version: 1.2
 description: Definition of natural number greatest common divisor
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -8,7 +8,9 @@ requires: base
 requires: natural-divides-def
 requires: natural-divides-thm
 show: "Data.Bool"
+show: "Data.Pair"
 show: "Number.Natural"
+show: "Relation"
 
 main {
   article: "natural-divides-gcd-def.art"

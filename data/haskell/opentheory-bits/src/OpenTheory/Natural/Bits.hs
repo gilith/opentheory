@@ -24,7 +24,7 @@ append :: [Bool] -> Primitive.Natural.Natural -> Primitive.Natural.Natural
 append l n = foldr cons n l
 
 headBits :: Primitive.Natural.Natural -> Bool
-headBits n = Natural.odd n
+headBits n = Natural.naturalOdd n
 
 shiftRight ::
   Primitive.Natural.Natural -> Primitive.Natural.Natural ->
