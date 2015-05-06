@@ -163,7 +163,7 @@ HASKELL_OPENTHEORY_LIST = ../../$(OPENTHEORY) list --dependency-order ExportHask
 
 .PHONY: export-haskell
 export-haskell: $(OPENTHEORY)
-	@cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; my $$cmd = "$(HASKELL_OPENTHEORY_EXPORT) $$nv"; print STDOUT "$$cmd\n"; my $$n = `$$cmd`; print STDOUT "$$n"; chomp $$n; if ($$n =~ /^(?:re-)?exported package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)-[[:digit:].]+$$/) { $$n = $$1; } elsif ($$n =~ /^skipped re-export of package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)$$/) { $$n = $$1; } else { die "bad export output |$$n|"; } (system("cd $$n && $(HASKELL_INSTALL)") == 0) or die;')
+	@cd $(HASKELL_DIR) && ($(HASKELL_OPENTHEORY_LIST) | perl -ne 'my $$nv = $$_; chomp $$nv; print STDOUT "----------------------\n"; my $$cmd = "$(HASKELL_OPENTHEORY_EXPORT) $$nv"; print STDOUT "$$cmd\n"; my $$n = `$$cmd`; print STDOUT "$$n"; chomp $$n; if ($$n =~ /^(?:re-)?exported package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)-[[:digit:].]+$$/m) { $$n = $$1; } elsif ($$n =~ /^skipped re-export of package [[:alnum:]-]+-[[:digit:].]+ as Haskell package ([[:alnum:]-]+)$$/m) { $$n = $$1; } else { die "bad export output |$$n|"; } (system("cd $$n && $(HASKELL_INSTALL)") == 0) or die;')
 
 .PHONY: reexport-haskell
 reexport-haskell:
