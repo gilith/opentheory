@@ -29,18 +29,16 @@ factorTwos n =
   where
     (r,s) = factorTwos (Bits.tailBits n)
 
-millerRabinWitness :: Natural -> Natural -> Bool
-millerRabinWitness n a =
-    witness (modExp n a s) r
+millerRabinWitness :: Natural -> (Int,Natural) -> Natural -> Bool
+millerRabinWitness n =
+    \ (r,s) a -> witness (modExp n a s) r
   where
-    witness x i =
-        if i == 0 then a /= 1
-        else if x2 == 1 then not (x == 1 || x == n - 1)
-        else witness x2 (i - 1)
+    witness a r =
+        if r == 0 then a /= 1
+        else if a2 == 1 then not (a == 1 || a == n - 1)
+        else witness a2 (r - 1)
       where
-        x2 = modSquare n x
-
-    (r,s) = factorTwos a
+        a2 = modSquare n a
 
 millerRabin :: Int -> Natural -> Random.Random -> Bool
 millerRabin t n =
@@ -51,7 +49,9 @@ millerRabin t n =
       where
         (r1,r2) = Random.split r
 
-    trial = not . millerRabinWitness n . range
+    trial = not . millerRabinWitness n rs . range
+
+    rs = factorTwos (n - 1)
 
     range r = Uniform.random (n - 3) r + 2
 

@@ -23,7 +23,7 @@ main =
     do s <- System.Random.randomIO
        let w = 512
        let r = Random.fromInt s
-       let n = Prime.randomPrime w r
-       putStrLn (show n)
-       putStrLn (show (Bits.width n))
+       let p = Prime.randomPrime w r
+       putStrLn (show p)
+       putStrLn (show (Bits.width p))
        return ()
