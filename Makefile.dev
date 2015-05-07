@@ -250,6 +250,11 @@ reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
 	$(OPENTHEORY_INIT)
 
+.PHONY: clean-theories
+clean-theories: $(OPENTHEORY)
+	scripts/reinstall-theories
+	@for thy in $($(OPENTHEORY) list --dependency-order --reverse '(Identity - OnRepo) All') ; do $(OPENTHEORY) uninstall $$thy ; done
+
 .PHONY: capture-theories
 capture-theories:
 	$(MAKE) -C $(HOL_LIGHT_DIR)/opentheory theories
