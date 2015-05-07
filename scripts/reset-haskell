@@ -1,0 +1,245 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2012 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h $opt_n);
+
+getopts('hn');
+
+if ($opt_h) {
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $program = "reset-haskell";
+
+my $opentheory = "bin/mlton/opentheory";
+[ -x $opentheory ] or die "$program: $opentheory not an executable";
+
+my $source = "data/haskell";
+[ -d $source ] or die "$program: $source not a directory";
+
+sub name_version_to_name {
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
+
+  if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+    return $1;
+  }
+  else {
+    die "$program: not a valid NAME-VERSION: $nv";
+  }
+}
+
+sub name_version_to_version {
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
+
+  if ($nv =~ m{^([[:alnum:]-]+)-([[:digit:].]+)$}) {
+    return $2;
+  }
+  else {
+    die "$program: not a valid NAME-VERSION: $nv";
+  }
+}
+
+sub name_version_to_haskell_name {
+  (scalar @_ == 1) or die;
+  my $nv = shift @_;
+
+  my $name = '';
+
+  my $cmd = "$opentheory info --information $nv";
+
+  open INFO, "$cmd |" or
+    die "$program: couldn't get information for theory $nv: $!\n";
+
+  while (my $info = <INFO>) {
+    chomp $info;
+
+    if ($info =~ /^haskell-name:[[:space:]]+([[:alnum:]-]+)$/) {
+      if ($name eq '') {
+        $name = $1;
+      }
+      else {
+        die ("$program: multiple haskell-name information in theory $nv:\n" .
+             "  $name and $2\n");
+      }
+    }
+  }
+
+  close INFO;
+
+  if ($name eq '') {
+    $name = 'opentheory-' . name_version_to_name($nv);
+  }
+
+  return $name;
+}
+
+sub haskell_name_to_version {
+  (scalar @_ == 1) or die;
+  my $name = shift @_;
+
+  my $version = '';
+
+  my $cabal = "$source/$name/$name.cabal";
+
+  open INFO, "$cabal" or
+    die "$program: couldn't open cabal file $cabal: $!\n";
+
+  while (my $info = <INFO>) {
+    chomp $info;
+
+    if ($info =~ /^version:[[:space:]]+([[:digit:].]+)$/) {
+      if ($version eq '') {
+        $version = $1;
+      }
+      else {
+        die ("$program: multiple version tags in cabal file $cabal:\n" .
+             "  $version and $1\n");
+      }
+    }
+  }
+
+  close INFO;
+
+  if ($version eq '') {
+    die "$program: no version information found in cabal file $cabal\n";
+  }
+
+  return $version;
+}
+
+my @tpkgs = ();
+
+my $theory_list_cmd = "$opentheory list --dependency-order ExportHaskell";
+
+if ($opt_n) {
+  print STDOUT "$theory_list_cmd\n";
+}
+
+open THEORIES, "$theory_list_cmd |" or
+  die "$program: couldn't list installed theories: $!\n";
+
+while (my $thy = <THEORIES>) {
+  chomp $thy;
+
+  my $name = name_version_to_haskell_name($thy);
+
+  push (@tpkgs,$name);
+}
+
+close THEORIES;
+
+my @pkgs = ("opentheory-primitive");
+
+push (@pkgs,@tpkgs);
+
+push (@pkgs,@ARGV);
+
+my $changed = 1;
+
+while ($changed == 1) {
+  $changed = 0;
+
+  my $list_cmd = 'ghc-pkg list | grep ' . "'" . '^[[:space:]]*(' . join ("\\|",@pkgs) . ')-[[:digit:].]+$' . "'";
+
+  if ($opt_n) {
+    print STDOUT "$list_cmd\n";
+  }
+
+  open PACKAGES, "$list_cmd |" or
+    die "$program: couldn't list installed theories: $!\n";
+
+  while (my $pkg = <PACKAGES>) {
+    chomp $pkg;
+    $pkg =~ s/^[[:space:]]+//;
+    $pkg =~ s/[[:space:]]+$//;
+
+    my $unregister_cmd = "ghc-pkg unregister $pkg 2>/dev/null";
+
+    if ($opt_n) {
+      print STDOUT "$unregister_cmd\n";
+    }
+    else {
+      if (system($unregister_cmd) == 0) {
+        $changed = 1;
+      }
+    }
+  }
+
+  close PACKAGES;
+}
+
+foreach my $tpkg (@tpkgs) {
+  my $dir = "$source/$tpkg";
+
+  if ( -d $dir ) {
+    my $rm_cmd = "rm -r $dir";
+
+    if ($opt_n) {
+      print STDOUT "$rm_cmd\n";
+    }
+    else {
+      (system($rm_cmd) == 0) or
+        die "$program: couldn't remove directory $dir: $!\n";
+    }
+  }
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+reset-haskell - Unregister Haskell packages and nuke export directories
+
+=head1 SYNOPSIS
+
+reset-haskell [-h] [-n]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=item B<-n>
+
+Don't do anything destructive, just print the commands that would be used.
+
+=back
+
+=head1 DESCRIPTION
+
+Unregisters Haskell packages that depend on automatically generated
+from OpenTheory packages, and also nukes the source directory of
+exported packages.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut
