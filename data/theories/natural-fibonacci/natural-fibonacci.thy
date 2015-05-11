@@ -14,7 +14,7 @@ show: "Probability.Random"
 show: "Relation"
 
 exists {
-  package: natural-fibonacci-exists-1.39
+  package: natural-fibonacci-exists-1.40
 }
 
 def {

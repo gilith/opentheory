@@ -21,6 +21,7 @@ data Options = Options
     {optEdge :: Chess.Edge}
   deriving Show
 
+defaultOptions :: Options
 defaultOptions =
   Options
     {optEdge = Chess.SingleEdge}

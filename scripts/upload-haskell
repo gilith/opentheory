@@ -7,6 +7,10 @@ use warnings;
 use Pod::Usage;
 use Getopt::Std;
 
+###############################################################################
+# Process options.
+###############################################################################
+
 use vars qw($opt_h $opt_n);
 
 getopts('hn');
@@ -19,6 +23,10 @@ if ($opt_h) {
 # Autoflush STDIN
 $|++;
 
+###############################################################################
+# Global variables.
+###############################################################################
+
 my $program = "upload-haskell";
 
 my $opentheory = "bin/mlton/opentheory";
@@ -26,6 +34,53 @@ my $opentheory = "bin/mlton/opentheory";
 
 my $source = "data/haskell";
 [ -d $source ] or die "$program: $source not a directory";
+
+###############################################################################
+# Helper functions.
+###############################################################################
+
+sub compare_version {
+  (scalar @_ == 2) or die;
+  my $version1 = shift @_;
+  my $version2 = shift @_;
+
+  my $v1 = "." . $version1;
+  my $v2 = "." . $version2;
+
+  while(1) {
+    if ($v1 eq '') {
+      if ($v2 eq '') {
+        return 0;
+      }
+      else {
+        return -1;
+      }
+    }
+    else {
+      if ($v2 eq '') {
+        return 1;
+      }
+      else {
+        $v1 =~ /^[.]([[:digit:]]+)(.*)$/ or
+          die "$program: bad version format: $version1\n";
+        my $c1 = $1;
+        $v1 = $2;
+
+        $v2 =~ /^[.]([[:digit:]]+)(.*)$/ or
+          die "$program: bad version format: $version2\n";
+        my $c2 = $1;
+        $v2 = $2;
+
+        if ($c1 < $c2) {
+          return -1;
+        }
+        elsif ($c2 < $c1) {
+          return 1;
+        }
+      }
+    }
+  }
+}
 
 sub name_version_to_name {
   (scalar @_ == 1) or die;
@@ -119,16 +174,21 @@ sub haskell_name_to_version {
   return $version;
 }
 
-my $cmd = "cabal update";
-if (system($cmd) != 0) { die "$program: couldn't run $cmd"; }
+###############################################################################
+# Main program.
+###############################################################################
+
+my $cmd;
+#my $cmd = "cabal update";
+#if ($opt_n) { print STDOUT "$cmd\n"; }
+#if (system($cmd) != 0) { die "$program: couldn't run $cmd"; }
 
 my $skipping = '';
 my $staging = '';
 my $upload_cmd = 'cabal upload';
 
-$cmd = "$opentheory list --dependency-order 'Mine /\\ ExportHaskell /\\ UpToDate'";
-
-# print STDOUT "cmd = $cmd\n";
+$cmd = "$opentheory --repo gilith list --dependency-order 'Mine /\\ ExportHaskell /\\ UpToDate'";
+if ($opt_n) { print STDOUT "$cmd\n"; }
 
 open THEORIES, "$cmd |" or
   die "$program: couldn't list installed theories: $!\n";
@@ -136,39 +196,102 @@ open THEORIES, "$cmd |" or
 while (my $thy = <THEORIES>) {
   chomp $thy;
 
+  $cmd = "$opentheory --repo gilith list --quiet 'IdenticalOnRepo $thy'";
+  if ($opt_n) { print STDOUT "$cmd\n"; }
+  #if (system($cmd) != 0) { die "$program: $thy is not on the gilith repo\n"; }
+
   my $name = name_version_to_haskell_name($thy);
   my $version = haskell_name_to_version($name);
   my $name_version = $name . '-' . $version;
+  ($version eq name_version_to_version($thy)) or
+    die "$program: opentheory package and Haskell package have different versions:\n  $thy vs $name_version\n";
 
   my $tar = "$source/$name/dist/$name_version.tar.gz";
   [ -f $tar ] or die "$program: couldn't find source for $name\n";
 
-  $cmd = "cabal upload $tar";
+  $cmd = "cabal info $name";
+  if ($opt_n) { print STDOUT "$cmd\n"; }
 
-    my $upload_ok = 0;
+  open INFO, "$cmd |" or
+    die "$program: couldn't execute $cmd: $!\n";
 
-    open UPLOAD_CHECK, "$cmd |" or
-      die "$program: couldn't check package for uploading: $!\n";
+  my $latest_available = "";
+  my $latest_installed = "";
+  my $looking_for_latest = 0;
 
-    while (my $upload_check = <UPLOAD_CHECK>) {
-      chomp $upload_check;
+  while (my $info = <INFO>) {
+    chomp $info;
 
-      if ($upload_check eq "Ok") { $upload_ok = 1; }
+    if ($looking_for_latest != 0) {
+      die "unsupported";
     }
 
-    close UPLOAD_CHECK;
+    if ($info =~ /^[[:space:]]*Versions available:[[:space:]]+(.*)$/) {
+      my $vs = $1;
 
-    if ($upload_ok) {
-      print STDOUT "Staging $name_version\n";
-      $staging .= "\n  $name_version";
-      $upload_cmd .= " $tar";
+      if ($latest_available ne '') {
+        die "$program: multiple 'Versions available' lines in cabal info $name\n";
+      }
+
+      if ($vs eq "[ Not available from server ]") {
+        $latest_available = "0";
+      }
+      elsif ($vs =~ /,$/) {
+        $looking_for_latest = 1;
+      }
+      elsif ($vs =~ /([[:digit:].]+)( [(]and [[:digit:]]+ others[)])?$/) {
+        $latest_available = $1;
+      }
+      else {
+        die "$program: couldn't parse 'Versions available' info:\n  $vs\n";
+      }
     }
-    else {
-      print STDOUT "Skipping $name_version\n";
-      $skipping .= "\n  $name_version";
+
+    if ($info =~ /^[[:space:]]*Versions installed:[[:space:]]+(.*)$/) {
+      my $vs = $1;
+
+      if ($latest_installed ne '') {
+        die "$program: multiple 'Versions installed' lines in cabal info $name\n";
+      }
+
+      if ($vs =~ /,$/) {
+        $looking_for_latest = 2;
+      }
+      elsif ($vs =~ /([[:digit:].]+)( [(]and [[:digit:]]+ others[)])?$/) {
+        $latest_installed = $1;
+      }
+      else {
+        die "$program: couldn't parse 'Versions installed' info:\n  $vs\n";
+      }
     }
   }
+
+  close INFO;
+
+  if ($latest_available eq '') {
+    die "$program: no 'Versions available' lines found in cabal info $name\n";
+  }
+
+  if ($latest_installed eq '') {
+    die "$program: no 'Versions installed' lines found in cabal info $name\n";
+  }
+
+  if ($latest_installed ne $version) {
+    die "$program: latest 'Versions installed' line in cabal info $name does not match cabal file\n";
+  }
+
+  my $cmp = compare_version($latest_available, $latest_installed);
+  if ($cmp > 0) {
+    die "$program: for package $name, latest available version ($latest_available) is later than latest installed ($latest_installed)\n";
+  }
+  elsif ($cmp < 0) {
+    print STDOUT "Staging $name_version\n";
+    $staging .= "\n  $name_version";
+    $upload_cmd .= " $tar";
+  }
   else {
+    print STDOUT "Skipping $name_version\n";
+    $skipping .= "\n  $name_version";
   }
 }
 
@@ -215,7 +338,7 @@ Produce this documentation.
 
 =item B<-n>
 
-Don't upload anything, just print the command that would be used.
+Don't do anything destructive, just print the commands that would be used.
 
 =back
 

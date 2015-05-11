@@ -24,6 +24,10 @@ if ($opt_h or scalar @ARGV != 0)
 # Autoflush STDIN
 $|++;
 
+###############################################################################
+# Global variables.
+###############################################################################
+
 my $program = "check-theories";
 
 my $orderthys = "scripts/order-theories";
@@ -34,10 +38,6 @@ my $opentheory = "bin/mlton/opentheory";
 
 my $source = "data/theories";
 [ -d $source ] or die "$program: $source not a directory";
-
-###############################################################################
-# Global variables.
-###############################################################################
 
 my %toplevel = ();
 my %installed = ();

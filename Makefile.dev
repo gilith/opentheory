@@ -245,6 +245,8 @@ INSTALL_THEORIES = scripts/install-theories -u
 
 CHECK_THEORIES = scripts/check-theories
 
+UNAVAILABLE_THEORIES = '(Identity - OnRepo) All'
+
 .PHONY: reset-directory
 reset-directory: $(OPENTHEORY)
 	rm -rf $(HOME)/.opentheory
@@ -252,8 +254,8 @@ reset-directory: $(OPENTHEORY)
 
 .PHONY: clean-theories
 clean-theories: $(OPENTHEORY)
-	scripts/reinstall-theories
-	@for thy in $($(OPENTHEORY) list --dependency-order --reverse '(Identity - OnRepo) All') ; do $(OPENTHEORY) uninstall $$thy ; done
+	@if $(OPENTHEORY) list --quiet $(UNAVAILABLE_THEORIES) ; then $(OPENTHEORY) uninstall $(UNAVAILABLE_THEORIES) ; else echo 'all installed theories are available from the repos' ; fi
+	@scripts/reinstall-theories
 
 .PHONY: capture-theories
 capture-theories:

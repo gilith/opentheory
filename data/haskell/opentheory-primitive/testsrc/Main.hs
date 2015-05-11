@@ -13,22 +13,20 @@ module Main
   ( main )
 where
 
-import qualified OpenTheory.Primitive.Natural as Natural
+import OpenTheory.Primitive.Natural
 import OpenTheory.Primitive.Test
 
 assertion0 :: Bool
 assertion0 = True
 
 assertion1 :: Bool
-assertion1 = 2 + 2 == 4
+assertion1 = (2 :: Natural) + 2 == 4
 
 proposition0 :: Bool -> Bool
-proposition0 p =
-  p || not p
+proposition0 p = p || not p
 
-proposition1 :: Natural.Natural -> Natural.Natural -> Bool
-proposition1 m n =
-  m + n == n + m
+proposition1 :: Natural -> Natural -> Bool
+proposition1 m n = m + n == n + m
 
 main :: IO ()
 main =

@@ -1174,6 +1174,8 @@ end;
 
 val outputList = ref "-";
 
+val quietList = ref false;
+
 local
   open Useful Options;
 in
@@ -1191,7 +1193,10 @@ in
         description = "set output format",
         processor =
           beginOpt (stringOpt endOpt)
-            (fn _ => fn s => setFormatList (fromStringInfoFormat s))}];
+            (fn _ => fn s => setFormatList (fromStringInfoFormat s))},
+       {switches = ["--quiet"], arguments = [],
+        description = "just raise an error if no packages matched",
+        processor = beginOpt endOpt (fn _ => quietList := true)}];
 end;
 
 val listFooter =
@@ -3061,6 +3066,18 @@ in
         val query = listInput inp
 
         val namevers = evaluateQuery query
+
+        val () =
+            if not (!quietList) then ()
+            else
+              let
+                val status =
+                    if PackageNameVersionSet.null namevers
+                    then OS.Process.failure
+                    else OS.Process.success
+              in
+                OS.Process.exit status
+              end
 
         val repo = repository ()
 
