@@ -10,6 +10,8 @@ portability: portable
 module Egcd
 where
 
+import OpenTheory.Primitive.Natural
+
 integerEgcd :: Integer -> Integer -> (Integer,Integer,Integer)
 integerEgcd a b =
     if b == 0 then (1,0,a) else
