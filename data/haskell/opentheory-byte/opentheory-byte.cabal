@@ -20,10 +20,7 @@ library
     opentheory >= 1.193 && < 1.196,
     opentheory-bits >= 1.63 && < 1.64,
     opentheory-probability >= 1.46 && < 1.47
-
   hs-source-dirs: src
-
   ghc-options: -Wall
-
   exposed-modules:
     OpenTheory.Byte

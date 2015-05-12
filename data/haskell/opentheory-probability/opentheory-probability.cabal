@@ -18,12 +18,9 @@ library
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.3 && < 2.0,
     opentheory >= 1.193 && < 1.196
-
   hs-source-dirs: src
-
   ghc-options: -Wall
-
   exposed-modules:
-    OpenTheory.List.Geometric
-    OpenTheory.Natural.Geometric
+    OpenTheory.List.Geometric,
+    OpenTheory.Natural.Geometric,
     OpenTheory.Random

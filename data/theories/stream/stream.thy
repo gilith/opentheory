@@ -1,5 +1,5 @@
 name: stream
-version: 1.42
+version: 1.43
 description: Infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

@@ -32,17 +32,10 @@ my $i = `ghc-pkg list $nv | grep $nv`;
 if ($i eq "") {
     print STDOUT "Installing Haskell package $nv\n";
     (system("cabal clean") == 0) or die;
-    (system("cabal install") == 0) or die;
+    (system("cabal install --enable-tests") == 0) or die;
 }
 else {
     print STDOUT "Haskell package $nv is already installed\n";
-}
-
-my $x = $n;
-if ($n !~ /^test/) { $x .= "-test"; }
-my $t = "dist/build/$x/$x";
-if ( -x $t ) {
-    (system("$t") == 0) or die;
 }
 
 (system("cabal check") == 0) or die;

@@ -4406,12 +4406,20 @@ local
         List.map ppExtraDepend deps;
   end;
 
-  fun ppExposedModules mods =
-      case NamespaceSet.toList mods of
-        [] => []
-      | ns :: nss =>
-        ppNamespace ns ::
-        List.map (Print.sequence Print.newline o ppNamespace) nss;
+  local
+    val ppMod = ppNamespace;
+
+    fun ppCommaMod ns =
+        Print.program
+          [ppSyntax ",",
+           Print.newline,
+           ppMod ns];
+  in
+    fun ppExposedModules mods =
+        case NamespaceSet.toList mods of
+          [] => []
+        | ns :: nss => ppMod ns :: List.map ppCommaMod nss;
+  end;
 
   fun ppText s =
       case String.tokens Char.isSpace s of
@@ -4443,29 +4451,25 @@ in
             ppSection "library"
               [ppSection "build-depends:" (ppBuildDepends deps),
                Print.newline,
-               Print.newline,
                ppTag ("hs-source-dirs","src"),
                Print.newline,
-               Print.newline,
                ppTags tags [ghcOptionsTag],
-               Print.newline,
                Print.newline,
                ppSection "exposed-modules:" (ppExposedModules mods)]] @
            (if List.null tests then []
             else
               [Print.newline,
                Print.newline,
-               ppSection ("executable " ^ name ^ "-test")
-                 [ppSection "build-depends:" (ppBuildDepends deps),
+               ppSection ("test-suite " ^ name ^ "-test")
+                 [ppTag ("type","exitcode-stdio-1.0"),
                   Print.newline,
+                  ppSection "build-depends:" (ppBuildDepends deps),
                   Print.newline,
-                  ppTag ("hs-source-dirs","src, testsrc"),
-                  Print.newline,
+                  ppTag ("hs-source-dirs","src"),
                   Print.newline,
                   ppTags tags [ghcOptionsTag],
                   Print.newline,
-                  Print.newline,
-                  ppTag ("main-is","Main.hs")]]))
+                  ppTag ("main-is","Test.hs")]]))
       end;
 end;
 
@@ -4734,8 +4738,10 @@ in
             else raise Error "cannot export global definitions"
 
         val dir = mkSubDirectory dir "src"
+
+        val () = List.app (outputMod int tags dir namespace) submodules
       in
-        List.app (outputMod int tags dir namespace) submodules
+        dir
       end;
 end;
 
@@ -4746,7 +4752,7 @@ local
 
         val file =
             let
-              val f = OS.Path.joinBaseExt {base = "Main", ext = SOME "hs"}
+              val f = OS.Path.joinBaseExt {base = "Test", ext = SOME "hs"}
             in
               OS.Path.joinDirFile {dir = dir, file = f}
             end
@@ -4758,12 +4764,7 @@ local
 in
   fun outputTests int dir tags tests =
       if List.null tests then ()
-      else
-        let
-          val dir = mkSubDirectory dir "testsrc"
-        in
-          outputMain int tags dir tests
-        end;
+      else outputMain int tags dir tests;
 end;
 
 fun writePackage rex haskell =
@@ -4800,9 +4801,9 @@ fun writePackage rex haskell =
 
           val () = outputSetup dir
 
-          val () = outputSource int dir tags src
+          val srcdir = outputSource int dir tags src
 
-          val () = outputTests int dir tags tests
+          val () = outputTests int srcdir tags tests
         in
           (name, SOME ({reexport = reexport}, version))
         end

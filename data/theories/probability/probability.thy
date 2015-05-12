@@ -1,5 +1,5 @@
 name: probability
-version: 1.46
+version: 1.47
 description: Probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

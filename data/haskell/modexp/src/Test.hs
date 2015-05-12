@@ -36,7 +36,7 @@ main =
        let w = 64
        let r = Random.fromInt s
        let (n,x,k) = parameters w r
-       let (_,j,_) = Egcd.naturalEgcd k (n - 1)
+       let j = n - 1
        let y = ModExp.modExp n x k
        let z = ModExp.modExp n y j
        putStrLn (show x ++ " ^ " ++ show k ++ " `mod` " ++ show n ++ " == " ++ show y)

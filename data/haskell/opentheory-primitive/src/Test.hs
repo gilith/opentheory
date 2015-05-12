@@ -1,13 +1,11 @@
 {- |
 Module: $Header$
-Description: OpenTheory QuickCheck interface
+Description: Testing the OpenTheory standard theory library
 License: MIT
 
 Maintainer: Joe Leslie-Hurd <joe@gilith.com>
 Stability: provisional
 Portability: portable
-
-OpenTheory QuickCheck interface
 -}
 module Main
   ( main )
