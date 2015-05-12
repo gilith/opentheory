@@ -179,9 +179,14 @@ sub haskell_name_to_version {
 ###############################################################################
 
 my $cmd;
-#my $cmd = "cabal update";
-#if ($opt_n) { print STDOUT "$cmd\n"; }
-#if (system($cmd) != 0) { die "$program: couldn't run $cmd"; }
+
+$cmd = "$opentheory --repo gilith update";
+if ($opt_n) { print STDOUT "$cmd\n"; }
+if (system($cmd) != 0) { die "$program: couldn't run $cmd"; }
+
+$cmd = "cabal update";
+if ($opt_n) { print STDOUT "$cmd\n"; }
+if (system($cmd) != 0) { die "$program: couldn't run $cmd"; }
 
 my $skipping = '';
 my $staging = '';
@@ -198,7 +203,7 @@ while (my $thy = <THEORIES>) {
 
   $cmd = "$opentheory --repo gilith list --quiet 'IdenticalOnRepo $thy'";
   if ($opt_n) { print STDOUT "$cmd\n"; }
-  #if (system($cmd) != 0) { die "$program: $thy is not on the gilith repo\n"; }
+  if (system($cmd) != 0) { die "$program: $thy is not on the gilith repo\n"; }
 
   my $name = name_version_to_haskell_name($thy);
   my $version = haskell_name_to_version($name);

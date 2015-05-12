@@ -33,6 +33,8 @@ if (scalar @thys == 0) {
   print STDOUT "all installed theories are consistent with the repos\n";
 }
 else {
+  print STDOUT "reinstalling theories that are not consistent with the repos:\n";
+
   $cmd = "$opentheory uninstall '" . join ("|",@thys) . "'";
 
   if ($opt_n) {

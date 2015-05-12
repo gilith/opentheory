@@ -21,7 +21,7 @@ val program = "opentheory";
 
 val version = "1.3";
 
-val release = " (release 20150502)";
+val release = " (release 20150511)";
 
 val homepage = "http://www.gilith.com/software/opentheory"
 
@@ -1195,7 +1195,7 @@ in
           beginOpt (stringOpt endOpt)
             (fn _ => fn s => setFormatList (fromStringInfoFormat s))},
        {switches = ["--quiet"], arguments = [],
-        description = "just raise an error if no packages matched",
+        description = "just raise an error if no packages match",
         processor = beginOpt endOpt (fn _ => quietList := true)}];
 end;
 
@@ -3331,8 +3331,6 @@ in
         else
           let
             val () = RepositoryUpload.upload upl
-
-            val () = RepositoryRemote.update rem
           in
             ()
           end

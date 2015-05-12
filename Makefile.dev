@@ -254,7 +254,8 @@ reset-directory: $(OPENTHEORY)
 
 .PHONY: clean-theories
 clean-theories: $(OPENTHEORY)
-	@if $(OPENTHEORY) list --quiet $(UNAVAILABLE_THEORIES) ; then $(OPENTHEORY) uninstall $(UNAVAILABLE_THEORIES) ; else echo 'all installed theories are available from the repos' ; fi
+	$(OPENTHEORY) update
+	@if $(OPENTHEORY) list --quiet $(UNAVAILABLE_THEORIES) ; then echo 'uninstalling theories that are not available from the repos:' ; $(OPENTHEORY) uninstall $(UNAVAILABLE_THEORIES) ; else echo 'all installed theories are available from the repos' ; fi
 	@scripts/reinstall-theories
 
 .PHONY: capture-theories
