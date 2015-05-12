@@ -8,20 +8,26 @@ stability: provisional
 portability: portable
 -}
 module OpenTheory.Primitive.Natural
-  ( Natural )
+  ( Natural,
+    shiftLeft,
+    shiftRight )
 where
 
+import Data.Bits
 import qualified Test.QuickCheck
 
 newtype Natural =
     Natural { unNatural :: Integer }
-  deriving Eq
+  deriving (Eq, Ord)
+
+shiftLeft :: Natural -> Natural -> Natural
+shiftLeft (Natural x) k = Natural (shiftL x (fromIntegral k))
+
+shiftRight :: Natural -> Natural -> Natural
+shiftRight (Natural x) k = Natural (shiftR x (fromIntegral k))
 
 instance Show Natural where
-  show n = show (unNatural n)
-
-instance Ord Natural where
-  compare x y = compare (unNatural x) (unNatural y)
+  show x = show (unNatural x)
 
 instance Num Natural where
   x + y = Natural (unNatural x + unNatural y)
@@ -69,6 +75,33 @@ instance Integral Natural where
           in (Natural q, Natural r)
 
   toInteger = unNatural
+
+instance Data.Bits.Bits Natural where
+  x .&. y = Natural (unNatural x .&. unNatural y)
+
+  x .|. y = Natural (unNatural x .|. unNatural y)
+
+  xor x y = Natural (xor (unNatural x) (unNatural y))
+
+  complement _ = error "OpenTheory.Primitive.Natural.complement"
+
+  shift x k = Natural (shift (unNatural x) k)
+
+  shiftL x k = Natural (shiftL (unNatural x) k)
+
+  shiftR x k = Natural (shiftR (unNatural x) k)
+
+  rotate _ _ = error "OpenTheory.Primitive.Natural.rotate"
+
+  bitSize _ = error "OpenTheory.Primitive.Natural.bitSize"
+
+  isSigned _ = False
+
+  testBit x k = testBit (unNatural x) k
+
+  bit k = Natural (bit k)
+
+  popCount x = popCount (unNatural x)
 
 instance Test.QuickCheck.Arbitrary Natural where
   arbitrary = fmap fromRandomInteger Test.QuickCheck.arbitrary

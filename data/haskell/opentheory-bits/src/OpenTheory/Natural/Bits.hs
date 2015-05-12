@@ -26,29 +26,20 @@ append l n = foldr cons n l
 headBits :: Primitive.Natural.Natural -> Bool
 headBits n = Natural.naturalOdd n
 
-shiftRight ::
-  Primitive.Natural.Natural -> Primitive.Natural.Natural ->
-    Primitive.Natural.Natural
-shiftRight n k = n `div` 2 ^ k
-
 bit :: Primitive.Natural.Natural -> Primitive.Natural.Natural -> Bool
-bit n i = headBits (shiftRight n i)
+bit n i = headBits (Primitive.Natural.shiftRight n i)
 
 bound ::
   Primitive.Natural.Natural -> Primitive.Natural.Natural ->
     Primitive.Natural.Natural
-bound n k = n `mod` 2 ^ k
+bound n k =
+  n - Primitive.Natural.shiftLeft (Primitive.Natural.shiftRight n k) k
 
 fromList :: [Bool] -> Primitive.Natural.Natural
 fromList l = append l 0
 
-shiftLeft ::
-  Primitive.Natural.Natural -> Primitive.Natural.Natural ->
-    Primitive.Natural.Natural
-shiftLeft n k = 2 ^ k * n
-
 tailBits :: Primitive.Natural.Natural -> Primitive.Natural.Natural
-tailBits n = n `div` 2
+tailBits n = Primitive.Natural.shiftRight n 1
 
 toList :: Primitive.Natural.Natural -> [Bool]
 toList n = if n == 0 then [] else headBits n : toList (tailBits n)

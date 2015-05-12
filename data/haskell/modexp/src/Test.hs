@@ -12,11 +12,10 @@ module Main
 where
 
 import qualified System.Random
-
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
-import qualified Egcd
+
 import qualified Prime
 import qualified ModExp
 
@@ -33,12 +32,9 @@ parameters w r =
 main :: IO ()
 main =
     do s <- System.Random.randomIO
-       let w = 64
+       let w = 50
        let r = Random.fromInt s
        let (n,x,k) = parameters w r
-       let j = n - 1
        let y = ModExp.modExp n x k
-       let z = ModExp.modExp n y j
        putStrLn (show x ++ " ^ " ++ show k ++ " `mod` " ++ show n ++ " == " ++ show y)
-       putStrLn (show y ++ " ^ " ++ show j ++ " `mod` " ++ show n ++ " == " ++ show z)
        return ()

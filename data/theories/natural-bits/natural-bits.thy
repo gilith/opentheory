@@ -21,7 +21,7 @@ def {
 
 thm {
   import: def
-  package: natural-bits-thm-1.55
+  package: natural-bits-thm-1.56
 }
 
 main {

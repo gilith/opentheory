@@ -21,7 +21,7 @@ newtype Unicode = Unicode { unUnicode :: Natural.Natural }
   deriving (Eq, Ord, Show)
 
 destPlane :: Natural.Natural -> Natural.Natural
-destPlane n = Bits.shiftRight n 16
+destPlane n = Natural.shiftRight n 16
 
 destPosition :: Natural.Natural -> Natural.Natural
 destPosition n = Bits.bound n 16
@@ -48,7 +48,7 @@ random r =
   let n2 = if n1 < 64976 then n1 else n1 + 32 in
   let pl = n2 `div` 65534 in
   let pos = n2 `mod` 65534 in
-  let n = pos + Bits.shiftLeft pl 16 in
+  let n = pos + Natural.shiftLeft pl 16 in
   Unicode n
 
 instance  QuickCheck.Arbitrary Unicode where

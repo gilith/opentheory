@@ -1,6 +1,6 @@
 {- |
 module: ModExp
-description: A simple implementation of modular exponentiation
+description: Modular exponentiation using repeated-squaring
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>

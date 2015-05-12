@@ -1,5 +1,5 @@
 name: opentheory
-version: 1.195
+version: 1.196
 category: Formal Methods
 synopsis: The standard theory library
 license: MIT
@@ -10,13 +10,13 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   The standard theory library - this package was automatically generated
-  from the OpenTheory package base-1.195
+  from the OpenTheory package base-1.196
 
 library
   build-depends:
     base >= 4.0 && < 5.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
-    opentheory-primitive >= 1.3 && < 2.0
+    opentheory-primitive >= 1.4 && < 2.0
   hs-source-dirs: src
   ghc-options: -Wall
   exposed-modules:
@@ -28,7 +28,7 @@ test-suite opentheory-test
   build-depends:
     base >= 4.0 && < 5.0,
     QuickCheck >= 2.4.0.1 && < 3.0,
-    opentheory-primitive >= 1.3 && < 2.0
+    opentheory-primitive >= 1.4 && < 2.0
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Test.hs

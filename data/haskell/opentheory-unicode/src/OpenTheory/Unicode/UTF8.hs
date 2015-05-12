@@ -61,7 +61,7 @@ parseMultibyte =
         Byte.Byte -> Natural.Natural -> Maybe Natural.Natural-}
     addContinuationByte b n =
       if isContinuationByte b then
-        Just (Byte.toNatural (Byte.and b 63) + Bits.shiftLeft n 6)
+        Just (Byte.toNatural (Byte.and b 63) + Natural.shiftLeft n 6)
       else Nothing
 
 parseNatural :: Parser.Parser Byte.Byte Natural.Natural
@@ -95,15 +95,15 @@ encodeUnicode =
   where
   {-encode2 :: Natural.Natural -> [Byte.Byte]-}
     encode2 n =
-      let n1 = Bits.shiftRight n 6 in
+      let n1 = Natural.shiftRight n 6 in
       let b0 = Byte.or 192 (Byte.fromNatural n1) in
       let b1 = Byte.or 128 (Byte.fromNatural (Bits.bound n 6)) in
       b0 : b1 : []
 
   {-encode3 :: Natural.Natural -> [Byte.Byte]-}
     encode3 n =
-      let n1 = Bits.shiftRight n 6 in
-      let n2 = Bits.shiftRight n1 6 in
+      let n1 = Natural.shiftRight n 6 in
+      let n2 = Natural.shiftRight n1 6 in
       let b0 = Byte.or 224 (Byte.fromNatural n2) in
       let b1 = Byte.or 128 (Byte.fromNatural (Bits.bound n1 6)) in
       let b2 = Byte.or 128 (Byte.fromNatural (Bits.bound n 6)) in
@@ -111,9 +111,9 @@ encodeUnicode =
 
   {-encode4 :: Natural.Natural -> [Byte.Byte]-}
     encode4 n =
-      let n1 = Bits.shiftRight n 6 in
-      let n2 = Bits.shiftRight n1 6 in
-      let n3 = Bits.shiftRight n2 6 in
+      let n1 = Natural.shiftRight n 6 in
+      let n2 = Natural.shiftRight n1 6 in
+      let n3 = Natural.shiftRight n2 6 in
       let b0 = Byte.or 240 (Byte.fromNatural n3) in
       let b1 = Byte.or 128 (Byte.fromNatural (Bits.bound n2 6)) in
       let b2 = Byte.or 128 (Byte.fromNatural (Bits.bound n1 6)) in
