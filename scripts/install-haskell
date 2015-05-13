@@ -30,12 +30,16 @@ my $nv = "$n-$v";
 
 my $i = `ghc-pkg list $nv | grep $nv`;
 if ($i eq "") {
-    print STDOUT "Installing Haskell package $nv\n";
-    (system("cabal clean") == 0) or die;
-    (system("cabal install --enable-tests") == 0) or die;
+  print STDOUT "Installing Haskell package $nv\n";
+  (system("cabal clean") == 0) or die;
+  (system("cabal install --enable-tests") == 0) or die;
 }
 else {
     print STDOUT "Haskell package $nv is already installed\n";
+}
+
+if (system("grep --quiet '^test-suite ' *.cabal") == 0) {
+  (system("cabal test") == 0) or die;
 }
 
 (system("cabal check") == 0) or die;
