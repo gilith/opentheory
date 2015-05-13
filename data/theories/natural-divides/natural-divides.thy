@@ -1,5 +1,5 @@
 name: natural-divides
-version: 1.56
+version: 1.57
 description: The divides relation on natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

@@ -4402,7 +4402,7 @@ local
         Print.newline ::
         ppSyntax "QuickCheck >= 2.4.0.1 && < 3.0," ::
         Print.newline ::
-        ppSyntax "opentheory-primitive >= 1.4 && < 2.0" ::
+        ppSyntax "opentheory-primitive >= 1.5 && < 2.0" ::
         List.map ppExtraDepend deps;
   end;
 
@@ -4653,7 +4653,7 @@ fun outputLicense sys {url} {directory} tags =
 local
   val setupContents =
       Stream.fromList
-        ["module Main(main)\n",
+        ["module Main ( main ) where\n",
          "\n",
          "import Distribution.Simple\n",
          "\n",

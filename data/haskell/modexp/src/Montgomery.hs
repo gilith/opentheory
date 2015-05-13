@@ -81,4 +81,11 @@ add m a b = normalize m (a + b)
 
 multiply ::
     Montgomery -> MontgomeryNatural -> MontgomeryNatural -> MontgomeryNatural
-multiply m a b = normalize m (reduce m (a * b))
+multiply m a b =
+    if Bits.bit c r then c - n else c
+  where
+    c = reduce m (a * b)
+
+    r = rMontgomery m
+
+    n = nMontgomery m

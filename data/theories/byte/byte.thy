@@ -1,5 +1,5 @@
 name: byte
-version: 1.124
+version: 1.125
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

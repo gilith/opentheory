@@ -1,5 +1,5 @@
 name: char
-version: 1.138
+version: 1.139
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT

@@ -1,5 +1,5 @@
 name: fen2s
-version: 1.1
+version: 1.2
 category: Game
 synopsis: Converting a chess position from FEN notation to text
 license: MIT
