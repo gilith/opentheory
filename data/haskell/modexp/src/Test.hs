@@ -52,7 +52,7 @@ checkModExp n x k =
           else error $ "different results for ( " ++ show x ++ " ^ " ++
                        show k ++ " ) `mod` " ++ show n ++ ":\n  " ++
                        List.intercalate "\n  "
-                         (map (\ (s,y) -> s ++ ": " ++ show y) res)
+                         (map (\ (s,z) -> s ++ ": " ++ show z) res)
   where
     res = map (\ (s,f) -> (s, f n x k)) modExpFns
 
@@ -67,7 +67,7 @@ checkModDoubleExp n x k =
           else error $ "different results for ( " ++ show x ++ " 2 ^ ^ " ++
                        show k ++ " ) `mod` " ++ show n ++ ":\n  " ++
                        List.intercalate "\n  "
-                         (map (\ (s,y) -> s ++ ": " ++ show y) res)
+                         (map (\ (s,z) -> s ++ ": " ++ show z) res)
   where
     res = map (\ (s,f) -> (s, f n x k)) modDoubleExpFns
 
@@ -90,9 +90,9 @@ checkRandomModDoubleExp w k r =
 main :: IO ()
 main =
     do s <- System.Random.randomIO
-       let w = 2000
+       let w = 50
        let k = 1000000
        let r0 = Random.fromInt s
        r1 <- checkRandomModExp w r0
-       checkRandomModDoubleExp w k r1
+       _ <- checkRandomModDoubleExp w k r1
        return ()

@@ -76,6 +76,12 @@ instance Integral Natural where
 
   toInteger = unNatural
 
+instance Read Natural where
+  readsPrec =
+      \p -> filter f . readsPrec p
+    where
+      f (i,_) = 0 <= i
+
 instance Data.Bits.Bits Natural where
   x .&. y = Natural (unNatural x .&. unNatural y)
 

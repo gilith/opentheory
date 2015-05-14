@@ -19,52 +19,70 @@ import OpenTheory.Primitive.Natural
 import qualified ModExp
 import qualified Montgomery
 
+--------------------------------------------------------------------------------
+-- Helper functions
+--------------------------------------------------------------------------------
+
+getPrefixString :: String -> (a -> String) -> [a] -> String -> a
+getPrefixString k p xs s =
+    case filter (List.isPrefixOf s . p) xs of
+      [] -> usage $ "bad " ++ k ++ " name: " ++ s
+      [x] -> x
+      _ : _ : _ -> usage $ "ambiguous " ++ k ++ " name: " ++ s
+
+setToString :: (a -> String) -> [a] -> String
+setToString p xs = "{" ++ List.intercalate "," (map p xs) ++ "}"
+
+--------------------------------------------------------------------------------
+-- Operations
+--------------------------------------------------------------------------------
+
 data Operation =
-    ModExp
-  | ModDoubleExp
+    Modexp
+  | Timelock
   deriving Show
 
-type Algorithm = Natural -> Natural -> Natural -> Natural
+operations :: [Operation]
+operations = [Modexp,Timelock]
+
+operationToString :: Operation -> String
+operationToString oper =
+   case oper of
+     Modexp -> "modexp"
+     Timelock -> "timelock"
+
+stringToOperation :: String -> (String,[(String,Algorithm)])
+stringToOperation = getPrefixString "operation" operationToString operations
+
+--------------------------------------------------------------------------------
+-- Algorithms
+--------------------------------------------------------------------------------
+
+data Algorithm =
+    Naive
+  | Montgomery
+  deriving Show
+
+algorithms :: [Algorithm]
+algorithms = [Naive,Montgomery]
+
+algorithmToString :: Algorithm -> String
+algorithmToString oper =
+   case oper of
+     Naive -> "naive"
+     Montgomery -> "montgomery"
+
+stringToAlgorithm :: String -> (String,[(String,Algorithm)])
+stringToAlgorithm = getPrefixString "algorithm" algorithmToString algorithms
+
+--------------------------------------------------------------------------------
+-- Natural number inputs
+--------------------------------------------------------------------------------
 
 data NaturalWidth =
     Natural Natural
   | Width Int
   deriving Show
-
-algorithms :: [String]
-algorithms =
-    ["naive",
-     "montgomery"]
-
-modexpAlgorithms :: [(String,Algorithm)]
-modexpAlgorithms =
-    zip algorithms
-      [ModExp.modExp,
-       Montgomery.modExp]
-
-timelockAlgorithms :: [(String,Algorithm)]
-timelockAlgorithms =
-    zip algorithms
-      [ModExp.modDoubleExp,
-       Montgomery.modDoubleExp]
-
-operations :: [(String,[(String,Algorithm)])]
-operations =
-    [("modexp",modexpAlgorithms),
-     ("timelock",timelockAlgorithms)]
-
-getPrefixString :: String -> [(String,a)] -> String -> (String,a)
-getPrefixString k xs s =
-    case filter (List.isPrefixOf s . fst) xs of
-      [] -> usage $ "bad " ++ k ++ " name: " ++ s
-      [x] -> x
-      _ : _ : _ -> usage $ "ambiguous " ++ k ++ " name: " ++ s
-
-stringToAlgorithm :: [(String,Algorithm)] -> String -> (String,Algorithm)
-stringToAlgorithm = getPrefixString "algorithm"
-
-stringToOperation :: String -> (String,[(String,Algorithm)])
-stringToOperation = getPrefixString "operation" operations
 
 stringToNaturalWidth :: String -> NaturalWidth
 stringToNaturalWidth s =
@@ -76,9 +94,18 @@ stringToNaturalWidth s =
             [(n,"")] -> Natural n
             _ -> usage "bad N argument"
 
+getInputs ::
+    Operation -> NaturalWidth -> Maybe NaturalWidth -> Maybe NaturalWidth ->
+    (Natural,Natural,Natural)
+getInputs oper nw xw kw = undefined
+
+--------------------------------------------------------------------------------
+-- Options
+--------------------------------------------------------------------------------
+
 data Options = Options
-    {optOperation :: String,
-     optAlgorithm :: String,
+    {optOperation :: Operation,
+     optAlgorithm :: Algorithm,
      optModulus :: NaturalWidth,
      optBase :: Maybe NaturalWidth,
      optExponent :: Maybe NaturalWidth}
@@ -87,8 +114,8 @@ data Options = Options
 defaultOptions :: Options
 defaultOptions =
   Options
-    {optOperation = fst (head operations),
-     optAlgorithm = last algorithms,
+    {optOperation = Modexp,
+     optAlgorithm = Montgomery,
      optModulus = Width 50,
      optBase = Nothing,
      optExponent = Nothing}
@@ -96,10 +123,10 @@ defaultOptions =
 options :: [OptDescr (Options -> Options)]
 options =
     [Option [] ["operation"]
-       (ReqArg (\s opts -> opts {optOperation = s}) "OPERATION")
+       (ReqArg (\s opts -> opts {optOperation = stringToOperation s}) "OPERATION")
        "select operation",
      Option [] ["algorithm"]
-       (ReqArg (\s opts -> opts {optAlgorithm = s}) "ALGORITHM")
+       (ReqArg (\s opts -> opts {optAlgorithm = stringToAlgorithm s}) "ALGORITHM")
        "select algorithm",
      Option [] ["modulus"]
        (ReqArg (\s opts -> opts {optModulus = stringToNaturalWidth s}) "N")
@@ -139,8 +166,28 @@ usage err =
       "  {" ++ List.intercalate "," algorithms ++ "},\n" ++
       "and N is either an integer or of the form [bitwidth]."
 
+--------------------------------------------------------------------------------
+-- Computation
+--------------------------------------------------------------------------------
+
+type Computation = Natural -> Natural -> Natural -> Natural
+
+computation :: Operation -> Algorithm -> Computation
+computation Modexp Naive = ModExp.modExp
+computation Modexp Montgomery = Montgomery.modExp
+computation Timelock Naive = ModExp.modDoubleExp
+computation Timelock Montgomery = Montgomery.modDoubleExp
+
+--------------------------------------------------------------------------------
+-- Main program
+--------------------------------------------------------------------------------
+
 main :: IO ()
 main =
     do args <- Environment.getArgs
        let opts = processArguments args
+       let oper = optOperation opts
+       let f = computation oper (optAlgorithm opts)
+       let (n,x,k) = inputArguments oper (optModulus opts) (optBase opts) (optExponent opts)
+       let y = f n x k
        return ()
