@@ -58,7 +58,7 @@ options =
 processOptions :: [String] -> Either [String] (Options,[String])
 processOptions args =
     case getOpt Permute options args of
-      (opts,work,[]) -> Right(foldl (flip id) defaultOptions opts, work)
+      (opts,work,[]) -> Right (foldl (flip id) defaultOptions opts, work)
       (_,_,errs) -> Left errs
 
 processArguments :: [String] -> (Options,Int)

@@ -11,16 +11,24 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   This package implements a simple utility to compute modular exponentiation.
 
--- executable modexp
---   build-depends:
---     base >= 4.0 && < 5.0,
---     opentheory-primitive >= 1.0 && < 2.0,
---     opentheory-bits >= 1.0 && < 2.0
---   hs-source-dirs: src
---   ghc-options: -Wall
---   main-is: Main.hs
+executable modexp
+  build-depends:
+    base >= 4.0 && < 5.0,
+    random >= 1.0.1.1 && < 2.0,
+    opentheory-primitive >= 1.0 && < 2.0,
+    opentheory >= 1.0 && < 2.0,
+    opentheory-bits >= 1.0 && < 2.0
+  hs-source-dirs: src
+  ghc-options: -Wall
+  main-is: Main.hs
+  other-modules:
+    Egcd,
+    ModExp,
+    Montgomery,
+    Prime
 
-executable modexp-test
+test-suite modexp-test
+  type: exitcode-stdio-1.0
   build-depends:
     base >= 4.0 && < 5.0,
     random >= 1.0.1.1 && < 2.0,

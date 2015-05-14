@@ -14,78 +14,99 @@ import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 
 import Egcd
+import qualified ModExp
 
 data Montgomery = Montgomery
-    {rMontgomery :: Natural,
+    {nMontgomery :: Natural,
+     wMontgomery :: Natural,
      sMontgomery :: Natural,
      kMontgomery :: Natural,
-     nMontgomery :: Natural,
-     tMontgomery :: Natural}
+     rMontgomery :: Natural,
+     r2Montgomery :: Natural}
   deriving Show
 
-type MontgomeryNatural = Natural
+type NaturalM = Natural
 
 standard :: Natural -> Montgomery
 standard n =
     Montgomery
       {nMontgomery = n,
-       rMontgomery = r,
+       wMontgomery = w,
        sMontgomery = s,
        kMontgomery = k,
-       tMontgomery = t}
+       rMontgomery = r,
+       r2Montgomery = r2}
   where
-    r = Bits.width n
+    w = Bits.width n
+    w2 = shiftLeft 1 w
+    (_,s,k) = naturalEgcd w2 n
+    r = w2 `mod` n
+    r2 = (r * r) `mod` n
 
-    r2 = shiftLeft 1 r
-
-    (_,s,k) = naturalEgcd r2 n
-
-    t = r2 `mod` n
+oneM :: Montgomery -> NaturalM
+oneM = rMontgomery
 
 reduce :: Montgomery -> Natural -> Natural
 reduce m a =
-    shiftRight (a + Bits.bound (a * k) r * n) r
+    shiftRight (a + Bits.bound (a * k) w * n) w
   where
-    r = rMontgomery m
+    n = nMontgomery m
+    w = wMontgomery m
     k = kMontgomery m
-    n = nMontgomery m
 
-fromNatural :: Montgomery -> Natural -> MontgomeryNatural
-fromNatural m a =
-    shiftLeft a r `mod` n
-  where
-    r = rMontgomery m
-    n = nMontgomery m
-
-toNatural :: Montgomery -> MontgomeryNatural -> Natural
-toNatural m a =
-    reduce m a `mod` n
-  where
-    n = nMontgomery m
-
-normalize :: Montgomery -> MontgomeryNatural -> MontgomeryNatural
+normalize :: Montgomery -> NaturalM -> NaturalM
 normalize m =
     loop
   where
     loop a =
-        if x == 0 then a else loop ((a - shiftLeft x r) + x * t)
+        if x == 0 then a else loop ((a - shiftLeft x w) + x * r)
       where
-        x = shiftRight a r
+        x = shiftRight a w
 
+    w = wMontgomery m
     r = rMontgomery m
 
-    t = tMontgomery m
+fromNatural :: Montgomery -> Natural -> NaturalM
+fromNatural m a =
+    normalize m (reduce m (a * r2))
+  where
+    r2 = r2Montgomery m
 
-add :: Montgomery -> MontgomeryNatural -> MontgomeryNatural -> MontgomeryNatural
-add m a b = normalize m (a + b)
+toNatural :: Montgomery -> NaturalM -> Natural
+toNatural m a =
+    if b < n then b else 0
+  where
+    b = reduce m a
+    n = nMontgomery m
 
-multiply ::
-    Montgomery -> MontgomeryNatural -> MontgomeryNatural -> MontgomeryNatural
-multiply m a b =
-    if Bits.bit c r then c - n else c
+addM :: Montgomery -> NaturalM -> NaturalM -> NaturalM
+addM m a b = normalize m (a + b)
+
+multiplyM :: Montgomery -> NaturalM -> NaturalM -> NaturalM
+multiplyM m a b =
+    if Bits.bit c w then c - n else c
   where
     c = reduce m (a * b)
-
-    r = rMontgomery m
-
     n = nMontgomery m
+    w = wMontgomery m
+
+squareM :: Montgomery -> NaturalM -> NaturalM
+squareM m a = multiplyM m a a
+
+modExpM :: Montgomery -> NaturalM -> Natural -> NaturalM
+modExpM m = ModExp.multiplyExponential (multiplyM m) (oneM m)
+
+modDoubleExpM :: Montgomery -> NaturalM -> Natural -> NaturalM
+modDoubleExpM m = ModExp.functionPower (squareM m)
+
+modExp :: Natural -> Natural -> Natural -> Natural
+modExp n x k =
+    toNatural m (modExpM m (fromNatural m x) k)
+  where
+    m = standard n
+
+modDoubleExp :: Natural -> Natural -> Natural -> Natural
+modDoubleExp n x k =
+    toNatural m (modDoubleExpM m (fromNatural m x) k)
+  where
+    m = standard n
