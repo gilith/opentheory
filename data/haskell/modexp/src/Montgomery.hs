@@ -13,8 +13,8 @@ where
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 
-import Egcd
-import qualified ModExp
+import qualified Egcd
+import qualified Modexp
 
 data Montgomery = Montgomery
     {nMontgomery :: Natural,
@@ -25,6 +25,8 @@ data Montgomery = Montgomery
      r2Montgomery :: Natural}
   deriving Show
 
+-- "Montgomery-space": (a :: Natural) <--> ((a * r) :: NaturalM)
+-- invariant: (a :: NaturalM) < 2 ^ w
 type NaturalM = Natural
 
 standard :: Natural -> Montgomery
@@ -39,22 +41,13 @@ standard n =
   where
     w = Bits.width n
     w2 = shiftLeft 1 w
-    (_,s,k) = naturalEgcd w2 n
+    (_,s,k) = Egcd.naturalEgcd w2 n
     r = w2 `mod` n
     r2 = (r * r) `mod` n
 
-oneM :: Montgomery -> NaturalM
-oneM = rMontgomery
-
-reduce :: Montgomery -> Natural -> Natural
-reduce m a =
-    shiftRight (a + Bits.bound (a * k) w * n) w
-  where
-    n = nMontgomery m
-    w = wMontgomery m
-    k = kMontgomery m
-
-normalize :: Montgomery -> NaturalM -> NaturalM
+-- normalize m a `mod` n = a `mod` n
+-- normalize m a < 2 ^ w
+normalize :: Montgomery -> Natural -> Natural
 normalize m =
     loop
   where
@@ -66,9 +59,22 @@ normalize m =
     w = wMontgomery m
     r = rMontgomery m
 
+-- reduce m a `mod` n = (a * s) `mod` n
+-- a <= r * x ==> reduce m a < x + n
+reduce :: Montgomery -> Natural -> Natural
+reduce m a =
+    shiftRight (a + Bits.bound (a * k) w * n) w
+  where
+    n = nMontgomery m
+    w = wMontgomery m
+    k = kMontgomery m
+
+oneM :: Montgomery -> NaturalM
+oneM = rMontgomery
+
 fromNatural :: Montgomery -> Natural -> NaturalM
 fromNatural m a =
-    normalize m (reduce m (a * r2))
+    multiplyM m (normalize m a) r2
   where
     r2 = r2Montgomery m
 
@@ -93,20 +99,20 @@ multiplyM m a b =
 squareM :: Montgomery -> NaturalM -> NaturalM
 squareM m a = multiplyM m a a
 
-modExpM :: Montgomery -> NaturalM -> Natural -> NaturalM
-modExpM m = ModExp.multiplyExponential (multiplyM m) (oneM m)
+expM :: Montgomery -> NaturalM -> Natural -> NaturalM
+expM m = Modexp.multiplyExponential (multiplyM m) (oneM m)
 
-modDoubleExpM :: Montgomery -> NaturalM -> Natural -> NaturalM
-modDoubleExpM m x k = ModExp.functionPower (squareM m) k x
+exp2M :: Montgomery -> NaturalM -> Natural -> NaturalM
+exp2M m x k = Modexp.functionPower (squareM m) k x
 
-modExp :: Natural -> Natural -> Natural -> Natural
-modExp n x k =
-    toNatural m (modExpM m (fromNatural m x) k)
+modexp :: Natural -> Natural -> Natural -> Natural
+modexp n x k =
+    toNatural m (expM m (fromNatural m x) k)
   where
     m = standard n
 
-modDoubleExp :: Natural -> Natural -> Natural -> Natural
-modDoubleExp n x k =
-    toNatural m (modDoubleExpM m (fromNatural m x) k)
+modexp2 :: Natural -> Natural -> Natural -> Natural
+modexp2 n x k =
+    toNatural m (exp2M m (fromNatural m x) k)
   where
     m = standard n

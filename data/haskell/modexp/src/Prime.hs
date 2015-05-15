@@ -15,7 +15,8 @@ import OpenTheory.Primitive.Random as Random
 import OpenTheory.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Uniform as Uniform
-import ModExp
+
+import qualified Modexp
 
 randomOdd :: Int -> Random.Random -> Natural
 randomOdd w r =
@@ -31,14 +32,14 @@ factorTwos n =
 
 millerRabinWitness :: Natural -> Natural -> Bool
 millerRabinWitness n =
-    \a -> witness (modExp n a s) r
+    \a -> witness (Modexp.modexp n a s) r
   where
     witness x i =
         if i == 0 then x /= 1
         else if x2 == 1 then not (x == 1 || x == n1)
         else witness x2 (i - 1)
       where
-        x2 = modSquare n x
+        x2 = Modexp.modsquare n x
 
     (r,s) = factorTwos n1
 

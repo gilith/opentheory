@@ -23,7 +23,7 @@ executable modexp
   main-is: Main.hs
   other-modules:
     Egcd,
-    ModExp,
+    Modexp,
     Montgomery,
     Prime
 

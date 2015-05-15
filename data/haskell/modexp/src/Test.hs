@@ -18,18 +18,18 @@ import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
 import qualified Prime
-import qualified ModExp
+import qualified Modexp
 import qualified Montgomery
 
 modExpFns :: [(String, Natural -> Natural -> Natural -> Natural)]
 modExpFns =
-    [("naive", ModExp.modExp),
-     ("montgomery", Montgomery.modExp)]
+    [("naive", Modexp.modexp),
+     ("montgomery", Montgomery.modexp)]
 
 modDoubleExpFns :: [(String, Natural -> Natural -> Natural -> Natural)]
 modDoubleExpFns =
-    [("naive", ModExp.modDoubleExp),
-     ("montgomery", Montgomery.modDoubleExp)]
+    [("naive", Modexp.modexp2),
+     ("montgomery", Montgomery.modexp2)]
 
 parameters :: Int -> Random.Random -> (Natural,Natural,Natural)
 parameters w r =
@@ -41,8 +41,8 @@ parameters w r =
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 
-checkModExp :: Natural -> Natural -> Natural -> IO ()
-checkModExp n x k =
+checkModexp :: Natural -> Natural -> Natural -> IO ()
+checkModexp n x k =
     case res of
       [] -> error "no modExp functions defined"
       (_,y) : ys ->
@@ -71,9 +71,9 @@ checkModDoubleExp n x k =
   where
     res = map (\ (s,f) -> (s, f n x k)) modDoubleExpFns
 
-checkRandomModExp :: Int -> Random.Random -> IO Random.Random
-checkRandomModExp w r =
-    do checkModExp n x k
+checkRandomModexp :: Int -> Random.Random -> IO Random.Random
+checkRandomModexp w r =
+    do checkModexp n x k
        return r2
   where
     (n,x,k) = parameters w r1
@@ -93,6 +93,6 @@ main =
        let w = 50
        let k = 1000000
        let r0 = Random.fromInt s
-       r1 <- checkRandomModExp w r0
+       r1 <- checkRandomModexp w r0
        _ <- checkRandomModDoubleExp w k r1
        return ()

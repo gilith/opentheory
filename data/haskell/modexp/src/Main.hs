@@ -19,7 +19,7 @@ import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
-import qualified ModExp
+import qualified Modexp
 import qualified Montgomery
 import qualified Prime
 
@@ -201,10 +201,10 @@ usage err =
 type Computation = Natural -> Natural -> Natural -> Natural
 
 computation :: Operation -> Algorithm -> Computation
-computation Modexp Naive = ModExp.modExp
-computation Modexp Montgomery = Montgomery.modExp
-computation Timelock Naive = ModExp.modDoubleExp
-computation Timelock Montgomery = Montgomery.modDoubleExp
+computation Modexp Naive = Modexp.modexp
+computation Modexp Montgomery = Montgomery.modexp
+computation Timelock Naive = Modexp.modexp2
+computation Timelock Montgomery = Montgomery.modexp2
 
 computationToString ::
     Operation -> Natural -> Natural -> Natural -> Natural -> String
