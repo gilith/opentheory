@@ -14,6 +14,7 @@ module OpenTheory.Primitive.Natural
 where
 
 import Data.Bits
+import qualified Data.Maybe as Maybe
 import qualified Test.QuickCheck
 
 newtype Natural =
@@ -78,9 +79,9 @@ instance Integral Natural where
 
 instance Read Natural where
   readsPrec =
-      \p -> filter f . readsPrec p
+      \p -> Maybe.mapMaybe f . readsPrec p
     where
-      f (i,_) = 0 <= i
+      f (n,s) = if n < 0 then Nothing else Just (Natural n, s)
 
 instance Data.Bits.Bits Natural where
   x .&. y = Natural (unNatural x .&. unNatural y)

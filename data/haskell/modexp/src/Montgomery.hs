@@ -97,7 +97,7 @@ modExpM :: Montgomery -> NaturalM -> Natural -> NaturalM
 modExpM m = ModExp.multiplyExponential (multiplyM m) (oneM m)
 
 modDoubleExpM :: Montgomery -> NaturalM -> Natural -> NaturalM
-modDoubleExpM m = ModExp.functionPower (squareM m)
+modDoubleExpM m x k = ModExp.functionPower (squareM m) k x
 
 modExp :: Natural -> Natural -> Natural -> Natural
 modExp n x k =

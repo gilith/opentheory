@@ -12,12 +12,16 @@ module Main
 where
 
 import qualified Data.List as List
-import qualified System.Environment as Environment
 import System.Console.GetOpt
-
+import qualified System.Environment as Environment
+import qualified System.Random
 import OpenTheory.Primitive.Natural
+import qualified OpenTheory.Primitive.Random as Random
+import qualified OpenTheory.Natural.Uniform as Uniform
+
 import qualified ModExp
 import qualified Montgomery
+import qualified Prime
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -51,7 +55,7 @@ operationToString oper =
      Modexp -> "modexp"
      Timelock -> "timelock"
 
-stringToOperation :: String -> (String,[(String,Algorithm)])
+stringToOperation :: String -> Operation
 stringToOperation = getPrefixString "operation" operationToString operations
 
 --------------------------------------------------------------------------------
@@ -72,32 +76,56 @@ algorithmToString oper =
      Naive -> "naive"
      Montgomery -> "montgomery"
 
-stringToAlgorithm :: String -> (String,[(String,Algorithm)])
+stringToAlgorithm :: String -> Algorithm
 stringToAlgorithm = getPrefixString "algorithm" algorithmToString algorithms
 
 --------------------------------------------------------------------------------
 -- Natural number inputs
 --------------------------------------------------------------------------------
 
-data NaturalWidth =
-    Natural Natural
+data InputNatural =
+    Fixed Natural
   | Width Int
   deriving Show
 
-stringToNaturalWidth :: String -> NaturalWidth
-stringToNaturalWidth s =
+stringToInputNatural :: String -> InputNatural
+stringToInputNatural s =
     case s of
       '[' : s' -> case reads s' of
                     [(w,"]")] -> Width w
                     _ -> usage "bad N argument"
       _ -> case reads s of
-            [(n,"")] -> Natural n
+            [(n,"")] -> Fixed n
             _ -> usage "bad N argument"
 
+uniformInputNatural :: InputNatural -> Random.Random -> Natural
+uniformInputNatural (Fixed n) _ = n
+uniformInputNatural (Width w) r = Uniform.random (2 ^ w) r
+
+oddInputNatural :: InputNatural -> Random.Random -> Natural
+oddInputNatural (Fixed n) _ = n
+oddInputNatural (Width w) r = Prime.randomOdd w r
+
 getInputs ::
-    Operation -> NaturalWidth -> Maybe NaturalWidth -> Maybe NaturalWidth ->
-    (Natural,Natural,Natural)
-getInputs oper nw xw kw = undefined
+    Operation -> InputNatural -> Maybe InputNatural -> Maybe InputNatural ->
+    Random.Random -> (Natural,Natural,Natural)
+getInputs oper wn wx wk r =
+    (n,x,k)
+  where
+    n = oddInputNatural wn rn
+
+    x = case wx of
+          Nothing -> Uniform.random n rx
+          Just w -> uniformInputNatural w rx
+
+    k = case wk of
+          Nothing -> case oper of
+                       Modexp -> Uniform.random n rk
+                       Timelock -> 1000000
+          Just w -> uniformInputNatural w rk
+
+    (rn,r') = Random.split r
+    (rx,rk) = Random.split r'
 
 --------------------------------------------------------------------------------
 -- Options
@@ -106,9 +134,9 @@ getInputs oper nw xw kw = undefined
 data Options = Options
     {optOperation :: Operation,
      optAlgorithm :: Algorithm,
-     optModulus :: NaturalWidth,
-     optBase :: Maybe NaturalWidth,
-     optExponent :: Maybe NaturalWidth}
+     optModulus :: InputNatural,
+     optBase :: Maybe InputNatural,
+     optExponent :: Maybe InputNatural}
   deriving Show
 
 defaultOptions :: Options
@@ -129,13 +157,13 @@ options =
        (ReqArg (\s opts -> opts {optAlgorithm = stringToAlgorithm s}) "ALGORITHM")
        "select algorithm",
      Option [] ["modulus"]
-       (ReqArg (\s opts -> opts {optModulus = stringToNaturalWidth s}) "N")
+       (ReqArg (\s opts -> opts {optModulus = stringToInputNatural s}) "N")
        "select modulus",
      Option [] ["base"]
-       (ReqArg (\s opts -> opts {optBase = Just (stringToNaturalWidth s)}) "N")
+       (ReqArg (\s opts -> opts {optBase = Just (stringToInputNatural s)}) "N")
        "select base",
      Option [] ["exponent"]
-       (ReqArg (\s opts -> opts {optBase = Just (stringToNaturalWidth s)}) "N")
+       (ReqArg (\s opts -> opts {optExponent = Just (stringToInputNatural s)}) "N")
        "select exponent"]
 
 processOptions :: [String] -> Either [String] (Options,[String])
@@ -160,11 +188,11 @@ usage err =
     header = "Usage: modexp [OPTION...]"
 
     footer =
-      "where OPERATION is one of\n" ++
-      "  {" ++ List.intercalate "," (map fst operations) ++ "},\n" ++
-      "ALGORITHM is one of\n" ++
-      "  {" ++ List.intercalate "," algorithms ++ "},\n" ++
-      "and N is either an integer or of the form [bitwidth]."
+      "where OPERATION is one of " ++
+      setToString operationToString operations ++ ",\n" ++
+      "ALGORITHM is one of " ++
+      setToString algorithmToString algorithms ++ ",\n" ++
+      "and N is either a natural number or has the form [bitwidth]."
 
 --------------------------------------------------------------------------------
 -- Computation
@@ -178,6 +206,15 @@ computation Modexp Montgomery = Montgomery.modExp
 computation Timelock Naive = ModExp.modDoubleExp
 computation Timelock Montgomery = Montgomery.modDoubleExp
 
+computationToString ::
+    Operation -> Natural -> Natural -> Natural -> Natural -> String
+computationToString Modexp n x k y =
+    "( " ++ show x ++ " ^ " ++ show k ++ " ) `mod` " ++
+    show n ++ " == " ++ show y
+computationToString Timelock n x k y =
+    "( " ++ show x ++ " ^ 2 ^ " ++ show k ++ " ) `mod` " ++
+    show n ++ " == " ++ show y
+
 --------------------------------------------------------------------------------
 -- Main program
 --------------------------------------------------------------------------------
@@ -185,9 +222,11 @@ computation Timelock Montgomery = Montgomery.modDoubleExp
 main :: IO ()
 main =
     do args <- Environment.getArgs
+       r <- fmap Random.fromInt System.Random.randomIO
        let opts = processArguments args
        let oper = optOperation opts
-       let f = computation oper (optAlgorithm opts)
-       let (n,x,k) = inputArguments oper (optModulus opts) (optBase opts) (optExponent opts)
-       let y = f n x k
+       let (n,x,k) = getInputs oper (optModulus opts) (optBase opts)
+                       (optExponent opts) r
+       let y = computation oper (optAlgorithm opts) n x k
+       putStrLn $ computationToString oper n x k y
        return ()

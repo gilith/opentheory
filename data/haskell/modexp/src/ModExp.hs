@@ -24,11 +24,11 @@ multiplyExponential mult =
         x' = mult x x
         k' = Bits.tailBits k
 
-functionPower :: (a -> a) -> a -> Natural -> a
+functionPower :: (a -> a) -> Natural -> a -> a
 functionPower f =
     loop
   where
-    loop x k = if k == 0 then x else loop (f x) (k - 1)
+    loop n x = if n == 0 then x else loop (n - 1) (f x)
 
 modMult :: Natural -> Natural -> Natural -> Natural
 modMult n x y = (x * y) `mod` n
@@ -40,4 +40,4 @@ modExp :: Natural -> Natural -> Natural -> Natural
 modExp n = multiplyExponential (modMult n) 1
 
 modDoubleExp :: Natural -> Natural -> Natural -> Natural
-modDoubleExp n = functionPower (modSquare n)
+modDoubleExp n x k = functionPower (modSquare n) k x
