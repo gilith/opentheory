@@ -16,10 +16,18 @@ import qualified System.Random
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
+import OpenTheory.Primitive.Test
 
+import qualified Egcd
 import qualified Prime
 import qualified Modexp
 import qualified Montgomery
+
+propEgcdBound :: Natural -> Natural -> Bool
+propEgcdBound ap b =
+  let a = ap + 1 in
+  let (g,s,t) = Egcd.naturalEgcd a b in
+  (if b < 2 then s == 1 else 0 < s && s < b) && t < a
 
 modExpFns :: [(String, Natural -> Natural -> Natural -> Natural)]
 modExpFns =
@@ -89,7 +97,8 @@ checkRandomModDoubleExp w k r =
 
 main :: IO ()
 main =
-    do s <- System.Random.randomIO
+    do check "Check bounds on s & t\n  " propEgcdBound
+       s <- System.Random.randomIO
        let w = 50
        let k = 1000000
        let r0 = Random.fromInt s

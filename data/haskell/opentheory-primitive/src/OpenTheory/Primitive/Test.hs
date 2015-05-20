@@ -30,4 +30,7 @@ checkArgs = Test.QuickCheck.stdArgs { maxSuccess = 100 }
 check :: Testable prop => String -> prop -> IO ()
 check desc prop =
   do putStr desc
-     Test.QuickCheck.quickCheckWith checkArgs prop
+     res <- Test.QuickCheck.quickCheckWithResult checkArgs prop
+     case res of
+       Test.QuickCheck.Failure {} -> error "Proposition failed"
+       _ -> return ()

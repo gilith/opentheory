@@ -1,5 +1,5 @@
 name: natural-divides-gcd
-version: 1.2
+version: 1.3
 description: Natural number greatest common divisor
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -17,7 +17,7 @@ def {
 
 thm {
   import: def
-  package: natural-divides-gcd-thm-1.2
+  package: natural-divides-gcd-thm-1.3
 }
 
 main {
