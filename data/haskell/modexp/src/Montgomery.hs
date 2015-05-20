@@ -25,10 +25,6 @@ data Montgomery = Montgomery
      r2Montgomery :: Natural}
   deriving Show
 
--- "Montgomery-space": (a :: Natural) <--> ((a * r) :: NaturalM)
--- invariant: (a :: NaturalM) < 2 ^ w
-type NaturalM = Natural
-
 standard :: Natural -> Montgomery
 standard n =
     Montgomery
@@ -69,26 +65,26 @@ reduce m a =
     w = wMontgomery m
     k = kMontgomery m
 
-oneM :: Montgomery -> NaturalM
-oneM = rMontgomery
-
-fromNatural :: Montgomery -> Natural -> NaturalM
-fromNatural m a =
-    multiplyM m (normalize m a) r2
-  where
-    r2 = r2Montgomery m
-
-toNatural :: Montgomery -> NaturalM -> Natural
+toNatural :: Montgomery -> Natural -> Natural
 toNatural m a =
     if b < n then b else 0
   where
     b = reduce m a
     n = nMontgomery m
 
-addM :: Montgomery -> NaturalM -> NaturalM -> NaturalM
+fromNatural :: Montgomery -> Natural -> Natural
+fromNatural m a =
+    multiplyM m (normalize m a) r2
+  where
+    r2 = r2Montgomery m
+
+oneM :: Montgomery -> Natural
+oneM = rMontgomery
+
+addM :: Montgomery -> Natural -> Natural -> Natural
 addM m a b = normalize m (a + b)
 
-multiplyM :: Montgomery -> NaturalM -> NaturalM -> NaturalM
+multiplyM :: Montgomery -> Natural -> Natural -> Natural
 multiplyM m a b =
     if Bits.bit c w then c - n else c
   where
@@ -96,13 +92,13 @@ multiplyM m a b =
     n = nMontgomery m
     w = wMontgomery m
 
-squareM :: Montgomery -> NaturalM -> NaturalM
+squareM :: Montgomery -> Natural -> Natural
 squareM m a = multiplyM m a a
 
-expM :: Montgomery -> NaturalM -> Natural -> NaturalM
+expM :: Montgomery -> Natural -> Natural -> Natural
 expM m = Modexp.multiplyExponential (multiplyM m) (oneM m)
 
-exp2M :: Montgomery -> NaturalM -> Natural -> NaturalM
+exp2M :: Montgomery -> Natural -> Natural -> Natural
 exp2M m x k = Modexp.functionPower (squareM m) k x
 
 modexp :: Natural -> Natural -> Natural -> Natural
