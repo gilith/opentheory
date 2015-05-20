@@ -1,0 +1,124 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h);
+
+getopts('h');
+
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+my $program = "profile-modexp";
+
+sub get_real_time {
+  (scalar @_ == 1) or die;
+  my $n = shift @_;
+
+  if ($n =~ /real[[:space:]]+([[:digit:]]+[.][[:digit:]]+)/s) {
+    return $1;
+  }
+  else {
+    die "$program: bad time format:\n$n";
+  }
+}
+
+sub get_results {
+  (scalar @_ == 2) or die;
+  my $name = shift @_;
+  my $cmdprefix = shift @_;
+
+  print STDOUT "<tr>";
+
+  print STDOUT "<td><b>";
+  print STDOUT $name;
+  print STDOUT "</b></td>";
+
+  my $i = 128;
+  while ($i <= 5000) {
+    if ($cmdprefix eq "header") {
+      print STDOUT "<td><b>";
+      print STDOUT $i;
+      print STDOUT "</b></td>";
+    }
+    else {
+      print STDOUT "<td>";
+
+      my $cmd = "$cmdprefix --modulus=[$i]";
+
+      print STDOUT "$cmd";
+
+      my $r = `(time -p $cmd) 2>&1 >/dev/null`;
+
+      my $t = get_real_time $r;
+
+      print STDOUT $t;
+
+      print STDOUT "s</td>";
+    }
+
+    $i *= 2;
+  }
+
+  print STDOUT "</tr>\n";
+}
+
+my $modexp = "dist/build/modexp/modexp";
+[ -x $modexp ] or die "$program: $modexp not an executable";
+
+get_results ("<em>n</em>", "header");
+get_results ("Naive", "$modexp --operation=timelock --algorithm=naive");
+get_results ("Montgomery", "$modexp --operation=timelock --algorithm=montgomery");
+
+__END__
+
+=pod
+
+=head1 NAME
+
+profile-modexp - profile the modexp program
+
+=head1 SYNOPSIS
+
+profile-modexp [-h]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=back
+
+=head1 DESCRIPTION
+
+Profile the modexp program.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut
