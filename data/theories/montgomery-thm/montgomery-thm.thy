@@ -1,9 +1,9 @@
 name: montgomery-thm
-version: 1.21
+version: 1.22
 description: Properties of Montgomery multiplication
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
-provenance: HOL Light theory extracted on 2014-11-17
+provenance: HOL Light theory extracted on 2015-05-20
 requires: bool
 requires: montgomery-def
 requires: natural
