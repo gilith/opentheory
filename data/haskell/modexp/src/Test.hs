@@ -18,30 +18,46 @@ import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 import OpenTheory.Primitive.Test
 
-import qualified Egcd
-import qualified Prime
+import Egcd
+import Prime
 import qualified Modexp
 import qualified Montgomery
 
-widthCheck ::
-    QuickCheck.Testable prop => Int -> String -> (Int -> prop) -> IO ()
-widthCheck w s p =
-    check (s ++ " (" ++ show w ++ " bit)\n  ") (p w)
+propIntegerEgcdDivides :: Integer -> Integer -> Bool
+propIntegerEgcdDivides a b =
+  let (g,_,_) = integerEgcd a b in
+  integerDivides g a && integerDivides g b
 
-propEgcdEquation :: Natural -> Natural -> Bool
-propEgcdEquation ap b =
+propIntegerEgcdEquation :: Integer -> Integer -> Bool
+propIntegerEgcdEquation a b =
+  let (g,s,t) = integerEgcd a b in
+  s * a + t * b == g
+
+propIntegerEgcdBound :: Integer -> Integer -> Bool
+propIntegerEgcdBound a b =
+  let (_,s,t) = integerEgcd a b in
+  abs s <= max ((abs b + 1) `div` 2) 1 &&
+  abs t <= max ((abs a + 1) `div` 2) 1
+
+propNaturalEgcdDivides :: Natural -> Natural -> Bool
+propNaturalEgcdDivides a b =
+  let (g,_,_) = naturalEgcd a b in
+  naturalDivides g a && naturalDivides g b
+
+propNaturalEgcdEquation :: Natural -> Natural -> Bool
+propNaturalEgcdEquation ap b =
   let a = ap + 1 in
-  let (g,s,t) = Egcd.naturalEgcd a b in
+  let (g,s,t) = naturalEgcd a b in
   s * a == t * b + g
 
-propEgcdBound :: Natural -> Natural -> Bool
-propEgcdBound ap b =
+propNaturalEgcdBound :: Natural -> Natural -> Bool
+propNaturalEgcdBound ap b =
   let a = ap + 1 in
-  let (_,s,t) = Egcd.naturalEgcd a b in
-  (if b < 2 then s == 1 else 0 < s && s < b) && t < a
+  let (_,s,t) = naturalEgcd a b in
+  s < max b 2 && t < a
 
 randomMontgomery :: Int -> Random.Random -> Montgomery.Montgomery
-randomMontgomery w r = Montgomery.standard (Prime.randomOdd w r)
+randomMontgomery w r = Montgomery.standard (randomOdd w r)
 
 propMontgomeryInvariant :: Int -> Random.Random -> Bool
 propMontgomeryInvariant nw rnd =
@@ -178,7 +194,7 @@ propMontgomeryModexp :: Int -> Random.Random -> Bool
 propMontgomeryModexp w r =
     Montgomery.modexp n x k == Modexp.modexp n x k
   where
-    n = Prime.randomOdd w r1
+    n = randomOdd w r1
     x = Uniform.random n r2
     k = Uniform.random n r3
 
@@ -189,37 +205,42 @@ propMontgomeryModexp2 :: Int -> Random.Random -> Bool
 propMontgomeryModexp2 w r =
     Montgomery.modexp2 n x k == Modexp.modexp2 n x k
   where
-    n = Prime.randomOdd w r1
+    n = randomOdd w r1
     x = Uniform.random n r2
     k = Uniform.random (fromIntegral w) r3
 
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 
-checkWidth :: Int -> IO ()
-checkWidth w =
-   do widthCheck w "Check Montgomery invariant" propMontgomeryInvariant
-      widthCheck w "Check Montgomery normalize" propMontgomeryNormalize
-      widthCheck w "Check Montgomery reduce" propMontgomeryReduce
-      widthCheck w "Check Montgomery reduce small" propMontgomeryReduceSmall
-      widthCheck w "Check Montgomery toNatural" propMontgomeryToNatural
-      widthCheck w "Check Montgomery fromNatural" propMontgomeryFromNatural
-      widthCheck w "Check Montgomery oneM" propMontgomeryOneM
-      widthCheck w "Check Montgomery addM" propMontgomeryAddM
-      widthCheck w "Check Montgomery multiplyM" propMontgomeryMultiplyM
-      widthCheck w "Check Montgomery modexp" propMontgomeryModexp
-      widthCheck w "Check Montgomery modexp2" propMontgomeryModexp2
-      return ()
+checkWidthProp ::
+    QuickCheck.Testable prop => Int -> String -> (Int -> prop) -> IO ()
+checkWidthProp w s p =
+    check (s ++ " (" ++ show w ++ " bit)\n  ") (p w)
 
-checkWidths :: IO ()
-checkWidths =
-    mapM_ checkWidth ws
-  where
-    ws = takeWhile (\n -> n <= 256) (iterate ((*) 2) 4)
+checkWidthProps :: Int -> IO ()
+checkWidthProps w =
+   do checkWidthProp w "Check Montgomery invariant" propMontgomeryInvariant
+      checkWidthProp w "Check Montgomery normalize" propMontgomeryNormalize
+      checkWidthProp w "Check Montgomery reduce" propMontgomeryReduce
+      checkWidthProp w "Check Montgomery reduce small" propMontgomeryReduceSmall
+      checkWidthProp w "Check Montgomery toNatural" propMontgomeryToNatural
+      checkWidthProp w "Check Montgomery fromNatural" propMontgomeryFromNatural
+      checkWidthProp w "Check Montgomery oneM" propMontgomeryOneM
+      checkWidthProp w "Check Montgomery addM" propMontgomeryAddM
+      checkWidthProp w "Check Montgomery multiplyM" propMontgomeryMultiplyM
+      checkWidthProp w "Check Montgomery modexp" propMontgomeryModexp
+      checkWidthProp w "Check Montgomery modexp2" propMontgomeryModexp2
+      return ()
 
 main :: IO ()
 main =
-    do check "Check egcd equation\n  " propEgcdEquation
-       check "Check egcd bound\n  " propEgcdBound
-       checkWidths
+    do check "Check integer egcd divides\n  " propIntegerEgcdDivides
+       check "Check integer egcd equation\n  " propIntegerEgcdEquation
+       check "Check integer egcd bound\n  " propIntegerEgcdBound
+       check "Check natural egcd divides\n  " propNaturalEgcdDivides
+       check "Check natural egcd equation\n  " propNaturalEgcdEquation
+       check "Check natural egcd bound\n  " propNaturalEgcdBound
+       mapM_ checkWidthProps ws
        return ()
+  where
+    ws = takeWhile (\n -> n <= 256) (iterate ((*) 2) 4)
