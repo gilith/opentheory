@@ -1,8 +1,9 @@
 name: parser
-version: 1.157
+version: 1.158
 description: Stream parsers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+homepage: http://opentheory.gilith.com/?pkg=parser
 requires: base
 show: "Data.Bool"
 show: "Data.List"

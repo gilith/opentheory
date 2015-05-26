@@ -1,8 +1,9 @@
 name: natural-prime
-version: 1.81
+version: 1.82
 description: Prime natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+homepage: http://opentheory.gilith.com/?pkg=natural-prime
 requires: base
 requires: natural-divides
 requires: stream

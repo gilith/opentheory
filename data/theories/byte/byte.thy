@@ -1,8 +1,9 @@
 name: byte
-version: 1.125
+version: 1.126
 description: Bytes
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+homepage: http://opentheory.gilith.com/?pkg=byte
 requires: base
 requires: natural-bits
 requires: natural-divides

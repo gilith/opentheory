@@ -19,6 +19,7 @@ and descriptionString = "description"
 and extraSuffixString = "file"
 and gilithString = "gilith"
 and haskellString = "haskell"
+and homepageString = "homepage"
 and installedString = "installed"
 and intString = "int"
 and licenseString = "license"
@@ -199,6 +200,8 @@ val mainTheory = Name [mainString];
 val authorTag = Name [authorString];
 
 val descriptionTag = Name [descriptionString];
+
+val homepageTag = Name [homepageString];
 
 val licenseTag = Name [licenseString];
 

@@ -1,8 +1,9 @@
 name: char
-version: 1.139
+version: 1.140
 description: Unicode characters
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+homepage: http://opentheory.gilith.com/?pkg=char
 requires: base
 requires: byte
 requires: natural-bits

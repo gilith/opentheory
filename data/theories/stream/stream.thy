@@ -1,8 +1,9 @@
 name: stream
-version: 1.44
+version: 1.45
 description: Infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+homepage: http://opentheory.gilith.com/?pkg=stream
 requires: base
 show: "Data.Bool"
 show: "Data.List"

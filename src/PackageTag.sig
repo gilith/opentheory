@@ -65,6 +65,8 @@ val findAuthor : tag list -> PackageAuthor.author
 
 val findLicense : tag list -> {license : string}
 
+val findHomepage : tag list -> {url : string} option
+
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)

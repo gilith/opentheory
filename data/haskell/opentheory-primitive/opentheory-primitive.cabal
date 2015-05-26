@@ -1,5 +1,5 @@
 name: opentheory-primitive
-version: 1.6
+version: 1.7
 category: Formal Methods
 synopsis: Haskell primitives used by OpenTheory packages
 license: MIT
@@ -8,6 +8,7 @@ cabal-version: >= 1.8.0.2
 build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
+homepage: http://www.gilith.com/research/opentheory/
 description:
   The types and values defined in this package extend those in the
   Prelude to provide the core execution platform assumed by Haskell

@@ -134,6 +134,11 @@ fun findAuthor tags =
 fun findLicense tags =
     {license = getName PackageName.licenseTag tags};
 
+fun findHomepage tags =
+    case peekName PackageName.homepageTag tags of
+      NONE => NONE
+    | SOME x => SOME {url = x};
+
 (* ------------------------------------------------------------------------- *)
 (* Extra package files.                                                      *)
 (* ------------------------------------------------------------------------- *)

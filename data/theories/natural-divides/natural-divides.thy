@@ -1,8 +1,9 @@
 name: natural-divides
-version: 1.61
+version: 1.62
 description: The divides relation on natural numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+homepage: http://opentheory.gilith.com/?pkg=natural-divides
 requires: base
 show: "Data.Bool"
 show: "Data.Pair"

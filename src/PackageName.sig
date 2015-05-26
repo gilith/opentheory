@@ -90,6 +90,8 @@ val authorTag : name
 
 val descriptionTag : name
 
+val homepageTag : name
+
 val licenseTag : name
 
 val nameTag : name

@@ -1,8 +1,9 @@
 name: probability
-version: 1.48
+version: 1.49
 description: Probability
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
+homepage: http://opentheory.gilith.com/?pkg=probability
 requires: base
 requires: stream
 show: "Data.Bool"

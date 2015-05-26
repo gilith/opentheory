@@ -20,6 +20,7 @@ and categoryTag = "category"
 and descriptionTag = "description"
 and equalityTypeTag = "equality-type"
 and ghcOptionsTag = "ghc-options"
+and homepageTag = "homepage"
 and licenseTag = "license"
 and licenseFileTag = "license-file"
 and maintainerTag = "maintainer"
@@ -327,6 +328,7 @@ datatype information =
        author : PackageAuthor.author,
        license : string,
        licenseUrl : string,
+       homepage : string option,
        provenance : PackageNameVersion.nameVersion,
        equalityTypes : NameSet.set,
        arbitraryTypes : NameSet.set,
@@ -444,6 +446,23 @@ local
               url
             end
 
+        val (homepage,htags) =
+            let
+              val tag = PackageName.fromString homepageTag
+            in
+              case peekTag tag htags of
+                SOME (v,htags) => (SOME v, htags)
+              | NONE =>
+                let
+                  val v =
+                      case PackageTag.findHomepage tags of
+                        SOME {url} => SOME url
+                      | NONE => NONE
+                in
+                  (v,htags)
+                end
+            end
+
         val provenance =
             let
               val name = PackageTag.findName tags
@@ -526,6 +545,7 @@ local
                author = author,
                license = license,
                licenseUrl = licenseUrl,
+               homepage = homepage,
                provenance = provenance,
                equalityTypes = equalityTypes,
                arbitraryTypes = arbitraryTypes,
@@ -3424,6 +3444,7 @@ in
                author,
                license,
                licenseUrl = _,
+               homepage,
                provenance,
                equalityTypes = _,
                arbitraryTypes = _,
@@ -3453,6 +3474,11 @@ in
                (stabilityTag,"provisional"),
                (synopsisTag,synopsis),
                (versionTag,version)]
+
+        val tags =
+            case homepage of
+              SOME v => StringMap.insert tags (homepageTag,v)
+            | NONE => tags
 
         val tags = List.foldl overrideTag tags otags
       in
@@ -4402,7 +4428,7 @@ local
         Print.newline ::
         ppSyntax "QuickCheck >= 2.4.0.1 && < 3.0," ::
         Print.newline ::
-        ppSyntax "opentheory-primitive >= 1.5 && < 2.0" ::
+        ppSyntax "opentheory-primitive >= 1.6 && < 2.0" ::
         List.map ppExtraDepend deps;
   end;
 
