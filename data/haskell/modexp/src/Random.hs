@@ -16,7 +16,7 @@ import OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Uniform as Uniform
 
-import Egcd
+import Divides
 
 randomWidth :: Int -> Random.Random -> Natural
 randomWidth w r =

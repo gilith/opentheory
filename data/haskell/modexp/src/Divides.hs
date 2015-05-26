@@ -1,13 +1,13 @@
 {- |
-module: Egcd
-description: A natural number implementation of the egcd algorithm
+module: Divides
+description: Natural number division algorithms
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Egcd
+module Divides
 where
 
 import OpenTheory.Primitive.Natural
@@ -32,3 +32,21 @@ naturalEgcd a b =
     let (g,s,t) = naturalEgcd c (b `mod` c) in
     let u = s + (b `div` c) * t in
     (g, u, t + (a `div` b) * u)
+
+integerChineseRemainder :: Integer -> Integer -> Integer -> Integer -> Integer
+integerChineseRemainder a b =
+    \x y -> (x * tb + y * sa) `mod` ab
+  where
+    (_,s,t) = integerEgcd a b
+    ab = a * b
+    sa = s * a
+    tb = t * b
+
+naturalChineseRemainder :: Natural -> Natural -> Natural -> Natural -> Natural
+naturalChineseRemainder a b =
+    \x y -> (x * tb + y * sa) `mod` ab
+  where
+    (_,s,t) = naturalEgcd a b
+    ab = a * b
+    sa = s * a
+    tb = (a - t) * b

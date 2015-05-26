@@ -13,7 +13,7 @@ where
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 
-import qualified Egcd
+import Divides
 import qualified Modexp
 
 data Montgomery = Montgomery
@@ -37,7 +37,7 @@ standard n =
   where
     w = Bits.width n
     w2 = shiftLeft 1 w
-    (_,s,k) = Egcd.naturalEgcd w2 n
+    (_,s,k) = naturalEgcd w2 n
     r = w2 `mod` n
     r2 = (r * r) `mod` n
 

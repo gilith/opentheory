@@ -18,12 +18,11 @@ import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 import OpenTheory.Primitive.Test
 
-import Egcd
+import Divides
 import Random
 import Prime
 import qualified Modexp
 import qualified Montgomery
-import CRT
 
 propIntegerEgcdDivides :: Integer -> Integer -> Bool
 propIntegerEgcdDivides a b =
@@ -58,25 +57,25 @@ propNaturalEgcdBound ap b =
     let (_,s,t) = naturalEgcd a b in
     s < max b 2 && t < a
 
-propIntegerCRT :: Int -> Random.Random -> Bool
-propIntegerCRT w r =
+propIntegerChineseRemainder :: Int -> Random.Random -> Bool
+propIntegerChineseRemainder w r =
     n `mod` a == x && n `mod` b == y && n < a * b
   where
     (a,b) = randomCoprimeInteger w r1
     x = uniformInteger a r2
     y = uniformInteger b r3
-    n = integerCRT a b x y
+    n = integerChineseRemainder a b x y
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 
-propNaturalCRT :: Int -> Random.Random -> Bool
-propNaturalCRT w r =
+propNaturalChineseRemainder :: Int -> Random.Random -> Bool
+propNaturalChineseRemainder w r =
     n `mod` a == x && n `mod` b == y && n < a * b
   where
     (a,b) = randomCoprime w r1
     x = Uniform.random a r2
     y = Uniform.random b r3
-    n = naturalCRT a b x y
+    n = naturalChineseRemainder a b x y
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 
@@ -243,8 +242,10 @@ checkWidthProp w s p =
 
 checkWidthProps :: Int -> IO ()
 checkWidthProps w =
-   do checkWidthProp w "Check integer CRT properties" propIntegerCRT
-      checkWidthProp w "Check natural CRT properties" propNaturalCRT
+   do checkWidthProp w "Check integer Chinese remainder properties"
+        propIntegerChineseRemainder
+      checkWidthProp w "Check natural Chinese remainder properties"
+        propNaturalChineseRemainder
       checkWidthProp w "Check Montgomery invariant" propMontgomeryInvariant
       checkWidthProp w "Check Montgomery normalize" propMontgomeryNormalize
       checkWidthProp w "Check Montgomery reduce" propMontgomeryReduce

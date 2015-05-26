@@ -23,12 +23,11 @@ executable modexp
   ghc-options: -Wall
   main-is: Main.hs
   other-modules:
-    Egcd,
+    Divides,
     Random,
     Modexp,
     Montgomery,
-    Prime,
-    CRT
+    Prime
 
 test-suite modexp-test
   type: exitcode-stdio-1.0
