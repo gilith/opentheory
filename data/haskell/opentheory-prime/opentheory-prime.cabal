@@ -18,7 +18,7 @@ library
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.5 && < 2.0,
     opentheory >= 1.193 && < 1.199,
-    opentheory-divides >= 1.53 && < 1.59,
+    opentheory-divides >= 1.53 && < 1.62,
     opentheory-stream >= 1.42 && < 1.45
   hs-source-dirs: src
   ghc-options: -Wall
@@ -33,7 +33,7 @@ test-suite opentheory-prime-test
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.5 && < 2.0,
     opentheory >= 1.193 && < 1.199,
-    opentheory-divides >= 1.53 && < 1.59,
+    opentheory-divides >= 1.53 && < 1.62,
     opentheory-stream >= 1.42 && < 1.45
   hs-source-dirs: src
   ghc-options: -Wall

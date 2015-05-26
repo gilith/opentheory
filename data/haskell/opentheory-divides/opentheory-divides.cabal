@@ -1,5 +1,5 @@
 name: opentheory-divides
-version: 1.58
+version: 1.61
 category: Number Theory
 synopsis: The divides relation on natural numbers
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   The divides relation on natural numbers - this package was automatically
-  generated from the OpenTheory package natural-divides-1.58
+  generated from the OpenTheory package natural-divides-1.61
 
 library
   build-depends:

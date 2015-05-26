@@ -53,6 +53,45 @@ proposition8 ap b =
   let (g, (s, t)) = Divides.egcd a b in
   t * b + g == s * a
 
+proposition9 ::
+  Primitive.Natural.Natural -> Primitive.Natural.Natural ->
+    Primitive.Natural.Natural -> Primitive.Natural.Natural -> Bool
+proposition9 ap bp xp yp =
+  let aq = ap + 1 in
+  let bq = bp + 1 in
+  let g = fst (Divides.egcd aq bq) in
+  let a = aq `div` g in
+  let b = bq `div` g in
+  let x = xp `mod` a in
+  let y = yp `mod` b in
+  Divides.chineseRemainder a b x y < a * b
+
+proposition10 ::
+  Primitive.Natural.Natural -> Primitive.Natural.Natural ->
+    Primitive.Natural.Natural -> Primitive.Natural.Natural -> Bool
+proposition10 ap bp xp yp =
+  let aq = ap + 1 in
+  let bq = bp + 1 in
+  let g = fst (Divides.egcd aq bq) in
+  let a = aq `div` g in
+  let b = bq `div` g in
+  let x = xp `mod` a in
+  let y = yp `mod` b in
+  Divides.chineseRemainder a b x y `mod` a == x
+
+proposition11 ::
+  Primitive.Natural.Natural -> Primitive.Natural.Natural ->
+    Primitive.Natural.Natural -> Primitive.Natural.Natural -> Bool
+proposition11 ap bp xp yp =
+  let aq = ap + 1 in
+  let bq = bp + 1 in
+  let g = fst (Divides.egcd aq bq) in
+  let a = aq `div` g in
+  let b = bq `div` g in
+  let x = xp `mod` a in
+  let y = yp `mod` b in
+  Divides.chineseRemainder a b x y `mod` b == y
+
 main :: IO ()
 main =
     do check "Proposition 0:\n  !a. divides a 0\n  " proposition0
@@ -64,4 +103,7 @@ main =
        check "Proposition 6:\n  !ap b. let a <- ap + 1 in let (g, s, t) <- egcd a b in t < a\n  " proposition6
        check "Proposition 7:\n  !ap b. let a <- ap + 1 in let (g, s, t) <- egcd a b in s < max b 2\n  " proposition7
        check "Proposition 8:\n  !ap b. let a <- ap + 1 in let (g, s, t) <- egcd a b in t * b + g = s * a\n  " proposition8
+       check "Proposition 9:\n  !ap bp xp yp.\n    let aq <- ap + 1 in\n    let bq <- bp + 1 in\n    let g <- fst (egcd aq bq) in\n    let a <- aq div g in\n    let b <- bq div g in\n    let x <- xp mod a in\n    let y <- yp mod b in\n    chineseRemainder a b x y < a * b\n  " proposition9
+       check "Proposition 10:\n  !ap bp xp yp.\n    let aq <- ap + 1 in\n    let bq <- bp + 1 in\n    let g <- fst (egcd aq bq) in\n    let a <- aq div g in\n    let b <- bq div g in\n    let x <- xp mod a in\n    let y <- yp mod b in\n    chineseRemainder a b x y mod a = x\n  " proposition10
+       check "Proposition 11:\n  !ap bp xp yp.\n    let aq <- ap + 1 in\n    let bq <- bp + 1 in\n    let g <- fst (egcd aq bq) in\n    let a <- aq div g in\n    let b <- bq div g in\n    let x <- xp mod a in\n    let y <- yp mod b in\n    chineseRemainder a b x y mod b = y\n  " proposition11
        return ()
