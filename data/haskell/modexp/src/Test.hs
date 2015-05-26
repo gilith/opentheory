@@ -19,42 +19,66 @@ import qualified OpenTheory.Natural.Uniform as Uniform
 import OpenTheory.Primitive.Test
 
 import Egcd
+import Random
 import Prime
 import qualified Modexp
 import qualified Montgomery
+import CRT
 
 propIntegerEgcdDivides :: Integer -> Integer -> Bool
 propIntegerEgcdDivides a b =
-  let (g,_,_) = integerEgcd a b in
-  integerDivides g a && integerDivides g b
+    let (g,_,_) = integerEgcd a b in
+    integerDivides g a && integerDivides g b
 
 propIntegerEgcdEquation :: Integer -> Integer -> Bool
 propIntegerEgcdEquation a b =
-  let (g,s,t) = integerEgcd a b in
-  s * a + t * b == g
+    let (g,s,t) = integerEgcd a b in
+    s * a + t * b == g
 
 propIntegerEgcdBound :: Integer -> Integer -> Bool
 propIntegerEgcdBound a b =
-  let (_,s,t) = integerEgcd a b in
-  abs s <= max ((abs b + 1) `div` 2) 1 &&
-  abs t <= max ((abs a + 1) `div` 2) 1
+    let (_,s,t) = integerEgcd a b in
+    abs s <= max ((abs b + 1) `div` 2) 1 &&
+    abs t <= max ((abs a + 1) `div` 2) 1
 
 propNaturalEgcdDivides :: Natural -> Natural -> Bool
 propNaturalEgcdDivides a b =
-  let (g,_,_) = naturalEgcd a b in
-  naturalDivides g a && naturalDivides g b
+    let (g,_,_) = naturalEgcd a b in
+    naturalDivides g a && naturalDivides g b
 
 propNaturalEgcdEquation :: Natural -> Natural -> Bool
 propNaturalEgcdEquation ap b =
-  let a = ap + 1 in
-  let (g,s,t) = naturalEgcd a b in
-  s * a == t * b + g
+    let a = ap + 1 in
+    let (g,s,t) = naturalEgcd a b in
+    s * a == t * b + g
 
 propNaturalEgcdBound :: Natural -> Natural -> Bool
 propNaturalEgcdBound ap b =
-  let a = ap + 1 in
-  let (_,s,t) = naturalEgcd a b in
-  s < max b 2 && t < a
+    let a = ap + 1 in
+    let (_,s,t) = naturalEgcd a b in
+    s < max b 2 && t < a
+
+propIntegerCRT :: Int -> Random.Random -> Bool
+propIntegerCRT w r =
+    n `mod` a == x && n `mod` b == y && n < a * b
+  where
+    (a,b) = randomCoprimeInteger w r1
+    x = uniformInteger a r2
+    y = uniformInteger b r3
+    n = integerCRT a b x y
+    (r1,r23) = Random.split r
+    (r2,r3) = Random.split r23
+
+propNaturalCRT :: Int -> Random.Random -> Bool
+propNaturalCRT w r =
+    n `mod` a == x && n `mod` b == y && n < a * b
+  where
+    (a,b) = randomCoprime w r1
+    x = Uniform.random a r2
+    y = Uniform.random b r3
+    n = naturalCRT a b x y
+    (r1,r23) = Random.split r
+    (r2,r3) = Random.split r23
 
 randomMontgomery :: Int -> Random.Random -> Montgomery.Montgomery
 randomMontgomery w r = Montgomery.standard (randomOdd w r)
@@ -219,7 +243,9 @@ checkWidthProp w s p =
 
 checkWidthProps :: Int -> IO ()
 checkWidthProps w =
-   do checkWidthProp w "Check Montgomery invariant" propMontgomeryInvariant
+   do checkWidthProp w "Check integer CRT properties" propIntegerCRT
+      checkWidthProp w "Check natural CRT properties" propNaturalCRT
+      checkWidthProp w "Check Montgomery invariant" propMontgomeryInvariant
       checkWidthProp w "Check Montgomery normalize" propMontgomeryNormalize
       checkWidthProp w "Check Montgomery reduce" propMontgomeryReduce
       checkWidthProp w "Check Montgomery reduce small" propMontgomeryReduceSmall

@@ -1,6 +1,6 @@
 {- |
 module: Prime
-description: Generating and testing random primes
+description: Generating random primes
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
@@ -16,13 +16,8 @@ import OpenTheory.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Uniform as Uniform
 
+import Random
 import qualified Modexp
-
-randomOdd :: Int -> Random.Random -> Natural
-randomOdd w r =
-    Bits.cons True (n + Uniform.random n r)
-  where
-    n = 2 ^ (w - 2)
 
 factorTwos :: Natural -> (Int,Natural)
 factorTwos n =

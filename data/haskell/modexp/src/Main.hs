@@ -19,9 +19,9 @@ import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
+import Random
 import qualified Modexp
 import qualified Montgomery
-import qualified Prime
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -104,7 +104,7 @@ uniformInputNatural (Width w) r = Uniform.random (2 ^ w) r
 
 oddInputNatural :: InputNatural -> Random.Random -> Natural
 oddInputNatural (Fixed n) _ = n
-oddInputNatural (Width w) r = Prime.randomOdd w r
+oddInputNatural (Width w) r = randomOdd w r
 
 getInputs ::
     Operation -> InputNatural -> Maybe InputNatural -> Maybe InputNatural ->

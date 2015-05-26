@@ -24,9 +24,11 @@ executable modexp
   main-is: Main.hs
   other-modules:
     Egcd,
+    Random,
     Modexp,
     Montgomery,
-    Prime
+    Prime,
+    CRT
 
 test-suite modexp-test
   type: exitcode-stdio-1.0
