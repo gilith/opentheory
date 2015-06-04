@@ -80,7 +80,7 @@ propNaturalChineseRemainder w r =
     (r2,r3) = Random.split r23
 
 randomMontgomery :: Int -> Random.Random -> Montgomery.Montgomery
-randomMontgomery w r = Montgomery.standard (randomOdd w r)
+randomMontgomery w r = Montgomery.mkStandard (randomOdd w r)
 
 propMontgomeryInvariant :: Int -> Random.Random -> Bool
 propMontgomeryInvariant nw rnd =
@@ -235,6 +235,14 @@ propMontgomeryModexp2 w r =
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 
+propFermat :: Int -> Random.Random -> Bool
+propFermat w r =
+    Montgomery.modexp n a n == a
+  where
+    n = randomPrime w r1
+    a = Uniform.random n r2
+    (r1,r2) = Random.split r
+
 checkWidthProp ::
     QuickCheck.Testable prop => Int -> String -> (Int -> prop) -> IO ()
 checkWidthProp w s p =
@@ -257,6 +265,7 @@ checkWidthProps w =
       checkWidthProp w "Check Montgomery multiplyM" propMontgomeryMultiplyM
       checkWidthProp w "Check Montgomery modexp" propMontgomeryModexp
       checkWidthProp w "Check Montgomery modexp2" propMontgomeryModexp2
+      checkWidthProp w "Fermat's little theorem" propFermat
       return ()
 
 main :: IO ()
@@ -270,4 +279,4 @@ main =
        mapM_ checkWidthProps ws
        return ()
   where
-    ws = takeWhile (\n -> n <= 256) (iterate ((*) 2) 4)
+    ws = takeWhile (\n -> n <= 128) (iterate ((*) 2) 4)

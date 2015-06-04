@@ -77,5 +77,4 @@ randomPrime w =
         if isPrime n r2 then Just n else Nothing
       where
         n = randomOdd w r1
-
         (r1,r2) = Random.split r

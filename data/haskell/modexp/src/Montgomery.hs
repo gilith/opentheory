@@ -25,8 +25,11 @@ data Montgomery = Montgomery
      r2Montgomery :: Natural}
   deriving Show
 
-standard :: Natural -> Montgomery
-standard n =
+align :: Natural -> Natural -> Natural
+align b n = if n == 0 then 0 else (((n - 1) `div` b) + 1) * b
+
+mkAligned :: Natural -> Natural -> Montgomery
+mkAligned b n =
     Montgomery
       {nMontgomery = n,
        wMontgomery = w,
@@ -35,11 +38,14 @@ standard n =
        rMontgomery = r,
        r2Montgomery = r2}
   where
-    w = Bits.width n
+    w = align b (Bits.width n)
     w2 = shiftLeft 1 w
     (_,s,k) = naturalEgcd w2 n
     r = w2 `mod` n
     r2 = (r * r) `mod` n
+
+mkStandard :: Natural -> Montgomery
+mkStandard = mkAligned 64
 
 -- normalize m a `mod` n = a `mod` n
 -- normalize m a < 2 ^ w
@@ -105,10 +111,10 @@ modexp :: Natural -> Natural -> Natural -> Natural
 modexp n x k =
     toNatural m (expM m (fromNatural m x) k)
   where
-    m = standard n
+    m = mkStandard n
 
 modexp2 :: Natural -> Natural -> Natural -> Natural
 modexp2 n x k =
     toNatural m (exp2M m (fromNatural m x) k)
   where
-    m = standard n
+    m = mkStandard n
