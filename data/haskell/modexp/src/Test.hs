@@ -18,7 +18,8 @@ import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 import OpenTheory.Primitive.Test
 
-import Divides
+import qualified IntegerDivides
+import qualified NaturalDivides
 import Random
 import Prime
 import qualified Modexp
@@ -26,35 +27,35 @@ import qualified Montgomery
 
 propIntegerEgcdDivides :: Integer -> Integer -> Bool
 propIntegerEgcdDivides a b =
-    let (g,_,_) = integerEgcd a b in
-    integerDivides g a && integerDivides g b
+    let (g,_) = IntegerDivides.egcd a b in
+    IntegerDivides.divides g a && IntegerDivides.divides g b
 
 propIntegerEgcdEquation :: Integer -> Integer -> Bool
 propIntegerEgcdEquation a b =
-    let (g,s,t) = integerEgcd a b in
+    let (g,(s,t)) = IntegerDivides.egcd a b in
     s * a + t * b == g
 
 propIntegerEgcdBound :: Integer -> Integer -> Bool
 propIntegerEgcdBound a b =
-    let (_,s,t) = integerEgcd a b in
+    let (_,(s,t)) = IntegerDivides.egcd a b in
     abs s <= max ((abs b + 1) `div` 2) 1 &&
     abs t <= max ((abs a + 1) `div` 2) 1
 
 propNaturalEgcdDivides :: Natural -> Natural -> Bool
 propNaturalEgcdDivides a b =
-    let (g,_,_) = naturalEgcd a b in
-    naturalDivides g a && naturalDivides g b
+    let (g,_) = NaturalDivides.egcd a b in
+    NaturalDivides.divides g a && NaturalDivides.divides g b
 
 propNaturalEgcdEquation :: Natural -> Natural -> Bool
 propNaturalEgcdEquation ap b =
     let a = ap + 1 in
-    let (g,s,t) = naturalEgcd a b in
+    let (g,(s,t)) = NaturalDivides.egcd a b in
     s * a == t * b + g
 
 propNaturalEgcdBound :: Natural -> Natural -> Bool
 propNaturalEgcdBound ap b =
     let a = ap + 1 in
-    let (_,s,t) = naturalEgcd a b in
+    let (_,(s,t)) = NaturalDivides.egcd a b in
     s < max b 2 && t < a
 
 propIntegerChineseRemainder :: Int -> Random.Random -> Bool
@@ -64,7 +65,7 @@ propIntegerChineseRemainder w r =
     (a,b) = randomCoprimeInteger w r1
     x = uniformInteger a r2
     y = uniformInteger b r3
-    n = integerChineseRemainder a b x y
+    n = IntegerDivides.chineseRemainder a b x y
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 
@@ -75,7 +76,7 @@ propNaturalChineseRemainder w r =
     (a,b) = randomCoprime w r1
     x = Uniform.random a r2
     y = Uniform.random b r3
-    n = naturalChineseRemainder a b x y
+    n = NaturalDivides.chineseRemainder a b x y
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 

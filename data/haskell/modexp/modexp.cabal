@@ -18,12 +18,14 @@ executable modexp
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.0 && < 2.0,
-    opentheory-bits >= 1.0 && < 2.0
+    opentheory-bits >= 1.0 && < 2.0,
+    opentheory-divides >= 1.0 && < 2.0
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Main.hs
   other-modules:
-    Divides,
+    IntegerDivides,
+    NaturalDivides,
     Random,
     Modexp,
     Montgomery,
@@ -37,7 +39,8 @@ test-suite modexp-test
     QuickCheck >= 2.4.0.1 && < 3.0,
     opentheory-primitive >= 1.0 && < 2.0,
     opentheory >= 1.0 && < 2.0,
-    opentheory-bits >= 1.0 && < 2.0
+    opentheory-bits >= 1.0 && < 2.0,
+    opentheory-divides >= 1.0 && < 2.0
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Test.hs

@@ -14,9 +14,8 @@ import Data.Bits
 import OpenTheory.Primitive.Natural
 import OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Bits as Bits
+import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Uniform as Uniform
-
-import Divides
 
 randomWidth :: Int -> Random.Random -> Natural
 randomWidth w r =
@@ -43,7 +42,7 @@ randomCoprime w =
       where
         a = randomWidth w r1
         b = randomWidth w r2
-        (g,_,_) = naturalEgcd a b
+        (g,_) = egcd a b
         (r1,r2) = Random.split r
 
 uniformInteger :: Integer -> Random.Random -> Integer

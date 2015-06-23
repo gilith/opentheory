@@ -12,8 +12,8 @@ where
 
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
+import OpenTheory.Natural.Divides
 
-import Divides
 import qualified Modexp
 
 data Montgomery = Montgomery
@@ -40,7 +40,7 @@ mkAligned b n =
   where
     w = align b (Bits.width n)
     w2 = shiftLeft 1 w
-    (_,s,k) = naturalEgcd w2 n
+    (_,(s,k)) = egcd w2 n
     r = w2 `mod` n
     r2 = (r * r) `mod` n
 
