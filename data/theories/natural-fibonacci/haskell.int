@@ -1,0 +1,17 @@
+###############################################################################
+# HASKELL INTERPRETATIONS FOR FIBONACCI NUMBERS
+# Joe Leslie-Hurd
+###############################################################################
+
+# OpenTheory
+
+# OpenTheory.Natural
+
+# OpenTheory.Natural.Fibonacci
+
+const "Number.Natural.Fibonacci.decode" as "OpenTheory.Natural.Fibonacci.decode"
+const "Number.Natural.Fibonacci.decode.dest" as "OpenTheory.Natural.Fibonacci.decode.dest"
+const "Number.Natural.Fibonacci.encode" as "OpenTheory.Natural.Fibonacci.encode"
+const "Number.Natural.Fibonacci.encode.find" as "OpenTheory.Natural.Fibonacci.encode.find"
+const "Number.Natural.Fibonacci.encode.mk" as "OpenTheory.Natural.Fibonacci.encode.mk"
+const "Number.Natural.Fibonacci.zeckendorf" as "OpenTheory.Natural.Fibonacci.zeckendorf"

@@ -1,5 +1,5 @@
 name: natural-fibonacci
-version: 1.63
+version: 1.67
 description: Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -12,6 +12,11 @@ show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 show: "Probability.Random"
 show: "Relation"
+haskell-name: opentheory-fibonacci
+haskell-category: Number Theory
+haskell-int-file: haskell.int
+haskell-src-file: haskell.art
+haskell-test-file: haskell-test.art
 
 exists {
   package: natural-fibonacci-exists-1.40
@@ -25,7 +30,7 @@ def {
 thm {
   import: exists
   import: def
-  package: natural-fibonacci-thm-1.52
+  package: natural-fibonacci-thm-1.55
 }
 
 main {
