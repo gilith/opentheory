@@ -11,7 +11,8 @@ module IntegerDivides
 where
 
 divides :: Integer -> Integer -> Bool
-divides a b = if a == 0 then b == 0 else abs b `mod` abs a == 0
+divides 0 b = b == 0
+divides a b = abs b `mod` abs a == 0
 
 egcd :: Integer -> Integer -> (Integer,(Integer,Integer))
 egcd a 0 = (a,(1,0))

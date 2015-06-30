@@ -13,6 +13,10 @@ where
 
 import qualified Data.List as List
 import qualified OpenTheory.Primitive.Natural as Natural
+import qualified OpenTheory.Stream as Stream
+
+fibonaccis :: [Natural.Natural]
+fibonaccis = Stream.unfold (\(p, f) -> (p, (f, p + f))) (0, 1)
 
 decode :: [Bool] -> Natural.Natural
 decode =

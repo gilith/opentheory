@@ -28,8 +28,8 @@ data Montgomery = Montgomery
 align :: Natural -> Natural -> Natural
 align b n = if n == 0 then 0 else (((n - 1) `div` b) + 1) * b
 
-mkAligned :: Natural -> Natural -> Montgomery
-mkAligned b n =
+mkWidth :: Natural -> Natural -> Montgomery
+mkWidth n w =
     Montgomery
       {nMontgomery = n,
        wMontgomery = w,
@@ -38,11 +38,13 @@ mkAligned b n =
        rMontgomery = r,
        r2Montgomery = r2}
   where
-    w = align b (Bits.width n)
     w2 = shiftLeft 1 w
     (_,(s,k)) = egcd w2 n
     r = w2 `mod` n
     r2 = (r * r) `mod` n
+
+mkAligned :: Natural -> Natural -> Montgomery
+mkAligned b n = mkWidth n (align b (Bits.width n))
 
 mkStandard :: Natural -> Montgomery
 mkStandard = mkAligned 64

@@ -20,7 +20,7 @@ library
     opentheory-primitive >= 1.6 && < 2.0,
     opentheory >= 1.193 && < 1.200,
     opentheory-divides >= 1.53 && < 1.63,
-    opentheory-stream >= 1.42 && < 1.46
+    opentheory-stream >= 1.42 && < 1.47
   hs-source-dirs: src
   ghc-options: -Wall
   exposed-modules:
@@ -35,7 +35,7 @@ test-suite opentheory-prime-test
     opentheory-primitive >= 1.6 && < 2.0,
     opentheory >= 1.193 && < 1.200,
     opentheory-divides >= 1.53 && < 1.63,
-    opentheory-stream >= 1.42 && < 1.46
+    opentheory-stream >= 1.42 && < 1.47
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Test.hs

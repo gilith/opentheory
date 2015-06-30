@@ -1,13 +1,16 @@
 name: natural-fibonacci
-version: 1.67
+version: 1.69
 description: Fibonacci numbers
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
 requires: base
 requires: probability
+requires: stream
 show: "Data.Bool"
 show: "Data.List"
 show: "Data.Pair"
+show: "Data.Stream"
+show: "Function"
 show: "Number.Natural"
 show: "Number.Natural.Fibonacci"
 show: "Probability.Random"
@@ -24,13 +27,13 @@ exists {
 
 def {
   import: exists
-  package: natural-fibonacci-def-1.48
+  package: natural-fibonacci-def-1.50
 }
 
 thm {
   import: exists
   import: def
-  package: natural-fibonacci-thm-1.55
+  package: natural-fibonacci-thm-1.57
 }
 
 main {

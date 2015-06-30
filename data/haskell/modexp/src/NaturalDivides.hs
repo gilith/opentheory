@@ -13,16 +13,19 @@ where
 import OpenTheory.Primitive.Natural
 
 divides :: Natural -> Natural -> Bool
-divides a b = if a == 0 then b == 0 else b `mod` a == 0
+divides 0 b = b == 0
+divides a b = b `mod` a == 0
 
 egcd :: Natural -> Natural -> (Natural,(Natural,Natural))
+egcd a 0 = (a,(1,0))
 egcd a b =
-    if b == 0 then (a,(1,0)) else
-    let c = a `mod` b in
-    if c == 0 then (b, (1, a `div` b - 1)) else
-    let (g,(s,t)) = egcd c (b `mod` c) in
-    let u = s + (b `div` c) * t in
-    (g, (u, t + (a `div` b) * u))
+    if c == 0
+    then (b, (1, a `div` b - 1))
+    else (g, (u, t + (a `div` b) * u))
+  where
+    c = a `mod` b
+    (g,(s,t)) = egcd c (b `mod` c)
+    u = s + (b `div` c) * t
 
 chineseRemainder :: Natural -> Natural -> Natural -> Natural -> Natural
 chineseRemainder a b =

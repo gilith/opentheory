@@ -1,5 +1,5 @@
 name: stream
-version: 1.45
+version: 1.46
 description: Infinite stream types
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -22,7 +22,7 @@ def {
 
 thm {
   import: def
-  package: stream-thm-1.38
+  package: stream-thm-1.39
 }
 
 main {
