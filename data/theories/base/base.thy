@@ -1,5 +1,5 @@
 name: base
-version: 1.199
+version: 1.200
 description: The standard theory library
 author: Joe Leslie-Hurd <joe@gilith.com>
 license: MIT
@@ -31,7 +31,7 @@ haskell-arbitrary-type: "Data.Sum.+"
 haskell-arbitrary-type: "Number.Natural.natural"
 
 bool {
-  package: bool-1.36
+  package: bool-1.37
 }
 
 unit {
@@ -46,13 +46,13 @@ function {
 
 pair {
   import: bool
-  package: pair-1.27
+  package: pair-1.28
 }
 
 natural {
   import: bool
   import: function
-  package: natural-1.104
+  package: natural-1.105
 }
 
 set {
@@ -60,7 +60,7 @@ set {
   import: function
   import: pair
   import: natural
-  package: set-1.71
+  package: set-1.72
 }
 
 relation {
@@ -69,7 +69,7 @@ relation {
   import: pair
   import: natural
   import: set
-  package: relation-1.60
+  package: relation-1.61
 }
 
 sum {

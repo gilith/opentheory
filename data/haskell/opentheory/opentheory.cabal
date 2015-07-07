@@ -1,5 +1,5 @@
 name: opentheory
-version: 1.199
+version: 1.200
 category: Formal Methods
 synopsis: The standard theory library
 license: MIT
@@ -11,7 +11,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 homepage: http://opentheory.gilith.com/?pkg=base
 description:
   The standard theory library - this package was automatically generated
-  from the OpenTheory package base-1.199
+  from the OpenTheory package base-1.200
 
 library
   build-depends:
