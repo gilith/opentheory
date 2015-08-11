@@ -1,5 +1,5 @@
 {- |
-module: Modexp
+module: Arithmetic.Modular
 description: Modular arithmetic
 license: MIT
 
@@ -7,7 +7,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Modexp
+module Arithmetic.Modular
 where
 
 import OpenTheory.Primitive.Natural

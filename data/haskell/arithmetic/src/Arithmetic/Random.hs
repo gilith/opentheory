@@ -1,5 +1,5 @@
 {- |
-module: Random
+module: Arithmetic.Random
 description: Generating random natural numbers of a given width
 license: MIT
 
@@ -7,7 +7,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Random
+module Arithmetic.Random
 where
 
 import Data.Bits

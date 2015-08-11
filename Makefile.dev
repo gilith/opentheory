@@ -166,7 +166,7 @@ HASKELL_EXTRA_PACKAGES = \
   decode-utf8 \
   nth-prime \
   fen2s \
-  modexp
+  arithmetic
 
 .PHONY: clean-haskell
 clean-haskell: $(OPENTHEORY)

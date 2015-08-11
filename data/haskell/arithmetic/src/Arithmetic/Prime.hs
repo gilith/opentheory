@@ -1,5 +1,5 @@
 {- |
-module: Prime
+module: Arithmetic.Prime
 description: Generating random primes
 license: MIT
 
@@ -7,7 +7,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Prime
+module Arithmetic.Prime
 where
 
 import OpenTheory.Primitive.Natural
@@ -16,8 +16,8 @@ import OpenTheory.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 import qualified OpenTheory.Natural.Uniform as Uniform
 
-import Random
-import qualified Modexp
+import Arithmetic.Random
+import qualified Arithmetic.Modular as Modular
 
 factorTwos :: Natural -> (Int,Natural)
 factorTwos n =
@@ -27,14 +27,14 @@ factorTwos n =
 
 millerRabinWitness :: Natural -> Natural -> Bool
 millerRabinWitness n =
-    \a -> witness (Modexp.modexp n a s) r
+    \a -> witness (Modular.modexp n a s) r
   where
     witness x i =
         if i == 0 then x /= 1
         else if x2 == 1 then not (x == 1 || x == n1)
         else witness x2 (i - 1)
       where
-        x2 = Modexp.modsquare n x
+        x2 = Modular.modsquare n x
 
     (r,s) = factorTwos n1
 

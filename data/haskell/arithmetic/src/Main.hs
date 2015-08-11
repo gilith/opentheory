@@ -1,6 +1,6 @@
 {- |
 module: Main
-description: Computing modular exponentiation
+description: Computing natural number arithmetic operations
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
@@ -19,9 +19,9 @@ import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
 
-import Random
-import qualified Modexp
-import qualified Montgomery
+import Arithmetic.Random
+import qualified Arithmetic.Modular as Modular
+import qualified Arithmetic.Montgomery as Montgomery
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -63,17 +63,17 @@ stringToOperation = getPrefixString "operation" operationToString operations
 --------------------------------------------------------------------------------
 
 data Algorithm =
-    Naive
+    Modular
   | Montgomery
   deriving Show
 
 algorithms :: [Algorithm]
-algorithms = [Naive,Montgomery]
+algorithms = [Modular,Montgomery]
 
 algorithmToString :: Algorithm -> String
 algorithmToString oper =
    case oper of
-     Naive -> "naive"
+     Modular -> "modular"
      Montgomery -> "montgomery"
 
 stringToAlgorithm :: String -> Algorithm
@@ -201,9 +201,9 @@ usage err =
 type Computation = Natural -> Natural -> Natural -> Natural
 
 computation :: Operation -> Algorithm -> Computation
-computation Modexp Naive = Modexp.modexp
+computation Modexp Modular = Modular.modexp
 computation Modexp Montgomery = Montgomery.modexp
-computation Timelock Naive = Modexp.modexp2
+computation Timelock Modular = Modular.modexp2
 computation Timelock Montgomery = Montgomery.modexp2
 
 computationToString ::

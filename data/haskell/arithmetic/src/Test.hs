@@ -20,10 +20,10 @@ import OpenTheory.Primitive.Test
 
 import qualified IntegerDivides
 import qualified NaturalDivides
-import Random
-import Prime
-import qualified Modexp
-import qualified Montgomery
+import Arithmetic.Random
+import Arithmetic.Prime
+import qualified Arithmetic.Modular as Modular
+import qualified Arithmetic.Montgomery as Montgomery
 
 propIntegerEgcdDivides :: Integer -> Integer -> Bool
 propIntegerEgcdDivides a b =
@@ -80,8 +80,8 @@ propNaturalChineseRemainder w r =
     (r1,r23) = Random.split r
     (r2,r3) = Random.split r23
 
-randomMontgomery :: Int -> Random.Random -> Montgomery.Montgomery
-randomMontgomery w r = Montgomery.mkStandard (randomOdd w r)
+randomMontgomeryParameters :: Int -> Random.Random -> Montgomery.Parameters
+randomMontgomeryParameters w r = Montgomery.standardParameters (randomOdd w r)
 
 propMontgomeryInvariant :: Int -> Random.Random -> Bool
 propMontgomeryInvariant nw rnd =
@@ -91,132 +91,162 @@ propMontgomeryInvariant nw rnd =
     s < n &&
     k < w2 &&
     r == w2 `mod` n &&
-    r2 == (r * r) `mod` n
+    r2 == (r * r) `mod` n &&
+    z `mod` n == 0 &&
+    w2 <= z &&
+    z < w2 + n
   where
-    Montgomery.Montgomery
-      {Montgomery.nMontgomery = n,
-       Montgomery.wMontgomery = w,
-       Montgomery.sMontgomery = s,
-       Montgomery.kMontgomery = k,
-       Montgomery.rMontgomery = r,
-       Montgomery.r2Montgomery = r2} = randomMontgomery nw rnd
+    Montgomery.Parameters
+      {Montgomery.nParameters = n,
+       Montgomery.wParameters = w,
+       Montgomery.sParameters = s,
+       Montgomery.kParameters = k,
+       Montgomery.rParameters = r,
+       Montgomery.r2Parameters = r2,
+       Montgomery.zParameters = z} = randomMontgomeryParameters nw rnd
 
     w2 = shiftLeft 1 w
 
 propMontgomeryNormalize :: Int -> Random.Random -> Bool
 propMontgomeryNormalize nw rnd =
-    x `mod` n == a `mod` n &&
-    x < w2
+    b `mod` n == a `mod` n &&
+    b < w2
   where
-    m = randomMontgomery nw r1
+    p = randomMontgomeryParameters nw r1
     a = Uniform.random (w2 * w2) r2
-    x = Montgomery.normalize m a
+    b = Montgomery.nMontgomery (Montgomery.normalize p a)
 
-    n = Montgomery.nMontgomery m
-    w = Montgomery.wMontgomery m
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
 propMontgomeryReduce :: Int -> Random.Random -> Bool
 propMontgomeryReduce nw rnd =
-    x `mod` n == (a * s) `mod` n &&
-    x < w2 + n
+    b `mod` n == (a * s) `mod` n &&
+    b < w2 + n
   where
-    m = randomMontgomery nw r1
+    p = randomMontgomeryParameters nw r1
     a = Uniform.random (w2 * w2) r2
-    x = Montgomery.reduce m a
+    b = Montgomery.reduce p a
 
-    n = Montgomery.nMontgomery m
-    w = Montgomery.wMontgomery m
-    s = Montgomery.sMontgomery m
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
+    s = Montgomery.sParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
 propMontgomeryReduceSmall :: Int -> Random.Random -> Bool
 propMontgomeryReduceSmall nw rnd =
-    x `mod` n == (a * s) `mod` n &&
-    x <= n
+    b `mod` n == (a * s) `mod` n &&
+    b <= n
   where
-    m = randomMontgomery nw r1
+    p = randomMontgomeryParameters nw r1
     a = Uniform.random w2 r2
-    x = Montgomery.reduce m a
+    b = Montgomery.reduce p a
 
-    n = Montgomery.nMontgomery m
-    w = Montgomery.wMontgomery m
-    s = Montgomery.sMontgomery m
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
+    s = Montgomery.sParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
 propMontgomeryToNatural :: Int -> Random.Random -> Bool
 propMontgomeryToNatural nw rnd =
-    x == (a * s) `mod` n
+    b == (a * s) `mod` n
   where
-    m = randomMontgomery nw r1
+    p = randomMontgomeryParameters nw r1
     a = Uniform.random w2 r2
-    x = Montgomery.toNatural m a
+    b = Montgomery.toNatural (Montgomery.normalize p a)
 
-    n = Montgomery.nMontgomery m
-    w = Montgomery.wMontgomery m
-    s = Montgomery.sMontgomery m
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
+    s = Montgomery.sParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
 propMontgomeryFromNatural :: Int -> Random.Random -> Bool
 propMontgomeryFromNatural nw rnd =
-    x == a `mod` n
+    b == a `mod` n
   where
-    m = randomMontgomery nw r1
+    p = randomMontgomeryParameters nw r1
     a = Uniform.random (w2 * w2) r2
-    x = Montgomery.toNatural m (Montgomery.fromNatural m a)
+    b = Montgomery.toNatural (Montgomery.fromNatural p a)
 
-    n = Montgomery.nMontgomery m
-    w = Montgomery.wMontgomery m
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
-propMontgomeryOneM :: Int -> Random.Random -> Bool
-propMontgomeryOneM nw rnd =
-    Montgomery.toNatural m (Montgomery.oneM m) == 1
+propMontgomeryZero :: Int -> Random.Random -> Bool
+propMontgomeryZero nw rnd =
+    Montgomery.toNatural (Montgomery.zero p) == 0
   where
-    m = randomMontgomery nw rnd
+    p = randomMontgomeryParameters nw rnd
 
-propMontgomeryAddM :: Int -> Random.Random -> Bool
-propMontgomeryAddM nw rnd =
-    Montgomery.toNatural m x ==
-      Modexp.modadd n (Montgomery.toNatural m a) (Montgomery.toNatural m b) &&
-    x < w2
+propMontgomeryOne :: Int -> Random.Random -> Bool
+propMontgomeryOne nw rnd =
+    Montgomery.toNatural (Montgomery.one p) == 1
   where
-    m = randomMontgomery nw r1
-    a = Uniform.random w2 r2
-    b = Uniform.random w2 r3
-    x = Montgomery.addM m a b
+    p = randomMontgomeryParameters nw rnd
 
-    n = Montgomery.nMontgomery m
-    w = Montgomery.wMontgomery m
+propMontgomeryTwo :: Int -> Random.Random -> Bool
+propMontgomeryTwo nw rnd =
+    Montgomery.toNatural (Montgomery.two p) == 2
+  where
+    p = randomMontgomeryParameters nw rnd
+
+propMontgomeryAdd :: Int -> Random.Random -> Bool
+propMontgomeryAdd nw rnd =
+    Montgomery.toNatural c ==
+      Modular.modadd n (Montgomery.toNatural a) (Montgomery.toNatural b) &&
+    Montgomery.nMontgomery c < w2
+  where
+    p = randomMontgomeryParameters nw r1
+    a = Montgomery.normalize p (Uniform.random w2 r2)
+    b = Montgomery.normalize p (Uniform.random w2 r3)
+    c = Montgomery.add a b
+
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
-propMontgomeryMultiplyM :: Int -> Random.Random -> Bool
-propMontgomeryMultiplyM nw rnd =
-    Montgomery.toNatural m x ==
-      Modexp.modmult n (Montgomery.toNatural m a) (Montgomery.toNatural m b) &&
-    x < w2
+propMontgomeryNegate :: Int -> Random.Random -> Bool
+propMontgomeryNegate nw rnd =
+    Montgomery.toNatural b == Modular.modneg n (Montgomery.toNatural a) &&
+    Montgomery.nMontgomery b < w2
   where
-    m = randomMontgomery nw r1
-    a = Uniform.random w2 r2
-    b = Uniform.random w2 r3
-    x = Montgomery.multiplyM m a b
+    p = randomMontgomeryParameters nw r1
+    a = Montgomery.normalize p (Uniform.random w2 r2)
+    b = Montgomery.negate a
 
-    n = Montgomery.nMontgomery m
-    w = Montgomery.wMontgomery m
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
+    w2 = shiftLeft 1 w
+    (r1,r2) = Random.split rnd
+
+propMontgomeryMultiply :: Int -> Random.Random -> Bool
+propMontgomeryMultiply nw rnd =
+    Montgomery.toNatural c ==
+      Modular.modmult n (Montgomery.toNatural a) (Montgomery.toNatural b) &&
+    Montgomery.nMontgomery c < w2
+  where
+    p = randomMontgomeryParameters nw r1
+    a = Montgomery.normalize p (Uniform.random w2 r2)
+    b = Montgomery.normalize p (Uniform.random w2 r3)
+    c = Montgomery.multiply a b
+
+    n = Montgomery.nParameters p
+    w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
 propMontgomeryModexp :: Int -> Random.Random -> Bool
 propMontgomeryModexp w r =
-    Montgomery.modexp n x k == Modexp.modexp n x k
+    Montgomery.modexp n x k == Modular.modexp n x k
   where
     n = randomOdd w r1
     x = Uniform.random n r2
@@ -227,7 +257,7 @@ propMontgomeryModexp w r =
 
 propMontgomeryModexp2 :: Int -> Random.Random -> Bool
 propMontgomeryModexp2 w r =
-    Montgomery.modexp2 n x k == Modexp.modexp2 n x k
+    Montgomery.modexp2 n x k == Modular.modexp2 n x k
   where
     n = randomOdd w r1
     x = Uniform.random n r2
@@ -261,9 +291,12 @@ checkWidthProps w =
       checkWidthProp w "Check Montgomery reduce small" propMontgomeryReduceSmall
       checkWidthProp w "Check Montgomery toNatural" propMontgomeryToNatural
       checkWidthProp w "Check Montgomery fromNatural" propMontgomeryFromNatural
-      checkWidthProp w "Check Montgomery oneM" propMontgomeryOneM
-      checkWidthProp w "Check Montgomery addM" propMontgomeryAddM
-      checkWidthProp w "Check Montgomery multiplyM" propMontgomeryMultiplyM
+      checkWidthProp w "Check Montgomery zero" propMontgomeryZero
+      checkWidthProp w "Check Montgomery one" propMontgomeryOne
+      checkWidthProp w "Check Montgomery two" propMontgomeryTwo
+      checkWidthProp w "Check Montgomery add" propMontgomeryAdd
+      checkWidthProp w "Check Montgomery negate" propMontgomeryNegate
+      checkWidthProp w "Check Montgomery multiply" propMontgomeryMultiply
       checkWidthProp w "Check Montgomery modexp" propMontgomeryModexp
       checkWidthProp w "Check Montgomery modexp2" propMontgomeryModexp2
       checkWidthProp w "Fermat's little theorem" propFermat

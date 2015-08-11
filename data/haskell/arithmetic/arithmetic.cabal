@@ -1,7 +1,7 @@
-name: modexp
+name: arithmetic
 version: 1.0
 category: Number Theory
-synopsis: Modular exponentiation
+synopsis: Natural number arithmetic
 license: MIT
 license-file: LICENSE
 cabal-version: >= 1.8.0.2
@@ -9,9 +9,27 @@ build-type: Simple
 author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
-  This package implements a simple utility to compute modular exponentiation.
+  This package implements a library of natural number arithmetic functions,
+  including Montgomery multiplication.
 
-executable modexp
+Library
+  build-depends:
+    base >= 4.0 && < 5.0,
+    random >= 1.0.1.1 && < 2.0,
+    QuickCheck >= 2.4.0.1 && < 3.0,
+    opentheory-primitive >= 1.0 && < 2.0,
+    opentheory >= 1.0 && < 2.0,
+    opentheory-bits >= 1.0 && < 2.0,
+    opentheory-divides >= 1.0 && < 2.0
+  hs-source-dirs: src
+  ghc-options: -Wall
+  exposed-modules:
+    Arithmetic.Modular,
+    Arithmetic.Montgomery,
+    Arithmetic.Prime,
+    Arithmetic.Random
+
+executable arithmetic
   build-depends:
     base >= 4.0 && < 5.0,
     random >= 1.0.1.1 && < 2.0,
@@ -23,15 +41,8 @@ executable modexp
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Main.hs
-  other-modules:
-    IntegerDivides,
-    NaturalDivides,
-    Random,
-    Modexp,
-    Montgomery,
-    Prime
 
-test-suite modexp-test
+test-suite arithmetic-test
   type: exitcode-stdio-1.0
   build-depends:
     base >= 4.0 && < 5.0,
@@ -44,3 +55,6 @@ test-suite modexp-test
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Test.hs
+  other-modules:
+    IntegerDivides,
+    NaturalDivides
