@@ -201,9 +201,9 @@ usage err =
 type Computation = Natural -> Natural -> Natural -> Natural
 
 computation :: Operation -> Algorithm -> Computation
-computation Modexp Modular = Modular.modexp
+computation Modexp Modular = Modular.exp
 computation Modexp Montgomery = Montgomery.modexp
-computation Timelock Modular = Modular.modexp2
+computation Timelock Modular = Modular.exp2
 computation Timelock Montgomery = Montgomery.modexp2
 
 computationToString ::

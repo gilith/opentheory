@@ -27,14 +27,14 @@ factorTwos n =
 
 millerRabinWitness :: Natural -> Natural -> Bool
 millerRabinWitness n =
-    \a -> witness (Modular.modexp n a s) r
+    \a -> witness (Modular.exp n a s) r
   where
     witness x i =
         if i == 0 then x /= 1
         else if x2 == 1 then not (x == 1 || x == n1)
         else witness x2 (i - 1)
       where
-        x2 = Modular.modsquare n x
+        x2 = Modular.square n x
 
     (r,s) = factorTwos n1
 

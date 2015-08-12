@@ -55,6 +55,3 @@ test-suite arithmetic-test
   hs-source-dirs: src
   ghc-options: -Wall
   main-is: Test.hs
-  other-modules:
-    IntegerDivides,
-    NaturalDivides

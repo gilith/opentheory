@@ -11,6 +11,7 @@ module Arithmetic.Modular
 where
 
 import OpenTheory.Primitive.Natural
+import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Bits as Bits
 
 multiplyExponential :: (a -> a -> a) -> a -> a -> Natural -> a
@@ -32,23 +33,37 @@ functionPower f =
        if n == 0 then x
        else let x' = f x in x' `seq` loop (n - 1) x'
 
-modneg :: Natural -> Natural -> Natural
-modneg n x = let y = x `mod` n in if y == 0 then y else n - y
+normalize :: Natural -> Natural -> Natural
+normalize n x = x `mod` n
 
-modadd :: Natural -> Natural -> Natural -> Natural
-modadd n x y = (x + y) `mod` n
+add :: Natural -> Natural -> Natural -> Natural
+add n x y = normalize n (x + y)
 
-modsub :: Natural -> Natural -> Natural -> Natural
-modsub n x y = if y <= x then (x - y) `mod` n else modneg n (y - x)
+negate :: Natural -> Natural -> Natural
+negate n x =
+    if y == 0 then y else n - y
+  where
+    y = normalize n x
 
-modmult :: Natural -> Natural -> Natural -> Natural
-modmult n x y = (x * y) `mod` n
+subtract :: Natural -> Natural -> Natural -> Natural
+subtract n x y =
+    if y <= x then normalize n (x - y)
+    else Arithmetic.Modular.negate n (y - x)
 
-modsquare :: Natural -> Natural -> Natural
-modsquare n x = modmult n x x
+multiply :: Natural -> Natural -> Natural -> Natural
+multiply n x y = normalize n (x * y)
 
-modexp :: Natural -> Natural -> Natural -> Natural
-modexp n = multiplyExponential (modmult n) 1
+square :: Natural -> Natural -> Natural
+square n x = multiply n x x
 
-modexp2 :: Natural -> Natural -> Natural -> Natural
-modexp2 n x k = functionPower (modsquare n) k x
+exp :: Natural -> Natural -> Natural -> Natural
+exp n = multiplyExponential (multiply n) 1
+
+exp2 :: Natural -> Natural -> Natural -> Natural
+exp2 n x k = functionPower (square n) k x
+
+invert :: Natural -> Natural -> Maybe Natural
+invert n x =
+    if g == 1 then Just s else Nothing
+  where
+    (g,(s,_)) = egcd x n
