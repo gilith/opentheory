@@ -27,7 +27,8 @@ Library
     Arithmetic.Modular,
     Arithmetic.Montgomery,
     Arithmetic.Prime,
-    Arithmetic.Random
+    Arithmetic.Random,
+    Arithmetic.Smooth
 
 executable arithmetic
   build-depends:
