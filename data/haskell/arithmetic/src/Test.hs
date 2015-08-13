@@ -23,6 +23,8 @@ import Arithmetic.Random
 import Arithmetic.Prime
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
+import qualified Arithmetic.Smooth as Smooth
+import qualified Arithmetic.SquareRoot as SquareRoot
 
 propEgcdDivides :: Natural -> Natural -> Bool
 propEgcdDivides a b =
@@ -43,6 +45,19 @@ propEgcdBound ap b =
   where
     a = ap + 1
     (_,(s,t)) = egcd a b
+
+propSmoothInjective :: Natural -> Natural -> Bool
+propSmoothInjective k np =
+    Smooth.toNatural (Smooth.fromNatural k n) == n
+  where
+    n = np + 1
+
+propFloorSqrt :: Natural -> Bool
+propFloorSqrt n =
+    sq s <= n && n < sq (s + 1)
+  where
+    s = SquareRoot.floorSqrt n
+    sq i = i * i
 
 propChineseRemainder :: Int -> Random.Random -> Bool
 propChineseRemainder w r =
@@ -301,6 +316,8 @@ main =
     do check "Check egcd divides\n  " propEgcdDivides
        check "Check egcd equation\n  " propEgcdEquation
        check "Check egcd bound\n  " propEgcdBound
+       check "Check smooth injective\n  " propSmoothInjective
+       check "Check floor square root\n  " propFloorSqrt
        mapM_ checkWidthProps ws
        return ()
   where

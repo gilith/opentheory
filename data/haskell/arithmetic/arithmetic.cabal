@@ -29,7 +29,8 @@ Library
     Arithmetic.Montgomery,
     Arithmetic.Prime,
     Arithmetic.Random,
-    Arithmetic.Smooth
+    Arithmetic.Smooth,
+    Arithmetic.SquareRoot
 
 executable arithmetic
   build-depends:
