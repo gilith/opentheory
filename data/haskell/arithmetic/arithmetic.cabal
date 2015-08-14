@@ -25,6 +25,7 @@ Library
   hs-source-dirs: src
   ghc-options: -Wall
   exposed-modules:
+    Arithmetic.ContinuedFraction,
     Arithmetic.Modular,
     Arithmetic.Montgomery,
     Arithmetic.Prime,
