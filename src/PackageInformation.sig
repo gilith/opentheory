@@ -10,9 +10,9 @@ sig
 (* Package information is stored in theory files.                            *)
 (* ------------------------------------------------------------------------- *)
 
-val mkFilename : PackageName.name -> {filename : string}
+val mkFilename : {base : string} -> {filename : string}
 
-val destFilename : {filename : string} -> PackageName.name option
+val destFilename : {filename : string} -> {base : string} option
 
 val isFilename : {filename : string} -> bool
 

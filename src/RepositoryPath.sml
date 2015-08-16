@@ -167,7 +167,12 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun tarballFile namever = PackageTarball.mkFilename namever;
+  fun tarballFile namever =
+      let
+        val base = PackageNameVersion.toString namever
+      in
+        PackageTarball.mkFilename {base = base}
+      end;
 in
   fun mkTarballFilename root namever =
       joinDirectoryFilename

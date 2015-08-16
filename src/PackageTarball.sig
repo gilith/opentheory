@@ -10,9 +10,9 @@ sig
 (* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val mkFilename : PackageNameVersion.nameVersion -> {filename : string}
+val mkFilename : {base : string} -> {filename : string}
 
-val destFilename : {filename : string} -> PackageNameVersion.nameVersion option
+val destFilename : {filename : string} -> {base : string} option
 
 val isFilename : {filename : string} -> bool
 

@@ -122,7 +122,12 @@ fun isInstalled pkg = existsDirectory pkg;
 (* The package theory file.                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun theoryFile pkg = PackageInformation.mkFilename (name pkg);
+fun theoryFile pkg =
+    let
+      val base = PackageName.toString (name pkg)
+    in
+      PackageInformation.mkFilename {base = base}
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Package information.                                                      *)
@@ -221,7 +226,12 @@ fun emptyTheories pkg = PackageInformation.emptyTheories (information pkg);
 (* Package tarball.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun tarballFile pkg = PackageTarball.mkFilename (nameVersion pkg);
+fun tarballFile pkg =
+    let
+      val base = PackageNameVersion.toString (nameVersion pkg)
+    in
+      PackageTarball.mkFilename {base = base}
+    end;
 
 fun tarball (Package {tarball = x, ...}) = x;
 
@@ -352,9 +362,11 @@ fun mk {system,nameVersion,checksum,directory} =
     let
       val tarball =
           let
+            val base = PackageNameVersion.toString nameVersion
+
             val {filename} =
                 joinDirectoryFilename {directory = directory}
-                  (PackageTarball.mkFilename nameVersion)
+                  (PackageTarball.mkFilename {base = base})
           in
             PackageTarball.mk
               {system = system,

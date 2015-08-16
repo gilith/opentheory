@@ -18,11 +18,11 @@ val fileExtension = "tgz";
 (* Tarball filenames.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkFilename namever =
+fun mkFilename {base} =
     let
       val filename =
           OS.Path.joinBaseExt
-            {base = PackageNameVersion.toString namever,
+            {base = base,
              ext = SOME fileExtension}
     in
       {filename = filename}
@@ -36,7 +36,7 @@ fun destFilename {filename} =
         NONE => NONE
       | SOME x =>
         if x <> fileExtension then NONE
-        else total PackageNameVersion.fromString base
+        else SOME {base = base}
     end;
 
 fun isFilename file = Option.isSome (destFilename file);
@@ -104,7 +104,11 @@ in
         val namever = PackageNameVersion.fromString dir
 
         val theoryFile =
-            PackageInformation.mkFilename (PackageNameVersion.name namever)
+            let
+              val base = PackageName.toString (PackageNameVersion.name namever)
+            in
+              PackageInformation.mkFilename {base = base}
+            end
 
         val otherFiles =
             case List.partition (equal theoryFile) files of

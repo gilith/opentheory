@@ -18,11 +18,11 @@ val fileExtension = "thy";
 (* Package information is stored in theory files.                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkFilename name =
+fun mkFilename {base} =
     let
       val filename =
           OS.Path.joinBaseExt
-            {base = PackageName.toString name,
+            {base = base,
              ext = SOME fileExtension}
     in
       {filename = filename}
@@ -36,7 +36,7 @@ fun destFilename {filename} =
         NONE => NONE
       | SOME x =>
         if x <> fileExtension then NONE
-        else total PackageName.fromString base
+        else SOME {base = base}
     end;
 
 fun isFilename file = Option.isSome (destFilename file);
