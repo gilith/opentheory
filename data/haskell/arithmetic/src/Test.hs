@@ -21,6 +21,7 @@ import OpenTheory.Primitive.Test
 
 import Arithmetic.Random
 import Arithmetic.Prime
+import qualified Arithmetic.ContinuedFraction as ContinuedFraction
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 import qualified Arithmetic.Smooth as Smooth
@@ -58,6 +59,15 @@ propFloorSqrt n =
   where
     s = SquareRoot.floorSqrt n
     sq i = i * i
+
+propContinuedFractionSqrt :: Natural -> Bool
+propContinuedFractionSqrt np =
+    err < 1.0e-15
+  where
+    n = np + 1
+    cf = ContinuedFraction.toDouble (SquareRoot.continuedFractionSqrt n)
+    spec = sqrt (fromIntegral n)
+    err = abs (cf - spec) / spec
 
 propChineseRemainder :: Int -> Random.Random -> Bool
 propChineseRemainder w r =
@@ -318,6 +328,7 @@ main =
        check "Check egcd bound\n  " propEgcdBound
        check "Check smooth injective\n  " propSmoothInjective
        check "Check floor square root\n  " propFloorSqrt
+       check "Check continued fraction square root\n  " propContinuedFractionSqrt
        mapM_ checkWidthProps ws
        return ()
   where
