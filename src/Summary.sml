@@ -176,23 +176,17 @@ val defaultContext = NoContext;
 (* ------------------------------------------------------------------------- *)
 
 datatype externals =
-    AllExternals of SymbolTable.table
+    AllExternals of SymbolSet.set
   | ClassifiedExternals of
-      {grounded : SymbolTable.table,
-       ungrounded : SymbolTable.table};
+      {grounded : SymbolSet.set,
+       ungrounded : SymbolSet.set};
 
-fun mkExternals ctxt inp =
+fun mkExternals ctxt s =
     case ctxt of
-      NoContext => AllExternals inp
+      NoContext => AllExternals s
     | Context {groundedExternal = g, ...} =>
       let
-        val s = SymbolTable.symbols inp
-
         val (gs,us) = SymbolSet.partition g s
-
-        val gs = SymbolTable.addSymbolSet SymbolTable.empty gs
-
-        val us = SymbolTable.addSymbolSet SymbolTable.empty us
       in
         ClassifiedExternals {grounded = gs, ungrounded = us}
       end;
@@ -227,18 +221,17 @@ datatype info =
     Info of
       {external : externals,
        assumed : assumptions,
-       defined : SymbolTable.table,
+       defined : SymbolSet.set,
        axioms : SequentSet.set,
        thms : SequentSet.set};
 
 local
-  fun allSymbolsIn sym =
+  fun allSymbolsIn ext =
       let
-        val ots = SymbolTable.typeOps sym
-        and cs = SymbolTable.consts sym
+        val (ts,cs) = SymbolSet.categorize ext
       in
         fn seq =>
-           TypeOpSet.subset (Sequent.typeOps seq) ots andalso
+           TypeOpSet.subset (Sequent.typeOps seq) ts andalso
            ConstSet.subset (Sequent.consts seq) cs
       end;
 in
@@ -249,24 +242,22 @@ in
 *)
         val Summary' {requires,provides} = dest summary
 
-        val {undefined = inp, defined = def} =
+        val (ext,def) =
             let
-              val req = Sequents.symbol requires
-              and prov = Sequents.symbol provides
-
-              val sym = SymbolTable.union req prov
+              val req = SymbolTable.symbols (Sequents.symbol requires)
+              and prov = SymbolTable.symbols (Sequents.symbol provides)
             in
-              SymbolTable.partitionUndef sym
+              SymbolSet.partition Symbol.isUndef (SymbolSet.union req prov)
             end
 
         val (ass,ax) =
             let
               val req = Sequents.sequents requires
             in
-              SequentSet.partition (allSymbolsIn inp) req
+              SequentSet.partition (allSymbolsIn ext) req
             end
 
-        val inp = mkExternals ctxt inp
+        val ext = mkExternals ctxt ext
 
         val ass = mkAssumptions ctxt ass
 
@@ -277,7 +268,7 @@ in
 *)
       in
         Info
-          {external = inp,
+          {external = ext,
            assumed = ass,
            defined = def,
            axioms = ax,
@@ -473,10 +464,9 @@ local
         val () =
             case mkExternals ctxt external of
               AllExternals _ => ()
-            | ClassifiedExternals {ungrounded = inp, ...} =>
+            | ClassifiedExternals {ungrounded = ext, ...} =>
               let
-                val ts = SymbolTable.typeOps inp
-                and cs = SymbolTable.consts inp
+                val (ts,cs) = SymbolSet.categorize ext
 
                 val () =
                     if TypeOpSet.null ts then ()
@@ -614,10 +604,12 @@ in
 
         fun ppSymbol (prefix,sym) =
             let
-              val ots = TypeOpSet.toList (SymbolTable.typeOps sym)
-              and cs = ConstSet.toList (SymbolTable.consts sym)
+              val (ts,cs) = SymbolSet.categorize sym
+
+              val ts = TypeOpSet.toList ts
+              and cs = ConstSet.toList cs
             in
-              ppList ppTypeOp prefix " type operator" ots @
+              ppList ppTypeOp prefix " type operator" ts @
               ppList ppConst prefix " constant" cs
             end
       in
@@ -627,7 +619,7 @@ in
 
              val (external,uexternal) =
                  case external of
-                   AllExternals inp => (inp,SymbolTable.empty)
+                   AllExternals ext => (ext,SymbolSet.empty)
                  | ClassifiedExternals {grounded,ungrounded} =>
                    (grounded,ungrounded)
 
@@ -1002,10 +994,12 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
 
       fun toHtmlSymbol name classes sym =
           let
-            val ots = TypeOpSet.toList (SymbolTable.typeOps sym)
-            and cs = ConstSet.toList (SymbolTable.consts sym)
+            val (ts,cs) = SymbolSet.categorize sym
+
+            val ts = TypeOpSet.toList ts
+            and cs = ConstSet.toList cs
           in
-            toHtmlTypeOps name classes ots @
+            toHtmlTypeOps name classes ts @
             toHtmlConsts name classes cs
           end
 
@@ -1040,7 +1034,7 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
 
            val (uexternal,external) =
                case external of
-                 AllExternals sym => (SymbolTable.empty,sym)
+                 AllExternals sym => (SymbolSet.empty,sym)
                | ClassifiedExternals {grounded = sym, ungrounded = usym} =>
                  (usym,sym)
 
