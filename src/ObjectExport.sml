@@ -269,7 +269,7 @@ local
         val ts = Term.toSetSharingTypeOps typeOps
         and cs = Term.toSetSharingConsts consts
       in
-        {typeOps = ts, consts = cs}
+        SymbolSet.merge {typeOps = ts, consts = cs}
       end;
 in
   val thmSymbols =
@@ -304,87 +304,6 @@ in
             end
       in
         fn exp => finalizeState (fold add initialState exp)
-      end;
-end;
-
-local
-  fun check xstr xsize (n,xs) =
-      let
-        val k = xsize xs
-      in
-        if k = 1 then ()
-        else
-          let
-            val msg =
-                Int.toString k ^ " different " ^ xstr ^ "s named " ^
-                Name.toString n
-          in
-            warn msg
-          end
-      end;
-
-  val checkTypeOp = check "type operator" TypeOpSet.size
-  and checkConst = check "constant" ConstSet.size;
-in
-  fun warnClashingSymbols {typeOps = ts, consts = cs} =
-      let
-        val () = NameMap.app checkTypeOp (TypeOpSet.alphabetize ts)
-        and () = NameMap.app checkConst (ConstSet.alphabetize cs)
-      in
-        ()
-      end;
-end;
-
-local
-  fun intersperse x =
-      let
-        fun f h t =
-            case t of
-              [] => [h]
-            | h' :: t => h :: x :: f h' t
-      in
-        fn [] => []
-         | h :: t => f h t
-      end;
-
-  fun ppList ppX prefix name xs =
-      let
-        val n = List.length xs
-      in
-        if n = 0 then []
-        else
-          [Print.inconsistentBlock 2
-             (Print.ppPrettyInt n ::
-              Print.space ::
-              Print.ppString prefix ::
-              Print.space ::
-              Print.ppString name ::
-              (if n = 1 then Print.skip else Print.ppString "s") ::
-              Print.ppString ":" ::
-              List.map (Print.sequence Print.break o ppX) xs)]
-      end;
-
-  fun ppTypeOps prefix ts =
-      ppList TypeOp.pp prefix "type operator" (TypeOpSet.toList ts);
-
-  fun ppConsts prefix cs =
-      ppList Const.pp prefix "constant" (ConstSet.toList cs);
-in
-  fun ppSymbols {typeOps = ts, consts = cs} =
-      let
-        val (xts,dts) = TypeOpSet.partition TypeOp.isUndef ts
-        and (xcs,dcs) = ConstSet.partition Const.isUndef cs
-
-        val blocks =
-            ppTypeOps "external" xts @
-            ppConsts "external" xcs @
-            ppTypeOps "defined" dts @
-            ppConsts "defined" dcs
-      in
-        if List.null blocks then Print.skip
-        else
-          Print.consistentBlock 0
-            (intersperse Print.newline blocks)
       end;
 end;
 

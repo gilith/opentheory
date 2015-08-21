@@ -94,6 +94,21 @@ fun fromThms ths =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Symbols.                                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+fun symbol sum =
+    let
+      val req = requires sum
+      and prov = provides sum
+
+      val s1 = SymbolTable.symbols (Sequents.symbol req)
+      and s2 = SymbolTable.symbols (Sequents.symbol prov)
+    in
+      SymbolSet.union s1 s2
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Substitutions.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
@@ -226,9 +241,9 @@ datatype info =
        thms : SequentSet.set};
 
 local
-  fun allSymbolsIn ext =
+  fun allSymbolsExt ext =
       let
-        val (ts,cs) = SymbolSet.categorize ext
+        val {typeOps = ts, consts = cs} = SymbolSet.categorize ext
       in
         fn seq =>
            TypeOpSet.subset (Sequent.typeOps seq) ts andalso
@@ -254,7 +269,7 @@ in
             let
               val req = Sequents.sequents requires
             in
-              SequentSet.partition (allSymbolsIn ext) req
+              SequentSet.partition (allSymbolsExt ext) req
             end
 
         val ext = mkExternals ctxt ext
@@ -466,7 +481,7 @@ local
               AllExternals _ => ()
             | ClassifiedExternals {ungrounded = ext, ...} =>
               let
-                val (ts,cs) = SymbolSet.categorize ext
+                val {typeOps = ts, consts = cs} = SymbolSet.categorize ext
 
                 val () =
                     if TypeOpSet.null ts then ()
@@ -604,7 +619,7 @@ in
 
         fun ppSymbol (prefix,sym) =
             let
-              val (ts,cs) = SymbolSet.categorize sym
+              val {typeOps = ts, consts = cs} = SymbolSet.categorize sym
 
               val ts = TypeOpSet.toList ts
               and cs = ConstSet.toList cs
@@ -994,7 +1009,7 @@ fun toHtmlInfo ppTypeOpWS ppConstWS
 
       fun toHtmlSymbol name classes sym =
           let
-            val (ts,cs) = SymbolSet.categorize sym
+            val {typeOps = ts, consts = cs} = SymbolSet.categorize sym
 
             val ts = TypeOpSet.toList ts
             and cs = ConstSet.toList cs

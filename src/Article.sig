@@ -50,7 +50,7 @@ val summary : article -> Summary.summary
 (* Article symbols.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val symbols : article -> {typeOps : TypeOpSet.set, consts : ConstSet.set}
+val symbols : article -> SymbolSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Input/Output.                                                             *)

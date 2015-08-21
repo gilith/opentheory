@@ -2358,6 +2358,8 @@ local
               | NONE => Show.default
 
           val {filename} = file
+
+          val () = SymbolSet.warnClashing (Summary.symbol sum)
         in
           Summary.toTextFileWithGrammar grammar
             {context = context,
@@ -2374,9 +2376,9 @@ local
 
           val sym = Article.symbols art
 
-          val () = ObjectExport.warnClashingSymbols sym
+          val () = SymbolSet.warnClashing sym
 
-          val strm = Print.toStream ObjectExport.ppSymbols sym
+          val strm = Print.toStream SymbolSet.pp sym
         in
           Stream.toTextFile file strm
         end

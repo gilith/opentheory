@@ -235,7 +235,7 @@ fun toTextFile {article,version,filename} =
           let
             val sym = ObjectExport.proofSymbols exp
           in
-            ObjectExport.warnClashingSymbols sym
+            SymbolSet.warnClashing sym
           end
 
       val () =
