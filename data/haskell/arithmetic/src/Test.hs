@@ -57,17 +57,22 @@ propFloorSqrt :: Natural -> Bool
 propFloorSqrt n =
     sq s <= n && n < sq (s + 1)
   where
-    s = SquareRoot.floorSqrt n
+    s = SquareRoot.floor n
+    sq i = i * i
+
+propCeilingSqrt :: Natural -> Bool
+propCeilingSqrt n =
+    (s == 0 || sq (s - 1) < n) && n <= sq s
+  where
+    s = SquareRoot.ceiling n
     sq i = i * i
 
 propContinuedFractionSqrt :: Natural -> Bool
-propContinuedFractionSqrt np =
-    err < 1.0e-15
+propContinuedFractionSqrt n =
+    cf == spec
   where
-    n = np + 1
-    cf = ContinuedFraction.toDouble (SquareRoot.continuedFractionSqrt n)
+    cf = ContinuedFraction.toDouble (SquareRoot.continuedFraction n)
     spec = sqrt (fromIntegral n)
-    err = abs (cf - spec) / spec
 
 propChineseRemainder :: Int -> Random.Random -> Bool
 propChineseRemainder w r =
@@ -328,6 +333,7 @@ main =
        check "Check egcd bound\n  " propEgcdBound
        check "Check smooth injective\n  " propSmoothInjective
        check "Check floor square root\n  " propFloorSqrt
+       check "Check ceiling square root\n  " propCeilingSqrt
        check "Check continued fraction square root\n  " propContinuedFractionSqrt
        mapM_ checkWidthProps ws
        return ()

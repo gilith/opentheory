@@ -15,8 +15,8 @@ import qualified Data.List as List
 
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
 
-floorSqrt :: Natural -> Natural
-floorSqrt n =
+floor :: Natural -> Natural
+floor n =
     if n < 2 then n else bisect 0 n
   where
     bisect l u =
@@ -26,24 +26,33 @@ floorSqrt n =
       where
         m = (l + u) `div` 2
 
-continuedFractionSqrt :: Natural -> ContinuedFraction.ContinuedFraction
-continuedFractionSqrt n =
+ceiling :: Natural -> Natural
+ceiling n =
+    if sqrtn * sqrtn == n then sqrtn else sqrtn + 1
+  where
+    sqrtn = Arithmetic.SquareRoot.floor n
+
+continuedFraction :: Natural -> ContinuedFraction.ContinuedFraction
+continuedFraction n =
     ContinuedFraction.ContinuedFraction (sqrtn,qs)
   where
-    sqrtn = floorSqrt n
+    sqrtn = Arithmetic.SquareRoot.floor n
 
-    ps = continuedFractionPeriodic n sqrtn
+    ps = continuedFractionPeriodicTail n sqrtn
 
     qs = if null ps then [] else cycle ps
 
-continuedFractionPeriodicSqrt :: Natural -> [Natural]
-continuedFractionPeriodicSqrt n = continuedFractionPeriodic n (floorSqrt n)
-
-continuedFractionPeriodic :: Natural -> Natural -> [Natural]
-continuedFractionPeriodic n sqrtn =
-    List.unfoldr go (sqrtn,init)
+continuedFractionPeriodic :: Natural -> [Natural]
+continuedFractionPeriodic n =
+    continuedFractionPeriodicTail n sqrtn
   where
-    init = n - sqrtn * sqrtn
+    sqrtn = Arithmetic.SquareRoot.floor n
+
+continuedFractionPeriodicTail :: Natural -> Natural -> [Natural]
+continuedFractionPeriodicTail n sqrtn =
+    List.unfoldr go (sqrtn,sqrtd)
+  where
+    sqrtd = n - sqrtn * sqrtn
 
 -- (sqrt(n) + a) / b = c + 1 / x ==>
 -- x = b / (sqrt(n) + a - c * b)

@@ -68,11 +68,14 @@ unstableConvergents [] = error "empty convergents"
 unstableConvergents (q0 : qs) =
     q0 : go q0 qs
   where
-    go x [] = []
-    go x (h : t) = if x == h then [] else x : go h t
+    go _ [] = []
+    go x (h : t) = if x == h then [] else h : go h t
 
 fractionalConvergents :: Fractional a => ContinuedFraction -> [a]
 fractionalConvergents = convergents fromIntegral (+) (*) (/)
+
+rationalConvergents :: ContinuedFraction -> [Rational]
+rationalConvergents = convergents fromIntegral (+) (*) (/)
 
 toDouble :: ContinuedFraction -> Double
 toDouble = last . unstableConvergents . fractionalConvergents
