@@ -67,3 +67,9 @@ invert n x =
     if g == 1 then Just s else Nothing
   where
     (g,(s,_)) = egcd x n
+
+divide :: Natural -> Natural -> Natural -> Maybe Natural
+divide n x y =
+    case invert n y of
+      Nothing -> Nothing
+      Just z -> Just (multiply n x z)
