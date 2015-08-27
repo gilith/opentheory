@@ -1,6 +1,6 @@
 {- |
 module: Main
-description: Testing the modular exponentiation computation
+description: Testing the natural number arithmetic library
 license: MIT
 
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
@@ -24,8 +24,8 @@ import Arithmetic.Prime
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
+import qualified Arithmetic.Quadratic as Quadratic
 import qualified Arithmetic.Smooth as Smooth
-import qualified Arithmetic.SquareRoot as SquareRoot
 
 propEgcdDivides :: Natural -> Natural -> Bool
 propEgcdDivides a b =
@@ -57,21 +57,21 @@ propFloorSqrt :: Natural -> Bool
 propFloorSqrt n =
     sq s <= n && n < sq (s + 1)
   where
-    s = SquareRoot.floor n
+    s = Quadratic.rootFloor n
     sq i = i * i
 
 propCeilingSqrt :: Natural -> Bool
 propCeilingSqrt n =
     (s == 0 || sq (s - 1) < n) && n <= sq s
   where
-    s = SquareRoot.ceiling n
+    s = Quadratic.rootCeiling n
     sq i = i * i
 
 propContinuedFractionSqrt :: Natural -> Bool
 propContinuedFractionSqrt n =
     cf == spec
   where
-    cf = ContinuedFraction.toDouble (SquareRoot.continuedFraction n)
+    cf = ContinuedFraction.toDouble (Quadratic.rootContinuedFraction n)
     spec = sqrt (fromIntegral n)
 
 propChineseRemainder :: Int -> Random.Random -> Bool

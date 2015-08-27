@@ -1,5 +1,5 @@
 {- |
-module: Arithmetic.SquareRoot
+module: Arithmetic.Quadratic
 description: Natural number square root
 license: MIT
 
@@ -7,7 +7,7 @@ maintainer: Joe Leslie-Hurd <joe@gilith.com>
 stability: provisional
 portability: portable
 -}
-module Arithmetic.SquareRoot
+module Arithmetic.Quadratic
 where
 
 import OpenTheory.Primitive.Natural
@@ -15,8 +15,8 @@ import qualified Data.List as List
 
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
 
-floor :: Natural -> Natural
-floor n =
+rootFloor :: Natural -> Natural
+rootFloor n =
     if n < 2 then n else bisect 0 n
   where
     bisect l u =
@@ -26,30 +26,30 @@ floor n =
       where
         m = (l + u) `div` 2
 
-ceiling :: Natural -> Natural
-ceiling n =
+rootCeiling :: Natural -> Natural
+rootCeiling n =
     if sqrtn * sqrtn == n then sqrtn else sqrtn + 1
   where
-    sqrtn = Arithmetic.SquareRoot.floor n
+    sqrtn = rootFloor n
 
-continuedFraction :: Natural -> ContinuedFraction.ContinuedFraction
-continuedFraction n =
+rootContinuedFraction :: Natural -> ContinuedFraction.ContinuedFraction
+rootContinuedFraction n =
     ContinuedFraction.ContinuedFraction (sqrtn,qs)
   where
-    sqrtn = Arithmetic.SquareRoot.floor n
+    sqrtn = rootFloor n
 
-    ps = continuedFractionPeriodicTail n sqrtn
+    ps = rootContinuedFractionPeriodicTail n sqrtn
 
     qs = if null ps then [] else cycle ps
 
-continuedFractionPeriodic :: Natural -> [Natural]
-continuedFractionPeriodic n =
-    continuedFractionPeriodicTail n sqrtn
+rootContinuedFractionPeriodic :: Natural -> [Natural]
+rootContinuedFractionPeriodic n =
+    rootContinuedFractionPeriodicTail n sqrtn
   where
-    sqrtn = Arithmetic.SquareRoot.floor n
+    sqrtn = rootFloor n
 
-continuedFractionPeriodicTail :: Natural -> Natural -> [Natural]
-continuedFractionPeriodicTail n sqrtn =
+rootContinuedFractionPeriodicTail :: Natural -> Natural -> [Natural]
+rootContinuedFractionPeriodicTail n sqrtn =
     List.unfoldr go (sqrtn,sqrtd)
   where
     sqrtd = n - sqrtn * sqrtn

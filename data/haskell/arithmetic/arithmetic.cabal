@@ -1,5 +1,5 @@
 name: arithmetic
-version: 1.0
+version: 1.1
 category: Number Theory
 synopsis: Natural number arithmetic
 license: MIT
@@ -10,7 +10,7 @@ author: Joe Leslie-Hurd <joe@gilith.com>
 maintainer: Joe Leslie-Hurd <joe@gilith.com>
 description:
   This package implements a library of natural number arithmetic functions,
-  including Montgomery multiplication.
+  including Montgomery multiplication and continued fractions.
 
 Library
   build-depends:
@@ -29,9 +29,9 @@ Library
     Arithmetic.Modular,
     Arithmetic.Montgomery,
     Arithmetic.Prime,
+    Arithmetic.Quadratic,
     Arithmetic.Random,
-    Arithmetic.Smooth,
-    Arithmetic.SquareRoot
+    Arithmetic.Smooth
 
 executable arithmetic
   build-depends:
