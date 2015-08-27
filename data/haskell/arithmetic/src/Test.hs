@@ -53,26 +53,38 @@ propSmoothInjective k np =
   where
     n = np + 1
 
-propFloorSqrt :: Natural -> Bool
-propFloorSqrt n =
+propRootFloor :: Natural -> Bool
+propRootFloor n =
     sq s <= n && n < sq (s + 1)
   where
     s = Quadratic.rootFloor n
     sq i = i * i
 
-propCeilingSqrt :: Natural -> Bool
-propCeilingSqrt n =
+propRootCeiling :: Natural -> Bool
+propRootCeiling n =
     (s == 0 || sq (s - 1) < n) && n <= sq s
   where
     s = Quadratic.rootCeiling n
     sq i = i * i
 
-propContinuedFractionSqrt :: Natural -> Bool
-propContinuedFractionSqrt n =
+propRootContinuedFraction :: Natural -> Bool
+propRootContinuedFraction n =
     cf == spec
   where
     cf = ContinuedFraction.toDouble (Quadratic.rootContinuedFraction n)
     spec = sqrt (fromIntegral n)
+
+propJacobiSymbol :: Natural -> Natural -> Random.Random -> Bool
+propJacobiSymbol m np rnd =
+    case Quadratic.jacobiSymbol m n of
+      Quadratic.Zero -> not coprime
+      Quadratic.Residue -> coprime && (mr || not (isPrime n rnd))
+      Quadratic.NonResidue -> coprime && not mr
+  where
+    coprime = gcd m n == 1
+    n = 2 * np + 1
+    mn = Modular.normalize n m
+    mr = any (\k -> Modular.square n k == mn) [1..np]
 
 propChineseRemainder :: Int -> Random.Random -> Bool
 propChineseRemainder w r =
@@ -332,9 +344,10 @@ main =
        check "Check egcd equation\n  " propEgcdEquation
        check "Check egcd bound\n  " propEgcdBound
        check "Check smooth injective\n  " propSmoothInjective
-       check "Check floor square root\n  " propFloorSqrt
-       check "Check ceiling square root\n  " propCeilingSqrt
-       check "Check continued fraction square root\n  " propContinuedFractionSqrt
+       check "Check floor square root\n  " propRootFloor
+       check "Check ceiling square root\n  " propRootCeiling
+       check "Check continued fraction square root\n  " propRootContinuedFraction
+       check "Check Jacobi symbol\n  " propJacobiSymbol
        mapM_ checkWidthProps ws
        return ()
   where
