@@ -76,14 +76,15 @@ rootContinuedFractionPeriodicTail n sqrtn =
 data Residue = Residue | NonResidue | Zero
     deriving (Eq,Ord,Show)
 
+-- The first argument (the modulus) must be an odd natural
 jacobiSymbol :: Natural -> Natural -> Residue
 jacobiSymbol =
-    \m n -> if n == 1 then Residue else go False m n
+    \n -> if n == 1 then const Residue else go False n
   where
-    go f m n =
+    go f n m =
         if p == 0 then Zero
         else if s == 1 then if g then NonResidue else Residue
-        else go h n s
+        else go h s n
       where
         p = m `mod` n
         (r,s) = factorTwos p
@@ -94,6 +95,23 @@ jacobiSymbol =
         g = if even r || n8_17 then f else not f
         h = if n4_1 || s4_1 then g else not g
 
+-- The first argument (the modulus) must be an odd natural greater than 1
+nextNonResidue :: Natural -> Natural -> Natural
+nextNonResidue n =
+    go
+  where
+    go m =
+        case jacobiSymbol n m of
+          NonResidue -> m
+          _ -> go (m + 1)
+
 -- The Tonelli-Shanks algorithm
+-- The first argument (the modulus) must be an odd prime
+-- The second argument must be a residue modulo the prime
 rootModular :: Natural -> Natural -> Natural
-rootModular p n = undefined
+rootModular p =
+    if r == 1 then flip (Modular.exp p) ((p + 1) `mod` 4)
+    else undefined
+  where
+    (r,s) = factorTwos (p - 1)
+    z = nextNonResidue p 2

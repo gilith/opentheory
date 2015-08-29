@@ -75,8 +75,8 @@ propRootContinuedFraction n =
     spec = sqrt (fromIntegral n)
 
 propJacobiSymbol :: Natural -> Natural -> Random.Random -> Bool
-propJacobiSymbol m np rnd =
-    case Quadratic.jacobiSymbol m n of
+propJacobiSymbol np m rnd =
+    case Quadratic.jacobiSymbol n m of
       Quadratic.Zero -> not coprime
       Quadratic.Residue -> coprime && (mr || not (isPrime n rnd))
       Quadratic.NonResidue -> coprime && not mr
