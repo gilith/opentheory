@@ -64,17 +64,22 @@ previousPrime n r =
 
 randomPrime :: Int -> Random.Random -> Natural
 randomPrime w =
-    loop
+    randomMaybe gen
   where
-    loop r =
-        case oddPrime r1 of
-          Nothing -> loop r2
-          Just n -> n
-      where
-        (r1,r2) = Random.split r
-
-    oddPrime r =
+    gen r =
         if isPrime n r2 then Just n else Nothing
       where
         n = randomOdd w r1
         (r1,r2) = Random.split r
+
+randomPrime3Mod4 :: Int -> Random.Random -> Natural
+randomPrime3Mod4 w =
+    randomPredicate (randomPrime w) check
+  where
+    check p = p `mod` 4 == 3
+
+randomPrime5Mod8 :: Int -> Random.Random -> Natural
+randomPrime5Mod8 w =
+    randomPredicate (randomPrime w) check
+  where
+    check p = p `mod` 8 == 5

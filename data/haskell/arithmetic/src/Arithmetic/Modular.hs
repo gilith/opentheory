@@ -39,6 +39,9 @@ normalize n x = x `mod` n
 add :: Natural -> Natural -> Natural -> Natural
 add n x y = normalize n (x + y)
 
+double :: Natural -> Natural -> Natural
+double n x = add n x x
+
 negate :: Natural -> Natural -> Natural
 negate n x =
     if y == 0 then y else n - y

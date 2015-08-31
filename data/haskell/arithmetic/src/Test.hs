@@ -87,14 +87,14 @@ propJacobiSymbol np m rnd =
     mr = any (\k -> Modular.square n k == mn) [1..np]
 
 propChineseRemainder :: Int -> Random.Random -> Bool
-propChineseRemainder w r =
+propChineseRemainder w rnd =
     n `mod` a == x && n `mod` b == y && n < a * b
   where
     (a,b) = randomCoprime w r1
     x = Uniform.random a r2
     y = Uniform.random b r3
     n = chineseRemainder a b x y
-    (r1,r23) = Random.split r
+    (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
 propModularNegate :: Int -> Random.Random -> Bool
@@ -118,7 +118,8 @@ propModularInvert nw rnd =
     (r1,r2) = Random.split rnd
 
 randomMontgomeryParameters :: Int -> Random.Random -> Montgomery.Parameters
-randomMontgomeryParameters w r = Montgomery.standardParameters (randomOdd w r)
+randomMontgomeryParameters w rnd =
+    Montgomery.standardParameters (randomOdd w rnd)
 
 propMontgomeryInvariant :: Int -> Random.Random -> Bool
 propMontgomeryInvariant nw rnd =
@@ -282,34 +283,61 @@ propMontgomeryMultiply nw rnd =
     (r2,r3) = Random.split r23
 
 propMontgomeryModexp :: Int -> Random.Random -> Bool
-propMontgomeryModexp w r =
+propMontgomeryModexp w rnd =
     Montgomery.modexp n x k == Modular.exp n x k
   where
     n = randomOdd w r1
     x = Uniform.random n r2
     k = Uniform.random n r3
 
-    (r1,r23) = Random.split r
+    (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
 propMontgomeryModexp2 :: Int -> Random.Random -> Bool
-propMontgomeryModexp2 w r =
+propMontgomeryModexp2 w rnd =
     Montgomery.modexp2 n x k == Modular.exp2 n x k
   where
     n = randomOdd w r1
     x = Uniform.random n r2
     k = Uniform.random (fromIntegral w) r3
 
-    (r1,r23) = Random.split r
+    (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
 propFermat :: Int -> Random.Random -> Bool
-propFermat w r =
+propFermat w rnd =
     Montgomery.modexp n a n == a
   where
     n = randomPrime w r1
     a = Uniform.random n r2
-    (r1,r2) = Random.split r
+    (r1,r2) = Random.split rnd
+
+propRootModuloPrime3Mod4 :: Int -> Random.Random -> Bool
+propRootModuloPrime3Mod4 w rnd =
+    Modular.square p r == a
+  where
+    p = randomPrime3Mod4 w r1
+    a = randomPredicate (Uniform.random p) (Quadratic.isResidue p) r2
+    r = Quadratic.rootModuloPrime3Mod4 p a
+    (r1,r2) = Random.split rnd
+
+propRootModuloPrime5Mod8 :: Int -> Random.Random -> Bool
+propRootModuloPrime5Mod8 w rnd =
+    Modular.square p r == a
+  where
+    p = randomPrime5Mod8 w r1
+    a = randomPredicate (Uniform.random p) (Quadratic.isResidue p) r2
+    r = Quadratic.rootModuloPrime5Mod8 p a
+    (r1,r2) = Random.split rnd
+
+propRootModuloPrime :: Int -> Random.Random -> Bool
+propRootModuloPrime w rnd =
+    Modular.square p r == a
+  where
+    p = randomPrime w r1
+    a = randomPredicate (Uniform.random p) (Quadratic.isResidue p) r2
+    r = Quadratic.rootModuloPrime p a
+    (r1,r2) = Random.split rnd
 
 checkWidthProp ::
     QuickCheck.Testable prop => Int -> String -> (Int -> prop) -> IO ()
@@ -336,18 +364,21 @@ checkWidthProps w =
       checkWidthProp w "Montgomery modexp" propMontgomeryModexp
       checkWidthProp w "Montgomery modexp2" propMontgomeryModexp2
       checkWidthProp w "Fermat's little theorem" propFermat
+      checkWidthProp w "Square root modulo prime congruent to 3 mod 4" propRootModuloPrime3Mod4
+      checkWidthProp w "Square root modulo prime congruent to 5 mod 8" propRootModuloPrime5Mod8
+      checkWidthProp w "Square root modulo prime" propRootModuloPrime
       return ()
 
 main :: IO ()
 main =
-    do check "Check egcd divides\n  " propEgcdDivides
-       check "Check egcd equation\n  " propEgcdEquation
-       check "Check egcd bound\n  " propEgcdBound
-       check "Check smooth injective\n  " propSmoothInjective
-       check "Check floor square root\n  " propRootFloor
-       check "Check ceiling square root\n  " propRootCeiling
-       check "Check continued fraction square root\n  " propRootContinuedFraction
-       check "Check Jacobi symbol\n  " propJacobiSymbol
+    do check "Result of egcd divides arguments\n  " propEgcdDivides
+       check "Result of egcd satisfies equation\n  " propEgcdEquation
+       check "Result of egcd below bound\n  " propEgcdBound
+       check "Smooth constructor is injective\n  " propSmoothInjective
+       check "Floor square root\n  " propRootFloor
+       check "Ceiling square root\n  " propRootCeiling
+       check "Continued fraction square root\n  " propRootContinuedFraction
+       check "Jacobi symbol\n  " propJacobiSymbol
        mapM_ checkWidthProps ws
        return ()
   where

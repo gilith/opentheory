@@ -96,22 +96,85 @@ jacobiSymbol =
         h = if n4_1 || s4_1 then g else not g
 
 -- The first argument (the modulus) must be an odd natural greater than 1
+isResidue :: Natural -> Natural -> Bool
+isResidue n m =
+    case jacobiSymbol n m of
+      Residue -> True
+      _ -> False
+
+-- The first argument (the modulus) must be an odd natural greater than 1
+isNonResidue :: Natural -> Natural -> Bool
+isNonResidue n m =
+    case jacobiSymbol n m of
+      NonResidue -> True
+      _ -> False
+
+-- The first argument (the modulus) must be an odd natural greater than 1
+nextResidue :: Natural -> Natural -> Natural
+nextResidue n =
+    loop
+  where
+    loop m = if isResidue n m then m else loop (m + 1)
+
+-- The first argument (the modulus) must be an odd natural greater than 1
 nextNonResidue :: Natural -> Natural -> Natural
 nextNonResidue n =
+    loop
+  where
+    loop m = if isNonResidue n m then m else loop (m + 1)
+
+-- The first argument (the modulus) must be a prime congruent to 3 mod 4
+-- The second argument must be a residue modulo the prime
+rootModuloPrime3Mod4 :: Natural -> Natural -> Natural
+rootModuloPrime3Mod4 p =
+    \n -> Modular.exp p n k
+  where
+    k = (p + 1) `div` 4
+
+-- The first argument (the modulus) must be a prime congruent to 5 mod 8
+-- The second argument must be a residue modulo the prime
+rootModuloPrime5Mod8 :: Natural -> Natural -> Natural
+rootModuloPrime5Mod8 p =
     go
   where
-    go m =
-        case jacobiSymbol n m of
-          NonResidue -> m
-          _ -> go (m + 1)
+    go n =
+        Modular.multiply p n (Modular.multiply p v (i - 1))
+      where
+        m = Modular.double p n
+        v = Modular.exp p m k
+        i = Modular.multiply p m (Modular.square p v)
+
+    k = (p - 5) `div` 8
 
 -- The Tonelli-Shanks algorithm
--- The first argument (the modulus) must be an odd prime
+-- The first argument (the modulus) must be a prime
 -- The second argument must be a residue modulo the prime
-rootModular :: Natural -> Natural -> Natural
-rootModular p =
-    if r == 1 then flip (Modular.exp p) ((p + 1) `mod` 4)
-    else undefined
+rootModuloPrime :: Natural -> Natural -> Natural
+rootModuloPrime p =
+    if p == 2 then Modular.normalize p
+    else if r == 1 then rootModuloPrime3Mod4 p
+    else if r == 2 then rootModuloPrime5Mod8 p
+    else tonelliShanks
   where
     (r,s) = factorTwos (p - 1)
-    z = nextNonResidue p 2
+    z = Modular.exp p (nextNonResidue p 2) s
+
+    tonelliShanks n =
+        tonelliShanksLoop z d t r
+      where
+        d = Modular.exp p n ((s + 1) `div` 2)
+        t = Modular.exp p n s
+
+    tonelliShanksLoop c d t m =
+        if t == 1 then d else tonelliShanksLoop b2 db tb2 i
+      where
+        i = tonelliShanksMin t 1
+        b = Modular.exp2 p c (fromIntegral (m - (i + 1)))
+        b2 = Modular.square p b
+        db = Modular.multiply p d b
+        tb2 = Modular.multiply p t b2
+
+    tonelliShanksMin t i =
+        if t2 == 1 then i else tonelliShanksMin t2 (i + 1)
+      where
+        t2 = Modular.square p t

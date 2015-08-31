@@ -17,6 +17,26 @@ import qualified OpenTheory.Natural.Bits as Bits
 import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Uniform as Uniform
 
+randomMaybe :: (Random.Random -> Maybe a) -> (Random.Random -> a)
+randomMaybe g =
+    loop
+  where
+    loop r =
+        case g r1 of
+          Just a -> a
+          Nothing -> loop r2
+      where
+        (r1,r2) = Random.split r
+
+randomPredicate :: (Random.Random -> a) -> (a -> Bool) -> (Random.Random -> a)
+randomPredicate g p =
+    randomMaybe gp
+  where
+    gp r =
+        if p x then Just x else Nothing
+      where
+        x = g r
+
 randomWidth :: Int -> Random.Random -> Natural
 randomWidth w r =
     n + Uniform.random n r
@@ -28,15 +48,8 @@ randomOdd w r = Bits.cons True (randomWidth (w - 1) r)
 
 randomCoprime :: Int -> Random.Random -> (Natural,Natural)
 randomCoprime w =
-    loop
+    randomMaybe gen
   where
-    loop r =
-        case gen r1 of
-          Just ab -> ab
-          Nothing -> loop r2
-      where
-        (r1,r2) = Random.split r
-
     gen r =
         if g == 1 then Just (a,b) else Nothing
       where
@@ -44,12 +57,3 @@ randomCoprime w =
         b = randomWidth w r2
         (g,_) = egcd a b
         (r1,r2) = Random.split r
-
-uniformInteger :: Integer -> Random.Random -> Integer
-uniformInteger n r = fromIntegral (Uniform.random (fromIntegral n) r)
-
-randomCoprimeInteger :: Int -> Random.Random -> (Integer,Integer)
-randomCoprimeInteger w r =
-    (fromIntegral a, fromIntegral b)
-  where
-    (a,b) = randomCoprime w r
