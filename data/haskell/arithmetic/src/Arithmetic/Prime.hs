@@ -74,12 +74,12 @@ randomPrime w =
 
 randomPrime3Mod4 :: Natural -> Random.Random -> Natural
 randomPrime3Mod4 w =
-    randomPredicate (randomPrime w) check
+    randomFilter check (randomPrime w)
   where
     check p = p `mod` 4 == 3
 
 randomPrime5Mod8 :: Natural -> Random.Random -> Natural
 randomPrime5Mod8 w =
-    randomPredicate (randomPrime w) check
+    randomFilter check (randomPrime w)
   where
     check p = p `mod` 8 == 5

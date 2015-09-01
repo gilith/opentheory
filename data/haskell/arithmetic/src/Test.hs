@@ -22,6 +22,7 @@ import OpenTheory.Primitive.Test
 import Arithmetic.Random
 import Arithmetic.Prime
 import qualified Arithmetic.ContinuedFraction as ContinuedFraction
+import qualified Arithmetic.Lucas as Lucas
 import qualified Arithmetic.Modular as Modular
 import qualified Arithmetic.Montgomery as Montgomery
 import qualified Arithmetic.Quadratic as Quadratic
@@ -85,6 +86,30 @@ propJacobiSymbol np m rnd =
     n = 2 * np + 1
     mn = Modular.normalize n m
     mr = any (\k -> Modular.square n k == mn) [1..np]
+
+propNthWilliamsSequence :: Natural -> Natural -> Natural -> Bool
+propNthWilliamsSequence np p k =
+    Lucas.williamsSequence one two sub mult p !! (fromIntegral k) ==
+    Lucas.nthWilliamsSequence two sub mult p k
+  where
+    n = np + 1
+    one = 1
+    two = 2
+    sub = Modular.subtract n
+    mult = Modular.multiply n
+
+propNthWilliamsSequenceProduct ::
+    Natural -> Natural -> Natural -> Natural -> Bool
+propNthWilliamsSequenceProduct np pp i j =
+    Lucas.nthWilliamsSequence two sub mult p (i * j) ==
+    Lucas.nthWilliamsSequence two sub mult
+      (Lucas.nthWilliamsSequence two sub mult p i) j
+  where
+    n = np + 1
+    p = pp + 1
+    two = Modular.normalize n 2
+    sub = Modular.subtract n
+    mult = Modular.multiply n
 
 propChineseRemainder :: Natural -> Random.Random -> Bool
 propChineseRemainder w rnd =
@@ -296,10 +321,10 @@ propMontgomeryModexp2 w rnd =
 
 propFermat :: Natural -> Random.Random -> Bool
 propFermat w rnd =
-    Montgomery.modexp n a n == a
+    Montgomery.modexp p a p == a
   where
-    n = randomPrime w r1
-    a = Uniform.random n r2
+    p = randomPrime w r1
+    a = Uniform.random p r2
     (r1,r2) = Random.split rnd
 
 propRootModuloPrime3Mod4 :: Natural -> Random.Random -> Bool
@@ -307,7 +332,7 @@ propRootModuloPrime3Mod4 w rnd =
     Modular.square p r == a
   where
     p = randomPrime3Mod4 w r1
-    a = randomPredicate (Uniform.random p) (Quadratic.isResidue p) r2
+    a = randomFilter (Quadratic.isResidue p) (Uniform.random p) r2
     r = Quadratic.rootModuloPrime3Mod4 p a
     (r1,r2) = Random.split rnd
 
@@ -316,7 +341,7 @@ propRootModuloPrime5Mod8 w rnd =
     Modular.square p r == a
   where
     p = randomPrime5Mod8 w r1
-    a = randomPredicate (Uniform.random p) (Quadratic.isResidue p) r2
+    a = randomFilter (Quadratic.isResidue p) (Uniform.random p) r2
     r = Quadratic.rootModuloPrime5Mod8 p a
     (r1,r2) = Random.split rnd
 
@@ -325,14 +350,17 @@ propRootModuloPrime w rnd =
     Modular.square p r == a
   where
     p = randomPrime w r1
-    a = randomPredicate (Uniform.random p) (Quadratic.isResidue p) r2
+    a = randomFilter (Quadratic.isResidue p) (Uniform.random p) r2
     r = Quadratic.rootModuloPrime p a
     (r1,r2) = Random.split rnd
+
+checkProp :: QuickCheck.Testable prop => String -> prop -> IO ()
+checkProp s p = check (s ++ "\n  ") p
 
 checkWidthProp ::
     QuickCheck.Testable prop => Natural -> String -> (Natural -> prop) -> IO ()
 checkWidthProp w s p =
-    check (s ++ " (" ++ show w ++ " bit)\n  ") (p w)
+    checkProp (s ++ " (" ++ show w ++ " bit)") (p w)
 
 checkWidthProps :: Natural -> IO ()
 checkWidthProps w =
@@ -361,14 +389,16 @@ checkWidthProps w =
 
 main :: IO ()
 main =
-    do check "Result of egcd divides arguments\n  " propEgcdDivides
-       check "Result of egcd satisfies equation\n  " propEgcdEquation
-       check "Result of egcd below bound\n  " propEgcdBound
-       check "Smooth constructor is injective\n  " propSmoothInjective
-       check "Floor square root\n  " propRootFloor
-       check "Ceiling square root\n  " propRootCeiling
-       check "Continued fraction square root\n  " propRootContinuedFraction
-       check "Jacobi symbol\n  " propJacobiSymbol
+    do checkProp "Result of egcd divides arguments" propEgcdDivides
+       checkProp "Result of egcd satisfies equation" propEgcdEquation
+       checkProp "Result of egcd below bound" propEgcdBound
+       checkProp "Smooth constructor is injective" propSmoothInjective
+       checkProp "Floor square root" propRootFloor
+       checkProp "Ceiling square root" propRootCeiling
+       checkProp "Continued fraction square root" propRootContinuedFraction
+       checkProp "Jacobi symbol" propJacobiSymbol
+       checkProp "Williams sequence index" propNthWilliamsSequence
+       checkProp "Williams sequence product index" propNthWilliamsSequenceProduct
        mapM_ checkWidthProps ws
        return ()
   where

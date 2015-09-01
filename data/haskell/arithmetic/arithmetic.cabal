@@ -26,6 +26,7 @@ Library
   ghc-options: -Wall
   exposed-modules:
     Arithmetic.ContinuedFraction,
+    Arithmetic.Lucas,
     Arithmetic.Modular,
     Arithmetic.Montgomery,
     Arithmetic.Prime,

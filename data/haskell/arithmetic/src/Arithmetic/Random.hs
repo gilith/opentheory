@@ -16,7 +16,14 @@ import qualified OpenTheory.Natural.Bits as Bits
 import OpenTheory.Natural.Divides
 import qualified OpenTheory.Natural.Uniform as Uniform
 
-randomMaybe :: (Random.Random -> Maybe a) -> (Random.Random -> a)
+randomPair ::
+    (Random.Random -> a) -> (Random.Random -> b) -> Random.Random -> (a,b)
+randomPair ra rb r =
+    (ra r1, rb r2)
+  where
+    (r1,r2) = Random.split r
+
+randomMaybe :: (Random.Random -> Maybe a) -> Random.Random -> a
 randomMaybe g =
     loop
   where
@@ -27,8 +34,8 @@ randomMaybe g =
       where
         (r1,r2) = Random.split r
 
-randomPredicate :: (Random.Random -> a) -> (a -> Bool) -> (Random.Random -> a)
-randomPredicate g p =
+randomFilter :: (a -> Bool) -> (Random.Random -> a) -> Random.Random -> a
+randomFilter p g =
     randomMaybe gp
   where
     gp r =
@@ -52,7 +59,5 @@ randomCoprime w =
     gen r =
         if g == 1 then Just (a,b) else Nothing
       where
-        a = randomWidth w r1
-        b = randomWidth w r2
+        (a,b) = randomPair (randomWidth w) (randomWidth w) r
         (g,_) = egcd a b
-        (r1,r2) = Random.split r
