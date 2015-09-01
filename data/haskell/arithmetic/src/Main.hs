@@ -85,7 +85,7 @@ stringToAlgorithm = getPrefixString "algorithm" algorithmToString algorithms
 
 data InputNatural =
     Fixed Natural
-  | Width Int
+  | Width Natural
   deriving Show
 
 stringToInputNatural :: String -> InputNatural

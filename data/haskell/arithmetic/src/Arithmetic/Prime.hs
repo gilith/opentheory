@@ -19,7 +19,7 @@ import qualified OpenTheory.Natural.Uniform as Uniform
 import Arithmetic.Random
 import qualified Arithmetic.Modular as Modular
 
-factorTwos :: Natural -> (Int,Natural)
+factorTwos :: Natural -> (Natural,Natural)
 factorTwos n =
    if Bits.headBits n then (0,n) else (r + 1, s)
   where
@@ -40,7 +40,7 @@ millerRabinWitness n =
 
     n1 = n - 1
 
-millerRabin :: Int -> Natural -> Random.Random -> Bool
+millerRabin :: Natural -> Natural -> Random.Random -> Bool
 millerRabin t n =
     \r -> n == 2 || (n /= 1 && naturalOdd n && trials t r)
   where
@@ -62,7 +62,7 @@ previousPrime n r =
   where
     (r1,r2) = Random.split r
 
-randomPrime :: Int -> Random.Random -> Natural
+randomPrime :: Natural -> Random.Random -> Natural
 randomPrime w =
     randomMaybe gen
   where
@@ -72,13 +72,13 @@ randomPrime w =
         n = randomOdd w r1
         (r1,r2) = Random.split r
 
-randomPrime3Mod4 :: Int -> Random.Random -> Natural
+randomPrime3Mod4 :: Natural -> Random.Random -> Natural
 randomPrime3Mod4 w =
     randomPredicate (randomPrime w) check
   where
     check p = p `mod` 4 == 3
 
-randomPrime5Mod8 :: Int -> Random.Random -> Natural
+randomPrime5Mod8 :: Natural -> Random.Random -> Natural
 randomPrime5Mod8 w =
     randomPredicate (randomPrime w) check
   where

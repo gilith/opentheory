@@ -86,7 +86,7 @@ propJacobiSymbol np m rnd =
     mn = Modular.normalize n m
     mr = any (\k -> Modular.square n k == mn) [1..np]
 
-propChineseRemainder :: Int -> Random.Random -> Bool
+propChineseRemainder :: Natural -> Random.Random -> Bool
 propChineseRemainder w rnd =
     n `mod` a == x && n `mod` b == y && n < a * b
   where
@@ -97,7 +97,7 @@ propChineseRemainder w rnd =
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
-propModularNegate :: Int -> Random.Random -> Bool
+propModularNegate :: Natural -> Random.Random -> Bool
 propModularNegate nw rnd =
     Modular.add n a b == 0 &&
     b < n
@@ -107,7 +107,7 @@ propModularNegate nw rnd =
     b = Modular.negate n a
     (r1,r2) = Random.split rnd
 
-propModularInvert :: Int -> Random.Random -> Bool
+propModularInvert :: Natural -> Random.Random -> Bool
 propModularInvert nw rnd =
     case Modular.invert n a of
       Nothing -> True
@@ -117,11 +117,11 @@ propModularInvert nw rnd =
     a = Uniform.random n r2
     (r1,r2) = Random.split rnd
 
-randomMontgomeryParameters :: Int -> Random.Random -> Montgomery.Parameters
+randomMontgomeryParameters :: Natural -> Random.Random -> Montgomery.Parameters
 randomMontgomeryParameters w rnd =
     Montgomery.standardParameters (randomOdd w rnd)
 
-propMontgomeryInvariant :: Int -> Random.Random -> Bool
+propMontgomeryInvariant :: Natural -> Random.Random -> Bool
 propMontgomeryInvariant nw rnd =
     naturalOdd n &&
     n < w2 &&
@@ -145,7 +145,7 @@ propMontgomeryInvariant nw rnd =
 
     w2 = shiftLeft 1 w
 
-propMontgomeryNormalize :: Int -> Random.Random -> Bool
+propMontgomeryNormalize :: Natural -> Random.Random -> Bool
 propMontgomeryNormalize nw rnd =
     b `mod` n == a `mod` n &&
     b < w2
@@ -153,13 +153,12 @@ propMontgomeryNormalize nw rnd =
     p = randomMontgomeryParameters nw r1
     a = Uniform.random (w2 * w2) r2
     b = Montgomery.nMontgomery (Montgomery.normalize p a)
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
-propMontgomeryReduce :: Int -> Random.Random -> Bool
+propMontgomeryReduce :: Natural -> Random.Random -> Bool
 propMontgomeryReduce nw rnd =
     b `mod` n == (a * s) `mod` n &&
     b < w2 + n
@@ -167,14 +166,13 @@ propMontgomeryReduce nw rnd =
     p = randomMontgomeryParameters nw r1
     a = Uniform.random (w2 * w2) r2
     b = Montgomery.reduce p a
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     s = Montgomery.sParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
-propMontgomeryReduceSmall :: Int -> Random.Random -> Bool
+propMontgomeryReduceSmall :: Natural -> Random.Random -> Bool
 propMontgomeryReduceSmall nw rnd =
     b `mod` n == (a * s) `mod` n &&
     b <= n
@@ -182,59 +180,56 @@ propMontgomeryReduceSmall nw rnd =
     p = randomMontgomeryParameters nw r1
     a = Uniform.random w2 r2
     b = Montgomery.reduce p a
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     s = Montgomery.sParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
-propMontgomeryToNatural :: Int -> Random.Random -> Bool
+propMontgomeryToNatural :: Natural -> Random.Random -> Bool
 propMontgomeryToNatural nw rnd =
     b == (a * s) `mod` n
   where
     p = randomMontgomeryParameters nw r1
     a = Uniform.random w2 r2
     b = Montgomery.toNatural (Montgomery.normalize p a)
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     s = Montgomery.sParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
-propMontgomeryFromNatural :: Int -> Random.Random -> Bool
+propMontgomeryFromNatural :: Natural -> Random.Random -> Bool
 propMontgomeryFromNatural nw rnd =
     b == a `mod` n
   where
     p = randomMontgomeryParameters nw r1
     a = Uniform.random (w2 * w2) r2
     b = Montgomery.toNatural (Montgomery.fromNatural p a)
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
-propMontgomeryZero :: Int -> Random.Random -> Bool
+propMontgomeryZero :: Natural -> Random.Random -> Bool
 propMontgomeryZero nw rnd =
     Montgomery.toNatural (Montgomery.zero p) == 0
   where
     p = randomMontgomeryParameters nw rnd
 
-propMontgomeryOne :: Int -> Random.Random -> Bool
+propMontgomeryOne :: Natural -> Random.Random -> Bool
 propMontgomeryOne nw rnd =
     Montgomery.toNatural (Montgomery.one p) == 1
   where
     p = randomMontgomeryParameters nw rnd
 
-propMontgomeryTwo :: Int -> Random.Random -> Bool
+propMontgomeryTwo :: Natural -> Random.Random -> Bool
 propMontgomeryTwo nw rnd =
     Montgomery.toNatural (Montgomery.two p) == 2
   where
     p = randomMontgomeryParameters nw rnd
 
-propMontgomeryAdd :: Int -> Random.Random -> Bool
+propMontgomeryAdd :: Natural -> Random.Random -> Bool
 propMontgomeryAdd nw rnd =
     Montgomery.toNatural c ==
       Modular.add n (Montgomery.toNatural a) (Montgomery.toNatural b) &&
@@ -244,14 +239,13 @@ propMontgomeryAdd nw rnd =
     a = Montgomery.normalize p (Uniform.random w2 r2)
     b = Montgomery.normalize p (Uniform.random w2 r3)
     c = Montgomery.add a b
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
-propMontgomeryNegate :: Int -> Random.Random -> Bool
+propMontgomeryNegate :: Natural -> Random.Random -> Bool
 propMontgomeryNegate nw rnd =
     Montgomery.toNatural b == Modular.negate n (Montgomery.toNatural a) &&
     Montgomery.nMontgomery b < w2
@@ -259,13 +253,12 @@ propMontgomeryNegate nw rnd =
     p = randomMontgomeryParameters nw r1
     a = Montgomery.normalize p (Uniform.random w2 r2)
     b = Montgomery.negate a
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r2) = Random.split rnd
 
-propMontgomeryMultiply :: Int -> Random.Random -> Bool
+propMontgomeryMultiply :: Natural -> Random.Random -> Bool
 propMontgomeryMultiply nw rnd =
     Montgomery.toNatural c ==
       Modular.multiply n (Montgomery.toNatural a) (Montgomery.toNatural b) &&
@@ -275,36 +268,33 @@ propMontgomeryMultiply nw rnd =
     a = Montgomery.normalize p (Uniform.random w2 r2)
     b = Montgomery.normalize p (Uniform.random w2 r3)
     c = Montgomery.multiply a b
-
     n = Montgomery.nParameters p
     w = Montgomery.wParameters p
     w2 = shiftLeft 1 w
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
-propMontgomeryModexp :: Int -> Random.Random -> Bool
+propMontgomeryModexp :: Natural -> Random.Random -> Bool
 propMontgomeryModexp w rnd =
     Montgomery.modexp n x k == Modular.exp n x k
   where
     n = randomOdd w r1
     x = Uniform.random n r2
     k = Uniform.random n r3
-
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
-propMontgomeryModexp2 :: Int -> Random.Random -> Bool
+propMontgomeryModexp2 :: Natural -> Random.Random -> Bool
 propMontgomeryModexp2 w rnd =
     Montgomery.modexp2 n x k == Modular.exp2 n x k
   where
     n = randomOdd w r1
     x = Uniform.random n r2
-    k = Uniform.random (fromIntegral w) r3
-
+    k = Uniform.random w r3
     (r1,r23) = Random.split rnd
     (r2,r3) = Random.split r23
 
-propFermat :: Int -> Random.Random -> Bool
+propFermat :: Natural -> Random.Random -> Bool
 propFermat w rnd =
     Montgomery.modexp n a n == a
   where
@@ -312,7 +302,7 @@ propFermat w rnd =
     a = Uniform.random n r2
     (r1,r2) = Random.split rnd
 
-propRootModuloPrime3Mod4 :: Int -> Random.Random -> Bool
+propRootModuloPrime3Mod4 :: Natural -> Random.Random -> Bool
 propRootModuloPrime3Mod4 w rnd =
     Modular.square p r == a
   where
@@ -321,7 +311,7 @@ propRootModuloPrime3Mod4 w rnd =
     r = Quadratic.rootModuloPrime3Mod4 p a
     (r1,r2) = Random.split rnd
 
-propRootModuloPrime5Mod8 :: Int -> Random.Random -> Bool
+propRootModuloPrime5Mod8 :: Natural -> Random.Random -> Bool
 propRootModuloPrime5Mod8 w rnd =
     Modular.square p r == a
   where
@@ -330,7 +320,7 @@ propRootModuloPrime5Mod8 w rnd =
     r = Quadratic.rootModuloPrime5Mod8 p a
     (r1,r2) = Random.split rnd
 
-propRootModuloPrime :: Int -> Random.Random -> Bool
+propRootModuloPrime :: Natural -> Random.Random -> Bool
 propRootModuloPrime w rnd =
     Modular.square p r == a
   where
@@ -340,11 +330,11 @@ propRootModuloPrime w rnd =
     (r1,r2) = Random.split rnd
 
 checkWidthProp ::
-    QuickCheck.Testable prop => Int -> String -> (Int -> prop) -> IO ()
+    QuickCheck.Testable prop => Natural -> String -> (Natural -> prop) -> IO ()
 checkWidthProp w s p =
     check (s ++ " (" ++ show w ++ " bit)\n  ") (p w)
 
-checkWidthProps :: Int -> IO ()
+checkWidthProps :: Natural -> IO ()
 checkWidthProps w =
    do checkWidthProp w "Chinese remainder" propChineseRemainder
       checkWidthProp w "Modular negate" propModularNegate

@@ -169,7 +169,7 @@ rootModuloPrime p =
         if t == 1 then d else tonelliShanksLoop b2 db tb2 i
       where
         i = tonelliShanksMin t 1
-        b = Modular.exp2 p c (fromIntegral (m - (i + 1)))
+        b = Modular.exp2 p c (m - (i + 1))
         b2 = Modular.square p b
         db = Modular.multiply p d b
         tb2 = Modular.multiply p t b2

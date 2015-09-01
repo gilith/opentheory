@@ -10,7 +10,6 @@ portability: portable
 module Arithmetic.Random
 where
 
-import Data.Bits
 import OpenTheory.Primitive.Natural
 import OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Bits as Bits
@@ -37,16 +36,16 @@ randomPredicate g p =
       where
         x = g r
 
-randomWidth :: Int -> Random.Random -> Natural
+randomWidth :: Natural -> Random.Random -> Natural
 randomWidth w r =
     n + Uniform.random n r
   where
-    n = shiftL 1 (w - 1)
+    n = shiftLeft 1 (w - 1)
 
-randomOdd :: Int -> Random.Random -> Natural
+randomOdd :: Natural -> Random.Random -> Natural
 randomOdd w r = Bits.cons True (randomWidth (w - 1) r)
 
-randomCoprime :: Int -> Random.Random -> (Natural,Natural)
+randomCoprime :: Natural -> Random.Random -> (Natural,Natural)
 randomCoprime w =
     randomMaybe gen
   where
