@@ -63,11 +63,13 @@ exp :: Natural -> Natural -> Natural -> Natural
 exp n = multiplyExponential (multiply n) 1
 
 exp2 :: Natural -> Natural -> Natural -> Natural
-exp2 n x k = functionPower (square n) k x
+exp2 n x k = if k == 0 then normalize n x else functionPower (square n) k x
 
 invert :: Natural -> Natural -> Maybe Natural
 invert n x =
-    if g == 1 then Just s else Nothing
+    if n == 1 then Just 0
+    else if g == 1 then Just s
+    else Nothing
   where
     (g,(s,_)) = egcd x n
 

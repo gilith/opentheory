@@ -34,8 +34,8 @@ vSequence two sub mult p q =
 williamsSequence :: a -> a -> (a -> a -> a) -> (a -> a -> a) -> a -> [a]
 williamsSequence one two sub mult p = vSequence two sub mult p one
 
-nthWilliamsSequence :: a -> (a -> a -> a) -> (a -> a -> a) -> a -> Natural -> a
-nthWilliamsSequence two sub mult p k =
+williamsNth :: a -> (a -> a -> a) -> (a -> a -> a) -> a -> Natural -> a
+williamsNth two sub mult p k =
     if k == 0 then two else fst (foldr inc (p, sq p) l)
   where
     l = init (Bits.toList k)

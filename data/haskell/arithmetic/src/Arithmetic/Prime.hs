@@ -42,7 +42,7 @@ millerRabinWitness n =
 
 millerRabin :: Natural -> Natural -> Random.Random -> Bool
 millerRabin t n =
-    \r -> n == 2 || (n /= 1 && naturalOdd n && trials t r)
+    \r -> n == 2 || n == 3 || (n /= 1 && naturalOdd n && trials t r)
   where
     trials i r =
         i == 0 || (trial r1 && trials (i - 1) r2)
@@ -58,9 +58,33 @@ isPrime = millerRabin 100
 
 previousPrime :: Natural -> Random.Random -> Natural
 previousPrime n r =
-    if isPrime n r1 then n else previousPrime (n - 2) r2
+    if isPrime n r1 then n else previousPrime (n - 1) r2
   where
     (r1,r2) = Random.split r
+
+nextPrime :: Natural -> Random.Random -> Natural
+nextPrime n r =
+    if isPrime n r1 then n else nextPrime (n + 1) r2
+  where
+    (r1,r2) = Random.split r
+
+nextPrime3Mod4 :: Natural -> Random.Random -> Natural
+nextPrime3Mod4 =
+    \n -> go ((4 * (n `div` 4)) + 3)
+  where
+    go n r =
+        if isPrime n r1 then n else go (n + 4) r2
+      where
+        (r1,r2) = Random.split r
+
+nextPrime5Mod8 :: Natural -> Random.Random -> Natural
+nextPrime5Mod8 =
+    \n -> go ((8 * ((n + 2) `div` 8)) + 5)
+  where
+    go n r =
+        if isPrime n r1 then n else go (n + 8) r2
+      where
+        (r1,r2) = Random.split r
 
 randomPrime :: Natural -> Random.Random -> Natural
 randomPrime w =
