@@ -12,25 +12,24 @@ module OpenTheory.Primitive.Test
     check )
 where
 
-import Test.QuickCheck
+import qualified Test.QuickCheck as QuickCheck
 
 assert :: String -> Bool -> IO ()
 assert desc prop =
-  do putStr desc
-     if prop
-       then putStrLn "+++ OK"
-       else
-         do putStr "**"
-            putStrLn "* Failed!"
-            error "Assertion failed"
+    do putStr desc
+       if prop
+         then putStrLn "+++ OK"
+         else
+           do putStr "**"
+              putStrLn "* Failed!"
+              error "Assertion failed"
 
-checkArgs :: Test.QuickCheck.Args
-checkArgs = Test.QuickCheck.stdArgs { maxSuccess = 100 }
-
-check :: Testable prop => String -> prop -> IO ()
+check :: QuickCheck.Testable prop => String -> prop -> IO ()
 check desc prop =
-  do putStr desc
-     res <- Test.QuickCheck.quickCheckWithResult checkArgs prop
-     case res of
-       Test.QuickCheck.Failure {} -> error "Proposition failed"
-       _ -> return ()
+    do putStr desc
+       res <- QuickCheck.quickCheckWithResult args prop
+       case res of
+         QuickCheck.Failure {} -> error "Proposition failed"
+         _ -> return ()
+  where
+    args = QuickCheck.stdArgs {QuickCheck.maxSuccess = 100}

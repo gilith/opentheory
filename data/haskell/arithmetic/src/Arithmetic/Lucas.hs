@@ -12,7 +12,6 @@ where
 
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
-import qualified Arithmetic.Modular as Modular
 
 advance :: (a -> a -> a) -> (a -> a -> a) -> a -> a -> a -> a -> a
 advance sub mult p q x y = sub (mult p y) (mult q x)
@@ -44,14 +43,3 @@ williamsNth two sub mult p k =
         if b then (z, sq y) else (sq x, z)
       where
         z = sub (mult x y) p
-
-{-
-n = 112729
---a = 5
---a = 9
-a = 0
-s = williamsSequence 1 2 (Modular.subtract n) (Modular.multiply n) a
-f n = s !! (product [1..n])
-l = map f [1..9]
-g = nthWilliamsSequence 2 (Modular.subtract n) (Modular.multiply n) a
--}

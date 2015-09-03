@@ -16,7 +16,6 @@ import OpenTheory.Primitive.Natural
 import OpenTheory.Natural
 import qualified OpenTheory.Primitive.Random as Random
 import qualified OpenTheory.Natural.Uniform as Uniform
-import OpenTheory.Primitive.Test
 
 import Arithmetic.Random
 import Arithmetic.Prime
@@ -306,39 +305,46 @@ propWilliamsNthEqTwo pp a mp rnd =
     sub = Modular.subtract p
     mult = Modular.multiply p
 
-checkProp :: QuickCheck.Testable prop => String -> prop -> IO ()
-checkProp s p = check (s ++ "\n  ") p
+check :: QuickCheck.Testable prop => String -> prop -> IO ()
+check desc prop =
+    do putStr (desc ++ "\n  ")
+       res <- QuickCheck.quickCheckWithResult args prop
+       case res of
+         QuickCheck.Failure {} -> error "Proposition failed"
+         _ -> return ()
+  where
+    args = QuickCheck.stdArgs {QuickCheck.maxSuccess = 1000}
 
 main :: IO ()
 main =
-    do checkProp "Smooth constructor is injective" propSmoothInjective
-       checkProp "Modular negate" propModularNegate
-       checkProp "Modular invert" propModularInvert
-       checkProp "Fermat's little theorem" propFermat
-       checkProp "Montgomery invariant" propMontgomeryInvariant
-       checkProp "Montgomery normalize" propMontgomeryNormalize
-       checkProp "Montgomery reduce" propMontgomeryReduce
-       checkProp "Montgomery reduce small" propMontgomeryReduceSmall
-       checkProp "Montgomery toNatural" propMontgomeryToNatural
-       checkProp "Montgomery fromNatural" propMontgomeryFromNatural
-       checkProp "Montgomery zero" propMontgomeryZero
-       checkProp "Montgomery one" propMontgomeryOne
-       checkProp "Montgomery two" propMontgomeryTwo
-       checkProp "Montgomery add" propMontgomeryAdd
-       checkProp "Montgomery negate" propMontgomeryNegate
-       checkProp "Montgomery multiply" propMontgomeryMultiply
-       checkProp "Montgomery modexp" propMontgomeryModexp
-       checkProp "Montgomery modexp2" propMontgomeryModexp2
-       checkProp "Floor square root" propRootFloor
-       checkProp "Ceiling square root" propRootCeiling
-       checkProp "Continued fraction square root" propRootContinuedFraction
-       checkProp "Jacobi symbol" propJacobiSymbol
-       checkProp "Square root modulo prime congruent to 3 mod 4"
+    do check "Smooth constructor is injective" propSmoothInjective
+       check "Modular negate" propModularNegate
+       check "Modular invert" propModularInvert
+       check "Fermat's little theorem" propFermat
+       check "Montgomery invariant" propMontgomeryInvariant
+       check "Montgomery normalize" propMontgomeryNormalize
+       check "Montgomery reduce" propMontgomeryReduce
+       check "Montgomery reduce small" propMontgomeryReduceSmall
+       check "Montgomery toNatural" propMontgomeryToNatural
+       check "Montgomery fromNatural" propMontgomeryFromNatural
+       check "Montgomery zero" propMontgomeryZero
+       check "Montgomery one" propMontgomeryOne
+       check "Montgomery two" propMontgomeryTwo
+       check "Montgomery add" propMontgomeryAdd
+       check "Montgomery negate" propMontgomeryNegate
+       check "Montgomery multiply" propMontgomeryMultiply
+       check "Montgomery modexp" propMontgomeryModexp
+       check "Montgomery modexp2" propMontgomeryModexp2
+       check "Floor square root" propRootFloor
+       check "Ceiling square root" propRootCeiling
+       check "Continued fraction square root" propRootContinuedFraction
+       check "Jacobi symbol" propJacobiSymbol
+       check "Square root modulo prime congruent to 3 mod 4"
          propRootModuloPrime3Mod4
-       checkProp "Square root modulo prime congruent to 5 mod 8"
+       check "Square root modulo prime congruent to 5 mod 8"
          propRootModuloPrime5Mod8
-       checkProp "Square root modulo prime" propRootModuloPrime
-       checkProp "Williams sequence" propWilliamsNth
-       checkProp "Williams sequence product" propWilliamsNthProduct
-       checkProp "Williams sequence equals two" propWilliamsNthEqTwo
+       check "Square root modulo prime" propRootModuloPrime
+       check "Williams sequence" propWilliamsNth
+       check "Williams sequence product" propWilliamsNthProduct
+       check "Williams sequence equals two" propWilliamsNthEqTwo
        return ()

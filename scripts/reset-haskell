@@ -151,7 +151,7 @@ my $changed = 1;
 while ($changed == 1) {
   $changed = 0;
 
-  my $list_cmd = 'ghc-pkg list | grep ' . "'" . '^[[:space:]]*(' . join ("\\|",@pkgs) . ')-[[:digit:].]+$' . "'";
+  my $list_cmd = 'ghc-pkg list | grep ' . "'" . '^[[:space:]]*\\(' . join ("\\|",@pkgs) . '\\)-[[:digit:].]\\+$' . "'";
 
   if ($opt_n) {
     print STDOUT "$list_cmd\n";
@@ -227,8 +227,8 @@ Don't do anything destructive, just print the commands that would be used.
 =head1 DESCRIPTION
 
 Unregisters Haskell packages that depend on automatically generated
-from OpenTheory packages, and also nukes the source directory of
-exported packages.
+OpenTheory packages, and also nukes the source directory of exported
+packages.
 
 =head1 BUGS
 
