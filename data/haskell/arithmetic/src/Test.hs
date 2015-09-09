@@ -290,6 +290,16 @@ propWilliamsNthProduct np pp i j =
     sub = Modular.subtract n
     mult = Modular.multiply n
 
+propWilliamsNthExp :: Natural -> Natural -> Natural -> Natural -> Bool
+propWilliamsNthExp np p m k =
+    Lucas.williamsNthExp two sub mult p m k ==
+    Lucas.williamsNth two sub mult p (m ^ k)
+  where
+    n = np + 1
+    two = Modular.normalize n 2
+    sub = Modular.subtract n
+    mult = Modular.multiply n
+
 propWilliamsNthEqTwo :: Natural -> Natural -> Natural -> Random.Random -> Bool
 propWilliamsNthEqTwo pp a mp rnd =
     Lucas.williamsNth two sub mult a m == two
@@ -346,5 +356,6 @@ main =
        check "Square root modulo prime" propRootModuloPrime
        check "Williams sequence" propWilliamsNth
        check "Williams sequence product" propWilliamsNthProduct
+       check "Williams sequence exponential" propWilliamsNthExp
        check "Williams sequence equals two" propWilliamsNthEqTwo
        return ()

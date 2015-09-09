@@ -32,7 +32,8 @@ Library
     Arithmetic.Prime,
     Arithmetic.Quadratic,
     Arithmetic.Random,
-    Arithmetic.Smooth
+    Arithmetic.Smooth,
+    Arithmetic.Utility
 
 executable arithmetic
   build-depends:

@@ -107,3 +107,13 @@ randomPrime5Mod8 w =
     randomFilter check (randomPrime w)
   where
     check p = p `mod` 8 == 5
+
+randomCompositeRSA :: Natural -> Random.Random -> Natural
+randomCompositeRSA w rnd =
+    p1 * p2
+  where
+    w1 = w `div` 2
+    w2 = w - w1
+    p1 = randomPrime w1 r1
+    p2 = randomPrime w2 r2
+    (r1,r2) = Random.split rnd

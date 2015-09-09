@@ -1,0 +1,149 @@
+#!/usr/bin/perl
+
+# Copyright (c) 2011 Joe Leslie-Hurd, distributed under the MIT license
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Std;
+
+use vars qw($opt_h $opt_v);
+
+###############################################################################
+# Process options.
+###############################################################################
+
+getopts('hv');
+
+if ($opt_h or scalar @ARGV != 0)
+{
+    pod2usage({-exitval => 2,
+	       -verbose => 2});
+}
+
+# Autoflush STDIN
+$|++;
+
+###############################################################################
+# Global variables.
+###############################################################################
+
+my $program = "profile-factor";
+
+###############################################################################
+# Helper functions.
+###############################################################################
+
+sub get_real_time {
+  (scalar @_ == 1) or die;
+  my $n = shift @_;
+
+  if ($n =~ /real[[:space:]]+([[:digit:]]+[.][[:digit:]]+)/s) {
+    return $1;
+  }
+  else {
+    die "$program: bad time format:\n$n";
+  }
+}
+
+sub get_results {
+  (scalar @_ == 2) or die;
+  my $name = shift @_;
+  my $cmdprefix = shift @_;
+
+  print STDOUT "<tr>";
+
+  print STDOUT "<td><b>";
+  print STDOUT $name;
+  print STDOUT "</b></td>";
+
+  my $i = 128;
+  while ($i <= 5000) {
+    if ($cmdprefix eq "header") {
+      print STDOUT "<td><b>";
+      print STDOUT $i;
+      print STDOUT "</b></td>";
+    }
+    else {
+      print STDOUT "<td>";
+
+      my $cmd = "$cmdprefix -n [$i] -x 2 -k 1000000";
+
+      if ($opt_v) {
+        print STDOUT "\n$cmd\n";
+      }
+
+      my $r = `(time -p $cmd) 2>&1 >/dev/null`;
+      if ($? != 0) {
+        die "$program: the following command failed with error code $?:\n  $cmd\n";
+      }
+
+      my $t = get_real_time $r;
+
+      print STDOUT $t;
+
+      print STDOUT "s</td>";
+    }
+
+    $i *= 2;
+  }
+
+  print STDOUT "</tr>\n";
+}
+
+###############################################################################
+# Main program.
+###############################################################################
+
+my $factor = "dist/build/arithmetic/arithmetic";
+[ -x $factor ] or die "$program: $factor not an executable";
+
+get_results ("<em>n</em>", "header");
+get_results ("Modular", "$modexp timelock --algorithm=modular");
+get_results ("Montgomery", "$modexp timelock --algorithm=montgomery");
+
+__END__
+
+=pod
+
+=head1 NAME
+
+profile-factor - profile the factoring algorithms
+
+=head1 SYNOPSIS
+
+profile-factor [-hv]
+
+=head1 ARGUMENTS
+
+The recognized flags are described below:
+
+=over 2
+
+=item B<-h>
+
+Produce this documentation.
+
+=item B<-v>
+
+Verbose output.
+
+=back
+
+=head1 DESCRIPTION
+
+Profile the factoring algorithms.
+
+=head1 BUGS
+
+Waiting to rear their ugly heads.
+
+=head1 AUTHORS
+
+Joe Leslie-Hurd <joe@gilith.com>
+
+=head1 SEE ALSO
+
+Perl(1).
+
+=cut

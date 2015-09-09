@@ -12,26 +12,8 @@ where
 
 import OpenTheory.Primitive.Natural
 import OpenTheory.Natural.Divides
-import qualified OpenTheory.Natural.Bits as Bits
 
-multiplyExponential :: (a -> a -> a) -> a -> a -> Natural -> a
-multiplyExponential mult =
-    multExp
-  where
-    multExp z x k =
-        if k == 0 then z else multExp z' x' k'
-      where
-        z' = if Bits.headBits k then mult z x else z
-        x' = mult x x
-        k' = Bits.tailBits k
-
-functionPower :: (a -> a) -> Natural -> a -> a
-functionPower f =
-    loop
-  where
-    loop n x =
-       if n == 0 then x
-       else let x' = f x in x' `seq` loop (n - 1) x'
+import Arithmetic.Utility
 
 normalize :: Natural -> Natural -> Natural
 normalize n x = x `mod` n

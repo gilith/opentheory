@@ -14,6 +14,7 @@ import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 import OpenTheory.Natural.Divides
 
+import Arithmetic.Utility
 import qualified Arithmetic.Modular as Modular
 
 data Parameters = Parameters
@@ -146,12 +147,12 @@ square a = multiply a a
 
 exp :: Montgomery -> Natural -> Montgomery
 exp a =
-    Modular.multiplyExponential multiply (one p) a
+    multiplyExponential multiply (one p) a
   where
     p = pMontgomery a
 
 exp2 :: Montgomery -> Natural -> Montgomery
-exp2 a k = Modular.functionPower square k a
+exp2 a k = functionPower square k a
 
 modexp :: Natural -> Natural -> Natural -> Natural
 modexp n a k =

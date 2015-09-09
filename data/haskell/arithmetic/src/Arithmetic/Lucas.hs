@@ -13,6 +13,8 @@ where
 import OpenTheory.Primitive.Natural
 import qualified OpenTheory.Natural.Bits as Bits
 
+import Arithmetic.Utility
+
 advance :: (a -> a -> a) -> (a -> a -> a) -> a -> a -> a -> a -> a
 advance sub mult p q x y = sub (mult p y) (mult q x)
 
@@ -33,13 +35,23 @@ vSequence two sub mult p q =
 williamsSequence :: a -> a -> (a -> a -> a) -> (a -> a -> a) -> a -> [a]
 williamsSequence one two sub mult p = vSequence two sub mult p one
 
-williamsNth :: a -> (a -> a -> a) -> (a -> a -> a) -> a -> Natural -> a
-williamsNth two sub mult p k =
-    if k == 0 then two else fst (foldr inc (p, sq p) l)
+williamsNthExp ::
+    a -> (a -> a -> a) -> (a -> a -> a) -> a -> Natural -> Natural -> a
+williamsNthExp two sub mult p n k =
+    if k == 0 then p
+    else if n == 0 then two
+    else functionPower nth k p
   where
-    l = init (Bits.toList k)
+    l = init (Bits.toList n)
     sq z = sub (mult z z) two
-    inc b (x,y) =
-        if b then (z, sq y) else (sq x, z)
+    nth v =
+        w
       where
-        z = sub (mult x y) p
+        (w,_) = foldr inc (v, sq v) l
+        inc b (x,y) =
+           if b then (z, sq y) else (sq x, z)
+         where
+           z = sub (mult x y) v
+
+williamsNth :: a -> (a -> a -> a) -> (a -> a -> a) -> a -> Natural -> a
+williamsNth two sub mult p n = williamsNthExp two sub mult p n 1
